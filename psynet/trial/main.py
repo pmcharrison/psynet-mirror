@@ -1367,10 +1367,7 @@ class TrialMaker(Module):
             # If the participant is in a sync group and the leader has not been initialized,
             # then we put a GroupBarrier to ensure that the leader can be initialized first.
             # Otherwise we go ahead and initialize the participant.
-            lambda participant: (
-                self.sync_group_type is not None
-                and not self._leader_is_initialized(participant)
-            ),
+            self._requires_sync_group_initialization_barrier,
             logic_if_true=GroupBarrier(
                 "init_participant",
                 group_type=self.sync_group_type,
@@ -1383,6 +1380,19 @@ class TrialMaker(Module):
             logic_if_false=CodeBlock(self.init_participant),
             time_estimate=0.0 if self.sync_group_type is None else 3.0,
         )
+
+    def _requires_sync_group_initialization_barrier(self, participant):
+        """Return whether the participant should wait for sync-group initialization."""
+        if self.sync_group_type is None:
+            return False
+        if self.sync_group_type not in participant.active_sync_groups:
+            participant_id = getattr(participant, "id", "<unknown>")
+            raise RuntimeError(
+                f"Trial maker '{self.id}' expected participant {participant_id} "
+                f"to have an active sync group of type '{self.sync_group_type}' "
+                "during initialization."
+            )
+        return not self._leader_is_initialized(participant)
 
     def _leader_is_initialized(self, participant):
         group = participant.active_sync_groups[self.sync_group_type]
