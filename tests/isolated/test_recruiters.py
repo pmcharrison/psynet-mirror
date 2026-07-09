@@ -28,6 +28,43 @@ def test_check_assignment_return_status_records_returned_participant_status():
     assert result is True
     assert participant.var.assignment_returned is True
     assert participant.status == "returned"
+    experiment.recruiter.approve_hit.assert_not_called()
+
+
+def test_check_assignment_return_status_approves_awaiting_review_submission():
+    participant = make_participant(status="working")
+    experiment = MagicMock()
+    experiment.recruiter.prolificservice.get_participant_submission.return_value = {
+        "status": "AWAITING REVIEW"
+    }
+
+    with patch("psynet.experiment.get_experiment", return_value=experiment):
+        result = PsyNetProlificRecruiterMixin.check_assignment_return_status(
+            participant
+        )
+
+    assert result is True
+    assert participant.var.assignment_returned is True
+    assert participant.status == "approved"
+    experiment.recruiter.approve_hit.assert_called_once_with(participant.assignment_id)
+
+
+def test_check_assignment_return_status_syncs_already_approved_submission():
+    participant = make_participant(status="working")
+    experiment = MagicMock()
+    experiment.recruiter.prolificservice.get_participant_submission.return_value = {
+        "status": "APPROVED"
+    }
+
+    with patch("psynet.experiment.get_experiment", return_value=experiment):
+        result = PsyNetProlificRecruiterMixin.check_assignment_return_status(
+            participant
+        )
+
+    assert result is True
+    assert participant.var.assignment_returned is True
+    assert participant.status == "approved"
+    experiment.recruiter.approve_hit.assert_not_called()
 
 
 def test_check_assignment_return_status_preserves_non_returned_participant_status():
@@ -45,6 +82,7 @@ def test_check_assignment_return_status_preserves_non_returned_participant_statu
     assert result is False
     assert participant.var.assignment_returned is False
     assert participant.status == "screened_out"
+    experiment.recruiter.approve_hit.assert_not_called()
 
 
 def prolific_error(status):

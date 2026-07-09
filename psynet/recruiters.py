@@ -13,7 +13,6 @@ import flask
 import pandas as pd
 import requests
 import sqlalchemy
-from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
@@ -30,6 +29,8 @@ from dominate.util import raw
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import func
+
+from dallinger import db
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
@@ -257,10 +258,17 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     @staticmethod
     def check_assignment_return_status(participant) -> bool:
-        """Check and update the participant's assignment return status via API call.
+        """Check Prolific status and finalize the return-for-bonus wait loop.
+
+        The failed-participant path asks workers to return their submission.
+        If they submit on Prolific instead (status ``AWAITING REVIEW``), approve
+        the submission so the study is not left stuck. If Prolific already shows
+        ``APPROVED``, sync the local row without re-approving.
 
         Returns:
-            bool: True if assignment is returned, False otherwise
+            bool: True when the wait loop should exit (returned, approved after
+            unexpected submit, or already approved on Prolific); False to keep
+            waiting.
         """
         from psynet.experiment import get_experiment
 
@@ -296,11 +304,31 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
-        is_returned = submission and submission.get("status") == "RETURNED"
-        participant.var.assignment_returned = is_returned
-        if is_returned:
+        prolific_status = submission.get("status") if submission else None
+        if prolific_status == "RETURNED":
+            participant.var.assignment_returned = True
             participant.status = "returned"
-        return is_returned
+            return True
+        if prolific_status == "AWAITING REVIEW":
+            logger.warning(
+                "Prolific submission %s is AWAITING REVIEW during return-for-bonus; "
+                "approving so the study is not left stuck.",
+                participant.assignment_id,
+            )
+            recruiter.approve_hit(participant.assignment_id)
+            participant.status = "approved"
+            participant.var.assignment_returned = True
+            return True
+        if prolific_status == "APPROVED":
+            logger.info(
+                "Prolific submission %s is already APPROVED; syncing local status.",
+                participant.assignment_id,
+            )
+            participant.status = "approved"
+            participant.var.assignment_returned = True
+            return True
+        participant.var.assignment_returned = False
+        return False
 
     @staticmethod
     def reward_and_set_bonus(participant):
