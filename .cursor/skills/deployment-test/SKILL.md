@@ -20,7 +20,8 @@ dashboard or Dozzle, ask the user to provide:
 - the Dozzle username and password.
 
 Do not proceed with authenticated steps until the user has supplied them, and
-do not record the provided credentials in reports, logs, or committed files.
+do not record the provided credentials in reports, logs, or any files that
+might be committed.
 
 ## Local Environment Inputs
 
@@ -489,27 +490,30 @@ Lucid Variant"). Do not stop observing one app because another completed
 first.
 
 After the study status is `COMPLETED`, record the deployment's audit trail in
-a per-deployment folder on the deployment branch. Each deployment gets one
-folder named after the study-completion date/time and app name, containing a
-tracked `analysis.md` and a gitignored `local/` subfolder for all raw
-artifacts:
+a **local-only** per-deployment folder under `<psynet-root>/deployment-tests/`.
+Do **not** commit `analysis.md`, `local/`, or any other audit artifacts to the
+deployment branch (or to `master`). The whole `deployment-tests/` tree is
+gitignored; keep results on disk (and later, if desired, in a separate private
+archive). Deployment branches remain for deploy-code provenance only.
+
+Each deployment gets one folder named after the study-completion date/time and
+app name:
 
 ```text
 deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/
-  analysis.md                            # tracked: the Markdown analysis
-  local/                                 # gitignored: raw data, never committed
+  analysis.md                            # local-only Markdown analysis
+  local/                                 # raw data, never committed
     logs.zip                             # full Dozzle logs download
     logs/                                # extracted per-container logs
     export/                              # psynet export output
     prolific-study-and-submissions.json  # raw Prolific data
 ```
 
-Only `analysis.md` is committed. Everything in `local/` contains participant
-identifiers and/or bloats git history, and `.gitignore` blocks it from being
-tracked. Use local time for the timestamp unless the user requests UTC.
+Use local time for the timestamp unless the user requests UTC.
 
-**Never commit sensitive data in `analysis.md` itself.** The analysis is
-tracked and pushed, so before committing it, check that it contains none of:
+**Keep sensitive data out of chat summaries.** Prefer putting identifiers and
+raw excerpts in `local/` artifacts and the local `analysis.md`. When quoting
+in chat, avoid:
 
 - Prolific worker/participant IDs (`worker_id` / `PROLIFIC_PID` values) or any
   other platform account identifiers.
@@ -519,10 +523,10 @@ tracked and pushed, so before committing it, check that it contains none of:
   user supplied for dashboard/Dozzle/SSH login).
 
 Referring to participants by their PsyNet row id (`participant 16`) and to
-submissions by Prolific submission/assignment id is fine; those are needed for
-cross-referencing and are not personal identifiers. When log excerpts are
-quoted, strip any worker IDs they contain. If in doubt, describe the evidence
-and point to the `local/` artifact instead of quoting it.
+submissions by Prolific submission/assignment id is fine for cross-referencing.
+When log excerpts are quoted in chat, strip any worker IDs they contain. If in
+doubt, describe the evidence and point to the `local/` artifact instead of
+quoting it.
 
 Collect the `local/` artifacts as follows:
 
@@ -553,8 +557,8 @@ Work through all of these once `study_status == "COMPLETED"`:
    comparing against the deployment-time scan; store it in `local/`.
 2. Export the database and data with `psynet export ssh` into `local/export/`.
 3. Save the raw Prolific study and submissions JSON into `local/`.
-4. Write `analysis.md`, referencing the `local/` artifacts, verify it contains
-   no sensitive data (see above), and commit it to the deployment branch.
+4. Write `analysis.md` locally, referencing the `local/` artifacts. Do not
+   `git add`, commit, or push anything under `deployment-tests/`.
 5. Offer to tear down the deployed app once the data is captured. Do not
    destroy it without explicit user confirmation:
 
