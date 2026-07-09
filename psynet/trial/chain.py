@@ -1255,13 +1255,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant; ``"kick"`` removes them
         from the group and lets them continue. Defaults to ``"fail"``.
 
-    sync_group_timeout
+    sync_group_late_participant_timeout
         Optional timeout in seconds (since the group's last barrier pass) after which a participant
-        is considered too slow. When set, ``participant_timeout`` is passed to sync GroupBarriers.
-        When ``None`` (default), no participant timeout is applied.
+        is considered too slow. When set, ``late_participant_timeout`` is passed to sync GroupBarriers.
+        When ``None`` (default), no late-participant timeout is applied.
 
-    sync_group_timeout_action
-        When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
+    sync_group_late_participant_timeout_action
+        When ``sync_group_late_participant_timeout`` is set: ``"kick"`` removes the participant from the group so
         the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
@@ -1341,8 +1341,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout: Optional[int] = None,
-        sync_group_timeout_action: Literal["kick", "fail"] = "fail",
+        sync_group_late_participant_timeout: Optional[int] = None,
+        sync_group_late_participant_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1484,8 +1484,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
             sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            sync_group_late_participant_timeout=sync_group_late_participant_timeout,
+            sync_group_late_participant_timeout_action=sync_group_late_participant_timeout_action,
         )
 
         self.check_initialization()

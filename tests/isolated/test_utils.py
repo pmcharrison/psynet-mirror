@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 from datetime import datetime, timedelta
+from importlib.machinery import ModuleSpec
 from math import isnan
 from pathlib import Path
 from unittest.mock import patch
@@ -13,8 +14,10 @@ from psynet.pytest_psynet import path_to_demo_experiment
 from psynet.timeline import Module
 from psynet.utils import (
     DuplicateKeyError,
+    ExperimentDirectoryNameError,
     check_todos_before_deployment,
     corr,
+    ensure_experiment_directory_name_does_not_conflict,
     format_timedelta,
     generate_text_file,
     get_authenticated_session,
@@ -197,11 +200,19 @@ def test_demo_dirs():
         psynet_root.joinpath("tests/experiments/recruiters/lab_recruiter").__str__()
         in dirs
     )
+    assert (
+        psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
+        in dirs
+    )
 
     dirs = list_experiment_dirs(for_ci_tests=True)
     assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
     assert (
         psynet_root.joinpath("tests/experiments/recruiters/lab_recruiter").__str__()
+        not in dirs
+    )
+    assert (
+        psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
         not in dirs
     )
 
@@ -373,6 +384,29 @@ def test_get_psynet_package_source_directory():
         source_dir = get_package_source_directory()
         assert source_dir == "psynet"
         assert os.path.isdir(source_dir)
+
+
+def test_experiment_directory_name_rejects_non_package_module(tmp_path):
+    experiment_directory = tmp_path / "code"
+    experiment_directory.mkdir()
+    (experiment_directory / "experiment.py").write_text("")
+
+    with pytest.raises(ExperimentDirectoryNameError, match="Python's module 'code'"):
+        ensure_experiment_directory_name_does_not_conflict(experiment_directory)
+
+
+def test_experiment_directory_name_allows_package_resolution(tmp_path, monkeypatch):
+    experiment_directory = tmp_path / "static"
+    experiment_directory.mkdir()
+    (experiment_directory / "experiment.py").write_text("")
+    spec = ModuleSpec("static", loader=None, is_package=True)
+
+    monkeypatch.setattr(
+        "importlib.util.find_spec",
+        lambda name: spec if name == "static" else None,
+    )
+
+    ensure_experiment_directory_name_does_not_conflict(experiment_directory)
 
 
 def test_get_locales_dir_from_path_uses_given_path(tmp_path):

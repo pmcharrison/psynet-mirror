@@ -6,10 +6,13 @@ if TYPE_CHECKING:
     from psynet.asset import Asset
     from psynet.trial.main import TrialNode
 
+import copy
 import inspect
 import json
 import random
+import re
 import time
+import warnings
 from collections import Counter
 from datetime import datetime
 from functools import cached_property
@@ -18,8 +21,10 @@ from statistics import median
 from types import FunctionType
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
+from bs4 import BeautifulSoup
 from dallinger import db
 from dominate import tags
+from jsonpickle.util import importable_name
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -30,7 +35,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject
-from .serialize import is_lambda_function
+from .serialize import is_lambda_function, prepare_function_for_serialization
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -323,6 +328,7 @@ class CodeBlock(Elt):
         call_function_with_context(
             self.function,
             self=self,
+            code_block=self,
             experiment=experiment,
             participant=participant,
         )
@@ -384,12 +390,22 @@ class AsyncCodeBlock(EltCollection):
             CodeBlock(self.wrap_up),
         )
 
-    def initiate(self, participant):
+    def initiate(self, participant, code_block):
         from psynet.process import WorkerAsyncProcess
 
+        code_block_id = code_block.id
         stale = participant.awaited_async_code_block_process
         if stale is not None:
             if stale.pending and not stale.failed:
+                if self.wait and self.matches_pending_process(stale, code_block_id):
+                    logger.warning(
+                        "Participant %s already has an async code block process "
+                        "(id=%s) pending; waiting for the existing process instead "
+                        "of starting a duplicate.",
+                        participant.id,
+                        stale.id,
+                    )
+                    return
                 raise RuntimeError(
                     "Participant already has an async code block process pending, this shouldn't happen."
                 )
@@ -413,8 +429,28 @@ class AsyncCodeBlock(EltCollection):
             call_function_with_context,
             label="AsyncCodeBlock",
             participant=participant,
-            arguments=dict(function=self.function, participant=participant),
+            arguments=dict(
+                function=self.function,
+                participant=participant,
+                code_block_id=code_block_id,
+            ),
         )
+
+    def matches_pending_process(self, process, code_block_id):
+        try:
+            pending_function = process.arguments["function"]
+            pending_code_block_id = process.arguments["code_block_id"]
+        except (KeyError, TypeError):
+            return False
+
+        return pending_code_block_id == code_block_id and self.function_key(
+            pending_function
+        ) == self.function_key(self.function)
+
+    @staticmethod
+    def function_key(function):
+        function, _ = prepare_function_for_serialization(function, {})
+        return importable_name(function)
 
     def wait_logic(self):
         from .page import wait_while
@@ -839,6 +875,8 @@ class ProgressDisplay(dict):
 
 
 class Page(Elt):
+    _jsonpickle_exclude = ("_template_contract_soup",)
+
     """
     The base class for pages, customised by passing values to the ``__init__``
     function and by overriding the following methods:
@@ -858,6 +896,20 @@ class Page(Elt):
 
     template_str:
         Alternative way of specifying the jinja2 template as a string.
+
+    template_fragment_path:
+        Path to a jinja2 template containing only the contents of the timeline
+        page's ``main_body`` block. This is the recommended custom-template
+        style for pages used with ``inplace_timeline_transitions``.
+
+    template_fragment_str:
+        Alternative way of specifying a main-body template fragment as a string.
+
+    framework_owned_template:
+        Internal marker for PsyNet-owned templates. Framework pages may still
+        use complete templates in SPA mode because PsyNet controls their page
+        shell and lifecycle; experiment-authored complete templates should use
+        ``template_fragment_path`` or ``template_fragment_str`` for SPA.
 
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
@@ -1003,6 +1055,8 @@ class Page(Elt):
         time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None,
+        template_fragment_path: Optional[str] = None,
+        template_fragment_str: Optional[str] = None,
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
@@ -1021,6 +1075,7 @@ class Page(Elt):
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
+        framework_owned_template: bool = False,
     ):
         super().__init__()
 
@@ -1035,14 +1090,42 @@ class Page(Elt):
         if css_links is None:
             css_links = []
 
-        if template_path is None and template_str is None:
-            raise ValueError("Must provide either template_path or template_str.")
+        complete_template_provided = (
+            template_path is not None or template_str is not None
+        )
+        fragment_template_provided = (
+            template_fragment_path is not None or template_fragment_str is not None
+        )
+
+        if not complete_template_provided and not fragment_template_provided:
+            raise ValueError(
+                "Must provide either template_path/template_str or "
+                "template_fragment_path/template_fragment_str."
+            )
         if template_path is not None and template_str is not None:
             raise ValueError("Cannot provide both template_path and template_str.")
+        if template_fragment_path is not None and template_fragment_str is not None:
+            raise ValueError(
+                "Cannot provide both template_fragment_path and template_fragment_str."
+            )
+        if complete_template_provided and fragment_template_provided:
+            raise ValueError(
+                "Cannot provide both a complete template and a template fragment."
+            )
 
         if template_path is not None:
             with open(template_path, "r") as file:
                 template_str = file.read()
+
+        template_kind = "complete"
+        template_contract_source = template_str
+        if fragment_template_provided:
+            template_kind = "fragment"
+            if template_fragment_path is not None:
+                with open(template_fragment_path, "r") as file:
+                    template_fragment_str = file.read()
+            template_contract_source = template_fragment_str
+            template_str = self._wrap_template_fragment(template_fragment_str)
 
         assert len(label) <= 250
         assert isinstance(template_arg, dict)
@@ -1050,6 +1133,10 @@ class Page(Elt):
 
         self.time_estimate = time_estimate
         self.template_str = template_str
+        self.template_kind = template_kind
+        self.template_contract_source = template_contract_source
+        self.framework_owned_template = framework_owned_template
+        self._spa_template_contract_warning_shown = False
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
@@ -1088,6 +1175,15 @@ class Page(Elt):
 
         self._bot_response = bot_response
         self._validate_function = validate
+
+    @staticmethod
+    def _wrap_template_fragment(template_fragment_str):
+        return (
+            '{% extends "timeline-page.html" %}\n\n'
+            "{% block main_body %}\n"
+            f"{template_fragment_str}\n"
+            "{% endblock %}"
+        )
 
     def call__get_bot_response(self, experiment, bot, response=NoArgumentProvided):
         """
@@ -1429,9 +1525,12 @@ class Page(Elt):
         """
         pass
 
-    def render(self, experiment, participant):
+    def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
 
+        # `partial_mode` is an internal render shape used for inplace
+        # transitions. The public timeline route now serves full pages (plus
+        # mode=json), while /response embeds this fragment payload directly.
         internal_js_vars = {
             "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
@@ -1440,7 +1539,13 @@ class Page(Elt):
         locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
+        # The SPA template contract applies to author-provided template source,
+        # not to PsyNet's generated timeline shell or supported page assets.
+        self._check_spa_template_contract(
+            inplace_timeline_transitions=config.get("inplace_timeline_transitions"),
+        )
         js_vars = {**self.js_vars, **internal_js_vars}
+        inplace_timeline_transitions = config.get("inplace_timeline_transitions")
 
         all_template_args = {
             **self.template_arg,
@@ -1470,13 +1575,206 @@ class Page(Elt):
                 iso: language_dict[iso] for iso in experiment.supported_locales
             },
             "locale": locale,
+            "partial_mode": partial_mode,
+            "inplace_timeline_transitions": inplace_timeline_transitions,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
-        return render_string_with_translations(
+        rendered = render_string_with_translations(
             template_string=self.template_str, **all_template_args
         )
+        if partial_mode:
+            rendered = self._extract_partial_render(rendered)
+        return rendered
+
+    def _check_spa_template_contract(self, inplace_timeline_transitions):
+        if self.framework_owned_template:
+            return
+
+        problems = self._collect_spa_template_contract_problems()
+        if not problems:
+            return
+
+        message = "\n\n".join(problems)
+        if inplace_timeline_transitions:
+            raise ValueError(message)
+
+        if not self._spa_template_contract_warning_shown:
+            warnings.warn(message, UserWarning, stacklevel=2)
+            self._spa_template_contract_warning_shown = True
+
+    def _collect_spa_template_contract_problems(self):
+        problems = []
+        template_source = self.template_contract_source or ""
+
+        if self.template_kind == "complete":
+            problems.append(self._complete_template_spa_contract_message())
+
+        # These checks intentionally cover common authoring mistakes rather
+        # than trying to prove that arbitrary HTML/JS is SPA-safe.
+        soup = self._get_template_contract_soup()
+
+        for script in soup.find_all("script"):
+            if script.get("src"):
+                problems.append(
+                    "The template includes a page JavaScript link in a "
+                    "<script src=...> tag. Supply page JavaScript files via "
+                    "the Page js_links argument instead."
+                )
+            else:
+                problems.append(
+                    "The template includes a raw <script> block. Supply "
+                    "page JavaScript via the Page scripts argument instead, "
+                    "and use PsyNet lifecycle hooks such as "
+                    "psynet.trial.onEvent('trialConstruct', ...) for page setup."
+                )
+
+        if soup.find_all("style"):
+            problems.append(
+                "The template includes inline CSS in a <style> tag. Supply "
+                "page-local CSS via the Page css argument instead."
+            )
+
+        for link in soup.find_all(
+            "link", rel=lambda value: value and "stylesheet" in value
+        ):
+            problems.append(
+                "The template includes a stylesheet <link> tag. Supply "
+                "page-local stylesheet links via the Page css_links argument "
+                "instead."
+            )
+
+        if re.search(
+            r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
+            r"['\"]DOMContentLoaded['\"]",
+            template_source,
+        ):
+            problems.append(
+                "The template registers a DOMContentLoaded listener. "
+                "In-place timeline transitions do not reload the document for "
+                "each page, so page setup should use PsyNet lifecycle hooks "
+                "such as psynet.trial.onEvent('trialConstruct', ...), or "
+                "page scripts supplied through scripts/js_links."
+            )
+
+        has_window_event_listener = re.search(
+            r"\bwindow\s*\.\s*addEventListener\s*\(",
+            template_source,
+        )
+        has_page_cleanup = (
+            "psynet.addPageEventListener" in template_source
+            or "psynet.addPageCleanupCallback" in template_source
+        )
+        if has_window_event_listener and not has_page_cleanup:
+            problems.append(
+                "The template registers a window event listener without a "
+                "PsyNet cleanup hook. Use psynet.addPageEventListener(...) "
+                "when possible, or register cleanup with "
+                "psynet.addPageCleanupCallback(...)."
+            )
+
+        return problems
+
+    def _complete_template_spa_contract_message(self):
+        return (
+            f"Page '{self.label}' uses a complete custom template. "
+            "Complete templates that extend timeline-page.html are supported "
+            "only by the legacy full-page reload path unless PsyNet explicitly "
+            "marks the template as framework-owned. For custom pages used "
+            "with inplace_timeline_transitions, pass "
+            "template_fragment_path or template_fragment_str with only the "
+            "contents of the main_body block, and supply page-local CSS/JS via "
+            "css, css_links, scripts, and js_links. Search your experiment "
+            f"code for Page(...) calls with label='{self.label}'."
+        )
+
+    def _get_template_contract_soup(self):
+        soup = getattr(self, "_template_contract_soup", None)
+        if soup is None:
+            soup = BeautifulSoup(self.template_contract_source or "", "html.parser")
+            self._template_contract_soup = soup
+        return soup
+
+    @staticmethod
+    def _extract_partial_render(rendered_html):
+        soup = BeautifulSoup(rendered_html, "html.parser")
+        Page._defer_executable_scripts(soup)
+        return Page._extract_partial_body(soup)
+
+    @staticmethod
+    def _defer_executable_scripts(soup):
+        parsed_from_string = isinstance(soup, str)
+        if parsed_from_string:
+            soup = BeautifulSoup(soup, "html.parser")
+
+        executable_script_types = {
+            "",
+            "application/ecmascript",
+            "application/javascript",
+            "module",
+            "text/ecmascript",
+            "text/javascript",
+        }
+        for script in soup.find_all("script"):
+            script_type = (script.get("type") or "").strip().lower()
+            if script_type not in executable_script_types:
+                continue
+            script["type"] = "text/psynet-script"
+        if parsed_from_string:
+            return str(soup)
+        return soup
+
+    @staticmethod
+    def _extract_partial_body(soup):
+        if isinstance(soup, str):
+            soup = BeautifulSoup(soup, "html.parser")
+
+        fragment = soup.find(id="psynet-timeline-fragment")
+        if fragment is None:
+            raise ValueError(
+                "Failed to extract partial timeline body: could not find fragment root."
+            )
+        Page._copy_head_stylesheet_assets_to_fragment(soup, fragment)
+        return fragment.decode_contents()
+
+    @staticmethod
+    def _copy_head_stylesheet_assets_to_fragment(soup, fragment):
+        head = soup.find("head")
+        if head is None:
+            return
+
+        css_container = fragment.find(id="psynet-page-css")
+        if css_container is not None:
+            existing_styles = {
+                style.get_text() for style in css_container.find_all("style")
+            }
+            for style in head.find_all(
+                "style", attrs={"data-psynet-fragment-style": True}, recursive=False
+            ):
+                style_text = style.get_text()
+                if style_text not in existing_styles:
+                    css_container.append(copy.copy(style))
+                    existing_styles.add(style_text)
+
+        css_link_container = fragment.find(id="psynet-page-css-links")
+        if css_link_container is not None:
+            existing_hrefs = {
+                link.get("href")
+                for link in css_link_container.find_all(
+                    "link", rel=lambda value: value and "stylesheet" in value
+                )
+            }
+            for link in head.find_all(
+                "link",
+                attrs={"data-psynet-fragment-stylesheet": True},
+                rel=lambda value: value and "stylesheet" in value,
+                recursive=False,
+            ):
+                href = link.get("href")
+                if href not in existing_hrefs:
+                    css_link_container.append(copy.copy(link))
+                    existing_hrefs.add(href)
 
     @property
     def plain_text(self):
@@ -2151,7 +2449,7 @@ def while_loop(
         but allow them to proceed to the next page.
 
     on_timeout:
-        Optional callable invoked when ``max_loop_time`` is exceeded and ``fail_on_timeout`` is ``False``.
+        Optional callable invoked when ``max_loop_time`` is exceeded.
         Called with ``participant=...``.
 
     Returns
@@ -2198,22 +2496,25 @@ def while_loop(
 
     from .page import UnsuccessfulEndPage
 
+    timeout_callback = (
+        CodeBlock(
+            lambda participant: call_function_with_context(
+                on_timeout, participant=participant
+            )
+        )
+        if on_timeout is not None
+        else None
+    )
+
     if fail_on_timeout is True:
-        after_timeout_logic = UnsuccessfulEndPage(
-            failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+        after_timeout_logic = join(
+            timeout_callback,
+            UnsuccessfulEndPage(
+                failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+            ),
         )
     else:
-        if on_timeout is not None:
-            after_timeout_logic = join(
-                CodeBlock(
-                    lambda participant: call_function_with_context(
-                        on_timeout, participant=participant
-                    )
-                ),
-                GoTo(end_while),
-            )
-        else:
-            after_timeout_logic = GoTo(end_while)
+        after_timeout_logic = join(timeout_callback, GoTo(end_while))
 
     time_estimate = CreditEstimate(logic).get_max("time")
 

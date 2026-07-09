@@ -66,6 +66,22 @@ def test_modular_page_metadata():
     assert metadata["control"] == page.control.metadata
 
 
+def test_modular_page_accepts_page_css_list():
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        css=[
+            "#first-marker { color: rgb(1, 2, 3); }",
+            "#second-marker { color: rgb(4, 5, 6); }",
+        ],
+    )
+
+    assert page.css == [
+        "#first-marker { color: rgb(1, 2, 3); }",
+        "#second-marker { color: rgb(4, 5, 6); }",
+    ]
+
+
 def test_get_values_and_labels():
     # int input
     values, labels = RatingScale.get_values_and_labels(5)

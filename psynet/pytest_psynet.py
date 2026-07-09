@@ -95,15 +95,26 @@ def assert_text(driver, element_id, value):
 
 
 @pytest.fixture
-def artifact_storage_s3_test_root(tmp_path, monkeypatch):
-    root = str(tmp_path / "psynet-artifact-storage-s3-test")
-    client = get_mock_s3_client(root)
-    resource = get_mock_s3_resource(root)
+def mock_s3_root(tmp_path, monkeypatch):
+    """
+    Configure the filesystem-backed S3 mock for PsyNet tests.
+
+    This fixture monkeypatches current-process S3 helpers and sets
+    ``PSYNET_MOCK_S3_ROOT``, so child processes such as ``psynet prepare`` use
+    the same mock too. It verifies storage/export behavior, not public HTTP
+    access to generated S3 URLs.
+    """
+    root = tmp_path / "psynet-mock-s3"
+    client = get_mock_s3_client(str(root))
+    resource = get_mock_s3_resource(str(root))
+
+    monkeypatch.setenv("PSYNET_MOCK_S3_ROOT", str(root))
     monkeypatch.setattr(psynet_asset, "get_s3_client", lambda: client)
     monkeypatch.setattr(psynet_asset, "get_s3_resource", lambda: resource)
     monkeypatch.setattr(psynet_asset, "get_s3_bucket", resource.Bucket)
     monkeypatch.setattr(psynet_artifact, "get_s3_client", lambda: client)
     psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+
     try:
         client.create_bucket(Bucket="psynet-tests")
         yield root
@@ -226,38 +237,64 @@ def page_loaded(driver):
     return driver.execute_script("return document.readyState == 'complete'")
 
 
-def psynet_loaded(driver):
-    psynet_loaded = driver.execute_script(
-        "try { return psynet != undefined } catch(e) { if (e instanceof ReferenceError) { return false }}"
+def psynet_page_ready(driver):
+    """Return whether the current PsyNet page lifecycle is ready."""
+    return driver.execute_script(
+        """
+        const psynet = window.psynet;
+        if (!psynet || psynet.nextPagePending === true) {
+            return false;
+        }
+        // New in-place timeline pages expose an explicit lifecycle readiness
+        // flag. The DOM marker confirms that the swapped fragment has updated
+        // the visible page body, and pageUuid is needed for transition checks.
+        if (typeof psynet.pageReady !== "undefined") {
+            return psynet.pageReady === true &&
+                document.querySelector("#main-body[data-page-ready]") !== null &&
+                typeof window.pageUuid !== "undefined";
+        }
+        // Legacy full-page loads do not define pageReady; pageLoaded is the
+        // older PsyNet lifecycle signal. Keep this fallback until those tests
+        // move fully to the in-place timeline contract.
+        return psynet.pageLoaded === true &&
+            typeof window.pageUuid !== "undefined";
+        """
     )
-    if psynet_loaded:
-        page_loaded = driver.execute_script("return psynet.pageLoaded")
-        if page_loaded:
-            response_enabled = driver.execute_script(
-                "return psynet.trial.events.responseEnable.happened"
-            )
-            if response_enabled:
-                return True
-    return False
+
+
+def psynet_loaded(driver):
+    """Backward-compatible alias for page lifecycle readiness."""
+    return psynet_page_ready(driver)
 
 
 def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0):
     def get_uuid():
-        return driver.execute_script("return pageUuid")
+        return driver.execute_script("return window.pageUuid")
 
-    def click_button():
-        button = driver.find_element(by, button_identifier)
-        button.click()
+    def find_button():
+        return driver.find_element(by, button_identifier)
+
+    def target_ready_to_click():
+        try:
+            button = find_button()
+        except NoSuchElementException:
+            return False
+        return button.is_displayed() and button.is_enabled()
 
     wait_until(
-        psynet_loaded,
+        psynet_page_ready,
         max_wait=max_wait,
         error_message="Page never became ready.",
         driver=driver,
     )
+    wait_until(
+        target_ready_to_click,
+        max_wait=max_wait,
+        error_message=f"Button {button_identifier!r} never became ready to click.",
+    )
 
     old_uuid = get_uuid()
-    click_button()
+    find_button().click()
     if finished:
         wait_until(
             lambda: "recruiter-exit" in driver.current_url,
@@ -271,7 +308,7 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             )
 
         wait_until(
-            lambda: psynet_loaded(driver) and get_uuid() != old_uuid,
+            lambda: psynet_page_ready(driver) and get_uuid() != old_uuid,
             max_wait=max_wait,
             error_message="Failed to load new page.",
         )
@@ -785,7 +822,7 @@ def _debug_click_interception(driver, element):
 
 
 @pytest.fixture(params=["local", "s3"])
-def artifact_storage(request, tmp_path, artifact_storage_s3_test_root):
+def artifact_storage(request, tmp_path, mock_s3_root):
     if request.param == "local":
         yield LocalArtifactStorage(str(tmp_path))
     elif request.param == "s3":

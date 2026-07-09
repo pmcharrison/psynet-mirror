@@ -1,7 +1,9 @@
 import hashlib
+import io
 import json
 import subprocess
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
@@ -977,12 +979,151 @@ def test_stop_server_gracefully_stops_debug_subprocess():
     kill_workers.assert_called_once()
 
 
+def test_load_runtime_server_config_loads_generated_config():
+    from psynet.command_line import _load_runtime_server_config
+
+    config = Mock()
+    config.ready = True
+
+    with patch(
+        "psynet.command_line.redis_vars.get",
+        return_value="/tmp/dallinger_develop/exp",
+    ):
+        _load_runtime_server_config(config)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_called_once_with(
+        "/tmp/dallinger_develop/exp/config.txt"
+    )
+
+
+def test_load_runtime_server_config_loads_launch_info_when_runtime_dir_is_missing(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _load_runtime_server_config
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config = Mock()
+    config.ready = True
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with patch("psynet.command_line.redis_vars.get", return_value=None):
+        _load_runtime_server_config(config, deployment_id=deployment_id)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_not_called()
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
+
+
+def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
+    from psynet.command_line import export_
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config = Mock()
+    config.ready = True
+    config.values = {}
+
+    def get_config_value(key, default=None):
+        if key in config.values:
+            return config.values[key]
+        if key == "base_port":
+            return 5000
+        if default is not None:
+            return default
+        raise KeyError(key)
+
+    def extend_config(values):
+        config.values.update(values)
+
+    data_zip = io.BytesIO()
+    with zipfile.ZipFile(data_zip, "w"):
+        pass
+    data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
+    source_response = Mock(status_code=200, reason="OK", content=b"source-code")
+    experiment_class = Mock(label="Timeline demo")
+    experiment_class.export_path.return_value = str(tmp_path)
+    config.extend.side_effect = extend_config
+    config.get.side_effect = get_config_value
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.command_line.redis_vars.get", return_value=None),
+        patch(
+            "psynet.command_line.get_experiment_url",
+            side_effect=KeyError,
+        ),
+        patch(
+            "psynet.command_line.requests.get",
+            side_effect=[data_response, source_response],
+        ) as request_get,
+    ):
+        export_(
+            ctx=Mock(),
+            exp_variables={
+                "deployment_id": deployment_id,
+                "label": "Timeline demo",
+            },
+            local=True,
+            path=str(tmp_path),
+            no_source=False,
+            assets="experiment",
+            anonymize="no",
+        )
+
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
+    assert request_get.call_count == 2
+    data_request, source_request = request_get.call_args_list
+    assert data_request.args[0].startswith(
+        "http://127.0.0.1:5000/dashboard/export/download?"
+    )
+    assert data_request.kwargs["auth"] == ("admin", "generated-password")
+    assert source_request.args[0] == "http://127.0.0.1:5000/download_source"
+    assert source_request.kwargs["auth"] == ("admin", "generated-password")
+
+
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
     from psynet.command_line import _run_performance_test_with_new_server
 
     process = Mock()
-    config = Mock()
-    config.ready = True
     server_info = {
         "process": process,
         "tmp_log_path": "/tmp/psynet_server_test.log",
@@ -994,11 +1135,7 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             "psynet.command_line._start_local_server_and_wait_for_ready",
             return_value=server_info,
         ),
-        patch("psynet.command_line.get_config", return_value=config),
-        patch(
-            "psynet.command_line.redis_vars.get",
-            return_value="/tmp/dallinger_develop/exp",
-        ),
+        patch("psynet.command_line._load_runtime_server_config") as load_runtime_config,
         patch("psynet.command_line._run_performance_test_with_existing_server"),
         patch("psynet.command_line._stop_server"),
     ):
@@ -1006,9 +1143,7 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             n_bots="2", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
         )
 
-    config.load_from_file.assert_called_once_with(
-        "/tmp/dallinger_develop/exp/config.txt"
-    )
+    load_runtime_config.assert_called_once_with()
 
 
 @pytest.mark.parametrize(

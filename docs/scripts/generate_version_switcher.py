@@ -161,6 +161,19 @@ def format_alpha_name(alpha_version):
     return f"{match.group(1)} alpha"
 
 
+def format_prerelease_name(tag):
+    """Return the user-facing switcher label for a prerelease tag.
+
+    Styled like the alpha entry (base version, space, suffix), e.g.
+    ``v13.3.0rc0`` -> ``13.3.0 rc0``.
+    """
+    parsed = parse_prerelease(tag)
+    if parsed is None:
+        raise ValueError(f"Expected a prerelease tag, got {tag!r}.")
+    major, minor, patch, kind, num = parsed
+    return f"{major}.{minor}.{patch} {kind}{num}"
+
+
 def build_entries(base_url, tags, alpha_version, latest_rc_tag=None):
     """Build the version_switcher.json entry list.
 
@@ -184,7 +197,7 @@ def build_entries(base_url, tags, alpha_version, latest_rc_tag=None):
     if latest_rc_tag:
         entries.append(
             {
-                "name": f"rc ({_strip_v_prefix(latest_rc_tag)})",
+                "name": format_prerelease_name(latest_rc_tag),
                 "version": latest_rc_tag,
                 "url": f"{base_url}/rc/{latest_rc_tag}/",
             }
