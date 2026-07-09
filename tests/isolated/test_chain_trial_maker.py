@@ -86,6 +86,21 @@ def test_static_trial_maker_error_mentions_nodes():
         )
 
 
+def test_sync_trial_maker_requires_active_group_for_synced_participant():
+    trial_maker = make_trial_maker(sync_group_type="sync")
+    participant = DummyParticipant()
+    start_switch = next(
+        elt
+        for elt in trial_maker._init_participant()
+        if getattr(elt, "label", None) == "init_participant"
+    )
+
+    with pytest.raises(RuntimeError, match="active sync group of type 'sync'"):
+        start_switch.get_target(experiment=None, participant=participant)
+
+    assert participant.branch_log == []
+
+
 def test_sync_trial_maker_prepare_barrier_kick_exits_cleanly(monkeypatch):
     trial_maker = make_trial_maker(
         sync_group_type="main",
