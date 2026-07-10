@@ -4,8 +4,8 @@ from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
-from dallinger import db
 
+from dallinger import db
 from psynet.chatroom import ChatMessage, ChatRoomMember, EnableChatrooms
 from psynet.experiment import get_experiment
 from psynet.participant import Participant

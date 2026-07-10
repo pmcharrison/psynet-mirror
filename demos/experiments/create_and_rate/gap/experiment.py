@@ -4,11 +4,11 @@
 ##########################################################################################
 import random
 
-from dallinger import db
 from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
+from dallinger import db
 from psynet.modular_page import (
     AudioPrompt,
     AudioRecordControl,

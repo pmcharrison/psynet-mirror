@@ -5,8 +5,8 @@ import zipfile
 
 import pytest
 from click import Context
-from dallinger import db
 
+from dallinger import db
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, OnDemandAsset
 from psynet.bot import Bot, BotDriver
 from psynet.command_line import export__local

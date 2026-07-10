@@ -5,11 +5,11 @@ import zipfile
 from collections import Counter
 from json import JSONDecodeError
 
-import dallinger
 import pandas
 import pytest
 from click import Context
 
+import dallinger
 from psynet.bot import BotDriver
 from psynet.command_line import export__local, populate_db_from_zip_file
 from psynet.participant import Participant

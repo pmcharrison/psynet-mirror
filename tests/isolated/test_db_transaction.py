@@ -1,8 +1,8 @@
 import pytest
-from dallinger import db
 from sqlalchemy import Column, String
 from sqlalchemy.orm import object_session
 
+from dallinger import db
 from psynet.data import SQLBase
 from psynet.db import transaction
 from psynet.pytest_psynet import path_to_test_experiment

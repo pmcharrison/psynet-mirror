@@ -2,8 +2,8 @@ import time
 import uuid
 
 import pytest
-from dallinger import db
 
+from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.page import InfoPage
 from psynet.participant import Participant

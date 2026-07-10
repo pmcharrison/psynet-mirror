@@ -24,7 +24,6 @@ import pexpect
 import psutil
 import psycopg2
 import requests
-from dallinger import db
 from dallinger.command_line.docker_ssh import (
     CONFIGURED_HOSTS,
     option_server,
@@ -38,6 +37,7 @@ from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
+from dallinger import db
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (

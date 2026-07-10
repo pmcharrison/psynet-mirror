@@ -3,12 +3,12 @@ import tempfile
 import time
 from typing import List, Union
 
-from dallinger import db
 from markupsafe import Markup
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
+from dallinger import db
 from psynet.asset import asset
 from psynet.bot import Bot
 from psynet.data import SQLBase, SQLMixin, register_table

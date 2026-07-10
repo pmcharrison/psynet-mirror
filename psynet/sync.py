@@ -59,7 +59,6 @@ import random
 from math import floor
 from typing import Callable, List, Optional, Union
 
-from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import (
     Boolean,
@@ -74,6 +73,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
+from dallinger import db
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.db import transaction
 from psynet.field import PythonClass, PythonObject

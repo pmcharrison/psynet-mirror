@@ -3,9 +3,9 @@ import tempfile
 from urllib import request
 
 import pytest
-from dallinger import db
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
+from dallinger import db
 from psynet.asset import (
     CachedAsset,
     CachedFunctionAsset,
@@ -201,7 +201,6 @@ class AssetTests:
     @pytest.mark.parametrize("async_", [True, False])
     def test_after_deposit(async_, db_session, debug_storage, deployment_info):
         from dallinger import db
-
         from psynet.utils import wait_until
 
         try:

@@ -2,9 +2,10 @@
 
 from typing import Optional, Type
 
-from dallinger import db
 from sqlalchemy import Column, Index, String, UniqueConstraint, and_, select
 from sqlalchemy.orm import aliased
+
+from dallinger import db
 
 from ..data import SQLBase, SQLMixin, register_table
 from ..field import Integer, PythonObject

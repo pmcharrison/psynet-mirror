@@ -13,7 +13,6 @@ import flask
 import pandas as pd
 import requests
 import sqlalchemy
-from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
@@ -30,6 +29,8 @@ from dominate.util import raw
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import func
+
+from dallinger import db
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table

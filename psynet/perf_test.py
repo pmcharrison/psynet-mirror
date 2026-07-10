@@ -310,9 +310,9 @@ class PerformanceTester:
 
     def _capture_initial_state(self):
         """Capture initial database state before test."""
-        from dallinger import db
         from sqlalchemy import func
 
+        from dallinger import db
         from psynet.experiment import Request
         from psynet.participant import Participant
         from psynet.process import AsyncProcess
@@ -678,9 +678,9 @@ class PerformanceTester:
         self, n, duration_minutes, actual_duration, initial_state, bot_state
     ):
         """Calculate final metrics and report results."""
-        from dallinger import db
         from sqlalchemy import case, func
 
+        from dallinger import db
         from psynet.bot import Bot
         from psynet.experiment import Request
         from psynet.process import AsyncProcess

@@ -1,7 +1,6 @@
 import random
 from typing import Iterable, List, Optional, Type, Union
 
-from dallinger import db
 from dallinger.models import Vector
 from sqlalchemy import (
     Boolean,
@@ -19,6 +18,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship, subqueryload
 from sqlalchemy.sql.expression import not_, select
 from tqdm import tqdm
+
+from dallinger import db
 
 from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore

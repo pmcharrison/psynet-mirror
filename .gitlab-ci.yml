@@ -33,6 +33,7 @@ variables:
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
   DOCKER_LOCAL_TAG: psynet-build
+  PYTHON_VERSION: "3.13"
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
@@ -42,7 +43,7 @@ before_script:
   - export REDIS_IP=$(getent ahostsv4 redis | awk '{ print $1 }' | tail -n 1)
   - echo $POSTGRES_IP
   - echo $REDIS_IP
-  - docker build --tag $DOCKER_LOCAL_TAG .
+  - docker build --build-arg PYTHON_VERSION=$PYTHON_VERSION --tag $DOCKER_LOCAL_TAG .
 
 .default_rules: &default_rules
   rules:
@@ -83,10 +84,12 @@ changelog_check:
       when: always
     - when: never
 
-tests:
+.full_test_suite:
   parallel: 10
   stage: test
   <<: *default_rules
+  variables:
+    TEST_SCOPE: full
   script:
     - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
     - docker run
@@ -96,6 +99,49 @@ tests:
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       -e CI -e CI_NODE_TOTAL -e CI_NODE_INDEX
       -e CI_COMMIT_REF_NAME
+      -e SKIP_PYTHON_VERSION_CHECK
+      -e PYTHON_VERSION -e TEST_SCOPE
+      -e PSYNET_WORKSPACE
+      -v "$PWD:$PSYNET_WORKSPACE"
+      -v "$PWD/public:/public"
+      -w $PSYNET_WORKSPACE
+      $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
+  artifacts:
+    paths:
+      - public/
+
+tests_python_3_13:
+  extends: .full_test_suite
+  variables:
+    PYTHON_VERSION: "3.13"
+    TEST_SCOPE: full
+
+tests_python_3_14:
+  extends: .full_test_suite
+  variables:
+    PYTHON_VERSION: "3.14"
+    SKIP_PYTHON_VERSION_CHECK: "1"
+    TEST_SCOPE: full
+
+compatibility_tests:
+  stage: test
+  <<: *default_rules
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ["3.11", "3.12"]
+  variables:
+    SKIP_PYTHON_VERSION_CHECK: "1"
+    TEST_SCOPE: isolated
+  script:
+    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
+    - docker run
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
+      -e CI -e CI_COMMIT_REF_NAME
+      -e SKIP_PYTHON_VERSION_CHECK
+      -e PYTHON_VERSION -e TEST_SCOPE
       -e PSYNET_WORKSPACE
       -v "$PWD:$PSYNET_WORKSPACE"
       -v "$PWD/public:/public"
@@ -163,8 +209,18 @@ merge_test_results:
   image: python:3.13-alpine
   stage: test
   <<: *default_rules
-  needs: ["tests", "playwright_e2e_legacy", "playwright_e2e_inplace"]
-  dependencies: ["tests", "playwright_e2e_legacy", "playwright_e2e_inplace"]
+  needs:
+    - "tests_python_3_13"
+    - "tests_python_3_14"
+    - "compatibility_tests"
+    - "playwright_e2e_legacy"
+    - "playwright_e2e_inplace"
+  dependencies:
+    - "tests_python_3_13"
+    - "tests_python_3_14"
+    - "compatibility_tests"
+    - "playwright_e2e_legacy"
+    - "playwright_e2e_inplace"
   when: always
   before_script:
     - pip install -q junitparser

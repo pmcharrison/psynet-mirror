@@ -1,6 +1,6 @@
 import pytest
-from dallinger import db
 
+from dallinger import db
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.trial.main import TrialNetwork
 

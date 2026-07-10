@@ -4,9 +4,11 @@ from pathlib import Path
 import pytest
 
 import psynet.version
+from psynet.dev import ci as ci_module
 from psynet.utils import list_experiment_dirs
 
 demos = list_experiment_dirs(for_ci_tests=True)
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def versions_match_at_provided_levels(version1, version2):
@@ -50,6 +52,15 @@ def test_check_dallinger_version_in_demo_constraints(demo_directory):
     complicated because often the local psynet version will have a development version number
     (e.g. 11.10.0a0) and we don't want to insist that constraints.txt also have this.
     """
+    dallinger_reference = ci_module._get_dallinger_dependency_reference(
+        ROOT / "pyproject.toml"
+    )
+    if not dallinger_reference.startswith("v"):
+        pytest.skip(
+            "Bundled constraints remain on the latest Dallinger release while "
+            "PsyNet temporarily depends on an unreleased Dallinger Git reference."
+        )
+
     constraints_path = Path(demo_directory) / "constraints.txt"
     assert constraints_path.exists()
 

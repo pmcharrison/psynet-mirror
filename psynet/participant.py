@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Dict
 
 import dallinger.models
 import requests
-from dallinger import db
 from dallinger.notifications import admin_notifier
 from sqlalchemy import (
     Boolean,
@@ -30,6 +29,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from tenacity import Retrying, stop_after_attempt, wait_exponential
 
+from dallinger import db
 from psynet.db import transaction
 from psynet.timeline import Page
 

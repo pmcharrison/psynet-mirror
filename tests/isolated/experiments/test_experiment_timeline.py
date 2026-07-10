@@ -2,9 +2,9 @@ import re
 import time
 
 import pytest
-from dallinger import db
 from selenium.webdriver.common.by import By
 
+from dallinger import db
 from psynet.participant import Participant, get_participant
 from psynet.pytest_psynet import (
     assert_text,

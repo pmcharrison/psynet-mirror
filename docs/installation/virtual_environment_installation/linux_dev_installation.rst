@@ -36,10 +36,8 @@ Ubuntu 24.04 LTS
 Install Python
 ~~~~~~~~~~~~~~
 
-PsyNet requires a recent version of Python 3. To check the minimum and recommended versions of Python,
-look at PsyNet's
-`pyproject.toml <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/pyproject.toml?ref_type=heads>`_ file,
-specifically at the line beginning with ``requires-python``.
+PsyNet supports Python 3.11 through 3.14. Python 3.13 is the recommended version
+for developing and deploying experiments.
 To see the current version of Python 3 on your system, enter ``python3 --version`` in your terminal.
 If your current version is lower than the minimum version, you should update your Python
 to the recommended version.

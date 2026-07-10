@@ -1,11 +1,11 @@
 # This demo illustrates some simple usage of custom SQLAlchemy classes in the context of a PsyNet experiment.
 # We define a new table called 'coin', and store coins in it as the experiment progresses.
 
-from dallinger import db
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
+from dallinger import db
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl
 from psynet.page import InfoPage, ModularPage

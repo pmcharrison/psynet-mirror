@@ -8,7 +8,6 @@ from typing import List, Optional, Union
 import dallinger.experiment
 import dallinger.models
 import dallinger.nodes
-from dallinger import db
 from dallinger.models import Info, Network
 from dominate import tags
 from markupsafe import Markup
@@ -33,6 +32,7 @@ from sqlalchemy.orm import column_property, declared_attr, deferred, relationshi
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
+from dallinger import db
 from psynet import field
 
 from ..asset import Asset, AssetNetwork, AssetNode, AssetTrial

@@ -7,11 +7,11 @@
 # Note: before working through this demo, you should be confident on object-oriented programming in Python,
 # and understand the concept of class methods.
 
-from dallinger import db
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
+from dallinger import db
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl, TextControl
 from psynet.page import InfoPage, ModularPage

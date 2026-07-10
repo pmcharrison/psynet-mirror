@@ -1,9 +1,9 @@
 import re
 
 import pytest
-from dallinger import db
 
 import psynet.field  # noqa
+from dallinger import db
 from psynet.experiment import import_local_experiment
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import (

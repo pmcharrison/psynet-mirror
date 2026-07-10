@@ -14,13 +14,13 @@ Configuration keys (config.txt):
 import json
 from datetime import datetime, timezone
 
-from dallinger import db
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route
 from dallinger.experiment_server.utils import success_response
 from sqlalchemy import Column, ForeignKey, Integer, String
 
 import psynet.experiment
+from dallinger import db
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.page import InfoPage
 from psynet.participant import Participant
