@@ -221,6 +221,39 @@ Read these values through ``psynet.var``:
 
     const maximumLength = psynet.var.color_text_config.maximum_length;
 
+Sharing JavaScript functions between components
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``js_vars`` should contain data, not functions. If, for example, a prompt needs
+to provide a function that its control can call, expose the function through
+the page-scoped ``psynet.page`` namespace:
+
+.. code-block:: javascript
+
+    // Prompt setup
+    psynet.page.prompt.playStimulus = function () {
+        // ...
+    };
+
+The control can then call the prompt-owned function:
+
+.. code-block:: javascript
+
+    psynet.page.prompt.playStimulus();
+
+PsyNet resets ``psynet.page`` when the participant moves to another page, so
+this does not leave stale functions behind. If the function is not naturally
+owned by the prompt or control, use a descriptive shared namespace such as
+``psynet.page.myTask`` instead. This makes the dependency explicit without
+creating a global function on ``window``.
+
+For substantial reusable code, put the implementation in a standalone file in
+the experiment's ``static`` directory and load it with ``get_js_links()``.
+Reserve ``get_scripts()`` for short page-initialization code. Components that
+should remain loosely coupled can communicate with custom events; register
+listeners with ``psynet.addPageEventListener()`` so PsyNet removes them during
+page cleanup.
+
 Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
 global access is deprecated because in-place timeline transitions reuse the
 same browser window across pages. The ``legacy_js_var_globals`` configuration
