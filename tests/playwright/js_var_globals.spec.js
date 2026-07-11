@@ -108,6 +108,12 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
         value: 42,
         writable: true
       });
+      Object.defineProperty(window, "nonconfigurable_global", {
+        configurable: false,
+        enumerable: true,
+        value: 99,
+        writable: true
+      });
     });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(
@@ -123,14 +129,29 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
       return {
         hasGetter: typeof descriptor?.get === "function",
         legacyValue: window.restored_global,
-        canonicalValue: psynet.var.restored_global
+        canonicalValue: psynet.var.restored_global,
+        nonconfigurableValue: window.nonconfigurable_global,
+        nonconfigurableCanonicalValue: psynet.var.nonconfigurable_global
       };
     });
     expect(descriptorState).toEqual({
       hasGetter: true,
       legacyValue: 3,
-      canonicalValue: 3
+      canonicalValue: 3,
+      nonconfigurableValue: 99,
+      nonconfigurableCanonicalValue: 4
     });
+    await expect
+      .poll(
+        () =>
+          warnings.filter((message) =>
+            message.includes(
+              'cannot install a legacy js_vars accessor for "nonconfigurable_global"'
+            )
+          ).length,
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(1);
 
     const offState = await experimentPage.evaluate(() => {
       const templateDataElement = document.getElementById(

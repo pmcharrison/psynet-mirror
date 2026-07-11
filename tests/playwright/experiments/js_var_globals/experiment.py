@@ -21,7 +21,10 @@ class Exp(psynet.experiment.Experiment):
         ),
         InfoPage(
             Markup('<p id="js-var-page-marker">Descriptor page</p>'),
-            js_vars={"restored_global": 3},
+            js_vars={
+                "nonconfigurable_global": 4,
+                "restored_global": 3,
+            },
             time_estimate=1,
         ),
         InfoPage(
