@@ -159,9 +159,12 @@ per-page resources that are refreshed across fragment swaps:
 
 The standalone script should read its configuration from the managed
 ``psynet.var`` namespace instead of defining ad-hoc globals. For backwards
-compatibility, PsyNet also mirrors ``js_vars`` keys onto ``window`` while the
-page is active and removes stale keys on the next page; new code should use
-``psynet.var`` directly:
+compatibility, PsyNet temporarily exposes ``js_vars`` keys through matching
+``window`` properties, but this access is deprecated. The default
+``legacy_js_var_globals = warn`` mode reports each accessed key once in the
+browser console. Set the mode to ``error`` to find legacy accesses during
+development, or ``off`` to disable compatibility properties entirely. In all
+modes, new code should use ``psynet.var`` directly:
 
 .. code-block:: javascript
 

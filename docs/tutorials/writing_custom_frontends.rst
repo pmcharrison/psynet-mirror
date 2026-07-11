@@ -202,3 +202,36 @@ In some cases we might want to postprocess this response in Python before we sav
         return raw_answer.capitalize()
 
 The ``raw_answer`` argument here corresponds to the data that was saved in ``psynet.stageResponse``. In this example, this data will be a string, corresponding to the contents of the textbox; however, more complex forms of data are supported, for example lists and dictionaries.
+
+Passing configuration to JavaScript
+-----------------------------------
+
+Custom prompts and controls can provide page-scoped JavaScript configuration
+by implementing ``get_js_vars()``:
+
+.. code-block:: python
+
+    class ColorText(Control):
+        def get_js_vars(self):
+            return {"color_text_config": {"maximum_length": 200}}
+
+Read these values through ``psynet.var``:
+
+.. code-block:: javascript
+
+    const maximumLength = psynet.var.color_text_config.maximum_length;
+
+Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
+global access is deprecated because in-place timeline transitions reuse the
+same browser window across pages. The ``legacy_js_var_globals`` configuration
+controls the compatibility behavior:
+
+* ``warn`` (default) keeps legacy access working and warns once for each key.
+* ``error`` throws a ``ReferenceError`` that identifies the key and recommends
+  the corresponding ``psynet.var`` expression.
+* ``off`` does not install legacy global properties.
+
+The compatibility accessors are installed only for keys on the active page.
+PsyNet removes them on the next page and restores any pre-existing property
+descriptor that the accessor temporarily replaced. Unrelated browser globals
+are unaffected.

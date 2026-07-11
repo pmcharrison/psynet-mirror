@@ -1867,7 +1867,8 @@ class ModularPage(Page):
         objects instead.
 
     js_vars
-        Optional dictionary of arguments to instantiate as global Javascript variables.
+        Optional dictionary of page-scoped values exposed to JavaScript through
+        ``psynet.var``.
 
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing

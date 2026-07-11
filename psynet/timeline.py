@@ -916,7 +916,9 @@ class Page(Elt):
         Internal label to give the page, used for example in results saving.
 
     js_vars:
-        Dictionary of arguments to instantiate as global Javascript variables.
+        Dictionary of page-scoped values exposed to JavaScript through
+        ``psynet.var``. Legacy access through matching ``window`` properties is
+        deprecated and controlled by ``legacy_js_var_globals``.
 
     js_links:
         Optional list of paths to JavaScript scripts to include in the page.
