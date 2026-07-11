@@ -47,6 +47,14 @@
     );
   };
 
+  let restoreLegacyJsVarGlobalOriginal = function (key, originalDescriptor) {
+    if (originalDescriptor) {
+      Object.defineProperty(window, key, originalDescriptor);
+    } else {
+      delete window[key];
+    }
+  };
+
   let uninstallLegacyJsVarGlobal = function (key) {
     let state = legacyJsVarGlobalStates.get(key);
     if (!state) {
@@ -60,18 +68,18 @@
       currentDescriptor.get === state.get &&
       currentDescriptor.set === state.set;
     if (currentDescriptor && !stillInstalled) {
+      // Another script redefined the property. Clear it so the foreign value
+      // cannot leak across SPA page transitions, then restore any pre-existing
+      // descriptor PsyNet captured when the accessor was first installed.
+      restoreLegacyJsVarGlobalOriginal(key, state.originalDescriptor);
       console.warn(
-        `PsyNet did not restore window.${key} because another script ` +
-          "redefined it after the legacy js_vars accessor was installed.",
+        `PsyNet cleared a redefined window.${key} property while uninstalling ` +
+          "the legacy js_vars accessor.",
       );
       return;
     }
 
-    if (state.originalDescriptor) {
-      Object.defineProperty(window, key, state.originalDescriptor);
-    } else {
-      delete window[key];
-    }
+    restoreLegacyJsVarGlobalOriginal(key, state.originalDescriptor);
   };
 
   let installLegacyJsVarGlobal = function (key, value) {
@@ -87,12 +95,16 @@
         return;
       }
 
+      // The accessor was replaced or removed while we still tracked it. Drop
+      // the stale map entry, clear any foreign redefine, and fall through to a
+      // fresh install so `psynet.var` and the legacy mirror stay in sync.
+      legacyJsVarGlobalStates.delete(key);
       if (currentDescriptor) {
+        restoreLegacyJsVarGlobalOriginal(key, state.originalDescriptor);
         console.warn(
-          `PsyNet did not reinstall the legacy js_vars accessor for "${key}" ` +
-            "because another script redefined the window property.",
+          `PsyNet cleared a redefined window.${key} property and reinstalled ` +
+            "the legacy js_vars accessor.",
         );
-        return;
       }
     }
 

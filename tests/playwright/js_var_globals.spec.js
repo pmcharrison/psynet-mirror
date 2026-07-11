@@ -86,8 +86,77 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
       canonicalValue: 1
     });
 
+    // External redefine on the same page should be cleared and the accessor
+    // reinstalled so the mirrored value tracks the current page js_vars again.
+    const redefinedReinstallState = await experimentPage.evaluate(() => {
+      Object.defineProperty(window, "legacy_alpha", {
+        configurable: true,
+        enumerable: true,
+        value: "hijacked",
+        writable: true
+      });
+      psynet.refreshTemplateData();
+      const descriptor = Object.getOwnPropertyDescriptor(window, "legacy_alpha");
+      return {
+        hasGetter: typeof descriptor?.get === "function",
+        legacyValue: window.legacy_alpha,
+        canonicalValue: psynet.var.legacy_alpha
+      };
+    });
+    expect(redefinedReinstallState).toEqual({
+      hasGetter: true,
+      legacyValue: 1,
+      canonicalValue: 1
+    });
+    await expect
+      .poll(
+        () =>
+          warnings.filter((message) =>
+            message.includes(
+              "cleared a redefined window.legacy_alpha property and reinstalled"
+            )
+          ).length,
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(1);
+
+    // External redefine before navigation must not leak the foreign value to
+    // the next page; uninstall restores the pre-accessor window state.
+    await experimentPage.evaluate(() => {
+      Object.defineProperty(window, "legacy_alpha", {
+        configurable: true,
+        enumerable: true,
+        value: "hijacked-across-pages",
+        writable: true
+      });
+    });
+
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(experimentPage, "Beta page", STEP_TIMEOUT_MS);
+    expect(
+      await experimentPage.evaluate(() => ({
+        alphaDescriptor: Object.getOwnPropertyDescriptor(
+          window,
+          "legacy_alpha"
+        ),
+        alphaValue: window.legacy_alpha
+      }))
+    ).toEqual({
+      alphaDescriptor: undefined,
+      alphaValue: undefined
+    });
+    await expect
+      .poll(
+        () =>
+          warnings.filter((message) =>
+            message.includes(
+              "cleared a redefined window.legacy_alpha property while uninstalling"
+            )
+          ).length,
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(1);
+
     const betaState = await experimentPage.evaluate(() => {
       psynetTemplateData.flags.legacyJsVarGlobals = "error";
       let error;
