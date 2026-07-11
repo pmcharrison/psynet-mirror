@@ -157,8 +157,11 @@ per-page resources that are refreshed across fragment swaps:
         def get_js_links(self):
             return ["/static/my-chatroom.js"]
 
-The standalone script can read its configuration from ``psynet.var`` without
-creating page-specific globals:
+The standalone script should read its configuration from the managed
+``psynet.var`` namespace instead of defining ad-hoc globals. For backwards
+compatibility, PsyNet also mirrors ``js_vars`` keys onto ``window`` while the
+page is active and removes stale keys on the next page; new code should use
+``psynet.var`` directly:
 
 .. code-block:: javascript
 
@@ -172,10 +175,13 @@ creating page-specific globals:
         });
     })();
 
-The built-in ``ChatRoom`` uses exactly this pattern — see ``get_css`` and
-``get_js_vars`` in ``psynet/chatroom.py`` and the widget logic in
-``psynet/resources/scripts/chatroom-widget.js`` (WebSocket protocol, message
-rendering, occupancy updates) for a full working reference.
+The built-in ``ChatRoom`` uses the same separation between managed resources
+and configuration — see ``get_css`` and ``get_js_vars`` in
+``psynet/chatroom.py``. Its widget script initializes when the managed script
+is loaded and registers explicit page cleanup. Custom components whose setup
+depends on the trial lifecycle should use the ``trialConstruct`` pattern shown
+above. See ``psynet/resources/scripts/chatroom-widget.js`` for the WebSocket
+protocol, message rendering, and occupancy updates.
 
 If you only need minor CSS changes (e.g. a different height or colour scheme)
 you can override the built-in IDs (``#chatroom-widget``,
