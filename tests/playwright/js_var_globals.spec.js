@@ -246,31 +246,35 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
       };
     });
     expect(descriptorState).toEqual({
-      hasGetter: true,
-      legacyValue: 3,
+      hasGetter: false,
+      legacyValue: 42,
       canonicalValue: 3,
       nonconfigurableValue: 99,
       nonconfigurableCanonicalValue: 4
     });
-    await expect
-      .poll(
-        () =>
-          warnings.filter((message) =>
-            message.includes(
-              'cannot install a legacy js_vars accessor for "nonconfigurable_global"'
-            )
-          ).length,
-        { timeout: STEP_TIMEOUT_MS }
-      )
-      .toBe(1);
-    await experimentPage.evaluate(() => psynet.refreshTemplateData());
-    expect(
-      warnings.filter((message) =>
-        message.includes(
-          'cannot install a legacy js_vars accessor for "nonconfigurable_global"'
+    for (const key of ["restored_global", "nonconfigurable_global"]) {
+      await expect
+        .poll(
+          () =>
+            warnings.filter((message) =>
+              message.includes(
+                `did not install the legacy js_vars accessor for "${key}" because window.${key} already exists`
+              )
+            ).length,
+          { timeout: STEP_TIMEOUT_MS }
         )
-      )
-    ).toHaveLength(1);
+        .toBe(1);
+    }
+    await experimentPage.evaluate(() => psynet.refreshTemplateData());
+    for (const key of ["restored_global", "nonconfigurable_global"]) {
+      expect(
+        warnings.filter((message) =>
+          message.includes(
+            `did not install the legacy js_vars accessor for "${key}" because window.${key} already exists`
+          )
+        )
+      ).toHaveLength(1);
+    }
 
     const offState = await experimentPage.evaluate(() => {
       const templateDataElement = document.getElementById(
@@ -310,6 +314,62 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
       restoredValue: 42,
       unrelatedValue: 9
     });
+    await assertNoBackendError(experimentPage);
+  });
+});
+
+test("locked legacy global does not block a page transition", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve("tests/playwright/experiments/js_var_globals");
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    const warnings = [];
+    experimentPage.on("console", (message) => {
+      if (message.type() === "warning") {
+        warnings.push(message.text());
+      }
+    });
+
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+    await waitForMainBodyContains(experimentPage, "Alpha page", STEP_TIMEOUT_MS);
+
+    await experimentPage.evaluate(() => {
+      Object.defineProperty(window, "legacy_alpha", {
+        configurable: false,
+        enumerable: true,
+        value: "locked by another script",
+        writable: false
+      });
+    });
+
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await waitForMainBodyContains(experimentPage, "Beta page", STEP_TIMEOUT_MS);
+
+    expect(
+      await experimentPage.evaluate(() => ({
+        canonicalValue: psynet.var.legacy_beta,
+        lockedValue: window.legacy_alpha,
+        oldCanonicalKeyPresent: "legacy_alpha" in psynet.var
+      }))
+    ).toEqual({
+      canonicalValue: 2,
+      lockedValue: "locked by another script",
+      oldCanonicalKeyPresent: false
+    });
+    await expect
+      .poll(
+        () =>
+          warnings.filter((message) =>
+            message.includes(
+              "could not restore window.legacy_alpha because another script made it non-configurable"
+            )
+          ).length,
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(1);
     await assertNoBackendError(experimentPage);
   });
 });
