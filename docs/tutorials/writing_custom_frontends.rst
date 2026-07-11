@@ -156,11 +156,14 @@ Custom controls are defined in a similar way. Looking in the same demo, we have 
             super().__init__()
             self.color = color
 
+        def get_js_links(self):
+            return ["/static/color-text.js"]
+
         @property
         def metadata(self):
             return {"color": self.color}
 
-As before, the class has ``macro`` and ``external_template`` attributes, which tell PsyNet where to find the class’s Jinja macro. It additionally has a ``color`` instance attribute, which is set in the instance’s constructor function (``__init__()``). Lastly, it has a ``metadata`` method, which generates metadata that will be saved along with the participant’s response. This method is optional; if you implement it, it should provide some non-essential additional information about the participant’s response.
+As before, the class has ``macro`` and ``external_template`` attributes, which tell PsyNet where to find the class’s Jinja macro. It additionally has a ``color`` instance attribute, which is set in the instance’s constructor function (``__init__()``). ``get_js_links()`` supplies a standalone script from the experiment's ``static`` directory. Lastly, it has a ``metadata`` method, which generates metadata that will be saved along with the participant’s response. This method is optional; if you implement it, it should provide some non-essential additional information about the participant’s response.
 
 This ``ColorText`` definition is complemented by the following macro definition in ``custom-controls.html``:
 
@@ -170,23 +173,26 @@ This ``ColorText`` definition is complemented by the following macro definition 
 
         <textarea id="text-input" type="text" class="form-control" style="background-color: {{ config.color }}; margin-bottom: 40px;"></textarea>
 
-        <script>
-            psynet.stageResponse = function() {
-                psynet.response.staged.rawAnswer = document.getElementById('text-input').value
-            }
-        </script>
-
     {% endmacro %}
 
-This macro has several important components.
+The macro remains focused on markup. The corresponding ``static/color-text.js``
+file contains the behavior:
 
-* First, there is a ``textarea`` element, a standard HTML element corresponding to a text box that can be filled in by the user. This textbox has a customizable background color determined by the value of ``config.color``.
+.. code-block:: javascript
 
-* Second, a function is defined called ``psynet.stageResponse``. This function is written in Javascript,
-  and extracts the current contents of the textbox as a string (e.g., ‘Hello’).
-  It then saves this string to ``psynet.response.staged.rawAnswer``.
-  This 'stages' the answer, so that when the page is exited (by clicking the 'Next' button) this answer
-  is submitted to the PsyNet back-end.
+    (function () {
+        psynet.setStageResponseHandler(function () {
+            psynet.response.staged.rawAnswer =
+                document.getElementById("text-input").value;
+        });
+    })();
+
+The ``textarea`` is a standard HTML element corresponding to a text box. Its
+customizable background color comes from ``config.color``. The JavaScript
+handler extracts the current contents and stages them so that the response is
+submitted when the page is exited. Keeping the implementation in an IIFE avoids
+creating global functions, and PsyNet clears the response handler on page
+cleanup.
 
 In some cases we might want to postprocess this response in Python before we save it. This can be achieved by writing a custom ``format_answer`` method for the custom ``Control`` class. For example, if we wanted to capitalize all the responses, we could write something like this:
 

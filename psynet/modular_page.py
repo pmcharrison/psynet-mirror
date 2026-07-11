@@ -154,6 +154,10 @@ class Prompt:
         """
         return []
 
+    def get_js_vars(self):
+        """Page-local JavaScript variables this component contributes."""
+        return {}
+
     def get_js_links(self):
         """Page-local external JavaScript files this component contributes.
 
@@ -738,6 +742,13 @@ class Control:
         See :meth:`Prompt.get_scripts`.
         """
         return []
+
+    def get_js_vars(self):
+        """Page-local JavaScript variables this control contributes.
+
+        See :meth:`Prompt.get_js_vars`.
+        """
+        return {}
 
     def get_js_links(self):
         """Page-local external JavaScript files this control contributes.
@@ -1958,10 +1969,9 @@ class ModularPage(Page):
         all_media = MediaSpec.merge(media, prompt.media, control.media)
 
         # Reusable components (prompt, control, chatroom) contribute their
-        # page-local assets through get_css/get_scripts/get_js_links hooks, so
-        # they don't have to inline <style>/<script> in a template (which the
-        # SPA contract forbids). Collect them here and merge with any assets the
-        # caller passed directly.
+        # page-local assets through component hooks, so they don't have to inline
+        # <style>/<script> in a template (which the SPA contract forbids). Collect
+        # them here and merge with any assets the caller passed directly.
         components = [self.prompt, self.control]
         if self.chatroom is not None:
             components.append(self.chatroom)
@@ -1971,6 +1981,9 @@ class ModularPage(Page):
         js_links = [
             link for component in components for link in component.get_js_links()
         ]
+        component_js_vars = {}
+        for component in components:
+            component_js_vars.update(component.get_js_vars())
 
         for key, collected in (
             ("css", css),
@@ -1994,6 +2007,7 @@ class ModularPage(Page):
             media=all_media,
             events=events,
             js_vars={
+                **component_js_vars,
                 **js_vars,
                 "modular_page_components": {
                     "prompt": self.prompt.macro,

@@ -2579,6 +2579,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/psynet.js",
                 ),
                 (
+                    resources.files("psynet") / "resources/scripts/chatroom-widget.js",
+                    "/static/scripts/chatroom-widget.js",
+                ),
+                (
                     resources.files("psynet")
                     / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",

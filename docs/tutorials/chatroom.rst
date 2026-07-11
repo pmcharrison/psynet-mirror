@@ -133,16 +133,11 @@ so every attribute you set on the subclass is accessible inside the template:
 Keep the macro focused on markup: inline ``<script>`` and ``<style>`` blocks in
 a custom template are rejected under in-place timeline transitions. Instead,
 supply page-local CSS and JavaScript through the component's ``get_css()`` and
-``get_scripts()`` hooks (mirroring ``get_js_links()`` for external files).
+``get_js_links()`` hooks, and supply configuration through ``get_js_vars()``.
 ``ModularPage`` collects these from the chatroom and applies them as managed,
-per-page assets that are replayed and cleaned up correctly across fragment
-swaps. Bake any per-instance config into the script in Python, so the widget
-JavaScript never needs Jinja interpolation:
+per-page resources that are refreshed across fragment swaps:
 
 .. code-block:: python
-
-    import json
-    from markupsafe import Markup
 
     class MyChatRoom(ChatRoom):
         macro = "my_chatroom"
@@ -151,21 +146,34 @@ JavaScript never needs Jinja interpolation:
         def get_css(self):
             return ["#chatroom-widget { height: 400px; }"]
 
-        def get_scripts(self):
-            config = json.dumps({"room_id": self.room_id, "channel": self.channel})
-            widget_js = """
-                var CONFIG = window.__myChatroomConfig;
-                psynet.trial.onEvent("trialConstruct", function () {
-                    // ... open the websocket, wire up input handlers ...
-                });
-                psynet.addPageCleanupCallback(function () {
-                    // ... leave the room and close the socket ...
-                });
-            """
-            return [Markup(f"window.__myChatroomConfig = {config};\n{widget_js}")]
+        def get_js_vars(self):
+            return {
+                "my_chatroom_config": {
+                    "room_id": self.room_id,
+                    "channel": self.channel,
+                }
+            }
+
+        def get_js_links(self):
+            return ["/static/my-chatroom.js"]
+
+The standalone script can read its configuration from ``psynet.var`` without
+creating page-specific globals:
+
+.. code-block:: javascript
+
+    (function () {
+        const config = psynet.var["my_chatroom_config"];
+        psynet.trial.onEvent("trialConstruct", function () {
+            // ... open the websocket, wire up input handlers ...
+        });
+        psynet.addPageCleanupCallback(function () {
+            // ... leave the room and close the socket ...
+        });
+    })();
 
 The built-in ``ChatRoom`` uses exactly this pattern — see ``get_css`` and
-``get_scripts`` in ``psynet/chatroom.py`` and the widget logic in
+``get_js_vars`` in ``psynet/chatroom.py`` and the widget logic in
 ``psynet/resources/scripts/chatroom-widget.js`` (WebSocket protocol, message
 rendering, occupancy updates) for a full working reference.
 
