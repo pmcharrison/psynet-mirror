@@ -45,6 +45,7 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
         bareValue,
         assignedValue: window.legacy_alpha,
         canonicalValue: psynet.var.legacy_alpha,
+        mode: psynetTemplateData.flags.legacyJsVarGlobals,
         missingType: Function("return typeof unrelated_missing")(),
         unrelatedValue: window.unrelated_existing
       };
@@ -55,6 +56,7 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
       bareValue: 1,
       assignedValue: 7,
       canonicalValue: 1,
+      mode: "warn",
       missingType: "undefined",
       unrelatedValue: 9
     });
@@ -65,6 +67,24 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
         { timeout: STEP_TIMEOUT_MS }
       )
       .toBe(1);
+
+    expect(
+      await experimentPage.evaluate(() => {
+        delete window.legacy_alpha;
+        psynet.refreshTemplateData();
+        return {
+          hasGetter:
+            typeof Object.getOwnPropertyDescriptor(window, "legacy_alpha")?.get ===
+            "function",
+          legacyValue: window.legacy_alpha,
+          canonicalValue: psynet.var.legacy_alpha
+        };
+      })
+    ).toEqual({
+      hasGetter: true,
+      legacyValue: 1,
+      canonicalValue: 1
+    });
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(experimentPage, "Beta page", STEP_TIMEOUT_MS);
@@ -79,18 +99,36 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
           message: caught.message
         };
       }
+      let assignmentError;
+      try {
+        window.legacy_beta = 5;
+      } catch (caught) {
+        assignmentError = caught.message;
+      }
+      let typeofError;
+      try {
+        Function("return typeof legacy_beta")();
+      } catch (caught) {
+        typeofError = caught.message;
+      }
       return {
         alphaDescriptor: Object.getOwnPropertyDescriptor(
           window,
           "legacy_alpha"
         ),
+        assignmentError,
         canonicalValue: psynet.var.legacy_beta,
         error,
+        globalPresent: "legacy_beta" in window,
+        typeofError,
         unrelatedValue: window.unrelated_existing
       };
     });
     expect(betaState).toEqual({
       alphaDescriptor: undefined,
+      assignmentError:
+        'Legacy global js_vars access "legacy_beta" is disabled. ' +
+        'Use psynet.var["legacy_beta"] instead.',
       canonicalValue: 2,
       error: {
         name: "ReferenceError",
@@ -98,6 +136,10 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
           'Legacy global js_vars access "legacy_beta" is disabled. ' +
           'Use psynet.var["legacy_beta"] instead.'
       },
+      globalPresent: true,
+      typeofError:
+        'Legacy global js_vars access "legacy_beta" is disabled. ' +
+        'Use psynet.var["legacy_beta"] instead.',
       unrelatedValue: 9
     });
 
@@ -152,6 +194,14 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
         { timeout: STEP_TIMEOUT_MS }
       )
       .toBe(1);
+    await experimentPage.evaluate(() => psynet.refreshTemplateData());
+    expect(
+      warnings.filter((message) =>
+        message.includes(
+          'cannot install a legacy js_vars accessor for "nonconfigurable_global"'
+        )
+      )
+    ).toHaveLength(1);
 
     const offState = await experimentPage.evaluate(() => {
       const templateDataElement = document.getElementById(

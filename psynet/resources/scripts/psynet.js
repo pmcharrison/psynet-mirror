@@ -18,6 +18,7 @@
   const LEGACY_JS_VAR_GLOBAL_MODES = new Set(["warn", "error", "off"]);
   const RESERVED_JS_VAR_GLOBALS = new Set(["pageUuid"]);
   let legacyJsVarGlobalStates = new Map();
+  let warnedLegacyJsVarGlobalCollisionKeys = new Set();
   let warnedLegacyJsVarGlobalKeys = new Set();
 
   let getLegacyJsVarGlobalMode = function () {
@@ -76,19 +77,39 @@
   let installLegacyJsVarGlobal = function (key, value) {
     let state = legacyJsVarGlobalStates.get(key);
     if (state) {
-      state.value = value;
-      return;
+      let currentDescriptor = Object.getOwnPropertyDescriptor(window, key);
+      let stillInstalled =
+        currentDescriptor &&
+        currentDescriptor.get === state.get &&
+        currentDescriptor.set === state.set;
+      if (stillInstalled) {
+        state.value = value;
+        return;
+      }
+
+      if (currentDescriptor) {
+        console.warn(
+          `PsyNet did not reinstall the legacy js_vars accessor for "${key}" ` +
+            "because another script redefined the window property.",
+        );
+        return;
+      }
     }
 
-    let originalDescriptor = Object.getOwnPropertyDescriptor(window, key);
+    let originalDescriptor =
+      state?.originalDescriptor || Object.getOwnPropertyDescriptor(window, key);
     if (originalDescriptor && !originalDescriptor.configurable) {
-      console.warn(
-        `PsyNet cannot install a legacy js_vars accessor for "${key}" ` +
-          "because the existing window property is not configurable. " +
-          `Use psynet.var[${JSON.stringify(key)}] instead.`,
-      );
+      if (!warnedLegacyJsVarGlobalCollisionKeys.has(key)) {
+        warnedLegacyJsVarGlobalCollisionKeys.add(key);
+        console.warn(
+          `PsyNet cannot install a legacy js_vars accessor for "${key}" ` +
+            "because the existing window property is not configurable. " +
+            `Use psynet.var[${JSON.stringify(key)}] instead.`,
+        );
+      }
       return;
     }
+    warnedLegacyJsVarGlobalCollisionKeys.delete(key);
 
     state = {
       get: undefined,

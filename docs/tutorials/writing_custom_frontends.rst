@@ -231,6 +231,13 @@ controls the compatibility behavior:
   the corresponding ``psynet.var`` expression.
 * ``off`` does not install legacy global properties.
 
+In ``error`` mode the compatibility property remains present so that reads and
+writes can produce the informative error. Consequently, ``typeof legacy_name``
+also throws and ``"legacy_name" in window`` remains true. Test availability
+with ``"name" in psynet.var`` instead. In ``warn`` mode, assigning the legacy
+global preserves historical behavior by changing only the mirrored value; it
+does not update ``psynet.var``.
+
 The compatibility accessors are installed only for keys on the active page.
 PsyNet removes them on the next page and restores any pre-existing property
 descriptor that the accessor temporarily replaced. Unrelated browser globals
