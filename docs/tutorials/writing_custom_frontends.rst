@@ -271,7 +271,10 @@ with ``"name" in psynet.var`` instead. In ``warn`` mode, assigning the legacy
 global preserves historical behavior by changing only the mirrored value; it
 does not update ``psynet.var``.
 
-The compatibility accessors are installed only for keys on the active page.
-PsyNet removes them on the next page and restores any pre-existing property
-descriptor that the accessor temporarily replaced. Unrelated browser globals
-are unaffected.
+The compatibility accessors are installed only for keys on the active page,
+and PsyNet removes them on the next page. PsyNet never replaces a
+pre-existing ``window`` property; when a name is already in use, the page value
+remains available through ``psynet.var`` and PsyNet logs a warning. If another
+script replaces and locks a compatibility accessor, PsyNet leaves that property
+alone and continues the page transition rather than allowing deprecated
+compatibility behavior to interrupt the canonical ``psynet.var`` update.

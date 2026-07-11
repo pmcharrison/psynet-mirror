@@ -19,6 +19,7 @@
   const RESERVED_JS_VAR_GLOBALS = new Set(["pageUuid"]);
   let legacyJsVarGlobalStates = new Map();
   let warnedLegacyJsVarGlobalCollisionKeys = new Set();
+  let warnedLegacyJsVarGlobalLockedKeys = new Set();
   let warnedLegacyJsVarGlobalKeys = new Set();
 
   let getLegacyJsVarGlobalMode = function () {
@@ -47,12 +48,27 @@
     );
   };
 
-  let restoreLegacyJsVarGlobalOriginal = function (key, originalDescriptor) {
-    if (originalDescriptor) {
-      Object.defineProperty(window, key, originalDescriptor);
-    } else {
-      delete window[key];
+  let clearLegacyJsVarGlobalProperty = function (key) {
+    let descriptor = Object.getOwnPropertyDescriptor(window, key);
+    if (!descriptor) {
+      return true;
     }
+
+    if (!descriptor.configurable) {
+      if (!warnedLegacyJsVarGlobalLockedKeys.has(key)) {
+        warnedLegacyJsVarGlobalLockedKeys.add(key);
+        warnedLegacyJsVarGlobalCollisionKeys.add(key);
+        console.warn(
+          `PsyNet could not restore window.${key} because another script ` +
+            "made it non-configurable. The legacy global will remain in place; " +
+            `use psynet.var[${JSON.stringify(key)}] for page-scoped data.`,
+        );
+      }
+      return false;
+    }
+
+    delete window[key];
+    return true;
   };
 
   let uninstallLegacyJsVarGlobal = function (key) {
@@ -69,9 +85,11 @@
       currentDescriptor.set === state.set;
     if (currentDescriptor && !stillInstalled) {
       // Another script redefined the property. Clear it so the foreign value
-      // cannot leak across SPA page transitions, then restore any pre-existing
-      // descriptor PsyNet captured when the accessor was first installed.
-      restoreLegacyJsVarGlobalOriginal(key, state.originalDescriptor);
+      // cannot leak across SPA page transitions. If the other script locked
+      // the property, relinquish ownership rather than aborting navigation.
+      if (!clearLegacyJsVarGlobalProperty(key)) {
+        return;
+      }
       console.warn(
         `PsyNet cleared a redefined window.${key} property while uninstalling ` +
           "the legacy js_vars accessor.",
@@ -79,7 +97,7 @@
       return;
     }
 
-    restoreLegacyJsVarGlobalOriginal(key, state.originalDescriptor);
+    clearLegacyJsVarGlobalProperty(key);
   };
 
   let installLegacyJsVarGlobal = function (key, value) {
@@ -100,7 +118,9 @@
       // fresh install so `psynet.var` and the legacy mirror stay in sync.
       legacyJsVarGlobalStates.delete(key);
       if (currentDescriptor) {
-        restoreLegacyJsVarGlobalOriginal(key, state.originalDescriptor);
+        if (!clearLegacyJsVarGlobalProperty(key)) {
+          return;
+        }
         console.warn(
           `PsyNet cleared a redefined window.${key} property and reinstalled ` +
             "the legacy js_vars accessor.",
@@ -108,14 +128,14 @@
       }
     }
 
-    let originalDescriptor =
-      state?.originalDescriptor || Object.getOwnPropertyDescriptor(window, key);
-    if (originalDescriptor && !originalDescriptor.configurable) {
+    // Legacy compatibility must never shadow browser, framework, or third-party
+    // state. Authors can always access the page value through `psynet.var`.
+    if (key in window) {
       if (!warnedLegacyJsVarGlobalCollisionKeys.has(key)) {
         warnedLegacyJsVarGlobalCollisionKeys.add(key);
         console.warn(
-          `PsyNet cannot install a legacy js_vars accessor for "${key}" ` +
-            "because the existing window property is not configurable. " +
+          `PsyNet did not install the legacy js_vars accessor for "${key}" ` +
+            `because window.${key} already exists. ` +
             `Use psynet.var[${JSON.stringify(key)}] instead.`,
         );
       }
@@ -125,7 +145,6 @@
 
     state = {
       get: undefined,
-      originalDescriptor,
       set: undefined,
       value,
     };
@@ -299,8 +318,8 @@
       });
       Object.assign(psynetTemplateData, refreshedTemplateData);
       window.psynetTemplateData = psynetTemplateData;
-      syncJsVars();
       psynet.var = psynetTemplateData.jsVars || {};
+      syncJsVars();
       psynet.media.requests = psynetTemplateData.mediaRequests || {};
     };
 
