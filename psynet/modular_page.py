@@ -3,6 +3,7 @@ import random
 import shutil
 import tempfile
 import warnings
+from collections.abc import Mapping
 from typing import Callable, Dict, Iterable, List, Optional, Union
 
 from dominate import tags
@@ -27,6 +28,28 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+def _merge_js_var_sources(*sources):
+    """Merge JavaScript variable sources, rejecting duplicate keys."""
+    merged = {}
+    owners = {}
+
+    for source_name, values in sources:
+        if not isinstance(values, Mapping):
+            raise TypeError(f"{source_name} must provide a mapping.")
+
+        for key, value in values.items():
+            if key in owners:
+                raise ValueError(
+                    f"Duplicate JavaScript variable {key!r}: "
+                    f"contributed by {owners[key]} and {source_name}."
+                )
+
+            merged[key] = value
+            owners[key] = source_name
+
+    return merged
 
 
 class Blob:
@@ -155,7 +178,11 @@ class Prompt:
         return []
 
     def get_js_vars(self):
-        """Page-local JavaScript variables this component contributes."""
+        """Page-local JavaScript variables this component contributes.
+
+        Keys must be unique across all page components and explicit
+        :class:`ModularPage` ``js_vars``.
+        """
         return {}
 
     def get_js_links(self):
@@ -1972,18 +1999,15 @@ class ModularPage(Page):
         # page-local assets through component hooks, so they don't have to inline
         # <style>/<script> in a template (which the SPA contract forbids). Collect
         # them here and merge with any assets the caller passed directly.
-        components = [self.prompt, self.control]
+        components = [("prompt", self.prompt), ("control", self.control)]
         if self.chatroom is not None:
-            components.append(self.chatroom)
+            components.append(("chatroom", self.chatroom))
 
-        css = [c for component in components for c in component.get_css()]
-        scripts = [s for component in components for s in component.get_scripts()]
+        css = [c for _, component in components for c in component.get_css()]
+        scripts = [s for _, component in components for s in component.get_scripts()]
         js_links = [
-            link for component in components for link in component.get_js_links()
+            link for _, component in components for link in component.get_js_links()
         ]
-        component_js_vars = {}
-        for component in components:
-            component_js_vars.update(component.get_js_vars())
 
         for key, collected in (
             ("css", css),
@@ -1993,6 +2017,28 @@ class ModularPage(Page):
             if key in kwargs:
                 extra = kwargs.pop(key)
                 collected.extend(extra if isinstance(extra, list) else [extra])
+
+        modular_page_components = {
+            "prompt": self.prompt.macro,
+            "control": self.control.macro,
+            "chatroom": self.chatroom.macro if chatroom is not None else None,
+        }
+        js_var_sources = [
+            (
+                f"{role} {type(component).__name__}",
+                component.get_js_vars(),
+            )
+            for role, component in components
+        ]
+        js_var_sources.extend(
+            [
+                ("ModularPage js_vars", js_vars),
+                (
+                    "PsyNet internals",
+                    {"modular_page_components": modular_page_components},
+                ),
+            ]
+        )
 
         super().__init__(
             label=label,
@@ -2006,15 +2052,7 @@ class ModularPage(Page):
             },
             media=all_media,
             events=events,
-            js_vars={
-                **component_js_vars,
-                **js_vars,
-                "modular_page_components": {
-                    "prompt": self.prompt.macro,
-                    "control": self.control.macro,
-                    "chatroom": self.chatroom.macro if chatroom is not None else None,
-                },
-            },
+            js_vars=_merge_js_var_sources(*js_var_sources),
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,

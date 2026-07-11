@@ -177,6 +177,40 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
     assert page.js_vars["page_config"] == {"enabled": True}
 
 
+def test_duplicate_component_js_vars_raise():
+    class CollidingPrompt(Prompt):
+        def get_js_vars(self):
+            return {"shared_config": "prompt"}
+
+    class CollidingControl(Control):
+        macro = "control"
+
+        def get_js_vars(self):
+            return {"shared_config": "control"}
+
+    with pytest.raises(
+        ValueError,
+        match=("shared_config.*prompt CollidingPrompt.*control CollidingControl"),
+    ):
+        ModularPage("test", CollidingPrompt("Hi!"), CollidingControl())
+
+
+def test_page_js_vars_cannot_override_component_js_vars():
+    class ConfiguredPrompt(Prompt):
+        def get_js_vars(self):
+            return {"shared_config": "prompt"}
+
+    with pytest.raises(
+        ValueError,
+        match="shared_config.*prompt ConfiguredPrompt.*ModularPage js_vars",
+    ):
+        ModularPage(
+            "test",
+            ConfiguredPrompt("Hi!"),
+            js_vars={"shared_config": "page"},
+        )
+
+
 def test_chatroom_contributes_managed_resources_not_inline_markup():
     from psynet.chatroom import ChatRoom
 
