@@ -2892,7 +2892,12 @@ def _assert_directory_is_scaffoldable():
 
 
 @scripts.command("scaffold")
-def scripts_scaffold():
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="List each file as it is created.",
+)
+def scripts_scaffold(verbose):
     """
     Create any missing PsyNet boilerplate files for the experiment directory.
 
@@ -2900,16 +2905,21 @@ def scripts_scaffold():
     created as well.
     """
     _assert_directory_is_scaffoldable()
-    scaffold_experiment_directory(include_optional_files=True)
+    scaffold_experiment_directory(include_optional_files=True, verbose=verbose)
 
 
 @scripts.command("update")
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="List each file as it is updated.",
+)
 @require_exp_directory
-def scripts_update():
+def scripts_update(verbose):
     """
     Overwrite experiment boilerplate with the latest PsyNet templates.
     """
-    update_scripts_()
+    update_scripts_(verbose=verbose)
 
 
 @scripts.command("prune")
@@ -2924,7 +2934,12 @@ def scripts_prune():
 
 
 @psynet.command("scaffold")
-def scaffold():
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="List each file as it is created.",
+)
+def scaffold(verbose):
     """
     Deprecated alias for ``psynet scripts scaffold``.
     """
@@ -2934,12 +2949,17 @@ def scaffold():
         stacklevel=2,
     )
     _assert_directory_is_scaffoldable()
-    scaffold_experiment_directory(include_optional_files=True)
+    scaffold_experiment_directory(include_optional_files=True, verbose=verbose)
 
 
 @psynet.command("update-scripts")
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="List each file as it is updated.",
+)
 @require_exp_directory
-def update_scripts():
+def update_scripts(verbose):
     """
     Deprecated alias for ``psynet scripts update``.
     """
@@ -2948,15 +2968,17 @@ def update_scripts():
         DeprecationWarning,
         stacklevel=2,
     )
-    update_scripts_()
+    update_scripts_(verbose=verbose)
 
 
-def update_scripts_(skip_files=None):
+def update_scripts_(skip_files=None, verbose=False):
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
     latest PsyNet versions.
     """
-    scaffold_experiment_directory(overwrite=True, skip_files=skip_files)
+    scaffold_experiment_directory(
+        overwrite=True, skip_files=skip_files, verbose=verbose
+    )
 
 
 @psynet.group("destroy")

@@ -37,6 +37,8 @@ _REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
 
 _EXECUTABLE_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
+_BOOTSTRAP_FILES = ("experiment.py", "requirements.txt")
+
 _EXPERIMENT_PY_TEMPLATE = """\
 import psynet.experiment
 from psynet.page import InfoPage
@@ -94,7 +96,7 @@ def _default_requirements_txt() -> str:
     return f"{requirement}\n{_REQUIREMENTS_TXT_COMMENTS}"
 
 
-def _bootstrap_authored_files(skip_files):
+def _bootstrap_authored_files(skip_files, *, verbose):
     """Create missing starter experiment files without overwriting existing ones."""
     written = []
     skipped = []
@@ -110,12 +112,62 @@ def _bootstrap_authored_files(skip_files):
 
         # Authored starter files are never overwritten, even during update-scripts.
         if _write_generated_file(relative_path, contents_factory(), overwrite=False):
-            click.echo(f"...creating {relative_path}.")
+            if verbose:
+                click.echo(f"...creating {relative_path}.")
             written.append(relative_path)
         else:
             skipped.append(relative_path)
 
     return written, skipped
+
+
+def _echo_file_change(verb, relative_path, *, verbose, is_directory=False):
+    """Optionally report a single file change when verbose mode is enabled."""
+    if not verbose:
+        return
+    suffix = " directory" if is_directory else ""
+    click.echo(f"...{verb} {relative_path}{suffix}.")
+
+
+def _summarize_written_paths(written):
+    """Build a short human summary of created or updated paths."""
+    authored = [path for path in written if path in _BOOTSTRAP_FILES]
+    boilerplate_count = sum(1 for path in written if path not in _BOOTSTRAP_FILES)
+
+    if authored and boilerplate_count:
+        authored_text = ", ".join(authored)
+        noun = "boilerplate file" if boilerplate_count == 1 else "boilerplate files"
+        return f"{authored_text}, and {boilerplate_count} {noun}"
+    if authored:
+        return ", ".join(authored)
+    if boilerplate_count:
+        noun = "boilerplate file" if boilerplate_count == 1 else "boilerplate files"
+        return f"{boilerplate_count} {noun}"
+    return None
+
+
+def _report_scaffold_result(written, *, overwrite, verbose):
+    """Print a concise summary of a scaffold or update run."""
+    directory_name = Path.cwd().name
+    summary = _summarize_written_paths(written)
+
+    if overwrite:
+        if summary:
+            click.echo(f"Updated experiment scripts in {directory_name}")
+            click.echo(f"  updated: {summary}")
+        elif not verbose:
+            click.echo(
+                f"Experiment scripts in {directory_name} are already up to date."
+            )
+        return
+
+    if summary:
+        click.echo(f"Scaffolded experiment in {directory_name}")
+        click.echo(f"  created: {summary}")
+        click.echo("  tip: run 'psynet scripts update' to overwrite templates later")
+        return
+
+    click.echo("Nothing to scaffold; experiment boilerplate is already present.")
 
 
 def _copy_template_file(relative_path, overwrite, treat_empty_file_as_missing=False):
@@ -189,16 +241,20 @@ def scaffold_experiment_directory(
     overwrite=False,
     include_optional_files=False,
     skip_files=None,
+    verbose=False,
 ):
     """Create or refresh the standard scaffold-managed experiment files."""
     skip_files = set(skip_files or [])
-    action = "Updating" if overwrite else "Scaffolding"
-    click.echo(f"{action} PsyNet scripts in ({Path.cwd()})...")
+    if verbose:
+        action = "Updating" if overwrite else "Scaffolding"
+        click.echo(f"{action} PsyNet scripts in ({Path.cwd()})...")
 
     written = []
     skipped = []
 
-    bootstrap_written, bootstrap_skipped = _bootstrap_authored_files(skip_files)
+    bootstrap_written, bootstrap_skipped = _bootstrap_authored_files(
+        skip_files, verbose=verbose
+    )
     written.extend(bootstrap_written)
     skipped.extend(bootstrap_skipped)
 
@@ -217,7 +273,7 @@ def scaffold_experiment_directory(
             treat_empty_file_as_missing=relative_path == "config.txt",
         ):
             verb = "updating" if overwrite else "creating"
-            click.echo(f"...{verb} {relative_path}.")
+            _echo_file_change(verb, relative_path, verbose=verbose)
             written.append(relative_path)
         else:
             skipped.append(relative_path)
@@ -229,7 +285,7 @@ def scaffold_experiment_directory(
 
         if _write_generated_file(relative_path, contents_factory(), overwrite):
             verb = "updating" if overwrite else "creating"
-            click.echo(f"...{verb} {relative_path}.")
+            _echo_file_change(verb, relative_path, verbose=verbose)
             written.append(relative_path)
         else:
             skipped.append(relative_path)
@@ -245,16 +301,17 @@ def scaffold_experiment_directory(
         ) as path:
             if destination.exists() and not overwrite:
                 if _copy_missing_directory_entries(path, destination):
-                    click.echo(
-                        f"...filling missing files in {relative_path} directory."
-                    )
+                    if verbose:
+                        click.echo(
+                            f"...filling missing files in {relative_path} directory."
+                        )
                     written.append(relative_path)
                 else:
                     skipped.append(relative_path)
                 continue
 
             verb = "updating" if overwrite else "creating"
-            click.echo(f"...{verb} {relative_path} directory.")
+            _echo_file_change(verb, relative_path, verbose=verbose, is_directory=True)
             if overwrite and destination.exists():
                 shutil.rmtree(destination, ignore_errors=True)
             shutil.copytree(
@@ -272,11 +329,7 @@ def scaffold_experiment_directory(
             if Path(directory).exists() and md5_directory(directory) == hash_:
                 shutil.rmtree(directory)
 
-    if not overwrite and written:
-        click.echo(
-            "Scaffolded missing boilerplate files. Use 'psynet scripts update' to"
-            " overwrite existing boilerplate with the latest templates."
-        )
+    _report_scaffold_result(written, overwrite=overwrite, verbose=verbose)
 
     return {"written": written, "skipped": skipped}
 
