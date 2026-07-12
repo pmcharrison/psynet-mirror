@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import warnings
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -2899,8 +2900,13 @@ def scripts_prune():
 @require_exp_directory
 def scaffold():
     """
-    Alias for ``psynet scripts scaffold``.
+    Deprecated alias for ``psynet scripts scaffold``.
     """
+    warnings.warn(
+        "psynet scaffold is deprecated; use 'psynet scripts scaffold' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     scaffold_experiment_directory(include_optional_files=True)
 
 
@@ -2908,8 +2914,13 @@ def scaffold():
 @require_exp_directory
 def update_scripts():
     """
-    Alias for ``psynet scripts update``.
+    Deprecated alias for ``psynet scripts update``.
     """
+    warnings.warn(
+        "psynet update-scripts is deprecated; use 'psynet scripts update' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     update_scripts_()
 
 

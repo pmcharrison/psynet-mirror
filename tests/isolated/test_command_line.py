@@ -865,11 +865,35 @@ def test_scaffold_alias_matches_scripts_scaffold():
         with working_directory(dir):
             Path("experiment.py").write_text("class Exp:\n    pass\n")
 
-            result = runner.invoke(scaffold)
+            with pytest.warns(
+                DeprecationWarning,
+                match=r"psynet scaffold is deprecated; use 'psynet scripts scaffold' instead\.",
+            ):
+                result = runner.invoke(scaffold)
 
             assert result.exit_code == 0
             assert Path("Dockerfile").exists()
             assert Path("config.txt").exists()
+
+
+def test_update_scripts_alias_emits_deprecation_warning():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+
+            with pytest.warns(
+                DeprecationWarning,
+                match=(
+                    r"psynet update-scripts is deprecated; "
+                    r"use 'psynet scripts update' instead\."
+                ),
+            ):
+                result = runner.invoke(psynet, ["update-scripts"])
+
+            assert result.exit_code == 0
+            assert Path("Dockerfile").exists()
 
 
 def test_scripts_update_overwrites_boilerplate():
