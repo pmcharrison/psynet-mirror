@@ -2923,20 +2923,6 @@ def scripts_prune():
     prune_experiment_scaffold(preserve_files={"README.md"})
 
 
-@psynet.command("scaffold")
-def scaffold():
-    """
-    Deprecated alias for ``psynet scripts scaffold``.
-    """
-    warnings.warn(
-        "psynet scaffold is deprecated; use 'psynet scripts scaffold' instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    _assert_directory_is_scaffoldable()
-    scaffold_experiment_directory(include_optional_files=True)
-
-
 @psynet.command("update-scripts")
 @require_exp_directory
 def update_scripts():

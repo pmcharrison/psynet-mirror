@@ -22,7 +22,6 @@ from psynet.command_line import (
     _enable_sql_profile,
     check_dockerfile,
     psynet,
-    scaffold,
     update_scripts_,
 )
 from psynet.experiment_scaffold import prune_experiment_scaffold
@@ -945,24 +944,6 @@ def test_scaffold_creates_missing_files_without_overwriting_readme():
             assert Path("docker/psynet").exists()
             assert Path(".gitignore").exists()
             assert Path(".python-version").exists()
-
-
-def test_scaffold_alias_matches_scripts_scaffold():
-    runner = CliRunner()
-
-    with tempfile.TemporaryDirectory() as dir:
-        with working_directory(dir):
-            Path("experiment.py").write_text("class Exp:\n    pass\n")
-
-            with pytest.warns(
-                DeprecationWarning,
-                match=r"psynet scaffold is deprecated; use 'psynet scripts scaffold' instead\.",
-            ):
-                result = runner.invoke(scaffold)
-
-            assert result.exit_code == 0
-            assert Path("Dockerfile").exists()
-            assert Path("config.txt").exists()
 
 
 def test_update_scripts_alias_emits_deprecation_warning():
