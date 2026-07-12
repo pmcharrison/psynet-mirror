@@ -154,6 +154,25 @@ def test_demo_roundtrip_preserves_authored_files(label, demo_path, tmp_path):
         assert (temp_demo / relative_path).exists(), f"{label} missing {relative_path}"
 
 
+def test_demo_maintenance_preserves_custom_config(tmp_path):
+    from psynet.dev.experiments import update_experiment
+
+    experiment_directory = tmp_path / "custom_config"
+    experiment_directory.mkdir()
+    (experiment_directory / "experiment.py").write_text("class Exp:\n    pass\n")
+    custom_config = "[Config]\ntitle = Custom experiment\n"
+    (experiment_directory / "config.txt").write_text(custom_config)
+
+    update_experiment(
+        experiment_directory,
+        skip_constraints=True,
+        latest_dallinger_patch_version="0.0.0",
+    )
+
+    assert (experiment_directory / "config.txt").read_text() == custom_config
+    assert not (experiment_directory / "Dockerfile").exists()
+
+
 @local_only
 @pytest.mark.parametrize("label, demo_path", RUNTIME_DEMOS)
 def test_demo_roundtrip_runs_local_test_command(label, demo_path, tmp_path):

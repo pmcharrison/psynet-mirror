@@ -856,6 +856,35 @@ def test_scripts_scaffold_bootstraps_empty_directory():
             assert Path("config.txt").exists()
 
 
+def test_scripts_scaffold_escapes_directory_name_in_experiment_label(tmp_path):
+    runner = CliRunner()
+    experiment_directory = tmp_path / 'my "demo"'
+    experiment_directory.mkdir()
+
+    with working_directory(experiment_directory):
+        result = runner.invoke(psynet, ["scripts", "scaffold"])
+        source = Path("experiment.py").read_text()
+
+    assert result.exit_code == 0, result.output
+    compile(source, "experiment.py", "exec")
+    assert "label = 'my \"demo\"'" in source
+
+
+def test_scripts_scaffold_generates_valid_alpha_requirement(tmp_path, monkeypatch):
+    from psynet.command_line import check_psynet_requirement_is_unambiguous
+
+    monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+        assert result.exit_code == 0, result.output
+        assert Path("requirements.txt").read_text().splitlines()[0] == (
+            "psynet==13.4.0a0"
+        )
+        check_psynet_requirement_is_unambiguous()
+
+
 def test_scripts_scaffold_rejects_conflicting_directory_name():
     runner = CliRunner()
 
@@ -953,6 +982,7 @@ def test_scripts_prune_preserves_bootstrapped_authored_files():
             assert Path("experiment.py").exists()
             assert Path("requirements.txt").exists()
             assert Path("Dockerfile").exists() is False
+            assert Path("config.txt").exists() is False
             assert Path("docker").exists() is False
 
 
@@ -1063,6 +1093,24 @@ def test_scaffold_fills_partial_directories_without_overwriting_existing_files()
             assert Path("docker/run").exists()
 
 
+def test_scaffold_rejects_symlinked_managed_directory(tmp_path):
+    runner = CliRunner()
+    experiment_directory = tmp_path / "experiment"
+    outside_directory = tmp_path / "outside"
+    experiment_directory.mkdir()
+    outside_directory.mkdir()
+    (experiment_directory / "docker").symlink_to(
+        outside_directory, target_is_directory=True
+    )
+
+    with working_directory(experiment_directory):
+        result = runner.invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code != 0
+    assert "symlink" in result.output
+    assert list(outside_directory.iterdir()) == []
+
+
 def test_scaffold_makes_docker_entries_executable():
     runner = CliRunner()
 
@@ -1087,7 +1135,8 @@ def test_prune_experiment_scaffold_keeps_readme_only():
 
             update_scripts_()
             Path("README.md").write_text("# Minimal demo\n")
-            Path("config.txt").write_text("[Config]\n")
+            custom_config = "[Config]\ntitle = Custom experiment\n"
+            Path("config.txt").write_text(custom_config)
 
             prune_experiment_scaffold(preserve_files={"README.md"})
 
@@ -1096,7 +1145,7 @@ def test_prune_experiment_scaffold_keeps_readme_only():
             assert Path("constraints.txt").exists()
             assert Path("Dockerfile").exists() is False
             assert Path("test.py").exists() is False
-            assert Path("config.txt").exists() is False
+            assert Path("config.txt").read_text() == custom_config
             assert Path("docker").exists() is False
 
 

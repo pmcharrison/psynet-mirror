@@ -2055,7 +2055,7 @@ def check_psynet_requirement_is_unambiguous():
         with open("requirements.txt", "r") as file:
             regexes = [
                 "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)((rc|a)\\d+)?",
             ]
             file_content = file.read()
             for regex in regexes:
@@ -2071,7 +2071,7 @@ def check_psynet_requirement_is_unambiguous():
                     break
 
                 match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?$",
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+((rc|a)\d+)?$",
                     file_content,
                     re.MULTILINE,
                 )

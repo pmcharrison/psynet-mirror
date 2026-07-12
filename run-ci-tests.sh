@@ -22,9 +22,10 @@ EXIT_CODE=0
 
 for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing experiment $file"
-  if [ ! -f "$file/test.py" ]; then
-    echo "Scaffolding demo boilerplate for $file"
-    (cd "$file" && psynet scripts scaffold) || EXIT_CODE=1
+  echo "Scaffolding any missing demo boilerplate for $file"
+  if ! (cd "$file" && psynet scripts scaffold); then
+    EXIT_CODE=1
+    continue
   fi
   # We use -Werror to ensure that we see all warnings as errors, but ignore yaspin color warnings
   pytest \

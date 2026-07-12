@@ -1,6 +1,5 @@
 """Create, update, and prune PsyNet experiment scaffold files."""
 
-import re
 import shutil
 import stat
 from importlib import resources
@@ -46,7 +45,7 @@ from psynet.timeline import Timeline
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "{label}"
+    label = {label!r}
 
     timeline = Timeline(
         InfoPage("Welcome!", time_estimate=5),
@@ -89,10 +88,7 @@ def _default_experiment_py() -> str:
 
 def _default_requirements_txt() -> str:
     """Return a starter ``requirements.txt`` for the current PsyNet version."""
-    if re.search(r"a[0-9]+$", psynet_version):
-        requirement = "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
-    else:
-        requirement = f"psynet=={psynet_version}"
+    requirement = f"psynet=={psynet_version}"
     return f"{requirement}\n{_REQUIREMENTS_TXT_COMMENTS}"
 
 
@@ -179,6 +175,55 @@ def _copy_template_file(relative_path, overwrite, treat_empty_file_as_missing=Fa
     return True
 
 
+def _assert_managed_path_is_safe(relative_path):
+    """Reject managed paths containing symlink components."""
+    path = Path(relative_path)
+    if path.is_absolute() or ".." in path.parts:
+        raise click.UsageError(
+            f"Refusing to manage unsafe scaffold path '{relative_path}'."
+        )
+
+    current = Path()
+    for part in path.parts:
+        current /= part
+        if current.is_symlink():
+            raise click.UsageError(
+                f"Refusing to manage '{relative_path}' because '{current}' "
+                "is a symlink."
+            )
+
+
+def _assert_scaffold_paths_are_safe(paths):
+    """Validate scaffold destinations before making any changes."""
+    paths = set(paths)
+    for relative_path in paths:
+        _assert_managed_path_is_safe(relative_path)
+
+    for relative_path in _TEMPLATE_DIRECTORIES:
+        if relative_path not in paths:
+            continue
+        directory = Path(relative_path)
+        if directory.is_dir():
+            for path in directory.rglob("*"):
+                if path.is_symlink():
+                    raise click.UsageError(
+                        f"Refusing to manage '{relative_path}' because '{path}' "
+                        "is a symlink."
+                    )
+
+
+def _template_file_matches(relative_path):
+    """Return whether an existing file matches its scaffold template."""
+    destination = Path(relative_path)
+    if not destination.is_file():
+        return False
+
+    with resources.as_file(
+        resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
+    ) as template:
+        return destination.read_bytes() == template.read_bytes()
+
+
 def _write_generated_file(relative_path, contents, overwrite):
     """Write one generated scaffold-managed file into the experiment directory."""
     destination = Path(relative_path)
@@ -233,6 +278,9 @@ def scaffold_experiment_directory(
 ):
     """Create or refresh the standard scaffold-managed experiment files."""
     skip_files = set(skip_files or [])
+    _assert_scaffold_paths_are_safe(
+        (scaffold_managed_paths() | set(_BOOTSTRAP_FILES)) - skip_files
+    )
 
     written = []
     skipped = []
@@ -311,11 +359,14 @@ def prune_experiment_scaffold(*, preserve_files=None):
     """Remove scaffold-managed files while preserving authored experiment files."""
     preserve_files = set(preserve_files or [])
     managed_paths = scaffold_managed_paths()
+    _assert_scaffold_paths_are_safe(managed_paths - preserve_files)
 
     for relative_path in sorted(
         managed_paths - set(_TEMPLATE_DIRECTORIES) - preserve_files
     ):
         path = Path(relative_path)
+        if relative_path == "config.txt" and not _template_file_matches(relative_path):
+            continue
         if path.exists():
             path.unlink()
             _remove_empty_parent_dirs(path.parent)
