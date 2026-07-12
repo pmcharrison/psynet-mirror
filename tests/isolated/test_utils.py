@@ -395,6 +395,14 @@ def test_experiment_directory_name_rejects_non_package_module(tmp_path):
         ensure_experiment_directory_name_does_not_conflict(experiment_directory)
 
 
+def test_experiment_directory_name_rejects_conflict_without_experiment_py(tmp_path):
+    experiment_directory = tmp_path / "code"
+    experiment_directory.mkdir()
+
+    with pytest.raises(ExperimentDirectoryNameError, match="Python's module 'code'"):
+        ensure_experiment_directory_name_does_not_conflict(experiment_directory)
+
+
 def test_experiment_directory_name_allows_package_resolution(tmp_path, monkeypatch):
     experiment_directory = tmp_path / "static"
     experiment_directory.mkdir()

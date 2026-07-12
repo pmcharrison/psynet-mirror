@@ -856,6 +856,38 @@ def test_scripts_scaffold_bootstraps_empty_directory():
             assert Path("config.txt").exists()
 
 
+def test_scripts_scaffold_rejects_conflicting_directory_name():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as parent:
+        conflicting_dir = Path(parent) / "code"
+        conflicting_dir.mkdir()
+        with working_directory(conflicting_dir):
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
+
+            assert result.exit_code != 0
+            assert "Python's module 'code'" in result.output
+            assert not Path("experiment.py").exists()
+            assert not Path("Dockerfile").exists()
+
+
+def test_scripts_scaffold_allows_incomplete_experiment_py():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("print('not an experiment yet')\n")
+
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
+
+            assert result.exit_code == 0, result.output
+            assert (
+                Path("experiment.py").read_text() == "print('not an experiment yet')\n"
+            )
+            assert Path("Dockerfile").exists()
+            assert Path("requirements.txt").exists()
+
+
 def test_scripts_scaffold_reports_when_nothing_is_needed():
     runner = CliRunner()
 

@@ -1462,9 +1462,6 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
         If Python resolves the directory name to an unrelated non-package module.
     """
     path = Path(path).resolve()
-    if not (path / "experiment.py").exists():
-        return
-
     module_name = path.name
     spec = importlib.util.find_spec(module_name)
     if spec is None:

@@ -2870,25 +2870,11 @@ def scripts():
 
 
 def _assert_directory_is_scaffoldable():
-    """Allow scaffolding from empty directories while validating existing experiments."""
+    """Block scaffolding only when the directory name conflicts with a Python module."""
     try:
         ensure_experiment_directory_name_does_not_conflict()
     except ExperimentDirectoryNameError as exc:
         raise click.UsageError(str(exc)) from exc
-
-    if not Path("experiment.py").exists():
-        return
-
-    try:
-        if not experiment_available():
-            raise click.UsageError(
-                "The current directory is not a valid PsyNet experiment."
-            )
-    except ValueError as exc:
-        raise click.UsageError(
-            "There are problems with the current experiment. Please check with "
-            "`dallinger verify`."
-        ) from exc
 
 
 @scripts.command("scaffold")
