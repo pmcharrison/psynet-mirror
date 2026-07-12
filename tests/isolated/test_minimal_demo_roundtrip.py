@@ -8,13 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from psynet.command_line import (
-    EXPERIMENT_SCAFFOLD_GENERATED_FILES,
-    EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES,
-    EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES,
-    EXPERIMENT_SCAFFOLD_TEMPLATE_FILES,
+from psynet.experiment_scaffold import (
     prune_experiment_scaffold,
     scaffold_experiment_directory,
+    scaffold_managed_paths,
 )
 from psynet.pytest_psynet import (
     local_only,
@@ -34,20 +31,11 @@ RUNTIME_DEMOS = [
     ("features/api", Path(path_to_demo_feature("api"))),
 ]
 
-SCAFFOLD_ROOT_DIRS = {
-    Path(relative_path).parts[0]
-    for relative_path in EXPERIMENT_SCAFFOLD_TEMPLATE_FILES
-    if len(Path(relative_path).parts) > 1
+SCAFFOLD_MANAGED_PATHS = {
+    Path(relative_path)
+    for relative_path in scaffold_managed_paths()
+    if relative_path != "README.md"
 }
-SCAFFOLD_ROOT_DIRS.update(EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES)
-
-SCAFFOLD_REMOVABLE_ROOT_FILES = {
-    Path(relative_path).name
-    for relative_path in EXPERIMENT_SCAFFOLD_TEMPLATE_FILES
-    if len(Path(relative_path).parts) == 1 and Path(relative_path).name != "README.md"
-}
-SCAFFOLD_REMOVABLE_ROOT_FILES.update(EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES)
-SCAFFOLD_REMOVABLE_ROOT_FILES.update(EXPERIMENT_SCAFFOLD_GENERATED_FILES)
 
 
 def _hash_file(path: Path) -> str:
@@ -85,12 +73,10 @@ def _preserved_snapshot(root: Path) -> dict[str, str]:
         relative_path = file_path.relative_to(root)
         if relative_path.parts[0] == ".git":
             continue
-        if (
-            len(relative_path.parts) == 1
-            and relative_path.name in SCAFFOLD_REMOVABLE_ROOT_FILES
+        if any(
+            relative_path == managed_path or managed_path in relative_path.parents
+            for managed_path in SCAFFOLD_MANAGED_PATHS
         ):
-            continue
-        if relative_path.parts[0] in SCAFFOLD_ROOT_DIRS:
             continue
 
         snapshot[relative_path.as_posix()] = _hash_file(file_path)
@@ -164,18 +150,7 @@ def test_demo_roundtrip_preserves_authored_files(label, demo_path, tmp_path):
 
     assert _preserved_snapshot(temp_demo) == original_snapshot
 
-    required_paths = [
-        ".gitignore",
-        "Dockerfile",
-        "config.txt",
-        "test.py",
-        "AGENTS.md",
-        ".python-version",
-        ".github/workflows/test.yml",
-        ".vscode/launch.json",
-        "docker/psynet",
-    ]
-    for relative_path in required_paths:
+    for relative_path in scaffold_managed_paths():
         assert (temp_demo / relative_path).exists(), f"{label} missing {relative_path}"
 
 

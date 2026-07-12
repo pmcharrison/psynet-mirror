@@ -1,6 +1,7 @@
 import hashlib
 import io
 import json
+import stat
 import subprocess
 import tempfile
 import zipfile
@@ -20,10 +21,10 @@ from psynet.command_line import (
     _create_sql_profile_run_dir,
     _enable_sql_profile,
     check_dockerfile,
-    prune_experiment_scaffold,
     scaffold,
     update_scripts_,
 )
+from psynet.experiment_scaffold import prune_experiment_scaffold
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import working_directory
 
@@ -870,6 +871,20 @@ def test_scaffold_fills_partial_directories_without_overwriting_existing_files()
             assert result.exit_code == 0
             assert Path("docker/psynet").read_text() == "# Custom helper\n"
             assert Path("docker/run").exists()
+
+
+def test_scaffold_makes_docker_entries_executable():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+
+            result = runner.invoke(scaffold)
+
+            assert result.exit_code == 0
+            for path in Path("docker").iterdir():
+                assert path.stat().st_mode & stat.S_IXUSR
 
 
 def test_prune_experiment_scaffold_keeps_readme_only():

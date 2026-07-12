@@ -13,7 +13,6 @@ import threading
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
-from importlib import resources
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -43,11 +42,13 @@ from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
-    recommended_python_major_minor,
 )
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
+from .experiment_scaffold import (
+    scaffold_experiment_directory,
+)
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
@@ -63,7 +64,6 @@ from .utils import (
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
-    md5_directory,
     pretty_format_seconds,
     require_exp_directory,
     require_requirements_txt,
@@ -119,214 +119,6 @@ def update_docker_tag():
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
-
-
-EXPERIMENT_SCAFFOLD_TEMPLATE_FILES = [
-    ".gitignore",
-    ".dockerignore",
-    "Dockerfile",
-    "README.md",
-    "__init__.py",
-    "pytest.ini",
-    "test.py",
-    ".github/workflows/test.yml",
-    ".vscode/launch.json",
-    "AGENTS.md",
-]
-
-EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES = [
-    "config.txt",
-]
-
-EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES = [
-    "docker",
-]
-
-EXPERIMENT_SCAFFOLD_GENERATED_FILES = {
-    "Dockertag": lambda: f"{os.path.basename(os.getcwd())}\n",
-    ".python-version": lambda: f"{recommended_python_major_minor}\n",
-}
-
-EXPERIMENT_SCAFFOLD_REMOVABLE_DIRECTORIES = [
-    ("docs", "abfc54bbbc3ef9d5948957841727a18b"),
-]
-
-
-def _copy_experiment_template_file(
-    relative_path, overwrite, treat_empty_file_as_missing=False
-):
-    """Copy one scaffold-managed template file into the experiment directory."""
-    destination = Path(relative_path)
-    empty_file_needs_template = (
-        treat_empty_file_as_missing
-        and destination.exists()
-        and destination.is_file()
-        and destination.stat().st_size == 0
-    )
-    if destination.exists() and not overwrite and not empty_file_needs_template:
-        return False
-
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    with resources.as_file(
-        resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
-    ) as path:
-        shutil.copyfile(path, destination)
-    return True
-
-
-def _write_experiment_generated_file(relative_path, contents, overwrite):
-    """Write one generated scaffold-managed file into the experiment directory."""
-    destination = Path(relative_path)
-    if destination.exists() and not overwrite:
-        return False
-
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(contents)
-    return True
-
-
-def _copy_missing_directory_entries(source, destination):
-    """Copy missing entries from a template directory without overwriting files."""
-    copied = False
-    for source_path in source.rglob("*"):
-        destination_path = destination / source_path.relative_to(source)
-        if source_path.is_dir():
-            destination_path.mkdir(parents=True, exist_ok=True)
-        elif not destination_path.exists():
-            destination_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_path, destination_path)
-            copied = True
-    return copied
-
-
-def _remove_empty_parent_dirs(path):
-    """Remove now-empty parent directories after deleting scaffold files."""
-    workspace_root = Path.cwd()
-    while path != workspace_root and path.exists():
-        try:
-            path.rmdir()
-        except OSError:
-            return
-        path = path.parent
-
-
-def scaffold_experiment_directory(
-    *,
-    overwrite=False,
-    include_optional_files=False,
-    skip_files=None,
-):
-    """Create or refresh the standard scaffold-managed experiment files."""
-    skip_files = set(skip_files or [])
-    action = "Updating" if overwrite else "Scaffolding"
-    click.echo(f"{action} PsyNet scripts in ({os.getcwd()})...")
-
-    written = []
-    skipped = []
-
-    template_files = list(EXPERIMENT_SCAFFOLD_TEMPLATE_FILES)
-    if include_optional_files:
-        template_files.extend(EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES)
-
-    for relative_path in template_files:
-        if relative_path in skip_files:
-            skipped.append(relative_path)
-            continue
-
-        if _copy_experiment_template_file(
-            relative_path,
-            overwrite,
-            treat_empty_file_as_missing=relative_path == "config.txt",
-        ):
-            verb = "updating" if overwrite else "creating"
-            click.echo(f"...{verb} {relative_path}.")
-            written.append(relative_path)
-        else:
-            skipped.append(relative_path)
-
-    for relative_path, contents_factory in EXPERIMENT_SCAFFOLD_GENERATED_FILES.items():
-        if relative_path in skip_files:
-            skipped.append(relative_path)
-            continue
-
-        if _write_experiment_generated_file(
-            relative_path, contents_factory(), overwrite
-        ):
-            verb = "updating" if overwrite else "creating"
-            click.echo(f"...{verb} {relative_path}.")
-            written.append(relative_path)
-        else:
-            skipped.append(relative_path)
-
-    for relative_path in EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES:
-        if relative_path in skip_files:
-            skipped.append(relative_path)
-            continue
-
-        destination = Path(relative_path)
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
-        ) as path:
-            if destination.exists() and not overwrite:
-                if _copy_missing_directory_entries(path, destination):
-                    click.echo(
-                        f"...filling missing files in {relative_path} directory."
-                    )
-                    written.append(relative_path)
-                else:
-                    skipped.append(relative_path)
-                continue
-
-            verb = "updating" if overwrite else "creating"
-            click.echo(f"...{verb} {relative_path} directory.")
-            if overwrite and destination.exists():
-                shutil.rmtree(destination, ignore_errors=True)
-            shutil.copytree(
-                path,
-                destination,
-                dirs_exist_ok=True,
-            )
-        written.append(relative_path)
-
-    if Path("docker").exists():
-        os.system("chmod +x docker/*")
-
-    if overwrite:
-        # We remove no-longer-wanted directories only if we can be confident that the
-        # user hasn't edited them.
-        for directory, hash in EXPERIMENT_SCAFFOLD_REMOVABLE_DIRECTORIES:
-            if Path(directory).exists() and md5_directory(directory) == hash:
-                shutil.rmtree(directory)
-
-    if not overwrite and written:
-        click.echo(
-            "Scaffolded missing boilerplate files. Use 'psynet update-scripts' to"
-            " overwrite existing boilerplate with the latest templates."
-        )
-
-    return {"written": written, "skipped": skipped}
-
-
-def prune_experiment_scaffold(*, preserve_files=None):
-    """Remove scaffold-managed files while preserving authored experiment files."""
-    preserve_files = set(preserve_files or [])
-
-    generated_files = set(EXPERIMENT_SCAFFOLD_TEMPLATE_FILES)
-    generated_files.update(EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES)
-    generated_files.update(EXPERIMENT_SCAFFOLD_GENERATED_FILES.keys())
-
-    for relative_path in sorted(generated_files - preserve_files):
-        path = Path(relative_path)
-        if path.exists():
-            path.unlink()
-            _remove_empty_parent_dirs(path.parent)
-
-    for relative_path in EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES:
-        if relative_path in preserve_files:
-            continue
-        path = Path(relative_path)
-        if path.exists():
-            shutil.rmtree(path, ignore_errors=True)
 
 
 def _missing_scaffold_boilerplate():

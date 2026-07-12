@@ -15,6 +15,7 @@ from pathlib import Path
 
 from joblib import Parallel, delayed
 
+from psynet.experiment_scaffold import prune_experiment_scaffold
 from psynet.utils import (
     current_git_branch,
     get_psynet_root,
@@ -282,8 +283,6 @@ def update_scripts(dir):
 def prune_scaffold(dir):
     """Remove scaffold-managed files from a demo after refreshing it."""
     with working_directory(dir):
-        from psynet.command_line import prune_experiment_scaffold
-
         prune_experiment_scaffold(preserve_files={"README.md"})
 
 
