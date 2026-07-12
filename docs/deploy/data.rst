@@ -146,6 +146,7 @@ In this case, the data will be saved as a set of CSV files.
 For example:
 
 .. code:: python
+
     @classmethod
     def get_basic_data(cls, context=None, **kwargs):
         import pandas as pd
@@ -203,7 +204,7 @@ For example, you might exclude participant IDs or other personally identifying i
         }
 
 Accessing basic data via the dashboard
-=====================================
+--------------------------------------
 
 You can preview the basic data in the dashboard by clicking on the 'Basic data' tab.
 

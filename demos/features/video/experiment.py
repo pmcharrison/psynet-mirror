@@ -23,7 +23,6 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-
 # def make_js_fade_string(fade_duration):
 #     return "{fade_in: %s, fade_out: %s}" % (fade_duration, fade_duration)
 
@@ -194,7 +193,7 @@ video_pages = join(
                 "playSoundtrack": Event(
                     is_triggered_by="promptStart",
                     delay=0.0,
-                    js="psynet.audio.soundtrack.play(fade_in: 0.5, fade_out: 0.5)",
+                    js="psynet.audio.soundtrack.play({fade_in: 0.5, fade_out: 0.5})",
                 ),
                 "stopSoundtrack": Event(
                     is_triggered_by="promptStart",
@@ -222,9 +221,11 @@ video_pages = join(
         progress_display=ProgressDisplay([ProgressStage(time=5.0)]),
     ),
     wait_while(
-        lambda participant: not (
-            participant.assets["video_record_page_camera"].deposited
-            and participant.assets["video_record_page_screen"].deposited
+        lambda participant: (
+            not (
+                participant.assets["video_record_page_camera"].deposited
+                and participant.assets["video_record_page_screen"].deposited
+            )
         ),
         expected_wait=5.0,
         log_message="Waiting for video recordings to be deposited",

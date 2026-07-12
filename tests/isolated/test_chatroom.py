@@ -45,7 +45,6 @@ def _published_payloads(mock_exp):
 
 
 class TestEnableChatroomsConfig:
-
     def test_consume_is_noop(self):
         """consume() must exist and return None (transparent timeline element)."""
         handler = EnableChatrooms()

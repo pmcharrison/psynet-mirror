@@ -8,7 +8,7 @@ and pasting a pre-existing experiment.
 This can either be a demo from PsyNet's demos directory,
 or a code repository for a fully-fledged experiment.
 
-Suppose we've copied the PsyNet demo ``demos/audio``,
+Suppose we've copied the PsyNet demo ``demos/experiments/audio``,
 pasted it to a new location on our computer,
 and named this new directory ``my-audio``.
 It's best if you put this somewhere outside your PsyNet package installation directory;

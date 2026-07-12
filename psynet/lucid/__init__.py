@@ -147,7 +147,7 @@ class LucidService(object):
                 )
             )
         self.log(
-            f'Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
+            f"Survey with number {response_data['Survey']['SurveyNumber']} created successfully."
         )
 
         return response_data["Survey"]
@@ -486,9 +486,9 @@ class LucidService(object):
         response = requests.get(url, headers=self.headers)
         self._check_response(response)
         result = response.json()["result"]
-        assert (
-            len(result) > 0
-        ), f"No question with id {question_id} found for locale {locale}."
+        assert len(result) > 0, (
+            f"No question with id {question_id} found for locale {locale}."
+        )
         return result
 
     def get_answer_options(self, question_id, locale=None):
@@ -608,9 +608,9 @@ class LucidService(object):
         return response.json()
 
     def reconcile(self, survey_number, rid: List[str]):
-        assert (
-            self.get_survey_status(survey_number) == "complete"
-        ), "Survey must be complete to reconcile."
+        assert self.get_survey_status(survey_number) == "complete", (
+            "Survey must be complete to reconcile."
+        )
         url = f"https://api.samplicio.us/Demand/v1/Surveys/Reconcile/{survey_number}"
         data = json.dumps({"ResponseIDs": rid})
         headers = {
@@ -799,16 +799,16 @@ class LucidService(object):
         )
 
         if wage < min_wage:
-            realistic_wage = f'{error(bold("underpaying"))}'
+            realistic_wage = f"{error(bold('underpaying'))}"
         elif wage > max_wage:
-            realistic_wage = f'{warning(bold("overpaying"))}'
+            realistic_wage = f"{warning(bold('overpaying'))}"
         else:
-            realistic_wage = f'{success(bold("Wage is ok"))}'
+            realistic_wage = f"{success(bold('Wage is ok'))}"
         if print_results:
-            print(f'{bold("Completes")} ({realistic_completes})')
+            print(f"{bold('Completes')} ({realistic_completes})")
             print(f"    target: {bold(completes)}")
             print(f"    estimated: [{min_val}, {max_val}]")
-            print(f'{bold("Price")} ({realistic_wage})')
+            print(f"{bold('Price')} ({realistic_wage})")
             print(f"    target: {bold(price)} {self.currency}")
             print(f"    estimated: [{min_price:.2f}, {max_price:.2f}] {self.currency}")
             print(f"{bold('Wage per hour')} ({realistic_wage})")
@@ -827,9 +827,9 @@ def get_lucid_service(config=None, recruitment_config=None):
 
         config = configparser.ConfigParser()
         dallinger_config = os.path.join(os.path.expanduser("~"), ".dallingerconfig")
-        assert os.path.exists(
-            dallinger_config
-        ), f"Could not find Dallinger config file at {dallinger_config}"
+        assert os.path.exists(dallinger_config), (
+            f"Could not find Dallinger config file at {dallinger_config}"
+        )
         config.read(dallinger_config)
         config_entries = {}
         for section in config.sections():

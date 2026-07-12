@@ -50,10 +50,14 @@ class EndLogic(EltCollection):
     ) -> TimelineLogic:
         from .modular_page import ModularPage, PushButtonControl
 
+        _ = get_translator()
+
         # Todo - Once automatic translation is updated, revisit the logic in RejectedConsentPage,
         # and ask the participant to return the HIT if appropriate.
         if show_finish_button:
-            control = PushButtonControl(["Finish"])
+            # The choice key "Finish" stays untranslated so that recorded answers
+            # are locale-independent; only the visible label is translated.
+            control = PushButtonControl(["Finish"], labels=[_("Finish")])
         else:
             control = NullControl()
 
@@ -197,10 +201,6 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
             experiment.recruiter.terminate_participant(
                 participant=participant, reason="consent-rejected"
             )
-
-    def after_debrief(self, experiment, participant):
-        super().after_debrief(experiment, participant)
-        participant.fail()
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         _ = get_translator()

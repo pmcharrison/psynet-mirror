@@ -1,8 +1,12 @@
 import hashlib
+import io
 import json
 import subprocess
 import tempfile
+import zipfile
 from contextlib import contextmanager
+from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -39,6 +43,234 @@ class TestCommandLine(object):
         output = subprocess.check_output(["psynet", "--help"])
         assert b"Options:" in output
         assert b"Commands:" in output
+
+    def test_psynet_docs_command_is_not_registered(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["docs", "--help"])
+
+        assert result.exit_code != 0
+        assert "No such command 'docs'" in result.output
+
+    def test_dev_changelog_dispatches_to_builder(self, monkeypatch, tmp_path):
+        from psynet.command_line import psynet
+        from psynet.dev import changelog as changelog_module
+
+        calls = []
+
+        fragments_dir = tmp_path / "changelog.d"
+        fragments_dir.mkdir()
+        changelog_path = tmp_path / "CHANGELOG.md"
+        changelog_path.write_text("# CHANGELOG\n", encoding="utf-8")
+
+        monkeypatch.setattr(changelog_module, "FRAGMENTS_DIR", fragments_dir)
+        monkeypatch.setattr(changelog_module, "CHANGELOG_PATH", changelog_path)
+        monkeypatch.setattr(
+            changelog_module,
+            "new_command",
+            lambda c, d: calls.append(("new", c, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "release_command",
+            lambda v, d: calls.append(("release", v, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "build_command",
+            lambda: calls.append(("build",)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "check_mr_command",
+            lambda b, h: calls.append(("check-mr", b, h)) or 0,
+        )
+
+        runner = CliRunner()
+
+        result = runner.invoke(
+            psynet, ["dev", "changelog", "new", "fixed", "Fix thing"]
+        )
+        assert result.exit_code == 0, result.output
+        assert calls == [("new", "fixed", "Fix thing")]
+
+        result = runner.invoke(
+            psynet,
+            ["dev", "changelog", "release", "13.2.0", "2026-03-13"],
+        )
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("release", "13.2.0", "2026-03-13")
+
+        result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("build",)
+
+        result = runner.invoke(psynet, ["dev", "changelog", "check-mr", "base", "head"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("check-mr", "base", "head")
+
+    def test_dev_changelog_check_mr_is_hidden_from_help(self):
+        result = subprocess.run(
+            ["psynet", "dev", "changelog", "--help"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert "check-mr" not in result.stdout
+
+    def test_dev_changelog_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+
+        assert result.exit_code != 0
+        assert "Run from a PsyNet source checkout" in result.output
+
+    def test_dev_ci_update_dallinger_constraints_dispatches_to_script(
+        self, monkeypatch
+    ):
+        from psynet.command_line import psynet
+        from psynet.dev import ci as ci_module
+
+        calls = []
+        monkeypatch.setattr(
+            ci_module,
+            "update_dallinger_constraints_command",
+            lambda check_compile: calls.append(check_compile) or 0,
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            ["dev", "ci", "update-dallinger-constraints", "--skip-compile-check"],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [False]
+
+    def test_dev_update_experiments_dispatches_to_script(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import experiments as experiments_module
+
+        calls = []
+        monkeypatch.setattr(
+            experiments_module,
+            "update_command",
+            lambda n_jobs, skip_constraints_: (
+                calls.append((n_jobs, skip_constraints_)) or 0
+            ),
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            ["dev", "experiments", "update", "--jobs", "3", "--skip-constraints"],
+        )
+
+        assert result.exit_code == 0
+        assert calls == [(3, True)]
+
+    def test_dev_update_experiments_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "experiments", "update", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--skip-constraints" in result.output
+        assert "--jobs" in result.output
+
+    def test_dev_update_experiments_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(
+                psynet, ["dev", "experiments", "update", "--skip-constraints"]
+            )
+
+        assert result.exit_code != 0
+        assert (
+            "This command must be run from the PsyNet source checkout root directory"
+            in result.output
+        )
+
+    def test_dev_docs_make_dispatches_to_builder(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        calls = []
+        monkeypatch.setattr(
+            docs_module,
+            "make_command",
+            lambda **kwargs: calls.append(kwargs) or 0,
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            [
+                "dev",
+                "docs",
+                "make",
+                "dirhtml",
+                "--clean",
+                "--live-preview",
+                "--port",
+                "8001",
+                "--strict",
+                "--jobs",
+                "auto",
+                "--sphinx-option=--nitpicky",
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [
+            {
+                "target": "dirhtml",
+                "clean": True,
+                "open_browser": True,
+                "live_preview": True,
+                "live_preview_port": 8001,
+                "strict": True,
+                "jobs": "auto",
+                "sphinx_options": ("--nitpicky",),
+            }
+        ]
+
+    def test_dev_docs_make_reports_subprocess_failure(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        def fail(**kwargs):
+            raise subprocess.CalledProcessError(
+                returncode=1,
+                cmd=["sphinx-autobuild"],
+            )
+
+        monkeypatch.setattr(docs_module, "make_command", fail)
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "make", "--live-preview"])
+
+        assert result.exit_code == 1
+        assert "Docs command failed with exit code 1." in result.output
+        assert "Traceback" not in result.output
+
+    def test_dev_docs_make_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "make", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--clean" in result.output
+        assert "--open" in result.output
+        assert "--live-preview" in result.output
+        assert "--port" in result.output
+        assert "sphinx-autobuild" in result.output
+        assert "--strict" in result.output
+        assert "--jobs" in result.output
+        assert "deterministic output" in result.output
+        assert "--sphinx-option" in result.output
+        assert "Uses --jobs 1 by default" in result.output
 
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
@@ -351,7 +583,6 @@ class TestExport:
             patch("psynet.command_line.log") as mock_log,
             patch("psynet.command_line.yaspin") as mock_yaspin,
         ):
-
             mock_yaspin.return_value.__enter__.return_value = mock_spinner
             mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
@@ -399,7 +630,6 @@ class TestExport:
             ),
             patch("psynet.command_line.log") as mock_log,
         ):
-
             mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
             export_logs("test-app", "test-server", str(tmp_path))
@@ -649,6 +879,71 @@ def test_prune_experiment_scaffold_keeps_readme_only():
             assert Path("docker").exists() is False
 
 
+def test_abort_if_app_exists():
+    from psynet.command_line import _abort_if_app_exists
+
+    app = Mock()
+    app.name = "test-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        with pytest.raises(click.Abort):
+            _abort_if_app_exists(server="test-server", app="test-app")
+    assert mock_echo.call_count == 1
+
+
+def test_abort_if_app_exists_skips_missing_app():
+    from psynet.command_line import _abort_if_app_exists
+
+    app = Mock()
+    app.name = "other-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        _abort_if_app_exists(server="test-server", app="test-app")
+
+    mock_echo.assert_not_called()
+
+
+def test_pre_launch_aborts_when_app_exists():
+    from psynet.command_line import _pre_launch
+
+    ctx = Mock()
+    with (
+        patch("psynet.command_line.redis_vars.clear"),
+        patch("psynet.command_line.deployment_info.init"),
+        patch("psynet.command_line.deployment_info.write"),
+        patch("dallinger.command_line.docker_ssh.ensure_remote_host_in_known_hosts"),
+        patch("psynet.command_line._abort_if_app_exists", side_effect=click.Abort),
+        patch("psynet.command_line.run_pre_checks") as mock_run_pre_checks,
+        patch(
+            "psynet.command_line.CONFIGURED_HOSTS",
+            {"test-server": {"host": "example.com", "user": "test-user"}},
+        ),
+    ):
+        with pytest.raises(click.Abort):
+            _pre_launch(
+                ctx,
+                mode="live",
+                archive=None,
+                local_=False,
+                ssh=True,
+                docker=True,
+                server="test-server",
+                app="test-app",
+            )
+
+    mock_run_pre_checks.assert_not_called()
+
+
 def test_enable_sql_profile_uses_unique_run_subdirectories(tmp_path, monkeypatch):
     monkeypatch.delenv("PSYNET_SQL_PROFILE", raising=False)
     monkeypatch.delenv("PSYNET_SQL_PROFILE_DIR", raising=False)
@@ -731,12 +1026,151 @@ def test_stop_server_gracefully_stops_debug_subprocess():
     kill_workers.assert_called_once()
 
 
+def test_load_runtime_server_config_loads_generated_config():
+    from psynet.command_line import _load_runtime_server_config
+
+    config = Mock()
+    config.ready = True
+
+    with patch(
+        "psynet.command_line.redis_vars.get",
+        return_value="/tmp/dallinger_develop/exp",
+    ):
+        _load_runtime_server_config(config)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_called_once_with(
+        "/tmp/dallinger_develop/exp/config.txt"
+    )
+
+
+def test_load_runtime_server_config_loads_launch_info_when_runtime_dir_is_missing(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _load_runtime_server_config
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config = Mock()
+    config.ready = True
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with patch("psynet.command_line.redis_vars.get", return_value=None):
+        _load_runtime_server_config(config, deployment_id=deployment_id)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_not_called()
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
+
+
+def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
+    from psynet.command_line import export_
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config = Mock()
+    config.ready = True
+    config.values = {}
+
+    def get_config_value(key, default=None):
+        if key in config.values:
+            return config.values[key]
+        if key == "base_port":
+            return 5000
+        if default is not None:
+            return default
+        raise KeyError(key)
+
+    def extend_config(values):
+        config.values.update(values)
+
+    data_zip = io.BytesIO()
+    with zipfile.ZipFile(data_zip, "w"):
+        pass
+    data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
+    source_response = Mock(status_code=200, reason="OK", content=b"source-code")
+    experiment_class = Mock(label="Timeline demo")
+    experiment_class.export_path.return_value = str(tmp_path)
+    config.extend.side_effect = extend_config
+    config.get.side_effect = get_config_value
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.command_line.redis_vars.get", return_value=None),
+        patch(
+            "psynet.command_line.get_experiment_url",
+            side_effect=KeyError,
+        ),
+        patch(
+            "psynet.command_line.requests.get",
+            side_effect=[data_response, source_response],
+        ) as request_get,
+    ):
+        export_(
+            ctx=Mock(),
+            exp_variables={
+                "deployment_id": deployment_id,
+                "label": "Timeline demo",
+            },
+            local=True,
+            path=str(tmp_path),
+            no_source=False,
+            assets="experiment",
+            anonymize="no",
+        )
+
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
+    assert request_get.call_count == 2
+    data_request, source_request = request_get.call_args_list
+    assert data_request.args[0].startswith(
+        "http://127.0.0.1:5000/dashboard/export/download?"
+    )
+    assert data_request.kwargs["auth"] == ("admin", "generated-password")
+    assert source_request.args[0] == "http://127.0.0.1:5000/download_source"
+    assert source_request.kwargs["auth"] == ("admin", "generated-password")
+
+
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
     from psynet.command_line import _run_performance_test_with_new_server
 
     process = Mock()
-    config = Mock()
-    config.ready = True
     server_info = {
         "process": process,
         "tmp_log_path": "/tmp/psynet_server_test.log",
@@ -748,11 +1182,7 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             "psynet.command_line._start_local_server_and_wait_for_ready",
             return_value=server_info,
         ),
-        patch("psynet.command_line.get_config", return_value=config),
-        patch(
-            "psynet.command_line.redis_vars.get",
-            return_value="/tmp/dallinger_develop/exp",
-        ),
+        patch("psynet.command_line._load_runtime_server_config") as load_runtime_config,
         patch("psynet.command_line._run_performance_test_with_existing_server"),
         patch("psynet.command_line._stop_server"),
     ):
@@ -760,6 +1190,132 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             n_bots="2", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
         )
 
-    config.load_from_file.assert_called_once_with(
-        "/tmp/dallinger_develop/exp/config.txt"
+    load_runtime_config.assert_called_once_with()
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (None, None),
+        (True, True),
+        (False, False),
+        (42, 42),
+        ("hello", "hello"),
+        (3.14, 3.14),
+        (0.0, 0.0),
+        (float("nan"), None),
+        (float("inf"), None),
+        (float("-inf"), None),
+        (Decimal("1.5"), 1.5),
+        (datetime(2025, 5, 7, 12, 30, 45), "2025-05-07T12:30:45"),
+        (date(2025, 5, 7), "2025-05-07"),
+        ((1, 2, 3), [1, 2, 3]),
+    ],
+)
+def test_to_json_safe_scalars_and_simple_collections(value, expected):
+    from psynet.perf_test import _to_json_safe
+
+    assert _to_json_safe(value) == expected
+
+
+def test_to_json_safe_decimal_returns_float_type():
+    # `Decimal == float` compares by value; pin the type explicitly.
+    from psynet.perf_test import _to_json_safe
+
+    assert isinstance(_to_json_safe(Decimal("1.5")), float)
+
+
+def test_to_json_safe_set_and_frozenset_are_sorted_lists():
+    # Output must be deterministic so repeated runs produce identical JSON
+    # (otherwise git diffs of stored results are noisy).
+    from psynet.perf_test import _to_json_safe
+
+    assert _to_json_safe({3, 1, 2}) == [1, 2, 3]
+    assert _to_json_safe(frozenset({"b", "a", "c"})) == ["a", "b", "c"]
+
+
+def test_to_json_safe_mixed_type_set_falls_back_to_unsorted_list():
+    # Heterogeneous sets aren't sortable across types; the helper must still
+    # return a list rather than raising.
+    from psynet.perf_test import _to_json_safe
+
+    result = _to_json_safe({1, "a", None})
+    assert isinstance(result, list)
+    assert set(result) == {1, "a", None}
+
+
+def test_to_json_safe_recurses_through_nested_dict_and_list():
+    from psynet.perf_test import _to_json_safe
+
+    nested = {
+        "rows": [
+            {"value": Decimal("0.5"), "missing": float("nan")},
+            {"value": Decimal("0.75"), "missing": None},
+        ],
+    }
+    assert _to_json_safe(nested) == {
+        "rows": [
+            {"value": 0.5, "missing": None},
+            {"value": 0.75, "missing": None},
+        ],
+    }
+
+
+def test_collect_run_metadata_includes_environment_fields():
+    from psynet.command_line import _collect_run_metadata
+
+    metadata = _collect_run_metadata("my-experiment")
+    assert metadata["experiment_label"] == "my-experiment"
+    for key in ("psynet_version", "dallinger_version", "python_version", "platform"):
+        assert isinstance(metadata[key], str) and metadata[key]
+
+
+def test_write_json_results_emits_expected_schema_with_coerced_values(tmp_path):
+    from psynet.command_line import _write_json_results
+
+    json_output = str(tmp_path / "results.json")
+    metadata = {
+        "psynet_version": "13.2.0a0",
+        "dallinger_version": "12.2.0",
+        "python_version": "3.13.9",
+        "platform": "Linux-test",
+        "experiment_label": "static_big",
+        "started_at": "2026-05-07T14:23:11",
+        "finished_at": "2026-05-07T14:25:42",
+    }
+    options = {
+        "n_bots_sweep": [1, 2],
+        "duration_minutes": 1.5,
+        "stagger_interval_s": 0.1,
+        "time_factor": 1.0,
+    }
+    all_results = [
+        {
+            "n_bots": 1,
+            "avg_latency": Decimal("0.5"),
+            "nan_value": float("nan"),
+            "inf_value": float("inf"),
+            "process_stats": [{"avg": Decimal("0.001"), "max": float("nan")}],
+        },
+        {"n_bots": 2, "avg_latency": Decimal("0.6")},
+    ]
+
+    _write_json_results(
+        json_output, metadata=metadata, options=options, all_results=all_results
     )
+
+    with open(json_output) as f:
+        payload = json.load(f)
+
+    assert payload["schema_version"] == 1
+    for key, expected in metadata.items():
+        assert payload[key] == expected
+    assert payload["options"] == options
+    assert len(payload["results"]) == 2
+
+    first = payload["results"][0]
+    assert first["avg_latency"] == 0.5
+    assert first["nan_value"] is None
+    assert first["inf_value"] is None
+    assert first["process_stats"][0]["avg"] == 0.001
+    assert first["process_stats"][0]["max"] is None

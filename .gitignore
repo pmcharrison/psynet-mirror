@@ -26,6 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+node_modules
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -39,6 +40,7 @@ pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 htmlcov/
+test-results/
 .tox/
 .nox/
 .coverage
@@ -158,3 +160,18 @@ deployment-info_*
 source_code.zip
 .deploy
 **/static/assets
+dump.rdb
+
+# ASV benchmark artifacts
+.asv/
+.asv-sync.conf.json
+.asv-local.conf.json
+
+# Deployment-test artifacts: each deployment gets a folder
+# deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/ containing a tracked
+# analysis.md and a local/ subfolder (logs, database export, Prolific data)
+# that stays local because it contains participant identifiers.
+deployment-tests/**
+!deployment-tests/**/
+!deployment-tests/**/*.md
+deployment-tests/*/local/**

@@ -4,12 +4,12 @@ import glob
 import hashlib
 import importlib
 import inspect
-import json
 import logging
 import os
 import re
 import sys
 import time
+from _hashlib import HASH as Hash
 from datetime import datetime
 from functools import reduce, wraps
 from os.path import exists
@@ -23,7 +23,6 @@ import jsonpickle
 import pexpect
 import requests
 import tomlkit
-from _hashlib import HASH as Hash
 from babel.support import Translations
 from bs4 import BeautifulSoup
 from dallinger.config import experiment_available
@@ -46,6 +45,10 @@ def get_logger(name="psynet"):
 logger = get_logger()
 
 
+class ExperimentDirectoryNameError(ValueError):
+    """Raised when an experiment directory name collides with a non-package module."""
+
+
 class NoArgumentProvided:
     """
     We use this class as a replacement for ``None`` as a default argument,
@@ -58,7 +61,7 @@ class NoArgumentProvided:
 
 def deep_copy(x):
     try:
-        return jsonpickle.decode(jsonpickle.encode(x))
+        return jsonpickle.decode(jsonpickle.encode(x, keys=True), keys=True)
     except Exception:
         logger.error(f"Failed to copy the following object: {x}")
         raise
@@ -77,11 +80,6 @@ def sql_sample_one(x):
     from sqlalchemy.sql import func
 
     return x.order_by(func.random()).first()
-
-
-def dict_to_js_vars(x):
-    y = [f"var {key} = {json.dumps(value)}; " for key, value in x.items()]
-    return "".join(y)
 
 
 def call_function(function, *args, **kwargs):
@@ -344,7 +342,7 @@ def corr(x: list, y: list, method="pearson"):
 
 
 def md5_object(x):
-    string = jsonpickle.encode(x).encode("utf-8")
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
     hashed = hashlib.md5(string)
     return str(hashed.hexdigest())
 
@@ -509,8 +507,11 @@ def require_exp_directory(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
+            ensure_experiment_directory_name_does_not_conflict()
             if not experiment_available():
                 raise click.UsageError(error_one)
+        except ExperimentDirectoryNameError as e:
+            raise click.UsageError(str(e))
         except ValueError:
             raise click.UsageError(error_two)
 
@@ -544,9 +545,9 @@ def _render_with_translations(
 
     all_template_args["config"] = dict(get_config().as_dict().items())
 
-    assert [template_name, template_string].count(
-        None
-    ) == 1, "Only one of template_name or template_string should be provided."
+    assert [template_name, template_string].count(None) == 1, (
+        "Only one of template_name or template_string should be provided."
+    )
 
     if locale is None:
         locale = get_locale()
@@ -607,9 +608,9 @@ def get_descendent_class_by_name(parent_class, name):
             if should_overwrite:
                 by_name[id_] = cls
     klass = by_name.get(name)
-    assert (
-        klass is not None
-    ), f"Could not find class {name} in subclasses of {parent_class}"
+    assert klass is not None, (
+        f"Could not find class {name} in subclasses of {parent_class}"
+    )
     return klass
 
 
@@ -728,8 +729,12 @@ def get_translator(
 
     if namespace is None:
         frame = inspect.currentframe().f_back
-        package_name = frame.f_globals["__package__"]
-        package_name = package_name.split(".")[0]  # Remove any subpackage names.
+        package_name = frame.f_globals.get("__package__")
+
+        if package_name is None:
+            namespace = "experiment"
+        else:
+            package_name = package_name.split(".")[0]  # Remove any subpackage names.
 
         if package_name == "dallinger_experiment":
             namespace = "experiment"
@@ -737,7 +742,7 @@ def get_translator(
             raise ValueError(
                 "_get_translator could not work out what namespace to use. Try providing the namespace explicitly."
             )
-        else:
+        elif namespace is None:
             namespace = package_name
 
     def _get_translators(locales_dir, locale, namespace):
@@ -1163,11 +1168,18 @@ def get_psynet_root():
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"
+    # Included so release tooling keeps its template scripts up to date;
+    # excluded from CI test runs via the for_ci_tests filter below.
+    manual_recruiter_testing_root = get_psynet_root() / "tests/manual_recruiter_testing"
 
     dirs = sorted(
         [
             dir_
-            for root in [demo_root, test_experiments_root]
+            for root in [
+                demo_root,
+                test_experiments_root,
+                manual_recruiter_testing_root,
+            ]
             for dir_, sub_dirs, files in os.walk(root)
             if (
                 "experiment.py" in files
@@ -1428,6 +1440,63 @@ def get_installed_package_source_directory(package_name: str) -> Path:
     """
     package = importlib.import_module(package_name)
     return Path(package.__file__).parent
+
+
+def ensure_experiment_directory_name_does_not_conflict(path="."):
+    """
+    Check that the experiment directory basename is safe for Dallinger imports.
+
+    Dallinger imports a local experiment as ``<directory_name>.experiment``. A
+    directory named like an existing non-package module, for example ``code``,
+    can resolve to the standard library module instead of the local experiment
+    directory.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the experiment directory.
+
+    Raises
+    ------
+    ExperimentDirectoryNameError
+        If Python resolves the directory name to an unrelated non-package module.
+    """
+    path = Path(path).resolve()
+    if not (path / "experiment.py").exists():
+        return
+
+    module_name = path.name
+    spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        return
+    # A package resolution can still support ``<name>.experiment``. The
+    # problematic case is a plain module such as the standard-library
+    # ``code.py``, which has no submodule search path and cannot contain
+    # ``code.experiment``.
+    if spec.submodule_search_locations is not None:
+        return
+
+    candidate_paths = []
+    if spec.origin not in (None, "built-in"):
+        candidate_paths.append(Path(spec.origin))
+
+    # If Python resolves the name back into the experiment directory, the import
+    # machinery will see the local experiment rather than an unrelated module.
+    if any(
+        candidate_path.resolve().is_relative_to(path)
+        for candidate_path in candidate_paths
+    ):
+        return
+
+    module_path = spec.origin if spec.origin is not None else module_name
+    raise ExperimentDirectoryNameError(
+        f"The current experiment directory is named '{module_name}', but Python's "
+        f"module '{module_name}' resolves to '{module_path}' instead of "
+        "this directory. Dallinger imports experiments by directory name, so it "
+        "cannot import this experiment reliably. Rename the directory or move the "
+        "runnable experiment into a nested non-conflicting directory, for example "
+        f"'{module_name}/<experiment_slug>/'."
+    )
 
 
 def get_package_source_directory(path="."):

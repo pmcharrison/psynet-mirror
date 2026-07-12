@@ -267,9 +267,9 @@ class Exp(psynet.experiment.Experiment):
         for remaining_nodes in range(2):
             for bot in bots:
                 page = bot.get_current_page()
-                assert isinstance(
-                    page, InfoPage
-                ), f"Bot {bot.id} unexpectedly saw {page} instead of an InfoPage, on remaining_nodes = {remaining_nodes}."
+                assert isinstance(page, InfoPage), (
+                    f"Bot {bot.id} unexpectedly saw {page} instead of an InfoPage, on remaining_nodes = {remaining_nodes}."
+                )
                 bot.take_page()
 
                 page = bot.get_current_page()
