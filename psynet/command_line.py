@@ -185,6 +185,20 @@ def _write_experiment_generated_file(relative_path, contents, overwrite):
     return True
 
 
+def _copy_missing_directory_entries(source, destination):
+    """Copy missing entries from a template directory without overwriting files."""
+    copied = False
+    for source_path in source.rglob("*"):
+        destination_path = destination / source_path.relative_to(source)
+        if source_path.is_dir():
+            destination_path.mkdir(parents=True, exist_ok=True)
+        elif not destination_path.exists():
+            destination_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_path, destination_path)
+            copied = True
+    return copied
+
+
 def _remove_empty_parent_dirs(path):
     """Remove now-empty parent directories after deleting scaffold files."""
     workspace_root = Path.cwd()
@@ -250,17 +264,23 @@ def scaffold_experiment_directory(
             continue
 
         destination = Path(relative_path)
-        if destination.exists() and not overwrite:
-            skipped.append(relative_path)
-            continue
-
-        verb = "updating" if overwrite else "creating"
-        click.echo(f"...{verb} {relative_path} directory.")
-        if overwrite and destination.exists():
-            shutil.rmtree(destination, ignore_errors=True)
         with resources.as_file(
             resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
         ) as path:
+            if destination.exists() and not overwrite:
+                if _copy_missing_directory_entries(path, destination):
+                    click.echo(
+                        f"...filling missing files in {relative_path} directory."
+                    )
+                    written.append(relative_path)
+                else:
+                    skipped.append(relative_path)
+                continue
+
+            verb = "updating" if overwrite else "creating"
+            click.echo(f"...{verb} {relative_path} directory.")
+            if overwrite and destination.exists():
+                shutil.rmtree(destination, ignore_errors=True)
             shutil.copytree(
                 path,
                 destination,

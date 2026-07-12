@@ -25,11 +25,13 @@ The PsyNet demo directories include just the essential experiment files
 demo-specific helpers, templates, or assets. To run a copied demo yourself, you
 must generate several additional boilerplate files with ``psynet scaffold``.
 
-If you copied the demo into a brand new directory, initialize a Git repository there too:
+Initialize a Git repository in the copied directory and generate its boilerplate
+before choosing either setup mode:
 
 .. code-block:: bash
 
     git init
+    psynet scaffold
 
 
 Docker mode
@@ -109,9 +111,8 @@ If you have indeed increased the PsyNet version number, you need to update ``con
 
 Once it is complete, you should be able to run ``psynet debug local`` as before.
 
-You can regenerate the standard boilerplate files for a copied demo at any time with:
+You can regenerate any missing standard boilerplate files at any time with:
 
 .. code:: bash
 
-    git init
     psynet scaffold

@@ -856,6 +856,22 @@ def test_scaffold_creates_missing_files_without_overwriting_readme():
             assert Path(".python-version").exists()
 
 
+def test_scaffold_fills_partial_directories_without_overwriting_existing_files():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("docker").mkdir()
+            Path("docker/psynet").write_text("# Custom helper\n")
+
+            result = runner.invoke(scaffold)
+
+            assert result.exit_code == 0
+            assert Path("docker/psynet").read_text() == "# Custom helper\n"
+            assert Path("docker/run").exists()
+
+
 def test_prune_experiment_scaffold_keeps_readme_only():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
