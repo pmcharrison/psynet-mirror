@@ -847,27 +847,14 @@ def test_scripts_scaffold_bootstraps_empty_directory():
             assert "Scaffolded experiment in" in result.output
             assert "created: experiment.py, requirements.txt, and" in result.output
             assert "boilerplate files" in result.output
-            assert "tip: run 'psynet scripts update'" in result.output
-            assert "...creating experiment.py." not in result.output
+            assert "tip:" not in result.output
+            assert "...creating" not in result.output
             assert Path("experiment.py").exists()
             assert "class Exp" in Path("experiment.py").read_text()
             assert Path("requirements.txt").exists()
             assert "psynet" in Path("requirements.txt").read_text()
             assert Path("Dockerfile").exists()
             assert Path("config.txt").exists()
-
-
-def test_scripts_scaffold_verbose_lists_each_file():
-    runner = CliRunner()
-
-    with tempfile.TemporaryDirectory() as dir:
-        with working_directory(dir):
-            result = runner.invoke(psynet, ["scripts", "scaffold", "--verbose"])
-
-            assert result.exit_code == 0, result.output
-            assert "...creating experiment.py." in result.output
-            assert "...creating requirements.txt." in result.output
-            assert "Scaffolded experiment in" in result.output
 
 
 def test_scripts_scaffold_reports_when_nothing_is_needed():
@@ -884,7 +871,6 @@ def test_scripts_scaffold_reports_when_nothing_is_needed():
                 "Nothing to scaffold; experiment boilerplate is already present."
                 in second.output
             )
-            assert "tip: run 'psynet scripts update'" not in second.output
 
 
 def test_scripts_scaffold_preserves_existing_authored_files():

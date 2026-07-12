@@ -96,7 +96,7 @@ def _default_requirements_txt() -> str:
     return f"{requirement}\n{_REQUIREMENTS_TXT_COMMENTS}"
 
 
-def _bootstrap_authored_files(skip_files, *, verbose):
+def _bootstrap_authored_files(skip_files):
     """Create missing starter experiment files without overwriting existing ones."""
     written = []
     skipped = []
@@ -112,21 +112,11 @@ def _bootstrap_authored_files(skip_files, *, verbose):
 
         # Authored starter files are never overwritten, even during update-scripts.
         if _write_generated_file(relative_path, contents_factory(), overwrite=False):
-            if verbose:
-                click.echo(f"...creating {relative_path}.")
             written.append(relative_path)
         else:
             skipped.append(relative_path)
 
     return written, skipped
-
-
-def _echo_file_change(verb, relative_path, *, verbose, is_directory=False):
-    """Optionally report a single file change when verbose mode is enabled."""
-    if not verbose:
-        return
-    suffix = " directory" if is_directory else ""
-    click.echo(f"...{verb} {relative_path}{suffix}.")
 
 
 def _summarize_written_paths(written):
@@ -146,7 +136,7 @@ def _summarize_written_paths(written):
     return None
 
 
-def _report_scaffold_result(written, *, overwrite, verbose):
+def _report_scaffold_result(written, *, overwrite):
     """Print a concise summary of a scaffold or update run."""
     directory_name = Path.cwd().name
     summary = _summarize_written_paths(written)
@@ -155,7 +145,7 @@ def _report_scaffold_result(written, *, overwrite, verbose):
         if summary:
             click.echo(f"Updated experiment scripts in {directory_name}")
             click.echo(f"  updated: {summary}")
-        elif not verbose:
+        else:
             click.echo(
                 f"Experiment scripts in {directory_name} are already up to date."
             )
@@ -164,7 +154,6 @@ def _report_scaffold_result(written, *, overwrite, verbose):
     if summary:
         click.echo(f"Scaffolded experiment in {directory_name}")
         click.echo(f"  created: {summary}")
-        click.echo("  tip: run 'psynet scripts update' to overwrite templates later")
         return
 
     click.echo("Nothing to scaffold; experiment boilerplate is already present.")
@@ -241,20 +230,14 @@ def scaffold_experiment_directory(
     overwrite=False,
     include_optional_files=False,
     skip_files=None,
-    verbose=False,
 ):
     """Create or refresh the standard scaffold-managed experiment files."""
     skip_files = set(skip_files or [])
-    if verbose:
-        action = "Updating" if overwrite else "Scaffolding"
-        click.echo(f"{action} PsyNet scripts in ({Path.cwd()})...")
 
     written = []
     skipped = []
 
-    bootstrap_written, bootstrap_skipped = _bootstrap_authored_files(
-        skip_files, verbose=verbose
-    )
+    bootstrap_written, bootstrap_skipped = _bootstrap_authored_files(skip_files)
     written.extend(bootstrap_written)
     skipped.extend(bootstrap_skipped)
 
@@ -272,8 +255,6 @@ def scaffold_experiment_directory(
             overwrite,
             treat_empty_file_as_missing=relative_path == "config.txt",
         ):
-            verb = "updating" if overwrite else "creating"
-            _echo_file_change(verb, relative_path, verbose=verbose)
             written.append(relative_path)
         else:
             skipped.append(relative_path)
@@ -284,8 +265,6 @@ def scaffold_experiment_directory(
             continue
 
         if _write_generated_file(relative_path, contents_factory(), overwrite):
-            verb = "updating" if overwrite else "creating"
-            _echo_file_change(verb, relative_path, verbose=verbose)
             written.append(relative_path)
         else:
             skipped.append(relative_path)
@@ -301,17 +280,11 @@ def scaffold_experiment_directory(
         ) as path:
             if destination.exists() and not overwrite:
                 if _copy_missing_directory_entries(path, destination):
-                    if verbose:
-                        click.echo(
-                            f"...filling missing files in {relative_path} directory."
-                        )
                     written.append(relative_path)
                 else:
                     skipped.append(relative_path)
                 continue
 
-            verb = "updating" if overwrite else "creating"
-            _echo_file_change(verb, relative_path, verbose=verbose, is_directory=True)
             if overwrite and destination.exists():
                 shutil.rmtree(destination, ignore_errors=True)
             shutil.copytree(
@@ -329,7 +302,7 @@ def scaffold_experiment_directory(
             if Path(directory).exists() and md5_directory(directory) == hash_:
                 shutil.rmtree(directory)
 
-    _report_scaffold_result(written, overwrite=overwrite, verbose=verbose)
+    _report_scaffold_result(written, overwrite=overwrite)
 
     return {"written": written, "skipped": skipped}
 
