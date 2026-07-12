@@ -1,6 +1,5 @@
 """Create, update, and prune PsyNet experiment scaffold files."""
 
-import os
 import shutil
 import stat
 from importlib import resources
@@ -33,21 +32,13 @@ _GENERATED_FILES = {
     ".python-version": lambda: f"{recommended_python_major_minor}\n",
 }
 
-_REMOVABLE_DIRECTORIES = (
-    ("docs", "abfc54bbbc3ef9d5948957841727a18b"),
-)
+_REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
 
 _EXECUTABLE_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
 
-def scaffold_managed_paths(*, include_optional_files=True) -> frozenset[str]:
+def scaffold_managed_paths() -> frozenset[str]:
     """Return paths managed by the experiment scaffold.
-
-    Parameters
-    ----------
-    include_optional_files
-        Whether to include files that are only created by ``psynet scaffold``,
-        rather than by ``psynet update-scripts``.
 
     Returns
     -------
@@ -55,10 +46,9 @@ def scaffold_managed_paths(*, include_optional_files=True) -> frozenset[str]:
         Relative paths to scaffold-managed files and directories.
     """
     paths = set(_TEMPLATE_FILES)
+    paths.update(_OPTIONAL_TEMPLATE_FILES)
     paths.update(_TEMPLATE_DIRECTORIES)
     paths.update(_GENERATED_FILES)
-    if include_optional_files:
-        paths.update(_OPTIONAL_TEMPLATE_FILES)
     return frozenset(paths)
 
 
@@ -137,7 +127,7 @@ def scaffold_experiment_directory(
     """Create or refresh the standard scaffold-managed experiment files."""
     skip_files = set(skip_files or [])
     action = "Updating" if overwrite else "Scaffolding"
-    click.echo(f"{action} PsyNet scripts in ({os.getcwd()})...")
+    click.echo(f"{action} PsyNet scripts in ({Path.cwd()})...")
 
     written = []
     skipped = []
@@ -181,8 +171,7 @@ def scaffold_experiment_directory(
 
         destination = Path(relative_path)
         with resources.as_file(
-            resources.files("psynet")
-            / f"resources/experiment_scripts/{relative_path}"
+            resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
         ) as path:
             if destination.exists() and not overwrite:
                 if _copy_missing_directory_entries(path, destination):
