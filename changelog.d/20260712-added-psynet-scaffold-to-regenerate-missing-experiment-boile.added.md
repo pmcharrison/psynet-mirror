@@ -1,0 +1,1 @@
+Added `psynet scaffold` to regenerate missing experiment boilerplate without overwriting customized files, moved scaffold maintenance into a dedicated module, and converted the `features/api` and `experiments/vocabulary_test` demos to essential-file layouts with round-trip CI coverage.
