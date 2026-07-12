@@ -1,5 +1,6 @@
 """Create, update, and prune PsyNet experiment scaffold files."""
 
+import re
 import shutil
 import stat
 from importlib import resources
@@ -8,7 +9,7 @@ from pathlib import Path
 import click
 
 from psynet.utils import md5_directory
-from psynet.version import recommended_python_major_minor
+from psynet.version import psynet_version, recommended_python_major_minor
 
 _TEMPLATE_FILES = (
     ".gitignore",
@@ -36,6 +37,28 @@ _REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
 
 _EXECUTABLE_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
+_EXPERIMENT_PY_TEMPLATE = """\
+import psynet.experiment
+from psynet.page import InfoPage
+from psynet.timeline import Timeline
+
+
+class Exp(psynet.experiment.Experiment):
+    label = "{label}"
+
+    timeline = Timeline(
+        InfoPage("Welcome!", time_estimate=5),
+    )
+"""
+
+_REQUIREMENTS_TXT_COMMENTS = """\
+
+# Alternatively, you can use one of the following syntaxes to specify a custom PsyNet version
+# psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.4.0#egg=psynet
+# psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet
+# psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet
+"""
+
 
 def scaffold_managed_paths() -> frozenset[str]:
     """Return paths managed by the experiment scaffold.
@@ -50,6 +73,49 @@ def scaffold_managed_paths() -> frozenset[str]:
     paths.update(_TEMPLATE_DIRECTORIES)
     paths.update(_GENERATED_FILES)
     return frozenset(paths)
+
+
+def _default_experiment_label() -> str:
+    """Build a readable experiment label from the current directory name."""
+    return Path.cwd().name.replace("_", " ").replace("-", " ").strip() or "Experiment"
+
+
+def _default_experiment_py() -> str:
+    """Return a minimal starter ``experiment.py``."""
+    return _EXPERIMENT_PY_TEMPLATE.format(label=_default_experiment_label())
+
+
+def _default_requirements_txt() -> str:
+    """Return a starter ``requirements.txt`` for the current PsyNet version."""
+    if re.search(r"a[0-9]+$", psynet_version):
+        requirement = "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
+    else:
+        requirement = f"psynet=={psynet_version}"
+    return f"{requirement}\n{_REQUIREMENTS_TXT_COMMENTS}"
+
+
+def _bootstrap_authored_files(skip_files):
+    """Create missing starter experiment files without overwriting existing ones."""
+    written = []
+    skipped = []
+    bootstrap_files = {
+        "experiment.py": _default_experiment_py,
+        "requirements.txt": _default_requirements_txt,
+    }
+
+    for relative_path, contents_factory in bootstrap_files.items():
+        if relative_path in skip_files:
+            skipped.append(relative_path)
+            continue
+
+        # Authored starter files are never overwritten, even during update-scripts.
+        if _write_generated_file(relative_path, contents_factory(), overwrite=False):
+            click.echo(f"...creating {relative_path}.")
+            written.append(relative_path)
+        else:
+            skipped.append(relative_path)
+
+    return written, skipped
 
 
 def _copy_template_file(relative_path, overwrite, treat_empty_file_as_missing=False):
@@ -131,6 +197,10 @@ def scaffold_experiment_directory(
 
     written = []
     skipped = []
+
+    bootstrap_written, bootstrap_skipped = _bootstrap_authored_files(skip_files)
+    written.extend(bootstrap_written)
+    skipped.extend(bootstrap_skipped)
 
     template_files = list(_TEMPLATE_FILES)
     if include_optional_files:

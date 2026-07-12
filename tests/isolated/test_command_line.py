@@ -836,6 +836,76 @@ def test_check_dockerfile():
                 check_dockerfile()
 
 
+def test_scripts_scaffold_bootstraps_empty_directory():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
+
+            assert result.exit_code == 0, result.output
+            assert "...creating experiment.py." in result.output
+            assert "...creating requirements.txt." in result.output
+            assert Path("experiment.py").exists()
+            assert "class Exp" in Path("experiment.py").read_text()
+            assert Path("requirements.txt").exists()
+            assert "psynet" in Path("requirements.txt").read_text()
+            assert Path("Dockerfile").exists()
+            assert Path("config.txt").exists()
+
+
+def test_scripts_scaffold_preserves_existing_authored_files():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    label = 'Custom'\n")
+            Path("requirements.txt").write_text("psynet==0.0.0\n")
+
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
+
+            assert result.exit_code == 0, result.output
+            assert (
+                Path("experiment.py").read_text()
+                == "class Exp:\n    label = 'Custom'\n"
+            )
+            assert Path("requirements.txt").read_text() == "psynet==0.0.0\n"
+
+
+def test_scripts_update_does_not_overwrite_authored_bootstrap_files():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    label = 'Custom'\n")
+            Path("requirements.txt").write_text("psynet==0.0.0\n")
+
+            result = runner.invoke(psynet, ["scripts", "update"])
+
+            assert result.exit_code == 0, result.output
+            assert (
+                Path("experiment.py").read_text()
+                == "class Exp:\n    label = 'Custom'\n"
+            )
+            assert Path("requirements.txt").read_text() == "psynet==0.0.0\n"
+
+
+def test_scripts_prune_preserves_bootstrapped_authored_files():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
+            assert result.exit_code == 0, result.output
+
+            result = runner.invoke(psynet, ["scripts", "prune"])
+            assert result.exit_code == 0, result.output
+            assert Path("experiment.py").exists()
+            assert Path("requirements.txt").exists()
+            assert Path("Dockerfile").exists() is False
+            assert Path("docker").exists() is False
+
+
 def test_scaffold_creates_missing_files_without_overwriting_readme():
     runner = CliRunner()
 

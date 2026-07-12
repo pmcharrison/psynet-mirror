@@ -57,6 +57,8 @@ from .recruiters import BaseLucidRecruiter, HotAirRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
+    ExperimentDirectoryNameError,
+    ensure_experiment_directory_name_does_not_conflict,
     get_args,
     get_experiment_url,
     get_logger,
@@ -2867,12 +2869,37 @@ def scripts():
     pass
 
 
+def _assert_directory_is_scaffoldable():
+    """Allow scaffolding from empty directories while validating existing experiments."""
+    try:
+        ensure_experiment_directory_name_does_not_conflict()
+    except ExperimentDirectoryNameError as exc:
+        raise click.UsageError(str(exc)) from exc
+
+    if not Path("experiment.py").exists():
+        return
+
+    try:
+        if not experiment_available():
+            raise click.UsageError(
+                "The current directory is not a valid PsyNet experiment."
+            )
+    except ValueError as exc:
+        raise click.UsageError(
+            "There are problems with the current experiment. Please check with "
+            "`dallinger verify`."
+        ) from exc
+
+
 @scripts.command("scaffold")
-@require_exp_directory
 def scripts_scaffold():
     """
     Create any missing PsyNet boilerplate files for the experiment directory.
+
+    If ``experiment.py`` or ``requirements.txt`` are missing, starter versions are
+    created as well.
     """
+    _assert_directory_is_scaffoldable()
     scaffold_experiment_directory(include_optional_files=True)
 
 
@@ -2897,7 +2924,6 @@ def scripts_prune():
 
 
 @psynet.command("scaffold")
-@require_exp_directory
 def scaffold():
     """
     Deprecated alias for ``psynet scripts scaffold``.
@@ -2907,6 +2933,7 @@ def scaffold():
         DeprecationWarning,
         stacklevel=2,
     )
+    _assert_directory_is_scaffoldable()
     scaffold_experiment_directory(include_optional_files=True)
 
 
