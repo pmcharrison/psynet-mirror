@@ -47,6 +47,7 @@ from psynet.version import (
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    prune_experiment_scaffold,
     scaffold_experiment_directory,
 )
 from .log import bold
@@ -1353,8 +1354,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         missing_paths = ", ".join(missing_boilerplate)
         raise click.ClickException(
             "Experiment directory is missing required PsyNet boilerplate files "
-            f"({missing_paths}). Run 'psynet scaffold' to generate them before "
-            f"running 'psynet {mode} ...'."
+            f"({missing_paths}). Run 'psynet scripts scaffold' to generate them "
+            f"before running 'psynet {mode} ...'."
         )
 
     exp = get_experiment()
@@ -1378,7 +1379,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     except FileNotFoundError:
         raise click.ClickException(
             f".gitignore is missing from your experiment directory ({os.getcwd()}). "
-            "Run 'psynet scaffold' to generate the standard boilerplate files."
+            "Run 'psynet scripts scaffold' to generate the standard boilerplate files."
         )
 
     # We need an active git repository for Dallinger to recognize .gitignore properly
@@ -1937,14 +1938,14 @@ def check_dockerfile():
 
     update_scripts_recommendation = (
         "To fix this issue, run:\n"
-        "  psynet scaffold\n\n"
+        "  psynet scripts scaffold\n\n"
         "This creates any missing standard boilerplate files without overwriting existing ones.\n\n"
         "If you instead want to overwrite existing boilerplate with the latest templates, run:\n"
-        "  psynet update-scripts\n\n"
+        "  psynet scripts update\n\n"
         "Note: This command will also update other experiment files including .gitignore, "
         "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
         "IMPORTANT: Before running this command, commit any pending changes to git so you can "
-        "review the automatic changes that psynet update-scripts makes."
+        "review the automatic changes that psynet scripts update makes."
     )
 
     dockerfile_path = Path("Dockerfile")
@@ -2857,21 +2858,57 @@ def generate_config(ctx):
             file.write(f"{key} = {value}\n")
 
 
-@psynet.command()
+@psynet.group("scripts")
+def scripts():
+    """
+    Manage experiment boilerplate scripts and templates.
+    """
+    pass
+
+
+@scripts.command("scaffold")
 @require_exp_directory
-def scaffold():
+def scripts_scaffold():
     """
     Create any missing PsyNet boilerplate files for the experiment directory.
     """
     scaffold_experiment_directory(include_optional_files=True)
 
 
-@psynet.command()
+@scripts.command("update")
+@require_exp_directory
+def scripts_update():
+    """
+    Overwrite experiment boilerplate with the latest PsyNet templates.
+    """
+    update_scripts_()
+
+
+@scripts.command("prune")
+@require_exp_directory
+def scripts_prune():
+    """
+    Remove scaffold-managed boilerplate files from the experiment directory.
+
+    Authored experiment files are preserved. ``README.md`` is kept by default.
+    """
+    prune_experiment_scaffold(preserve_files={"README.md"})
+
+
+@psynet.command("scaffold")
+@require_exp_directory
+def scaffold():
+    """
+    Alias for ``psynet scripts scaffold``.
+    """
+    scaffold_experiment_directory(include_optional_files=True)
+
+
+@psynet.command("update-scripts")
 @require_exp_directory
 def update_scripts():
     """
-    To be run in an experiment directory; updates a collection of template scripts and help files to their
-    latest PsyNet versions.
+    Alias for ``psynet scripts update``.
     """
     update_scripts_()
 
@@ -3175,7 +3212,7 @@ def test__local(
     if not Path("test.py").exists():
         raise click.UsageError(
             "Experiment directory is missing test.py. "
-            "Run 'psynet scaffold' to generate the standard boilerplate files."
+            "Run 'psynet scripts scaffold' to generate the standard boilerplate files."
         )
 
     exit_code = pytest.main(["test.py"])

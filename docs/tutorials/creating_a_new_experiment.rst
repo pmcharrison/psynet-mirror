@@ -23,7 +23,7 @@ or whether you are using the *virtual environment* mode.
 The PsyNet demo directories include just the essential experiment files
 (``experiment.py``, ``requirements.txt``, ``constraints.txt``) together with any
 demo-specific helpers, templates, or assets. To run a copied demo yourself, you
-must generate several additional boilerplate files with ``psynet scaffold``.
+must generate several additional boilerplate files with ``psynet scripts scaffold``.
 
 Initialize a Git repository in the copied directory and generate its boilerplate
 before choosing either setup mode:
@@ -31,7 +31,7 @@ before choosing either setup mode:
 .. code-block:: bash
 
     git init
-    psynet scaffold
+    psynet scripts scaffold
 
 
 Docker mode
@@ -115,4 +115,4 @@ You can regenerate any missing standard boilerplate files at any time with:
 
 .. code:: bash
 
-    psynet scaffold
+    psynet scripts scaffold

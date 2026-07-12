@@ -204,7 +204,7 @@ def scaffold_experiment_directory(
 
     if not overwrite and written:
         click.echo(
-            "Scaffolded missing boilerplate files. Use 'psynet update-scripts' to"
+            "Scaffolded missing boilerplate files. Use 'psynet scripts update' to"
             " overwrite existing boilerplate with the latest templates."
         )
 

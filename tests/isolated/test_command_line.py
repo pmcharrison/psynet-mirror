@@ -21,6 +21,7 @@ from psynet.command_line import (
     _create_sql_profile_run_dir,
     _enable_sql_profile,
     check_dockerfile,
+    psynet,
     scaffold,
     update_scripts_,
 )
@@ -844,7 +845,7 @@ def test_scaffold_creates_missing_files_without_overwriting_readme():
             Path("requirements.txt").write_text("psynet==0.0.0\n")
             Path("README.md").write_text("# Custom README\n")
 
-            result = runner.invoke(scaffold)
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
 
             assert result.exit_code == 0
             assert Path("README.md").read_text() == "# Custom README\n"
@@ -857,6 +858,69 @@ def test_scaffold_creates_missing_files_without_overwriting_readme():
             assert Path(".python-version").exists()
 
 
+def test_scaffold_alias_matches_scripts_scaffold():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+
+            result = runner.invoke(scaffold)
+
+            assert result.exit_code == 0
+            assert Path("Dockerfile").exists()
+            assert Path("config.txt").exists()
+
+
+def test_scripts_update_overwrites_boilerplate():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("Dockerfile").write_text("FROM outdated\n")
+
+            result = runner.invoke(psynet, ["scripts", "update"])
+
+            assert result.exit_code == 0
+            assert "FROM outdated" not in Path("Dockerfile").read_text()
+            assert Path("Dockerfile").read_text()
+
+
+def test_scripts_prune_removes_boilerplate_and_keeps_readme():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("requirements.txt").write_text("psynet==0.0.0\n")
+            Path("constraints.txt").write_text("psynet==0.0.0\n")
+            Path("README.md").write_text("# Minimal demo\n")
+
+            update_scripts_()
+            Path("README.md").write_text("# Minimal demo\n")
+
+            result = runner.invoke(psynet, ["scripts", "prune"])
+
+            assert result.exit_code == 0
+            assert Path("README.md").read_text() == "# Minimal demo\n"
+            assert Path("requirements.txt").exists()
+            assert Path("constraints.txt").exists()
+            assert Path("Dockerfile").exists() is False
+            assert Path("test.py").exists() is False
+            assert Path("config.txt").exists() is False
+            assert Path("docker").exists() is False
+
+
+def test_scripts_group_help_lists_subcommands():
+    result = CliRunner().invoke(psynet, ["scripts", "--help"])
+
+    assert result.exit_code == 0
+    assert "scaffold" in result.output
+    assert "update" in result.output
+    assert "prune" in result.output
+
+
 def test_scaffold_fills_partial_directories_without_overwriting_existing_files():
     runner = CliRunner()
 
@@ -866,7 +930,7 @@ def test_scaffold_fills_partial_directories_without_overwriting_existing_files()
             Path("docker").mkdir()
             Path("docker/psynet").write_text("# Custom helper\n")
 
-            result = runner.invoke(scaffold)
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
 
             assert result.exit_code == 0
             assert Path("docker/psynet").read_text() == "# Custom helper\n"
@@ -880,7 +944,7 @@ def test_scaffold_makes_docker_entries_executable():
         with working_directory(dir):
             Path("experiment.py").write_text("class Exp:\n    pass\n")
 
-            result = runner.invoke(scaffold)
+            result = runner.invoke(psynet, ["scripts", "scaffold"])
 
             assert result.exit_code == 0
             for path in Path("docker").iterdir():
