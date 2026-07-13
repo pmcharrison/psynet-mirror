@@ -45,10 +45,33 @@ def _hash_file(path: Path) -> str:
 
 def _copy_demo_to_tmp(src: Path, tmp_path: Path, label: str) -> Path:
     """Copy a demo into a temporary git repository for round-trip checks."""
+    static_directory = (src / "static").resolve()
+
+    def ignore_generated_paths(directory, names):
+        if Path(directory).resolve() == static_directory and "assets" in names:
+            return {"assets"}
+        return set()
+
     target = tmp_path / label.replace("/", "__")
-    shutil.copytree(src, target)
+    shutil.copytree(src, target, ignore=ignore_generated_paths)
     subprocess.run(["git", "init", "-q"], cwd=target, check=True)
     return target
+
+
+def test_copy_demo_to_tmp_ignores_generated_static_assets(tmp_path):
+    source = tmp_path / "source"
+    static = source / "static"
+    static.mkdir(parents=True)
+    (source / "experiment.py").write_text("class Exp:\n    pass\n")
+    (static / "assets").symlink_to(tmp_path / "missing-assets")
+    copies = tmp_path / "copies"
+    copies.mkdir()
+
+    copied = _copy_demo_to_tmp(source, copies, "demo")
+
+    assert (copied / "experiment.py").exists()
+    assert not (copied / "static/assets").exists()
+    assert not (copied / "static/assets").is_symlink()
 
 
 def _run_command(args, cwd: Path):
