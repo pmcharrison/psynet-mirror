@@ -22,8 +22,9 @@ logger = get_logger()
 
 def _get_grouper_progress():
     """
-    Return list of dicts describing each Grouper in the timeline and how many
-    participants are currently waiting at it. Used for the "Grouper progress" table.
+    Return list of dicts describing each Grouper in the timeline.
+
+    Used as static configuration for the "Grouper progress" table.
     """
     try:
         from psynet.experiment import get_experiment
