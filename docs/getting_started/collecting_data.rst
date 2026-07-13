@@ -93,30 +93,51 @@ to participants who complete the experiment. You should normally set this to the
 that your chosen ``base_payment`` combines with your ``prolific_estimated_completion_minutes``
 to yield an appropriate hourly wage.
 
-When a participant reaches the end of the experiment, PsyNet will examine how much financial reward
-they actually accumulated during the experiment, looking both at pages' time estimates and at
-performance bonuses (if relevant).
-It then compares this financial reward to the ``base_payment`` parameter.
+When a participant reaches a :class:`~psynet.page.SuccessfulEndPage`, PsyNet treats them as having
+successfully completed the experiment. PsyNet will tell Prolific that the participant should be
+approved, and Prolific will then pay the participant the ``base_payment``. PsyNet will also examine
+how much financial reward the participant actually accumulated during the experiment, looking both
+at pages' time estimates and at performance bonuses (if relevant). It then compares this financial
+reward to the ``base_payment`` parameter.
 
-Three scenarios are possible:
+Two scenarios are possible for successful completions:
 
-1. The actual reward is exactly equal to the ``base_payment`` parameter.
-   In this case, PsyNet will tell Prolific that the participant should be approved.
-   Prolific will then pay the participant the ``base_payment``.
+1. The actual reward is less than or equal to the ``base_payment`` parameter.
+   In this case, no additional bonus is paid. The participant still receives the ``base_payment``
+   from Prolific.
 2. The actual reward is greater than the ``base_payment`` parameter.
-   PsyNet will then approve the participant (automatically delivering the base payment)
-   and additionally then use Prolific's bonus functionality to pay the remaining amount.
-3. The actual reward is less than the ``base_payment`` parameter.
-   PsyNet will then not approve the participant, but will instead try to give them a partial payment.
-   PsyNet's default behavior is to tell the participant that they will receive a partial payment,
-   but the participant needs to return the submission to receive the payment.
-   When the participant declares they have done this, PsyNet checks with Prolific via their API
-   to see if the submission has actually been returned. If so, PsyNet pays the participant;
-   if not, PsyNet asks the participant to wait and try again.
+   PsyNet uses Prolific's bonus functionality to pay the remaining amount, so that the
+   participant receives the base payment plus a bonus for the difference.
+
+Partial payments are handled separately. If a participant reaches an
+:class:`~psynet.page.UnsuccessfulEndPage`, for example because they fail a pre-screening task, PsyNet
+marks them as failed rather than successfully completed. In this case PsyNet may try to pay them only
+the reward they have accumulated so far. If ``prolific_enable_return_for_bonus`` is set to ``True``
+(the default), PsyNet tells the participant that they will receive a partial payment, but that they
+first need to return the submission in Prolific. When the participant declares they have done this,
+PsyNet checks with Prolific via their API to see if the submission has actually been returned. If so,
+PsyNet pays the participant; if not, PsyNet asks the participant to wait and try again. If
+``prolific_enable_return_for_bonus`` is set to ``False``, PsyNet instead asks the participant to
+return the submission and contact the experimenter, leaving the payment to be handled manually.
+
+.. note::
+
+    Advanced users can customize these default end-of-experiment behaviors by subclassing
+    :class:`~psynet.end.SuccessfulEndLogic` or :class:`~psynet.end.UnsuccessfulEndLogic` and
+    overriding the relevant methods.
+
+.. note::
+
+    We plan to add support soon for Prolific's custom completion URL functionality, which should
+    make it easier to route participants to different Prolific completion outcomes.
+
+You should therefore normally set ``base_payment`` close to the reward expected for a successful
+completion. If a successful participant accumulates less reward than the base payment, PsyNet will
+still approve the participant and Prolific will still pay the full base payment.
 
 This flexibility in payment amounts is particularly useful for experiments that include pre-screening tasks,
 or that deliver variable numbers of trials.
-Note however that Prolific is a bit sensitive to people abusing this functionality;
+Note however that Prolific is a bit sensitive to researchers abusing this functionality;
 you should avoid having too many participants receive partial payments.
 
 Now you need to set your experiment's title, which is done via the ``title`` config parameter.

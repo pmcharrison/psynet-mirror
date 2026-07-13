@@ -31,7 +31,7 @@ class TestRunBot:
         status = bot.status
         response_files = bot.response_files
         assert status["status"] == "working"
-        assert status["page"]["id"] == [0]
+        assert status["page"]["id"] == ["main", 0]
         assert status["page"]["label"] == "favourite_colour"
         assert status["page"]["time_estimate"] == 5
         assert status["page"]["bot_response"]["answer"] == "red"
@@ -53,7 +53,7 @@ class TestRunBot:
         bot._fetch_status()
         status = bot.status
         response_files = bot.response_files
-        assert status["page"]["id"] == [1]
+        assert status["page"]["id"] == ["main", 1]
         assert status["page"]["label"] == "record_audio"
         assert status["page"]["time_estimate"] == 5
 
@@ -76,7 +76,7 @@ class TestRunBot:
         bot._fetch_status()
         status = bot.status
         response_files = bot.response_files
-        assert status["page"]["id"] == [2]
+        assert status["page"]["id"] == ["main", 2]
         assert status["page"]["label"] == "record_video"
         assert status["page"]["time_estimate"] == 5
 

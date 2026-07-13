@@ -6,10 +6,13 @@ if TYPE_CHECKING:
     from psynet.asset import Asset
     from psynet.trial.main import TrialNode
 
+import copy
 import inspect
 import json
 import random
+import re
 import time
+import warnings
 from collections import Counter
 from datetime import datetime
 from functools import cached_property
@@ -18,8 +21,10 @@ from statistics import median
 from types import FunctionType
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
+from bs4 import BeautifulSoup
 from dallinger import db
 from dominate import tags
+from jsonpickle.util import importable_name
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -30,12 +35,11 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject
-from .serialize import is_lambda_function
+from .serialize import is_lambda_function, prepare_function_for_serialization
 from .utils import (
     NoArgumentProvided,
     call_function,
     call_function_with_context,
-    dict_to_js_vars,
     format_datetime,
     get_args,
     get_language_dict,
@@ -201,6 +205,90 @@ class EltCollection:
         raise NotImplementedError
 
 
+WEBSOCKET_CHANNEL = "psynet_experiment"
+"""Global Redis channel set on the experiment when any ``WebSocketElt`` is
+present.
+
+The experiment will activate a subscription to this channel and Dallinger's
+automatic ``dallinger_control`` subscription, giving the experiment visibility
+into websocket connect/disconnect/subscribe events. Experiments that want to
+send or receive messages on this channel directly may do so, but it is not used
+for ``WebSocketElt`` dispatch by default.
+"""
+
+
+class WebSocketElt(Elt):
+    """
+    A timeline element that registers a WebSocket message handler on the
+    experiment.
+
+    Adding a ``WebSocketElt`` to the timeline will:
+
+    1. Subscribe the experiment to ``WebSocketElt.channel`` at launch, enabling
+       it to receive WebSocket messages on that channel.
+    2. Register ``handle_message`` as a handler called by the experiment's
+       ``receive_message`` whenever a message arrives on that channel.
+
+    Each ``WebSocketElt`` subclass should define a unique ``channel`` name so
+    that multiple Websocket consumers in the same timeline can remain isolated
+    from one another.
+
+    Example::
+
+        from psynet.timeline import WebSocketElt
+
+        class RoundOneChatElt(WebSocketElt):
+            channel = "chat_round_one"
+
+            def handle_message(self, message, channel_name, participant, node,
+                               receive_time, experiment):
+                import json
+                data = json.loads(message)
+                # ... process data ...
+
+    Attributes
+    ----------
+    channel : str
+        The Redis channel name this Elt subscribes to. If ``None``, no
+        subscribers will be registered.
+    """
+
+    channel = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def consume(self, experiment, participant):
+        super().consume(experiment, participant)
+
+    def render(self, experiment, participant):
+        return super().render(experiment, participant)
+
+    def handle_message(
+        self, message, channel_name, participant, node, receive_time, experiment
+    ):
+        """Called when a WebSocket message arrives on this element's channel.
+
+        Subclasses must override this method.
+
+        Parameters
+        ----------
+        message : str
+            The raw message string (typically JSON).
+        channel_name : str
+            The name of the channel the message was received on.
+        participant : Participant or None
+            The participant associated with the message, if any.
+        node : Node or None
+            The node associated with the message, if any.
+        receive_time : datetime.datetime or None
+            The server time the message was received.
+        experiment : Experiment
+            The running experiment instance.
+        """
+        raise NotImplementedError
+
+
 class NullElt(Elt):
     def consume(self, experiment, participant):
         pass
@@ -240,6 +328,7 @@ class CodeBlock(Elt):
         call_function_with_context(
             self.function,
             self=self,
+            code_block=self,
             experiment=experiment,
             participant=participant,
         )
@@ -301,20 +390,67 @@ class AsyncCodeBlock(EltCollection):
             CodeBlock(self.wrap_up),
         )
 
-    def initiate(self, participant):
+    def initiate(self, participant, code_block):
         from psynet.process import WorkerAsyncProcess
 
-        if participant.awaited_async_code_block_process is not None:
-            raise RuntimeError(
-                "Participant already has an async code block process pending, this shouldn't happen."
+        code_block_id = code_block.id
+        stale = participant.awaited_async_code_block_process
+        if stale is not None:
+            if stale.pending and not stale.failed:
+                if self.wait and self.matches_pending_process(stale, code_block_id):
+                    logger.warning(
+                        "Participant %s already has an async code block process "
+                        "(id=%s) pending; waiting for the existing process instead "
+                        "of starting a duplicate.",
+                        participant.id,
+                        stale.id,
+                    )
+                    return
+                raise RuntimeError(
+                    "Participant already has an async code block process pending, this shouldn't happen."
+                )
+            # The previous process finished (successfully or with failure) but its
+            # ``wrap_up`` was never executed -- e.g. the participant was rerouted
+            # off the wait page (back button, dashboard force_advance, recruiter
+            # rejection flow re-entering an AsyncCodeBlock, ...). Rather than
+            # leaving the participant permanently stuck, clear the stale
+            # reference and start a fresh process.
+            logger.warning(
+                "Participant %s already had a %s async code block process "
+                "(id=%s) attached when initiating a new one; clearing the "
+                "stale reference and continuing.",
+                participant.id,
+                "failed" if stale.failed else "finished",
+                stale.id,
             )
+            participant.awaited_async_code_block_process = None
 
         participant.awaited_async_code_block_process = WorkerAsyncProcess(
             call_function_with_context,
             label="AsyncCodeBlock",
             participant=participant,
-            arguments=dict(function=self.function, participant=participant),
+            arguments=dict(
+                function=self.function,
+                participant=participant,
+                code_block_id=code_block_id,
+            ),
         )
+
+    def matches_pending_process(self, process, code_block_id):
+        try:
+            pending_function = process.arguments["function"]
+            pending_code_block_id = process.arguments["code_block_id"]
+        except (KeyError, TypeError):
+            return False
+
+        return pending_code_block_id == code_block_id and self.function_key(
+            pending_function
+        ) == self.function_key(self.function)
+
+    @staticmethod
+    def function_key(function):
+        function, _ = prepare_function_for_serialization(function, {})
+        return importable_name(function)
 
     def wait_logic(self):
         from .page import wait_while
@@ -739,6 +875,8 @@ class ProgressDisplay(dict):
 
 
 class Page(Elt):
+    _jsonpickle_exclude = ("_template_contract_soup",)
+
     """
     The base class for pages, customised by passing values to the ``__init__``
     function and by overriding the following methods:
@@ -758,6 +896,20 @@ class Page(Elt):
 
     template_str:
         Alternative way of specifying the jinja2 template as a string.
+
+    template_fragment_path:
+        Path to a jinja2 template containing only the contents of the timeline
+        page's ``main_body`` block. This is the recommended custom-template
+        style for pages used with ``inplace_timeline_transitions``.
+
+    template_fragment_str:
+        Alternative way of specifying a main-body template fragment as a string.
+
+    framework_owned_template:
+        Internal marker for PsyNet-owned templates. Framework pages may still
+        use complete templates in SPA mode because PsyNet controls their page
+        shell and lifecycle; experiment-authored complete templates should use
+        ``template_fragment_path`` or ``template_fragment_str`` for SPA.
 
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
@@ -903,6 +1055,8 @@ class Page(Elt):
         time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None,
+        template_fragment_path: Optional[str] = None,
+        template_fragment_str: Optional[str] = None,
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
@@ -921,6 +1075,7 @@ class Page(Elt):
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
+        framework_owned_template: bool = False,
     ):
         super().__init__()
 
@@ -935,14 +1090,42 @@ class Page(Elt):
         if css_links is None:
             css_links = []
 
-        if template_path is None and template_str is None:
-            raise ValueError("Must provide either template_path or template_str.")
+        complete_template_provided = (
+            template_path is not None or template_str is not None
+        )
+        fragment_template_provided = (
+            template_fragment_path is not None or template_fragment_str is not None
+        )
+
+        if not complete_template_provided and not fragment_template_provided:
+            raise ValueError(
+                "Must provide either template_path/template_str or "
+                "template_fragment_path/template_fragment_str."
+            )
         if template_path is not None and template_str is not None:
             raise ValueError("Cannot provide both template_path and template_str.")
+        if template_fragment_path is not None and template_fragment_str is not None:
+            raise ValueError(
+                "Cannot provide both template_fragment_path and template_fragment_str."
+            )
+        if complete_template_provided and fragment_template_provided:
+            raise ValueError(
+                "Cannot provide both a complete template and a template fragment."
+            )
 
         if template_path is not None:
             with open(template_path, "r") as file:
                 template_str = file.read()
+
+        template_kind = "complete"
+        template_contract_source = template_str
+        if fragment_template_provided:
+            template_kind = "fragment"
+            if template_fragment_path is not None:
+                with open(template_fragment_path, "r") as file:
+                    template_fragment_str = file.read()
+            template_contract_source = template_fragment_str
+            template_str = self._wrap_template_fragment(template_fragment_str)
 
         assert len(label) <= 250
         assert isinstance(template_arg, dict)
@@ -950,6 +1133,10 @@ class Page(Elt):
 
         self.time_estimate = time_estimate
         self.template_str = template_str
+        self.template_kind = template_kind
+        self.template_contract_source = template_contract_source
+        self.framework_owned_template = framework_owned_template
+        self._spa_template_contract_warning_shown = False
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
@@ -988,6 +1175,15 @@ class Page(Elt):
 
         self._bot_response = bot_response
         self._validate_function = validate
+
+    @staticmethod
+    def _wrap_template_fragment(template_fragment_str):
+        return (
+            '{% extends "timeline-page.html" %}\n\n'
+            "{% block main_body %}\n"
+            f"{template_fragment_str}\n"
+            "{% endblock %}"
+        )
 
     def call__get_bot_response(self, experiment, bot, response=NoArgumentProvided):
         """
@@ -1329,9 +1525,12 @@ class Page(Elt):
         """
         pass
 
-    def render(self, experiment, participant):
+    def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
 
+        # `partial_mode` is an internal render shape used for inplace
+        # transitions. The public timeline route now serves full pages (plus
+        # mode=json), while /response embeds this fragment payload directly.
         internal_js_vars = {
             "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
@@ -1340,14 +1539,18 @@ class Page(Elt):
         locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
+        # The SPA template contract applies to author-provided template source,
+        # not to PsyNet's generated timeline shell or supported page assets.
+        self._check_spa_template_contract(
+            inplace_timeline_transitions=config.get("inplace_timeline_transitions"),
+        )
         js_vars = {**self.js_vars, **internal_js_vars}
+        inplace_timeline_transitions = config.get("inplace_timeline_transitions")
 
         all_template_args = {
             **self.template_arg,
-            "init_js_vars": Markup(dict_to_js_vars(js_vars)),
             "js_vars": js_vars,
             "page": self,
-            "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "time_reward": "%.2f" % participant.time_reward,
             "performance_reward": "%.2f" % participant.performance_reward,
@@ -1372,17 +1575,206 @@ class Page(Elt):
                 iso: language_dict[iso] for iso in experiment.supported_locales
             },
             "locale": locale,
+            "partial_mode": partial_mode,
+            "inplace_timeline_transitions": inplace_timeline_transitions,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
-        return render_string_with_translations(
+        rendered = render_string_with_translations(
             template_string=self.template_str, **all_template_args
         )
+        if partial_mode:
+            rendered = self._extract_partial_render(rendered)
+        return rendered
 
-    @property
-    def define_media_requests(self):
-        return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
+    def _check_spa_template_contract(self, inplace_timeline_transitions):
+        if self.framework_owned_template:
+            return
+
+        problems = self._collect_spa_template_contract_problems()
+        if not problems:
+            return
+
+        message = "\n\n".join(problems)
+        if inplace_timeline_transitions:
+            raise ValueError(message)
+
+        if not self._spa_template_contract_warning_shown:
+            warnings.warn(message, UserWarning, stacklevel=2)
+            self._spa_template_contract_warning_shown = True
+
+    def _collect_spa_template_contract_problems(self):
+        problems = []
+        template_source = self.template_contract_source or ""
+
+        if self.template_kind == "complete":
+            problems.append(self._complete_template_spa_contract_message())
+
+        # These checks intentionally cover common authoring mistakes rather
+        # than trying to prove that arbitrary HTML/JS is SPA-safe.
+        soup = self._get_template_contract_soup()
+
+        for script in soup.find_all("script"):
+            if script.get("src"):
+                problems.append(
+                    "The template includes a page JavaScript link in a "
+                    "<script src=...> tag. Supply page JavaScript files via "
+                    "the Page js_links argument instead."
+                )
+            else:
+                problems.append(
+                    "The template includes a raw <script> block. Supply "
+                    "page JavaScript via the Page scripts argument instead, "
+                    "and use PsyNet lifecycle hooks such as "
+                    "psynet.trial.onEvent('trialConstruct', ...) for page setup."
+                )
+
+        if soup.find_all("style"):
+            problems.append(
+                "The template includes inline CSS in a <style> tag. Supply "
+                "page-local CSS via the Page css argument instead."
+            )
+
+        for link in soup.find_all(
+            "link", rel=lambda value: value and "stylesheet" in value
+        ):
+            problems.append(
+                "The template includes a stylesheet <link> tag. Supply "
+                "page-local stylesheet links via the Page css_links argument "
+                "instead."
+            )
+
+        if re.search(
+            r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
+            r"['\"]DOMContentLoaded['\"]",
+            template_source,
+        ):
+            problems.append(
+                "The template registers a DOMContentLoaded listener. "
+                "In-place timeline transitions do not reload the document for "
+                "each page, so page setup should use PsyNet lifecycle hooks "
+                "such as psynet.trial.onEvent('trialConstruct', ...), or "
+                "page scripts supplied through scripts/js_links."
+            )
+
+        has_window_event_listener = re.search(
+            r"\bwindow\s*\.\s*addEventListener\s*\(",
+            template_source,
+        )
+        has_page_cleanup = (
+            "psynet.addPageEventListener" in template_source
+            or "psynet.addPageCleanupCallback" in template_source
+        )
+        if has_window_event_listener and not has_page_cleanup:
+            problems.append(
+                "The template registers a window event listener without a "
+                "PsyNet cleanup hook. Use psynet.addPageEventListener(...) "
+                "when possible, or register cleanup with "
+                "psynet.addPageCleanupCallback(...)."
+            )
+
+        return problems
+
+    def _complete_template_spa_contract_message(self):
+        return (
+            f"Page '{self.label}' uses a complete custom template. "
+            "Complete templates that extend timeline-page.html are supported "
+            "only by the legacy full-page reload path unless PsyNet explicitly "
+            "marks the template as framework-owned. For custom pages used "
+            "with inplace_timeline_transitions, pass "
+            "template_fragment_path or template_fragment_str with only the "
+            "contents of the main_body block, and supply page-local CSS/JS via "
+            "css, css_links, scripts, and js_links. Search your experiment "
+            f"code for Page(...) calls with label='{self.label}'."
+        )
+
+    def _get_template_contract_soup(self):
+        soup = getattr(self, "_template_contract_soup", None)
+        if soup is None:
+            soup = BeautifulSoup(self.template_contract_source or "", "html.parser")
+            self._template_contract_soup = soup
+        return soup
+
+    @staticmethod
+    def _extract_partial_render(rendered_html):
+        soup = BeautifulSoup(rendered_html, "html.parser")
+        Page._defer_executable_scripts(soup)
+        return Page._extract_partial_body(soup)
+
+    @staticmethod
+    def _defer_executable_scripts(soup):
+        parsed_from_string = isinstance(soup, str)
+        if parsed_from_string:
+            soup = BeautifulSoup(soup, "html.parser")
+
+        executable_script_types = {
+            "",
+            "application/ecmascript",
+            "application/javascript",
+            "module",
+            "text/ecmascript",
+            "text/javascript",
+        }
+        for script in soup.find_all("script"):
+            script_type = (script.get("type") or "").strip().lower()
+            if script_type not in executable_script_types:
+                continue
+            script["type"] = "text/psynet-script"
+        if parsed_from_string:
+            return str(soup)
+        return soup
+
+    @staticmethod
+    def _extract_partial_body(soup):
+        if isinstance(soup, str):
+            soup = BeautifulSoup(soup, "html.parser")
+
+        fragment = soup.find(id="psynet-timeline-fragment")
+        if fragment is None:
+            raise ValueError(
+                "Failed to extract partial timeline body: could not find fragment root."
+            )
+        Page._copy_head_stylesheet_assets_to_fragment(soup, fragment)
+        return fragment.decode_contents()
+
+    @staticmethod
+    def _copy_head_stylesheet_assets_to_fragment(soup, fragment):
+        head = soup.find("head")
+        if head is None:
+            return
+
+        css_container = fragment.find(id="psynet-page-css")
+        if css_container is not None:
+            existing_styles = {
+                style.get_text() for style in css_container.find_all("style")
+            }
+            for style in head.find_all(
+                "style", attrs={"data-psynet-fragment-style": True}, recursive=False
+            ):
+                style_text = style.get_text()
+                if style_text not in existing_styles:
+                    css_container.append(copy.copy(style))
+                    existing_styles.add(style_text)
+
+        css_link_container = fragment.find(id="psynet-page-css-links")
+        if css_link_container is not None:
+            existing_hrefs = {
+                link.get("href")
+                for link in css_link_container.find_all(
+                    "link", rel=lambda value: value and "stylesheet" in value
+                )
+            }
+            for link in head.find_all(
+                "link",
+                attrs={"data-psynet-fragment-stylesheet": True},
+                rel=lambda value: value and "stylesheet" in value,
+                recursive=False,
+            ):
+                href = link.get("href")
+                if href not in existing_hrefs:
+                    css_link_container.append(copy.copy(link))
+                    existing_hrefs.add(href)
 
     @property
     def plain_text(self):
@@ -1533,23 +1925,67 @@ class PageMakerFinishedError(Exception):
 
 
 class Timeline:
-    def __init__(self, *args):
-        # Todo - don't add SuccessfulEndLogic if it's already there.
-        # To achieve this, we should refactor EltCollection to make
-        # it easier to test for.
-        from psynet.end import SuccessfulEndLogic
+    def __init__(self, *args, **branch_kwargs):
+        from collections import OrderedDict
 
-        self.elts = join(*args, SuccessfulEndLogic())
+        from psynet.end import (
+            RejectedConsentLogic,
+            SuccessfulEndLogic,
+            UnsuccessfulEndLogic,
+        )
+        from psynet.page import SuccessfulEndPage
+
+        default_branches = OrderedDict(
+            [
+                ("successful_end", SuccessfulEndLogic()),
+                ("unsuccessful_end", UnsuccessfulEndLogic()),
+                ("rejected_consent", RejectedConsentLogic()),
+            ]
+        )
+        default_branches.update(branch_kwargs)
+
+        self.elts = OrderedDict()
+        self.elts["main"] = join(*args, SuccessfulEndPage())
+        for name, content in default_branches.items():
+            self.elts[name] = join(content)
 
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
-        self.estimated_time_credit = CreditEstimate(self.elts)
+        self.estimated_time_credit = CreditEstimate(list(self.all_elts))
+
+    @property
+    def all_elts(self):
+        """Iterate over all elements across all branches."""
+        for branch_elts in self.elts.values():
+            yield from branch_elts
+
+    def get_participant_branch(self, participant):
+        """Return the name of the branch the participant is currently in."""
+        return participant.elt_id[0]
+
+    def participant_is_in_end_logic(self, participant):
+        """Return True if the participant is in any end logic branch."""
+        return self.get_participant_branch(participant) != "main"
+
+    def redirect_to_branch(self, experiment, participant, branch_name):
+        """Redirect a participant to the start of a named branch.
+
+        This should only be called from within ``advance_page`` (i.e. from
+        an ``Elt.consume`` method).  For redirects originating outside the
+        page-advance loop (e.g. background tasks), set
+        ``participant.pending_redirect`` instead so that the redirect is
+        applied on the next page transition.
+        """
+        if branch_name not in self.elts:
+            raise ValueError(f"Unknown timeline branch: {branch_name!r}")
+        participant.elt_id = [branch_name, -1]
+        participant.elt_id_max = []
 
     def compile_modules(self):
         modules = {}
         module_list = []
-        for elt in self.elts:
+        for elt in self.all_elts:
             if isinstance(elt, StartModule):
                 module = elt.module
                 if module.id in modules:
@@ -1559,24 +1995,23 @@ class Timeline:
         return modules, module_list
 
     def check_elts(self):
-        assert isinstance(self.elts, list)
-        assert len(self.elts) > 0
-        # We used to check that the timeline finished with an EndPage, but this is no longer necessary,
-        # as we now automatically add SuccessfulEndLogic to the main branch.
+        assert isinstance(self.elts, dict)
+        assert "main" in self.elts
+        assert len(self.elts["main"]) > 0
         self.check_for_time_estimate()
         self.check_modules()
 
     def check_for_time_estimate(self):
-        for i, elt in enumerate(self.elts):
+        for elt in self.all_elts:
             if (
                 isinstance(elt, Page) or isinstance(elt, PageMaker)
             ) and elt.time_estimate is None:
                 raise ValueError(
-                    f"Element {i} of the timeline was missing a time_estimate value."
+                    f"Element {elt!r} of the timeline was missing a time_estimate value."
                 )
 
     def check_modules(self):
-        modules = [x.label for x in self.elts if isinstance(x, StartModule)]
+        modules = [x.label for x in self.all_elts if isinstance(x, StartModule)]
         counts = Counter(modules)
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
@@ -1593,7 +2028,7 @@ class Timeline:
     def consents(self):
         from .consent import Consent
 
-        return [elt for elt in self.elts if isinstance(elt, Consent)]
+        return [elt for elt in self.elts["main"] if isinstance(elt, Consent)]
 
     def check_consents(self, experiment):
         recruiter = experiment.recruiter
@@ -1609,7 +2044,7 @@ class Timeline:
     def trial_makers(self):
         return {
             e.trial_maker_id: e.trial_maker
-            for e in self.elts
+            for e in self.all_elts
             if isinstance(e, RegisterTrialMaker)
         }
 
@@ -1620,30 +2055,35 @@ class Timeline:
             raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
 
     def add_elt_ids(self):
-        for i, elt in enumerate(self.elts):
-            if elt.id is not None and elt.id != [i]:
-                raise ValueError(
-                    f"Failed to set unique IDs for each element in the timeline "
-                    f"(the same element was reused at positions {elt.id} and {i}). "
-                    "This usually means that the same Python object instantiation is reused multiple times "
-                    "in the same timeline. This kind of reusing is not permitted, instead you should "
-                    "create a fresh instantiation of each element, e.g. by calling a function twice."
-                )
-
-            elt.id = [i]
+        for branch_name, branch_elts in self.elts.items():
+            for i, elt in enumerate(branch_elts):
+                expected_id = [branch_name, i]
+                if elt.id is not None and elt.id != expected_id:
+                    raise ValueError(
+                        f"Failed to set unique IDs for each element in the timeline "
+                        f"(the same element was reused at positions {elt.id} and {expected_id}). "
+                        "This usually means that the same Python object instantiation is reused multiple times "
+                        "in the same timeline. This kind of reusing is not permitted, instead you should "
+                        "create a fresh instantiation of each element, e.g. by calling a function twice."
+                    )
+                elt.id = expected_id
 
     def __len__(self):
-        return len(self.elts)
+        return sum(len(branch) for branch in self.elts.values())
 
     def __getitem__(self, key: Union[str, list]):
         if isinstance(key, str):
-            key = [key]
+            return self.elts[key]
 
-        selected = self.elts
-        for k in key:
-            selected = selected[k]
+        if isinstance(key, list):
+            selected = self.elts
+            for k in key:
+                selected = selected[k]
+            return selected
 
-        return selected
+        raise TypeError(
+            f"Timeline indices must be strings or lists, not {type(key).__name__}"
+        )
 
     def index(self, elt: Elt):
         if elt.id is None:
@@ -1655,48 +2095,24 @@ class Timeline:
 
     @log_time_taken
     def get_current_elt(self, experiment, participant):
-        # Remember, ``participant.elt_id`` corresponds to a list representation
-        # of the participant's position in the timeline, where the first element corresponds
-        # to the index of the participant within the timeline's underlying
-        # list representation, and successive elements (if any) represent
-        # the participant's position within (potentially nested) page makers.
-        # For example, ``[10, 3, 2]`` would mean go to
-        # element 10 in the timeline (0-indexing),
-        # which must be a page maker;
-        # go to element 3 within that page maker, which must also be a page maker;
-        # go to element 2 within that page maker.
-        #
-        # The current function gets the ``Elt`` corresponding to the participant's
-        # current ``elt_id``. It works by iterating through the ``participant.elt_id``
-        # list from first to last element, each time 'resolving' the corresponding
-        # page maker (which means computing its underlying function),
-        # taking the list of test elements that comes out,
-        # going to the corresponding element within that list,
-        # resolving it, and so on.
-        #
+        # ``participant.elt_id`` is a list where the first element is the branch
+        # name (e.g. ``"main"``), the second element is the index within that
+        # branch, and any further elements represent position within nested
+        # page makers.
+        # For example, ``["main", 10, 3, 2]`` means: go to the ``main`` branch,
+        # element 10 (which must be a page maker), element 3 within that page
+        # maker (also a page maker), element 2 within that.
         num_levels = len(participant.elt_id)
         selected = self.elts
 
         for depth, index in enumerate(participant.elt_id):
-            # Suppose ``participant.elt_id`` = ``[10, 3, 2]``
-            # then:
-            # depth: 0, 1, 2
-            # index: 10, 3, 2
             try:
-                # index_max tells us the maximum allowed elt_id at this level of the hierarchy.
-                # The top level is the number of Elts in the timeline, minus one;
-                # the next level is the number of Elts in the trialmaker minus one, and so on.
                 index_max = participant.elt_id_max[depth]
             except IndexError:
                 index_max = None
 
             if isinstance(selected, PageMaker):
                 try:
-                    # ``position`` corresponds to the page maker's location within the timeline.
-                    # For example, suppose we are on the third level of the example above, then:
-                    # depth: 2
-                    # index: 2
-                    # position: ``[10, 3]``
                     if index_max is not None and index > index_max:
                         raise IndexError
                     position = participant.elt_id[0:depth]
@@ -1704,17 +2120,7 @@ class Timeline:
                     if index_max is None:
                         participant.elt_id_max.append(len(selected) - 1)
                 except IndexError:
-                    # This occurs if the requested index goes past the number of
-                    # elements produced by the current page maker.
-                    # If this occurs in the deepest level of ``participant.elt_id``,
-                    # it's fine; it normally means that the participant has finished the
-                    # page maker that is currently under consideration, and is ready
-                    # to move to the next part of the timeline. In this case we therefore
-                    # raise a ``PageMakerFinishedError``.
-                    # However, if this happens at a higher level of ``participant.elt_id``,
-                    # something weird has happened.
                     assert depth + 1 == num_levels
-
                     raise PageMakerFinishedError
 
             selected = selected[index]
@@ -1723,24 +2129,33 @@ class Timeline:
 
     @log_time_taken
     def advance_page(self, experiment, participant):
-        finished = False
-        while not finished:
-            participant.elt_id[-1] += 1
+        participant._in_advance_page = True
+        try:
+            if participant.pending_redirect:
+                branch = participant.pending_redirect
+                participant.pending_redirect = None
+                self.redirect_to_branch(experiment, participant, branch)
 
-            try:
-                new_elt = self.get_current_elt(experiment, participant)
-            except PageMakerFinishedError:
-                participant.elt_id = participant.elt_id[:-1]
-                participant.elt_id_max = participant.elt_id_max[:-1]
-                continue
-            if isinstance(new_elt, PageMaker):
-                participant.elt_id.append(-1)
-                continue
+            finished = False
+            while not finished:
+                participant.elt_id[-1] += 1
 
-            new_elt.consume(experiment, participant)
+                try:
+                    new_elt = self.get_current_elt(experiment, participant)
+                except PageMakerFinishedError:
+                    participant.elt_id = participant.elt_id[:-1]
+                    participant.elt_id_max = participant.elt_id_max[:-1]
+                    continue
+                if isinstance(new_elt, PageMaker):
+                    participant.elt_id.append(-1)
+                    continue
 
-            if isinstance(new_elt, Page):
-                finished = True
+                new_elt.consume(experiment, participant)
+
+                if isinstance(new_elt, Page):
+                    finished = True
+        finally:
+            participant._in_advance_page = False
 
     def estimated_max_reward(self, wage_per_hour):
         return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
@@ -2060,17 +2475,19 @@ def while_loop(
         return f"{prefix}__{x}"
 
     if max_loop_time is not None:
-        max_loop_time_condition = (
-            lambda participant, experiment: (
+
+        def max_loop_time_condition(participant, experiment):
+            return (
                 datetime.now()
                 - unserialise_datetime(
                     participant.var.get(with_namespace("loop_start_time"))
                 )
-            ).seconds
-            > max_loop_time
-        )
+            ).seconds > max_loop_time
+
     else:
-        max_loop_time_condition = lambda participant, experiment: False  # noqa: E731
+
+        def max_loop_time_condition(participant, experiment):
+            return False
 
     from .page import UnsuccessfulEndPage
 

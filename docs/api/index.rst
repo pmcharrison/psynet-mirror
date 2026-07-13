@@ -7,11 +7,13 @@ API Documentation
    overview
    asset
    audio_mixer
+   chatroom
    bot
    command_line
    consent
    data
    demography
+   end
    error
    experiment
    field

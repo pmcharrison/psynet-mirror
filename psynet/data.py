@@ -17,21 +17,25 @@ from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
 from dallinger.data import fix_autoincrement
 from dallinger.db import Base as SQLBase  # noqa
 from dallinger.experiment_server import dashboard
-from dallinger.models import Info  # noqa
-from dallinger.models import Network  # noqa
-from dallinger.models import Node  # noqa
-from dallinger.models import Notification  # noqa
-from dallinger.models import Question  # noqa
-from dallinger.models import Recruitment  # noqa
-from dallinger.models import Transformation  # noqa
-from dallinger.models import Transmission  # noqa
-from dallinger.models import Vector  # noqa
-from dallinger.models import SharedMixin, timenow  # noqa
+from dallinger.models import (  # noqa
+    Info,  # noqa
+    Network,  # noqa
+    Node,  # noqa
+    Notification,  # noqa
+    Question,  # noqa
+    Recruitment,  # noqa
+    SharedMixin,
+    Transformation,  # noqa
+    Transmission,  # noqa
+    Vector,  # noqa
+    timenow,
+)
 from dallinger.postgres_copy import copy_from as postgres_copy_from
 from dallinger.utils import classproperty
 from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
@@ -58,6 +62,16 @@ def get_db_tables():
     A dictionary where the keys identify the tables and the values are the table objects themselves.
     """
     return db.Base.metadata.tables
+
+
+def get_primary_key_values(instance):
+    """
+    Return primary key values for an ORM instance.
+    """
+    primary_key_cols = [
+        column.name for column in instance.__class__.__table__.primary_key.columns
+    ]
+    return {key: getattr(instance, key) for key in primary_key_cols}
 
 
 def _get_superclasses_by_table():
@@ -192,6 +206,12 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
     for key, value in data.items():
         if isinstance(value, datetime):
             data[key] = value.strftime("%Y-%m-%d %H:%M:%S")
+            continue
+        if isinstance(value, MutableDict):
+            data[key] = dict(value)
+            continue
+        if isinstance(value, MutableList):
+            data[key] = list(value)
             continue
         if not is_basic_type(value):
             from .serialize import serialize
@@ -504,7 +524,7 @@ class SQLMixin(SQLMixinDallinger):
 
     @declared_attr
     def type(cls):
-        return Column(String(50))
+        return Column(String)
 
 
 old_init_db = dallinger.db.init_db
@@ -736,9 +756,9 @@ def update_dashboard_models():
                 "Transmission",
                 "Notification",
                 "Recruitment",
-            }
-            .union({cls.__name__ for cls in _sql_psynet_base_classes.values()})
-            .difference({"_Response"})
+            }.union(
+                {cls.__name__ for cls in _sql_psynet_base_classes.values()}
+            ).difference({"_Response"})
         )
     )
 
@@ -792,9 +812,15 @@ def ingest_to_model(
                 file, model, engine, columns=columns, format="csv", HEADER=False
             )
 
-        column_names = [x["name"] for x in inspector.get_columns(model.__table__)]
+        columns = inspector.get_columns(model.__table__)
+        column_names = [x["name"] for x in columns]
         if "id" in column_names:
-            fix_autoincrement(engine, model.__table__.name)
+            id_column = next(
+                (column for column in columns if column["name"] == "id"),
+                None,
+            )
+            if id_column and isinstance(id_column["type"], sqlalchemy.Integer):
+                fix_autoincrement(engine, model.__table__.name)
 
 
 def patch_csv(infile, outfile, clear_columns, replace_columns):

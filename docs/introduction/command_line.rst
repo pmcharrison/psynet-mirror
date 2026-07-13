@@ -6,7 +6,7 @@ Command line
 
 Once you have installed PsyNet, you interact with it by running commands in your Unix shell.
 Generally speaking, you should execute all of these commands within your experiment directory
-(e.g. if you are running the timeline demo: ``psynet/demos/timeline``).
+(e.g. if you are running the timeline demo: ``PsyNet/demos/experiments/timeline``).
 
 .. _debug:
 

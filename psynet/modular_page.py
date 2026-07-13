@@ -5,6 +5,7 @@ import tempfile
 import warnings
 from typing import Callable, Dict, Iterable, List, Optional, Union
 
+from bs4 import BeautifulSoup
 from dominate import tags
 from dominate.dom_tag import dom_tag
 from dominate.util import raw
@@ -12,6 +13,7 @@ from markupsafe import Markup
 
 from .asset import Asset, LocalStorage
 from .bot import BotResponse
+from .chatroom import ChatRoom  # noqa: F401
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
     NoArgumentProvided,
@@ -142,6 +144,30 @@ class Prompt:
 
     def get_css(self):
         return []
+
+    def _collect_spa_markup_contract_problems(self):
+        if self.text_html is None:
+            return []
+
+        soup = BeautifulSoup(str(self.text_html), "html.parser")
+        problems = []
+
+        if soup.find_all("style"):
+            problems.append(
+                "The page prompt/content includes inline CSS in a <style> tag. "
+                "Supply page-local CSS via the Page css argument instead."
+            )
+
+        for link in soup.find_all(
+            "link", rel=lambda value: value and "stylesheet" in value
+        ):
+            problems.append(
+                "The page prompt/content includes a stylesheet <link> tag. "
+                "Supply page-local stylesheet links via the Page css_links "
+                "argument instead."
+            )
+
+        return problems
 
     @property
     def plain_text(self):
@@ -1836,13 +1862,14 @@ class ModularPage(Page):
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
 
-    default_layout = ["prompt", "media", "progress", "control", "buttons"]
+    default_layout = ["prompt", "media", "progress", "control", "chatroom", "buttons"]
 
     def __init__(
         self,
         label: str,
         prompt: Union[str, dom_tag, Prompt],
         control: Optional[Control] = None,
+        chatroom: Optional[ChatRoom] = None,
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
         events: Optional[dict] = None,
@@ -1872,6 +1899,7 @@ class ModularPage(Page):
 
         self.prompt = prompt
         self.control = control
+        self.chatroom = chatroom
 
         if show_start_button:
             buttons.append(StartButton())
@@ -1915,7 +1943,11 @@ class ModularPage(Page):
 
         css = self.prompt.get_css() + self.control.get_css()
         if "css" in kwargs:
-            css.append(kwargs.pop("css"))
+            extra_css = kwargs.pop("css")
+            if isinstance(extra_css, list):
+                css.extend(extra_css)
+            else:
+                css.append(extra_css)
 
         super().__init__(
             label=label,
@@ -1924,6 +1956,7 @@ class ModularPage(Page):
             template_arg={
                 "prompt_config": prompt,
                 "control_config": control,
+                "chatroom_config": chatroom,
                 "buttons": buttons,
             },
             media=all_media,
@@ -1933,13 +1966,30 @@ class ModularPage(Page):
                 "modular_page_components": {
                     "prompt": self.prompt.macro,
                     "control": self.control.macro,
+                    "chatroom": self.chatroom.macro if chatroom is not None else None,
                 },
             },
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,
+            framework_owned_template=True,
             **kwargs,
         )
+
+    def _check_spa_template_contract(self, inplace_timeline_transitions):
+        super()._check_spa_template_contract(inplace_timeline_transitions)
+
+        problems = self.prompt._collect_spa_markup_contract_problems()
+        if not problems:
+            return
+
+        message = "\n\n".join(problems)
+        if inplace_timeline_transitions:
+            raise ValueError(message)
+
+        if not self._spa_template_contract_warning_shown:
+            warnings.warn(message, UserWarning, stacklevel=2)
+            self._spa_template_contract_warning_shown = True
 
     def get_renderers(self, **kwargs):
         return {
@@ -1948,6 +1998,11 @@ class ModularPage(Page):
             "control": "{{ %s(control_config) }}" % self.control_macro,
             "buttons": self.render_buttons(),
             "progress": "{{ progress.trial_progress_display(trial_progress_display_config) }}",
+            "chatroom": (
+                "{{ %s(chatroom_config) }}" % self.chatroom_macro
+                if self.chatroom is not None
+                else ""
+            ),
         }
 
     def render_layout(self, **kwargs):
@@ -1984,6 +2039,14 @@ class ModularPage(Page):
         return f"{location}.{self.control.macro}"
 
     @property
+    def chatroom_macro(self):
+        if self.chatroom.external_template is None:
+            location = "psynet_chatroom"
+        else:
+            location = "custom_chatroom"
+        return f"{location}.{self.chatroom.macro}"
+
+    @property
     def import_templates(self):
         return self.import_internal_templates + self.import_external_templates
 
@@ -2003,6 +2066,7 @@ class ModularPage(Page):
         return """
         {% import "macros/prompt.html" as psynet_prompts %}
         {% import "macros/control.html" as psynet_controls %}
+        {% import "macros/chatroom.html" as psynet_chatroom %}
         """
 
     @property
@@ -2011,8 +2075,16 @@ class ModularPage(Page):
             [
                 f'{{% import "{path}" as {name} with context %}}'
                 for path, name in zip(
-                    [self.prompt.external_template, self.control.external_template],
-                    ["custom_prompt", "custom_control"],
+                    [
+                        self.prompt.external_template,
+                        self.control.external_template,
+                        (
+                            self.chatroom.external_template
+                            if self.chatroom is not None
+                            else None
+                        ),
+                    ],
+                    ["custom_prompt", "custom_control", "custom_chatroom"],
                 )
                 if path is not None
             ]
@@ -2031,12 +2103,12 @@ class ModularPage(Page):
         )
         with div:
             if prompt != "":
-                tags.h3("Prompt"),
+                (tags.h3("Prompt"),)
                 tags.div(raw(prompt), id="prompt-visualization", style=div_style)
             if prompt != "" and response != "":
                 tags.br()
             if response != "":
-                tags.h3("Response"),
+                (tags.h3("Response"),)
                 tags.div(raw(response), id="response-visualization", style=div_style)
         return div.render()
 
@@ -2598,7 +2670,9 @@ class MediaSliderControl(SliderControl):
             elif isinstance(slider_media[key], str):
                 assert any(
                     [value.lower().endswith(ext) for ext in EXTENSIONS[modality]]
-                ), f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
+                ), (
+                    f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
+                )
                 IDs_media.append(key)
             else:
                 raise NotImplementedError(
