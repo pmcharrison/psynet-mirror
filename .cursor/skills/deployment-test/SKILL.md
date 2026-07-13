@@ -558,10 +558,15 @@ Work through all of these once `study_status == "COMPLETED"`:
    comparing against the deployment-time scan; store it in `local/`.
 2. Export the database and data with `psynet export ssh` into `local/export/`.
 3. Save the raw Prolific study and submissions JSON into `local/`.
-4. Write `analysis.md` locally, referencing the `local/` artifacts. Do not
+4. Review the previous comparable deployment's `analysis.md` (e.g. the
+   `*-1` run when auditing `*-2`, or the previous RC's run for the same
+   app) and check whether each issue found there is resolved, still
+   present, or changed in the current deployment. Fetch it from the
+   `psynet-deployment-tests` archive repository if it is not on disk.
+5. Write `analysis.md` locally, referencing the `local/` artifacts. Do not
    `git add`, commit, or push anything under `deployment-tests/` in the
    PsyNet repository.
-5. Offer to tear down the deployed app once the data is captured. Do not
+6. Offer to tear down the deployed app once the data is captured. Do not
    destroy it without explicit user confirmation:
 
 ```bash
@@ -569,7 +574,7 @@ cd <psynet-root>/tests/deployment/<experiment>  # the app's experiment dir
 psynet destroy ssh --server <ssh-host> --app <app-name>
 ```
 
-6. Archive the audit trail (see below) once the `analysis.md` verdict is
+7. Archive the audit trail (see below) once the `analysis.md` verdict is
    settled.
 
 ### Archive the audit trail
@@ -619,6 +624,10 @@ This report should be more detailed than the chat summary. Include:
 - A concise timeline of important events: launch, study creation, recruitment,
   participant completions/returns/time-outs, approval attempts, bonus payments,
   study completion, and post-completion log download.
+- A follow-up on the previous comparable deployment: list each issue from
+  that run's `analysis.md` and state whether it is resolved, still present,
+  or superseded in this deployment, with evidence. If this is the first
+  deployment of its kind, say so.
 - Interpretation and severity for each finding, distinguishing confirmed bugs,
   likely harmless noise, expected Prolific edge cases, and unresolved questions.
 
