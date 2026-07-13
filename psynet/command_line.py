@@ -2877,8 +2877,25 @@ def _assert_directory_is_scaffoldable():
         raise click.UsageError(str(exc)) from exc
 
 
+def _generate_constraints_if_missing(ctx):
+    """Generate a non-empty constraints file when scaffolding needs one."""
+    constraints_path = Path("constraints.txt")
+    if constraints_path.is_file() and constraints_path.stat().st_size > 0:
+        return
+    if constraints_path.exists():
+        raise click.UsageError("constraints.txt exists but is not a regular file.")
+
+    click.echo("Generating missing constraints.txt...")
+    ctx.invoke(generate_constraints)
+    if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
+        raise click.ClickException(
+            "Failed to generate a non-empty constraints.txt file."
+        )
+
+
 @scripts.command("scaffold")
-def scripts_scaffold():
+@click.pass_context
+def scripts_scaffold(ctx):
     """
     Create any missing PsyNet boilerplate files for the experiment directory.
 
@@ -2887,6 +2904,7 @@ def scripts_scaffold():
     """
     _assert_directory_is_scaffoldable()
     scaffold_experiment_directory(include_optional_files=True)
+    _generate_constraints_if_missing(ctx)
 
 
 @scripts.command("update")

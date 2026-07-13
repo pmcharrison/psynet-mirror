@@ -334,7 +334,7 @@ def scaffold_experiment_directory(
                 continue
 
             if overwrite and destination.exists():
-                shutil.rmtree(destination, ignore_errors=True)
+                shutil.rmtree(destination)
             shutil.copytree(
                 path,
                 destination,
@@ -376,4 +376,4 @@ def prune_experiment_scaffold(*, preserve_files=None):
             continue
         path = Path(relative_path)
         if path.exists():
-            shutil.rmtree(path, ignore_errors=True)
+            shutil.rmtree(path)

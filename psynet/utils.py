@@ -1463,7 +1463,15 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
     """
     path = Path(path).resolve()
     module_name = path.name
-    spec = importlib.util.find_spec(module_name)
+    try:
+        spec = importlib.util.find_spec(module_name)
+    except (ImportError, AttributeError, ValueError) as exc:
+        raise ExperimentDirectoryNameError(
+            f"The current experiment directory is named '{module_name}', which "
+            "Python cannot import as a top-level package. Dallinger imports "
+            "experiments by directory name, so it cannot import this experiment "
+            "reliably. Rename the directory to a valid top-level package name."
+        ) from exc
     if spec is None:
         return
     # A package resolution can still support ``<name>.experiment``. The
