@@ -200,7 +200,7 @@ class StaticBigLaunch:
     """
 
     timeout = 60
-    version = 2
+    version = 1
 
     def setup_cache(self):
         from psynet.command_line import (
