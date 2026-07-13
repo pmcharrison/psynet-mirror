@@ -217,7 +217,7 @@ class StaticBigLaunch:
         started_at = time.perf_counter()
         try:
             server_info = _start_local_server_and_wait_for_ready(
-                start_commands=[["debug", "local"]]
+                ["debug", "local"]
             )
             return time.perf_counter() - started_at
         finally:
