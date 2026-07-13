@@ -3508,14 +3508,22 @@ def _start_local_server_and_wait_for_ready(
     ready_phrase="Experiment launch complete!",
     start_commands=None,
 ):
-    """Start ``psynet debug local`` and wait for launch completion.
+    """Start a local server and wait for launch completion.
 
-    ``start_commands`` is a list of argument lists tried in order; the first one
-    that reaches ``ready_phrase`` wins, and a legacy-mode command falls back to
-    the next entry when the ``heroku`` CLI is unavailable. It defaults to the
-    legacy-first ordering used by performance testing; callers that need the
-    default (non-legacy) debug server can pass their own single command.
+    Parameters
+    ----------
+    start_commands : list[list[str]] or None
+        Command argument lists to try in order. Defaults to the legacy debug
+        server with the normal debug server as a fallback.
     """
+    if start_commands is None:
+        start_commands = [
+            ["debug", "local", "--legacy", "--no-browsers"],
+            ["debug", "local"],
+        ]
+    if not start_commands:
+        raise ValueError("start_commands must contain at least one command")
+
     print("▶ Starting experiment server...")
 
     tmp_log = tempfile.NamedTemporaryFile(
@@ -3531,15 +3539,10 @@ def _start_local_server_and_wait_for_ready(
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
     env.setdefault("BROWSER", "true")
 
-    if start_commands is None:
-        start_commands = [
-            ["debug", "local", "--legacy", "--no-browsers"],
-            ["debug", "local"],
-        ]
     process = None
     legacy_fallback_marker = "No such file or directory: 'heroku'"
 
-    for command_args in start_commands:
+    for command_index, command_args in enumerate(start_commands):
         try:
             process = pexpect.spawn(
                 "psynet",
@@ -3574,9 +3577,12 @@ def _start_local_server_and_wait_for_ready(
             recent_output = (process.before or "").splitlines()[-50:]
             _terminate_server_process(process)
 
-            if command_args == start_commands[0] and any(
-                legacy_fallback_marker in line for line in recent_output
-            ):
+            should_fallback = (
+                "--legacy" in command_args
+                and command_index < len(start_commands) - 1
+                and any(legacy_fallback_marker in line for line in recent_output)
+            )
+            if should_fallback:
                 print(
                     "\n⚠ Legacy debug server unavailable; retrying with auto-reload mode..."
                 )
