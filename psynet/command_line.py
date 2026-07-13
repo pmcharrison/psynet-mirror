@@ -3503,9 +3503,19 @@ def _drain_pexpect_output(process):
 
 
 def _start_local_server_and_wait_for_ready(
-    debug=False, max_wait=60, ready_phrase="Experiment launch complete!"
+    debug=False,
+    max_wait=60,
+    ready_phrase="Experiment launch complete!",
+    start_commands=None,
 ):
-    """Start ``psynet debug local`` and wait for launch completion."""
+    """Start ``psynet debug local`` and wait for launch completion.
+
+    ``start_commands`` is a list of argument lists tried in order; the first one
+    that reaches ``ready_phrase`` wins, and a legacy-mode command falls back to
+    the next entry when the ``heroku`` CLI is unavailable. It defaults to the
+    legacy-first ordering used by performance testing; callers that need the
+    default (non-legacy) debug server can pass their own single command.
+    """
     print("▶ Starting experiment server...")
 
     tmp_log = tempfile.NamedTemporaryFile(
@@ -3521,10 +3531,11 @@ def _start_local_server_and_wait_for_ready(
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
     env.setdefault("BROWSER", "true")
 
-    start_commands = [
-        ["debug", "local", "--legacy", "--no-browsers"],
-        ["debug", "local"],
-    ]
+    if start_commands is None:
+        start_commands = [
+            ["debug", "local", "--legacy", "--no-browsers"],
+            ["debug", "local"],
+        ]
     process = None
     legacy_fallback_marker = "No such file or directory: 'heroku'"
 

@@ -193,10 +193,14 @@ class Static(_BaseExperiment):
 
 
 class StaticBigLaunch:
-    """Benchmark the time for the static_big experiment to become ready."""
+    """Benchmark the time for the static_big experiment to become ready.
+
+    Measures a normal ``psynet debug local`` launch (not legacy mode) from
+    process start until the server logs launch completion; shutdown is excluded.
+    """
 
     timeout = 60
-    version = 1
+    version = 2
 
     def setup_cache(self):
         from psynet.command_line import (
@@ -212,7 +216,9 @@ class StaticBigLaunch:
         os.chdir(demo_dir)
         started_at = time.perf_counter()
         try:
-            server_info = _start_local_server_and_wait_for_ready()
+            server_info = _start_local_server_and_wait_for_ready(
+                start_commands=[["debug", "local"]]
+            )
             return time.perf_counter() - started_at
         finally:
             try:
