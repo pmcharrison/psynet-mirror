@@ -70,12 +70,13 @@ A full deployment test covers two experiments in `tests/deployment`:
   Lucid-recruiter deployment (see "Deploy The Lucid Variant" below).
 
 By default a full deployment test produces **three apps**: the two Prolific
-experiments deployed **in parallel** to save wall-clock time, plus the Lucid
-variant of `audio_gibbs` deployed right after its Prolific sibling. Deploy a
-subset only when the user explicitly asks for it. Prepare both experiment
+experiments plus the Lucid variant of `audio_gibbs`, all deployed **in
+parallel** to save wall-clock time (the Lucid variant deploys from a
+temporary git worktree; see "Deploy The Lucid Variant"). Deploy a subset
+only when the user explicitly asks for it. Prepare both experiment
 directories on a **single fresh deployment branch created for this
-deployment** (the preparation steps below are shared), then run the two
-Prolific `psynet deploy ssh` commands concurrently. Do not reuse or rebase a
+deployment** (the preparation steps below are shared), then run the three
+`psynet deploy ssh` commands concurrently. Do not reuse or rebase a
 long-lived deployment branch; each deployment gets its own branch so its
 exact code is preserved for later auditing.
 
@@ -271,29 +272,34 @@ git add tests/deployment/*/constraints.txt && git commit -m "Regenerate constrai
    the older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
 
-Deploy both experiments **in parallel**, each from its own directory with its
-own app name. Start each deploy as a background process (or in separate
-terminals) and monitor both launch outputs:
+Deploy all three apps **in parallel**, each from its own directory with its
+own app name: the two Prolific experiments from the main checkout, and the
+Lucid variant from a temporary worktree (prepared as described in "Deploy
+The Lucid Variant" below). Start each deploy as a background process (or in
+separate terminals) and monitor all launch outputs:
 
 ```bash
 source <psynet-root>/<venv>/bin/activate
 
-cd <psynet-root>/tests/deployment/payment_flows_prolific
-psynet deploy ssh \
+(cd <psynet-root>/tests/deployment/payment_flows_prolific && psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
-  --app <payment-flows-prolific-app-name> &
+  --app <payment-flows-prolific-app-name>) &
 
-cd <psynet-root>/tests/deployment/audio_gibbs
-psynet deploy ssh \
+(cd <psynet-root>/tests/deployment/audio_gibbs && psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
-  --app <audio-gibbs-prolific-app-name> &
+  --app <audio-gibbs-prolific-app-name>) &
+
+(cd <lucid-worktree>/tests/deployment/audio_gibbs && psynet deploy ssh \
+  --server <ssh-host> \
+  --dns-host <dns-host> \
+  --app <audio-gibbs-lucid-app-name>) &
 
 wait
 ```
 
-Do not let one deployment's failure silently abort the other: check each
+Do not let one deployment's failure silently abort the others: check each
 launch output separately, and report per-app success/failure.
 
 Name each app after the deployment branch, experiment, and recruiter:
@@ -318,43 +324,38 @@ The full deployment test also includes a third app: the `audio_gibbs`
 experiment deployed with the **Lucid recruiter**, exercising the Lucid
 recruitment path (`LucidConsent`, `lucid_recruitment_config.json`).
 
-The Lucid variant deploys from the same `tests/deployment/audio_gibbs`
-directory, so it cannot start until the Prolific `audio_gibbs` deploy command
-has finished (the running Prolific app is unaffected by later file changes).
-Start it as soon as that deploy completes, so it runs while the Prolific apps
-are being observed.
+Because the Prolific `audio_gibbs` app deploys from the same directory at
+the same time, prepare the Lucid variant in a **temporary git worktree** on
+its own branch. That keeps the main checkout on the Prolific configuration,
+lets all three deploys run in parallel, and still records exactly what was
+deployed.
 
-1. Switch the directory to the Lucid variant and commit the swap, so the
-   deployment branch records exactly what was deployed:
+1. Create the worktree on a `-lucid` branch off the deployment branch, swap
+   in the Lucid variant files there, and commit and push the swap:
 
 ```bash
-cd <psynet-root>/tests/deployment/audio_gibbs
+cd <psynet-root>
+git worktree add /tmp/psynet-lucid-deploy deployment-tests/<base-tag> \
+  -b deployment-tests/<base-tag>-lucid
+cd /tmp/psynet-lucid-deploy/tests/deployment/audio_gibbs
 cp experiment.py.lucid experiment.py
 cp config.txt.lucid config.txt
 git add experiment.py config.txt
 git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
+git push -u origin deployment-tests/<base-tag>-lucid
 ```
 
-2. Deploy with the app name `test-<base-tag>-audio-gibbs-lucid`, appending
-   `-2`, `-3`, ... for repeat deployments (e.g.
-   `test-v13-3-0rc1-audio-gibbs-lucid-1`):
+2. Deploy from the worktree (this is the third parallel `psynet deploy ssh`
+   command shown above) with the app name
+   `test-<base-tag>-audio-gibbs-lucid`, appending `-2`, `-3`, ... for repeat
+   deployments (e.g. `test-v13-3-0rc1-audio-gibbs-lucid-1`).
+
+3. After the Lucid deploy has launched, remove the worktree (the pushed
+   `-lucid` branch preserves the deployed code for auditing):
 
 ```bash
-psynet deploy ssh \
-  --server <ssh-host> \
-  --dns-host <dns-host> \
-  --app <audio-gibbs-lucid-app-name>
-```
-
-3. After the Lucid deploy has launched, restore the Prolific variant and
-   commit, so the directory's final state on the deployment branch is the
-   default configuration:
-
-```bash
-cp experiment.py.prolific experiment.py
-cp config.txt.prolific config.txt
-git add experiment.py config.txt
-git commit -m "Restore Prolific variant after Lucid deployment"
+cd <psynet-root>
+git worktree remove /tmp/psynet-lucid-deploy
 ```
 
 Notes for the Lucid app:
