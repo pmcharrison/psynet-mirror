@@ -65,9 +65,23 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
     await expect(experimentPage.locator("#main-body")).toContainText("First page", {
       timeout: STEP_TIMEOUT_MS
     });
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() => window.__psynetPageScriptOrder || []),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toEqual(["body", "js-link", "deferred"]);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() => window.__psynetPageScriptOrder || []),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toEqual(["body", "js-link", "deferred"]);
     await expect(
       experimentPage.locator("#body-library-load-count-marker")
     ).toHaveAttribute("data-load-count", "1", { timeout: STEP_TIMEOUT_MS });
@@ -527,5 +541,52 @@ test("in-place timeline transition failures show refresh prompt and unlock contr
     await experimentPage.locator("#alert-button").click();
     await expect(resultPromise).resolves.toBe(false);
     await assertNoBackendError(experimentPage);
+  });
+});
+
+test("post-deactivation transition failures are handled once", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+    await expect(experimentPage.locator("#main-body")).toContainText("First page", {
+      timeout: STEP_TIMEOUT_MS
+    });
+
+    await experimentPage.evaluate(() => {
+      window.__transitionFailureCalls = 0;
+      window.psynet.handleTimelineTransitionFailure = async function () {
+        window.__transitionFailureCalls += 1;
+      };
+    });
+    await experimentPage.route("**/response", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          submission: "approved",
+          page: { attributes: {} },
+          timeline_fragment: {
+            html: "<div>Malformed post-deactivation fragment</div>",
+            page_uuid: "malformed"
+          }
+        })
+      });
+    });
+
+    await expect(
+      experimentPage.evaluate(() =>
+        window.psynet.nextPage("post-deactivation-failure")
+      )
+    ).resolves.toBe(false);
+    expect(
+      await experimentPage.evaluate(() => window.__transitionFailureCalls)
+    ).toBe(1);
   });
 });

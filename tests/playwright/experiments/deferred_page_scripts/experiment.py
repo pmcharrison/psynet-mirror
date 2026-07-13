@@ -28,15 +28,25 @@ class Exp(psynet.experiment.Experiment):
             Markup(
                 """
                 <p>First page</p>
+                <script>
+                    window.__psynetPageScriptOrder = ["body"];
+                </script>
                 <script src="/static/redeclared-body-library.js"></script>
                 """
             ),
             time_estimate=1,
+            js_links=["/static/script-order-link.js"],
+            scripts=[
+                'window.__psynetPageScriptOrder.push("deferred");',
+            ],
         ),
         InfoPage(
             Markup(
                 """
                 <p>Deferred page script lifecycle page</p>
+                <script>
+                    window.__psynetPageScriptOrder = ["body"];
+                </script>
                 <script src="/static/redeclared-body-library.js"></script>
                 <p id="body-library-load-count-marker">
                     Body library load count marker
@@ -56,7 +66,13 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
-            js_links=["/static/deferred-script.js"],
+            js_links=[
+                "/static/script-order-link.js",
+                "/static/deferred-script.js",
+            ],
+            scripts=[
+                'window.__psynetPageScriptOrder.push("deferred");',
+            ],
             css_links=["/static/deferred-page-scripts.css"],
         ),
         CustomStylesheetPage(),
