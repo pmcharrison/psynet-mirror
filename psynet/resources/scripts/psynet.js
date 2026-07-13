@@ -588,9 +588,11 @@
     // Build one execution plan from the inert scripts in the new fragment.
     // querySelectorAll preserves DOM order, which mirrors a full page load:
     // scripts in page markup first, then explicit js_links, then deferred page
-    // scripts. Unscoped main-body links are document-level libraries, so the
-    // manifest marks them as safe to skip after their first load. Explicit
-    // js_links and deferred scripts must run again for each page activation.
+    // scripts. Unscoped main-body links, such as
+    // <script src="/static/library.js"></script> embedded in prompt or template
+    // markup, are treated as document-level libraries and skipped after their
+    // first load. Explicit js_links and deferred scripts must run again for
+    // each page activation.
     psynet.getPageScriptManifest = function () {
       let mainBody = document.getElementById("main-body");
       if (!mainBody) {
