@@ -19,9 +19,10 @@ Benchmarks are split by directory:
   these as the ASV regression gate.
 - ``benchmarks/slow/`` contains end-to-end experiment performance benchmarks.
   These are intentionally excluded from the merge-request gate, but they do run
-  on ``master``. The slow ASV history focuses on median request latency and
-  median async-process queue delay; participant failures and incomplete bots are
-  left in the performance-test output instead of being tracked as ASV metrics.
+  on ``master``. The slow ASV history focuses on median request latency,
+  median async-process queue delay, and ``static_big`` launch time; participant
+  failures and incomplete bots are left in the performance-test output instead
+  of being tracked as ASV metrics.
 
 Merge-request checks
 ====================
