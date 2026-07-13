@@ -1,1 +1,0 @@
-The deployment-test skill now archives finished audit trails (per-app `analysis.md`, logs, exports, platform snapshots) in the private `computational-audition-lab/psynet-deployment-tests` repository, grouped by base tag; the release skill references the archive when recording RC validation. Audits now also check whether issues from the previous comparable deployment are resolved.

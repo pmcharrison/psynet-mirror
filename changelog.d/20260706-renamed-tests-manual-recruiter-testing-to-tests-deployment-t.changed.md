@@ -1,1 +1,1 @@
-Renamed tests/manual_recruiter_testing to tests/deployment; the deployment test experiments now live at tests/deployment/payment_flows_prolific (the basic Prolific payment-flow test, previously named prolific) and tests/deployment/audio_gibbs.
+Renamed `tests/manual_recruiter_testing` to `tests/deployment`; the basic Prolific test (previously `prolific`) is now `tests/deployment/payment_flows_prolific`.
