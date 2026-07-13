@@ -1,7 +1,9 @@
 """Create, update, and prune PsyNet experiment scaffold files."""
 
+import re
 import shutil
 import stat
+import subprocess
 from importlib import resources
 from pathlib import Path
 
@@ -88,8 +90,36 @@ def _default_experiment_py() -> str:
 
 def _default_requirements_txt() -> str:
     """Return a starter ``requirements.txt`` for the current PsyNet version."""
-    requirement = f"psynet=={psynet_version}"
+    requirement = _default_psynet_requirement()
     return f"{requirement}\n{_REQUIREMENTS_TXT_COMMENTS}"
+
+
+def _default_psynet_requirement() -> str:
+    """Return a resolvable PsyNet requirement for a new experiment."""
+    if re.search(r"a\d+$", psynet_version):
+        commit = _current_source_commit()
+        if commit is not None:
+            return f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit}#egg=psynet"
+    return f"psynet=={psynet_version}"
+
+
+def _current_source_commit() -> str | None:
+    """Return the source checkout commit when PsyNet is installed from Git."""
+    try:
+        commit = subprocess.check_output(
+            [
+                "git",
+                "-C",
+                str(Path(__file__).parent.parent),
+                "rev-parse",
+                "HEAD",
+            ],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return commit if re.fullmatch(r"[0-9a-f]{40}", commit) else None
 
 
 def _bootstrap_authored_files(skip_files):

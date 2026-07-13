@@ -885,17 +885,21 @@ def test_scripts_scaffold_escapes_directory_name_in_experiment_label(tmp_path):
     assert "label = 'my \"demo\"'" in source
 
 
-def test_scripts_scaffold_generates_valid_alpha_requirement(tmp_path, monkeypatch):
+def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monkeypatch):
     from psynet.command_line import check_psynet_requirement_is_unambiguous
 
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda: "a" * 40,
+    )
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
 
         assert result.exit_code == 0, result.output
         assert Path("requirements.txt").read_text().splitlines()[0] == (
-            "psynet==13.4.0a0"
+            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{'a' * 40}#egg=psynet"
         )
         check_psynet_requirement_is_unambiguous()
 
