@@ -1,7 +1,8 @@
 import time
 
-import psynet.experiment
 from dallinger import db
+
+import psynet.experiment
 from psynet.bot import Bot
 from psynet.timeline import AsyncCodeBlock, CodeBlock, Timeline
 

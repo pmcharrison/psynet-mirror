@@ -3,8 +3,8 @@ import time
 import uuid
 
 import pytest
-
 from dallinger import db
+
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment

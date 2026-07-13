@@ -3,6 +3,7 @@ import threading
 import time
 
 import dallinger.db
+from dallinger import db
 from dallinger.db import redis_conn
 from dallinger.utils import classproperty
 from rq import Queue
@@ -20,8 +21,6 @@ from sqlalchemy import (
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import deferred, relationship
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_exponential
-
-from dallinger import db
 
 from .data import SQLBase, SQLMixin, register_table
 from .db import with_transaction

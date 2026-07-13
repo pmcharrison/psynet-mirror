@@ -2,9 +2,9 @@ import tempfile
 import time
 
 import pytest
+from dallinger import db
 
 import psynet.experiment  # noqa -- to ensure that all SQLAlchemy classes are registered
-from dallinger import db
 from psynet.process import LocalAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment
 

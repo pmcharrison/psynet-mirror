@@ -22,6 +22,7 @@ from types import FunctionType
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
 from bs4 import BeautifulSoup
+from dallinger import db
 from dominate import tags
 from jsonpickle.util import importable_name
 from markupsafe import Markup
@@ -30,8 +31,6 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
-
-from dallinger import db
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table

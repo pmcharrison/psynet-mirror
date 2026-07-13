@@ -14,6 +14,7 @@ import pexpect
 import pexpect.exceptions
 import pytest
 import sqlalchemy.exc
+from dallinger import db, pytest_dallinger
 from dallinger.bots import BotBase
 from dallinger.config import get_config
 from dallinger.models import Node
@@ -27,7 +28,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from dallinger import db, pytest_dallinger
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
 from psynet.participant import Participant
 

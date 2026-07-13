@@ -3,11 +3,11 @@ import time
 from collections import ChainMap
 
 import pytest
+from dallinger import db
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.pytest_psynet import (
     bot_class,

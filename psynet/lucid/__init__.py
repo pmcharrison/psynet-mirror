@@ -6,11 +6,11 @@ from typing import List
 
 import pandas as pd
 import requests
+from dallinger import db
 from dallinger.db import session
 from sqlalchemy import Column, DateTime, func
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
-from dallinger import db
 from psynet import deployment_info
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonObject

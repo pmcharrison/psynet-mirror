@@ -1,8 +1,8 @@
 import time
 
 import pytest
-
 from dallinger import db
+
 from psynet.error import ErrorRecord
 from psynet.process import WorkerAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment

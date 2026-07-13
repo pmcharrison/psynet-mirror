@@ -4,8 +4,9 @@ Video Imitation Chain Demo
 
 import random
 
-import psynet.experiment
 from dallinger import db
+
+import psynet.experiment
 from psynet.asset import asset
 from psynet.modular_page import (
     AudioMeterControl,

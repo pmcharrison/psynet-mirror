@@ -1,9 +1,9 @@
 import uuid
 
 import pytest
+from dallinger import db
 from sqlalchemy import Column, String
 
-from dallinger import db
 from psynet.data import SQLBase
 from psynet.experiment import get_experiment
 from psynet.participant import Participant

@@ -1,11 +1,11 @@
 import inspect
 from random import sample
 
+from dallinger import db
 from dallinger.transformations import Transformation
 from sqlalchemy import Column
 from sqlalchemy.orm import declared_attr, deferred
 
-from dallinger import db
 from psynet.field import PythonObject
 from psynet.trial import ChainNode
 from psynet.trial.chain import ChainTrial

@@ -4,6 +4,7 @@ from functools import cached_property
 from typing import List, Optional
 
 from dallinger import db
+
 from psynet.db import transaction
 
 from .participant import Participant, ParticipantDriver

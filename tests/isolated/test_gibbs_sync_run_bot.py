@@ -1,6 +1,6 @@
 import pytest
-
 from dallinger import db
+
 from psynet.bot import Bot, BotDriver
 from psynet.error import ErrorRecord
 from psynet.experiment import Experiment

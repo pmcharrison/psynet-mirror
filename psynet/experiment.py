@@ -30,6 +30,7 @@ import psutil
 import rpdb
 import sqlalchemy.orm.exc
 from click import Context
+from dallinger import db
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
@@ -58,7 +59,6 @@ from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import with_polymorphic
 
-from dallinger import db
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
 from psynet.perf_test import run_parallel_test

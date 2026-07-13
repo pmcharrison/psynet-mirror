@@ -16,6 +16,7 @@ from typing import Callable, Optional, Union
 import boto3
 import paramiko
 import requests
+from dallinger import db
 from dallinger.utils import classproperty
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, inspect
 from sqlalchemy.exc import NoInspectionAvailable
@@ -24,7 +25,6 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import deferred, relationship
 from tqdm import tqdm
 
-from dallinger import db
 from psynet.timeline import NullElt
 
 from . import deployment_info

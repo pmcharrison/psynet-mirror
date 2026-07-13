@@ -12,6 +12,7 @@ import dallinger.data
 import dallinger.models
 import psutil
 import sqlalchemy
+from dallinger import db
 from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
 from dallinger.data import fix_autoincrement
 from dallinger.db import Base as SQLBase  # noqa
@@ -45,8 +46,6 @@ from sqlalchemy.schema import (
     Table,
 )
 from tqdm import tqdm
-
-from dallinger import db
 
 from . import field
 from .field import PythonDict, is_basic_type

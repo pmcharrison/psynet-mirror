@@ -9,8 +9,9 @@ import re
 import time
 from statistics import mean
 
-import psynet.experiment
 from dallinger import db
+
+import psynet.experiment
 from psynet.experiment import scheduled_task
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage

@@ -4,12 +4,12 @@ import time
 from typing import List, Union
 
 import pandas as pd
+from dallinger import db
 from markupsafe import Markup
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from dallinger import db
 from psynet.asset import ExperimentAsset
 from psynet.bot import Bot
 from psynet.data import SQLBase, SQLMixin, register_table
