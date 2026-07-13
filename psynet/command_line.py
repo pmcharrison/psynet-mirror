@@ -3503,27 +3503,24 @@ def _drain_pexpect_output(process):
 
 
 def _start_local_server_and_wait_for_ready(
+    command_args,
+    *,
     debug=False,
     max_wait=60,
     ready_phrase="Experiment launch complete!",
-    start_commands=None,
 ):
-    """Start a local server and wait for launch completion.
+    """Spawn ``psynet <command_args>`` and wait for launch completion.
+
+    This starts exactly one command. Callers choose the debug mode explicitly;
+    there is no automatic fallback between legacy and normal debug.
 
     Parameters
     ----------
-    start_commands : list[list[str]] or None
-        Command argument lists to try in order. Defaults to the legacy debug
-        server with the normal debug server as a fallback.
+    command_args : list[str]
+        Arguments passed to the ``psynet`` executable, for example
+        ``["debug", "local", "--legacy", "--no-browsers"]`` or
+        ``["debug", "local"]``.
     """
-    if start_commands is None:
-        start_commands = [
-            ["debug", "local", "--legacy", "--no-browsers"],
-            ["debug", "local"],
-        ]
-    if not start_commands:
-        raise ValueError("start_commands must contain at least one command")
-
     print("▶ Starting experiment server...")
 
     tmp_log = tempfile.NamedTemporaryFile(
@@ -3539,65 +3536,50 @@ def _start_local_server_and_wait_for_ready(
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
     env.setdefault("BROWSER", "true")
 
-    process = None
-    legacy_fallback_marker = "No such file or directory: 'heroku'"
+    try:
+        process = pexpect.spawn(
+            "psynet",
+            command_args,
+            env=env,
+            encoding="utf-8",
+            timeout=max_wait,
+        )
+    except Exception:
+        log_file.close()
+        raise click.ClickException("Failed to start experiment server process.")
 
-    for command_index, command_args in enumerate(start_commands):
-        try:
-            process = pexpect.spawn(
-                "psynet",
-                command_args,
-                env=env,
-                encoding="utf-8",
-                timeout=max_wait,
-            )
-        except Exception:
-            log_file.close()
-            raise click.ClickException("Failed to start experiment server process.")
+    process.logfile = logfile
+    print("⏳ Waiting for server to be ready...", end="", flush=True)
 
-        process.logfile = logfile
-        print("⏳ Waiting for server to be ready...", end="", flush=True)
+    try:
+        process.expect_exact(ready_phrase, timeout=max_wait)
+        print(" Ready!")
+        print()
+        drain_thread = threading.Thread(
+            target=_drain_pexpect_output,
+            args=(process,),
+            daemon=True,
+        )
+        drain_thread.start()
+        return {
+            "process": process,
+            "tmp_log_path": tmp_log_path,
+            "log_file": log_file,
+        }
+    except (pexpect.TIMEOUT, pexpect.EOF):
+        recent_output = (process.before or "").splitlines()[-50:]
+        _terminate_server_process(process)
 
-        try:
-            process.expect_exact(ready_phrase, timeout=max_wait)
-            print(" Ready!")
-            print()
-            drain_thread = threading.Thread(
-                target=_drain_pexpect_output,
-                args=(process,),
-                daemon=True,
-            )
-            drain_thread.start()
-            return {
-                "process": process,
-                "tmp_log_path": tmp_log_path,
-                "log_file": log_file,
-            }
-        except (pexpect.TIMEOUT, pexpect.EOF):
-            recent_output = (process.before or "").splitlines()[-50:]
-            _terminate_server_process(process)
-
-            should_fallback = (
-                "--legacy" in command_args
-                and command_index < len(start_commands) - 1
-                and any(legacy_fallback_marker in line for line in recent_output)
-            )
-            if should_fallback:
-                print(
-                    "\n⚠ Legacy debug server unavailable; trying the next start command..."
-                )
-                continue
-
-            print(
-                f"\n❌ Server failed to start within {max_wait} seconds",
-                file=sys.stderr,
-            )
-            if recent_output:
-                print("Last server output:", file=sys.stderr)
-                for line in recent_output:
-                    print(line, file=sys.stderr)
-            log_file.close()
-            raise click.ClickException("Failed to start experiment server.")
+        print(
+            f"\n❌ Server failed to start within {max_wait} seconds",
+            file=sys.stderr,
+        )
+        if recent_output:
+            print("Last server output:", file=sys.stderr)
+            for line in recent_output:
+                print(line, file=sys.stderr)
+        log_file.close()
+        raise click.ClickException("Failed to start experiment server.")
 
 
 def _terminate_server_process(process):
@@ -3675,7 +3657,12 @@ def _run_performance_test_with_new_server(
     n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
 ):
     """Run performance test after starting a new experiment server"""
-    server_info = _start_local_server_and_wait_for_ready(debug=debug)
+    # Prefer legacy debug: it more closely matches a real deployed server than
+    # the auto-reload develop path used by normal ``psynet debug local``.
+    server_info = _start_local_server_and_wait_for_ready(
+        ["debug", "local", "--legacy", "--no-browsers"],
+        debug=debug,
+    )
 
     try:
         _load_runtime_server_config()
