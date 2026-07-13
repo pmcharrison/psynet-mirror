@@ -35,7 +35,7 @@ def test_update_dallinger_constraints_command_writes_header_and_validates(
         """
 [project]
 dependencies = [
-    "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@support-python3.11-to-3.14",
+    "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@master",
 ]
 """,
         encoding="utf-8",
@@ -66,8 +66,8 @@ dependencies = [
 
     text = constraints.read_text(encoding="utf-8")
     assert text.startswith(
-        "# PsyNet CI snapshot for Dallinger reference: support-python3.11-to-3.14\n"
-        "# Source: https://raw.githubusercontent.com/Dallinger/Dallinger/support-python3.11-to-3.14/dev-requirements.txt\n"
+        "# PsyNet CI snapshot for Dallinger reference: master\n"
+        "# Source: https://raw.githubusercontent.com/Dallinger/Dallinger/master/dev-requirements.txt\n"
     )
     assert text.endswith("# Dallinger generated header\nrequests==2.33.1\n")
     assert compile_checks == [(pyproject, constraints, dockerfile)]
