@@ -721,8 +721,10 @@ using the shared steps with the RC version:
    `audio_gibbs`) in parallel plus the `audio_gibbs` Lucid variant. The
    skill's default flow — basing the deployment branch on the latest
    release tag, including RCs — is designed for exactly this step. The
-   test produces a local `analysis.md` per app under `deployment-tests/`
-   (not committed); their verdicts feed the promotion decision below.
+   test produces an `analysis.md` per app under `deployment-tests/`
+   (not committed to PsyNet; archived in the private
+   `computational-audition-lab/psynet-deployment-tests` repository); their
+   verdicts feed the promotion decision below.
 
 ### Iterate: RC2, RC3, …
 
@@ -754,12 +756,13 @@ etc. until you are confident the release is ready.
 ### Promote the final RC to the official release
 
 Validation of an RC means at minimum one successful deployment test of the
-RC tag via the `deployment-test` skill, with local `analysis.md` files
+RC tag via the `deployment-test` skill, with `analysis.md` files
 (one per deployed app under `deployment-tests/`) whose verdicts recommend
 promotion (see step 9 of the RC sequence). If the deployment test surfaced
 bugs, fix them and cut another RC instead. Record a link to the
-deployment-test branch and the local paths of its `analysis.md` files in
-the release MR description.
+deployment-test branch and to the archived `analysis.md` files in the
+`computational-audition-lab/psynet-deployment-tests` repository in the
+release MR description.
 
 Once the latest RC has been validated and no further changes are needed:
 

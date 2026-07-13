@@ -490,11 +490,12 @@ Lucid Variant"). Do not stop observing one app because another completed
 first.
 
 After the study status is `COMPLETED`, record the deployment's audit trail in
-a **local-only** per-deployment folder under `<psynet-root>/deployment-tests/`.
+a per-deployment folder under `<psynet-root>/deployment-tests/`.
 Do **not** commit `analysis.md`, `local/`, or any other audit artifacts to the
 deployment branch (or to `master`). The whole `deployment-tests/` tree is
-gitignored; keep results on disk (and later, if desired, in a separate private
-archive). Deployment branches remain for deploy-code provenance only.
+gitignored in the PsyNet repository; deployment branches remain for
+deploy-code provenance only. Instead, archive the finished audit folders in
+the dedicated private repository (see "Archive the audit trail" below).
 
 Each deployment gets one folder named after the study-completion date/time and
 app name:
@@ -558,7 +559,8 @@ Work through all of these once `study_status == "COMPLETED"`:
 2. Export the database and data with `psynet export ssh` into `local/export/`.
 3. Save the raw Prolific study and submissions JSON into `local/`.
 4. Write `analysis.md` locally, referencing the `local/` artifacts. Do not
-   `git add`, commit, or push anything under `deployment-tests/`.
+   `git add`, commit, or push anything under `deployment-tests/` in the
+   PsyNet repository.
 5. Offer to tear down the deployed app once the data is captured. Do not
    destroy it without explicit user confirmation:
 
@@ -566,6 +568,34 @@ Work through all of these once `study_status == "COMPLETED"`:
 cd <psynet-root>/tests/deployment/<experiment>  # the app's experiment dir
 psynet destroy ssh --server <ssh-host> --app <app-name>
 ```
+
+6. Archive the audit trail (see below) once the `analysis.md` verdict is
+   settled.
+
+### Archive the audit trail
+
+Finished audit folders are archived in the dedicated **private** repository
+<https://gitlab.com/computational-audition-lab/psynet-deployment-tests>
+(`git@gitlab.com:computational-audition-lab/psynet-deployment-tests.git`).
+It holds only artifacts; the deployment-test experiments themselves stay in
+the PsyNet repository under `tests/deployment/`.
+
+Its structure groups deployments by the base they were cut from:
+
+```text
+releases/<base-tag>/<YYYYMMDD-HHMMSS>-<app-name>/   # e.g. releases/v13.3.0rc0/...
+master/<short-hash>/<YYYYMMDD-HHMMSS>-<app-name>/   # master-based deployments
+practice/<...>/                                     # workflow shakedown runs
+```
+
+Each archived folder keeps the layout described above (`analysis.md` plus
+`local/`). To archive, clone the repository (or pull an existing clone),
+copy the finished per-deployment folder(s) into the matching
+`releases/<base-tag>/` or `master/<short-hash>/` directory, and commit and
+push with a message naming the base and app(s). Ask the user before pushing.
+The repository must stay private: exports contain participant data. Large
+raw archives (e.g. `data.zip`) may be pruned after the corresponding release
+has shipped and the analysis conclusions are settled.
 
 This report should be more detailed than the chat summary. Include:
 
