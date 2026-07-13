@@ -10,7 +10,6 @@ import subprocess
 import sys
 import tempfile
 import threading
-import warnings
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -134,7 +133,7 @@ def _missing_scaffold_boilerplate():
         missing.append(".gitignore")
 
     config_txt = Path("config.txt")
-    if not config_txt.exists() or config_txt.stat().st_size == 0:
+    if not config_txt.exists():
         missing.append("config.txt")
 
     return missing
@@ -2917,14 +2916,20 @@ def scripts_update():
 
 
 @scripts.command("prune")
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Remove modified scaffold-managed files as well.",
+)
 @require_exp_directory
-def scripts_prune():
+def scripts_prune(force):
     """
     Remove scaffold-managed boilerplate files from the experiment directory.
 
-    Authored experiment files are preserved. ``README.md`` is kept by default.
+    ``README.md``, custom ``config.txt`` files, and other modified files are
+    preserved by default. Use ``--force`` to remove other modified boilerplate.
     """
-    prune_experiment_scaffold(preserve_files={"README.md"})
+    prune_experiment_scaffold(preserve_files={"README.md"}, force=force)
 
 
 @psynet.command("update-scripts")
@@ -2933,10 +2938,9 @@ def update_scripts():
     """
     Deprecated alias for ``psynet scripts update``.
     """
-    warnings.warn(
+    click.echo(
         "psynet update-scripts is deprecated; use 'psynet scripts update' instead.",
-        DeprecationWarning,
-        stacklevel=2,
+        err=True,
     )
     update_scripts_()
 

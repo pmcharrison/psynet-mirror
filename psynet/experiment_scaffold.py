@@ -4,13 +4,14 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 from importlib import resources
 from pathlib import Path
 
 import click
 
 from psynet.utils import md5_directory
-from psynet.version import psynet_version, recommended_python_major_minor
+from psynet.version import psynet_version
 
 _TEMPLATE_FILES = (
     ".gitignore",
@@ -31,7 +32,7 @@ _TEMPLATE_DIRECTORIES = ("docker",)
 
 _GENERATED_FILES = {
     "Dockertag": lambda: f"{Path.cwd().name}\n",
-    ".python-version": lambda: f"{recommended_python_major_minor}\n",
+    ".python-version": lambda: f"{_current_python_major_minor()}\n",
 }
 
 _REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
@@ -61,6 +62,11 @@ _REQUIREMENTS_TXT_COMMENTS = """\
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet
 """
+
+
+def _current_python_major_minor() -> str:
+    """Return the running interpreter's major and minor version."""
+    return f"{sys.version_info.major}.{sys.version_info.minor}"
 
 
 def scaffold_managed_paths() -> frozenset[str]:
@@ -185,16 +191,10 @@ def _report_scaffold_result(written, *, overwrite):
     click.echo("Nothing to scaffold; experiment boilerplate is already present.")
 
 
-def _copy_template_file(relative_path, overwrite, treat_empty_file_as_missing=False):
+def _copy_template_file(relative_path, overwrite):
     """Copy one scaffold-managed template file into the experiment directory."""
     destination = Path(relative_path)
-    empty_file_needs_template = (
-        treat_empty_file_as_missing
-        and destination.exists()
-        and destination.is_file()
-        and destination.stat().st_size == 0
-    )
-    if destination.exists() and not overwrite and not empty_file_needs_template:
+    if destination.exists() and not overwrite:
         return False
 
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -254,6 +254,37 @@ def _template_file_matches(relative_path):
         return destination.read_bytes() == template.read_bytes()
 
 
+def _generated_file_matches(relative_path):
+    """Return whether an existing generated file has its expected contents."""
+    destination = Path(relative_path)
+    return (
+        destination.is_file()
+        and destination.read_text() == _GENERATED_FILES[relative_path]()
+    )
+
+
+def _template_directory_matches(relative_path):
+    """Return whether an existing directory matches its scaffold template."""
+    destination = Path(relative_path)
+    if not destination.is_dir():
+        return False
+    with resources.as_file(
+        resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
+    ) as template:
+        return md5_directory(destination) == md5_directory(template)
+
+
+def _managed_path_matches_scaffold(relative_path):
+    """Return whether a managed path still has its generated contents."""
+    if relative_path in _TEMPLATE_FILES or relative_path in _OPTIONAL_TEMPLATE_FILES:
+        return _template_file_matches(relative_path)
+    if relative_path in _GENERATED_FILES:
+        return _generated_file_matches(relative_path)
+    if relative_path in _TEMPLATE_DIRECTORIES:
+        return _template_directory_matches(relative_path)
+    raise ValueError(f"Unknown scaffold-managed path: {relative_path}")
+
+
 def _write_generated_file(relative_path, contents, overwrite):
     """Write one generated scaffold-managed file into the experiment directory."""
     destination = Path(relative_path)
@@ -281,7 +312,8 @@ def _copy_missing_directory_entries(source, destination):
 
 def _remove_empty_parent_dirs(path):
     """Remove now-empty parent directories after deleting scaffold files."""
-    workspace_root = Path.cwd()
+    workspace_root = Path.cwd().resolve()
+    path = path.resolve()
     while path != workspace_root and path.exists():
         try:
             path.rmdir()
@@ -328,11 +360,7 @@ def scaffold_experiment_directory(
             skipped.append(relative_path)
             continue
 
-        if _copy_template_file(
-            relative_path,
-            overwrite,
-            treat_empty_file_as_missing=relative_path == "config.txt",
-        ):
+        if _copy_template_file(relative_path, overwrite):
             written.append(relative_path)
         else:
             skipped.append(relative_path)
@@ -385,19 +413,22 @@ def scaffold_experiment_directory(
     return {"written": written, "skipped": skipped}
 
 
-def prune_experiment_scaffold(*, preserve_files=None):
-    """Remove scaffold-managed files while preserving authored experiment files."""
+def prune_experiment_scaffold(*, preserve_files=None, force=False):
+    """Remove unmodified scaffold files while preserving authored experiment files."""
     preserve_files = set(preserve_files or [])
     managed_paths = scaffold_managed_paths()
     _assert_scaffold_paths_are_safe(managed_paths - preserve_files)
+    preserved_modified = []
 
     for relative_path in sorted(
         managed_paths - set(_TEMPLATE_DIRECTORIES) - preserve_files
     ):
         path = Path(relative_path)
-        if relative_path == "config.txt" and not _template_file_matches(relative_path):
-            continue
         if path.exists():
+            matches_scaffold = _managed_path_matches_scaffold(relative_path)
+            if (relative_path == "config.txt" or not force) and not matches_scaffold:
+                preserved_modified.append(relative_path)
+                continue
             path.unlink()
             _remove_empty_parent_dirs(path.parent)
 
@@ -406,4 +437,15 @@ def prune_experiment_scaffold(*, preserve_files=None):
             continue
         path = Path(relative_path)
         if path.exists():
+            if not force and not _managed_path_matches_scaffold(relative_path):
+                preserved_modified.append(relative_path)
+                continue
             shutil.rmtree(path)
+
+    for relative_path in preserved_modified:
+        click.echo(
+            f"Preserved modified scaffold path '{relative_path}'. "
+            "Use --force to remove it."
+        )
+
+    return {"preserved_modified": preserved_modified}

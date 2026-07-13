@@ -111,7 +111,7 @@ def test_minimal_demo_prompts_for_scaffold_before_debug(tmp_path):
         Path(path_to_demo_feature("api")), tmp_path, "features/api"
     )
     with working_directory(demo_path):
-        prune_experiment_scaffold(preserve_files={"README.md"})
+        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
 
     result = _run_command(
         ["psynet", "debug", "local", "--legacy", "--no-browsers"], demo_path
@@ -128,7 +128,7 @@ def test_relative_imports_work_in_minimal_demo_without_init_py(tmp_path):
         Path(path_to_demo_feature("api")), tmp_path, "features/api"
     )
     with working_directory(demo_path):
-        prune_experiment_scaffold(preserve_files={"README.md"})
+        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
 
     assert not (demo_path / "__init__.py").exists()
 
@@ -173,7 +173,7 @@ def test_demo_roundtrip_preserves_authored_files(label, demo_path, tmp_path):
     original_snapshot = _preserved_snapshot(temp_demo)
 
     with working_directory(temp_demo):
-        prune_experiment_scaffold(preserve_files={"README.md"})
+        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
 
     assert _preserved_snapshot(temp_demo) == original_snapshot
 
@@ -211,7 +211,7 @@ def test_demo_roundtrip_runs_local_test_command(label, demo_path, tmp_path):
     temp_demo = _copy_demo_to_tmp(demo_path, tmp_path, label)
 
     with working_directory(temp_demo):
-        prune_experiment_scaffold(preserve_files={"README.md"})
+        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
         scaffold_experiment_directory(include_optional_files=True)
 
     result = _run_command(["psynet", "test", "local"], temp_demo)

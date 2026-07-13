@@ -19,6 +19,9 @@ Let's talk through what these different files and directories do.
 While reading this document, have a look at the experiment directory from a real
 PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022-consonance-carillon>`_.
 
+-   ``.python-version`` records the Python major and minor version used when the
+    experiment was scaffolded. PsyNet generates it from the active interpreter.
+
 -   ``docker`` contains various scripts for a deprecated Docker API. We are considering this in a future version of PsyNet.
 
 -   ``static`` can be used as a storage place for files that the front-end browser can access directly via HTTP.
@@ -69,6 +72,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 
 -   ``config.txt`` is a configuration file. It defines various important configuration parameters for when you deploy an
     experiment online. PsyNet can generate a default version of this file with ``psynet scripts scaffold``.
+    An existing empty file is preserved so that configuration can instead live in ``Experiment.config``.
 
 -   ``constraints.txt`` stores the versions of the different Python packages that will be used when you deploy your
     experiment. It is automatically generated, don’t edit it yourself. **Note**: the role of this file is currently
