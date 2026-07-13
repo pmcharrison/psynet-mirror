@@ -1,7 +1,7 @@
 {% macro chatroom_widget(config) %}
 {% set show_participants = config.show_participants %}
 {# Page-local CSS and JavaScript are supplied by the ChatRoom component through
-   its get_css()/get_scripts() hooks (see psynet/chatroom.py), so this macro
+   its resource hooks (see psynet/chatroom.py), so this macro
    stays focused on markup and remains compatible with in-place transitions. #}
 <div id="chatroom-widget">
     {% if show_participants %}

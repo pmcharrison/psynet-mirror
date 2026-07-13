@@ -1,0 +1,1 @@
+Deprecated global access to page JavaScript variables in favor of `psynet.var`; compatibility can warn, raise an informative error, or be disabled with `legacy_js_var_globals`, while leaving existing or externally locked `window` properties untouched.

@@ -218,33 +218,20 @@ class ChatRoom:
         ]
 
     def get_scripts(self):
-        """
-        Page-local JavaScript contributed to the hosting :class:`ModularPage`.
+        """Page-local inline JavaScript contributed to the hosting page (none)."""
+        return []
 
-        The per-instance configuration is injected as
-        ``window.__psynetChatroomConfig`` immediately before the widget script,
-        so the script itself can live in a static resource file rather than
-        being inlined (with Jinja interpolation) in the macro template.
-        """
-        from importlib import resources
-
-        from markupsafe import Markup
-
-        config = json.dumps(
-            {
+    def get_js_vars(self):
+        """Page-local configuration contributed to the hosting page."""
+        return {
+            "chatroom_config": {
                 "room_id": self.room_id,
                 "channel": self.channel,
                 "show_participants": bool(self.show_participants),
                 "show_history": bool(self.show_history),
             }
-        )
-        widget_js = (
-            resources.files("psynet")
-            .joinpath("resources/scripts/chatroom-widget.js")
-            .read_text(encoding="utf-8")
-        )
-        return [Markup(f"window.__psynetChatroomConfig = {config};\n{widget_js}")]
+        }
 
     def get_js_links(self):
-        """External JavaScript files contributed to the hosting page (none)."""
-        return []
+        """External JavaScript files contributed to the hosting page."""
+        return ["/static/scripts/chatroom-widget.js"]

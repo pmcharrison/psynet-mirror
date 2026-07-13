@@ -1,12 +1,11 @@
 // Built-in modular-page chatroom widget.
 //
 // This script is contributed to the page by the ChatRoom component via its
-// get_scripts() hook (rather than being inlined in the macro template), so it
+// get_js_links() hook (rather than being inlined in the macro template), so it
 // follows the same SPA contract PsyNet imposes on author-provided components.
-// Per-instance configuration is injected as `window.__psynetChatroomConfig`
-// immediately before this script by ChatRoom.get_scripts().
+// Per-instance configuration is supplied through ChatRoom.get_js_vars().
 (function () {
-    var CONFIG       = window.__psynetChatroomConfig || {};
+    var CONFIG       = psynet.var["chatroom_config"] || {};
     var ROOM_ID      = CONFIG.room_id;
     var GLOBAL_CH    = CONFIG.channel;
     var SHOW_PARTS   = CONFIG.show_participants;

@@ -12,21 +12,193 @@
   const psynetTemplateData = JSON.parse(templateDataElement.textContent);
   window.psynetTemplateData = psynetTemplateData;
 
-  // Keep template-provided JS variables mirrored onto `window` so that
-  // page scripts can continue using the historical global contract.
-  let activeJsVarKeys = new Set();
+  // `psynet.var` is the canonical page-scoped JavaScript variable namespace.
+  // Legacy globals remain available through configurable accessors while
+  // experiments migrate, allowing accesses to warn or fail with useful errors.
+  const LEGACY_JS_VAR_GLOBAL_MODES = new Set(["warn", "error", "off"]);
+  const RESERVED_JS_VAR_GLOBALS = new Set(["pageUuid"]);
+  let legacyJsVarGlobalStates = new Map();
+  let warnedLegacyJsVarGlobalCollisionKeys = new Set();
+  let warnedLegacyJsVarGlobalLockedKeys = new Set();
+  let warnedLegacyJsVarGlobalKeys = new Set();
+
+  let getLegacyJsVarGlobalMode = function () {
+    let mode = psynetTemplateData.flags?.legacyJsVarGlobals || "warn";
+    if (!LEGACY_JS_VAR_GLOBAL_MODES.has(mode)) {
+      throw new Error(`Unknown legacy js_vars global mode: ${mode}.`);
+    }
+    return mode;
+  };
+
+  let legacyJsVarGlobalError = function (key) {
+    return new ReferenceError(
+      `Legacy global js_vars access "${key}" is disabled. ` +
+        `Use psynet.var[${JSON.stringify(key)}] instead.`,
+    );
+  };
+
+  let warnLegacyJsVarGlobalAccess = function (key) {
+    if (warnedLegacyJsVarGlobalKeys.has(key)) {
+      return;
+    }
+    warnedLegacyJsVarGlobalKeys.add(key);
+    console.warn(
+      `Legacy global js_vars access "${key}" is deprecated. ` +
+        `Use psynet.var[${JSON.stringify(key)}] instead.`,
+    );
+  };
+
+  let clearLegacyJsVarGlobalProperty = function (key) {
+    let descriptor = Object.getOwnPropertyDescriptor(window, key);
+    if (!descriptor) {
+      return true;
+    }
+
+    if (!descriptor.configurable) {
+      if (!warnedLegacyJsVarGlobalLockedKeys.has(key)) {
+        warnedLegacyJsVarGlobalLockedKeys.add(key);
+        warnedLegacyJsVarGlobalCollisionKeys.add(key);
+        console.warn(
+          `PsyNet could not restore window.${key} because another script ` +
+            "made it non-configurable. The legacy global will remain in place; " +
+            `use psynet.var[${JSON.stringify(key)}] for page-scoped data.`,
+        );
+      }
+      return false;
+    }
+
+    delete window[key];
+    return true;
+  };
+
+  let uninstallLegacyJsVarGlobal = function (key) {
+    let state = legacyJsVarGlobalStates.get(key);
+    if (!state) {
+      return;
+    }
+    legacyJsVarGlobalStates.delete(key);
+
+    let currentDescriptor = Object.getOwnPropertyDescriptor(window, key);
+    let stillInstalled =
+      currentDescriptor &&
+      currentDescriptor.get === state.get &&
+      currentDescriptor.set === state.set;
+    if (currentDescriptor && !stillInstalled) {
+      // Another script redefined the property. Clear it so the foreign value
+      // cannot leak across SPA page transitions. If the other script locked
+      // the property, relinquish ownership rather than aborting navigation.
+      if (!clearLegacyJsVarGlobalProperty(key)) {
+        return;
+      }
+      console.warn(
+        `PsyNet cleared a redefined window.${key} property while uninstalling ` +
+          "the legacy js_vars accessor.",
+      );
+      return;
+    }
+
+    clearLegacyJsVarGlobalProperty(key);
+  };
+
+  let installLegacyJsVarGlobal = function (key, value) {
+    let state = legacyJsVarGlobalStates.get(key);
+    if (state) {
+      let currentDescriptor = Object.getOwnPropertyDescriptor(window, key);
+      let stillInstalled =
+        currentDescriptor &&
+        currentDescriptor.get === state.get &&
+        currentDescriptor.set === state.set;
+      if (stillInstalled) {
+        state.value = value;
+        return;
+      }
+
+      // The accessor was replaced or removed while we still tracked it. Drop
+      // the stale map entry, clear any foreign redefine, and fall through to a
+      // fresh install so `psynet.var` and the legacy mirror stay in sync.
+      legacyJsVarGlobalStates.delete(key);
+      if (currentDescriptor) {
+        if (!clearLegacyJsVarGlobalProperty(key)) {
+          return;
+        }
+        console.warn(
+          `PsyNet cleared a redefined window.${key} property and reinstalled ` +
+            "the legacy js_vars accessor.",
+        );
+      }
+    }
+
+    // Legacy compatibility must never shadow browser, framework, or third-party
+    // state. Authors can always access the page value through `psynet.var`.
+    if (key in window) {
+      if (!warnedLegacyJsVarGlobalCollisionKeys.has(key)) {
+        warnedLegacyJsVarGlobalCollisionKeys.add(key);
+        console.warn(
+          `PsyNet did not install the legacy js_vars accessor for "${key}" ` +
+            `because window.${key} already exists. ` +
+            `Use psynet.var[${JSON.stringify(key)}] instead.`,
+        );
+      }
+      return;
+    }
+    warnedLegacyJsVarGlobalCollisionKeys.delete(key);
+
+    state = {
+      get: undefined,
+      set: undefined,
+      value,
+    };
+    state.get = function () {
+      let mode = getLegacyJsVarGlobalMode();
+      if (mode !== "warn") {
+        throw legacyJsVarGlobalError(key);
+      }
+      warnLegacyJsVarGlobalAccess(key);
+      return state.value;
+    };
+    state.set = function (nextValue) {
+      let mode = getLegacyJsVarGlobalMode();
+      if (mode !== "warn") {
+        throw legacyJsVarGlobalError(key);
+      }
+      warnLegacyJsVarGlobalAccess(key);
+      // Preserve the historical behavior: assigning the global changes its
+      // mirrored value without mutating the canonical `psynet.var` object.
+      state.value = nextValue;
+    };
+
+    Object.defineProperty(window, key, {
+      configurable: true,
+      enumerable: true,
+      get: state.get,
+      set: state.set,
+    });
+    legacyJsVarGlobalStates.set(key, state);
+  };
 
   let syncJsVars = function () {
     let jsVars = psynetTemplateData.jsVars || {};
-    activeJsVarKeys.forEach((key) => {
-      if (!(key in jsVars)) {
-        delete window[key];
+    let mode = getLegacyJsVarGlobalMode();
+
+    legacyJsVarGlobalStates.forEach((_, key) => {
+      if (mode === "off" || !(key in jsVars)) {
+        uninstallLegacyJsVarGlobal(key);
       }
     });
-    Object.entries(jsVars).forEach(([key, value]) => {
-      window[key] = value;
-    });
-    activeJsVarKeys = new Set(Object.keys(jsVars));
+
+    if ("pageUuid" in jsVars) {
+      // `window.pageUuid` remains an intentional framework lifecycle property,
+      // rather than a deprecated author js_vars mirror.
+      window.pageUuid = jsVars.pageUuid;
+    }
+
+    if (mode !== "off") {
+      Object.entries(jsVars).forEach(([key, value]) => {
+        if (!RESERVED_JS_VAR_GLOBALS.has(key)) {
+          installLegacyJsVarGlobal(key, value);
+        }
+      });
+    }
   };
 
   syncJsVars();
@@ -146,8 +318,8 @@
       });
       Object.assign(psynetTemplateData, refreshedTemplateData);
       window.psynetTemplateData = psynetTemplateData;
-      syncJsVars();
       psynet.var = psynetTemplateData.jsVars || {};
+      syncJsVars();
       psynet.media.requests = psynetTemplateData.mediaRequests || {};
     };
 
@@ -2519,7 +2691,7 @@
 
       return JSON.stringify({
         participant_id: psynet.participantId,
-        page_uuid: pageUuid,
+        page_uuid: psynet.var.pageUuid,
         assignment_id: psynet.assignmentId,
         unique_id: psynet.uniqueId,
         raw_answer: rawAnswer,

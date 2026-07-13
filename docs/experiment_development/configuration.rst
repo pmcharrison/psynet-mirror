@@ -126,6 +126,13 @@ General
 
         This feature may be revised in the future.
 
+``legacy_js_var_globals`` *str* |psynet-icon|
+    Controls deprecated access to page ``js_vars`` through matching ``window``
+    properties. ``warn`` preserves access and reports each key once in the
+    browser console, ``error`` raises an informative ``ReferenceError``, and
+    ``off`` installs no compatibility properties. New code should read
+    ``psynet.var`` directly. Default: ``warn``.
+
 ``lock_table_when_creating_participant`` *bool* |dlgr-icon|
     Prevents possible deadlocks on the `Participant` table.
     Historically we have locked the participant table when creating participants
