@@ -585,6 +585,12 @@
       await flushInlineBuffer();
     };
 
+    // Build one execution plan from the inert scripts in the new fragment.
+    // querySelectorAll preserves DOM order, which mirrors a full page load:
+    // scripts in page markup first, then explicit js_links, then deferred page
+    // scripts. Unscoped main-body links are document-level libraries, so the
+    // manifest marks them as safe to skip after their first load. Explicit
+    // js_links and deferred scripts must run again for each page activation.
     psynet.getPageScriptManifest = function () {
       let mainBody = document.getElementById("main-body");
       if (!mainBody) {
@@ -606,6 +612,11 @@
       });
     };
 
+    // Execute adjacent manifest entries as groups because executeScriptSequence
+    // gives each group one loading policy and one shared IIFE for its inline
+    // scripts. A scope or policy change therefore flushes the current group,
+    // preventing body, js-link, and deferred inline scripts from sharing scope.
+    // Awaiting every flush preserves the manifest's full-page execution order.
     psynet.executePageScriptManifest = async function (manifest) {
       let currentGroup = [];
       let currentScope;
