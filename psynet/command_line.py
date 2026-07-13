@@ -3584,7 +3584,7 @@ def _start_local_server_and_wait_for_ready(
             )
             if should_fallback:
                 print(
-                    "\n⚠ Legacy debug server unavailable; retrying with auto-reload mode..."
+                    "\n⚠ Legacy debug server unavailable; trying the next start command..."
                 )
                 continue
 
