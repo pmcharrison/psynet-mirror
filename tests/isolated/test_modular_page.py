@@ -139,12 +139,15 @@ def test_inplace_transitions_still_reject_style_in_page_content():
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
-def test_components_contribute_scripts_and_js_links_to_page():
-    # Reusable components ship JS through get_scripts()/get_js_links() rather
-    # than inlining <script> in a template.
+def test_components_contribute_javascript_assets_and_variables_to_page():
+    # Reusable components ship JavaScript through component hooks rather than
+    # inlining <script> in a template.
     class ScriptedPrompt(Prompt):
         def get_scripts(self):
             return ["console.log('prompt');"]
+
+        def get_js_vars(self):
+            return {"prompt_config": {"colour": "blue"}}
 
     class ScriptedControl(Control):
         macro = "control"
@@ -155,15 +158,60 @@ def test_components_contribute_scripts_and_js_links_to_page():
         def get_js_links(self):
             return ["/static/my-control.js"]
 
-    page = ModularPage("test", ScriptedPrompt("Hi!"), ScriptedControl())
+        def get_js_vars(self):
+            return {"control_config": {"maximum": 10}}
+
+    page = ModularPage(
+        "test",
+        ScriptedPrompt("Hi!"),
+        ScriptedControl(),
+        js_vars={"page_config": {"enabled": True}},
+    )
 
     joined = "\n".join(str(s) for s in page.scripts)
     assert "console.log('prompt');" in joined
     assert "console.log('control');" in joined
     assert "/static/my-control.js" in page.js_links
+    assert page.js_vars["prompt_config"] == {"colour": "blue"}
+    assert page.js_vars["control_config"] == {"maximum": 10}
+    assert page.js_vars["page_config"] == {"enabled": True}
 
 
-def test_chatroom_contributes_css_and_scripts_not_inline_markup():
+def test_duplicate_component_js_vars_raise():
+    class CollidingPrompt(Prompt):
+        def get_js_vars(self):
+            return {"shared_config": "prompt"}
+
+    class CollidingControl(Control):
+        macro = "control"
+
+        def get_js_vars(self):
+            return {"shared_config": "control"}
+
+    with pytest.raises(
+        ValueError,
+        match=("shared_config.*prompt CollidingPrompt.*control CollidingControl"),
+    ):
+        ModularPage("test", CollidingPrompt("Hi!"), CollidingControl())
+
+
+def test_page_js_vars_cannot_override_component_js_vars():
+    class ConfiguredPrompt(Prompt):
+        def get_js_vars(self):
+            return {"shared_config": "prompt"}
+
+    with pytest.raises(
+        ValueError,
+        match="shared_config.*prompt ConfiguredPrompt.*ModularPage js_vars",
+    ):
+        ModularPage(
+            "test",
+            ConfiguredPrompt("Hi!"),
+            js_vars={"shared_config": "page"},
+        )
+
+
+def test_chatroom_contributes_managed_resources_not_inline_markup():
     from psynet.chatroom import ChatRoom
 
     page = ModularPage(
@@ -173,9 +221,14 @@ def test_chatroom_contributes_css_and_scripts_not_inline_markup():
     )
 
     assert any("#chatroom-widget" in str(c) for c in page.css)
-    joined = "\n".join(str(s) for s in page.scripts)
-    assert '"room_id": "room-42"' in joined
-    assert "window.__psynetChatroomConfig" in joined
+    assert page.js_vars["chatroom_config"] == {
+        "room_id": "room-42",
+        "channel": "modular_page_chat",
+        "show_participants": False,
+        "show_history": True,
+    }
+    assert "/static/scripts/chatroom-widget.js" in page.js_links
+    assert not any("__psynetChatroomConfig" in str(s) for s in page.scripts)
     # The macro itself must be markup-only (no inline <script>/<style>) so it
     # stays contract-compliant.
     from importlib import resources

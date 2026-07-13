@@ -156,11 +156,14 @@ Custom controls are defined in a similar way. Looking in the same demo, we have 
             super().__init__()
             self.color = color
 
+        def get_js_links(self):
+            return ["/static/color-text.js"]
+
         @property
         def metadata(self):
             return {"color": self.color}
 
-As before, the class has ``macro`` and ``external_template`` attributes, which tell PsyNet where to find the class’s Jinja macro. It additionally has a ``color`` instance attribute, which is set in the instance’s constructor function (``__init__()``). Lastly, it has a ``metadata`` method, which generates metadata that will be saved along with the participant’s response. This method is optional; if you implement it, it should provide some non-essential additional information about the participant’s response.
+As before, the class has ``macro`` and ``external_template`` attributes, which tell PsyNet where to find the class’s Jinja macro. It additionally has a ``color`` instance attribute, which is set in the instance’s constructor function (``__init__()``). ``get_js_links()`` supplies a standalone script from the experiment's ``static`` directory. Lastly, it has a ``metadata`` method, which generates metadata that will be saved along with the participant’s response. This method is optional; if you implement it, it should provide some non-essential additional information about the participant’s response.
 
 This ``ColorText`` definition is complemented by the following macro definition in ``custom-controls.html``:
 
@@ -170,23 +173,26 @@ This ``ColorText`` definition is complemented by the following macro definition 
 
         <textarea id="text-input" type="text" class="form-control" style="background-color: {{ config.color }}; margin-bottom: 40px;"></textarea>
 
-        <script>
-            psynet.stageResponse = function() {
-                psynet.response.staged.rawAnswer = document.getElementById('text-input').value
-            }
-        </script>
-
     {% endmacro %}
 
-This macro has several important components.
+The macro remains focused on markup. The corresponding ``static/color-text.js``
+file contains the behavior:
 
-* First, there is a ``textarea`` element, a standard HTML element corresponding to a text box that can be filled in by the user. This textbox has a customizable background color determined by the value of ``config.color``.
+.. code-block:: javascript
 
-* Second, a function is defined called ``psynet.stageResponse``. This function is written in Javascript,
-  and extracts the current contents of the textbox as a string (e.g., ‘Hello’).
-  It then saves this string to ``psynet.response.staged.rawAnswer``.
-  This 'stages' the answer, so that when the page is exited (by clicking the 'Next' button) this answer
-  is submitted to the PsyNet back-end.
+    (function () {
+        psynet.setStageResponseHandler(function () {
+            psynet.response.staged.rawAnswer =
+                document.getElementById("text-input").value;
+        });
+    })();
+
+The ``textarea`` is a standard HTML element corresponding to a text box. Its
+customizable background color comes from ``config.color``. The JavaScript
+handler extracts the current contents and stages them so that the response is
+submitted when the page is exited. Keeping the implementation in an IIFE avoids
+creating global functions, and PsyNet clears the response handler on page
+cleanup.
 
 In some cases we might want to postprocess this response in Python before we save it. This can be achieved by writing a custom ``format_answer`` method for the custom ``Control`` class. For example, if we wanted to capitalize all the responses, we could write something like this:
 
@@ -196,3 +202,79 @@ In some cases we might want to postprocess this response in Python before we sav
         return raw_answer.capitalize()
 
 The ``raw_answer`` argument here corresponds to the data that was saved in ``psynet.stageResponse``. In this example, this data will be a string, corresponding to the contents of the textbox; however, more complex forms of data are supported, for example lists and dictionaries.
+
+Passing configuration to JavaScript
+-----------------------------------
+
+Custom prompts and controls can provide page-scoped JavaScript configuration
+by implementing ``get_js_vars()``:
+
+.. code-block:: python
+
+    class ColorText(Control):
+        def get_js_vars(self):
+            return {"color_text_config": {"maximum_length": 200}}
+
+Read these values through ``psynet.var``:
+
+.. code-block:: javascript
+
+    const maximumLength = psynet.var.color_text_config.maximum_length;
+
+Sharing JavaScript functions between components
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``js_vars`` should contain data, not functions. If, for example, a prompt needs
+to provide a function that its control can call, expose the function through
+the page-scoped ``psynet.page`` namespace:
+
+.. code-block:: javascript
+
+    // Prompt setup
+    psynet.page.prompt.playStimulus = function () {
+        // ...
+    };
+
+The control can then call the prompt-owned function:
+
+.. code-block:: javascript
+
+    psynet.page.prompt.playStimulus();
+
+PsyNet resets ``psynet.page`` when the participant moves to another page, so
+this does not leave stale functions behind. If the function is not naturally
+owned by the prompt or control, use a descriptive shared namespace such as
+``psynet.page.myTask`` instead. This makes the dependency explicit without
+creating a global function on ``window``.
+
+For substantial reusable code, put the implementation in a standalone file in
+the experiment's ``static`` directory and load it with ``get_js_links()``.
+Reserve ``get_scripts()`` for short page-initialization code. Components that
+should remain loosely coupled can communicate with custom events; register
+listeners with ``psynet.addPageEventListener()`` so PsyNet removes them during
+page cleanup.
+
+Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
+global access is deprecated because in-place timeline transitions reuse the
+same browser window across pages. The ``legacy_js_var_globals`` configuration
+controls the compatibility behavior:
+
+* ``warn`` (default) keeps legacy access working and warns once for each key.
+* ``error`` throws a ``ReferenceError`` that identifies the key and recommends
+  the corresponding ``psynet.var`` expression.
+* ``off`` does not install legacy global properties.
+
+In ``error`` mode the compatibility property remains present so that reads and
+writes can produce the informative error. Consequently, ``typeof legacy_name``
+also throws and ``"legacy_name" in window`` remains true. Test availability
+with ``"name" in psynet.var`` instead. In ``warn`` mode, assigning the legacy
+global preserves historical behavior by changing only the mirrored value; it
+does not update ``psynet.var``.
+
+The compatibility accessors are installed only for keys on the active page,
+and PsyNet removes them on the next page. PsyNet never replaces a
+pre-existing ``window`` property; when a name is already in use, the page value
+remains available through ``psynet.var`` and PsyNet logs a warning. If another
+script replaces and locks a compatibility accessor, PsyNet leaves that property
+alone and continues the page transition rather than allowing deprecated
+compatibility behavior to interrupt the canonical ``psynet.var`` update.

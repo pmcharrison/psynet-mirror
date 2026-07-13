@@ -3,6 +3,7 @@ import random
 import shutil
 import tempfile
 import warnings
+from collections.abc import Mapping
 from typing import Callable, Dict, Iterable, List, Optional, Union
 
 from dominate import tags
@@ -27,6 +28,28 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+def _merge_js_var_sources(*sources):
+    """Merge JavaScript variable sources, rejecting duplicate keys."""
+    merged = {}
+    owners = {}
+
+    for source_name, values in sources:
+        if not isinstance(values, Mapping):
+            raise TypeError(f"{source_name} must provide a mapping.")
+
+        for key, value in values.items():
+            if key in owners:
+                raise ValueError(
+                    f"Duplicate JavaScript variable {key!r}: "
+                    f"contributed by {owners[key]} and {source_name}."
+                )
+
+            merged[key] = value
+            owners[key] = source_name
+
+    return merged
 
 
 class Blob:
@@ -153,6 +176,14 @@ class Prompt:
         components can ship JavaScript without inlining ``<script>`` in a template.
         """
         return []
+
+    def get_js_vars(self):
+        """Page-local JavaScript variables this component contributes.
+
+        Keys must be unique across all page components and explicit
+        :class:`ModularPage` ``js_vars``.
+        """
+        return {}
 
     def get_js_links(self):
         """Page-local external JavaScript files this component contributes.
@@ -738,6 +769,13 @@ class Control:
         See :meth:`Prompt.get_scripts`.
         """
         return []
+
+    def get_js_vars(self):
+        """Page-local JavaScript variables this control contributes.
+
+        See :meth:`Prompt.get_js_vars`.
+        """
+        return {}
 
     def get_js_links(self):
         """Page-local external JavaScript files this control contributes.
@@ -1829,7 +1867,8 @@ class ModularPage(Page):
         objects instead.
 
     js_vars
-        Optional dictionary of arguments to instantiate as global Javascript variables.
+        Optional dictionary of page-scoped values exposed to JavaScript through
+        ``psynet.var``.
 
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
@@ -1958,18 +1997,17 @@ class ModularPage(Page):
         all_media = MediaSpec.merge(media, prompt.media, control.media)
 
         # Reusable components (prompt, control, chatroom) contribute their
-        # page-local assets through get_css/get_scripts/get_js_links hooks, so
-        # they don't have to inline <style>/<script> in a template (which the
-        # SPA contract forbids). Collect them here and merge with any assets the
-        # caller passed directly.
-        components = [self.prompt, self.control]
+        # page-local assets through component hooks, so they don't have to inline
+        # <style>/<script> in a template (which the SPA contract forbids). Collect
+        # them here and merge with any assets the caller passed directly.
+        components = [("prompt", self.prompt), ("control", self.control)]
         if self.chatroom is not None:
-            components.append(self.chatroom)
+            components.append(("chatroom", self.chatroom))
 
-        css = [c for component in components for c in component.get_css()]
-        scripts = [s for component in components for s in component.get_scripts()]
+        css = [c for _, component in components for c in component.get_css()]
+        scripts = [s for _, component in components for s in component.get_scripts()]
         js_links = [
-            link for component in components for link in component.get_js_links()
+            link for _, component in components for link in component.get_js_links()
         ]
 
         for key, collected in (
@@ -1980,6 +2018,28 @@ class ModularPage(Page):
             if key in kwargs:
                 extra = kwargs.pop(key)
                 collected.extend(extra if isinstance(extra, list) else [extra])
+
+        modular_page_components = {
+            "prompt": self.prompt.macro,
+            "control": self.control.macro,
+            "chatroom": self.chatroom.macro if chatroom is not None else None,
+        }
+        js_var_sources = [
+            (
+                f"{role} {type(component).__name__}",
+                component.get_js_vars(),
+            )
+            for role, component in components
+        ]
+        js_var_sources.extend(
+            [
+                ("ModularPage js_vars", js_vars),
+                (
+                    "PsyNet internals",
+                    {"modular_page_components": modular_page_components},
+                ),
+            ]
+        )
 
         super().__init__(
             label=label,
@@ -1993,14 +2053,7 @@ class ModularPage(Page):
             },
             media=all_media,
             events=events,
-            js_vars={
-                **js_vars,
-                "modular_page_components": {
-                    "prompt": self.prompt.macro,
-                    "control": self.control.macro,
-                    "chatroom": self.chatroom.macro if chatroom is not None else None,
-                },
-            },
+            js_vars=_merge_js_var_sources(*js_var_sources),
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,

@@ -1825,6 +1825,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_progress_bar": True,
             "show_reward": True,
             "inplace_timeline_transitions": True,
+            "legacy_js_var_globals": "warn",
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -2579,6 +2580,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/psynet.js",
                 ),
                 (
+                    resources.files("psynet") / "resources/scripts/chatroom-widget.js",
+                    "/static/scripts/chatroom-widget.js",
+                ),
+                (
                     resources.files("psynet")
                     / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
@@ -2736,6 +2741,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Register PsyNet-specific configuration parameters.
         """
         config = dallinger_get_config()
+
+        def legacy_js_var_globals_validator(value):
+            """Validate the legacy JavaScript variable global access mode."""
+            if value not in {"warn", "error", "off"}:
+                raise ValueError(
+                    '`legacy_js_var_globals` must be one of: "warn", "error", or "off".'
+                )
+
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
         config.register("lab_recruiter_external_submission_url", str)
@@ -2762,6 +2775,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
         config.register("inplace_timeline_transitions", bool)
+        config.register(
+            "legacy_js_var_globals",
+            str,
+            validators=[legacy_js_var_globals_validator],
+        )
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
