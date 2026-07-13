@@ -585,42 +585,6 @@
       await flushInlineBuffer();
     };
 
-    psynet.getMainBodyScripts = function () {
-      let mainBody = document.getElementById("main-body");
-      if (!mainBody) {
-        return [];
-      }
-      return Array.from(
-        mainBody.querySelectorAll(
-          'script[type="text/psynet-script"]:not([data-psynet-script-scope])',
-        ),
-      );
-    };
-
-    psynet.getDeferredPageScripts = function () {
-      let scriptContainer = document.getElementById("psynet-page-scripts");
-      if (!scriptContainer) {
-        return [];
-      }
-      let query = 'script[type="text/psynet-script"][data-psynet-script-scope="deferred"]';
-      if (scriptContainer.content) {
-        return Array.from(scriptContainer.content.querySelectorAll(query));
-      }
-      return Array.from(scriptContainer.querySelectorAll(query));
-    };
-
-    psynet.getPageJsLinkScripts = function () {
-      let scriptContainer = document.getElementById("psynet-page-js-links");
-      if (!scriptContainer) {
-        return [];
-      }
-      let query = 'script[type="text/psynet-script"][data-psynet-script-scope="js-link"]';
-      if (scriptContainer.content) {
-        return Array.from(scriptContainer.content.querySelectorAll(query));
-      }
-      return Array.from(scriptContainer.querySelectorAll(query));
-    };
-
     psynet.getPageScriptManifest = function () {
       let mainBody = document.getElementById("main-body");
       if (!mainBody) {
