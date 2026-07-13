@@ -955,6 +955,33 @@ def test_start_local_server_uses_debug_local_subprocess():
     _stop_server(server_info)
 
 
+def test_start_local_server_accepts_custom_start_commands():
+    from psynet.command_line import _start_local_server_and_wait_for_ready, _stop_server
+
+    process = Mock()
+    process.expect_exact.return_value = None
+    process.isalive.return_value = False
+
+    with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
+        server_info = _start_local_server_and_wait_for_ready(
+            debug=False,
+            max_wait=5,
+            start_commands=[["debug", "local"]],
+        )
+
+    args, kwargs = spawn.call_args
+    assert args == ("psynet", ["debug", "local"])
+    assert kwargs["encoding"] == "utf-8"
+    _stop_server(server_info)
+
+
+def test_start_local_server_rejects_empty_start_commands():
+    from psynet.command_line import _start_local_server_and_wait_for_ready
+
+    with pytest.raises(ValueError, match="at least one command"):
+        _start_local_server_and_wait_for_ready(start_commands=[])
+
+
 def test_stop_server_gracefully_stops_debug_subprocess():
     from psynet.command_line import _stop_server
 
