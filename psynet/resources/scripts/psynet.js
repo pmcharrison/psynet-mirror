@@ -621,6 +621,57 @@
       return Array.from(scriptContainer.querySelectorAll(query));
     };
 
+    psynet.getPageScriptManifest = function () {
+      let mainBody = document.getElementById("main-body");
+      if (!mainBody) {
+        return [];
+      }
+
+      return Array.from(
+        mainBody.querySelectorAll('script[type="text/psynet-script"]'),
+      ).map((script) => {
+        let scope = script.dataset.psynetScriptScope || "main-body";
+        return {
+          script,
+          scope,
+          // Linked scripts embedded directly in page markup behave like
+          // document-level libraries and should not be loaded repeatedly.
+          // Explicit js_links and deferred page scripts run on each page.
+          skipIfLoaded: scope === "main-body",
+        };
+      });
+    };
+
+    psynet.executePageScriptManifest = async function (manifest) {
+      let currentGroup = [];
+      let currentScope;
+      let currentSkipIfLoaded;
+
+      let flushCurrentGroup = async function () {
+        if (currentGroup.length === 0) {
+          return;
+        }
+        await psynet.executeScriptSequence(currentGroup, {
+          skipIfLoaded: currentSkipIfLoaded,
+        });
+        currentGroup = [];
+      };
+
+      for (let entry of manifest) {
+        if (
+          currentGroup.length > 0 &&
+          (entry.scope !== currentScope ||
+            entry.skipIfLoaded !== currentSkipIfLoaded)
+        ) {
+          await flushCurrentGroup();
+        }
+        currentScope = entry.scope;
+        currentSkipIfLoaded = entry.skipIfLoaded;
+        currentGroup.push(entry.script);
+      }
+      await flushCurrentGroup();
+    };
+
     psynet.getElementById = function (root, id) {
       if (typeof root.getElementById === "function") {
         return root.getElementById(id);
@@ -812,14 +863,7 @@
       // lifecycle explicitly before we can mark the new page as ready.
       psynet.refreshTemplateData();
       await psynet.rebuildTrial();
-      await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
-      // External body scripts are normally document-level libraries. They
-      // cannot be undeclared between SPA pages, so rerun inline setup while
-      // skipping linked libraries that this browser document already loaded.
-      await psynet.executeScriptSequence(psynet.getMainBodyScripts(), {
-        skipIfLoaded: true,
-      });
-      await psynet.executeScriptSequence(psynet.getDeferredPageScripts());
+      await psynet.executePageScriptManifest(psynet.getPageScriptManifest());
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
       await psynet.initPage();
@@ -833,16 +877,14 @@
       psynet.log.info("Applying next timeline fragment directly from /response.");
       psynet.setPageReady(false);
       psynet.setTimelineTransitionBusy(true);
-      try {
-        await psynet.deactivateTimelineFragmentLifecycle();
-        let fragment = psynet.prepareTimelineFragment(payload);
-        await psynet.preloadTimelineFragmentAssets(fragment);
-        psynet.commitTimelineFragment(fragment);
-        await psynet.activateTimelineFragmentLifecycle();
-      } catch (error) {
-        await psynet.handleTimelineTransitionFailure(error);
-        throw error;
-      }
+      // Failure presentation belongs to the response boundary, which catches
+      // errors from this function and invokes handleTimelineTransitionFailure
+      // exactly once.
+      await psynet.deactivateTimelineFragmentLifecycle();
+      let fragment = psynet.prepareTimelineFragment(payload);
+      await psynet.preloadTimelineFragmentAssets(fragment);
+      psynet.commitTimelineFragment(fragment);
+      await psynet.activateTimelineFragmentLifecycle();
     };
 
     psynet.handleTimelineTransitionFailure = async function (error) {
