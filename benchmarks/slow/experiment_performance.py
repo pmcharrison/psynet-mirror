@@ -195,7 +195,7 @@ class Static(_BaseExperiment):
 class StaticBigLaunch:
     """Benchmark the time for the static_big experiment to become ready."""
 
-    timeout = 180
+    timeout = 60
     version = 1
 
     def setup_cache(self):
