@@ -1930,7 +1930,8 @@ class ModularPage(Page):
         If left blank, defaults to ``.default_layout``.
 
     **kwargs
-        Further arguments to be passed to :class:`psynet.timeline.Page`.
+        Further arguments to be passed to :class:`psynet.timeline.Page`,
+        including ``js_dependencies`` and ``js_page_scripts``.
     """
 
     default_layout = ["prompt", "media", "progress", "control", "chatroom", "buttons"]

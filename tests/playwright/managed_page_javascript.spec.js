@@ -32,10 +32,16 @@ test("managed page JavaScript works in both transition modes", async ({
           experimentPage.evaluate(() => window.__psynetManagedJavascript || null),
         { timeout: STEP_TIMEOUT_MS }
       )
-      .toEqual({
+      .toMatchObject({
         dependencyLoads: 1,
         events: ["activate:first", "activate:second"]
       });
+    expect(
+      await experimentPage.evaluate(
+        () =>
+          window.__psynetManagedJavascript.pageUuids.at(-1) === window.pageUuid
+      )
+    ).toBe(true);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await expect(marker).toContainText("Managed JavaScript activated");
@@ -45,7 +51,7 @@ test("managed page JavaScript works in both transition modes", async ({
           experimentPage.evaluate(() => window.__psynetManagedJavascript || null),
         { timeout: STEP_TIMEOUT_MS }
       )
-      .toEqual({
+      .toMatchObject({
         dependencyLoads: 1,
         events: isInplaceTimelineModeEnabled()
           ? [
@@ -58,5 +64,11 @@ test("managed page JavaScript works in both transition modes", async ({
             ]
           : ["activate:first", "activate:second"]
       });
+    expect(
+      await experimentPage.evaluate(
+        () =>
+          window.__psynetManagedJavascript.pageUuids.at(-1) === window.pageUuid
+      )
+    ).toBe(true);
   });
 });

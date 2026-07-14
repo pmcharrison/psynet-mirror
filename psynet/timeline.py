@@ -67,12 +67,15 @@ def _normalize_javascript_urls(urls, argument_name):
         raise TypeError(f"{argument_name} must be a list or tuple.")
 
     normalized = []
+    seen = set()
     for url in urls:
         if not isinstance(url, str):
             raise TypeError(f"{argument_name} entries must be strings.")
         if not url.strip():
             raise ValueError(f"{argument_name} entries must be non-empty.")
-        normalized.append(url)
+        if url not in seen:
+            normalized.append(url)
+            seen.add(url)
     return normalized
 
 
@@ -1176,6 +1179,14 @@ class Page(Elt):
         self.js_page_scripts = _normalize_javascript_urls(
             js_page_scripts, "js_page_scripts"
         )
+        overlapping_javascript = set(self.js_dependencies) & set(
+            self.js_page_scripts
+        )
+        if overlapping_javascript:
+            raise ValueError(
+                "The same URL cannot be used in both js_dependencies and "
+                f"js_page_scripts: {sorted(overlapping_javascript)}"
+            )
 
         self.expected_repetitions = 1
 
@@ -1782,6 +1793,8 @@ class Page(Elt):
             script_type = (script.get("type") or "").strip().lower()
             if script_type not in executable_script_types:
                 continue
+            if script_type == "module":
+                script["data-psynet-original-script-type"] = "module"
             script["type"] = "text/psynet-script"
         if parsed_from_string:
             return str(soup)

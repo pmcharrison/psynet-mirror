@@ -90,15 +90,27 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
           experimentPage.evaluate(() => window.__psynetManagedJavascript || null),
         { timeout: STEP_TIMEOUT_MS }
       )
-      .toEqual({
+      .toMatchObject({
         dependencyLoads: 1,
         events: ["activate:first", "activate:second"]
       });
     expect(
       await experimentPage.evaluate(
+        () =>
+          window.__psynetManagedJavascript.pageUuids.at(-1) === window.pageUuid
+      )
+    ).toBe(true);
+    expect(
+      await experimentPage.evaluate(
         () => window.__psynetManagedDependencyAvailableInBody
       )
     ).toBe(true);
+    expect(
+      await experimentPage.evaluate(() => ({
+        external: window.__legacyBodyModuleLoads,
+        inline: window.__legacyInlineModuleRuns
+      }))
+    ).toEqual({ external: 1, inline: 1 });
     await expect
       .poll(
         () =>
@@ -127,7 +139,7 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
           experimentPage.evaluate(() => window.__psynetManagedJavascript || null),
         { timeout: STEP_TIMEOUT_MS }
       )
-      .toEqual({
+      .toMatchObject({
         dependencyLoads: 1,
         events: [
           "activate:first",
@@ -140,9 +152,22 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
       });
     expect(
       await experimentPage.evaluate(
+        () =>
+          window.__psynetManagedJavascript.pageUuids.length === 2 &&
+          window.__psynetManagedJavascript.pageUuids.at(-1) === window.pageUuid
+      )
+    ).toBe(true);
+    expect(
+      await experimentPage.evaluate(
         () => window.__psynetManagedDependencyAvailableInBody
       )
     ).toBe(true);
+    expect(
+      await experimentPage.evaluate(() => ({
+        external: window.__legacyBodyModuleLoads,
+        inline: window.__legacyInlineModuleRuns
+      }))
+    ).toEqual({ external: 2, inline: 2 });
     expect(
       warnings.filter((message) =>
         message.includes("Legacy page JavaScript is deprecated")
@@ -654,5 +679,53 @@ test("post-deactivation transition failures are handled once", async ({
     expect(
       await experimentPage.evaluate(() => window.__transitionFailureCalls)
     ).toBe(1);
+  });
+});
+
+test("post-commit activation failures clean up managed page scripts", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+    await expect(experimentPage.locator("#main-body")).toContainText("First page", {
+      timeout: STEP_TIMEOUT_MS
+    });
+
+    await experimentPage.evaluate(() => {
+      window.psynet.handleTimelineTransitionFailure = async function () {};
+      window.psynet.initPage = async function () {
+        throw new Error("Intentional post-commit activation failure");
+      };
+    });
+
+    await expect(
+      experimentPage.evaluate(() =>
+        window.psynet.nextPage("post-commit-activation-failure")
+      )
+    ).resolves.toBe(false);
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () => window.__psynetManagedJavascript?.events || []
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toEqual([
+        "activate:first",
+        "activate:second",
+        "cleanup:second",
+        "cleanup:first",
+        "activate:first",
+        "activate:second",
+        "cleanup:second",
+        "cleanup:first"
+      ]);
   });
 });

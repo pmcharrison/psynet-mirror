@@ -42,6 +42,14 @@ class Exp(psynet.experiment.Experiment):
                     window.__psynetManagedDependencyAvailableInBody =
                         window.__psynetManagedJavascript?.dependencyLoads === 1;
                 </script>
+                <script type="module">
+                    window.__legacyInlineModuleRuns =
+                        (window.__legacyInlineModuleRuns || 0) + 1;
+                </script>
+                <script
+                    type="module"
+                    src="/static/legacy-body-module.js"
+                ></script>
                 <script src="/static/redeclared-body-library.js"></script>
                 """
             ),
@@ -62,6 +70,14 @@ class Exp(psynet.experiment.Experiment):
                     window.__psynetManagedDependencyAvailableInBody =
                         window.__psynetManagedJavascript?.dependencyLoads === 1;
                 </script>
+                <script type="module">
+                    window.__legacyInlineModuleRuns =
+                        (window.__legacyInlineModuleRuns || 0) + 1;
+                </script>
+                <script
+                    type="module"
+                    src="/static/legacy-body-module-second.js"
+                ></script>
                 <script src="/static/redeclared-body-library.js"></script>
                 <p id="body-library-load-count-marker">
                     Body library load count marker

@@ -76,10 +76,10 @@ def test_partial_script_deferral_replaces_existing_type_attribute():
 
     assert deferred.count('type="text/psynet-script"') == 2
     assert 'type="module"' not in deferred
+    assert 'data-psynet-original-script-type="module"' in deferred
     assert 'data-example="1"' in deferred
     assert 'type="application/json"' in deferred
     assert 'type="text/html"' in deferred
-    assert deferred.count("type=") == 4
 
 
 def test_partial_body_extraction_uses_named_fragment_wrapper():

@@ -28,10 +28,12 @@ def test_page_normalizes_javascript_resources():
         js_dependencies=[
             "/static/library.js",
             "/static/other-library.js",
+            "/static/library.js",
         ],
         js_page_scripts=[
             "/static/page.js",
             "/static/other-page.js",
+            "/static/page.js",
         ],
     )
 
@@ -43,6 +45,15 @@ def test_page_normalizes_javascript_resources():
         "/static/page.js",
         "/static/other-page.js",
     ]
+
+
+def test_page_rejects_javascript_url_with_conflicting_lifecycles():
+    with pytest.raises(ValueError, match="both js_dependencies and js_page_scripts"):
+        Page(
+            template_fragment_str="<p>Conflicting JavaScript page</p>",
+            js_dependencies=["/static/shared.js"],
+            js_page_scripts=["/static/shared.js"],
+        )
 
 
 def test_error_mode_rejects_legacy_page_javascript():

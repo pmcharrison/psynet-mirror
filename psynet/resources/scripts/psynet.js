@@ -224,6 +224,7 @@
     var psynet = {
       media: {},
       page: {
+        ...(psynetTemplateData.page || {}),
         prompt: {},
         control: {},
       },
@@ -320,6 +321,15 @@
       Object.assign(psynetTemplateData, refreshedTemplateData);
       window.psynetTemplateData = psynetTemplateData;
       psynet.var = psynetTemplateData.jsVars || {};
+      psynet.page = {
+        ...(psynetTemplateData.page || {}),
+        prompt: {},
+        control: {},
+        response: {
+          retrieveResponse: undefined,
+          stageResponse: null,
+        },
+      };
       syncJsVars();
       psynet.media.requests = psynetTemplateData.mediaRequests || {};
     };
@@ -516,6 +526,23 @@
       script.remove();
     };
 
+    psynet.executeInlineModule = function (code) {
+      return new Promise((resolve, reject) => {
+        let script = document.createElement("script");
+        script.type = "module";
+        script.textContent = code;
+        script.onload = () => {
+          script.remove();
+          resolve();
+        };
+        script.onerror = () => {
+          script.remove();
+          reject(new Error("Could not execute inline module script."));
+        };
+        document.body.appendChild(script);
+      });
+    };
+
     psynet.loadedDocumentScripts = new Set();
 
     psynet.rememberLoadedDocumentScripts = function () {
@@ -540,6 +567,9 @@
         let script = document.createElement("script");
         script.src = normalizedSrc;
         script.async = false;
+        if (options.type) {
+          script.type = options.type;
+        }
         script.onload = () => {
           if (options.skipIfLoaded) {
             psynet.loadedDocumentScripts.add(normalizedSrc);
@@ -685,11 +715,18 @@
         if (script.type === "application/json") {
           continue;
         }
+        let originalType = script.dataset.psynetOriginalScriptType;
         // Preserve HTML parser ordering: inline scripts before a linked script
         // run first, then the linked script, then subsequent inline scripts.
         if (script.src) {
           await flushInlineBuffer();
-          await psynet.executeExternalScript(script.src, options);
+          await psynet.executeExternalScript(script.src, {
+            ...options,
+            type: originalType,
+          });
+        } else if (originalType === "module") {
+          await flushInlineBuffer();
+          await psynet.executeInlineModule(script.textContent);
         } else if (script.textContent.trim() !== "") {
           inlineBuffer.push(script.textContent);
         }
@@ -978,7 +1015,24 @@
       let fragment = psynet.prepareTimelineFragment(payload);
       await psynet.preloadTimelineFragmentAssets(fragment);
       psynet.commitTimelineFragment(fragment);
-      await psynet.activateTimelineFragmentLifecycle();
+      try {
+        await psynet.activateTimelineFragmentLifecycle();
+      } catch (error) {
+        // The new DOM is already committed. Unwind any trial, managed scripts,
+        // legacy cleanup callbacks, and media initialized before activation
+        // failed; the response boundary will present the refresh message.
+        try {
+          await psynet.deactivateTimelineFragmentLifecycle();
+        } catch (cleanupError) {
+          psynet.log.warn(
+            "Failed to clean up an incomplete page activation: " +
+              (cleanupError && cleanupError.message
+                ? cleanupError.message
+                : String(cleanupError)),
+          );
+        }
+        throw error;
+      }
     };
 
     psynet.handleTimelineTransitionFailure = async function (error) {
