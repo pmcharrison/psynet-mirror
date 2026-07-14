@@ -213,7 +213,7 @@ def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates()
             "<script>psynet.trial.onEvent('trialConstruct', function () {});</script>",
             "raw <script>",
         ),
-        ('<script src="/static/example.js"></script>', "js_links"),
+        ('<script src="/static/example.js"></script>', "js_dependencies"),
         ("<style>.example { color: red; }</style>", "Page css argument"),
         ('<link rel="stylesheet" href="/static/example.css">', "css_links"),
         (
