@@ -23,7 +23,7 @@ EXIT_CODE=0
 for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing experiment $file"
   echo "Scaffolding any missing demo boilerplate for $file"
-  if ! (cd "$file" && psynet experiment scaffold); then
+  if ! (cd "$file" && psynet scripts scaffold); then
     EXIT_CODE=1
     continue
   fi

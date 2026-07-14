@@ -9,7 +9,7 @@ demo-specific helpers. If you copy this demo into your own workspace, generate
 the additional boilerplate files with:
 
 ```bash
-psynet experiment scaffold
+psynet scripts scaffold
 ```
 
 That command recreates files such as `Dockerfile`, `config.txt`, `test.py`,
@@ -22,6 +22,6 @@ git init
 uv venv
 source .venv/bin/activate
 uv pip install -r constraints.txt
-psynet experiment scaffold
+psynet scripts scaffold
 psynet test local
 ```

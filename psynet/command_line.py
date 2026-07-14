@@ -1356,7 +1356,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         missing_paths = ", ".join(missing_boilerplate)
         raise click.ClickException(
             "Experiment directory is missing required PsyNet boilerplate files "
-            f"({missing_paths}). Run 'psynet experiment scaffold' to generate them "
+            f"({missing_paths}). Run 'psynet scripts scaffold' to generate them "
             f"before running 'psynet {mode} ...'."
         )
 
@@ -1381,7 +1381,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     except FileNotFoundError:
         raise click.ClickException(
             f".gitignore is missing from your experiment directory ({os.getcwd()}). "
-            "Run 'psynet experiment scaffold' to generate the standard boilerplate files."
+            "Run 'psynet scripts scaffold' to generate the standard boilerplate files."
         )
 
     # We need an active git repository for Dallinger to recognize .gitignore properly
@@ -1940,14 +1940,14 @@ def check_dockerfile():
 
     update_scripts_recommendation = (
         "To fix this issue, run:\n"
-        "  psynet experiment scaffold\n\n"
+        "  psynet scripts scaffold\n\n"
         "This creates any missing standard boilerplate files without overwriting existing ones.\n\n"
         "If you instead want to overwrite existing boilerplate with the latest templates, run:\n"
-        "  psynet experiment update\n\n"
+        "  psynet scripts update\n\n"
         "Note: This command will also update other experiment files including .gitignore, "
         "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
         "IMPORTANT: Before running this command, commit any pending changes to git so you can "
-        "review the automatic changes that psynet experiment update makes."
+        "review the automatic changes that psynet scripts update makes."
     )
 
     dockerfile_path = Path("Dockerfile")
@@ -2860,8 +2860,8 @@ def generate_config(ctx):
             file.write(f"{key} = {value}\n")
 
 
-@psynet.group("experiment")
-def experiment_commands():
+@psynet.group("scripts")
+def scripts():
     """
     Manage experiment boilerplate scripts and templates.
     """
@@ -2892,9 +2892,9 @@ def _generate_constraints_if_missing(ctx):
         )
 
 
-@experiment_commands.command("scaffold")
+@scripts.command("scaffold")
 @click.pass_context
-def experiment_scaffold(ctx):
+def scripts_scaffold(ctx):
     """
     Create any missing PsyNet boilerplate files for the experiment directory.
 
@@ -2906,23 +2906,23 @@ def experiment_scaffold(ctx):
     _generate_constraints_if_missing(ctx)
 
 
-@experiment_commands.command("update")
+@scripts.command("update")
 @require_exp_directory
-def experiment_update():
+def scripts_update():
     """
     Overwrite experiment boilerplate with the latest PsyNet templates.
     """
     update_scripts_()
 
 
-@experiment_commands.command("prune")
+@scripts.command("prune")
 @click.option(
     "--force",
     is_flag=True,
     help="Remove modified scaffold-managed files as well.",
 )
 @require_exp_directory
-def experiment_prune(force):
+def scripts_prune(force):
     """
     Remove scaffold-managed boilerplate files from the experiment directory.
 
@@ -2936,10 +2936,10 @@ def experiment_prune(force):
 @require_exp_directory
 def update_scripts():
     """
-    Deprecated alias for ``psynet experiment update``.
+    Deprecated alias for ``psynet scripts update``.
     """
     click.echo(
-        "psynet update-scripts is deprecated; use 'psynet experiment update' instead.",
+        "psynet update-scripts is deprecated; use 'psynet scripts update' instead.",
         err=True,
     )
     update_scripts_()
@@ -3244,7 +3244,7 @@ def test__local(
     if not Path("test.py").exists():
         raise click.UsageError(
             "Experiment directory is missing test.py. "
-            "Run 'psynet experiment scaffold' to generate the standard boilerplate files."
+            "Run 'psynet scripts scaffold' to generate the standard boilerplate files."
         )
 
     exit_code = pytest.main(["test.py"])
