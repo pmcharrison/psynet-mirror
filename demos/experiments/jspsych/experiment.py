@@ -22,7 +22,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("The jsPsych task begins on the next page.", time_estimate=1),
         JsPsychPage(
             "reaction_time_task",
-            timeline="templates/reaction-time-task.html",
+            timeline="/static/reaction-time-task.js",
             time_estimate=25,
             js_vars={
                 "trial_durations": [250, 500, 750, 1000, 1250, 1500, 1750, 2000],

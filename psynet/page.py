@@ -1,8 +1,10 @@
 import warnings
 from importlib import resources
 from math import ceil
+from pathlib import Path
 from pprint import pformat
 from typing import List, Optional, Union
+from urllib.parse import urlparse
 
 from dominate import tags
 from dominate.dom_tag import dom_tag
@@ -431,6 +433,32 @@ class VolumeCalibration(Module):
         )
 
 
+def _validate_jspsych_timeline_module(timeline):
+    """Reject timeline values using the removed HTML/Jinja API."""
+    if not isinstance(timeline, str):
+        raise TypeError("JsPsychPage timeline must be a JavaScript module URL.")
+
+    timeline_path = urlparse(timeline).path.lower()
+    migration_message = (
+        "Pass a JavaScript module URL exporting buildTimeline(context). "
+        "Run /migrate-page-javascript for a step-by-step migration."
+    )
+    if timeline_path.endswith((".html", ".htm")):
+        raise ValueError(
+            "JsPsychPage no longer accepts HTML timeline templates. "
+            + migration_message
+        )
+
+    local_path = Path(timeline)
+    if local_path.is_file():
+        source = local_path.read_text(encoding="utf-8")
+        if "jspsych-page.html" in source or "{% block timeline" in source:
+            raise ValueError(
+                "JsPsychPage detected an old Jinja timeline template. "
+                + migration_message
+            )
+
+
 class JsPsychPage(Page):
     """
     A page that embeds a jsPsych experiment. See ``demos/jspsych`` for example usage.
@@ -439,8 +467,9 @@ class JsPsychPage(Page):
         Label for the page.
 
     timeline :
-        A path to an HTML file that defines the jsPsych experiment's timeline.
-        The timeline should be saved as an object called ``timeline``.
+        URL of a JavaScript module exporting ``buildTimeline(context)``.
+        This function receives ``jsPsych``, ``vars``, ``page``, ``psynet``, and
+        ``root``, and returns the jsPsych timeline array.
         See ``demos/jspsych`` for an example.
 
     js_dependencies :
@@ -468,14 +497,21 @@ class JsPsychPage(Page):
         js_vars: Optional[dict] = None,
         **kwargs,
     ):
+        _validate_jspsych_timeline_module(timeline)
         if isinstance(js_dependencies, str):
             js_dependencies = [js_dependencies]
         if isinstance(css_links, str):
             css_links = [css_links]
+        js_vars = {} if js_vars is None else dict(js_vars)
+        if "jspsych_timeline_module" in js_vars:
+            raise ValueError(
+                "jspsych_timeline_module is reserved for JsPsychPage internals."
+            )
+        js_vars["jspsych_timeline_module"] = timeline
 
         super().__init__(
             time_estimate=time_estimate,
-            template_path=timeline,
+            template_str=get_template("jspsych-page.html"),
             label=label,
             js_vars=js_vars,
             js_dependencies=js_dependencies,

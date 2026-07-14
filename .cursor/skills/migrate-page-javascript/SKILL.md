@@ -113,7 +113,37 @@ export async function activate({vars}) {
 }
 ```
 
-## 5. Choose cleanup deliberately
+## 5. Migrate ``JsPsychPage`` timeline templates
+
+``JsPsychPage`` now accepts a JavaScript module URL rather than an HTML/Jinja
+timeline template:
+
+```python
+JsPsychPage(
+    ...,
+    timeline="/static/my-jspsych-timeline.js",
+)
+```
+
+The module must export ``buildTimeline(context)`` and return the timeline array:
+
+```javascript
+export function buildTimeline({jsPsych, vars}) {
+    return [
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: vars["welcome_message"],
+        },
+    ];
+}
+```
+
+Move code from the old template's ``{% block timeline %}`` into this function,
+replace ``psynet.var`` reads with ``vars``, and remove the old HTML template.
+PsyNet detects HTML paths and old Jinja timeline files and reports this
+migration directly.
+
+## 6. Choose cleanup deliberately
 
 Return cleanup only when ``activate()`` creates resources outside PsyNet's
 normal page teardown, such as:
@@ -145,7 +175,7 @@ export function activate({root}) {
 
 Cleanup functions run in reverse activation order and may be asynchronous.
 
-## 6. Validate the migration
+## 7. Validate the migration
 
 Run focused tests for the experiment, then verify both transition modes when the
 experiment supports them:
