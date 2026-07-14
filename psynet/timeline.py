@@ -1179,9 +1179,7 @@ class Page(Elt):
         self.js_page_scripts = _normalize_javascript_urls(
             js_page_scripts, "js_page_scripts"
         )
-        overlapping_javascript = set(self.js_dependencies) & set(
-            self.js_page_scripts
-        )
+        overlapping_javascript = set(self.js_dependencies) & set(self.js_page_scripts)
         if overlapping_javascript:
             raise ValueError(
                 "The same URL cannot be used in both js_dependencies and "
