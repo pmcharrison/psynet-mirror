@@ -39,7 +39,6 @@ from .command_line import (
     kill_psynet_chrome_processes,
     working_directory,
 )
-from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
@@ -434,7 +433,7 @@ def debug_experiment(
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
     print(f"Launching experiment in directory '{in_experiment_directory}'...")
-    init_db(drop_all=True)
+    init_db_with_retries()
     time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
@@ -498,6 +497,56 @@ def debug_server_process(debug_experiment):
     return debug_experiment
 
 
+def terminate_other_postgres_connections():
+    """
+    Terminate all other backends connected to the test database.
+
+    Server/worker processes from a previous test in the same session are killed
+    asynchronously at teardown, so their database connections can still hold
+    row locks when the next test's ``drop_all`` runs, causing Postgres to
+    report a deadlock. Since the tests are about to drop all tables anyway,
+    it is safe to terminate those connections outright.
+
+    Closes local sessions and disposes the engine's connection pool first, so
+    that this process does not have its own pooled connections terminated out
+    from under it.
+    """
+    from sqlalchemy import text
+    from sqlalchemy.orm.session import close_all_sessions
+
+    close_all_sessions()
+    db.engine.dispose()
+
+    with db.engine.connect() as con:
+        con.execute(
+            text(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                "WHERE datname = current_database() AND pid <> pg_backend_pid()"
+            )
+        )
+
+
+def init_db_with_retries(max_attempts=3, wait_sec=2.0):
+    """Reset the database for a test, retrying if a deadlock is detected."""
+    import dallinger.db
+
+    for attempt in range(1, max_attempts + 1):
+        terminate_other_postgres_connections()
+        try:
+            return dallinger.db.init_db(drop_all=True)
+        except sqlalchemy.exc.OperationalError as err:
+            if "deadlock detected" not in str(err) or attempt == max_attempts:
+                raise
+            logger.warning(
+                "Deadlock detected while resetting the database "
+                "(attempt %d/%d); retrying...",
+                attempt,
+                max_attempts,
+            )
+            dallinger.db.session.rollback()
+            time.sleep(wait_sec)
+
+
 @pytest.fixture(scope="class")
 def db_session(in_experiment_directory):
     import dallinger.db
@@ -505,7 +554,7 @@ def db_session(in_experiment_directory):
     # The drop_all call can hang without this; see:
     # https://stackoverflow.com/questions/13882407/sqlalchemy-blocked-on-dropping-tables
     dallinger.db.session.close()
-    session = dallinger.db.init_db(drop_all=True)
+    session = init_db_with_retries()
     yield session
     session.rollback()
     session.close()
