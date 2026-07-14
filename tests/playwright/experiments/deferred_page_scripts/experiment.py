@@ -1,8 +1,18 @@
 from markupsafe import Markup
 
 import psynet.experiment
+from psynet.javascript import JSDependency, JSPageScript
 from psynet.page import InfoPage
 from psynet.timeline import Page, Timeline
+
+
+MANAGED_JAVASCRIPT = {
+    "js_dependencies": [JSDependency("/static/page-lifecycle-dependency.js")],
+    "js_page_scripts": [
+        JSPageScript("/static/page-lifecycle-first.js"),
+        JSPageScript("/static/page-lifecycle-second.js"),
+    ],
+}
 
 
 class CustomStylesheetPage(Page):
@@ -28,6 +38,7 @@ class Exp(psynet.experiment.Experiment):
             Markup(
                 """
                 <p>First page</p>
+                <p id="managed-javascript-marker">Managed JavaScript has not activated</p>
                 <script>
                     window.__psynetPageScriptOrder = ["body"];
                 </script>
@@ -39,11 +50,13 @@ class Exp(psynet.experiment.Experiment):
             scripts=[
                 'window.__psynetPageScriptOrder.push("deferred");',
             ],
+            **MANAGED_JAVASCRIPT,
         ),
         InfoPage(
             Markup(
                 """
                 <p>Deferred page script lifecycle page</p>
+                <p id="managed-javascript-marker">Managed JavaScript has not activated</p>
                 <script>
                     window.__psynetPageScriptOrder = ["body"];
                 </script>
@@ -74,6 +87,7 @@ class Exp(psynet.experiment.Experiment):
                 'window.__psynetPageScriptOrder.push("deferred");',
             ],
             css_links=["/static/deferred-page-scripts.css"],
+            **MANAGED_JAVASCRIPT,
         ),
         CustomStylesheetPage(),
         InfoPage(

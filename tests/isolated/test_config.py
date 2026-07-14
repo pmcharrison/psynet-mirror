@@ -48,6 +48,27 @@ def test_legacy_js_var_globals_rejects_invalid_mode(in_experiment_directory):
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
+def test_legacy_page_javascript_default(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    assert config.get("legacy_page_javascript") == "warn"
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_legacy_page_javascript_rejects_invalid_mode(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    with pytest.raises(ValueError, match="legacy_page_javascript"):
+        config.set("legacy_page_javascript", "invalid")
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_secrets(in_experiment_directory):
     get_experiment()
     config = get_config()

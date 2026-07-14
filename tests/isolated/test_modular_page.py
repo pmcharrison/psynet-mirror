@@ -3,6 +3,7 @@ from flask import Flask
 from jinja2 import DictLoader
 from markupsafe import Markup
 
+from psynet.javascript import JSDependency, JSPageScript
 from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
     Control,
     ModularPage,
@@ -175,6 +176,43 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
     assert page.js_vars["prompt_config"] == {"colour": "blue"}
     assert page.js_vars["control_config"] == {"maximum": 10}
     assert page.js_vars["page_config"] == {"enabled": True}
+
+
+def test_components_contribute_managed_javascript_lifecycle_resources():
+    class ManagedPrompt(Prompt):
+        def get_js_dependencies(self):
+            return [JSDependency("/static/prompt-library.js")]
+
+        def get_js_page_scripts(self):
+            return [JSPageScript("/static/prompt-page.js")]
+
+    class ManagedControl(Control):
+        macro = "control"
+
+        def get_js_dependencies(self):
+            return ["/static/control-library.js"]
+
+        def get_js_page_scripts(self):
+            return ["/static/control-page.js"]
+
+    page = ModularPage(
+        "test",
+        ManagedPrompt("Hi!"),
+        ManagedControl(),
+        js_dependencies=["/static/page-library.js"],
+        js_page_scripts=["/static/page.js"],
+    )
+
+    assert page.js_dependencies == [
+        JSDependency("/static/prompt-library.js"),
+        JSDependency("/static/control-library.js"),
+        JSDependency("/static/page-library.js"),
+    ]
+    assert page.js_page_scripts == [
+        JSPageScript("/static/prompt-page.js"),
+        JSPageScript("/static/control-page.js"),
+        JSPageScript("/static/page.js"),
+    ]
 
 
 def test_duplicate_component_js_vars_raise():

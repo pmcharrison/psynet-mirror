@@ -59,6 +59,12 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
   );
 
   await withExperiment(page, context, absDir, async (experimentPage) => {
+    const warnings = [];
+    experimentPage.on("console", (message) => {
+      if (message.type() === "warning") {
+        warnings.push(message.text());
+      }
+    });
     await completeInitialGateway(experimentPage);
     await assertInplaceTimelinePathActive(experimentPage, 20000);
 
@@ -72,6 +78,31 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         { timeout: STEP_TIMEOUT_MS }
       )
       .toEqual(["body", "js-link", "deferred"]);
+    await expect(
+      experimentPage.locator("#managed-javascript-marker")
+    ).toHaveAttribute("data-first-active", "true");
+    await expect(
+      experimentPage.locator("#managed-javascript-marker")
+    ).toHaveAttribute("data-second-active", "true");
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() => window.__psynetManagedJavascript || null),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toEqual({
+        dependencyLoads: 1,
+        events: ["activate:first", "activate:second"]
+      });
+    await expect
+      .poll(
+        () =>
+          warnings.filter((message) =>
+            message.includes("Legacy page JavaScript is deprecated")
+          ).length,
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(1);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
@@ -82,6 +113,31 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         { timeout: STEP_TIMEOUT_MS }
       )
       .toEqual(["body", "js-link", "deferred"]);
+    await expect(
+      experimentPage.locator("#managed-javascript-marker")
+    ).toContainText("Managed JavaScript activated");
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() => window.__psynetManagedJavascript || null),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toEqual({
+        dependencyLoads: 1,
+        events: [
+          "activate:first",
+          "activate:second",
+          "cleanup:second",
+          "cleanup:first",
+          "activate:first",
+          "activate:second"
+        ]
+      });
+    expect(
+      warnings.filter((message) =>
+        message.includes("Legacy page JavaScript is deprecated")
+      )
+    ).toHaveLength(1);
     await expect(
       experimentPage.locator("#body-library-load-count-marker")
     ).toHaveAttribute("data-load-count", "1", { timeout: STEP_TIMEOUT_MS });
