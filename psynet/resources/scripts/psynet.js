@@ -526,17 +526,27 @@
       script.remove();
     };
 
+    psynet.inlineModuleCounter = 0;
+
     psynet.executeInlineModule = function (code) {
       return new Promise((resolve, reject) => {
+        psynet.inlineModuleCounter += 1;
+        let callbackName =
+          "__psynetInlineModuleComplete" + psynet.inlineModuleCounter;
         let script = document.createElement("script");
         script.type = "module";
-        script.textContent = code;
-        script.onload = () => {
+        let cleanup = function () {
           script.remove();
+          delete window[callbackName];
+        };
+        window[callbackName] = function () {
+          cleanup();
           resolve();
         };
+        script.textContent =
+          code + `\nwindow[${JSON.stringify(callbackName)}]();`;
         script.onerror = () => {
-          script.remove();
+          cleanup();
           reject(new Error("Could not execute inline module script."));
         };
         document.body.appendChild(script);
