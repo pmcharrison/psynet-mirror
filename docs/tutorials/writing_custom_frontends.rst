@@ -382,9 +382,9 @@ PsyNet distinguishes loading code from activating page behavior:
 * ``js_dependencies`` contains URLs of classic JavaScript files loaded once per
   browser document. Components return the same URLs from
   ``get_js_dependencies()``.
-* ``js_page_scripts`` contains URLs of JavaScript modules whose exported
-  ``activate(context)`` function runs for each hosting page. Components return
-  the same URLs from ``get_js_page_scripts()``.
+* ``js_page_scripts`` contains URLs of JavaScript modules whose named export
+  ``activate(context)`` runs for each hosting page. Components return the same
+  URLs from ``get_js_page_scripts()``.
 
 The activation context contains ``root`` (the page's ``#main-body`` element),
 ``trial``, ``vars`` (the current ``psynet.var``), ``page``, and ``psynet``.

@@ -179,9 +179,9 @@ modes, new code should use ``psynet.var`` directly:
     }
 
 The built-in ``ChatRoom`` uses the same separation between managed resources
-and configuration — see ``get_css`` and ``get_js_vars`` in
-``psynet/chatroom.py``. PsyNet activates its widget script for each page and
-calls the returned cleanup function before leaving. See
+and configuration — see ``get_css``, ``get_js_vars``, and
+``get_js_page_scripts`` in ``psynet/chatroom.py``. PsyNet activates its widget
+script for each page and calls the returned cleanup function before leaving. See
 ``psynet/resources/scripts/chatroom-widget.js`` for the WebSocket protocol,
 message rendering, occupancy updates, and cleanup pattern.
 
