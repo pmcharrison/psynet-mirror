@@ -11,9 +11,6 @@ The recommended way to do this is by creating custom modular page components. As
 
 The built-in ‘``modular_page``’ demo demonstrates how one can write custom prompts and controls in PsyNet.
 
-.. note::
-    The below documentation refers to a slightly updated form of this demo that (at the time of writing) has not yet been merged to PsyNet’s master branch.
-
 In-place timeline transitions
 -----------------------------
 

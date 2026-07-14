@@ -1689,13 +1689,15 @@ class Page(Elt):
                     problems.append(
                         f"{source_description} includes a page JavaScript link in a "
                         "<script src=...> tag. Supply libraries via "
-                        "js_dependencies or page behavior via js_page_scripts."
+                        "js_dependencies or page behavior via js_page_scripts. "
+                        "Run /migrate-page-javascript for a step-by-step migration."
                     )
                 else:
                     problems.append(
                         f"{source_description} includes a raw <script> block. "
                         "Move page behavior to a file supplied through "
-                        "js_page_scripts."
+                        "js_page_scripts. Run /migrate-page-javascript for a "
+                        "step-by-step migration."
                     )
 
         if soup.find_all("style"):
@@ -1722,7 +1724,8 @@ class Page(Elt):
                 f"{source_description} registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
                 "each page, so page setup should use the activate(context) "
-                "function of a js_page_scripts file."
+                "function of a js_page_scripts file. Run "
+                "/migrate-page-javascript for a step-by-step migration."
             )
 
         has_window_event_listener = re.search(

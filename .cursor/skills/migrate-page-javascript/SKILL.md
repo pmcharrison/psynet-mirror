@@ -14,14 +14,18 @@ Search the experiment for:
 
 - ``js_links=``
 - ``scripts=``
-- JavaScript ``<script>`` tags in custom page, prompt, or control markup
+- JavaScript ``<script>`` tags in author-owned page templates or component
+  ``external_template`` files
 
 Classify each JavaScript file by lifecycle before changing it.
+Remove old arguments entirely, including empty ``js_links=[]`` or ``scripts=[]``
+arguments; passing an empty list still selects a removed API.
 
 ## 2. Migrate a load-once library
 
 Use ``js_dependencies`` for libraries whose top-level code should run once per
-browser document:
+browser document. Dependencies are loaded as classic ``<script src>`` files;
+ES modules with page behavior belong in ``js_page_scripts`` instead.
 
 ```python
 Page(
@@ -135,6 +139,11 @@ psynet test local
 npx playwright test <relevant-spec>
 inplace_timeline_transitions=false npx playwright test <relevant-spec>
 ```
+
+For ordinary experiment testing, set
+``inplace_timeline_transitions = false`` temporarily in ``config.txt``. The
+environment-variable form above is intended for PsyNet's repository Playwright
+harness, which passes environment configuration to the test experiment.
 
 Check that:
 

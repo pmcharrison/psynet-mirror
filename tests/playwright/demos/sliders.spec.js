@@ -1,0 +1,35 @@
+const path = require("path");
+const { test, expect } = require("../fixtures");
+
+const {
+  assertExpectedTimelinePathActive,
+  assertNoBackendError,
+  completeInitialGateway,
+  withExperiment
+} = require("../psynetHarness");
+
+const STEP_TIMEOUT_MS = 120000;
+
+for (const [name, experimentDir, marker] of [
+  ["slider", "demos/features/slider", "#slider-output-value"],
+  ["rhythm slider", "demos/features/rhythm_slider", "#slider-audio"]
+]) {
+  test(`${name} page script activates`, async ({ page, context }) => {
+    await withExperiment(
+      page,
+      context,
+      path.resolve(experimentDir),
+      async (experimentPage) => {
+        await completeInitialGateway(experimentPage);
+        await assertExpectedTimelinePathActive(experimentPage, 20000);
+        await expect(experimentPage.locator("#slider")).toBeVisible({
+          timeout: STEP_TIMEOUT_MS
+        });
+        await expect(experimentPage.locator(marker)).not.toHaveText("NA", {
+          timeout: STEP_TIMEOUT_MS
+        });
+        await assertNoBackendError(experimentPage);
+      }
+    );
+  });
+}
