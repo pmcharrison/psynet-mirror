@@ -7,6 +7,7 @@ from psynet.javascript import JSDependency, JSPageScript
 from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
     Control,
     ModularPage,
+    MusicNotationPrompt,
     Prompt,
     PushButtonControl,
     RatingScale,
@@ -265,7 +266,10 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
         "show_participants": False,
         "show_history": True,
     }
-    assert "/static/scripts/chatroom-widget.js" in page.js_links
+    assert page.js_links == []
+    assert page.js_page_scripts == [
+        JSPageScript("/static/scripts/chatroom-widget.js")
+    ]
     assert not any("__psynetChatroomConfig" in str(s) for s in page.scripts)
     # The macro itself must be markup-only (no inline <script>/<style>) so it
     # stays contract-compliant.
@@ -278,6 +282,21 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
     )
     assert "<script" not in macro
     assert "<style" not in macro
+
+
+def test_music_notation_prompt_uses_managed_javascript():
+    page = ModularPage(
+        "test",
+        MusicNotationPrompt("C D E F"),
+    )
+
+    assert page.js_dependencies == [
+        JSDependency("/static/scripts/abc-js/abcjs-basic.js")
+    ]
+    assert page.js_page_scripts == [
+        JSPageScript("/static/scripts/music-notation-prompt.js")
+    ]
+    assert page.js_vars["music_notation_prompt"] == {"content": "C D E F"}
 
 
 def test_modular_page_text():

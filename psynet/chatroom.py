@@ -3,6 +3,7 @@ import json
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 
 from .data import SQLBase, SQLMixin, register_table
+from .javascript import JSPageScript
 from .timeline import NullElt, WebSocketElt
 
 
@@ -233,5 +234,13 @@ class ChatRoom:
         }
 
     def get_js_links(self):
-        """External JavaScript files contributed to the hosting page."""
-        return ["/static/scripts/chatroom-widget.js"]
+        """Deprecated JavaScript links contributed to the hosting page."""
+        return []
+
+    def get_js_dependencies(self):
+        """JavaScript dependencies loaded once per browser document."""
+        return []
+
+    def get_js_page_scripts(self):
+        """Lifecycle-managed JavaScript activated for the hosting page."""
+        return [JSPageScript("/static/scripts/chatroom-widget.js")]

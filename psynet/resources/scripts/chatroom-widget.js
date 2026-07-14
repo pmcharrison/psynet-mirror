@@ -1,11 +1,10 @@
 // Built-in modular-page chatroom widget.
 //
-// This script is contributed to the page by the ChatRoom component via its
-// get_js_links() hook (rather than being inlined in the macro template), so it
-// follows the same SPA contract PsyNet imposes on author-provided components.
-// Per-instance configuration is supplied through ChatRoom.get_js_vars().
-(function () {
-    var CONFIG       = psynet.var["chatroom_config"] || {};
+// This script is activated for each hosting page through ChatRoom's
+// get_js_page_scripts() hook. Per-page state stays inside activate(), and the
+// returned cleanup function owns all listeners and the WebSocket it creates.
+export async function activate({root, vars}) {
+    var CONFIG       = vars["chatroom_config"] || {};
     var ROOM_ID      = CONFIG.room_id;
     var GLOBAL_CH    = CONFIG.channel;
     var SHOW_PARTS   = CONFIG.show_participants;
@@ -59,7 +58,7 @@
         } else if (msg.type === "history") {
             if (SHOW_HISTORY && String(msg.target_participant_id) === MY_ID) {
                 // Clear before re-rendering to avoid duplicates on reconnect.
-                document.getElementById("chatroom-messages").innerHTML = "";
+                root.querySelector("#chatroom-messages").innerHTML = "";
                 (msg.messages || []).forEach(renderMessage);
             }
         }
@@ -82,13 +81,14 @@
         } catch (e) {}
     }
 
-    psynet.addPageCleanupCallback(leaveChat);
-    psynet.addPageEventListener(window, "beforeunload", function () {
+    function handleBeforeUnload() {
         leaveChat();
-    });
+    }
 
-    document.getElementById("chatroom-send-btn").onclick = function () {
-        var input = document.getElementById("chatroom-chat-input");
+    var sendButton = root.querySelector("#chatroom-send-btn");
+    var input = root.querySelector("#chatroom-chat-input");
+
+    function sendMessage() {
         var text  = input.value.trim();
         if (!text) return;
         chatSocket.send(GLOBAL_CH + ":" + JSON.stringify({
@@ -99,21 +99,25 @@
         }));
         input.value = "";
         input.focus();
-    };
+    }
 
-    psynet.addPageEventListener(document.getElementById("chatroom-chat-input"), "keypress", function (e) {
+    function handleKeypress(e) {
         if (e.key === "Enter") {
-            document.getElementById("chatroom-send-btn").click();
+            sendButton.click();
             e.preventDefault();
         }
-    });
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    sendButton.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", handleKeypress);
 
     function senderLabel(senderId) {
         return String(senderId) === MY_ID ? "You" : "Participant " + senderId;
     }
 
     function renderMessage(msg) {
-        var feed    = document.getElementById("chatroom-messages");
+        var feed    = root.querySelector("#chatroom-messages");
         var p       = document.createElement("p");
         var label   = document.createElement("strong");
         label.textContent = senderLabel(msg.sender) + ": ";
@@ -125,7 +129,7 @@
     }
 
     function rebuildParticipantList(ids) {
-        var list = document.getElementById("chatroom-participants");
+        var list = root.querySelector("#chatroom-participants");
         list.innerHTML = "";
         ids.forEach(function (id) {
             var li = document.createElement("li");
@@ -133,4 +137,11 @@
             list.appendChild(li);
         });
     }
-})();
+
+    return async function cleanup() {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        sendButton.removeEventListener("click", sendMessage);
+        input.removeEventListener("keypress", handleKeypress);
+        leaveChat();
+    };
+}

@@ -2586,6 +2586,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
+                    / "resources/scripts/music-notation-prompt.js",
+                    "/static/scripts/music-notation-prompt.js",
+                ),
+                (
+                    resources.files("psynet")
                     / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
                 ),
