@@ -61,21 +61,29 @@ A full deployment test covers two experiments in `tests/deployment`:
 
 - `tests/deployment/payment_flows_prolific`: the basic Prolific recruiter test,
   exercising payment flows (base payment, screen-out compensation, and
-  performance rewards).
+  performance rewards). Its default `experiment.py` uses HotAir; the paid
+  variant lives in `experiment.py.prolific` (with `config.txt.prolific`).
 - `tests/deployment/audio_gibbs`: an audio Gibbs sampler experiment that
   additionally exercises audio synthesis (parselmouth), asset
   generation/storage, async worker processes, and a headphone prescreen.
-  Besides the default Prolific configuration, it carries a **Lucid variant**
-  (`experiment.py.lucid` + `config.txt.lucid`), used for a third,
-  Lucid-recruiter deployment (see "Deploy The Lucid Variant" below).
+  Its default `experiment.py` also uses HotAir. Prolific and Lucid variants
+  (`experiment.py.prolific` and `experiment.py.lucid`, with matching config
+  files) are deployed from temporary worktrees.
+
+Both experiments default to HotAir so running a directory directly cannot
+accidentally start paid recruitment; every paid deployment swaps in an
+explicit recruiter variant first. All paid variants show the approved
+cultural-foundation consent (vendored `consents_cococo` package in each
+experiment directory): the Prolific variants use the `MAIN` consent and the
+Lucid variant uses the `CINT` consent.
 
 By default a full deployment test produces **three apps**: the two Prolific
 experiments plus the Lucid variant of `audio_gibbs`, all deployed **in
-parallel** to save wall-clock time (the Lucid variant deploys from a
-temporary git worktree; see "Deploy The Lucid Variant"). Deploy a subset
-only when the user explicitly asks for it. Prepare both experiment
-directories on a **single fresh deployment branch created for this
-deployment** (the preparation steps below are shared), then run the three
+parallel** to save wall-clock time (the paid `audio_gibbs` variants deploy
+from temporary git worktrees; see "Prepare The Recruiter Variants").
+Deploy a subset only when the user explicitly asks for it.
+Prepare both experiment directories on a **single fresh deployment branch
+created for this deployment** (the preparation steps below are shared), then run the three
 `psynet deploy ssh` commands concurrently. Do not reuse or rebase a
 long-lived deployment branch; each deployment gets its own branch so its
 exact code is preserved for later auditing.
@@ -166,9 +174,13 @@ git checkout <previous-deployment-branch> -- tests/deployment/payment_flows_prol
    Verify the imported experiment configuration includes the standing
    deployment settings:
 
-   - `payment_flows_prolific/experiment.py`: `prolific_is_custom_screening=False`,
-     `auto_recruit=True`, `initial_recruitment_size=12`.
-   - `audio_gibbs/experiment.py`: `auto_recruit=True`,
+   - `payment_flows_prolific/experiment.py`: recruiter `hotair` (safe local
+     default).
+   - `payment_flows_prolific/experiment.py.prolific`:
+     `prolific_is_custom_screening=False`, `auto_recruit=True`,
+     `initial_recruitment_size=12`.
+   - `audio_gibbs/experiment.py`: recruiter `hotair` (safe local default).
+   - `audio_gibbs/experiment.py.prolific`: `auto_recruit=True`,
      `initial_recruitment_size=3`, `target_n_participants=5`.
    - `audio_gibbs/experiment.py.lucid`: `initial_recruitment_size=10` equal to
      `target_n_participants=10`, so the Lucid survey is created with its full
@@ -266,17 +278,19 @@ git add tests/deployment/*/constraints.txt && git commit -m "Regenerate constrai
 ```
 
 10. Ensure neither experiment enables `prolific_is_custom_screening`
-   (`tests/deployment/payment_flows_prolific/experiment.py` sets it to `False`
+   (`payment_flows_prolific/experiment.py.prolific` sets it to `False`
    explicitly;
    `audio_gibbs` relies on the `False` default). Prolific no longer supports
    the older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
 
 Deploy all three apps **in parallel**, each from its own directory with its
-own app name: the two Prolific experiments from the main checkout, and the
-Lucid variant from a temporary worktree (prepared as described in "Deploy
-The Lucid Variant" below). Start each deploy as a background process (or in
-separate terminals) and monitor all launch outputs:
+own app name: `payment_flows_prolific` from the main checkout (after its
+Prolific-variant swap is committed on the deployment branch), and the two
+paid `audio_gibbs` variants from temporary worktrees (both swaps prepared
+as described in "Prepare The Recruiter Variants" below). Start each deploy
+as a background process (or in separate terminals) and monitor all launch
+outputs:
 
 ```bash
 source <psynet-root>/<venv>/bin/activate
@@ -286,7 +300,7 @@ source <psynet-root>/<venv>/bin/activate
   --dns-host <dns-host> \
   --app <payment-flows-prolific-app-name>) &
 
-(cd <psynet-root>/tests/deployment/audio_gibbs && psynet deploy ssh \
+(cd <prolific-worktree>/tests/deployment/audio_gibbs && psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
   --app <audio-gibbs-prolific-app-name>) &
@@ -318,44 +332,64 @@ release-tag ones. (Older deployments used the app names
 recruiter suffix became part of the convention.) After deployment, inspect
 each launch output for the experiment URL, dashboard URL, and Dozzle URL.
 
-## Deploy The Lucid Variant
+## Prepare The Recruiter Variants
 
-The full deployment test also includes a third app: the `audio_gibbs`
-experiment deployed with the **Lucid recruiter**, exercising the Lucid
-recruitment path (`LucidConsent`, `lucid_recruitment_config.json`).
+Both experiments' default `experiment.py` files use HotAir so running a
+directory directly cannot accidentally start paid recruitment. Before
+starting the three parallel deploy commands above, swap in the paid
+variants.
 
-Because the Prolific `audio_gibbs` app deploys from the same directory at
-the same time, prepare the Lucid variant in a **temporary git worktree** on
-its own branch. That keeps the main checkout on the Prolific configuration,
-lets all three deploys run in parallel, and still records exactly what was
-deployed.
+1. `payment_flows_prolific` has a single paid variant, so swap it directly
+   on the deployment branch and commit (this is the state the main-checkout
+   deploy uses):
 
-1. Create the worktree on a `-lucid` branch off the deployment branch, swap
-   in the Lucid variant files there, and commit and push the swap:
+```bash
+cd <psynet-root>/tests/deployment/payment_flows_prolific
+cp experiment.py.prolific experiment.py
+cp config.txt.prolific config.txt
+git add experiment.py config.txt
+git commit -m "Switch payment_flows_prolific to Prolific variant for deployment"
+git push
+```
+
+2. `audio_gibbs` has two paid variants sharing one directory, so prepare
+   them in separate temporary worktrees on branches off the deployment
+   branch; each worktree branch records exactly what was deployed:
 
 ```bash
 cd <psynet-root>
-git worktree add /tmp/psynet-lucid-deploy deployment-tests/<base-tag> \
-  -b deployment-tests/<base-tag>-lucid
-cd /tmp/psynet-lucid-deploy/tests/deployment/audio_gibbs
+git worktree add -b deployment-tests/<base-tag>-audio-gibbs-prolific \
+  /tmp/psynet-audio-gibbs-prolific-deploy deployment-tests/<base-tag>
+cd /tmp/psynet-audio-gibbs-prolific-deploy/tests/deployment/audio_gibbs
+cp experiment.py.prolific experiment.py
+cp config.txt.prolific config.txt
+git add experiment.py config.txt
+git commit -m "Switch audio_gibbs to Prolific variant for deployment"
+git push -u origin deployment-tests/<base-tag>-audio-gibbs-prolific
+
+cd <psynet-root>
+git worktree add -b deployment-tests/<base-tag>-audio-gibbs-lucid \
+  /tmp/psynet-audio-gibbs-lucid-deploy deployment-tests/<base-tag>
+cd /tmp/psynet-audio-gibbs-lucid-deploy/tests/deployment/audio_gibbs
 cp experiment.py.lucid experiment.py
 cp config.txt.lucid config.txt
 git add experiment.py config.txt
 git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
-git push -u origin deployment-tests/<base-tag>-lucid
+git push -u origin deployment-tests/<base-tag>-audio-gibbs-lucid
 ```
 
-2. Deploy from the worktree (this is the third parallel `psynet deploy ssh`
-   command shown above) with the app name
+3. Deploy from the worktrees (these are the second and third parallel
+   `psynet deploy ssh` commands shown above). Name the Lucid app
    `test-<base-tag>-audio-gibbs-lucid`, appending `-2`, `-3`, ... for repeat
    deployments (e.g. `test-v13-3-0rc1-audio-gibbs-lucid-1`).
 
-3. After the Lucid deploy has launched, remove the worktree (the pushed
-   `-lucid` branch preserves the deployed code for auditing):
+4. After both deploys have launched, remove the worktrees (the pushed
+   branches preserve the deployed code for auditing):
 
 ```bash
 cd <psynet-root>
-git worktree remove /tmp/psynet-lucid-deploy
+git worktree remove /tmp/psynet-audio-gibbs-prolific-deploy
+git worktree remove /tmp/psynet-audio-gibbs-lucid-deploy
 ```
 
 Notes for the Lucid app:

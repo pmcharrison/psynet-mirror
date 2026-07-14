@@ -2,12 +2,14 @@
 
 Participants adjust a slider to make a synthesized word sound as
 "dominant" or "trustworthy" as possible. Compared to the sibling
-``prolific`` test experiment, this one additionally exercises on-the-fly
+payment-flow test experiment, this one additionally exercises on-the-fly
 audio synthesis (parselmouth), asset generation and storage, parallel
 async worker processes, and a headphone prescreen.
 """
 
 import json
+import os
+import sys
 from typing import List
 
 from markupsafe import Markup
@@ -25,8 +27,18 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsTrialMaker,
 )
 
+# The vendored consents_cococo package (copied from
+# https://gitlab.com/computational-audition-lab/cococo-shared) uses absolute
+# imports, so the experiment directory must be on sys.path: Dallinger imports
+# the experiment as the dallinger_experiment package from a temp copy.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from consents_cococo.consent_cultural_foundation import (  # noqa: E402
+    consent_irb_cultural_foundation,
+    debrief_page,
+)
+
 from . import custom_synth
-from .customconsent import CustomMainConsent
 
 TARGETS = ["dominant", "trustworthy"]
 DIMENSIONS = 7
@@ -137,11 +149,15 @@ class Exp(psynet.experiment.Experiment):
     }
 
     timeline = Timeline(
-        CustomMainConsent(),
+        # DURATION/PAYMENT are passed explicitly because this experiment sets
+        # prolific_estimated_completion_minutes and base_payment in Exp.config
+        # rather than config.txt, where the consent module would read them.
+        consent_irb_cultural_foundation(consent="MAIN", DURATION=3, PAYMENT=0.50),
         HugginsHeadphoneTest(performance_threshold=0),
         trial_maker,
         HearingLoss(),
         ExperimentFeedback(),
+        debrief_page(),
         SuccessfulEndPage(),
     )
 

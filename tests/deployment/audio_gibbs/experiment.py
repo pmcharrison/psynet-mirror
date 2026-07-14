@@ -1,13 +1,16 @@
-"""Audio Gibbs sampler test experiment for Prolific deployment tests.
+"""Audio Gibbs sampler test experiment with a safe HotAir default.
 
 Participants adjust a slider to make a synthesized word sound as
 "dominant" or "trustworthy" as possible. Compared to the sibling
-``prolific`` test experiment, this one additionally exercises on-the-fly
+payment-flow test experiment, this one additionally exercises on-the-fly
 audio synthesis (parselmouth), asset generation and storage, parallel
-async worker processes, and a headphone prescreen.
+async worker processes, and a headphone prescreen. Recruiter-specific
+deployment variants live in ``experiment.py.prolific`` and
+``experiment.py.lucid``.
 """
 
-import json
+import os
+import sys
 from typing import List
 
 from markupsafe import Markup
@@ -25,8 +28,18 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsTrialMaker,
 )
 
+# The vendored consents_cococo package (copied from
+# https://gitlab.com/computational-audition-lab/cococo-shared) uses absolute
+# imports, so the experiment directory must be on sys.path: Dallinger imports
+# the experiment as the dallinger_experiment package from a temp copy.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from consents_cococo.consent_cultural_foundation import (  # noqa: E402
+    consent_irb_cultural_foundation,
+    debrief_page,
+)
+
 from . import custom_synth
-from .customconsent import CustomMainConsent
 
 TARGETS = ["dominant", "trustworthy"]
 DIMENSIONS = 7
@@ -104,19 +117,12 @@ trial_maker = CustomTrialMaker(
 )
 
 
-def get_prolific_settings():
-    with open("qualification_prolific_en.json", "r") as f:
-        qualification = json.dumps(json.load(f))
-
+def get_hotair_settings():
+    """Return recruiter settings safe for local runs."""
     return {
-        "recruiter": "prolific",
+        "recruiter": "hotair",
         "base_payment": 0.50,
         "prolific_estimated_completion_minutes": 3,
-        "prolific_recruitment_config": qualification,
-        # True so deployment tests exercise the programmatic top-up path
-        # (ProlificRecruiter.recruit); recruitment grows from
-        # INITIAL_RECRUITMENT_SIZE toward TARGET_N_PARTICIPANTS.
-        "auto_recruit": True,
         "currency": "£",
         "wage_per_hour": 10,
     }
@@ -126,7 +132,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Audio game - play with sounds."
     asset_storage = LocalStorage()
     config = {
-        **get_prolific_settings(),
+        **get_hotair_settings(),
         "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
         "force_incognito_mode": False,
         "title": "Sound game: play with sounds (Chrome browser, Headphones required ~3 min)",
@@ -137,11 +143,15 @@ class Exp(psynet.experiment.Experiment):
     }
 
     timeline = Timeline(
-        CustomMainConsent(),
+        # DURATION/PAYMENT are passed explicitly because this experiment sets
+        # prolific_estimated_completion_minutes and base_payment in Exp.config
+        # rather than config.txt, where the consent module would read them.
+        consent_irb_cultural_foundation(consent="MAIN", DURATION=3, PAYMENT=0.50),
         HugginsHeadphoneTest(performance_threshold=0),
         trial_maker,
         HearingLoss(),
         ExperimentFeedback(),
+        debrief_page(),
         SuccessfulEndPage(),
     )
 
