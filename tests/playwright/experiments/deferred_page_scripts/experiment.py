@@ -4,7 +4,6 @@ import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import Page, Timeline
 
-
 MANAGED_JAVASCRIPT = {
     "js_dependencies": ["/static/page-lifecycle-dependency.js"],
     "js_page_scripts": [

@@ -287,9 +287,7 @@ def test_music_notation_prompt_uses_managed_javascript():
         MusicNotationPrompt("C D E F"),
     )
 
-    assert page.js_dependencies == [
-        "/static/scripts/abc-js/abcjs-basic.js"
-    ]
+    assert page.js_dependencies == ["/static/scripts/abc-js/abcjs-basic.js"]
     assert page.js_page_scripts == ["/static/scripts/music-notation-prompt.js"]
     assert page.js_vars["music_notation_prompt"] == {"content": "C D E F"}
 
