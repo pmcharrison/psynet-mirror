@@ -61,7 +61,6 @@ export async function activate({root, vars, psynet}) {
     };
 
     return function cleanup() {
-        buttonContainer.removeEventListener("click", selectRoom);
         occupancySocket.onopen = null;
         occupancySocket.onmessage = null;
         occupancySocket.close();

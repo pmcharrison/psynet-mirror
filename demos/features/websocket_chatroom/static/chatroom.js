@@ -175,9 +175,6 @@ export async function activate({root, vars, psynet}) {
 
     return function cleanup() {
         pageActive = false;
-        sendButton.removeEventListener("click", sendMessage);
-        leaveButton.removeEventListener("click", handleLeave);
-        input.removeEventListener("keypress", handleKeypress);
         leaveChat({advance: false});
         historyAbortController.abort();
         chatSocket.onopen = null;

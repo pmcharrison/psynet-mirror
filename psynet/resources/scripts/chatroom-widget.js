@@ -140,8 +140,6 @@ export async function activate({root, vars}) {
 
     return async function cleanup() {
         window.removeEventListener("beforeunload", handleBeforeUnload);
-        sendButton.removeEventListener("click", sendMessage);
-        input.removeEventListener("keypress", handleKeypress);
         leaveChat();
     };
 }
