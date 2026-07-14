@@ -1,5 +1,11 @@
-export function activate({root, psynet}) {
-    const timeline = globalThis.timeline;
+export function activate({psynet}) {
+    const jsPsych = globalThis.jsPsych;
+    const timeline = globalThis.psynetJsPsychTimeline;
+    if (!jsPsych) {
+        throw new Error(
+            "The jsPsych instance could not be initialized. Please check the jsPsych dependencies."
+        );
+    }
     if (!timeline) {
         throw new Error(
             "The jsPsych timeline object could not be found. Please check the timeline script for errors."
@@ -8,16 +14,12 @@ export function activate({root, psynet}) {
 
     let completed = false;
     let deactivating = false;
-    const jsPsych = initJsPsych({
-        display_element: root.querySelector("#js-psych"),
-        on_finish: function () {
-            completed = true;
-            if (!deactivating) {
-                return psynet.nextPage(jsPsych.data.get().json());
-            }
+    globalThis.psynetJsPsychOnFinish = function () {
+        completed = true;
+        if (!deactivating) {
+            return psynet.nextPage(jsPsych.data.get().json());
         }
-    });
-    globalThis.jsPsych = jsPsych;
+    };
 
     jsPsych.run(timeline).catch(function (error) {
         if (!deactivating) {
@@ -35,8 +37,12 @@ export function activate({root, psynet}) {
             jsPsych.getInitSettings().on_close
         );
         document.documentElement.removeAttribute("jspsych");
+        globalThis.psynetJsPsychOnFinish = undefined;
         if (globalThis.jsPsych === jsPsych) {
             globalThis.jsPsych = undefined;
+        }
+        if (globalThis.psynetJsPsychTimeline === timeline) {
+            globalThis.psynetJsPsychTimeline = undefined;
         }
         if (globalThis.timeline === timeline) {
             globalThis.timeline = undefined;

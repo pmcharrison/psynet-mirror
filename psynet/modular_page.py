@@ -2010,7 +2010,9 @@ class ModularPage(Page):
         ):
             if key in kwargs:
                 extra = kwargs.pop(key)
-                collected.extend(extra if isinstance(extra, list) else [extra])
+                collected.extend(
+                    extra if isinstance(extra, (list, tuple)) else [extra]
+                )
 
         modular_page_components = {
             "prompt": self.prompt.macro,
