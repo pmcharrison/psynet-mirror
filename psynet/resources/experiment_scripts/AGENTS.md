@@ -71,7 +71,7 @@ demo-specific helpers. To run a copied demo yourself, generate the additional
 boilerplate files with:
 
 ```bash
-psynet scripts scaffold
+psynet experiment scaffold
 ```
 
 To run an experiment in debug mode:

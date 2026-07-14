@@ -10,13 +10,13 @@ such as this one. To generate updated resources, navigate to your experiment dir
 and run the following Docker command:
 
 ```shell
-bash docker/psynet scripts update
+bash docker/psynet experiment update
 ```
 
 or simply
 
 ```shell
-psynet scripts update
+psynet experiment update
 ```
 
 if you are not using Docker.
