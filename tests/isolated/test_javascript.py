@@ -1,5 +1,6 @@
 import pytest
 
+from psynet.page import JsPsychPage
 from psynet.timeline import Page
 
 
@@ -74,3 +75,60 @@ def test_page_rejects_removed_javascript_arguments(legacy_argument, value):
             template_fragment_str="<p>Removed JavaScript API</p>",
             **{legacy_argument: value},
         )
+
+
+@pytest.mark.parametrize(
+    "timeline",
+    [
+        "templates/reaction-time-task.html",
+        "/static/reaction-time-task.htm",
+    ],
+)
+def test_jspsych_page_rejects_html_timeline_api(timeline):
+    with pytest.raises(
+        ValueError,
+        match=r"JsPsychPage.*no longer accepts HTML.*migrate-page-javascript",
+    ):
+        JsPsychPage(
+            "task",
+            timeline=timeline,
+            time_estimate=1,
+            js_dependencies=[],
+            css_links=[],
+        )
+
+
+def test_jspsych_page_detects_old_jinja_timeline_template(tmp_path):
+    timeline = tmp_path / "timeline.txt"
+    timeline.write_text(
+        '{% extends "jspsych-page.html" %}\n{% block timeline %}{% endblock %}',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match=r"old Jinja timeline template"):
+        JsPsychPage(
+            "task",
+            timeline=str(timeline),
+            time_estimate=1,
+            js_dependencies=[],
+            css_links=[],
+        )
+
+
+def test_jspsych_page_configures_timeline_module():
+    page = JsPsychPage(
+        "task",
+        timeline="/static/reaction-time-task.js",
+        time_estimate=1,
+        js_dependencies=["/static/jspsych.js"],
+        css_links=["/static/jspsych.css"],
+        js_vars={"welcome": "Hello"},
+    )
+
+    assert page.js_vars == {
+        "welcome": "Hello",
+        "jspsych_timeline_module": "/static/reaction-time-task.js",
+    }
+    assert page.js_dependencies == ["/static/jspsych.js"]
+    assert page.js_page_scripts == ["/static/scripts/jspsych-page.js"]
+    assert "<script" not in page.template_str
