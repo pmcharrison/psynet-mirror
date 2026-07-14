@@ -556,11 +556,13 @@
     psynet.loadedDocumentScripts = new Set();
 
     psynet.rememberLoadedDocumentScripts = function () {
-      document.querySelectorAll("script[src]").forEach((script) => {
-        psynet.loadedDocumentScripts.add(
-          new URL(script.src, window.location.href).href,
-        );
-      });
+      document
+        .querySelectorAll('script[src]:not([type="text/psynet-script"])')
+        .forEach((script) => {
+          psynet.loadedDocumentScripts.add(
+            new URL(script.src, window.location.href).href,
+          );
+        });
     };
 
     psynet.executeExternalScript = function (src, options = {}) {
