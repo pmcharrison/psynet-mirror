@@ -9,10 +9,6 @@
             "jsDependencies": js_dependencies,
             "jsPageScripts": js_page_scripts,
             "page": page.__json__(participant),
-            "legacyPageJavascript": {
-                "jsLinks": js_links,
-                "inlineScriptCount": scripts | length
-            },
             "events": events,
             "mediaRequests": page.media.data,
             "trialProgressDisplayConfig": trial_progress_display_config,
@@ -28,8 +24,7 @@
                 "checkParticipantOpenedDevtools": config.check_participant_opened_devtools,
                 "lucidRecruitment": experiment.with_lucid_recruitment(),
                 "inplaceTimelineTransitions": inplace_timeline_transitions,
-                "legacyJsVarGlobals": config.legacy_js_var_globals,
-                "legacyPageJavascript": config.legacy_page_javascript
+                "legacyJsVarGlobals": config.legacy_js_var_globals
             },
             "strings": {
                 "commentStored": pgettext("timeline_problem", "Comment stored."),
@@ -96,15 +91,9 @@
             <span id="psynet-event-listener"></span>
 
             {% if partial_mode %}
-                {# In partial_mode we keep page-local assets and deferred scripts in a
-                   hidden container so psynet.js can replay the old "fresh page load"
-                   lifecycle after swapping the fragment into the persistent document. #}
+                {# In partial_mode we keep page-local assets and framework template
+                   scripts in a hidden container for activation after the fragment swap. #}
                 <div id="psynet-fragment-assets" style="display: none;">
-                    <div id="psynet-page-js-links">
-                        {% for x in js_links %}
-                            <script type="text/psynet-script" data-psynet-script-scope="js-link" src="{{ x }}"></script>
-                        {% endfor %}
-                    </div>
                     <div id="psynet-page-css-links">
                         {% for x in css_links %}
                             <link rel="stylesheet" href="{{ x }}">
@@ -118,13 +107,8 @@
                         {% endfor %}
                     </div>
                     <div id="psynet-page-scripts">
-                        {% for x in scripts %}
-                            <script type="text/psynet-script" data-psynet-script-scope="deferred">
-                                {{ x }}
-                            </script>
-                        {% endfor %}
-                        {# Child templates may inject scripts through block scripts rather
-                           than via page.scripts. Keep both sources in the deferred bundle. #}
+                        {# Framework child templates may provide internal scripts through
+                           their scripts block. #}
                         {{ self.scripts() }}
                     </div>
                 </div>
@@ -279,20 +263,6 @@
 {% block scripts %}
     {% if not partial_mode %}
         {{ super() }}
-
-        <script>
-            psynet.checkLegacyPageJavascript();
-        </script>
-
-        {% for x in js_links %}
-            <script src="{{ x }}"></script>
-        {% endfor %}
-
-        {% for x in scripts %}
-            <script>
-                {{ x }}
-            </script>
-        {% endfor %}
 
         <script>
             (async function () {

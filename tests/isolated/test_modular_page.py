@@ -141,11 +141,11 @@ def test_inplace_transitions_still_reject_style_in_page_content():
 
 
 def test_components_contribute_javascript_assets_and_variables_to_page():
-    # Reusable components ship JavaScript through component hooks rather than
-    # inlining <script> in a template.
+    # Reusable components ship lifecycle-managed modules through component
+    # hooks rather than inlining <script> in a template.
     class ScriptedPrompt(Prompt):
-        def get_scripts(self):
-            return ["console.log('prompt');"]
+        def get_js_page_scripts(self):
+            return ["/static/prompt-page.js"]
 
         def get_js_vars(self):
             return {"prompt_config": {"colour": "blue"}}
@@ -153,11 +153,8 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
     class ScriptedControl(Control):
         macro = "control"
 
-        def get_scripts(self):
-            return ["console.log('control');"]
-
-        def get_js_links(self):
-            return ["/static/my-control.js"]
+        def get_js_page_scripts(self):
+            return ["/static/control-page.js"]
 
         def get_js_vars(self):
             return {"control_config": {"maximum": 10}}
@@ -169,10 +166,10 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
         js_vars={"page_config": {"enabled": True}},
     )
 
-    joined = "\n".join(str(s) for s in page.scripts)
-    assert "console.log('prompt');" in joined
-    assert "console.log('control');" in joined
-    assert "/static/my-control.js" in page.js_links
+    assert page.js_page_scripts == [
+        "/static/prompt-page.js",
+        "/static/control-page.js",
+    ]
     assert page.js_vars["prompt_config"] == {"colour": "blue"}
     assert page.js_vars["control_config"] == {"maximum": 10}
     assert page.js_vars["page_config"] == {"enabled": True}
@@ -213,42 +210,6 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
         "/static/control-page.js",
         "/static/page.js",
     ]
-
-
-@pytest.mark.parametrize(
-    "component, method_name",
-    [
-        (
-            type(
-                "LegacyPrompt",
-                (Prompt,),
-                {"get_scripts": lambda self: ["window.legacy = true;"]},
-            )("Hi!"),
-            "get_scripts",
-        ),
-        (
-            type(
-                "LegacyControl",
-                (Control,),
-                {
-                    "macro": "control",
-                    "get_js_links": lambda self: ["/static/legacy.js"],
-                },
-            )(),
-            "get_js_links",
-        ),
-    ],
-)
-def test_components_reject_removed_javascript_hooks(component, method_name):
-    kwargs = {"prompt": component} if isinstance(component, Prompt) else {
-        "prompt": "Hi!",
-        "control": component,
-    }
-    with pytest.raises(
-        ValueError,
-        match=rf"{method_name}\(\) is no longer supported.*migrate-page-javascript",
-    ):
-        ModularPage("test", **kwargs)
 
 
 def test_duplicate_component_js_vars_raise():
@@ -301,9 +262,7 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
         "show_participants": False,
         "show_history": True,
     }
-    assert page.js_links == []
     assert page.js_page_scripts == ["/static/scripts/chatroom-widget.js"]
-    assert not any("__psynetChatroomConfig" in str(s) for s in page.scripts)
     # The macro itself must be markup-only (no inline <script>/<style>) so it
     # stays contract-compliant.
     from importlib import resources

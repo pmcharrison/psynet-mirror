@@ -20,7 +20,7 @@ class CustomStylesheetPage(Page):
             template_fragment_path="templates/custom-stylesheet-page.html",
             save_answer=False,
             time_estimate=1,
-            js_links=["/static/custom-style-page.js"],
+            js_page_scripts=["/static/custom-style-page.js"],
             css_links=["/static/custom-stylesheet-page.css"],
         )
 
@@ -38,7 +38,6 @@ class Exp(psynet.experiment.Experiment):
                 <p>First page</p>
                 <p id="managed-javascript-marker">Managed JavaScript has not activated</p>
                 <script>
-                    window.__psynetPageScriptOrder = ["body"];
                     window.__psynetManagedDependencyAvailableInBody =
                         window.__psynetManagedJavascript?.dependencyLoads === 1;
                 </script>
@@ -54,10 +53,6 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
-            js_links=["/static/script-order-link.js"],
-            scripts=[
-                'window.__psynetPageScriptOrder.push("deferred");',
-            ],
             **MANAGED_JAVASCRIPT,
         ),
         InfoPage(
@@ -66,7 +61,6 @@ class Exp(psynet.experiment.Experiment):
                 <p>Deferred page script lifecycle page</p>
                 <p id="managed-javascript-marker">Managed JavaScript has not activated</p>
                 <script>
-                    window.__psynetPageScriptOrder = ["body"];
                     window.__psynetManagedDependencyAvailableInBody =
                         window.__psynetManagedJavascript?.dependencyLoads === 1;
                 </script>
@@ -97,15 +91,12 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
-            js_links=[
-                "/static/script-order-link.js",
+            js_dependencies=MANAGED_JAVASCRIPT["js_dependencies"],
+            js_page_scripts=[
+                *MANAGED_JAVASCRIPT["js_page_scripts"],
                 "/static/deferred-script.js",
             ],
-            scripts=[
-                'window.__psynetPageScriptOrder.push("deferred");',
-            ],
             css_links=["/static/deferred-page-scripts.css"],
-            **MANAGED_JAVASCRIPT,
         ),
         CustomStylesheetPage(),
         InfoPage(
@@ -121,7 +112,7 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
-            js_links=["/static/deferred-script.js"],
+            js_page_scripts=["/static/deferred-script.js"],
         ),
         InfoPage(
             Markup(

@@ -253,13 +253,13 @@ def test_window_event_listener_with_cleanup_evidence_is_allowed():
     page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
-def test_page_asset_arguments_are_not_forbidden_template_content():
+def test_managed_page_asset_arguments_are_not_forbidden_template_content():
     page = Page(
         template_fragment_str="<p>Page content</p>",
         css=[".example { color: red; }"],
         css_links=["/static/example.css"],
-        scripts=["psynet.trial.onEvent('trialConstruct', function () {});"],
-        js_links=["/static/example.js"],
+        js_dependencies=["/static/example-library.js"],
+        js_page_scripts=["/static/example-page.js"],
     )
 
     page._check_spa_template_contract(inplace_timeline_transitions=True)

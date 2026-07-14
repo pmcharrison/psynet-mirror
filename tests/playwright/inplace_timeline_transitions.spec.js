@@ -50,7 +50,7 @@ function makeSilentWav(durationSeconds) {
   return buffer;
 }
 
-test("in-place timeline transitions replay page scripts and hydrate page styles", async ({
+test("in-place timeline transitions replay raw modules and manage page assets", async ({
   page,
   context
 }) => {
@@ -59,25 +59,12 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
   );
 
   await withExperiment(page, context, absDir, async (experimentPage) => {
-    const warnings = [];
-    experimentPage.on("console", (message) => {
-      if (message.type() === "warning") {
-        warnings.push(message.text());
-      }
-    });
     await completeInitialGateway(experimentPage);
     await assertInplaceTimelinePathActive(experimentPage, 20000);
 
     await expect(experimentPage.locator("#main-body")).toContainText("First page", {
       timeout: STEP_TIMEOUT_MS
     });
-    await expect
-      .poll(
-        () =>
-          experimentPage.evaluate(() => window.__psynetPageScriptOrder || []),
-        { timeout: STEP_TIMEOUT_MS }
-      )
-      .toEqual(["body", "js-link", "deferred"]);
     await expect(
       experimentPage.locator("#managed-javascript-marker")
     ).toHaveAttribute("data-first-active", "true");
@@ -111,25 +98,9 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         inline: window.__legacyInlineModuleRuns
       }))
     ).toEqual({ external: 1, inline: 1 });
-    await expect
-      .poll(
-        () =>
-          warnings.filter((message) =>
-            message.includes("Legacy page JavaScript is deprecated")
-          ).length,
-        { timeout: STEP_TIMEOUT_MS }
-      )
-      .toBe(1);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
-    await expect
-      .poll(
-        () =>
-          experimentPage.evaluate(() => window.__psynetPageScriptOrder || []),
-        { timeout: STEP_TIMEOUT_MS }
-      )
-      .toEqual(["body", "js-link", "deferred"]);
     await expect(
       experimentPage.locator("#managed-javascript-marker")
     ).toContainText("Managed JavaScript activated");
@@ -168,11 +139,6 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         inline: window.__legacyInlineModuleRuns
       }))
     ).toEqual({ external: 2, inline: 2 });
-    expect(
-      warnings.filter((message) =>
-        message.includes("Legacy page JavaScript is deprecated")
-      )
-    ).toHaveLength(1);
     await expect(
       experimentPage.locator("#body-library-load-count-marker")
     ).toHaveAttribute("data-load-count", "1", { timeout: STEP_TIMEOUT_MS });

@@ -443,9 +443,9 @@ class JsPsychPage(Page):
         The timeline should be saved as an object called ``timeline``.
         See ``demos/jspsych`` for an example.
 
-    js_links :
-        A list of links to JavaScript files to include in the page. Typically this would include
-        a link to the required jsPsych version as well as links to the required plug-ins.
+    js_dependencies :
+        A list of JavaScript libraries to load once per browser document. Typically this would
+        include a link to the required jsPsych version as well as links to the required plug-ins.
         It is recommended to include these files in the ``static`` directory and refer to them
         using relative paths; alternatively it is possible to link to these files via a CDN.
 
@@ -463,13 +463,13 @@ class JsPsychPage(Page):
         label: str,
         timeline: str,
         time_estimate: float,
-        js_links: Union[str, List[str]],
+        js_dependencies: Union[str, List[str]],
         css_links: Union[str, List[str]],
         js_vars: Optional[dict] = None,
         **kwargs,
     ):
-        if isinstance(js_links, str):
-            js_links = [js_links]
+        if isinstance(js_dependencies, str):
+            js_dependencies = [js_dependencies]
         if isinstance(css_links, str):
             css_links = [css_links]
 
@@ -478,7 +478,8 @@ class JsPsychPage(Page):
             template_path=timeline,
             label=label,
             js_vars=js_vars,
-            js_links=js_links,
+            js_dependencies=js_dependencies,
+            js_page_scripts=["/static/scripts/jspsych-page.js"],
             css_links=css_links,
             framework_owned_template=True,
             **kwargs,
@@ -486,6 +487,8 @@ class JsPsychPage(Page):
 
 
 class ExecuteFrontEndJS(InfoPage):
+    """Execute JavaScript in a lifecycle-managed page module."""
+
     # Skip beforeunload detection since this page is expected to navigate away
     skip_beforeunload = True
 
@@ -493,6 +496,7 @@ class ExecuteFrontEndJS(InfoPage):
         super().__init__(
             content=message,
             time_estimate=0.0,
-            scripts=[js],
+            js_vars={"execute_front_end_js": js},
+            js_page_scripts=["/static/scripts/execute-front-end-js.js"],
             show_next_button=False,
         )

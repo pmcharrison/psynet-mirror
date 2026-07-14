@@ -217,10 +217,6 @@ class ChatRoom:
             .read_text(encoding="utf-8")
         ]
 
-    def get_scripts(self):
-        """Page-local inline JavaScript contributed to the hosting page (none)."""
-        return []
-
     def get_js_vars(self):
         """Page-local configuration contributed to the hosting page."""
         return {
@@ -231,10 +227,6 @@ class ChatRoom:
                 "show_history": bool(self.show_history),
             }
         }
-
-    def get_js_links(self):
-        """Deprecated JavaScript links contributed to the hosting page."""
-        return []
 
     def get_js_dependencies(self):
         """JavaScript dependencies loaded once per browser document."""

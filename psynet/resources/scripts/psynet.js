@@ -21,7 +21,6 @@
   let warnedLegacyJsVarGlobalCollisionKeys = new Set();
   let warnedLegacyJsVarGlobalLockedKeys = new Set();
   let warnedLegacyJsVarGlobalKeys = new Set();
-  let warnedLegacyPageJavascriptSignatures = new Set();
 
   let getLegacyJsVarGlobalMode = function () {
     let mode = psynetTemplateData.flags?.legacyJsVarGlobals || "warn";
@@ -595,34 +594,6 @@
       });
     };
 
-    psynet.checkLegacyPageJavascript = function () {
-      let legacy = psynetTemplateData.legacyPageJavascript || {};
-      let jsLinks = legacy.jsLinks || [];
-      let inlineScriptCount = legacy.inlineScriptCount || 0;
-      if (jsLinks.length === 0 && inlineScriptCount === 0) {
-        return;
-      }
-
-      let mode =
-        psynetTemplateData.flags?.legacyPageJavascript || "warn";
-      let message =
-        "Legacy page JavaScript is deprecated. Replace js_links with " +
-        "js_dependencies or js_page_scripts, and replace scripts with " +
-        "js_page_scripts.";
-      if (mode === "error") {
-        throw new Error(message);
-      }
-      if (mode === "allow") {
-        return;
-      }
-
-      let signature = "legacy-page-javascript";
-      if (!warnedLegacyPageJavascriptSignatures.has(signature)) {
-        warnedLegacyPageJavascriptSignatures.add(signature);
-        console.warn(message);
-      }
-    };
-
     // Managed JavaScript has two explicit lifecycles. Dependencies are classic
     // scripts loaded once per browser document. JS page scripts are imported
     // modules whose activate(context) export runs for each page. Each activation
@@ -702,7 +673,6 @@
     };
 
     psynet.activateManagedPageJavascript = async function () {
-      psynet.checkLegacyPageJavascript();
       await psynet.loadJSDependencies();
       await psynet.activateJSPageScripts();
     };
@@ -747,15 +717,10 @@
       await flushInlineBuffer();
     };
 
-    // Build one execution plan from the inert scripts in the new fragment.
-    // querySelectorAll preserves DOM order, which mirrors a full page load:
-    // scripts in page markup first, then explicit js_links, then deferred page
-    // scripts. Unscoped main-body links, such as
-    // <script src="/static/library.js"></script> embedded in prompt or template
-    // markup, are treated as document-level libraries and skipped after their
-    // first load. Explicit js_links and deferred scripts must run again for
-    // each page activation.
-    psynet.getPageScriptManifest = function () {
+    // Framework templates and supported page markup may still contain internal
+    // scripts. Partial rendering makes them inert; replay them in DOM order
+    // after the fragment swap while avoiding duplicate linked libraries.
+    psynet.getDeferredPageScripts = function () {
       let mainBody = document.getElementById("main-body");
       if (!mainBody) {
         return [];
@@ -763,52 +728,7 @@
 
       return Array.from(
         mainBody.querySelectorAll('script[type="text/psynet-script"]'),
-      ).map((script) => {
-        let scope = script.dataset.psynetScriptScope || "main-body";
-        return {
-          script,
-          scope,
-          // Linked scripts embedded directly in page markup behave like
-          // document-level libraries and should not be loaded repeatedly.
-          // Explicit js_links and deferred page scripts run on each page.
-          skipIfLoaded: scope === "main-body",
-        };
-      });
-    };
-
-    // Execute adjacent manifest entries as groups because executeScriptSequence
-    // gives each group one loading policy and one shared IIFE for its inline
-    // scripts. A scope or policy change therefore flushes the current group,
-    // preventing body, js-link, and deferred inline scripts from sharing scope.
-    // Awaiting every flush preserves the manifest's full-page execution order.
-    psynet.executePageScriptManifest = async function (manifest) {
-      let currentGroup = [];
-      let currentScope;
-      let currentSkipIfLoaded;
-
-      let flushCurrentGroup = async function () {
-        if (currentGroup.length === 0) {
-          return;
-        }
-        await psynet.executeScriptSequence(currentGroup, {
-          skipIfLoaded: currentSkipIfLoaded,
-        });
-        currentGroup = [];
-      };
-
-      for (let entry of manifest) {
-        if (
-          currentGroup.length > 0 &&
-          (entry.scope !== currentScope ||
-            entry.skipIfLoaded !== currentSkipIfLoaded)
-        ) {
-          await flushCurrentGroup();
-        }
-        currentScope = entry.scope;
-        currentSkipIfLoaded = entry.skipIfLoaded;
-        currentGroup.push(entry.script);
-      }
-      await flushCurrentGroup();
+      );
     };
 
     psynet.getElementById = function (root, id) {
@@ -1003,9 +923,10 @@
       // lifecycle explicitly before we can mark the new page as ready.
       psynet.refreshTemplateData();
       await psynet.rebuildTrial();
-      psynet.checkLegacyPageJavascript();
       await psynet.loadJSDependencies();
-      await psynet.executePageScriptManifest(psynet.getPageScriptManifest());
+      await psynet.executeScriptSequence(psynet.getDeferredPageScripts(), {
+        skipIfLoaded: true,
+      });
       await psynet.activateJSPageScripts();
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();

@@ -398,13 +398,9 @@ its exported ``activate()`` function again whenever the behavior is used on a
 new page. This separation avoids rerunning library top-level code while still
 initializing fresh page state.
 
-The older ``js_links``, ``scripts``, ``get_js_links()``, and ``get_scripts()``
-APIs remain available during migration. ``legacy_page_javascript`` controls
-their treatment:
-
-* ``allow`` preserves them without a warning.
-* ``warn`` (default) preserves them and writes one browser-console warning.
-* ``error`` rejects pages that still use them.
+The older ``js_links`` and ``scripts`` Page arguments have been removed. Run
+the repo-local ``/migrate-page-javascript`` skill for a guided migration from
+these arguments to the explicit dependency and page-script lifecycles.
 
 Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
 global access is deprecated because in-place timeline transitions reuse the

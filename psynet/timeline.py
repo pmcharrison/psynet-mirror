@@ -941,9 +941,8 @@ class Page(Elt):
         deprecated and controlled by ``legacy_js_var_globals``.
 
     js_links:
-        Deprecated optional list of JavaScript files executed for each page.
-        Prefer ``js_dependencies`` or ``js_page_scripts`` according to the
-        intended lifecycle.
+        Removed. Use ``js_dependencies`` or ``js_page_scripts`` according to
+        the intended lifecycle.
 
     js_dependencies:
         Optional list of JavaScript file URLs to load once per browser document.
@@ -957,10 +956,7 @@ class Page(Elt):
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
 
     scripts:
-        Deprecated optional list of inline scripts to include in the page.
-        Prefer ``js_page_scripts``.
-        Each script should be represented as a string, which will be passed
-        verbatim to the page's HTML.
+        Removed. Move inline behavior into a ``js_page_scripts`` file.
 
     css:
         Optional list of CSS specification to include in the page.
@@ -1111,12 +1107,24 @@ class Page(Elt):
     ):
         super().__init__()
 
+        if js_links is not None:
+            raise ValueError(
+                "Page() no longer accepts js_links. Use js_dependencies for "
+                "libraries loaded once per browser document, or js_page_scripts "
+                "for per-page behavior. Run /migrate-page-javascript for a "
+                "step-by-step migration."
+            )
+        if scripts is not None:
+            raise ValueError(
+                "Page() no longer accepts scripts. Move inline page behavior "
+                "into a js_page_scripts file exporting activate(context). Run "
+                "/migrate-page-javascript for a step-by-step migration."
+            )
+
         if template_arg is None:
             template_arg = {}
         if js_vars is None:
             js_vars = {}
-        if js_links is None:
-            js_links = []
         if contents is None:
             contents = {}
         if css_links is None:
@@ -1172,7 +1180,6 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
-        self.js_links = js_links
         self.js_dependencies = _normalize_javascript_urls(
             js_dependencies, "js_dependencies"
         )
@@ -1190,9 +1197,6 @@ class Page(Elt):
 
         self.media = MediaSpec() if media is None else media
         self.media.check()
-
-        self.scripts = [] if scripts is None else [Markup(x) for x in scripts]
-        assert isinstance(self.scripts, list)
 
         self.css = [] if css is None else [Markup(x) for x in css]
         assert isinstance(self.css, list)
@@ -1583,7 +1587,6 @@ class Page(Elt):
         locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
-        self._check_legacy_page_javascript(config.get("legacy_page_javascript"))
         # The SPA template contract applies to author-provided template source,
         # not to PsyNet's generated timeline shell or supported page assets.
         self._check_spa_template_contract(
@@ -1608,8 +1611,6 @@ class Page(Elt):
             "participant": participant,
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
-            "scripts": self.scripts,
-            "js_links": self.js_links,
             "js_dependencies": self.js_dependencies,
             "js_page_scripts": self.js_page_scripts,
             "css": self.css + experiment.css,
@@ -1634,18 +1635,6 @@ class Page(Elt):
         if partial_mode:
             rendered = self._extract_partial_render(rendered)
         return rendered
-
-    def _check_legacy_page_javascript(self, mode):
-        """Enforce the configured migration mode for legacy page JavaScript."""
-        if not self.js_links and not self.scripts:
-            return
-        if mode == "error":
-            raise ValueError(
-                "Legacy Page js_links and scripts are disabled by "
-                "legacy_page_javascript=error. Use js_dependencies for files "
-                "loaded once per document and js_page_scripts for files "
-                "activated for each page."
-            )
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
         if self.framework_owned_template:

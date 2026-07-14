@@ -1,18 +1,42 @@
-psynet.trial.onEvent("trialStart", function () {
-    $.get("/api/random_digit_input", function(data) {
-        $("#digit").text(data.random_number.toString().padStart(7, "0"));
-    });
-    $.get("/api/hello?name=world", function(data) {
-        $("#name").text(data);
-    });
-    $.ajax({
-        url: "/api/page_uuid",
-        type: "POST",
-        data: JSON.stringify({participant_id: psynet.participantId}),
-        dataType: "json",
-        contentType: "application/json",
-        success: function(data) {
-            $("#page_uuid").text(data.page_uuid);
+export async function activate({root, trial, psynet}) {
+    const abortController = new AbortController();
+
+    async function loadApiValues() {
+        const requestOptions = {signal: abortController.signal};
+        const [digitResponse, nameResponse, pageUuidResponse] = await Promise.all([
+            fetch("/api/random_digit_input", requestOptions),
+            fetch("/api/hello?name=world", requestOptions),
+            fetch("/api/page_uuid", {
+                ...requestOptions,
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({participant_id: psynet.participantId}),
+            }),
+        ]);
+        const [digitData, name, pageUuidData] = await Promise.all([
+            digitResponse.json(),
+            nameResponse.json(),
+            pageUuidResponse.json(),
+        ]);
+
+        root.querySelector("#digit").textContent = digitData.random_number
+            .toString()
+            .padStart(7, "0");
+        root.querySelector("#name").textContent = name;
+        root.querySelector("#page_uuid").textContent = pageUuidData.page_uuid;
+    }
+
+    trial.onEvent("trialStart", async function () {
+        try {
+            await loadApiValues();
+        } catch (error) {
+            if (error.name !== "AbortError") {
+                throw error;
+            }
         }
     });
-});
+
+    return function cleanup() {
+        abortController.abort();
+    };
+}

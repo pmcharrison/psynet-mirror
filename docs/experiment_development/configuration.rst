@@ -126,13 +126,6 @@ General
 
         This feature may be revised in the future.
 
-``legacy_page_javascript`` *str* |psynet-icon|
-    Controls the deprecated ``js_links`` and ``scripts`` page APIs.
-    ``allow`` preserves them silently, ``warn`` preserves them and reports one
-    browser-console warning, and ``error`` rejects pages that still use them.
-    New code should use ``js_dependencies`` and ``js_page_scripts``. Default:
-    ``warn``.
-
 ``legacy_js_var_globals`` *str* |psynet-icon|
     Controls deprecated access to page ``js_vars`` through matching ``window``
     properties. ``warn`` preserves access and reports each key once in the

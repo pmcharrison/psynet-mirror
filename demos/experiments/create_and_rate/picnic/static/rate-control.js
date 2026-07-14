@@ -1,38 +1,39 @@
-(function () {
-    "use strict";
-
-    psynet.trial.onEvent("trialConstruct", function () {
-        psynet.addPageEventListener(document, "change", function (e) {
-            if (e.target.value === "none") {
-                $(".rules").prop("checked", false);
-            } else {
-                $("#none").prop("checked", false);
-            }
-        });
-        psynet.addPageEventListener(
-            document.getElementById("rate-submit"),
-            "click",
-            validate
-        );
-    });
-
+export function activate({root, psynet}) {
     function validate() {
-        var rule_dict = {};
-        var n_checked = 0;
-        $("input").each(function (i, elem) {
-            var is_checked = $(elem).is(":checked");
-            if (is_checked) {
-                n_checked += 1;
+        const ruleDict = {};
+        let nChecked = 0;
+        root.querySelectorAll("input").forEach(function (element) {
+            if (element.checked) {
+                nChecked += 1;
             }
-            rule_dict[elem.id] = {
-                "checked": is_checked,
-                "rule": $(elem).val()
+            ruleDict[element.id] = {
+                "checked": element.checked,
+                "rule": element.value
             };
         });
-        if (n_checked > 0) {
-            psynet.nextPage(rule_dict);
+        if (nChecked > 0) {
+            psynet.nextPage(ruleDict);
         } else {
             alert("You need to interact with the page before you can continue.");
         }
     }
-})();
+
+    function handleChange(event) {
+        if (event.target.value === "none") {
+            root.querySelectorAll(".rules").forEach(function (element) {
+                element.checked = false;
+            });
+        } else {
+            root.querySelector("#none").checked = false;
+        }
+    }
+
+    const submitButton = root.querySelector("#rate-submit");
+    root.addEventListener("change", handleChange);
+    submitButton.addEventListener("click", validate);
+
+    return function cleanup() {
+        root.removeEventListener("change", handleChange);
+        submitButton.removeEventListener("click", validate);
+    };
+}

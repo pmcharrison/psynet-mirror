@@ -168,15 +168,6 @@ class Prompt:
     def get_css(self):
         return []
 
-    def get_scripts(self):
-        """Page-local inline JavaScript this component contributes to the page.
-
-        Returned strings are supplied to the hosting ``ModularPage`` as ``scripts``
-        (deferred and replayed across in-place timeline transitions), so reusable
-        components can ship JavaScript without inlining ``<script>`` in a template.
-        """
-        return []
-
     def get_js_vars(self):
         """Page-local JavaScript variables this component contributes.
 
@@ -184,13 +175,6 @@ class Prompt:
         :class:`ModularPage` ``js_vars``.
         """
         return {}
-
-    def get_js_links(self):
-        """Deprecated page-local JavaScript links contributed by this component.
-
-        Prefer :meth:`get_js_dependencies` or :meth:`get_js_page_scripts`.
-        """
-        return []
 
     def get_js_dependencies(self):
         """JavaScript dependencies loaded once per browser document."""
@@ -771,26 +755,12 @@ class Control:
     def get_css(self):
         return []
 
-    def get_scripts(self):
-        """Page-local inline JavaScript this control contributes to the page.
-
-        See :meth:`Prompt.get_scripts`.
-        """
-        return []
-
     def get_js_vars(self):
         """Page-local JavaScript variables this control contributes.
 
         See :meth:`Prompt.get_js_vars`.
         """
         return {}
-
-    def get_js_links(self):
-        """Deprecated page-local JavaScript links contributed by this control.
-
-        See :meth:`Prompt.get_js_links`.
-        """
-        return []
 
     def get_js_dependencies(self):
         """JavaScript dependencies loaded once per browser document."""
@@ -2022,10 +1992,6 @@ class ModularPage(Page):
             components.append(("chatroom", self.chatroom))
 
         css = [c for _, component in components for c in component.get_css()]
-        scripts = [s for _, component in components for s in component.get_scripts()]
-        js_links = [
-            link for _, component in components for link in component.get_js_links()
-        ]
         js_dependencies = [
             dependency
             for _, component in components
@@ -2039,8 +2005,6 @@ class ModularPage(Page):
 
         for key, collected in (
             ("css", css),
-            ("scripts", scripts),
-            ("js_links", js_links),
             ("js_dependencies", js_dependencies),
             ("js_page_scripts", js_page_scripts),
         ):
@@ -2086,8 +2050,6 @@ class ModularPage(Page):
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,
-            scripts=scripts,
-            js_links=js_links,
             js_dependencies=js_dependencies,
             js_page_scripts=js_page_scripts,
             framework_owned_template=True,

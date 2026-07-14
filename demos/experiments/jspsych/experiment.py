@@ -27,7 +27,7 @@ class Exp(psynet.experiment.Experiment):
                 "trial_durations": [250, 500, 750, 1000, 1250, 1500, 1750, 2000],
                 "welcome_message": "Welcome to the experiment. Press any key to begin.",
             },
-            js_links=[
+            js_dependencies=[
                 "static/jspsych/jspsych.js",
                 "static/jspsych/plugin-html-keyboard-response.js",
                 "static/jspsych/plugin-image-keyboard-response.js",

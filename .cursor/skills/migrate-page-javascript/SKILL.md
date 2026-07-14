@@ -1,13 +1,12 @@
 ---
 name: migrate-page-javascript
-description: Migrates removed PsyNet js_links, scripts, get_js_links, and get_scripts APIs to js_dependencies and lifecycle-managed js_page_scripts.
+description: Migrates removed PsyNet Page js_links and scripts arguments to js_dependencies and lifecycle-managed js_page_scripts.
 ---
 
 # Migrate page JavaScript
 
-Use this skill when an experiment fails because PsyNet no longer accepts
-``js_links`` or ``scripts``, or when a custom ``Prompt`` or ``Control`` still
-implements ``get_js_links()`` or ``get_scripts()``.
+Use this skill when an experiment fails because PsyNet no longer accepts the
+``js_links`` or ``scripts`` arguments.
 
 ## 1. Find the removed API
 
@@ -15,8 +14,6 @@ Search the experiment for:
 
 - ``js_links=``
 - ``scripts=``
-- ``def get_js_links``
-- ``def get_scripts``
 - JavaScript ``<script>`` tags in custom page, prompt, or control markup
 
 Classify each JavaScript file by lifecycle before changing it.
@@ -33,7 +30,7 @@ Page(
 )
 ```
 
-For a modular component:
+For new modular-component code:
 
 ```python
 def get_js_dependencies(self):
@@ -56,7 +53,7 @@ Page(
 )
 ```
 
-For a modular component:
+For new modular-component code:
 
 ```python
 def get_js_page_scripts(self):
