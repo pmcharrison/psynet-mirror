@@ -11,7 +11,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("jsPsych activates after an in-place transition", async ({ page, context }) => {
+test("jsPsych activates after a preceding timeline page", async ({ page, context }) => {
   await withExperiment(
     page,
     context,
