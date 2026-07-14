@@ -430,9 +430,6 @@ The corresponding ``static/color-text.js`` file manages the response handler:
         }
 
         psynet.setStageResponseHandler(stageResponse);
-        return function cleanup() {
-            psynet.clearStageResponseHandler();
-        };
     }
 
 There are a few more key things to note here:

@@ -31,9 +31,4 @@ export function activate({root, psynet}) {
     const submitButton = root.querySelector("#rate-submit");
     root.addEventListener("change", handleChange);
     submitButton.addEventListener("click", validate);
-
-    return function cleanup() {
-        root.removeEventListener("change", handleChange);
-        submitButton.removeEventListener("click", validate);
-    };
 }

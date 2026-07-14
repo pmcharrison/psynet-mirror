@@ -75,15 +75,12 @@ export async function activate({root, trial, vars, page, psynet}) {
     }
 
     button.addEventListener("click", handleClick);
-
-    return async function cleanup() {
-        button.removeEventListener("click", handleClick);
-    };
 }
 ```
 
-PsyNet imports the file once, calls ``activate()`` for every hosting page, and
-calls the returned cleanup function before leaving. Cleanup is optional.
+PsyNet imports the file once and calls ``activate()`` for every hosting page.
+Most page scripts do not need to return cleanup: PsyNet removes the page DOM,
+stops trial-owned timers and handlers, and resets page response state.
 
 ## 4. Migrate inline ``scripts``
 
@@ -118,14 +115,33 @@ export async function activate({vars}) {
 
 ## 5. Choose cleanup deliberately
 
-Return cleanup whenever ``activate()`` creates:
+Return cleanup only when ``activate()`` creates resources outside PsyNet's
+normal page teardown, such as:
 
-- DOM or window event listeners
-- timers
+- event listeners on persistent targets such as ``window`` or ``document``
+- raw timers not created through the trial
 - WebSockets
 - observers
 - object URLs
 - other resources that can survive removal of the page DOM
+
+For example, a ``window`` listener survives removal of the page DOM and must be
+removed explicitly:
+
+```javascript
+export function activate({root}) {
+    function updateWidth() {
+        root.querySelector("#width").textContent = window.innerWidth;
+    }
+
+    window.addEventListener("resize", updateWidth);
+    updateWidth();
+
+    return function cleanup() {
+        window.removeEventListener("resize", updateWidth);
+    };
+}
+```
 
 Cleanup functions run in reverse activation order and may be asynchronous.
 

@@ -6,7 +6,4 @@ export async function activate({root, psynet}) {
     }
 
     psynet.setStageResponseHandler(stageResponse);
-    return function cleanup() {
-        psynet.clearStageResponseHandler();
-    };
 }

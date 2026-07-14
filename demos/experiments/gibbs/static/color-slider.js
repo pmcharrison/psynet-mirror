@@ -2,9 +2,8 @@ function pad(n) {
     return (n.length < 2) ? "0" + n : n;
 }
 
-export async function activate({root, trial, psynet}) {
+export async function activate({root, psynet}) {
     const slider = psynet.page.control.slider;
-    const previousOnSliderEvent = slider.onSliderEvent;
 
     function updateSliderBackground() {
         psynet.log.debug("Updating slider background");
@@ -17,10 +16,4 @@ export async function activate({root, trial, psynet}) {
 
     updateSliderBackground();
     slider.onSliderEvent = updateSliderBackground;
-
-    return function cleanup() {
-        if (slider.onSliderEvent === updateSliderBackground) {
-            slider.onSliderEvent = previousOnSliderEvent;
-        }
-    };
 }

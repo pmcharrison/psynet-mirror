@@ -306,17 +306,14 @@ file contains the behavior:
         }
 
         psynet.setStageResponseHandler(stageResponse);
-        return function cleanup() {
-            psynet.clearStageResponseHandler();
-        };
     }
 
 The ``textarea`` is a standard HTML element corresponding to a text box. Its
 customizable background color comes from ``config.color``. The JavaScript
 handler extracts the current contents and stages them so that the response is
 submitted when the page is exited. PsyNet loads the file as a JavaScript module,
-calls ``activate()`` for each hosting page, and calls the returned cleanup
-function before leaving.
+calls ``activate()`` for each hosting page, and resets the response handler
+automatically when the page ends.
 
 In some cases we might want to postprocess this response in Python before we save it. This can be achieved by writing a custom ``format_answer`` method for the custom ``Control`` class. For example, if we wanted to capitalize all the responses, we could write something like this:
 
@@ -386,9 +383,30 @@ PsyNet distinguishes loading code from activating page behavior:
 The activation context contains ``root`` (the page's ``#main-body`` element),
 ``trial``, ``vars`` (the current ``psynet.var``), ``page``, and ``psynet``.
 ``activate()`` may be asynchronous and may return an asynchronous cleanup
-function. PsyNet runs cleanup functions in reverse activation order before
-leaving the page. Returning cleanup keeps resources such as event listeners,
-timers, and WebSockets tied to the exact page instance that created them.
+function. Most page scripts do not need one: PsyNet removes the page DOM, stops
+trial-owned timers and handlers, and resets page response state automatically.
+
+Cleanup is needed for resources that survive normal page teardown. For example,
+a listener attached to ``window`` survives removal of the page DOM:
+
+.. code-block:: javascript
+
+    export function activate({root}) {
+        function updateWidth() {
+            root.querySelector("#width").textContent = window.innerWidth;
+        }
+
+        window.addEventListener("resize", updateWidth);
+        updateWidth();
+
+        return function cleanup() {
+            window.removeEventListener("resize", updateWidth);
+        };
+    }
+
+PsyNet runs returned cleanup functions in reverse activation order before
+leaving the page. WebSockets, workers, observers, and raw timers are other
+common cases requiring cleanup.
 
 The module file itself is imported once and cached by the browser. PsyNet calls
 its exported ``activate()`` function again whenever the behavior is used on a

@@ -30,8 +30,4 @@ export function activate({root, psynet}) {
 
     const submitButton = root.querySelector("#create-submit");
     submitButton.addEventListener("click", validate);
-
-    return function cleanup() {
-        submitButton.removeEventListener("click", validate);
-    };
 }

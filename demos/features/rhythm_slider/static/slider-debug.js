@@ -1,6 +1,5 @@
 export async function activate({root, trial, vars, psynet}) {
     const slider = psynet.page.control.slider.element;
-    let intervalId;
 
     function findClosestAudio() {
         const mediaLocations = vars.media_locations;
@@ -25,10 +24,6 @@ export async function activate({root, trial, vars, psynet}) {
     }
 
     trial.onEvent("trialConstruct", function () {
-        intervalId = trial.setRepeatingTimer(updateValue, 100);
+        trial.setRepeatingTimer(updateValue, 100);
     });
-
-    return function cleanup() {
-        window.clearInterval(intervalId);
-    };
 }

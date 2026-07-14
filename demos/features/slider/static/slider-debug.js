@@ -1,6 +1,5 @@
 export async function activate({root, trial, psynet}) {
     const slider = psynet.page.control.slider.element;
-    let intervalId;
 
     function updateValue() {
         root.querySelector("#slider-raw-value").textContent =
@@ -14,10 +13,6 @@ export async function activate({root, trial, psynet}) {
     }
 
     trial.onEvent("trialConstruct", function () {
-        intervalId = trial.setRepeatingTimer(updateValue, 100);
+        trial.setRepeatingTimer(updateValue, 100);
     });
-
-    return function cleanup() {
-        window.clearInterval(intervalId);
-    };
 }
