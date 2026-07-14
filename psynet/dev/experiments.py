@@ -283,7 +283,7 @@ def update_scripts(dir):
 def prune_scaffold(dir):
     """Remove scaffold-managed files from a demo after refreshing it."""
     with working_directory(dir):
-        prune_experiment_scaffold(preserve_files={"README.md"})
+        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
 
 
 def update_image_tag(file):

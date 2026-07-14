@@ -20,13 +20,31 @@ from psynet.command_line import (
     _check_constraints,
     _create_sql_profile_run_dir,
     _enable_sql_profile,
+    _missing_scaffold_boilerplate,
     check_dockerfile,
     psynet,
     update_scripts_,
 )
-from psynet.experiment_scaffold import prune_experiment_scaffold
+from psynet.experiment_scaffold import (
+    _remove_empty_parent_dirs,
+    prune_experiment_scaffold,
+)
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import working_directory
+
+
+@pytest.fixture(autouse=True)
+def stub_scaffold_constraints_generation(monkeypatch):
+    """Avoid dependency resolution while exercising scaffold orchestration."""
+
+    @click.command()
+    def generate_constraints():
+        Path("constraints.txt").write_text("# generated constraints\n")
+
+    monkeypatch.setattr(
+        "dallinger.command_line.generate_constraints", generate_constraints
+    )
+    monkeypatch.setattr("psynet.command_line.reset_console", lambda: None)
 
 
 class TestCommandLine(object):
@@ -854,6 +872,20 @@ def test_scripts_scaffold_bootstraps_empty_directory():
             assert "psynet" in Path("requirements.txt").read_text()
             assert Path("Dockerfile").exists()
             assert Path("config.txt").exists()
+            assert Path("constraints.txt").read_text() == "# generated constraints\n"
+
+
+def test_scripts_scaffold_uses_running_python_version(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_python_major_minor",
+        lambda: "3.14",
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / ".python-version").read_text() == "3.14\n"
 
 
 def test_scripts_scaffold_escapes_directory_name_in_experiment_label(tmp_path):
@@ -870,17 +902,21 @@ def test_scripts_scaffold_escapes_directory_name_in_experiment_label(tmp_path):
     assert "label = 'my \"demo\"'" in source
 
 
-def test_scripts_scaffold_generates_valid_alpha_requirement(tmp_path, monkeypatch):
+def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monkeypatch):
     from psynet.command_line import check_psynet_requirement_is_unambiguous
 
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda: "a" * 40,
+    )
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
 
         assert result.exit_code == 0, result.output
         assert Path("requirements.txt").read_text().splitlines()[0] == (
-            "psynet==13.4.0a0"
+            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{'a' * 40}#egg=psynet"
         )
         check_psynet_requirement_is_unambiguous()
 
@@ -898,6 +934,44 @@ def test_scripts_scaffold_rejects_conflicting_directory_name():
             assert "Python's module 'code'" in result.output
             assert not Path("experiment.py").exists()
             assert not Path("Dockerfile").exists()
+
+
+def test_scripts_scaffold_rejects_dotted_directory_name(tmp_path):
+    experiment_directory = tmp_path / "experiment.v2"
+    experiment_directory.mkdir()
+
+    with working_directory(experiment_directory):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code != 0
+    assert "cannot import this experiment reliably" in result.output
+    assert not (experiment_directory / "experiment.py").exists()
+
+
+def test_scripts_scaffold_preserves_existing_constraints(tmp_path):
+    constraints = "# existing constraints\n"
+    (tmp_path / "constraints.txt").write_text(constraints)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "constraints.txt").read_text() == constraints
+
+
+def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_path):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    config = {'title': 'X'}\n")
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# existing constraints\n")
+    (tmp_path / "config.txt").touch()
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+        missing_boilerplate = _missing_scaffold_boilerplate()
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "config.txt").read_text() == ""
+    assert "config.txt" not in missing_boilerplate
 
 
 def test_scripts_scaffold_allows_incomplete_experiment_py():
@@ -1015,16 +1089,13 @@ def test_update_scripts_alias_emits_deprecation_warning():
         with working_directory(dir):
             Path("experiment.py").write_text("class Exp:\n    pass\n")
 
-            with pytest.warns(
-                DeprecationWarning,
-                match=(
-                    r"psynet update-scripts is deprecated; "
-                    r"use 'psynet scripts update' instead\."
-                ),
-            ):
-                result = runner.invoke(psynet, ["update-scripts"])
+            result = runner.invoke(psynet, ["update-scripts"])
 
             assert result.exit_code == 0
+            assert (
+                "psynet update-scripts is deprecated; "
+                "use 'psynet scripts update' instead."
+            ) in result.output
             assert Path("Dockerfile").exists()
 
 
@@ -1066,6 +1137,39 @@ def test_scripts_prune_removes_boilerplate_and_keeps_readme():
             assert Path("test.py").exists() is False
             assert Path("config.txt").exists() is False
             assert Path("docker").exists() is False
+
+
+def test_scripts_prune_preserves_modified_boilerplate_without_force(tmp_path):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        update_scripts_()
+        Path("test.py").write_text("# Custom test\n")
+        Path("docker/psynet").write_text("# Custom helper\n")
+
+        result = CliRunner().invoke(psynet, ["scripts", "prune"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "test.py").read_text() == "# Custom test\n"
+    assert (tmp_path / "docker/psynet").read_text() == "# Custom helper\n"
+    assert "Preserved modified scaffold path 'test.py'" in result.output
+    assert "Preserved modified scaffold path 'docker'" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
+
+
+def test_scripts_prune_force_removes_modified_boilerplate(tmp_path):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        update_scripts_()
+        Path("test.py").write_text("# Custom test\n")
+        Path("docker/psynet").write_text("# Custom helper\n")
+
+        result = CliRunner().invoke(psynet, ["scripts", "prune", "--force"])
+
+    assert result.exit_code == 0, result.output
+    assert not (tmp_path / "test.py").exists()
+    assert not (tmp_path / "docker").exists()
 
 
 def test_scripts_group_help_lists_subcommands():
@@ -1147,6 +1251,42 @@ def test_prune_experiment_scaffold_keeps_readme_only():
             assert Path("test.py").exists() is False
             assert Path("config.txt").read_text() == custom_config
             assert Path("docker").exists() is False
+
+
+def test_prune_experiment_scaffold_propagates_directory_deletion_errors(
+    tmp_path, monkeypatch
+):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        update_scripts_()
+
+        def fail_unless_errors_are_ignored(path, *, ignore_errors=False):
+            if not ignore_errors:
+                raise PermissionError(path)
+
+        monkeypatch.setattr(
+            "psynet.experiment_scaffold.shutil.rmtree",
+            fail_unless_errors_are_ignored,
+        )
+
+        with pytest.raises(PermissionError, match="docker"):
+            prune_experiment_scaffold(preserve_files={"README.md"})
+
+
+def test_remove_empty_parent_dirs_stops_at_workspace_root(tmp_path, monkeypatch):
+    nested_directory = tmp_path / ".github/workflows"
+    nested_directory.mkdir(parents=True)
+    original_rmdir = Path.rmdir
+
+    def guarded_rmdir(path):
+        assert path.resolve() != tmp_path.resolve()
+        return original_rmdir(path)
+
+    monkeypatch.setattr(Path, "rmdir", guarded_rmdir)
+    with working_directory(tmp_path):
+        _remove_empty_parent_dirs(Path(".github/workflows"))
+
+    assert not (tmp_path / ".github").exists()
 
 
 def test_abort_if_app_exists():
