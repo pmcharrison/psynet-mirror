@@ -377,8 +377,8 @@ There are a few key things to note here.
 - The control is specified like an ordinary HTML file, but the customizable aspects are acquired
   from the ``params`` object using curly bracket notation.
 - Page-local CSS and JavaScript should be supplied through page arguments such as
-  ``css``, ``css_links``, ``scripts``, and ``js_links`` rather than by putting
-  ``<style>`` or ``<script>`` blocks inside the macro template.
+  ``css``, ``css_links``, ``js_dependencies``, and ``js_page_scripts`` rather
+  than by putting ``<style>`` or ``<script>`` blocks inside the macro template.
 - In the accompanying JavaScript, the user must define a JS function called ``retrieveResponse`` that,
   when called, should return an object containing the following:
 

@@ -64,7 +64,7 @@ the contents of the page's ``main_body`` block by using ``template_fragment_path
                 label="my_page",
                 template_fragment_path="templates/my-page.html",
                 css_links=["/static/my-page.css"],
-                js_links=["/static/my-page.js"],
+                js_page_scripts=["/static/my-page.js"],
                 time_estimate=5,
             )
 
@@ -83,20 +83,17 @@ arguments:
 * Prefer ``template_fragment_path`` for experiment templates stored in
   ``templates/``. ``template_fragment_str`` is useful for small generated
   fragments, but file-based fragments are usually clearer for authored pages.
-* Prefer ``css_links`` and ``js_links`` for authored page-local CSS and
-  JavaScript files stored in ``static/``.
-* Use ``css`` and ``scripts`` for small generated snippets when file-based
-  assets would be less clear.
-* Use PsyNet lifecycle hooks such as ``psynet.trial.onEvent("trialConstruct",
-  ...)`` for page setup.
-* Use ``psynet.addPageEventListener(...)`` for event listeners that should be
-  removed automatically on page cleanup.
-* Use ``psynet.addPageCleanupCallback(...)`` for resources that must not survive
-  a page swap, such as timers, websockets, or media resources.
+* Use ``css_links`` for authored page-local CSS files stored in ``static/``.
+* Use ``js_dependencies`` for JavaScript libraries that are loaded once per
+  browser document.
+* Use ``js_page_scripts`` for JavaScript behavior activated for each page.
+  Each file exports ``activate(context)`` and may return a cleanup function.
+* Use ``css`` for small generated style snippets when a file would be less
+  clear.
 
 Custom prompts and controls supply the equivalent assets from Python through
-``get_css()``, ``get_scripts()``, ``get_js_links()`` and ``get_js_vars()``,
-which are described in the sections below.
+``get_css()``, ``get_js_dependencies()``, ``get_js_page_scripts()`` and
+``get_js_vars()``, which are described in the sections below.
 
 Do not rely on ``DOMContentLoaded`` for page setup when using in-place
 transitions. In-place transitions do not reload the browser document for every
@@ -121,8 +118,9 @@ patterns are:
 * ``window.addEventListener(...)`` without evidence of PsyNet cleanup. Use
   ``psynet.addPageEventListener(...)`` where possible, or register cleanup with
   ``psynet.addPageCleanupCallback(...)``.
-* Raw template ``<script>`` blocks. Use the ``scripts`` argument instead.
-* Template ``<script src=...>`` tags. Use the ``js_links`` argument instead.
+* Raw template ``<script>`` blocks. Use ``js_page_scripts`` instead.
+* Template ``<script src=...>`` tags. Use ``js_dependencies`` or
+  ``js_page_scripts`` according to the intended lifecycle.
 * Template ``<style>`` blocks. Use the ``css`` argument instead.
 * Template stylesheet ``<link rel="stylesheet">`` tags. Use the ``css_links``
   argument instead.
@@ -274,14 +272,19 @@ Custom controls are defined in a similar way. Looking in the same demo, we have 
             super().__init__()
             self.color = color
 
-        def get_js_links(self):
+        def get_js_page_scripts(self):
             return ["/static/color-text.js"]
 
         @property
         def metadata(self):
             return {"color": self.color}
 
-As before, the class has ``macro`` and ``external_template`` attributes, which tell PsyNet where to find the class’s Jinja macro. It additionally has a ``color`` instance attribute, which is set in the instance’s constructor function (``__init__()``). ``get_js_links()`` supplies a standalone script from the experiment's ``static`` directory. Lastly, it has a ``metadata`` method, which generates metadata that will be saved along with the participant’s response. This method is optional; if you implement it, it should provide some non-essential additional information about the participant’s response.
+As before, the class has ``macro`` and ``external_template`` attributes, which
+tell PsyNet where to find the class’s Jinja macro. It additionally has a
+``color`` instance attribute, which is set in the instance’s constructor
+function (``__init__()``). ``get_js_page_scripts()`` supplies behavior that
+PsyNet activates for each hosting page. Lastly, it has a ``metadata`` method,
+which generates optional information saved with the participant’s response.
 
 This ``ColorText`` definition is complemented by the following macro definition in ``custom-controls.html``:
 
@@ -298,19 +301,25 @@ file contains the behavior:
 
 .. code-block:: javascript
 
-    (function () {
-        psynet.setStageResponseHandler(function () {
-            psynet.response.staged.rawAnswer =
-                document.getElementById("text-input").value;
-        });
-    })();
+    export async function activate({root, psynet}) {
+        const input = root.querySelector("#text-input");
+
+        function stageResponse() {
+            psynet.response.staged.rawAnswer = input.value;
+        }
+
+        psynet.setStageResponseHandler(stageResponse);
+        return function cleanup() {
+            psynet.clearStageResponseHandler();
+        };
+    }
 
 The ``textarea`` is a standard HTML element corresponding to a text box. Its
 customizable background color comes from ``config.color``. The JavaScript
 handler extracts the current contents and stages them so that the response is
-submitted when the page is exited. Keeping the implementation in an IIFE avoids
-creating global functions, and PsyNet clears the response handler on page
-cleanup.
+submitted when the page is exited. PsyNet loads the file as a JavaScript module,
+calls ``activate()`` for each hosting page, and calls the returned cleanup
+function before leaving.
 
 In some cases we might want to postprocess this response in Python before we save it. This can be achieved by writing a custom ``format_answer`` method for the custom ``Control`` class. For example, if we wanted to capitalize all the responses, we could write something like this:
 
@@ -365,12 +374,37 @@ owned by the prompt or control, use a descriptive shared namespace such as
 ``psynet.page.myTask`` instead. This makes the dependency explicit without
 creating a global function on ``window``.
 
-For substantial reusable code, put the implementation in a standalone file in
-the experiment's ``static`` directory and load it with ``get_js_links()``.
-Reserve ``get_scripts()`` for short page-initialization code. Components that
-should remain loosely coupled can communicate with custom events; register
-listeners with ``psynet.addPageEventListener()`` so PsyNet removes them during
-page cleanup.
+Managing JavaScript lifecycles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PsyNet distinguishes loading code from activating page behavior:
+
+* ``js_dependencies`` contains URLs of classic JavaScript files loaded once per
+  browser document. Components return the same URLs from
+  ``get_js_dependencies()``.
+* ``js_page_scripts`` contains URLs of JavaScript modules whose exported
+  ``activate(context)`` function runs for each hosting page. Components return
+  the same URLs from ``get_js_page_scripts()``.
+
+The activation context contains ``root`` (the page's ``#main-body`` element),
+``trial``, ``vars`` (the current ``psynet.var``), ``page``, and ``psynet``.
+``activate()`` may be asynchronous and may return an asynchronous cleanup
+function. PsyNet runs cleanup functions in reverse activation order before
+leaving the page. Returning cleanup keeps resources such as event listeners,
+timers, and WebSockets tied to the exact page instance that created them.
+
+The module file itself is imported once and cached by the browser. PsyNet calls
+its exported ``activate()`` function again whenever the behavior is used on a
+new page. This separation avoids rerunning library top-level code while still
+initializing fresh page state.
+
+The older ``js_links``, ``scripts``, ``get_js_links()``, and ``get_scripts()``
+APIs remain available during migration. ``legacy_page_javascript`` controls
+their treatment:
+
+* ``allow`` preserves them without a warning.
+* ``warn`` (default) preserves them and writes one browser-console warning.
+* ``error`` rejects pages that still use them.
 
 Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
 global access is deprecated because in-place timeline transitions reuse the
