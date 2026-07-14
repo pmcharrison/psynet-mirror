@@ -3511,9 +3511,6 @@ def _start_local_server_and_wait_for_ready(
 ):
     """Spawn ``psynet <command_args>`` and wait for launch completion.
 
-    This starts exactly one command. Callers choose the debug mode explicitly;
-    there is no automatic fallback between legacy and normal debug.
-
     Parameters
     ----------
     command_args : list[str]
