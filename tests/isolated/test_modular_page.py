@@ -212,6 +212,24 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
     ]
 
 
+def test_modular_page_accepts_tuple_javascript_resources():
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        js_dependencies=("/static/first-library.js", "/static/second-library.js"),
+        js_page_scripts=("/static/first-page.js", "/static/second-page.js"),
+    )
+
+    assert page.js_dependencies == [
+        "/static/first-library.js",
+        "/static/second-library.js",
+    ]
+    assert page.js_page_scripts == [
+        "/static/first-page.js",
+        "/static/second-page.js",
+    ]
+
+
 def test_duplicate_component_js_vars_raise():
     class CollidingPrompt(Prompt):
         def get_js_vars(self):

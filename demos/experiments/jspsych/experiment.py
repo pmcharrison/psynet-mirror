@@ -19,6 +19,7 @@ class Exp(psynet.experiment.Experiment):
     label = "jsPsych demo"
 
     timeline = Timeline(
+        InfoPage("The jsPsych task begins on the next page.", time_estimate=1),
         JsPsychPage(
             "reaction_time_task",
             timeline="templates/reaction-time-task.html",
