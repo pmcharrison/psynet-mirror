@@ -10,7 +10,6 @@ import subprocess
 import sys
 import tempfile
 import threading
-import warnings
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -134,7 +133,7 @@ def _missing_scaffold_boilerplate():
         missing.append(".gitignore")
 
     config_txt = Path("config.txt")
-    if not config_txt.exists() or config_txt.stat().st_size == 0:
+    if not config_txt.exists():
         missing.append("config.txt")
 
     return missing
@@ -2877,8 +2876,25 @@ def _assert_directory_is_scaffoldable():
         raise click.UsageError(str(exc)) from exc
 
 
+def _generate_constraints_if_missing(ctx):
+    """Generate a non-empty constraints file when scaffolding needs one."""
+    constraints_path = Path("constraints.txt")
+    if constraints_path.is_file() and constraints_path.stat().st_size > 0:
+        return
+    if constraints_path.exists():
+        raise click.UsageError("constraints.txt exists but is not a regular file.")
+
+    click.echo("Generating missing constraints.txt...")
+    ctx.invoke(generate_constraints)
+    if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
+        raise click.ClickException(
+            "Failed to generate a non-empty constraints.txt file."
+        )
+
+
 @scripts.command("scaffold")
-def scripts_scaffold():
+@click.pass_context
+def scripts_scaffold(ctx):
     """
     Create any missing PsyNet boilerplate files for the experiment directory.
 
@@ -2887,6 +2903,7 @@ def scripts_scaffold():
     """
     _assert_directory_is_scaffoldable()
     scaffold_experiment_directory(include_optional_files=True)
+    _generate_constraints_if_missing(ctx)
 
 
 @scripts.command("update")
@@ -2899,14 +2916,20 @@ def scripts_update():
 
 
 @scripts.command("prune")
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Remove modified scaffold-managed files as well.",
+)
 @require_exp_directory
-def scripts_prune():
+def scripts_prune(force):
     """
     Remove scaffold-managed boilerplate files from the experiment directory.
 
-    Authored experiment files are preserved. ``README.md`` is kept by default.
+    ``README.md``, custom ``config.txt`` files, and other modified files are
+    preserved by default. Use ``--force`` to remove other modified boilerplate.
     """
-    prune_experiment_scaffold(preserve_files={"README.md"})
+    prune_experiment_scaffold(preserve_files={"README.md"}, force=force)
 
 
 @psynet.command("update-scripts")
@@ -2915,10 +2938,9 @@ def update_scripts():
     """
     Deprecated alias for ``psynet scripts update``.
     """
-    warnings.warn(
+    click.echo(
         "psynet update-scripts is deprecated; use 'psynet scripts update' instead.",
-        DeprecationWarning,
-        stacklevel=2,
+        err=True,
     )
     update_scripts_()
 
