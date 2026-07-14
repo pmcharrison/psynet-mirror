@@ -75,7 +75,7 @@ def test_partial_script_deferral_replaces_existing_type_attribute():
     deferred = Page._defer_executable_scripts(html)
 
     assert deferred.count('type="text/psynet-script"') == 2
-    assert 'type="module"' not in deferred
+    assert ' type="module"' not in deferred
     assert 'data-psynet-original-script-type="module"' in deferred
     assert 'data-example="1"' in deferred
     assert 'type="application/json"' in deferred
