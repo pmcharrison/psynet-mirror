@@ -1,5 +1,5 @@
-export async function activate({root, trial}) {
-    const slider = root.querySelector("#slider");
+export async function activate({root, trial, psynet}) {
+    const slider = psynet.page.control.slider.element;
     let intervalId;
 
     function updateValue() {

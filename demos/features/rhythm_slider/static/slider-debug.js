@@ -1,5 +1,5 @@
 export async function activate({root, trial, vars, psynet}) {
-    const slider = root.querySelector("#slider");
+    const slider = psynet.page.control.slider.element;
     let intervalId;
 
     function findClosestAudio() {

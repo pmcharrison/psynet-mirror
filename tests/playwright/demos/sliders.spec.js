@@ -22,7 +22,7 @@ for (const [name, experimentDir, marker] of [
       async (experimentPage) => {
         await completeInitialGateway(experimentPage);
         await assertExpectedTimelinePathActive(experimentPage, 20000);
-        await expect(experimentPage.locator("#slider")).toBeVisible({
+        await expect(experimentPage.locator("input.slider-range")).toBeVisible({
           timeout: STEP_TIMEOUT_MS
         });
         await expect(experimentPage.locator(marker)).not.toHaveText("NA", {
