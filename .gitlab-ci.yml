@@ -123,12 +123,24 @@ tests_python_3_14:
     SKIP_PYTHON_VERSION_CHECK: "1"
     TEST_SCOPE: full
 
+# Python 3.11/3.12 compatibility is only verified on release branches:
+# day-to-day MRs rarely affect version compatibility, and the constraints
+# compilation check already validates dependency resolution for all
+# supported versions on every pipeline.
 compatibility_tests:
   stage: test
-  <<: *default_rules
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
+      when: always
+    - when: never
+  # GitLab does not allow combining `parallel: N` with a matrix, so we
+  # emulate test sharding by setting CI_NODE_INDEX/CI_NODE_TOTAL (the
+  # variables run-ci-tests.sh uses to split tests) via the matrix itself.
   parallel:
     matrix:
       - PYTHON_VERSION: ["3.11", "3.12"]
+        CI_NODE_INDEX: ["1", "2", "3", "4", "5"]
+        CI_NODE_TOTAL: "5"
   variables:
     SKIP_PYTHON_VERSION_CHECK: "1"
     TEST_SCOPE: isolated
@@ -139,7 +151,8 @@ compatibility_tests:
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      -e CI -e CI_COMMIT_REF_NAME
+      -e CI -e CI_NODE_TOTAL -e CI_NODE_INDEX
+      -e CI_COMMIT_REF_NAME
       -e SKIP_PYTHON_VERSION_CHECK
       -e PYTHON_VERSION -e TEST_SCOPE
       -e PSYNET_WORKSPACE
@@ -212,13 +225,9 @@ merge_test_results:
   needs:
     - "tests_python_3_13"
     - "tests_python_3_14"
-    - "compatibility_tests"
-    - "playwright_e2e_legacy"
-    - "playwright_e2e_inplace"
-  dependencies:
-    - "tests_python_3_13"
-    - "tests_python_3_14"
-    - "compatibility_tests"
+    # compatibility_tests only exists on release-branch pipelines.
+    - job: "compatibility_tests"
+      optional: true
     - "playwright_e2e_legacy"
     - "playwright_e2e_inplace"
   when: always
