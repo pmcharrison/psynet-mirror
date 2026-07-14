@@ -981,6 +981,37 @@ def test_start_local_server_uses_exact_command_args():
     _stop_server(server_info)
 
 
+@pytest.mark.parametrize(
+    ("exception_name", "expected_message"),
+    [
+        ("EOF", "Server process exited before becoming ready"),
+        ("TIMEOUT", "Server failed to start within 5 seconds"),
+    ],
+)
+def test_start_local_server_reports_the_correct_failure(
+    capsys, exception_name, expected_message
+):
+    from psynet.command_line import (
+        _start_local_server_and_wait_for_ready,
+        pexpect,
+    )
+
+    process = Mock()
+    process.expect_exact.side_effect = getattr(pexpect, exception_name)("failed")
+    process.before = "underlying server error"
+    process.isalive.return_value = False
+
+    with (
+        patch("psynet.command_line.pexpect.spawn", return_value=process),
+        pytest.raises(click.ClickException, match="Failed to start experiment server"),
+    ):
+        _start_local_server_and_wait_for_ready(["debug", "local"], max_wait=5)
+
+    captured = capsys.readouterr()
+    assert expected_message in captured.err
+    assert "underlying server error" in captured.err
+
+
 def test_stop_server_gracefully_stops_debug_subprocess():
     from psynet.command_line import _stop_server
 
