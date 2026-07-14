@@ -252,7 +252,7 @@ test("in-place timeline transitions preload linked CSS before swapping DOM", asy
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await expect(experimentPage.locator("#main-body")).toContainText(
-      "Deferred page script lifecycle page",
+      "Embedded script lifecycle page",
       { timeout: STEP_TIMEOUT_MS }
     );
 
@@ -270,7 +270,7 @@ test("in-place timeline transitions preload linked CSS before swapping DOM", asy
       .poll(() => stylesheetRequested, { timeout: STEP_TIMEOUT_MS })
       .toBe(true);
     await expect(experimentPage.locator("#main-body")).toContainText(
-      "Deferred page script lifecycle page",
+      "Embedded script lifecycle page",
       { timeout: STEP_TIMEOUT_MS }
     );
     await expect(experimentPage.locator("#main-body")).not.toContainText(
@@ -304,7 +304,7 @@ test("in-place timeline transitions manage stylesheets that target shell element
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(
       experimentPage,
-      "Deferred page script lifecycle page",
+      "Embedded script lifecycle page",
       STEP_TIMEOUT_MS
     );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);

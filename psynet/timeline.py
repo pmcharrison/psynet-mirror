@@ -1676,7 +1676,7 @@ class Page(Elt):
         #
         # `allow_scripts` is set for page content/prompt markup, where embedded
         # <script> tags are a supported pattern: PsyNet defers and replays them
-        # across in-place transitions (see Page._defer_executable_scripts). The
+        # across in-place transitions (see Page._make_embedded_scripts_inert). The
         # prohibition still applies to author-provided page/prompt/control
         # templates, which should route page JavaScript through scripts/js_links.
         problems = []
@@ -1762,11 +1762,12 @@ class Page(Elt):
     @staticmethod
     def _extract_partial_render(rendered_html):
         soup = BeautifulSoup(rendered_html, "html.parser")
-        Page._defer_executable_scripts(soup)
+        Page._make_embedded_scripts_inert(soup)
         return Page._extract_partial_body(soup)
 
     @staticmethod
-    def _defer_executable_scripts(soup):
+    def _make_embedded_scripts_inert(soup):
+        """Make rendered HTML scripts inert until the fragment is activated."""
         parsed_from_string = isinstance(soup, str)
         if parsed_from_string:
             soup = BeautifulSoup(soup, "html.parser")

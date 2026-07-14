@@ -413,6 +413,36 @@ its exported ``activate()`` function again whenever the behavior is used on a
 new page. This separation avoids rerunning library top-level code while still
 initializing fresh page state.
 
+Embedded HTML scripts
+^^^^^^^^^^^^^^^^^^^^^
+
+PsyNet also supports scripts embedded directly in rendered HTML. These are
+literal ``<script>`` elements produced by framework macros or supported page
+content. They are not another public resource argument and should not be
+confused with ``js_page_scripts``.
+
+On a full page load, the browser executes embedded scripts while parsing the
+document. During an in-place transition, HTML insertion does not execute
+scripts automatically, so PsyNet makes them inert on the server, inserts the
+fragment, and then replays them in DOM order. Linked embedded scripts are
+loaded once per browser document; inline embedded scripts run on each page
+activation. Embedded scripts run after ``js_dependencies`` and before
+``js_page_scripts``.
+
+Classic inline scripts are grouped into a page-local function during in-place
+replay. They should therefore not rely on top-level ``var`` or function
+declarations becoming browser globals, or on sharing local variables with a
+``js_page_scripts`` module. Use ``psynet.page``, ``js_vars``, or an explicit
+module interface when code needs to communicate across components.
+
+For new PsyNet ``Prompt`` and ``Control`` contributions, prefer
+``get_js_page_scripts()`` by default. Its ``activate()`` contract is explicit,
+testable, and supports cleanup for persistent resources. An embedded script is
+still reasonable for short behavior that is tightly coupled to a PsyNet-owned
+macro, benefits substantially from nearby Jinja values, and uses only page DOM
+or trial-owned resources. Author-owned external templates should remain
+markup-only and use ``get_js_page_scripts()`` instead.
+
 The older ``js_links`` and ``scripts`` Page arguments have been removed. Run
 the repo-local ``/migrate-page-javascript`` skill for a guided migration from
 these arguments to the explicit dependency and page-script lifecycles.

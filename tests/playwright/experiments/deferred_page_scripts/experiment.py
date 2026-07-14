@@ -58,7 +58,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage(
             Markup(
                 """
-                <p>Deferred page script lifecycle page</p>
+                <p>Embedded script lifecycle page</p>
                 <p id="managed-javascript-marker">Managed JavaScript has not activated</p>
                 <script>
                     window.__psynetManagedDependencyAvailableInBody =

@@ -720,7 +720,7 @@
     // Framework templates and supported page markup may still contain internal
     // scripts. Partial rendering makes them inert; replay them in DOM order
     // after the fragment swap while avoiding duplicate linked libraries.
-    psynet.getDeferredPageScripts = function () {
+    psynet.getEmbeddedScripts = function () {
       let mainBody = document.getElementById("main-body");
       if (!mainBody) {
         return [];
@@ -924,7 +924,7 @@
       psynet.refreshTemplateData();
       await psynet.rebuildTrial();
       await psynet.loadJSDependencies();
-      await psynet.executeScriptSequence(psynet.getDeferredPageScripts(), {
+      await psynet.executeScriptSequence(psynet.getEmbeddedScripts(), {
         skipIfLoaded: true,
       });
       await psynet.activateJSPageScripts();
