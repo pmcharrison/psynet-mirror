@@ -3511,9 +3511,6 @@ def _start_local_server_and_wait_for_ready(
 ):
     """Spawn ``psynet <command_args>`` and wait for launch completion.
 
-    This starts exactly one command. Callers choose the debug mode explicitly;
-    there is no automatic fallback between legacy and normal debug.
-
     Parameters
     ----------
     command_args : list[str]
@@ -3566,12 +3563,16 @@ def _start_local_server_and_wait_for_ready(
             "tmp_log_path": tmp_log_path,
             "log_file": log_file,
         }
-    except (pexpect.TIMEOUT, pexpect.EOF):
+    except (pexpect.TIMEOUT, pexpect.EOF) as exc:
         recent_output = (process.before or "").splitlines()[-50:]
         _terminate_server_process(process)
 
+        if isinstance(exc, pexpect.EOF):
+            failure_message = "Server process exited before becoming ready"
+        else:
+            failure_message = f"Server failed to start within {max_wait} seconds"
         print(
-            f"\n❌ Server failed to start within {max_wait} seconds",
+            f"\n❌ {failure_message}",
             file=sys.stderr,
         )
         if recent_output:
