@@ -15,7 +15,6 @@ from markupsafe import Markup
 from .asset import Asset, LocalStorage
 from .bot import BotResponse
 from .chatroom import ChatRoom  # noqa: F401
-from .javascript import JSDependency, JSPageScript
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
     NoArgumentProvided,
@@ -4438,11 +4437,11 @@ class MusicNotationPrompt(Prompt):
 
     def get_js_dependencies(self):
         """Load the abcjs rendering library once per browser document."""
-        return [JSDependency("/static/scripts/abc-js/abcjs-basic.js")]
+        return ["/static/scripts/abc-js/abcjs-basic.js"]
 
     def get_js_page_scripts(self):
         """Activate score rendering for each hosting page."""
-        return [JSPageScript("/static/scripts/music-notation-prompt.js")]
+        return ["/static/scripts/music-notation-prompt.js"]
 
     def get_js_vars(self):
         """Provide the ABC notation consumed by the page script."""

@@ -35,11 +35,6 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject
-from .javascript import (
-    JSDependency,
-    JSPageScript,
-    _normalize_javascript_resources,
-)
 from .serialize import is_lambda_function, prepare_function_for_serialization
 from .utils import (
     NoArgumentProvided,
@@ -62,6 +57,23 @@ if TYPE_CHECKING:
     from .participant import Participant
 
 logger = get_logger()
+
+
+def _normalize_javascript_urls(urls, argument_name):
+    """Validate and normalize a list of JavaScript resource URLs."""
+    if urls is None:
+        return []
+    if not isinstance(urls, (list, tuple)):
+        raise TypeError(f"{argument_name} must be a list or tuple.")
+
+    normalized = []
+    for url in urls:
+        if not isinstance(url, str):
+            raise TypeError(f"{argument_name} entries must be strings.")
+        if not url.strip():
+            raise ValueError(f"{argument_name} entries must be non-empty.")
+        normalized.append(url)
+    return normalized
 
 
 class Event(dict):
@@ -931,14 +943,11 @@ class Page(Elt):
         intended lifecycle.
 
     js_dependencies:
-        Optional JavaScript files to load once per browser document. Entries
-        may be URL strings or :class:`psynet.javascript.JSDependency` objects.
+        Optional list of JavaScript file URLs to load once per browser document.
 
     js_page_scripts:
         Optional JavaScript files activated for each page. Each file must export
         an ``activate(context)`` function and may return a cleanup function.
-        Entries may be URL strings or
-        :class:`psynet.javascript.JSPageScript` objects.
 
     media: :class:`psynet.timeline.MediaSpec`
         Optional specification of media assets to preload
@@ -1079,8 +1088,8 @@ class Page(Elt):
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
         js_links: Optional[List] = None,
-        js_dependencies: Optional[List[Union[str, JSDependency]]] = None,
-        js_page_scripts: Optional[List[Union[str, JSPageScript]]] = None,
+        js_dependencies: Optional[List[str]] = None,
+        js_page_scripts: Optional[List[str]] = None,
         media: Optional[MediaSpec] = None,
         scripts: Optional[List] = None,
         css: Optional[List] = None,
@@ -1161,11 +1170,11 @@ class Page(Elt):
         self.label = label
         self.js_vars = js_vars
         self.js_links = js_links
-        self.js_dependencies = _normalize_javascript_resources(
-            js_dependencies, JSDependency, "js_dependencies"
+        self.js_dependencies = _normalize_javascript_urls(
+            js_dependencies, "js_dependencies"
         )
-        self.js_page_scripts = _normalize_javascript_resources(
-            js_page_scripts, JSPageScript, "js_page_scripts"
+        self.js_page_scripts = _normalize_javascript_urls(
+            js_page_scripts, "js_page_scripts"
         )
 
         self.expected_repetitions = 1
@@ -1681,15 +1690,14 @@ class Page(Elt):
                 if script.get("src"):
                     problems.append(
                         f"{source_description} includes a page JavaScript link in a "
-                        "<script src=...> tag. Supply page JavaScript files via "
-                        "the Page js_links argument instead."
+                        "<script src=...> tag. Supply libraries via "
+                        "js_dependencies or page behavior via js_page_scripts."
                     )
                 else:
                     problems.append(
-                        f"{source_description} includes a raw <script> block. Supply "
-                        "page JavaScript via the Page scripts argument instead, "
-                        "and use PsyNet lifecycle hooks such as "
-                        "psynet.trial.onEvent('trialConstruct', ...) for page setup."
+                        f"{source_description} includes a raw <script> block. "
+                        "Move page behavior to a file supplied through "
+                        "js_page_scripts."
                     )
 
         if soup.find_all("style"):
@@ -1715,9 +1723,8 @@ class Page(Elt):
             problems.append(
                 f"{source_description} registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
-                "each page, so page setup should use PsyNet lifecycle hooks "
-                "such as psynet.trial.onEvent('trialConstruct', ...), or "
-                "page scripts supplied through scripts/js_links."
+                "each page, so page setup should use the activate(context) "
+                "function of a js_page_scripts file."
             )
 
         has_window_event_listener = re.search(
@@ -1746,8 +1753,8 @@ class Page(Elt):
             "marks the template as framework-owned. For custom pages used "
             "with inplace_timeline_transitions, pass "
             "template_fragment_path or template_fragment_str with only the "
-            "contents of the main_body block, and supply page-local CSS/JS via "
-            "css, css_links, scripts, and js_links. Search your experiment "
+            "contents of the main_body block, and supply page-local assets via "
+            "css, css_links, js_dependencies, and js_page_scripts. Search your experiment "
             f"code for Page(...) calls with label='{self.label}'."
         )
 

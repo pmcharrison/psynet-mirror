@@ -3,7 +3,6 @@ from flask import Flask
 from jinja2 import DictLoader
 from markupsafe import Markup
 
-from psynet.javascript import JSDependency, JSPageScript
 from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
     Control,
     ModularPage,
@@ -182,10 +181,10 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
 def test_components_contribute_managed_javascript_lifecycle_resources():
     class ManagedPrompt(Prompt):
         def get_js_dependencies(self):
-            return [JSDependency("/static/prompt-library.js")]
+            return ["/static/prompt-library.js"]
 
         def get_js_page_scripts(self):
-            return [JSPageScript("/static/prompt-page.js")]
+            return ["/static/prompt-page.js"]
 
     class ManagedControl(Control):
         macro = "control"
@@ -205,14 +204,14 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
     )
 
     assert page.js_dependencies == [
-        JSDependency("/static/prompt-library.js"),
-        JSDependency("/static/control-library.js"),
-        JSDependency("/static/page-library.js"),
+        "/static/prompt-library.js",
+        "/static/control-library.js",
+        "/static/page-library.js",
     ]
     assert page.js_page_scripts == [
-        JSPageScript("/static/prompt-page.js"),
-        JSPageScript("/static/control-page.js"),
-        JSPageScript("/static/page.js"),
+        "/static/prompt-page.js",
+        "/static/control-page.js",
+        "/static/page.js",
     ]
 
 
@@ -267,9 +266,7 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
         "show_history": True,
     }
     assert page.js_links == []
-    assert page.js_page_scripts == [
-        JSPageScript("/static/scripts/chatroom-widget.js")
-    ]
+    assert page.js_page_scripts == ["/static/scripts/chatroom-widget.js"]
     assert not any("__psynetChatroomConfig" in str(s) for s in page.scripts)
     # The macro itself must be markup-only (no inline <script>/<style>) so it
     # stays contract-compliant.
@@ -291,11 +288,9 @@ def test_music_notation_prompt_uses_managed_javascript():
     )
 
     assert page.js_dependencies == [
-        JSDependency("/static/scripts/abc-js/abcjs-basic.js")
+        "/static/scripts/abc-js/abcjs-basic.js"
     ]
-    assert page.js_page_scripts == [
-        JSPageScript("/static/scripts/music-notation-prompt.js")
-    ]
+    assert page.js_page_scripts == ["/static/scripts/music-notation-prompt.js"]
     assert page.js_vars["music_notation_prompt"] == {"content": "C D E F"}
 
 

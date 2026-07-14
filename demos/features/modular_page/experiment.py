@@ -5,7 +5,6 @@ from typing import Union
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.javascript import JSPageScript
 from psynet.modular_page import (
     AudioPrompt,
     Control,
@@ -54,7 +53,7 @@ class ColorText(Control):
         return "Hello, I am a bot!"
 
     def get_js_page_scripts(self):
-        return [JSPageScript("/static/color-text.js")]
+        return ["/static/color-text.js"]
 
 
 video_slider_media_spec = MediaSpec()

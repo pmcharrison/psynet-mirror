@@ -6,8 +6,8 @@
     <script id="psynet-template-data" type="application/json">
         {{ {
             "jsVars": js_vars,
-            "jsDependencies": js_dependencies | map(attribute="src") | list,
-            "jsPageScripts": js_page_scripts | map(attribute="src") | list,
+            "jsDependencies": js_dependencies,
+            "jsPageScripts": js_page_scripts,
             "legacyPageJavascript": {
                 "jsLinks": js_links,
                 "inlineScriptCount": scripts | length
@@ -256,6 +256,10 @@
 
     <script src="/static/scripts/jquery-3.7.1.min.js"></script>
     <script src="/static/scripts/JSZip/jszip.min.js"></script>
+
+    {% for dependency in js_dependencies %}
+        <script src="{{ dependency }}"></script>
+    {% endfor %}
 
     {% if not partial_mode %}
         {{ template_data_script() }}

@@ -1,16 +1,15 @@
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.javascript import JSDependency, JSPageScript
 from psynet.page import InfoPage
 from psynet.timeline import Page, Timeline
 
 
 MANAGED_JAVASCRIPT = {
-    "js_dependencies": [JSDependency("/static/page-lifecycle-dependency.js")],
+    "js_dependencies": ["/static/page-lifecycle-dependency.js"],
     "js_page_scripts": [
-        JSPageScript("/static/page-lifecycle-first.js"),
-        JSPageScript("/static/page-lifecycle-second.js"),
+        "/static/page-lifecycle-first.js",
+        "/static/page-lifecycle-second.js",
     ],
 }
 
@@ -41,6 +40,8 @@ class Exp(psynet.experiment.Experiment):
                 <p id="managed-javascript-marker">Managed JavaScript has not activated</p>
                 <script>
                     window.__psynetPageScriptOrder = ["body"];
+                    window.__psynetManagedDependencyAvailableInBody =
+                        window.__psynetManagedJavascript?.dependencyLoads === 1;
                 </script>
                 <script src="/static/redeclared-body-library.js"></script>
                 """
@@ -59,6 +60,8 @@ class Exp(psynet.experiment.Experiment):
                 <p id="managed-javascript-marker">Managed JavaScript has not activated</p>
                 <script>
                     window.__psynetPageScriptOrder = ["body"];
+                    window.__psynetManagedDependencyAvailableInBody =
+                        window.__psynetManagedJavascript?.dependencyLoads === 1;
                 </script>
                 <script src="/static/redeclared-body-library.js"></script>
                 <p id="body-library-load-count-marker">

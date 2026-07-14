@@ -1,18 +1,25 @@
 import pytest
 
-from psynet.javascript import JSDependency, JSPageScript
 from psynet.timeline import Page
 
 
-def test_javascript_resource_descriptors_validate_source():
-    assert JSDependency("/static/library.js").src == "/static/library.js"
-    assert JSPageScript("/static/page.js").src == "/static/page.js"
-
-    for resource_class in [JSDependency, JSPageScript]:
-        with pytest.raises(ValueError, match="non-empty"):
-            resource_class("")
-        with pytest.raises(TypeError, match="string"):
-            resource_class(123)
+@pytest.mark.parametrize("argument_name", ["js_dependencies", "js_page_scripts"])
+@pytest.mark.parametrize(
+    "invalid_value, error, match",
+    [
+        ([""], ValueError, "non-empty"),
+        ([123], TypeError, "strings"),
+        ("not-a-list", TypeError, "list or tuple"),
+    ],
+)
+def test_page_validates_managed_javascript_urls(
+    argument_name, invalid_value, error, match
+):
+    with pytest.raises(error, match=match):
+        Page(
+            template_fragment_str="<p>Managed JavaScript page</p>",
+            **{argument_name: invalid_value},
+        )
 
 
 def test_page_normalizes_javascript_resources():
@@ -20,21 +27,21 @@ def test_page_normalizes_javascript_resources():
         template_fragment_str="<p>Managed JavaScript page</p>",
         js_dependencies=[
             "/static/library.js",
-            JSDependency("/static/other-library.js"),
+            "/static/other-library.js",
         ],
         js_page_scripts=[
             "/static/page.js",
-            JSPageScript("/static/other-page.js"),
+            "/static/other-page.js",
         ],
     )
 
     assert page.js_dependencies == [
-        JSDependency("/static/library.js"),
-        JSDependency("/static/other-library.js"),
+        "/static/library.js",
+        "/static/other-library.js",
     ]
     assert page.js_page_scripts == [
-        JSPageScript("/static/page.js"),
-        JSPageScript("/static/other-page.js"),
+        "/static/page.js",
+        "/static/other-page.js",
     ]
 
 

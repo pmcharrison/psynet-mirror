@@ -3,7 +3,6 @@ import json
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 
 from .data import SQLBase, SQLMixin, register_table
-from .javascript import JSPageScript
 from .timeline import NullElt, WebSocketElt
 
 
@@ -243,4 +242,4 @@ class ChatRoom:
 
     def get_js_page_scripts(self):
         """Lifecycle-managed JavaScript activated for the hosting page."""
-        return [JSPageScript("/static/scripts/chatroom-widget.js")]
+        return ["/static/scripts/chatroom-widget.js"]

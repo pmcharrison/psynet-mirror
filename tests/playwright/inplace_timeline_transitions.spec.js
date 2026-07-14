@@ -94,6 +94,11 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         dependencyLoads: 1,
         events: ["activate:first", "activate:second"]
       });
+    expect(
+      await experimentPage.evaluate(
+        () => window.__psynetManagedDependencyAvailableInBody
+      )
+    ).toBe(true);
     await expect
       .poll(
         () =>
@@ -133,6 +138,11 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
           "activate:second"
         ]
       });
+    expect(
+      await experimentPage.evaluate(
+        () => window.__psynetManagedDependencyAvailableInBody
+      )
+    ).toBe(true);
     expect(
       warnings.filter((message) =>
         message.includes("Legacy page JavaScript is deprecated")

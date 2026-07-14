@@ -581,6 +581,10 @@
       }
     };
 
+    // Managed JavaScript has two explicit lifecycles. Dependencies are classic
+    // scripts loaded once per browser document. JS page scripts are imported
+    // modules whose activate(context) export runs for each page. Each activation
+    // may return cleanup tied to that exact page instance.
     psynet.activeJSPageScripts = [];
 
     psynet.loadJSDependencies = async function () {
@@ -607,6 +611,9 @@
             );
           }
 
+          // Keep page-specific objects in the activation context rather than
+          // module globals. A returned closure can then clean up the exact DOM,
+          // listeners, timers, or sockets created by this activation.
           let cleanup = await pageScript.activate({
             root,
             trial: psynet.trial,
@@ -635,6 +642,8 @@
       if (activations === psynet.activeJSPageScripts) {
         psynet.activeJSPageScripts = [];
       }
+      // Reverse order mirrors stack unwinding, so later page scripts release
+      // resources before scripts they may depend on.
       for (let activation of [...activations].reverse()) {
         if (!activation.cleanup) {
           continue;
@@ -946,8 +955,8 @@
       psynet.refreshTemplateData();
       await psynet.rebuildTrial();
       psynet.checkLegacyPageJavascript();
-      await psynet.executePageScriptManifest(psynet.getPageScriptManifest());
       await psynet.loadJSDependencies();
+      await psynet.executePageScriptManifest(psynet.getPageScriptManifest());
       await psynet.activateJSPageScripts();
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
