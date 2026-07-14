@@ -119,7 +119,7 @@ playwright_e2e_legacy:
       -e inplace_timeline_transitions=false
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright test tests/playwright/demos --reporter=line,junit,html"
+      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright test tests/playwright/demos tests/playwright/managed_page_javascript.spec.js --reporter=line,junit,html"
   artifacts:
     when: always
     paths:
@@ -145,7 +145,7 @@ playwright_e2e_default:
       -e PSYNET_WORKSPACE
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright test tests/playwright/demos tests/playwright/inplace_timeline_transitions.spec.js tests/playwright/same_session_page_update.spec.js tests/playwright/adversarial_lifecycle.spec.js tests/playwright/js_var_globals.spec.js --reporter=line,junit,html"
+      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright test tests/playwright/demos tests/playwright/inplace_timeline_transitions.spec.js tests/playwright/managed_page_javascript.spec.js tests/playwright/same_session_page_update.spec.js tests/playwright/adversarial_lifecycle.spec.js tests/playwright/js_var_globals.spec.js --reporter=line,junit,html"
   artifacts:
     when: always
     paths:
