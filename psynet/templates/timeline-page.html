@@ -6,6 +6,12 @@
     <script id="psynet-template-data" type="application/json">
         {{ {
             "jsVars": js_vars,
+            "jsDependencies": js_dependencies | map(attribute="src") | list,
+            "jsPageScripts": js_page_scripts | map(attribute="src") | list,
+            "legacyPageJavascript": {
+                "jsLinks": js_links,
+                "inlineScriptCount": scripts | length
+            },
             "events": events,
             "mediaRequests": page.media.data,
             "trialProgressDisplayConfig": trial_progress_display_config,
@@ -21,7 +27,8 @@
                 "checkParticipantOpenedDevtools": config.check_participant_opened_devtools,
                 "lucidRecruitment": experiment.with_lucid_recruitment(),
                 "inplaceTimelineTransitions": inplace_timeline_transitions,
-                "legacyJsVarGlobals": config.legacy_js_var_globals
+                "legacyJsVarGlobals": config.legacy_js_var_globals,
+                "legacyPageJavascript": config.legacy_page_javascript
             },
             "strings": {
                 "commentStored": pgettext("timeline_problem", "Comment stored."),
@@ -268,6 +275,10 @@
     {% if not partial_mode %}
         {{ super() }}
 
+        <script>
+            psynet.checkLegacyPageJavascript();
+        </script>
+
         {% for x in js_links %}
             <script src="{{ x }}"></script>
         {% endfor %}
@@ -279,13 +290,10 @@
         {% endfor %}
 
         <script>
-            psynet.initLucidTermination();
-            psynet.initPagePromise = psynet.initPage();
-        </script>
-
-        <script>
             (async function () {
-                await psynet.initPagePromise;
+                await psynet.activateManagedPageJavascript();
+                psynet.initLucidTermination();
+                await psynet.initPage();
                 await psynet.finalizePageReady();
             })();
         </script>

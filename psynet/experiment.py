@@ -1826,6 +1826,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_reward": True,
             "inplace_timeline_transitions": True,
             "legacy_js_var_globals": "warn",
+            "legacy_page_javascript": "warn",
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -2749,6 +2750,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     '`legacy_js_var_globals` must be one of: "warn", "error", or "off".'
                 )
 
+        def legacy_page_javascript_validator(value):
+            """Validate the legacy page JavaScript migration mode."""
+            if value not in {"allow", "warn", "error"}:
+                raise ValueError(
+                    "`legacy_page_javascript` must be one of: "
+                    '"allow", "warn", or "error".'
+                )
+
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
         config.register("lab_recruiter_external_submission_url", str)
@@ -2779,6 +2788,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "legacy_js_var_globals",
             str,
             validators=[legacy_js_var_globals_validator],
+        )
+        config.register(
+            "legacy_page_javascript",
+            str,
+            validators=[legacy_page_javascript_validator],
         )
         config.register("wage_per_hour", float)
         config.register("window_height", int)

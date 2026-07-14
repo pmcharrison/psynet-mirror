@@ -186,10 +186,18 @@ class Prompt:
         return {}
 
     def get_js_links(self):
-        """Page-local external JavaScript files this component contributes.
+        """Deprecated page-local JavaScript links contributed by this component.
 
-        Returned paths are supplied to the hosting ``ModularPage`` as ``js_links``.
+        Prefer :meth:`get_js_dependencies` or :meth:`get_js_page_scripts`.
         """
+        return []
+
+    def get_js_dependencies(self):
+        """JavaScript dependencies loaded once per browser document."""
+        return []
+
+    def get_js_page_scripts(self):
+        """Lifecycle-managed JavaScript activated for each hosting page."""
         return []
 
     def _collect_spa_markup_contract_problems(self):
@@ -778,10 +786,18 @@ class Control:
         return {}
 
     def get_js_links(self):
-        """Page-local external JavaScript files this control contributes.
+        """Deprecated page-local JavaScript links contributed by this control.
 
         See :meth:`Prompt.get_js_links`.
         """
+        return []
+
+    def get_js_dependencies(self):
+        """JavaScript dependencies loaded once per browser document."""
+        return []
+
+    def get_js_page_scripts(self):
+        """Lifecycle-managed JavaScript activated for each hosting page."""
         return []
 
     @property
@@ -2009,11 +2025,23 @@ class ModularPage(Page):
         js_links = [
             link for _, component in components for link in component.get_js_links()
         ]
+        js_dependencies = [
+            dependency
+            for _, component in components
+            for dependency in component.get_js_dependencies()
+        ]
+        js_page_scripts = [
+            script
+            for _, component in components
+            for script in component.get_js_page_scripts()
+        ]
 
         for key, collected in (
             ("css", css),
             ("scripts", scripts),
             ("js_links", js_links),
+            ("js_dependencies", js_dependencies),
+            ("js_page_scripts", js_page_scripts),
         ):
             if key in kwargs:
                 extra = kwargs.pop(key)
@@ -2059,6 +2087,8 @@ class ModularPage(Page):
             css=css,
             scripts=scripts,
             js_links=js_links,
+            js_dependencies=js_dependencies,
+            js_page_scripts=js_page_scripts,
             framework_owned_template=True,
             **kwargs,
         )

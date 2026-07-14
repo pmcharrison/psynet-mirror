@@ -21,6 +21,7 @@
   let warnedLegacyJsVarGlobalCollisionKeys = new Set();
   let warnedLegacyJsVarGlobalLockedKeys = new Set();
   let warnedLegacyJsVarGlobalKeys = new Set();
+  let warnedLegacyPageJavascriptSignatures = new Set();
 
   let getLegacyJsVarGlobalMode = function () {
     let mode = psynetTemplateData.flags?.legacyJsVarGlobals || "warn";
@@ -552,6 +553,109 @@
       });
     };
 
+    psynet.checkLegacyPageJavascript = function () {
+      let legacy = psynetTemplateData.legacyPageJavascript || {};
+      let jsLinks = legacy.jsLinks || [];
+      let inlineScriptCount = legacy.inlineScriptCount || 0;
+      if (jsLinks.length === 0 && inlineScriptCount === 0) {
+        return;
+      }
+
+      let mode =
+        psynetTemplateData.flags?.legacyPageJavascript || "warn";
+      let message =
+        "Legacy page JavaScript is deprecated. Replace js_links with " +
+        "js_dependencies or js_page_scripts, and replace scripts with " +
+        "js_page_scripts.";
+      if (mode === "error") {
+        throw new Error(message);
+      }
+      if (mode === "allow") {
+        return;
+      }
+
+      let signature = "legacy-page-javascript";
+      if (!warnedLegacyPageJavascriptSignatures.has(signature)) {
+        warnedLegacyPageJavascriptSignatures.add(signature);
+        console.warn(message);
+      }
+    };
+
+    psynet.activeJSPageScripts = [];
+
+    psynet.loadJSDependencies = async function () {
+      psynet.rememberLoadedDocumentScripts();
+      for (let src of psynetTemplateData.jsDependencies || []) {
+        await psynet.executeExternalScript(src, { skipIfLoaded: true });
+      }
+    };
+
+    psynet.activateJSPageScripts = async function () {
+      let root = document.getElementById("main-body");
+      if (!root) {
+        throw new Error("Cannot activate JS page scripts without #main-body.");
+      }
+
+      let activated = [];
+      try {
+        for (let src of psynetTemplateData.jsPageScripts || []) {
+          let normalizedSrc = new URL(src, window.location.href).href;
+          let pageScript = await import(normalizedSrc);
+          if (typeof pageScript.activate !== "function") {
+            throw new Error(
+              `JS page script ${normalizedSrc} must export activate(context).`,
+            );
+          }
+
+          let cleanup = await pageScript.activate({
+            root,
+            trial: psynet.trial,
+            vars: psynet.var,
+            page: psynet.page,
+            psynet,
+          });
+          if (cleanup !== undefined && typeof cleanup !== "function") {
+            throw new Error(
+              `JS page script ${normalizedSrc} returned a cleanup value ` +
+                "that is not a function.",
+            );
+          }
+          activated.push({ src: normalizedSrc, cleanup });
+        }
+      } catch (error) {
+        await psynet.deactivateJSPageScripts(activated);
+        throw error;
+      }
+      psynet.activeJSPageScripts = activated;
+    };
+
+    psynet.deactivateJSPageScripts = async function (
+      activations = psynet.activeJSPageScripts,
+    ) {
+      if (activations === psynet.activeJSPageScripts) {
+        psynet.activeJSPageScripts = [];
+      }
+      for (let activation of [...activations].reverse()) {
+        if (!activation.cleanup) {
+          continue;
+        }
+        try {
+          await activation.cleanup();
+        } catch (error) {
+          psynet.log.warn(
+            `Cleanup failed for JS page script ${activation.src}: ` +
+              (error && error.message ? error.message : String(error)),
+          );
+        }
+      }
+    };
+
+    psynet.activateManagedPageJavascript = async function () {
+      psynet.checkLegacyPageJavascript();
+      await psynet.loadJSDependencies();
+      await psynet.activateJSPageScripts();
+    };
+
     psynet.executeScriptSequence = async function (scriptElements, options = {}) {
       let inlineBuffer = [];
 
@@ -829,6 +933,7 @@
       if (psynet.trial) {
         await psynet.trial.stop({ force: true });
       }
+      await psynet.deactivateJSPageScripts();
       await psynet.cleanupPageResources();
       psynet.clearLucidTermination();
       psynet.resetPageState();
@@ -840,7 +945,10 @@
       // lifecycle explicitly before we can mark the new page as ready.
       psynet.refreshTemplateData();
       await psynet.rebuildTrial();
+      psynet.checkLegacyPageJavascript();
       await psynet.executePageScriptManifest(psynet.getPageScriptManifest());
+      await psynet.loadJSDependencies();
+      await psynet.activateJSPageScripts();
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
       await psynet.initPage();
