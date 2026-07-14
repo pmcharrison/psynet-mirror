@@ -215,6 +215,42 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
     ]
 
 
+@pytest.mark.parametrize(
+    "component, method_name",
+    [
+        (
+            type(
+                "LegacyPrompt",
+                (Prompt,),
+                {"get_scripts": lambda self: ["window.legacy = true;"]},
+            )("Hi!"),
+            "get_scripts",
+        ),
+        (
+            type(
+                "LegacyControl",
+                (Control,),
+                {
+                    "macro": "control",
+                    "get_js_links": lambda self: ["/static/legacy.js"],
+                },
+            )(),
+            "get_js_links",
+        ),
+    ],
+)
+def test_components_reject_removed_javascript_hooks(component, method_name):
+    kwargs = {"prompt": component} if isinstance(component, Prompt) else {
+        "prompt": "Hi!",
+        "control": component,
+    }
+    with pytest.raises(
+        ValueError,
+        match=rf"{method_name}\(\) is no longer supported.*migrate-page-javascript",
+    ):
+        ModularPage("test", **kwargs)
+
+
 def test_duplicate_component_js_vars_raise():
     class CollidingPrompt(Prompt):
         def get_js_vars(self):

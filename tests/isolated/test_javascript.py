@@ -56,14 +56,21 @@ def test_page_rejects_javascript_url_with_conflicting_lifecycles():
         )
 
 
-def test_error_mode_rejects_legacy_page_javascript():
-    page = Page(
-        template_fragment_str="<p>Legacy JavaScript page</p>",
-        js_links=["/static/legacy.js"],
-        scripts=["window.legacySetup = true;"],
-    )
-
-    page._check_legacy_page_javascript("allow")
-    page._check_legacy_page_javascript("warn")
-    with pytest.raises(ValueError, match="js_dependencies.*js_page_scripts"):
-        page._check_legacy_page_javascript("error")
+@pytest.mark.parametrize(
+    "legacy_argument, value",
+    [
+        ("js_links", ["/static/legacy.js"]),
+        ("scripts", ["window.legacySetup = true;"]),
+        ("js_links", []),
+        ("scripts", []),
+    ],
+)
+def test_page_rejects_removed_javascript_arguments(legacy_argument, value):
+    with pytest.raises(
+        ValueError,
+        match=rf"Page\(\) no longer accepts {legacy_argument}.*migrate-page-javascript",
+    ):
+        Page(
+            template_fragment_str="<p>Removed JavaScript API</p>",
+            **{legacy_argument: value},
+        )
