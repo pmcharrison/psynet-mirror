@@ -1988,7 +1988,7 @@ class ModularPage(Page):
         # <style>/<script> in a template (which the SPA contract forbids). Collect
         # them here and merge with any assets the caller passed directly.
         components = [("prompt", self.prompt), ("control", self.control)]
-        if self.chatroom is not None:
+        if self.chatroom is not None and "chatroom" in self.layout:
             components.append(("chatroom", self.chatroom))
 
         css = [c for _, component in components for c in component.get_css()]

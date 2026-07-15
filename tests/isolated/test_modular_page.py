@@ -294,6 +294,21 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
     assert "<style" not in macro
 
 
+def test_omitted_chatroom_does_not_contribute_managed_resources():
+    from psynet.chatroom import ChatRoom
+
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        chatroom=ChatRoom(room_id="room-42"),
+        layout=["prompt"],
+    )
+
+    assert not any("#chatroom-widget" in str(c) for c in page.css)
+    assert "chatroom_config" not in page.js_vars
+    assert "/static/scripts/chatroom-widget.js" not in page.js_page_scripts
+
+
 def test_music_notation_prompt_uses_managed_javascript():
     page = ModularPage(
         "test",

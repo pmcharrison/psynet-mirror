@@ -544,7 +544,7 @@ test("in-place timeline transitions ignore duplicate nextPage while response is 
   });
 });
 
-test("in-place timeline transition failures show refresh prompt and unlock controls", async ({
+test("in-place timeline transition failures show refresh prompt and keep controls disabled", async ({
   page,
   context
 }) => {
@@ -592,7 +592,7 @@ test("in-place timeline transition failures show refresh prompt and unlock contr
       .toEqual({
         nextPagePending: false,
         transitionBusy: false,
-        nextDisabled: false
+        nextDisabled: true
       });
 
     await experimentPage.locator("#alert-button").click();
