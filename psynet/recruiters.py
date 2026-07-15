@@ -12,7 +12,6 @@ import dominate
 import flask
 import pandas as pd
 import requests
-import sqlalchemy
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
@@ -549,6 +548,14 @@ DevCapRecruiter = DevLabRecruiter
 
 
 # Lucid Recruiter
+def _get_latest_participant_by_worker_id(worker_id):
+    return (
+        Participant.query.filter_by(worker_id=worker_id)
+        .order_by(Participant.id.desc())
+        .first()
+    )
+
+
 @register_table
 class LucidRID(SQLBase, SQLMixin):
     __tablename__ = "lucid_rid"
@@ -1001,10 +1008,13 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 continue
 
             details = None
-            participant = None
             reason = None
-            try:
-                participant = Participant.query.filter_by(worker_id=entrant.rid).one()
+            participant = _get_latest_participant_by_worker_id(entrant.rid)
+            if participant is None:
+                # Do not terminate participants who did not pass the qualifications
+                if entrant.lucid_status != self.MARKETPLACE_CODE:
+                    reason = "never-entered-experiment"
+            else:
                 responses = (
                     Response.query.filter_by(participant_id=participant.id)
                     .order_by(Response.creation_time)
@@ -1012,11 +1022,6 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 )
                 if len(responses) == 0:
                     reason = "first-response-timeout"
-
-            except sqlalchemy.orm.exc.NoResultFound:
-                # Do not terminate participants who did not pass the qualifications
-                if entrant.lucid_status != self.MARKETPLACE_CODE:
-                    reason = "never-entered-experiment"
 
             if reason:
                 try:

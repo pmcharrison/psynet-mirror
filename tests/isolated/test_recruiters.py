@@ -1,9 +1,17 @@
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
+from dallinger import db
 from dallinger.prolific import ProlificServiceException
 
-from psynet.recruiters import ProlificRecruiter, PsyNetProlificRecruiterMixin
+from psynet.experiment import get_experiment
+from psynet.participant import Participant
+from psynet.pytest_psynet import path_to_test_experiment
+from psynet.recruiters import (
+    ProlificRecruiter,
+    PsyNetProlificRecruiterMixin,
+    _get_latest_participant_by_worker_id,
+)
 
 
 def make_participant(status="screened_out"):
@@ -11,6 +19,30 @@ def make_participant(status="screened_out"):
     participant.assignment_id = "submission-1"
     participant.status = status
     return participant
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_lucid_participant_lookup_selects_latest_repeat(
+    in_experiment_directory, db_session
+):
+    experiment = get_experiment()
+    participants = [
+        Participant(
+            experiment=experiment,
+            recruiter_id="lucid",
+            worker_id="repeat-rid",
+            assignment_id=f"assignment-{i}",
+            hit_id=f"hit-{i}",
+            mode="debug",
+        )
+        for i in range(2)
+    ]
+    db.session.add_all(participants)
+    db.session.commit()
+
+    assert _get_latest_participant_by_worker_id("repeat-rid") == participants[-1]
 
 
 def test_check_assignment_return_status_records_returned_participant_status():

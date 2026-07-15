@@ -50,18 +50,20 @@
             })
         }
 
-        function getAssignmentId(entryInformation) {
-            return entryInformation.assignmentId || entryInformation.assignment_id;
-        }
-
         function shouldAttemptCreate(resp) {
-            if (!resp || resp.status !== 403 || !resp.html) {
-                return false;
-            }
-            return resp.html.includes("/load-participant POST: no participant found");
+            return (
+                resp &&
+                resp.status === 403 &&
+                resp.errorCode === "participant_not_found"
+            );
         }
 
         let startInProgress = false;
+
+        function handleStartError(resp) {
+            startInProgress = false;
+            dallinger.error(resp);
+        }
 
         async function createParticipant(entryInformation) {
             // This is similar to dallinger.createParticipant but it bypasses the dallinger.identity
@@ -99,7 +101,7 @@
             dallinger.post(url, data).done(function (resp) {
                 window.location = "/timeline?unique_id=" + resp.participant.unique_id;
             }).fail(function(resp) {
-                dallinger.error(resp);
+                handleStartError(resp);
             });
         }
 
@@ -109,15 +111,14 @@
             }
             startInProgress = true;
             let entryInformation = getEntryInformation();
-            let assignmentId = getAssignmentId(entryInformation);
-            if (assignmentId && assignmentId !== "ASSIGNMENT_ID_NOT_AVAILABLE") {
+            if (Object.keys(entryInformation).length > 0) {
                 dallinger.post("/load-participant", entryInformation).done(function (resp) {
                     window.location = "/timeline?unique_id=" + resp.participant.unique_id;
                 }).fail(function(resp) {
                     if (shouldAttemptCreate(resp)) {
                         createParticipant(entryInformation);
                     } else {
-                        dallinger.error(resp);
+                        handleStartError(resp);
                     }
                 });
             } else {

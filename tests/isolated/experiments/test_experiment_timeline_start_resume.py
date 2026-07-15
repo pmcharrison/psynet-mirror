@@ -145,27 +145,35 @@ class TestStartResumeDefault:
 class TestStartResumeAllowRepeat:
     allow_repeat_worker_ids = True
 
-    # Overview: repeat worker ID should create a second participant when enabled.
-    def test_repeat_worker_id_creates_new_participant(self, bot_recruits):
+    # Overview: a worker can create multiple participants when repeats are enabled.
+    def test_repeat_worker_id_creates_new_participants(self, bot_recruits):
         for bot in bot_recruits:
             driver = bot.driver
             _wait_for_timeline(driver, "Timeline page never loaded.")
-            initial_unique_id = _get_unique_id(driver)
-            assert initial_unique_id is not None
+            previous_unique_id = _get_unique_id(driver)
+            assert previous_unique_id is not None
 
             base_url = _get_base_url(driver.current_url)
             recruitment_params = _get_recruitment_params(bot.URL)
 
-            repeat_params = dict(recruitment_params)
-            repeat_params["assignmentId"] = f"{repeat_params['assignmentId']}REPEAT"
-            driver.get(_start_url(base_url, repeat_params))
-            _wait_for_timeline(driver, "Repeat worker ID did not reach the timeline.")
-            repeated_unique_id = _get_unique_id(driver)
-            assert repeated_unique_id != initial_unique_id
-            assert repeated_unique_id == (
-                f"{repeat_params['workerId']}:{repeat_params['assignmentId']}"
-            )
-            assert (
-                Participant.query.filter_by(worker_id=repeat_params["workerId"]).count()
-                == 2
-            )
+            for expected_count in (2, 3):
+                repeat_params = dict(recruitment_params)
+                repeat_params["assignmentId"] = (
+                    f"{repeat_params['assignmentId']}REPEAT{expected_count}"
+                )
+                driver.get(_start_url(base_url, repeat_params))
+                _wait_for_timeline(
+                    driver, "Repeat worker ID did not reach the timeline."
+                )
+                repeated_unique_id = _get_unique_id(driver)
+                assert repeated_unique_id != previous_unique_id
+                assert repeated_unique_id == (
+                    f"{repeat_params['workerId']}:{repeat_params['assignmentId']}"
+                )
+                assert (
+                    Participant.query.filter_by(
+                        worker_id=repeat_params["workerId"]
+                    ).count()
+                    == expected_count
+                )
+                previous_unique_id = repeated_unique_id

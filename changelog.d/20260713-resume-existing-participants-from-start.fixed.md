@@ -1,1 +1,1 @@
-Fixed `/start` to resume existing assignments, recover after browser back/forward navigation, and support configured repeat worker IDs.
+Fixed `/start` to resume existing assignments across recruiter URL formats using structured lookup errors, recover after browser back/forward navigation, and support configured repeat worker IDs.
