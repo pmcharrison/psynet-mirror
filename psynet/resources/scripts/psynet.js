@@ -526,28 +526,96 @@
     };
 
     psynet.inlineModuleCounter = 0;
+    psynet.inlineModuleTimeoutMs = 10000;
 
     psynet.executeInlineModule = function (code) {
       return new Promise((resolve, reject) => {
         psynet.inlineModuleCounter += 1;
+        let moduleId = psynet.inlineModuleCounter;
         let callbackName =
-          "__psynetInlineModuleComplete" + psynet.inlineModuleCounter;
+          "__psynetInlineModuleComplete" + moduleId;
+        let sourceName = `psynet-embedded-module-${moduleId}.js`;
         let script = document.createElement("script");
         script.type = "module";
+        let settled = false;
+        let watchdog;
+
         let cleanup = function () {
+          window.clearTimeout(watchdog);
+          window.removeEventListener("error", handleWindowError, true);
+          window.removeEventListener(
+            "unhandledrejection",
+            handleUnhandledRejection,
+          );
+          script.onerror = null;
           script.remove();
           delete window[callbackName];
         };
-        window[callbackName] = function () {
+
+        let rejectOnce = function (error) {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cleanup();
+          reject(error instanceof Error ? error : new Error(String(error)));
+        };
+
+        let resolveOnce = function () {
+          if (settled) {
+            return;
+          }
+          settled = true;
           cleanup();
           resolve();
         };
-        script.textContent =
-          code + `\nwindow[${JSON.stringify(callbackName)}]();`;
-        script.onerror = () => {
-          cleanup();
-          reject(new Error("Could not execute inline module script."));
+
+        let isRelatedError = function (error, filename) {
+          let stack = error && error.stack ? String(error.stack) : "";
+          return (
+            !filename ||
+            filename === window.location.href ||
+            filename.endsWith(sourceName) ||
+            stack.includes(sourceName)
+          );
         };
+
+        let handleWindowError = function (event) {
+          if (!isRelatedError(event.error, event.filename)) {
+            return;
+          }
+          event.preventDefault();
+          rejectOnce(event.error || new Error(event.message));
+        };
+
+        let handleUnhandledRejection = function (event) {
+          if (!isRelatedError(event.reason, "")) {
+            return;
+          }
+          event.preventDefault();
+          rejectOnce(event.reason || new Error("Inline module rejected."));
+        };
+
+        window.addEventListener("error", handleWindowError, true);
+        window.addEventListener(
+          "unhandledrejection",
+          handleUnhandledRejection,
+        );
+        window[callbackName] = resolveOnce;
+        script.textContent =
+          code +
+          `\nwindow[${JSON.stringify(callbackName)}]?.();` +
+          `\n//# sourceURL=${sourceName}`;
+        script.onerror = () => {
+          rejectOnce(new Error("Could not execute inline module script."));
+        };
+        watchdog = window.setTimeout(() => {
+          rejectOnce(
+            new Error(
+              `Embedded inline module timed out after ${psynet.inlineModuleTimeoutMs} ms.`,
+            ),
+          );
+        }, psynet.inlineModuleTimeoutMs);
         document.body.appendChild(script);
       });
     };
