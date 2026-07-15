@@ -196,6 +196,8 @@ def _copy_template_file(relative_path, overwrite):
     destination = Path(relative_path)
     if destination.exists() and not overwrite:
         return False
+    if overwrite and _template_file_matches(relative_path):
+        return False
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     with resources.as_file(
@@ -288,8 +290,11 @@ def _managed_path_matches_scaffold(relative_path):
 def _write_generated_file(relative_path, contents, overwrite):
     """Write one generated scaffold-managed file into the experiment directory."""
     destination = Path(relative_path)
-    if destination.exists() and not overwrite:
-        return False
+    if destination.exists():
+        if not overwrite:
+            return False
+        if destination.is_file() and destination.read_bytes() == contents.encode():
+            return False
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(contents)
@@ -326,10 +331,16 @@ def _make_docker_entries_executable():
     """Add executable bits to immediate entries in the generated Docker directory."""
     docker_directory = Path("docker")
     if not docker_directory.is_dir():
-        return
+        return False
 
+    changed = False
     for path in docker_directory.iterdir():
-        path.chmod(path.stat().st_mode | _EXECUTABLE_BITS)
+        current_mode = path.stat().st_mode
+        updated_mode = current_mode | _EXECUTABLE_BITS
+        if updated_mode != current_mode:
+            path.chmod(updated_mode)
+            changed = True
+    return changed
 
 
 def scaffold_experiment_directory(
@@ -391,6 +402,10 @@ def scaffold_experiment_directory(
                     skipped.append(relative_path)
                 continue
 
+            if overwrite and _template_directory_matches(relative_path):
+                skipped.append(relative_path)
+                continue
+
             if overwrite and destination.exists():
                 shutil.rmtree(destination)
             shutil.copytree(
@@ -400,13 +415,18 @@ def scaffold_experiment_directory(
             )
         written.append(relative_path)
 
-    _make_docker_entries_executable()
+    if "docker" not in skip_files and _make_docker_entries_executable():
+        if "docker" in skipped:
+            skipped.remove("docker")
+        if "docker" not in written:
+            written.append("docker")
 
     if overwrite:
         # Remove obsolete directories only when they still match the old template.
         for directory, hash_ in _REMOVABLE_DIRECTORIES:
             if Path(directory).exists() and md5_directory(directory) == hash_:
                 shutil.rmtree(directory)
+                written.append(directory)
 
     _report_scaffold_result(written, overwrite=overwrite)
 

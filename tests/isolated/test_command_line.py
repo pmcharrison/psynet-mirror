@@ -1114,6 +1114,32 @@ def test_scripts_update_overwrites_boilerplate():
             assert Path("Dockerfile").read_text()
 
 
+def test_scripts_update_reports_only_actual_changes(tmp_path):
+    runner = CliRunner()
+
+    with working_directory(tmp_path):
+        scaffold = runner.invoke(psynet, ["scripts", "scaffold"])
+        assert scaffold.exit_code == 0, scaffold.output
+
+        no_op = runner.invoke(psynet, ["scripts", "update"])
+        assert no_op.exit_code == 0, no_op.output
+        assert "already up to date" in no_op.output
+        assert "updated:" not in no_op.output
+
+        Path("Dockerfile").write_text("FROM outdated\n")
+        changed = runner.invoke(psynet, ["scripts", "update"])
+        assert changed.exit_code == 0, changed.output
+        assert "updated: 1 boilerplate file" in changed.output
+        assert "FROM outdated" not in Path("Dockerfile").read_text()
+
+        expected_run_script = Path("docker/run").read_text()
+        Path("docker/run").write_text("# Outdated\n")
+        changed_directory = runner.invoke(psynet, ["scripts", "update"])
+        assert changed_directory.exit_code == 0, changed_directory.output
+        assert "updated: 1 boilerplate file" in changed_directory.output
+        assert Path("docker/run").read_text() == expected_run_script
+
+
 def test_scripts_prune_removes_boilerplate_and_keeps_readme():
     runner = CliRunner()
 
