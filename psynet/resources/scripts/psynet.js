@@ -972,8 +972,8 @@
       psynet.setPageReady(false);
       psynet.nextPagePending = false;
       psynet.setTimelineTransitionBusy(false);
-      psynet.response.enable();
-      psynet.submit.enable();
+      psynet.response.disable();
+      psynet.submit.disable();
       psynet.log.error(error.stack || String(error));
       await psynet.alert(
         "The next timeline page could not be loaded. Please refresh the page and try again.",
