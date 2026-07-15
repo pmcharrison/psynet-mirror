@@ -99,8 +99,7 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         intervalTicks: ticksAfterTransition
       });
 
-    // Audio stopped during a transition must not report completion on the next
-    // trial, even if the original sound was in a fade-out window.
+    // Audio cleanup must settle even if the source ends before its stop timer.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(experimentPage, "Audio fade-out page", STEP_TIMEOUT_MS);
     await expect
@@ -112,6 +111,27 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         { timeout: STEP_TIMEOUT_MS }
       )
       .toBe(true);
+    const stopSettled = await experimentPage.evaluate(async () => {
+      const sound = window.psynet.media.sounds.find(
+        (candidate) => candidate.stimulusId === "fadeout_stale_audio"
+      );
+      const stopping = window.psynet.media.stopAllAudio({ fadeOut: 0 });
+      sound.source.dispatchEvent(new Event("ended"));
+      return Promise.race([
+        stopping.then(() => true),
+        new Promise((resolve) => setTimeout(() => resolve(false), 250))
+      ]);
+    });
+    expect(stopSettled).toBe(true);
+
+    // Audio stopped during a transition must not report completion on the next
+    // trial, even if the original sound was in a fade-out window.
+    await experimentPage.evaluate(() => {
+      window.psynet.audio.fadeout_stale_audio.play({
+        fadeOut: 0.3,
+        gain: 0.001
+      });
+    });
     expect(await nextPageFromBrowser(experimentPage, "advance-during-audio")).toBe(
       true
     );
