@@ -37,6 +37,11 @@ _GENERATED_FILES = {
 
 _REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
 
+_EMPTY_RESOURCE_DIRECTORIES = {
+    "static": frozenset(),
+    "templates": frozenset({".keep"}),
+}
+
 _EXECUTABLE_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
 _BOOTSTRAP_FILES = ("experiment.py", "requirements.txt")
@@ -327,6 +332,27 @@ def _remove_empty_parent_dirs(path):
         path = path.parent
 
 
+def _remove_empty_resource_directories():
+    """Remove resource directories that contain no authored files."""
+    for relative_path, allowed_placeholders in _EMPTY_RESOURCE_DIRECTORIES.items():
+        path = Path(relative_path)
+        if not path.is_dir() or path.is_symlink():
+            continue
+
+        entries = list(path.iterdir())
+        if not all(
+            entry.is_file()
+            and not entry.is_symlink()
+            and entry.name in allowed_placeholders
+            for entry in entries
+        ):
+            continue
+
+        for entry in entries:
+            entry.unlink()
+        path.rmdir()
+
+
 def _make_docker_entries_executable():
     """Add executable bits to immediate entries in the generated Docker directory."""
     docker_directory = Path("docker")
@@ -467,5 +493,7 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
             f"Preserved modified scaffold path '{relative_path}'. "
             "Use --force to remove it."
         )
+
+    _remove_empty_resource_directories()
 
     return {"preserved_modified": preserved_modified}

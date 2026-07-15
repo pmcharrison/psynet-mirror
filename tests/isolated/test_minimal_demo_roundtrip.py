@@ -36,6 +36,7 @@ SCAFFOLD_MANAGED_PATHS = {
     for relative_path in scaffold_managed_paths()
     if relative_path != "README.md"
 }
+PRUNABLE_RESOURCE_PATHS = {Path("templates/.keep")}
 
 
 def _hash_file(path: Path) -> str:
@@ -95,6 +96,8 @@ def _preserved_snapshot(root: Path) -> dict[str, str]:
 
         relative_path = file_path.relative_to(root)
         if relative_path.parts[0] == ".git":
+            continue
+        if relative_path in PRUNABLE_RESOURCE_PATHS:
             continue
         if any(
             relative_path == managed_path or managed_path in relative_path.parents

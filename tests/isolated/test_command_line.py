@@ -1152,6 +1152,9 @@ def test_scripts_prune_removes_boilerplate_and_keeps_readme():
 
             update_scripts_()
             Path("README.md").write_text("# Minimal demo\n")
+            Path("static").mkdir()
+            Path("templates").mkdir()
+            Path("templates/.keep").touch()
 
             result = runner.invoke(psynet, ["scripts", "prune"])
 
@@ -1163,6 +1166,25 @@ def test_scripts_prune_removes_boilerplate_and_keeps_readme():
             assert Path("test.py").exists() is False
             assert Path("config.txt").exists() is False
             assert Path("docker").exists() is False
+            assert Path("static").exists() is False
+            assert Path("templates").exists() is False
+
+
+def test_scripts_prune_preserves_authored_resource_directories(tmp_path):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        update_scripts_()
+        Path("static").mkdir()
+        Path("static/app.js").write_text("// Custom script\n")
+        Path("templates").mkdir()
+        Path("templates/custom.html").write_text("<p>Custom template</p>\n")
+
+        result = CliRunner().invoke(psynet, ["scripts", "prune"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "static/app.js").exists()
+    assert (tmp_path / "templates/custom.html").exists()
 
 
 def test_scripts_prune_preserves_modified_boilerplate_without_force(tmp_path):
