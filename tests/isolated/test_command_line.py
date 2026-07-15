@@ -942,17 +942,74 @@ def test_start_local_server_uses_debug_local_subprocess():
     process = Mock()
     process.expect_exact.return_value = None
     process.isalive.return_value = False
+    command_args = ["debug", "local", "--legacy", "--no-browsers"]
 
     with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
-        server_info = _start_local_server_and_wait_for_ready(debug=False, max_wait=5)
+        server_info = _start_local_server_and_wait_for_ready(
+            command_args,
+            debug=False,
+            max_wait=5,
+        )
 
     assert server_info["process"] is process
     args, kwargs = spawn.call_args
-    assert args == ("psynet", ["debug", "local", "--legacy", "--no-browsers"])
+    assert args == ("psynet", command_args)
     assert kwargs["encoding"] == "utf-8"
     assert kwargs["env"]["SKIP_DEPENDENCY_CHECK"] == "1"
     assert kwargs["env"]["BROWSER"] == "true"
     _stop_server(server_info)
+
+
+def test_start_local_server_uses_exact_command_args():
+    from psynet.command_line import _start_local_server_and_wait_for_ready, _stop_server
+
+    process = Mock()
+    process.expect_exact.return_value = None
+    process.isalive.return_value = False
+    command_args = ["debug", "local"]
+
+    with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
+        server_info = _start_local_server_and_wait_for_ready(
+            command_args,
+            debug=False,
+            max_wait=5,
+        )
+
+    args, kwargs = spawn.call_args
+    assert args == ("psynet", command_args)
+    assert kwargs["encoding"] == "utf-8"
+    _stop_server(server_info)
+
+
+@pytest.mark.parametrize(
+    ("exception_name", "expected_message"),
+    [
+        ("EOF", "Server process exited before becoming ready"),
+        ("TIMEOUT", "Server failed to start within 5 seconds"),
+    ],
+)
+def test_start_local_server_reports_the_correct_failure(
+    capsys, exception_name, expected_message
+):
+    from psynet.command_line import (
+        _start_local_server_and_wait_for_ready,
+        pexpect,
+    )
+
+    process = Mock()
+    process.expect_exact.side_effect = getattr(pexpect, exception_name)("failed")
+    process.before = "underlying server error"
+    process.isalive.return_value = False
+
+    with (
+        patch("psynet.command_line.pexpect.spawn", return_value=process),
+        pytest.raises(click.ClickException, match="Failed to start experiment server"),
+    ):
+        _start_local_server_and_wait_for_ready(["debug", "local"], max_wait=5)
+
+    captured = capsys.readouterr()
+    assert expected_message in captured.err
+    assert "underlying server error" in captured.err
 
 
 def test_stop_server_gracefully_stops_debug_subprocess():
@@ -1134,7 +1191,7 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
         patch(
             "psynet.command_line._start_local_server_and_wait_for_ready",
             return_value=server_info,
-        ),
+        ) as start_server,
         patch("psynet.command_line._load_runtime_server_config") as load_runtime_config,
         patch("psynet.command_line._run_performance_test_with_existing_server"),
         patch("psynet.command_line._stop_server"),
@@ -1143,6 +1200,10 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             n_bots="2", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
         )
 
+    start_server.assert_called_once_with(
+        ["debug", "local", "--legacy", "--no-browsers"],
+        debug=False,
+    )
     load_runtime_config.assert_called_once_with()
 
 
