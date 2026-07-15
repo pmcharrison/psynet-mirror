@@ -37,10 +37,7 @@ _GENERATED_FILES = {
 
 _REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
 
-_EMPTY_RESOURCE_DIRECTORIES = {
-    "static": frozenset(),
-    "templates": frozenset({".keep"}),
-}
+_EMPTY_RESOURCE_DIRECTORIES = ("static", "templates")
 
 _EXECUTABLE_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
@@ -334,18 +331,22 @@ def _remove_empty_parent_dirs(path):
 
 def _remove_empty_resource_directories():
     """Remove resource directories that contain no authored files."""
-    for relative_path, allowed_placeholders in _EMPTY_RESOURCE_DIRECTORIES.items():
+    for relative_path in _EMPTY_RESOURCE_DIRECTORIES:
         path = Path(relative_path)
         if not path.is_dir() or path.is_symlink():
             continue
 
         entries = list(path.iterdir())
-        if not all(
-            entry.is_file()
-            and not entry.is_symlink()
-            and entry.name in allowed_placeholders
-            for entry in entries
-        ):
+        if relative_path == "static":
+            disposable = all(
+                entry.name == "assets" and entry.is_symlink() for entry in entries
+            )
+        else:
+            disposable = all(
+                entry.name == ".keep" and entry.is_file() and not entry.is_symlink()
+                for entry in entries
+            )
+        if not disposable:
             continue
 
         for entry in entries:
