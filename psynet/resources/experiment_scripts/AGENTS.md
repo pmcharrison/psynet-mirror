@@ -43,7 +43,7 @@ Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 
-- (For PsyNet): `uv pip install -e '.[dev,slack]'`
+- (For PsyNet): `uv pip install -e '.[dev,demos,slack]'`
 - (For standalone experiments): `uv pip install psynet`, followed by
   `psynet setup` to scaffold and synchronize the dedicated constrained environment.
 
@@ -68,11 +68,11 @@ git init
 
 The PsyNet demo directories include just the authored experiment files.
 Their unpinned `requirements.txt` files and omitted constraints are intentional.
-Within the PsyNet source checkout, generate boilerplate without resolving a
-separate environment:
+Within the PsyNet source checkout, PsyNet automatically generates ignored
+boilerplate when a bundled demo is run or tested:
 
 ```bash
-psynet scripts scaffold --skip-constraints
+psynet debug local
 ```
 
 For a copied standalone demo, initialize Git and create its complete environment:

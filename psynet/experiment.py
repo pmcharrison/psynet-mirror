@@ -122,6 +122,7 @@ from .utils import (
     get_authenticated_session,
     get_logger,
     get_translator,
+    is_bundled_demo,
     log_time_taken,
     render_template_with_translations,
     safe,
@@ -4249,7 +4250,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.timeline.check_consents(self)
 
     def check_python_dependencies(self):
-        if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+        if os.environ.get("SKIP_DEPENDENCY_CHECK") or (
+            is_bundled_demo() and not Path("constraints.txt").exists()
+        ):
             return
         extra_deps = self.notifier.python_dependencies
         with open("constraints.txt", "r") as f:

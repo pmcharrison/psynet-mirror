@@ -28,7 +28,7 @@ We suggest using `uv <https://docs.astral.sh/uv/>`_, but ``python -m venv`` also
 
     uv venv --python 3.13
     source .venv/bin/activate
-    uv pip install -e '.[dev]'
+    uv pip install -e '.[dev,demos]'
 
 Bundled demos use this shared source-checkout environment. They intentionally
 omit generated scaffold files and per-demo constraints.
@@ -56,19 +56,17 @@ These are organized into three main subdirectories:
 Launching a demo
 ----------------
 
-To run a demo, navigate to its directory, generate the omitted boilerplate
-without resolving a separate environment, and launch it in debug mode:
+To run a demo, navigate to its directory and launch it in debug mode:
 
 .. code-block:: bash
 
     cd demos/features/timeline
-    psynet scripts scaffold --skip-constraints
-    SKIP_DEPENDENCY_CHECK=1 psynet debug local
+    psynet debug local
 
-The dependency-check override is appropriate only for bundled demos running in
-the shared PsyNet development environment. A copied standalone experiment
-should instead run ``psynet setup`` and commit its generated
-``constraints.txt``.
+PsyNet recognizes bundled demos and generates their ignored boilerplate
+automatically without changing ``requirements.txt`` or generating constraints.
+A copied standalone experiment should instead run ``psynet setup`` and commit
+its generated ``constraints.txt``.
 
 .. note::
 

@@ -123,9 +123,17 @@ synchronizes the constrained dependencies with ``uv``, and runs
   psynet setup
 
 Synchronization removes packages that are not required by the experiment.
+If PsyNet is installed editable, setup asks whether to keep the editable
+checkout, pin its current commit, or retain an existing explicit requirement.
+The same choice can be supplied non-interactively with
+``--psynet-source editable``, ``commit``, or ``existing``.
 
 PsyNet's own monorepo CI uses ``psynet scripts scaffold --skip-constraints``
-instead because bundled demos share the repository's development environment.
+because bundled demos share the repository's development environment. Local
+``debug`` and ``test`` commands recognize bundled demos and prepare their
+ignored boilerplate automatically. Running ``psynet setup`` there performs only
+this lightweight preparation and does not rewrite requirements or synchronize
+the shared environment.
 
 
 Run the experiment's regression test

@@ -1011,7 +1011,10 @@ def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypa
     )
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"])
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--psynet-source", "existing"],
+        )
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
@@ -1038,6 +1041,109 @@ def test_setup_requires_active_virtualenv(monkeypatch):
 
     with pytest.raises(click.UsageError, match="uv venv"):
         _ensure_active_virtualenv()
+
+
+def test_setup_prepares_bundled_demo_without_dependency_changes(tmp_path, monkeypatch):
+    requirements = "psynet\nmusic21==9.1.0\n"
+    (tmp_path / "requirements.txt").write_text(requirements)
+    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: True)
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda *args: pytest.fail("Bundled demo setup must not synchronize"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "requirements.txt").read_text() == requirements
+    assert not (tmp_path / "constraints.txt").exists()
+    assert (tmp_path / "Dockerfile").exists()
+    assert "shared development environment" in result.output
+
+
+def test_setup_requires_source_choice_for_noninteractive_editable_install(
+    tmp_path, monkeypatch
+):
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: source,
+    )
+    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: False)
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"])
+
+    assert result.exit_code != 0
+    assert "--psynet-source editable" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
+
+
+def test_setup_prompts_to_preserve_editable_psynet(tmp_path, monkeypatch):
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+    (tmp_path / "requirements.txt").write_text("psynet\nmusic21==9.1.0\n")
+    calls = []
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: source,
+    )
+    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda args, description: calls.append(args),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="editable\n")
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "requirements.txt").read_text() == (
+        f"-e {source.as_uri()}#egg=psynet\nmusic21==9.1.0\n"
+    )
+    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+    assert calls == [
+        ["pip", "sync", "constraints.txt", "--strict"],
+        ["pip", "check"],
+    ]
+
+
+def test_setup_can_pin_editable_psynet_commit(tmp_path, monkeypatch):
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    requirement = (
+        "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@"
+        f"{'a' * 40}#egg=psynet"
+    )
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: source,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line.commit_psynet_requirement",
+        lambda path: requirement,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line._editable_checkout_is_dirty",
+        lambda path: False,
+    )
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr("psynet.command_line._run_uv", lambda *args: None)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--psynet-source", "commit"],
+        )
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "requirements.txt").read_text() == f"{requirement}\n"
 
 
 def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_path):

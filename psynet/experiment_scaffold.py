@@ -1,12 +1,14 @@
 """Create, update, and prune PsyNet experiment scaffold files."""
 
+import json
 import re
 import shutil
 import stat
 import subprocess
 import sys
-from importlib import resources
+from importlib import metadata, resources
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import click
 
@@ -111,35 +113,90 @@ def _default_psynet_requirement() -> str:
     return f"psynet=={psynet_version}"
 
 
-def pin_unpinned_psynet_requirement() -> bool:
-    """Pin a bare PsyNet requirement to the active version or source commit."""
+def get_editable_psynet_source() -> Path | None:
+    """Return the source path when PsyNet is installed in editable mode."""
+    try:
+        direct_url = metadata.distribution("psynet").read_text("direct_url.json")
+    except metadata.PackageNotFoundError:
+        return None
+    if direct_url is None:
+        return None
+
+    installation = json.loads(direct_url)
+    if not installation.get("dir_info", {}).get("editable", False):
+        return None
+    parsed_url = urlparse(installation["url"])
+    if parsed_url.scheme != "file":
+        return None
+    return Path(unquote(parsed_url.path)).resolve()
+
+
+def editable_psynet_requirement(source: Path) -> str:
+    """Return a named editable requirement for a local PsyNet checkout."""
+    return f"-e {source.resolve().as_uri()}#egg=psynet"
+
+
+def commit_psynet_requirement(source: Path) -> str:
+    """Return a portable requirement for a PsyNet checkout's current commit."""
+    commit = _current_source_commit(source)
+    if commit is None:
+        raise ValueError(f"Could not determine a Git commit for {source}.")
+    return f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit}#egg=psynet"
+
+
+def get_psynet_requirement() -> str | None:
+    """Return the active PsyNet entry from requirements.txt."""
+    matches = [
+        line.strip()
+        for line in Path("requirements.txt").read_text().splitlines()
+        if re.match(r"(?i)^psynet(?:\s*$|\s*[@<>=!~\[])", line.strip())
+        or re.search(r"(?i)#egg=psynet(?:\s|$)", line)
+    ]
+    if len(matches) > 1:
+        raise ValueError("requirements.txt contains multiple PsyNet requirements.")
+    return matches[0] if matches else None
+
+
+def set_psynet_requirement(requirement: str) -> bool:
+    """Replace or add the active PsyNet entry in requirements.txt."""
     path = Path("requirements.txt")
     lines = path.read_text().splitlines(keepends=True)
-    replacement = _default_psynet_requirement()
-    changed = False
-    updated_lines = []
+    existing = get_psynet_requirement()
+    if existing == requirement:
+        return False
 
+    replaced = False
+    updated_lines = []
     for line in lines:
-        if re.fullmatch(r"\s*psynet\s*", line, flags=re.IGNORECASE):
+        if line.strip() == existing:
             newline = "\n" if line.endswith("\n") else ""
-            updated_lines.append(f"{replacement}{newline}")
-            changed = True
+            updated_lines.append(f"{requirement}{newline}")
+            replaced = True
         else:
             updated_lines.append(line)
+    if not replaced:
+        updated_lines.insert(0, f"{requirement}\n")
+    path.write_text("".join(updated_lines))
+    return True
 
-    if changed:
-        path.write_text("".join(updated_lines))
-    return changed
+
+def pin_unpinned_psynet_requirement() -> bool:
+    """Pin a bare PsyNet requirement to the active version or source commit."""
+    requirement = get_psynet_requirement()
+    if requirement is None or requirement.lower() != "psynet":
+        return False
+    return set_psynet_requirement(_default_psynet_requirement())
 
 
-def _current_source_commit() -> str | None:
+def _current_source_commit(source=None) -> str | None:
     """Return the source checkout commit when PsyNet is installed from Git."""
+    source = Path(__file__).parent.parent if source is None else Path(source)
     try:
         commit = subprocess.check_output(
             [
                 "git",
                 "-C",
-                str(Path(__file__).parent.parent),
+                str(source),
                 "rev-parse",
                 "HEAD",
             ],

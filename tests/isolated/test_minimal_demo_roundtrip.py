@@ -70,6 +70,14 @@ def test_skipped_dependency_check_does_not_require_constraints(monkeypatch):
     Experiment.check_python_dependencies(object())
 
 
+def test_bundled_demo_dependency_check_does_not_require_constraints(monkeypatch):
+    from psynet.experiment import Experiment
+
+    monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
+    monkeypatch.setattr("psynet.experiment.is_bundled_demo", lambda: True)
+    Experiment.check_python_dependencies(object())
+
+
 def _hash_file(path: Path) -> str:
     """Return a stable hash for one file in a temporary demo copy."""
     return hashlib.sha256(path.read_bytes()).hexdigest()

@@ -1165,6 +1165,13 @@ def get_psynet_root():
     return Path(psynet.__file__).parent.parent
 
 
+def is_bundled_demo(path="."):
+    """Return whether a path is an experiment in PsyNet's bundled demos."""
+    path = Path(path).resolve()
+    demos_root = (get_psynet_root() / "demos").resolve()
+    return (path / "experiment.py").is_file() and path.is_relative_to(demos_root)
+
+
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"

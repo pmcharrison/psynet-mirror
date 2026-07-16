@@ -27,6 +27,7 @@ from psynet.utils import (
     get_package_source_directory,
     get_psynet_root,
     git_repository_available,
+    is_bundled_demo,
     linspace,
     list_experiment_dirs,
     list_isolated_tests,
@@ -39,6 +40,12 @@ from psynet.utils import (
     safe,
     working_directory,
 )
+
+
+def test_is_bundled_demo(tmp_path):
+    assert is_bundled_demo(path_to_demo_experiment("hello_world"))
+    (tmp_path / "experiment.py").touch()
+    assert not is_bundled_demo(tmp_path)
 
 
 def test_make_dirs():

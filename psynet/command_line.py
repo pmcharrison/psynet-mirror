@@ -47,9 +47,14 @@ from psynet.version import (
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    commit_psynet_requirement,
+    editable_psynet_requirement,
+    get_editable_psynet_source,
+    get_psynet_requirement,
     pin_unpinned_psynet_requirement,
     prune_experiment_scaffold,
     scaffold_experiment_directory,
+    set_psynet_requirement,
 )
 from .log import bold
 from .lucid import get_lucid_service
@@ -65,6 +70,7 @@ from .utils import (
     get_package_name,
     git_repository_available,
     in_python_package,
+    is_bundled_demo,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
@@ -1351,6 +1357,9 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
     from .experiment import get_experiment
     from .utils import check_todos_before_deployment
+
+    if is_bundled_demo():
+        scaffold_experiment_directory(include_optional_files=True)
 
     missing_boilerplate = _missing_scaffold_boilerplate()
     if missing_boilerplate:
@@ -2951,16 +2960,120 @@ def _run_uv(args, description):
         raise click.ClickException(f"Failed to {description}.") from exc
 
 
-@psynet.command("setup")
-@click.pass_context
-def setup(ctx):
-    """Scaffold and synchronize an experiment's dedicated virtual environment."""
-    _ensure_active_virtualenv()
-    _scaffold_experiment(
-        ctx,
-        skip_constraints=False,
-        refresh_constraints=True,
+def _is_interactive():
+    """Return whether setup can prompt for an editable-source choice."""
+    return sys.stdin.isatty()
+
+
+def _editable_checkout_is_dirty(source):
+    """Return whether an editable PsyNet checkout has uncommitted changes."""
+    result = subprocess.run(
+        ["git", "-C", str(source), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=False,
     )
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
+def _choose_editable_psynet_requirement(source, requested_source):
+    """Resolve how setup should represent an active editable PsyNet checkout."""
+    editable_requirement = editable_psynet_requirement(source)
+    requirements_path = Path("requirements.txt")
+    try:
+        existing_requirement = (
+            get_psynet_requirement() if requirements_path.is_file() else None
+        )
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+    if existing_requirement == editable_requirement and requested_source is None:
+        return editable_requirement
+
+    explicit_existing = (
+        existing_requirement is not None and existing_requirement.lower() != "psynet"
+    )
+    choices = ["editable", "commit"]
+    if explicit_existing:
+        choices.append("existing")
+
+    if requested_source is None:
+        if not _is_interactive():
+            options = ", ".join(f"--psynet-source {choice}" for choice in choices)
+            raise click.UsageError(
+                f"PsyNet is installed editable from {source}. Choose how setup "
+                f"should represent it with one of: {options}."
+            )
+        click.echo(f"PsyNet is installed editable from {source}.")
+        click.echo(
+            "Choose 'editable' to include local changes, 'commit' for a portable "
+            "Git pin, or 'existing' to retain the current requirements entry."
+        )
+        requested_source = click.prompt(
+            "PsyNet source",
+            type=click.Choice(choices),
+        )
+    elif requested_source not in choices:
+        raise click.UsageError(
+            f"--psynet-source {requested_source} is unavailable for this experiment."
+        )
+
+    if requested_source == "editable":
+        return editable_requirement
+    if requested_source == "existing":
+        return existing_requirement
+
+    try:
+        requirement = commit_psynet_requirement(source)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+    if _editable_checkout_is_dirty(source):
+        click.echo(
+            "Warning: the commit pin excludes uncommitted changes in the editable "
+            "PsyNet checkout.",
+            err=True,
+        )
+    return requirement
+
+
+@psynet.command("setup")
+@click.option(
+    "--psynet-source",
+    type=click.Choice(["editable", "commit", "existing"]),
+    default=None,
+    help="How to represent an active editable PsyNet installation.",
+)
+@click.pass_context
+def setup(ctx, psynet_source):
+    """Scaffold and synchronize an experiment's dedicated virtual environment."""
+    if is_bundled_demo():
+        _scaffold_experiment(ctx, skip_constraints=True)
+        click.echo(
+            "Prepared bundled demo using PsyNet's shared development environment."
+        )
+        return
+
+    _ensure_active_virtualenv()
+    editable_source = get_editable_psynet_source()
+    if editable_source is None:
+        if psynet_source is not None:
+            raise click.UsageError(
+                "--psynet-source is only needed when PsyNet is installed editable."
+            )
+        _scaffold_experiment(
+            ctx,
+            skip_constraints=False,
+            refresh_constraints=True,
+        )
+    else:
+        requirement = _choose_editable_psynet_requirement(
+            editable_source,
+            psynet_source,
+        )
+        _assert_directory_is_scaffoldable()
+        scaffold_experiment_directory(include_optional_files=True)
+        set_psynet_requirement(requirement)
+        _generate_constraints_if_missing(ctx, requirements_changed=True)
+
     _run_uv(
         [
             "pip",
