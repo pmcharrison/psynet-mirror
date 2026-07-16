@@ -1020,8 +1020,6 @@ def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypa
             [
                 "pip",
                 "sync",
-                "requirements.txt",
-                "-c",
                 "constraints.txt",
                 "--strict",
             ],

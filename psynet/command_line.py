@@ -2965,8 +2965,6 @@ def setup(ctx):
         [
             "pip",
             "sync",
-            "requirements.txt",
-            "-c",
             "constraints.txt",
             "--strict",
         ],
