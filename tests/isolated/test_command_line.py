@@ -1331,8 +1331,7 @@ def test_prune_experiment_scaffold_keeps_readme_only():
             assert Path("config.txt").read_text() == custom_config
             assert Path("docker").exists() is False
             assert prune_result == {
-                "preserved_unrecognized": [],
-                "preserved_config": True,
+                "preserved_unrecognized": ["config.txt"],
             }
 
 

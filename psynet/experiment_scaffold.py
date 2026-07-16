@@ -466,7 +466,6 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
     managed_paths = scaffold_managed_paths()
     _assert_scaffold_paths_are_safe(managed_paths - preserve_files)
     preserved_unrecognized = []
-    preserved_config = False
 
     for relative_path in sorted(
         managed_paths - set(_TEMPLATE_DIRECTORIES) - preserve_files
@@ -475,10 +474,7 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
         if path.exists():
             matches_scaffold = _managed_path_matches_scaffold(relative_path)
             if not force and not matches_scaffold:
-                if relative_path == "config.txt":
-                    preserved_config = True
-                else:
-                    preserved_unrecognized.append(relative_path)
+                preserved_unrecognized.append(relative_path)
                 continue
             path.unlink()
             _remove_empty_parent_dirs(path.parent)
@@ -492,12 +488,6 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
                 preserved_unrecognized.append(relative_path)
                 continue
             shutil.rmtree(path)
-
-    if preserved_config:
-        click.echo(
-            "Preserved 'config.txt' because it differs from the current template; "
-            "use 'psynet scripts prune --force' to remove it."
-        )
 
     if preserved_unrecognized:
         click.echo(
@@ -515,7 +505,4 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
 
     _remove_empty_resource_directories()
 
-    return {
-        "preserved_unrecognized": preserved_unrecognized,
-        "preserved_config": preserved_config,
-    }
+    return {"preserved_unrecognized": preserved_unrecognized}
