@@ -1118,8 +1118,7 @@ def test_setup_can_pin_editable_psynet_commit(tmp_path, monkeypatch):
     source.mkdir()
     (tmp_path / "requirements.txt").write_text("psynet\n")
     requirement = (
-        "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@"
-        f"{'a' * 40}#egg=psynet"
+        f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{'a' * 40}#egg=psynet"
     )
     monkeypatch.setattr(
         "psynet.command_line.get_editable_psynet_source",
