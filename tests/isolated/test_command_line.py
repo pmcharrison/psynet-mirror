@@ -1220,12 +1220,16 @@ def test_scripts_prune_force_removes_modified_boilerplate(tmp_path):
         update_scripts_()
         Path("test.py").write_text("# Custom test\n")
         Path("docker/psynet").write_text("# Custom helper\n")
+        Path("config.txt").write_text("[Config]\ntitle = Custom experiment\n")
+        Path("README.md").write_text("# Custom README\n")
 
         result = CliRunner().invoke(psynet, ["scripts", "prune", "--force"])
 
     assert result.exit_code == 0, result.output
     assert not (tmp_path / "test.py").exists()
     assert not (tmp_path / "docker").exists()
+    assert not (tmp_path / "config.txt").exists()
+    assert (tmp_path / "README.md").read_text() == "# Custom README\n"
 
 
 def test_scripts_group_help_lists_subcommands():

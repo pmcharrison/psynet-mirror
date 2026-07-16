@@ -473,11 +473,11 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
         path = Path(relative_path)
         if path.exists():
             matches_scaffold = _managed_path_matches_scaffold(relative_path)
-            if relative_path == "config.txt" and not matches_scaffold:
-                preserved_config = True
-                continue
             if not force and not matches_scaffold:
-                preserved_unrecognized.append(relative_path)
+                if relative_path == "config.txt":
+                    preserved_config = True
+                else:
+                    preserved_unrecognized.append(relative_path)
                 continue
             path.unlink()
             _remove_empty_parent_dirs(path.parent)
@@ -495,7 +495,7 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
     if preserved_config:
         click.echo(
             "Preserved 'config.txt' because it differs from the current template; "
-            "'config.txt' is never removed by prune."
+            "use 'psynet scripts prune --force' to remove it."
         )
 
     if preserved_unrecognized:
