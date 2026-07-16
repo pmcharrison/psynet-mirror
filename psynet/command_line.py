@@ -1352,14 +1352,21 @@ def check_prolific_payment(experiment, config):
     )
 
 
+def _prepare_bundled_demo():
+    """Generate ignored boilerplate when running a bundled source demo."""
+    if not is_bundled_demo():
+        return False
+    scaffold_experiment_directory(include_optional_files=True)
+    return True
+
+
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
     from .experiment import get_experiment
     from .utils import check_todos_before_deployment
 
-    if is_bundled_demo():
-        scaffold_experiment_directory(include_optional_files=True)
+    _prepare_bundled_demo()
 
     missing_boilerplate = _missing_scaffold_boilerplate()
     if missing_boilerplate:
@@ -3397,6 +3404,7 @@ def test__local(
     Test the experiment locally.
     """
     assert not (parallel and serial)
+    _prepare_bundled_demo()
 
     from psynet.experiment import get_experiment
 
