@@ -110,6 +110,22 @@ under discussion at the moment, so don't worry too much about it.
   psynet generate-constraints
 
 
+Set up an experiment (``setup``)
+--------------------------------
+
+This command scaffolds missing experiment files, pins a bare ``psynet``
+requirement to the active PsyNet installation, generates ``constraints.txt``,
+installs the constrained dependencies with ``uv``, and runs ``uv pip check``.
+Run it inside an active virtual environment:
+
+.. code:: bash
+
+  psynet setup
+
+PsyNet's own monorepo CI uses ``psynet scripts scaffold --skip-constraints``
+instead because bundled demos share the repository's development environment.
+
+
 Run the experiment's regression test
 ------------------------------------
 

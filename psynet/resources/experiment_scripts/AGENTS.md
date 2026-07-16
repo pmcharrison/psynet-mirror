@@ -44,7 +44,8 @@ Local agents should prompt the user before doing so.
 Install dependencies as follows:
 
 - (For PsyNet): `uv pip install -e '.[dev,slack]'`
-- (For experiments): `uv pip install -r constraints.txt`
+- (For standalone experiments): `uv pip install psynet`, followed by
+  `psynet setup` to scaffold and install the constrained environment.
 
 If dependency installation fails with `pg_config executable not found`, install
 PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
@@ -65,13 +66,23 @@ If you copied a demo into a brand new directory, initialize a Git repository fir
 git init
 ```
 
-The PsyNet demo directories include just the essential experiment files
-(`experiment.py`, `requirements.txt`, `constraints.txt`) together with any
-demo-specific helpers. To run a copied demo yourself, generate the additional
-boilerplate files with:
+The PsyNet demo directories include just the authored experiment files.
+Their unpinned `requirements.txt` files and omitted constraints are intentional.
+Within the PsyNet source checkout, generate boilerplate without resolving a
+separate environment:
 
 ```bash
-psynet scripts scaffold
+psynet scripts scaffold --skip-constraints
+```
+
+For a copied standalone demo, initialize Git and create its complete environment:
+
+```bash
+git init
+uv venv
+source .venv/bin/activate
+uv pip install psynet
+psynet setup
 ```
 
 To run an experiment in debug mode:

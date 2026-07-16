@@ -20,18 +20,16 @@ If asked, click New Window.
 The next step depends on whether you are using the Docker mode for running PsyNet,
 or whether you are using the *virtual environment* mode.
 
-The PsyNet demo directories include just the essential experiment files
-(``experiment.py``, ``requirements.txt``, ``constraints.txt``) together with any
-demo-specific helpers, templates, or assets. To run a copied demo yourself, you
-must generate several additional boilerplate files with ``psynet scripts scaffold``.
+The PsyNet demo directories contain authored experiment files and an unpinned
+``psynet`` entry in ``requirements.txt``. Generated boilerplate and
+``constraints.txt`` are intentionally omitted.
 
-Initialize a Git repository in the copied directory and generate its boilerplate
-before choosing either setup mode:
+Initialize a Git repository in the copied directory before choosing either setup
+mode:
 
 .. code-block:: bash
 
     git init
-    psynet scripts scaffold
 
 
 Docker mode
@@ -44,13 +42,17 @@ Virtual environment mode
 ------------------------
 
 If you are using the *virtual environment* mode, you will need to create a virtual environment
-for your project. You can do this by opening a terminal in your IDE and running:
+for your project. Install PsyNet as a bootstrap dependency, then let
+``psynet setup`` pin that active PsyNet version, generate constraints, scaffold
+the experiment, install the constrained dependencies with ``uv``, and verify the
+environment:
 
 .. code-block:: bash
 
     uv venv
     source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-    uv pip install -r constraints.txt
+    uv pip install psynet
+    psynet setup
 
 .. note::
 
@@ -77,7 +79,7 @@ If you decide at some point you want to make a fresh virtual environment for a p
 you can do this by creating a new virtual environment using the commands above, then selecting it in your IDE's
 interpreter settings. To install the dependencies, open a new terminal, verify you are in the correct virtual environment
 (by confirming that you see ``(<your-project-name)`` prefixed to the terminal prompt),
-then run ``uv pip install -r constraints.txt``.
+then run ``uv pip install -r requirements.txt -c constraints.txt``.
 
 Updating PsyNet
 ---------------

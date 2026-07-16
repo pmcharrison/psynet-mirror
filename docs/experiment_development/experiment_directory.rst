@@ -77,7 +77,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``constraints.txt`` stores the versions of the different Python packages that will be used when you deploy your
     experiment. It is automatically generated, don’t edit it yourself. **Note**: the role of this file is currently
     unclear for Docker experiments. At the time of writing (April 2023) this file is ignored in Docker deployments,
-    but this may change. If the file is missing, ``psynet scripts scaffold`` regenerates it from ``requirements.txt``.
+    but this may change. ``psynet setup`` generates it for standalone experiments.
+    Bundled demos omit it because they use PsyNet's shared development environment.
 
 -   ``experiment.py`` is a Python file that defines the primary experiment logic.
 

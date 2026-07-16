@@ -119,24 +119,23 @@ git commit -m "Bump version to X.Y.Z"
 
 ### Update demo and test experiments
 
-This updates `requirements.txt`, `constraints.txt`, Dockerfiles, and other
-generated files across all demos and tests to reference the new version.
+This updates the canonical standalone-experiment templates to reference the new
+version. Bundled demos intentionally keep bare `psynet` requirements and do not
+track generated constraints or scaffold files.
 
 ```bash
 psynet dev experiments update
 ```
 
-This can take several minutes because it regenerates `constraints.txt` files.
-
 Then commit. Stage explicit paths rather than `git add -A`, so unrelated
 untracked files in the working tree are not swept into the release commit.
-The command touches three locations — do not forget the experiment-script
-templates under `psynet/resources/`, which include the Docker image tag in
+The command updates the experiment-script templates under `psynet/resources/`,
+including the Docker image tag in
 `psynet/resources/experiment_scripts/docker/generate-constraints`:
 
 ```bash
-git add demos tests psynet/resources
-git commit -m "Update demo and test experiments for PsyNet X.Y.Z"
+git add psynet/resources
+git commit -m "Update experiment templates for PsyNet X.Y.Z"
 ```
 
 Afterwards run `git status` and confirm no tracked files remain modified;
