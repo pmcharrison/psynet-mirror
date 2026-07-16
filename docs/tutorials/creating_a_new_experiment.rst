@@ -24,34 +24,37 @@ The PsyNet demo directories contain authored experiment files and an unpinned
 ``psynet`` entry in ``requirements.txt``. Generated boilerplate and
 ``constraints.txt`` are intentionally omitted.
 
-Initialize a Git repository in the copied directory before choosing either setup
-mode:
+Initialize Git and install PsyNet as a bootstrap tool before choosing either
+setup mode:
 
 .. code-block:: bash
 
     git init
+    uv venv --python 3.13
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    uv pip install psynet
 
 
 Docker mode
 -----------
 
-If you are using the Docker mode, follow the instructions in ``INSTALL.md``
-to set up your project. You can then follow the instructions in ``RUN.md`` to run the experiment.
+If you are using Docker, generate the standalone experiment files first:
+
+.. code-block:: bash
+
+    psynet scripts scaffold
+
+Then follow the generated instructions under ``docker/docs``.
 
 Virtual environment mode
 ------------------------
 
-If you are using the *virtual environment* mode, you will need to create a virtual environment
-for your project. Install PsyNet as a bootstrap dependency, then let
-``psynet setup`` pin that active PsyNet version, generate constraints, scaffold
-the experiment, install the constrained dependencies with ``uv``, and verify the
-environment:
+For virtual environment mode, let ``psynet setup`` pin the active PsyNet
+version, generate constraints, scaffold the experiment, install the constrained
+dependencies with ``uv``, and verify the environment:
 
 .. code-block:: bash
 
-    uv venv --python 3.13
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-    uv pip install psynet
     psynet setup
 
 .. note::
