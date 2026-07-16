@@ -149,8 +149,11 @@ def get_psynet_requirement() -> str | None:
     matches = [
         line.strip()
         for line in Path("requirements.txt").read_text().splitlines()
-        if re.match(r"(?i)^psynet(?:\s*$|\s*[@<>=!~\[])", line.strip())
-        or re.search(r"(?i)#egg=psynet(?:\s|$)", line)
+        if not line.strip().startswith("#")
+        and (
+            re.match(r"(?i)^psynet(?:\s*$|\s*[@<>=!~\[])", line.strip())
+            or re.search(r"(?i)#egg=psynet(?:\s|$)", line)
+        )
     ]
     if len(matches) > 1:
         raise ValueError("requirements.txt contains multiple PsyNet requirements.")
