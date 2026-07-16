@@ -4249,6 +4249,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.timeline.check_consents(self)
 
     def check_python_dependencies(self):
+        if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+            return
         extra_deps = self.notifier.python_dependencies
         with open("constraints.txt", "r") as f:
             constraints = f.readlines()

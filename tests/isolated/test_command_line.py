@@ -176,18 +176,16 @@ class TestCommandLine(object):
         monkeypatch.setattr(
             experiments_module,
             "update_command",
-            lambda n_jobs, skip_constraints_: (
-                calls.append((n_jobs, skip_constraints_)) or 0
-            ),
+            lambda: calls.append(True) or 0,
         )
 
         result = CliRunner().invoke(
             psynet,
-            ["dev", "experiments", "update", "--jobs", "3", "--skip-constraints"],
+            ["dev", "experiments", "update"],
         )
 
         assert result.exit_code == 0
-        assert calls == [(3, True)]
+        assert calls == [True]
 
     def test_dev_update_experiments_help(self):
         from psynet.command_line import psynet
@@ -195,17 +193,14 @@ class TestCommandLine(object):
         result = CliRunner().invoke(psynet, ["dev", "experiments", "update", "--help"])
 
         assert result.exit_code == 0, result.output
-        assert "--skip-constraints" in result.output
-        assert "--jobs" in result.output
+        assert "Update canonical experiment templates." in result.output
 
     def test_dev_update_experiments_requires_source_checkout(self, tmp_path):
         from psynet.command_line import psynet
 
         runner = CliRunner()
         with working_directory(tmp_path):
-            result = runner.invoke(
-                psynet, ["dev", "experiments", "update", "--skip-constraints"]
-            )
+            result = runner.invoke(psynet, ["dev", "experiments", "update"])
 
         assert result.exit_code != 0
         assert (
@@ -950,6 +945,7 @@ def test_scripts_scaffold_rejects_dotted_directory_name(tmp_path):
 
 def test_scripts_scaffold_preserves_existing_constraints(tmp_path):
     constraints = "# existing constraints\n"
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text(constraints)
 
     with working_directory(tmp_path):
@@ -957,6 +953,41 @@ def test_scripts_scaffold_preserves_existing_constraints(tmp_path):
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "constraints.txt").read_text() == constraints
+
+
+def test_scripts_scaffold_pins_psynet_and_preserves_extra_requirements(
+    tmp_path, monkeypatch
+):
+    (tmp_path / "requirements.txt").write_text("psynet\nmusic21==9.1.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._default_psynet_requirement",
+        lambda: "psynet==13.4.0",
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "requirements.txt").read_text() == (
+        "psynet==13.4.0\nmusic21==9.1.0\n"
+    )
+    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+
+
+def test_scripts_scaffold_skips_constraints_and_psynet_pinning(tmp_path):
+    requirements = "psynet\nmusic21==9.1.0\n"
+    (tmp_path / "requirements.txt").write_text(requirements)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(
+            psynet,
+            ["scripts", "scaffold", "--skip-constraints"],
+        )
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "requirements.txt").read_text() == requirements
+    assert not (tmp_path / "constraints.txt").exists()
 
 
 def test_scripts_scaffold_regenerates_empty_constraints(tmp_path):
@@ -967,6 +998,48 @@ def test_scripts_scaffold_regenerates_empty_constraints(tmp_path):
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+
+
+def test_setup_scaffolds_installs_and_checks_dependencies(tmp_path, monkeypatch):
+    calls = []
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda args, description: calls.append((args, description)),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+    assert calls == [
+        (
+            [
+                "pip",
+                "install",
+                "-r",
+                "requirements.txt",
+                "-c",
+                "constraints.txt",
+            ],
+            "install experiment dependencies",
+        ),
+        (["pip", "check"], "verify experiment dependencies"),
+    ]
+
+
+def test_setup_requires_active_virtualenv(monkeypatch):
+    from psynet.command_line import _ensure_active_virtualenv
+
+    monkeypatch.setattr("psynet.command_line.sys.prefix", "/usr")
+    monkeypatch.setattr("psynet.command_line.sys.base_prefix", "/usr")
+    monkeypatch.delenv("VIRTUAL_ENV", raising=False)
+
+    with pytest.raises(click.UsageError, match="uv venv"):
+        _ensure_active_virtualenv()
 
 
 def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_path):

@@ -1,4 +1,4 @@
-const { spawn } = require("child_process");
+const { spawn, spawnSync } = require("child_process");
 const fs = require("fs");
 const net = require("net");
 const path = require("path");
@@ -178,8 +178,27 @@ function resolvePsynetLaunch() {
   };
 }
 
+function scaffoldExperiment(experimentDir) {
+  const psynetCmd = resolvePsynetCommand();
+  const scaffoldArgs = ["scripts", "scaffold", "--skip-constraints"];
+  const command = parseBoolEnv("PSYNET_USE_UV_RUN") ? "uv" : psynetCmd;
+  const args = parseBoolEnv("PSYNET_USE_UV_RUN")
+    ? ["run", process.env.PSYNET_UV_RUN_TARGET || psynetCmd, ...scaffoldArgs]
+    : scaffoldArgs;
+  const result = spawnSync(command, args, {
+    cwd: experimentDir,
+    encoding: "utf8"
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      `Failed to scaffold ${experimentDir}:\n${result.stdout || ""}${result.stderr || ""}`
+    );
+  }
+}
+
 // ---- Backend process lifecycle ---------------------------------------------
 function startExperiment(experimentDir) {
+  scaffoldExperiment(experimentDir);
   const launch = resolvePsynetLaunch();
   if (!launch || !launch.cmd) {
     throw new Error("Unable to resolve psynet command.");
@@ -198,7 +217,8 @@ function startExperiment(experimentDir) {
       ...process.env,
       KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE: "1",
       BROWSER: "false",
-      SKIP_PYTHON_VERSION_CHECK: "1"
+      SKIP_PYTHON_VERSION_CHECK: "1",
+      SKIP_DEPENDENCY_CHECK: "1"
     },
     stdio: ["ignore", "pipe", "pipe"]
   });

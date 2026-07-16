@@ -163,6 +163,22 @@ source_code.zip
 **/deploy_logs/
 dump.rdb
 
+# Scaffold and dependency files generated inside bundled demos.
+/demos/**/.dockerignore
+/demos/**/.gitignore
+/demos/**/.python-version
+/demos/**/.github/workflows/test.yml
+/demos/**/.vscode/launch.json
+/demos/**/AGENTS.md
+/demos/**/Dockerfile
+/demos/**/Dockertag
+/demos/**/__init__.py
+/demos/**/config.txt
+/demos/**/constraints.txt
+/demos/**/docker/
+/demos/**/pytest.ini
+/demos/**/test.py
+
 # ASV benchmark artifacts
 .asv/
 .asv-sync.conf.json

@@ -41,6 +41,7 @@ from .command_line import (
 )
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
+from .experiment_scaffold import scaffold_experiment_directory
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .test_helpers.mock_s3 import (
@@ -362,6 +363,7 @@ def in_experiment_directory(experiment_directory):
     loaded_experiment_directory = experiment_directory
     redis_vars.clear()
     with working_directory(experiment_directory):
+        scaffold_experiment_directory(include_optional_files=True)
         yield experiment_directory
     clean_sys_modules()
     clear_all_caches()

@@ -18,7 +18,7 @@ from psynet.pytest_psynet import (
     path_to_demo_experiment,
     path_to_demo_feature,
 )
-from psynet.utils import working_directory
+from psynet.utils import get_psynet_root, working_directory
 
 ROUNDTRIP_DEMOS = [
     ("experiments/hello_world", Path(path_to_demo_experiment("hello_world"))),
@@ -37,6 +37,27 @@ SCAFFOLD_MANAGED_PATHS = {
     if relative_path != "README.md"
 }
 PRUNABLE_RESOURCE_PATHS = {Path("templates/.keep")}
+
+
+def test_demo_sources_contain_only_authored_experiment_files():
+    demos_root = get_psynet_root() / "demos"
+    managed_paths = scaffold_managed_paths() - {"README.md"}
+
+    for experiment_file in demos_root.rglob("experiment.py"):
+        demo = experiment_file.parent
+        assert not (demo / "constraints.txt").exists()
+        assert (demo / "requirements.txt").read_text().splitlines()[0] == "psynet"
+        for relative_path in managed_paths:
+            assert not (demo / relative_path).exists(), (
+                f"{demo} tracks scaffold-managed path {relative_path}"
+            )
+
+
+def test_skipped_dependency_check_does_not_require_constraints(monkeypatch):
+    from psynet.experiment import Experiment
+
+    monkeypatch.setenv("SKIP_DEPENDENCY_CHECK", "1")
+    Experiment.check_python_dependencies(object())
 
 
 def _hash_file(path: Path) -> str:
@@ -159,6 +180,7 @@ def test_scaffolded_copy_without_git_repo_prompts_for_git_init(tmp_path):
 
     with working_directory(temp_demo):
         scaffold_experiment_directory(include_optional_files=True)
+        Path("constraints.txt").write_text("# Test-only dependency metadata\n")
 
     result = _run_command(
         ["psynet", "debug", "local", "--legacy", "--no-browsers"], temp_demo
@@ -189,25 +211,6 @@ def test_demo_roundtrip_preserves_authored_files(label, demo_path, tmp_path):
         assert (temp_demo / relative_path).exists(), f"{label} missing {relative_path}"
 
 
-def test_demo_maintenance_preserves_custom_config(tmp_path):
-    from psynet.dev.experiments import update_experiment
-
-    experiment_directory = tmp_path / "custom_config"
-    experiment_directory.mkdir()
-    (experiment_directory / "experiment.py").write_text("class Exp:\n    pass\n")
-    custom_config = "[Config]\ntitle = Custom experiment\n"
-    (experiment_directory / "config.txt").write_text(custom_config)
-
-    update_experiment(
-        experiment_directory,
-        skip_constraints=True,
-        latest_dallinger_patch_version="0.0.0",
-    )
-
-    assert (experiment_directory / "config.txt").read_text() == custom_config
-    assert not (experiment_directory / "Dockerfile").exists()
-
-
 @local_only
 @pytest.mark.parametrize("label, demo_path", RUNTIME_DEMOS)
 def test_demo_roundtrip_runs_local_test_command(label, demo_path, tmp_path):
@@ -215,7 +218,9 @@ def test_demo_roundtrip_runs_local_test_command(label, demo_path, tmp_path):
 
     with working_directory(temp_demo):
         prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
-        scaffold_experiment_directory(include_optional_files=True)
+
+    scaffold_result = _run_command(["psynet", "scripts", "scaffold"], temp_demo)
+    assert scaffold_result.returncode == 0, scaffold_result.stderr
 
     result = _run_command(["psynet", "test", "local"], temp_demo)
 

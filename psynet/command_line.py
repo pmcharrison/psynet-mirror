@@ -47,6 +47,7 @@ from psynet.version import (
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    pin_unpinned_psynet_requirement,
     prune_experiment_scaffold,
     scaffold_experiment_directory,
 )
@@ -2876,15 +2877,19 @@ def _assert_directory_is_scaffoldable():
         raise click.UsageError(str(exc)) from exc
 
 
-def _generate_constraints_if_missing(ctx):
+def _generate_constraints_if_missing(ctx, *, requirements_changed=False):
     """Generate a non-empty constraints file when scaffolding needs one."""
     constraints_path = Path("constraints.txt")
     if constraints_path.exists() and not constraints_path.is_file():
         raise click.UsageError("constraints.txt exists but is not a regular file.")
-    if constraints_path.is_file() and constraints_path.stat().st_size > 0:
+    if (
+        not requirements_changed
+        and constraints_path.is_file()
+        and constraints_path.stat().st_size > 0
+    ):
         return
 
-    click.echo("Generating missing or empty constraints.txt...")
+    click.echo("Generating constraints.txt...")
     ctx.invoke(generate_constraints)
     if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
         raise click.ClickException(
@@ -2892,18 +2897,74 @@ def _generate_constraints_if_missing(ctx):
         )
 
 
+def _scaffold_experiment(ctx, *, skip_constraints, refresh_constraints=False):
+    """Scaffold an experiment and optionally prepare its constraints."""
+    _assert_directory_is_scaffoldable()
+    scaffold_result = scaffold_experiment_directory(include_optional_files=True)
+    if not skip_constraints:
+        requirements_changed = (
+            "requirements.txt" in scaffold_result["written"]
+            or pin_unpinned_psynet_requirement()
+        )
+        _generate_constraints_if_missing(
+            ctx,
+            requirements_changed=requirements_changed or refresh_constraints,
+        )
+
+
 @scripts.command("scaffold")
+@click.option(
+    "--skip-constraints",
+    is_flag=True,
+    help="Do not pin PsyNet or generate constraints.txt.",
+)
 @click.pass_context
-def scripts_scaffold(ctx):
+def scripts_scaffold(ctx, skip_constraints):
     """
     Create any missing PsyNet boilerplate files for the experiment directory.
 
     If ``experiment.py`` or ``requirements.txt`` are missing, starter versions are
     created as well.
     """
-    _assert_directory_is_scaffoldable()
-    scaffold_experiment_directory(include_optional_files=True)
-    _generate_constraints_if_missing(ctx)
+    _scaffold_experiment(ctx, skip_constraints=skip_constraints)
+
+
+def _ensure_active_virtualenv():
+    """Require setup to run inside an active virtual environment."""
+    if sys.prefix == sys.base_prefix and not os.environ.get("VIRTUAL_ENV"):
+        raise click.UsageError(
+            "PsyNet setup must run in an active virtual environment. "
+            "Create one with 'uv venv', then activate it before trying again."
+        )
+
+
+def _run_uv(args, description):
+    """Run one uv command and report a concise Click error on failure."""
+    if shutil.which("uv") is None:
+        raise click.ClickException(
+            "Could not find uv. Install it with 'pip install uv' and try again."
+        )
+    try:
+        subprocess.run(["uv", *args], check=True)
+    except subprocess.CalledProcessError as exc:
+        raise click.ClickException(f"Failed to {description}.") from exc
+
+
+@psynet.command("setup")
+@click.pass_context
+def setup(ctx):
+    """Scaffold and install an experiment in the active virtual environment."""
+    _ensure_active_virtualenv()
+    _scaffold_experiment(
+        ctx,
+        skip_constraints=False,
+        refresh_constraints=True,
+    )
+    _run_uv(
+        ["pip", "install", "-r", "requirements.txt", "-c", "constraints.txt"],
+        "install experiment dependencies",
+    )
+    _run_uv(["pip", "check"], "verify experiment dependencies")
 
 
 @scripts.command("update")

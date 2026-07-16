@@ -111,6 +111,27 @@ def _default_psynet_requirement() -> str:
     return f"psynet=={psynet_version}"
 
 
+def pin_unpinned_psynet_requirement() -> bool:
+    """Pin a bare PsyNet requirement to the active version or source commit."""
+    path = Path("requirements.txt")
+    lines = path.read_text().splitlines(keepends=True)
+    replacement = _default_psynet_requirement()
+    changed = False
+    updated_lines = []
+
+    for line in lines:
+        if re.fullmatch(r"\s*psynet\s*", line, flags=re.IGNORECASE):
+            newline = "\n" if line.endswith("\n") else ""
+            updated_lines.append(f"{replacement}{newline}")
+            changed = True
+        else:
+            updated_lines.append(line)
+
+    if changed:
+        path.write_text("".join(updated_lines))
+    return changed
+
+
 def _current_source_commit() -> str | None:
     """Return the source checkout commit when PsyNet is installed from Git."""
     try:
