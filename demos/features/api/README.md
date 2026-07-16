@@ -4,17 +4,8 @@ This demo shows how to expose Python functions and page methods via
 `@expose_to_api`, then call them from front-end JavaScript in
 `custom_pages.py`.
 
-The PsyNet demo directories include just the essential experiment files
-(`experiment.py`, `requirements.txt`, `constraints.txt`) together with any
-demo-specific helpers. If you copy this demo into your own workspace, generate
-the additional boilerplate files with:
-
-```bash
-psynet scripts scaffold
-```
-
-That command recreates files such as `Dockerfile`, `config.txt`, `test.py`,
-`.gitignore`, and the `docker/` helper scripts.
+PsyNet demo directories track authored experiment files only. The unpinned
+`psynet` requirement is resolved when a copied demo is set up.
 
 Typical local workflow:
 
@@ -22,7 +13,7 @@ Typical local workflow:
 git init
 uv venv
 source .venv/bin/activate
-uv pip install -r constraints.txt
-psynet scripts scaffold
+uv pip install psynet
+psynet setup
 psynet debug local
 ```
