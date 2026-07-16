@@ -115,12 +115,14 @@ Set up an experiment (``setup``)
 
 This command scaffolds missing experiment files, pins a bare ``psynet``
 requirement to the active PsyNet installation, generates ``constraints.txt``,
-installs the constrained dependencies with ``uv``, and runs ``uv pip check``.
-Run it inside an active virtual environment:
+synchronizes the constrained dependencies with ``uv``, and runs
+``uv pip check``. Run it inside a dedicated active virtual environment:
 
 .. code:: bash
 
   psynet setup
+
+Synchronization removes packages that are not required by the experiment.
 
 PsyNet's own monorepo CI uses ``psynet scripts scaffold --skip-constraints``
 instead because bundled demos share the repository's development environment.

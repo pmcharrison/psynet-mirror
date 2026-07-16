@@ -45,7 +45,7 @@ Install dependencies as follows:
 
 - (For PsyNet): `uv pip install -e '.[dev,slack]'`
 - (For standalone experiments): `uv pip install psynet`, followed by
-  `psynet setup` to scaffold and install the constrained environment.
+  `psynet setup` to scaffold and synchronize the dedicated constrained environment.
 
 If dependency installation fails with `pg_config executable not found`, install
 PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,

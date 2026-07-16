@@ -2954,7 +2954,7 @@ def _run_uv(args, description):
 @psynet.command("setup")
 @click.pass_context
 def setup(ctx):
-    """Scaffold and install an experiment in the active virtual environment."""
+    """Scaffold and synchronize an experiment's dedicated virtual environment."""
     _ensure_active_virtualenv()
     _scaffold_experiment(
         ctx,
@@ -2962,8 +2962,15 @@ def setup(ctx):
         refresh_constraints=True,
     )
     _run_uv(
-        ["pip", "install", "-r", "requirements.txt", "-c", "constraints.txt"],
-        "install experiment dependencies",
+        [
+            "pip",
+            "sync",
+            "requirements.txt",
+            "-c",
+            "constraints.txt",
+            "--strict",
+        ],
+        "synchronize experiment dependencies",
     )
     _run_uv(["pip", "check"], "verify experiment dependencies")
 

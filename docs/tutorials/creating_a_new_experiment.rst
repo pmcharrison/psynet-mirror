@@ -50,12 +50,15 @@ Virtual environment mode
 ------------------------
 
 For virtual environment mode, let ``psynet setup`` pin the active PsyNet
-version, generate constraints, scaffold the experiment, install the constrained
-dependencies with ``uv``, and verify the environment:
+version, generate constraints, scaffold the experiment, synchronize the
+constrained dependencies with ``uv``, and verify the environment:
 
 .. code-block:: bash
 
     psynet setup
+
+The synchronization removes packages that are not required by the experiment,
+so use a dedicated experiment virtual environment.
 
 .. note::
 

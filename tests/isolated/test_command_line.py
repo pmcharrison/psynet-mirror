@@ -1000,7 +1000,7 @@ def test_scripts_scaffold_regenerates_empty_constraints(tmp_path):
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
 
 
-def test_setup_scaffolds_installs_and_checks_dependencies(tmp_path, monkeypatch):
+def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypatch):
     calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
@@ -1019,13 +1019,13 @@ def test_setup_scaffolds_installs_and_checks_dependencies(tmp_path, monkeypatch)
         (
             [
                 "pip",
-                "install",
-                "-r",
+                "sync",
                 "requirements.txt",
                 "-c",
                 "constraints.txt",
+                "--strict",
             ],
-            "install experiment dependencies",
+            "synchronize experiment dependencies",
         ),
         (["pip", "check"], "verify experiment dependencies"),
     ]
