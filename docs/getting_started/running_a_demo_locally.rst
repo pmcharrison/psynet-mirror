@@ -26,7 +26,7 @@ We suggest using `uv <https://docs.astral.sh/uv/>`_, but ``python -m venv`` also
 
 .. code-block:: bash
 
-    uv venv
+    uv venv --python 3.13
     source .venv/bin/activate
     uv pip install -e '.[dev]'
 

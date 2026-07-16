@@ -49,7 +49,7 @@ environment:
 
 .. code-block:: bash
 
-    uv venv
+    uv venv --python 3.13
     source .venv/bin/activate  # On Windows: .venv\Scripts\activate
     uv pip install psynet
     psynet setup
