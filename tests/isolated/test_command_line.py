@@ -959,6 +959,16 @@ def test_scripts_scaffold_preserves_existing_constraints(tmp_path):
     assert (tmp_path / "constraints.txt").read_text() == constraints
 
 
+def test_scripts_scaffold_regenerates_empty_constraints(tmp_path):
+    (tmp_path / "constraints.txt").touch()
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+
+
 def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_path):
     (tmp_path / "experiment.py").write_text("class Exp:\n    config = {'title': 'X'}\n")
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")

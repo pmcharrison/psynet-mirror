@@ -2879,12 +2879,12 @@ def _assert_directory_is_scaffoldable():
 def _generate_constraints_if_missing(ctx):
     """Generate a non-empty constraints file when scaffolding needs one."""
     constraints_path = Path("constraints.txt")
+    if constraints_path.exists() and not constraints_path.is_file():
+        raise click.UsageError("constraints.txt exists but is not a regular file.")
     if constraints_path.is_file() and constraints_path.stat().st_size > 0:
         return
-    if constraints_path.exists():
-        raise click.UsageError("constraints.txt exists but is not a regular file.")
 
-    click.echo("Generating missing constraints.txt...")
+    click.echo("Generating missing or empty constraints.txt...")
     ctx.invoke(generate_constraints)
     if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
         raise click.ClickException(
