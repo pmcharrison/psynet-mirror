@@ -1187,6 +1187,25 @@ def test_scripts_prune_preserves_authored_resource_directories(tmp_path):
     assert (tmp_path / "templates/custom.html").exists()
 
 
+def test_scripts_prune_removes_generated_static_assets_symlink(tmp_path):
+    assets_directory = tmp_path / "generated-assets"
+    assets_directory.mkdir()
+    (assets_directory / "asset.txt").write_text("Generated asset\n")
+
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        update_scripts_()
+        Path("static").mkdir()
+        Path("static/assets").symlink_to(assets_directory, target_is_directory=True)
+
+        result = CliRunner().invoke(psynet, ["scripts", "prune"])
+
+    assert result.exit_code == 0, result.output
+    assert not (tmp_path / "static").exists()
+    assert (assets_directory / "asset.txt").read_text() == "Generated asset\n"
+
+
 def test_scripts_prune_warns_before_forcing_unrecognized_boilerplate(tmp_path):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
