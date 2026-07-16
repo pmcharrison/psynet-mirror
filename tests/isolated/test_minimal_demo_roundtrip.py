@@ -40,15 +40,25 @@ PRUNABLE_RESOURCE_PATHS = {Path("templates/.keep")}
 
 
 def test_demo_sources_contain_only_authored_experiment_files():
-    demos_root = get_psynet_root() / "demos"
+    psynet_root = get_psynet_root()
+    demos_root = psynet_root / "demos"
     managed_paths = scaffold_managed_paths() - {"README.md"}
+    tracked_paths = set(
+        subprocess.check_output(
+            ["git", "ls-files", "demos"],
+            cwd=psynet_root,
+            text=True,
+        ).splitlines()
+    )
 
     for experiment_file in demos_root.rglob("experiment.py"):
         demo = experiment_file.parent
-        assert not (demo / "constraints.txt").exists()
+        relative_demo = demo.relative_to(psynet_root)
+        assert (relative_demo / "constraints.txt").as_posix() not in tracked_paths
         assert (demo / "requirements.txt").read_text().splitlines()[0] == "psynet"
         for relative_path in managed_paths:
-            assert not (demo / relative_path).exists(), (
+            tracked_path = (relative_demo / relative_path).as_posix()
+            assert tracked_path not in tracked_paths, (
                 f"{demo} tracks scaffold-managed path {relative_path}"
             )
 

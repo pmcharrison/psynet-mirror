@@ -364,7 +364,16 @@ def in_experiment_directory(experiment_directory):
     redis_vars.clear()
     with working_directory(experiment_directory):
         scaffold_experiment_directory(include_optional_files=True)
-        yield experiment_directory
+        original_skip_dependency_check = os.getenv("SKIP_DEPENDENCY_CHECK")
+        if not Path("constraints.txt").exists():
+            os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+        try:
+            yield experiment_directory
+        finally:
+            if original_skip_dependency_check is None:
+                os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+            else:
+                os.environ["SKIP_DEPENDENCY_CHECK"] = original_skip_dependency_check
     clean_sys_modules()
     clear_all_caches()
 
