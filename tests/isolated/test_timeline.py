@@ -82,16 +82,17 @@ def test_partial_render_makes_embedded_scripts_inert():
     assert 'type="text/html"' in inert_html
 
 
-def test_embedded_inline_module_is_rejected():
-    html = """
-    <div id="psynet-timeline-fragment">
-      <script type="module">export const value = 1;</script>
-    </div>
-    """
-
+@pytest.mark.parametrize(
+    "html",
+    [
+        '<script type="module">export const value = 1;</script>',
+        '<script type="module" src="/static/widget.js"></script>',
+    ],
+)
+def test_embedded_module_is_rejected(html):
     with pytest.raises(
         ValueError,
-        match=r"Embedded inline modules are not supported.*js_page_scripts.*migrate-page-javascript",
+        match=r"Embedded modules are not supported.*js_page_scripts.*migrate-page-javascript",
     ):
         Page._check_embedded_script_contract(html)
 
