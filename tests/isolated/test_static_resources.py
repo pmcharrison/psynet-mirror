@@ -1,3 +1,7 @@
+import os
+import zipfile
+from pathlib import Path
+from types import ModuleType
 from types import SimpleNamespace
 
 import pytest
@@ -5,6 +9,7 @@ import pytest
 from psynet.static_resources import (
     STATIC_ENTRY_POINT_GROUP,
     _discover_static_packages,
+    clear_static_package_cache,
     get_static_packages,
     package_static_url,
 )
@@ -39,6 +44,8 @@ def test_package_static_url_is_namespaced_and_escaped():
         ("package", "https://example.com/widget.js"),
         ("package", "widget.js?version=1"),
         ("package", "widget.js#fragment"),
+        ("package", "%2e%2e/secret.js"),
+        ("package", "%00.js"),
     ],
 )
 def test_package_static_url_rejects_unsafe_values(namespace, path):
@@ -60,6 +67,39 @@ def test_discovers_callable_static_root(tmp_path):
     assert package.root == root
     assert package.distribution == "test-distribution"
     assert package.extra_file == (root, "/static/packages/my-component")
+
+
+def test_discovers_conventional_module_static_root(tmp_path, monkeypatch):
+    package_root = tmp_path / "my_components"
+    static_root = package_root / "static"
+    static_root.mkdir(parents=True)
+    module = ModuleType("my_components")
+    monkeypatch.setattr(
+        "psynet.static_resources.resources.files",
+        lambda loaded: package_root,
+    )
+
+    packages = _discover_static_packages([FakeEntryPoint("components", module)])
+
+    assert packages[0].root == static_root
+
+
+def test_materializes_zip_backed_static_root(tmp_path):
+    archive_path = tmp_path / "components.zip"
+    with zipfile.ZipFile(archive_path, "w") as archive:
+        archive.writestr("static/widget.js", "window.widget = true;")
+
+    with zipfile.ZipFile(archive_path) as archive:
+        root = zipfile.Path(archive, "static/")
+        package = _discover_static_packages(
+            [FakeEntryPoint("zip-components", lambda: root)]
+        )[0]
+
+    assert isinstance(package.root, Path)
+    assert os.path.isdir(package.root)
+    assert package.root.joinpath("widget.js").read_text(encoding="utf-8") == (
+        "window.widget = true;"
+    )
 
 
 def test_discovery_is_deterministic(tmp_path):
@@ -103,6 +143,14 @@ def test_missing_static_root_is_rejected(tmp_path):
 
 def test_entry_point_group_name_is_stable():
     assert STATIC_ENTRY_POINT_GROUP == "psynet.static"
+
+
+def test_static_package_cache_can_be_cleared():
+    get_static_packages()
+
+    clear_static_package_cache()
+
+    assert get_static_packages.cache_info().currsize == 0
 
 
 def test_psynet_registers_its_static_resource_root():
