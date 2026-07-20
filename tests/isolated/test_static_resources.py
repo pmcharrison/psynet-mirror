@@ -98,9 +98,7 @@ def test_missing_static_root_is_rejected(tmp_path):
     missing = tmp_path / "missing"
 
     with pytest.raises(ValueError, match="does not exist"):
-        _discover_static_packages(
-            [FakeEntryPoint("missing-package", lambda: missing)]
-        )
+        _discover_static_packages([FakeEntryPoint("missing-package", lambda: missing)])
 
 
 def test_entry_point_group_name_is_stable():
@@ -109,9 +107,7 @@ def test_entry_point_group_name_is_stable():
 
 def test_psynet_registers_its_static_resource_root():
     package = next(
-        package
-        for package in get_static_packages()
-        if package.namespace == "psynet"
+        package for package in get_static_packages() if package.namespace == "psynet"
     )
 
     assert package.root.joinpath("scripts/music-notation-prompt.js").is_file()

@@ -14,7 +14,6 @@ from pathlib import PurePosixPath
 from types import ModuleType
 from urllib.parse import quote, urlsplit
 
-
 STATIC_ENTRY_POINT_GROUP = "psynet.static"
 _NAMESPACE_SEPARATOR = re.compile(r"[-_.]+")
 _SAFE_NAMESPACE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -100,8 +99,7 @@ def _resolve_static_root(entry_point):
         )
     if not root.is_dir():
         raise ValueError(
-            f"Static root for entry point {entry_point.name!r} does not exist: "
-            f"{root}."
+            f"Static root for entry point {entry_point.name!r} does not exist: {root}."
         )
     return root
 

@@ -4401,9 +4401,7 @@ class MusicNotationPrompt(Prompt):
 
     def get_js_dependencies(self):
         """Load the abcjs rendering library once per browser document."""
-        return [
-            package_static_url("psynet", "libraries/abc-js/abcjs-basic.js")
-        ]
+        return [package_static_url("psynet", "libraries/abc-js/abcjs-basic.js")]
 
     def get_js_page_scripts(self):
         """Activate score rendering for each hosting page."""
