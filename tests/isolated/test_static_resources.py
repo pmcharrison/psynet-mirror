@@ -116,3 +116,11 @@ def test_psynet_registers_its_static_resource_root():
 
     assert package.root.joinpath("scripts/psynet.js").is_file()
     assert package.extra_file[1] == "/static/packages/psynet"
+
+
+def test_experiment_stages_registered_static_packages():
+    from psynet.experiment import Experiment
+
+    destinations = [destination for _, destination in Experiment.extra_files()]
+
+    assert "/static/packages/psynet" in destinations
