@@ -105,8 +105,7 @@ def _resolve_static_root(entry_point):
         )
     if hasattr(root, "exists") and not root.exists():
         raise ValueError(
-            f"Static root for entry point {entry_point.name!r} does not exist: "
-            f"{root}."
+            f"Static root for entry point {entry_point.name!r} does not exist: {root}."
         )
     if not root.is_dir():
         raise ValueError(
@@ -124,9 +123,10 @@ def _copy_traversable(source, destination):
         if child.is_dir():
             _copy_traversable(child, child_destination)
         elif child.is_file():
-            with child.open("rb") as input_file, child_destination.open(
-                "wb"
-            ) as output_file:
+            with (
+                child.open("rb") as input_file,
+                child_destination.open("wb") as output_file,
+            ):
                 shutil.copyfileobj(input_file, output_file)
 
 

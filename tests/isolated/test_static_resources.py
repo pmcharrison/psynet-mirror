@@ -1,8 +1,7 @@
 import os
 import zipfile
 from pathlib import Path
-from types import ModuleType
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -146,9 +145,7 @@ def test_file_static_root_is_rejected(tmp_path):
     file_path.write_text("window.widget = true;", encoding="utf-8")
 
     with pytest.raises(ValueError, match="is not a directory"):
-        _discover_static_packages(
-            [FakeEntryPoint("file-package", lambda: file_path)]
-        )
+        _discover_static_packages([FakeEntryPoint("file-package", lambda: file_path)])
 
 
 def test_invalid_entry_point_payload_is_rejected():
