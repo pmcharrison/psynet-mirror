@@ -78,9 +78,9 @@ export async function activate({root, trial, vars, page, psynet}) {
 }
 ```
 
-Do not embed an inline ``<script type="module">`` block. PsyNet rejects inline
-embedded modules because their failures cannot be tied reliably to page
-activation; move the code to the ``js_page_scripts`` file instead.
+Do not embed a ``<script type="module">`` tag, whether inline or linked with
+``src``. PsyNet reserves ES modules for ``js_page_scripts``; use standard
+``import`` statements from that page-script module for further dependencies.
 
 PsyNet imports the file once and calls ``activate()`` for every hosting page.
 Most page scripts do not need to return cleanup: PsyNet removes the page DOM,

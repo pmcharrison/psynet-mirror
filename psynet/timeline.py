@@ -1770,7 +1770,7 @@ class Page(Elt):
 
     @staticmethod
     def _check_embedded_script_contract(html):
-        """Reject embedded inline modules in favor of managed page scripts."""
+        """Reject embedded modules in favor of managed page scripts."""
         soup = (
             html
             if isinstance(html, BeautifulSoup)
@@ -1778,10 +1778,11 @@ class Page(Elt):
         )
         for script in soup.find_all("script"):
             script_type = (script.get("type") or "").strip().lower()
-            if script_type == "module" and not script.get("src"):
+            if script_type == "module":
                 raise ValueError(
-                    "Embedded inline modules are not supported. Move the module "
-                    "to a static file supplied through js_page_scripts. Run "
+                    "Embedded modules are not supported. Supply the module "
+                    "through js_page_scripts and use standard imports for its "
+                    "dependencies. Run "
                     "/migrate-page-javascript for a step-by-step migration."
                 )
 
@@ -1796,7 +1797,6 @@ class Page(Elt):
             "",
             "application/ecmascript",
             "application/javascript",
-            "module",
             "text/ecmascript",
             "text/javascript",
         }
@@ -1804,8 +1804,6 @@ class Page(Elt):
             script_type = (script.get("type") or "").strip().lower()
             if script_type not in executable_script_types:
                 continue
-            if script_type == "module":
-                script["data-psynet-original-script-type"] = "module"
             script["type"] = "text/psynet-script"
         if parsed_from_string:
             return str(soup)

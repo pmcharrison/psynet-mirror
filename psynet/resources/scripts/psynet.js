@@ -551,9 +551,6 @@
         let script = document.createElement("script");
         script.src = normalizedSrc;
         script.async = false;
-        if (options.type) {
-          script.type = options.type;
-        }
         script.onload = () => {
           if (options.skipIfLoaded) {
             psynet.loadedDocumentScripts.add(normalizedSrc);
@@ -670,19 +667,11 @@
         if (script.type === "application/json") {
           continue;
         }
-        let originalType = script.dataset.psynetOriginalScriptType;
         // Preserve HTML parser ordering: inline scripts before a linked script
         // run first, then the linked script, then subsequent inline scripts.
         if (script.src) {
           await flushInlineBuffer();
-          await psynet.executeExternalScript(script.src, {
-            ...options,
-            type: originalType,
-          });
-        } else if (originalType === "module") {
-          throw new Error(
-            "Embedded inline modules are not supported. Use js_page_scripts.",
-          );
+          await psynet.executeExternalScript(script.src, options);
         } else if (script.textContent.trim() !== "") {
           inlineBuffer.push(script.textContent);
         }

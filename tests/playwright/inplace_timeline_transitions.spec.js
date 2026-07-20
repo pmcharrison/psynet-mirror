@@ -50,7 +50,7 @@ function makeSilentWav(durationSeconds) {
   return buffer;
 }
 
-test("in-place timeline transitions replay raw modules and manage page assets", async ({
+test("in-place timeline transitions replay embedded scripts and manage page assets", async ({
   page,
   context
 }) => {
@@ -92,10 +92,6 @@ test("in-place timeline transitions replay raw modules and manage page assets", 
         () => window.__psynetManagedDependencyAvailableInBody
       )
     ).toBe(true);
-    expect(
-      await experimentPage.evaluate(() => window.__legacyBodyModuleLoads)
-    ).toBe(1);
-
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expect(
@@ -130,9 +126,6 @@ test("in-place timeline transitions replay raw modules and manage page assets", 
         () => window.__psynetManagedDependencyAvailableInBody
       )
     ).toBe(true);
-    expect(
-      await experimentPage.evaluate(() => window.__legacyBodyModuleLoads)
-    ).toBe(2);
     await expect(
       experimentPage.locator("#body-library-load-count-marker")
     ).toHaveAttribute("data-load-count", "1", { timeout: STEP_TIMEOUT_MS });

@@ -429,11 +429,10 @@ loaded once per browser document; inline embedded scripts run on each page
 activation. Embedded scripts run after ``js_dependencies`` and before
 ``js_page_scripts``.
 
-Embedded inline ``<script type="module">`` blocks are not supported. Their
-browser error and completion semantics cannot be integrated reliably with page
-activation. Put module code in a static file and supply it through
-``js_page_scripts`` instead. External embedded module scripts with ``src``
-remain supported.
+Embedded ``<script type="module">`` tags are not supported, whether inline or
+linked with ``src``. Put the ESM entry point in ``js_page_scripts`` and use
+standard ``import`` statements there for its dependency graph. This keeps all
+module loading within the explicit page-script lifecycle.
 
 Classic inline scripts are grouped into a page-local function during in-place
 replay. They should therefore not rely on top-level ``var`` or function
