@@ -537,13 +537,10 @@
         });
     };
 
-    psynet.executeExternalScript = function (src, options = {}) {
+    psynet.executeExternalScript = function (src) {
       let normalizedSrc = new URL(src, window.location.href).href;
 
-      if (
-        options.skipIfLoaded &&
-        psynet.loadedDocumentScripts.has(normalizedSrc)
-      ) {
+      if (psynet.loadedDocumentScripts.has(normalizedSrc)) {
         return Promise.resolve();
       }
 
@@ -552,9 +549,7 @@
         script.src = normalizedSrc;
         script.async = false;
         script.onload = () => {
-          if (options.skipIfLoaded) {
-            psynet.loadedDocumentScripts.add(normalizedSrc);
-          }
+          psynet.loadedDocumentScripts.add(normalizedSrc);
           script.remove();
           resolve();
         };
@@ -573,7 +568,7 @@
     psynet.loadJSDependencies = async function () {
       psynet.rememberLoadedDocumentScripts();
       for (let src of psynetTemplateData.jsDependencies || []) {
-        await psynet.executeExternalScript(src, { skipIfLoaded: true });
+        await psynet.executeExternalScript(src);
       }
     };
 
@@ -647,7 +642,7 @@
       await psynet.activateJSPageScripts();
     };
 
-    psynet.executeScriptSequence = async function (scriptElements, options = {}) {
+    psynet.executeScriptSequence = async function (scriptElements) {
       let inlineBuffer = [];
 
       let flushInlineBuffer = async function () {
@@ -671,7 +666,7 @@
         // run first, then the linked script, then subsequent inline scripts.
         if (script.src) {
           await flushInlineBuffer();
-          await psynet.executeExternalScript(script.src, options);
+          await psynet.executeExternalScript(script.src);
         } else if (script.textContent.trim() !== "") {
           inlineBuffer.push(script.textContent);
         }
@@ -887,9 +882,7 @@
       psynet.refreshTemplateData();
       await psynet.rebuildTrial();
       await psynet.loadJSDependencies();
-      await psynet.executeScriptSequence(psynet.getEmbeddedScripts(), {
-        skipIfLoaded: true,
-      });
+      await psynet.executeScriptSequence(psynet.getEmbeddedScripts());
       await psynet.activateJSPageScripts();
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
