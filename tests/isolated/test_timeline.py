@@ -66,7 +66,7 @@ def test_merge_media_spec():
 def test_partial_render_makes_embedded_scripts_inert():
     html = """
     <div id="psynet-timeline-fragment">
-      <script type="module" data-example="1">window.example = true;</script>
+      <script type="module" src="/static/example.js" data-example="1"></script>
       <script type="application/json">{"example": true}</script>
       <script type="text/html"><div>template</div></script>
       <script type="text/psynet-script">window.deferred = true;</script>

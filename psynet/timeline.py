@@ -1634,6 +1634,8 @@ class Page(Elt):
         )
         if partial_mode:
             rendered = self._extract_partial_render(rendered)
+        else:
+            self._check_embedded_script_contract(rendered)
         return rendered
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
@@ -1762,8 +1764,24 @@ class Page(Elt):
     @staticmethod
     def _extract_partial_render(rendered_html):
         soup = BeautifulSoup(rendered_html, "html.parser")
+        Page._check_embedded_script_contract(soup)
         Page._make_embedded_scripts_inert(soup)
         return Page._extract_partial_body(soup)
+
+    @staticmethod
+    def _check_embedded_script_contract(html):
+        """Reject embedded inline modules in favor of managed page scripts."""
+        soup = html if isinstance(html, BeautifulSoup) else BeautifulSoup(
+            html, "html.parser"
+        )
+        for script in soup.find_all("script"):
+            script_type = (script.get("type") or "").strip().lower()
+            if script_type == "module" and not script.get("src"):
+                raise ValueError(
+                    "Embedded inline modules are not supported. Move the module "
+                    "to a static file supplied through js_page_scripts. Run "
+                    "/migrate-page-javascript for a step-by-step migration."
+                )
 
     @staticmethod
     def _make_embedded_scripts_inert(soup):

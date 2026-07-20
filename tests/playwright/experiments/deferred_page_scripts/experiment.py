@@ -41,10 +41,6 @@ class Exp(psynet.experiment.Experiment):
                     window.__psynetManagedDependencyAvailableInBody =
                         window.__psynetManagedJavascript?.dependencyLoads === 1;
                 </script>
-                <script type="module">
-                    window.__legacyInlineModuleRuns =
-                        (window.__legacyInlineModuleRuns || 0) + 1;
-                </script>
                 <script
                     type="module"
                     src="/static/legacy-body-module.js"
@@ -63,10 +59,6 @@ class Exp(psynet.experiment.Experiment):
                 <script>
                     window.__psynetManagedDependencyAvailableInBody =
                         window.__psynetManagedJavascript?.dependencyLoads === 1;
-                </script>
-                <script type="module">
-                    window.__legacyInlineModuleRuns =
-                        (window.__legacyInlineModuleRuns || 0) + 1;
                 </script>
                 <script
                     type="module"

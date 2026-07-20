@@ -93,11 +93,8 @@ test("in-place timeline transitions replay raw modules and manage page assets", 
       )
     ).toBe(true);
     expect(
-      await experimentPage.evaluate(() => ({
-        external: window.__legacyBodyModuleLoads,
-        inline: window.__legacyInlineModuleRuns
-      }))
-    ).toEqual({ external: 1, inline: 1 });
+      await experimentPage.evaluate(() => window.__legacyBodyModuleLoads)
+    ).toBe(1);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
@@ -134,11 +131,8 @@ test("in-place timeline transitions replay raw modules and manage page assets", 
       )
     ).toBe(true);
     expect(
-      await experimentPage.evaluate(() => ({
-        external: window.__legacyBodyModuleLoads,
-        inline: window.__legacyInlineModuleRuns
-      }))
-    ).toEqual({ external: 2, inline: 2 });
+      await experimentPage.evaluate(() => window.__legacyBodyModuleLoads)
+    ).toBe(2);
     await expect(
       experimentPage.locator("#body-library-load-count-marker")
     ).toHaveAttribute("data-load-count", "1", { timeout: STEP_TIMEOUT_MS });
@@ -234,7 +228,6 @@ test("in-place timeline transitions replay raw modules and manage page assets", 
     await expect(stylesheetMarker).not.toHaveCSS("border-left-width", "7px");
   });
 });
-
 test("in-place timeline transitions preload linked CSS before swapping DOM", async ({
   page,
   context
@@ -693,51 +686,5 @@ test("post-commit activation failures clean up managed page scripts", async ({
         "cleanup:second",
         "cleanup:first"
       ]);
-  });
-});
-
-test("embedded inline module failures reject instead of hanging", async ({
-  page,
-  context
-}) => {
-  const absDir = path.resolve(
-    "tests/playwright/experiments/deferred_page_scripts"
-  );
-
-  await withExperiment(page, context, absDir, async (experimentPage) => {
-    await completeInitialGateway(experimentPage);
-    await assertInplaceTimelinePathActive(experimentPage, 20000);
-
-    const results = await experimentPage.evaluate(async () => {
-      window.psynet.inlineModuleTimeoutMs = 100;
-
-      async function run(code) {
-        return Promise.race([
-          window.psynet.executeInlineModule(code).then(
-            () => ({status: "resolved"}),
-            (error) => ({status: "rejected", message: error.message})
-          ),
-          new Promise((resolve) => {
-            window.setTimeout(() => resolve({status: "hung"}), 1000);
-          })
-        ]);
-      }
-
-      return {
-        thrown: await run(
-          'throw new Error("intentional embedded module failure");'
-        ),
-        stalled: await run("await new Promise(() => {});")
-      };
-    });
-
-    expect(results.thrown).toEqual({
-      status: "rejected",
-      message: "intentional embedded module failure"
-    });
-    expect(results.stalled).toEqual({
-      status: "rejected",
-      message: "Embedded inline module timed out after 100 ms."
-    });
   });
 });
