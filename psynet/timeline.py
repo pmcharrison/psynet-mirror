@@ -1771,8 +1771,10 @@ class Page(Elt):
     @staticmethod
     def _check_embedded_script_contract(html):
         """Reject embedded inline modules in favor of managed page scripts."""
-        soup = html if isinstance(html, BeautifulSoup) else BeautifulSoup(
-            html, "html.parser"
+        soup = (
+            html
+            if isinstance(html, BeautifulSoup)
+            else BeautifulSoup(html, "html.parser")
         )
         for script in soup.find_all("script"):
             script_type = (script.get("type") or "").strip().lower()
