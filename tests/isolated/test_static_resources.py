@@ -36,6 +36,8 @@ def test_package_static_url_is_namespaced_and_escaped():
         ("package", "/widget.js"),
         ("package", r"scripts\widget.js"),
         ("package", "https://example.com/widget.js"),
+        ("package", "widget.js?version=1"),
+        ("package", "widget.js#fragment"),
     ],
 )
 def test_package_static_url_rejects_unsafe_values(namespace, path):

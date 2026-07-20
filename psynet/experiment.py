@@ -93,6 +93,7 @@ from .recruiters import (  # noqa: F401
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
+from .static_resources import get_static_package_extra_files
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -2530,6 +2531,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = []
         for trialmaker in cls.timeline.trial_makers.values():
             files.extend(trialmaker.extra_files())
+        files.extend(get_static_package_extra_files())
 
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
