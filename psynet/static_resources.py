@@ -6,17 +6,21 @@ components can declare ordinary dependency and page-script URLs without asking
 experiment authors to copy package files into their experiment.
 """
 
+import os
 import re
+import shutil
+import tempfile
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib import metadata, resources
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from types import ModuleType
 from urllib.parse import quote, urlsplit
 
 STATIC_ENTRY_POINT_GROUP = "psynet.static"
 _NAMESPACE_SEPARATOR = re.compile(r"[-_.]+")
 _SAFE_NAMESPACE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+_MATERIALIZED_STATIC_ROOTS = []
 
 
 @dataclass(frozen=True)
@@ -51,8 +55,10 @@ def package_static_url(namespace, path):
     canonical_namespace = _canonicalize_namespace(namespace)
     if not isinstance(path, str) or not path:
         raise ValueError("Static package resource path must be a non-empty string.")
-    if "\\" in path:
-        raise ValueError("Static package resource paths must use forward slashes.")
+    if "\\" in path or "%" in path:
+        raise ValueError(
+            "Static package resource paths must use unescaped forward-slash paths."
+        )
 
     parsed = urlsplit(path)
     resource_path = PurePosixPath(path)
@@ -88,20 +94,56 @@ def _resolve_static_root(entry_point):
     elif callable(loaded):
         root = loaded()
     else:
-        raise TypeError(
+        raise ValueError(
             f"Entry point {entry_point.name!r} in {STATIC_ENTRY_POINT_GROUP!r} "
             "must load a package module or a callable returning a static root."
         )
     if not hasattr(root, "is_dir"):
-        raise TypeError(
+        raise ValueError(
             f"Static root for entry point {entry_point.name!r} must be a "
             "path-like resource directory."
         )
+    if hasattr(root, "exists") and not root.exists():
+        raise ValueError(
+            f"Static root for entry point {entry_point.name!r} does not exist: "
+            f"{root}."
+        )
     if not root.is_dir():
         raise ValueError(
-            f"Static root for entry point {entry_point.name!r} does not exist: {root}."
+            f"Static root for entry point {entry_point.name!r} is not a "
+            f"directory: {root}."
         )
-    return root
+    return _ensure_filesystem_root(root, entry_point.name)
+
+
+def _copy_traversable(source, destination):
+    """Copy an importlib Traversable tree to a filesystem directory."""
+    destination.mkdir(parents=True, exist_ok=True)
+    for child in source.iterdir():
+        child_destination = destination / child.name
+        if child.is_dir():
+            _copy_traversable(child, child_destination)
+        elif child.is_file():
+            with child.open("rb") as input_file, child_destination.open(
+                "wb"
+            ) as output_file:
+                shutil.copyfileobj(input_file, output_file)
+
+
+def _ensure_filesystem_root(root, namespace):
+    """Return a real directory path suitable for Dallinger staging."""
+    try:
+        filesystem_path = Path(os.fspath(root))
+    except TypeError:
+        temporary_root = tempfile.TemporaryDirectory(
+            prefix=f"psynet-static-{_canonicalize_namespace(namespace)}-"
+        )
+        _MATERIALIZED_STATIC_ROOTS.append(temporary_root)
+        filesystem_path = Path(temporary_root.name) / "static"
+        _copy_traversable(root, filesystem_path)
+    if not filesystem_path.is_dir():
+        raise ValueError(f"Static root is not a filesystem directory: {root}.")
+    return filesystem_path
 
 
 def _discover_static_packages(entry_points):
@@ -144,6 +186,13 @@ def _registered_static_entry_points():
 def get_static_packages():
     """Discover installed packages that publish PsyNet static resources."""
     return tuple(_discover_static_packages(_registered_static_entry_points()))
+
+
+def clear_static_package_cache():
+    """Clear discovery results and materialized temporary resource roots."""
+    get_static_packages.cache_clear()
+    while _MATERIALIZED_STATIC_ROOTS:
+        _MATERIALIZED_STATIC_ROOTS.pop().cleanup()
 
 
 def get_static_package_extra_files():
