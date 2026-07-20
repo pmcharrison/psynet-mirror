@@ -112,6 +112,9 @@ Dependencies
 libraries loaded once per browser document. Their top-level code is not rerun
 when a later page declares the same URL.
 
+Built-in and third-party component packages can publish dependency files through
+:doc:`package_static_resources` without requiring experiment-level file copies.
+
 Page scripts
 ~~~~~~~~~~~~
 

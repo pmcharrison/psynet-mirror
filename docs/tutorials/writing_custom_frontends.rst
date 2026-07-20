@@ -417,6 +417,21 @@ its exported ``activate()`` function again whenever the behavior is used on a
 new page. This separation avoids rerunning library top-level code while still
 initializing fresh page state.
 
+Bundling resources in component packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Third-party Prompt and Control packages can publish their own static resources
+through the ``psynet.static`` Python entry-point group. PsyNet gives each
+package a namespaced URL under ``/static/packages/`` and stages the registered
+root before dynamic pages are created. Experiment authors therefore do not need
+to copy component files into their experiment's ``static`` directory.
+
+Component packages should construct resource URLs with
+:func:`psynet.static_resources.package_static_url` and return them from
+``get_js_dependencies()`` or ``get_js_page_scripts()``. See
+:doc:`/developer/package_static_resources` for package layout, entry-point
+configuration, custom roots, validation, and wheel-packaging requirements.
+
 Embedded HTML scripts
 ^^^^^^^^^^^^^^^^^^^^^
 
