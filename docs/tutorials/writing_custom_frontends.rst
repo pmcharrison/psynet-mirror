@@ -417,20 +417,72 @@ its exported ``activate()`` function again whenever the behavior is used on a
 new page. This separation avoids rerunning library top-level code while still
 initializing fresh page state.
 
-Bundling resources in component packages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Managing static files for custom components
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Third-party Prompt and Control packages can publish their own static resources
-through the ``psynet.static`` Python entry-point group. PsyNet gives each
-package a namespaced URL under ``/static/packages/`` and stages the registered
-root before dynamic pages are created. Experiment authors therefore do not need
-to copy component files into their experiment's ``static`` directory.
+Where a custom Prompt or Control keeps its static files depends on who owns the
+component.
 
-Component packages should construct resource URLs with
-:func:`psynet.static_resources.package_static_url` and return them from
-``get_js_dependencies()`` or ``get_js_page_scripts()``. See
-:doc:`/developer/package_static_resources` for package layout, entry-point
-configuration, custom roots, validation, and wheel-packaging requirements.
+**Experiment-local components**
+
+If the component belongs to one experiment, put its files in that experiment's
+``static`` directory and use normal experiment URLs:
+
+.. code-block:: python
+
+    class ColorText(Control):
+        def get_js_page_scripts(self):
+            return ["/static/color-text.js"]
+
+This is the simplest workflow for experiment-specific components.
+
+**Components contributed to PsyNet**
+
+Reusable components added to the PsyNet library should own their resources
+inside ``psynet/static``. Construct their namespaced URLs with
+:func:`psynet.static_resources.package_static_url`:
+
+.. code-block:: python
+
+    from psynet.static_resources import package_static_url
+
+
+    class MyPrompt(Prompt):
+        def get_js_dependencies(self):
+            return [
+                package_static_url(
+                    "psynet",
+                    "libraries/my-library/library.js",
+                )
+            ]
+
+        def get_js_page_scripts(self):
+            return [
+                package_static_url(
+                    "psynet",
+                    "scripts/my-prompt.js",
+                )
+            ]
+
+PsyNet already registers this package root, so experiment authors do not need
+to copy these files or modify their own ``static`` directories. New built-in
+components should use namespaced package URLs rather than adding individual
+entries to ``Experiment.extra_files()``.
+
+**Third-party component packages**
+
+Third-party Prompt and Control packages register one static root through the
+``psynet.static`` Python entry-point group. PsyNet publishes it under
+``/static/packages/<namespace>/`` before dynamic pages are created.
+
+Third-party components also use
+:func:`psynet.static_resources.package_static_url` in their resource hooks.
+Package authors must include the static root in their wheel and source
+distribution.
+
+See :doc:`/developer/package_static_resources` for package layout, entry-point
+configuration, custom roots, zip-backed resources, validation, testing, and
+wheel-packaging requirements.
 
 Embedded HTML scripts
 ^^^^^^^^^^^^^^^^^^^^^
