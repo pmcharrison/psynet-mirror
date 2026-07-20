@@ -141,6 +141,21 @@ def test_missing_static_root_is_rejected(tmp_path):
         _discover_static_packages([FakeEntryPoint("missing-package", lambda: missing)])
 
 
+def test_file_static_root_is_rejected(tmp_path):
+    file_path = tmp_path / "widget.js"
+    file_path.write_text("window.widget = true;", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="is not a directory"):
+        _discover_static_packages(
+            [FakeEntryPoint("file-package", lambda: file_path)]
+        )
+
+
+def test_invalid_entry_point_payload_is_rejected():
+    with pytest.raises(ValueError, match="package module or a callable"):
+        _discover_static_packages([FakeEntryPoint("invalid-package", object())])
+
+
 def test_entry_point_group_name_is_stable():
     assert STATIC_ENTRY_POINT_GROUP == "psynet.static"
 
@@ -165,6 +180,14 @@ def test_psynet_registers_its_static_resource_root():
 def test_experiment_stages_registered_static_packages():
     from psynet.experiment import Experiment
 
-    destinations = [destination for _, destination in Experiment.extra_files()]
+    package_files = [
+        (source, destination)
+        for source, destination in Experiment.extra_files()
+        if destination == "/static/packages/psynet"
+    ]
 
-    assert "/static/packages/psynet" in destinations
+    assert len(package_files) == 1
+    source, destination = package_files[0]
+    assert os.path.isdir(os.fspath(source))
+    assert source.joinpath("scripts/music-notation-prompt.js").is_file()
+    assert destination == "/static/packages/psynet"
