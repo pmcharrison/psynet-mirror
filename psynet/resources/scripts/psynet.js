@@ -876,6 +876,7 @@
     };
 
     psynet.activateTimelineFragmentLifecycle = async function () {
+      // Architecture: docs/developer/page_lifecycle.rst
       // A full page reload used to clear old handlers, globals, and transient
       // page state automatically. In inplace mode we must recreate that
       // lifecycle explicitly before we can mark the new page as ready.

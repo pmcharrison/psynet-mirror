@@ -25,6 +25,10 @@ Experiments that explicitly need the old full-page reload behavior can set
 kept for backwards compatibility, but new and migrated custom pages should be
 written for in-place transitions.
 
+Maintainers extending PsyNet's Page, Prompt, or Control internals should also
+read :doc:`/developer/page_lifecycle`, which documents the complete rendering,
+activation, cleanup, and failure contract.
+
 Custom page templates
 ~~~~~~~~~~~~~~~~~~~~~
 
