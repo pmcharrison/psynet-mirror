@@ -114,7 +114,7 @@ def test_psynet_registers_its_static_resource_root():
         if package.namespace == "psynet"
     )
 
-    assert package.root.joinpath("scripts/psynet.js").is_file()
+    assert package.root.joinpath("scripts/music-notation-prompt.js").is_file()
     assert package.extra_file[1] == "/static/packages/psynet"
 
 

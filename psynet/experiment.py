@@ -2596,7 +2596,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
-                    / "resources/scripts/music-notation-prompt.js",
+                    / "static/scripts/music-notation-prompt.js",
                     "/static/scripts/music-notation-prompt.js",
                 ),
                 (
@@ -2683,7 +2683,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/survey-jquery",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/abc-js",
+                    resources.files("psynet") / "static/libraries/abc-js",
                     "/static/scripts/abc-js",
                 ),
                 (

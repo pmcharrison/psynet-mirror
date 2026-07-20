@@ -74,7 +74,7 @@ def package_static_url(namespace, path):
 
 def psynet_static_root():
     """Return PsyNet's bundled static resource root."""
-    return resources.files("psynet").joinpath("resources")
+    return resources.files("psynet").joinpath("static")
 
 
 def _distribution_name(entry_point):

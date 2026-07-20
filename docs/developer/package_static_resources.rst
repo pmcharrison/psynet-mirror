@@ -137,7 +137,7 @@ only on component packages they trust.
 PsyNet's own resources
 ----------------------
 
-PsyNet registers its bundled ``psynet/resources`` root through the same
+PsyNet registers its bundled ``psynet/static`` root through the same
 ``psynet.static`` entry-point protocol under the ``psynet`` namespace. Existing
 legacy built-in URLs remain available while components migrate to namespaced
 package URLs.
