@@ -5,6 +5,7 @@ import pytest
 from psynet.static_resources import (
     STATIC_ENTRY_POINT_GROUP,
     _discover_static_packages,
+    get_static_packages,
     package_static_url,
 )
 
@@ -104,3 +105,14 @@ def test_missing_static_root_is_rejected(tmp_path):
 
 def test_entry_point_group_name_is_stable():
     assert STATIC_ENTRY_POINT_GROUP == "psynet.static"
+
+
+def test_psynet_registers_its_static_resource_root():
+    package = next(
+        package
+        for package in get_static_packages()
+        if package.namespace == "psynet"
+    )
+
+    assert package.root.joinpath("scripts/psynet.js").is_file()
+    assert package.extra_file[1] == "/static/packages/psynet"
