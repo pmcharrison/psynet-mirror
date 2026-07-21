@@ -624,6 +624,8 @@ A performance check assesses the trials that the participant has completed,
 gives the participant a score, and decides whether or not that participant should be failed.
 Typically a failed participant would be ejected from the experiment at that point.
 This is helpful for implementing performance-based screening tasks.
+Whether the participant's trials are also failed is configured separately; see
+:doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`.
 
 To implement a performance check, one needs to create a custom subclass for the trial maker,
 and define a custom ``performance_check`` method. Arbitrary logic is possible here,

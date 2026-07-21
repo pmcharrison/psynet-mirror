@@ -619,6 +619,10 @@ The redirect works differently depending on context:
   participant submits a response. This preserves the participant's response to
   the page they are currently viewing.
 
+Participant failure does not necessarily invalidate the participant's trials.
+See :doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`
+for the distinction and the available TrialMaker settings.
+
 The redirect is skipped if the participant is already in an end branch or has
 already completed the experiment.
 

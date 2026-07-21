@@ -7,6 +7,7 @@ Tutorials
    creating_a_new_experiment
    classes
    timeline
+   participant_and_trial_failure
    assets
    specifying_dependencies
    tests
