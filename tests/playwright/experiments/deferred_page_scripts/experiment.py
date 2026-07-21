@@ -89,6 +89,7 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=1,
             js_dependencies=MANAGED_JAVASCRIPT["js_dependencies"],
             js_page_code="""
+                window.__pageCodeLifecycle = window.__pageCodeLifecycle || [];
                 window.__pageCodeLifecycle.push("activate:second");
                 return function cleanup() {
                     window.__pageCodeLifecycle.push("cleanup:second");
