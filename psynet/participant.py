@@ -567,10 +567,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return self.var.get("locale", default=None)
 
     @property
-    def failure_cascade(self):
-        return [lambda: self.alive_trials]
-
-    @property
     def gettext(self):
         return self.translator[0]
 
