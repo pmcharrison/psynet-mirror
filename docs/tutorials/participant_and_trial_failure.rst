@@ -96,8 +96,7 @@ finalized trials. If it is ``False``, those trials are preserved. Participant
 failure for any other reason preserves trials unless custom failure logic
 explicitly fails them.
 
-A performance check is a participant-level quality decision, not necessarily a
-simple accuracy threshold. It can represent poor task performance,
+A performance check is a participant-level quality decision. It can represent poor task performance,
 insufficiently grammatical responses, failed attention checks, or signs of
 automated or bot behavior. When a participant receives the
 ``performance_check`` failure tag, every registered TrialMaker applies its own
@@ -130,7 +129,9 @@ The default policies reflect the different data dependencies of each paradigm:
      - Fail trials
 
 Static experiments commonly treat successful completion as a condition for
-including a participant's dataset. Chain experiments instead preserve trials
+including a participant's dataset. This is because it can cause trouble for 
+standard data analyses if such datasets contain partial contributions.
+Chain experiments instead preserve trials
 by default because failing an earlier trial can invalidate substantial amounts
 of downstream data. Built-in prescreening tasks generally preserve trials on
 premature exit because they do not recruit to a target quantity of valid trial
@@ -187,17 +188,3 @@ Experiment authors should enable propagation only where the validity of
 downstream objects genuinely depends on the failed object. Ownership alone is
 not a dependency: the fact that a participant owns several trials is not a
 reason to propagate failure between those trials.
-
-
-Policy summary
---------------
-
-* Participant failure and trial failure are separate.
-* Participant failure never globally cascades to every owned trial.
-* Trial-local errors fail the affected trial.
-* Trial failure means exclusion from the usable dataset, not deletion.
-* Participant-triggered invalidation is configured and scoped per TrialMaker.
-* The configured choices are to preserve that TrialMaker's trials or fail all
-  of them.
-* Propagation concerns downstream dependencies, not participant ownership.
-* Failed records are retained and exported for audit and analysis.
