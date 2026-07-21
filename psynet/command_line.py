@@ -3442,18 +3442,12 @@ def _run_performance_test_with_existing_server(
         base_url=exp.base_url,
         n_bots=exp.test_n_bots,
         duration_minutes=(
-            exp.test_duration_minutes
-            if duration_minutes is None
-            else duration_minutes
+            exp.test_duration_minutes if duration_minutes is None else duration_minutes
         ),
         stagger_interval_s=(
-            exp.test_parallel_stagger_interval_s
-            if stagger is None
-            else float(stagger)
+            exp.test_parallel_stagger_interval_s if stagger is None else float(stagger)
         ),
-        time_factor=(
-            exp.test_time_factor if time_factor is None else time_factor
-        ),
+        time_factor=(exp.test_time_factor if time_factor is None else time_factor),
     )
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
     all_results = tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
