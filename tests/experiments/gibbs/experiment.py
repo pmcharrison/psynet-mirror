@@ -91,7 +91,7 @@ class ColorSliderPage(ModularPage):
             ),
             time_estimate=time_estimate,
             css=[color_slider_css],
-            js_page_scripts=["/static/color-slider.js"],
+            js_page_modules=["/static/color-slider.js"],
         )
 
     def metadata(self, **kwargs):

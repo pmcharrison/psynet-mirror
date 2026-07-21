@@ -1,7 +1,7 @@
 // Built-in modular-page chatroom widget.
 //
 // This script is activated for each hosting page through ChatRoom's
-// get_js_page_scripts() hook. Per-page state stays inside activate(), and the
+// get_js_page_modules() hook. Per-page state stays inside activate(), and the
 // returned cleanup function owns all listeners and the WebSocket it creates.
 export async function activate({root, vars}) {
     var CONFIG       = vars["chatroom_config"] || {};

@@ -6,8 +6,10 @@
     <script id="psynet-template-data" type="application/json">
         {{ {
             "jsVars": js_vars,
+            "legacyJsLinks": js_links,
             "jsDependencies": js_dependencies,
-            "jsPageScripts": js_page_scripts,
+            "jsPageCode": js_page_code,
+            "jsPageModules": js_page_modules,
             "page": page.__json__(participant),
             "events": events,
             "mediaRequests": page.media.data,

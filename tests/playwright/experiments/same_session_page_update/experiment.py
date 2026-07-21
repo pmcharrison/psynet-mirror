@@ -24,7 +24,7 @@ class Exp(psynet.experiment.Experiment):
                     "contents": {"step": 1, "label": "first"},
                 }
             },
-            js_page_scripts=["/static/unity-stub-page.js"],
+            js_page_modules=["/static/unity-stub-page.js"],
             contents={"step": 1, "label": "first"},
         ),
         InfoPage(

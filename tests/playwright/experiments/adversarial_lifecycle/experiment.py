@@ -36,7 +36,7 @@ class ListenerPage(Page):
                 </p>
             """,
             js_vars={"adversarial_listener": {"page_name": page_name}},
-            js_page_scripts=["/static/listener-page.js"],
+            js_page_modules=["/static/listener-page.js"],
             save_answer=False,
         )
 
@@ -54,7 +54,7 @@ class TrackedTimerPage(Page):
                     Tracked timer page
                 </p>
             """,
-            js_page_scripts=["/static/tracked-timer-page.js"],
+            js_page_modules=["/static/tracked-timer-page.js"],
         )
 
     def get_bot_response(self, experiment, bot):
@@ -71,7 +71,7 @@ class AudioFadeOutPage(Page):
                     Audio fade-out page
                 </p>
             """,
-            js_page_scripts=["/static/audio-fade-out-page.js"],
+            js_page_modules=["/static/audio-fade-out-page.js"],
         )
 
     def get_bot_response(self, experiment, bot):

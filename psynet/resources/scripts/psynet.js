@@ -559,11 +559,26 @@
       });
     };
 
-    // Managed JavaScript has two explicit lifecycles. Dependencies are classic
-    // scripts loaded once per browser document. JS page scripts are imported
-    // modules whose activate(context) export runs for each page. Each activation
-    // may return cleanup tied to that exact page instance.
-    psynet.activeJSPageScripts = [];
+    psynet.executeLegacyJSLink = function (src) {
+      let normalizedSrc = new URL(src, window.location.href).href;
+      return new Promise((resolve, reject) => {
+        let script = document.createElement("script");
+        script.src = normalizedSrc;
+        script.async = false;
+        script.onload = () => {
+          script.remove();
+          resolve();
+        };
+        script.onerror = () =>
+          reject(new Error("Could not load legacy script " + normalizedSrc + "."));
+        document.head.appendChild(script);
+      });
+    };
+
+    // Dependencies load once per document. Page code and page modules share
+    // one activation/cleanup lifecycle and run for every hosting page.
+    psynet.activeJSPageBehaviors = [];
+    psynet.AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
     psynet.loadJSDependencies = async function () {
       psynet.rememberLoadedDocumentScripts();
@@ -572,65 +587,89 @@
       }
     };
 
-    psynet.activateJSPageScripts = async function () {
+    psynet.getPageActivationContext = function () {
       let root = document.getElementById("main-body");
       if (!root) {
-        throw new Error("Cannot activate JS page scripts without #main-body.");
+        throw new Error("Cannot activate page JavaScript without #main-body.");
       }
-
-      let activated = [];
-      try {
-        for (let src of psynetTemplateData.jsPageScripts || []) {
-          let normalizedSrc = new URL(src, window.location.href).href;
-          let pageScript = await import(normalizedSrc);
-          if (typeof pageScript.activate !== "function") {
-            throw new Error(
-              `JS page script ${normalizedSrc} must export activate(context).`,
-            );
-          }
-
-          // Keep page-specific objects in the activation context rather than
-          // module globals. A returned closure can then clean up the exact DOM,
-          // listeners, timers, or sockets created by this activation.
-          let cleanup = await pageScript.activate({
-            root,
-            trial: psynet.trial,
-            vars: psynet.var,
-            page: psynet.page,
-            psynet,
-          });
-          if (cleanup !== undefined && typeof cleanup !== "function") {
-            throw new Error(
-              `JS page script ${normalizedSrc} returned a cleanup value ` +
-                "that is not a function.",
-            );
-          }
-          activated.push({ src: normalizedSrc, cleanup });
-        }
-      } catch (error) {
-        await psynet.deactivateJSPageScripts(activated);
-        throw error;
-      }
-      psynet.activeJSPageScripts = activated;
+      return {
+        root,
+        trial: psynet.trial,
+        vars: psynet.var,
+        page: psynet.page,
+        psynet,
+      };
     };
 
-    psynet.deactivateJSPageScripts = async function (
-      activations = psynet.activeJSPageScripts,
-    ) {
-      if (activations === psynet.activeJSPageScripts) {
-        psynet.activeJSPageScripts = [];
+    psynet.validatePageCleanup = function (cleanup, source) {
+      if (cleanup !== undefined && typeof cleanup !== "function") {
+        throw new Error(
+          `${source} returned a cleanup value that is not a function.`,
+        );
       }
-      // Reverse order mirrors stack unwinding, so later page scripts release
-      // resources before scripts they may depend on.
-      for (let activation of [...activations].reverse()) {
-        if (!activation.cleanup) {
-          continue;
+    };
+
+    psynet.activatePageJavascript = async function () {
+      let activated = [];
+      let context = psynet.getPageActivationContext();
+      try {
+        for (let src of psynetTemplateData.legacyJsLinks || []) {
+          await psynet.executeLegacyJSLink(src);
         }
+        for (let [index, code] of (
+          psynetTemplateData.jsPageCode || []
+        ).entries()) {
+          let activate = new psynet.AsyncFunction(
+            "root",
+            "trial",
+            "vars",
+            "page",
+            "psynet",
+            `"use strict";\n${code}`,
+          );
+          let cleanup = await activate(
+            context.root,
+            context.trial,
+            context.vars,
+            context.page,
+            context.psynet,
+          );
+          let source = `js_page_code[${index}]`;
+          psynet.validatePageCleanup(cleanup, source);
+          activated.push({ source, cleanup });
+        }
+        for (let src of psynetTemplateData.jsPageModules || []) {
+          let normalizedSrc = new URL(src, window.location.href).href;
+          let module = await import(normalizedSrc);
+          if (typeof module.activate !== "function") {
+            throw new Error(
+              `JS page module ${normalizedSrc} must export activate(context).`,
+            );
+          }
+          let cleanup = await module.activate(context);
+          psynet.validatePageCleanup(cleanup, `JS page module ${normalizedSrc}`);
+          activated.push({ source: normalizedSrc, cleanup });
+        }
+      } catch (error) {
+        await psynet.deactivatePageJavascript(activated);
+        throw error;
+      }
+      psynet.activeJSPageBehaviors = activated;
+    };
+
+    psynet.deactivatePageJavascript = async function (
+      activations = psynet.activeJSPageBehaviors,
+    ) {
+      if (activations === psynet.activeJSPageBehaviors) {
+        psynet.activeJSPageBehaviors = [];
+      }
+      for (let activation of [...activations].reverse()) {
+        if (!activation.cleanup) continue;
         try {
           await activation.cleanup();
         } catch (error) {
           psynet.log.warn(
-            `Cleanup failed for JS page script ${activation.src}: ` +
+            `Cleanup failed for ${activation.source}: ` +
               (error && error.message ? error.message : String(error)),
           );
         }
@@ -639,7 +678,7 @@
 
     psynet.activateManagedPageJavascript = async function () {
       await psynet.loadJSDependencies();
-      await psynet.activateJSPageScripts();
+      await psynet.activatePageJavascript();
     };
 
     psynet.executeScriptSequence = async function (scriptElements) {
@@ -869,7 +908,7 @@
       if (psynet.trial) {
         await psynet.trial.stop({ force: true });
       }
-      await psynet.deactivateJSPageScripts();
+      await psynet.deactivatePageJavascript();
       await psynet.cleanupPageResources();
       psynet.clearLucidTermination();
       psynet.resetPageState();
@@ -884,7 +923,7 @@
       await psynet.rebuildTrial();
       await psynet.loadJSDependencies();
       await psynet.executeScriptSequence(psynet.getEmbeddedScripts());
-      await psynet.activateJSPageScripts();
+      await psynet.activatePageJavascript();
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
       await psynet.initPage();

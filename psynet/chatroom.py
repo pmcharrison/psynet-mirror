@@ -232,6 +232,10 @@ class ChatRoom:
         """JavaScript dependencies loaded once per browser document."""
         return []
 
-    def get_js_page_scripts(self):
+    def get_js_page_modules(self):
         """Lifecycle-managed JavaScript activated for the hosting page."""
         return ["/static/scripts/chatroom-widget.js"]
+
+    def get_js_page_code(self):
+        """Inline JavaScript activation code contributed to the hosting page."""
+        return []

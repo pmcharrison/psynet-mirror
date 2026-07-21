@@ -79,6 +79,25 @@ def _normalize_javascript_urls(urls, argument_name):
     return normalized
 
 
+def _normalize_js_page_code(code):
+    """Validate and normalize inline page activation code."""
+    if code is None:
+        return []
+    if isinstance(code, str):
+        code = [code]
+    elif not isinstance(code, (list, tuple)):
+        raise TypeError("js_page_code must be a string, list, or tuple.")
+
+    normalized = []
+    for item in code:
+        if not isinstance(item, str):
+            raise TypeError("js_page_code entries must be strings.")
+        if not item.strip():
+            raise ValueError("js_page_code entries must be non-empty.")
+        normalized.append(item)
+    return normalized
+
+
 class Event(dict):
     """
     Defines an event that occurs on the front-end for a given page.
@@ -941,22 +960,27 @@ class Page(Elt):
         deprecated and controlled by ``legacy_js_var_globals``.
 
     js_links:
-        Removed. Use ``js_dependencies`` or ``js_page_scripts`` according to
-        the intended lifecycle.
+        Deprecated list of classic JavaScript files executed for every page
+        activation. Use ``js_dependencies`` or ``js_page_modules``.
 
     js_dependencies:
         Optional list of JavaScript file URLs to load once per browser document.
 
-    js_page_scripts:
+    js_page_modules:
         Optional JavaScript files activated for each page. Each file must export
         an ``activate(context)`` function and may return a cleanup function.
+
+    js_page_code:
+        Optional inline JavaScript activation code, supplied as a string, list,
+        or tuple. Code receives the same ``root``, ``trial``, ``vars``, ``page``,
+        and ``psynet`` values as a page module and may return cleanup.
 
     media: :class:`psynet.timeline.MediaSpec`
         Optional specification of media assets to preload
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
 
     scripts:
-        Removed. Move inline behavior into a ``js_page_scripts`` file.
+        Deprecated inline JavaScript. Use ``js_page_code``.
 
     css:
         Optional list of CSS specification to include in the page.
@@ -1086,11 +1110,12 @@ class Page(Elt):
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
-        js_links: Optional[List] = None,
-        js_dependencies: Optional[List[str]] = None,
-        js_page_scripts: Optional[List[str]] = None,
+        js_links: Optional[Sequence[str]] = None,
+        js_dependencies: Optional[Sequence[str]] = None,
+        js_page_modules: Optional[Sequence[str]] = None,
+        js_page_code: Optional[Union[str, Sequence[str]]] = None,
         media: Optional[MediaSpec] = None,
-        scripts: Optional[List] = None,
+        scripts: Optional[Sequence[str]] = None,
         css: Optional[List] = None,
         css_links: Optional[List] = None,
         contents: Optional[Dict] = None,
@@ -1107,18 +1132,20 @@ class Page(Elt):
     ):
         super().__init__()
 
-        if js_links is not None:
-            raise ValueError(
-                "Page() no longer accepts js_links. Use js_dependencies for "
-                "libraries loaded once per browser document, or js_page_scripts "
-                "for per-page behavior. Run /migrate-page-javascript for a "
-                "step-by-step migration."
+        legacy_js_links = _normalize_javascript_urls(js_links, "js_links")
+        legacy_scripts = _normalize_js_page_code(scripts)
+        if legacy_js_links:
+            warnings.warn(
+                "js_links is deprecated; migrate to js_dependencies or "
+                "js_page_modules.",
+                FutureWarning,
+                stacklevel=2,
             )
-        if scripts is not None:
-            raise ValueError(
-                "Page() no longer accepts scripts. Move inline page behavior "
-                "into a js_page_scripts file exporting activate(context). Run "
-                "/migrate-page-javascript for a step-by-step migration."
+        if legacy_scripts:
+            warnings.warn(
+                "scripts is deprecated; migrate to js_page_code.",
+                FutureWarning,
+                stacklevel=2,
             )
 
         if template_arg is None:
@@ -1180,17 +1207,20 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
+        self.js_links = legacy_js_links
         self.js_dependencies = _normalize_javascript_urls(
             js_dependencies, "js_dependencies"
         )
-        self.js_page_scripts = _normalize_javascript_urls(
-            js_page_scripts, "js_page_scripts"
+        self.js_page_modules = _normalize_javascript_urls(
+            js_page_modules, "js_page_modules"
         )
-        overlapping_javascript = set(self.js_dependencies) & set(self.js_page_scripts)
+        legacy_page_code = ["\n".join(legacy_scripts)] if legacy_scripts else []
+        self.js_page_code = legacy_page_code + _normalize_js_page_code(js_page_code)
+        overlapping_javascript = set(self.js_dependencies) & set(self.js_page_modules)
         if overlapping_javascript:
             raise ValueError(
                 "The same URL cannot be used in both js_dependencies and "
-                f"js_page_scripts: {sorted(overlapping_javascript)}"
+                f"js_page_modules: {sorted(overlapping_javascript)}"
             )
 
         self.expected_repetitions = 1
@@ -1612,8 +1642,10 @@ class Page(Elt):
             "participant": participant,
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
+            "js_links": self.js_links,
             "js_dependencies": self.js_dependencies,
-            "js_page_scripts": self.js_page_scripts,
+            "js_page_code": self.js_page_code,
+            "js_page_modules": self.js_page_modules,
             "css": self.css + experiment.css,
             "css_links": self.css_links + experiment.css_links,
             "events": self.events,
@@ -1692,14 +1724,14 @@ class Page(Elt):
                     problems.append(
                         f"{source_description} includes a page JavaScript link in a "
                         "<script src=...> tag. Supply libraries via "
-                        "js_dependencies or page behavior via js_page_scripts. "
+                        "js_dependencies or page behavior via js_page_modules. "
                         "Run /migrate-page-javascript for a step-by-step migration."
                     )
                 else:
                     problems.append(
                         f"{source_description} includes a raw <script> block. "
-                        "Move page behavior to a file supplied through "
-                        "js_page_scripts. Run /migrate-page-javascript for a "
+                        "Move short behavior to js_page_code or reusable behavior "
+                        "to js_page_modules. Run /migrate-page-javascript for a "
                         "step-by-step migration."
                     )
 
@@ -1727,7 +1759,7 @@ class Page(Elt):
                 f"{source_description} registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
                 "each page, so page setup should use the activate(context) "
-                "function of a js_page_scripts file. Run "
+                "function of a js_page_modules file. Run "
                 "/migrate-page-javascript for a step-by-step migration."
             )
 
@@ -1758,7 +1790,8 @@ class Page(Elt):
             "with inplace_timeline_transitions, pass "
             "template_fragment_path or template_fragment_str with only the "
             "contents of the main_body block, and supply page-local assets via "
-            "css, css_links, js_dependencies, and js_page_scripts. Search your experiment "
+            "css, css_links, js_dependencies, js_page_code, and js_page_modules. "
+            "Search your experiment "
             f"code for Page(...) calls with label='{self.label}'."
         )
 
@@ -1771,7 +1804,7 @@ class Page(Elt):
 
     @staticmethod
     def _check_embedded_script_contract(html):
-        """Reject embedded modules in favor of managed page scripts."""
+        """Reject embedded modules in favor of managed page modules."""
         soup = (
             html
             if isinstance(html, BeautifulSoup)
@@ -1782,7 +1815,7 @@ class Page(Elt):
             if script_type == "module":
                 raise ValueError(
                     "Embedded modules are not supported. Supply the module "
-                    "through js_page_scripts and use standard imports for its "
+                    "through js_page_modules and use standard imports for its "
                     "dependencies. Run "
                     "/migrate-page-javascript for a step-by-step migration."
                 )

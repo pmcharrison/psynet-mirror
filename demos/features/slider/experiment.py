@@ -28,7 +28,7 @@ def make_example(args):
             prompt,
             control=SliderControl(**args),
             time_estimate=5,
-            js_page_scripts=["/static/slider-debug.js"],
+            js_page_modules=["/static/slider-debug.js"],
         ),
         DebugResponsePage(),
     )

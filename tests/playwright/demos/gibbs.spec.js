@@ -6,7 +6,7 @@ const { completeInitialGateway, withExperiment } = require("../psynetHarness");
 const STEP_TIMEOUT_MS = 120000;
 
 /*
-Regression coverage for the migrated color-slider page (js_page_scripts) under the
+Regression coverage for the migrated color-slider page (js_page_modules) under the
 default in-place timeline transitions.
 
 The gibbs color-slider control ships its page JavaScript as a managed ES module

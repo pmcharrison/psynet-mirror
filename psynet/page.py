@@ -515,7 +515,7 @@ class JsPsychPage(Page):
             label=label,
             js_vars=js_vars,
             js_dependencies=js_dependencies,
-            js_page_scripts=["/static/scripts/jspsych-page.js"],
+            js_page_modules=["/static/scripts/jspsych-page.js"],
             css_links=css_links,
             framework_owned_template=True,
             **kwargs,
@@ -533,6 +533,6 @@ class ExecuteFrontEndJS(InfoPage):
             content=message,
             time_estimate=0.0,
             js_vars={"execute_front_end_js": js},
-            js_page_scripts=["/static/scripts/execute-front-end-js.js"],
+            js_page_modules=["/static/scripts/execute-front-end-js.js"],
             show_next_button=False,
         )

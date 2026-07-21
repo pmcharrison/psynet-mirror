@@ -181,8 +181,12 @@ class Prompt:
         """JavaScript dependencies loaded once per browser document."""
         return []
 
-    def get_js_page_scripts(self):
+    def get_js_page_modules(self):
         """Lifecycle-managed JavaScript activated for each hosting page."""
+        return []
+
+    def get_js_page_code(self):
+        """Inline JavaScript activation code contributed to the hosting page."""
         return []
 
     def _collect_spa_markup_contract_problems(self):
@@ -767,8 +771,12 @@ class Control:
         """JavaScript dependencies loaded once per browser document."""
         return []
 
-    def get_js_page_scripts(self):
+    def get_js_page_modules(self):
         """Lifecycle-managed JavaScript activated for each hosting page."""
+        return []
+
+    def get_js_page_code(self):
+        """Inline JavaScript activation code contributed to the hosting page."""
         return []
 
     @property
@@ -1902,7 +1910,7 @@ class ModularPage(Page):
 
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`,
-        including ``js_dependencies`` and ``js_page_scripts``.
+        including ``js_dependencies`` and ``js_page_modules``.
     """
 
     default_layout = ["prompt", "media", "progress", "control", "chatroom", "buttons"]
@@ -1998,16 +2006,22 @@ class ModularPage(Page):
             for _, component in components
             for dependency in component.get_js_dependencies()
         ]
-        js_page_scripts = [
-            script
+        js_page_modules = [
+            module
             for _, component in components
-            for script in component.get_js_page_scripts()
+            for module in component.get_js_page_modules()
+        ]
+        js_page_code = [
+            code
+            for _, component in components
+            for code in component.get_js_page_code()
         ]
 
         for key, collected in (
             ("css", css),
             ("js_dependencies", js_dependencies),
-            ("js_page_scripts", js_page_scripts),
+            ("js_page_code", js_page_code),
+            ("js_page_modules", js_page_modules),
         ):
             if key in kwargs:
                 extra = kwargs.pop(key)
@@ -2052,7 +2066,8 @@ class ModularPage(Page):
             validate=validate,
             css=css,
             js_dependencies=js_dependencies,
-            js_page_scripts=js_page_scripts,
+            js_page_code=js_page_code,
+            js_page_modules=js_page_modules,
             framework_owned_template=True,
             **kwargs,
         )
@@ -4403,7 +4418,7 @@ class MusicNotationPrompt(Prompt):
         """Load the abcjs rendering library once per browser document."""
         return [package_static_url("psynet", "libraries/abc-js/abcjs-basic.js")]
 
-    def get_js_page_scripts(self):
+    def get_js_page_modules(self):
         """Activate score rendering for each hosting page."""
         return [package_static_url("psynet", "scripts/music-notation-prompt.js")]
 
