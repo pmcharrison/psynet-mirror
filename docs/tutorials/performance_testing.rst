@@ -10,30 +10,16 @@ bot can behave very differently when dozens of participants hit the server at
 once: HTTP responses slow down, asynchronous processes pile up in the queue, and
 wait pages start to drag.
 
-PsyNet's ``performance-test`` command is designed for exactly this. It launches
-a stream of bots against a running experiment, keeps a target number of them
+To catch such situations in advance, you should use  PsyNet's ``performance-test`` command.
+It launches a stream of bots against a running experiment, keeps a target number of them
 active for a fixed duration, and then reports detailed latency and throughput
 statistics so you can judge whether your configuration is ready for the number
 of participants you plan to recruit.
 
-How this differs from ``psynet test``
--------------------------------------
-
-It's easy to confuse performance testing with the parallel testing described in
-:ref:`the testing tutorial <tests>`, but the two serve different purposes:
-
-* ``psynet test`` (including ``--parallel``) is about **correctness**. It sends a
-  fixed set of bots through the experiment once, from start to finish, and runs
-  your ``test_check_bot`` assertions. It's the tool you use in continuous
-  integration to catch bugs.
-
-* ``psynet performance-test`` is about **performance under sustained load**. It
-  maintains a target concurrency for a set duration, replacing bots as they
-  finish, and reports timing statistics (response times, queue delays, throughput)
-  instead of checking correctness. Use it when you want to know how your server
-  will hold up, not whether the experiment logic is right.
-
-In practice you'll typically get an experiment passing ``psynet test`` first,
+This functionality should not be confused with ``psynet test``, which is used 
+for verifying the correctness of an experiment with a small number of participants
+(see :ref:`the testing tutorial <tests>`).
+In practice you'll want to  get an experiment passing ``psynet test`` first,
 then use ``performance-test`` to check that it scales.
 
 Quick start
