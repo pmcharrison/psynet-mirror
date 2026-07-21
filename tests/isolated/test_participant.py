@@ -25,9 +25,7 @@ class TestParticipantFailure:
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestParticipantPerformanceFailure:
-    def test_default_static_policy_fails_trials(
-        self, participant, trial, trial_maker
-    ):
+    def test_default_static_policy_fails_trials(self, participant, trial, trial_maker):
         assert trial_maker.fail_trials_on_participant_performance_check
 
         participant.fail("performance_check")
