@@ -3288,8 +3288,9 @@ _test_options["duration_minutes"] = click.option(
     type=float,
     default=1.0,
     help="""
-    Duration of the performance test in minutes.
-    The performance test will attempt to keep 'n-bots' running for 'duration-minutes' minutes.
+    Total performance-test measurement window in minutes. This includes
+    first-bot initialization and ramp-up towards 'n-bots', so the test may spend
+    less than 'duration-minutes' at the target concurrency.
     Default: 1 minute""",
 )
 
@@ -3440,11 +3441,19 @@ def _run_performance_test_with_existing_server(
         authenticated_session=exp.authenticated_session,
         base_url=exp.base_url,
         n_bots=exp.test_n_bots,
-        duration_minutes=duration_minutes or exp.test_duration_minutes,
-        stagger_interval_s=(
-            float(stagger) if stagger else exp.test_parallel_stagger_interval_s
+        duration_minutes=(
+            exp.test_duration_minutes
+            if duration_minutes is None
+            else duration_minutes
         ),
-        time_factor=time_factor or exp.test_time_factor,
+        stagger_interval_s=(
+            exp.test_parallel_stagger_interval_s
+            if stagger is None
+            else float(stagger)
+        ),
+        time_factor=(
+            exp.test_time_factor if time_factor is None else time_factor
+        ),
     )
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
     all_results = tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)

@@ -12,10 +12,10 @@ wait pages start to drag.
 
 To catch such situations in advance, you should use PsyNet's
 ``performance-test`` command. It launches a stream of bots against a running
-experiment, keeps a target number of them
-active for a fixed duration, and then reports detailed latency and throughput
-statistics so you can judge whether your configuration is ready for the number
-of participants you plan to recruit.
+experiment, attempts to maintain a target number of active bots, and then
+reports detailed latency and throughput statistics. This helps you judge whether
+your configuration is ready for your expected peak number of simultaneous
+participants.
 
 This functionality should not be confused with ``psynet test``, which is used
 for verifying the correctness of an experiment with a small number of
@@ -32,8 +32,8 @@ From your experiment directory, run:
 
     psynet performance-test local
 
-By default this starts a fresh local experiment server for you, keeps
-``Experiment.test_n_bots`` bots running for one minute, prints a report, and then
+By default this starts a fresh local experiment server for you, attempts to keep
+``Experiment.test_n_bots`` bots active for one minute, prints a report, and then
 shuts the server down again. You don't need to launch a server beforehand.
 
 To simulate a heavier load, ask for more bots and a longer run:
@@ -48,12 +48,16 @@ Controlling the load
 The behavior of the test is governed by a handful of options:
 
 ``--n-bots``
-    The target number of bots to keep running concurrently. As bots finish the
-    experiment, new ones are launched to take their place, so the load stays
-    roughly constant for the whole run. Defaults to ``Experiment.test_n_bots``.
+    The target number of backend bots to keep running concurrently. PsyNet
+    launches the remaining bots after the first bot initializes, then replaces
+    bots as they finish. The load therefore ramps up towards the target before
+    staying roughly constant. Defaults to ``Experiment.test_n_bots``.
 
 ``--duration-minutes``
-    How long (in minutes) to sustain the load. Defaults to ``1``.
+    The total measurement window in minutes. Timing begins before the first bot
+    initializes, so this includes initialization and ramp-up rather than
+    guaranteeing the full duration at target concurrency. Choose a run long
+    enough for the target number of bots to become active. Defaults to ``1``.
 
 ``--stagger``
     The average delay, in seconds, between starting successive bots. Real
@@ -70,8 +74,12 @@ The behavior of the test is governed by a handful of options:
     through as fast as possible; the default of ``1.0`` roughly mimics real
     participant pacing.
 
-For example, to model 50 participants who trickle in over time and work through
-the experiment at a realistic pace for ten minutes:
+These bots exercise participant-facing HTTP requests and server-side processing;
+they don't render the experiment in a browser. Use browser-based testing
+separately when you need to measure frontend behavior.
+
+For example, to model up to 50 simultaneously active participants who trickle in
+over time and work through the experiment at a realistic pace:
 
 .. code-block:: bash
 
@@ -82,7 +90,7 @@ Sweeping several concurrency levels
 
 To see how the server scales, pass a comma-separated list to ``--n-bots``. PsyNet
 runs one test per value in sequence and then prints a cumulative summary
-comparing them:
+comparing them. Use a duration long enough for every test to reach its target:
 
 .. code-block:: bash
 
@@ -194,8 +202,8 @@ A typical workflow looks like this:
    :ref:`SQLAlchemy profiler <sqlalchemy_profiling>` can help pinpoint slow
    database queries).
 4. Once the local picture looks reasonable, repeat the test against a real
-   server over SSH at a concurrency level matching your planned recruitment, to
-   confirm the deployment can handle it.
+   server over SSH at a concurrency level matching your expected peak number of
+   simultaneous participants, to confirm the deployment can handle it.
 
 By finding the point where performance degrades *before* you recruit real
 participants, you can size your server appropriately and avoid a bad experience

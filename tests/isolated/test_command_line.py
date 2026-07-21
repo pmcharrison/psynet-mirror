@@ -1207,6 +1207,51 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
     load_runtime_config.assert_called_once_with()
 
 
+def test_performance_test_preserves_explicit_zero_options():
+    from psynet.command_line import _run_performance_test_with_existing_server
+
+    experiment = Mock(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        label="test",
+        test_n_bots=3,
+        test_duration_minutes=2.0,
+        test_parallel_stagger_interval_s=0.5,
+        test_time_factor=2.5,
+    )
+    tester = Mock()
+    tester.run.return_value = []
+    bot_log_file = Mock(name="/tmp/psynet_bots_test.log")
+
+    with (
+        patch("logging.getLogger", return_value=Mock(handlers=[])),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch(
+            "psynet.perf_test.PerformanceTester", return_value=tester
+        ) as performance_tester,
+        patch(
+            "psynet.command_line.tempfile.NamedTemporaryFile",
+            return_value=bot_log_file,
+        ),
+    ):
+        _run_performance_test_with_existing_server(
+            n_bots="1",
+            stagger=0,
+            time_factor=0,
+            duration_minutes=0,
+            debug=False,
+        )
+
+    performance_tester.assert_called_once_with(
+        authenticated_session=experiment.authenticated_session,
+        base_url=experiment.base_url,
+        n_bots=experiment.test_n_bots,
+        duration_minutes=0,
+        stagger_interval_s=0.0,
+        time_factor=0,
+    )
+
+
 @pytest.mark.parametrize(
     "value,expected",
     [
