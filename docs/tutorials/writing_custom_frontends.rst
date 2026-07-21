@@ -394,6 +394,18 @@ context. Page code and module ``activate()`` functions may return asynchronous
 cleanup. Most do not need one: PsyNet removes the page DOM, stops trial-owned
 timers and handlers, and resets page response state automatically.
 
+For example, a short component hook can return activation code directly:
+
+.. code-block:: python
+
+    def get_js_page_code(self):
+        return "root.querySelector('#answer').focus();"
+
+Each page-code entry has its own local scope. Use ``vars`` or ``psynet.page`` to
+communicate with other behavior rather than relying on local declarations from
+another snippet. Page code is compiled in the browser; components with
+substantial, reusable, or imported behavior should use a page module instead.
+
 Cleanup is needed for resources that survive normal page teardown. For example,
 a listener attached to ``window`` survives removal of the page DOM:
 

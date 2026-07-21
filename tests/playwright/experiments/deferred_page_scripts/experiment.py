@@ -109,7 +109,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage(
             Markup(
                 """
-                <p>Repeated linked page script lifecycle page</p>
+                <p>Repeated linked page module lifecycle page</p>
                 <p
                     id="deferred-trial-construct-marker"
                     data-trial-construct-handler-ran="false"

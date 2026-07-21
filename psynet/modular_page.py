@@ -4423,7 +4423,7 @@ class MusicNotationPrompt(Prompt):
         return [package_static_url("psynet", "scripts/music-notation-prompt.js")]
 
     def get_js_vars(self):
-        """Provide the ABC notation consumed by the page script."""
+        """Provide the ABC notation consumed by the page module."""
         return {"music_notation_prompt": {"content": self.content}}
 
     def update_events(self, events):

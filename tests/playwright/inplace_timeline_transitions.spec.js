@@ -203,7 +203,7 @@ test("in-place timeline transitions replay embedded scripts and manage page asse
 
     await waitForMainBodyContains(
       experimentPage,
-      "Repeated linked page script lifecycle page",
+      "Repeated linked page module lifecycle page",
       STEP_TIMEOUT_MS
     );
     await expect(deferredMarker).toHaveAttribute(
@@ -324,7 +324,7 @@ test("in-place timeline transitions manage stylesheets that target shell element
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(
       experimentPage,
-      "Repeated linked page script lifecycle page",
+      "Repeated linked page module lifecycle page",
       STEP_TIMEOUT_MS
     );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
@@ -656,7 +656,7 @@ test("post-deactivation transition failures are handled once", async ({
   });
 });
 
-test("post-commit activation failures clean up managed page scripts", async ({
+test("post-commit activation failures clean up managed page modules", async ({
   page,
   context
 }) => {

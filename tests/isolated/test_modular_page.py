@@ -295,7 +295,7 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
         "show_participants": False,
         "show_history": True,
     }
-    assert page.js_page_scripts == ["/static/scripts/chatroom-widget.js"]
+    assert page.js_page_modules == ["/static/scripts/chatroom-widget.js"]
     # The macro itself must be markup-only (no inline <script>/<style>) so it
     # stays contract-compliant.
     from importlib import resources
@@ -321,7 +321,7 @@ def test_omitted_chatroom_does_not_contribute_managed_resources():
 
     assert not any("#chatroom-widget" in str(c) for c in page.css)
     assert "chatroom_config" not in page.js_vars
-    assert "/static/scripts/chatroom-widget.js" not in page.js_page_scripts
+    assert "/static/scripts/chatroom-widget.js" not in page.js_page_modules
 
 
 def test_music_notation_prompt_uses_managed_javascript():
@@ -333,7 +333,7 @@ def test_music_notation_prompt_uses_managed_javascript():
     assert page.js_dependencies == [
         "/static/packages/psynet/libraries/abc-js/abcjs-basic.js"
     ]
-    assert page.js_page_scripts == [
+    assert page.js_page_modules == [
         "/static/packages/psynet/scripts/music-notation-prompt.js"
     ]
     assert page.js_vars["music_notation_prompt"] == {"content": "C D E F"}

@@ -2,7 +2,7 @@
 
 Packages register one static root through the ``psynet.static`` entry-point
 group. PsyNet publishes each root under a namespaced URL so dynamically created
-components can declare ordinary dependency and page-script URLs without asking
+components can declare ordinary dependency and page-module URLs without asking
 experiment authors to copy package files into their experiment.
 """
 

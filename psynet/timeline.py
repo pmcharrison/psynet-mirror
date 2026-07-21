@@ -1139,13 +1139,13 @@ class Page(Elt):
                 "js_links is deprecated; migrate to js_dependencies or "
                 "js_page_modules.",
                 FutureWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
         if legacy_scripts:
             warnings.warn(
                 "scripts is deprecated; migrate to js_page_code.",
                 FutureWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
 
         if template_arg is None:

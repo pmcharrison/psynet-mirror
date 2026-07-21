@@ -90,7 +90,7 @@ def test_partial_render_makes_embedded_scripts_inert():
 def test_embedded_module_is_rejected(html):
     with pytest.raises(
         ValueError,
-        match=r"Embedded modules are not supported.*js_page_scripts.*migrate-page-javascript",
+        match=r"Embedded modules are not supported.*js_page_modules.*migrate-page-javascript",
     ):
         Page._check_embedded_script_contract(html)
 
@@ -272,7 +272,7 @@ def test_managed_page_asset_arguments_are_not_forbidden_template_content():
         css=[".example { color: red; }"],
         css_links=["/static/example.css"],
         js_dependencies=["/static/example-library.js"],
-        js_page_scripts=["/static/example-page.js"],
+        js_page_modules=["/static/example-page.js"],
     )
 
     page._check_spa_template_contract(inplace_timeline_transitions=True)
