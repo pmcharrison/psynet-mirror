@@ -567,6 +567,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return self.var.get("locale", default=None)
 
     @property
+    def failure_cascade(self):
+        """Prevent participant failure from implicitly failing owned trials.
+
+        TrialMakers independently decide whether participant failure should
+        invalidate their trials.
+        """
+        return []
+
+    @property
     def gettext(self):
         return self.translator[0]
 
