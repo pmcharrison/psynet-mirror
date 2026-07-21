@@ -1,3 +1,5 @@
+.. _tests:
+
 =====
 Tests
 =====
@@ -174,6 +176,14 @@ Alternatively, you can set these options when you call ``psynet test``, for exam
 .. code-block:: shell
 
     psynet test local --n-bots 5 --parallel
+
+.. note::
+
+    Parallel testing checks that your experiment behaves correctly under some
+    concurrency, but it isn't designed to measure how the server performs under
+    sustained load. When you want detailed latency and throughput statistics
+    (for example to size a server before recruiting), use the dedicated
+    :ref:`performance testing <performance_testing>` command instead.
 
 
 Testing on remote servers

@@ -121,6 +121,26 @@ running one or more simulated participants through the experiment.
   psynet test
 
 
+.. _performance_test:
+
+Performance test an experiment (``performance-test``)
+-----------------------------------------------------
+
+This command measures how your experiment server copes under sustained load. It
+keeps a target number of bots running for a fixed duration and reports detailed
+latency and throughput statistics.
+
+.. code:: bash
+
+  psynet performance-test local --n-bots 25 --duration-minutes 5
+  psynet performance-test ssh --app my-app-name --n-bots 50 --duration-minutes 10
+
+Unlike ``psynet test``, which checks correctness, ``performance-test`` is about
+performance under load. For a full guide, including how to sweep several
+concurrency levels and how to interpret the results, see the
+:ref:`performance testing tutorial <performance_testing>`.
+
+
 Simulate data for an experiment
 -------------------------------
 
