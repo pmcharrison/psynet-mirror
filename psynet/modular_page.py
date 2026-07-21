@@ -2012,9 +2012,7 @@ class ModularPage(Page):
             for module in component.get_js_page_modules()
         ]
         js_page_code = [
-            code
-            for _, component in components
-            for code in component.get_js_page_code()
+            code for _, component in components for code in component.get_js_page_code()
         ]
 
         for key, collected in (
