@@ -4,11 +4,16 @@ Participant and trial failure
 PsyNet distinguishes participant failure from trial failure. These concepts are
 related, but they describe different things:
 
-* A failed **participant** did not successfully complete the experiment.
+* A failed **participant** has been explicitly marked as failed by PsyNet,
+  normally because they should not continue or count as a successful
+  completion.
 * A failed **trial** is a retained trial record that should be excluded from the
   experiment's usable dataset.
 * **Failure propagation** determines whether failing one object should also
   invalidate objects that depend on it.
+
+Participant failure is not the inverse of completion. A participant who has
+not reached the end but remains able to continue is incomplete, not failed.
 
 Keeping these concepts separate is important. For example, a participant might
 be unable to continue because another member of their synchronous group
