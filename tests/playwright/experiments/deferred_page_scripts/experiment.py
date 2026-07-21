@@ -6,7 +6,7 @@ from psynet.timeline import Page, Timeline
 
 MANAGED_JAVASCRIPT = {
     "js_dependencies": ["/static/page-lifecycle-dependency.js"],
-    "js_page_scripts": [
+    "js_page_modules": [
         "/static/page-lifecycle-first.js",
         "/static/page-lifecycle-second.js",
     ],
@@ -20,7 +20,7 @@ class CustomStylesheetPage(Page):
             template_fragment_path="templates/custom-stylesheet-page.html",
             save_answer=False,
             time_estimate=1,
-            js_page_scripts=["/static/custom-style-page.js"],
+            js_page_modules=["/static/custom-style-page.js"],
             css_links=["/static/custom-stylesheet-page.css"],
         )
 
@@ -45,6 +45,18 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
+            js_page_code="""
+                window.__pageCodeLifecycle = window.__pageCodeLifecycle || [];
+                window.__pageCodeLifecycle.push("activate:first");
+                return function cleanup() {
+                    window.__pageCodeLifecycle.push("cleanup:first");
+                };
+            """,
+            js_links=["/static/legacy-page-link.js"],
+            scripts=[
+                "window.__legacyInlineActivations = "
+                "(window.__legacyInlineActivations || 0) + 1;"
+            ],
             **MANAGED_JAVASCRIPT,
         ),
         InfoPage(
@@ -76,9 +88,20 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=1,
             js_dependencies=MANAGED_JAVASCRIPT["js_dependencies"],
-            js_page_scripts=[
-                *MANAGED_JAVASCRIPT["js_page_scripts"],
+            js_page_code="""
+                window.__pageCodeLifecycle.push("activate:second");
+                return function cleanup() {
+                    window.__pageCodeLifecycle.push("cleanup:second");
+                };
+            """,
+            js_page_modules=[
+                *MANAGED_JAVASCRIPT["js_page_modules"],
                 "/static/deferred-script.js",
+            ],
+            js_links=["/static/legacy-page-link.js"],
+            scripts=[
+                "window.__legacyInlineActivations = "
+                "(window.__legacyInlineActivations || 0) + 1;"
             ],
             css_links=["/static/deferred-page-scripts.css"],
         ),
@@ -96,7 +119,7 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
-            js_page_scripts=["/static/deferred-script.js"],
+            js_page_modules=["/static/deferred-script.js"],
         ),
         InfoPage(
             Markup(

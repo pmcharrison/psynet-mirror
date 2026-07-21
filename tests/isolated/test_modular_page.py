@@ -144,8 +144,11 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
     # Reusable components ship lifecycle-managed modules through component
     # hooks rather than inlining <script> in a template.
     class ScriptedPrompt(Prompt):
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/prompt-page.js"]
+
+        def get_js_page_code(self):
+            return ["window.promptReady = true;"]
 
         def get_js_vars(self):
             return {"prompt_config": {"colour": "blue"}}
@@ -153,8 +156,11 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
     class ScriptedControl(Control):
         macro = "control"
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/control-page.js"]
+
+        def get_js_page_code(self):
+            return ["window.controlReady = true;"]
 
         def get_js_vars(self):
             return {"control_config": {"maximum": 10}}
@@ -166,9 +172,13 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
         js_vars={"page_config": {"enabled": True}},
     )
 
-    assert page.js_page_scripts == [
+    assert page.js_page_modules == [
         "/static/prompt-page.js",
         "/static/control-page.js",
+    ]
+    assert page.js_page_code == [
+        "window.promptReady = true;",
+        "window.controlReady = true;",
     ]
     assert page.js_vars["prompt_config"] == {"colour": "blue"}
     assert page.js_vars["control_config"] == {"maximum": 10}
@@ -180,7 +190,7 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
         def get_js_dependencies(self):
             return ["/static/prompt-library.js"]
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/prompt-page.js"]
 
     class ManagedControl(Control):
@@ -189,7 +199,7 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
         def get_js_dependencies(self):
             return ["/static/control-library.js"]
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/control-page.js"]
 
     page = ModularPage(
@@ -197,7 +207,7 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
         ManagedPrompt("Hi!"),
         ManagedControl(),
         js_dependencies=["/static/page-library.js"],
-        js_page_scripts=["/static/page.js"],
+        js_page_modules=["/static/page.js"],
     )
 
     assert page.js_dependencies == [
@@ -205,7 +215,7 @@ def test_components_contribute_managed_javascript_lifecycle_resources():
         "/static/control-library.js",
         "/static/page-library.js",
     ]
-    assert page.js_page_scripts == [
+    assert page.js_page_modules == [
         "/static/prompt-page.js",
         "/static/control-page.js",
         "/static/page.js",
@@ -217,16 +227,21 @@ def test_modular_page_accepts_tuple_javascript_resources():
         "test",
         Prompt("Hi!"),
         js_dependencies=("/static/first-library.js", "/static/second-library.js"),
-        js_page_scripts=("/static/first-page.js", "/static/second-page.js"),
+        js_page_modules=("/static/first-page.js", "/static/second-page.js"),
+        js_page_code=("window.first = true;", "window.second = true;"),
     )
 
     assert page.js_dependencies == [
         "/static/first-library.js",
         "/static/second-library.js",
     ]
-    assert page.js_page_scripts == [
+    assert page.js_page_modules == [
         "/static/first-page.js",
         "/static/second-page.js",
+    ]
+    assert page.js_page_code == [
+        "window.first = true;",
+        "window.second = true;",
     ]
 
 
