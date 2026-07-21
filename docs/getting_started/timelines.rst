@@ -619,11 +619,8 @@ The redirect works differently depending on context:
   participant submits a response. This preserves the participant's response to
   the page they are currently viewing.
 
-A failed participant is one who did not successfully complete the experiment.
-A failed trial is retained in the data but excluded from the usable dataset;
-participant failure does not necessarily imply trial failure. See
-:doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`
-for details and the available TrialMaker settings.
+For more information, see
+:doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`.
 
 The redirect is skipped if the participant is already in an end branch or has
 already completed the experiment.
