@@ -77,7 +77,7 @@ The browser transition has three phases.
 PsyNet:
 
 * stops the current trial and its timers;
-* runs cleanup returned by ``js_page_scripts`` in reverse activation order;
+* runs cleanup returned by ``js_page_modules`` in reverse activation order;
 * stops page media and invalidates outstanding media loads;
 * clears Lucid termination state;
 * runs registered page cleanup callbacks and event-listener cleanup;
@@ -98,9 +98,11 @@ PsyNet then:
 2. constructs the new trial;
 3. loads ``js_dependencies`` not already present in the document;
 4. replays classic scripts embedded in rendered HTML;
-5. imports and activates ``js_page_scripts``;
-6. initializes trial progress, media, controls, and page behavior;
-7. marks the page ready and re-enables normal interaction.
+5. executes deprecated ``js_links`` for compatibility;
+6. activates ``js_page_code``;
+7. imports and activates ``js_page_modules``;
+8. initializes trial progress, media, controls, and page behavior;
+9. marks the page ready and re-enables normal interaction.
 
 JavaScript resource categories
 ------------------------------
@@ -115,23 +117,34 @@ when a later page declares the same URL.
 Built-in and third-party component packages can publish dependency files through
 :doc:`package_static_resources` without requiring experiment-level file copies.
 
-Page scripts
+Page code
+~~~~~~~~~
+
+``js_page_code`` and ``get_js_page_code()`` provide short inline activation
+bodies. PsyNet wraps each body in the same asynchronous activation context used
+for page modules. Page code may return cleanup.
+
+This is a convenience API for small snippets. Reusable or substantial behavior
+should use a page module.
+
+Page modules
 ~~~~~~~~~~~~
 
-``js_page_scripts`` and ``get_js_page_scripts()`` identify ES modules with a
-named ``activate(context)`` export. The module is imported and cached normally,
+``js_page_modules`` and ``get_js_page_modules()`` identify ES modules with a
+named ``activate(context)`` export. Modules are imported and cached normally,
 while ``activate()`` runs for every hosting page.
 
 The activation context contains ``root``, ``trial``, ``vars``, ``page``, and
 ``psynet``. ``activate()`` may return an asynchronous cleanup function.
 
-Most page scripts do not require cleanup because PsyNet already removes page
-DOM, stops trial-owned resources, and resets response state. Cleanup is needed
-for resources outside those boundaries, such as WebSockets, raw timers,
-workers, observers, persistent global listeners, and in-flight requests.
+Most page code and modules do not require cleanup because PsyNet already
+removes page DOM, stops trial-owned resources, and resets response state.
+Cleanup is needed for resources outside those boundaries, such as WebSockets,
+raw timers, workers, observers, persistent global listeners, and in-flight
+requests.
 
-All ES modules must enter through ``js_page_scripts``. Embedded
-``<script type="module">`` tags are rejected. Page-script modules can use
+All ES modules must enter through ``js_page_modules``. Embedded
+``<script type="module">`` tags are rejected. Page modules can use
 standard ``import`` statements for further module dependencies.
 
 Embedded HTML scripts
@@ -147,8 +160,9 @@ function, while linked classic scripts are loaded once per document.
 
 This mechanism is useful for short behavior tightly coupled to PsyNet-owned
 Jinja macros. New Prompt and Control contributions should prefer
-``get_js_page_scripts()`` because the lifecycle and testing boundary are more
-explicit. Author-owned external templates should remain markup-only.
+``get_js_page_code()`` for short snippets or ``get_js_page_modules()`` for
+reusable behavior because their lifecycle and testing boundaries are explicit.
+Author-owned external templates should remain markup-only.
 
 Failure handling
 ----------------
@@ -193,7 +207,8 @@ For new Prompt and Control components:
 * keep templates focused on markup;
 * use ``get_js_vars()`` for serialized page configuration;
 * use ``get_js_dependencies()`` for classic load-once libraries;
-* use ``get_js_page_scripts()`` for per-page module behavior;
+* use ``get_js_page_code()`` for short inline activation snippets;
+* use ``get_js_page_modules()`` for per-page module behavior;
 * return cleanup only for resources that survive normal PsyNet teardown;
 * test initial and in-place activation when behavior depends on ordering.
 
@@ -209,7 +224,7 @@ large, breaking migration and would reduce useful locality for simple macros.
 
 The expected long-term migration is:
 
-1. use ``js_page_scripts`` for all new components;
+1. use ``js_page_code`` or ``js_page_modules`` for all new components;
 2. migrate existing built-in prompts and controls incrementally;
 3. add browser coverage for each migrated component;
 4. evaluate deprecating author-provided embedded classic scripts separately;

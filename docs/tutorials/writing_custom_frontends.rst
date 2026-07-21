@@ -65,7 +65,7 @@ the contents of the page's ``main_body`` block by using ``template_fragment_path
                 label="my_page",
                 template_fragment_path="templates/my-page.html",
                 css_links=["/static/my-page.css"],
-                js_page_scripts=["/static/my-page.js"],
+                js_page_modules=["/static/my-page.js"],
                 time_estimate=5,
             )
 
@@ -87,14 +87,15 @@ arguments:
 * Use ``css_links`` for authored page-local CSS files stored in ``static/``.
 * Use ``js_dependencies`` for JavaScript libraries that are loaded once per
   browser document.
-* Use ``js_page_scripts`` for JavaScript behavior activated for each page.
+* Use ``js_page_code`` for short inline activation snippets.
+* Use ``js_page_modules`` for JavaScript behavior activated for each page.
   Each file exports ``activate(context)`` and may return a cleanup function.
 * Use ``css`` for small generated style snippets when a file would be less
   clear.
 
 Custom prompts and controls supply the equivalent assets from Python through
-``get_css()``, ``get_js_dependencies()``, ``get_js_page_scripts()`` and
-``get_js_vars()``, which are described in the sections below.
+``get_css()``, ``get_js_dependencies()``, ``get_js_page_code()``,
+``get_js_page_modules()`` and ``get_js_vars()``, which are described below.
 
 Do not rely on ``DOMContentLoaded`` for page setup when using in-place
 transitions. In-place transitions do not reload the browser document for every
@@ -119,9 +120,9 @@ patterns are:
 * ``window.addEventListener(...)`` without evidence of PsyNet cleanup. Use
   ``psynet.addPageEventListener(...)`` where possible, or register cleanup with
   ``psynet.addPageCleanupCallback(...)``.
-* Raw template ``<script>`` blocks. Use ``js_page_scripts`` instead.
+* Raw template ``<script>`` blocks. Use ``js_page_modules`` instead.
 * Template ``<script src=...>`` tags. Use ``js_dependencies`` or
-  ``js_page_scripts`` according to the intended lifecycle.
+  ``js_page_modules`` according to the intended lifecycle.
 * Template ``<style>`` blocks. Use the ``css`` argument instead.
 * Template stylesheet ``<link rel="stylesheet">`` tags. Use the ``css_links``
   argument instead.
@@ -273,7 +274,7 @@ Custom controls are defined in a similar way. Looking in the same demo, we have 
             super().__init__()
             self.color = color
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/color-text.js"]
 
         @property
@@ -283,7 +284,7 @@ Custom controls are defined in a similar way. Looking in the same demo, we have 
 As before, the class has ``macro`` and ``external_template`` attributes, which
 tell PsyNet where to find the class’s Jinja macro. It additionally has a
 ``color`` instance attribute, which is set in the instance’s constructor
-function (``__init__()``). ``get_js_page_scripts()`` supplies behavior that
+function (``__init__()``). ``get_js_page_modules()`` supplies behavior that
 PsyNet activates for each hosting page. Lastly, it has a ``metadata`` method,
 which generates optional information saved with the participant’s response.
 
@@ -380,15 +381,18 @@ PsyNet distinguishes loading code from activating page behavior:
 * ``js_dependencies`` contains URLs of classic JavaScript files loaded once per
   browser document. Components return the same URLs from
   ``get_js_dependencies()``.
-* ``js_page_scripts`` contains URLs of JavaScript modules whose named export
+* ``js_page_code`` contains short inline activation bodies. Components return
+  equivalent snippets from ``get_js_page_code()``.
+* ``js_page_modules`` contains URLs of JavaScript modules whose named export
   ``activate(context)`` runs for each hosting page. Components return the same
-  URLs from ``get_js_page_scripts()``.
+  URLs from ``get_js_page_modules()``.
 
 The activation context contains ``root`` (the page's ``#main-body`` element),
 ``trial``, ``vars`` (the current ``psynet.var``), ``page``, and ``psynet``.
-``activate()`` may be asynchronous and may return an asynchronous cleanup
-function. Most page scripts do not need one: PsyNet removes the page DOM, stops
-trial-owned timers and handlers, and resets page response state automatically.
+Page code is wrapped in an asynchronous activation function with the same
+context. Page code and module ``activate()`` functions may return asynchronous
+cleanup. Most do not need one: PsyNet removes the page DOM, stops trial-owned
+timers and handlers, and resets page response state automatically.
 
 Cleanup is needed for resources that survive normal page teardown. For example,
 a listener attached to ``window`` survives removal of the page DOM:
@@ -431,7 +435,7 @@ If the component belongs to one experiment, put its files in that experiment's
 .. code-block:: python
 
     class ColorText(Control):
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/color-text.js"]
 
 This is the simplest workflow for experiment-specific components.
@@ -456,7 +460,7 @@ inside ``psynet/static``. Construct their namespaced URLs with
                 )
             ]
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return [
                 package_static_url(
                     "psynet",
@@ -490,7 +494,7 @@ Embedded HTML scripts
 PsyNet also supports scripts embedded directly in rendered HTML. These are
 literal ``<script>`` elements produced by framework macros or supported page
 content. They are not another public resource argument and should not be
-confused with ``js_page_scripts``.
+confused with ``js_page_modules``.
 
 On a full page load, the browser executes embedded scripts while parsing the
 document. During an in-place transition, HTML insertion does not execute
@@ -498,30 +502,29 @@ scripts automatically, so PsyNet makes them inert on the server, inserts the
 fragment, and then replays them in DOM order. Linked embedded scripts are
 loaded once per browser document; inline embedded scripts run on each page
 activation. Embedded scripts run after ``js_dependencies`` and before
-``js_page_scripts``.
+deprecated ``js_links``, ``js_page_code``, and ``js_page_modules``.
 
 Embedded ``<script type="module">`` tags are not supported, whether inline or
-linked with ``src``. Put the ESM entry point in ``js_page_scripts`` and use
+linked with ``src``. Put the ESM entry point in ``js_page_modules`` and use
 standard ``import`` statements there for its dependency graph. This keeps all
-module loading within the explicit page-script lifecycle.
+module loading within the explicit page-module lifecycle.
 
 Classic inline scripts are grouped into a page-local function during in-place
 replay. They should therefore not rely on top-level ``var`` or function
 declarations becoming browser globals, or on sharing local variables with a
-``js_page_scripts`` module. Use ``psynet.page``, ``js_vars``, or an explicit
+page module. Use ``psynet.page``, ``js_vars``, or an explicit
 module interface when code needs to communicate across components.
 
-For new PsyNet ``Prompt`` and ``Control`` contributions, prefer
-``get_js_page_scripts()`` by default. Its ``activate()`` contract is explicit,
-testable, and supports cleanup for persistent resources. An embedded script is
-still reasonable for short behavior that is tightly coupled to a PsyNet-owned
-macro, benefits substantially from nearby Jinja values, and uses only page DOM
-or trial-owned resources. Author-owned external templates should remain
-markup-only and use ``get_js_page_scripts()`` instead.
+For new PsyNet ``Prompt`` and ``Control`` contributions, use
+``get_js_page_code()`` for short snippets and ``get_js_page_modules()`` for
+substantial or reusable behavior. Both have explicit activation and cleanup
+semantics. An embedded script is still reasonable for short behavior tightly
+coupled to a PsyNet-owned macro and nearby Jinja values. Author-owned external
+templates should remain markup-only.
 
-The older ``js_links`` and ``scripts`` Page arguments have been removed. Run
-the repo-local ``/migrate-page-javascript`` skill for a guided migration from
-these arguments to the explicit dependency and page-script lifecycles.
+The older ``js_links`` and ``scripts`` Page arguments remain supported but are
+deprecated. Run the repo-local ``/migrate-page-javascript`` skill to move them
+to explicit dependency, page-code, or page-module lifecycles.
 
 Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
 global access is deprecated because in-place timeline transitions reuse the

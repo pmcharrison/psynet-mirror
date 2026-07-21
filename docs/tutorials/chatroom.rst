@@ -133,7 +133,7 @@ so every attribute you set on the subclass is accessible inside the template:
 Keep the macro focused on markup: inline ``<script>`` and ``<style>`` blocks in
 a custom template are rejected under in-place timeline transitions. Instead,
 supply page-local CSS and JavaScript through the component's ``get_css()`` and
-``get_js_page_scripts()`` hooks, and supply configuration through
+``get_js_page_modules()`` hooks, and supply configuration through
 ``get_js_vars()``.
 ``ModularPage`` collects these from the chatroom and applies them as managed,
 per-page resources that are refreshed across fragment swaps:
@@ -155,7 +155,7 @@ per-page resources that are refreshed across fragment swaps:
                 }
             }
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/my-chatroom.js"]
 
 The standalone script should read its configuration from the managed
@@ -180,7 +180,7 @@ modes, new code should use ``psynet.var`` directly:
 
 The built-in ``ChatRoom`` uses the same separation between managed resources
 and configuration — see ``get_css``, ``get_js_vars``, and
-``get_js_page_scripts`` in ``psynet/chatroom.py``. PsyNet activates its widget
+``get_js_page_modules`` in ``psynet/chatroom.py``. PsyNet activates its widget
 script for each page and calls the returned cleanup function before leaving. See
 ``psynet/resources/scripts/chatroom-widget.js`` for the WebSocket protocol,
 message rendering, occupancy updates, and cleanup pattern.

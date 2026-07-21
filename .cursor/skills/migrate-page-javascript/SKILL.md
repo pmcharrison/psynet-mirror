@@ -1,11 +1,11 @@
 ---
 name: migrate-page-javascript
-description: Migrates removed PsyNet Page js_links and scripts arguments to js_dependencies and lifecycle-managed js_page_scripts.
+description: Migrates deprecated PsyNet Page js_links and scripts arguments to js_dependencies, js_page_code, and lifecycle-managed js_page_modules.
 ---
 
 # Migrate page JavaScript
 
-Use this skill when an experiment fails because PsyNet no longer accepts the
+Use this skill when PsyNet warns that an experiment still uses the deprecated
 ``js_links`` or ``scripts`` arguments.
 
 ## 1. Find the removed API
@@ -18,14 +18,14 @@ Search the experiment for:
   ``external_template`` files
 
 Classify each JavaScript file by lifecycle before changing it.
-Remove old arguments entirely, including empty ``js_links=[]`` or ``scripts=[]``
-arguments; passing an empty list still selects a removed API.
+Remove deprecated arguments once their contents have moved to the appropriate
+explicit lifecycle.
 
 ## 2. Migrate a load-once library
 
 Use ``js_dependencies`` for libraries whose top-level code should run once per
 browser document. Dependencies are loaded as classic ``<script src>`` files;
-ES modules with page behavior belong in ``js_page_scripts`` instead.
+ES modules with page behavior belong in ``js_page_modules`` instead.
 
 ```python
 Page(
@@ -46,21 +46,21 @@ top-level code when another page uses the same URL.
 
 ## 3. Migrate per-page behavior
 
-Replace ``js_links`` with ``js_page_scripts`` when the file initializes controls,
+Replace ``js_links`` with ``js_page_modules`` when the file initializes controls,
 registers trial handlers, opens sockets, starts timers, or otherwise acts on each
 page:
 
 ```python
 Page(
     ...,
-    js_page_scripts=["/static/my-page.js"],
+    js_page_modules=["/static/my-page.js"],
 )
 ```
 
 For new modular-component code:
 
 ```python
-def get_js_page_scripts(self):
+def get_js_page_modules(self):
     return ["/static/my-control.js"]
 ```
 
@@ -79,18 +79,18 @@ export async function activate({root, trial, vars, page, psynet}) {
 ```
 
 Do not embed a ``<script type="module">`` tag, whether inline or linked with
-``src``. PsyNet reserves ES modules for ``js_page_scripts``; use standard
-``import`` statements from that page-script module for further dependencies.
+``src``. PsyNet reserves ES modules for ``js_page_modules``; use standard
+``import`` statements from that page module for further dependencies.
 
 PsyNet imports the file once and calls ``activate()`` for every hosting page.
-Most page scripts do not need to return cleanup: PsyNet removes the page DOM,
+Most page modules do not need to return cleanup: PsyNet removes the page DOM,
 stops trial-owned timers and handlers, and resets page response state.
 
 ## 4. Migrate inline ``scripts``
 
-Move inline JavaScript into a file under ``static/`` and list that URL in
-``js_page_scripts``. Move Python- or Jinja-generated values into ``js_vars`` or
-``get_js_vars()`` and read them from ``vars`` inside ``activate()``.
+Move short inline JavaScript to ``js_page_code``. PsyNet executes it as the body
+of an asynchronous activation function with ``root``, ``trial``, ``vars``,
+``page``, and ``psynet`` in scope:
 
 Before:
 
@@ -107,15 +107,14 @@ After:
 Page(
     ...,
     js_vars={"my_config": config},
-    js_page_scripts=["/static/setup-page.js"],
+    js_page_code="window.setup(vars['my_config']);",
 )
 ```
 
-```javascript
-export async function activate({vars}) {
-    window.setup(vars["my_config"]);
-}
-```
+For substantial or reusable code, move the code into a static
+``js_page_modules`` file instead. Move Python- or Jinja-generated values into
+``js_vars`` or ``get_js_vars()`` and read them from ``vars`` inside
+``activate()``.
 
 ## 5. Migrate ``JsPsychPage`` timeline templates
 

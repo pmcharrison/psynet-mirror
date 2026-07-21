@@ -377,7 +377,7 @@ There are a few key things to note here.
 - The control is specified like an ordinary HTML file, but the customizable aspects are acquired
   from the ``params`` object using curly bracket notation.
 - Page-local CSS and JavaScript should be supplied through page arguments such as
-  ``css``, ``css_links``, ``js_dependencies``, and ``js_page_scripts`` rather
+  ``css``, ``css_links``, ``js_dependencies``, and ``js_page_modules`` rather
   than by putting ``<style>`` or ``<script>`` blocks inside the macro template.
 - The accompanying JavaScript should export ``activate(context)``. It can
   register response handling for the page and return cleanup for any resources
@@ -415,7 +415,7 @@ The user must then define a corresponding class in Python, writing code like thi
                 """
             ]
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return ["/static/color-text.js"]
 
 The corresponding ``static/color-text.js`` file manages the response handler:
@@ -442,7 +442,7 @@ There are a few more key things to note here:
   saving it in the database.
 - The ``get_bot_response`` method is used to simulate a bot's response to that control when running
   automated tests.
-- The ``get_js_page_scripts`` method supplies behavior that PsyNet activates
+- The ``get_js_page_modules`` method supplies behavior that PsyNet activates
   for each hosting page.
 
 Defining custom prompts works in a similar way, except you don't need response

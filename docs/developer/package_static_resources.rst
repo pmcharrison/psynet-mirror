@@ -69,7 +69,7 @@ package URLs manually:
                 )
             ]
 
-        def get_js_page_scripts(self):
+        def get_js_page_modules(self):
             return [
                 package_static_url(
                     "my-components",

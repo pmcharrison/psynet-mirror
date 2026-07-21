@@ -1,1 +1,0 @@
-Removed the ``js_links`` and ``scripts`` Page arguments and HTML/Jinja ``JsPsychPage`` timelines; migrate to ``js_dependencies``, ``js_page_scripts``, and jsPsych timeline modules using the repo-local ``/migrate-page-javascript`` skill.
