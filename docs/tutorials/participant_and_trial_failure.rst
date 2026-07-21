@@ -129,7 +129,7 @@ The default policies reflect the different data dependencies of each paradigm:
      - Fail trials
 
 Static experiments commonly treat successful completion as a condition for
-including a participant's dataset. This is because it can cause trouble for 
+including a participant's dataset. This is because it can cause trouble for
 standard data analyses if such datasets contain partial contributions.
 Chain experiments instead preserve trials
 by default because failing an earlier trial can invalidate substantial amounts
