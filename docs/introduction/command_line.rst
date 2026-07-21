@@ -138,7 +138,7 @@ latency and throughput statistics.
 Unlike ``psynet test``, which checks correctness, ``performance-test`` is about
 performance under load. For a full guide, including how to sweep several
 concurrency levels and how to interpret the results, see the
-:ref:`performance testing tutorial <performance_testing>`.
+:ref:`testing experiment performance tutorial <performance_testing>`.
 
 
 Simulate data for an experiment

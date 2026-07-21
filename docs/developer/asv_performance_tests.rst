@@ -15,8 +15,9 @@ the ``benchmark-results`` branch.
     This page describes how PsyNet benchmarks *its own* performance across
     commits. If instead you want to load-test *your experiment* to check how it
     will cope with real participants, see the
-    :ref:`performance testing tutorial <performance_testing>`. The slow ASV tier
-    below drives that same ``psynet performance-test`` command under the hood.
+    :ref:`testing experiment performance tutorial <performance_testing>`. The
+    slow ASV tier below drives that same ``psynet performance-test`` command
+    under the hood.
 
 Benchmark tiers
 ===============

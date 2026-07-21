@@ -1,8 +1,8 @@
 .. _tests:
 
-=====
-Tests
-=====
+========================
+Testing experiment logic
+========================
 
 Writing automated tests is an essential part of writing reliable software.
 Automated tests are scripts that check the functionality of your program
@@ -183,7 +183,7 @@ Alternatively, you can set these options when you call ``psynet test``, for exam
     concurrency, but it isn't designed to measure how the server performs under
     sustained load. When you want detailed latency and throughput statistics
     (for example to size a server before recruiting), use the dedicated
-    :ref:`performance testing <performance_testing>` command instead.
+    :ref:`testing experiment performance <performance_testing>` command instead.
 
 
 Testing on remote servers
