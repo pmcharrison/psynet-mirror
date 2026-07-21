@@ -30,6 +30,13 @@ def make_trial_maker(**kwargs):
     return ChainTrialMaker(**{**args, **kwargs})
 
 
+def test_chain_trial_maker_preserves_trials_on_participant_failure_by_default():
+    trial_maker = make_trial_maker()
+
+    assert not trial_maker.fail_trials_on_premature_exit
+    assert not trial_maker.fail_trials_on_participant_performance_check
+
+
 def test_chain_trial_maker_rejects_mismatched_start_nodes():
     start_nodes = [ChainNode(definition={"seed": "x"})]
 

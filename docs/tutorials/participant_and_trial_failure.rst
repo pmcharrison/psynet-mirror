@@ -5,8 +5,8 @@ PsyNet distinguishes participant failure from trial failure. These concepts are
 related, but they describe different things:
 
 * A failed **participant** did not successfully complete the experiment.
-* A failed **trial** is a retained trial record that should no longer be treated
-  as valid experimental data.
+* A failed **trial** is a retained trial record that should be excluded from the
+  experiment's usable dataset.
 * **Failure propagation** determines whether failing one object should also
   invalidate objects that depend on it.
 
@@ -25,8 +25,9 @@ its failure reason. Failure is monotonic: PsyNet does not provide a way to make 
 failed trial valid again.
 
 Failed trials are not deleted. They remain available in the database and raw
-data exports, together with their ``failed`` and ``failed_reason`` fields. Many
-PsyNet APIs exclude them from normal experimental operations; for example,
+data exports, together with their ``failed`` and ``failed_reason`` fields. Trial
+failure instead means that the record should not contribute to normal analysis,
+balancing, recruitment targets, or downstream experimental logic. For example,
 ``alive_trials`` means all trials that are not failed, and chain growth uses
 non-failed trials when determining whether a node is ready to grow. Analysis
 code should explicitly decide whether failed trials should be included and will
@@ -90,6 +91,15 @@ finalized trials. If it is ``False``, those trials are preserved. Participant
 failure for any other reason preserves trials unless custom failure logic
 explicitly fails them.
 
+A performance check is a participant-level quality decision, not necessarily a
+simple accuracy threshold. It can represent poor task performance,
+insufficiently grammatical responses, failed attention checks, or signs of
+automated or bot behavior. When a participant receives the
+``performance_check`` failure tag, every registered TrialMaker applies its own
+``fail_trials_on_participant_performance_check`` setting. A TrialMaker should
+enable this setting when such participant-level evidence means that its trials
+should be excluded from the usable dataset.
+
 The default policies reflect the different data dependencies of each paradigm:
 
 .. list-table::
@@ -123,6 +133,34 @@ data. Most retain the static default for performance-check failure;
 ``FreeTappingRecordTest`` explicitly preserves trials in both cases.
 
 
+Choosing a participant failure policy
+-------------------------------------
+
+The participant failure options express data-inclusion policy. They should be
+chosen according to which records the experimenter would be willing to analyze
+or count toward a recruitment target.
+
+Set ``fail_trials_on_premature_exit=True`` when the experiment requires
+complete-participant data. For example, an experiment targeting 30 ratings per
+stimulus might require all 30 ratings to come from participants who completed
+the experiment. Failing trials from premature exits prevents those partial
+ratings from contributing to the target, so PsyNet recruits replacements. Set
+it to ``False`` when valid partial contributions should remain usable.
+
+Set ``fail_trials_on_participant_performance_check=True`` when failing the
+performance check is evidence that this TrialMaker's data should not be
+analyzed, for example because the participant responded nonsensically or showed
+signs of bot behavior. Set it to ``False`` when the check only determines
+eligibility to continue and the collected trials remain meaningful. A failed
+prescreen can therefore preserve trials when those trials are valid
+measurements of ineligibility.
+
+These policies are intentionally independent for each TrialMaker. In an
+experiment containing several TrialMakers, one can preserve useful partial
+contributions while another excludes data unless the participant completes and
+passes its quality checks.
+
+
 Failure propagation
 -------------------
 
@@ -152,6 +190,7 @@ Policy summary
 * Participant failure and trial failure are separate.
 * Participant failure never globally cascades to every owned trial.
 * Trial-local errors fail the affected trial.
+* Trial failure means exclusion from the usable dataset, not deletion.
 * Participant-triggered invalidation is configured and scoped per TrialMaker.
 * The configured choices are to preserve that TrialMaker's trials or fail all
   of them.
