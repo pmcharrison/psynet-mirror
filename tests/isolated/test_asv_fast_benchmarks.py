@@ -26,6 +26,15 @@ def test_temporary_static_payload_preserves_existing_static_files(tmp_path):
     assert sentinel.read_text() == "keep me"
 
 
+def test_temporary_static_payload_preserves_files_created_during_launch(tmp_path):
+    with _temporary_static_payload(tmp_path, count=1, file_size=1):
+        runtime_file = tmp_path / "static" / "assets" / "runtime.txt"
+        runtime_file.parent.mkdir()
+        runtime_file.write_text("keep me")
+
+    assert runtime_file.read_text() == "keep me"
+
+
 def test_static_files_debug_launch_tracks_each_profile():
     benchmark = StaticFilesDebugLaunch()
     results = {profile: index for index, profile in enumerate(benchmark.params)}

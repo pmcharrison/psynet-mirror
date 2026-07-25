@@ -36,7 +36,11 @@ def _temporary_static_payload(experiment_dir, count, file_size):
     finally:
         if payload_dir is not None:
             shutil.rmtree(payload_dir)
-        if not static_dir_existed and static_dir.exists():
+        if (
+            not static_dir_existed
+            and static_dir.exists()
+            and not any(static_dir.iterdir())
+        ):
             static_dir.rmdir()
 
 
