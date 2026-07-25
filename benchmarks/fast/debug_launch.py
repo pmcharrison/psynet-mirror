@@ -10,7 +10,7 @@ from pathlib import Path
 
 _STATIC_FILE_PROFILES = {
     "baseline": (0, 0),
-    "many_small_files": (10_000, 1 * 1024),
+    "many_small_files": (50_000, 1),
     "few_large_files": (25, 4 * 1024 * 1024),
 }
 
