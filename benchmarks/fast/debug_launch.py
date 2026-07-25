@@ -9,6 +9,10 @@ from contextlib import contextmanager
 from pathlib import Path
 
 
+# These generated files are deliberately not used by the experiment itself.
+# They represent bundled stimuli or other static resources that launch and
+# deployment tooling must still scan, copy, and package; historically, large
+# static trees made both local debugging and deployment substantially slower.
 _STATIC_FILE_PROFILES = {
     "baseline": (0, 0),
     "many_small_files": (50_000, 1),
