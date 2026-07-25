@@ -1125,7 +1125,6 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
     with zipfile.ZipFile(data_zip, "w"):
         pass
     data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
-    source_response = Mock(status_code=200, reason="OK", content=b"source-code")
     experiment_class = Mock(label="Timeline demo")
     experiment_class.export_path.return_value = str(tmp_path)
     config.extend.side_effect = extend_config
@@ -1145,7 +1144,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
         ),
         patch(
             "psynet.command_line.requests.get",
-            side_effect=[data_response, source_response],
+            return_value=data_response,
         ) as request_get,
     ):
         export_(
@@ -1167,14 +1166,12 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             "dashboard_password": "generated-password",
         }
     )
-    assert request_get.call_count == 2
-    data_request, source_request = request_get.call_args_list
+    request_get.assert_called_once()
+    data_request = request_get.call_args
     assert data_request.args[0].startswith(
         "http://127.0.0.1:5000/dashboard/export/download?"
     )
     assert data_request.kwargs["auth"] == ("admin", "generated-password")
-    assert source_request.args[0] == "http://127.0.0.1:5000/download_source"
-    assert source_request.kwargs["auth"] == ("admin", "generated-password")
 
 
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
