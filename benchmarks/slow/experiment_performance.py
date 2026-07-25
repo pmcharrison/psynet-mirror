@@ -18,10 +18,8 @@ See https://asv.readthedocs.io/en/stable/writing_benchmarks.html
 
 import itertools
 import json
-import os
 import subprocess
 import tempfile
-import time
 import types
 from pathlib import Path
 
@@ -190,48 +188,6 @@ class Static(_BaseExperiment):
 
     def setup_cache(self):
         return super().setup_cache()
-
-
-class StaticBigLaunch:
-    """Benchmark the time for the static_big experiment to become ready.
-
-    Measures a normal ``psynet debug local`` launch (not legacy mode) from
-    process start until the server logs launch completion; shutdown is excluded.
-    """
-
-    timeout = 60
-    version = 1
-
-    def setup_cache(self):
-        from psynet.command_line import (
-            _start_local_server_and_wait_for_ready,
-            _stop_server,
-        )
-
-        repo_root = Path(__file__).parents[2]
-        demo_dir = repo_root / "tests/experiments/static_big"
-        original_directory = Path.cwd()
-        server_info = None
-
-        os.chdir(demo_dir)
-        started_at = time.perf_counter()
-        try:
-            server_info = _start_local_server_and_wait_for_ready(
-                ["debug", "local"]
-            )
-            return time.perf_counter() - started_at
-        finally:
-            try:
-                if server_info is not None:
-                    _stop_server(server_info)
-            finally:
-                os.chdir(original_directory)
-
-    def track_launch_time_s(self, duration):
-        return duration
-
-    track_launch_time_s.unit = "s"
-    track_launch_time_s.pretty_name = "static_big Launch time"
 
 
 class StaticBig(_BaseExperiment):
