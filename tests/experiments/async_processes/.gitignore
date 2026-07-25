@@ -8,7 +8,7 @@ env/
 # Automatically generated server log file
 server.log
 
-# Experiment source code snapshot created in `Experiment.pre_deploy`
+# Legacy experiment source snapshot (no longer generated)
 source_code.zip
 
 # Python cache files

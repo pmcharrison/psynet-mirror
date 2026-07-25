@@ -1,4 +1,5 @@
 import os
+import subprocess
 import uuid
 from pathlib import Path
 
@@ -8,6 +9,31 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from .utils import find_git_repo
 
 path = ".deploy/deployment_info.json"
+
+
+def _git_output(*args):
+    """Run Git and return stripped output, or ``None`` when unavailable."""
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
+def _get_git_provenance():
+    """Return the current commit SHA and working-tree dirty state."""
+    commit_sha = _git_output("rev-parse", "HEAD")
+    if commit_sha is None:
+        return None, None
+    status = _git_output("status", "--porcelain", "--untracked-files=normal")
+    return commit_sha, None if status is None else bool(status)
 
 
 def init(
@@ -21,6 +47,7 @@ def init(
 ):
     secret = uuid.uuid4()
     origin = find_git_repo()
+    git_commit_sha, git_dirty = _get_git_provenance()
     write_all(locals())
 
 

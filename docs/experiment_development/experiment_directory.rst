@@ -5,14 +5,17 @@ Experiment directory
 
 A PsyNet experiment implementation is defined by a particular *experiment directory*.
 This directory contains all the files you need to run your experiment.
-When you deploy an experiment, a slimmed down version of this directory is created and uploaded
-to a web server.
+When you deploy an experiment, its deployable files are assembled into the Docker image
+that runs on the experiment server.
 
 When you are developing a PsyNet experiment it is good practice to use a *version control system*
 for keeping track of changes to your experiment directory.
 In particular, we advise that you use *Git* because PsyNet itself uses some Git features
 as part of its deployment process. To learn more visit
 `Version control with Git <../tutorials/version_control_with_git.html>`_.
+PsyNet records the deployed Git commit and whether the working tree contained
+uncommitted changes. For reproducible live deployments, commit your changes before
+deploying.
 
 Your experiment directory contains various important files and directories.
 Let's talk through what these different files and directories do.
@@ -22,10 +25,16 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``docker`` contains various scripts for a deprecated Docker API. We are considering this in a future version of PsyNet.
 
 -   ``static`` can be used as a storage place for files that the front-end browser can access directly via HTTP.
-    If you wanted to bypass PsyNet's asset management system, you could put individual scripts or media files in here,
+    Put public, immutable resources such as scripts, images, audio, and video here,
     and then access them via ``https://your-experiment-url/static/your-file.png``.
-    If you are storing large files you may want instead to use PsyNet's asset management system,
-    see `Assets <../tutorials/assets.html>`_ for more details.
+    These files are baked into the experiment's Docker image. Use PsyNet's asset
+    management system instead for generated files, participant recordings, private
+    data, or files that need storage-backed caching and export; see
+    `Assets <../tutorials/assets.html>`_.
+
+    Dallinger applies an experiment-package size limit, currently 256 MB by default.
+    Set the ``EXP_MAX_SIZE_MB`` environment variable when intentionally baking a
+    larger static corpus into an image.
 
 -   ``templates`` is used for customising PsyNet’s front-end. It contains
     `Jinja2 templates <https://jinja.palletsprojects.com/en/2.11.x/>`_; Jinja2 is a popular templating library for Python.

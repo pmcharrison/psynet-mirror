@@ -13,7 +13,7 @@ server.log
 # Automatically generated resources for running experiments with assets
 static/assets
 
-# Experiment source code snapshot created in `Experiment.pre_deploy`
+# Legacy experiment source snapshot (no longer generated)
 source_code.zip
 
 # PyCharm configuration file

@@ -51,13 +51,6 @@ This can slow down data export if you have many files. You can disable this beha
 
     psynet export ssh --app my-app-name --assets none
 
-By default the export command will also try to export the experiment's source code.
-If you experience an error during source code exporting, we recommend using the ``--no-source`` argument:
-
-.. code:: bash
-
-    psynet export ssh --app my-app-name --no-source
-
 The ``--legacy`` argument uses an older export method that only downloads the database snapshot
 and processes it locally, rather than using the dashboard export method (which also saves a backup).
 This can be useful if you encounter troubles with the default export method:
