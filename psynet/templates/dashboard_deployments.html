@@ -481,9 +481,9 @@
             }
             let gitStatus = undefined;
             if (experiment.git_dirty === true) {
-                gitStatus = colorPill('dirty', 'orange');
+                gitStatus = 'dirty';
             } else if (experiment.git_dirty === false) {
-                gitStatus = colorPill('clean', 'green');
+                gitStatus = 'clean';
             }
             let labelPopOverContents = {
                 'Last updated': formatDuration(experiment.sinceUpdate) + " (" + (experiment.isOffline ? "offline" : "online") + ")",
