@@ -852,8 +852,8 @@ def patch_dallinger_develop():
     ):
         old_run = DevelopmentDeployment.run
 
-        def new_run(self, *args, **kwargs):
-            result = old_run(self, *args, **kwargs)
+        def new_run(self):
+            old_run(self)
             if hasattr(self, "archive") and self.archive:
                 archive_path = os.path.abspath(self.archive)
                 if not os.path.exists(archive_path):
@@ -862,7 +862,6 @@ def patch_dallinger_develop():
                     )
                 init_db()
                 ingest_zip(archive_path, engine=db.engine)
-            return result
 
         DevelopmentDeployment.run = new_run
         DevelopmentDeployment.patched = True

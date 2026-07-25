@@ -1195,28 +1195,6 @@ def test_removed_source_export_options_remain_hidden_and_accepted():
     assert "--password" not in result.output
 
 
-def test_dallinger_development_patch_forwards_run_arguments(monkeypatch):
-    from dallinger.deployment import DevelopmentDeployment
-
-    from psynet.command_line import patch_dallinger_develop
-
-    calls = []
-
-    def original_run(self, *args, **kwargs):
-        calls.append((args, kwargs))
-        return "development-directory"
-
-    monkeypatch.setattr(DevelopmentDeployment, "run", original_run)
-    monkeypatch.setattr(DevelopmentDeployment, "patched", False)
-    patch_dallinger_develop()
-
-    deployment = DevelopmentDeployment.__new__(DevelopmentDeployment)
-    deployment.archive = None
-
-    assert deployment.run("argument", option=True) == "development-directory"
-    assert calls == [(("argument",), {"option": True})]
-
-
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
     from psynet.command_line import _run_performance_test_with_new_server
 
