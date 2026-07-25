@@ -15,8 +15,8 @@ Benchmark tiers
 
 Benchmarks are split by directory:
 
-- ``benchmarks/fast/`` contains quick hot-path benchmarks. Merge requests run
-  these as the ASV regression gate.
+- ``benchmarks/fast/`` contains benchmarks selected for the merge-request
+  regression gate, including quick hot paths and focused end-to-end checks.
 - ``benchmarks/slow/`` contains end-to-end experiment performance benchmarks.
   These are intentionally excluded from the merge-request gate, but they do run
   on ``master``. The slow ASV history focuses on median request latency and
