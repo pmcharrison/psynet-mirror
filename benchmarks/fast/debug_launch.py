@@ -3,6 +3,7 @@
 import os
 import random
 import shutil
+import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -19,22 +20,24 @@ _STATIC_FILE_PROFILES = {
 def _temporary_static_payload(experiment_dir, count, file_size):
     """Create deterministic static files for the duration of a benchmark."""
     static_dir = Path(experiment_dir) / "static"
-    payload_dir = static_dir / "asv-generated"
-    shutil.rmtree(payload_dir, ignore_errors=True)
+    static_dir_existed = static_dir.exists()
+    payload_dir = None
 
     try:
         if count:
-            payload_dir.mkdir(parents=True)
+            static_dir.mkdir(parents=True, exist_ok=True)
+            payload_dir = Path(
+                tempfile.mkdtemp(prefix="asv-generated-", dir=static_dir)
+            )
             contents = random.Random(0).randbytes(file_size)
             for index in range(count):
                 (payload_dir / f"file-{index:05d}.bin").write_bytes(contents)
         yield payload_dir
     finally:
-        shutil.rmtree(payload_dir, ignore_errors=True)
-        try:
+        if payload_dir is not None:
+            shutil.rmtree(payload_dir)
+        if not static_dir_existed and static_dir.exists():
             static_dir.rmdir()
-        except OSError:
-            pass
 
 
 class StaticFilesDebugLaunch:
