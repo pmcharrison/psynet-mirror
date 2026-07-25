@@ -1174,6 +1174,27 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
     assert data_request.kwargs["auth"] == ("admin", "generated-password")
 
 
+def test_removed_source_export_options_remain_hidden_and_accepted():
+    from psynet.command_line import export__local
+
+    result = CliRunner().invoke(
+        export__local,
+        [
+            "--no-source",
+            "--username",
+            "legacy-user",
+            "--password",
+            "legacy-password",
+            "--help",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "--no-source" not in result.output
+    assert "--username" not in result.output
+    assert "--password" not in result.output
+
+
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
     from psynet.command_line import _run_performance_test_with_new_server
 

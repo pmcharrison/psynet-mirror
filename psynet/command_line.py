@@ -2118,6 +2118,18 @@ def export_arguments(func):
             hidden=True,
             help="Deprecated compatibility option with no effect",
         ),
+        click.option(
+            "--username",
+            default=None,
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
+        ),
+        click.option(
+            "--password",
+            default=None,
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
+        ),
     ]
     for arg in args:
         func = arg(func)
@@ -2204,6 +2216,8 @@ def export_(
     docker_ssh=False,
     server=None,
     dns_host=None,
+    username=None,
+    password=None,
 ):
     """
     Export data from an experiment.
