@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import csv
+import hashlib
+import json
 import os
+import random
 import subprocess
 import tempfile
 import time
@@ -37,6 +40,41 @@ _EXPORT_PROFILES = {
             ("Response", 5),
             ("StaticNetwork", 2_000),
             ("StaticNode", 2_000),
+        ),
+    ),
+}
+
+
+@dataclass(frozen=True)
+class _AssetFileSpec:
+    """One deterministic file in the asset-export benchmark workload."""
+
+    key: str
+    size_bytes: int
+
+
+@dataclass(frozen=True)
+class _AssetExportProfile:
+    """Configuration for one deterministic asset-export benchmark."""
+
+    demo_root: str
+    demo_name: str
+    files: tuple[_AssetFileSpec, ...]
+
+
+_ASSET_EXPORT_PROFILES = {
+    "mixed_local_assets": _AssetExportProfile(
+        demo_root="tests/experiments",
+        demo_name="static_big",
+        files=(
+            *(
+                _AssetFileSpec(key=f"small_{index:03d}", size_bytes=1_024)
+                for index in range(24)
+            ),
+            *(
+                _AssetFileSpec(key=f"large_{index:03d}", size_bytes=256 * 1_024)
+                for index in range(3)
+            ),
         ),
     ),
 }
@@ -161,6 +199,163 @@ def _run_local_export_benchmark(profile: _ExportProfile) -> dict[str, float | in
         )
 
 
+def _deterministic_bytes(key: str, size_bytes: int) -> bytes:
+    """Return deterministic binary payload for one benchmark asset."""
+
+    random_source = random.Random(key)
+    return random_source.randbytes(size_bytes)
+
+
+def _write_asset_payloads(
+    input_dir: Path, profile: _AssetExportProfile
+) -> list[dict[str, str | int]]:
+    """Write benchmark asset inputs and return their manifest."""
+
+    manifest = []
+    for spec in profile.files:
+        payload = _deterministic_bytes(spec.key, spec.size_bytes)
+        input_path = input_dir / f"{spec.key}.bin"
+        input_path.write_bytes(payload)
+        export_path = f"asset_benchmark/{spec.key}.bin"
+        manifest.append(
+            {
+                "key": spec.key,
+                "input_path": str(input_path),
+                "export_path": export_path,
+                "size_bytes": spec.size_bytes,
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+        )
+    return manifest
+
+
+def _deposit_experiment_assets(demo_dir: Path, manifest: list[dict[str, str | int]]):
+    """Deposit benchmark assets through PsyNet's ExperimentAsset API."""
+
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as file:
+        json.dump(manifest, file)
+        manifest_path = file.name
+
+    script = """
+import json
+import sys
+from pathlib import Path
+
+from dallinger import db
+from psynet.asset import ExperimentAsset
+
+manifest = json.loads(Path(sys.argv[1]).read_text())
+for item in manifest:
+    asset = ExperimentAsset(
+        input_path=item["input_path"],
+        key_within_experiment=f"asset_benchmark/{item['key']}",
+        extension=".bin",
+        personal=False,
+        obfuscate=0,
+    )
+    asset.deposit()
+db.session.commit()
+"""
+    try:
+        _run_checked(["python", "-c", script, manifest_path], cwd=demo_dir)
+    finally:
+        Path(manifest_path).unlink(missing_ok=True)
+
+
+def _time_asset_export(demo_dir: Path, export_path: Path) -> float:
+    """Run asset-only local export and return elapsed seconds."""
+
+    script = """
+import sys
+import time
+from pathlib import Path
+
+from psynet.data import export_assets
+
+started_at = time.perf_counter()
+export_assets(
+    Path(sys.argv[1]),
+    include_private=True,
+    experiment_assets_only=True,
+    include_on_demand_assets=False,
+    local=True,
+)
+print(time.perf_counter() - started_at)
+"""
+    started = subprocess.run(
+        ["python", "-c", script, str(export_path)],
+        cwd=demo_dir,
+        env=_benchmark_env(),
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    return float(started.stdout.strip().splitlines()[-1])
+
+
+def _summarize_asset_export(
+    export_path: Path,
+    export_time_s: float,
+    manifest: list[dict[str, str | int]],
+) -> dict[str, float | int]:
+    """Validate and summarize exported benchmark assets."""
+
+    exported_files = sorted(path for path in export_path.rglob("*") if path.is_file())
+    expected_by_path = {str(item["export_path"]): item for item in manifest}
+    actual_relative_paths = {
+        str(path.relative_to(export_path)) for path in exported_files
+    }
+    if actual_relative_paths != set(expected_by_path):
+        raise RuntimeError(
+            "Asset export benchmark fixture shape changed. "
+            f"Expected paths {sorted(expected_by_path)}, got {sorted(actual_relative_paths)}."
+        )
+
+    for path in exported_files:
+        relative_path = str(path.relative_to(export_path))
+        expected = expected_by_path[relative_path]
+        payload = path.read_bytes()
+        if len(payload) != expected["size_bytes"]:
+            raise RuntimeError(
+                f"Unexpected size for {relative_path}: "
+                f"expected {expected['size_bytes']}, got {len(payload)}."
+            )
+        if hashlib.sha256(payload).hexdigest() != expected["sha256"]:
+            raise RuntimeError(f"Unexpected SHA-256 digest for {relative_path}.")
+
+    return {
+        "asset_export_time_s": export_time_s,
+        "asset_file_count": len(exported_files),
+        "asset_total_bytes": sum(path.stat().st_size for path in exported_files),
+    }
+
+
+def _run_asset_export_benchmark(
+    profile: _AssetExportProfile,
+) -> dict[str, float | int]:
+    """Deposit deterministic assets, export them, and return metrics."""
+
+    demo_dir = _repo_root() / profile.demo_root / profile.demo_name
+    with tempfile.TemporaryDirectory(prefix="psynet-asset-inputs-") as input_dir:
+        with tempfile.TemporaryDirectory(prefix="psynet-asset-export-") as export_dir:
+            _populate_local_experiment(
+                demo_dir,
+                _ExportProfile(
+                    demo_root=profile.demo_root,
+                    demo_name=profile.demo_name,
+                    n_bots=1,
+                    expected_csv_rows=(),
+                ),
+            )
+            manifest = _write_asset_payloads(Path(input_dir), profile)
+            _deposit_experiment_assets(demo_dir, manifest)
+            export_path = Path(export_dir)
+            asset_export_time_s = _time_asset_export(demo_dir, export_path)
+            return _summarize_asset_export(
+                export_path, asset_export_time_s, manifest
+            )
+
+
 class LegacyLocalExport:
     """Benchmark legacy local export after a small reproducible population run."""
 
@@ -200,3 +395,44 @@ class LegacyLocalExport:
 
     track_database_zip_size_bytes.unit = "bytes"
     track_database_zip_size_bytes.pretty_name = "Legacy local database.zip size"
+
+
+class LocalAssetExport:
+    """Benchmark local export of deterministic ExperimentAsset files."""
+
+    params = list(_ASSET_EXPORT_PROFILES)
+    param_names = ["profile"]
+    timeout = 300
+    version = 1
+
+    def setup_cache(self):
+        """Run each asset-export profile once and cache scalar metrics."""
+
+        return {
+            name: _run_asset_export_benchmark(profile)
+            for name, profile in _ASSET_EXPORT_PROFILES.items()
+        }
+
+    def track_asset_export_time_s(self, results, profile):
+        """Return wall time for the local asset export phase."""
+
+        return results[profile]["asset_export_time_s"]
+
+    track_asset_export_time_s.unit = "s"
+    track_asset_export_time_s.pretty_name = "Local asset export time"
+
+    def track_asset_file_count(self, results, profile):
+        """Return the number of files exported by the asset benchmark."""
+
+        return results[profile]["asset_file_count"]
+
+    track_asset_file_count.unit = "files"
+    track_asset_file_count.pretty_name = "Local asset export files"
+
+    def track_asset_total_bytes(self, results, profile):
+        """Return total bytes exported by the asset benchmark."""
+
+        return results[profile]["asset_total_bytes"]
+
+    track_asset_total_bytes.unit = "bytes"
+    track_asset_total_bytes.pretty_name = "Local asset export bytes"

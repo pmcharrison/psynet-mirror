@@ -6,8 +6,13 @@ from benchmarks.fast.debug_launch import (
 )
 from benchmarks.fast.export_benchmarks import (
     LegacyLocalExport,
+    LocalAssetExport,
+    _ASSET_EXPORT_PROFILES,
     _count_csv_rows,
+    _deterministic_bytes,
     _summarize_export,
+    _summarize_asset_export,
+    _write_asset_payloads,
 )
 
 
@@ -107,3 +112,79 @@ def test_legacy_local_export_tracks_metrics():
     assert benchmark.track_export_time_s(results, profile) == 2.5
     assert benchmark.track_data_row_count(results, profile) == 42
     assert benchmark.track_database_zip_size_bytes(results, profile) == 1024
+
+
+def test_asset_benchmark_payloads_are_deterministic():
+    assert _deterministic_bytes("asset", 16) == _deterministic_bytes("asset", 16)
+    assert _deterministic_bytes("asset", 16) != _deterministic_bytes("other", 16)
+
+
+def test_asset_benchmark_writes_payload_manifest(tmp_path):
+    profile = _ASSET_EXPORT_PROFILES["mixed_local_assets"]
+    manifest = _write_asset_payloads(tmp_path, profile)
+
+    assert len(manifest) == len(profile.files)
+    assert sum(item["size_bytes"] for item in manifest) == 811_008
+    for item in manifest:
+        path = tmp_path / f"{item['key']}.bin"
+        assert path.exists()
+        assert path.stat().st_size == item["size_bytes"]
+
+
+def test_asset_benchmark_summarizes_exported_files(tmp_path):
+    profile = _ASSET_EXPORT_PROFILES["mixed_local_assets"]
+    input_dir = tmp_path / "input"
+    export_dir = tmp_path / "export"
+    input_dir.mkdir()
+    export_dir.mkdir()
+    manifest = _write_asset_payloads(input_dir, profile)
+
+    for item in manifest:
+        target = export_dir / item["export_path"]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((input_dir / f"{item['key']}.bin").read_bytes())
+
+    summary = _summarize_asset_export(
+        export_dir,
+        export_time_s=0.5,
+        manifest=manifest,
+    )
+
+    assert summary == {
+        "asset_export_time_s": 0.5,
+        "asset_file_count": 27,
+        "asset_total_bytes": 811_008,
+    }
+
+
+def test_asset_benchmark_rejects_changed_fixture_shape(tmp_path):
+    profile = _ASSET_EXPORT_PROFILES["mixed_local_assets"]
+    input_dir = tmp_path / "input"
+    export_dir = tmp_path / "export"
+    input_dir.mkdir()
+    export_dir.mkdir()
+    manifest = _write_asset_payloads(input_dir, profile)
+
+    first = manifest[0]
+    target = export_dir / first["export_path"]
+    target.parent.mkdir(parents=True)
+    target.write_bytes((input_dir / f"{first['key']}.bin").read_bytes())
+
+    with pytest.raises(RuntimeError, match="fixture shape changed"):
+        _summarize_asset_export(export_dir, export_time_s=0.5, manifest=manifest)
+
+
+def test_local_asset_export_tracks_metrics():
+    benchmark = LocalAssetExport()
+    profile = benchmark.params[0]
+    results = {
+        profile: {
+            "asset_export_time_s": 0.75,
+            "asset_file_count": 27,
+            "asset_total_bytes": 811_008,
+        }
+    }
+
+    assert benchmark.track_asset_export_time_s(results, profile) == 0.75
+    assert benchmark.track_asset_file_count(results, profile) == 27
+    assert benchmark.track_asset_total_bytes(results, profile) == 811_008
