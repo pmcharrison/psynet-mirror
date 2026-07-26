@@ -12,4 +12,5 @@ Contributing to PsyNet
    ../tutorials/internationalization
    running_tests
    asv_performance_tests
+   export_performance_roadmap
    making_a_release
