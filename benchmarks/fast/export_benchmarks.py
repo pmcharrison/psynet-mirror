@@ -242,9 +242,22 @@ import sys
 from pathlib import Path
 
 from dallinger import db
+from psynet import deployment_info
 from psynet.asset import ExperimentAsset
+from psynet.command_line import _experiment_variables, db_connection
 from psynet.experiment import import_local_experiment
 
+with db_connection("local") as connection:
+    experiment_vars = _experiment_variables(connection)
+deployment_info.init(
+    redeploying_from_archive=False,
+    mode="debug",
+    is_local_deployment=True,
+    is_ssh_deployment=False,
+    server=None,
+    app=None,
+)
+deployment_info.write(deployment_id=experiment_vars["deployment_id"])
 import_local_experiment()
 manifest = json.loads(Path(sys.argv[1]).read_text())
 for item in manifest:
@@ -272,9 +285,22 @@ import sys
 import time
 from pathlib import Path
 
+from psynet import deployment_info
+from psynet.command_line import _experiment_variables, db_connection
 from psynet.data import export_assets
 from psynet.experiment import import_local_experiment
 
+with db_connection("local") as connection:
+    experiment_vars = _experiment_variables(connection)
+deployment_info.init(
+    redeploying_from_archive=False,
+    mode="debug",
+    is_local_deployment=True,
+    is_ssh_deployment=False,
+    server=None,
+    app=None,
+)
+deployment_info.write(deployment_id=experiment_vars["deployment_id"])
 import_local_experiment()
 started_at = time.perf_counter()
 export_assets(
