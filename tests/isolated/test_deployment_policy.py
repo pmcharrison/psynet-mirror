@@ -86,6 +86,12 @@ def _managed_experiment_directories():
     ]
 
 
+def test_raw_config_is_not_reintroduced_by_extra_files():
+    destinations = {destination for _, destination in Experiment.extra_files()}
+
+    assert ".config.backup" not in destinations
+
+
 def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
     template_directory = _template_directory()
     policy = parse_deployment_policy(template_directory / "deploy.toml")
@@ -181,7 +187,11 @@ def test_translation_pre_deploy_outputs_remain_compatible_and_deployable(
 ):
     experiment_root = tmp_path / "experiment"
     staging_root = tmp_path / "staging"
-    shutil.copytree(get_psynet_root() / relative_directory, experiment_root)
+    shutil.copytree(
+        get_psynet_root() / relative_directory,
+        experiment_root,
+        symlinks=True,
+    )
     for path in experiment_root.glob("locales/*/LC_MESSAGES/experiment.mo"):
         path.unlink()
     subprocess.run(["git", "init", "-q"], cwd=experiment_root, check=True)

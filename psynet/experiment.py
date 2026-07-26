@@ -2660,10 +2660,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "DEPLOYMENT_PACKAGE",
                 ),
                 (
-                    "config.txt",
-                    ".config.backup",
-                ),
-                (
                     ".deploy",
                     ".deploy",
                 ),
