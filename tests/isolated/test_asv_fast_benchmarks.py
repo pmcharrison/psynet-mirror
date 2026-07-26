@@ -6,9 +6,9 @@ from benchmarks.fast.debug_launch import (
 )
 from benchmarks.fast.export_benchmarks import (
     _ASSET_EXPORT_PROFILES,
-    _AssetExportProfile,
     LegacyLocalExport,
     LocalAssetExport,
+    _AssetExportProfile,
     _count_csv_rows,
     _deterministic_bytes,
     _summarize_asset_export,
