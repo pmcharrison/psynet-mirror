@@ -6,7 +6,6 @@ import psynet.experiment
 from psynet.page import InfoPage, JsPsychPage
 from psynet.timeline import PageMaker, Timeline
 
-
 JSPSYCH = "static/jspsych/jspsych.js"
 HTML_KEYBOARD_PLUGIN = "static/jspsych/plugin-html-keyboard-response.js"
 JSPSYCH_CSS = ["static/jspsych/jspsych.css"]

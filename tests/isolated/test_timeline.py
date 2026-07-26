@@ -84,10 +84,7 @@ def test_automatic_trial_waits_for_page_ready():
     page = InfoPage("Automatic trial")
 
     triggers = {
-        event_id: [
-            trigger["triggering_event"]
-            for trigger in event["is_triggered_by"]
-        ]
+        event_id: [trigger["triggering_event"] for trigger in event["is_triggered_by"]]
         for event_id, event in page.events.items()
     }
 
