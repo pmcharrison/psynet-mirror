@@ -1338,7 +1338,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     exp.check_consents()
     exp.check_python_dependencies()
 
-    # We need an active git repository for Dallinger to recognize .gitignore properly
+    # The compatibility prototype compares deploy.toml with legacy Git selection.
     if not git_repository_available():
         raise click.ClickException(
             "This directory is not a git repository, or git is not installed. Please ensure git is installed and create a repository by running 'git init' if needed."
@@ -2698,6 +2698,33 @@ def update_scripts():
     update_scripts_()
 
 
+_GENERATED_DOCKERIGNORE_LINES = [
+    "# We don't want to copy virtual environments into the Docker image",
+    ".venv",
+    ".env",
+]
+
+
+def _remove_generated_dockerignore():
+    """Remove the obsolete generated Docker ignore file, preserving custom files."""
+    path = Path(".dockerignore")
+    if not os.path.lexists(path):
+        return
+    try:
+        generated = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        generated = None
+    if generated == _GENERATED_DOCKERIGNORE_LINES:
+        click.echo("...removing obsolete generated .dockerignore.")
+        path.unlink()
+    else:
+        click.echo(
+            "WARNING: Preserving custom .dockerignore. Its rules must be moved "
+            "to deploy.toml and the file removed before deployment.",
+            err=True,
+        )
+
+
 def update_scripts_():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2706,12 +2733,22 @@ def update_scripts_():
     # TODO - refactor to avoid hardcoding the list of files/directories to copy
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
+    _remove_generated_dockerignore()
+
     Path(".vscode").mkdir(exist_ok=True)
     Path(".github/workflows").mkdir(parents=True, exist_ok=True)
 
+    if os.path.lexists("deploy.toml"):
+        click.echo("...preserving existing deploy.toml.")
+    else:
+        click.echo("...creating deploy.toml.")
+        with resources.as_file(
+            resources.files("psynet") / "resources/experiment_scripts" / "deploy.toml"
+        ) as path:
+            shutil.copyfile(path, "deploy.toml")
+
     files_to_copy = [
         ".gitignore",
-        ".dockerignore",
         "Dockerfile",
         "README.md",
         "__init__.py",

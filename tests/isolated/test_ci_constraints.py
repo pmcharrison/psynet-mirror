@@ -1,7 +1,6 @@
 import re
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 from psynet.dev import ci as ci_module
 
@@ -17,7 +16,20 @@ def test_vendored_dallinger_constraints_match_pyproject_dependency():
         for dependency in pyproject["project"]["dependencies"]
         if dependency.startswith("dallinger[")
     )
-    dependency_version = re.search(r">=(\d+\.\d+\.\d+)", dallinger_dependency).group(1)
+    dependency_version_match = re.search(r">=(\d+\.\d+\.\d+)", dallinger_dependency)
+    if dependency_version_match is None:
+        assert (
+            dallinger_dependency == "dallinger[docker] @ "
+            "git+https://github.com/pmcharrison/Dallinger.git"
+            "@cursor/deployment-plan-poc-aafb"
+        )
+        constraints = DALLINGER_CONSTRAINTS.read_text(encoding="utf-8")
+        assert (
+            re.search(r"^dallinger(?:\[.*\])?\s*[=@<]", constraints, re.MULTILINE)
+            is None
+        )
+        return
+    dependency_version = dependency_version_match.group(1)
 
     constraints = DALLINGER_CONSTRAINTS.read_text(encoding="utf-8")
     snapshot_version = re.search(

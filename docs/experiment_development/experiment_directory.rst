@@ -10,12 +10,22 @@ that runs on the experiment server.
 
 When you are developing a PsyNet experiment it is good practice to use a *version control system*
 for keeping track of changes to your experiment directory.
-In particular, we advise that you use *Git* because PsyNet itself uses some Git features
-as part of its deployment process. To learn more visit
+We recommend *Git*. During the ``deploy.toml`` compatibility prototype, PsyNet
+requires an active Git repository because Dallinger compares the policy's
+membership with legacy Git-based selection. To learn more visit
 `Version control with Git <../tutorials/version_control_with_git.html>`_.
 PsyNet records the deployed Git commit and whether the working tree contained
-uncommitted changes. For reproducible live deployments, commit your changes before
-deploying.
+uncommitted changes. For reproducible live deployments, commit your changes
+before deploying. A future major Dallinger release is expected to remove Git
+from deployment membership after the compatibility period.
+
+.. warning::
+
+   The ``deploy.toml`` compatibility prototype currently requires POSIX
+   descriptor-relative filesystem traversal and is not supported on Windows. A
+   safe Windows-support carve-out is required before production rollout.
+   Policy-free experiments retain Dallinger's existing legacy, cross-platform
+   behavior outside this all-migrated PsyNet prototype.
 
 Your experiment directory contains various important files and directories.
 Let's talk through what these different files and directories do.
@@ -41,25 +51,22 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     Most experiments do not need to use this folder, but for an example of how to use it, see
     `Writing custom frontends <../tutorials/writing_custom_frontends.html>`_.
 
--   ``.gitignore`` controls which files Git tracks. It takes a standard format that comes from Git;
-    you can learn more by Googling ``gitignore``. If a file is included within ``.gitignore``, it will not
-    be included in your Git repository and hence won't be visible on (for example) GitHub.
-    Importantly, files included in ``gitignore`` are **also** excluded from experiment deployments.
-    This means for example that if you specify media files in ``gitignore`` then they won't be uploaded
-    to the remote server's experiment directory.
-    By default, there are some files/folders that are always excluded from this upload process,
-    and this list is hard-coded into Dallinger. Currently it looks like this:
+-   ``.gitignore`` controls which files Git tracks. It does not directly control
+    target deployment selection when ``deploy.toml`` is present, but it still
+    defines the legacy selection used by the compatibility comparison.
 
-        - ``.git``
-        - ``config.txt``
-        - ``*.db``
-        - ``*.dmg``
-        - ``node_modules``
-        - ``snapshots``
-        - ``data``
-        - ``develop``
-        - ``server.log``
-        - ``__pycache__``
+-   ``deploy.toml`` controls which files enter Dallinger's deployment plan and
+    therefore the debug staging directory, Docker build context, or remote
+    deployment package. Version 1 selects every regular file below the experiment
+    directory except the listed literal, root-relative path prefixes. Git-style
+    globs and negation are not supported. Hidden, untracked, and Git-ignored files
+    are selected unless explicitly excluded, so review local files carefully and run
+    ``dallinger deployment-files check`` when migrating an existing experiment.
+    During the compatibility period, this command reports both target-only and
+    legacy-only paths; any difference must be reviewed and acknowledged.
+    Source ``.dockerignore`` files are not supported with this policy; migrate their
+    rules to ``deploy.toml`` and remove them. Experiments without ``deploy.toml``
+    retain the legacy Git-based selection behavior during the compatibility period.
 
 -   ``Dockerfile`` is used by Docker to define the experiment's Docker image. Normally you should not edit this file
     directly, but instead use the boilerplate file provided by PsyNet. You can update this file to

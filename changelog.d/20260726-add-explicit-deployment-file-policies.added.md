@@ -1,0 +1,1 @@
+Added explicit `deploy.toml` file selection policies to PsyNet experiment templates, demos, and test fixtures, with migration checks and fail-closed handling for deprecated direct Docker builds. The compatibility prototype requires Python 3.11 or later and POSIX descriptor-relative filesystem traversal.

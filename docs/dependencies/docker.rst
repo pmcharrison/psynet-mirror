@@ -23,3 +23,27 @@ self-contained operating systems. Docker brings several key advantages:
   and operating system conditions would often eventually break experiments.
 
 For more information see the `official Docker website <https://www.docker.com/>`_.
+
+Deployment build context
+------------------------
+
+.. warning::
+
+   ``deploy.toml`` planning currently requires POSIX descriptor-relative
+   filesystem traversal. It is not supported on Windows. A safe Windows-support
+   carve-out is required before production rollout. Policy-free experiments
+   retain Dallinger's existing legacy, cross-platform behavior outside this
+   all-migrated PsyNet prototype.
+
+PsyNet and Dallinger build the Docker context from the experiment's
+``deploy.toml`` policy. This keeps debug staging and deployment backends on the
+same reviewed file plan; ``.gitignore`` only controls Git.
+
+The deprecated scripts in an experiment's ``docker`` directory call
+``docker build`` directly. Docker does not read ``deploy.toml``, and PsyNet no
+longer generates a ``.dockerignore`` because backend-specific ignore files are
+incompatible with the shared deployment plan. The generated ``docker/build``
+script therefore refuses to run when ``deploy.toml`` is present. Use the
+standard PsyNet or Dallinger commands so the reviewed plan controls the Docker
+context. Older direct scripts, or direct builds without a policy, can send local
+files such as ``.env`` and ``.venv`` to the Docker daemon.
