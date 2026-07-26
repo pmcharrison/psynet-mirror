@@ -80,6 +80,35 @@ def test_partial_render_makes_embedded_scripts_inert():
     assert 'type="text/html"' in inert_html
 
 
+def test_automatic_trial_waits_for_page_ready():
+    page = InfoPage("Automatic trial")
+
+    triggers = {
+        event_id: [
+            trigger["triggering_event"]
+            for trigger in event["is_triggered_by"]
+        ]
+        for event_id, event in page.events.items()
+    }
+
+    assert "pageReady" in page.events
+    assert triggers["pageReady"] == []
+    assert triggers["trialPrepare"] == ["pageReady"]
+    assert triggers["trialStart"] == ["trialPrepare"]
+
+
+def test_manual_trial_waits_for_request_and_page_ready():
+    page = InfoPage("Manual trial", start_trial_automatically=False)
+
+    triggers = [
+        trigger["triggering_event"]
+        for trigger in page.events["trialPrepare"]["is_triggered_by"]
+    ]
+
+    assert triggers == ["trialManualRequest", "pageReady"]
+    assert page.events["trialPrepare"]["trigger_condition"] == "all"
+
+
 @pytest.mark.parametrize(
     "html",
     [
