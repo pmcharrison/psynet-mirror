@@ -267,6 +267,50 @@ unpack selected keys explicitly with ``unpack_json_column``. Dashboard features
 that genuinely require a derived value must request it explicitly rather than
 receiving every registered extra value as a side effect of serialization.
 
+Removing implicit aggregate attributes
+--------------------------------------
+
+The ``extra_var`` registry is not the only source of implicit derived values.
+Several trial, node, network, and module-state classes expose SQLAlchemy
+``column_property`` counts. These correlated subqueries are included whenever
+the ORM loads the owning model, even when the caller does not use the count.
+For example, loading a ``TrialNetwork`` currently computes counts such as
+``n_all_trials``, ``n_alive_trials``, ``n_failed_trials``,
+``n_completed_trials``, ``n_all_nodes``, ``n_alive_nodes``, and
+``n_failed_nodes``.
+
+These convenience attributes will be removed where they are not required by
+runtime behavior. Analysts can compute the equivalent values explicitly from
+``trial.csv`` and ``node.csv``.
+
+Counts that do drive live experiment logic will be replaced at their call
+sites rather than retained as automatically loaded model attributes:
+
+* ``ChainNetwork.remaining_trials`` will obtain its completed-trial count from
+  an explicit aggregate or an appropriate stored counter.
+* Chain allocation will replace ``n_viable_trials`` and
+  ``n_viable_trials_at_head`` with a set-oriented query over candidate nodes
+  and trials.
+* Block and participant limits will replace
+  ``n_participant_trials_in_block`` and
+  ``n_participant_trials_in_trial_maker`` with explicit grouped queries or
+  transactionally maintained state.
+
+Stored counters such as ``ModuleState.n_completed_trials`` are physical state
+used by live experiment logic and will not be removed merely because their
+names begin with ``n_``.
+
+Dallinger's ``Network.n_pending_infos``, ``n_completed_infos``, and
+``n_failed_infos`` describe genuine Dallinger Infos, not independent PsyNet
+Trials. They will no longer be treated as trial statistics. PsyNet queries
+must avoid loading these correlated properties by default; if necessary, this
+will require a small Dallinger change to make Info aggregates deferred or
+explicit.
+
+The resulting rule is that mapped attributes should primarily represent stored
+columns and relationships. Potentially expensive aggregate statistics belong
+in explicit query helpers and should only be evaluated when requested.
+
 Basic data
 ----------
 
@@ -421,6 +465,8 @@ Phase 2: Independent Trial table
 * Update dashboard monitoring and database browsing.
 * Update archive ingestion and database initialization.
 * Remove obsolete Info compatibility code from PsyNet.
+* Remove implicit trial/network count properties and replace runtime uses with
+  explicit set-oriented queries or stored state.
 
 Phase 3: Identifier normalization
 ---------------------------------
@@ -505,6 +551,8 @@ Database performance
 * Peak memory no longer requires all ORM rows and their dictionary
   representations to coexist.
 * Requesting one export does not produce two full database snapshots.
+* Loading trial networks, nodes, and module states does not automatically run
+  correlated count subqueries.
 
 Asset correctness
 -----------------
@@ -541,6 +589,8 @@ This roadmap intentionally permits:
   ``Response.client_ip_address``;
 * removal of ``extra_var``, ``__extra_vars__``, and implicit derived export
   columns;
+* removal of convenience aggregate attributes such as ``n_all_trials`` and
+  ``n_viable_trials`` in favor of explicit query helpers;
 * changes to managed-asset paths and URLs;
 * removal or reinterpretation of ``obfuscate`` and ``personal``; and
 * inability to load exports created before the breaking release.
@@ -554,6 +604,8 @@ The first implementation will not:
 * preserve the old class-based CSV format;
 * preserve implicit CSV columns previously created by ``extra_var`` or
   VarStore flattening;
+* preserve automatically loaded network, node, or module-state aggregate
+  attributes;
 * guarantee that an export is anonymous;
 * inspect arbitrary responses, assets, logs, or basic data for personal
   information;
