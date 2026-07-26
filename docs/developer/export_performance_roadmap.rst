@@ -232,6 +232,41 @@ arbitrary Python objects through jsonpickle. Nested dictionaries may be
 normalized through pandas, but existing columns will never be silently
 overwritten.
 
+Removing ``extra_var``
+----------------------
+
+The ``extra_var`` mechanism exists to register Python properties for implicit
+inclusion in ``SQLMixinDallinger.to_dict()``. The old class-based CSV export
+made those properties appear as additional CSV columns. Once that export is
+removed, maintaining a parallel registry of derived values is unnecessary and
+would conflict with the database snapshot being the canonical representation.
+
+The implementation will therefore remove:
+
+* the ``extra_var`` and ``register_extra_var`` decorators/helpers;
+* ``__extra_vars__`` dictionaries and their inheritance boilerplate;
+* ``json_add_extra_vars``;
+* ``claim_field`` if its audit confirms that it remains unused; and
+* implicit flattening of every :class:`~psynet.field.VarStore` key into
+  ``to_dict()`` output.
+
+Removing the registry does not mean removing useful runtime properties.
+Properties such as ``Participant.aborted_modules``, Gibbs
+``initial_vector``/``updated_vector``, and MCMCP ``first_stimulus`` will remain
+ordinary Python properties wherever runtime code uses them.
+
+``claim_var`` currently combines two responsibilities: it creates a property
+backed by ``obj.var`` and registers that property as an extra export column.
+It will either be simplified to create only the VarStore-backed property or be
+replaced by an equivalently small descriptor. Existing uses such as
+``RecordTrial.analysis`` and ``MediaGibbsNode.slider_stimuli`` must retain their
+runtime behavior.
+
+VarStore data remains stored in the physical ``vars`` column. Analysts can
+unpack selected keys explicitly with ``unpack_json_column``. Dashboard features
+that genuinely require a derived value must request it explicitly rather than
+receiving every registered extra value as a side effect of serialization.
+
 Basic data
 ----------
 
@@ -406,6 +441,8 @@ Phase 4: Canonical database export
 * Add snapshot metadata, row counts, and checksums.
 * Remove anonymization modes and their command-line/dashboard controls.
 * Add table loading, JSON unpacking, and identifier merge utilities.
+* Remove the ``extra_var`` registry and implicit VarStore flattening while
+  preserving runtime properties.
 
 Phase 5: Content-addressed asset storage
 ----------------------------------------
@@ -456,6 +493,8 @@ Database correctness
   values through an explicit utility.
 * No PsyNet table duplicates Participant worker IDs or client IP addresses.
 * Custom tables are included in deterministic dependency order.
+* VarStore values remain present in physical ``vars`` columns but are not
+  implicitly promoted to top-level export columns.
 
 Database performance
 --------------------
@@ -500,6 +539,8 @@ This roadmap intentionally permits:
 * replacement of ``info.csv`` trial data by ``trial.csv``;
 * removal of ``ErrorRecord.worker_id`` and
   ``Response.client_ip_address``;
+* removal of ``extra_var``, ``__extra_vars__``, and implicit derived export
+  columns;
 * changes to managed-asset paths and URLs;
 * removal or reinterpretation of ``obfuscate`` and ``personal``; and
 * inability to load exports created before the breaking release.
@@ -511,6 +552,8 @@ The first implementation will not:
 
 * migrate live deployments or old database archives;
 * preserve the old class-based CSV format;
+* preserve implicit CSV columns previously created by ``extra_var`` or
+  VarStore flattening;
 * guarantee that an export is anonymous;
 * inspect arbitrary responses, assets, logs, or basic data for personal
   information;
