@@ -6,6 +6,7 @@ from benchmarks.fast.debug_launch import (
 )
 from benchmarks.fast.export_benchmarks import (
     _ASSET_EXPORT_PROFILES,
+    _AssetExportProfile,
     LegacyLocalExport,
     LocalAssetExport,
     _count_csv_rows,
@@ -119,12 +120,30 @@ def test_asset_benchmark_payloads_are_deterministic():
     assert _deterministic_bytes("asset", 16) != _deterministic_bytes("other", 16)
 
 
+def _tiny_asset_profile():
+    return _AssetExportProfile(
+        file_count=2,
+        file_size_bytes=4,
+        key_prefix="small",
+    )
+
+
+def test_asset_benchmark_profiles_have_expected_scale():
+    many_small = _ASSET_EXPORT_PROFILES["many_small_files"]
+    few_large = _ASSET_EXPORT_PROFILES["few_large_files"]
+
+    assert many_small.file_count == 10_000
+    assert many_small.file_count * many_small.file_size_bytes == 10_240_000
+    assert few_large.file_count == 10
+    assert few_large.file_count * few_large.file_size_bytes == 104_857_600
+
+
 def test_asset_benchmark_writes_payload_manifest(tmp_path):
-    profile = _ASSET_EXPORT_PROFILES["mixed_local_assets"]
+    profile = _tiny_asset_profile()
     manifest = _write_asset_payloads(tmp_path, profile)
 
-    assert len(manifest) == len(profile.files)
-    assert sum(item["size_bytes"] for item in manifest) == 811_008
+    assert len(manifest) == profile.file_count
+    assert sum(item["size_bytes"] for item in manifest) == 8
     for item in manifest:
         path = tmp_path / f"{item['key']}.bin"
         assert path.exists()
@@ -132,7 +151,7 @@ def test_asset_benchmark_writes_payload_manifest(tmp_path):
 
 
 def test_asset_benchmark_summarizes_exported_files(tmp_path):
-    profile = _ASSET_EXPORT_PROFILES["mixed_local_assets"]
+    profile = _tiny_asset_profile()
     input_dir = tmp_path / "input"
     export_dir = tmp_path / "export"
     input_dir.mkdir()
@@ -152,13 +171,13 @@ def test_asset_benchmark_summarizes_exported_files(tmp_path):
 
     assert summary == {
         "asset_export_time_s": 0.5,
-        "asset_file_count": 27,
-        "asset_total_bytes": 811_008,
+        "asset_file_count": 2,
+        "asset_total_bytes": 8,
     }
 
 
 def test_asset_benchmark_rejects_changed_fixture_shape(tmp_path):
-    profile = _ASSET_EXPORT_PROFILES["mixed_local_assets"]
+    profile = _tiny_asset_profile()
     input_dir = tmp_path / "input"
     export_dir = tmp_path / "export"
     input_dir.mkdir()
@@ -180,11 +199,11 @@ def test_local_asset_export_tracks_metrics():
     results = {
         profile: {
             "asset_export_time_s": 0.75,
-            "asset_file_count": 27,
-            "asset_total_bytes": 811_008,
+            "asset_file_count": 10_000,
+            "asset_total_bytes": 10_240_000,
         }
     }
 
     assert benchmark.track_asset_export_time_s(results, profile) == 0.75
-    assert benchmark.track_asset_file_count(results, profile) == 27
-    assert benchmark.track_asset_total_bytes(results, profile) == 811_008
+    assert benchmark.track_asset_file_count(results, profile) == 10_000
+    assert benchmark.track_asset_total_bytes(results, profile) == 10_240_000

@@ -6,30 +6,25 @@ import csv
 import hashlib
 import json
 import os
-import random
 import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
+_DEMO_RELATIVE_PATH = Path("tests/experiments/static_big")
+
 
 @dataclass(frozen=True)
 class _ExportProfile:
     """Configuration for one reproducible local export benchmark."""
 
-    demo_root: str
-    demo_name: str
     n_bots: int
     expected_csv_rows: tuple[tuple[str, int], ...]
-    assets: str = "none"
-    anonymize: str = "no"
 
 
 _EXPORT_PROFILES = {
     "static_big_single_bot": _ExportProfile(
-        demo_root="tests/experiments",
-        demo_name="static_big",
         n_bots=1,
         expected_csv_rows=(
             ("AnimalTrial", 4),
@@ -46,36 +41,24 @@ _EXPORT_PROFILES = {
 
 
 @dataclass(frozen=True)
-class _AssetFileSpec:
-    """One deterministic file in the asset-export benchmark workload."""
-
-    key: str
-    size_bytes: int
-
-
-@dataclass(frozen=True)
 class _AssetExportProfile:
     """Configuration for one deterministic asset-export benchmark."""
 
-    demo_root: str
-    demo_name: str
-    files: tuple[_AssetFileSpec, ...]
+    file_count: int
+    file_size_bytes: int
+    key_prefix: str
 
 
 _ASSET_EXPORT_PROFILES = {
-    "mixed_local_assets": _AssetExportProfile(
-        demo_root="tests/experiments",
-        demo_name="static_big",
-        files=(
-            *(
-                _AssetFileSpec(key=f"small_{index:03d}", size_bytes=1_024)
-                for index in range(24)
-            ),
-            *(
-                _AssetFileSpec(key=f"large_{index:03d}", size_bytes=256 * 1_024)
-                for index in range(3)
-            ),
-        ),
+    "many_small_files": _AssetExportProfile(
+        file_count=10_000,
+        file_size_bytes=1_024,
+        key_prefix="small",
+    ),
+    "few_large_files": _AssetExportProfile(
+        file_count=10,
+        file_size_bytes=10 * 1024 * 1024,
+        key_prefix="large",
     ),
 }
 
@@ -84,6 +67,12 @@ def _repo_root() -> Path:
     """Return the PsyNet repository root."""
 
     return Path(__file__).parents[2]
+
+
+def _demo_dir() -> Path:
+    """Return the shared benchmark experiment directory."""
+
+    return _repo_root() / _DEMO_RELATIVE_PATH
 
 
 def _benchmark_env() -> dict[str, str]:
@@ -101,7 +90,7 @@ def _run_checked(command: list[str], *, cwd: Path) -> None:
     subprocess.run(command, cwd=cwd, env=_benchmark_env(), check=True)
 
 
-def _populate_local_experiment(demo_dir: Path, profile: _ExportProfile) -> None:
+def _populate_local_experiment(n_bots: int = 1) -> None:
     """Run an exact number of serial bots to create benchmark data."""
 
     _run_checked(
@@ -110,16 +99,16 @@ def _populate_local_experiment(demo_dir: Path, profile: _ExportProfile) -> None:
             "test",
             "local",
             "--n-bots",
-            str(profile.n_bots),
+            str(n_bots),
             "--serial",
             "--time-factor",
             "0",
         ],
-        cwd=demo_dir,
+        cwd=_demo_dir(),
     )
 
 
-def _time_local_export(demo_dir: Path, export_path: Path, profile: _ExportProfile) -> float:
+def _time_local_export(export_path: Path) -> float:
     """Run the local legacy export and return elapsed seconds."""
 
     started_at = time.perf_counter()
@@ -130,14 +119,14 @@ def _time_local_export(demo_dir: Path, export_path: Path, profile: _ExportProfil
             "local",
             "--legacy",
             "--assets",
-            profile.assets,
+            "none",
             "--anonymize",
-            profile.anonymize,
+            "no",
             "--no-source",
             "--path",
             str(export_path),
         ],
-        cwd=demo_dir,
+        cwd=_demo_dir(),
     )
     return time.perf_counter() - started_at
 
@@ -189,11 +178,10 @@ def _summarize_export(
 def _run_local_export_benchmark(profile: _ExportProfile) -> dict[str, float | int]:
     """Populate a local experiment, export it, and return performance metrics."""
 
-    demo_dir = _repo_root() / profile.demo_root / profile.demo_name
     with tempfile.TemporaryDirectory(prefix="psynet-export-benchmark-") as export_dir:
         export_path = Path(export_dir)
-        _populate_local_experiment(demo_dir, profile)
-        export_time_s = _time_local_export(demo_dir, export_path, profile)
+        _populate_local_experiment(profile.n_bots)
+        export_time_s = _time_local_export(export_path)
         return _summarize_export(
             export_path, export_time_s, profile.expected_csv_rows
         )
@@ -202,8 +190,9 @@ def _run_local_export_benchmark(profile: _ExportProfile) -> dict[str, float | in
 def _deterministic_bytes(key: str, size_bytes: int) -> bytes:
     """Return deterministic binary payload for one benchmark asset."""
 
-    random_source = random.Random(key)
-    return random_source.randbytes(size_bytes)
+    block = hashlib.sha256(key.encode()).digest()
+    repeats = (size_bytes + len(block) - 1) // len(block)
+    return (block * repeats)[:size_bytes]
 
 
 def _write_asset_payloads(
@@ -212,115 +201,45 @@ def _write_asset_payloads(
     """Write benchmark asset inputs and return their manifest."""
 
     manifest = []
-    for spec in profile.files:
-        payload = _deterministic_bytes(spec.key, spec.size_bytes)
-        input_path = input_dir / f"{spec.key}.bin"
+    width = max(3, len(str(profile.file_count - 1)))
+    for index in range(profile.file_count):
+        key = f"{profile.key_prefix}_{index:0{width}d}"
+        payload = _deterministic_bytes(key, profile.file_size_bytes)
+        input_path = input_dir / f"{key}.bin"
         input_path.write_bytes(payload)
-        export_path = f"asset_benchmark/{spec.key}.bin"
+        export_path = f"asset_benchmark/{key}.bin"
         manifest.append(
             {
-                "key": spec.key,
+                "key": key,
                 "input_path": str(input_path),
                 "export_path": export_path,
-                "size_bytes": spec.size_bytes,
+                "size_bytes": profile.file_size_bytes,
                 "sha256": hashlib.sha256(payload).hexdigest(),
             }
         )
     return manifest
 
 
-def _deposit_experiment_assets(demo_dir: Path, manifest: list[dict[str, str | int]]):
-    """Deposit benchmark assets through PsyNet's ExperimentAsset API."""
+def _run_asset_worker(
+    manifest_path: Path,
+    export_path: Path,
+    storage_root: Path,
+    result_path: Path,
+) -> float:
+    """Run asset deposit and export in a fresh Python process."""
 
-    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as file:
-        json.dump(manifest, file)
-        manifest_path = file.name
-
-    script = """
-import json
-import sys
-from pathlib import Path
-
-from dallinger import db
-from psynet import deployment_info
-from psynet.asset import ExperimentAsset
-from psynet.command_line import _experiment_variables, db_connection
-from psynet.experiment import import_local_experiment
-
-with db_connection("local") as connection:
-    experiment_vars = _experiment_variables(connection)
-deployment_info.init(
-    redeploying_from_archive=False,
-    mode="debug",
-    is_local_deployment=True,
-    is_ssh_deployment=False,
-    server=None,
-    app=None,
-)
-deployment_info.write(deployment_id=experiment_vars["deployment_id"])
-import_local_experiment()
-manifest = json.loads(Path(sys.argv[1]).read_text())
-for item in manifest:
-    asset = ExperimentAsset(
-        input_path=item["input_path"],
-        key_within_experiment=f"asset_benchmark/{item['key']}",
-        extension=".bin",
-        personal=False,
-        obfuscate=0,
+    _run_checked(
+        [
+            "python",
+            str(Path(__file__).with_name("export_benchmark_worker.py")),
+            str(manifest_path),
+            str(export_path),
+            str(storage_root),
+            str(result_path),
+        ],
+        cwd=_demo_dir(),
     )
-    asset.deposit()
-db.session.commit()
-"""
-    try:
-        _run_checked(["python", "-c", script, manifest_path], cwd=demo_dir)
-    finally:
-        Path(manifest_path).unlink(missing_ok=True)
-
-
-def _time_asset_export(demo_dir: Path, export_path: Path) -> float:
-    """Run asset-only local export and return elapsed seconds."""
-
-    script = """
-import sys
-import time
-from pathlib import Path
-
-from psynet import deployment_info
-from psynet.command_line import _experiment_variables, db_connection
-from psynet.data import export_assets
-from psynet.experiment import import_local_experiment
-
-with db_connection("local") as connection:
-    experiment_vars = _experiment_variables(connection)
-deployment_info.init(
-    redeploying_from_archive=False,
-    mode="debug",
-    is_local_deployment=True,
-    is_ssh_deployment=False,
-    server=None,
-    app=None,
-)
-deployment_info.write(deployment_id=experiment_vars["deployment_id"])
-import_local_experiment()
-started_at = time.perf_counter()
-export_assets(
-    Path(sys.argv[1]),
-    include_private=True,
-    experiment_assets_only=True,
-    include_on_demand_assets=False,
-    local=True,
-)
-print(time.perf_counter() - started_at)
-"""
-    started = subprocess.run(
-        ["python", "-c", script, str(export_path)],
-        cwd=demo_dir,
-        env=_benchmark_env(),
-        check=True,
-        text=True,
-        capture_output=True,
-    )
-    return float(started.stdout.strip().splitlines()[-1])
+    return json.loads(result_path.read_text())["asset_export_time_s"]
 
 
 def _summarize_asset_export(
@@ -365,25 +284,24 @@ def _run_asset_export_benchmark(
 ) -> dict[str, float | int]:
     """Deposit deterministic assets, export them, and return metrics."""
 
-    demo_dir = _repo_root() / profile.demo_root / profile.demo_name
-    with tempfile.TemporaryDirectory(prefix="psynet-asset-inputs-") as input_dir:
-        with tempfile.TemporaryDirectory(prefix="psynet-asset-export-") as export_dir:
-            _populate_local_experiment(
-                demo_dir,
-                _ExportProfile(
-                    demo_root=profile.demo_root,
-                    demo_name=profile.demo_name,
-                    n_bots=1,
-                    expected_csv_rows=(),
-                ),
-            )
-            manifest = _write_asset_payloads(Path(input_dir), profile)
-            _deposit_experiment_assets(demo_dir, manifest)
-            export_path = Path(export_dir)
-            asset_export_time_s = _time_asset_export(demo_dir, export_path)
-            return _summarize_asset_export(
-                export_path, asset_export_time_s, manifest
-            )
+    with (
+        tempfile.TemporaryDirectory(prefix="psynet-asset-inputs-") as input_dir,
+        tempfile.TemporaryDirectory(prefix="psynet-asset-export-") as export_dir,
+        tempfile.TemporaryDirectory(prefix="psynet-asset-storage-") as storage_dir,
+    ):
+        input_dir = Path(input_dir)
+        export_path = Path(export_dir)
+        storage_root = Path(storage_dir)
+
+        _populate_local_experiment()
+        manifest = _write_asset_payloads(input_dir, profile)
+        manifest_path = input_dir / "manifest.json"
+        result_path = input_dir / "result.json"
+        manifest_path.write_text(json.dumps(manifest))
+        asset_export_time_s = _run_asset_worker(
+            manifest_path, export_path, storage_root, result_path
+        )
+        return _summarize_asset_export(export_path, asset_export_time_s, manifest)
 
 
 class LegacyLocalExport:
