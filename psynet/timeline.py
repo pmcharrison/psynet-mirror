@@ -1098,6 +1098,7 @@ class Page(Elt):
     returns_time_credit = True
     dynamically_update_progress_bar_and_reward = False
     is_unity_page = False
+    requires_full_page_reload = False
     skip_beforeunload = False
 
     def __init__(
@@ -1353,6 +1354,7 @@ class Page(Elt):
             "unique_id": participant.unique_id,
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
+            "requires_full_page_reload": self.requires_full_page_reload,
         }
 
     @property

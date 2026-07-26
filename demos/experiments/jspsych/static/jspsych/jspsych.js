@@ -506,8 +506,6 @@ var jsPsychModule = (function (exports) {
     class JsPsychData {
         constructor(jsPsych) {
             this.jsPsych = jsPsych;
-            // PsyNet patch: retain listener references for in-place page cleanup.
-            this.interactionListeners = [];
             // data properties for all trials
             this.dataProperties = {};
             this.reset();
@@ -582,9 +580,8 @@ var jsPsychModule = (function (exports) {
             return this.urlVariables()[whichvar];
         }
         createInteractionListeners() {
-            this.removeInteractionListeners();
             // blur event capture
-            const blur = () => {
+            window.addEventListener("blur", () => {
                 const data = {
                     event: "blur",
                     trial: this.jsPsych.getProgress().current_trial_global,
@@ -592,11 +589,9 @@ var jsPsychModule = (function (exports) {
                 };
                 this.interactionData.push(data);
                 this.jsPsych.getInitSettings().on_interaction_data_update(data);
-            };
-            window.addEventListener("blur", blur);
-            this.interactionListeners.push([window, "blur", blur]);
+            });
             // focus event capture
-            const focus = () => {
+            window.addEventListener("focus", () => {
                 const data = {
                     event: "focus",
                     trial: this.jsPsych.getProgress().current_trial_global,
@@ -604,9 +599,7 @@ var jsPsychModule = (function (exports) {
                 };
                 this.interactionData.push(data);
                 this.jsPsych.getInitSettings().on_interaction_data_update(data);
-            };
-            window.addEventListener("focus", focus);
-            this.interactionListeners.push([window, "focus", focus]);
+            });
             // fullscreen change capture
             const fullscreenchange = () => {
                 const data = {
@@ -629,17 +622,6 @@ var jsPsychModule = (function (exports) {
             document.addEventListener("fullscreenchange", fullscreenchange);
             document.addEventListener("mozfullscreenchange", fullscreenchange);
             document.addEventListener("webkitfullscreenchange", fullscreenchange);
-            this.interactionListeners.push(
-                [document, "fullscreenchange", fullscreenchange],
-                [document, "mozfullscreenchange", fullscreenchange],
-                [document, "webkitfullscreenchange", fullscreenchange]
-            );
-        }
-        removeInteractionListeners() {
-            for (const [target, type, listener] of this.interactionListeners) {
-                target.removeEventListener(type, listener);
-            }
-            this.interactionListeners = [];
         }
         // public methods for testing purposes. not recommended for use.
         _customInsert(data) {
@@ -661,15 +643,9 @@ var jsPsychModule = (function (exports) {
             //it might be useful to open up a line of communication from the extension back to this page
             //script, again, this will have to pass through DOM events. For now speed is of no concern so I
             //will use jQuery
-            // PsyNet patch: retain this document listener for page cleanup.
-            this.activationListener = (evt) => {
+            document.addEventListener("jspsych-activate", (evt) => {
                 this.hardwareConnected = true;
-            };
-            document.addEventListener("jspsych-activate", this.activationListener);
-        }
-        disposeHardwareListeners() {
-            document.removeEventListener("jspsych-activate", this.activationListener);
-            this.activationListener = null;
+            });
         }
         /**
          * Allows communication with user hardware through our custom Google Chrome extension + native C++ program

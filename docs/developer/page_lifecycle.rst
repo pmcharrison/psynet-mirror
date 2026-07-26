@@ -204,12 +204,20 @@ Pages sharing a non-null ``session_id`` update ``psynet.page`` and dispatch
 ``pageUpdated`` without replacing the fragment. This supports persistent
 sessions such as Unity integrations.
 
-Unity pages
-~~~~~~~~~~~
+Document-owning pages
+~~~~~~~~~~~~~~~~~~~~
 
-Transitions into or out of Unity pages use a full document reload because the
-Unity runtime owns document-level state that is not reconstructed by the normal
-fragment lifecycle.
+Pages can set ``requires_full_page_reload = True`` when they own document-level
+state that should not participate in fragment teardown. PsyNet reloads when
+either the current or next page sets this flag.
+
+UnityPage and JsPsychPage use this policy. Unity owns a persistent runtime;
+jsPsych installs document-level interaction and hardware listeners whose
+lifecycle varies across jsPsych versions. A clean document boundary is safer
+than maintaining version-specific SPA cleanup.
+
+Same-session handling takes precedence, so Unity pages sharing a ``session_id``
+can still update their persistent session without reloading.
 
 Bots
 ~~~~

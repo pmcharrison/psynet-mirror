@@ -2700,10 +2700,10 @@
       );
     };
 
-    psynet.isUnityPageTransition = function (response) {
+    psynet.requiresFullPageReloadTransition = function (response) {
       return Boolean(
-        psynet.page.attributes?.is_unity_page ||
-          response.page.attributes?.is_unity_page,
+        psynet.page.attributes?.requires_full_page_reload ||
+          response.page.attributes?.requires_full_page_reload,
       );
     };
 
@@ -2721,7 +2721,7 @@
         return true;
       }
 
-      if (psynet.isUnityPageTransition(response)) {
+      if (psynet.requiresFullPageReloadTransition(response)) {
         psynet.loadNextTimelinePageWithReload();
         return true;
       }

@@ -32,8 +32,6 @@ export async function activate({root, trial, vars, page, psynet}) {
             "beforeunload",
             jsPsych.getInitSettings().on_close
         );
-        jsPsych.data.removeInteractionListeners();
-        jsPsych.pluginAPI.disposeHardwareListeners();
         document.documentElement.removeAttribute("jspsych");
         if (globalThis.jsPsych === jsPsych) {
             globalThis.jsPsych = undefined;

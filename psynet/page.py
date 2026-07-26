@@ -126,6 +126,7 @@ class UnityPage(Page):
 
     dynamically_update_progress_bar_and_reward = True
     is_unity_page = True
+    requires_full_page_reload = True
 
     def __init__(
         self,
@@ -486,6 +487,8 @@ class JsPsychPage(Page):
         An optional dictionary of variables to pass to the front-end. These can then be accessed
         in the timeline template, writing for example ``psynet.var["my_variable"]``.
     """
+
+    requires_full_page_reload = True
 
     def __init__(
         self,
