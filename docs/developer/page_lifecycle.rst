@@ -101,8 +101,26 @@ PsyNet then:
 5. executes deprecated ``js_links`` for compatibility;
 6. activates ``js_page_code``;
 7. imports and activates ``js_page_modules``;
-8. initializes trial progress, media, controls, and page behavior;
-9. marks the page ready and re-enables normal interaction.
+8. initializes trial progress, media, controls, and ``trialConstruct`` behavior;
+9. marks the page ready and registers the ``pageReady`` trial event;
+10. prepares and starts the trial, then enables response and submission.
+
+Readiness and trial startup
+---------------------------
+
+``pageReady`` is both a browser navigation flag and a trial event. PsyNet sets
+the flag before registering the event, so handlers triggered by ``pageReady``
+may safely call ``nextPage()``.
+
+Under the default event graph, automatic pages use:
+
+.. code-block:: text
+
+    trialConstruct → pageReady → trialPrepare → trialStart
+
+Manual-start pages require both ``pageReady`` and ``trialManualRequest`` before
+``trialPrepare``. This prevents trial-start, response-enable, submit-enable, and
+auto-advance behavior from running while navigation is still blocked.
 
 JavaScript resource categories
 ------------------------------

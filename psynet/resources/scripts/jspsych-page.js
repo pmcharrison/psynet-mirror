@@ -1,4 +1,4 @@
-export async function activate({root, vars, page, psynet}) {
+export async function activate({root, trial, vars, page, psynet}) {
     const moduleUrl = new URL(
         vars["jspsych_timeline_module"],
         window.location.href
@@ -12,6 +12,7 @@ export async function activate({root, vars, page, psynet}) {
 
     let completed = false;
     let deactivating = false;
+    let started = false;
     const jsPsych = initJsPsych({
         display_element: root.querySelector("#js-psych"),
         on_finish: function () {
@@ -24,13 +25,15 @@ export async function activate({root, vars, page, psynet}) {
 
     function cleanup() {
         deactivating = true;
-        if (!completed && jsPsych.timeline) {
+        if (started && !completed && jsPsych.timeline) {
             jsPsych.endExperiment();
         }
         window.removeEventListener(
             "beforeunload",
             jsPsych.getInitSettings().on_close
         );
+        jsPsych.data.removeInteractionListeners();
+        jsPsych.pluginAPI.disposeHardwareListeners();
         document.documentElement.removeAttribute("jspsych");
         if (globalThis.jsPsych === jsPsych) {
             globalThis.jsPsych = undefined;
@@ -52,10 +55,18 @@ export async function activate({root, vars, page, psynet}) {
         }
         globalThis.jsPsych = jsPsych;
 
-        jsPsych.run(timeline).catch(function (error) {
-            if (!deactivating) {
-                psynet.log.error(error.stack || String(error));
-            }
+        trial.onEvent("trialStart", function () {
+            trial.setTimer(function () {
+                if (deactivating) {
+                    return;
+                }
+                started = true;
+                jsPsych.run(timeline).catch(function (error) {
+                    if (!deactivating) {
+                        psynet.log.error(error.stack || String(error));
+                    }
+                });
+            }, 0);
         });
         return cleanup;
     } catch (error) {

@@ -1027,6 +1027,7 @@ class Page(Elt):
         For example, if I want to define an event that occurs 3 seconds after the trial starts,
         I would write ``events={"myEvent": Event(is_triggered_by="trialStart", delay=3.0)}``.
         Useful standard events to know are
+        ``pageReady`` (the page is initialized and navigation is valid),
         ``trialStart`` (start of the trial),
         ``promptStart`` (start of the prompt),
         ``promptEnd`` (end of the prompt),
@@ -1309,6 +1310,7 @@ class Page(Elt):
     def prepare_default_events(self):
         return {
             "trialConstruct": Event(is_triggered_by=None, once=True),
+            "pageReady": Event(is_triggered_by=None, once=True),
             "trialManualRequest": Event(
                 is_triggered_by=["trialConstruct", "buttonStart"],
                 once=True,
@@ -1316,9 +1318,9 @@ class Page(Elt):
             ),
             "trialPrepare": Event(
                 is_triggered_by=(
-                    "trialConstruct"
+                    "pageReady"
                     if self.start_trial_automatically
-                    else "trialManualRequest"
+                    else ["trialManualRequest", "pageReady"]
                 ),
                 once=True,
             ),

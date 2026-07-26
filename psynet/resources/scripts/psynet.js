@@ -851,6 +851,7 @@
     psynet.finalizePageReady = async function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
       psynet.setPageReady(true);
+      await psynet.trial.registerEvent("pageReady");
     };
 
     psynet.prepareTimelineFragment = function (payload) {
