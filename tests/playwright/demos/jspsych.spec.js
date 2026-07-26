@@ -11,40 +11,12 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("jsPsych waits for page readiness and removes persistent listeners", async ({
+test("jsPsych uses clean documents on entry and exit", async ({
   page,
   context
 }) => {
   await context.addInitScript(() => {
-    const trackedTypes = new Set([
-      "blur",
-      "focus",
-      "fullscreenchange",
-      "mozfullscreenchange",
-      "webkitfullscreenchange",
-      "jspsych-activate"
-    ]);
-    const counts = {};
-    window.__jsPsychPersistentListenerCounts = counts;
-    const originalAdd = EventTarget.prototype.addEventListener;
-    const originalRemove = EventTarget.prototype.removeEventListener;
-
-    EventTarget.prototype.addEventListener = function (type, listener, options) {
-      if ((this === window || this === document) && trackedTypes.has(type)) {
-        counts[type] = (counts[type] || 0) + 1;
-      }
-      return originalAdd.call(this, type, listener, options);
-    };
-    EventTarget.prototype.removeEventListener = function (
-      type,
-      listener,
-      options
-    ) {
-      if ((this === window || this === document) && trackedTypes.has(type)) {
-        counts[type] = Math.max(0, (counts[type] || 0) - 1);
-      }
-      return originalRemove.call(this, type, listener, options);
-    };
+    window.__documentToken = crypto.randomUUID();
   });
 
   await withExperiment(
@@ -58,48 +30,36 @@ test("jsPsych waits for page readiness and removes persistent listeners", async 
         "quick jsPsych task begins",
         { timeout: STEP_TIMEOUT_MS }
       );
-      const baselineListeners = await experimentPage.evaluate(() =>
-        Object.values(window.__jsPsychPersistentListenerCounts).reduce(
-          (total, count) => total + count,
-          0
-        )
+      const introToken = await experimentPage.evaluate(
+        () => window.__documentToken
       );
+      let navigations = 0;
+      experimentPage.on("framenavigated", (frame) => {
+        if (frame === experimentPage.mainFrame()) {
+          navigations += 1;
+        }
+      });
 
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
       await expect(experimentPage.locator("#main-body")).toContainText(
         "quick jsPsych task completed",
         { timeout: STEP_TIMEOUT_MS }
       );
-      await expect
-        .poll(
-          () =>
-            experimentPage.evaluate(() =>
-              Object.values(window.__jsPsychPersistentListenerCounts).reduce(
-                (total, count) => total + count,
-                0
-              )
-            ),
-          { timeout: STEP_TIMEOUT_MS }
-        )
-        .toBe(baselineListeners);
+      const checkpointToken = await experimentPage.evaluate(
+        () => window.__documentToken
+      );
+      expect(checkpointToken).not.toBe(introToken);
+      expect(navigations).toBeGreaterThanOrEqual(2);
 
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
       await expect(experimentPage.locator("#js-psych")).toContainText(
         "Welcome to the experiment",
         { timeout: STEP_TIMEOUT_MS }
       );
-      await expect
-        .poll(
-          () =>
-            experimentPage.evaluate(() =>
-              Object.values(window.__jsPsychPersistentListenerCounts).reduce(
-                (total, count) => total + count,
-                0
-              )
-            ),
-          { timeout: STEP_TIMEOUT_MS }
-        )
-        .toBe(baselineListeners + 6);
+      const mainTaskToken = await experimentPage.evaluate(
+        () => window.__documentToken
+      );
+      expect(mainTaskToken).not.toBe(checkpointToken);
       await assertNoBackendError(experimentPage);
     }
   );

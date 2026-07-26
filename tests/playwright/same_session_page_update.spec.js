@@ -97,7 +97,8 @@ test("non-same-session Unity transitions fall back to timeline reload", async ({
           page: {
             attributes: {
               session_id: "new-unity-session",
-              is_unity_page: true
+              is_unity_page: true,
+              requires_full_page_reload: true
             },
             contents: {
               step: 99

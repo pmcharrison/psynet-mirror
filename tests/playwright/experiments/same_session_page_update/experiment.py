@@ -20,6 +20,7 @@ class Exp(psynet.experiment.Experiment):
                     "attributes": {
                         "session_id": SESSION_ID,
                         "is_unity_page": True,
+                        "requires_full_page_reload": True,
                     },
                     "contents": {"step": 1, "label": "first"},
                 }

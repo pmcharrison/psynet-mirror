@@ -2,7 +2,7 @@ import warnings
 
 import pytest
 
-from psynet.page import JsPsychPage
+from psynet.page import JsPsychPage, UnityPage
 from psynet.timeline import Page
 
 
@@ -179,3 +179,9 @@ def test_jspsych_page_configures_timeline_module():
     assert page.js_dependencies == ["/static/jspsych.js"]
     assert page.js_page_modules == ["/static/scripts/jspsych-page.js"]
     assert "<script" not in page.template_str
+
+
+def test_document_owning_pages_require_full_reload():
+    assert Page.requires_full_page_reload is False
+    assert JsPsychPage.requires_full_page_reload is True
+    assert UnityPage.requires_full_page_reload is True
