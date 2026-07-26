@@ -243,7 +243,9 @@ from pathlib import Path
 
 from dallinger import db
 from psynet.asset import ExperimentAsset
+from psynet.experiment import import_local_experiment
 
+import_local_experiment()
 manifest = json.loads(Path(sys.argv[1]).read_text())
 for item in manifest:
     asset = ExperimentAsset(
@@ -271,7 +273,9 @@ import time
 from pathlib import Path
 
 from psynet.data import export_assets
+from psynet.experiment import import_local_experiment
 
+import_local_experiment()
 started_at = time.perf_counter()
 export_assets(
     Path(sys.argv[1]),
