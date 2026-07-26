@@ -16,7 +16,7 @@ test("jsPsych uses clean documents on entry and exit", async ({
   context
 }) => {
   await context.addInitScript(() => {
-    window.__documentToken = crypto.randomUUID();
+    window.__documentToken = `${Date.now()}-${Math.random()}`;
   });
 
   await withExperiment(
