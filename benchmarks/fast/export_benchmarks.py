@@ -18,7 +18,7 @@ class _ExportProfile:
     demo_root: str
     demo_name: str
     n_bots: int
-    duration_minutes: float
+    expected_csv_rows: tuple[tuple[str, int], ...]
     assets: str = "none"
     anonymize: str = "no"
 
@@ -28,7 +28,16 @@ _EXPORT_PROFILES = {
         demo_root="tests/experiments",
         demo_name="static_big",
         n_bots=1,
-        duration_minutes=0.05,
+        expected_csv_rows=(
+            ("AnimalTrial", 4),
+            ("Bot", 1),
+            ("ChainTrialMakerState", 1),
+            ("ExperimentConfig", 1),
+            ("Request", 11),
+            ("Response", 5),
+            ("StaticNetwork", 2_000),
+            ("StaticNode", 2_000),
+        ),
     ),
 }
 
@@ -55,28 +64,21 @@ def _run_checked(command: list[str], *, cwd: Path) -> None:
 
 
 def _populate_local_experiment(demo_dir: Path, profile: _ExportProfile) -> None:
-    """Create reproducible experiment data for the export benchmark."""
+    """Run an exact number of serial bots to create benchmark data."""
 
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as json_file:
-        json_output = json_file.name
-
-    try:
-        _run_checked(
-            [
-                "psynet",
-                "performance-test",
-                "local",
-                "--n-bots",
-                str(profile.n_bots),
-                "--duration-minutes",
-                str(profile.duration_minutes),
-                "--json-output",
-                json_output,
-            ],
-            cwd=demo_dir,
-        )
-    finally:
-        Path(json_output).unlink(missing_ok=True)
+    _run_checked(
+        [
+            "psynet",
+            "test",
+            "local",
+            "--n-bots",
+            str(profile.n_bots),
+            "--serial",
+            "--time-factor",
+            "0",
+        ],
+        cwd=demo_dir,
+    )
 
 
 def _time_local_export(demo_dir: Path, export_path: Path, profile: _ExportProfile) -> float:
@@ -111,17 +113,37 @@ def _count_csv_rows(path: Path) -> int:
         return sum(1 for _ in reader)
 
 
-def _summarize_export(export_path: Path, export_time_s: float) -> dict[str, float | int]:
+def _csv_row_counts(data_dir: Path) -> dict[str, int]:
+    """Return exported row counts keyed by CSV filename stem."""
+
+    return {
+        path.stem: _count_csv_rows(path) for path in sorted(data_dir.glob("*.csv"))
+    }
+
+
+def _summarize_export(
+    export_path: Path,
+    export_time_s: float,
+    expected_csv_rows: tuple[tuple[str, int], ...],
+) -> dict[str, float | int]:
     """Summarize the files created by a legacy export."""
 
     data_dir = export_path / "regular" / "data"
-    csv_files = sorted(data_dir.glob("*.csv"))
+    csv_row_counts = _csv_row_counts(data_dir)
+    expected = dict(expected_csv_rows)
+    if csv_row_counts != expected:
+        raise RuntimeError(
+            "Export benchmark fixture shape changed. "
+            f"Expected CSV rows {expected}, got {csv_row_counts}. "
+            "Update the fixture expectations and benchmark version if intentional."
+        )
+
     database_zip = export_path / "regular" / "database.zip"
 
     return {
         "export_time_s": export_time_s,
-        "data_csv_count": len(csv_files),
-        "data_row_count": sum(_count_csv_rows(path) for path in csv_files),
+        "data_csv_count": len(csv_row_counts),
+        "data_row_count": sum(csv_row_counts.values()),
         "database_zip_size_bytes": database_zip.stat().st_size,
     }
 
@@ -134,7 +156,9 @@ def _run_local_export_benchmark(profile: _ExportProfile) -> dict[str, float | in
         export_path = Path(export_dir)
         _populate_local_experiment(demo_dir, profile)
         export_time_s = _time_local_export(demo_dir, export_path, profile)
-        return _summarize_export(export_path, export_time_s)
+        return _summarize_export(
+            export_path, export_time_s, profile.expected_csv_rows
+        )
 
 
 class LegacyLocalExport:
@@ -143,7 +167,7 @@ class LegacyLocalExport:
     params = list(_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 1
+    version = 2
 
     def setup_cache(self):
         """Run each export profile once and cache scalar metrics."""

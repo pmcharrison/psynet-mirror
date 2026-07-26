@@ -1,3 +1,5 @@
+import pytest
+
 from benchmarks.fast.debug_launch import (
     StaticFilesDebugLaunch,
     _temporary_static_payload,
@@ -62,7 +64,12 @@ def test_export_benchmark_summarizes_legacy_export(tmp_path):
     (data_dir / "Trial.csv").write_text("id,participant_id\n1,1\n2,1\n")
     (tmp_path / "regular" / "database.zip").write_bytes(b"snapshot")
 
-    summary = _summarize_export(tmp_path, export_time_s=1.25)
+    expected_csv_rows = (("Participant", 1), ("Trial", 2))
+    summary = _summarize_export(
+        tmp_path,
+        export_time_s=1.25,
+        expected_csv_rows=expected_csv_rows,
+    )
 
     assert summary == {
         "export_time_s": 1.25,
@@ -70,6 +77,20 @@ def test_export_benchmark_summarizes_legacy_export(tmp_path):
         "data_row_count": 3,
         "database_zip_size_bytes": 8,
     }
+
+
+def test_export_benchmark_rejects_changed_fixture_shape(tmp_path):
+    data_dir = tmp_path / "regular" / "data"
+    data_dir.mkdir(parents=True)
+    (data_dir / "Participant.csv").write_text("id\n1\n2\n")
+    (tmp_path / "regular" / "database.zip").write_bytes(b"snapshot")
+
+    with pytest.raises(RuntimeError, match="fixture shape changed"):
+        _summarize_export(
+            tmp_path,
+            export_time_s=1.25,
+            expected_csv_rows=(("Participant", 1),),
+        )
 
 
 def test_legacy_local_export_tracks_metrics():
