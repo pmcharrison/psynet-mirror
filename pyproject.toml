@@ -36,7 +36,9 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker] @ git+https://github.com/pmcharrison/Dallinger.git@cursor/deployment-plan-poc-aafb",
+    # TODO(deployment-plan prototype): Pin this to the immutable Dallinger commit
+    # after the current uncommitted prototype fixes have been committed.
+    "dallinger[docker] @ git+https://github.com/pmcharrison/Dallinger.git@3da1ab67a9b0c8298f320e139ea313da31ebaa84",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf

@@ -1,12 +1,16 @@
 # Deployment selection is independent of Git. Paths are literal,
 # root-relative prefixes; globs and negation are not supported.
 version = 1
+# Pre-deploy deterministically compiles the German and Dutch catalogs below.
+# The generated .mo files are required at runtime but were excluded by legacy Git selection.
+legacy_diff_acknowledgement = "sha256:06d9fc842cbb0bd56ac4cb3db2621c998a2f4f3dd729ebde627fff3a9c623aee"
 
 exclude = [
     ".deploy",
     ".env",
     ".pytest_cache",
     ".venv",
+    ".python-version",
     "__pycache__",
     "data",
     "deploy",

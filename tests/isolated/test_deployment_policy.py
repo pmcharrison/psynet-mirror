@@ -1,6 +1,9 @@
+import shutil
 import subprocess
 import tomllib
+from contextlib import ExitStack
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import click
 import pytest
@@ -13,12 +16,15 @@ from dallinger.utils import ExperimentFileSource
 
 from psynet import command_line
 from psynet.command_line import update_scripts_
+from psynet.experiment import Experiment
+from psynet.timeline import PreDeployRoutine
 from psynet.utils import get_psynet_root, list_experiment_dirs, working_directory
 
 EXPECTED_EXCLUSIONS = (
     ".deploy",
     ".env",
     ".pytest_cache",
+    ".python-version",
     ".venv",
     "__pycache__",
     "data",
@@ -33,6 +39,15 @@ EXPECTED_EXCLUSIONS = (
     "source_code.zip",
     "static/assets",
 )
+
+TRANSLATION_ACKNOWLEDGEMENTS = {
+    "demos/experiments/translation": (
+        "sha256:06d9fc842cbb0bd56ac4cb3db2621c998a2f4f3dd729ebde627fff3a9c623aee"
+    ),
+    "tests/experiments/translation": (
+        "sha256:185d52bc76fff2de177d528d3b657ad832f8daa68ae7c2877120542b5598e438"
+    ),
+}
 
 
 def test_prototype_metadata_and_platform_warnings():
@@ -80,19 +95,24 @@ def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
     assert not (template_directory / ".dockerignore").exists()
 
 
-def test_managed_experiments_have_synchronized_deployment_policy():
-    template = (_template_directory() / "deploy.toml").read_bytes()
+def test_managed_experiments_have_synchronized_deployment_policy_semantics():
+    root = get_psynet_root()
     directories = _managed_experiment_directories()
 
     assert len(directories) == 126
-    assert all(
-        (directory / "deploy.toml").read_bytes() == template
-        for directory in directories
-    )
+    for directory in directories:
+        policy = parse_deployment_policy(directory / "deploy.toml")
+        relative = directory.relative_to(root).as_posix()
+
+        assert policy.version == 1, directory
+        assert policy.exclude == EXPECTED_EXCLUSIONS, directory
+        assert policy.legacy_diff_acknowledgement == (
+            TRANSLATION_ACKNOWLEDGEMENTS.get(relative)
+        ), directory
     assert all(not (directory / ".dockerignore").exists() for directory in directories)
 
 
-def test_all_managed_policies_match_legacy_membership():
+def test_all_managed_policies_are_compatible_with_legacy_membership():
     required = {
         "constraints.txt",
         "deploy.toml",
@@ -105,12 +125,108 @@ def test_all_managed_policies_match_legacy_membership():
         comparison = compare_legacy_deployment_selection(plan)
 
         assert not comparison.unresolved_backend_ignore_controls, directory
-        assert not comparison.newly_included, directory
-        assert not comparison.newly_excluded, directory
+        assert comparison.is_compatible, directory
         assert required <= plan.destinations, directory
-        for optional in [".python-version", "Dockerfile"]:
+        for optional in ["Dockerfile"]:
             if (directory / optional).exists():
                 assert optional in plan.destinations, directory
+
+
+def test_generated_nested_python_versions_remain_ignored():
+    root = get_psynet_root()
+    generated_path = "demos/experiments/hello_world/.python-version"
+
+    result = subprocess.run(
+        ["git", "check-ignore", "--quiet", "--no-index", generated_path],
+        cwd=root,
+        check=False,
+    )
+
+    assert result.returncode == 0
+
+
+class _TranslationPreDeployExperiment(Experiment):
+    """Run the real translation pre-deploy routine without database side effects."""
+
+    def __init__(self, locales_dir, locales):
+        self._test_supported_locales = ["en", *locales]
+        self.assets = MagicMock()
+        self.timeline = MagicMock()
+        self.timeline.modules = {}
+        self.pre_deploy_routines = [
+            PreDeployRoutine(
+                "compile_translations_if_necessary",
+                self.compile_translations_if_necessary,
+                {
+                    "locales_dir": str(locales_dir),
+                    "namespace": "experiment",
+                },
+            )
+        ]
+
+    @property
+    def supported_locales(self):
+        return self._test_supported_locales
+
+
+@pytest.mark.parametrize(
+    ("relative_directory", "locales"),
+    [
+        ("demos/experiments/translation", ["de", "nl"]),
+        ("tests/experiments/translation", ["nl"]),
+    ],
+)
+def test_translation_pre_deploy_outputs_remain_compatible_and_deployable(
+    tmp_path, relative_directory, locales
+):
+    experiment_root = tmp_path / "experiment"
+    staging_root = tmp_path / "staging"
+    shutil.copytree(get_psynet_root() / relative_directory, experiment_root)
+    for path in experiment_root.glob("locales/*/LC_MESSAGES/experiment.mo"):
+        path.unlink()
+    subprocess.run(["git", "init", "-q"], cwd=experiment_root, check=True)
+
+    with working_directory(experiment_root):
+        update_scripts_()
+    with (experiment_root / ".gitignore").open("a", encoding="utf-8") as file:
+        file.write("\n.python-version\n*.mo\n")
+    assert (experiment_root / ".python-version").is_file()
+
+    initial = compare_legacy_deployment_selection(
+        build_deployment_plan(experiment_root)
+    )
+    assert not initial.requires_acknowledgement
+
+    experiment = _TranslationPreDeployExperiment(experiment_root / "locales", locales)
+    with working_directory(experiment_root), ExitStack() as stack:
+        for method in [
+            "update_deployment_id",
+            "setup_experiment_config",
+            "setup_experiment_variables",
+            "create_database_snapshot",
+        ]:
+            stack.enter_context(patch.object(experiment, method))
+        stack.enter_context(
+            patch("psynet.experiment._write_pre_deploy_constant_registry")
+        )
+        experiment.pre_deploy()
+
+    generated_destinations = {
+        f"locales/{locale}/LC_MESSAGES/experiment.mo" for locale in locales
+    }
+    comparison = compare_legacy_deployment_selection(
+        build_deployment_plan(experiment_root)
+    )
+    assert {item.destination for item in comparison.newly_included} == (
+        generated_destinations
+    )
+    assert comparison.acknowledgement_matches
+    assert comparison.is_compatible
+
+    source = ExperimentFileSource(experiment_root)
+    assert generated_destinations <= source.deployment_plan.destinations
+    source.apply_to(staging_root)
+    assert all((staging_root / path).is_file() for path in generated_destinations)
 
 
 def test_update_scripts_replaces_generated_dockerignore(tmp_path):

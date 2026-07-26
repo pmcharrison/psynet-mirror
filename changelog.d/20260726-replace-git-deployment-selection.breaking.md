@@ -1,0 +1,1 @@
+Replaced Git and `.dockerignore` deployment file selection with explicit `deploy.toml` policies, including reviewed compatibility checks and lifecycle-generated files. This deployment prototype requires Python 3.11 or later and POSIX descriptor-relative filesystem traversal.
