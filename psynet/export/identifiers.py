@@ -106,18 +106,14 @@ def apply_identifier_separation_to_csv_dir(
     os.makedirs(out_dir, exist_ok=True)
 
     unique_id_map: dict[str, str] = {}
-    worker_id_map: dict[str, str] = {}
     participant_rows = []
     if os.path.exists(os.path.join(raw_dir, "participant.csv")):
         _, participant_rows = _read_csv(os.path.join(raw_dir, "participant.csv"))
         for row in participant_rows:
             pseudonyms = _participant_pseudonyms(row)
             old_unique = row.get("unique_id", "")
-            old_worker = row.get("worker_id", "")
             if old_unique:
                 unique_id_map[old_unique] = pseudonyms["unique_id"]
-            if old_worker:
-                worker_id_map[old_worker] = pseudonyms["worker_id"]
 
     for table in table_names:
         src = os.path.join(raw_dir, f"{table}.csv")

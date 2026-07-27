@@ -2393,11 +2393,14 @@ def _export_(
     An internal version of the export version where argument preprocessing has been done already.
     """
     if not local:
-        raw_zip = _download_raw_database_zip(
-            ctx, app, export_path, docker_ssh, server, dns_host
-        )
-        log("Populating the local database with the downloaded data.")
-        populate_db_from_zip_file(raw_zip)
+        raw_zip = None
+        try:
+            raw_zip = _download_raw_database_zip(ctx, app, docker_ssh, server, dns_host)
+            log("Populating the local database with the downloaded data.")
+            populate_db_from_zip_file(raw_zip)
+        finally:
+            if raw_zip and os.path.exists(raw_zip):
+                os.unlink(raw_zip)
 
     from .export import export_database_snapshot
 
@@ -2554,46 +2557,55 @@ def _export_source_code(
             break
 
 
-def _download_raw_database_zip(ctx, app, export_path, docker_ssh, server, dns_host):
-    """Download a raw remote database zip for local reprocessing with ``--legacy``."""
+def _download_raw_database_zip(ctx, app, docker_ssh, server, dns_host):
+    """Download a raw remote database zip for local reprocessing with ``--legacy``.
+
+    Returns a temporary file path that the caller must delete.
+    """
     from dallinger import data as dallinger_data
     from dallinger import db as dallinger_db
 
     if app is None:
         raise ValueError("An app name is required when downloading a remote database.")
 
-    database_zip_path = os.path.join(export_path, "_raw_database_download.zip")
-    log(f"Downloading raw database content to {database_zip_path}")
+    fd, database_zip_path = tempfile.mkstemp(suffix="-raw-database.zip")
+    os.close(fd)
+    log(f"Downloading raw database content to temporary file {database_zip_path}")
 
     # Dallinger hard-codes the list of table names, but this list becomes out of
     # date if we add custom tables, so we have to patch it.
     dallinger_data.table_names = sorted(dallinger_db.Base.metadata.tables.keys())
 
-    with tempfile.TemporaryDirectory() as tempdir:
-        with working_directory(tempdir):
-            if docker_ssh:
-                from dallinger.command_line.docker_ssh import export
+    try:
+        with tempfile.TemporaryDirectory() as tempdir:
+            with working_directory(tempdir):
+                if docker_ssh:
+                    from dallinger.command_line.docker_ssh import export
 
-                ctx.invoke(
-                    export,
-                    server=server,
-                    app=app,
-                    no_scrub=True,
+                    ctx.invoke(
+                        export,
+                        server=server,
+                        app=app,
+                        no_scrub=True,
+                    )
+                else:
+                    from dallinger.command_line import export
+
+                    ctx.invoke(
+                        export,
+                        app=app,
+                        local=False,
+                        no_scrub=True,
+                    )
+
+                shutil.move(
+                    os.path.join(tempdir, "data", f"{app}-data.zip"),
+                    database_zip_path,
                 )
-            else:
-                from dallinger.command_line import export
-
-                ctx.invoke(
-                    export,
-                    app=app,
-                    local=False,
-                    no_scrub=True,
-                )
-
-            shutil.move(
-                os.path.join(tempdir, "data", f"{app}-data.zip"),
-                make_parents(database_zip_path),
-            )
+    except Exception:
+        if os.path.exists(database_zip_path):
+            os.unlink(database_zip_path)
+        raise
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")

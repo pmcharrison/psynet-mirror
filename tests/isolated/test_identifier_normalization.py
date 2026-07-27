@@ -19,6 +19,7 @@ def test_participant_identifier_fields():
         "hit_id",
         "unique_id",
         "client_ip_address",
+        "entry_information",
     )
 
 

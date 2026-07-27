@@ -925,7 +925,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 source = os.path.join(tempdir, subpath)
                 if not os.path.isfile(source):
                     abort(404)
-                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=os.path.splitext(subpath)[1]
+                ) as temp_file:
                     temp_path = temp_file.name
                 shutil.copyfile(source, temp_path)
         else:
