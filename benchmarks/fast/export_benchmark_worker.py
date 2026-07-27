@@ -62,8 +62,7 @@ def run(
     started_at = time.perf_counter()
     export_assets(
         export_path,
-        include_private=True,
-        experiment_assets_only=True,
+        collected_assets_only=True,
         include_on_demand_assets=False,
         local=True,
     )

@@ -779,7 +779,7 @@ dallinger.data.ingest_to_model = ingest_to_model
 
 def export_assets(
     path,
-    experiment_assets_only: bool,
+    collected_assets_only: bool,
     include_on_demand_assets: bool,
     n_parallel=None,
     server=None,
@@ -794,7 +794,10 @@ def export_assets(
     else:
         n_jobs = psutil.cpu_count()
 
-    if experiment_assets_only:
+    if collected_assets_only:
+        # ExperimentAsset covers deposits for this deployment. CachedAsset and
+        # ExternalAsset are pre-existing and only included with --assets all.
+        # OnDemandAsset subclasses ExperimentAsset but is skipped unless all.
         from .asset import ExperimentAsset as base_class
     else:
         from .asset import Asset as base_class

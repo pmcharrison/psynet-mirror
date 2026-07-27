@@ -2120,8 +2120,13 @@ def export_arguments(func):
         ),
         click.option(
             "--assets",
-            default="experiment",
-            help="Which assets to export; valid values are none, experiment, and all",
+            default="collected",
+            help=(
+                "Which assets to export; valid values are none, collected, and all. "
+                "'collected' exports managed assets deposited during this deployment "
+                "(e.g. recordings), excluding cached stimuli, external URLs, and "
+                "on-demand generation. 'all' includes those pre-existing and generated assets."
+            ),
         ),
         click.option(
             "--n_parallel",
@@ -2223,7 +2228,7 @@ def export_(
     local=False,
     path=None,
     legacy=False,
-    assets="experiment",
+    assets="collected",
     n_parallel=None,
     no_source=False,
     docker_ssh=False,
@@ -2294,8 +2299,8 @@ def export_(
     if app is not None and local:
         raise ValueError("You cannot provide both --local and --app arguments.")
 
-    if assets not in ["none", "experiment", "all"]:
-        raise ValueError("--assets must be either none, experiment, or all.")
+    if assets not in ["none", "collected", "all"]:
+        raise ValueError("--assets must be either none, collected, or all.")
 
     if not legacy:
         try:
@@ -2401,11 +2406,11 @@ def _export_(
     export_basic_data(export_path)
 
     if assets != "none":
-        experiment_assets_only = assets == "experiment"
+        collected_assets_only = assets == "collected"
         include_on_demand_assets = assets == "all"
         export_assets(
             export_path,
-            experiment_assets_only,
+            collected_assets_only,
             include_on_demand_assets,
             n_parallel,
             server,
@@ -2690,7 +2695,7 @@ def populate_db_from_zip_file(zip_path):
 
 def export_assets(
     export_path,
-    experiment_assets_only,
+    collected_assets_only,
     include_on_demand_assets,
     n_parallel,
     server,
@@ -2698,8 +2703,9 @@ def export_assets(
 ):
     """Export selected assets into ``export_path/assets``.
 
-    Treat exported media as potentially identifying; identifier separation
-    applies to database tables only.
+    ``collected_assets_only`` limits export to managed assets deposited during
+    this deployment. Treat exported media as potentially identifying; identifier
+    separation applies to database tables only.
     """
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
@@ -2710,7 +2716,7 @@ def export_assets(
 
     _export_assets(
         asset_path,
-        experiment_assets_only,
+        collected_assets_only,
         include_on_demand_assets,
         n_parallel,
         server,

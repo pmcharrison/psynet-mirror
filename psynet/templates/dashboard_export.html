@@ -36,17 +36,17 @@
                 </label>
             </div>
             <div class="form-check">
-                <input type="radio" id="input-assets-experiment" class="form-check-input" name="assets"
-                       value="experiment"
+                <input type="radio" id="input-assets-collected" class="form-check-input" name="assets"
+                       value="collected"
                        checked>
-                <label class="form-check-label" for="input-assets-experiment">
-                    Experiment-specific assets only
+                <label class="form-check-label" for="input-assets-collected">
+                    Collected during the run
                 </label>
             </div>
             <div class="form-check">
                 <input type="radio" id="input-assets-all" class="form-check-input" name="assets" value="all">
                 <label class="form-check-label" for="input-assets-all">
-                    All
+                    All (including stimuli and generated)
                 </label>
             </div>
         </div>
@@ -72,6 +72,9 @@
         participant identifiers, and original recruiter identifiers are written beside it in
         <code>participant_identifiers.csv</code>. This is not anonymization of assets, free text,
         logs, or experiment-defined basic data.
+        <br>
+        Asset mode <em>collected</em> exports managed deposits from this deployment (e.g. recordings).
+        <em>All</em> also includes pre-existing stimuli (cached/external) and generates on-demand assets.
     </p>
         <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
     <div class="alert alert-info mt-3">

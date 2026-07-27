@@ -1139,7 +1139,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             local=True,
             path=str(tmp_path),
             no_source=False,
-            assets="experiment",
+            assets="collected",
         )
 
     config.extend.assert_called_once_with(

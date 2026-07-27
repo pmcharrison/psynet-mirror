@@ -62,14 +62,17 @@ If you want to choose your own export location, use the ``--path`` argument:
 
     psynet export ssh --app my-app-name --path ~/Documents/my-experiment-data
 
-By default the export command will download assets that were generated during the course of the experiment.
-This can slow down data export if you have many files. You can disable this behavior using the ``--assets`` argument:
+By default the export command downloads **collected** assets: managed files
+deposited during this deployment (for example participant recordings).
+This can slow down data export if you have many files. You can disable this
+behavior using the ``--assets`` argument:
 
 .. code:: bash
 
     psynet export ssh --app my-app-name --assets none
 
-Selected assets are always exported when requested. Treat exported media as
+Use ``--assets all`` to also include pre-existing assets (cached stimuli,
+external URLs) and to materialize on-demand assets. Treat exported media as
 potentially identifying.
 
 By default the export command will also try to export the experiment's source code.
@@ -103,9 +106,14 @@ identifying unless you have scrubbed them yourself.
 Assets
 ======
 
-By default, only assets that are created during the course of the experiment are exported.
-This might for example include audio recordings.
-However, it is also possible to export all assets, including for example experiment stimuli.
+By default (``--assets collected``), only managed assets deposited during the
+course of the experiment are exported — for example audio recordings.
+Pre-existing assets such as ``CachedAsset`` stimuli and ``ExternalAsset`` URLs
+are omitted, and on-demand assets are not generated.
+
+Use ``--assets all`` for a fuller archive that also includes those pre-existing
+assets and materializes on-demand outputs. Use ``--assets none`` to skip asset
+files entirely.
 
 Export data types
 =================

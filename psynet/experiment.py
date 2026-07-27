@@ -3352,7 +3352,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 n_parallel=n_parallel,
                 username=config.get("dashboard_user"),
                 password=config.get("dashboard_password"),
-                assets=kwargs.get("assets"),
+                assets=kwargs.get("assets") or "collected",
                 legacy=True,
             )
         else:

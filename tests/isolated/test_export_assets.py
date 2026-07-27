@@ -110,7 +110,7 @@ class TestAssetExport:
         with tempfile.TemporaryDirectory() as tempdir:
             with pytest.raises(ValueError) as e:
                 ctx.invoke(export__local, path=tempdir, assets="asdasdoj")
-            assert str(e.value) == "--assets must be either none, experiment, or all."
+            assert str(e.value) == "--assets must be either none, collected, or all."
 
             ctx.invoke(export__local, path=tempdir, assets="all", legacy=True)
 
@@ -130,7 +130,7 @@ class TestAssetExport:
 
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(
-                    export__local, path=tempdir, assets="experiment", legacy=legacy
+                    export__local, path=tempdir, assets="collected", legacy=legacy
                 )
 
                 path = os.path.join(tempdir, "assets")
