@@ -15,9 +15,6 @@ Frontend patterns:
 Maintainer lifecycle detail:
 ``docs/developer/page_lifecycle.rst``.
 
-This skill replaces ``/migrate-page-javascript``. If that command is invoked,
-follow this skill instead.
-
 ## 0. Orient and choose a migration mode
 
 1. Read ``docs/whats_new/psynet_14.rst``.
