@@ -17,7 +17,6 @@ from psynet.export.zip_utils import (
     build_zip_from_dir,
 )
 
-
 # ---------------------------------------------------------------------------
 # _compression_for – compression selection
 # ---------------------------------------------------------------------------
@@ -48,6 +47,19 @@ from psynet.export.zip_utils import (
 )
 def test_compression_for_stored_extensions(arcname):
     """Already-compressed formats should be stored without DEFLATE."""
+    assert _compression_for(arcname) == zipfile.ZIP_STORED
+
+
+@pytest.mark.parametrize(
+    "arcname",
+    [
+        "assets/objects/sha256/abcdef0123456789",
+        "objects/sha256/deadbeef",
+        "export/assets/objects/sha256/cafebabe",
+    ],
+)
+def test_compression_for_content_addressed_objects_without_extension(arcname):
+    """Bare SHA-256 object paths have no extension; store them uncompressed."""
     assert _compression_for(arcname) == zipfile.ZIP_STORED
 
 

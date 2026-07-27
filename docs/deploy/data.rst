@@ -52,7 +52,11 @@ A typical export directory looks like this:
     ├── lucid_entrant_identifiers.csv   # Lucid experiments only
     ├── manifest.json
     ├── basic_data.json OR basic_data/  # optional
-    ├── assets/                         # optional
+    ├── assets/
+    │   ├── manifest.csv
+    │   └── objects/
+    │       └── sha256/
+    │           └── <content-hash>
     ├── source_code.zip                 # optional
     └── logs.jsonl                      # SSH exports when available
 
@@ -114,6 +118,26 @@ are omitted, and on-demand assets are not generated.
 Use ``--assets all`` for a fuller archive that also includes those pre-existing
 assets and materializes on-demand outputs. Use ``--assets none`` to skip asset
 files entirely.
+
+Managed asset bytes are stored and exported under content-addressed paths of the
+form ``objects/sha256/<digest>``. The ``assets/manifest.csv`` file maps semantic
+metadata (asset id, local key, associations, extension, and so on) onto those
+objects. ``ExternalAsset`` rows appear in the manifest with their raw URL only;
+they are not downloaded into the object tree.
+
+Live browser access for managed and on-demand assets uses a permanent access
+token at ``/asset/<access_token>``. Content hashes identify bytes for storage
+and export; they are not used as browser capabilities. The old ``obfuscate``
+and ``personal`` asset flags have been removed.
+
+Command-line exports reuse a persistent local cache under
+``~/psynet-data/cache/assets/``. Inspect or clear it with:
+
+.. code:: bash
+
+    psynet assets cache info
+    psynet assets cache list
+    psynet assets cache prune --all
 
 Export data types
 =================

@@ -7,6 +7,7 @@ Contributing to PsyNet
    workflow
    branch_review
    contributing_a_feature_or_bugfix
+   export_performance_roadmap
    prescreening_tasks
    updating_documentation
    ../tutorials/internationalization

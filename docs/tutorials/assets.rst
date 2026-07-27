@@ -25,6 +25,19 @@ We recommend most users go for this option as it offers the best performance.
 However, other backends are possible, for example to store assets on Amazon S3.
 See the :class:`~psynet.asset.S3Storage` class for more details.
 
+Managed assets are stored by SHA-256 content identity under paths of the form
+``objects/sha256/<digest>``. Browser access uses a permanent random access token:
+
+.. code-block:: text
+
+    /asset/<access_token>
+
+The token is an unguessable capability associated with the Asset row; it is not
+derived from the content hash. External assets keep their raw URL and are not
+proxied through PsyNet. On-demand assets are also served via
+``/asset/<access_token>`` and are generated when requested rather than deposited
+into object storage by default.
+
 .. warning::
     PsyNet's asset management system currently has some performance overhead that can make it slow
     to deploy large experiments (e.g. 1000s of files). For an alternative manual approach, see

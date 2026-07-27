@@ -58,14 +58,20 @@ def _compression_for(arcname: str) -> int:
     """Return the appropriate zipfile compression constant for *arcname*.
 
     Returns :data:`zipfile.ZIP_STORED` for file types in
-    :data:`_STORED_EXTENSIONS`, and :data:`zipfile.ZIP_DEFLATED` for
-    everything else.
+    :data:`_STORED_EXTENSIONS`, and for content-addressed object paths under
+    ``objects/sha256/`` (which omit file extensions). Returns
+    :data:`zipfile.ZIP_DEFLATED` for everything else.
 
     Parameters
     ----------
     arcname:
         The archive member name (or any path whose extension is meaningful).
     """
+    normalized = arcname.replace("\\", "/")
+    if "/objects/sha256/" in f"/{normalized}" or normalized.startswith(
+        "objects/sha256/"
+    ):
+        return zipfile.ZIP_STORED
     ext = os.path.splitext(arcname)[1].lower()
     if ext in _STORED_EXTENSIONS:
         return zipfile.ZIP_STORED

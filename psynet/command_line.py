@@ -2251,7 +2251,9 @@ def export_(
         ├── lucid_entrant_identifiers.csv   # Lucid experiments only
         ├── manifest.json
         ├── basic_data.json OR basic_data/  # optional
-        ├── assets/                         # optional
+        ├── assets/
+        │   ├── manifest.csv
+        │   └── objects/sha256/<content-hash>
         ├── source_code.zip                 # optional
         └── logs.jsonl                      # SSH exports when available
 
