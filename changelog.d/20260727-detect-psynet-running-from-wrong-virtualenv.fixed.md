@@ -1,0 +1,1 @@
+Fixed ``psynet setup`` so activating a new experiment ``.venv`` while still running ``psynet`` from another environment reports a clear install-and-retry message instead of the shared-checkout sync warning.

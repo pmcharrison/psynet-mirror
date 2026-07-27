@@ -1,0 +1,1 @@
+Changed shared-environment ``psynet setup`` messaging so cancel exits cleanly without Click's ``Aborted!``, new-venv next steps state that setup is unfinished, and a successful sync ends with ``Setup complete.``.

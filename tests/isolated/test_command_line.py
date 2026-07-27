@@ -1393,8 +1393,9 @@ def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypa
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"], input="2\n")
 
-    assert result.exit_code != 0
-    assert "Aborted setup" in result.output
+    assert result.exit_code == 0, result.output
+    assert "Cancelled setup" in result.output
+    assert "Aborted!" not in result.output
     assert "dedicated virtualenv" in result.output
     assert not (tmp_path / "Dockerfile").exists()
     assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
@@ -1457,13 +1458,50 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     ]
     assert "Create a dedicated .venv here (recommended)" in result.output
     assert "Created ./.venv." in result.output
-    assert "Next steps:" in result.output
+    assert "Next steps (setup is not finished until you run these):" in result.output
     assert "source .venv/bin/activate" in result.output
     assert "uv pip install" in result.output
     assert "psynet setup" in result.output
     assert "Aborted!" not in result.output
     assert not (tmp_path / "Dockerfile").exists()
     assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
+
+
+def test_setup_detects_psynet_running_from_other_virtualenv(tmp_path, monkeypatch):
+    experiment_venv = tmp_path / ".venv"
+    experiment_venv.mkdir()
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    shared_prefix = tmp_path / "shared-venv"
+    shared_prefix.mkdir()
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+
+    monkeypatch.setenv("VIRTUAL_ENV", str(experiment_venv))
+    monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(shared_prefix))
+    monkeypatch.setattr(
+        "psynet.experiment_setup.sys.base_prefix", str(tmp_path / "base")
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: source,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args, **kwargs: pytest.fail("mismatch must fail before uv"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"])
+
+    assert result.exit_code != 0
+    assert "not installed in the activated environment" in result.output
+    assert f"uv pip install -e {source}" in result.output
+    assert "shared checkout environment" not in result.output
+    assert not (tmp_path / "Dockerfile").exists()
 
 
 def test_setup_shared_env_interactive_new_venv_suggests_editable_install(

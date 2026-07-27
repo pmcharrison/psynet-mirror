@@ -112,6 +112,41 @@ def _ensure_active_virtualenv():
         )
 
 
+def _psynet_command_env_mismatch_error():
+    """Return an error if the shell venv and running PsyNet disagree.
+
+    This catches the common footgun where a user activates a new experiment
+    ``.venv`` but still invokes ``psynet`` from PsyNet's shared checkout env
+    because PsyNet has not been installed into the new environment yet.
+    """
+    virtual_env = os.environ.get("VIRTUAL_ENV")
+    if not virtual_env:
+        return None
+
+    virtual_env_path = Path(virtual_env).resolve()
+    prefix = Path(sys.prefix).resolve()
+    if prefix == virtual_env_path or prefix.is_relative_to(virtual_env_path):
+        return None
+
+    install_hint = "uv pip install psynet"
+    editable_source = get_editable_psynet_source()
+    if editable_source is not None:
+        install_hint = f"uv pip install -e {editable_source}"
+    elif _is_psynet_checkout_virtualenv():
+        install_hint = f"uv pip install -e {get_psynet_root()}"
+
+    return (
+        f"Your shell has VIRTUAL_ENV={virtual_env_path}, but this `psynet` "
+        f"command is running from {prefix}. PsyNet is probably not installed "
+        "in the activated environment yet.\n\n"
+        "Finish setup with:\n"
+        f"  {install_hint}\n"
+        "  psynet setup\n\n"
+        "If `psynet` still points at the old environment afterward, run "
+        "`hash -r` or open a new shell."
+    )
+
+
 def _run_uv(args, description, *, quiet=False):
     """Run one uv command and report a concise Click error on failure."""
     if shutil.which("uv") is None:
@@ -184,7 +219,7 @@ def _create_dedicated_experiment_virtualenv():
     )
     click.echo("Created ./.venv.")
     click.echo()
-    click.echo("Next steps:")
+    click.echo("Next steps (setup is not finished until you run these):")
     click.echo("  source .venv/bin/activate")
     editable_source = get_editable_psynet_source()
     if editable_source is not None:
@@ -225,9 +260,9 @@ def _warn_shared_checkout_sync():
 def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
     """Decide how setup should treat PsyNet's shared checkout virtualenv.
 
-    Returns ``"prepare-only"``, ``"sync"``, or ``"new-venv"``. Raises on cancel
-    or invalid flags. ``new-venv`` means create a dedicated environment and stop
-    so the user can activate it and re-run setup.
+    Returns ``"prepare-only"``, ``"sync"``, ``"new-venv"``, or ``"cancel"``.
+    Raises on invalid flags. ``new-venv`` means create a dedicated environment
+    and stop so the user can install PsyNet into it and re-run setup.
     """
     if prepare_only and force_shared_env:
         raise click.UsageError(
@@ -289,8 +324,8 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
         default_index=0,
     )
     if choice == "cancel":
-        click.echo("Aborted setup; no experiment or environment changes were made.")
-        raise click.Abort()
+        click.echo("Cancelled setup; no experiment or environment changes were made.")
+        return "cancel"
     if choice == "sync":
         _warn_shared_checkout_sync()
     return choice
@@ -377,10 +412,16 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
         return
 
     _ensure_active_virtualenv()
+    mismatch = _psynet_command_env_mismatch_error()
+    if mismatch is not None:
+        raise click.UsageError(mismatch)
+
     action = _resolve_shared_checkout_venv_action(
         prepare_only=prepare_only,
         force_shared_env=force_shared_env,
     )
+    if action == "cancel":
+        return
     if action == "new-venv":
         _create_dedicated_experiment_virtualenv()
         return
@@ -419,3 +460,4 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
         "synchronize experiment dependencies",
     )
     _run_uv(["pip", "check"], "verify experiment dependencies")
+    click.echo("Setup complete.")
