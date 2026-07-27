@@ -168,9 +168,7 @@ def list_cached_objects(
     if not objects_dir.exists():
         return []
     return sorted(
-        entry.name
-        for entry in objects_dir.iterdir()
-        if not entry.name.startswith(".")
+        entry.name for entry in objects_dir.iterdir() if not entry.name.startswith(".")
     )
 
 

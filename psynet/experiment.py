@@ -3360,7 +3360,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             export_database_snapshot(export_dir)
         zip_filename = "psynet" if psynet_export else "database"
-        zip_name = shutil.make_archive(zip_filename, "zip", export_dir)
+        from .export.zip_utils import build_zip_from_dir
+
+        zip_path = os.path.abspath(f"{zip_filename}.zip")
+        zip_name = build_zip_from_dir(export_dir, zip_path)
         exp = get_experiment()
         storage = exp.artifact_storage
         try:

@@ -20,7 +20,6 @@ from psynet.export.asset_cache import (
     prune_cached_objects,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -171,7 +170,9 @@ def test_link_or_copy_hardlink_same_inode(cache_root, sample_file):
     # On the same filesystem, hardlink shares the inode.
     src_ino = src.stat().st_ino
     dest_ino = dest.stat().st_ino
-    assert src_ino == dest_ino, "Expected a hardlink (same inode) on the same filesystem"
+    assert src_ino == dest_ino, (
+        "Expected a hardlink (same inode) on the same filesystem"
+    )
 
 
 def test_link_or_copy_file_creates_parent(tmp_path):
@@ -286,9 +287,7 @@ def test_second_export_reuses_cache(cache_root, tmp_path):
         fetch_count["n"] += 1
         shutil.copy2(str(src), dest)
 
-    cache_path2 = ensure_object_in_cache(
-        digest, counting_fetch, cache_root=cache_root
-    )
+    cache_path2 = ensure_object_in_cache(digest, counting_fetch, cache_root=cache_root)
     export2.parent.mkdir(parents=True, exist_ok=True)
     link_or_copy(cache_path2, export2)
 

@@ -27,8 +27,10 @@ from .asset_cache import (
 )
 from .database import export_database_snapshot
 from .identifiers import write_identifier_sidecars
+from .zip_utils import build_zip_from_dir
 
 __all__ = [
+    "build_zip_from_dir",
     "cache_size_bytes",
     "default_cache_root",
     "ensure_object_in_cache",

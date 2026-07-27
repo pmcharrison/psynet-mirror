@@ -1,0 +1,1 @@
+Dashboard export archives now use ZIP_STORED for already-compressed file types (media, images, nested ZIPs) and ZIP_DEFLATED for text formats, removing redundant DEFLATE overhead on the dashboard download path.
