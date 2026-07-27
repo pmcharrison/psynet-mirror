@@ -16,7 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property, relationship, subqueryload
+from sqlalchemy.orm import relationship, subqueryload
 from sqlalchemy.sql.expression import not_, select
 from tqdm import tqdm
 
@@ -43,6 +43,67 @@ from .main import (
 )
 
 logger = get_logger()
+
+
+def count_viable_trials_for_nodes(node_ids: Iterable[int]) -> dict[int, int]:
+    """Return viable trial counts keyed by node id.
+
+    A viable trial is non-failed and not a repeat trial.
+    """
+    ids = [node_id for node_id in node_ids if node_id is not None]
+    if not ids:
+        return {}
+    rows = (
+        db.session.query(Trial.node_id, func.count(Trial.id))
+        .filter(
+            Trial.node_id.in_(ids),
+            ~Trial.is_repeat_trial,
+            ~Trial.failed,
+        )
+        .group_by(Trial.node_id)
+        .all()
+    )
+    return {node_id: count for node_id, count in rows}
+
+
+def count_viable_trials_for_node(node_id: int) -> int:
+    """Return the number of viable trials for one node."""
+    return count_viable_trials_for_nodes([node_id]).get(node_id, 0)
+
+
+def count_completed_trials_for_network(network_id: int) -> int:
+    """Count completed, non-failed, non-repeat trials in a network."""
+    return (
+        db.session.query(func.count(Trial.id))
+        .filter(
+            Trial.network_id == network_id,
+            ~Trial.failed,
+            Trial.complete,
+            ~Trial.is_repeat_trial,
+        )
+        .scalar()
+    )
+
+
+def count_participant_trials_in_trial_maker(module_state_id: int) -> int:
+    """Count trials owned by a chain trial-maker module state."""
+    return (
+        db.session.query(func.count(Trial.id))
+        .filter(Trial.module_state_id == module_state_id)
+        .scalar()
+    )
+
+
+def count_participant_trials_in_block(module_state_id: int, block_position: int) -> int:
+    """Count trials for a module state at a given block position."""
+    return (
+        db.session.query(func.count(Trial.id))
+        .filter(
+            Trial.module_state_id == module_state_id,
+            Trial.block_position == block_position,
+        )
+        .scalar()
+    )
 
 
 # class HasSeed:
@@ -125,13 +186,6 @@ class ChainNetwork(TrialNetwork):
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
-
-    n_alive_nodes : int
-        Returns the number of non-failed nodes in the network.
-
-    n_completed_trials : int
-        Returns the number of completed and non-failed trials in the network
-        (irrespective of asynchronous processes, but excluding repeat trials).
 
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
@@ -377,7 +431,7 @@ class ChainNetwork(TrialNetwork):
         if self.full:
             return 0
         else:
-            return self.target_n_trials - self.n_completed_trials
+            return self.target_n_trials - count_completed_trials_for_network(self.id)
 
     @hybrid_property
     def ready_to_spawn(self):
@@ -395,17 +449,12 @@ class ChainNetwork(TrialNetwork):
             "ready_to_grow_network_query() helper instead."
         )
 
-    @hybrid_property
+    @property
     def n_viable_trials_at_head(self):
-        return self.head.n_viable_trials
-
-    @n_viable_trials_at_head.expression
-    def n_viable_trials_at_head(cls):
-        return (
-            select(ChainNode.n_viable_trials)
-            .where(ChainNode.id == cls.head_id)
-            .scalar_subquery()
-        )
+        """Viable trial count at the current head node."""
+        if self.head is None:
+            return 0
+        return count_viable_trials_for_node(self.head.id)
 
 
 class ChainNode(TrialNode):
@@ -856,15 +905,12 @@ class ChainNode(TrialNode):
     #     )
 
 
-TrialNode.n_viable_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.node_id == TrialNode.id,
-        ~Trial.is_repeat_trial,
-        ~Trial.failed,
-    )
-    .scalar_subquery()
-)
+def _n_viable_trials(self):
+    """Count non-failed, non-repeat trials for this node."""
+    return count_viable_trials_for_node(self.id)
+
+
+TrialNode.n_viable_trials = property(_n_viable_trials)
 
 
 UniqueConstraint(ChainNode.module_id, ChainNode.key)
@@ -1074,19 +1120,12 @@ class ChainTrialMakerState(NetworkTrialMakerState):
         self.set_block_position(self.block_position + 1)
 
 
-ChainTrialMakerState.n_participant_trials_in_trial_maker = column_property(
-    select(func.count(ChainTrial.id))
-    .where(ChainTrial.module_state_id == ChainTrialMakerState.id)
-    .scalar_subquery()
+ChainTrialMakerState.n_participant_trials_in_trial_maker = property(
+    lambda self: count_participant_trials_in_trial_maker(self.id)
 )
 
-ChainTrialMakerState.n_participant_trials_in_block = column_property(
-    select(func.count(ChainTrial.id))
-    .where(
-        ChainTrial.module_state_id == ChainTrialMakerState.id,
-        ChainTrial.block_position == ChainTrialMakerState.block_position,
-    )
-    .scalar_subquery()
+ChainTrialMakerState.n_participant_trials_in_block = property(
+    lambda self: count_participant_trials_in_block(self.id, self.block_position)
 )
 
 
@@ -1611,8 +1650,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             participant,
             state.block,
             state.block_position,
-            state.n_participant_trials_in_block,
-            state.n_participant_trials_in_trial_maker,
+            count_participant_trials_in_block(state.id, state.block_position),
+            count_participant_trials_in_trial_maker(state.id),
         )
 
     def should_finish_block(
@@ -1877,12 +1916,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         # find_networks normally takes place in a participant's 'response' call.
         # This means that the previous trial will exist in the database,
         # but it might not have been marked as finalized yet.
-        # That's fine if we use `n_viable_trials_at_head` to determine whether there is space,
-        # because this will count that previous trial.
+        # Counting viable trials at each head includes that previous trial.
+        head_ids = [n.head.id for n in networks if n.head is not None]
+        viable_counts = count_viable_trials_for_nodes(head_ids)
+
         networks_with_head_space = [
             n
             for n in networks
-            if n.head and n.n_viable_trials_at_head < self.trials_per_node
+            if n.head and viable_counts.get(n.head.id, 0) < self.trials_per_node
         ]
 
         if len(networks) > 0 and len(networks_with_head_space) == 0:
@@ -1903,9 +1944,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         random.shuffle(networks)
 
         if self.balance_across_chains:
-            # We used to sort by n_completed_trials, but this is likely to be out of date
-            # because the completion of the latest trial might not have been committed yet.
-            networks.sort(key=lambda network: network.n_viable_trials_at_head)
+            # Prefer heads with fewer viable trials, then lower degree.
+            networks.sort(key=lambda network: viable_counts.get(network.head.id, 0))
             networks.sort(key=lambda network: network.head.degree)
 
             # if "across" in self.balance_strategy:

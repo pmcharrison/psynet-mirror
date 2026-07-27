@@ -29,7 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property, deferred, relationship
+from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -2652,13 +2652,6 @@ class TrialNetwork(SQLMixinDallinger, Network, AssetParentMixin):
     sync_group_id : Optional[int]
         The ID of the SyncGroup that owns this network (normally only relevant for within-style chains).
 
-    n_alive_nodes : int
-        Returns the number of non-failed nodes in the network.
-
-    n_completed_trials : int
-        Returns the number of completed and non-failed trials in the network
-        (irrespective of asynchronous processes, but excluding repeat trials).
-
     all_trials : list
         A list of all trials owned by that network.
 
@@ -2735,11 +2728,11 @@ class TrialNetwork(SQLMixinDallinger, Network, AssetParentMixin):
 
     @property
     def alive_nodes(self):
-        return [node for node in self.all_nodes if not self.failed]
+        return [node for node in self.all_nodes if not node.failed]
 
     @property
     def failed_nodes(self):
-        return [node for node in self.all_nodes if self.failed]
+        return [node for node in self.all_nodes if node.failed]
 
     @property
     def alive_trials(self):
@@ -3073,67 +3066,3 @@ class GenericTrialNode(TrialNode):
         network = GenericTrialNetwork(module_id, experiment)
         db.session.add(network)
         return network
-
-
-TrialNetwork.n_all_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.network_id == TrialNetwork.id,
-    )
-    .scalar_subquery()
-)
-
-TrialNetwork.n_alive_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.network_id == TrialNetwork.id,
-        ~Trial.failed,
-    )
-    .scalar_subquery()
-)
-
-TrialNetwork.n_failed_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.network_id == TrialNetwork.id,
-        Trial.failed,
-    )
-    .scalar_subquery()
-)
-
-TrialNetwork.n_completed_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.network_id == TrialNetwork.id,
-        ~Trial.failed,
-        Trial.complete,
-        ~Trial.is_repeat_trial,
-    )
-    .scalar_subquery()
-)
-
-TrialNetwork.n_all_nodes = column_property(
-    select(func.count(TrialNode.id))
-    .where(
-        TrialNode.network_id == TrialNetwork.id,
-    )
-    .scalar_subquery()
-)
-
-TrialNetwork.n_alive_nodes = column_property(
-    select(func.count(TrialNode.id))
-    .where(
-        TrialNode.network_id == TrialNetwork.id,
-        ~TrialNode.failed,
-    )
-    .scalar_subquery()
-)
-
-TrialNetwork.n_failed_nodes = column_property(
-    select(func.count(TrialNode.id))
-    .where(
-        TrialNode.network_id == TrialNetwork.id,
-        TrialNode.failed,
-    )
-    .scalar_subquery()
-)
