@@ -116,17 +116,21 @@ tests_python_3_13:
     PYTHON_VERSION: "3.13"
     TEST_SCOPE: full
 
+# To reduce CI cost, non-recommended Python versions (3.11, 3.12, 3.14) are
+# only verified on release branches: day-to-day MRs rarely affect version
+# compatibility, and the constraints compilation check already validates
+# dependency resolution for all supported versions on every pipeline.
 tests_python_3_14:
   extends: .full_test_suite
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
+      when: always
+    - when: never
   variables:
     PYTHON_VERSION: "3.14"
     SKIP_PYTHON_VERSION_CHECK: "1"
     TEST_SCOPE: full
 
-# Python 3.11/3.12 compatibility is only verified on release branches:
-# day-to-day MRs rarely affect version compatibility, and the constraints
-# compilation check already validates dependency resolution for all
-# supported versions on every pipeline.
 compatibility_tests:
   stage: test
   rules:
@@ -224,8 +228,10 @@ merge_test_results:
   <<: *default_rules
   needs:
     - "tests_python_3_13"
-    - "tests_python_3_14"
-    # compatibility_tests only exists on release-branch pipelines.
+    # tests_python_3_14 and compatibility_tests only exist on
+    # release-branch pipelines.
+    - job: "tests_python_3_14"
+      optional: true
     - job: "compatibility_tests"
       optional: true
     - "playwright_e2e_legacy"
