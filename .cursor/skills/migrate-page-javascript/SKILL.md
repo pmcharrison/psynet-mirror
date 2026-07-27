@@ -201,5 +201,7 @@ Check that:
 - leaving a page runs cleanup exactly once;
 - the browser console contains no module import or missing ``activate`` errors.
 
-For more context, see ``docs/tutorials/writing_custom_frontends.rst``, section
-“Managing JavaScript lifecycles”.
+For more context, see ``docs/upgrading/upgrading_to_psynet_14.rst`` for the
+full PsyNet 14 upgrade checklist, and
+``docs/tutorials/writing_custom_frontends.rst``, section “Managing JavaScript
+lifecycles”.
