@@ -207,7 +207,7 @@ Pages sharing a non-null ``session_id`` update ``psynet.page`` and dispatch
 sessions such as Unity integrations.
 
 Document-owning pages
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Pages can set ``requires_full_page_reload = True`` when they own document-level
 state that should not participate in fragment teardown. PsyNet reloads when

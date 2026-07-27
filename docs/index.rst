@@ -23,6 +23,7 @@ while placing minimal constraints on the complexity of the experiment design.
    dependencies/index
    installation/index
    experiment_development/index
+   upgrading/index
    deploy/index
    developer/index
    dashboards/translation
