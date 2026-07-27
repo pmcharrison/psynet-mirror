@@ -7,8 +7,8 @@ It simulates different participant flows to ensure that screen-out and reward me
 when using Prolific.
 
 Participants are assigned to one of three experiment flows based on their participant ID:
-    1. **Normal**: Participant completes a simple flow. They are compensated for 3 minutes of participation, so get the full £0.50 base payment.
-    2. **Failed prescreening**: Participant fails a prescreen. They are only compensated for 2 minutes of participation, so get no base payment, but £0.33 bonus.
+    1. **Normal**: Participant completes a simple flow (consent, info pages, and debrief; ~4.5 minutes estimated). They get the full £0.50 base payment.
+    2. **Failed prescreening**: Participant fails a prescreen after accruing 3 minutes (1-minute consent plus 2-minute info page). They get no base payment, but a £0.50 screen-out bonus at wage_per_hour = 10.
     3. **Increment performance reward**: Participant completes the full experiment and also receives a performance reward increment. They get base payment plus £0.10 bonus.
 
 
@@ -120,9 +120,10 @@ class Exp(psynet.experiment.Experiment):
         consent_irb_cultural_foundation(consent="MAIN", DURATION=2, PAYMENT=0.50),
         InfoPage(
             "What happens next will depend on chance. Either way, you will receive some payment for your time. However, we will be trialling different methods of payment to make sure they are all working properly.",
-            time_estimate=(
-                2 * 60
-            ),  # If the wage_per_hour = 10, then this will mean a payment of 0.33
+            # Together with the 1-minute consent page, a participant screened
+            # out after this page has accrued 3 minutes, i.e. £0.50 at
+            # wage_per_hour = 10.
+            time_estimate=2 * 60,
         ),
         switch(
             "participant_flow",
