@@ -99,8 +99,6 @@ cd demos/experiments/timeline
 psynet debug local
 ```
 
-to see which they mean.
-
 Wait for 8 seconds for the server to start.
 
 Inspect the logs to see relevant URLs.
