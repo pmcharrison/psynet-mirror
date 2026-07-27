@@ -3,7 +3,6 @@
 version = 1
 # Pre-deploy deterministically compiles the Dutch catalog below. The generated
 # .mo file is required at runtime but was excluded by legacy Git selection.
-legacy_diff_acknowledgement = "sha256:185d52bc76fff2de177d528d3b657ad832f8daa68ae7c2877120542b5598e438"
 
 exclude = [
     ".deploy",

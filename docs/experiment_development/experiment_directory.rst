@@ -10,22 +10,18 @@ that runs on the experiment server.
 
 When you are developing a PsyNet experiment it is good practice to use a *version control system*
 for keeping track of changes to your experiment directory.
-We recommend *Git*. During the ``deploy.toml`` compatibility prototype, PsyNet
-requires an active Git repository because Dallinger compares the policy's
-membership with legacy Git-based selection. To learn more visit
+We recommend *Git*. PsyNet requires an active Git repository so it can record
+deployment provenance (commit SHA and dirty state). To learn more visit
 `Version control with Git <../tutorials/version_control_with_git.html>`_.
 PsyNet records the deployed Git commit and whether the working tree contained
 uncommitted changes. For reproducible live deployments, commit your changes
-before deploying. A future major Dallinger release is expected to remove Git
-from deployment membership after the compatibility period.
+before deploying. Experiment-file membership for staging and deployment comes
+from ``deploy.toml``, not from Git visibility.
 
 .. warning::
 
-   The ``deploy.toml`` compatibility prototype currently requires POSIX
-   descriptor-relative filesystem traversal and is not supported on Windows. A
-   safe Windows-support carve-out is required before production rollout.
-   Policy-free experiments retain Dallinger's existing legacy, cross-platform
-   behavior outside this all-migrated PsyNet prototype.
+   ``deploy.toml`` planning currently requires a POSIX filesystem and is not
+   supported on Windows.
 
 Your experiment directory contains various important files and directories.
 Let's talk through what these different files and directories do.

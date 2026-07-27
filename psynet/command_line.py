@@ -1338,7 +1338,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     exp.check_consents()
     exp.check_python_dependencies()
 
-    # The compatibility prototype compares deploy.toml with legacy Git selection.
+    # Git provenance is recorded for deployments; membership comes from deploy.toml.
     if not git_repository_available():
         raise click.ClickException(
             "This directory is not a git repository, or git is not installed. Please ensure git is installed and create a repository by running 'git init' if needed."

@@ -3,11 +3,8 @@ Deploying
 
 .. warning::
 
-   The ``deploy.toml`` compatibility prototype currently requires POSIX
-   descriptor-relative filesystem traversal and is not supported on Windows.
-   A safe Windows-support carve-out is required before production rollout.
-   Policy-free experiments continue to use Dallinger's existing legacy,
-   cross-platform selection path outside this all-migrated PsyNet prototype.
+   ``deploy.toml`` planning currently requires a POSIX filesystem and is not
+   supported on Windows.
 
 .. toctree::
    :maxdepth: 1

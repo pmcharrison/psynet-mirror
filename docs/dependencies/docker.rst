@@ -29,11 +29,8 @@ Deployment build context
 
 .. warning::
 
-   ``deploy.toml`` planning currently requires POSIX descriptor-relative
-   filesystem traversal. It is not supported on Windows. A safe Windows-support
-   carve-out is required before production rollout. Policy-free experiments
-   retain Dallinger's existing legacy, cross-platform behavior outside this
-   all-migrated PsyNet prototype.
+   ``deploy.toml`` planning currently requires a POSIX filesystem and is not
+   supported on Windows.
 
 PsyNet and Dallinger build the Docker context from the experiment's
 ``deploy.toml`` policy. This keeps debug staging and deployment backends on the

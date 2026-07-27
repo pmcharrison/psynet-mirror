@@ -7,11 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import click
 import pytest
-from dallinger.deployment_plan import (
-    build_deployment_plan,
-    compare_legacy_deployment_selection,
-    parse_deployment_policy,
-)
+from dallinger.deployment_plan import build_deployment_plan, parse_deployment_policy
 from dallinger.utils import ExperimentFileSource
 
 from psynet import command_line
@@ -40,15 +36,6 @@ EXPECTED_EXCLUSIONS = (
     "static/assets",
 )
 
-TRANSLATION_ACKNOWLEDGEMENTS = {
-    "demos/experiments/translation": (
-        "sha256:06d9fc842cbb0bd56ac4cb3db2621c998a2f4f3dd729ebde627fff3a9c623aee"
-    ),
-    "tests/experiments/translation": (
-        "sha256:185d52bc76fff2de177d528d3b657ad832f8daa68ae7c2877120542b5598e438"
-    ),
-}
-
 
 def test_prototype_metadata_and_platform_warnings():
     root = get_psynet_root()
@@ -68,11 +55,8 @@ def test_prototype_metadata_and_platform_warnings():
     for path in documentation:
         text = " ".join(path.read_text().split())
         assert ".. warning::" in text
-        assert "POSIX descriptor-relative filesystem traversal" in text
         assert "is not supported on Windows" in text
-        assert "carve-out is required before production rollout" in text
-        assert "Policy-free experiments" in text
-        assert "cross-platform" in text
+        assert "POSIX" in text
 
 
 def _template_directory():
@@ -102,23 +86,18 @@ def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
 
 
 def test_managed_experiments_have_synchronized_deployment_policy_semantics():
-    root = get_psynet_root()
     directories = _managed_experiment_directories()
 
     assert len(directories) == 126
     for directory in directories:
         policy = parse_deployment_policy(directory / "deploy.toml")
-        relative = directory.relative_to(root).as_posix()
 
         assert policy.version == 1, directory
         assert policy.exclude == EXPECTED_EXCLUSIONS, directory
-        assert policy.legacy_diff_acknowledgement == (
-            TRANSLATION_ACKNOWLEDGEMENTS.get(relative)
-        ), directory
     assert all(not (directory / ".dockerignore").exists() for directory in directories)
 
 
-def test_all_managed_policies_are_compatible_with_legacy_membership():
+def test_all_managed_policies_build_deployable_plans():
     required = {
         "constraints.txt",
         "deploy.toml",
@@ -128,27 +107,11 @@ def test_all_managed_policies_are_compatible_with_legacy_membership():
 
     for directory in _managed_experiment_directories():
         plan = build_deployment_plan(directory)
-        comparison = compare_legacy_deployment_selection(plan)
 
-        assert not comparison.unresolved_backend_ignore_controls, directory
-        assert comparison.is_compatible, directory
         assert required <= plan.destinations, directory
         for optional in ["Dockerfile"]:
             if (directory / optional).exists():
                 assert optional in plan.destinations, directory
-
-
-def test_generated_nested_python_versions_remain_ignored():
-    root = get_psynet_root()
-    generated_path = "demos/experiments/hello_world/.python-version"
-
-    result = subprocess.run(
-        ["git", "check-ignore", "--quiet", "--no-index", generated_path],
-        cwd=root,
-        check=False,
-    )
-
-    assert result.returncode == 0
 
 
 class _TranslationPreDeployExperiment(Experiment):
@@ -182,7 +145,7 @@ class _TranslationPreDeployExperiment(Experiment):
         ("tests/experiments/translation", ["nl"]),
     ],
 )
-def test_translation_pre_deploy_outputs_remain_compatible_and_deployable(
+def test_translation_pre_deploy_outputs_remain_deployable(
     tmp_path, relative_directory, locales
 ):
     experiment_root = tmp_path / "experiment"
@@ -202,11 +165,6 @@ def test_translation_pre_deploy_outputs_remain_compatible_and_deployable(
         file.write("\n.python-version\n*.mo\n")
     assert (experiment_root / ".python-version").is_file()
 
-    initial = compare_legacy_deployment_selection(
-        build_deployment_plan(experiment_root)
-    )
-    assert not initial.requires_acknowledgement
-
     experiment = _TranslationPreDeployExperiment(experiment_root / "locales", locales)
     with working_directory(experiment_root), ExitStack() as stack:
         for method in [
@@ -224,14 +182,8 @@ def test_translation_pre_deploy_outputs_remain_compatible_and_deployable(
     generated_destinations = {
         f"locales/{locale}/LC_MESSAGES/experiment.mo" for locale in locales
     }
-    comparison = compare_legacy_deployment_selection(
-        build_deployment_plan(experiment_root)
-    )
-    assert {item.destination for item in comparison.newly_included} == (
-        generated_destinations
-    )
-    assert comparison.acknowledgement_matches
-    assert comparison.is_compatible
+    plan = build_deployment_plan(experiment_root)
+    assert generated_destinations <= plan.destinations
 
     source = ExperimentFileSource(experiment_root)
     assert generated_destinations <= source.deployment_plan.destinations
@@ -257,10 +209,7 @@ def test_update_scripts_replaces_generated_dockerignore(tmp_path):
 
 def test_update_scripts_preserves_existing_deployment_policy(tmp_path):
     contents = (
-        "# Experiment-specific review\n"
-        "version = 1\n"
-        'legacy_diff_acknowledgement = "sha256:' + "0" * 64 + '"\n'
-        'exclude = ["custom-local"]\n'
+        '# Experiment-specific review\nversion = 1\nexclude = ["custom-local"]\n'
     ).encode()
     policy = tmp_path / "deploy.toml"
     policy.write_bytes(contents)
