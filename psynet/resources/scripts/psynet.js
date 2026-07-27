@@ -2820,9 +2820,8 @@
         unique_id: psynet.uniqueId,
         raw_answer: rawAnswer,
         metadata: allMetadata,
-        include_timeline_fragment: !Boolean(
-          psynet.page.attributes?.requires_full_page_reload,
-        ),
+        include_timeline_fragment: !psynet.page.attributes
+          ?.requires_full_page_reload,
       });
     };
 
