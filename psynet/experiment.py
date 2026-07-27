@@ -1324,6 +1324,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
 
+    def create_participant(self, *args, **kwargs):
+        participant = super().create_participant(*args, **kwargs)
+        recruiter = self.recruiter
+        if hasattr(recruiter, "link_lucid_rid_to_participant"):
+            recruiter.link_lucid_rid_to_participant(participant)
+        return participant
+
     def initialize_bot(self, bot):
         """
         This function is called when a bot is created.
@@ -2384,7 +2391,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         blobs,
         metadata,
         page_uuid,
-        client_ip_address,
         answer=NoArgumentProvided,
     ):
         _p = get_translator(context=True)
@@ -2420,7 +2426,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
-                client_ip_address=client_ip_address,
                 answer=answer,
             )
             validation = event.validate(
@@ -4171,7 +4176,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
-        client_ip_address = cls.get_client_ip_address()
 
         res = exp.process_response(
             participant_id,
@@ -4179,7 +4183,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             blobs,
             metadata,
             page_uuid,
-            client_ip_address,
             answer,
         )
 

@@ -667,8 +667,6 @@ class Control:
         blobs :
             A dictionary of blobs returned from the front-end.
 
-        client_ip_address :
-            The client's IP address.
 
     buttons :
         An optional list of additional buttons to include on the page.

@@ -3,9 +3,9 @@ from datetime import datetime
 from math import ceil
 
 import pandas as pd
+from dallinger import db
 from flask import render_template
 
-from psynet.participant import Participant
 from psynet.recruiters import BaseLucidRecruiter, LucidRID, LucidStatus
 from psynet.timeline import Response
 from psynet.utils import get_config
@@ -133,14 +133,10 @@ def report_lucid():
     else:
         params["display_cards"] = True
 
+    for entrant in all_entrants:
+        entrant.resolve_participant()
+    db.session.commit()
     entry_df = pd.DataFrame([entrant.to_dict() for entrant in all_entrants])
-    participants = pd.DataFrame(
-        [
-            {"participant_id": participant.id, "rid": participant.worker_id}
-            for participant in Participant.query.all()
-        ]
-    )
-    entry_df = entry_df.merge(participants, left_on="rid", right_on="rid", how="left")
     entry_df.lucid_entry_date = pd.to_datetime(
         entry_df.lucid_entry_date, format="mixed"
     )
@@ -561,7 +557,9 @@ def report_lucid():
             missing = terminated_df.query("rid not in @rids")[
                 ["rid", "termination_reason"]
             ]
-            missing = missing.merge(participants, on="rid", how="left")
+            missing = missing.merge(
+                entry_df[["rid", "participant_id"]], on="rid", how="left"
+            )
             missing["participant_id"] = missing.participant_id.apply(
                 lambda x: x if not pd.isna(x) else "Not registered"
             )

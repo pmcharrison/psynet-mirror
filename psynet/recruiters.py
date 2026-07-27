@@ -12,7 +12,6 @@ import dominate
 import flask
 import pandas as pd
 import requests
-import sqlalchemy
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
@@ -28,6 +27,7 @@ from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import func
 
@@ -551,6 +551,14 @@ DevCapRecruiter = DevLabRecruiter
 # Lucid Recruiter
 @register_table
 class LucidRID(SQLBase, SQLMixin):
+    """Lucid survey entrant, keyed by Lucid's respondent ID (``rid``).
+
+    Rows may exist before (or without) a PsyNet ``Participant``. When a
+    participant is created with ``worker_id == rid``, ``participant_id`` is
+    linked. Export separates identifying Lucid fields into
+    ``lucid_entrant_identifiers.csv`` for ghost entrants.
+    """
+
     __tablename__ = "lucid_rid"
 
     # These fields are removed from the database table as they are not needed.
@@ -560,7 +568,12 @@ class LucidRID(SQLBase, SQLMixin):
     vars = None
     creation_time = None
 
-    rid = Column(String, ForeignKey("participant.worker_id"), index=True)
+    rid = Column(String, index=True, unique=True, nullable=False)
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
+    participant = relationship(
+        "psynet.participant.Participant",
+        foreign_keys=[participant_id],
+    )
     registered_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
@@ -580,10 +593,28 @@ class LucidRID(SQLBase, SQLMixin):
     lucid_respondent_id = Column(String)
     lucid_supplier_id = Column(Integer)
 
-    # to dict
+    def link_participant(self, participant):
+        """Associate this entrant with a Participant when one exists."""
+        if participant is None:
+            return
+        if self.participant_id != participant.id:
+            self.participant_id = participant.id
+
+    def resolve_participant(self):
+        """Return the linked participant, linking by ``rid`` if needed."""
+        if self.participant_id is not None:
+            return self.participant
+        try:
+            participant = Participant.query.filter_by(worker_id=self.rid).one()
+        except NoResultFound:
+            return None
+        self.link_participant(participant)
+        return participant
+
     def to_dict(self):
         return {
             "rid": self.rid,
+            "participant_id": self.participant_id,
             "registered_at": self.registered_at,
             "updated_at": self.updated_at,
             "completed_at": self.completed_at,
@@ -1000,8 +1031,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             details = None
             participant = None
             reason = None
-            try:
-                participant = Participant.query.filter_by(worker_id=entrant.rid).one()
+            participant = entrant.resolve_participant()
+            if participant is not None:
                 responses = (
                     Response.query.filter_by(participant_id=participant.id)
                     .order_by(Response.creation_time)
@@ -1009,8 +1040,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 )
                 if len(responses) == 0:
                     reason = "first-response-timeout"
-
-            except sqlalchemy.orm.exc.NoResultFound:
+            else:
                 # Do not terminate participants who did not pass the qualifications
                 if entrant.lucid_status != self.MARKETPLACE_CODE:
                     reason = "never-entered-experiment"
@@ -1174,10 +1204,11 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
         # Save RID info into the database
         try:
-            LucidRID.query.filter_by(rid=rid).one()
+            lucid_rid = LucidRID.query.filter_by(rid=rid).one()
         except NoResultFound:
             self.lucidservice.log(f"Saving RID '{rid}' into the database.")
-            db.session.add(LucidRID(rid=rid))
+            lucid_rid = LucidRID(rid=rid)
+            db.session.add(lucid_rid)
             db.session.commit()
         except MultipleResultsFound:
             raise MultipleResultsFound(
@@ -1194,6 +1225,22 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             participant_data["entry_information"] = entry_information
 
         return participant_data
+
+    def link_lucid_rid_to_participant(self, participant):
+        """Link the LucidRID row for this participant's RID when present."""
+        if participant is None or participant.worker_id is None:
+            return
+        try:
+            lucid_rid = LucidRID.query.filter_by(rid=participant.worker_id).one()
+        except NoResultFound:
+            return
+        except MultipleResultsFound:
+            raise MultipleResultsFound(
+                f"Multiple rows for Lucid RID '{participant.worker_id}' found. "
+                "This should never happen."
+            )
+        lucid_rid.link_participant(participant)
+        db.session.commit()
 
     def exit_response(self, experiment, participant):
         """
@@ -1360,6 +1407,9 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 logger.error(
                     f"Multiple participants for Lucid RID '{assignment_id}' found. This should never happen."
                 )
+
+        if participant is not None:
+            self.link_lucid_rid_to_participant(participant)
 
         return participant
 
