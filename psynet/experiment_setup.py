@@ -4,8 +4,6 @@ This module holds the non-Click orchestration used by ``psynet setup`` and
 ``psynet scripts scaffold``: virtualenv checks, shared-checkout sync gating,
 editable PsyNet requirement selection, and scaffold/constraint preparation.
 Click commands stay in ``command_line`` and call into these helpers.
-
-Please review this module docstring when reviewing the change.
 """
 
 from __future__ import annotations
