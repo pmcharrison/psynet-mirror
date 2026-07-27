@@ -35,7 +35,7 @@ from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, extra_var
+from .field import PythonList, PythonObject
 from .utils import (
     NoArgumentProvided,
     call_function_with_context,
@@ -176,7 +176,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     # We set the polymorphic_identity manually to differentiate the class
     # from the Dallinger Participant class.
-    __extra_vars__ = {}
 
     _in_advance_page = False
 
@@ -434,7 +433,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
 
     @property
-    @extra_var(__extra_vars__)
     def aborted_modules(self):
         return [
             log.module_id
@@ -443,7 +441,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ]
 
     @property
-    @extra_var(__extra_vars__)
     def started_modules(self):
         return [
             log.module_id
@@ -452,7 +449,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ]
 
     @property
-    @extra_var(__extra_vars__)
     def finished_modules(self):
         return [
             log.module_id
@@ -516,7 +512,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return self.module_state is not None
 
     @property
-    @extra_var(__extra_vars__)
     def module_id(self):
         if self.module_state:
             return self.module_state.module_id

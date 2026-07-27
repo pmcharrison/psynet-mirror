@@ -29,7 +29,7 @@ from psynet.timeline import NullElt
 
 from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
-from .field import PythonDict, PythonObject  # , register_extra_var
+from .field import PythonDict, PythonObject
 from .media import (
     get_aws_credentials,
     get_s3_bucket,
@@ -302,7 +302,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     # Inheriting from ``NullElt`` means that the ``Asset`` object can be placed in the timeline.
 
     __tablename__ = "asset"
-    __extra_vars__ = {}
 
     id = SQLMixin.id
 

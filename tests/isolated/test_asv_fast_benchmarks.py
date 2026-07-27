@@ -64,38 +64,40 @@ def test_export_benchmark_counts_csv_data_rows(tmp_path):
 
 
 def test_export_benchmark_summarizes_legacy_export(tmp_path):
-    data_dir = tmp_path / "regular" / "data"
-    data_dir.mkdir(parents=True)
-    (data_dir / "Participant.csv").write_text("id,worker_id\n1,w1\n")
-    (data_dir / "Trial.csv").write_text("id,participant_id\n1,1\n2,1\n")
-    (tmp_path / "regular" / "database.zip").write_bytes(b"snapshot")
+    import zipfile
 
-    expected_csv_rows = (("Participant", 1), ("Trial", 2))
+    database_zip = tmp_path / "database.zip"
+    with zipfile.ZipFile(database_zip, "w") as archive:
+        archive.writestr("data/participant.csv", "id,worker_id\n1,w1\n")
+        archive.writestr("data/trial.csv", "id,participant_id\n1,1\n2,1\n")
+
+    expected_table_rows = (("participant", 1), ("trial", 2))
     summary = _summarize_export(
         tmp_path,
         export_time_s=1.25,
-        expected_csv_rows=expected_csv_rows,
+        expected_table_rows=expected_table_rows,
     )
 
     assert summary == {
         "export_time_s": 1.25,
         "data_csv_count": 2,
         "data_row_count": 3,
-        "database_zip_size_bytes": 8,
+        "database_zip_size_bytes": database_zip.stat().st_size,
     }
 
 
 def test_export_benchmark_rejects_changed_fixture_shape(tmp_path):
-    data_dir = tmp_path / "regular" / "data"
-    data_dir.mkdir(parents=True)
-    (data_dir / "Participant.csv").write_text("id\n1\n2\n")
-    (tmp_path / "regular" / "database.zip").write_bytes(b"snapshot")
+    import zipfile
+
+    database_zip = tmp_path / "database.zip"
+    with zipfile.ZipFile(database_zip, "w") as archive:
+        archive.writestr("data/participant.csv", "id\n1\n2\n")
 
     with pytest.raises(RuntimeError, match="fixture shape changed"):
         _summarize_export(
             tmp_path,
             export_time_s=1.25,
-            expected_csv_rows=(("Participant", 1),),
+            expected_table_rows=(("participant", 1),),
         )
 
 

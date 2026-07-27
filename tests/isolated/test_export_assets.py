@@ -24,16 +24,6 @@ def data_root_dir():
 
 
 @pytest.fixture
-def data_csv_dir(data_root_dir):
-    return os.path.join(data_root_dir, "csv")
-
-
-@pytest.fixture
-def data_zip_file(data_root_dir):
-    return os.path.join(data_root_dir, "db-snapshot", f"{app}-data.zip")
-
-
-@pytest.fixture
 def coin_class(experiment_module):
     return experiment_module.Coin
 
@@ -68,8 +58,6 @@ class TestAssetExport:
     def test_exp(
         self,
         data_root_dir,
-        data_csv_dir,
-        data_zip_file,
         ctx,
     ):
         # Creating a couple of personal and non-personal assets
@@ -117,115 +105,80 @@ class TestAssetExport:
             assert key in json_full
             assert key not in json_anon
 
-        # Calling export_ multiple times in the same process causes SQLAlchemy errors due to repeated imports...
-        # Temporary fix for now is to call in subprocess
-        # from psynet.utils import run_subprocess_with_live_output
-
         with tempfile.TemporaryDirectory() as tempdir:
             with pytest.raises(ValueError) as e:
                 ctx.invoke(export__local, path=tempdir, assets="asdasdoj")
             assert str(e.value) == "--assets must be either none, experiment, or all."
 
-            with pytest.raises(ValueError) as e:
-                ctx.invoke(export__local, path=tempdir, anonymize="asdasdoj")
-            assert str(e.value) == "--anonymize must be either yes, no, or both."
+            ctx.invoke(export__local, path=tempdir, assets="all", legacy=True)
 
-            ctx.invoke(export__local, path=tempdir, assets="all", anonymize="both")
-
-            # Not relevant if we don't export code
-            # self.assert_valid_code_zip(os.path.join(tempdir, "regular", "code.zip"))
-            # self.assert_valid_code_zip(os.path.join(tempdir, "anonymous", "code.zip"))
-
-            self.assert_regular_database_zip(
-                os.path.join(tempdir, "regular", "database.zip")
+            self.assert_database_zip(os.path.join(tempdir, "database.zip"))
+            self.assert_identifier_sidecar(
+                os.path.join(tempdir, "participant_identifiers.csv")
             )
-            self.assert_anonymous_database_zip(
-                os.path.join(tempdir, "anonymous", "database.zip")
-            )
-
-            self.assert_regular_data(os.path.join(tempdir, "regular", "data"))
-            self.assert_anonymous_data(os.path.join(tempdir, "anonymous", "data"))
+            assert os.path.exists(os.path.join(tempdir, "manifest.json"))
 
     def _test_asset_export_modes(self, ctx):
         for legacy in [True, False]:
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(export__local, path=tempdir, assets="none", legacy=legacy)
 
-                path_1 = os.path.join(tempdir, "regular", "data")
-                assert os.path.exists(path_1) and os.path.isdir(path_1)
-
-                #  assets="none" so no assets should be exported
-                path_1 = os.path.join(tempdir, "regular", "assets")
-                assert not os.path.exists(path_1)
+                assert os.path.exists(os.path.join(tempdir, "database.zip"))
+                assert not os.path.exists(os.path.join(tempdir, "assets"))
 
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(
                     export__local, path=tempdir, assets="experiment", legacy=legacy
                 )
 
-                path = os.path.join(tempdir, "regular", "assets")
+                path = os.path.join(tempdir, "assets")
                 assert os.path.exists(path) and os.path.isdir(path)
 
                 assert os.path.exists(
-                    os.path.join(
-                        tempdir, "regular", "assets", "common", "test_personal_asset"
-                    )
+                    os.path.join(tempdir, "assets", "common", "test_personal_asset")
                 )
-                assert not os.path.exists(
-                    os.path.join(
-                        tempdir, "anonymous", "assets", "common", "test_personal_asset"
-                    )
+                assert os.path.exists(
+                    os.path.join(tempdir, "assets", "common", "test_public_asset")
                 )
                 assert not os.path.exists(
                     os.path.join(
                         tempdir,
-                        "regular",
                         "assets",
                         "common",
                         "test_external_asset.wav",
                     )
                 )
                 assert not os.path.exists(
-                    os.path.join(
-                        tempdir, "regular", "assets", "common", "test_on_demand_asset"
-                    )
+                    os.path.join(tempdir, "assets", "common", "test_on_demand_asset")
                 )
 
             with tempfile.TemporaryDirectory() as tempdir:
-                # We use legacy here, because it's an isolated test
                 ctx.invoke(export__local, path=tempdir, assets="all", legacy=legacy)
                 assert os.path.exists(
-                    os.path.join(
-                        tempdir, "regular", "assets", "common", "test_personal_asset"
-                    )
+                    os.path.join(tempdir, "assets", "common", "test_personal_asset")
                 )
                 assert os.path.exists(
                     os.path.join(
                         tempdir,
-                        "regular",
                         "assets",
                         "common",
                         "test_external_asset.wav",
                     )
-                )  # now we have this
+                )
                 assert os.path.exists(
-                    os.path.join(
-                        tempdir, "regular", "assets", "common", "test_on_demand_asset"
-                    )
-                )  # and this
+                    os.path.join(tempdir, "assets", "common", "test_on_demand_asset")
+                )
 
-    def assert_regular_database_zip(self, path):
+    def assert_database_zip(self, path):
         import pandas as pd
 
-        archive = zipfile.ZipFile(
-            path,
-            "r",
-        )
+        archive = zipfile.ZipFile(path, "r")
 
         files = [f.filename for f in archive.filelist]
-        assert "data/experiment.csv" in files
+        assert "data/participant.csv" in files
         assert "data/response.csv" in files
         assert "data/network.csv" in files
+        assert "data/trial.csv" in files
 
         with archive.open("data/asset.csv") as f:
             asset_csv = pd.read_csv(f)
@@ -235,51 +188,17 @@ class TestAssetExport:
         with archive.open("data/participant.csv") as f:
             participant_csv = pd.read_csv(f)
 
+        # Pseudonyms replace recruiter worker IDs inside the zip.
         assert all(
-            len(id_) > 5 for id_ in participant_csv.worker_id
-        )  # All participants should have their worker IDs
-
-    def assert_anonymous_database_zip(self, path):
-        import pandas as pd
-
-        archive = zipfile.ZipFile(
-            path,
-            "r",
+            str(id_) == str(pid)
+            for id_, pid in zip(participant_csv.worker_id, participant_csv.id)
         )
 
-        files = [f.filename for f in archive.filelist]
-        assert "data/experiment.csv" in files
-        assert "data/response.csv" in files
-        assert "data/network.csv" in files
-
-        with archive.open("data/asset.csv") as f:
-            asset_csv = pd.read_csv(f)
-
-        assert asset_csv.shape[0] >= 2  # There should still be quite a few assets
-
-        with archive.open("data/participant.csv") as f:
-            participant_csv = pd.read_csv(f)
-
-        # Worker IDs should now be scrubbed and replaced with integers counting upwards from 1
-        # (so their string representation is going to be shorter than 3 characters long)
-        assert all(len(str(id_)) < 3 for id_ in participant_csv.worker_id)
-
-    def assert_regular_data(self, path):
+    def assert_identifier_sidecar(self, path):
         import pandas as pd
 
-        bots = pd.read_csv(os.path.join(path, "Bot.csv"))
-
-        assert bots.shape[0] > 0
-        assert all(bots.type == "Bot")
-        assert "creation_time" in bots
-        assert "worker_id" in bots
-
-    def assert_anonymous_data(self, path):
-        import pandas as pd
-
-        bots = pd.read_csv(os.path.join(path, "Bot.csv"))
-
-        assert bots.shape[0] > 0
-        assert all(bots.type == "Bot")
-        assert "creation_time" in bots
-        assert "worker_id" not in bots  # Anonymous data has worker_id scrubbed
+        sidecar = pd.read_csv(path)
+        assert "participant_id" in sidecar.columns
+        assert "worker_id" in sidecar.columns
+        assert sidecar.shape[0] >= 1
+        assert all(len(str(id_)) > 5 for id_ in sidecar.worker_id)

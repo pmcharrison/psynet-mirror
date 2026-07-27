@@ -20,21 +20,19 @@ class _ExportProfile:
     """Configuration for one reproducible local export benchmark."""
 
     n_bots: int
-    expected_csv_rows: tuple[tuple[str, int], ...]
+    expected_table_rows: tuple[tuple[str, int], ...]
 
 
 _EXPORT_PROFILES = {
     "static_big_single_bot": _ExportProfile(
         n_bots=1,
-        expected_csv_rows=(
-            ("AnimalTrial", 4),
-            ("Bot", 1),
-            ("ChainTrialMakerState", 1),
-            ("ExperimentConfig", 1),
-            ("Request", 11),
-            ("Response", 5),
-            ("StaticNetwork", 2_000),
-            ("StaticNode", 2_000),
+        expected_table_rows=(
+            ("trial", 4),
+            ("participant", 1),
+            ("request", 11),
+            ("response", 5),
+            ("network", 2_000),
+            ("node", 2_000),
         ),
     ),
 }
@@ -120,8 +118,6 @@ def _time_local_export(export_path: Path) -> float:
             "--legacy",
             "--assets",
             "none",
-            "--anonymize",
-            "no",
             "--no-source",
             "--path",
             str(export_path),
@@ -140,37 +136,48 @@ def _count_csv_rows(path: Path) -> int:
         return sum(1 for _ in reader)
 
 
-def _csv_row_counts(data_dir: Path) -> dict[str, int]:
-    """Return exported row counts keyed by CSV filename stem."""
+def _zip_table_row_counts(database_zip: Path) -> dict[str, int]:
+    """Return exported row counts keyed by physical table name."""
 
-    return {
-        path.stem: _count_csv_rows(path) for path in sorted(data_dir.glob("*.csv"))
-    }
+    import zipfile
+
+    counts: dict[str, int] = {}
+    with zipfile.ZipFile(database_zip, "r") as archive:
+        for member in archive.namelist():
+            if not member.startswith("data/") or not member.endswith(".csv"):
+                continue
+            table = Path(member).stem
+            with archive.open(member) as handle:
+                # Text mode wrapper for csv.reader
+                text = handle.read().decode("utf-8").splitlines()
+                reader = csv.reader(text)
+                next(reader, None)
+                counts[table] = sum(1 for _ in reader)
+    return counts
 
 
 def _summarize_export(
     export_path: Path,
     export_time_s: float,
-    expected_csv_rows: tuple[tuple[str, int], ...],
+    expected_table_rows: tuple[tuple[str, int], ...],
 ) -> dict[str, float | int]:
-    """Summarize the files created by a legacy export."""
+    """Summarize the files created by a canonical export."""
 
-    data_dir = export_path / "regular" / "data"
-    csv_row_counts = _csv_row_counts(data_dir)
-    expected = dict(expected_csv_rows)
-    if csv_row_counts != expected:
+    database_zip = export_path / "database.zip"
+    table_row_counts = _zip_table_row_counts(database_zip)
+    expected = dict(expected_table_rows)
+    actual = {table: table_row_counts.get(table, 0) for table in expected}
+    if actual != expected:
         raise RuntimeError(
             "Export benchmark fixture shape changed. "
-            f"Expected CSV rows {expected}, got {csv_row_counts}. "
+            f"Expected table rows {expected}, got {actual}. "
             "Update the fixture expectations and benchmark version if intentional."
         )
 
-    database_zip = export_path / "regular" / "database.zip"
-
     return {
         "export_time_s": export_time_s,
-        "data_csv_count": len(csv_row_counts),
-        "data_row_count": sum(csv_row_counts.values()),
+        "data_csv_count": len(table_row_counts),
+        "data_row_count": sum(table_row_counts.values()),
         "database_zip_size_bytes": database_zip.stat().st_size,
     }
 
@@ -183,7 +190,7 @@ def _run_local_export_benchmark(profile: _ExportProfile) -> dict[str, float | in
         _populate_local_experiment(profile.n_bots)
         export_time_s = _time_local_export(export_path)
         return _summarize_export(
-            export_path, export_time_s, profile.expected_csv_rows
+            export_path, export_time_s, profile.expected_table_rows
         )
 
 

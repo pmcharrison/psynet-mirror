@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 from ..utils import get_logger
-from .main import Trial
 
 logger = get_logger()
 
@@ -52,8 +51,6 @@ class StaticTrial(ChainTrial):
     block
         The block in which the trial is situated.
     """
-
-    __extra_vars__ = Trial.__extra_vars__.copy()
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError

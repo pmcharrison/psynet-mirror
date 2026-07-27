@@ -7,7 +7,6 @@ from psynet.data import SQLBase, SQLMixin, register_table
 @register_table
 class ErrorRecord(SQLBase, SQLMixin):
     __tablename__ = "error"
-    __extra_vars__ = {}
 
     # Remove default SQL columns
     failed = None

@@ -270,7 +270,6 @@ class Trial(SQLBase, SQLMixin, AssetParentMixin):
 
     # pylint: disable=unused-argument
     __tablename__ = "trial"
-    __extra_vars__ = SQLMixin.__extra_vars__.copy()
 
     # Unused SharedMixin columns inherited via SQLMixin.
     property1 = None
@@ -2677,10 +2676,6 @@ class TrialNetwork(SQLMixinDallinger, Network, AssetParentMixin):
         method to run after the network is grown.
     """
 
-    __extra_vars__ = {
-        **SQLMixinDallinger.__extra_vars__.copy(),
-    }
-
     def __repr__(self):
         return ("<Network-{}-{} with {} nodes>").format(
             self.id, self.type, len(self.alive_nodes)
@@ -2854,10 +2849,6 @@ class TrialNetwork(SQLMixinDallinger, Network, AssetParentMixin):
 
 
 class TrialNode(SQLMixinDallinger, dallinger.models.Node, AssetParentMixin):
-    __extra_vars__ = {
-        **SQLMixinDallinger.__extra_vars__.copy(),
-    }
-
     trial_maker_id = Column(String, index=True)
     module_id = Column(String, index=True)
     module_state_id = Column(Integer, ForeignKey("module_state.id"), index=True)

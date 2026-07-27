@@ -481,8 +481,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     css = []
     css_links = []
 
-    __extra_vars__ = {}
-
     variables = {}
 
     def __init__(self, **kwargs):
@@ -3340,7 +3338,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config=None,
         n_parallel=None,
         psynet_export: bool = True,
-        anonymize: str = "no",
         **kwargs,
     ):
         if config is None:
@@ -3356,24 +3353,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 username=config.get("dashboard_user"),
                 password=config.get("dashboard_password"),
                 assets=kwargs.get("assets"),
-                anonymize=anonymize,
                 legacy=True,
             )
         else:
-            if anonymize == "both":
-                scrub_pii = [True, False]
-            elif anonymize == "yes":
-                scrub_pii = [True]
-            elif anonymize == "no":
-                scrub_pii = [False]
-            else:
-                raise ValueError("anonymize must be 'yes' or 'no' or 'both'")
-            for scrub in scrub_pii:
-                folder_name = "anonymized" if scrub else "regular"
-                sub_dir = os.path.join(export_dir, folder_name)
-                os.makedirs(sub_dir, exist_ok=True)
-                with working_directory(sub_dir):
-                    dallinger.data.export("app", local=True, scrub_pii=scrub)
+            from .export import export_database_snapshot
+
+            export_database_snapshot(export_dir)
         zip_filename = "psynet" if psynet_export else "database"
         zip_name = shutil.make_archive(zip_filename, "zip", export_dir)
         exp = get_experiment()
@@ -3391,7 +3376,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def _download_export(
-        anonymize: str,
         export_type: str,  # can be "database" or "psynet"
         **kwargs,
     ):
@@ -3404,7 +3388,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             zip_filepath = exp._export(
                 tempdir,
                 config=config,
-                anonymize=anonymize,
                 psynet_export=psynet_export,
                 **kwargs,
             )
@@ -3440,31 +3423,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return error_response(error_text="Invalid credentials", simple=True)
 
         kwargs = dict(request.args)
-        anonymize = kwargs.pop("anonymize", "no")
+        kwargs.pop("anonymize", None)  # deprecated
         export_type = kwargs.pop("type", "database")
 
         exp = get_experiment()
-        return exp._download_export(anonymize, export_type, **kwargs)
+        return exp._download_export(export_type, **kwargs)
 
     @dashboard.route("/export/trigger", methods=["GET"])
     @staticmethod
     @with_transaction
     def trigger_export():
         kwargs = dict(request.args)
-        anonymize = kwargs.pop("anonymize", "no")
+        kwargs.pop("anonymize", None)  # deprecated
         export_type = kwargs.pop("type", "database")
         assets = kwargs.get("assets", "none")
 
         # We just call _download_export for the side effect of uploading the export to the storage service.
         exp = get_experiment()
         exp._download_export(
-            anonymize=anonymize,
             export_type=export_type,
             assets=assets,
         )
 
         return success_response(
-            anonymize=anonymize,
             export_type=export_type,
             assets=assets,
         )

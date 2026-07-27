@@ -2284,8 +2284,6 @@ class Response(_Response):
         allowing the participant to advance to the next page.
     """
 
-    __extra_vars__ = {}
-
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",

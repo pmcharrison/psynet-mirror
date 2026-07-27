@@ -20,8 +20,13 @@ Exporting data from the dashboard
 =================================
 
 The 'export' section of the dashboard allows you to export data from the database.
-It is possible to customize the nature of the export in various ways,
-for example concerning anonymization and the inclusion of assets.
+You can choose whether to include assets and whether to download a full PsyNet export
+or only the database snapshot.
+
+Exports use *identifier separation*: ``database.zip`` contains pseudonymous participant
+identifiers so the archive remains loadable, while original recruiter identifiers are
+written beside it in ``participant_identifiers.csv``. This is not anonymization of assets,
+free text, logs, or experiment-defined basic data.
 
 Exporting data from the command line
 ====================================
@@ -37,7 +42,20 @@ using a virtual environment with the same dependencies as the deployed experimen
     psynet export heroku --app my-app-name
 
 The data is saved by default to ``~/psynet-data/export``.
-The organization of exports and the naming of the files is still under discussion and development.
+A typical export directory looks like this:
+
+.. code-block:: text
+
+    export/
+    ├── database.zip
+    ├── participant_identifiers.csv
+    ├── lucid_entrant_identifiers.csv   # Lucid experiments only
+    ├── manifest.json
+    ├── basic_data.json OR basic_data/  # optional
+    ├── assets/                         # optional
+    ├── source_code.zip                 # optional
+    └── logs.jsonl                      # SSH exports when available
+
 If you want to choose your own export location, use the ``--path`` argument:
 
 .. code:: bash
@@ -51,6 +69,9 @@ This can slow down data export if you have many files. You can disable this beha
 
     psynet export ssh --app my-app-name --assets none
 
+Selected assets are exported regardless of whether they were marked personal.
+Identifier separation applies to database tables only.
+
 By default the export command will also try to export the experiment's source code.
 If you experience an error during source code exporting, we recommend using the ``--no-source`` argument:
 
@@ -58,21 +79,26 @@ If you experience an error during source code exporting, we recommend using the 
 
     psynet export ssh --app my-app-name --no-source
 
-The ``--legacy`` argument uses an older export method that only downloads the database snapshot
-and processes it locally, rather than using the dashboard export method (which also saves a backup).
-This can be useful if you encounter troubles with the default export method:
+The ``--legacy`` argument processes the export locally instead of downloading from the
+dashboard (which also saves a backup). This can be useful if you encounter troubles with
+the default export method:
 
 .. code:: bash
 
     psynet export ssh --app my-app-name --legacy
 
 
-Anonymization
-=============
+Identifier separation
+=====================
 
-When anonymization is selected, certain personally identifying columns are removed from the exported data.
-By default, this means removing the 'worker_id' column from the participants table.
-Depending on your experiment design, you may want to anonymize other columns as well.
+``database.zip`` replaces direct recruiter identifiers with pseudonyms so that database
+constraints remain satisfied and the archive can be loaded with ``psynet load``.
+Original identifiers are available in ``participant_identifiers.csv``, keyed by
+``participant_id``. Lucid experiments also write ``lucid_entrant_identifiers.csv``.
+
+PsyNet does not inspect assets, free-text answers, logs, serialized variables, or
+experiment-defined basic data for identifying content. Treat those as potentially
+identifying unless you have scrubbed them yourself.
 
 Assets
 ======
@@ -86,13 +112,10 @@ Export data types
 
 Several types of data can be exported during the export process. They each have different functions.
 
-The **database snapshot** is a raw copy of the database at a given time.
-It is useful for restoring experiments from a specific state;
-however, it is less human-readable than some of the other export types.
-
-The **data files** are created by reorganizing and reformatting the database snapshot,
-grouping data by object type, unpacking JSON columns into separate columns, etc.
-They are typically a similar size to the database snapshot.
+The **database snapshot** is a portable copy of the physical database tables at a given time
+(``database.zip`` plus identifier sidecars and ``manifest.json``).
+It is useful for restoring experiments from a specific state and for analysis that reads
+table CSVs directly.
 
 The **basic data files** are a minimal set of data files that provide the essential information for downstream analysis.
 They are only present if the experimenter has implemented the ``get_basic_data`` method in their experiment class.
@@ -106,6 +129,28 @@ as they may contain confidential information.
 
 A 'PsyNet full export' combines together all of the above types of data.
 This is the default export type.
+
+Analysing database.zip
+======================
+
+PsyNet provides helpers for reading the canonical snapshot without reconstructing an
+older class-based CSV layout:
+
+.. code:: python
+
+    from psynet.export import (
+        load_export_table,
+        merge_participant_identifiers,
+        unpack_json_column,
+    )
+
+    trials = load_export_table("database.zip", "trial")
+    trials = unpack_json_column(trials, "definition", prefix="definition_")
+    participants = load_export_table("database.zip", "participant")
+    participants = merge_participant_identifiers(
+        participants.rename(columns={"id": "participant_id"}),
+        "participant_identifiers.csv",
+    )
 
 More about basic data
 =====================
@@ -175,33 +220,9 @@ For example:
             "participant": pd.DataFrame.from_records(participants),
         }
 
-Anonymization in basic data
------------------------------
-
-When exporting data, PsyNet calls ``get_basic_data()`` with an ``anonymize`` keyword argument
-(``True`` or ``False``) indicating whether anonymized data should be returned.
-You can use this parameter to conditionally exclude or modify sensitive information in your basic data.
-
-For example, you might exclude participant IDs or other personally identifying information when ``anonymize=True``:
-
-.. code:: python
-
-    @classmethod
-    def get_basic_data(cls, context=None, anonymize=False, **kwargs):
-        import pandas as pd
-
-        trials = [
-            {
-                "id": trial.id,
-                "participant_id": trial.participant_id if not anonymize else None,
-                "animal": trial.definition.get("animal"),
-                "answer": trial.answer,
-            }
-            for trial in StaticTrial.query.all()
-        ]
-        return {
-            "trial": pd.DataFrame.from_records(trials),
-        }
+PsyNet does not automatically anonymize or otherwise reinterpret experiment-defined
+basic data. If you need to omit identifiers from a public release of basic data, do
+that explicitly in your ``get_basic_data`` implementation.
 
 Accessing basic data via the dashboard
 --------------------------------------

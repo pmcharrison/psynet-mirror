@@ -86,8 +86,6 @@ class GraphChainNetwork(ChainNetwork):
 
     """
 
-    __extra_vars__ = ChainNetwork.__extra_vars__.copy()
-
     vertex_id = Column(Integer)
     source_seed = Column(PythonObject)
 
@@ -204,8 +202,6 @@ class GraphChainNode(ChainNode):
         The id of the vertex that the network is representing within the graph.
 
     """
-
-    __extra_vars__ = ChainNode.__extra_vars__.copy()
 
     def __init__(
         self,

@@ -1,5 +1,4 @@
 import shutil
-from glob import glob
 from pathlib import Path
 
 import pytest
@@ -19,12 +18,10 @@ def test_simulate():
     print(result.output)
     assert result.exit_code == 0
 
-    print("Contents of data/simulated_data:")
-    for path in glob("data/simulated_data/**", recursive=True):
-        print(path)
-
     assert Path("data/simulated_data").exists()
-    assert Path("data/simulated_data/regular/data/AnimalTrial.csv").exists()
+    assert Path("data/simulated_data/database.zip").exists()
+    assert Path("data/simulated_data/participant_identifiers.csv").exists()
+    assert Path("data/simulated_data/manifest.json").exists()
 
 
 @pytest.fixture

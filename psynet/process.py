@@ -34,7 +34,6 @@ logger = get_logger()
 @register_table
 class AsyncProcess(SQLBase, SQLMixin):
     __tablename__ = "process"
-    __extra_vars__ = SQLMixin.__extra_vars__.copy()
 
     label = Column(String)
     function = Column(PythonObject)

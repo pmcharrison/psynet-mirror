@@ -4,7 +4,6 @@ import io
 import os
 import shutil
 import tempfile
-from datetime import datetime
 from typing import List, Optional
 from zipfile import ZipFile
 
@@ -35,7 +34,6 @@ from dallinger.utils import classproperty
 from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
@@ -45,11 +43,10 @@ from sqlalchemy.schema import (
     MetaData,
     Table,
 )
-from tqdm import tqdm
 
 from . import field
 from .field import PythonDict, is_basic_type
-from .utils import json_to_data_frame, organize_by_key
+from .utils import organize_by_key
 
 
 def get_db_tables():
@@ -172,121 +169,11 @@ def _get_preferred_superclass_version(cls):
     return cls
 
 
-def _db_instance_to_dict(obj, scrub_pii: bool):
-    """
-    Converts an ORM-mapped instance to a JSON-style representation.
-    Complex types (e.g. lists, dicts) are serialized to strings using
-    psynet.serialize.serialize.
-
-    Parameters
-    ----------
-    obj
-        Object to convert.
-
-    scrub_pii
-        Whether to remove personally identifying information.
-
-    Returns
-    -------
-
-    JSON-style dictionary
-
-    """
-    try:
-        data = obj.to_dict()
-    except AttributeError:
-        data = obj.__json__()
-    if "class" not in data:
-        data["class"] = obj.__class__.__name__  # for the Dallinger classes
-    if scrub_pii and hasattr(obj, "scrub_pii"):
-        data = obj.scrub_pii(data)
-    for key, value in data.items():
-        if isinstance(value, datetime):
-            data[key] = value.strftime("%Y-%m-%d %H:%M:%S")
-            continue
-        if isinstance(value, MutableDict):
-            data[key] = dict(value)
-            continue
-        if isinstance(value, MutableList):
-            data[key] = list(value)
-            continue
-        if not is_basic_type(value):
-            from .serialize import serialize
-
-            data[key] = serialize(value)
-    return data
-
-
-def _prepare_db_export(scrub_pii: bool):
-    """
-    Encodes the database to a JSON-style representation suitable for export.
-
-    Parameters
-    ----------
-
-    scrub_pii
-        Whether to remove personally identifying information.
-
-    Returns
-    -------
-
-    A dictionary keyed by class names with lists of JSON-style
-    encoded class instances as values.
-    The keys correspond to the most-specific available class names,
-    e.g. ``CustomNetwork`` as opposed to ``Network``.
-    """
-    from psynet.experiment import get_experiment
-
-    exp = get_experiment()
-    tables = get_db_tables().values()
-
-    obj_sql_by_table = [exp.pull_table(table) for table in tables]
-    obj_sql = [obj for sublist in obj_sql_by_table for obj in sublist]
-    obj_sql_by_cls = organize_by_key(obj_sql, key=lambda x: x.__class__.__name__)
-
-    obj_dict_by_cls = {
-        _cls_name: [
-            _db_instance_to_dict(obj, scrub_pii)
-            for obj in tqdm(_obj_sql_for_cls, desc=_cls_name)
-        ]
-        for _cls_name, _obj_sql_for_cls in obj_sql_by_cls.items()
-        if _cls_name not in exp.export_classes_to_skip
-    }
-    return obj_dict_by_cls
-
-
 def copy_db_table_to_csv(tablename, path):
-    # TODO - improve naming of copy_db_table_to_csv and dump_db_to_disk to clarify
-    # that the former is a Dallinger export and the latter is a PsyNet export
     with tempfile.TemporaryDirectory() as tempdir:
         dallinger.data.copy_db_to_csv(db.db_url, tempdir)
         temp_filename = f"{tablename}.csv"
         shutil.copyfile(os.path.join(tempdir, temp_filename), path)
-
-
-def dump_db_to_disk(dir, scrub_pii: bool):
-    """
-    Exports all database objects to JSON-style dictionaries
-    and writes them to CSV files, one for each class type.
-
-    Parameters
-    ----------
-
-    dir
-        Directory to which the CSV files should be exported.
-
-    scrub_pii
-        Whether to remove personally identifying information.
-    """
-    from .utils import make_parents
-
-    objects_by_class = _prepare_db_export(scrub_pii)
-
-    for cls, objects in objects_by_class.items():
-        filename = cls + ".csv"
-        filepath = os.path.join(dir, filename)
-        with open(make_parents(filepath), "w") as file:
-            json_to_data_frame(objects).to_csv(file, index=False)
 
 
 class InvalidDefinitionError(ValueError):
@@ -322,7 +209,6 @@ class SQLMixinDallinger(SharedMixin):
     polymorphic_identity = (
         None  # set this to a string if you want to customize your polymorphic identity
     )
-    __extra_vars__ = {}
 
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls)
@@ -350,8 +236,7 @@ class SQLMixinDallinger(SharedMixin):
 
     def to_dict(self):
         """
-        Determines the information that is shown for this object in the dashboard
-        and in the csv files generated by ``psynet export``.
+        Determines the information that is shown for this object in the dashboard.
         """
         from psynet.trial import ChainNode
         from psynet.trial.main import GenericTrialNode
@@ -374,7 +259,6 @@ class SQLMixinDallinger(SharedMixin):
         base_class = get_sql_base_class(self)
         x["object_type"] = base_class.__name__ if base_class else x["type"]
 
-        field.json_add_extra_vars(x, self)
         field.json_clean(x, details=True)
         field.json_format_vars(x)
 
@@ -895,7 +779,6 @@ dallinger.data.ingest_to_model = ingest_to_model
 
 def export_assets(
     path,
-    include_private: bool,
     experiment_assets_only: bool,
     include_on_demand_assets: bool,
     n_parallel=None,
@@ -916,11 +799,8 @@ def export_assets(
     else:
         from .asset import Asset as base_class
 
-    asset_query = db.session.query(base_class.id, base_class.personal)
-    if not include_private:
-        asset_query = asset_query.filter_by(personal=False)
-
-    asset_ids = [a.id for a in asset_query]
+    # Selected assets are exported regardless of the personal flag.
+    asset_ids = [a.id for a in db.session.query(base_class.id)]
 
     n_jobs = 1  # todo - fix - parallel (SSH?) export seems to cause a deadlock, so we disable it for now
     Parallel(

@@ -5,10 +5,9 @@
 
 <script>
     function exportData() {
-        let anonymize = $('input[name="anonymize"]:checked').val();
         let assets = $('input[name="assets"]:checked').val();
         let type = $('input[name="type"]:checked').val();
-        window.location.href = "/dashboard/export/download?anonymize=" + anonymize + "&assets=" + assets + "&type=" + type;
+        window.location.href = "/dashboard/export/download?assets=" + assets + "&type=" + type;
     }
 </script>
 {% endblock %}
@@ -28,29 +27,7 @@
 
 <div id="dashboard-participant">
     <div class="row">
-        <div class="col-3">
-            <b>Anonymize data</b>
-            <div class="form-check">
-                <input type="radio" id="input-anonymize-yes" class="form-check-input" name="anonymize" value="yes">
-                <label class="form-check-label" for="input-anonymize-yes">
-                    Yes
-                </label>
-            </div>
-            <div class="form-check">
-                <input type="radio" id="input-anonymize-no" class="form-check-input" name="anonymize" value="no">
-                <label class="form-check-label" for="input-anonymize-no">
-                    No
-                </label>
-            </div>
-            <div class="form-check">
-                <input type="radio" id="input-anonymize-both" class="form-check-input" name="anonymize" value="both"
-                       checked>
-                <label class="form-check-label" for="input-anonymize-both">
-                    Export both ways
-                </label>
-            </div>
-        </div>
-        <div class="col-3">
+        <div class="col-4">
             <b>Assets</b>
             <div class="form-check">
                 <input type="radio" id="input-assets-none" class="form-check-input" name="assets" value="none">
@@ -73,7 +50,7 @@
                 </label>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-4">
             <b>Type</b>
             <div class="form-check">
                 <input type="radio" id="input-type-psynet" class="form-check-input" name="type" value="psynet" checked>
@@ -90,6 +67,12 @@
             </div>
         </div>
     </div>
+    <p class="mt-3 mb-2">
+        Exports use identifier separation: <code>database.zip</code> contains pseudonymous
+        participant identifiers, and original recruiter identifiers are written beside it in
+        <code>participant_identifiers.csv</code>. This is not anonymization of assets, free text,
+        logs, or experiment-defined basic data.
+    </p>
         <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
     <div class="alert alert-info mt-3">
         If exporting via this button fails, we recommend trying instead to export via the command line, e.g.

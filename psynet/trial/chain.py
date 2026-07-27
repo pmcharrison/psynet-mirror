@@ -530,8 +530,6 @@ class ChainNode(TrialNode):
         i.e. all trials that have not failed.
     """
 
-    __extra_vars__ = TrialNode.__extra_vars__.copy()
-
     key = Column(String, index=True)
     degree = Column(Integer)
     target_n_trials = Column(Integer)
@@ -986,7 +984,6 @@ class ChainTrial(Trial):
     """
 
     # pylint: disable=abstract-method
-    __extra_vars__ = Trial.__extra_vars__.copy()
 
     participant_group = association_proxy("node", "participant_group")
     degree = association_proxy("node", "degree")
