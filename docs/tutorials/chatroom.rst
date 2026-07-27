@@ -182,7 +182,7 @@ The built-in ``ChatRoom`` uses the same separation between managed resources
 and configuration — see ``get_css``, ``get_js_vars``, and
 ``get_js_page_modules`` in ``psynet/chatroom.py``. PsyNet activates its widget
 script for each page and calls the returned cleanup function before leaving. See
-``psynet/resources/scripts/chatroom-widget.js`` for the WebSocket protocol,
+``psynet/static/scripts/chatroom-widget.js`` for the WebSocket protocol,
 message rendering, occupancy updates, and cleanup pattern.
 
 If you only need minor CSS changes (e.g. a different height or colour scheme)

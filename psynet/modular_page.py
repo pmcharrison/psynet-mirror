@@ -15,6 +15,7 @@ from markupsafe import Markup
 from .asset import Asset, LocalStorage
 from .bot import BotResponse
 from .chatroom import ChatRoom  # noqa: F401
+from .javascript_hooks import JavaScriptContributor
 from .static_resources import package_static_url
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
@@ -69,7 +70,7 @@ class Blob:
         return self.file
 
 
-class Prompt:
+class Prompt(JavaScriptContributor):
     """
     The ``Prompt`` class displays some kind of media to the participant,
     to which they will have to respond.
@@ -176,18 +177,6 @@ class Prompt:
         :class:`ModularPage` ``js_vars``.
         """
         return {}
-
-    def get_js_dependencies(self):
-        """JavaScript dependencies loaded once per browser document."""
-        return []
-
-    def get_js_page_modules(self):
-        """Lifecycle-managed JavaScript activated for each hosting page."""
-        return []
-
-    def get_js_page_code(self):
-        """Inline JavaScript activation code contributed to the hosting page."""
-        return []
 
     def _collect_spa_markup_contract_problems(self):
         if self.text_html is None:
@@ -671,7 +660,7 @@ class ColorPrompt(Prompt):
         return {"text": str(self.text), "hsl": self.hsl}
 
 
-class Control:
+class Control(JavaScriptContributor):
     """
     The ``Control`` class provides some kind of controls for the participant,
     with which they will provide their response.
@@ -766,18 +755,6 @@ class Control:
         See :meth:`Prompt.get_js_vars`.
         """
         return {}
-
-    def get_js_dependencies(self):
-        """JavaScript dependencies loaded once per browser document."""
-        return []
-
-    def get_js_page_modules(self):
-        """Lifecycle-managed JavaScript activated for each hosting page."""
-        return []
-
-    def get_js_page_code(self):
-        """Inline JavaScript activation code contributed to the hosting page."""
-        return []
 
     @property
     def media(self):

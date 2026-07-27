@@ -95,6 +95,22 @@ def test_page_validates_js_page_code(value, error, match):
         )
 
 
+@pytest.mark.parametrize(
+    "value, error, match",
+    [
+        (123, TypeError, r"\bscripts\b.*string, list, or tuple"),
+        ([123], TypeError, r"\bscripts\b.*entries must be strings"),
+        ([""], ValueError, r"\bscripts\b.*entries must be non-empty"),
+    ],
+)
+def test_page_validates_deprecated_scripts_argument(value, error, match):
+    with pytest.raises(error, match=match):
+        Page(
+            template_fragment_str="<p>Invalid legacy scripts</p>",
+            scripts=value,
+        )
+
+
 def test_page_supports_deprecated_javascript_arguments():
     with pytest.warns(FutureWarning) as warning_log:
         page = Page(

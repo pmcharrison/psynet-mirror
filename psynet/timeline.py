@@ -80,21 +80,21 @@ def _normalize_javascript_urls(urls, argument_name):
     return normalized
 
 
-def _normalize_js_page_code(code):
+def _normalize_js_page_code(code, argument_name="js_page_code"):
     """Validate and normalize inline page activation code."""
     if code is None:
         return []
     if isinstance(code, str):
         code = [code]
     elif not isinstance(code, (list, tuple)):
-        raise TypeError("js_page_code must be a string, list, or tuple.")
+        raise TypeError(f"{argument_name} must be a string, list, or tuple.")
 
     normalized = []
     for item in code:
         if not isinstance(item, str):
-            raise TypeError("js_page_code entries must be strings.")
+            raise TypeError(f"{argument_name} entries must be strings.")
         if not item.strip():
-            raise ValueError("js_page_code entries must be non-empty.")
+            raise ValueError(f"{argument_name} entries must be non-empty.")
         normalized.append(item)
     return normalized
 
@@ -1139,7 +1139,7 @@ class Page(Elt):
         super().__init__()
 
         legacy_js_links = _normalize_javascript_urls(js_links, "js_links")
-        legacy_scripts = _normalize_js_page_code(scripts)
+        legacy_scripts = _normalize_js_page_code(scripts, "scripts")
         if legacy_js_links:
             warnings.warn(
                 "js_links is deprecated; migrate to js_dependencies or "
@@ -1726,7 +1726,8 @@ class Page(Elt):
         # <script> tags are a supported pattern: PsyNet defers and replays them
         # across in-place transitions (see Page._make_embedded_scripts_inert). The
         # prohibition still applies to author-provided page/prompt/control
-        # templates, which should route page JavaScript through scripts/js_links.
+        # templates, which should route page JavaScript through
+        # js_dependencies, js_page_code, and js_page_modules.
         problems = []
         markup_source = markup_source or ""
         soup = BeautifulSoup(markup_source, "html.parser")
