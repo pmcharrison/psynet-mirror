@@ -2724,6 +2724,136 @@ def export_assets(
     )
 
 
+###########
+# assets  #
+###########
+
+
+@psynet.group("assets")
+def assets():
+    """Manage the local asset export cache and related utilities."""
+    pass
+
+
+@assets.group("cache")
+def assets_cache():
+    """Inspect and prune the local content-addressed asset cache."""
+    pass
+
+
+@assets_cache.command("info")
+@click.option(
+    "--cache-root",
+    default=None,
+    help="Override the default cache root directory.",
+)
+def assets_cache_info(cache_root):
+    """Print statistics about the local asset cache."""
+    from pathlib import Path
+
+    from .export.asset_cache import (
+        cache_size_bytes,
+        default_cache_root,
+        list_cached_objects,
+    )
+
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
+    objects = list_cached_objects(root)
+    total = cache_size_bytes(root)
+
+    click.echo(f"Cache root:      {root}")
+    click.echo(f"Cached objects:  {len(objects)}")
+    click.echo(f"Total size:      {_format_bytes(total)}")
+
+
+@assets_cache.command("list")
+@click.option(
+    "--cache-root",
+    default=None,
+    help="Override the default cache root directory.",
+)
+def assets_cache_list(cache_root):
+    """List the SHA-256 digests of all objects currently in the cache."""
+    from pathlib import Path
+
+    from .export.asset_cache import default_cache_root, list_cached_objects
+
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
+    objects = list_cached_objects(root)
+
+    if not objects:
+        click.echo("Cache is empty.")
+        return
+
+    for digest in objects:
+        click.echo(digest)
+
+
+@assets_cache.command("prune")
+@click.option(
+    "--all",
+    "prune_all",
+    is_flag=True,
+    help="Remove every cached object.",
+)
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Skip the confirmation prompt.",
+)
+@click.option(
+    "--cache-root",
+    default=None,
+    help="Override the default cache root directory.",
+)
+def assets_cache_prune(prune_all, yes, cache_root):
+    """Remove objects from the local asset cache.
+
+    Use --all to delete everything, or pass specific digests as arguments
+    (not yet implemented; use --all for now).
+    """
+    from pathlib import Path
+
+    from .export.asset_cache import (
+        default_cache_root,
+        list_cached_objects,
+        prune_cached_objects,
+    )
+
+    if not prune_all:
+        click.echo(
+            "Specify what to prune.  Currently --all is the only supported mode."
+        )
+        raise click.UsageError("Missing required option: --all")
+
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
+    objects = list_cached_objects(root)
+
+    if not objects:
+        click.echo("Cache is already empty.")
+        return
+
+    click.echo(f"This will remove {len(objects)} cached object(s) from {root}.")
+    if not yes:
+        click.confirm("Continue?", abort=True)
+
+    removed = prune_cached_objects(cache_root=root)
+    click.echo(f"Removed {len(removed)} cached object(s).")
+
+
+def _format_bytes(n: int) -> str:
+    """Return a human-readable byte-count string."""
+    if n < 1024:
+        return f"{n} B"
+    elif n < 1024**2:
+        return f"{n / 1024:.1f} KB"
+    elif n < 1024**3:
+        return f"{n / 1024 / 1024:.1f} MB"
+    else:
+        return f"{n / 1024 / 1024 / 1024:.2f} GB"
+
+
 @psynet.command()
 @click.option(
     "--ip",

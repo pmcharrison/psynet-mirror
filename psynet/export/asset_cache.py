@@ -1,0 +1,339 @@
+"""Persistent local cache for content-addressed asset objects.
+
+The cache lives at ``~/psynet-data/cache/assets`` and mirrors the
+``objects/sha256/<digest>`` layout used in export archives.  During each
+export run, managed assets whose SHA-256 digest is already known are
+served from the cache with a hardlink (or copy on different filesystems)
+rather than re-fetched from remote storage.  Only objects that are absent
+from the cache are fetched, verified, and placed atomically.
+
+Layout
+------
+::
+
+    ~/psynet-data/cache/assets/
+    └── objects/
+        └── sha256/
+            └── <hex-digest>          # file or directory
+
+Thread/process safety
+---------------------
+``ensure_object_in_cache`` writes to a temporary sibling path on the same
+filesystem as the final cache entry, then renames atomically.  A
+concurrent writer for the same digest is tolerated: the loser silently
+discards its temp copy if the target already exists after the rename.
+
+Maintainer notes
+----------------
+This module is intentionally free of PsyNet database / SQLAlchemy
+imports so it can be unit-tested without a running experiment.  Only
+``psynet.utils.sha256_directory`` is imported lazily (for directory
+hashing), to avoid circular imports at package load time.
+"""
+
+import hashlib
+import logging
+import os
+import shutil
+import tempfile
+from pathlib import Path
+from typing import Callable, List, Optional, Union
+
+logger = logging.getLogger(__name__)
+
+_DEFAULT_CACHE_ROOT: Path = Path("~/psynet-data/cache/assets").expanduser()
+
+
+def default_cache_root() -> Path:
+    """Return the default asset cache root (``~/psynet-data/cache/assets``)."""
+    return _DEFAULT_CACHE_ROOT
+
+
+def object_cache_path(
+    digest: str,
+    cache_root: Optional[Union[str, Path]] = None,
+) -> Path:
+    """Return the absolute path where ``digest`` lives in the cache.
+
+    Parameters
+    ----------
+    digest :
+        SHA-256 hex digest string.
+    cache_root :
+        Override the default cache root.  Expanded with
+        :func:`os.path.expanduser` when provided as a string.
+    """
+    root = _resolve_root(cache_root)
+    return root / "objects" / "sha256" / digest
+
+
+def ensure_object_in_cache(
+    digest: str,
+    fetch_fn: Callable[[str], None],
+    cache_root: Optional[Union[str, Path]] = None,
+    is_folder: bool = False,
+) -> Path:
+    """Guarantee that ``digest`` is present in the cache, fetching if absent.
+
+    The fetch is done into a temporary sibling path on the same filesystem as
+    the final cache entry so the rename is always atomic.  A
+    ``ValueError`` is raised if the fetched content does not match
+    ``digest``.
+
+    Parameters
+    ----------
+    digest :
+        Expected SHA-256 hex digest.
+    fetch_fn :
+        Callable that receives a destination path string and must write
+        the object's bytes to that path (file) or populate that directory
+        (folder).  Called only when the object is absent from the cache.
+    cache_root :
+        Override the default cache root.
+    is_folder :
+        ``True`` when the object is a directory tree rather than a file.
+
+    Returns
+    -------
+    Path
+        Absolute path to the cached object (file or directory).
+
+    Raises
+    ------
+    ValueError
+        When the fetched content's SHA-256 digest differs from ``digest``.
+    """
+    cache_path = object_cache_path(digest, cache_root)
+    if cache_path.exists():
+        return cache_path
+
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if is_folder:
+        _fetch_folder_to_cache(digest, fetch_fn, cache_path)
+    else:
+        _fetch_file_to_cache(digest, fetch_fn, cache_path)
+
+    return cache_path
+
+
+def link_or_copy(
+    src: Union[str, Path],
+    dest: Union[str, Path],
+    is_folder: bool = False,
+) -> None:
+    """Link ``src`` to ``dest``, falling back to copy on a different filesystem.
+
+    A hardlink shares the inode so the cache and the export refer to the
+    same on-disk bytes without duplication.  The fallback is
+    :func:`shutil.copy2` for files and :func:`shutil.copytree` for
+    directories.
+
+    Parameters
+    ----------
+    src :
+        Source path (must exist).
+    dest :
+        Destination path (must not exist; parent directory is created
+        automatically).
+    is_folder :
+        ``True`` when ``src`` is a directory.
+    """
+    src = Path(src)
+    dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+
+    if is_folder:
+        shutil.copytree(str(src), str(dest))
+        return
+
+    try:
+        os.link(str(src), str(dest))
+    except OSError:
+        shutil.copy2(str(src), str(dest))
+
+
+def list_cached_objects(
+    cache_root: Optional[Union[str, Path]] = None,
+) -> List[str]:
+    """Return a sorted list of SHA-256 digests present in the cache.
+
+    Parameters
+    ----------
+    cache_root :
+        Override the default cache root.
+    """
+    root = _resolve_root(cache_root)
+    objects_dir = root / "objects" / "sha256"
+    if not objects_dir.exists():
+        return []
+    return sorted(
+        entry.name
+        for entry in objects_dir.iterdir()
+        if not entry.name.startswith(".")
+    )
+
+
+def prune_cached_objects(
+    digests_to_keep: Optional[List[str]] = None,
+    cache_root: Optional[Union[str, Path]] = None,
+) -> List[str]:
+    """Remove cached objects that are not in ``digests_to_keep``.
+
+    Parameters
+    ----------
+    digests_to_keep :
+        When provided, only objects whose digest is **not** in this list
+        are deleted.  When ``None`` (the default), every cached object is
+        removed.
+    cache_root :
+        Override the default cache root.
+
+    Returns
+    -------
+    list of str
+        Sorted list of digests that were removed.
+    """
+    root = _resolve_root(cache_root)
+    objects_dir = root / "objects" / "sha256"
+    if not objects_dir.exists():
+        return []
+
+    keep: set = set(digests_to_keep) if digests_to_keep is not None else set()
+    removed: List[str] = []
+
+    for entry in objects_dir.iterdir():
+        if entry.name.startswith("."):
+            continue
+        if entry.name not in keep:
+            if entry.is_dir():
+                shutil.rmtree(str(entry))
+            else:
+                entry.unlink()
+            removed.append(entry.name)
+            logger.info("Pruned cached asset object: %s", entry.name)
+
+    return sorted(removed)
+
+
+def cache_size_bytes(cache_root: Optional[Union[str, Path]] = None) -> int:
+    """Return the total byte count of all objects in the cache.
+
+    Parameters
+    ----------
+    cache_root :
+        Override the default cache root.
+    """
+    root = _resolve_root(cache_root)
+    objects_dir = root / "objects" / "sha256"
+    if not objects_dir.exists():
+        return 0
+
+    total = 0
+    for entry in objects_dir.iterdir():
+        if entry.name.startswith("."):
+            continue
+        if entry.is_file():
+            total += entry.stat().st_size
+        elif entry.is_dir():
+            for p in entry.rglob("*"):
+                if p.is_file():
+                    total += p.stat().st_size
+    return total
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+
+def _resolve_root(cache_root: Optional[Union[str, Path]]) -> Path:
+    """Resolve a cache root argument to an absolute Path."""
+    if cache_root is None:
+        return default_cache_root()
+    return Path(os.path.expanduser(str(cache_root)))
+
+
+def _sha256_file(path: Union[str, Path]) -> str:
+    """Return SHA-256 hex digest of a file's bytes."""
+    h = hashlib.sha256()
+    with open(str(path), "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _sha256_directory(directory: Union[str, Path]) -> str:
+    """Return SHA-256 hex digest of a directory (names + contents)."""
+    from psynet.utils import sha256_directory
+
+    return sha256_directory(directory)
+
+
+def _fetch_file_to_cache(
+    digest: str,
+    fetch_fn: Callable[[str], None],
+    cache_path: Path,
+) -> None:
+    """Fetch a file object into ``cache_path`` via a verified atomic write."""
+    parent = cache_path.parent
+    # Write to a temp file on the same filesystem to ensure atomic rename.
+    fd, tmp_str = tempfile.mkstemp(dir=parent, prefix=".partial-")
+    tmp_path = Path(tmp_str)
+    try:
+        os.close(fd)
+        # Remove the placeholder so fetch_fn can write a fresh file.
+        tmp_path.unlink()
+        fetch_fn(str(tmp_path))
+        actual = _sha256_file(tmp_path)
+        if actual != digest:
+            raise ValueError(
+                f"Digest mismatch for cached asset: expected {digest!r}, got {actual!r}"
+            )
+        try:
+            os.replace(str(tmp_path), str(cache_path))
+        except OSError:
+            if cache_path.exists():
+                # Race: another process won the rename.
+                tmp_path.unlink(missing_ok=True)
+            else:
+                raise
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
+
+def _fetch_folder_to_cache(
+    digest: str,
+    fetch_fn: Callable[[str], None],
+    cache_path: Path,
+) -> None:
+    """Fetch a folder object into ``cache_path`` via a verified atomic move.
+
+    ``fetch_fn`` is called with a path that does **not** yet exist; the
+    function must create the directory and populate it.  This matches the
+    convention used by :func:`shutil.copytree` and PsyNet's own
+    ``Asset.export()`` for folder assets.
+    """
+    parent = cache_path.parent
+    # Use a unique sibling path on the same filesystem (no pre-creation so
+    # fetch_fn can create the directory itself via shutil.copytree, etc.).
+    tmp_dir = parent / f".partial-{os.urandom(8).hex()}"
+    try:
+        fetch_fn(str(tmp_dir))
+        actual = _sha256_directory(tmp_dir)
+        if actual != digest:
+            raise ValueError(
+                f"Digest mismatch for cached asset folder: expected {digest!r}, got {actual!r}"
+            )
+        try:
+            os.rename(str(tmp_dir), str(cache_path))
+        except OSError:
+            if cache_path.exists():
+                # Race: another process won the rename.
+                shutil.rmtree(str(tmp_dir), ignore_errors=True)
+            else:
+                raise
+    except Exception:
+        shutil.rmtree(str(tmp_dir), ignore_errors=True)
+        raise

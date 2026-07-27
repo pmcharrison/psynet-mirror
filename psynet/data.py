@@ -910,9 +910,16 @@ def export_assets(
 
 
 def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
-    """Export one asset's bytes into the content-addressed objects tree."""
+    """Export one asset's bytes into the content-addressed objects tree.
+
+    For managed assets with a known SHA-256 digest the local cache at
+    ``~/psynet-data/cache/assets`` is consulted first; only objects absent
+    from the cache are fetched from storage.  Cached objects are linked into
+    the export directory (hardlink when possible, copy otherwise).
+    """
     from .asset import Asset, ExternalAsset, OnDemandAsset
     from .experiment import import_local_experiment
+    from .export.asset_cache import ensure_object_in_cache, link_or_copy
     from .utils import content_object_path, make_parents, sha256_directory, sha256_file
 
     if server is None:
@@ -944,51 +951,82 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
                     temp_path = os.path.join(tempdir, f"asset{suffix}")
                     a.export(temp_path)
                     digest = sha256_file(temp_path)
+
                 object_rel = content_object_path(digest)
                 dest = os.path.join(assets_root, object_rel)
                 if not os.path.exists(dest):
+                    # Place into cache (re-hash verifies integrity) then link.
+                    cache_path = ensure_object_in_cache(
+                        digest,
+                        _make_copy_fn(temp_path, a.is_folder),
+                        is_folder=a.is_folder,
+                    )
                     make_parents(dest)
-                    if a.is_folder:
-                        shutil.copytree(temp_path, dest)
-                    else:
-                        shutil.copyfile(temp_path, dest)
+                    link_or_copy(cache_path, dest, is_folder=a.is_folder)
                 a.sha256_contents = digest
                 a.object_path = object_rel
                 db.session.commit()
             return
 
-        object_rel = a.object_path or (
-            content_object_path(a.sha256_contents) if a.sha256_contents else None
-        )
-        if not object_rel:
-            # Fall back to exporting via storage then hashing.
-            with tempfile.TemporaryDirectory() as tempdir:
-                suffix = a.extension if a.extension else ""
-                temp_path = os.path.join(tempdir, f"asset{suffix}")
-                a.export(temp_path, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
-                digest = (
-                    sha256_directory(temp_path)
-                    if a.is_folder
-                    else sha256_file(temp_path)
-                )
-                object_rel = content_object_path(digest)
-                dest = os.path.join(assets_root, object_rel)
-                if not os.path.exists(dest):
-                    make_parents(dest)
-                    if a.is_folder:
-                        shutil.copytree(temp_path, dest)
-                    else:
-                        shutil.copyfile(temp_path, dest)
-                a.sha256_contents = digest
+        if a.sha256_contents:
+            # Fast path: digest is known; consult the cache before fetching.
+            digest = a.sha256_contents
+            cache_path = ensure_object_in_cache(
+                digest,
+                lambda p: a.export(
+                    p, ssh_host=ssh_host, ssh_user=ssh_user, local=local
+                ),
+                is_folder=bool(a.is_folder),
+            )
+            object_rel = content_object_path(digest)
+            dest = os.path.join(assets_root, object_rel)
+            if not os.path.exists(dest):
+                make_parents(dest)
+                link_or_copy(cache_path, dest, is_folder=bool(a.is_folder))
+            if not a.object_path:
                 a.object_path = object_rel
                 db.session.commit()
             return
 
-        dest = os.path.join(assets_root, object_rel)
-        if os.path.exists(dest):
-            return
-        make_parents(dest)
-        a.export(dest, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
+        # Slow path: no digest known yet — export to a temp location, hash,
+        # place in cache, then link into the export tree.
+        with tempfile.TemporaryDirectory() as tempdir:
+            suffix = a.extension if a.extension else ""
+            temp_path = os.path.join(tempdir, f"asset{suffix}")
+            a.export(temp_path, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
+            digest = (
+                sha256_directory(temp_path) if a.is_folder else sha256_file(temp_path)
+            )
+            object_rel = content_object_path(digest)
+            cache_path = ensure_object_in_cache(
+                digest,
+                _make_copy_fn(temp_path, bool(a.is_folder)),
+                is_folder=bool(a.is_folder),
+            )
+            dest = os.path.join(assets_root, object_rel)
+            if not os.path.exists(dest):
+                make_parents(dest)
+                link_or_copy(cache_path, dest, is_folder=bool(a.is_folder))
+            a.sha256_contents = digest
+            a.object_path = object_rel
+            db.session.commit()
     except Exception:
         print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise
+
+
+def _make_copy_fn(src_path: str, is_folder: bool):
+    """Return a fetch_fn that copies ``src_path`` to a destination path.
+
+    Used as the ``fetch_fn`` argument to
+    :func:`~psynet.export.asset_cache.ensure_object_in_cache` when the
+    content has already been materialized locally.
+    """
+
+    def _fn(dest_path: str) -> None:
+        if is_folder:
+            shutil.copytree(src_path, dest_path)
+        else:
+            shutil.copy2(src_path, dest_path)
+
+    return _fn
