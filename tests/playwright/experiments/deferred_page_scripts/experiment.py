@@ -52,11 +52,6 @@ class Exp(psynet.experiment.Experiment):
                     window.__pageCodeLifecycle.push("cleanup:first");
                 };
             """,
-            js_links=["/static/legacy-page-link.js"],
-            scripts=[
-                "window.__legacyInlineActivations = "
-                "(window.__legacyInlineActivations || 0) + 1;"
-            ],
             **MANAGED_JAVASCRIPT,
         ),
         InfoPage(
@@ -98,11 +93,6 @@ class Exp(psynet.experiment.Experiment):
             js_page_modules=[
                 *MANAGED_JAVASCRIPT["js_page_modules"],
                 "/static/deferred-script.js",
-            ],
-            js_links=["/static/legacy-page-link.js"],
-            scripts=[
-                "window.__legacyInlineActivations = "
-                "(window.__legacyInlineActivations || 0) + 1;"
             ],
             css_links=["/static/deferred-page-scripts.css"],
         ),

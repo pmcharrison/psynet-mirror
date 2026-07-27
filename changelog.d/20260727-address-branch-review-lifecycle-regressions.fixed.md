@@ -1,0 +1,1 @@
+Fixed WaitPage auto-advance to wait for ``pageReady``, kept deprecated ``scripts``/``js_links`` on a classic full-reload path, skipped unused timeline fragments for reload transitions, and waited for ``pageReady`` in the chatroom null-room path.

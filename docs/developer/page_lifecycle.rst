@@ -98,7 +98,9 @@ PsyNet then:
 2. constructs the new trial;
 3. loads ``js_dependencies`` not already present in the document;
 4. replays classic scripts embedded in rendered HTML;
-5. executes deprecated ``js_links`` for compatibility;
+5. executes deprecated ``js_links`` and ``scripts`` as classic scripts when
+   present (these arguments also force a full page reload, so this path is
+   mainly relevant on the resulting clean document load);
 6. activates ``js_page_code``;
 7. imports and activates ``js_page_modules``;
 8. initializes trial progress, media, controls, and ``trialConstruct`` behavior;
@@ -209,15 +211,20 @@ Document-owning pages
 
 Pages can set ``requires_full_page_reload = True`` when they own document-level
 state that should not participate in fragment teardown. PsyNet reloads when
-either the current or next page sets this flag.
+either the current or next page sets this flag. Deprecated ``js_links`` and
+``scripts`` also set this flag automatically because classic global script
+semantics are not emulated across in-place transitions.
 
 UnityPage and JsPsychPage use this policy. Unity owns a persistent runtime;
 jsPsych installs document-level interaction and hardware listeners whose
 lifecycle varies across jsPsych versions. A clean document boundary is safer
 than maintaining version-specific SPA cleanup.
 
-Same-session handling takes precedence, so Unity pages sharing a ``session_id``
-can still update their persistent session without reloading.
+When a transition uses a full reload, the client omits
+``include_timeline_fragment`` for the leaving reload page and the server skips
+rendering a fragment for the next reload page. Same-session handling takes
+precedence, so Unity pages sharing a ``session_id`` can still update their
+persistent session without reloading.
 
 Bots
 ~~~~
@@ -271,3 +278,5 @@ Key implementation and test locations
   and failure boundaries.
 * ``tests/playwright/managed_page_javascript.spec.js`` — managed JavaScript in
   both transition modes.
+* ``tests/playwright/legacy_page_javascript.spec.js`` — deprecated ``scripts``
+  and ``js_links`` force full reloads with classic globals.

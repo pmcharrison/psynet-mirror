@@ -31,13 +31,3 @@
         </div>
     </div>
 {% endblock %}
-
-{% block scripts %}
-    {{ super() }}
-
-    <script>
-        psynet.trial.setTimer(function () {
-            psynet.nextPage();
-        }, 1000 * {{ wait_time }});
-    </script>
-{% endblock %}

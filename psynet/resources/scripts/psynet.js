@@ -616,6 +616,10 @@
         for (let src of psynetTemplateData.legacyJsLinks || []) {
           await psynet.executeLegacyJSLink(src);
         }
+        for (let code of psynetTemplateData.legacyScripts || []) {
+          // Classic global script semantics for deprecated ``scripts``.
+          psynet.executeInlineScript(code);
+        }
         for (let [index, code] of (
           psynetTemplateData.jsPageCode || []
         ).entries()) {
@@ -2816,6 +2820,9 @@
         unique_id: psynet.uniqueId,
         raw_answer: rawAnswer,
         metadata: allMetadata,
+        include_timeline_fragment: !Boolean(
+          psynet.page.attributes?.requires_full_page_reload,
+        ),
       });
     };
 

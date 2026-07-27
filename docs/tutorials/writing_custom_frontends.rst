@@ -535,8 +535,11 @@ coupled to a PsyNet-owned macro and nearby Jinja values. Author-owned external
 templates should remain markup-only.
 
 The older ``js_links`` and ``scripts`` Page arguments remain supported but are
-deprecated. Run the repo-local ``/migrate-page-javascript`` skill to move them
-to explicit dependency, page-code, or page-module lifecycles.
+deprecated. They keep classic linked/inline script semantics and therefore
+force a full page reload rather than participating in the managed SPA
+JavaScript path (``js_dependencies``, ``js_page_code``, and
+``js_page_modules``). Run the repo-local ``/migrate-page-javascript`` skill to
+move them to explicit dependency, page-code, or page-module lifecycles.
 
 Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
 global access is deprecated because in-place timeline transitions reuse the

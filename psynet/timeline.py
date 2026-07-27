@@ -73,6 +73,7 @@ def _normalize_javascript_urls(urls, argument_name):
             raise TypeError(f"{argument_name} entries must be strings.")
         if not url.strip():
             raise ValueError(f"{argument_name} entries must be non-empty.")
+        url = url.strip()
         if url not in seen:
             normalized.append(url)
             seen.add(url)
@@ -960,8 +961,9 @@ class Page(Elt):
         deprecated and controlled by ``legacy_js_var_globals``.
 
     js_links:
-        Deprecated list of classic JavaScript files executed for every page
-        activation. Use ``js_dependencies`` or ``js_page_modules``.
+        Deprecated list of classic JavaScript files executed as linked classic
+        scripts. Using this argument forces a full page reload. Prefer
+        ``js_dependencies`` or ``js_page_modules``.
 
     js_dependencies:
         Optional list of JavaScript file URLs to load once per browser document.
@@ -980,7 +982,9 @@ class Page(Elt):
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
 
     scripts:
-        Deprecated inline JavaScript. Use ``js_page_code``.
+        Deprecated classic inline JavaScript executed with global script
+        semantics. Using this argument forces a full page reload. Prefer
+        ``js_page_code``.
 
     css:
         Optional list of CSS specification to include in the page.
@@ -1210,14 +1214,18 @@ class Page(Elt):
         self.label = label
         self.js_vars = js_vars
         self.js_links = legacy_js_links
+        self.legacy_scripts = legacy_scripts
         self.js_dependencies = _normalize_javascript_urls(
             js_dependencies, "js_dependencies"
         )
         self.js_page_modules = _normalize_javascript_urls(
             js_page_modules, "js_page_modules"
         )
-        legacy_page_code = ["\n".join(legacy_scripts)] if legacy_scripts else []
-        self.js_page_code = legacy_page_code + _normalize_js_page_code(js_page_code)
+        self.js_page_code = _normalize_js_page_code(js_page_code)
+        if legacy_js_links or legacy_scripts:
+            # Classic script semantics (global ``var``, non-module scope) are not
+            # emulated across in-place transitions; force a clean document instead.
+            self.requires_full_page_reload = True
         overlapping_javascript = set(self.js_dependencies) & set(self.js_page_modules)
         if overlapping_javascript:
             raise ValueError(
@@ -1647,6 +1655,7 @@ class Page(Elt):
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
             "js_links": self.js_links,
+            "legacy_scripts": self.legacy_scripts,
             "js_dependencies": self.js_dependencies,
             "js_page_code": self.js_page_code,
             "js_page_modules": self.js_page_modules,

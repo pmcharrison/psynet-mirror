@@ -30,12 +30,13 @@ def test_page_normalizes_javascript_resources():
         template_fragment_str="<p>Managed JavaScript page</p>",
         js_dependencies=[
             "/static/library.js",
-            "/static/other-library.js",
+            "  /static/other-library.js  ",
             "/static/library.js",
+            " /static/library.js ",
         ],
         js_page_modules=[
             "/static/page.js",
-            "/static/other-page.js",
+            " /static/other-page.js ",
             "/static/page.js",
         ],
     )
@@ -99,7 +100,8 @@ def test_page_supports_deprecated_javascript_arguments():
         page = Page(
             template_fragment_str="<p>Legacy JavaScript API</p>",
             js_links=["/static/legacy.js"],
-            scripts=["window.legacySetup = true;"],
+            scripts=["var legacyGlobal = true;"],
+            js_page_code="window.managed = true;",
         )
 
     assert [str(item.message) for item in warning_log] == [
@@ -107,7 +109,9 @@ def test_page_supports_deprecated_javascript_arguments():
         "scripts is deprecated; migrate to js_page_code.",
     ]
     assert page.js_links == ["/static/legacy.js"]
-    assert page.js_page_code == ["window.legacySetup = true;"]
+    assert page.legacy_scripts == ["var legacyGlobal = true;"]
+    assert page.js_page_code == ["window.managed = true;"]
+    assert page.requires_full_page_reload is True
 
 
 def test_empty_deprecated_javascript_arguments_do_not_warn():
@@ -121,7 +125,98 @@ def test_empty_deprecated_javascript_arguments_do_not_warn():
 
     assert warning_log == []
     assert page.js_links == []
+    assert page.legacy_scripts == []
     assert page.js_page_code == []
+    assert page.requires_full_page_reload is False
+
+
+def test_legacy_js_links_alone_force_full_reload():
+    with pytest.warns(FutureWarning, match="js_links is deprecated"):
+        page = Page(
+            template_fragment_str="<p>Legacy links only</p>",
+            js_links=["/static/legacy.js"],
+        )
+
+    assert page.requires_full_page_reload is True
+    assert page.legacy_scripts == []
+    assert page.js_page_code == []
+
+
+def test_wait_page_gates_auto_advance_on_page_ready():
+    from psynet.page import WaitPage
+
+    page = WaitPage(
+        wait_time=1.5,
+        js_page_code="window.afterWaitSetup = true;",
+    )
+
+    assert page.js_page_code[0] == (
+        'trial.onEvent("pageReady", () => {\n'
+        "    trial.setTimer(() => psynet.nextPage(), 1500);\n"
+        "});"
+    )
+    assert page.js_page_code[1] == "window.afterWaitSetup = true;"
+    assert "psynet.trial.setTimer" not in page.template_str
+    assert "setTimer" not in page.template_str
+
+
+def test_response_approved_skips_fragment_for_reload_pages(monkeypatch):
+    from types import SimpleNamespace
+
+    import psynet.experiment as experiment_module
+
+    rendered = {"html": "<div>fragment</div>"}
+
+    monkeypatch.setattr(
+        experiment_module.Experiment,
+        "render_partial_timeline_payload",
+        staticmethod(lambda page, experiment, participant: rendered),
+    )
+    monkeypatch.setattr(
+        experiment_module,
+        "get_config",
+        lambda: SimpleNamespace(
+            get=lambda key, default=None: (
+                True if key == "inplace_timeline_transitions" else default
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        experiment_module,
+        "success_response",
+        lambda **kwargs: kwargs,
+    )
+
+    class DummyPage:
+        def __init__(self, requires_full_page_reload):
+            self.requires_full_page_reload = requires_full_page_reload
+
+        def __json__(self, participant):
+            return {
+                "attributes": {
+                    "requires_full_page_reload": self.requires_full_page_reload
+                }
+            }
+
+    participant = object()
+    cases = [
+        (False, True),
+        (True, False),
+    ]
+    for requires_reload, expect_fragment in cases:
+        page = DummyPage(requires_reload)
+        exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
+        exp.timeline = SimpleNamespace(
+            get_current_elt=lambda experiment, participant: page
+        )
+        payload = experiment_module.Experiment.response_approved(
+            exp, participant, include_timeline_fragment=True
+        )
+        assert payload["submission"] == "approved"
+        if expect_fragment:
+            assert payload["timeline_fragment"] == rendered
+        else:
+            assert "timeline_fragment" not in payload
 
 
 @pytest.mark.parametrize(

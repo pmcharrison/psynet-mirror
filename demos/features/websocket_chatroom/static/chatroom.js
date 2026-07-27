@@ -14,7 +14,7 @@ export async function activate({root, vars, psynet}) {
     if (roomId === null || roomId === undefined) {
         function waitForPage() {
             if (!pageActive) return;
-            if (!psynet.pageLoaded) {
+            if (!psynet.pageReady) {
                 pageLoadedTimer = window.setTimeout(waitForPage, 50);
                 return;
             }

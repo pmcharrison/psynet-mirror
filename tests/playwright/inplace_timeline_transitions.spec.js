@@ -93,16 +93,8 @@ test("in-place timeline transitions replay embedded scripts and manage page asse
       )
     ).toBe(true);
     expect(
-      await experimentPage.evaluate(() => ({
-        legacyInline: window.__legacyInlineActivations,
-        legacyLinks: window.__legacyLinkActivations,
-        pageCode: window.__pageCodeLifecycle
-      }))
-    ).toEqual({
-      legacyInline: 1,
-      legacyLinks: 1,
-      pageCode: ["activate:first"]
-    });
+      await experimentPage.evaluate(() => window.__pageCodeLifecycle)
+    ).toEqual(["activate:first"]);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expect(
@@ -138,16 +130,8 @@ test("in-place timeline transitions replay embedded scripts and manage page asse
       )
     ).toBe(true);
     expect(
-      await experimentPage.evaluate(() => ({
-        legacyInline: window.__legacyInlineActivations,
-        legacyLinks: window.__legacyLinkActivations,
-        pageCode: window.__pageCodeLifecycle
-      }))
-    ).toEqual({
-      legacyInline: 2,
-      legacyLinks: 2,
-      pageCode: ["activate:first", "cleanup:first", "activate:second"]
-    });
+      await experimentPage.evaluate(() => window.__pageCodeLifecycle)
+    ).toEqual(["activate:first", "cleanup:first", "activate:second"]);
     await expect(
       experimentPage.locator("#body-library-load-count-marker")
     ).toHaveAttribute("data-load-count", "1", { timeout: STEP_TIMEOUT_MS });

@@ -201,12 +201,27 @@ class WaitPage(Page):
         self.wait_time = wait_time
         if content is not None:
             self.content = content
+        wait_ms = wait_time * 1000
+        wait_ms_literal = f"{wait_ms:g}"
+        wait_timer_code = (
+            'trial.onEvent("pageReady", () => {\n'
+            f"    trial.setTimer(() => psynet.nextPage(), {wait_ms_literal});\n"
+            "});"
+        )
+        caller_js_page_code = kwargs.pop("js_page_code", None)
+        if caller_js_page_code is None:
+            js_page_code = [wait_timer_code]
+        elif isinstance(caller_js_page_code, str):
+            js_page_code = [wait_timer_code, caller_js_page_code]
+        else:
+            js_page_code = [wait_timer_code, *caller_js_page_code]
         super().__init__(
             label="wait",
             time_estimate=wait_time,
             template_str=get_template("wait-page.html"),
             framework_owned_template=True,
-            template_arg={"content": self.content, "wait_time": self.wait_time},
+            template_arg={"content": self.content},
+            js_page_code=js_page_code,
             **kwargs,
         )
 
