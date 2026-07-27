@@ -138,11 +138,11 @@ also works in dedicated experiment environments when you want to skip
 ``uv pip sync`` / ``uv pip check``.
 
 PsyNet's own monorepo CI uses ``psynet scripts scaffold --skip-constraints``
-because bundled demos share the repository's development environment. Local
-``debug`` and ``test`` commands recognize bundled demos and prepare their
-ignored boilerplate automatically. Running ``psynet setup`` there performs only
-this lightweight preparation and does not rewrite requirements or synchronize
-the shared environment.
+because in-repo demos and test experiments share the repository's development
+environment. Local ``debug`` and ``test`` commands recognize those directories
+and prepare their ignored boilerplate automatically. Running ``psynet setup``
+there performs only this lightweight preparation and does not rewrite
+requirements or synchronize the shared environment.
 
 
 Run the experiment's regression test

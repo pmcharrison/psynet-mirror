@@ -63,6 +63,118 @@ def test_demo_sources_contain_only_authored_experiment_files():
             )
 
 
+TEST_EXPERIMENT_TREE_PREFIXES = (
+    "tests/experiments/",
+    "tests/playwright/experiments/",
+    "tests/manual_recruiter_testing/",
+)
+
+# Custom config.txt files that remain tracked under test experiment trees.
+TEST_EXPERIMENT_CUSTOM_CONFIGS = {
+    "tests/experiments/async_processes/config.txt",
+    "tests/playwright/experiments/adversarial_lifecycle/config.txt",
+    "tests/playwright/experiments/deferred_page_scripts/config.txt",
+    "tests/playwright/experiments/same_session_page_update/config.txt",
+    "tests/manual_recruiter_testing/prolific/config.txt",
+}
+
+# Parent-level helpers that are not inside an experiment directory.
+TEST_EXPERIMENT_PARENT_AUTHORED_PATHS = {
+    "tests/experiments/recruiters/.gitignore",
+}
+
+AUTHORED_TEST_EXPERIMENT_FILENAMES = {
+    "experiment.py",
+    "requirements.txt",
+    "utils.py",
+    "test_imports.py",
+    "debug.sh",
+    "shell.sh",
+    "lucid_recruitment_config.json",
+    "qualification_prolific_en.json",
+    "DEPLOYMENT_ID",
+    "custom_synth.py",
+    "pre_deployed_assets.csv",
+}
+
+
+def _is_authored_test_experiment_path(relative_path: str) -> bool:
+    """Return whether a tracked path is an allowed authored test-experiment file."""
+    if relative_path in TEST_EXPERIMENT_CUSTOM_CONFIGS:
+        return True
+    if relative_path in TEST_EXPERIMENT_PARENT_AUTHORED_PATHS:
+        return True
+
+    name = Path(relative_path).name
+    parts = Path(relative_path).parts
+    if name in AUTHORED_TEST_EXPERIMENT_FILENAMES:
+        return True
+    if name.endswith((".wav", ".csv")):
+        return True
+    if "templates" in parts and name.endswith(".html"):
+        return True
+    if "static" in parts and name.endswith((".js", ".css")):
+        return True
+    if "locales" in parts and name.endswith((".po", ".pot")):
+        return True
+    if "synth_files" in parts:
+        return True
+    return False
+
+
+def test_test_experiment_sources_contain_only_authored_files():
+    """Test experiments track authored files only, like minimal demos."""
+    psynet_root = get_psynet_root()
+    managed_paths = scaffold_managed_paths()
+    tracked_paths = set(
+        subprocess.check_output(
+            [
+                "git",
+                "ls-files",
+                "tests/experiments",
+                "tests/playwright/experiments",
+                "tests/manual_recruiter_testing",
+            ],
+            cwd=psynet_root,
+            text=True,
+        ).splitlines()
+    )
+
+    for prefix in TEST_EXPERIMENT_TREE_PREFIXES:
+        root = psynet_root / prefix
+        if not root.exists():
+            continue
+        for experiment_file in root.rglob("experiment.py"):
+            experiment = experiment_file.parent
+            relative_experiment = experiment.relative_to(psynet_root)
+            assert (
+                relative_experiment / "constraints.txt"
+            ).as_posix() not in tracked_paths
+            assert (experiment / "requirements.txt").read_text().splitlines()[
+                0
+            ] == "psynet"
+            for relative_path in managed_paths:
+                tracked_path = (relative_experiment / relative_path).as_posix()
+                if (
+                    relative_path == "config.txt"
+                    and tracked_path in TEST_EXPERIMENT_CUSTOM_CONFIGS
+                ):
+                    continue
+                assert tracked_path not in tracked_paths, (
+                    f"{experiment} tracks scaffold-managed path {relative_path}"
+                )
+
+    for config_path in TEST_EXPERIMENT_CUSTOM_CONFIGS:
+        assert config_path in tracked_paths, f"missing custom config {config_path}"
+
+    for tracked_path in tracked_paths:
+        if not tracked_path.startswith(TEST_EXPERIMENT_TREE_PREFIXES):
+            continue
+        assert _is_authored_test_experiment_path(tracked_path), (
+            f"unexpected tracked path under test experiment: {tracked_path}"
+        )
+
+
 def test_skipped_dependency_check_does_not_require_constraints(monkeypatch):
     from psynet.experiment import Experiment
 
@@ -74,7 +186,7 @@ def test_bundled_demo_dependency_check_does_not_require_constraints(monkeypatch)
     from psynet.experiment import Experiment
 
     monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
-    monkeypatch.setattr("psynet.experiment.is_bundled_demo", lambda: True)
+    monkeypatch.setattr("psynet.experiment.is_in_repo_experiment", lambda: True)
     Experiment.check_python_dependencies(object())
 
 
@@ -84,7 +196,7 @@ def test_bundled_demo_dependency_check_ignores_leftover_constraints(
     from psynet.experiment import Experiment
 
     monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
-    monkeypatch.setattr("psynet.experiment.is_bundled_demo", lambda: True)
+    monkeypatch.setattr("psynet.experiment.is_in_repo_experiment", lambda: True)
     (tmp_path / "constraints.txt").write_text("some-package==1.0.0\n")
     with working_directory(tmp_path):
         Experiment.check_python_dependencies(object())

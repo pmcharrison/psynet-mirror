@@ -72,7 +72,7 @@ from .utils import (
     get_psynet_root,
     git_repository_available,
     in_python_package,
-    is_bundled_demo,
+    is_in_repo_experiment,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
@@ -1348,9 +1348,9 @@ def check_prolific_payment(experiment, config):
     )
 
 
-def _prepare_bundled_demo():
-    """Generate ignored boilerplate when running a bundled source demo."""
-    if not is_bundled_demo():
+def _prepare_in_repo_experiment():
+    """Generate ignored boilerplate when running an in-repo experiment."""
+    if not is_in_repo_experiment():
         return False
     scaffold_experiment_directory(include_optional_files=True)
     return True
@@ -1360,11 +1360,11 @@ def _check_experiment_directory(mode):
     """
     Fail fast on missing scaffold or git before Redis or other heavy I/O.
 
-    Bundled demos are auto-scaffolded first so their missing-boilerplate check
-    does not falsely fail. These checks must run before ``redis_vars.clear()``
+    In-repo experiments are auto-scaffolded first so their missing-boilerplate
+    check does not falsely fail. These checks must run before ``redis_vars.clear()``
     so users without Redis still see actionable guidance.
     """
-    _prepare_bundled_demo()
+    _prepare_in_repo_experiment()
 
     missing_boilerplate = _missing_scaffold_boilerplate()
     if missing_boilerplate:
@@ -3144,10 +3144,10 @@ def _choose_editable_psynet_requirement(source, requested_source):
 @click.pass_context
 def setup(ctx, psynet_source, prepare_only, force_shared_env):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
-    if is_bundled_demo():
+    if is_in_repo_experiment():
         _scaffold_experiment(ctx, skip_constraints=True)
         click.echo(
-            "Prepared bundled demo using PsyNet's shared development environment."
+            "Prepared in-repo experiment using PsyNet's shared development environment."
         )
         return
 
@@ -3505,7 +3505,11 @@ def test__local(
     Test the experiment locally.
     """
     assert not (parallel and serial)
-    _prepare_bundled_demo()
+
+    # --existing talks to a live server; skip local scaffold/git readiness.
+    # Non-existing runs share debug's directory checks (incl. bundled-demo prepare).
+    if not existing:
+        _check_experiment_directory("test")
 
     from psynet.experiment import get_experiment
 
@@ -3531,12 +3535,6 @@ def test__local(
         return
 
     import pytest
-
-    if not Path("test.py").exists():
-        raise click.UsageError(
-            "Experiment directory is missing test.py. "
-            "Run 'psynet scripts scaffold' to generate the standard boilerplate files."
-        )
 
     exit_code = pytest.main(["test.py"])
     if exit_code != 0:

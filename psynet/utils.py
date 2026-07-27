@@ -1165,11 +1165,35 @@ def get_psynet_root():
     return Path(psynet.__file__).parent.parent
 
 
+_IN_REPO_EXPERIMENT_ROOTS = (
+    "demos",
+    "tests/experiments",
+    "tests/playwright/experiments",
+    "tests/manual_recruiter_testing",
+)
+
+
 def is_bundled_demo(path="."):
     """Return whether a path is an experiment in PsyNet's bundled demos."""
     path = Path(path).resolve()
     demos_root = (get_psynet_root() / "demos").resolve()
     return (path / "experiment.py").is_file() and path.is_relative_to(demos_root)
+
+
+def is_in_repo_experiment(path="."):
+    """Return whether a path is a PsyNet in-repo experiment (demo or test).
+
+    In-repo experiments use the shared development environment and omit checked-in
+    scaffold/constraints files; local/CI flows auto-prepare ignored boilerplate.
+    """
+    path = Path(path).resolve()
+    if not (path / "experiment.py").is_file():
+        return False
+    root = get_psynet_root().resolve()
+    return any(
+        path.is_relative_to((root / relative).resolve())
+        for relative in _IN_REPO_EXPERIMENT_ROOTS
+    )
 
 
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):

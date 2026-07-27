@@ -1,0 +1,1 @@
+In-repo test experiments under `tests/experiments`, `tests/playwright/experiments`, and `tests/manual_recruiter_testing` are prepared like bundled demos: shared-env setup skips sync, dependency checks skip leftover constraints, and local debug/test auto-scaffold ignored boilerplate.

@@ -179,6 +179,49 @@ dump.rdb
 /demos/**/pytest.ini
 /demos/**/test.py
 
+# Scaffold and dependency files generated inside test experiments.
+# Unlike demos, custom config.txt files may be tracked under these trees,
+# so config.txt is intentionally not ignored here.
+/tests/experiments/**/.dockerignore
+/tests/experiments/**/.gitignore
+/tests/experiments/**/.python-version
+/tests/experiments/**/.github/workflows/test.yml
+/tests/experiments/**/.vscode/launch.json
+/tests/experiments/**/AGENTS.md
+/tests/experiments/**/Dockerfile
+/tests/experiments/**/Dockertag
+/tests/experiments/**/__init__.py
+/tests/experiments/**/constraints.txt
+/tests/experiments/**/docker/
+/tests/experiments/**/pytest.ini
+/tests/experiments/**/test.py
+/tests/playwright/experiments/**/.dockerignore
+/tests/playwright/experiments/**/.gitignore
+/tests/playwright/experiments/**/.python-version
+/tests/playwright/experiments/**/.github/workflows/test.yml
+/tests/playwright/experiments/**/.vscode/launch.json
+/tests/playwright/experiments/**/AGENTS.md
+/tests/playwright/experiments/**/Dockerfile
+/tests/playwright/experiments/**/Dockertag
+/tests/playwright/experiments/**/__init__.py
+/tests/playwright/experiments/**/constraints.txt
+/tests/playwright/experiments/**/docker/
+/tests/playwright/experiments/**/pytest.ini
+/tests/playwright/experiments/**/test.py
+/tests/manual_recruiter_testing/**/.dockerignore
+/tests/manual_recruiter_testing/**/.gitignore
+/tests/manual_recruiter_testing/**/.python-version
+/tests/manual_recruiter_testing/**/.github/workflows/test.yml
+/tests/manual_recruiter_testing/**/.vscode/launch.json
+/tests/manual_recruiter_testing/**/AGENTS.md
+/tests/manual_recruiter_testing/**/Dockerfile
+/tests/manual_recruiter_testing/**/Dockertag
+/tests/manual_recruiter_testing/**/__init__.py
+/tests/manual_recruiter_testing/**/constraints.txt
+/tests/manual_recruiter_testing/**/docker/
+/tests/manual_recruiter_testing/**/pytest.ini
+/tests/manual_recruiter_testing/**/test.py
+
 # ASV benchmark artifacts
 .asv/
 .asv-sync.conf.json

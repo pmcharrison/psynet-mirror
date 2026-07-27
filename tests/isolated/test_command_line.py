@@ -1093,7 +1093,7 @@ def test_setup_requires_active_virtualenv(monkeypatch):
 def test_setup_prepares_bundled_demo_without_dependency_changes(tmp_path, monkeypatch):
     requirements = "psynet\nmusic21==9.1.0\n"
     (tmp_path / "requirements.txt").write_text(requirements)
-    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: True)
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
     monkeypatch.setattr(
         "psynet.command_line._run_uv",
         lambda *args: pytest.fail("Bundled demo setup must not synchronize"),
@@ -1456,16 +1456,18 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
         assert _missing_scaffold_boilerplate() == ["docker"]
 
 
-def test_prepare_bundled_demo_satisfies_scaffold_boilerplate(tmp_path, monkeypatch):
-    from psynet.command_line import _prepare_bundled_demo
+def test_prepare_in_repo_experiment_satisfies_scaffold_boilerplate(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _prepare_in_repo_experiment
     from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
 
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")
-    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: True)
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
 
     with working_directory(tmp_path):
-        assert _prepare_bundled_demo() is True
+        assert _prepare_in_repo_experiment() is True
         assert _missing_scaffold_boilerplate() == []
         for relative_path in scaffold_paths_required_for_local_run():
             assert (tmp_path / relative_path).exists()
@@ -1493,7 +1495,7 @@ def test_check_experiment_directory_reports_missing_boilerplate(tmp_path):
 def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkeypatch):
     from psynet.command_line import _check_experiment_directory
 
-    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: False)
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
     (tmp_path / ".gitignore").write_text("source_code.zip\n")
     (tmp_path / "config.txt").touch()
 
@@ -1514,7 +1516,7 @@ def test_check_experiment_directory_reports_missing_git(tmp_path, monkeypatch):
     from psynet.command_line import _check_experiment_directory
     from psynet.experiment_scaffold import scaffold_experiment_directory
 
-    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: False)
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
     monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: False)
 
     with working_directory(tmp_path):
@@ -1529,7 +1531,7 @@ def test_check_experiment_directory_passes_with_scaffold_and_git(tmp_path, monke
     from psynet.command_line import _check_experiment_directory
     from psynet.experiment_scaffold import scaffold_experiment_directory
 
-    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: False)
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
     monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
 
     with working_directory(tmp_path):
@@ -1537,6 +1539,74 @@ def test_check_experiment_directory_passes_with_scaffold_and_git(tmp_path, monke
         (tmp_path / "requirements.txt").write_text("psynet\n")
         scaffold_experiment_directory(include_optional_files=True)
         _check_experiment_directory("debug")
+
+
+def test_test_local_reports_missing_scaffold_like_debug(tmp_path, monkeypatch):
+    """Non-bundled dirs missing local-run scaffold fail the same way as debug."""
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    runner = CliRunner()
+
+    with working_directory(tmp_path):
+        result = runner.invoke(psynet, ["test", "local"])
+
+    assert result.exit_code != 0
+    message = result.output
+    assert "psynet scripts scaffold" in message
+    for required_path in (
+        ".gitignore",
+        "config.txt",
+        "Dockerfile",
+        "test.py",
+        "docker",
+    ):
+        assert required_path in message
+
+
+def test_test_local_prepares_bundled_demo_via_directory_check(tmp_path, monkeypatch):
+    """Bundled demos are scaffolded inside _check_experiment_directory, then tested."""
+    from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    mock_exp = Mock()
+    runner = CliRunner()
+
+    with (
+        working_directory(tmp_path),
+        patch("psynet.experiment.get_experiment", return_value=mock_exp),
+        patch("pytest.main", return_value=0) as mock_pytest_main,
+    ):
+        result = runner.invoke(psynet, ["test", "local"])
+
+    assert result.exit_code == 0, result.output
+    mock_pytest_main.assert_called_once_with(["test.py"])
+    for relative_path in scaffold_paths_required_for_local_run():
+        assert (tmp_path / relative_path).exists()
+
+
+def test_test_local_existing_bypasses_scaffold_gate(tmp_path, monkeypatch):
+    """--existing talks to a live server and must not require local scaffold/git."""
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    mock_exp = Mock()
+    runner = CliRunner()
+
+    with (
+        working_directory(tmp_path),
+        patch(
+            "psynet.command_line._check_experiment_directory"
+        ) as mock_check_directory,
+        patch("psynet.experiment.get_experiment", return_value=mock_exp),
+    ):
+        result = runner.invoke(psynet, ["test", "local", "--existing"])
+
+    assert result.exit_code == 0, result.output
+    mock_check_directory.assert_not_called()
+    mock_exp.test_experiment.assert_called_once_with()
 
 
 def test_scripts_scaffold_allows_incomplete_experiment_py():
