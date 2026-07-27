@@ -295,3 +295,57 @@ def test_second_export_reuses_cache(cache_root, tmp_path):
     # All three paths (cache, export1, export2) share the same inode.
     inodes = {export1.stat().st_ino, export2.stat().st_ino, cache_path.stat().st_ino}
     assert len(inodes) == 1, f"Expected single shared inode; got {inodes}"
+
+
+# ---------------------------------------------------------------------------
+# Soft size warning
+# ---------------------------------------------------------------------------
+
+
+def test_soft_limit_bytes_default():
+    from psynet.export.asset_cache import soft_limit_bytes
+
+    assert soft_limit_bytes() == 50 * 1024**3
+
+
+def test_soft_limit_bytes_env_override(monkeypatch):
+    from psynet.export.asset_cache import soft_limit_bytes
+
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES", "12345")
+    assert soft_limit_bytes() == 12345
+
+
+def test_warn_if_cache_oversized_silent_when_under_limit(cache_root, caplog):
+    from psynet.export.asset_cache import warn_if_cache_oversized
+
+    p = object_cache_path("e" * 64, cache_root)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(b"tiny")
+
+    with caplog.at_level("WARNING"):
+        assert warn_if_cache_oversized(cache_root, limit_bytes=1000) is None
+    assert "soft limit" not in caplog.text
+
+
+def test_warn_if_cache_oversized_when_over_limit(cache_root, caplog):
+    from psynet.export.asset_cache import warn_if_cache_oversized
+
+    p = object_cache_path("f" * 64, cache_root)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(b"0123456789")  # 10 bytes
+
+    with caplog.at_level("WARNING"):
+        message = warn_if_cache_oversized(cache_root, limit_bytes=5)
+    assert message is not None
+    assert "soft limit" in message
+    assert "psynet assets cache prune --all" in message
+    assert "soft limit" in caplog.text
+
+
+def test_warn_if_cache_oversized_disabled_when_limit_nonpositive(cache_root):
+    from psynet.export.asset_cache import warn_if_cache_oversized
+
+    p = object_cache_path("a" * 64, cache_root)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(b"data")
+    assert warn_if_cache_oversized(cache_root, limit_bytes=0) is None

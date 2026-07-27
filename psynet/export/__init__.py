@@ -24,6 +24,8 @@ from .asset_cache import (
     list_cached_objects,
     object_cache_path,
     prune_cached_objects,
+    soft_limit_bytes,
+    warn_if_cache_oversized,
 )
 from .database import export_database_snapshot
 from .identifiers import write_identifier_sidecars
@@ -41,6 +43,8 @@ __all__ = [
     "merge_participant_identifiers",
     "object_cache_path",
     "prune_cached_objects",
+    "soft_limit_bytes",
     "unpack_json_column",
+    "warn_if_cache_oversized",
     "write_identifier_sidecars",
 ]

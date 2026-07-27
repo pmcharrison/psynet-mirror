@@ -139,6 +139,11 @@ Command-line exports reuse a persistent local cache under
     psynet assets cache list
     psynet assets cache prune --all
 
+If the cache grows past a soft limit (50 GiB by default), PsyNet warns after
+export but does **not** fail or delete objects. A single large experiment may
+legitimately exceed the limit. Override the threshold with the environment
+variable ``PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES``.
+
 Export data types
 =================
 

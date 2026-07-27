@@ -43,6 +43,11 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_CACHE_ROOT: Path = Path("~/psynet-data/cache/assets").expanduser()
 
+# Soft size warning only: exports never fail because of this limit.
+# Override with PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES (integer byte count).
+_DEFAULT_SOFT_LIMIT_BYTES = 50 * 1024**3  # 50 GiB
+_SOFT_LIMIT_ENV = "PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES"
+
 
 def default_cache_root() -> Path:
     """Return the default asset cache root (``~/psynet-data/cache/assets``)."""
@@ -238,6 +243,67 @@ def cache_size_bytes(cache_root: Optional[Union[str, Path]] = None) -> int:
                 if p.is_file():
                     total += p.stat().st_size
     return total
+
+
+def soft_limit_bytes() -> int:
+    """Return the soft cache size limit in bytes.
+
+    Defaults to 50 GiB. Override with the environment variable
+    ``PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES``.
+    """
+    raw = os.environ.get(_SOFT_LIMIT_ENV)
+    if raw is None or raw == "":
+        return _DEFAULT_SOFT_LIMIT_BYTES
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise ValueError(
+            f"{_SOFT_LIMIT_ENV} must be an integer number of bytes, got {raw!r}"
+        ) from exc
+
+
+def warn_if_cache_oversized(
+    cache_root: Optional[Union[str, Path]] = None,
+    limit_bytes: Optional[int] = None,
+) -> Optional[str]:
+    """Warn when the cache exceeds the soft size limit.
+
+    This never blocks exports or deletes objects. A large single experiment
+    may legitimately exceed the limit; the warning only nudges the user to
+    run ``psynet assets cache prune --all`` when convenient.
+
+    Parameters
+    ----------
+    cache_root :
+        Override the default cache root.
+    limit_bytes :
+        Soft limit in bytes. Defaults to :func:`soft_limit_bytes`.
+
+    Returns
+    -------
+    str or None
+        The warning message when oversized, otherwise ``None``.
+    """
+    from psynet.utils import format_bytes
+
+    if limit_bytes is None:
+        limit_bytes = soft_limit_bytes()
+    if limit_bytes <= 0:
+        return None
+
+    size = cache_size_bytes(cache_root)
+    if size <= limit_bytes:
+        return None
+
+    root = _resolve_root(cache_root)
+    message = (
+        f"Asset export cache at {root} is {format_bytes(size)} "
+        f"(soft limit {format_bytes(limit_bytes)}). "
+        "Exports still succeed; run `psynet assets cache prune --all` "
+        "when you no longer need cached objects."
+    )
+    logger.warning(message)
+    return message
 
 
 # ---------------------------------------------------------------------------

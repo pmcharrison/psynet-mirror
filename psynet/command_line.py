@@ -2757,15 +2757,22 @@ def assets_cache_info(cache_root):
         cache_size_bytes,
         default_cache_root,
         list_cached_objects,
+        soft_limit_bytes,
+        warn_if_cache_oversized,
     )
 
     root = Path(cache_root).expanduser() if cache_root else default_cache_root()
     objects = list_cached_objects(root)
     total = cache_size_bytes(root)
+    limit = soft_limit_bytes()
 
     click.echo(f"Cache root:      {root}")
     click.echo(f"Cached objects:  {len(objects)}")
     click.echo(f"Total size:      {_format_bytes(total)}")
+    click.echo(f"Soft limit:      {_format_bytes(limit)}")
+    warning = warn_if_cache_oversized(root, limit_bytes=limit)
+    if warning:
+        click.echo(warning)
 
 
 @assets_cache.command("list")

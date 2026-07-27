@@ -908,6 +908,14 @@ def export_assets(
         for row in manifest_rows:
             writer.writerow(row)
 
+    from .export.asset_cache import warn_if_cache_oversized
+
+    oversized_message = warn_if_cache_oversized()
+    if oversized_message:
+        from .command_line import log
+
+        log(oversized_message)
+
 
 def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
     """Export one asset's bytes into the content-addressed objects tree.
