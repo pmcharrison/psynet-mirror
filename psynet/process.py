@@ -63,7 +63,7 @@ class AsyncProcess(SQLBase, SQLMixin):
     node_id = Column(Integer, ForeignKey("node.id"), index=True)
     node = relationship("TrialNode", back_populates="async_processes")
 
-    trial_id = Column(Integer, ForeignKey("info.id"), index=True)
+    trial_id = Column(Integer, ForeignKey("trial.id"), index=True)
     trial = relationship("psynet.trial.main.Trial", back_populates="async_processes")
 
     response_id = Column(Integer, ForeignKey("response.id"), index=True)

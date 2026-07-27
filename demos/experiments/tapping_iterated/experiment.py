@@ -264,7 +264,7 @@ class Exp(psynet.experiment.Experiment):
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        trial_1_html = str(self.node_visualization_html("Info", 1))
+        trial_1_html = str(self.node_visualization_html("Trial", 1))
 
         assert "response-visualization" in trial_1_html
         assert "visualize-audio-response" in trial_1_html

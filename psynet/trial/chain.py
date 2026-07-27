@@ -836,7 +836,7 @@ class ChainNode(TrialNode):
     def failure_cascade(self):
         to_fail = []
         if self.propagate_failure:
-            to_fail.append(self.infos)
+            to_fail.append(lambda: self.alive_trials)
             if self.child:
                 to_fail.append(lambda: [self.child])
         return to_fail

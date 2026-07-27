@@ -9,7 +9,7 @@ import dallinger.experiment
 import dallinger.models
 import dallinger.nodes
 from dallinger import db
-from dallinger.models import Info, Network
+from dallinger.models import Network
 from dominate import tags
 from markupsafe import Markup
 from sqlalchemy import (
@@ -29,14 +29,14 @@ from sqlalchemy import (
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
+from sqlalchemy.orm import column_property, deferred, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from psynet import field
 
 from ..asset import Asset, AssetNetwork, AssetNode, AssetTrial
-from ..data import SQLMixinDallinger
+from ..data import SQLBase, SQLMixin, SQLMixinDallinger, register_table
 from ..error import (  # noqa  # Importing the error module is important to ensure sqlalchemy is happy
     ErrorRecord,
 )
@@ -79,12 +79,6 @@ def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     return f"{trial_maker_id}__{x}"
 
 
-# Patch the relationship from Dallinger
-Info.origin = relationship(
-    "dallinger.models.Node", foreign_keys=[Info.origin_id], post_update=True
-)  # type: TrialNode
-
-
 class AssetParentMixin:
     # TODO: Consider removing add_asset(s) and instead implement a custom ``[]`` operator.
     def add_assets(self, assets: dict[str, Asset]):
@@ -106,7 +100,8 @@ class AssetParentMixin:
         self.assets[local_key] = asset
 
 
-class Trial(SQLMixinDallinger, Info, AssetParentMixin):
+@register_table
+class Trial(SQLBase, SQLMixin, AssetParentMixin):
     """
     Represents a trial in the experiment.
     The user is expected to override the following methods:
@@ -134,10 +129,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     (e.g., test-retest correlations), see the trial maker method
     :meth:`~psynet.trial.main.TrialMaker.performance_check`.
 
-    This class subclasses the :class:`~dallinger.models.Info` class from Dallinger,
-    hence can be found in the ``Info`` table in the database.
-    It inherits this class's methods, which the user is welcome to use
-    if they seem relevant.
+    Trials are stored in the physical ``trial`` table. Custom trial classes use
+    single-table polymorphism within that table.
 
     Instances can be retrieved using *SQLAlchemy*; for example, the
     following command retrieves the ``Trial`` object with an ID of 1:
@@ -155,11 +148,11 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     node:
         An object of class :class:`dallinger.models.Node` to which the
-        :class:`~dallinger.models.Trial` object should be attached.
+        :class:`~psynet.trial.main.Trial` object should be attached.
         Complex experiments are often organised around networks of nodes,
         but in the simplest case one could just make one :class:`~dallinger.models.Network`
         for each type of trial and one :class:`~dallinger.models.Node` for each participant,
-        and then assign the :class:`~dallinger.models.Trial`
+        and then assign the :class:`~psynet.trial.main.Trial`
         to this :class:`~dallinger.models.Node`.
         Ask us if you want to use this simple use case - it would be worth adding
         it as a default to this implementation, but we haven't done that yet,
@@ -188,10 +181,9 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     participant_id : int
         The ID of the associated participant.
         The user should not typically change this directly.
-        Stored in ``property1`` in the database.
 
     node
-        The :class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
+        The :class:`dallinger.models.Node` to which the :class:`~psynet.trial.main.Trial`
         belongs.
 
     finalized : bool
@@ -205,7 +197,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
-        Stored in ``details`` in the database.
 
     parent_trial_id : int
         If the trial is a repeat trial, this attribute corresponds to the ID
@@ -278,9 +269,19 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     """
 
     # pylint: disable=unused-argument
-    __extra_vars__ = SQLMixinDallinger.__extra_vars__.copy()
+    __tablename__ = "trial"
+    __extra_vars__ = SQLMixin.__extra_vars__.copy()
+
+    # Unused SharedMixin columns inherited via SQLMixin.
+    property1 = None
+    property2 = None
+    property3 = None
+    property4 = None
+    property5 = None
+    details = None
 
     node_id = Column(Integer, ForeignKey("node.id"), index=True)
+    network_id = Column(Integer, ForeignKey("network.id"), index=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     # module_id = Column(String)
     module_id = association_proxy("module_state", "module_id")
@@ -289,27 +290,19 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     trial_maker_id = Column(String, index=True)
     definition = Column(PythonObject)
 
-    @declared_attr
-    def complete(cls):
-        # Dallinger v9.6.0 adds an Info.complete column.
-        # The following code inherits that column if it exists.
-        doc = (
+    complete = Column(
+        Boolean,
+        doc=(
             "Whether the trial has been completed (i.e. received a response from the "
             "participant). The user should not typically change this directly."
-        )
-        column = cls.__table__.c.get("complete")
-        if column is None:
-            column = Column(Boolean, doc=doc)
-        else:
-            # Ensure a consistent docstring even if Dallinger already defines one.
-            column.doc = doc
-        return column
+        ),
+    )
 
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)
     score = Column(Float)
     performance_reward = Column(Float)
-    parent_trial_id = Column(Integer, ForeignKey("info.id"), index=True)
+    parent_trial_id = Column(Integer, ForeignKey("trial.id"), index=True)
     answer = Column(PythonObject)
     propagate_failure = Column(Boolean)
     response_id = Column(Integer, ForeignKey("response.id"), index=True)
@@ -354,6 +347,12 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         back_populates="all_trials",
         post_update=True,
     )
+    network = relationship(
+        "TrialNetwork",
+        foreign_keys=[network_id],
+        back_populates="all_trials",
+        post_update=True,
+    )
     participant = relationship(
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
@@ -384,6 +383,11 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
+
+    # Back-compat alias: older code referred to the creating node as ``origin``.
+    @property
+    def origin(self):
+        return self.node
 
     @property
     def var(self):
@@ -470,11 +474,10 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         assets=None,
         definition=NoArgumentProvided,  # If provided, overrides make definition
     ):
-        super().__init__(origin=node)
+        self.node = node
+        self.network = node.network
         db.session.add(self)
 
-        self.node = node
-        # self.node_id = node.id
         self.complete = False
         self.finalized = False
         self.participant_id = participant.id
@@ -739,13 +742,15 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         self.check_if_can_mark_as_finalized()
 
     def fail_async_processes(self, reason):
-        super().fail_async_processes(reason)
+        for process in list(self.async_processes):
+            if not process.failed:
+                process.fail(reason)
         self.fail(reason="fail_async_processes")
 
     def new_repeat_trial(self, experiment, repeat_trial_index, n_repeat_trials):
         repeat_trial = self.__class__(
             experiment=experiment,
-            node=self.origin,
+            node=self.node,
             participant=self.participant,
             propagate_failure=False,
             is_repeat_trial=True,
@@ -2696,7 +2701,7 @@ class TrialNetwork(SQLMixinDallinger, Network, AssetParentMixin):
     )
     participants = relationship(
         Participant,
-        secondary="info",  # The info table is where Trials are stored (for historic reasons)
+        secondary="trial",
         primaryjoin="psynet.trial.main.TrialNetwork.id == psynet.trial.main.Trial.network_id",
         secondaryjoin="psynet.trial.main.Trial.participant_id == psynet.participant.Participant.id",
         viewonly=True,
@@ -2727,7 +2732,11 @@ class TrialNetwork(SQLMixinDallinger, Network, AssetParentMixin):
 
     id_within_participant = Column(Integer)
 
-    all_trials = relationship("psynet.trial.main.Trial")
+    all_trials = relationship(
+        "psynet.trial.main.Trial",
+        foreign_keys="psynet.trial.main.Trial.network_id",
+        back_populates="network",
+    )
 
     @property
     def alive_nodes(self):
@@ -2894,7 +2903,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node, AssetParentMixin):
 
     errors = relationship("ErrorRecord")
 
-    all_trials = relationship("psynet.trial.main.Trial", foreign_keys=[Trial.node_id])
+    all_trials = relationship(
+        "psynet.trial.main.Trial",
+        foreign_keys=[Trial.node_id],
+        back_populates="node",
+    )
 
     @property
     def trial(self):

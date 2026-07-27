@@ -3651,6 +3651,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         info.fail(reason="http_fail_route_called")
         return success_response()
 
+    @experiment_route("/trial/<int:trial_id>/fail", methods=["GET", "POST"])
+    @staticmethod
+    @with_transaction
+    def fail_trial(trial_id):
+        from .trial.main import Trial
+
+        trial = Trial.query.with_for_update(of=Trial).populate_existing().get(trial_id)
+        trial.fail(reason="http_fail_route_called")
+        return success_response()
+
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
     @classmethod
     @with_transaction

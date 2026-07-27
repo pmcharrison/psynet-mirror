@@ -138,8 +138,8 @@ def _is_global_superclass(x, class_list):
 
 def _get_preferred_superclass_version(cls):
     """
-    Given an SQLAlchemy superclass for SQLAlchemy-mapped objects (e.g. ``Info``),
-    looks to see if there is a preferred version of this superclass (e.g. ``Trial``)
+    Given an SQLAlchemy superclass for SQLAlchemy-mapped objects (e.g. ``_Response``),
+    looks to see if there is a preferred version of this superclass (e.g. ``Response``)
     that still covers all instances in the database.
 
     Parameters
@@ -152,12 +152,9 @@ def _get_preferred_superclass_version(cls):
 
     A simplified class if one was found, otherwise the original class.
     """
-    import dallinger.models
-
     import psynet.timeline
 
     preferred_superclasses = {
-        dallinger.models.Info: psynet.trial.main.Trial,
         psynet.bot.Bot: psynet.participant.Participant,
         psynet.timeline._Response: psynet.timeline.Response,
     }
@@ -856,6 +853,7 @@ def ingest_zip(path, engine=None):
         "response",
         "node",
         "info",
+        "trial",
         "notification",
         "question",
         "transformation",

@@ -219,7 +219,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     module_state = relationship(
         "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="selectin"
     )
-    current_trial_id = Column(Integer, ForeignKey("info.id"))
+    current_trial_id = Column(Integer, ForeignKey("trial.id"))
     _current_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[current_trial_id], lazy="joined"
     )
@@ -317,8 +317,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # )
 
     # current_trial_id = Column(
-    #     Integer, ForeignKey("info.id")
-    # )  # 'info.id' because trials are stored in the info table
+    #     Integer, ForeignKey("trial.id")
+    # )  # trials are stored in the trial table
 
     # This should work but it's buggy, don't know why.
     # current_trial = relationship(

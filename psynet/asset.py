@@ -329,7 +329,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     parent = deferred(Column(PythonObject))
     module_state_id = Column(Integer, ForeignKey("module_state.id"), index=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
-    trial_id = Column(Integer, ForeignKey("info.id"), index=True)
+    trial_id = Column(Integer, ForeignKey("trial.id"), index=True)
     node_id = Column(Integer, ForeignKey("node.id"), index=True)
     network_id = Column(Integer, ForeignKey("network.id"), index=True)
 
@@ -871,7 +871,7 @@ class AssetParticipant(AssetLink, SQLBase, SQLMixin):
 class AssetTrial(AssetLink, SQLBase, SQLMixin):
     __tablename__ = "asset_trial"
 
-    trial_id = Column(Integer, ForeignKey("info.id"), primary_key=True)
+    trial_id = Column(Integer, ForeignKey("trial.id"), primary_key=True)
     trial = relationship("psynet.trial.main.Trial", back_populates="asset_links")
 
     asset = relationship("Asset", back_populates="trial_links")
