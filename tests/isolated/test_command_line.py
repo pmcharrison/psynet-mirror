@@ -1027,6 +1027,23 @@ def test_scripts_scaffold_skips_constraints_and_psynet_pinning(tmp_path):
     assert not (tmp_path / "constraints.txt").exists()
 
 
+def test_scripts_scaffold_skips_pinning_for_in_repo_experiments(tmp_path, monkeypatch):
+    requirements = "psynet\nmusic21==9.1.0\n"
+    (tmp_path / "requirements.txt").write_text(requirements)
+    monkeypatch.setattr("psynet.experiment_setup.is_in_repo_experiment", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._default_psynet_requirement",
+        lambda: "psynet==13.4.0",
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "requirements.txt").read_text() == requirements
+    assert not (tmp_path / "constraints.txt").exists()
+
+
 def test_scripts_scaffold_regenerates_empty_constraints(tmp_path):
     (tmp_path / "constraints.txt").touch()
 
@@ -1711,6 +1728,22 @@ def test_scripts_update_preserves_customized_config_txt():
 
             assert result.exit_code == 0, result.output
             assert Path("config.txt").read_text() == custom_config
+            assert Path("Dockerfile").exists()
+
+
+def test_scripts_update_preserves_customized_readme():
+    runner = CliRunner()
+    custom_readme = "# Custom experiment README\n\nAuthored notes.\n"
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("README.md").write_text(custom_readme)
+
+            result = runner.invoke(psynet, ["scripts", "update"])
+
+            assert result.exit_code == 0, result.output
+            assert Path("README.md").read_text() == custom_readme
             assert Path("Dockerfile").exists()
 
 

@@ -65,8 +65,15 @@ def _generate_constraints_if_missing(ctx, *, requirements_changed=False):
 
 
 def _scaffold_experiment(ctx, *, skip_constraints, refresh_constraints=False):
-    """Scaffold an experiment and optionally prepare its constraints."""
+    """Scaffold an experiment and optionally prepare its constraints.
+
+    In-repo experiments (demos and test experiments) keep bare ``psynet``
+    requirements and omit constraints by design, so pinning and constraint
+    generation are skipped there even without ``--skip-constraints``.
+    """
     _assert_directory_is_scaffoldable()
+    if is_in_repo_experiment():
+        skip_constraints = True
     scaffold_result = scaffold_experiment_directory()
     if not skip_constraints:
         requirements_changed = (

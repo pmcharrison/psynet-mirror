@@ -64,6 +64,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     It defaults to the name of the current directory.
 
 -   ``README.md`` is a README file. You should put information about your experiment here for future readers.
+    ``psynet scripts scaffold`` and ``psynet scripts update`` create a default README when missing, but never
+    overwrite an existing one.
 
 -   ``__init__.py`` is created automatically when you deploy the experiment; it tells Python to treat the directory as a
     package. You don’t need to worry about this file in practice.
@@ -72,7 +74,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 
 -   ``config.txt`` is a configuration file. It defines various important configuration parameters for when you deploy an
     experiment online. PsyNet can generate a default version of this file with ``psynet scripts scaffold``.
-    An existing empty file is preserved so that configuration can instead live in ``Experiment.config``.
+    An existing file (including an empty one) is preserved on scaffold and update so that configuration can instead
+    live in ``Experiment.config`` or retain author edits.
 
 -   ``constraints.txt`` stores the versions of the different Python packages that will be used when you deploy your
     experiment. It is automatically generated, don’t edit it yourself. **Note**: the role of this file is currently

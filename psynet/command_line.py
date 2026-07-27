@@ -2907,6 +2907,8 @@ def setup(ctx, psynet_source, prepare_only, force_shared_env):
 def scripts_update():
     """
     Overwrite experiment boilerplate with the latest PsyNet templates.
+
+    Existing ``config.txt`` and ``README.md`` files are preserved.
     """
     scaffold_experiment_directory(overwrite=True)
 

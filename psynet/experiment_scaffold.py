@@ -30,7 +30,7 @@ _TEMPLATE_FILES = (
 )
 
 # Create these when missing, but never overwrite existing copies (authors customize them).
-_PRESERVE_EXISTING_TEMPLATE_FILES = frozenset({"config.txt"})
+_PRESERVE_EXISTING_TEMPLATE_FILES = frozenset({"config.txt", "README.md"})
 
 _TEMPLATE_DIRECTORIES = ("docker",)
 
