@@ -73,9 +73,8 @@ class TestExport:
     def test_participants_file(self, database_zip_file):
         participants = load_export_table(database_zip_file, "participant")
         assert participants.shape[0] == 6
-        assert (participants["type"] == "Bot").all() or (
-            participants["class"].astype(str).str.contains("Bot").any()
-        )
+        # Physical COPY exports use SQLAlchemy polymorphic identity strings.
+        assert (participants["type"] == "psynet.bot.Bot").all()
 
     def test_networks_and_trials_files(self, database_zip_file):
         networks = load_export_table(database_zip_file, "network")
