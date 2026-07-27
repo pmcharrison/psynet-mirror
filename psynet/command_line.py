@@ -2725,6 +2725,7 @@ def export_assets(
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
     from .data import export_assets as _export_assets
+    from .export.asset_cache import warn_if_cache_oversized
 
     log(f"Exporting assets to {export_path}")
     asset_path = os.path.join(export_path, "assets")
@@ -2737,6 +2738,9 @@ def export_assets(
         server,
         local,
     )
+    oversized_message = warn_if_cache_oversized()
+    if oversized_message:
+        log(oversized_message)
 
 
 ###########
@@ -2764,8 +2768,6 @@ def assets_cache():
 )
 def assets_cache_info(cache_root):
     """Print statistics about the local asset cache."""
-    from pathlib import Path
-
     from .export.asset_cache import (
         cache_size_bytes,
         default_cache_root,
@@ -2796,8 +2798,6 @@ def assets_cache_info(cache_root):
 )
 def assets_cache_list(cache_root):
     """List the SHA-256 digests of all objects currently in the cache."""
-    from pathlib import Path
-
     from .export.asset_cache import default_cache_root, list_cached_objects
 
     root = Path(cache_root).expanduser() if cache_root else default_cache_root()
@@ -2835,8 +2835,6 @@ def assets_cache_prune(prune_all, yes, cache_root):
     Use --all to delete everything, or pass specific digests as arguments
     (not yet implemented; use --all for now).
     """
-    from pathlib import Path
-
     from .export.asset_cache import (
         default_cache_root,
         list_cached_objects,

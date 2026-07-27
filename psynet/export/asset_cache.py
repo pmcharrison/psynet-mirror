@@ -26,18 +26,17 @@ discards its temp copy if the target already exists after the rename.
 Maintainer notes
 ----------------
 This module is intentionally free of PsyNet database / SQLAlchemy
-imports so it can be unit-tested without a running experiment.  Only
-``psynet.utils.sha256_directory`` is imported lazily (for directory
-hashing), to avoid circular imports at package load time.
+imports so it can be unit-tested without a running experiment.
 """
 
-import hashlib
 import logging
 import os
 import shutil
 import tempfile
 from pathlib import Path
 from typing import Callable, List, Optional, Union
+
+from psynet.utils import sha256_directory, sha256_file
 
 logger = logging.getLogger(__name__)
 
@@ -318,22 +317,6 @@ def _resolve_root(cache_root: Optional[Union[str, Path]]) -> Path:
     return Path(os.path.expanduser(str(cache_root)))
 
 
-def _sha256_file(path: Union[str, Path]) -> str:
-    """Return SHA-256 hex digest of a file's bytes."""
-    h = hashlib.sha256()
-    with open(str(path), "rb") as fh:
-        for chunk in iter(lambda: fh.read(65536), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-def _sha256_directory(directory: Union[str, Path]) -> str:
-    """Return SHA-256 hex digest of a directory (names + contents)."""
-    from psynet.utils import sha256_directory
-
-    return sha256_directory(directory)
-
-
 def _fetch_file_to_cache(
     digest: str,
     fetch_fn: Callable[[str], None],
@@ -349,7 +332,7 @@ def _fetch_file_to_cache(
         # Remove the placeholder so fetch_fn can write a fresh file.
         tmp_path.unlink()
         fetch_fn(str(tmp_path))
-        actual = _sha256_file(tmp_path)
+        actual = sha256_file(tmp_path)
         if actual != digest:
             raise ValueError(
                 f"Digest mismatch for cached asset: expected {digest!r}, got {actual!r}"
@@ -385,7 +368,7 @@ def _fetch_folder_to_cache(
     tmp_dir = parent / f".partial-{os.urandom(8).hex()}"
     try:
         fetch_fn(str(tmp_dir))
-        actual = _sha256_directory(tmp_dir)
+        actual = sha256_directory(tmp_dir)
         if actual != digest:
             raise ValueError(
                 f"Digest mismatch for cached asset folder: expected {digest!r}, got {actual!r}"

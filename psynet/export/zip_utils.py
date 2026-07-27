@@ -68,9 +68,7 @@ def _compression_for(arcname: str) -> int:
         The archive member name (or any path whose extension is meaningful).
     """
     normalized = arcname.replace("\\", "/")
-    if "/objects/sha256/" in f"/{normalized}" or normalized.startswith(
-        "objects/sha256/"
-    ):
+    if "/objects/sha256/" in f"/{normalized}":
         return zipfile.ZIP_STORED
     ext = os.path.splitext(arcname)[1].lower()
     if ext in _STORED_EXTENSIONS:

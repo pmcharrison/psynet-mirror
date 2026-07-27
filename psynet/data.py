@@ -9,7 +9,6 @@ from zipfile import ZipFile
 
 import dallinger.data
 import dallinger.models
-import psutil
 import sqlalchemy
 from dallinger import db
 from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
@@ -798,17 +797,10 @@ def export_assets(
             └── sha256/
                 └── <content-hash>
     """
-    from joblib import Parallel, delayed
-
     from .asset import ExternalAsset, OnDemandAsset
 
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
-    if n_parallel:
-        n_jobs = n_parallel
-    else:
-        n_jobs = psutil.cpu_count()
-
     if collected_assets_only:
         # ExperimentAsset covers deposits for this deployment. CachedAsset and
         # ExternalAsset are pre-existing and only included with --assets all.
@@ -859,26 +851,17 @@ def export_assets(
             asset_ids_needing_bytes.append(asset.id)
         manifest_rows.append(row)
 
-    requested_jobs = n_jobs
-    n_jobs = 1  # todo - fix - parallel (SSH?) export seems to cause a deadlock, so we disable it for now
-    if requested_jobs and requested_jobs > 1:
+    # TODO: restore parallelism once SSH/export deadlock is fixed.
+    if n_parallel and n_parallel > 1:
         from .utils import get_logger
 
         get_logger().warning(
-            "Asset export parallelism is currently disabled (n_jobs=1) to avoid "
-            "a known deadlock; ignoring requested n_parallel=%s.",
-            requested_jobs,
+            "Asset export parallelism is currently disabled (sequential export) "
+            "to avoid a known deadlock; ignoring requested n_parallel=%s.",
+            n_parallel,
         )
-    Parallel(
-        n_jobs=n_jobs,
-        verbose=10,
-        backend="threading",
-    )(
-        delayed(export_asset)(
-            asset_id, assets_root, include_on_demand_assets, server, local
-        )
-        for asset_id in asset_ids_needing_bytes
-    )
+    for asset_id in asset_ids_needing_bytes:
+        export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
 
     # Refresh hashes for on-demand assets materialized during export.
     for row in manifest_rows:
@@ -917,14 +900,6 @@ def export_assets(
         for row in manifest_rows:
             writer.writerow(row)
 
-    from .export.asset_cache import warn_if_cache_oversized
-
-    oversized_message = warn_if_cache_oversized()
-    if oversized_message:
-        from .command_line import log
-
-        log(oversized_message)
-
 
 def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
     """Export one asset's bytes into the content-addressed objects tree.
@@ -936,8 +911,7 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
     """
     from .asset import Asset, ExternalAsset, OnDemandAsset
     from .experiment import import_local_experiment
-    from .export.asset_cache import ensure_object_in_cache, link_or_copy
-    from .utils import content_object_path, make_parents, sha256_directory, sha256_file
+    from .utils import sha256_directory, sha256_file
 
     if server is None:
         ssh_host = None
@@ -969,17 +943,12 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
                     a.export(temp_path)
                     digest = sha256_file(temp_path)
 
-                object_rel = content_object_path(digest)
-                dest = os.path.join(assets_root, object_rel)
-                if not os.path.exists(dest):
-                    # Place into cache (re-hash verifies integrity) then link.
-                    cache_path = ensure_object_in_cache(
-                        digest,
-                        _make_copy_fn(temp_path, a.is_folder),
-                        is_folder=a.is_folder,
-                    )
-                    make_parents(dest)
-                    link_or_copy(cache_path, dest, is_folder=a.is_folder)
+                object_rel = _cache_and_link_into_export(
+                    digest,
+                    _make_copy_fn(temp_path, a.is_folder),
+                    assets_root,
+                    is_folder=a.is_folder,
+                )
                 a.sha256_contents = digest
                 a.object_path = object_rel
                 db.session.commit()
@@ -988,18 +957,14 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
         if a.sha256_contents:
             # Fast path: digest is known; consult the cache before fetching.
             digest = a.sha256_contents
-            cache_path = ensure_object_in_cache(
+            object_rel = _cache_and_link_into_export(
                 digest,
                 lambda p: a.export(
                     p, ssh_host=ssh_host, ssh_user=ssh_user, local=local
                 ),
+                assets_root,
                 is_folder=bool(a.is_folder),
             )
-            object_rel = content_object_path(digest)
-            dest = os.path.join(assets_root, object_rel)
-            if not os.path.exists(dest):
-                make_parents(dest)
-                link_or_copy(cache_path, dest, is_folder=bool(a.is_folder))
             if not a.object_path:
                 a.object_path = object_rel
                 db.session.commit()
@@ -1014,22 +979,40 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
             digest = (
                 sha256_directory(temp_path) if a.is_folder else sha256_file(temp_path)
             )
-            object_rel = content_object_path(digest)
-            cache_path = ensure_object_in_cache(
+            object_rel = _cache_and_link_into_export(
                 digest,
                 _make_copy_fn(temp_path, bool(a.is_folder)),
+                assets_root,
                 is_folder=bool(a.is_folder),
             )
-            dest = os.path.join(assets_root, object_rel)
-            if not os.path.exists(dest):
-                make_parents(dest)
-                link_or_copy(cache_path, dest, is_folder=bool(a.is_folder))
             a.sha256_contents = digest
             a.object_path = object_rel
             db.session.commit()
     except Exception:
         print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise
+
+
+def _cache_and_link_into_export(
+    digest, fetch_fn, assets_root, *, is_folder: bool
+) -> str:
+    """Ensure ``digest`` is cached, then hardlink/copy it into the export tree.
+
+    Returns
+    -------
+    str
+        Relative object path under the assets root (``objects/sha256/<digest>``).
+    """
+    from .export.asset_cache import ensure_object_in_cache, link_or_copy
+    from .utils import content_object_path, make_parents
+
+    cache_path = ensure_object_in_cache(digest, fetch_fn, is_folder=is_folder)
+    object_rel = content_object_path(digest)
+    dest = os.path.join(assets_root, object_rel)
+    if not os.path.exists(dest):
+        make_parents(dest)
+        link_or_copy(cache_path, dest, is_folder=is_folder)
+    return object_rel
 
 
 def _make_copy_fn(src_path: str, is_folder: bool):

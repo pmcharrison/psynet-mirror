@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import csv
-import hashlib
 import io
 import json
 import os
@@ -17,7 +16,7 @@ from dallinger import db
 from psycopg2 import sql
 from sqlalchemy import inspect as sa_inspect
 
-from psynet.utils import get_logger, make_parents
+from psynet.utils import get_logger, make_parents, sha256_file
 
 from .identifiers import (
     apply_identifier_separation_to_csv_dir,
@@ -102,14 +101,6 @@ def _zip_csv_dir(csv_dir: str, zip_path: str, table_names: list[str]) -> None:
             archive.write(source, member)
 
 
-def _file_sha256(path: str) -> str:
-    digest = hashlib.sha256()
-    with open(path, "rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def _count_csv_rows(path: str) -> int:
     with open(path, newline="") as handle:
         reader = csv.reader(handle)
@@ -143,7 +134,7 @@ def write_export_manifest(
 
     files = {
         "database.zip": {
-            "sha256": _file_sha256(database_zip_path),
+            "sha256": sha256_file(database_zip_path),
             "bytes": os.path.getsize(database_zip_path),
         }
     }
@@ -151,7 +142,7 @@ def write_export_manifest(
         for name, path in extra_files.items():
             if os.path.exists(path):
                 files[name] = {
-                    "sha256": _file_sha256(path),
+                    "sha256": sha256_file(path),
                     "bytes": os.path.getsize(path),
                 }
 

@@ -28,7 +28,7 @@ from .asset_cache import (
     warn_if_cache_oversized,
 )
 from .database import export_database_snapshot
-from .identifiers import write_identifier_sidecars
+from .identifiers import write_identifier_sidecars_from_csv_dir
 from .zip_utils import build_zip_from_dir
 
 __all__ = [
@@ -46,5 +46,5 @@ __all__ = [
     "soft_limit_bytes",
     "unpack_json_column",
     "warn_if_cache_oversized",
-    "write_identifier_sidecars",
+    "write_identifier_sidecars_from_csv_dir",
 ]

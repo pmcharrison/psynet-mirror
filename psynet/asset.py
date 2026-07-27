@@ -907,7 +907,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             return self._serve_on_demand(safe_subpath)
         if isinstance(self, ExternalAsset):
             abort(404)
-        if not self.deposited and not isinstance(self, OnDemandAsset):
+        if not self.deposited:
             abort(404)
         storage = self.storage or self.default_storage
         return storage.serve(self, safe_subpath)

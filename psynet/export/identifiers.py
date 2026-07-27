@@ -5,7 +5,6 @@ from __future__ import annotations
 import csv
 import os
 import shutil
-from typing import Optional
 
 from psynet.identifiers import (
     LUCID_ENTRANT_IDENTIFIER_FIELDS,
@@ -51,19 +50,7 @@ def write_identifier_sidecars_from_csv_dir(csv_dir: str, export_path: str) -> di
     participant_path = os.path.join(csv_dir, "participant.csv")
     if os.path.exists(participant_path):
         _, rows = _read_csv(participant_path)
-        sidecar_rows = []
-        for row in rows:
-            sidecar_rows.append(
-                {
-                    "participant_id": row.get("id", ""),
-                    "worker_id": row.get("worker_id", ""),
-                    "assignment_id": row.get("assignment_id", ""),
-                    "hit_id": row.get("hit_id", ""),
-                    "unique_id": row.get("unique_id", ""),
-                    "client_ip_address": row.get("client_ip_address", ""),
-                    "entry_information": row.get("entry_information", ""),
-                }
-            )
+        sidecar_rows = [_participant_sidecar_row(row) for row in rows]
         out = os.path.join(export_path, "participant_identifiers.csv")
         _write_csv(out, list(PARTICIPANT_IDENTIFIER_FIELDS), sidecar_rows)
         paths["participant_identifiers"] = out
@@ -71,32 +58,38 @@ def write_identifier_sidecars_from_csv_dir(csv_dir: str, export_path: str) -> di
     lucid_path = os.path.join(csv_dir, "lucid_rid.csv")
     if os.path.exists(lucid_path):
         _, rows = _read_csv(lucid_path)
-        sidecar_rows = []
-        for row in rows:
-            sidecar_rows.append(
-                {
-                    "lucid_rid_id": row.get("id", ""),
-                    "rid": row.get("rid", ""),
-                    "lucid_panelist_id": row.get("lucid_panelist_id", ""),
-                    "lucid_respondent_id": row.get("lucid_respondent_id", ""),
-                    "participant_id": row.get("participant_id", ""),
-                }
-            )
         # Include participant_id for join convenience even though it is not a
         # recruiter identifier; keep the documented identifier fields first.
-        fieldnames = list(LUCID_ENTRANT_IDENTIFIER_FIELDS) + ["participant_id"]
-        # Deduplicate if participant_id somehow appears twice.
-        seen = set()
-        ordered = []
-        for name in fieldnames:
-            if name not in seen:
-                ordered.append(name)
-                seen.add(name)
+        ordered = list(LUCID_ENTRANT_IDENTIFIER_FIELDS) + ["participant_id"]
+        sidecar_rows = [_lucid_sidecar_row(row) for row in rows]
         out = os.path.join(export_path, "lucid_entrant_identifiers.csv")
         _write_csv(out, ordered, sidecar_rows)
         paths["lucid_entrant_identifiers"] = out
 
     return paths
+
+
+def _participant_sidecar_row(row: dict) -> dict:
+    """Build one participant sidecar row from a participant CSV row."""
+    out = {}
+    for field in PARTICIPANT_IDENTIFIER_FIELDS:
+        if field == "participant_id":
+            out[field] = row.get("id", "")
+        else:
+            out[field] = row.get(field, "")
+    return out
+
+
+def _lucid_sidecar_row(row: dict) -> dict:
+    """Build one Lucid entrant sidecar row from a lucid_rid CSV row."""
+    out = {}
+    for field in LUCID_ENTRANT_IDENTIFIER_FIELDS:
+        if field == "lucid_rid_id":
+            out[field] = row.get("id", "")
+        else:
+            out[field] = row.get(field, "")
+    out["participant_id"] = row.get("participant_id", "")
+    return out
 
 
 def apply_identifier_separation_to_csv_dir(
@@ -164,12 +157,3 @@ def apply_identifier_separation_to_csv_dir(
             continue
 
         shutil.copyfile(src, dst)
-
-
-def write_identifier_sidecars(
-    export_path: str, *, raw_csv_dir: Optional[str] = None
-) -> dict:
-    """Public helper used when sidecars are written from an existing CSV dir."""
-    if raw_csv_dir is None:
-        raise ValueError("raw_csv_dir is required")
-    return write_identifier_sidecars_from_csv_dir(raw_csv_dir, export_path)
