@@ -54,6 +54,7 @@ from .recruiters import BaseLucidRecruiter, HotAirRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
+    format_bytes,
     get_args,
     get_experiment_url,
     get_logger,
@@ -2768,8 +2769,8 @@ def assets_cache_info(cache_root):
 
     click.echo(f"Cache root:      {root}")
     click.echo(f"Cached objects:  {len(objects)}")
-    click.echo(f"Total size:      {_format_bytes(total)}")
-    click.echo(f"Soft limit:      {_format_bytes(limit)}")
+    click.echo(f"Total size:      {format_bytes(total)}")
+    click.echo(f"Soft limit:      {format_bytes(limit)}")
     warning = warn_if_cache_oversized(root, limit_bytes=limit)
     if warning:
         click.echo(warning)
@@ -2849,18 +2850,6 @@ def assets_cache_prune(prune_all, yes, cache_root):
 
     removed = prune_cached_objects(cache_root=root)
     click.echo(f"Removed {len(removed)} cached object(s).")
-
-
-def _format_bytes(n: int) -> str:
-    """Return a human-readable byte-count string."""
-    if n < 1024:
-        return f"{n} B"
-    elif n < 1024**2:
-        return f"{n / 1024:.1f} KB"
-    elif n < 1024**3:
-        return f"{n / 1024 / 1024:.1f} MB"
-    else:
-        return f"{n / 1024 / 1024 / 1024:.2f} GB"
 
 
 @psynet.command()

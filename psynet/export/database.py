@@ -93,6 +93,12 @@ def _zip_csv_dir(csv_dir: str, zip_path: str, table_names: list[str]) -> None:
         for table in table_names:
             member = f"data/{table}.csv"
             source = os.path.join(csv_dir, f"{table}.csv")
+            if not os.path.exists(source):
+                logger.warning(
+                    "Skipping missing table CSV when building database.zip: %s",
+                    source,
+                )
+                continue
             archive.write(source, member)
 
 
@@ -155,7 +161,7 @@ def write_export_manifest(
 
         deployment_id = get_experiment().deployment_id
     except Exception:
-        logger.debug(
+        logger.warning(
             "Could not resolve deployment_id for export manifest.", exc_info=True
         )
 

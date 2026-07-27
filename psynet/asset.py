@@ -914,7 +914,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     def _serve_on_demand(self, subpath: Optional[str] = None):
         """Generate an on-demand asset into a temp file and return ``send_file``."""
-        from flask import abort, send_file
+        from flask import abort, after_this_request, send_file
 
         suffix = self.extension if self.extension else ""
         if self.is_folder:
@@ -926,11 +926,25 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 if not os.path.isfile(source):
                     abort(404)
                 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                    shutil.copyfile(source, temp_file.name)
-                    return send_file(temp_file.name, max_age=0)
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_file:
-            temp_path = temp_file.name
-        self.export(temp_path)
+                    temp_path = temp_file.name
+                shutil.copyfile(source, temp_path)
+        else:
+            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_file:
+                temp_path = temp_file.name
+            self.export(temp_path)
+
+        @after_this_request
+        def _cleanup_temp_file(response):
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                logger.warning(
+                    "Failed to remove temporary on-demand asset file %s",
+                    temp_path,
+                    exc_info=True,
+                )
+            return response
+
         return send_file(temp_path, max_age=0)
 
 

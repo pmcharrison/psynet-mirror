@@ -353,9 +353,9 @@ def sha256_object(x):
     return hashlib.sha256(string).hexdigest()
 
 
-# MD5 hashing code:
+# Hash update helpers (algorithm-agnostic):
 # https://stackoverflow.com/a/54477583/8454486
-def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
+def _update_hash_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
     if not Path(filename).is_file():
         raise FileNotFoundError(f"File not found: {filename}")
     with open(str(filename), "rb") as f:
@@ -365,15 +365,15 @@ def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
 
 
 def md5_file(filename: Union[str, Path]) -> str:
-    return str(md5_update_from_file(filename, hashlib.md5()).hexdigest())
+    return str(_update_hash_from_file(filename, hashlib.md5()).hexdigest())
 
 
 def sha256_file(filename: Union[str, Path]) -> str:
     """Return a SHA-256 hex digest of a file's contents."""
-    return str(md5_update_from_file(filename, hashlib.sha256()).hexdigest())
+    return str(_update_hash_from_file(filename, hashlib.sha256()).hexdigest())
 
 
-def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
+def _update_hash_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
     assert Path(directory).is_dir()
     for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
         # Skip hidden files and directories (those starting with '.')
@@ -381,19 +381,19 @@ def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
             continue
         hash.update(path.name.encode())
         if path.is_file():
-            hash = md5_update_from_file(path, hash)
+            hash = _update_hash_from_file(path, hash)
         elif path.is_dir():
-            hash = md5_update_from_dir(path, hash)
+            hash = _update_hash_from_dir(path, hash)
     return hash
 
 
 def md5_directory(directory: Union[str, Path]) -> str:
-    return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
+    return str(_update_hash_from_dir(directory, hashlib.md5()).hexdigest())
 
 
 def sha256_directory(directory: Union[str, Path]) -> str:
     """Return a SHA-256 hex digest of a directory's names and file contents."""
-    return str(md5_update_from_dir(directory, hashlib.sha256()).hexdigest())
+    return str(_update_hash_from_dir(directory, hashlib.sha256()).hexdigest())
 
 
 def content_object_path(digest: str) -> str:

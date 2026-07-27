@@ -1947,7 +1947,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         random.shuffle(networks)
 
         if self.balance_across_chains:
-            # Prefer heads with fewer viable trials, then lower degree.
+            # Sort by ascending degree (primary), then ascending viable-trial
+            # count (secondary). Python's stable sort makes the last key primary.
             networks.sort(key=lambda network: viable_counts.get(network.head.id, 0))
             networks.sort(key=lambda network: network.head.degree)
 

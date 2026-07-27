@@ -859,7 +859,16 @@ def export_assets(
             asset_ids_needing_bytes.append(asset.id)
         manifest_rows.append(row)
 
+    requested_jobs = n_jobs
     n_jobs = 1  # todo - fix - parallel (SSH?) export seems to cause a deadlock, so we disable it for now
+    if requested_jobs and requested_jobs > 1:
+        from .utils import get_logger
+
+        get_logger().warning(
+            "Asset export parallelism is currently disabled (n_jobs=1) to avoid "
+            "a known deadlock; ignoring requested n_parallel=%s.",
+            requested_jobs,
+        )
     Parallel(
         n_jobs=n_jobs,
         verbose=10,

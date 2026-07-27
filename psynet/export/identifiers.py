@@ -61,6 +61,7 @@ def write_identifier_sidecars_from_csv_dir(csv_dir: str, export_path: str) -> di
                     "hit_id": row.get("hit_id", ""),
                     "unique_id": row.get("unique_id", ""),
                     "client_ip_address": row.get("client_ip_address", ""),
+                    "entry_information": row.get("entry_information", ""),
                 }
             )
         out = os.path.join(export_path, "participant_identifiers.csv")

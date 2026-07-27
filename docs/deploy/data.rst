@@ -101,7 +101,10 @@ Identifier separation
 ``database.zip`` replaces direct recruiter identifiers with pseudonyms so that database
 constraints remain satisfied and the archive can be loaded with ``psynet load``.
 Original identifiers are available in ``participant_identifiers.csv``, keyed by
-``participant_id``. Lucid experiments also write ``lucid_entrant_identifiers.csv``.
+``participant_id``. That sidecar includes ``worker_id``, ``assignment_id``,
+``hit_id``, ``unique_id``, ``client_ip_address``, and ``entry_information``
+(serialized as in the database). Lucid experiments also write
+``lucid_entrant_identifiers.csv``.
 
 PsyNet does not inspect assets, free-text answers, logs, serialized variables, or
 experiment-defined basic data for identifying content. Treat those as potentially

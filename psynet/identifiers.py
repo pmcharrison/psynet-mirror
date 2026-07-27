@@ -4,6 +4,10 @@ These fields identify a person to a recruiter or marketplace. The live
 ``Participant`` table (and ``LucidRID`` for Lucid ghost entrants) remain the
 sole owners while an experiment runs. Export separates them into sidecar files
 and writes pseudonyms into ``database.zip``.
+
+``entry_information`` is included in the participant sidecar because it often
+carries recruiter-specific signup metadata; it is blanked in the pseudonymous
+database archive.
 """
 
 PARTICIPANT_IDENTIFIER_FIELDS = (
@@ -13,6 +17,7 @@ PARTICIPANT_IDENTIFIER_FIELDS = (
     "hit_id",
     "unique_id",
     "client_ip_address",
+    "entry_information",
 )
 
 LUCID_ENTRANT_IDENTIFIER_FIELDS = (

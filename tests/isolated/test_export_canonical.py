@@ -108,8 +108,10 @@ def test_identifier_separation_writes_sidecars_and_pseudonyms(tmp_path):
         "hit_id",
         "unique_id",
         "client_ip_address",
+        "entry_information",
     ]
     assert participant_sidecar.iloc[0]["worker_id"] == "worker-abc"
+    assert participant_sidecar.iloc[0]["entry_information"] == '{"email": "a@b.c"}'
 
     lucid_sidecar = pd.read_csv(sidecars["lucid_entrant_identifiers"])
     assert lucid_sidecar.shape[0] == 2
