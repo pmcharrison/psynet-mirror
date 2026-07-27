@@ -108,7 +108,7 @@ def test_page_supports_deprecated_javascript_arguments():
         "js_links is deprecated; migrate to js_dependencies or js_page_modules.",
         "scripts is deprecated; migrate to js_page_code.",
     ]
-    assert page.js_links == ["/static/legacy.js"]
+    assert page.legacy_js_links == ["/static/legacy.js"]
     assert page.legacy_scripts == ["var legacyGlobal = true;"]
     assert page.js_page_code == ["window.managed = true;"]
     assert page.requires_full_page_reload is True
@@ -124,7 +124,7 @@ def test_empty_deprecated_javascript_arguments_do_not_warn():
         )
 
     assert warning_log == []
-    assert page.js_links == []
+    assert page.legacy_js_links == []
     assert page.legacy_scripts == []
     assert page.js_page_code == []
     assert page.requires_full_page_reload is False
@@ -138,6 +138,7 @@ def test_legacy_js_links_alone_force_full_reload():
         )
 
     assert page.requires_full_page_reload is True
+    assert page.legacy_js_links == ["/static/legacy.js"]
     assert page.legacy_scripts == []
     assert page.js_page_code == []
 

@@ -1213,7 +1213,7 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
-        self.js_links = legacy_js_links
+        self.legacy_js_links = legacy_js_links
         self.legacy_scripts = legacy_scripts
         self.js_dependencies = _normalize_javascript_urls(
             js_dependencies, "js_dependencies"
@@ -1654,7 +1654,7 @@ class Page(Elt):
             "participant": participant,
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
-            "js_links": self.js_links,
+            "legacy_js_links": self.legacy_js_links,
             "legacy_scripts": self.legacy_scripts,
             "js_dependencies": self.js_dependencies,
             "js_page_code": self.js_page_code,
