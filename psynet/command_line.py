@@ -2048,8 +2048,9 @@ def check_psynet_requirement_is_unambiguous():
     The check requires a deterministic PsyNet specification so deployments are
     reproducible. Accepted formats are:
     - ``psynet==<version>``
-    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v<version>#egg=psynet``
-    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit-hash>#egg=psynet``
+    - ``psynet@git+https://<host>/<path>@v<version>#egg=psynet``
+    - ``psynet@git+https://<host>/<path>@<commit-hash>#egg=psynet``
+    - ``psynet@git+ssh://git@<host>/<path>@<commit-hash>#egg=psynet``
 
     Raises
     ------
@@ -2069,25 +2070,22 @@ def check_psynet_requirement_is_unambiguous():
     ) as spinner:
         valid = False
         with open("requirements.txt", "r") as file:
+            commit_or_tag = (
+                r"(?:[a-fA-F0-9]{8,40}|v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                r"(?:(?:rc|a)\d+)?)"
+            )
+            git_path = r"[\w.+\-]+(?:/[\w.+\-]+)+"
             regexes = [
-                "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)((rc|a)\\d+)?",
+                rf"^psynet(\s?)@(\s?)git\+https://[\w.-]+/{git_path}(\.git)?@"
+                rf"{commit_or_tag}(#egg=psynet)?$",
+                rf"^psynet(\s?)@(\s?)git\+ssh://git@[\w.-]+/{git_path}(\.git)?@"
+                rf"{commit_or_tag}(#egg=psynet)?$",
+                r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+((rc|a)\d+)?$",
             ]
             file_content = file.read()
             for regex in regexes:
                 match = re.search(
-                    r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
-                    + regex
-                    + "(#egg=psynet)?$",
-                    file_content,
-                    re.MULTILINE,
-                )
-                if match is not None:
-                    valid = True
-                    break
-
-                match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+((rc|a)\d+)?$",
+                    regex,
                     file_content,
                     re.MULTILINE,
                 )
@@ -2110,6 +2108,7 @@ def check_psynet_requirement_is_unambiguous():
             "* psynet==10.1.1",
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+            "* psynet@git+https://gitlab.com/alice/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
         ]
 
@@ -3013,7 +3012,8 @@ def _choose_editable_psynet_requirement(source, requested_source):
         click.echo(f"PsyNet is installed editable from {source}.")
         click.echo(
             "Choose 'editable' to include local changes, 'commit' for a portable "
-            "Git pin, or 'existing' to retain the current requirements entry."
+            "Git pin from this checkout's origin remote, or 'existing' to retain "
+            "the current requirements entry."
         )
         requested_source = click.prompt(
             "PsyNet source",

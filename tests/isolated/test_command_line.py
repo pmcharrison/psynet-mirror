@@ -902,8 +902,10 @@ def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monke
 
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
     monkeypatch.setattr(
-        "psynet.experiment_scaffold._current_source_commit",
-        lambda: "a" * 40,
+        "psynet.experiment_scaffold.commit_psynet_requirement",
+        lambda _source: (
+            f"psynet@git+https://gitlab.com/alice/PsyNet@{'a' * 40}#egg=psynet"
+        ),
     )
 
     with working_directory(tmp_path):
@@ -911,7 +913,7 @@ def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monke
 
         assert result.exit_code == 0, result.output
         assert Path("requirements.txt").read_text().splitlines()[0] == (
-            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{'a' * 40}#egg=psynet"
+            f"psynet@git+https://gitlab.com/alice/PsyNet@{'a' * 40}#egg=psynet"
         )
         check_psynet_requirement_is_unambiguous()
 

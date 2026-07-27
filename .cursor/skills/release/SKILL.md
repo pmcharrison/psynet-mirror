@@ -117,7 +117,7 @@ git add psynet/version.py pyproject.toml
 git commit -m "Bump version to X.Y.Z"
 ```
 
-### Update demo and test experiments
+### Update experiment templates
 
 This updates the canonical standalone-experiment templates to reference the new
 version. Bundled demos intentionally keep bare `psynet` requirements and do not
@@ -455,7 +455,7 @@ Perform the shared steps, in this order:
 
 Merge the release MR via the GitLab interface using a **merge commit** (not
 squash). This carries forward release bookkeeping such as the finalized
-`CHANGELOG.md`, version bump, and regenerated demo constraints. It is not
+`CHANGELOG.md`, version bump, and updated experiment-script templates. It is not
 the commit that should be tagged for the release.
 
 ### 7. Bump master to the next alpha
@@ -470,16 +470,18 @@ git checkout -b bump-master-post-release
 ```
 
 Update the version in both version files from `13.2.0` to `13.3.0a0`.
-Then regenerate demo and test experiment files so `master` demos track the
-current alpha version:
+Then update experiment-script templates so Docker image tags and related
+scaffold templates track the current development version:
 
 ```bash
 psynet dev experiments update
 ```
 
-New changes on `master` should be recorded as fragments in `changelog.d/`.
+Bundled demos keep bare `psynet` requirements and are not rewritten by this
+command. New changes on `master` should be recorded as fragments in
+`changelog.d/`.
 
-Then commit the version bump and generated demo/test updates, and open a MR:
+Then commit the version bump and template updates, and open a MR:
 
 ```bash
 git add -A
@@ -491,7 +493,7 @@ git push --set-upstream origin bump-master-post-release
 > `bump-master-post-release` MR before it is merged.
 
 Merge this MR promptly before any new feature branches land, so the version
-and generated demo/test files on `master` stay aligned with the CHANGELOG.
+and experiment-script templates on `master` stay aligned with the CHANGELOG.
 
 ## Patch release path
 
@@ -705,9 +707,8 @@ If this release upgrades the Dallinger dependency:
 - Update the Dallinger version specifier in `pyproject.toml`
   (e.g. `dallinger[docker]>=12.2.0,<13`).
 - Update `recommended_dallinger_major_minor` in `psynet/version.py`.
-- Make sure the correct Dallinger version is installed in your environment
-  before running `psynet dev experiments update`, as the command uses it to
-  resolve constraint versions.
+- Refresh the vendored Dallinger CI constraints snapshot with
+  `psynet dev ci update-dallinger-constraints`.
 
 ## Version files reference
 
@@ -724,4 +725,4 @@ The version is tracked in two files, both updated together:
 - Commit messages follow the pattern seen in past releases:
   - `Update CHANGELOG for version X.Y.Z`
   - `Bump version to X.Y.Z`
-  - `Update demo and test experiments for PsyNet X.Y.Z`
+  - `Update experiment templates for PsyNet X.Y.Z`

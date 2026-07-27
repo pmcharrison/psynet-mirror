@@ -104,12 +104,83 @@ def _default_requirements_txt() -> str:
     return f"{requirement}\n{_REQUIREMENTS_TXT_COMMENTS}"
 
 
+_PUBLIC_HTTPS_GIT_HOSTS = frozenset({"gitlab.com", "github.com", "www.github.com"})
+
+
+def _normalize_git_remote_to_pip_base(remote_url: str) -> str:
+    """Convert a git remote URL into a pip ``git+…`` base without a ref.
+
+    SSH remotes on public hosts (GitLab/GitHub) are normalized to HTTPS for
+    more portable requirement pins. Other SSH remotes keep ``git+ssh``.
+    """
+    remote_url = remote_url.strip()
+    scp_match = re.match(r"^git@([^:]+):(.+)$", remote_url)
+    if scp_match:
+        host, path = scp_match.groups()
+        path = path.removesuffix(".git").lstrip("/")
+        if host in _PUBLIC_HTTPS_GIT_HOSTS:
+            return f"git+https://{host}/{path}"
+        return f"git+ssh://git@{host}/{path}"
+
+    if remote_url.startswith("git+"):
+        remote_url = remote_url[4:]
+
+    parsed = urlparse(remote_url)
+    if parsed.scheme in {"http", "https"} and parsed.hostname and parsed.path:
+        path = parsed.path.removesuffix(".git").rstrip("/")
+        return f"git+{parsed.scheme}://{parsed.hostname}{path}"
+
+    if parsed.scheme == "ssh" and parsed.hostname and parsed.path:
+        path = parsed.path.removesuffix(".git").lstrip("/")
+        if parsed.hostname in _PUBLIC_HTTPS_GIT_HOSTS:
+            return f"git+https://{parsed.hostname}/{path}"
+        return f"git+ssh://git@{parsed.hostname}/{path}"
+
+    raise ValueError(f"Unrecognized git remote URL: {remote_url}")
+
+
+def _git_remote_url(source: Path, remote: str = "origin") -> str | None:
+    """Return the configured URL for a git remote, if present."""
+    try:
+        url = subprocess.check_output(
+            ["git", "-C", str(source), "remote", "get-url", remote],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return url or None
+
+
+def _remote_tracking_refs_contain_commit(
+    source: Path, commit: str, remote: str = "origin"
+) -> bool:
+    """Return whether a remote-tracking ref already contains ``commit``."""
+    try:
+        output = subprocess.check_output(
+            ["git", "-C", str(source), "branch", "-r", "--contains", commit],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    prefix = f"{remote}/"
+    return any(line.strip().startswith(prefix) for line in output.splitlines())
+
+
 def _default_psynet_requirement() -> str:
     """Return a resolvable PsyNet requirement for a new experiment."""
     if re.search(r"a\d+$", psynet_version):
-        commit = _current_source_commit()
-        if commit is not None:
-            return f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit}#egg=psynet"
+        source = Path(__file__).parent.parent
+        try:
+            return commit_psynet_requirement(source)
+        except ValueError:
+            commit = _current_source_commit(source)
+            if commit is not None:
+                return (
+                    "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@"
+                    f"{commit}#egg=psynet"
+                )
     return f"psynet=={psynet_version}"
 
 
@@ -137,11 +208,42 @@ def editable_psynet_requirement(source: Path) -> str:
 
 
 def commit_psynet_requirement(source: Path) -> str:
-    """Return a portable requirement for a PsyNet checkout's current commit."""
+    """Return a portable requirement for a PsyNet checkout's current commit.
+
+    The pin uses the checkout's ``origin`` remote so forks work. The commit must
+    already be reachable from a remote-tracking ref (typically after
+    ``git push``).
+    """
+    source = Path(source)
     commit = _current_source_commit(source)
     if commit is None:
         raise ValueError(f"Could not determine a Git commit for {source}.")
-    return f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit}#egg=psynet"
+
+    remote_url = _git_remote_url(source, remote="origin")
+    if remote_url is None:
+        raise ValueError(
+            f"Could not determine git remote 'origin' for {source}. "
+            "Add an origin remote, or use --psynet-source editable."
+        )
+
+    try:
+        pip_base = _normalize_git_remote_to_pip_base(remote_url)
+    except ValueError as exc:
+        raise ValueError(
+            f"Could not convert git remote 'origin' ({remote_url}) into a pip "
+            "requirement. Use --psynet-source editable, or set origin to an "
+            "https/ssh git URL."
+        ) from exc
+
+    if not _remote_tracking_refs_contain_commit(source, commit, remote="origin"):
+        raise ValueError(
+            f"Commit {commit[:12]} is not available on git remote 'origin' "
+            f"({remote_url}). Push your PsyNet commits first "
+            "(`git push origin HEAD`), then retry, or use "
+            "--psynet-source editable."
+        )
+
+    return f"psynet@{pip_base}@{commit}#egg=psynet"
 
 
 def get_psynet_requirement() -> str | None:

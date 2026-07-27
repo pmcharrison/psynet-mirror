@@ -85,6 +85,30 @@ def test_check_psynet_requirement_is_unambiguous_commit_hash():
                         check_psynet_requirement_is_unambiguous()
 
 
+def test_check_psynet_requirement_is_unambiguous_fork_commit_hash():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            with open("requirements.txt", "w") as file:
+                file.write(
+                    "psynet@git+https://gitlab.com/alice/PsyNet@"
+                    "45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
+                )
+                file.flush()
+                check_psynet_requirement_is_unambiguous()
+
+
+def test_check_psynet_requirement_is_unambiguous_ssh_commit_hash():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            with open("requirements.txt", "w") as file:
+                file.write(
+                    "psynet@git+ssh://git@git.example.com/alice/PsyNet@"
+                    "45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
+                )
+                file.flush()
+                check_psynet_requirement_is_unambiguous()
+
+
 def test_check_psynet_requirement_is_unambiguous_short_commit_hash():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
