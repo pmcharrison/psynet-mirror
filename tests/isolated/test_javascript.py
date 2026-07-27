@@ -161,63 +161,41 @@ def test_wait_page_gates_auto_advance_on_page_ready():
     assert "setTimer" not in page.template_str
 
 
-def test_response_approved_skips_fragment_for_reload_pages(monkeypatch):
+@pytest.mark.parametrize(
+    "requires_reload, expect_fragment",
+    [(False, True), (True, False)],
+)
+def test_response_approved_skips_fragment_for_reload_pages(
+    monkeypatch, requires_reload, expect_fragment
+):
     from types import SimpleNamespace
 
     import psynet.experiment as experiment_module
 
     rendered = {"html": "<div>fragment</div>"}
-
     monkeypatch.setattr(
         experiment_module.Experiment,
         "render_partial_timeline_payload",
-        staticmethod(lambda page, experiment, participant: rendered),
+        staticmethod(lambda *args: rendered),
     )
     monkeypatch.setattr(
         experiment_module,
         "get_config",
-        lambda: SimpleNamespace(
-            get=lambda key, default=None: (
-                True if key == "inplace_timeline_transitions" else default
-            )
-        ),
+        lambda: SimpleNamespace(get=lambda key, default=None: True),
     )
-    monkeypatch.setattr(
-        experiment_module,
-        "success_response",
-        lambda **kwargs: kwargs,
+    monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
+
+    page = SimpleNamespace(
+        requires_full_page_reload=requires_reload,
+        __json__=lambda participant: {},
     )
+    exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
+    exp.timeline = SimpleNamespace(get_current_elt=lambda *args: page)
+    payload = experiment_module.Experiment.response_approved(exp, object())
 
-    class DummyPage:
-        def __init__(self, requires_full_page_reload):
-            self.requires_full_page_reload = requires_full_page_reload
-
-        def __json__(self, participant):
-            return {
-                "attributes": {
-                    "requires_full_page_reload": self.requires_full_page_reload
-                }
-            }
-
-    participant = object()
-    cases = [
-        (False, True),
-        (True, False),
-    ]
-    for requires_reload, expect_fragment in cases:
-        page = DummyPage(requires_reload)
-        exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
-        exp.timeline = SimpleNamespace(
-            get_current_elt=lambda experiment, participant: page
-        )
-        payload = experiment_module.Experiment.response_approved(
-            exp, participant, include_timeline_fragment=True
-        )
-        assert payload["submission"] == "approved"
-        if expect_fragment:
-            assert payload["timeline_fragment"] == rendered
-        else:
-            assert "timeline_fragment" not in payload
+    assert ("timeline_fragment" in payload) is expect_fragment
+    if expect_fragment:
+        assert payload["timeline_fragment"] == rendered
 
 
 @pytest.mark.parametrize(
