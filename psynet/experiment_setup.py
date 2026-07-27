@@ -107,10 +107,14 @@ def _is_interactive():
 
 
 def _is_psynet_checkout_virtualenv():
-    """Return whether the active interpreter is PsyNet's shared checkout venv."""
+    """Return whether the active interpreter is PsyNet's shared checkout ``.venv``.
+
+    Nested virtualenvs elsewhere under the checkout (for example a demo's own
+    ``.venv``) are not treated as the shared development environment.
+    """
     prefix = Path(sys.prefix).resolve()
-    root = get_psynet_root().resolve()
-    return prefix.is_relative_to(root)
+    checkout_venv = (get_psynet_root() / ".venv").resolve()
+    return prefix == checkout_venv or prefix.is_relative_to(checkout_venv)
 
 
 def _warn_shared_checkout_sync():

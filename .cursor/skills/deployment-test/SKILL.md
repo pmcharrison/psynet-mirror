@@ -130,15 +130,18 @@ uv pip install -e <dallinger-root>
 uv pip install -e ".[dev,slack]"
 ```
 
-5. Refresh the experiment template scripts from the installed PsyNet (which
-   matches the base after step 4) and commit the result, so the deployment
-   image is built with the base version's current templates (Dockerfile,
-   `docker/` helpers, `pytest.ini`, etc.):
+5. Prepare deployable experiment boilerplate from the installed PsyNet (which
+   matches the base after step 4). In-repo experiments such as
+   `tests/manual_recruiter_testing/prolific` track authored files only, so the
+   deployment branch must materialize scaffold templates (Dockerfile, `docker/`
+   helpers, `pytest.ini`, etc.) before deploy:
 
 ```bash
 cd <psynet-root>/tests/manual_recruiter_testing/prolific
-psynet update-scripts
-git add . && git commit -m "Refresh experiment scripts via psynet update-scripts"
+psynet scripts update
+# If boilerplate is missing entirely, use:
+# psynet scripts scaffold --skip-constraints
+git add . && git commit -m "Refresh experiment scripts via psynet scripts update"
 ```
 
    Review the diff before committing; template changes should be plausible for
@@ -163,15 +166,15 @@ git add . && git commit -m "Refresh experiment scripts via psynet update-scripts
    deployment branch (for auditability), and record the base tag (or master
    commit), the deployment-branch commit, and the Dallinger pin in the final
    report.
-7. Regenerate `constraints.txt` from the updated `requirements.txt` before
-   deploying, and commit it. The experiment Dockerfile installs from
-   `constraints.txt` when it exists, so a stale file would silently override
-   the new pins:
+7. Generate `constraints.txt` from the pinned `requirements.txt` before
+   deploying, and commit it. Authored-only in-repo layouts omit constraints by
+   design; the experiment Dockerfile installs from `constraints.txt` when it
+   exists, so deployable branches need a fresh file matching the pins:
 
 ```bash
 cd <psynet-root>/tests/manual_recruiter_testing/prolific
 psynet generate-constraints
-git add constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
+git add constraints.txt && git commit -m "Generate constraints from pinned requirements"
 ```
 
 8. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets

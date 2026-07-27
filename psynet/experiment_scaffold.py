@@ -406,7 +406,11 @@ def _current_source_commit(source=None) -> str | None:
 
 
 def _bootstrap_authored_files(skip_files):
-    """Create missing starter experiment files without overwriting existing ones."""
+    """Create missing starter experiment files without overwriting existing ones.
+
+    Contents are computed before any writes so a failed PsyNet pin (for example
+    an unpushed alpha commit) does not leave a partial authored bootstrap.
+    """
     written = []
     skipped = []
     bootstrap_files = {
@@ -414,13 +418,21 @@ def _bootstrap_authored_files(skip_files):
         "requirements.txt": _default_requirements_txt,
     }
 
+    pending = []
     for relative_path, contents_factory in bootstrap_files.items():
         if relative_path in skip_files:
             skipped.append(relative_path)
             continue
 
-        # Authored starter files are never overwritten, even during update-scripts.
-        if _write_generated_file(relative_path, contents_factory(), overwrite=False):
+        # Authored starter files are never overwritten, even during scripts update.
+        if Path(relative_path).exists():
+            skipped.append(relative_path)
+            continue
+
+        pending.append((relative_path, contents_factory()))
+
+    for relative_path, contents in pending:
+        if _write_generated_file(relative_path, contents, overwrite=False):
             written.append(relative_path)
         else:
             skipped.append(relative_path)
@@ -659,7 +671,10 @@ def scaffold_experiment_directory(
     written = []
     skipped = []
 
-    bootstrap_written, bootstrap_skipped = _bootstrap_authored_files(skip_files)
+    try:
+        bootstrap_written, bootstrap_skipped = _bootstrap_authored_files(skip_files)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
     written.extend(bootstrap_written)
     skipped.extend(bootstrap_skipped)
 

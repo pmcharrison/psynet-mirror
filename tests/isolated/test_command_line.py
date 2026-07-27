@@ -948,10 +948,9 @@ def test_scripts_scaffold_alpha_propagates_unpushed_commit_error(tmp_path, monke
         result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
 
         assert result.exit_code != 0
-        assert isinstance(result.exception, ValueError)
-        assert "not available on git remote 'origin'" in str(result.exception)
-        if Path("requirements.txt").exists():
-            assert "PsyNetDev/PsyNet@" not in Path("requirements.txt").read_text()
+        assert "not available on git remote 'origin'" in result.output
+        assert not Path("experiment.py").exists()
+        assert not Path("requirements.txt").exists()
 
 
 def test_scripts_scaffold_rejects_conflicting_directory_name():
@@ -1414,7 +1413,7 @@ def test_setup_shared_env_interactive_sync(tmp_path, monkeypatch):
     ]
 
 
-def test_is_psynet_checkout_virtualenv_detects_prefix_under_root(tmp_path, monkeypatch):
+def test_is_psynet_checkout_virtualenv_detects_checkout_venv(tmp_path, monkeypatch):
     from psynet.experiment_setup import _is_psynet_checkout_virtualenv
 
     root = tmp_path / "psynet"
@@ -1424,6 +1423,11 @@ def test_is_psynet_checkout_virtualenv_detects_prefix_under_root(tmp_path, monke
     monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(venv))
 
     assert _is_psynet_checkout_virtualenv() is True
+
+    nested = root / "demos" / "features" / "foo" / ".venv"
+    nested.mkdir(parents=True)
+    monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(nested))
+    assert _is_psynet_checkout_virtualenv() is False
 
     monkeypatch.setattr(
         "psynet.experiment_setup.sys.prefix", str(tmp_path / "other-venv")
