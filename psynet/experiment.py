@@ -236,6 +236,16 @@ class Request(SQLBase, SQLMixin):
         }
 
 
+def _redacted_asset_request_path(path: str) -> str:
+    """Replace ``/asset/<token>...`` with a redacted endpoint for request logs."""
+    parts = path.split("/")
+    # ['', 'asset', '<token>', ...]
+    if len(parts) >= 3 and parts[1] == "asset" and parts[2]:
+        parts[2] = "<access_token>"
+        return "/".join(parts)
+    return path
+
+
 @register_table
 class ExperimentStatus(SQLBase, SQLMixin):
     __tablename__ = "experiment_status"
@@ -873,18 +883,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "/start",
             "/timeline",
         ]
-        if request.path in relevant_endpoints or request.path.startswith("/asset/"):
-            params = dict(request.args)
-            request_obj = Request(
-                unique_id=params.get("unique_id", None),
-                duration=diff,
-                method=request.method,
-                endpoint=request.path,
-                params=params,
-                status_code=response.status_code,
-            )
-            db.session.add(request_obj)
-            db.session.commit()
+        path = request.path
+        if path.startswith("/asset/"):
+            # Media players issue many Range requests while seeking/buffering.
+            # Logging each one floods the request table; keep full-file fetches only.
+            if request.headers.get("Range"):
+                return response
+            endpoint = _redacted_asset_request_path(path)
+        elif path in relevant_endpoints:
+            endpoint = path
+        else:
+            return response
+
+        params = dict(request.args)
+        request_obj = Request(
+            unique_id=params.get("unique_id", None),
+            duration=diff,
+            method=request.method,
+            endpoint=endpoint,
+            params=params,
+            status_code=response.status_code,
+        )
+        db.session.add(request_obj)
+        db.session.commit()
         return response
 
     @staticmethod
@@ -3666,6 +3687,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         from .trial.main import Trial
 
         trial = Trial.query.with_for_update(of=Trial).populate_existing().get(trial_id)
+        if trial is None:
+            flask.abort(404)
         trial.fail(reason="http_fail_route_called")
         return success_response()
 

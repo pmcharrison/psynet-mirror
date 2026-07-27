@@ -86,7 +86,7 @@ def copy_database_to_csv_dir(
 
 
 def _zip_csv_dir(csv_dir: str, zip_path: str, table_names: list[str]) -> None:
-    """Write ``data/<table>.csv`` members into ``zip_path`` without recompressing."""
+    """Write ``data/<table>.csv`` members into ``zip_path`` using DEFLATE."""
     make_parents(zip_path)
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for table in table_names:

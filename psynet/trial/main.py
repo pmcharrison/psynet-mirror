@@ -2915,6 +2915,12 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node, AssetParentMixin):
     def failed_trials(self) -> List[Trial]:
         return [t for t in self.all_trials if t.failed]
 
+    @property
+    def failure_cascade(self):
+        # Trials are no longer Dallinger Infos, so Node.infos is empty for them.
+        # Fail associated trials explicitly when the node fails.
+        return [lambda: self.alive_trials]
+
     def update_status(self):
         """
         Hook method called when the node's status may need updating.

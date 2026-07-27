@@ -3,9 +3,9 @@ from datetime import datetime
 from math import ceil
 
 import pandas as pd
-from dallinger import db
 from flask import render_template
 
+from psynet.participant import Participant
 from psynet.recruiters import BaseLucidRecruiter, LucidRID, LucidStatus
 from psynet.timeline import Response
 from psynet.utils import get_config
@@ -133,10 +133,17 @@ def report_lucid():
     else:
         params["display_cards"] = True
 
-    for entrant in all_entrants:
-        entrant.resolve_participant()
-    db.session.commit()
     entry_df = pd.DataFrame([entrant.to_dict() for entrant in all_entrants])
+    # Display-only join: do not persist LucidRID.participant_id on page load.
+    if "participant_id" in entry_df.columns:
+        entry_df = entry_df.drop(columns=["participant_id"])
+    participants = pd.DataFrame(
+        [
+            {"participant_id": participant.id, "rid": participant.worker_id}
+            for participant in Participant.query.all()
+        ]
+    )
+    entry_df = entry_df.merge(participants, on="rid", how="left")
     entry_df.lucid_entry_date = pd.to_datetime(
         entry_df.lucid_entry_date, format="mixed"
     )

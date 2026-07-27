@@ -902,7 +902,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         """
         from flask import abort
 
-        safe_subpath = _safe_asset_subpath(subpath)
+        try:
+            safe_subpath = _safe_asset_subpath(subpath)
+        except ValueError:
+            abort(400)
         if isinstance(self, OnDemandAsset):
             return self._serve_on_demand(safe_subpath)
         if isinstance(self, ExternalAsset):
@@ -1221,6 +1224,16 @@ class ManagedAsset(Asset):
             self.trial.check_if_can_mark_as_finalized()
 
     def get_url(self):
+        """Return the browser URL for this managed asset.
+
+        S3-backed assets use a direct public object URL. Locally stored assets
+        use the permanent ``/asset/<access_token>`` route.
+        """
+        storage = self.storage or self.default_storage
+        if isinstance(storage, S3Storage):
+            object_path = self.object_path or self.host_path
+            if object_path:
+                return storage.get_url(object_path)
         return self.access_url()
 
     def delete_input(self):
@@ -1251,8 +1264,9 @@ class ExperimentAsset(ManagedAsset):
     course* of the experiment, for example recordings from a singer, or stimuli generated on the basis of
     participant responses.
 
-    Managed files are stored under a content-addressed ``objects/sha256/<digest>`` path and served live via
-    ``/asset/<access_token>``.
+    Managed files are stored under a content-addressed ``objects/sha256/<digest>``
+    path. Local storage serves them via ``/asset/<access_token>``; S3 storage
+    uses a direct public object URL.
 
     Examples
     --------
@@ -2696,9 +2710,13 @@ class S3Storage(AssetStorage):
 
     def serve(self, asset: Asset, subpath: Optional[str] = None):
         """
-        Proxy a private S3 object through PsyNet, preserving HTTP range requests.
+        Redirect to the public S3 object URL.
+
+        Managed S3 assets are linked directly in the browser; PsyNet does not
+        proxy object bytes. This method remains for ``/asset/<token>`` requests
+        that still resolve to an S3-backed asset (for example older tokens).
         """
-        from flask import Response, abort, request
+        from flask import abort, redirect
 
         object_path = asset.object_path or asset.host_path
         if not object_path:
@@ -2708,50 +2726,10 @@ class S3Storage(AssetStorage):
             if not asset.is_folder:
                 abort(400)
             s3_key = f"{s3_key}/{subpath}"
-
-        client = get_s3_client()
-        get_kwargs = {"Bucket": self.s3_bucket, "Key": s3_key}
-        range_header = request.headers.get("Range")
-        if range_header:
-            get_kwargs["Range"] = range_header
-
-        import botocore
-
-        try:
-            obj = client.get_object(**get_kwargs)
-        except botocore.exceptions.ClientError as exc:
-            code = exc.response.get("Error", {}).get("Code")
-            if code in ("NoSuchKey", "404", "NotFound"):
-                abort(404)
-            if code in ("InvalidRange", "RequestedRangeNotSatisfiable"):
-                abort(416)
-            raise
-
-        body = obj["Body"]
-        status = 206 if range_header and "ContentRange" in obj else 200
-        headers = {}
-        if "ContentType" in obj:
-            headers["Content-Type"] = obj["ContentType"]
-        if "ContentLength" in obj:
-            headers["Content-Length"] = str(obj["ContentLength"])
-        if "ContentRange" in obj:
-            headers["Content-Range"] = obj["ContentRange"]
-        if "AcceptRanges" in obj:
-            headers["Accept-Ranges"] = obj["AcceptRanges"]
-        else:
-            headers["Accept-Ranges"] = "bytes"
-
-        def generate():
-            try:
-                while True:
-                    chunk = body.read(64 * 1024)
-                    if not chunk:
-                        break
-                    yield chunk
-            finally:
-                body.close()
-
-        return Response(generate(), status=status, headers=headers)
+        url = os.path.join(
+            "https://s3.amazonaws.com", self.s3_bucket, self.escape_s3_key(s3_key)
+        )
+        return redirect(url)
 
     @staticmethod
     def bucket_exists(bucket_name):

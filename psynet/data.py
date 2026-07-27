@@ -862,23 +862,25 @@ def export_assets(
             n_parallel,
         )
     n_assets = len(asset_ids_needing_bytes)
+    exported_meta = {}
     for index, asset_id in enumerate(asset_ids_needing_bytes, start=1):
         if n_assets > 1 and (index == 1 or index == n_assets or index % 25 == 0):
             logger.info("Exporting asset %s/%s (id=%s).", index, n_assets, asset_id)
-        export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
+        meta = export_asset(
+            asset_id, assets_root, include_on_demand_assets, server, local
+        )
+        if meta:
+            exported_meta[asset_id] = meta
 
-    # Refresh hashes for on-demand assets materialized during export.
+    # Fill manifest digests/paths from export results without mutating Asset rows.
     for row in manifest_rows:
-        if row["sha256_contents"] and row["object_path"]:
+        meta = exported_meta.get(row["id"])
+        if not meta:
             continue
-        from .asset import Asset
-
-        asset = Asset.query.filter_by(id=row["id"]).one()
-        if isinstance(asset, OnDemandAsset):
-            # Materialized files were written under objects/sha256 after hashing.
-            if asset.sha256_contents:
-                row["sha256_contents"] = asset.sha256_contents
-                row["object_path"] = asset.object_path
+        if meta.get("sha256_contents"):
+            row["sha256_contents"] = meta["sha256_contents"]
+        if meta.get("object_path"):
+            row["object_path"] = meta["object_path"]
 
     manifest_path = os.path.join(assets_root, "manifest.csv")
     fieldnames = [
@@ -912,6 +914,12 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
     ``~/psynet-data/cache/assets`` is consulted first; only objects absent
     from the cache are fetched from storage.  Cached objects are linked into
     the export directory (hardlink when possible, copy otherwise).
+
+    Returns
+    -------
+    dict or None
+        ``sha256_contents`` / ``object_path`` for the manifest when bytes were
+        exported. Does not mutate Asset database rows.
     """
     from .asset import Asset, ExternalAsset, OnDemandAsset
     from .experiment import import_local_experiment
@@ -929,9 +937,9 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
     a = Asset.query.filter_by(id=asset_id).one()
 
     if isinstance(a, ExternalAsset):
-        return
+        return None
     if not include_on_demand_assets and isinstance(a, OnDemandAsset):
-        return
+        return None
 
     try:
         if isinstance(a, OnDemandAsset):
@@ -953,10 +961,10 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
                     assets_root,
                     is_folder=a.is_folder,
                 )
-                a.sha256_contents = digest
-                a.object_path = object_rel
-                db.session.commit()
-            return
+                return {
+                    "sha256_contents": digest,
+                    "object_path": object_rel,
+                }
 
         if a.sha256_contents:
             # Fast path: digest is known; consult the cache before fetching.
@@ -969,10 +977,10 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
                 assets_root,
                 is_folder=bool(a.is_folder),
             )
-            if not a.object_path:
-                a.object_path = object_rel
-                db.session.commit()
-            return
+            return {
+                "sha256_contents": digest,
+                "object_path": a.object_path or object_rel,
+            }
 
         # Slow path: no digest known yet — export to a temp location, hash,
         # place in cache, then link into the export tree.
@@ -989,9 +997,10 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
                 assets_root,
                 is_folder=bool(a.is_folder),
             )
-            a.sha256_contents = digest
-            a.object_path = object_rel
-            db.session.commit()
+            return {
+                "sha256_contents": digest,
+                "object_path": object_rel,
+            }
     except Exception:
         print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise

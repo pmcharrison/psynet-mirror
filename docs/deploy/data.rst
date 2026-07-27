@@ -128,10 +128,11 @@ metadata (asset id, local key, associations, extension, and so on) onto those
 objects. ``ExternalAsset`` rows appear in the manifest with their raw URL only;
 they are not downloaded into the object tree.
 
-Live browser access for managed and on-demand assets uses a permanent access
-token at ``/asset/<access_token>``. Content hashes identify bytes for storage
-and export; they are not used as browser capabilities. The old ``obfuscate``
-and ``personal`` asset flags have been removed.
+Live browser access for local and on-demand assets uses a permanent access
+token at ``/asset/<access_token>``. S3-backed managed assets use a direct public
+object URL. Content hashes identify bytes for storage and export; they are not
+used as browser capabilities. The old ``obfuscate`` and ``personal`` asset flags
+have been removed.
 
 Command-line exports reuse a persistent local cache under
 ``~/psynet-data/cache/assets/``. Inspect or clear it with:

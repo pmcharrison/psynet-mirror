@@ -3,7 +3,7 @@
 from dallinger.models import Info
 
 from psynet.data import sql_base_classes
-from psynet.trial.main import Trial
+from psynet.trial.main import Trial, TrialNode
 
 
 def test_trial_uses_independent_table():
@@ -21,3 +21,11 @@ def test_trial_parent_fk_targets_trial_table():
 def test_trial_base_class_name_for_repr():
     # SQLMixinDallinger.__repr__ uses get_sql_base_class(self).__name__.
     assert sql_base_classes()["trial"].__name__ == "Trial"
+
+
+def test_trial_node_failure_cascade_targets_alive_trials():
+    alive = [object(), object()]
+    stub = type("StubNode", (), {"alive_trials": alive})()
+    cascade = TrialNode.failure_cascade.fget(stub)
+    assert len(cascade) == 1
+    assert cascade[0]() == alive

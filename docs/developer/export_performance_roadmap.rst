@@ -379,11 +379,10 @@ it is rotated or its Asset is deleted. This is approximately the current
 security model, but it separates access capabilities from filesystem
 organization.
 
-Local storage may serve files with ``send_file`` or an internal web-server
-redirect. Private S3 objects cannot be redirected through a permanent public
-URL without reverting to path secrecy, so the first private-S3 implementation
-may proxy responses through PsyNet. It must preserve HTTP range requests for
-audio and video. Expiring S3 or CDN URLs remain a possible future optimization.
+Local storage may serve files with ``send_file`` via the
+``/asset/<access_token>`` route. S3-backed managed assets use a direct public
+object URL (as on previous PsyNet versions); PsyNet does not proxy S3 bytes.
+Expiring S3 or CDN URLs remain a possible future option for private buckets.
 
 Persistent local cache
 ----------------------
@@ -637,10 +636,11 @@ remain clear that identifier separation is not anonymization.
 Private storage throughput
 --------------------------
 
-Proxying private S3 media through PsyNet is simple but may move bandwidth and
-range-request load onto the application server. Storage interfaces should keep
-the serving mechanism replaceable so that expiring URLs or a CDN can be added
-without changing object identity.
+S3-backed managed assets are served via direct public object URLs, so media
+bandwidth stays on S3. Local and on-demand assets still use
+``/asset/<access_token>``. If private buckets are needed later, storage
+interfaces should keep the serving mechanism replaceable so that expiring URLs
+or a CDN can be added without changing object identity.
 
 Cache growth
 ------------
