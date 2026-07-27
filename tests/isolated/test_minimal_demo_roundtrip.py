@@ -175,6 +175,14 @@ def test_minimal_demo_prompts_for_scaffold_before_debug(tmp_path):
     combined_output = result.stdout + result.stderr
     assert "Run 'psynet scripts scaffold'" in combined_output
     assert "required PsyNet boilerplate files" in combined_output
+    for required_path in (
+        ".gitignore",
+        "config.txt",
+        "Dockerfile",
+        "test.py",
+        "docker",
+    ):
+        assert required_path in combined_output
 
 
 def test_relative_imports_work_in_minimal_demo_without_init_py(tmp_path):

@@ -32,6 +32,14 @@ _OPTIONAL_TEMPLATE_FILES = ("config.txt",)
 
 _TEMPLATE_DIRECTORIES = ("docker",)
 
+# Minimal scaffold subset needed to run locally (debug/test). Omits IDE/CI-only
+# templates such as ``.vscode/`` and ``.github/workflows/``.
+_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
+    ".gitignore",
+    "Dockerfile",
+    "test.py",
+)
+
 _GENERATED_FILES = {
     "Dockertag": lambda: f"{Path.cwd().name}\n",
     ".python-version": lambda: f"{_current_python_major_minor()}\n",
@@ -86,6 +94,50 @@ def scaffold_managed_paths() -> frozenset[str]:
     paths.update(_TEMPLATE_DIRECTORIES)
     paths.update(_GENERATED_FILES)
     return frozenset(paths)
+
+
+def scaffold_paths_required_for_local_run() -> frozenset[str]:
+    """Return scaffold paths required before running an experiment locally.
+
+    This is a deliberate subset of :func:`scaffold_managed_paths`, covering the
+    files and directories needed for local runs rather than optional IDE/CI
+    templates.
+    """
+    required = (
+        set(_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN)
+        | set(_OPTIONAL_TEMPLATE_FILES)
+        | set(_TEMPLATE_DIRECTORIES)
+    )
+    managed = scaffold_managed_paths()
+    unexpected = required - managed
+    if unexpected:
+        raise RuntimeError(
+            "Required local-run scaffold paths must be scaffold-managed: "
+            + ", ".join(sorted(unexpected))
+        )
+    return frozenset(required)
+
+
+def missing_scaffold_paths_required_for_local_run(
+    root: Path | str | None = None,
+) -> list[str]:
+    """Return required local-run scaffold paths missing from ``root``.
+
+    Directory members of the required set must exist as directories; other members
+    must exist as filesystem paths.
+    """
+    base = Path(".") if root is None else Path(root)
+    directory_names = set(_TEMPLATE_DIRECTORIES)
+    missing = []
+    for relative_path in sorted(scaffold_paths_required_for_local_run()):
+        path = base / relative_path
+        if relative_path in directory_names:
+            present = path.is_dir()
+        else:
+            present = path.exists()
+        if not present:
+            missing.append(relative_path)
+    return missing
 
 
 def _default_experiment_label() -> str:

@@ -1159,7 +1159,118 @@ def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_pat
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "config.txt").read_text() == ""
-    assert "config.txt" not in missing_boilerplate
+    assert missing_boilerplate == []
+
+
+def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
+    with working_directory(tmp_path):
+        assert _missing_scaffold_boilerplate() == [
+            ".gitignore",
+            "Dockerfile",
+            "config.txt",
+            "docker",
+            "test.py",
+        ]
+
+        (tmp_path / ".gitignore").write_text("source_code.zip\n")
+        (tmp_path / "config.txt").touch()
+        assert _missing_scaffold_boilerplate() == [
+            "Dockerfile",
+            "docker",
+            "test.py",
+        ]
+
+        (tmp_path / "Dockerfile").write_text("FROM python:3.13\n")
+        (tmp_path / "test.py").write_text("def test_dummy():\n    assert True\n")
+        (tmp_path / "docker").mkdir()
+        assert _missing_scaffold_boilerplate() == []
+
+        (tmp_path / "docker").rmdir()
+        (tmp_path / "docker").write_text("not a directory\n")
+        assert _missing_scaffold_boilerplate() == ["docker"]
+
+
+def test_prepare_bundled_demo_satisfies_scaffold_boilerplate(tmp_path, monkeypatch):
+    from psynet.command_line import _prepare_bundled_demo
+    from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
+
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: True)
+
+    with working_directory(tmp_path):
+        assert _prepare_bundled_demo() is True
+        assert _missing_scaffold_boilerplate() == []
+        for relative_path in scaffold_paths_required_for_local_run():
+            assert (tmp_path / relative_path).exists()
+
+
+def test_check_experiment_directory_reports_missing_boilerplate(tmp_path):
+    from psynet.command_line import _check_experiment_directory
+
+    with working_directory(tmp_path):
+        with pytest.raises(
+            click.ClickException, match="psynet scripts scaffold"
+        ) as exc:
+            _check_experiment_directory("debug")
+    message = str(exc.value)
+    for required_path in (
+        ".gitignore",
+        "config.txt",
+        "Dockerfile",
+        "test.py",
+        "docker",
+    ):
+        assert required_path in message
+
+
+def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkeypatch):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: False)
+    (tmp_path / ".gitignore").write_text("source_code.zip\n")
+    (tmp_path / "config.txt").touch()
+
+    with working_directory(tmp_path):
+        with pytest.raises(
+            click.ClickException, match="psynet scripts scaffold"
+        ) as exc:
+            _check_experiment_directory("debug")
+    missing_section = str(exc.value).split("(")[1].split(")")[0]
+    assert "Dockerfile" in missing_section
+    assert "test.py" in missing_section
+    assert "docker" in missing_section
+    assert ".gitignore" not in missing_section
+    assert "config.txt" not in missing_section
+
+
+def test_check_experiment_directory_reports_missing_git(tmp_path, monkeypatch):
+    from psynet.command_line import _check_experiment_directory
+    from psynet.experiment_scaffold import scaffold_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: False)
+
+    with working_directory(tmp_path):
+        (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+        (tmp_path / "requirements.txt").write_text("psynet\n")
+        scaffold_experiment_directory(include_optional_files=True)
+        with pytest.raises(click.ClickException, match="git init"):
+            _check_experiment_directory("debug")
+
+
+def test_check_experiment_directory_passes_with_scaffold_and_git(tmp_path, monkeypatch):
+    from psynet.command_line import _check_experiment_directory
+    from psynet.experiment_scaffold import scaffold_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_bundled_demo", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+
+    with working_directory(tmp_path):
+        (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+        (tmp_path / "requirements.txt").write_text("psynet\n")
+        scaffold_experiment_directory(include_optional_files=True)
+        _check_experiment_directory("debug")
 
 
 def test_scripts_scaffold_allows_incomplete_experiment_py():
@@ -1598,6 +1709,7 @@ def test_pre_launch_aborts_when_app_exists():
 
     ctx = Mock()
     with (
+        patch("psynet.command_line._check_experiment_directory"),
         patch("psynet.command_line.redis_vars.clear"),
         patch("psynet.command_line.deployment_info.init"),
         patch("psynet.command_line.deployment_info.write"),
@@ -1622,6 +1734,59 @@ def test_pre_launch_aborts_when_app_exists():
             )
 
     mock_run_pre_checks.assert_not_called()
+
+
+def test_pre_launch_checks_directory_before_redis():
+    """Directory guidance must run before Redis I/O when Redis is unavailable."""
+    from psynet.command_line import _pre_launch
+
+    ctx = Mock()
+    call_order = []
+
+    with (
+        patch(
+            "psynet.command_line._check_experiment_directory",
+            side_effect=lambda mode: call_order.append("directory"),
+        ),
+        patch(
+            "psynet.command_line.redis_vars.clear",
+            side_effect=ConnectionError("Redis unavailable"),
+        ) as mock_redis_clear,
+        patch("psynet.command_line.deployment_info.init"),
+        patch("psynet.command_line.run_pre_checks"),
+    ):
+        with pytest.raises(ConnectionError, match="Redis unavailable"):
+            _pre_launch(
+                ctx,
+                mode="debug",
+                archive=None,
+                local_=True,
+            )
+
+    assert call_order == ["directory"]
+    mock_redis_clear.assert_called_once()
+
+
+def test_pre_launch_reports_missing_boilerplate_without_redis(tmp_path):
+    from psynet.command_line import _pre_launch
+
+    ctx = Mock()
+    with working_directory(tmp_path):
+        with (
+            patch(
+                "psynet.command_line.redis_vars.clear",
+                side_effect=AssertionError("Redis must not be touched"),
+            ),
+            patch("psynet.command_line.deployment_info.init"),
+            patch("psynet.command_line.run_pre_checks"),
+        ):
+            with pytest.raises(click.ClickException, match="psynet scripts scaffold"):
+                _pre_launch(
+                    ctx,
+                    mode="debug",
+                    archive=None,
+                    local_=True,
+                )
 
 
 def test_enable_sql_profile_uses_unique_run_subdirectories(tmp_path, monkeypatch):

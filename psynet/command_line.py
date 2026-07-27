@@ -51,6 +51,7 @@ from .experiment_scaffold import (
     editable_psynet_requirement,
     get_editable_psynet_source,
     get_psynet_requirement,
+    missing_scaffold_paths_required_for_local_run,
     pin_unpinned_psynet_requirement,
     prune_experiment_scaffold,
     scaffold_experiment_directory,
@@ -132,18 +133,8 @@ def update_docker_tag():
 
 
 def _missing_scaffold_boilerplate():
-    """List scaffold-managed files that must exist before running an experiment."""
-    missing = []
-
-    gitignore = Path(".gitignore")
-    if not gitignore.exists():
-        missing.append(".gitignore")
-
-    config_txt = Path("config.txt")
-    if not config_txt.exists():
-        missing.append("config.txt")
-
-    return missing
+    """List scaffold paths required for local runs that are missing."""
+    return missing_scaffold_paths_required_for_local_run()
 
 
 @click.group()
@@ -1100,6 +1091,10 @@ def _pre_launch(
 ):
     from .experiment import get_experiment
 
+    # Scaffold/git checks before Redis so missing-boilerplate guidance is visible
+    # even when Redis is not running.
+    _check_experiment_directory(mode)
+
     redis_vars.clear()
     deployment_info.init(
         redeploying_from_archive=archive is not None,
@@ -1360,12 +1355,14 @@ def _prepare_bundled_demo():
     return True
 
 
-def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
-    from dallinger.recruiters import MTurkRecruiter
+def _check_experiment_directory(mode):
+    """
+    Fail fast on missing scaffold or git before Redis or other heavy I/O.
 
-    from .experiment import get_experiment
-    from .utils import check_todos_before_deployment
-
+    Bundled demos are auto-scaffolded first so their missing-boilerplate check
+    does not falsely fail. These checks must run before ``redis_vars.clear()``
+    so users without Redis still see actionable guidance.
+    """
     _prepare_bundled_demo()
 
     missing_boilerplate = _missing_scaffold_boilerplate()
@@ -1376,6 +1373,24 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             f"({missing_paths}). Run 'psynet scripts scaffold' to generate them "
             f"before running 'psynet {mode} ...'."
         )
+
+    # We need an active git repository for Dallinger to recognize .gitignore properly
+    if not git_repository_available():
+        raise click.ClickException(
+            "This directory is not a git repository, or git is not installed. "
+            "Please ensure git is installed and create a repository by running "
+            "'git init' if needed. If you copied a demo into a new directory, "
+            "run 'git init' before 'psynet debug local' or 'psynet test local'."
+        )
+
+
+def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
+    from dallinger.recruiters import MTurkRecruiter
+
+    from .experiment import get_experiment
+    from .utils import check_todos_before_deployment
+
+    _check_experiment_directory(mode)
 
     exp = get_experiment()
     exp.check_config()
@@ -1399,15 +1414,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         raise click.ClickException(
             f".gitignore is missing from your experiment directory ({os.getcwd()}). "
             "Run 'psynet scripts scaffold' to generate the standard boilerplate files."
-        )
-
-    # We need an active git repository for Dallinger to recognize .gitignore properly
-    if not git_repository_available():
-        raise click.ClickException(
-            "This directory is not a git repository, or git is not installed. "
-            "Please ensure git is installed and create a repository by running "
-            "'git init' if needed. If you copied a demo into a new directory, "
-            "run 'git init' before 'psynet debug local' or 'psynet test local'."
         )
 
     try:
