@@ -417,6 +417,24 @@ def _choose_editable_psynet_requirement(source, requested_source):
     return requirement
 
 
+def _default_prepare_only_psynet_source():
+    """Choose a non-interactive PsyNet source for prepare-only setup.
+
+    Prefer retaining an explicit requirements pin; otherwise use the editable
+    checkout. Bare ``psynet`` falls through to editable.
+    """
+    requirements_path = Path("requirements.txt")
+    if not requirements_path.is_file():
+        return "editable"
+    try:
+        existing_requirement = get_psynet_requirement()
+    except ValueError:
+        return "editable"
+    if existing_requirement is not None and existing_requirement.lower() != "psynet":
+        return "existing"
+    return "editable"
+
+
 def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
     if is_in_repo_experiment():
@@ -441,6 +459,15 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
     if action == "new-venv":
         _create_dedicated_experiment_virtualenv()
         return
+
+    # Prepare-only already answered the shared-env question; don't add a second
+    # interactive menu. Keep an explicit pin if present, otherwise use editable.
+    if (
+        action == "prepare-only"
+        and psynet_source is None
+        and get_editable_psynet_source() is not None
+    ):
+        psynet_source = _default_prepare_only_psynet_source()
 
     editable_source = get_editable_psynet_source()
     if editable_source is None:

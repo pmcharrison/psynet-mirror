@@ -1437,6 +1437,69 @@ def test_setup_shared_env_interactive_prepare_only(tmp_path, monkeypatch):
     assert "without synchronizing dependencies" in result.output
 
 
+def test_setup_prepare_only_skips_editable_source_prompt(tmp_path, monkeypatch):
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: source,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args, **kwargs: pytest.fail("prepare-only must not synchronize"),
+    )
+
+    with working_directory(tmp_path):
+        # Only the shared-env menu answer; no second editable/commit prompt.
+        result = CliRunner().invoke(psynet, ["setup"], input="3\n")
+
+    assert result.exit_code == 0, result.output
+    assert "How should setup record it" not in result.output
+    assert (tmp_path / "requirements.txt").read_text() == (
+        f"-e {source.as_uri()}#egg=psynet\n"
+    )
+    assert "without synchronizing dependencies" in result.output
+
+
+def test_setup_prepare_only_keeps_existing_explicit_pin(tmp_path, monkeypatch):
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+    requirements = "psynet==0.0.0\n"
+    (tmp_path / "requirements.txt").write_text(requirements)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: source,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args, **kwargs: pytest.fail("prepare-only must not synchronize"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="3\n")
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "requirements.txt").read_text() == requirements
+    assert "How should setup record it" not in result.output
+
+
 def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
