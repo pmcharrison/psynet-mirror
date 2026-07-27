@@ -12,7 +12,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("legacy js_var globals warn, error, and restore across pages", async ({
+test("legacy js_var globals warn, error, and restore across pages", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -318,7 +318,7 @@ test("legacy js_var globals warn, error, and restore across pages", async ({
   });
 });
 
-test("locked legacy global does not block a page transition", async ({
+test("locked legacy global does not block a page transition", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {

@@ -133,7 +133,8 @@ so every attribute you set on the subclass is accessible inside the template:
 Keep the macro focused on markup: inline ``<script>`` and ``<style>`` blocks in
 a custom template are rejected under in-place timeline transitions. Instead,
 supply page-local CSS and JavaScript through the component's ``get_css()`` and
-``get_js_links()`` hooks, and supply configuration through ``get_js_vars()``.
+``get_js_page_modules()`` hooks, and supply configuration through
+``get_js_vars()``.
 ``ModularPage`` collects these from the chatroom and applies them as managed,
 per-page resources that are refreshed across fragment swaps:
 
@@ -154,7 +155,7 @@ per-page resources that are refreshed across fragment swaps:
                 }
             }
 
-        def get_js_links(self):
+        def get_js_page_modules(self):
             return ["/static/my-chatroom.js"]
 
 The standalone script should read its configuration from the managed
@@ -168,23 +169,21 @@ modes, new code should use ``psynet.var`` directly:
 
 .. code-block:: javascript
 
-    (function () {
-        const config = psynet.var["my_chatroom_config"];
-        psynet.trial.onEvent("trialConstruct", function () {
-            // ... open the websocket, wire up input handlers ...
-        });
-        psynet.addPageCleanupCallback(function () {
+    export async function activate({root, trial, vars}) {
+        const config = vars["my_chatroom_config"];
+        // ... open the websocket and wire up elements beneath root ...
+
+        return async function cleanup() {
             // ... leave the room and close the socket ...
-        });
-    })();
+        };
+    }
 
 The built-in ``ChatRoom`` uses the same separation between managed resources
-and configuration — see ``get_css`` and ``get_js_vars`` in
-``psynet/chatroom.py``. Its widget script initializes when the managed script
-is loaded and registers explicit page cleanup. Custom components whose setup
-depends on the trial lifecycle should use the ``trialConstruct`` pattern shown
-above. See ``psynet/resources/scripts/chatroom-widget.js`` for the WebSocket
-protocol, message rendering, and occupancy updates.
+and configuration — see ``get_css``, ``get_js_vars``, and
+``get_js_page_modules`` in ``psynet/chatroom.py``. PsyNet activates its widget
+script for each page and calls the returned cleanup function before leaving. See
+``psynet/static/scripts/chatroom-widget.js`` for the WebSocket protocol,
+message rendering, occupancy updates, and cleanup pattern.
 
 If you only need minor CSS changes (e.g. a different height or colour scheme)
 you can override the built-in IDs (``#chatroom-widget``,

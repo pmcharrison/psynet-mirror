@@ -59,6 +59,46 @@ if TYPE_CHECKING:
 logger = get_logger()
 
 
+def _normalize_javascript_urls(urls, argument_name):
+    """Validate and normalize a list of JavaScript resource URLs."""
+    if urls is None:
+        return []
+    if not isinstance(urls, (list, tuple)):
+        raise TypeError(f"{argument_name} must be a list or tuple.")
+
+    normalized = []
+    seen = set()
+    for url in urls:
+        if not isinstance(url, str):
+            raise TypeError(f"{argument_name} entries must be strings.")
+        if not url.strip():
+            raise ValueError(f"{argument_name} entries must be non-empty.")
+        url = url.strip()
+        if url not in seen:
+            normalized.append(url)
+            seen.add(url)
+    return normalized
+
+
+def _normalize_js_page_code(code, argument_name="js_page_code"):
+    """Validate and normalize inline page activation code."""
+    if code is None:
+        return []
+    if isinstance(code, str):
+        code = [code]
+    elif not isinstance(code, (list, tuple)):
+        raise TypeError(f"{argument_name} must be a string, list, or tuple.")
+
+    normalized = []
+    for item in code:
+        if not isinstance(item, str):
+            raise TypeError(f"{argument_name} entries must be strings.")
+        if not item.strip():
+            raise ValueError(f"{argument_name} entries must be non-empty.")
+        normalized.append(item)
+    return normalized
+
+
 class Event(dict):
     """
     Defines an event that occurs on the front-end for a given page.
@@ -921,16 +961,30 @@ class Page(Elt):
         deprecated and controlled by ``legacy_js_var_globals``.
 
     js_links:
-        Optional list of paths to JavaScript scripts to include in the page.
+        Deprecated list of classic JavaScript files executed as linked classic
+        scripts. Using this argument forces a full page reload. Prefer
+        ``js_dependencies`` or ``js_page_modules``.
+
+    js_dependencies:
+        Optional list of JavaScript file URLs to load once per browser document.
+
+    js_page_modules:
+        Optional JavaScript files activated for each page. Each file must export
+        an ``activate(context)`` function and may return a cleanup function.
+
+    js_page_code:
+        Optional inline JavaScript activation code, supplied as a string, list,
+        or tuple. Code receives the same ``root``, ``trial``, ``vars``, ``page``,
+        and ``psynet`` values as a page module and may return cleanup.
 
     media: :class:`psynet.timeline.MediaSpec`
         Optional specification of media assets to preload
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
 
     scripts:
-        Optional list of scripts to include in the page.
-        Each script should be represented as a string, which will be passed
-        verbatim to the page's HTML.
+        Deprecated classic inline JavaScript executed with global script
+        semantics. Using this argument forces a full page reload. Prefer
+        ``js_page_code``.
 
     css:
         Optional list of CSS specification to include in the page.
@@ -977,6 +1031,7 @@ class Page(Elt):
         For example, if I want to define an event that occurs 3 seconds after the trial starts,
         I would write ``events={"myEvent": Event(is_triggered_by="trialStart", delay=3.0)}``.
         Useful standard events to know are
+        ``pageReady`` (the page is initialized and navigation is valid),
         ``trialStart`` (start of the trial),
         ``promptStart`` (start of the prompt),
         ``promptEnd`` (end of the prompt),
@@ -1047,6 +1102,7 @@ class Page(Elt):
     returns_time_credit = True
     dynamically_update_progress_bar_and_reward = False
     is_unity_page = False
+    requires_full_page_reload = False
     skip_beforeunload = False
 
     def __init__(
@@ -1060,9 +1116,12 @@ class Page(Elt):
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
-        js_links: Optional[List] = None,
+        js_links: Optional[Sequence[str]] = None,
+        js_dependencies: Optional[Sequence[str]] = None,
+        js_page_modules: Optional[Sequence[str]] = None,
+        js_page_code: Optional[Union[str, Sequence[str]]] = None,
         media: Optional[MediaSpec] = None,
-        scripts: Optional[List] = None,
+        scripts: Optional[Sequence[str]] = None,
         css: Optional[List] = None,
         css_links: Optional[List] = None,
         contents: Optional[Dict] = None,
@@ -1079,12 +1138,26 @@ class Page(Elt):
     ):
         super().__init__()
 
+        legacy_js_links = _normalize_javascript_urls(js_links, "js_links")
+        legacy_scripts = _normalize_js_page_code(scripts, "scripts")
+        if legacy_js_links:
+            warnings.warn(
+                "js_links is deprecated; migrate to js_dependencies or "
+                "js_page_modules.",
+                FutureWarning,
+                stacklevel=3,
+            )
+        if legacy_scripts:
+            warnings.warn(
+                "scripts is deprecated; migrate to js_page_code.",
+                FutureWarning,
+                stacklevel=3,
+            )
+
         if template_arg is None:
             template_arg = {}
         if js_vars is None:
             js_vars = {}
-        if js_links is None:
-            js_links = []
         if contents is None:
             contents = {}
         if css_links is None:
@@ -1140,15 +1213,30 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
-        self.js_links = js_links
+        self.legacy_js_links = legacy_js_links
+        self.legacy_scripts = legacy_scripts
+        self.js_dependencies = _normalize_javascript_urls(
+            js_dependencies, "js_dependencies"
+        )
+        self.js_page_modules = _normalize_javascript_urls(
+            js_page_modules, "js_page_modules"
+        )
+        self.js_page_code = _normalize_js_page_code(js_page_code)
+        if legacy_js_links or legacy_scripts:
+            # Classic script semantics (global ``var``, non-module scope) are not
+            # emulated across in-place transitions; force a clean document instead.
+            self.requires_full_page_reload = True
+        overlapping_javascript = set(self.js_dependencies) & set(self.js_page_modules)
+        if overlapping_javascript:
+            raise ValueError(
+                "The same URL cannot be used in both js_dependencies and "
+                f"js_page_modules: {sorted(overlapping_javascript)}"
+            )
 
         self.expected_repetitions = 1
 
         self.media = MediaSpec() if media is None else media
         self.media.check()
-
-        self.scripts = [] if scripts is None else [Markup(x) for x in scripts]
-        assert isinstance(self.scripts, list)
 
         self.css = [] if css is None else [Markup(x) for x in css]
         assert isinstance(self.css, list)
@@ -1231,6 +1319,7 @@ class Page(Elt):
     def prepare_default_events(self):
         return {
             "trialConstruct": Event(is_triggered_by=None, once=True),
+            "pageReady": Event(is_triggered_by=None, once=True),
             "trialManualRequest": Event(
                 is_triggered_by=["trialConstruct", "buttonStart"],
                 once=True,
@@ -1238,9 +1327,9 @@ class Page(Elt):
             ),
             "trialPrepare": Event(
                 is_triggered_by=(
-                    "trialConstruct"
+                    "pageReady"
                     if self.start_trial_automatically
-                    else "trialManualRequest"
+                    else ["trialManualRequest", "pageReady"]
                 ),
                 once=True,
             ),
@@ -1273,6 +1362,7 @@ class Page(Elt):
             "unique_id": participant.unique_id,
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
+            "requires_full_page_reload": self.requires_full_page_reload,
         }
 
     @property
@@ -1528,6 +1618,7 @@ class Page(Elt):
     def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
 
+        # Architecture: docs/developer/page_lifecycle.rst
         # `partial_mode` is an internal render shape used for inplace
         # transitions. The public timeline route now serves full pages (plus
         # mode=json), while /response embeds this fragment payload directly.
@@ -1563,8 +1654,11 @@ class Page(Elt):
             "participant": participant,
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
-            "scripts": self.scripts,
-            "js_links": self.js_links,
+            "legacy_js_links": self.legacy_js_links,
+            "legacy_scripts": self.legacy_scripts,
+            "js_dependencies": self.js_dependencies,
+            "js_page_code": self.js_page_code,
+            "js_page_modules": self.js_page_modules,
             "css": self.css + experiment.css,
             "css_links": self.css_links + experiment.css_links,
             "events": self.events,
@@ -1586,6 +1680,8 @@ class Page(Elt):
         )
         if partial_mode:
             rendered = self._extract_partial_render(rendered)
+        else:
+            self._check_embedded_script_contract(rendered)
         return rendered
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
@@ -1628,9 +1724,10 @@ class Page(Elt):
         #
         # `allow_scripts` is set for page content/prompt markup, where embedded
         # <script> tags are a supported pattern: PsyNet defers and replays them
-        # across in-place transitions (see Page._defer_executable_scripts). The
+        # across in-place transitions (see Page._make_embedded_scripts_inert). The
         # prohibition still applies to author-provided page/prompt/control
-        # templates, which should route page JavaScript through scripts/js_links.
+        # templates, which should route page JavaScript through
+        # js_dependencies, js_page_code, and js_page_modules.
         problems = []
         markup_source = markup_source or ""
         soup = BeautifulSoup(markup_source, "html.parser")
@@ -1640,15 +1737,16 @@ class Page(Elt):
                 if script.get("src"):
                     problems.append(
                         f"{source_description} includes a page JavaScript link in a "
-                        "<script src=...> tag. Supply page JavaScript files via "
-                        "the Page js_links argument instead."
+                        "<script src=...> tag. Supply libraries via "
+                        "js_dependencies or page behavior via js_page_modules. "
+                        "Run /migrate-page-javascript for a step-by-step migration."
                     )
                 else:
                     problems.append(
-                        f"{source_description} includes a raw <script> block. Supply "
-                        "page JavaScript via the Page scripts argument instead, "
-                        "and use PsyNet lifecycle hooks such as "
-                        "psynet.trial.onEvent('trialConstruct', ...) for page setup."
+                        f"{source_description} includes a raw <script> block. "
+                        "Move short behavior to js_page_code or reusable behavior "
+                        "to js_page_modules. Run /migrate-page-javascript for a "
+                        "step-by-step migration."
                     )
 
         if soup.find_all("style"):
@@ -1674,9 +1772,9 @@ class Page(Elt):
             problems.append(
                 f"{source_description} registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
-                "each page, so page setup should use PsyNet lifecycle hooks "
-                "such as psynet.trial.onEvent('trialConstruct', ...), or "
-                "page scripts supplied through scripts/js_links."
+                "each page, so page setup should use the activate(context) "
+                "function of a js_page_modules file. Run "
+                "/migrate-page-javascript for a step-by-step migration."
             )
 
         has_window_event_listener = re.search(
@@ -1705,19 +1803,40 @@ class Page(Elt):
             "marks the template as framework-owned. For custom pages used "
             "with inplace_timeline_transitions, pass "
             "template_fragment_path or template_fragment_str with only the "
-            "contents of the main_body block, and supply page-local CSS/JS via "
-            "css, css_links, scripts, and js_links. Search your experiment "
+            "contents of the main_body block, and supply page-local assets via "
+            "css, css_links, js_dependencies, js_page_code, and js_page_modules. "
+            "Search your experiment "
             f"code for Page(...) calls with label='{self.label}'."
         )
 
     @staticmethod
     def _extract_partial_render(rendered_html):
         soup = BeautifulSoup(rendered_html, "html.parser")
-        Page._defer_executable_scripts(soup)
+        Page._check_embedded_script_contract(soup)
+        Page._make_embedded_scripts_inert(soup)
         return Page._extract_partial_body(soup)
 
     @staticmethod
-    def _defer_executable_scripts(soup):
+    def _check_embedded_script_contract(html):
+        """Reject embedded modules in favor of managed page modules."""
+        soup = (
+            html
+            if isinstance(html, BeautifulSoup)
+            else BeautifulSoup(html, "html.parser")
+        )
+        for script in soup.find_all("script"):
+            script_type = (script.get("type") or "").strip().lower()
+            if script_type == "module":
+                raise ValueError(
+                    "Embedded modules are not supported. Supply the module "
+                    "through js_page_modules and use standard imports for its "
+                    "dependencies. Run "
+                    "/migrate-page-javascript for a step-by-step migration."
+                )
+
+    @staticmethod
+    def _make_embedded_scripts_inert(soup):
+        """Make rendered HTML scripts inert until the fragment is activated."""
         parsed_from_string = isinstance(soup, str)
         if parsed_from_string:
             soup = BeautifulSoup(soup, "html.parser")
@@ -1726,7 +1845,6 @@ class Page(Elt):
             "",
             "application/ecmascript",
             "application/javascript",
-            "module",
             "text/ecmascript",
             "text/javascript",
         }

@@ -6,6 +6,7 @@ from markupsafe import Markup
 from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
     Control,
     ModularPage,
+    MusicNotationPrompt,
     Prompt,
     PushButtonControl,
     RatingScale,
@@ -140,11 +141,14 @@ def test_inplace_transitions_still_reject_style_in_page_content():
 
 
 def test_components_contribute_javascript_assets_and_variables_to_page():
-    # Reusable components ship JavaScript through component hooks rather than
-    # inlining <script> in a template.
+    # Reusable components ship lifecycle-managed modules through component
+    # hooks rather than inlining <script> in a template.
     class ScriptedPrompt(Prompt):
-        def get_scripts(self):
-            return ["console.log('prompt');"]
+        def get_js_page_modules(self):
+            return ["/static/prompt-page.js"]
+
+        def get_js_page_code(self):
+            return ["window.promptReady = true;"]
 
         def get_js_vars(self):
             return {"prompt_config": {"colour": "blue"}}
@@ -152,11 +156,11 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
     class ScriptedControl(Control):
         macro = "control"
 
-        def get_scripts(self):
-            return ["console.log('control');"]
+        def get_js_page_modules(self):
+            return ["/static/control-page.js"]
 
-        def get_js_links(self):
-            return ["/static/my-control.js"]
+        def get_js_page_code(self):
+            return ["window.controlReady = true;"]
 
         def get_js_vars(self):
             return {"control_config": {"maximum": 10}}
@@ -168,13 +172,77 @@ def test_components_contribute_javascript_assets_and_variables_to_page():
         js_vars={"page_config": {"enabled": True}},
     )
 
-    joined = "\n".join(str(s) for s in page.scripts)
-    assert "console.log('prompt');" in joined
-    assert "console.log('control');" in joined
-    assert "/static/my-control.js" in page.js_links
+    assert page.js_page_modules == [
+        "/static/prompt-page.js",
+        "/static/control-page.js",
+    ]
+    assert page.js_page_code == [
+        "window.promptReady = true;",
+        "window.controlReady = true;",
+    ]
     assert page.js_vars["prompt_config"] == {"colour": "blue"}
     assert page.js_vars["control_config"] == {"maximum": 10}
     assert page.js_vars["page_config"] == {"enabled": True}
+
+
+def test_components_contribute_managed_javascript_lifecycle_resources():
+    class ManagedPrompt(Prompt):
+        def get_js_dependencies(self):
+            return ["/static/prompt-library.js"]
+
+        def get_js_page_modules(self):
+            return ["/static/prompt-page.js"]
+
+    class ManagedControl(Control):
+        macro = "control"
+
+        def get_js_dependencies(self):
+            return ["/static/control-library.js"]
+
+        def get_js_page_modules(self):
+            return ["/static/control-page.js"]
+
+    page = ModularPage(
+        "test",
+        ManagedPrompt("Hi!"),
+        ManagedControl(),
+        js_dependencies=["/static/page-library.js"],
+        js_page_modules=["/static/page.js"],
+    )
+
+    assert page.js_dependencies == [
+        "/static/prompt-library.js",
+        "/static/control-library.js",
+        "/static/page-library.js",
+    ]
+    assert page.js_page_modules == [
+        "/static/prompt-page.js",
+        "/static/control-page.js",
+        "/static/page.js",
+    ]
+
+
+def test_modular_page_accepts_tuple_javascript_resources():
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        js_dependencies=("/static/first-library.js", "/static/second-library.js"),
+        js_page_modules=("/static/first-page.js", "/static/second-page.js"),
+        js_page_code=("window.first = true;", "window.second = true;"),
+    )
+
+    assert page.js_dependencies == [
+        "/static/first-library.js",
+        "/static/second-library.js",
+    ]
+    assert page.js_page_modules == [
+        "/static/first-page.js",
+        "/static/second-page.js",
+    ]
+    assert page.js_page_code == [
+        "window.first = true;",
+        "window.second = true;",
+    ]
 
 
 def test_duplicate_component_js_vars_raise():
@@ -227,8 +295,9 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
         "show_participants": False,
         "show_history": True,
     }
-    assert "/static/scripts/chatroom-widget.js" in page.js_links
-    assert not any("__psynetChatroomConfig" in str(s) for s in page.scripts)
+    assert page.js_page_modules == [
+        "/static/packages/psynet/scripts/chatroom-widget.js"
+    ]
     # The macro itself must be markup-only (no inline <script>/<style>) so it
     # stays contract-compliant.
     from importlib import resources
@@ -240,6 +309,38 @@ def test_chatroom_contributes_managed_resources_not_inline_markup():
     )
     assert "<script" not in macro
     assert "<style" not in macro
+
+
+def test_omitted_chatroom_does_not_contribute_managed_resources():
+    from psynet.chatroom import ChatRoom
+
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        chatroom=ChatRoom(room_id="room-42"),
+        layout=["prompt"],
+    )
+
+    assert not any("#chatroom-widget" in str(c) for c in page.css)
+    assert "chatroom_config" not in page.js_vars
+    assert (
+        "/static/packages/psynet/scripts/chatroom-widget.js" not in page.js_page_modules
+    )
+
+
+def test_music_notation_prompt_uses_managed_javascript():
+    page = ModularPage(
+        "test",
+        MusicNotationPrompt("C D E F"),
+    )
+
+    assert page.js_dependencies == [
+        "/static/packages/psynet/libraries/abc-js/abcjs-basic.js"
+    ]
+    assert page.js_page_modules == [
+        "/static/packages/psynet/scripts/music-notation-prompt.js"
+    ]
+    assert page.js_vars["music_notation_prompt"] == {"content": "C D E F"}
 
 
 def test_modular_page_text():

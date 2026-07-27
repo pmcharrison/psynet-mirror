@@ -377,16 +377,11 @@ There are a few key things to note here.
 - The control is specified like an ordinary HTML file, but the customizable aspects are acquired
   from the ``params`` object using curly bracket notation.
 - Page-local CSS and JavaScript should be supplied through page arguments such as
-  ``css``, ``css_links``, ``scripts``, and ``js_links`` rather than by putting
-  ``<style>`` or ``<script>`` blocks inside the macro template.
-- In the accompanying JavaScript, the user must define a JS function called ``retrieveResponse`` that,
-  when called, should return an object containing the following:
-
-    - ``rawAnswer`` - The participant's answer in JSON-serializable form (numbers, strings, or an
-      object comprising these).
-    - ``metadata`` - Optional additional information about the response.
-    - ``blobs`` - An optional dictionary of 'blobs', used for uploading media files (e.g. audio
-      recordings).
+  ``css``, ``css_links``, ``js_dependencies``, and ``js_page_modules`` rather
+  than by putting ``<style>`` or ``<script>`` blocks inside the macro template.
+- The accompanying JavaScript should export ``activate(context)``. It can
+  register response handling for the page and return cleanup for any resources
+  it creates.
 
 The user must then define a corresponding class in Python, writing code like this:
 
@@ -420,6 +415,23 @@ The user must then define a corresponding class in Python, writing code like thi
                 """
             ]
 
+        def get_js_page_modules(self):
+            return ["/static/color-text.js"]
+
+The corresponding ``static/color-text.js`` file manages the response handler:
+
+.. code-block:: javascript
+
+    export async function activate({root, psynet}) {
+        const input = root.querySelector("#text-input");
+
+        function stageResponse() {
+            psynet.response.staged.rawAnswer = input.value;
+        }
+
+        psynet.setStageResponseHandler(stageResponse);
+    }
+
 There are a few more key things to note here:
 
 - The ``macro`` and ``external_template`` attributes link to our Jinja template and the macro
@@ -430,9 +442,11 @@ There are a few more key things to note here:
   saving it in the database.
 - The ``get_bot_response`` method is used to simulate a bot's response to that control when running
   automated tests.
+- The ``get_js_page_modules`` method supplies behavior that PsyNet activates
+  for each hosting page.
 
-Defining custom prompts works in a similar way, except you don't need ``retrieveResponse``,
-``format_answer``, or ``get_bot_response``.
+Defining custom prompts works in a similar way, except you don't need response
+handling, ``format_answer``, or ``get_bot_response``.
 
 **Exercise**: think of an interesting prompt or control that is not listed above.
 Implement it yourself using a custom template, and add it to ``demos/features/pages/``.

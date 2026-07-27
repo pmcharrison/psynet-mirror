@@ -379,24 +379,6 @@
 {% macro abc_notation(params) %}
     {{ simple(params) }}
 
-    <script src="/static/scripts/abc-js/abcjs-basic.js"></script>
-
-    <script>
-        let abcScore = "{{ params.content | safe }}";
-
-        function renderABCscore() {
-            $("#abcScore").css("visibility", "block")
-            ABCJS.renderAbc("abcScore", abcScore);
-        }
-
-        function hideABCscore() {
-            $("#abcScore").css("visibility", "hidden")
-        }
-
-        psynet.trial.onEvent("promptStart", renderABCscore);
-        psynet.trial.onEvent("promptEnd", hideABCscore);
-    </script>
-
     <div id="abcScore"></div>
 
 {% endmacro %}

@@ -63,23 +63,62 @@ def test_merge_media_spec():
     )
 
 
-def test_partial_script_deferral_replaces_existing_type_attribute():
+def test_partial_render_makes_embedded_scripts_inert():
     html = """
     <div id="psynet-timeline-fragment">
-      <script type="module" data-example="1">window.example = true;</script>
+      <script src="/static/example.js" data-example="1"></script>
       <script type="application/json">{"example": true}</script>
       <script type="text/html"><div>template</div></script>
       <script type="text/psynet-script">window.deferred = true;</script>
     </div>
     """
-    deferred = Page._defer_executable_scripts(html)
+    inert_html = Page._make_embedded_scripts_inert(html)
 
-    assert deferred.count('type="text/psynet-script"') == 2
-    assert 'type="module"' not in deferred
-    assert 'data-example="1"' in deferred
-    assert 'type="application/json"' in deferred
-    assert 'type="text/html"' in deferred
-    assert deferred.count("type=") == 4
+    assert inert_html.count('type="text/psynet-script"') == 2
+    assert 'data-example="1"' in inert_html
+    assert 'type="application/json"' in inert_html
+    assert 'type="text/html"' in inert_html
+
+
+def test_automatic_trial_waits_for_page_ready():
+    page = InfoPage("Automatic trial")
+
+    triggers = {
+        event_id: [trigger["triggering_event"] for trigger in event["is_triggered_by"]]
+        for event_id, event in page.events.items()
+    }
+
+    assert "pageReady" in page.events
+    assert triggers["pageReady"] == []
+    assert triggers["trialPrepare"] == ["pageReady"]
+    assert triggers["trialStart"] == ["trialPrepare"]
+
+
+def test_manual_trial_waits_for_request_and_page_ready():
+    page = InfoPage("Manual trial", start_trial_automatically=False)
+
+    triggers = [
+        trigger["triggering_event"]
+        for trigger in page.events["trialPrepare"]["is_triggered_by"]
+    ]
+
+    assert triggers == ["trialManualRequest", "pageReady"]
+    assert page.events["trialPrepare"]["trigger_condition"] == "all"
+
+
+@pytest.mark.parametrize(
+    "html",
+    [
+        '<script type="module">export const value = 1;</script>',
+        '<script type="module" src="/static/widget.js"></script>',
+    ],
+)
+def test_embedded_module_is_rejected(html):
+    with pytest.raises(
+        ValueError,
+        match=r"Embedded modules are not supported.*js_page_modules.*migrate-page-javascript",
+    ):
+        Page._check_embedded_script_contract(html)
 
 
 def test_partial_body_extraction_uses_named_fragment_wrapper():
@@ -213,7 +252,7 @@ def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates()
             "<script>psynet.trial.onEvent('trialConstruct', function () {});</script>",
             "raw <script>",
         ),
-        ('<script src="/static/example.js"></script>', "js_links"),
+        ('<script src="/static/example.js"></script>', "js_dependencies"),
         ("<style>.example { color: red; }</style>", "Page css argument"),
         ('<link rel="stylesheet" href="/static/example.css">', "css_links"),
         (
@@ -253,13 +292,13 @@ def test_window_event_listener_with_cleanup_evidence_is_allowed():
     page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
-def test_page_asset_arguments_are_not_forbidden_template_content():
+def test_managed_page_asset_arguments_are_not_forbidden_template_content():
     page = Page(
         template_fragment_str="<p>Page content</p>",
         css=[".example { color: red; }"],
         css_links=["/static/example.css"],
-        scripts=["psynet.trial.onEvent('trialConstruct', function () {});"],
-        js_links=["/static/example.js"],
+        js_dependencies=["/static/example-library.js"],
+        js_page_modules=["/static/example-page.js"],
     )
 
     page._check_spa_template_contract(inplace_timeline_transitions=True)

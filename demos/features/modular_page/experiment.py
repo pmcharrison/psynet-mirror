@@ -52,6 +52,9 @@ class ColorText(Control):
     def get_bot_response(self, experiment, bot, page, prompt):
         return "Hello, I am a bot!"
 
+    def get_js_page_modules(self):
+        return ["/static/color-text.js"]
+
 
 video_slider_media_spec = MediaSpec()
 video_slider_media_spec.add(
@@ -238,7 +241,6 @@ class Exp(psynet.experiment.Experiment):
             ),
             control=ColorText("aquamarine"),
             time_estimate=5,
-            js_links=["/static/color-text.js"],
         ),
         DebugResponsePage(),
     )

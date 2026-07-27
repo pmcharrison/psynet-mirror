@@ -3,6 +3,8 @@ import json
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 
 from .data import SQLBase, SQLMixin, register_table
+from .javascript_hooks import JavaScriptContributor
+from .static_resources import package_static_url
 from .timeline import NullElt, WebSocketElt
 
 
@@ -176,7 +178,7 @@ class EnableChatrooms(NullElt, WebSocketElt):
         )
 
 
-class ChatRoom:
+class ChatRoom(JavaScriptContributor):
     """
     A chatroom component for use with :class:`~psynet.modular_page.ModularPage`.
 
@@ -217,10 +219,6 @@ class ChatRoom:
             .read_text(encoding="utf-8")
         ]
 
-    def get_scripts(self):
-        """Page-local inline JavaScript contributed to the hosting page (none)."""
-        return []
-
     def get_js_vars(self):
         """Page-local configuration contributed to the hosting page."""
         return {
@@ -232,6 +230,6 @@ class ChatRoom:
             }
         }
 
-    def get_js_links(self):
-        """External JavaScript files contributed to the hosting page."""
-        return ["/static/scripts/chatroom-widget.js"]
+    def get_js_page_modules(self):
+        """Lifecycle-managed JavaScript activated for the hosting page."""
+        return [package_static_url("psynet", "scripts/chatroom-widget.js")]

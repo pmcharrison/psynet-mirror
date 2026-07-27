@@ -93,6 +93,7 @@ from .recruiters import (  # noqa: F401
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
+from .static_resources import get_static_package_extra_files
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -2477,8 +2478,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
         config = get_config()
         # In inplace mode, the same /response round-trip both advances the
-        # participant state and returns the next timeline fragment.
-        if include_timeline_fragment and config.get("inplace_timeline_transitions"):
+        # participant state and returns the next timeline fragment. Skip the
+        # fragment when the next page forces a full reload; the client will
+        # navigate via /timeline instead.
+        if (
+            include_timeline_fragment
+            and config.get("inplace_timeline_transitions")
+            and not page.requires_full_page_reload
+        ):
             payload["timeline_fragment"] = self.render_partial_timeline_payload(
                 page, self, participant
             )
@@ -2530,6 +2537,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = []
         for trialmaker in cls.timeline.trial_makers.values():
             files.extend(trialmaker.extra_files())
+        files.extend(get_static_package_extra_files())
 
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
@@ -2580,8 +2588,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/psynet.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/scripts/chatroom-widget.js",
+                    resources.files("psynet") / "static/scripts/chatroom-widget.js",
                     "/static/scripts/chatroom-widget.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/execute-front-end-js.js",
+                    "/static/scripts/execute-front-end-js.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/scripts/jspsych-page.js",
+                    "/static/scripts/jspsych-page.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "static/scripts/music-notation-prompt.js",
+                    "/static/scripts/music-notation-prompt.js",
                 ),
                 (
                     resources.files("psynet")
@@ -2667,7 +2689,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/survey-jquery",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/abc-js",
+                    resources.files("psynet") / "static/libraries/abc-js",
                     "/static/scripts/abc-js",
                 ),
                 (

@@ -6,19 +6,16 @@ const { completeInitialGateway, withExperiment } = require("../psynetHarness");
 const STEP_TIMEOUT_MS = 120000;
 
 /*
-Regression coverage for the migrated color-slider page (js_links) under the
+Regression coverage for the migrated color-slider page (js_page_modules) under the
 default in-place timeline transitions.
 
-The gibbs color-slider control ships its page JavaScript via js_links
-(static/color-slider.js). In in-place mode, page js_links execute before the
-slider control's main-body macro script (see activateTimelineFragmentLifecycle),
-so a top-level `psynet.page.control.slider.onSliderEvent = ...` in that file runs
-before `psynet.page.control.slider` exists. Reaching this page in a browser
-therefore raises an uncaught page error, which the failOnPageErrors fixture turns
-into a test failure. Bot tests never caught this because bots do not execute JS.
+The gibbs color-slider control ships its page JavaScript as a managed ES module
+(static/color-slider.js). Its activate hook runs after the slider control exists,
+and reaching this page must not raise an uncaught error. The failOnPageErrors
+fixture turns such an error into a test failure. Bot tests do not execute JS.
 */
 
-test("gibbs color-slider page activates without uncaught page errors", async ({
+test("gibbs color-slider page activates without uncaught page errors", { tag: "@both" }, async ({
   page,
   context
 }) => {
@@ -33,9 +30,8 @@ test("gibbs color-slider page activates without uncaught page errors", async ({
     });
     await experimentPage.locator(".push-button").first().click();
 
-    // Reaching the color-slider trial page runs static/color-slider.js. If it
-    // throws (js_links running before the slider control state exists), the
-    // failOnPageErrors fixture fails this test at teardown.
+    // Reaching the color-slider trial page activates static/color-slider.js.
+    // If it throws, the failOnPageErrors fixture fails this test at teardown.
     await expect(experimentPage.locator("#color-box")).toBeVisible({
       timeout: STEP_TIMEOUT_MS
     });

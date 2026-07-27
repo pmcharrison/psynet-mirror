@@ -71,7 +71,7 @@ def new_example(description, **kwargs):
             control=MediaSliderControl(slider_media=slider_media, **kwargs),
             media=media,
             time_estimate=time_estimate,
-            js_links=["/static/slider-debug.js"],
+            js_page_modules=["/static/slider-debug.js"],
             css=[
                 """
                 .video {

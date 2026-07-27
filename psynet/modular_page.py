@@ -15,6 +15,8 @@ from markupsafe import Markup
 from .asset import Asset, LocalStorage
 from .bot import BotResponse
 from .chatroom import ChatRoom  # noqa: F401
+from .javascript_hooks import JavaScriptContributor
+from .static_resources import package_static_url
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
     NoArgumentProvided,
@@ -68,7 +70,7 @@ class Blob:
         return self.file
 
 
-class Prompt:
+class Prompt(JavaScriptContributor):
     """
     The ``Prompt`` class displays some kind of media to the participant,
     to which they will have to respond.
@@ -168,15 +170,6 @@ class Prompt:
     def get_css(self):
         return []
 
-    def get_scripts(self):
-        """Page-local inline JavaScript this component contributes to the page.
-
-        Returned strings are supplied to the hosting ``ModularPage`` as ``scripts``
-        (deferred and replayed across in-place timeline transitions), so reusable
-        components can ship JavaScript without inlining ``<script>`` in a template.
-        """
-        return []
-
     def get_js_vars(self):
         """Page-local JavaScript variables this component contributes.
 
@@ -184,13 +177,6 @@ class Prompt:
         :class:`ModularPage` ``js_vars``.
         """
         return {}
-
-    def get_js_links(self):
-        """Page-local external JavaScript files this component contributes.
-
-        Returned paths are supplied to the hosting ``ModularPage`` as ``js_links``.
-        """
-        return []
 
     def _collect_spa_markup_contract_problems(self):
         if self.text_html is None:
@@ -674,7 +660,7 @@ class ColorPrompt(Prompt):
         return {"text": str(self.text), "hsl": self.hsl}
 
 
-class Control:
+class Control(JavaScriptContributor):
     """
     The ``Control`` class provides some kind of controls for the participant,
     with which they will provide their response.
@@ -763,26 +749,12 @@ class Control:
     def get_css(self):
         return []
 
-    def get_scripts(self):
-        """Page-local inline JavaScript this control contributes to the page.
-
-        See :meth:`Prompt.get_scripts`.
-        """
-        return []
-
     def get_js_vars(self):
         """Page-local JavaScript variables this control contributes.
 
         See :meth:`Prompt.get_js_vars`.
         """
         return {}
-
-    def get_js_links(self):
-        """Page-local external JavaScript files this control contributes.
-
-        See :meth:`Prompt.get_js_links`.
-        """
-        return []
 
     @property
     def media(self):
@@ -1914,7 +1886,8 @@ class ModularPage(Page):
         If left blank, defaults to ``.default_layout``.
 
     **kwargs
-        Further arguments to be passed to :class:`psynet.timeline.Page`.
+        Further arguments to be passed to :class:`psynet.timeline.Page`,
+        including ``js_dependencies`` and ``js_page_modules``.
     """
 
     default_layout = ["prompt", "media", "progress", "control", "chatroom", "buttons"]
@@ -2001,23 +1974,33 @@ class ModularPage(Page):
         # <style>/<script> in a template (which the SPA contract forbids). Collect
         # them here and merge with any assets the caller passed directly.
         components = [("prompt", self.prompt), ("control", self.control)]
-        if self.chatroom is not None:
+        if self.chatroom is not None and "chatroom" in self.layout:
             components.append(("chatroom", self.chatroom))
 
         css = [c for _, component in components for c in component.get_css()]
-        scripts = [s for _, component in components for s in component.get_scripts()]
-        js_links = [
-            link for _, component in components for link in component.get_js_links()
+        js_dependencies = [
+            dependency
+            for _, component in components
+            for dependency in component.get_js_dependencies()
+        ]
+        js_page_modules = [
+            module
+            for _, component in components
+            for module in component.get_js_page_modules()
+        ]
+        js_page_code = [
+            code for _, component in components for code in component.get_js_page_code()
         ]
 
         for key, collected in (
             ("css", css),
-            ("scripts", scripts),
-            ("js_links", js_links),
+            ("js_dependencies", js_dependencies),
+            ("js_page_code", js_page_code),
+            ("js_page_modules", js_page_modules),
         ):
             if key in kwargs:
                 extra = kwargs.pop(key)
-                collected.extend(extra if isinstance(extra, list) else [extra])
+                collected.extend(extra if isinstance(extra, (list, tuple)) else [extra])
 
         modular_page_components = {
             "prompt": self.prompt.macro,
@@ -2057,8 +2040,9 @@ class ModularPage(Page):
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,
-            scripts=scripts,
-            js_links=js_links,
+            js_dependencies=js_dependencies,
+            js_page_code=js_page_code,
+            js_page_modules=js_page_modules,
             framework_owned_template=True,
             **kwargs,
         )
@@ -4404,6 +4388,18 @@ class MusicNotationPrompt(Prompt):
         self.content = content
 
     macro = "abc_notation"
+
+    def get_js_dependencies(self):
+        """Load the abcjs rendering library once per browser document."""
+        return [package_static_url("psynet", "libraries/abc-js/abcjs-basic.js")]
+
+    def get_js_page_modules(self):
+        """Activate score rendering for each hosting page."""
+        return [package_static_url("psynet", "scripts/music-notation-prompt.js")]
+
+    def get_js_vars(self):
+        """Provide the ABC notation consumed by the page module."""
+        return {"music_notation_prompt": {"content": self.content}}
 
     def update_events(self, events):
         super().update_events(events)

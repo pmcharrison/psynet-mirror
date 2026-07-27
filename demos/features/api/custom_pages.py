@@ -32,7 +32,7 @@ class RandomDigitInputPage(ModularPage):
                 block_copy_paste=True,
             ),
             time_estimate=time_estimate,
-            js_links=["/static/random-digit-input.js"],
+            js_page_modules=["/static/random-digit-input.js"],
         )
 
     @expose_to_api("random_digit_input")

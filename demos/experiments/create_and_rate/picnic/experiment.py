@@ -117,7 +117,7 @@ class CreateControl(Control):
     def get_css(self):
         return ["#trial-progress-caption { margin: 0; }"]
 
-    def get_js_links(self):
+    def get_js_page_modules(self):
         return ["/static/create-control.js"]
 
     def get_bot_response(self, experiment, bot, page, prompt):
@@ -153,7 +153,7 @@ class RateControl(Control):
     def get_css(self):
         return ["#trial-progress-caption { margin: 0; }"]
 
-    def get_js_links(self):
+    def get_js_page_modules(self):
         return ["/static/rate-control.js"]
 
     def get_bot_response(self, experiment, bot, page, prompt):
