@@ -221,18 +221,19 @@ def _remote_tracking_refs_contain_commit(
 
 
 def _default_psynet_requirement() -> str:
-    """Return a resolvable PsyNet requirement for a new experiment."""
+    """Return a resolvable PsyNet requirement for a new experiment.
+
+    Alpha versions prefer a portable commit pin from the editable checkout's
+    ``origin`` remote via :func:`commit_psynet_requirement`. Errors from that
+    path (missing origin, unpushed commit, etc.) are propagated so users get
+    clear guidance. When there is no local Git commit (e.g. a non-git install),
+    fall back to a version pin. Never invent a PsyNetDev URL with a local SHA.
+    """
     if re.search(r"a\d+$", psynet_version):
         source = Path(__file__).parent.parent
-        try:
-            return commit_psynet_requirement(source)
-        except ValueError:
-            commit = _current_source_commit(source)
-            if commit is not None:
-                return (
-                    "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@"
-                    f"{commit}#egg=psynet"
-                )
+        if _current_source_commit(source) is None:
+            return f"psynet=={psynet_version}"
+        return commit_psynet_requirement(source)
     return f"psynet=={psynet_version}"
 
 

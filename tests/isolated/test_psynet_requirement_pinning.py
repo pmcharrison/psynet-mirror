@@ -1,8 +1,11 @@
 """Tests for PsyNet requirement pinning helpers."""
 
+from pathlib import Path
+
 import pytest
 
 from psynet.experiment_scaffold import (
+    _default_psynet_requirement,
     _normalize_git_remote_to_pip_base,
     commit_psynet_requirement,
 )
@@ -107,3 +110,58 @@ def test_commit_psynet_requirement_requires_origin_remote(tmp_path, monkeypatch)
 
     with pytest.raises(ValueError, match="Could not determine git remote 'origin'"):
         commit_psynet_requirement(source)
+
+
+def test_default_psynet_requirement_propagates_commit_pin_errors(monkeypatch):
+    """Alpha pins must not invent a PsyNetDev URL when commit pinning fails."""
+    commit = "e" * 40
+    monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda _source=None: commit,
+    )
+
+    def _fail(_source: Path) -> str:
+        raise ValueError(
+            f"Commit {commit[:12]} is not available on git remote 'origin' "
+            "(https://gitlab.com/alice/PsyNet.git). Push your PsyNet commits first "
+            "(`git push origin HEAD`), then retry, or use "
+            "--psynet-source editable."
+        )
+
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold.commit_psynet_requirement",
+        _fail,
+    )
+
+    with pytest.raises(ValueError, match="not available on git remote 'origin'"):
+        _default_psynet_requirement()
+
+
+def test_default_psynet_requirement_uses_origin_commit_pin(monkeypatch):
+    commit = "f" * 40
+    monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda _source=None: commit,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold.commit_psynet_requirement",
+        lambda _source: (
+            f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+        ),
+    )
+
+    assert _default_psynet_requirement() == (
+        f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+    )
+
+
+def test_default_psynet_requirement_falls_back_to_version_without_git(monkeypatch):
+    monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda _source=None: None,
+    )
+
+    assert _default_psynet_requirement() == "psynet==13.4.0a0"

@@ -6,23 +6,22 @@ and try and customize it in various ways.
 Have a look through the available demos in the ``demos`` directory of the PsyNet repository,
 then choose one as your starting point.
 Copy the demo's directory to a new location on your computer, outside the original PsyNet repository.
-Open the new experiment directory in your IDE,
-then follow the prompts in your IDE to create a new virtual environment for the experiment.
+Open the new experiment directory in your IDE.
 
-.. note::
-
-    Alternatively you can create a new virtual environment for the experiment by running the following in your terminal:
-
-    .. code-block:: bash
-
-        uv venv
-        source .venv/bin/activate
-
-Finally, install the dependencies for the experiment by running the following in your terminal:
+Bundled demos ship only their authored experiment files (plus an unpinned ``psynet`` entry in
+``requirements.txt``). Generated boilerplate and ``constraints.txt`` are intentionally omitted.
+Initialize Git and create a standalone environment for the copied demo:
 
 .. code-block:: bash
 
-    uv pip install -r constraints.txt
+    git init
+    uv venv --python 3.13
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    uv pip install psynet
+    psynet setup
+
+``psynet setup`` pins the active PsyNet version, generates ``constraints.txt``, scaffolds
+boilerplate, and synchronizes the constrained dependencies.
 
 You can now start modifying the experiment to your liking.
 Try some simple modifications to begin with, for example changing the text of the questions.
@@ -47,8 +46,9 @@ then restart it by running ``psynet debug local`` again.
     to see what has changed in PsyNet since the experiment was written.
     You'll want to update the ``requirements.txt`` file to use the latest version of PsyNet
     (you can see the latest released version in the top-left corner of the online documentation website),
-    and then run ``psynet generate-constraints`` to update ``constraints.txt`` accordingly,
-    and then run ``uv pip install -r constraints.txt`` to update your local environment.
+    then run ``psynet setup`` (or ``psynet generate-constraints`` followed by
+    ``uv pip install -r requirements.txt -c constraints.txt``) to refresh constraints and your
+    local environment.
 
     Once this is all done, try running ``psynet debug local`` -- you might encounter some errors on account of your version upgrade,
     but hopefully the error message will guide you towards what needs fixing.

@@ -900,11 +900,16 @@ def test_scripts_scaffold_escapes_directory_name_in_experiment_label(tmp_path):
 def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monkeypatch):
     from psynet.command_line import check_psynet_requirement_is_unambiguous
 
+    commit = "a" * 40
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda _source=None: commit,
+    )
     monkeypatch.setattr(
         "psynet.experiment_scaffold.commit_psynet_requirement",
         lambda _source: (
-            f"psynet@git+https://gitlab.com/alice/PsyNet@{'a' * 40}#egg=psynet"
+            f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
         ),
     )
 
@@ -912,10 +917,41 @@ def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monke
         result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
 
         assert result.exit_code == 0, result.output
-        assert Path("requirements.txt").read_text().splitlines()[0] == (
-            f"psynet@git+https://gitlab.com/alice/PsyNet@{'a' * 40}#egg=psynet"
+        requirement_line = Path("requirements.txt").read_text().splitlines()[0]
+        assert requirement_line == (
+            f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
         )
+        assert "PsyNetDev/PsyNet" not in requirement_line
         check_psynet_requirement_is_unambiguous()
+
+
+def test_scripts_scaffold_alpha_propagates_unpushed_commit_error(tmp_path, monkeypatch):
+    commit = "b" * 40
+    monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda _source=None: commit,
+    )
+
+    def _fail(_source):
+        raise ValueError(
+            f"Commit {commit[:12]} is not available on git remote 'origin'. "
+            "Push your PsyNet commits first (`git push origin HEAD`), then retry."
+        )
+
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold.commit_psynet_requirement",
+        _fail,
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+        assert result.exit_code != 0
+        assert isinstance(result.exception, ValueError)
+        assert "not available on git remote 'origin'" in str(result.exception)
+        if Path("requirements.txt").exists():
+            assert "PsyNetDev/PsyNet@" not in Path("requirements.txt").read_text()
 
 
 def test_scripts_scaffold_rejects_conflicting_directory_name():
