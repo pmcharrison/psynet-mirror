@@ -1,0 +1,1 @@
+Changed managed assets to SHA-256 content-addressed ``objects/sha256/<digest>`` storage with permanent ``/asset/<access_token>`` URLs, removed the ``obfuscate`` flag, and export assets via ``assets/manifest.csv`` plus deduplicated object files.

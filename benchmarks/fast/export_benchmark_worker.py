@@ -54,14 +54,15 @@ def run(
             input_path=item["input_path"],
             key_within_experiment=f"asset_benchmark/{item['key']}",
             extension=".bin",
-            obfuscate=0,
         )
         asset.deposit(storage=storage)
     db.session.commit()
 
     started_at = time.perf_counter()
+    assets_dir = export_path / "assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
     export_assets(
-        export_path,
+        str(assets_dir),
         collected_assets_only=True,
         include_on_demand_assets=False,
         local=True,

@@ -873,7 +873,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "/start",
             "/timeline",
         ]
-        if any([endpoint == request.path for endpoint in relevant_endpoints]):
+        if request.path in relevant_endpoints or request.path.startswith("/asset/"):
             params = dict(request.args)
             request_obj = Request(
                 unique_id=params.get("unique_id", None),
@@ -3469,9 +3469,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return json.dumps(json_data, default=serialise)
 
+    @experiment_route("/asset/<access_token>", methods=["GET"])
+    @experiment_route("/asset/<access_token>/<path:subpath>", methods=["GET"])
+    @staticmethod
+    def get_asset_by_access_token(access_token, subpath=None):
+        """Serve a managed or on-demand asset via its permanent access token."""
+        asset = Asset.query.filter_by(access_token=access_token).one_or_none()
+        if asset is None:
+            flask.abort(404)
+        return asset.serve(subpath)
+
     @experiment_route("/on-demand-asset", methods=["GET"])
     @staticmethod
     def get_on_demand_asset():
+        """
+        Legacy on-demand route.
+
+        Prefer ``/asset/<access_token>``. This endpoint remains as a temporary
+        compatibility shim that redirects when the asset has an access token.
+        """
         id = request.args.get("id")
         secret = request.args.get("secret")
 
@@ -3481,11 +3497,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         id = int(id)
 
         asset = OnDemandAsset.query.filter_by(id=id).one()
-        suffix = asset.extension if asset.extension else ""
+        if getattr(asset, "access_token", None):
+            target = asset.access_url()
+            return redirect(target)
 
+        # Fallback for rows that somehow lack a token.
+        suffix = asset.extension if asset.extension else ""
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
             asset.export(temp_file.name)
-
             return send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])

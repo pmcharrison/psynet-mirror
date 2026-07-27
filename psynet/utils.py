@@ -347,6 +347,12 @@ def md5_object(x):
     return str(hashed.hexdigest())
 
 
+def sha256_object(x):
+    """Return a SHA-256 hex digest of a JSON-pickled object."""
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
+    return hashlib.sha256(string).hexdigest()
+
+
 # MD5 hashing code:
 # https://stackoverflow.com/a/54477583/8454486
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
@@ -360,6 +366,11 @@ def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
 
 def md5_file(filename: Union[str, Path]) -> str:
     return str(md5_update_from_file(filename, hashlib.md5()).hexdigest())
+
+
+def sha256_file(filename: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a file's contents."""
+    return str(md5_update_from_file(filename, hashlib.sha256()).hexdigest())
 
 
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
@@ -378,6 +389,16 @@ def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
 
 def md5_directory(directory: Union[str, Path]) -> str:
     return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
+
+
+def sha256_directory(directory: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a directory's names and file contents."""
+    return str(md5_update_from_dir(directory, hashlib.sha256()).hexdigest())
+
+
+def content_object_path(digest: str) -> str:
+    """Return the canonical relative object path for a content digest."""
+    return f"objects/sha256/{digest}"
 
 
 def serialise_datetime(x):

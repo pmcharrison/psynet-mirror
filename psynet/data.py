@@ -785,7 +785,22 @@ def export_assets(
     server=None,
     local=False,
 ):
+    """
+    Export selected assets into ``path``.
+
+    Callers typically pass ``<export_dir>/assets``. Layout:
+
+    ::
+
+        <path>/
+        ├── manifest.csv
+        └── objects/
+            └── sha256/
+                └── <content-hash>
+    """
     from joblib import Parallel, delayed
+
+    from .asset import ExternalAsset, OnDemandAsset
 
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
@@ -802,29 +817,103 @@ def export_assets(
     else:
         from .asset import Asset as base_class
 
+    assets_root = path
+    objects_root = os.path.join(assets_root, "objects", "sha256")
+    os.makedirs(objects_root, exist_ok=True)
+
     # Selected assets are always exported when requested.
-    asset_ids = [a.id for a in db.session.query(base_class.id)]
+    assets = list(db.session.query(base_class).order_by(base_class.id))
+    if not include_on_demand_assets:
+        assets = [a for a in assets if not isinstance(a, OnDemandAsset)]
+
+    manifest_rows = []
+    asset_ids_needing_bytes = []
+    for asset in assets:
+        row = {
+            "id": asset.id,
+            "type": getattr(asset, "type", type(asset).__name__),
+            "local_key": asset.local_key,
+            "export_path": asset.export_path,
+            "sha256_contents": asset.sha256_contents,
+            "object_path": asset.object_path,
+            "extension": asset.extension,
+            "is_folder": bool(asset.is_folder),
+            "url": asset.url,
+            "module_id": asset.module_id,
+            "participant_id": asset.participant_id,
+            "trial_id": asset.trial_id,
+            "node_id": asset.node_id,
+            "network_id": asset.network_id,
+            "description": asset.description,
+        }
+        if isinstance(asset, ExternalAsset):
+            # External assets are URL-only in the manifest.
+            row["object_path"] = None
+            row["sha256_contents"] = None
+        elif isinstance(asset, OnDemandAsset):
+            if include_on_demand_assets:
+                asset_ids_needing_bytes.append(asset.id)
+            else:
+                continue
+        else:
+            asset_ids_needing_bytes.append(asset.id)
+        manifest_rows.append(row)
 
     n_jobs = 1  # todo - fix - parallel (SSH?) export seems to cause a deadlock, so we disable it for now
     Parallel(
         n_jobs=n_jobs,
         verbose=10,
         backend="threading",
-        # backend="multiprocessing", # Slow compared to threading
     )(
-        delayed(export_asset)(asset_id, path, include_on_demand_assets, server, local)
-        for asset_id in asset_ids
+        delayed(export_asset)(
+            asset_id, assets_root, include_on_demand_assets, server, local
+        )
+        for asset_id in asset_ids_needing_bytes
     )
-    # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
+
+    # Refresh hashes for on-demand assets materialized during export.
+    for row in manifest_rows:
+        if row["sha256_contents"] and row["object_path"]:
+            continue
+        from .asset import Asset
+
+        asset = Asset.query.filter_by(id=row["id"]).one()
+        if isinstance(asset, OnDemandAsset):
+            # Materialized files were written under objects/sha256 after hashing.
+            if asset.sha256_contents:
+                row["sha256_contents"] = asset.sha256_contents
+                row["object_path"] = asset.object_path
+
+    manifest_path = os.path.join(assets_root, "manifest.csv")
+    fieldnames = [
+        "id",
+        "type",
+        "local_key",
+        "export_path",
+        "sha256_contents",
+        "object_path",
+        "extension",
+        "is_folder",
+        "url",
+        "module_id",
+        "participant_id",
+        "trial_id",
+        "node_id",
+        "network_id",
+        "description",
+    ]
+    with open(manifest_path, "w", newline="") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in manifest_rows:
+            writer.writerow(row)
 
 
-# def close_parallel_db_sessions():
-
-
-def export_asset(asset_id, root, include_on_demand_assets, server, local):
-    from .asset import Asset, OnDemandAsset
+def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
+    """Export one asset's bytes into the content-addressed objects tree."""
+    from .asset import Asset, ExternalAsset, OnDemandAsset
     from .experiment import import_local_experiment
-    from .utils import make_parents
+    from .utils import content_object_path, make_parents, sha256_directory, sha256_file
 
     if server is None:
         ssh_host = None
@@ -837,15 +926,69 @@ def export_asset(asset_id, root, include_on_demand_assets, server, local):
     import_local_experiment()
     a = Asset.query.filter_by(id=asset_id).one()
 
+    if isinstance(a, ExternalAsset):
+        return
     if not include_on_demand_assets and isinstance(a, OnDemandAsset):
         return
 
-    path = os.path.join(root, a.export_path)
-
-    make_parents(path)
-
     try:
-        a.export(path, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
+        if isinstance(a, OnDemandAsset):
+            with tempfile.TemporaryDirectory() as tempdir:
+                suffix = a.extension if a.extension else ""
+                if a.is_folder:
+                    temp_path = os.path.join(tempdir, "folder")
+                    os.makedirs(temp_path)
+                    a.export(temp_path)
+                    digest = sha256_directory(temp_path)
+                else:
+                    temp_path = os.path.join(tempdir, f"asset{suffix}")
+                    a.export(temp_path)
+                    digest = sha256_file(temp_path)
+                object_rel = content_object_path(digest)
+                dest = os.path.join(assets_root, object_rel)
+                if not os.path.exists(dest):
+                    make_parents(dest)
+                    if a.is_folder:
+                        shutil.copytree(temp_path, dest)
+                    else:
+                        shutil.copyfile(temp_path, dest)
+                a.sha256_contents = digest
+                a.object_path = object_rel
+                db.session.commit()
+            return
+
+        object_rel = a.object_path or (
+            content_object_path(a.sha256_contents) if a.sha256_contents else None
+        )
+        if not object_rel:
+            # Fall back to exporting via storage then hashing.
+            with tempfile.TemporaryDirectory() as tempdir:
+                suffix = a.extension if a.extension else ""
+                temp_path = os.path.join(tempdir, f"asset{suffix}")
+                a.export(temp_path, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
+                digest = (
+                    sha256_directory(temp_path)
+                    if a.is_folder
+                    else sha256_file(temp_path)
+                )
+                object_rel = content_object_path(digest)
+                dest = os.path.join(assets_root, object_rel)
+                if not os.path.exists(dest):
+                    make_parents(dest)
+                    if a.is_folder:
+                        shutil.copytree(temp_path, dest)
+                    else:
+                        shutil.copyfile(temp_path, dest)
+                a.sha256_contents = digest
+                a.object_path = object_rel
+                db.session.commit()
+            return
+
+        dest = os.path.join(assets_root, object_rel)
+        if os.path.exists(dest):
+            return
+        make_parents(dest)
+        a.export(dest, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
     except Exception:
         print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise

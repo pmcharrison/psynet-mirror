@@ -1,4 +1,5 @@
 import os.path
+import secrets
 import shutil
 import subprocess
 import tempfile
@@ -39,6 +40,7 @@ from .media import (
 from .process import LocalAsyncProcess
 from .serialize import prepare_function_for_serialization
 from .utils import (
+    content_object_path,
     get_args,
     get_extension,
     get_file_size_mb,
@@ -48,12 +50,15 @@ from .utils import (
     md5_directory,
     md5_file,
     md5_object,
+    sha256_directory,
+    sha256_file,
 )
 
 logger = get_logger()
 
 
 _PERSONAL_ARG_REMOVED = object()
+_OBFUSCATE_ARG_REMOVED = object()
 
 
 def _reject_personal_arg(personal):
@@ -65,6 +70,28 @@ def _reject_personal_arg(personal):
             "selected assets are always exported. Treat exported media as "
             "potentially identifying and manage sharing yourself."
         )
+
+
+def _reject_obfuscate_arg(obfuscate):
+    """Raise if callers still pass the removed ``obfuscate`` asset flag."""
+    if obfuscate is not _OBFUSCATE_ARG_REMOVED:
+        raise TypeError(
+            "The Asset 'obfuscate' argument has been removed. "
+            "Live access now uses permanent access tokens at /asset/<token>, "
+            "and managed files are stored by SHA-256 content identity."
+        )
+
+
+def _safe_asset_subpath(subpath: Optional[str]) -> Optional[str]:
+    """Normalize and reject unsafe folder subpaths for asset serving."""
+    if not subpath:
+        return None
+    normalized = os.path.normpath(subpath).lstrip("/")
+    if normalized in (".", ""):
+        return None
+    if normalized.startswith("..") or "/../" in f"/{normalized}/":
+        raise ValueError(f"Unsafe asset subpath: {subpath!r}")
+    return normalized
 
 
 def filter_botocore_deprecation_warnings():
@@ -346,6 +373,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     description = Column(String)
     content_id = Column(String)
+    sha256_contents = Column(String, index=True)
+    object_path = Column(String, index=True)
+    access_token = Column(String, index=True, unique=True)
     host_path = Column(String)
     url = Column(String)
     is_folder = Column(Boolean)
@@ -593,8 +623,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         """
         Fill in missing key fields and derived paths for the asset.
 
-        For deposited assets, this method preserves existing ``host_path``/``url`` values
-        (and only fills them if missing) so the storage identity does not change.
+        For deposited assets, this method preserves existing ``host_path``/
+        ``object_path``/``url`` values (and only fills them if missing) so the
+        storage identity does not change.
         """
         if self.key_within_module is None:
             self.key_within_module = self.generate_key_within_module()
@@ -605,9 +636,15 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if not self.local_key and self.key_within_module:
             self.local_key = self.key_within_module
 
+        self._ensure_access_token()
+
         if not self.deposited:
-            self.host_path = self.generate_host_path()
             self.export_path = self.generate_export_path()
+            host_path = self.generate_host_path()
+            if host_path is not None:
+                self.host_path = host_path
+                if self.object_path is None:
+                    self.object_path = host_path
             self.url = self.get_url()
             return
 
@@ -618,8 +655,33 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if self.export_path is None:
             self.export_path = self.generate_export_path()
 
+        if self.object_path is None and self.host_path is not None:
+            self.object_path = self.host_path
+
         if self.url is None or host_path_was_missing:
             self.url = self.get_url()
+
+    def _ensure_access_token(self):
+        """Assign a permanent access token if this asset type uses one."""
+        if self.access_token:
+            return
+        if isinstance(self, ExternalAsset):
+            return
+        self.access_token = secrets.token_urlsafe(32)
+
+    def access_url(self, subpath: Optional[str] = None) -> str:
+        """Return the live PsyNet URL for this asset's access token."""
+        self._ensure_access_token()
+        url = f"/asset/{self.access_token}"
+        if subpath:
+            url = f"{url}/{subpath.lstrip('/')}"
+        return url
+
+    def rotate_access_token(self) -> str:
+        """Replace the access token and refresh ``url``."""
+        self.access_token = secrets.token_urlsafe(32)
+        self.url = self.get_url()
+        return self.access_token
 
     def set_keys(self):
         """
@@ -829,6 +891,48 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             with open(f.name, "r") as reader:
                 return reader.read()
 
+    def serve(self, subpath: Optional[str] = None):
+        """
+        Serve this asset's bytes for an HTTP response.
+
+        Parameters
+        ----------
+        subpath : str, optional
+            Relative path within a folder asset.
+        """
+        from flask import abort
+
+        safe_subpath = _safe_asset_subpath(subpath)
+        if isinstance(self, OnDemandAsset):
+            return self._serve_on_demand(safe_subpath)
+        if isinstance(self, ExternalAsset):
+            abort(404)
+        if not self.deposited and not isinstance(self, OnDemandAsset):
+            abort(404)
+        storage = self.storage or self.default_storage
+        return storage.serve(self, safe_subpath)
+
+    def _serve_on_demand(self, subpath: Optional[str] = None):
+        """Generate an on-demand asset into a temp file and return ``send_file``."""
+        from flask import abort, send_file
+
+        suffix = self.extension if self.extension else ""
+        if self.is_folder:
+            if not subpath:
+                abort(400)
+            with tempfile.TemporaryDirectory() as tempdir:
+                self.export(tempdir)
+                source = os.path.join(tempdir, subpath)
+                if not os.path.isfile(source):
+                    abort(404)
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    shutil.copyfile(source, temp_file.name)
+                    return send_file(temp_file.name, max_age=0)
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_file:
+            temp_path = temp_file.name
+        self.export(temp_path)
+        return send_file(temp_path, max_age=0)
+
 
 class AssetLink:
     """
@@ -957,122 +1061,29 @@ class ManagedAsset(Asset):
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
         infer the ``module_id`` from the ``parent`` parameter, if provided.
 
-
-    obfuscate : int
-        Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
-        which means that the URL contains a human-readable component containing useful metadata (e.g the participant
-        ID), but also contains a randomly generated string so that malicious agents cannot retrieve arbitrary assets
-        by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
-        then the human-readable component is omitted, and only the random portion is kept. This might be useful in
-        cases where you're worried about participants cheating on the experiment by looking at file URLs.
-
     Attributes
     ----------
 
+    sha256_contents : str
+        SHA-256 digest of the asset bytes (or folder contents). Used as the immutable content identity.
+
+    object_path : str
+        Content-addressed storage path of the form ``objects/sha256/<digest>``.
+
+    access_token : str
+        Permanent unguessable token used for live browser access at ``/asset/<token>``.
+
     md5_contents : str
-        Contains an automatically generated MD5 hash of the object's contents, where 'contents' is liberally defined;
-        it could mean hashing the file itself, or hashing the arguments of the function used to generate that file.
+        Legacy MD5 digest retained for compatibility with older tooling.
 
     size_mb : float
         The size of the asset's file(s) (in MB).
 
     deposit_time_sec : float
         The time it took to deposit the asset.
-
-    needs_storage_backend : bool
-        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
-        (e.g. in the case of an externally hosted resource accessible by a URL).
-
-    psynet_version : str
-        The version of PsyNet used to create the asset.
-
-    deployment_id : str
-        A string used to identify the particular experiment deployment.
-
-    deposited: bool
-        Whether the asset has been deposited yet.
-
-    inherited : bool
-        Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets`` functionality.
-
-    inherited_from : str
-        Identifies the source of an inherited asset.
-
-    export_path : str
-        A relative path constructed from the key that will be used by default when the asset is exported.
-
-    participant_id : int
-        ID of the participant who 'owns' the asset, if applicable.
-
-    content_id : str
-        A token used for checking whether the contents of two assets are equivalent.
-        This takes various forms depending on the asset type.
-        For a file, the ``content_id`` would typically be a hash;
-        for an externally hosted asset, it would be the URL, etc.
-
-    host_path : str
-        The filepath used to host the asset within the storage repository, if applicable.
-
-    url : str
-        The URL that can be used to access the asset from the perspective of the experiment front-end.
-
-    storage : AssetStorage
-        The storage backend used for the asset.
-
-    async_processes : list
-        Lists all async processes that have been created for the asset, including completed ones.
-
-    participant :
-        If the parent is a ``Participant``, returns that participant.
-
-    participants : list
-        Lists all participants associated with the asset.
-
-    trial :
-        If the parent is a ``trial``, returns that trial.
-
-    trials : list
-        Lists all trials associated with the asset.
-
-    node :
-        If the parent is a ``Node``, returns that participant.
-
-    nodes : list
-        Lists all nodes associated with the asset.
-
-    network :
-        If the parent is a ``Network``, returns that participant.
-
-    networks : list
-        Lists all networks associated with the asset.
-
-    errors : list
-        Lists the errors associated with the asset.
-
-
-    Linking assets to other database objects
-    ----------------------------------------
-
-    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
-    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
-    may not possess more than one parent.
-
-    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
-    of additional database objects. These latter links have a key-value construction, meaning that one can access
-    a given asset by reference to a given key, for example: ``node.assets["response"]``.
-
-    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
-    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
-    the following:
-
-    ::
-
-        participant.assets["stimulus"] = my_asset
     """
 
     input_path = Column(String)
-    obfuscate = Column(Integer)
     md5_contents = Column(String)
     size_mb = Column(Float)
     deposit_time_sec = Column(Float)
@@ -1091,11 +1102,11 @@ class ManagedAsset(Asset):
         parent=None,
         module_id=None,
         personal=_PERSONAL_ARG_REMOVED,
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        obfuscate=_OBFUSCATE_ARG_REMOVED,
     ):
+        _reject_obfuscate_arg(obfuscate)
         self.deposited = False
         self.input_path = str(input_path)
-        self.obfuscate = obfuscate
 
         if is_folder is None:
             is_folder = os.path.isdir(input_path)
@@ -1114,18 +1125,39 @@ class ManagedAsset(Asset):
         )
 
     def get_content_id(self):
-        return self.get_md5_contents()
+        if self.sha256_contents:
+            return self.sha256_contents
+        if not self.input_path:
+            return None
+        return self.get_sha256_contents()
 
     def get_md5_contents(self):
         return self._get_md5_contents(self.input_path, self.is_folder)
+
+    def get_sha256_contents(self):
+        """Return the SHA-256 digest of the asset's current input path."""
+        return self._get_sha256_contents(self.input_path, self.is_folder)
 
     @cache
     def _get_md5_contents(self, path, is_folder):
         f = md5_directory if is_folder else md5_file
         return f(path)
 
+    @cache
+    def _get_sha256_contents(self, path, is_folder):
+        f = sha256_directory if is_folder else sha256_file
+        return f(path)
+
     def get_extension(self):
         return get_extension(self.input_path)
+
+    def _assign_content_addressed_paths(self):
+        """Set SHA-256 identity and the shared object/host path."""
+        self.sha256_contents = self.get_sha256_contents()
+        self.md5_contents = self.get_md5_contents()
+        self.content_id = self.sha256_contents
+        self.object_path = content_object_path(self.sha256_contents)
+        self.host_path = self.object_path
 
     def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
         if self.needs_storage_backend and isinstance(storage, NoStorage):
@@ -1138,21 +1170,18 @@ class ManagedAsset(Asset):
                 "in your experiment class."
             )
 
-        # ensure_keys_and_paths() is called by deposit() before _deposit().
         self.storage.update_asset_metadata(self)
+        self.prepare_input()
+        self.size_mb = self.get_size_mb() if self.input_path else None
+        if self.input_path:
+            self._assign_content_addressed_paths()
+        self._ensure_access_token()
+        self.url = self.get_url()
 
         if self._needs_depositing():
             time_start = time.perf_counter()
-
-            self.prepare_input()
-
-            self.size_mb = self.get_size_mb()
-            self.md5_contents = self.get_md5_contents()
-
             storage.receive_deposit(self, self.host_path, async_, delete_input)
-
             time_end = time.perf_counter()
-
             self.deposit_time_sec = time_end - time_start
         else:
             self.deposited = True
@@ -1161,7 +1190,10 @@ class ManagedAsset(Asset):
         pass
 
     def _needs_depositing(self):
-        return True
+        if not self.host_path:
+            return True
+        exists = self.storage.check_cache(self.host_path, is_folder=self.is_folder)
+        return not exists
 
     def after_deposit(self):
         # logger.info("Calling after_deposit.")
@@ -1173,7 +1205,7 @@ class ManagedAsset(Asset):
             self.trial.check_if_can_mark_as_finalized()
 
     def get_url(self):
-        return self.storage.get_url(self.host_path)
+        return self.access_url()
 
     def delete_input(self):
         if self.is_folder:
@@ -1188,7 +1220,8 @@ class ManagedAsset(Asset):
             return get_file_size_mb(self.input_path)
 
     def generate_host_path(self):
-        raise NotImplementedError
+        # Content-addressed paths are assigned after hashing in _deposit.
+        return self.object_path or self.host_path
 
     @staticmethod
     def generate_uuid():
@@ -1201,6 +1234,9 @@ class ExperimentAsset(ManagedAsset):
     specific to the current experiment deployment. This would typically mean assets that are generated *during the
     course* of the experiment, for example recordings from a singer, or stimuli generated on the basis of
     participant responses.
+
+    Managed files are stored under a content-addressed ``objects/sha256/<digest>`` path and served live via
+    ``/asset/<access_token>``.
 
     Examples
     --------
@@ -1218,173 +1254,9 @@ class ExperimentAsset(ManagedAsset):
                 parent=participant,
             )
             asset.deposit()
-
-    Parameters
-    ----------
-
-    input_path : str
-        Path to the file/folder from which the asset is to be created.
-
-    local_key : str
-        A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
-        should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
-        should share that combination of properties).
-
-    description : str
-        An optional longer string that provides further documentation about the asset.
-
-    is_folder : bool
-        Whether the asset is a folder.
-
-    data_type : str
-        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
-
-    extension : str
-        The file extension, if applicable.
-
-    parent : object
-        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
-
-    key_within_module : str
-        An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
-
-    key_within_experiment : str
-        A string that uniquely identifies the asset within a given experiment. If left unspecified,
-        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
-
-    module_id : str
-        Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
-        infer the ``module_id`` from the ``parent`` parameter, if provided.
-
-
-    obfuscate : int
-        Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
-        which means that the URL contains a human-readable component containing useful metadata (e.g the participant
-        ID), but also contains a randomly generated string so that malicious agents cannot retrieve arbitrary assets
-        by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
-        then the human-readable component is omitted, and only the random portion is kept. This might be useful in
-        cases where you're worried about participants cheating on the experiment by looking at file URLs.
-
-    Attributes
-    ----------
-
-    needs_storage_backend : bool
-        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
-        (e.g. in the case of an externally hosted resource accessible by a URL).
-
-    psynet_version : str
-        The version of PsyNet used to create the asset.
-
-    deployment_id : str
-        A string used to identify the particular experiment deployment.
-
-    deposited: bool
-        Whether the asset has been deposited yet.
-
-    inherited : bool
-        Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets`` functionality.
-
-    inherited_from : str
-        Identifies the source of an inherited asset.
-
-    export_path : str
-        A relative path constructed that will be used by default when the asset is exported.
-
-    participant_id : int
-        ID of the participant who 'owns' the asset, if applicable.
-
-    content_id : str
-        A token used for checking whether the contents of two assets are equivalent.
-        This takes various forms depending on the asset type.
-        For a file, the ``content_id`` would typically be a hash;
-        for an externally hosted asset, it would be the URL, etc.
-
-    host_path : str
-        The filepath used to host the asset within the storage repository, if applicable.
-
-    url : str
-        The URL that can be used to access the asset from the perspective of the experiment front-end.
-
-    storage : AssetStorage
-        The storage backend used for the asset.
-
-    async_processes : list
-        Lists all async processes that have been created for the asset, including completed ones.
-
-    participant :
-        If the parent is a ``Participant``, returns that participant.
-
-    participants : list
-        Lists all participants associated with the asset.
-
-    trial :
-        If the parent is a ``trial``, returns that trial.
-
-    trials : list
-        Lists all trials associated with the asset.
-
-    node :
-        If the parent is a ``Node``, returns that participant.
-
-    nodes : list
-        Lists all nodes associated with the asset.
-
-    network :
-        If the parent is a ``Network``, returns that participant.
-
-    networks : list
-        Lists all networks associated with the asset.
-
-    errors : list
-        Lists the errors associated with the asset.
-
-
-    Linking assets to other database objects
-    ----------------------------------------
-
-    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
-    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
-    may not possess more than one parent.
-
-    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
-    of additional database objects. These latter links have a key-value construction, meaning that one can access
-    a given asset by reference to a given key, for example: ``node.assets["response"]``.
-
-    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
-    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
-    the following:
-
-    ::
-
-        participant.assets["stimulus"] = my_asset
     """
 
     folder = "experiments"
-
-    def generate_path(self):
-        path = self.obfuscate_key(self.key_within_experiment)
-        if self.extension:
-            path += self.extension
-        return path
-
-    def generate_host_path(self):
-        return os.path.join(self.folder, self.deployment_id, self.generate_path())
-
-    def obfuscate_key(self, key):
-        random = self.generate_uuid()
-
-        if self.obfuscate == 0:
-            return key
-        elif self.obfuscate == 1:
-            key += "__" + random
-        elif self.obfuscate == 2:
-            key = "private/" + random
-        else:
-            raise ValueError(f"Invalid value of obfuscate: {self.obfuscate}")
-
-        return key
 
 
 class CachedAsset(ManagedAsset):
@@ -1405,184 +1277,11 @@ class CachedAsset(ManagedAsset):
     and makes sure they are uploaded if necessary.
 
     In contrast to Experiment Assets, Cached Assets are shared between different experiments, so as to avoid
-    duplicating time-consuming file generation or upload routines. The cached assets are stored in the selected
-    asset storage back-end, and if PsyNet detects that the requested asset exists already then it will skip
-    creating/uploading that asset. Under the hood there is some special logic to ensure that the caches are invalidated
-    if the file content has changed.
-
-    Parameters
-    ----------
-
-    input_path : str
-        Path to the file/folder from which the asset is to be created.
-
-    local_key : str
-        A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
-        should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
-        should share that combination of properties).
-
-    description : str
-        An optional longer string that provides further documentation about the asset.
-
-    is_folder : bool
-        Whether the asset is a folder.
-
-    data_type : str
-        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
-
-    extension : str
-        The file extension, if applicable.
-
-    parent : object
-        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
-
-    key_within_module : str
-        An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
-
-    key_within_experiment : str
-        A string that uniquely identifies the asset within a given experiment. If left unspecified,
-        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
-
-    module_id : str
-        Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
-        infer the ``module_id`` from the ``parent`` parameter, if provided.
-
-
-    obfuscate : int
-        Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
-        which means that the URL contains a human-readable component containing useful metadata (e.g the participant
-        ID), but also contains a randomly generated string so that malicious agents cannot retrieve arbitrary assets
-        by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
-        then the human-readable component is omitted, and only the random portion is kept. This might be useful in
-        cases where you're worried about participants cheating on the experiment by looking at file URLs.
-
-    Attributes
-    ----------
-
-    md5_contents : str
-        Contains an automatically generated MD5 hash of the object's contents, where 'contents' is liberally defined;
-        it could mean hashing the file itself, or hashing the arguments of the function used to generate that file.
-
-    size_mb : float
-        The size of the asset's file(s) (in MB).
-
-    deposit_time_sec : float
-        The time it took to deposit the asset.
-
-    needs_storage_backend : bool
-        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
-        (e.g. in the case of an externally hosted resource accessible by a URL).
-
-    psynet_version : str
-        The version of PsyNet used to create the asset.
-
-    deployment_id : str
-        A string used to identify the particular experiment deployment.
-
-    deposited: bool
-        Whether the asset has been deposited yet.
-
-    inherited : bool
-        Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets`` functionality.
-
-    inherited_from : str
-        Identifies the source of an inherited asset.
-
-    export_path : str
-        A relative path that will be used by default when the asset is exported.
-
-    participant_id : int
-        ID of the participant who 'owns' the asset, if applicable.
-
-    content_id : str
-        A token used for checking whether the contents of two assets are equivalent.
-        This takes various forms depending on the asset type.
-        For a file, the ``content_id`` would typically be a hash;
-        for an externally hosted asset, it would be the URL, etc.
-
-    host_path : str
-        The filepath used to host the asset within the storage repository, if applicable.
-
-    url : str
-        The URL that can be used to access the asset from the perspective of the experiment front-end.
-
-    storage : AssetStorage
-        The storage backend used for the asset.
-
-    async_processes : list
-        Lists all async processes that have been created for the asset, including completed ones.
-
-    participant :
-        If the parent is a ``Participant``, returns that participant.
-
-    participants : list
-        Lists all participants associated with the asset.
-
-    trial :
-        If the parent is a ``trial``, returns that trial.
-
-    trials : list
-        Lists all trials associated with the asset.
-
-    node :
-        If the parent is a ``Node``, returns that participant.
-
-    nodes : list
-        Lists all nodes associated with the asset.
-
-    network :
-        If the parent is a ``Network``, returns that participant.
-
-    networks : list
-        Lists all networks associated with the asset.
-
-    errors : list
-        Lists the errors associated with the asset.
-
-
-    Linking assets to other database objects
-    ----------------------------------------
-
-    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
-    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
-    may not possess more than one parent.
-
-    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
-    of additional database objects. These latter links have a key-value construction, meaning that one can access
-    a given asset by reference to a given key, for example: ``node.assets["response"]``.
-
-    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
-    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
-    the following:
-
-    ::
-
-        participant.assets["stimulus"] = my_asset
+    duplicating time-consuming file generation or upload routines. Like other managed assets, they use
+    SHA-256 content-addressed ``objects/sha256/<digest>`` paths.
     """
 
     used_cache = Column(Boolean)
-
-    @cached_property
-    def cache_key(self):
-        return self.get_md5_contents()
-
-    def generate_host_path(self):
-        key = self.key_within_experiment  # e.g. big-audio-file.wav
-        cache_key = self.cache_key
-
-        if self.obfuscate == 2:
-            base = "private"
-        else:
-            base = key
-
-        host_path = os.path.join("cached", base, cache_key)
-
-        if self.type != "folder":
-            host_path += self.extension
-
-        return host_path
 
     def _needs_depositing(self):
         exists_in_cache = self.storage.check_cache(
@@ -1651,8 +1350,9 @@ class FunctionAssetMixin:
         module_id=None,
         parent=None,
         personal=_PERSONAL_ARG_REMOVED,
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        obfuscate=_OBFUSCATE_ARG_REMOVED,
     ):
+        _reject_obfuscate_arg(obfuscate)
         if arguments is None:
             arguments = {}
 
@@ -1675,7 +1375,6 @@ class FunctionAssetMixin:
             parent=parent,
             module_id=module_id,
             personal=personal,
-            obfuscate=obfuscate,
         )
 
     def __del__(self):
@@ -1752,165 +1451,9 @@ class FunctionAssetMixin:
 
 class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
     """
-    An on-demand asset is an asset whose files are not stored directly in any storage back-end, but instead
-    are created on demand when the asset is requested. This creation is typically triggered by making a call
-    to the asset's URL, accessible via the ``OnDemandAsset.url`` attribute.
-
-    Parameters
-    ----------
-
-    function : callable
-        A function responsible for generating the asset. The function should receive an argument called ``path``
-        and create a file or a folder at that path. It can also receive additional arguments specified via the
-        ``arguments`` parameter.
-
-    local_key : str
-        A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
-        should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
-        should share that combination of properties).
-
-    arguments : dict
-        An optional dictionary of arguments that should be passed to the function.
-
-    is_folder : bool
-        Whether the asset is a folder.
-
-    description : str
-        An optional longer string that provides further documentation about the asset.
-
-    data_type : str
-        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
-
-    extension : str
-        The file extension, if applicable.
-
-    key_within_module : str
-        An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
-
-    key_within_experiment : str
-        A string that uniquely identifies the asset within a given experiment. If left unspecified,
-        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
-
-    module_id : str
-        Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
-        infer the ``module_id`` from the ``parent`` parameter, if provided.
-
-    parent : object
-        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
-
-
-    obfuscate : int
-        Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
-        which means that the URL contains a human-readable component containing useful metadata (e.g the participant
-        ID), but also contains a randomly generated string so that malicious agents cannot retrieve arbitrary assets
-        by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
-        then the human-readable component is omitted, and only the random portion is kept. This might be useful in
-        cases where you're worried about participants cheating on the experiment by looking at file URLs.
-
-    Attributes
-    ----------
-
-    secret : str
-        A randomly generated string that is used to prevent malicious agents from guessing the asset's URL.
-        TODO - check whether the URL obfuscation functionality makes this redundant.
-
-    Attributes
-    ----------
-
-    computation_time_sec : float
-        The time taken to generate the asset.
-        TODO - check whether this is populated in practice.
-
-    psynet_version : str
-        The version of PsyNet used to create the asset.
-
-    deployment_id : str
-        A string used to identify the particular experiment deployment.
-
-    deposited: bool
-        Whether the asset has been deposited yet.
-
-    inherited : bool
-        Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets`` functionality.
-
-    inherited_from : str
-        Identifies the source of an inherited asset.
-
-    export_path : str
-        A relative path that will be used by default when the asset is exported.
-
-    participant_id : int
-        ID of the participant who 'owns' the asset, if applicable.
-
-    content_id : str
-        A token used for checking whether the contents of two assets are equivalent.
-        This takes various forms depending on the asset type.
-        For a file, the ``content_id`` would typically be a hash;
-        for an externally hosted asset, it would be the URL, etc.
-
-    host_path : str
-        The filepath used to host the asset within the storage repository, if applicable.
-
-    url : str
-        The URL that can be used to access the asset from the perspective of the experiment front-end.
-
-    storage : AssetStorage
-        The storage backend used for the asset.
-
-    async_processes : list
-        Lists all async processes that have been created for the asset, including completed ones.
-
-    participant :
-        If the parent is a ``Participant``, returns that participant.
-
-    participants : list
-        Lists all participants associated with the asset.
-
-    trial :
-        If the parent is a ``trial``, returns that trial.
-
-    trials : list
-        Lists all trials associated with the asset.
-
-    node :
-        If the parent is a ``Node``, returns that participant.
-
-    nodes : list
-        Lists all nodes associated with the asset.
-
-    network :
-        If the parent is a ``Network``, returns that participant.
-
-    networks : list
-        Lists all networks associated with the asset.
-
-    errors : list
-        Lists the errors associated with the asset.
-
-
-    Linking assets to other database objects
-    ----------------------------------------
-
-    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
-    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
-    may not possess more than one parent.
-
-    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
-    of additional database objects. These latter links have a key-value construction, meaning that one can access
-    a given asset by reference to a given key, for example: ``node.assets["response"]``.
-
-    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
-    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
-    the following:
-
-    ::
-
-        participant.assets["stimulus"] = my_asset
+    An on-demand asset is generated when requested via its permanent access token URL
+    (``/asset/<access_token>``). Bytes are not deposited into object storage by default.
     """
-
-    secret = Column(String)
 
     needs_storage_backend = False
 
@@ -1929,8 +1472,15 @@ class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
         module_id: Optional[str] = None,
         parent=None,
         personal=_PERSONAL_ARG_REMOVED,
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        obfuscate=_OBFUSCATE_ARG_REMOVED,
+        secret=_OBFUSCATE_ARG_REMOVED,
     ):
+        if secret is not _OBFUSCATE_ARG_REMOVED:
+            raise TypeError(
+                "OnDemandAsset no longer accepts secret=. "
+                "Access is via the shared permanent access_token field "
+                "and the /asset/<access_token> route."
+            )
         super().__init__(
             function=function,
             local_key=local_key,
@@ -1946,7 +1496,7 @@ class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
             personal=personal,
             obfuscate=obfuscate,
         )
-        self.secret = uuid.uuid4()  # Used to protect unauthorized access
+        self._ensure_access_token()
 
     @classproperty
     def default_storage(cls):  # noqa
@@ -1954,6 +1504,12 @@ class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
 
     def _needs_depositing(self):
         return False
+
+    def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
+        # On-demand assets are not stored; only assign a live access URL.
+        self._ensure_access_token()
+        self.url = self.get_url()
+        self.deposited = True
 
     def generate_input_path(self):
         return None
@@ -1974,9 +1530,7 @@ class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
             shutil.copytree(tempdir + "/" + subfolder, path)
 
     def get_url(self):
-        # We need to flush to make sure that self.id is populated
-        db.session.flush()
-        return f"/on-demand-asset?id={self.id}&secret={self.secret}"
+        return self.access_url()
 
     def generate_host_path(self):
         return None
@@ -2003,7 +1557,7 @@ class FastFunctionAsset(OnDemandAsset):
         module_id: Optional[str] = None,
         parent=None,
         personal=_PERSONAL_ARG_REMOVED,
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        obfuscate=_OBFUSCATE_ARG_REMOVED,
     ):
         warnings.warn(
             f"{self.__class__.__name__} is deprecated and will be removed in future versions. "
@@ -2033,167 +1587,6 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     A Cached Function Asset is a type of asset whose files are created by running a function, and whose outputs
     are stored in a general repository that is shared between multiple experiment deployments, to avoid
     redundant computation or file uploads.
-
-
-    Parameters
-    ----------
-
-    function : callable
-        A function responsible for generating the asset. The function should receive an argument called ``path``
-        and create a file or a folder at that path. It can also receive additional arguments specified via the
-        ``arguments`` parameter.
-
-    local_key : str
-        A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
-        should together with ``parent`` and ``module_id`` should uniquely identify that asset (i.e. no other asset
-        should share that combination of properties).
-
-    arguments : dict
-        An optional dictionary of arguments that should be passed to the function.
-
-    is_folder : bool
-        Whether the asset is a folder.
-
-    description : str
-        An optional longer string that provides further documentation about the asset.
-
-    data_type : str
-        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
-
-    extension : str
-        The file extension, if applicable.
-
-    key_within_module : str
-        An optional key that uniquely identifies the asset within a given module. If left unspecified,
-        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
-
-    key_within_experiment : str
-        A string that uniquely identifies the asset within a given experiment. If left unspecified,
-        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
-
-    module_id : str
-        Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
-        infer the ``module_id`` from the ``parent`` parameter, if provided.
-
-    parent : object
-        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
-
-
-    obfuscate : int
-        Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
-        which means that the URL contains a human-readable component containing useful metadata (e.g the participant
-        ID), but also contains a randomly generated string so that malicious agents cannot retrieve arbitrary assets
-        by guessing URLs. If ``obfuscate=0``, then the randomly generated string is not added. If ``obfuscate=2``,
-        then the human-readable component is omitted, and only the random portion is kept. This might be useful in
-        cases where you're worried about participants cheating on the experiment by looking at file URLs.
-
-    Attributes
-    ----------
-
-    computation_time_sec : float
-        The time taken to generate the asset.
-
-    md5_contents : str
-        Contains an automatically generated MD5 hash of the object's contents, where 'contents' is liberally defined;
-        it could mean hashing the file itself, or hashing the arguments of the function used to generate that file.
-
-    size_mb : float
-        The size of the asset's file(s) (in MB).
-
-    deposit_time_sec : float
-        The time it took to deposit the asset.
-
-    needs_storage_backend : bool
-        Whether the asset type needs a storage backend, e.g. a file server, or whether it can do without
-        (e.g. in the case of an externally hosted resource accessible by a URL).
-
-    psynet_version : str
-        The version of PsyNet used to create the asset.
-
-    deployment_id : str
-        A string used to identify the particular experiment deployment.
-
-    deposited: bool
-        Whether the asset has been deposited yet.
-
-    inherited : bool
-        Whether the asset was inherited from a previous experiment, typically via the
-        ``InheritedAssets`` functionality.
-
-    inherited_from : str
-        Identifies the source of an inherited asset.
-
-    export_path : str
-        A relative path that will be used by default when the asset is exported.
-
-    participant_id : int
-        ID of the participant who 'owns' the asset, if applicable.
-
-    content_id : str
-        A token used for checking whether the contents of two assets are equivalent.
-        This takes various forms depending on the asset type.
-        For a file, the ``content_id`` would typically be a hash;
-        for an externally hosted asset, it would be the URL, etc.
-
-    host_path : str
-        The filepath used to host the asset within the storage repository, if applicable.
-
-    url : str
-        The URL that can be used to access the asset from the perspective of the experiment front-end.
-
-    storage : AssetStorage
-        The storage backend used for the asset.
-
-    async_processes : list
-        Lists all async processes that have been created for the asset, including completed ones.
-
-    participant :
-        If the parent is a ``Participant``, returns that participant.
-
-    participants : list
-        Lists all participants associated with the asset.
-
-    trial :
-        If the parent is a ``trial``, returns that trial.
-
-    trials : list
-        Lists all trials associated with the asset.
-
-    node :
-        If the parent is a ``Node``, returns that participant.
-
-    nodes : list
-        Lists all nodes associated with the asset.
-
-    network :
-        If the parent is a ``Network``, returns that participant.
-
-    networks : list
-        Lists all networks associated with the asset.
-
-    errors : list
-        Lists the errors associated with the asset.
-
-
-    Linking assets to other database objects
-    ----------------------------------------
-
-    PsyNet assets may be linked to other database objects. There are two kinds of links that may be used.
-    First, an asset may possess a *parent*. This parental relationship is strict in the sense that an asset
-    may not possess more than one parent.
-
-    However, in addition to the parental relationship, it is possible to link the asset to an arbitrary number
-    of additional database objects. These latter links have a key-value construction, meaning that one can access
-    a given asset by reference to a given key, for example: ``node.assets["response"]``.
-
-    Importantly, the same asset can have different keys for different objects; for example, it might be the ``response``
-    for one node, but the ``stimulus`` for another node. These latter relationships are instantiated with logic like
-    the following:
-
-    ::
-
-        participant.assets["stimulus"] = my_asset
-        db.session.commit()
     """
 
     @property
@@ -2530,6 +1923,14 @@ class AssetStorage:
         pass
 
     def get_url(self, host_path: str):
+        self.raise_not_implemented_error()
+
+    def serve(self, asset: "Asset", subpath: Optional[str] = None):
+        """
+        Serve a deposited asset for an HTTP response.
+
+        Subclasses should override this to return a Flask response.
+        """
         self.raise_not_implemented_error()
 
     @staticmethod
@@ -2904,6 +2305,23 @@ class LocalStorage(AssetStorage):
         )  # Makes sure that the root storage location has been instantiated
         return urllib.parse.quote(os.path.join(self.public_path, host_path))
 
+    def serve(self, asset: Asset, subpath: Optional[str] = None):
+        from flask import abort, send_file
+
+        object_path = asset.object_path or asset.host_path
+        if not object_path:
+            abort(404)
+        file_system_path = self.get_file_system_path(object_path)
+        if subpath:
+            if not asset.is_folder:
+                abort(400)
+            file_system_path = os.path.join(file_system_path, subpath)
+        if not os.path.exists(file_system_path):
+            abort(404)
+        if os.path.isdir(file_system_path):
+            abort(400)
+        return send_file(file_system_path, max_age=0)
+
     def check_cache(self, host_path: str, is_folder: bool):
         if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
             return self.check_local_cache(host_path, is_folder)
@@ -3259,6 +2677,65 @@ class S3Storage(AssetStorage):
         return os.path.join(
             "https://s3.amazonaws.com", self.s3_bucket, self.escape_s3_key(s3_key)
         )
+
+    def serve(self, asset: Asset, subpath: Optional[str] = None):
+        """
+        Proxy a private S3 object through PsyNet, preserving HTTP range requests.
+        """
+        from flask import Response, abort, request
+
+        object_path = asset.object_path or asset.host_path
+        if not object_path:
+            abort(404)
+        s3_key = self.get_s3_key(object_path)
+        if subpath:
+            if not asset.is_folder:
+                abort(400)
+            s3_key = f"{s3_key}/{subpath}"
+
+        client = get_s3_client()
+        get_kwargs = {"Bucket": self.s3_bucket, "Key": s3_key}
+        range_header = request.headers.get("Range")
+        if range_header:
+            get_kwargs["Range"] = range_header
+
+        import botocore
+
+        try:
+            obj = client.get_object(**get_kwargs)
+        except botocore.exceptions.ClientError as exc:
+            code = exc.response.get("Error", {}).get("Code")
+            if code in ("NoSuchKey", "404", "NotFound"):
+                abort(404)
+            if code in ("InvalidRange", "RequestedRangeNotSatisfiable"):
+                abort(416)
+            raise
+
+        body = obj["Body"]
+        status = 206 if range_header and "ContentRange" in obj else 200
+        headers = {}
+        if "ContentType" in obj:
+            headers["Content-Type"] = obj["ContentType"]
+        if "ContentLength" in obj:
+            headers["Content-Length"] = str(obj["ContentLength"])
+        if "ContentRange" in obj:
+            headers["Content-Range"] = obj["ContentRange"]
+        if "AcceptRanges" in obj:
+            headers["Accept-Ranges"] = obj["AcceptRanges"]
+        else:
+            headers["Accept-Ranges"] = "bytes"
+
+        def generate():
+            try:
+                while True:
+                    chunk = body.read(64 * 1024)
+                    if not chunk:
+                        break
+                    yield chunk
+            finally:
+                body.close()
+
+        return Response(generate(), status=status, headers=headers)
 
     @staticmethod
     def bucket_exists(bucket_name):

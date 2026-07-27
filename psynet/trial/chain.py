@@ -95,12 +95,15 @@ def count_participant_trials_in_trial_maker(module_state_id: int) -> int:
 
 
 def count_participant_trials_in_block(module_state_id: int, block_position: int) -> int:
-    """Count trials for a module state at a given block position."""
+    """Count trials for a module state at a given block position.
+
+    ``block_position`` is defined on :class:`ChainTrial`, not the base Trial.
+    """
     return (
-        db.session.query(func.count(Trial.id))
+        db.session.query(func.count(ChainTrial.id))
         .filter(
-            Trial.module_state_id == module_state_id,
-            Trial.block_position == block_position,
+            ChainTrial.module_state_id == module_state_id,
+            ChainTrial.block_position == block_position,
         )
         .scalar()
     )

@@ -214,7 +214,7 @@ def _write_asset_payloads(
         payload = _deterministic_bytes(key, profile.file_size_bytes)
         input_path = input_dir / f"{key}.bin"
         input_path.write_bytes(payload)
-        export_path = f"asset_benchmark/{key}.bin"
+        export_path = f"objects/sha256/{hashlib.sha256(payload).hexdigest()}"
         manifest.append(
             {
                 "key": key,
@@ -256,28 +256,30 @@ def _summarize_asset_export(
 ) -> dict[str, float | int]:
     """Validate and summarize exported benchmark assets."""
 
-    exported_files = sorted(path for path in export_path.rglob("*") if path.is_file())
-    expected_by_path = {str(item["export_path"]): item for item in manifest}
-    actual_relative_paths = {
-        str(path.relative_to(export_path)) for path in exported_files
-    }
-    if actual_relative_paths != set(expected_by_path):
+    objects_root = export_path / "assets" / "objects" / "sha256"
+    if not objects_root.is_dir():
+        # Allow tests that stage files directly under objects/sha256 relative to export_path.
+        objects_root = export_path / "objects" / "sha256"
+
+    exported_files = sorted(path for path in objects_root.rglob("*") if path.is_file())
+    expected_by_digest = {str(item["sha256"]): item for item in manifest}
+    actual_digests = {path.name for path in exported_files}
+    if actual_digests != set(expected_by_digest):
         raise RuntimeError(
             "Asset export benchmark fixture shape changed. "
-            f"Expected paths {sorted(expected_by_path)}, got {sorted(actual_relative_paths)}."
+            f"Expected digests {sorted(expected_by_digest)}, got {sorted(actual_digests)}."
         )
 
     for path in exported_files:
-        relative_path = str(path.relative_to(export_path))
-        expected = expected_by_path[relative_path]
+        expected = expected_by_digest[path.name]
         payload = path.read_bytes()
         if len(payload) != expected["size_bytes"]:
             raise RuntimeError(
-                f"Unexpected size for {relative_path}: "
+                f"Unexpected size for {path.name}: "
                 f"expected {expected['size_bytes']}, got {len(payload)}."
             )
         if hashlib.sha256(payload).hexdigest() != expected["sha256"]:
-            raise RuntimeError(f"Unexpected SHA-256 digest for {relative_path}.")
+            raise RuntimeError(f"Unexpected SHA-256 digest for {path.name}.")
 
     return {
         "asset_export_time_s": export_time_s,

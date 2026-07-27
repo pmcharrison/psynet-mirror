@@ -121,6 +121,8 @@ class TestAssetExport:
             assert os.path.exists(os.path.join(tempdir, "manifest.json"))
 
     def _test_asset_export_modes(self, ctx):
+        import csv
+
         for legacy in [True, False]:
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(export__local, path=tempdir, assets="none", legacy=legacy)
@@ -135,40 +137,50 @@ class TestAssetExport:
 
                 path = os.path.join(tempdir, "assets")
                 assert os.path.exists(path) and os.path.isdir(path)
+                assert os.path.exists(os.path.join(path, "manifest.csv"))
+                objects_dir = os.path.join(path, "objects", "sha256")
+                assert os.path.isdir(objects_dir)
+                object_files = [
+                    name
+                    for name in os.listdir(objects_dir)
+                    if os.path.isfile(os.path.join(objects_dir, name))
+                ]
+                # Two ExperimentAssets share the same content, so one object file.
+                assert len(object_files) == 1
 
-                assert os.path.exists(
-                    os.path.join(tempdir, "assets", "common", "test_marked_asset")
-                )
-                assert os.path.exists(
-                    os.path.join(tempdir, "assets", "common", "test_public_asset")
-                )
-                assert not os.path.exists(
-                    os.path.join(
-                        tempdir,
-                        "assets",
-                        "common",
-                        "test_external_asset.wav",
-                    )
-                )
-                assert not os.path.exists(
-                    os.path.join(tempdir, "assets", "common", "test_on_demand_asset")
+                with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
+                    rows = list(csv.DictReader(csv_file))
+                labels = {row["local_key"] for row in rows}
+                assert "test_marked_asset" in labels
+                assert "test_public_asset" in labels
+                assert "test_external_asset" not in labels
+                assert "test_on_demand_asset" not in labels
+                assert all(
+                    row["object_path"].startswith("objects/sha256/") for row in rows
                 )
 
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(export__local, path=tempdir, assets="all", legacy=legacy)
+                path = os.path.join(tempdir, "assets")
+                with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
+                    rows = list(csv.DictReader(csv_file))
+                labels = {row["local_key"] for row in rows}
+                assert "test_marked_asset" in labels
+                assert "test_external_asset" in labels
+                assert "test_on_demand_asset" in labels
+                external_rows = [
+                    row for row in rows if row["local_key"] == "test_external_asset"
+                ]
+                assert len(external_rows) == 1
+                assert not external_rows[0]["object_path"]
+                assert external_rows[0]["url"].startswith("https://")
+                on_demand_rows = [
+                    row for row in rows if row["local_key"] == "test_on_demand_asset"
+                ]
+                assert len(on_demand_rows) == 1
+                assert on_demand_rows[0]["object_path"].startswith("objects/sha256/")
                 assert os.path.exists(
-                    os.path.join(tempdir, "assets", "common", "test_marked_asset")
-                )
-                assert os.path.exists(
-                    os.path.join(
-                        tempdir,
-                        "assets",
-                        "common",
-                        "test_external_asset.wav",
-                    )
-                )
-                assert os.path.exists(
-                    os.path.join(tempdir, "assets", "common", "test_on_demand_asset")
+                    os.path.join(path, on_demand_rows[0]["object_path"])
                 )
 
     def assert_database_zip(self, path):
