@@ -852,15 +852,19 @@ def export_assets(
         manifest_rows.append(row)
 
     # TODO: restore parallelism once SSH/export deadlock is fixed.
-    if n_parallel and n_parallel > 1:
-        from .utils import get_logger
+    from .utils import get_logger
 
-        get_logger().warning(
+    logger = get_logger()
+    if n_parallel and n_parallel > 1:
+        logger.warning(
             "Asset export parallelism is currently disabled (sequential export) "
             "to avoid a known deadlock; ignoring requested n_parallel=%s.",
             n_parallel,
         )
-    for asset_id in asset_ids_needing_bytes:
+    n_assets = len(asset_ids_needing_bytes)
+    for index, asset_id in enumerate(asset_ids_needing_bytes, start=1):
+        if n_assets > 1 and (index == 1 or index == n_assets or index % 25 == 0):
+            logger.info("Exporting asset %s/%s (id=%s).", index, n_assets, asset_id)
         export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
 
     # Refresh hashes for on-demand assets materialized during export.

@@ -25,8 +25,9 @@ discards its temp copy if the target already exists after the rename.
 
 Maintainer notes
 ----------------
-This module is intentionally free of PsyNet database / SQLAlchemy
-imports so it can be unit-tested without a running experiment.
+This module avoids direct PsyNet database / SQLAlchemy model imports so
+its cache helpers can be unit-tested without a running experiment. It
+does import hashing helpers from ``psynet.utils``.
 """
 
 import logging
