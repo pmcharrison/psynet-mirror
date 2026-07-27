@@ -112,16 +112,24 @@ def _ensure_active_virtualenv():
         )
 
 
-def _run_uv(args, description):
+def _run_uv(args, description, *, quiet=False):
     """Run one uv command and report a concise Click error on failure."""
     if shutil.which("uv") is None:
         raise click.ClickException(
             "Could not find uv. Install it with 'pip install uv' and try again."
         )
     try:
-        subprocess.run(["uv", *args], check=True)
+        subprocess.run(
+            ["uv", *args],
+            check=True,
+            capture_output=quiet,
+            text=True,
+        )
     except subprocess.CalledProcessError as exc:
-        raise click.ClickException(f"Failed to {description}.") from exc
+        detail = ""
+        if quiet and exc.stderr:
+            detail = f"\n{exc.stderr.strip()}"
+        raise click.ClickException(f"Failed to {description}.{detail}") from exc
 
 
 def _is_interactive():
@@ -172,8 +180,11 @@ def _create_dedicated_experiment_virtualenv():
     _run_uv(
         ["venv", f"--python={_recommended_python()}"],
         "create a dedicated experiment virtual environment",
+        quiet=True,
     )
-    click.echo("Created ./.venv. Activate it and re-run setup:")
+    click.echo("Created ./.venv.")
+    click.echo()
+    click.echo("Next steps:")
     click.echo("  source .venv/bin/activate")
     click.echo("  psynet setup")
 
@@ -209,9 +220,9 @@ def _warn_shared_checkout_sync():
 def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
     """Decide how setup should treat PsyNet's shared checkout virtualenv.
 
-    Returns ``"prepare-only"`` or ``"sync"``. Raises on cancel, new-venv, or
-    invalid flags. The ``new-venv`` path creates ``./.venv`` then aborts so the
-    user can activate it and re-run setup.
+    Returns ``"prepare-only"``, ``"sync"``, or ``"new-venv"``. Raises on cancel
+    or invalid flags. ``new-venv`` means create a dedicated environment and stop
+    so the user can activate it and re-run setup.
     """
     if prepare_only and force_shared_env:
         raise click.UsageError(
@@ -246,10 +257,9 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
         )
 
     click.echo(
-        "You're running setup from PsyNet's own developer virtualenv "
-        "(.venv in the PsyNet repo). A standalone experiment should use a "
-        "dedicated virtualenv in this experiment directory instead, so setup "
-        "does not change the shared PsyNet environment."
+        "Setup for a standalone experiment should use a dedicated virtualenv "
+        "in this directory. You're currently using PsyNet's shared developer "
+        ".venv, so choose how to continue:"
     )
     click.echo()
     choice = _prompt_numeric_choice(
@@ -275,9 +285,6 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
     )
     if choice == "cancel":
         click.echo("Aborted setup; no experiment or environment changes were made.")
-        raise click.Abort()
-    if choice == "new-venv":
-        _create_dedicated_experiment_virtualenv()
         raise click.Abort()
     if choice == "sync":
         _warn_shared_checkout_sync()
@@ -369,6 +376,9 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
         prepare_only=prepare_only,
         force_shared_env=force_shared_env,
     )
+    if action == "new-venv":
+        _create_dedicated_experiment_virtualenv()
+        return
 
     editable_source = get_editable_psynet_source()
     if editable_source is None:

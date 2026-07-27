@@ -1441,19 +1441,25 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda args, description: calls.append((args, description)),
+        lambda args, description, quiet=False: calls.append((args, description, quiet)),
     )
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"], input="1\n")
 
-    assert result.exit_code != 0
+    assert result.exit_code == 0, result.output
     assert calls == [
-        (["venv", "--python=3.13"], "create a dedicated experiment virtual environment")
+        (
+            ["venv", "--python=3.13"],
+            "create a dedicated experiment virtual environment",
+            True,
+        )
     ]
     assert "Create a dedicated .venv here (recommended)" in result.output
+    assert "Created ./.venv." in result.output
+    assert "Next steps:" in result.output
     assert "source .venv/bin/activate" in result.output
-    assert "psynet setup" in result.output
+    assert "Aborted!" not in result.output
     assert not (tmp_path / "Dockerfile").exists()
     assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
 
@@ -1471,15 +1477,16 @@ def test_setup_shared_env_interactive_new_venv_default(tmp_path, monkeypatch):
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda args, description: calls.append(args),
+        lambda args, description, quiet=False: calls.append(args),
     )
 
     with working_directory(tmp_path):
         # Accept the recommended default (new-venv).
         result = CliRunner().invoke(psynet, ["setup"], input="\n")
 
-    assert result.exit_code != 0
+    assert result.exit_code == 0, result.output
     assert calls == [["venv", "--python=3.13"]]
+    assert "Aborted!" not in result.output
     assert not (tmp_path / "Dockerfile").exists()
 
 
