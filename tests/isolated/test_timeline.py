@@ -116,7 +116,7 @@ def test_manual_trial_waits_for_request_and_page_ready():
 def test_embedded_module_is_rejected(html):
     with pytest.raises(
         ValueError,
-        match=r"Embedded modules are not supported.*js_page_modules.*migrate-page-javascript",
+        match=r"Embedded modules are not supported.*js_page_modules.*upgrade-to-psynet-14",
     ):
         Page._check_embedded_script_contract(html)
 

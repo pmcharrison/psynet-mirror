@@ -26,7 +26,7 @@ kept for backwards compatibility, but new and migrated custom pages should be
 written for in-place transitions.
 
 If you are upgrading an existing experiment, start with
-:doc:`/upgrading/upgrading_to_psynet_14`. Maintainers extending PsyNet's Page,
+:doc:`/whats_new/psynet_14`. Maintainers extending PsyNet's Page,
 Prompt, or Control internals should also read
 :doc:`/developer/page_lifecycle`, which documents the complete rendering,
 activation, cleanup, and failure contract.
@@ -540,7 +540,7 @@ The older ``js_links`` and ``scripts`` Page arguments remain supported but are
 deprecated. They keep classic linked/inline script semantics and therefore
 force a full page reload rather than participating in the managed SPA
 JavaScript path (``js_dependencies``, ``js_page_code``, and
-``js_page_modules``). Run the repo-local ``/migrate-page-javascript`` skill to
+``js_page_modules``). Run the repo-local ``/upgrade-to-psynet-14`` skill to
 move them to explicit dependency, page-code, or page-module lifecycles.
 
 Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This

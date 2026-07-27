@@ -1739,14 +1739,14 @@ class Page(Elt):
                         f"{source_description} includes a page JavaScript link in a "
                         "<script src=...> tag. Supply libraries via "
                         "js_dependencies or page behavior via js_page_modules. "
-                        "Run /migrate-page-javascript for a step-by-step migration."
+                        "See docs/whats_new/psynet_14.rst. In Cursor, run /upgrade-to-psynet-14."
                     )
                 else:
                     problems.append(
                         f"{source_description} includes a raw <script> block. "
                         "Move short behavior to js_page_code or reusable behavior "
-                        "to js_page_modules. Run /migrate-page-javascript for a "
-                        "step-by-step migration."
+                        "to js_page_modules. See docs/whats_new/psynet_14.rst. "
+                        "In Cursor, run /upgrade-to-psynet-14."
                     )
 
         if soup.find_all("style"):
@@ -1773,8 +1773,9 @@ class Page(Elt):
                 f"{source_description} registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
                 "each page, so page setup should use the activate(context) "
-                "function of a js_page_modules file. Run "
-                "/migrate-page-javascript for a step-by-step migration."
+                "function of a js_page_modules file. See "
+                "docs/whats_new/psynet_14.rst. In Cursor, run "
+                "/upgrade-to-psynet-14."
             )
 
         has_window_event_listener = re.search(
@@ -1805,7 +1806,8 @@ class Page(Elt):
             "template_fragment_path or template_fragment_str with only the "
             "contents of the main_body block, and supply page-local assets via "
             "css, css_links, js_dependencies, js_page_code, and js_page_modules. "
-            "Search your experiment "
+            "See docs/whats_new/psynet_14.rst. In Cursor, run "
+            "/upgrade-to-psynet-14. Search your experiment "
             f"code for Page(...) calls with label='{self.label}'."
         )
 
@@ -1830,8 +1832,8 @@ class Page(Elt):
                 raise ValueError(
                     "Embedded modules are not supported. Supply the module "
                     "through js_page_modules and use standard imports for its "
-                    "dependencies. Run "
-                    "/migrate-page-javascript for a step-by-step migration."
+                    "dependencies. See docs/whats_new/psynet_14.rst. In "
+                    "Cursor, run /upgrade-to-psynet-14."
                 )
 
     @staticmethod

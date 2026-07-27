@@ -224,7 +224,7 @@ def test_response_approved_skips_fragment_for_reload_pages(
 def test_jspsych_page_rejects_html_timeline_api(timeline):
     with pytest.raises(
         ValueError,
-        match=r"JsPsychPage.*no longer accepts HTML.*migrate-page-javascript",
+        match=r"JsPsychPage.*no longer accepts HTML.*upgrade-to-psynet-14",
     ):
         JsPsychPage(
             "task",

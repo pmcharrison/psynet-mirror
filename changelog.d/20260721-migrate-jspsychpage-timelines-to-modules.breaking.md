@@ -1,1 +1,1 @@
-Changed ``JsPsychPage`` timelines from HTML/Jinja templates to JavaScript modules exporting ``buildTimeline()``; use the repo-local ``/migrate-page-javascript`` skill to migrate.
+Changed ``JsPsychPage`` timelines from HTML/Jinja templates to JavaScript modules exporting ``buildTimeline()``; see ``docs/whats_new/psynet_14.rst`` and the repo-local ``/upgrade-to-psynet-14`` skill.

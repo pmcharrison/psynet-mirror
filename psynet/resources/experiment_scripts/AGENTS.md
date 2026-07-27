@@ -131,3 +131,8 @@ SELECT id, answer FROM response ORDER BY id DESC LIMIT 10;
 
 If in the PsyNet repository, find further documentation in `docs`.
 If in an experiment directory, find more information at https://psynetdev.gitlab.io/PsyNet/.
+
+For PsyNet 14 migrations (in-place timeline defaults, fragment templates,
+managed page JavaScript, `psynet.var`, JsPsych module timelines), read
+`docs/whats_new/psynet_14.rst` and run the repo-local `/upgrade-to-psynet-14`
+skill.
