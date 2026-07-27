@@ -246,6 +246,20 @@ def _redacted_asset_request_path(path: str) -> str:
     return path
 
 
+def _trials_as_network_monitor_infos(trial_rows: list) -> list:
+    """Adapt trial JSON rows for Dallinger's network monitor ``infos`` slot.
+
+    The monitor draws dashed trial nodes and edges using ``origin_id`` (Info's
+    node foreign key). PsyNet trials use ``node_id`` instead, so we alias it.
+    """
+    infos = []
+    for row in trial_rows:
+        info = dict(row)
+        info["origin_id"] = info.get("node_id")
+        infos.append(info)
+    return infos
+
+
 @register_table
 class ExperimentStatus(SQLBase, SQLMixin):
     __tablename__ = "experiment_status"
@@ -4278,6 +4292,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         return stats
+
+    def network_structure(
+        self,
+        network_roles=None,
+        network_ids=None,
+        collapsed=False,
+        transformations=False,
+    ):
+        """Return network monitor payload with PsyNet trials in the infos slot.
+
+        Dallinger's network monitor still expects an ``infos`` list linked to
+        nodes via ``origin_id``. PsyNet trials live in the ``trial`` table and
+        use ``node_id``, so we substitute trial rows and alias ``origin_id``.
+        """
+        structure = super().network_structure(
+            network_roles=network_roles,
+            network_ids=network_ids,
+            collapsed=collapsed,
+            transformations=transformations,
+        )
+        if collapsed:
+            return structure
+
+        trials = self.summarize_table("trial", network_roles, network_ids)
+        structure["infos"] = _trials_as_network_monitor_infos(trials)
+        return structure
 
     def check_consents(self):
         if (
