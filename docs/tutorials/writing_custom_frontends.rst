@@ -26,7 +26,7 @@ kept for backwards compatibility, but new and migrated custom pages should be
 written for in-place transitions.
 
 If you are upgrading an existing experiment, start with
-:doc:`/upgrading/upgrading_to_psynet_13_3`. Maintainers extending PsyNet's Page,
+:doc:`/upgrading/upgrading_to_psynet_14`. Maintainers extending PsyNet's Page,
 Prompt, or Control internals should also read
 :doc:`/developer/page_lifecycle`, which documents the complete rendering,
 activation, cleanup, and failure contract.

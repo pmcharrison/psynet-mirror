@@ -1,11 +1,11 @@
-========================
-Upgrading to PsyNet 13.3
-========================
+=====================
+Upgrading to PsyNet 14
+=====================
 
 Introduction
 ============
 
-PsyNet 13.3 makes **in-place timeline transitions** the default. Participants
+PsyNet 14 makes **in-place timeline transitions** the default. Participants
 usually stay on the same browser document while PsyNet swaps the next page's
 markup, styles, and managed JavaScript. That is faster and more stable for
 media and custom frontends, but it changes how custom pages must declare
@@ -35,7 +35,7 @@ What changed
 ____________
 
 Previously, many deployments still used a full page reload for every timeline
-step. PsyNet 13.3 defaults to in-place transitions:
+step. PsyNet 14 defaults to in-place transitions:
 
 * the browser document stays open;
 * PsyNet replaces ``#timeline-header``, ``#main-body``, ``#footer``, and

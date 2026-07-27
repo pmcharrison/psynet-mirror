@@ -9,5 +9,5 @@ jumping across multiple major versions.
 .. toctree::
    :maxdepth: 1
 
-   upgrading_to_psynet_13_3
+   upgrading_to_psynet_14
    upgrading_to_psynet_10
