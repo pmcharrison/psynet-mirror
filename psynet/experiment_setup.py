@@ -422,7 +422,8 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
     if is_in_repo_experiment():
         _scaffold_experiment(ctx, skip_constraints=True)
         click.echo(
-            "Prepared in-repo experiment using PsyNet's shared development environment."
+            "Using PsyNet's shared development environment "
+            "(in-repo experiments are not dependency-synced by setup)."
         )
         return
 

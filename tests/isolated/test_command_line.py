@@ -1157,6 +1157,8 @@ def test_setup_prepares_bundled_demo_without_dependency_changes(tmp_path, monkey
     assert not (tmp_path / "constraints.txt").exists()
     assert (tmp_path / "Dockerfile").exists()
     assert "shared development environment" in result.output
+    assert "not dependency-synced" in result.output
+    assert "Prepared in-repo" not in result.output
 
 
 def test_setup_requires_source_choice_for_noninteractive_editable_install(
