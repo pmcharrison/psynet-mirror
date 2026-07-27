@@ -1,6 +1,8 @@
 # README
 
-In this experiment participants will listen to pairs of sounds and rate their similarity on a scale of 1 to 5.
+Pairwise similarity judgments: participants hear two instrument sounds and rate
+how similar they are on a 1–5 scale. A compact static-trial template for any
+"compare A vs B" rating study.
 
 ## Usage
 

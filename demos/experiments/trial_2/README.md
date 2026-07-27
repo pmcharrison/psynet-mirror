@@ -1,6 +1,8 @@
 # README
 
-This experiment is a simple trial demo (2).
+Same "rate happiness" idea as `trial`, but each item is a `Node` with a
+synthesized audio asset. Useful when your stimulus set is discrete and
+predeclared, and trials should pull from those nodes.
 
 ## Usage
 

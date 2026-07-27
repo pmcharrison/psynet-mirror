@@ -1,6 +1,10 @@
 # README
 
-This experiment illustrates PsyNet's modular page feature.
+`ModularPage` pairs a prompt with a control. This demo is a gallery of built-in
+combinations — text, ratings, multi-ratings, audio with push buttons, timed
+buttons, frame and video sliders — and ends with custom `Prompt`/`Control`
+subclasses backed by Jinja macros. Use it as a cheat sheet when choosing UI
+pieces for a real page.
 
 ## Usage
 

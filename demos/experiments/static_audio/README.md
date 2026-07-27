@@ -1,6 +1,8 @@
 # README
 
-This experiment is a static audio demo.
+A static-trial audio imitation task: hear a spoken word, record a repetition,
+then listen back. Good template for recording + playback around a fixed set of
+synthesized prosody stimuli.
 
 ## Usage
 

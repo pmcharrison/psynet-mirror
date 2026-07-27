@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's option controls feature.
+Several controls collect discrete choices: push buttons, dropdowns, checkboxes,
+and radio buttons, with vertical/horizontal layout, forced selection, and
+optional reset. This demo walks through each variant so you can copy the
+configuration you need.
 
 ## Usage
 

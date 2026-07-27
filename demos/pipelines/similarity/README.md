@@ -1,6 +1,8 @@
 # README
 
-In this experiment participants listen to pairs of sounds and rate their similarity on a scale from 1 to 5.
+Pipeline for pairwise audio similarity (1–5). Same judgment idea as
+`experiments/audio_similarity`, packaged under the pipelines layout with a
+capped number of trials per participant.
 
 ## Usage
 

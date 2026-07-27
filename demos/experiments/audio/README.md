@@ -1,6 +1,8 @@
 # README
 
-This experiment demonstrates working with audio stimuli in a PsyNet experiment.
+A gallery of PsyNet audio/video building blocks: JS synthesis, prompts, meters,
+recording, calibration, and preloading. Treat it as a feature tour of media
+pages, not a single research design.
 
 ## Usage
 

@@ -1,6 +1,8 @@
 # README
 
-This experiment is a sVG Gibbs sampling demo.
+Like `gibbs_image`, but stimuli are dynamic SVG animations (a colored square that
+fades and returns). Demonstrates HTML/SVG Gibbs trials with temporary slider
+lockout while the animation plays.
 
 ## Usage
 

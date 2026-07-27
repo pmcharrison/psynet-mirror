@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's simple multimedia slider feature.
+`MediaSliderControl` generalizes the idea to audio or video batches: each slider
+position can play a different clip. Examples cover both modalities with
+autoplay, snap values, and timing constraints for when the response may be
+submitted.
 
 ## Usage
 

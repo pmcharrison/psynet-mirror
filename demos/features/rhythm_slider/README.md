@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's demo rhythm slider feature.
+`AudioSliderControl` maps slider positions to discrete audio files in a batch.
+This demo explores rhythm stimuli with options such as snapping, random wrap,
+and circular input — a pattern useful for continuous judgment along a discrete
+audio continuum.
 
 ## Usage
 

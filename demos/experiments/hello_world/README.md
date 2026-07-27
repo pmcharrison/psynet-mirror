@@ -1,6 +1,8 @@
 # README
 
-This experiment is a minimal Hello World demo.
+The smallest possible PsyNet experiment: one info page that says "Hello world!"
+Use it as a smoke test that your environment, timeline, and deployment path are
+working before you add real trial logic.
 
 ## Usage
 

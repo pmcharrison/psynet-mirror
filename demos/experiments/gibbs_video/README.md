@@ -1,6 +1,9 @@
 # README
 
-This experiment is a video Gibbs sampling demo.
+Video GSP: participants choose among short clips of alternating colored squares
+(including timing parameters) to match targets such as "positive" or
+"energetic." Follow this pattern when your Gibbs space is defined by synthesized
+video rather than stills or audio.
 
 ## Usage
 

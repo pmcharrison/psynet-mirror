@@ -1,6 +1,9 @@
 # README
 
-This demo shows the vocabulary tests WikiVocab and BibleVocab. The tests contain of a list of real and fake words and participants have to indicate for each word if it's real or fake. WikiVocab is made from Wikipedia and is generally of a better quality than BibleVocab, which is made from the Bible.
+Lexical decision–style vocab screens: real vs fake words via WikiVocab
+(Wikipedia-derived, generally higher quality) and BibleVocab (broader language
+coverage). This demo runs both (Dutch WikiVocab and another language's
+BibleVocab) as a template for vocabulary-based screening.
 
 ## Usage
 

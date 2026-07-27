@@ -1,6 +1,10 @@
 # README
 
-Simple chatroom demo. A minimal real-time chat experiment built with PsyNet's high-level chatroom component (EnableChatrooms and ChatRoom). Participants are grouped into pairs with a SimpleGrouper and a synchronised trial maker, then placed together in a shared chatroom where they exchange messages in real time.
+Minimal real-time chat with PsyNet's high-level `EnableChatrooms` / `ChatRoom`
+components. Participants are paired with `SimpleGrouper`, wait for a partner,
+then discuss an assigned topic in a shared, persisted room with live occupancy
+and history — same core idea as the lower-level websocket chatroom feature demo,
+with far less custom code.
 
 ## Usage
 

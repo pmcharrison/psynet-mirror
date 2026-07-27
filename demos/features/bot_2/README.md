@@ -1,6 +1,10 @@
 # README
 
-This is a clone of the imitation_chain demo, but with automatic bots that contribute data to the experiment.
+When you need bots to keep feeding a live experiment — not just exercise a page
+once — schedule them with `@scheduled_task` and `WorkerAsyncProcess`. This clone
+of the imitation-chain number-memory demo launches a bot every 10 seconds, marks
+each as a good or bad rememberer in `initialize_bot`, and lets those answers
+propagate through the chain.
 
 ## Usage
 

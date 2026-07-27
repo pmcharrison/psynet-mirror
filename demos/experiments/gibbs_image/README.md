@@ -1,6 +1,8 @@
 # README
 
-This experiment is an image Gibbs sampling demo.
+Image GSP over an RGB square: adjust the slider so the color looks as "positive"
+or "energetic" as possible, with continuous visual updates. Use it as the visual
+counterpart to audio Gibbs when stimuli are static images.
 
 ## Usage
 

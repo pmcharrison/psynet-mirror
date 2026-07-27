@@ -1,6 +1,10 @@
 # README
 
-This experiment illustrates PsyNet info pages, modular pages, prompts, and controls — useful companion material for the Pages tutorial.
+This demo is a walkthrough of PsyNet's basic page types. An `InfoPage` shows
+text only; `ModularPage`s combine prompts (text, image, audio) with controls
+(push buttons, free text, microphone recording), including a timed
+listen-then-record sequence with a progress display. It is useful companion
+material for the Pages tutorial.
 
 ## Usage
 

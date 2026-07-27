@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's page maker feature.
+`PageMaker` builds pages (or lists of elts) dynamically from participant state.
+Here the participant picks how many counting pages to see; later makers mix
+pages with `CodeBlock`s and even wrap a `while_loop`. Use page makers whenever
+the next UI depends on earlier answers.
 
 ## Usage
 

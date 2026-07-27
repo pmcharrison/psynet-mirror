@@ -1,6 +1,7 @@
 # README
 
-This experiment is a language tests demo.
+Runs LexTale (English proficiency) and a basic language vocabulary prescreen
+(here Spanish). Useful as drop-in linguistic screening before a main experiment.
 
 ## Usage
 

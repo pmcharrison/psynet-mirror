@@ -1,6 +1,8 @@
 # README
 
-This experiment illustrates PsyNet's randomize demo 2 feature.
+The same helper can shuffle larger timeline chunks, including whole trial
+makers. Here two static trial makers (animals and colors) are randomized so
+participants see one block before the other in unpredictable order.
 
 ## Usage
 

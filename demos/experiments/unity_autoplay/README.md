@@ -1,6 +1,8 @@
 # README
 
-This experiment is an unity autoplay demo.
+Embeds a Unity WebGL mini-game in the timeline with `UnityPage`, assigning
+participants to rule groups that change scoring. Use it when part of the
+experiment is an interactive Unity build rather than HTML-only pages.
 
 ## Usage
 

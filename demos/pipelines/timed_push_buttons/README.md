@@ -1,6 +1,8 @@
 # README
 
-In this experiment participants mark and describe interesting moments in a piece of music.
+While music plays, participants mark interesting moments with a timed button and
+briefly describe them. Useful for annotation / "highlight the event" designs on
+continuous audio.
 
 ## Usage
 

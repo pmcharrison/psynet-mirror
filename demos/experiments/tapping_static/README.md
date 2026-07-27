@@ -1,6 +1,8 @@
 # README
 
-This experiment is a non-adapting tapping demo with isochronous tapping and beat synchronization to music.
+Non-adapting REPP tapping: isochronous metronome tapping plus tapping along to
+music, with calibration and recording-quality checks. A static (non-iterated)
+baseline for beat-synchronization measurement.
 
 ## Usage
 

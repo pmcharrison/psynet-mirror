@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's attention test feature.
+`AttentionTest` is a short attention-check module meant to catch careless
+responding. Best practice is to nest it among ordinary questionnaire items so it
+is less obvious — this demo places it between basic demography and hearing/dance
+questions.
 
 ## Usage
 

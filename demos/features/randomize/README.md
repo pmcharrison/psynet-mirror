@@ -1,6 +1,8 @@
 # README
 
-This experiment illustrates PsyNet's randomize feature.
+`randomize` shuffles a list of timeline elts once per participant. This demo
+randomizes InfoPages for the numbers 0–99; the bot test checks that every number
+still appears exactly once.
 
 ## Usage
 

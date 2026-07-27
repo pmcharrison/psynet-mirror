@@ -1,6 +1,8 @@
 # README
 
-This experiment is a static audio demo (3).
+Rates liking for pre-existing sound files referenced by hard-coded paths, rather
+than synthesizing stimuli. Handy when your audio already lives on disk (or in a
+manifest) and you mainly need static trial delivery.
 
 ## Usage
 

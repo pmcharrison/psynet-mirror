@@ -1,6 +1,8 @@
 # README
 
-This experiment is a simple trial demo (3).
+Like `trial_2`, except trial parameters are sampled continuously and audio is
+synthesized on demand. Prefer this when the stimulus space is continuous rather
+than a fixed catalog of nodes.
 
 ## Usage
 

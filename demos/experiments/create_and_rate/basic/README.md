@@ -1,6 +1,9 @@
 # README
 
-This experiment is a basic Create and Rate Experiment.
+The simplest Create and Rate example: creators describe an animal image; raters
+either score one description or choose the best among several. Also demonstrates
+carrying a previous iteration into later rounds — start here before the picnic,
+robot-voice, or GAP variants.
 
 ## Usage
 

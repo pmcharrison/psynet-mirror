@@ -1,6 +1,8 @@
 # README
 
-This is a simple experiment where participants rate sounds on a scale from 1 to 5.
+Pipeline-style single-stimulus rating: listen to sounds and rate them on a 1–5
+scale. A small end-to-end rating pipeline parallel to
+`experiments/simple_audio_rating`.
 
 ## Usage
 

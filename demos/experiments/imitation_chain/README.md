@@ -1,6 +1,10 @@
 # README
 
-This experiment is an imitation chain demo.
+Imitation chains pass a stimulus from person to person (or generation to
+generation) so cultural or memory processes can be studied under transmission.
+This demo shows a classic digit-span version: remember a 7-digit number, type it
+back, and the chain continues from the recalled value. Swap the stimulus and
+response format to adapt it to other serial-reproduction tasks.
 
 ## Usage
 

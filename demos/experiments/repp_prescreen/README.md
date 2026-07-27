@@ -1,6 +1,8 @@
 # README
 
-This experiment is a rEPP tests demo.
+Bundles REPP tapping calibration and recording-quality screens (free tapping and
+marker-based tests). Drop these modules into other tapping experiments as
+technical prescreens before the main task.
 
 ## Usage
 

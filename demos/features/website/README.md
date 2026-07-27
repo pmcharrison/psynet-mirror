@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's simple website feature.
+A PsyNet timeline can also behave like a tiny multi-page site: a `while_loop`
+plus `switch` re-shows content based on `participant.var.current_page`, and
+navigation buttons update that variable. Rewards and the progress bar are turned
+off so it feels less like a paid experiment.
 
 ## Usage
 

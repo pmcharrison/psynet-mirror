@@ -1,6 +1,10 @@
 # README
 
-This demo illustrates some advanced usage of custom SQLAlchemy classes in the context of a PsyNet experiment. We define a new table called 'pet', in which we store two types of animals: dogs and cats. We design an experiment whose timeline logic depends on the pet type that the user chooses, with different pages being defined as methods of the different pet classes.
+Custom tables can carry polymorphic domain logic, not just rows. Here a `Pet`
+base class and `Dog`/`Cat` subclasses live in one SQLAlchemy table; choosing a
+pet type creates the right subclass and runs type-specific purchase pages
+defined as class methods. Prefer this pattern when timeline branches and
+persisted fields naturally belong on your domain objects.
 
 ## Usage
 

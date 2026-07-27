@@ -1,6 +1,9 @@
 # README
 
-This experiment is a rock paper scissors demo.
+A synchronized two-player game: partners simultaneously choose rock, paper, or
+scissors, see the scored outcome, then chat about the round in a shared room.
+Good reference for combining `SimpleGrouper`, group barriers, trial scoring, and
+`ChatRoom` feedback in one loop.
 
 ## Usage
 

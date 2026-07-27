@@ -1,6 +1,9 @@
 # README
 
-This experiment is a simple SyncGroup demo.
+Demonstrates `SimpleGrouper`, barriers, role assignment, and regrouping:
+participants form groups of three (with roles), then later regroup into pairs.
+Use it to learn sync-group lifecycle mechanics without game or chat logic on
+top.
 
 ## Usage
 

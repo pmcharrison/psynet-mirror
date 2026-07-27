@@ -1,6 +1,7 @@
 # README
 
-This experiment illustrates PsyNet's colour vocabulary feature.
+`ColorVocabularyTest` checks that participants know common color names. Use it
+as a language/vision prescreen before color-naming or color-judgment tasks.
 
 ## Usage
 

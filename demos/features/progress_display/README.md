@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's progress display feature.
+`ProgressDisplay` and `ProgressStage` show timed stage labels (and an optional
+bar) during a page — handy for listen / prepare / record sequences. You can also
+drive messages and JS alerts from the event scheduler, as in the
+countdown-then-`alert` example here.
 
 ## Usage
 

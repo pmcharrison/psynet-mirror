@@ -1,6 +1,8 @@
 # README
 
-This experiment is a jsPsych demo.
+Embeds a jsPsych timeline (reaction-time task) inside PsyNet via `JsPsychPage`,
+then displays the returned data. Use when you want to reuse existing jsPsych
+scripts within a PsyNet experiment.
 
 ## Usage
 

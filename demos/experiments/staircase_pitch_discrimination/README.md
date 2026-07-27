@@ -1,6 +1,8 @@
 # README
 
-This experiment is a pitch discrimination demo.
+A 2-up/1-down staircase pitch task: hear two tones and say which was higher;
+difficulty adapts with correct/incorrect responses across amplitude × duration
+conditions. Template for adaptive psychophysics with PsyNet staircases.
 
 ## Usage
 

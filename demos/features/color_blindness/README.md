@@ -1,6 +1,8 @@
 # README
 
-This experiment illustrates PsyNet's colour blindness feature.
+`ColorBlindnessTest` is a built-in Ishihara-style screener. Drop it early in a
+timeline when color discrimination matters for later trials; participants who
+pass continue to a short confirmation page.
 
 ## Usage
 

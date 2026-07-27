@@ -1,6 +1,8 @@
 # README
 
-This experiment is a static audio demo (2).
+Same imitation flow as `static_audio`, but `start_frequency` is drawn from a
+continuous range instead of a discrete grid. Use it when you want static
+recruitment with randomized continuous stimulus parameters.
 
 ## Usage
 

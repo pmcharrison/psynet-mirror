@@ -1,6 +1,10 @@
 # README
 
-This experiment is a synchronous create and rate demo.
+A synchronous create-and-rate game for groups of three: everyone invents a food
+item for a shared target, then each person chooses between the other two
+creations and sees how the group voted. Use it when creation and evaluation must
+happen live within a sync group rather than via asynchronous Create and Rate
+chains.
 
 ## Usage
 

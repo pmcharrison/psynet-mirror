@@ -1,6 +1,12 @@
 # README
 
-In this experiment participants collaborate to write and rate word tags for a given stimulus.
+This demo shows a collaborative create-and-rate pipeline for tagging stimuli.
+Step-tag designs are useful when participants both generate labels and evaluate
+others' labels, so the stimulus set accumulates consensus over time. In this
+example, people listen to short music clips, propose emotion tags, and rate tags
+from others until items freeze. Similar logic could be used for captioning
+images, naming categories, or any task where creation and rating are interleaved
+across a shared stimulus pool.
 
 ## Usage
 

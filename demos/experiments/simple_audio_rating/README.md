@@ -1,6 +1,8 @@
 # README
 
-This is a simple experiment that allows participants to rate sounds on a scale of 1 to 5.
+Participants rate individual sounds on a 1–5 scale. A minimal static rating
+experiment; for directory-driven node generation, see
+`audio_stimulus_set_from_dir`.
 
 ## Usage
 

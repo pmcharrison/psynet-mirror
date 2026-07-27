@@ -1,20 +1,20 @@
 # README
 
-This experiment family illustrates the Create and Rate paradigm. These demos
-are meant to show how the paradigm works and showcase certain features, not to
-be run as real studies.
+Create and Rate is a paradigm where some participants generate candidates and
+others evaluate them, so the stimulus pool improves over iterations. These demos
+showcase the pattern and selected features; they are not meant as ready-to-run
+full studies.
 
-- `basic`: creators describe an image of a dog; raters rate descriptions in
-  isolation or select the best one. Also shows including a previous iteration.
-- `picnic`: creators guess a rule from positive and negative picnic examples;
-  raters judge whether the guessed rule is correct, rating all creations at once.
-- `robot_voice`: audio GSP ported to Create and Rate. Creators invent a robot
-  voice; raters pick the best match. Shows integrating richer trials such as
-  `AudioGibbsTrial`, and supports both isolated and select-all rating.
-- `gap`: implementation behind
-  [Bridging the prosody GAP](https://arxiv.org/abs/2205.04820). Creators re-record
-  a sentence in an imagined situation; raters pick the most emotional creation.
-  Creators and raters are separate roles to avoid emotion priming.
+- `basic`: describe a dog image; rate descriptions in isolation or pick the
+  best; also shows including a previous iteration.
+- `picnic`: guess a hidden rule from positive/negative picnic examples; raters
+  judge rule guesses, rating creations together.
+- `robot_voice`: audio GSP cast as Create and Rate — invent a robot voice, then
+  rate or select the best match (including richer `AudioGibbsTrial` creators).
+- `gap`: prosody Create and Rate inspired by
+  [Bridging the prosody GAP](https://arxiv.org/abs/2205.04820) — re-record a
+  sentence for an imagined situation; raters pick the most emotional take, with
+  separate creator/rater roles.
 
 See also the Create and Rate tutorial in the documentation.
 

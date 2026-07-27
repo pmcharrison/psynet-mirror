@@ -1,6 +1,8 @@
 # README
 
-This experiment is an audio stimulus set from directory demo.
+Builds practice and main static trial makers by compiling nodes from directories
+of audio files. Copy this when your stimuli are organized on disk and you want
+PsyNet to wire them into trials automatically.
 
 ## Usage
 

@@ -1,6 +1,8 @@
 # README
 
-This experiment is a graphics demo.
+Showcases PsyNet graphic prompts and controls — shapes, paths, animations,
+images, and text — on modular pages. A visual-components sandbox rather than a
+scientific paradigm.
 
 ## Usage
 

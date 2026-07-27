@@ -1,6 +1,9 @@
 # README
 
-This experiment is a timeline demo.
+A walkthrough of PsyNet's timeline building blocks — consent-style pages, forms,
+conditional branches, loops, switches, and page makers — stitched into one short
+path. Follow it when you want to see how sequential structure and control flow
+look in practice, not as a research paradigm.
 
 ## Usage
 

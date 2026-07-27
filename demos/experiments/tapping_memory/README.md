@@ -1,6 +1,8 @@
 # README
 
-Iterated tapping from memory, adapted from Jacoby & McDermott (2017).
+Memory variant of iterated tapping (also after Jacoby & McDermott, 2017): listen
+to a rhythm, then reproduce it from memory by tapping after the prompt ends.
+Differs from `tapping_iterated` by separating listening and production in time.
 
 ## Usage
 

@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's headphone test feature.
+Headphone screeners verify that participants can hear phase/dichotic cues that
+fail on speakers. After volume calibration, this demo runs both
+`HugginsHeadphoneTest` and `AntiphaseHeadphoneTest`; failing the first stops a
+"bad" bot before the second.
 
 ## Usage
 

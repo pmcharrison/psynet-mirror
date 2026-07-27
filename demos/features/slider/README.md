@@ -1,6 +1,9 @@
 # README
 
-This experiment illustrates PsyNet's slider feature.
+`SliderControl` is the basic numeric slider (linear or circular). The demo steps
+through configurations for range, steps, snap values, minimal interactions, and
+`random_wrap`, printing live raw/output values so you can see how the options
+behave.
 
 ## Usage
 

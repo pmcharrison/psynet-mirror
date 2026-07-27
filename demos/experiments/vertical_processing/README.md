@@ -1,6 +1,8 @@
 # README
 
-This experiment is a vertical processing experiment.
+Tests "hearing out" notes in chords: listen to a chord, then sing the component
+pitches back for automatic scoring. A fuller music-cognition experiment
+combining practice, main trials, notation/synth prompts, and singing analysis.
 
 ## Usage
 

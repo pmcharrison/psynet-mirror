@@ -1,6 +1,9 @@
 # README
 
-This experiment is a robot Voice demo.
+Ports audio Gibbs Sampling with People into Create and Rate: creators sculpt a
+voice to match a robot character; raters score or select the best match. Shows
+how richer creator trials (`AudioGibbsTrial`) plug into the Create and Rate
+machinery.
 
 ## Usage
 

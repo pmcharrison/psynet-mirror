@@ -1,6 +1,8 @@
 # README
 
-This experiment is a surveyJS demo.
+Hosts a SurveyJS questionnaire (demographics-style items, multi-select, ratings)
+through `SurveyJSControl`. Handy when you need richer forms than PsyNet's basic
+controls without leaving the timeline.
 
 ## Usage
 

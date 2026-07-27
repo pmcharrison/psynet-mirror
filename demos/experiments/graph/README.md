@@ -1,6 +1,8 @@
 # README
 
-This experiment is a graph demo.
+Graph-chain sampling over "necklaces" of colored beads: choose a preferred
+necklace, then recolor another to match. Illustrates `GraphChainTrialMaker` for
+navigating discrete graphical stimulus spaces.
 
 ## Usage
 

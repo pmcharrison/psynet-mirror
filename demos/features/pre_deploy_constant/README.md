@@ -1,6 +1,10 @@
 # README
 
-This experiment illustrates PsyNet's pre-deploy constant feature.
+Some values exist only on your local machine (for example the contents of a
+`data/` folder that is not shipped in the deploy package). `pre_deploy_constant`
+snapshots those values at deploy time so the remote experiment can still read
+them. The demo lists local data files and contrasts the local vs runtime working
+directory.
 
 ## Usage
 
