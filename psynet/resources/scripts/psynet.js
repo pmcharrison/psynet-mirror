@@ -559,22 +559,6 @@
       });
     };
 
-    psynet.executeLegacyJSLink = function (src) {
-      let normalizedSrc = new URL(src, window.location.href).href;
-      return new Promise((resolve, reject) => {
-        let script = document.createElement("script");
-        script.src = normalizedSrc;
-        script.async = false;
-        script.onload = () => {
-          script.remove();
-          resolve();
-        };
-        script.onerror = () =>
-          reject(new Error("Could not load legacy script " + normalizedSrc + "."));
-        document.head.appendChild(script);
-      });
-    };
-
     // Dependencies load once per document. Page code and page modules share
     // one activation/cleanup lifecycle and run for every hosting page.
     psynet.activeJSPageBehaviors = [];
@@ -614,7 +598,9 @@
       let context = psynet.getPageActivationContext();
       try {
         for (let src of psynetTemplateData.legacyJsLinks || []) {
-          await psynet.executeLegacyJSLink(src);
+          // Legacy js_links force a full reload, so a clean document load uses
+          // the same once-per-document loader as js_dependencies.
+          await psynet.executeExternalScript(src);
         }
         for (let code of psynetTemplateData.legacyScripts || []) {
           // Classic global script semantics for deprecated ``scripts``.
