@@ -1,19 +1,8 @@
-# API demo
+# README
 
-This demo shows how to expose Python functions and page methods via
-`@expose_to_api`, then call them from front-end JavaScript in
-`custom_pages.py`.
+This experiment shows how to expose Python functions and page methods via `@expose_to_api`, then call them from front-end JavaScript.
 
-PsyNet demo directories track authored experiment files only. The unpinned
-`psynet` requirement is resolved when a copied demo is set up.
+## Usage
 
-Typical local workflow:
-
-```bash
-git init
-uv venv --python 3.13
-source .venv/bin/activate
-uv pip install psynet
-psynet setup
-psynet debug local
-```
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

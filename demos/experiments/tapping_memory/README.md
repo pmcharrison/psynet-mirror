@@ -1,5 +1,8 @@
 # README
 
-This experiment is implemented using *PsyNet*, a framework for running behavioral experiments
-in-person and over the internet. For comprehensive guidance on running PsyNet experiments,
-please visit [PsyNet's documentation website](https://psynetdev.gitlab.io/PsyNet/).
+Iterated tapping from memory, adapted from Jacoby & McDermott (2017).
+
+## Usage
+
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

@@ -1,18 +1,8 @@
-# Vocabulary test demo
+# README
 
-This demo shows the built-in `WikiVocab` and `BibleVocab` prescreen modules.
-Participants classify words as real or fake across multiple languages.
+This demo shows the vocabulary tests WikiVocab and BibleVocab. The tests contain of a list of real and fake words and participants have to indicate for each word if it's real or fake. WikiVocab is made from Wikipedia and is generally of a better quality than BibleVocab, which is made from the Bible.
 
-PsyNet demo directories track authored experiment files only. The unpinned
-`psynet` requirement is resolved when a copied demo is set up.
+## Usage
 
-Typical local workflow:
-
-```bash
-git init
-uv venv --python 3.13
-source .venv/bin/activate
-uv pip install psynet
-psynet setup
-psynet test local
-```
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).
