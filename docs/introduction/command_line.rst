@@ -123,11 +123,12 @@ synchronizes the constrained dependencies with ``uv``, and runs
   psynet setup
 
 Synchronization removes packages that are not required by the experiment.
-If PsyNet is installed editable, setup asks whether to keep the editable
-checkout, pin its current commit from the checkout's ``origin`` remote (so
-forks work once the commit has been pushed), or retain an existing explicit
-requirement. The same choice can be supplied non-interactively with
-``--psynet-source editable``, ``commit``, or ``existing``.
+If PsyNet is installed editable, setup asks how to record it in
+``requirements.txt``: keep the editable checkout, pin its current commit from
+the checkout's ``origin`` remote (so forks work once the commit has been
+pushed), or retain an existing explicit requirement. The same choice can be
+supplied non-interactively with ``--psynet-source editable``, ``commit``, or
+``existing``.
 
 If the active virtual environment is PsyNet's shared checkout environment
 (typically the repository ``.venv``), setup refuses to synchronize by default.

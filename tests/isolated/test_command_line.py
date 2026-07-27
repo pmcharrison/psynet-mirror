@@ -1177,6 +1177,7 @@ def test_setup_requires_source_choice_for_noninteractive_editable_install(
 
     assert result.exit_code != 0
     assert "--psynet-source editable" in result.output
+    assert "requirements.txt" in result.output
     assert not (tmp_path / "Dockerfile").exists()
 
 
@@ -1200,6 +1201,11 @@ def test_setup_prompts_to_preserve_editable_psynet(tmp_path, monkeypatch):
         result = CliRunner().invoke(psynet, ["setup"], input="1\n")
 
     assert result.exit_code == 0, result.output
+    assert "How should setup record it in this experiment's requirements.txt?" in (
+        result.output
+    )
+    assert "What do you want to do?" in result.output
+    assert "point requirements at this local checkout" in result.output
     assert (tmp_path / "requirements.txt").read_text() == (
         f"-e {source.as_uri()}#egg=psynet\nmusic21==9.1.0\n"
     )

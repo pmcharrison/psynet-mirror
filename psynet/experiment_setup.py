@@ -172,7 +172,7 @@ def _is_interactive():
     return sys.stdin.isatty()
 
 
-def _prompt_numeric_choice(title, options, *, default_index=0):
+def _prompt_numeric_choice(title, options, *, default_index=0, intro=None):
     """Prompt for a 1-based numeric choice from ``options``.
 
     Parameters
@@ -184,11 +184,17 @@ def _prompt_numeric_choice(title, options, *, default_index=0):
         selected; ``description`` is shown to the user.
     default_index :
         Zero-based index of the default option.
+    intro :
+        Optional explanation printed before the numbered options.
     """
     if not options:
         raise ValueError("options must not be empty")
     if not 0 <= default_index < len(options):
         raise ValueError("default_index is out of range")
+
+    if intro:
+        click.echo(intro)
+        click.echo()
 
     for index, (_value, description) in enumerate(options, start=1):
         marker = " (default)" if index - 1 == default_index else ""
@@ -296,12 +302,6 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
             "development environment)."
         )
 
-    click.echo(
-        "Setup for a standalone experiment should use a dedicated virtualenv "
-        "in this directory. You're currently using PsyNet's shared developer "
-        ".venv, so choose how to continue:"
-    )
-    click.echo()
     choice = _prompt_numeric_choice(
         "What do you want to do?",
         [
@@ -322,6 +322,11 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
             ),
         ],
         default_index=0,
+        intro=(
+            "Setup for a standalone experiment should use a dedicated "
+            "virtualenv in this directory. You're currently using PsyNet's "
+            "shared developer .venv, so choose how to continue:"
+        ),
     )
     if choice == "cancel":
         click.echo("Cancelled setup; no experiment or environment changes were made.")
@@ -367,17 +372,27 @@ def _choose_editable_psynet_requirement(source, requested_source):
             options = ", ".join(f"--psynet-source {choice}" for choice in choices)
             raise click.UsageError(
                 f"PsyNet is installed editable from {source}. Choose how setup "
-                f"should represent it with one of: {options}."
+                f"should record it in this experiment's requirements.txt with "
+                f"one of: {options}."
             )
-        click.echo(f"PsyNet is installed editable from {source}.")
         descriptions = {
-            "editable": "Editable — include local changes from this checkout",
-            "commit": ("Commit — portable Git pin from this checkout's origin remote"),
-            "existing": "Existing — retain the current requirements entry",
+            "editable": (
+                "Editable — point requirements at this local checkout "
+                "(includes uncommitted changes)"
+            ),
+            "commit": ("Commit — pin the current pushed commit from origin (portable)"),
+            "existing": (
+                "Existing — keep the current PsyNet entry in requirements.txt"
+            ),
         }
         requested_source = _prompt_numeric_choice(
-            "PsyNet source",
+            "What do you want to do?",
             [(choice, descriptions[choice]) for choice in choices],
+            intro=(
+                f"PsyNet is installed editable from {source}.\n"
+                "How should setup record it in this experiment's "
+                "requirements.txt?"
+            ),
         )
     elif requested_source not in choices:
         raise click.UsageError(
