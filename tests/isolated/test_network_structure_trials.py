@@ -104,3 +104,14 @@ def test_experiment_network_structure_collapsed_skips_trials(monkeypatch):
     structure = Experiment.network_structure(exp, collapsed=True)
     assert structure["infos"] == []
     assert called == []
+
+
+def test_json_clean_tolerates_missing_details_and_contents():
+    from psynet.field import json_clean
+
+    row = {"id": 1, "type": "AnimalTrial", "property1": "x"}
+    json_clean(row, details=True, contents=True)
+    assert "property1" not in row
+    assert "details" not in row
+    assert "contents" not in row
+    assert row["id"] == 1

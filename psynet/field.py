@@ -398,10 +398,11 @@ def json_clean(x, details=False, contents=False):
             pass
 
     if details:
-        del x["details"]
+        # Models that drop Dallinger SharedMixin fields (e.g. Trial) omit details.
+        x.pop("details", None)
 
     if contents:
-        del x["contents"]
+        x.pop("contents", None)
 
     if "metadata_" in x and "metadata" in x:
         del x["metadata_"]
