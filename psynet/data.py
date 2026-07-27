@@ -799,7 +799,7 @@ def export_assets(
     else:
         from .asset import Asset as base_class
 
-    # Selected assets are exported regardless of the personal flag.
+    # Selected assets are always exported when requested.
     asset_ids = [a.id for a in db.session.query(base_class.id)]
 
     n_jobs = 1  # todo - fix - parallel (SSH?) export seems to cause a deadlock, so we disable it for now

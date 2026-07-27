@@ -11,7 +11,7 @@ from dominate.dom_tag import dom_tag
 from dominate.util import raw
 from markupsafe import Markup
 
-from .asset import Asset, LocalStorage
+from .asset import _PERSONAL_ARG_REMOVED, Asset, LocalStorage, _reject_personal_arg
 from .bot import BotResponse
 from .chatroom import ChatRoom  # noqa: F401
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
@@ -3468,10 +3468,6 @@ class AudioRecordControl(RecordControl):
     num_channels
         The number of channels used to record the audio. Default is mono (`num_channels=1`).
 
-    personal
-        Whether the recording should be marked as 'personal' and hence excluded from 'scrubbed' data exports.
-        Default: `True`.
-
     **kwargs
         Further arguments passed to :class:`~psynet.modular_page.RecordControl`
     """
@@ -3485,16 +3481,16 @@ class AudioRecordControl(RecordControl):
         controls: bool = False,
         loop_playback: bool = False,
         num_channels: int = 1,
-        personal=True,
+        personal=_PERSONAL_ARG_REMOVED,
         bot_response_media: Optional[Union[dict, str]] = None,
         **kwargs,
     ):
+        _reject_personal_arg(personal)
         super().__init__(**kwargs)
 
         self.controls = controls
         self.loop_playback = loop_playback
         self.num_channels = num_channels
-        self.personal = personal
         self.bot_response_media = bot_response_media
 
     def format_answer(self, raw_answer, **kwargs):
@@ -3522,7 +3518,6 @@ class AudioRecordControl(RecordControl):
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 parent=parent,
-                personal=self.personal,
             )
 
             async_ = not isinstance(asset.default_storage, LocalStorage)
@@ -3604,10 +3599,6 @@ class VideoRecordControl(RecordControl):
 
     mirrored
         Whether the preview of the video is displayed as if looking into a mirror. Default: `True`.
-
-    personal
-        Whether the recording should be marked as 'personal' and hence excluded from 'scrubbed' data exports.
-        Default: `True`.
     """
 
     macro = "video_record"
@@ -3624,10 +3615,11 @@ class VideoRecordControl(RecordControl):
         controls: bool = False,
         loop_playback: bool = False,
         mirrored: bool = True,
-        personal: bool = True,
+        personal=_PERSONAL_ARG_REMOVED,
         bot_response_media: Optional[str] = None,
         **kwargs,
     ):
+        _reject_personal_arg(personal)
         super().__init__(**kwargs)
 
         self.recording_source = recording_source
@@ -3638,7 +3630,6 @@ class VideoRecordControl(RecordControl):
         self.controls = controls
         self.loop_playback = loop_playback
         self.mirrored = mirrored
-        self.personal = personal
         self.bot_response_media = bot_response_media
 
         if self.record_audio is False:
@@ -3682,7 +3673,6 @@ class VideoRecordControl(RecordControl):
                     input_path=tmp_file.name,
                     extension=self.file_extension,
                     parent=parent,
-                    personal=self.personal,
                 )
 
                 try:

@@ -59,7 +59,9 @@ def _db_dsn() -> str:
     return db.db_url
 
 
-def copy_database_to_csv_dir(csv_dir: str, table_names: Optional[Iterable[str]] = None) -> list[str]:
+def copy_database_to_csv_dir(
+    csv_dir: str, table_names: Optional[Iterable[str]] = None
+) -> list[str]:
     """Copy each physical table to ``csv_dir/<table>.csv`` via PostgreSQL COPY.
 
     Returns
@@ -153,7 +155,9 @@ def write_export_manifest(
 
         deployment_id = get_experiment().deployment_id
     except Exception:
-        logger.debug("Could not resolve deployment_id for export manifest.", exc_info=True)
+        logger.debug(
+            "Could not resolve deployment_id for export manifest.", exc_info=True
+        )
 
     manifest = {
         "created_at": datetime.now(timezone.utc).isoformat(),

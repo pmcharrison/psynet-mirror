@@ -7,4 +7,5 @@ The ``--anonymize`` flag and class-based ORM CSV export have been removed. Analy
 helpers ``load_export_table``, ``unpack_json_column``, and
 ``merge_participant_identifiers`` are provided under ``psynet.export``. The
 ``extra_var`` registry and implicit VarStore flattening have been removed; runtime
-properties created with ``claim_var`` are preserved.
+properties created with ``claim_var`` are preserved. Selected assets are always
+exported when requested.

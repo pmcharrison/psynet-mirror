@@ -54,7 +54,6 @@ def run(
             input_path=item["input_path"],
             key_within_experiment=f"asset_benchmark/{item['key']}",
             extension=".bin",
-            personal=False,
             obfuscate=0,
         )
         asset.deposit(storage=storage)

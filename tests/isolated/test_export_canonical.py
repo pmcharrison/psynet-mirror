@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import csv
-import json
 import zipfile
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from psynet.export.analysis import (
     load_export_table,
@@ -89,7 +87,11 @@ def test_identifier_separation_writes_sidecars_and_pseudonyms(tmp_path):
             },
         ],
     )
-    _write_csv(raw_dir / "trial.csv", ["id", "participant_id"], [{"id": "1", "participant_id": "7"}])
+    _write_csv(
+        raw_dir / "trial.csv",
+        ["id", "participant_id"],
+        [{"id": "1", "participant_id": "7"}],
+    )
 
     sidecars = write_identifier_sidecars_from_csv_dir(str(raw_dir), str(export_path))
     apply_identifier_separation_to_csv_dir(
@@ -142,16 +144,14 @@ def test_analysis_helpers_round_trip(tmp_path):
     with zipfile.ZipFile(database_zip, "w") as archive:
         archive.writestr(
             "data/trial.csv",
-            "id,definition\n1,\"{\"\"animal\"\": \"\"cat\"\"}\"\n",
+            'id,definition\n1,"{""animal"": ""cat""}"\n',
         )
 
     trials = load_export_table(str(database_zip), "trial")
     unpacked = unpack_json_column(trials, "definition")
     assert unpacked.iloc[0]["animal"] == "cat"
 
-    identifiers = pd.DataFrame(
-        [{"participant_id": 1, "worker_id": "worker-1"}]
-    )
+    identifiers = pd.DataFrame([{"participant_id": 1, "worker_id": "worker-1"}])
     frame = pd.DataFrame([{"participant_id": 1, "score": 3}])
     merged = merge_participant_identifiers(frame, identifiers)
     assert merged.iloc[0]["worker_id"] == "worker-1"

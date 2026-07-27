@@ -69,8 +69,8 @@ This can slow down data export if you have many files. You can disable this beha
 
     psynet export ssh --app my-app-name --assets none
 
-Selected assets are exported regardless of whether they were marked personal.
-Identifier separation applies to database tables only.
+Selected assets are always exported when requested. Treat exported media as
+potentially identifying.
 
 By default the export command will also try to export the experiment's source code.
 If you experience an error during source code exporting, we recommend using the ``--no-source`` argument:

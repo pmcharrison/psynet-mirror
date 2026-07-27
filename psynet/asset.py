@@ -53,6 +53,20 @@ from .utils import (
 logger = get_logger()
 
 
+_PERSONAL_ARG_REMOVED = object()
+
+
+def _reject_personal_arg(personal):
+    """Raise if callers still pass the removed ``personal`` asset flag."""
+    if personal is not _PERSONAL_ARG_REMOVED:
+        raise TypeError(
+            "The Asset 'personal' argument has been removed. "
+            "PsyNet no longer excludes assets from exports based on this flag; "
+            "selected assets are always exported. Treat exported media as "
+            "potentially identifying and manage sharing yourself."
+        )
+
+
 def filter_botocore_deprecation_warnings():
     boto3.compat.filter_python_deprecation_warnings()
 
@@ -199,8 +213,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     module_id : str
         The module within which the asset is located.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
 
     Attributes
@@ -333,7 +345,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     network_id = Column(Integer, ForeignKey("network.id"), index=True)
 
     description = Column(String)
-    personal = Column(Boolean)
     content_id = Column(String)
     host_path = Column(String)
     url = Column(String)
@@ -522,7 +533,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         extension=None,
         parent=None,
         module_id=None,
-        personal=False,
+        personal=_PERSONAL_ARG_REMOVED,
     ):
         self.deposit_on_the_fly = True
         self.key_within_module = key_within_module
@@ -563,7 +574,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             if self.participant.module_state:
                 self.module_state = self.participant.module_state
 
-        self.personal = personal
+        _reject_personal_arg(personal)
 
         super().__init__(
             local_key, key_within_module, key_within_experiment, description
@@ -946,8 +957,6 @@ class ManagedAsset(Asset):
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
         infer the ``module_id`` from the ``parent`` parameter, if provided.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -1081,7 +1090,7 @@ class ManagedAsset(Asset):
         extension=None,
         parent=None,
         module_id=None,
-        personal=False,
+        personal=_PERSONAL_ARG_REMOVED,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         self.deposited = False
@@ -1248,8 +1257,6 @@ class ExperimentAsset(ManagedAsset):
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
         infer the ``module_id`` from the ``parent`` parameter, if provided.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -1441,8 +1448,6 @@ class CachedAsset(ManagedAsset):
         Identifies the module with which the asset should be associated. If left blank, PsyNet will attempt to
         infer the ``module_id`` from the ``parent`` parameter, if provided.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -1645,7 +1650,7 @@ class FunctionAssetMixin:
         key_within_experiment=None,
         module_id=None,
         parent=None,
-        personal=False,
+        personal=_PERSONAL_ARG_REMOVED,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         if arguments is None:
@@ -1794,8 +1799,6 @@ class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -1925,7 +1928,7 @@ class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
         extension=None,
         module_id: Optional[str] = None,
         parent=None,
-        personal=False,
+        personal=_PERSONAL_ARG_REMOVED,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         super().__init__(
@@ -1999,7 +2002,7 @@ class FastFunctionAsset(OnDemandAsset):
         extension=None,
         module_id: Optional[str] = None,
         parent=None,
-        personal=False,
+        personal=_PERSONAL_ARG_REMOVED,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         warnings.warn(
@@ -2075,8 +2078,6 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     parent : object
         The object that 'owns' the asset, if applicable, for example a Participant or a Node.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
     obfuscate : int
         Determines the extent to which the asset's generated URL should be obfuscated. By default, ``obfuscate=1``,
@@ -2242,8 +2243,6 @@ class ExternalAsset(Asset):
     module_id : str
         The module within which the asset is located.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
     Attributes
     ----------
@@ -2350,7 +2349,7 @@ class ExternalAsset(Asset):
         extension=None,
         parent=None,
         module_id=None,
-        personal=False,
+        personal=_PERSONAL_ARG_REMOVED,
     ):
         self.host_path = url
         self.url = url
@@ -2420,7 +2419,7 @@ class ExternalS3Asset(ExternalAsset):
         data_type=None,
         module_id=None,
         parent=None,
-        personal=False,
+        personal=_PERSONAL_ARG_REMOVED,
     ):
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
@@ -3578,7 +3577,7 @@ def asset(  # noqa: F841
     extension=None,
     parent=None,
     module_id=None,
-    personal=False,
+    personal=_PERSONAL_ARG_REMOVED,
 ):
     """
     Create an asset.
@@ -3641,8 +3640,6 @@ def asset(  # noqa: F841
     module_id : str
         The module within which the asset is located.
 
-    personal : bool
-        Whether the asset is 'personal' and hence omitted from anonymous database exports.
 
     Returns
     -------
@@ -3653,7 +3650,9 @@ def asset(  # noqa: F841
         - CachedFunctionAsset: For assets generated by a function and cached between experiment launches
         - OnDemandAsset: For assets generated by a function on demand
     """
+    _reject_personal_arg(personal)
     kwargs = locals()
+    kwargs.pop("personal")
 
     if callable(source):
         return _function_asset(**kwargs)

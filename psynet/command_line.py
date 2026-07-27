@@ -2698,8 +2698,8 @@ def export_assets(
 ):
     """Export selected assets into ``export_path/assets``.
 
-    Selected assets are exported regardless of the ``personal`` flag. Identifier
-    separation applies to database tables only.
+    Treat exported media as potentially identifying; identifier separation
+    applies to database tables only.
     """
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.

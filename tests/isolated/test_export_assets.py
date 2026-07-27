@@ -60,18 +60,15 @@ class TestAssetExport:
         data_root_dir,
         ctx,
     ):
-        # Creating a couple of personal and non-personal assets
+        # Creating experiment assets with different keys
         with tempfile.NamedTemporaryFile("w") as file:
             file.write("Test asset")
-            asset = ExperimentAsset(
-                local_key="test_personal_asset", input_path=file.name, personal=True
-            )
+            asset = ExperimentAsset(local_key="test_marked_asset", input_path=file.name)
             asset.deposit()
 
             asset_2 = ExperimentAsset(
                 local_key="test_public_asset",
                 input_path=file.name,
-                personal=False,
             )
             asset_2.deposit()
 
@@ -86,6 +83,11 @@ class TestAssetExport:
                 local_key="test_on_demand_asset",
             )
             asset_4.deposit()
+
+            with pytest.raises(TypeError, match="personal"):
+                ExperimentAsset(
+                    local_key="should_fail", input_path=file.name, personal=True
+                )
 
         db.session.commit()
 
@@ -135,7 +137,7 @@ class TestAssetExport:
                 assert os.path.exists(path) and os.path.isdir(path)
 
                 assert os.path.exists(
-                    os.path.join(tempdir, "assets", "common", "test_personal_asset")
+                    os.path.join(tempdir, "assets", "common", "test_marked_asset")
                 )
                 assert os.path.exists(
                     os.path.join(tempdir, "assets", "common", "test_public_asset")
@@ -155,7 +157,7 @@ class TestAssetExport:
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(export__local, path=tempdir, assets="all", legacy=legacy)
                 assert os.path.exists(
-                    os.path.join(tempdir, "assets", "common", "test_personal_asset")
+                    os.path.join(tempdir, "assets", "common", "test_marked_asset")
                 )
                 assert os.path.exists(
                     os.path.join(
