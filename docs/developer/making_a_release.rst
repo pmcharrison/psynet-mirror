@@ -36,6 +36,11 @@ Overview
    * Fold the changelog fragments into a release section with
      ``psynet dev changelog release X.Y.Z YYYY-MM-DD``.
    * Bump the version in ``psynet/version.py`` and ``pyproject.toml``.
+   * Update :doc:`/whats_new/index` when the release includes experimenter-facing
+     highlights or breaking changes. Add or revise the matching version page
+     (for example ``docs/whats_new/psynet_14.rst``) so authors get a short,
+     readable summary and a clear upgrade pointer. Skip this only for
+     patch-only releases with nothing meaningful to say there.
    * Regenerate the bundled demo and test experiments with
      ``psynet dev experiments update``.
 

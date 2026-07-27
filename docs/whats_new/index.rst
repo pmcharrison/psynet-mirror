@@ -1,10 +1,11 @@
 What's new
 ==========
 
-Short notes on PsyNet releases that affect existing experiments. These pages
-focus on what changed and whether you need to act. For step-by-step migration
-in Cursor, use the repo-local ``/upgrade-to-psynet-14`` skill (and later
-version-specific upgrade skills as they appear).
+Highlights from recent PsyNet releases — what is exciting for experiment
+authors, plus where to go when a release needs migration work.
+
+For step-by-step PsyNet 14 migrations in Cursor, use the repo-local
+``/upgrade-to-psynet-14`` skill.
 
 .. toctree::
    :maxdepth: 1

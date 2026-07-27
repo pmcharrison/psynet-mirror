@@ -2,35 +2,28 @@
 PsyNet 14
 =========
 
-PsyNet 14 is a breaking release. In-place timeline transitions are the default:
-participants usually stay on the same browser document while PsyNet swaps page
-content, styles, and managed JavaScript.
+PsyNet 14 makes timeline navigation feel like a modern web app.
 
-What matters for existing experiments
--------------------------------------
+Instead of reloading the whole browser page every time a participant moves
+on, PsyNet keeps the experiment open and swaps in the next step in place.
+That means smoother transitions, less waiting on repeated page loads, and a
+better chance of preserving useful browser state — audio, video, and custom
+frontends included — as people move through the timeline.
 
-* **Default navigation changed.** Custom pages that still use a complete
-  ``timeline-page.html`` template, or author-owned templates with raw
-  ``<script>`` / ``<style>`` / stylesheet ``<link>`` tags, now error under the
-  default. Prefer fragment templates and explicit asset arguments; see
+Under the hood this is powered by clearer page lifecycle APIs for templates,
+styles, and JavaScript, so custom pages can take part in that fluent
+navigation instead of fighting a full reload on every step.
+
+Upgrading
+---------
+
+PsyNet 14 is a breaking release for some custom frontends. If you are updating
+an existing experiment:
+
+* Start from the author-facing frontend guide:
   :doc:`/tutorials/writing_custom_frontends`.
-* **Temporary opt-out.** Set ``inplace_timeline_transitions = false`` if you
-  need the old full-reload path while migrating. Plan to remove it.
-* **Page JavaScript APIs.** Prefer ``js_dependencies``, ``js_page_code``, and
-  ``js_page_modules``. Deprecated ``js_links`` / ``scripts`` still work but
-  force a full page reload.
-* **Page variables.** Read ``js_vars`` through ``psynet.var``. Legacy
-  ``window`` access is controlled by ``legacy_js_var_globals``
-  (``warn`` / ``error`` / ``off``).
-* **JsPsych timelines.** ``JsPsychPage`` takes a JavaScript module exporting
-  ``buildTimeline(context)``, not an HTML/Jinja template. See
-  ``demos/experiments/jspsych``.
-* **Timing.** Do not rely on ``DOMContentLoaded`` for per-page setup; prefer
-  trial events such as ``pageReady`` or ``trialConstruct``.
-
-Getting help migrating
-----------------------
-
-* In Cursor, run ``/upgrade-to-psynet-14``.
-* Deeper frontend patterns: :doc:`/tutorials/writing_custom_frontends`.
-* Maintainer lifecycle detail: :doc:`/developer/page_lifecycle`.
+* In Cursor, run the repo-local ``/upgrade-to-psynet-14`` skill for a
+  step-by-step migration.
+* If you need the old full-reload behavior temporarily while migrating, set
+  ``inplace_timeline_transitions = false``, then remove it once the experiment
+  is ready for the default.

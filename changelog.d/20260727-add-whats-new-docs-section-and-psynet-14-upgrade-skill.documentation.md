@@ -1,1 +1,1 @@
-Added a What's new documentation section with short PsyNet 14 author-facing release notes, relocated the PsyNet 10 upgrade notes there, and added a repo-local ``/upgrade-to-psynet-14`` Cursor skill for full migrations.
+Added a What's new documentation section with short PsyNet 14 author-facing highlights, relocated the PsyNet 10 notes there, added a repo-local ``/upgrade-to-psynet-14`` Cursor skill for migrations, and documented updating What's new as part of the release process.
