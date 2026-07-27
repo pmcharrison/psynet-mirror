@@ -1,1 +1,1 @@
-Added a clearer interactive menu when ``psynet setup`` detects PsyNet's shared checkout environment: plain-language explanation, numeric choices with create-dedicated-``.venv`` recommended by default, plus prepare-files-only and risky shared-sync options.
+Added a clearer interactive menu when ``psynet setup`` detects PsyNet's shared checkout environment: plain-language explanation, numeric choices with create-dedicated-``.venv`` as the recommended default (exits successfully with next steps, not as an abort), plus prepare-files-only and risky shared-sync options.
