@@ -1197,7 +1197,7 @@ def test_setup_prompts_to_preserve_editable_psynet(tmp_path, monkeypatch):
     )
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"], input="editable\n")
+        result = CliRunner().invoke(psynet, ["setup"], input="1\n")
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "requirements.txt").read_text() == (
@@ -1313,6 +1313,7 @@ def test_setup_shared_env_noninteractive_requires_explicit_flag(tmp_path, monkey
     assert result.exit_code != 0
     assert "--prepare-only" in result.output
     assert "--force-shared-env" in result.output
+    assert "uv venv" in result.output
     assert not (tmp_path / "Dockerfile").exists()
 
 
@@ -1390,7 +1391,7 @@ def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypa
     )
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"], input="cancel\n")
+        result = CliRunner().invoke(psynet, ["setup"], input="1\n")
 
     assert result.exit_code != 0
     assert "Aborted setup" in result.output
@@ -1419,11 +1420,66 @@ def test_setup_shared_env_interactive_prepare_only(tmp_path, monkeypatch):
     )
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"], input="prepare-only\n")
+        result = CliRunner().invoke(psynet, ["setup"], input="2\n")
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "Dockerfile").exists()
     assert "without synchronizing dependencies" in result.output
+
+
+def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
+    calls = []
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda args, description: calls.append((args, description)),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="3\n")
+
+    assert result.exit_code != 0
+    assert calls == [
+        (["venv", "--python=3.13"], "create a dedicated experiment virtual environment")
+    ]
+    assert "source .venv/bin/activate" in result.output
+    assert "psynet setup" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
+    assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
+
+
+def test_setup_shared_env_interactive_new_venv_rejects_existing_venv(
+    tmp_path, monkeypatch
+):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / ".venv").mkdir()
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args: pytest.fail("must not recreate an existing .venv"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="3\n")
+
+    assert result.exit_code != 0
+    assert "already exists" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
 
 
 def test_setup_shared_env_interactive_sync(tmp_path, monkeypatch):
@@ -1448,7 +1504,7 @@ def test_setup_shared_env_interactive_sync(tmp_path, monkeypatch):
     )
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"], input="sync\n")
+        result = CliRunner().invoke(psynet, ["setup"], input="4\n")
 
     assert result.exit_code == 0, result.output
     assert "can remove packages" in result.output

@@ -129,6 +129,62 @@ def _is_interactive():
     return sys.stdin.isatty()
 
 
+def _prompt_numeric_choice(title, options, *, default_index=0):
+    """Prompt for a 1-based numeric choice from ``options``.
+
+    Parameters
+    ----------
+    title :
+        Prompt label shown after the option list.
+    options :
+        Sequence of ``(value, description)`` pairs. ``value`` is returned when
+        selected; ``description`` is shown to the user.
+    default_index :
+        Zero-based index of the default option.
+    """
+    if not options:
+        raise ValueError("options must not be empty")
+    if not 0 <= default_index < len(options):
+        raise ValueError("default_index is out of range")
+
+    for index, (_value, description) in enumerate(options, start=1):
+        marker = " (default)" if index - 1 == default_index else ""
+        click.echo(f"  {index}. {description}{marker}")
+
+    choice = click.prompt(
+        title,
+        type=click.IntRange(1, len(options)),
+        default=default_index + 1,
+    )
+    return options[choice - 1][0]
+
+
+def _create_dedicated_experiment_virtualenv():
+    """Create ``./.venv`` for a standalone experiment and print re-run steps."""
+    venv_path = Path(".venv")
+    if venv_path.exists():
+        raise click.UsageError(
+            "A .venv directory already exists here. Activate it with "
+            "'source .venv/bin/activate' and re-run 'psynet setup', or remove it "
+            "first if you want setup to recreate it."
+        )
+
+    _run_uv(
+        ["venv", f"--python={_recommended_python()}"],
+        "create a dedicated experiment virtual environment",
+    )
+    click.echo("Created ./.venv. Activate it and re-run setup:")
+    click.echo("  source .venv/bin/activate")
+    click.echo("  psynet setup")
+
+
+def _recommended_python():
+    """Return the recommended Python major.minor for new experiment venvs."""
+    from .version import recommended_python_major_minor
+
+    return recommended_python_major_minor
+
+
 def _is_psynet_checkout_virtualenv():
     """Return whether the active interpreter is PsyNet's shared checkout ``.venv``.
 
@@ -153,7 +209,9 @@ def _warn_shared_checkout_sync():
 def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
     """Decide how setup should treat PsyNet's shared checkout virtualenv.
 
-    Returns ``"prepare-only"`` or ``"sync"``. Raises on cancel or invalid flags.
+    Returns ``"prepare-only"`` or ``"sync"``. Raises on cancel, new-venv, or
+    invalid flags. The ``new-venv`` path creates ``./.venv`` then aborts so the
+    user can activate it and re-run setup.
     """
     if prepare_only and force_shared_env:
         raise click.UsageError(
@@ -179,29 +237,42 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
         raise click.UsageError(
             "The active virtual environment appears to be PsyNet's shared "
             "checkout environment. Refusing to synchronize without an explicit "
-            "choice. Use --prepare-only to scaffold and generate constraints "
-            "without syncing, --force-shared-env to sync anyway (this can remove "
-            "packages from the shared PsyNet development environment), or cancel "
-            "by not running setup."
+            "choice. Create a dedicated environment with "
+            f"'uv venv --python={_recommended_python()}', activate it, and "
+            "re-run setup; or use --prepare-only to scaffold and generate "
+            "constraints without syncing; or use --force-shared-env to sync "
+            "anyway (this can remove packages from the shared PsyNet "
+            "development environment)."
         )
 
     click.echo(
         "The active virtual environment appears to be PsyNet's shared checkout "
         "environment."
     )
-    click.echo(
-        "Choose 'cancel' to abort with no changes, 'prepare-only' to scaffold "
-        "and generate constraints without syncing, or 'sync' to synchronize "
-        "anyway (this can remove packages from the shared PsyNet development "
-        "environment)."
-    )
-    choice = click.prompt(
+    choice = _prompt_numeric_choice(
         "Shared environment action",
-        type=click.Choice(["cancel", "prepare-only", "sync"]),
-        default="cancel",
+        [
+            ("cancel", "Cancel — abort with no changes"),
+            (
+                "prepare-only",
+                "Prepare only — scaffold and generate constraints without syncing",
+            ),
+            (
+                "new-venv",
+                "New venv — create ./.venv here, then re-run setup after activating it",
+            ),
+            (
+                "sync",
+                "Sync — synchronize the shared environment anyway (can remove packages)",
+            ),
+        ],
+        default_index=0,
     )
     if choice == "cancel":
         click.echo("Aborted setup; no experiment or environment changes were made.")
+        raise click.Abort()
+    if choice == "new-venv":
+        _create_dedicated_experiment_virtualenv()
         raise click.Abort()
     if choice == "sync":
         _warn_shared_checkout_sync()
@@ -247,14 +318,14 @@ def _choose_editable_psynet_requirement(source, requested_source):
                 f"should represent it with one of: {options}."
             )
         click.echo(f"PsyNet is installed editable from {source}.")
-        click.echo(
-            "Choose 'editable' to include local changes, 'commit' for a portable "
-            "Git pin from this checkout's origin remote, or 'existing' to retain "
-            "the current requirements entry."
-        )
-        requested_source = click.prompt(
+        descriptions = {
+            "editable": "Editable — include local changes from this checkout",
+            "commit": ("Commit — portable Git pin from this checkout's origin remote"),
+            "existing": "Existing — retain the current requirements entry",
+        }
+        requested_source = _prompt_numeric_choice(
             "PsyNet source",
-            type=click.Choice(choices),
+            [(choice, descriptions[choice]) for choice in choices],
         )
     elif requested_source not in choices:
         raise click.UsageError(
