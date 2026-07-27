@@ -1,1 +1,1 @@
-Started trials only after page readiness, preventing fast auto-advance behavior from being blocked, and cleaned persistent jsPsych listeners between pages.
+Trials and WaitPage auto-advance now wait for ``pageReady``, so pages cannot start or auto-advance while navigation setup is still in progress.
