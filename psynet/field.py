@@ -110,7 +110,20 @@ def claim_var(
         Transform applied before writing to VarStore.
     unserialise :
         Transform applied after reading from VarStore.
+
+    Notes
+    -----
+    Older code passed a second ``extra_vars`` dict
+    (``claim_var("x", __extra_vars__)``). That argument is no longer accepted;
+    passing a dict raises ``TypeError`` so missing vars are not silently turned
+    into ``use_default=True``.
     """
+    if isinstance(use_default, dict):
+        raise TypeError(
+            "claim_var() no longer accepts an extra_vars dict as its second "
+            "argument. Use claim_var(name) (and optionally use_default=..., "
+            "default=...); the extra_var export registry has been removed."
+        )
 
     @property
     def function(self):

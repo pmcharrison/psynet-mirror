@@ -2830,10 +2830,9 @@ def assets_cache_list(cache_root):
     help="Override the default cache root directory.",
 )
 def assets_cache_prune(prune_all, yes, cache_root):
-    """Remove objects from the local asset cache.
+    """Remove every object from the local asset cache.
 
-    Use --all to delete everything, or pass specific digests as arguments
-    (not yet implemented; use --all for now).
+    Requires ``--all``.
     """
     from .export.asset_cache import (
         default_cache_root,

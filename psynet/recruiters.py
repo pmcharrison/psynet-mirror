@@ -601,15 +601,18 @@ class LucidRID(SQLBase, SQLMixin):
             self.participant_id = participant.id
 
     def resolve_participant(self):
-        """Return the linked participant, linking by ``rid`` if needed."""
+        """Return the linked participant, looking up by ``rid`` if needed.
+
+        This method is read-only: it does not persist ``participant_id``.
+        Durable linking happens at participant creation via
+        :meth:`link_participant`.
+        """
         if self.participant_id is not None:
             return self.participant
         try:
-            participant = Participant.query.filter_by(worker_id=self.rid).one()
+            return Participant.query.filter_by(worker_id=self.rid).one()
         except NoResultFound:
             return None
-        self.link_participant(participant)
-        return participant
 
     def to_dict(self):
         return {

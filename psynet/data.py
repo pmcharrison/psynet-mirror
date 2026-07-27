@@ -842,12 +842,9 @@ def export_assets(
             # External assets are URL-only in the manifest.
             row["object_path"] = None
             row["sha256_contents"] = None
-        elif isinstance(asset, OnDemandAsset):
-            if include_on_demand_assets:
-                asset_ids_needing_bytes.append(asset.id)
-            else:
-                continue
         else:
+            # OnDemand assets are already excluded when include_on_demand_assets
+            # is false (see filter above).
             asset_ids_needing_bytes.append(asset.id)
         manifest_rows.append(row)
 

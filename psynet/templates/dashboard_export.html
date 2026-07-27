@@ -4,11 +4,26 @@
 {{ super() }}
 
 <script>
-    function exportData() {
-        let assets = $('input[name="assets"]:checked').val();
+    function syncAssetControls() {
         let type = $('input[name="type"]:checked').val();
+        let assetInputs = $('input[name="assets"]');
+        let databaseOnly = type === "database";
+        assetInputs.prop("disabled", databaseOnly);
+        $("#assets-controls").toggleClass("text-muted", databaseOnly);
+    }
+
+    function exportData() {
+        let type = $('input[name="type"]:checked').val();
+        let assets = type === "database"
+            ? "none"
+            : $('input[name="assets"]:checked').val();
         window.location.href = "/dashboard/export/download?assets=" + assets + "&type=" + type;
     }
+
+    $(function () {
+        $('input[name="type"]').on("change", syncAssetControls);
+        syncAssetControls();
+    });
 </script>
 {% endblock %}
 
@@ -27,7 +42,7 @@
 
 <div id="dashboard-participant">
     <div class="row">
-        <div class="col-4">
+        <div class="col-4" id="assets-controls">
             <b>Assets</b>
             <div class="form-check">
                 <input type="radio" id="input-assets-none" class="form-check-input" name="assets" value="none">
@@ -75,6 +90,7 @@
         <br>
         Asset mode <em>collected</em> exports managed deposits from this deployment (e.g. recordings).
         <em>All</em> also includes pre-existing stimuli (cached/external) and generates on-demand assets.
+        Asset mode is ignored for <em>Database snapshot</em> exports.
     </p>
         <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
     <div class="alert alert-info mt-3">

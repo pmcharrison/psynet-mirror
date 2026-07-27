@@ -162,9 +162,8 @@ class TestCreateAndSelectBasic(TestExp):
 
         assert trials[0].answer == "testA", "First trial should have answer 'testA'"
         assert trials[1].answer == "testB", "Second trial should have answer 'testB'"
-        (
-            all([trial.answer == "Trial-1-CreateTrial" for trial in select_trials]),
-            "All select trials should have answer 'Trial-1-CreateTrial'",
+        assert all(trial.answer == "Trial-1-CreateTrial" for trial in select_trials), (
+            "All select trials should have answer 'Trial-1-CreateTrial'"
         )
         assert f"{trials[0]}" == "Trial-1-CreateTrial", (
             "First trial should be 'Trial-1-CreateTrial'"

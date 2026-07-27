@@ -1286,7 +1286,7 @@ class ExperimentAsset(ManagedAsset):
             asset.deposit()
     """
 
-    folder = "experiments"
+    # Content-addressed storage uses objects/sha256/<digest>; no semantic folder.
 
 
 class CachedAsset(ManagedAsset):
