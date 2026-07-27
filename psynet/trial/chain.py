@@ -71,18 +71,33 @@ def count_viable_trials_for_node(node_id: int) -> int:
     return count_viable_trials_for_nodes([node_id]).get(node_id, 0)
 
 
-def count_completed_trials_for_network(network_id: int) -> int:
-    """Count completed, non-failed, non-repeat trials in a network."""
-    return (
-        db.session.query(func.count(Trial.id))
+def count_completed_trials_for_networks(
+    network_ids: Iterable[int],
+) -> dict[int, int]:
+    """Return completed trial counts keyed by network id.
+
+    Counts completed, non-failed, non-repeat trials.
+    """
+    ids = [network_id for network_id in network_ids if network_id is not None]
+    if not ids:
+        return {}
+    rows = (
+        db.session.query(Trial.network_id, func.count(Trial.id))
         .filter(
-            Trial.network_id == network_id,
+            Trial.network_id.in_(ids),
             ~Trial.failed,
             Trial.complete,
             ~Trial.is_repeat_trial,
         )
-        .scalar()
+        .group_by(Trial.network_id)
+        .all()
     )
+    return {network_id: count for network_id, count in rows}
+
+
+def count_completed_trials_for_network(network_id: int) -> int:
+    """Count completed, non-failed, non-repeat trials in a network."""
+    return count_completed_trials_for_networks([network_id]).get(network_id, 0)
 
 
 def count_participant_trials_in_trial_maker(module_state_id: int) -> int:
@@ -1704,7 +1719,17 @@ class ChainTrialMaker(NetworkTrialMaker):
     @property
     def n_trials_still_required(self):
         assert self.chain_type == "across"
-        return sum([network.n_trials_still_required for network in self.networks])
+        networks = list(self.networks)
+        for network in networks:
+            assert network.target_n_trials is not None
+        incomplete = [network for network in networks if not network.full]
+        completed = count_completed_trials_for_networks(
+            network.id for network in incomplete
+        )
+        return sum(
+            network.target_n_trials - completed.get(network.id, 0)
+            for network in incomplete
+        )
 
     #########################
     # Participated networks #
