@@ -4,26 +4,10 @@
 {{ super() }}
 
 <script>
-    function syncAssetControls() {
-        let type = $('input[name="type"]:checked').val();
-        let assetInputs = $('input[name="assets"]');
-        let databaseOnly = type === "database";
-        assetInputs.prop("disabled", databaseOnly);
-        $("#assets-controls").toggleClass("text-muted", databaseOnly);
-    }
-
     function exportData() {
-        let type = $('input[name="type"]:checked').val();
-        let assets = type === "database"
-            ? "none"
-            : $('input[name="assets"]:checked').val();
-        window.location.href = "/dashboard/export/download?assets=" + assets + "&type=" + type;
+        let assets = $('input[name="assets"]:checked').val();
+        window.location.href = "/dashboard/export/download?assets=" + assets;
     }
-
-    $(function () {
-        $('input[name="type"]').on("change", syncAssetControls);
-        syncAssetControls();
-    });
 </script>
 {% endblock %}
 
@@ -42,7 +26,7 @@
 
 <div id="dashboard-participant">
     <div class="row">
-        <div class="col-4" id="assets-controls">
+        <div class="col-6" id="assets-controls">
             <b>Assets</b>
             <div class="form-check">
                 <input type="radio" id="input-assets-none" class="form-check-input" name="assets" value="none">
@@ -61,40 +45,25 @@
             <div class="form-check">
                 <input type="radio" id="input-assets-all" class="form-check-input" name="assets" value="all">
                 <label class="form-check-label" for="input-assets-all">
-                    All (including stimuli and generated)
-                </label>
-            </div>
-        </div>
-        <div class="col-4">
-            <b>Type</b>
-            <div class="form-check">
-                <input type="radio" id="input-type-psynet" class="form-check-input" name="type" value="psynet" checked>
-                <label class="form-check-label" for="input-type-psynet">
-                    PsyNet full export
-                </label>
-            </div>
-            <div class="form-check">
-                <input type="radio" id="input-type-database" class="form-check-input" name="type"
-                       value="database">
-                <label class="form-check-label" for="input-type-database">
-                    Database snapshot
+                    All (including stimuli and participant-generated files)
                 </label>
             </div>
         </div>
     </div>
     <p class="mt-3 mb-2">
-        Exports use identifier separation: <code>database.zip</code> contains pseudonymous
-        participant identifiers, and original recruiter identifiers are written beside it in
-        <code>participant_identifiers.csv</code>. This is not anonymization of assets, free text,
-        logs, or experiment-defined basic data.
+        Downloads <code>export.zip</code> containing table CSVs under <code>database/</code>,
+        plus <code>participant_identifiers.csv</code> with original recruiter IDs.
+        Database tables use pseudonymous IDs so the archive stays loadable; this is
+        identifier separation, not anonymization of assets, free text, logs, or
+        experiment-defined basic data.
         <br>
-        Asset mode <em>collected</em> exports managed deposits from this deployment (e.g. recordings).
-        <em>All</em> also includes pre-existing stimuli (cached/external) and generates on-demand assets.
-        Asset mode is ignored for <em>Database snapshot</em> exports.
+        Asset mode <em>Collected during the run</em> includes files uploaded or recorded
+        by participants (e.g. recordings). <em>All</em> also includes stimuli and
+        generates on-demand assets. Choose <em>None</em> to omit the assets folder.
     </p>
         <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
     <div class="alert alert-info mt-3">
-        If exporting via this button fails, we recommend trying instead to export via the command line, e.g.
+        If the button does not work, export from your experiment directory with the command line:
         <ul>
             <li><span class="monospace">psynet export local</span> (for local debugging)</li>
             <li><span class="monospace">psynet export ssh --server your-server-domain</span>

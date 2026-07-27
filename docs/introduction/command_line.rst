@@ -48,8 +48,9 @@ This command deploys an experiment, and enable the recruiter so you can collect 
     psynet deploy heroku --app my-app-name  # for deploying via Heroku
 
 (Experimental): It is possible to deploy an experiment that resurrects the state of a previous
-experiment deployment. To do this you add ``--archive path/to/database.zip`` where
-``path/to/database.zip`` is the path to the ``database.zip`` file created by a previous PsyNet export.
+experiment deployment. To do this you add ``--archive path/to/export.zip`` (or a
+``database/`` directory, or an extracted export directory containing ``database/``).
+Legacy ``database.zip`` archives with ``data/*.csv`` members are still accepted.
 
 
 .. _estimate:

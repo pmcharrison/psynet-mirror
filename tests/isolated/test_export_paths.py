@@ -1,0 +1,43 @@
+"""Tests for export archive path resolution."""
+
+from __future__ import annotations
+
+import zipfile
+from pathlib import Path
+
+import pytest
+
+from psynet.export.paths import (
+    find_table_member_in_zip,
+    resolve_database_dir,
+)
+
+
+def test_resolve_database_dir_variants(tmp_path: Path):
+    database = tmp_path / "database"
+    database.mkdir()
+    (database / "trial.csv").write_text("id\n1\n")
+    assert resolve_database_dir(str(database)) == str(database.resolve())
+
+    export_dir = tmp_path / "export"
+    nested = export_dir / "database"
+    nested.mkdir(parents=True)
+    (nested / "participant.csv").write_text("id\n1\n")
+    assert resolve_database_dir(str(export_dir)) == str(nested.resolve())
+
+
+def test_resolve_database_dir_rejects_zip(tmp_path: Path):
+    archive = tmp_path / "export.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("database/trial.csv", "id\n1\n")
+    with pytest.raises(ValueError, match="zip archive"):
+        resolve_database_dir(str(archive))
+
+
+def test_find_table_member_prefers_database_layout(tmp_path: Path):
+    archive_path = tmp_path / "mixed.zip"
+    with zipfile.ZipFile(archive_path, "w") as zf:
+        zf.writestr("data/trial.csv", "id\nlegacy\n")
+        zf.writestr("database/trial.csv", "id\nnew\n")
+    with zipfile.ZipFile(archive_path, "r") as archive:
+        assert find_table_member_in_zip(archive, "trial") == "database/trial.csv"

@@ -1,4 +1,4 @@
-"""PostgreSQL COPY-based database snapshot export."""
+"""COPY-based database table export into a flat ``database/`` directory."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import csv
 import io
 import json
 import os
+import shutil
 import tempfile
 import zipfile
 from datetime import datetime, timezone
@@ -22,6 +23,7 @@ from .identifiers import (
     apply_identifier_separation_to_csv_dir,
     write_identifier_sidecars_from_csv_dir,
 )
+from .paths import DATABASE_DIRNAME, find_table_member_in_zip, is_zip_path
 
 logger = get_logger()
 
@@ -85,22 +87,6 @@ def copy_database_to_csv_dir(
     return tables
 
 
-def _zip_csv_dir(csv_dir: str, zip_path: str, table_names: list[str]) -> None:
-    """Write ``data/<table>.csv`` members into ``zip_path`` using DEFLATE."""
-    make_parents(zip_path)
-    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for table in table_names:
-            member = f"data/{table}.csv"
-            source = os.path.join(csv_dir, f"{table}.csv")
-            if not os.path.exists(source):
-                logger.warning(
-                    "Skipping missing table CSV when building database.zip: %s",
-                    source,
-                )
-                continue
-            archive.write(source, member)
-
-
 def _count_csv_rows(path: str) -> int:
     with open(path, newline="") as handle:
         reader = csv.reader(handle)
@@ -108,15 +94,18 @@ def _count_csv_rows(path: str) -> int:
         return sum(1 for _ in reader)
 
 
+def _file_entry(path: str) -> dict:
+    return {"sha256": sha256_file(path), "bytes": os.path.getsize(path)}
+
+
 def write_export_manifest(
     export_path: str,
     *,
     table_names: list[str],
     csv_dir: str,
-    database_zip_path: str,
     extra_files: Optional[dict[str, str]] = None,
 ) -> str:
-    """Write ``manifest.json`` describing the snapshot."""
+    """Write ``manifest.json`` describing the export."""
     from psynet import __version__ as psynet_version
 
     try:
@@ -127,24 +116,17 @@ def write_export_manifest(
         dallinger_version = None
 
     row_counts = {}
+    files = {}
     for table in table_names:
         path = os.path.join(csv_dir, f"{table}.csv")
         if os.path.exists(path):
             row_counts[table] = _count_csv_rows(path)
+            files[f"{DATABASE_DIRNAME}/{table}.csv"] = _file_entry(path)
 
-    files = {
-        "database.zip": {
-            "sha256": sha256_file(database_zip_path),
-            "bytes": os.path.getsize(database_zip_path),
-        }
-    }
     if extra_files:
         for name, path in extra_files.items():
             if os.path.exists(path):
-                files[name] = {
-                    "sha256": sha256_file(path),
-                    "bytes": os.path.getsize(path),
-                }
+                files[name] = _file_entry(path)
 
     deployment_id = None
     try:
@@ -164,7 +146,6 @@ def write_export_manifest(
         "table_row_counts": row_counts,
         "files": files,
         "identifier_separation": True,
-        "anonymous": False,
     }
     manifest_path = os.path.join(export_path, "manifest.json")
     with open(make_parents(manifest_path), "w") as handle:
@@ -174,12 +155,12 @@ def write_export_manifest(
 
 
 def export_database_snapshot(export_path: str) -> dict:
-    """Export a pseudonymous ``database.zip`` plus identifier sidecars.
+    """Export pseudonymous table CSVs plus identifier sidecars.
 
     Parameters
     ----------
     export_path :
-        Directory that will receive ``database.zip``, identifier CSVs, and
+        Directory that will receive ``database/``, identifier CSVs, and
         ``manifest.json``.
 
     Returns
@@ -188,7 +169,9 @@ def export_database_snapshot(export_path: str) -> dict:
         Paths to the written artifacts.
     """
     os.makedirs(export_path, exist_ok=True)
-    database_zip_path = os.path.join(export_path, "database.zip")
+    database_dir = os.path.join(export_path, DATABASE_DIRNAME)
+    if os.path.exists(database_dir):
+        shutil.rmtree(database_dir)
 
     with tempfile.TemporaryDirectory() as tempdir:
         raw_dir = os.path.join(tempdir, "raw")
@@ -197,26 +180,29 @@ def export_database_snapshot(export_path: str) -> dict:
 
         sidecar_paths = write_identifier_sidecars_from_csv_dir(raw_dir, export_path)
         apply_identifier_separation_to_csv_dir(raw_dir, separated_dir, table_names)
-        _zip_csv_dir(separated_dir, database_zip_path, table_names)
+        shutil.copytree(separated_dir, database_dir)
 
         manifest_path = write_export_manifest(
             export_path,
             table_names=table_names,
-            csv_dir=separated_dir,
-            database_zip_path=database_zip_path,
+            csv_dir=database_dir,
             extra_files=sidecar_paths,
         )
 
     return {
-        "database_zip": database_zip_path,
+        "database_dir": database_dir,
         "manifest": manifest_path,
         **sidecar_paths,
     }
 
 
-def load_zip_table_to_stringio(database_zip: str, table: str) -> io.StringIO:
-    """Return a text buffer for ``data/<table>.csv`` inside a database zip."""
-    member = f"data/{table}.csv"
-    with zipfile.ZipFile(database_zip, "r") as archive:
+def load_zip_table_to_stringio(archive_path: str, table: str) -> io.StringIO:
+    """Return a text buffer for ``table`` from an export or legacy zip."""
+    if not is_zip_path(archive_path):
+        raise ValueError(f"Expected a zip archive, got {archive_path}")
+    with zipfile.ZipFile(archive_path, "r") as archive:
+        member = find_table_member_in_zip(archive, table)
+        if member is None:
+            raise KeyError(f"Table CSV for {table!r} not found in {archive_path}")
         with archive.open(member) as handle:
             return io.StringIO(handle.read().decode("utf-8"))

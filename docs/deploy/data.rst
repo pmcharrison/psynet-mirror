@@ -19,13 +19,13 @@ It is possible to perform certain actions on selected objects, such as marking t
 Exporting data from the dashboard
 =================================
 
-The 'export' section of the dashboard allows you to export data from the database.
-You can choose whether to include assets and whether to download a full PsyNet export
-or only the database snapshot.
+The 'export' section of the dashboard downloads ``export.zip``.
+You choose whether to include assets (none, collected during the run, or all).
 
-Exports use *identifier separation*: ``database.zip`` contains pseudonymous participant
-identifiers so the archive remains loadable, while original recruiter identifiers are
-written beside it in ``participant_identifiers.csv``. This is not anonymization of assets,
+Exports use *identifier separation*: table CSVs under ``database/`` contain
+pseudonymous participant identifiers so the archive remains loadable, while
+original recruiter identifiers are written beside them in
+``participant_identifiers.csv``. This is not anonymization of assets,
 free text, logs, or experiment-defined basic data.
 
 Exporting data from the command line
@@ -47,16 +47,17 @@ A typical export directory looks like this:
 .. code-block:: text
 
     export/
-    ├── database.zip
+    ├── database/
+    │   ├── participant.csv
+    │   ├── trial.csv
+    │   └── …
     ├── participant_identifiers.csv
     ├── lucid_entrant_identifiers.csv   # Lucid experiments only
     ├── manifest.json
     ├── basic_data.json OR basic_data/  # optional
-    ├── assets/
+    ├── assets/                         # omitted when --assets none
     │   ├── manifest.csv
-    │   └── objects/
-    │       └── sha256/
-    │           └── <content-hash>
+    │   └── <semantic export paths>
     ├── source_code.zip                 # optional
     └── logs.jsonl                      # SSH exports when available
 
@@ -122,11 +123,13 @@ Use ``--assets all`` for a fuller archive that also includes those pre-existing
 assets and materializes on-demand outputs. Use ``--assets none`` to skip asset
 files entirely.
 
-Managed asset bytes are stored and exported under content-addressed paths of the
-form ``objects/sha256/<digest>``. The ``assets/manifest.csv`` file maps semantic
-metadata (asset id, local key, associations, extension, and so on) onto those
-objects. ``ExternalAsset`` rows appear in the manifest with their raw URL only;
-they are not downloaded into the object tree.
+Managed asset bytes are stored on the server under content-addressed paths of the
+form ``objects/sha256/<digest>``. Exported archives instead materialize those
+bytes under semantic paths from each asset's ``export_path`` (for example
+module and participant folders). The ``assets/manifest.csv`` file maps semantic
+metadata (asset id, local key, associations, extension, sha256, and so on) onto
+those files. ``ExternalAsset`` rows appear in the manifest with their raw URL only;
+they are not downloaded into the asset tree.
 
 Live browser access for local and on-demand assets uses a permanent access
 token at ``/asset/<access_token>``. S3-backed managed assets use a direct public
@@ -153,28 +156,29 @@ Export data types
 
 Several types of data can be exported during the export process. They each have different functions.
 
-The **database snapshot** is a portable copy of the physical database tables at a given time
-(``database.zip`` plus identifier sidecars and ``manifest.json``).
-It is useful for restoring experiments from a specific state and for analysis that reads
-table CSVs directly.
+The **database tables** are a portable copy of the physical database at a given time
+(``database/*.csv`` plus identifier sidecars and ``manifest.json``).
+They are useful for restoring experiments from a specific state and for analysis that reads
+table CSVs directly. ``psynet debug`` / ``deploy --archive`` accepts ``export.zip``,
+a ``database/`` directory, or an extracted export directory containing ``database/``.
 
 The **basic data files** are a minimal set of data files that provide the essential information for downstream analysis.
 They are only present if the experimenter has implemented the ``get_basic_data`` method in their experiment class.
 
 The **assets** correspond to heavy files (e.g. audio, video) that are associated with the experiment.
-Not all experiments use assets.
+Not all experiments use assets. Choose ``--assets none`` to omit the assets folder.
 
 The **server logs** can also be exported when exporting from an SSH server.
 These come in the form of a ``logs.jsonl`` file. Don't share these publicly
 as they may contain confidential information.
 
-A 'PsyNet full export' combines together all of the above types of data.
-This is the default export type.
+A dashboard or CLI export combines these pieces into one ``export.zip`` (or an
+extracted export directory).
 
-Analysing database.zip
-======================
+Analysing database tables
+=========================
 
-PsyNet provides helpers for reading the canonical snapshot without reconstructing an
+PsyNet provides helpers for reading the canonical tables without reconstructing an
 older class-based CSV layout:
 
 .. code:: python
@@ -185,9 +189,11 @@ older class-based CSV layout:
         unpack_json_column,
     )
 
-    trials = load_export_table("database.zip", "trial")
+    trials = load_export_table("export.zip", "trial")
+    # Or: load_export_table("path/to/database", "trial")
+    # Or: load_export_table("path/to/extracted/export", "trial")
     trials = unpack_json_column(trials, "definition", prefix="definition_")
-    participants = load_export_table("database.zip", "participant")
+    participants = load_export_table("export.zip", "participant")
     participants = merge_participant_identifiers(
         participants.rename(columns={"id": "participant_id"}),
         "participant_identifiers.csv",

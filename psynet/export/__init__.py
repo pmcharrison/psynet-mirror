@@ -1,14 +1,16 @@
-"""Canonical PsyNet export: database snapshot, identifier sidecars, and analysis helpers.
+"""Canonical PsyNet export: database tables, identifier sidecars, and analysis helpers.
 
-The shareable database archive uses pseudonymous participant identifiers.
-Original recruiter identifiers are written beside the archive in sidecar CSV
-files. This is identifier separation, not anonymization.
+The shareable export uses pseudonymous participant identifiers in
+``database/*.csv``. Original recruiter identifiers are written beside that
+directory in sidecar CSV files. This is identifier separation, not
+anonymization.
 
 Asset cache
 -----------
 :mod:`psynet.export.asset_cache` implements a persistent local cache at
 ``~/psynet-data/cache/assets`` that stores content-addressed objects in
-the same ``objects/sha256/<digest>`` layout used in export archives.
+``objects/sha256/<digest>``. Export archives materialize those bytes under
+semantic ``export_path`` trees.
 """
 
 from .analysis import (
@@ -29,9 +31,12 @@ from .asset_cache import (
 )
 from .database import export_database_snapshot
 from .identifiers import write_identifier_sidecars_from_csv_dir
+from .paths import DATABASE_DIRNAME, EXPORT_ZIP_NAME, resolve_database_dir
 from .zip_utils import build_zip_from_dir
 
 __all__ = [
+    "DATABASE_DIRNAME",
+    "EXPORT_ZIP_NAME",
     "build_zip_from_dir",
     "cache_size_bytes",
     "default_cache_root",
@@ -43,6 +48,7 @@ __all__ = [
     "merge_participant_identifiers",
     "object_cache_path",
     "prune_cached_objects",
+    "resolve_database_dir",
     "soft_limit_bytes",
     "unpack_json_column",
     "warn_if_cache_oversized",

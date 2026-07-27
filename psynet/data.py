@@ -717,12 +717,24 @@ def patch_csv(infile, outfile, clear_columns, replace_columns):
 
 
 def ingest_zip(path, engine=None):
+    """Recreate the database from an export archive.
+
+    ``path`` may be:
+
+    * an ``export.zip`` (reads ``database/<table>.csv`` members; also accepts
+      legacy ``data/<table>.csv`` members);
+    * a ``database/`` directory of table CSVs;
+    * an extracted export directory containing ``database/``.
+
+    This patches Dallinger's ``ingest_zip`` with support for custom PsyNet
+    tables and the flat ``database/`` export layout.
     """
-    Given a path to a zip file created with `export()`, recreate the
-    database with the data stored in the included .csv files.
-    This is a patched version of dallinger.data.ingest_zip that incorporates
-    support for custom tables.
-    """
+    from .export.paths import (
+        find_table_member_in_zip,
+        is_zip_path,
+        resolve_database_dir,
+        table_csv_path,
+    )
 
     if engine is None:
         engine = db.engine
@@ -749,26 +761,27 @@ def ingest_zip(path, engine=None):
         if n not in import_order:
             import_order.append(n)
 
-    with ZipFile(path, "r") as archive:
-        filenames = archive.namelist()
+    path = os.path.abspath(os.path.expanduser(path))
 
-        for tablename in import_order:
-            filename_template = f"data/{tablename}.csv"
+    if is_zip_path(path):
+        with ZipFile(path, "r") as archive:
+            for tablename in import_order:
+                member = find_table_member_in_zip(archive, tablename)
+                if member is None:
+                    continue
+                model = sql_base_classes()[tablename]
+                file = archive.open(member)
+                file = io.TextIOWrapper(file, encoding="utf8", newline="")
+                ingest_to_model(file, model, engine)
+        return
 
-            matches = [f for f in filenames if filename_template in f]
-            if len(matches) == 0:
-                continue
-            elif len(matches) > 1:
-                raise IOError(
-                    f"Multiple matches for {filename_template} found in archive: {matches}"
-                )
-            else:
-                filename = matches[0]
-
-            model = sql_base_classes()[tablename]
-
-            file = archive.open(filename)
-            file = io.TextIOWrapper(file, encoding="utf8", newline="")
+    database_dir = resolve_database_dir(path)
+    for tablename in import_order:
+        csv_path = table_csv_path(database_dir, tablename)
+        if not os.path.exists(csv_path):
+            continue
+        model = sql_base_classes()[tablename]
+        with open(csv_path, encoding="utf8", newline="") as file:
             ingest_to_model(file, model, engine)
 
 
@@ -785,7 +798,7 @@ def export_assets(
     local=False,
 ):
     """
-    Export selected assets into ``path``.
+    Export selected assets into ``path`` using semantic ``export_path`` trees.
 
     Callers typically pass ``<export_dir>/assets``. Layout:
 
@@ -793,9 +806,10 @@ def export_assets(
 
         <path>/
         ├── manifest.csv
-        └── objects/
-            └── sha256/
-                └── <content-hash>
+        └── <module>/.../<semantic export_path>
+
+    Bytes are still fetched via the content-addressed local cache; the export
+    tree itself uses human-readable paths from :attr:`Asset.export_path`.
     """
     from .asset import ExternalAsset, OnDemandAsset
 
@@ -810,8 +824,7 @@ def export_assets(
         from .asset import Asset as base_class
 
     assets_root = path
-    objects_root = os.path.join(assets_root, "objects", "sha256")
-    os.makedirs(objects_root, exist_ok=True)
+    os.makedirs(assets_root, exist_ok=True)
 
     # Selected assets are always exported when requested.
     assets = list(db.session.query(base_class).order_by(base_class.id))
@@ -876,6 +889,8 @@ def export_assets(
             continue
         if meta.get("sha256_contents"):
             row["sha256_contents"] = meta["sha256_contents"]
+        if meta.get("export_path"):
+            row["export_path"] = meta["export_path"]
         if meta.get("object_path"):
             row["object_path"] = meta["object_path"]
 
@@ -905,18 +920,19 @@ def export_assets(
 
 
 def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
-    """Export one asset's bytes into the content-addressed objects tree.
+    """Export one asset's bytes into the semantic export tree.
 
     For managed assets with a known SHA-256 digest the local cache at
     ``~/psynet-data/cache/assets`` is consulted first; only objects absent
-    from the cache are fetched from storage.  Cached objects are linked into
-    the export directory (hardlink when possible, copy otherwise).
+    from the cache are fetched from storage. Cached objects are linked into
+    the export directory at the asset's ``export_path`` (hardlink when
+    possible, copy otherwise).
 
     Returns
     -------
     dict or None
-        ``sha256_contents`` / ``object_path`` for the manifest when bytes were
-        exported. Does not mutate Asset database rows.
+        ``sha256_contents`` / ``export_path`` / ``object_path`` for the
+        manifest when bytes were exported. Does not mutate Asset database rows.
     """
     from .asset import Asset, ExternalAsset, OnDemandAsset
     from .experiment import import_local_experiment
@@ -938,6 +954,8 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
     if not include_on_demand_assets and isinstance(a, OnDemandAsset):
         return None
 
+    semantic_path = _semantic_export_path(a)
+
     try:
         if isinstance(a, OnDemandAsset):
             with tempfile.TemporaryDirectory() as tempdir:
@@ -952,31 +970,35 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
                     a.export(temp_path)
                     digest = sha256_file(temp_path)
 
-                object_rel = _cache_and_link_into_export(
+                _cache_and_link_into_export(
                     digest,
                     _make_copy_fn(temp_path, a.is_folder),
                     assets_root,
+                    semantic_path,
                     is_folder=a.is_folder,
                 )
                 return {
                     "sha256_contents": digest,
-                    "object_path": object_rel,
+                    "export_path": semantic_path,
+                    "object_path": a.object_path,
                 }
 
         if a.sha256_contents:
             # Fast path: digest is known; consult the cache before fetching.
             digest = a.sha256_contents
-            object_rel = _cache_and_link_into_export(
+            _cache_and_link_into_export(
                 digest,
                 lambda p: a.export(
                     p, ssh_host=ssh_host, ssh_user=ssh_user, local=local
                 ),
                 assets_root,
+                semantic_path,
                 is_folder=bool(a.is_folder),
             )
             return {
                 "sha256_contents": digest,
-                "object_path": a.object_path or object_rel,
+                "export_path": semantic_path,
+                "object_path": a.object_path,
             }
 
         # Slow path: no digest known yet — export to a temp location, hash,
@@ -988,41 +1010,57 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
             digest = (
                 sha256_directory(temp_path) if a.is_folder else sha256_file(temp_path)
             )
-            object_rel = _cache_and_link_into_export(
+            _cache_and_link_into_export(
                 digest,
                 _make_copy_fn(temp_path, bool(a.is_folder)),
                 assets_root,
+                semantic_path,
                 is_folder=bool(a.is_folder),
             )
             return {
                 "sha256_contents": digest,
-                "object_path": object_rel,
+                "export_path": semantic_path,
+                "object_path": a.object_path,
             }
     except Exception:
         print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise
 
 
+def _semantic_export_path(asset) -> str:
+    """Return a relative semantic path for an asset inside the export tree."""
+    path = asset.export_path
+    if not path:
+        path = (
+            asset.generate_export_path()
+            if hasattr(asset, "generate_export_path")
+            else None
+        )
+    if not path:
+        extension = asset.extension or ""
+        path = f"asset_{asset.id}{extension}"
+    return path.lstrip("/")
+
+
 def _cache_and_link_into_export(
-    digest, fetch_fn, assets_root, *, is_folder: bool
+    digest, fetch_fn, assets_root, semantic_path, *, is_folder: bool
 ) -> str:
-    """Ensure ``digest`` is cached, then hardlink/copy it into the export tree.
+    """Ensure ``digest`` is cached, then hardlink/copy it to ``semantic_path``.
 
     Returns
     -------
     str
-        Relative object path under the assets root (``objects/sha256/<digest>``).
+        Relative semantic path under the assets root.
     """
     from .export.asset_cache import ensure_object_in_cache, link_or_copy
-    from .utils import content_object_path, make_parents
+    from .utils import make_parents
 
     cache_path = ensure_object_in_cache(digest, fetch_fn, is_folder=is_folder)
-    object_rel = content_object_path(digest)
-    dest = os.path.join(assets_root, object_rel)
+    dest = os.path.join(assets_root, semantic_path)
     if not os.path.exists(dest):
         make_parents(dest)
         link_or_copy(cache_path, dest, is_folder=is_folder)
-    return object_rel
+    return semantic_path
 
 
 def _make_copy_fn(src_path: str, is_folder: bool):

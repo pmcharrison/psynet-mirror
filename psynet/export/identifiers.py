@@ -58,13 +58,14 @@ def write_identifier_sidecars_from_csv_dir(csv_dir: str, export_path: str) -> di
     lucid_path = os.path.join(csv_dir, "lucid_rid.csv")
     if os.path.exists(lucid_path):
         _, rows = _read_csv(lucid_path)
-        # Include participant_id for join convenience even though it is not a
-        # recruiter identifier; keep the documented identifier fields first.
-        ordered = list(LUCID_ENTRANT_IDENTIFIER_FIELDS) + ["participant_id"]
-        sidecar_rows = [_lucid_sidecar_row(row) for row in rows]
-        out = os.path.join(export_path, "lucid_entrant_identifiers.csv")
-        _write_csv(out, ordered, sidecar_rows)
-        paths["lucid_entrant_identifiers"] = out
+        if rows:
+            # Include participant_id for join convenience even though it is not
+            # a recruiter identifier; keep documented identifier fields first.
+            ordered = list(LUCID_ENTRANT_IDENTIFIER_FIELDS) + ["participant_id"]
+            sidecar_rows = [_lucid_sidecar_row(row) for row in rows]
+            out = os.path.join(export_path, "lucid_entrant_identifiers.csv")
+            _write_csv(out, ordered, sidecar_rows)
+            paths["lucid_entrant_identifiers"] = out
 
     return paths
 

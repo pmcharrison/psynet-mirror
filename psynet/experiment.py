@@ -1130,11 +1130,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if is_ssh_deployment:
             logs_url = "https://logs." + deployment_information.get("server")
 
-        def unpack_export(export_type, deployment_id):
-            assert export_type in ["psynet", "database"]
+        def unpack_export(deployment_id):
             exp = get_experiment()
             storage = exp.artifact_storage
-            filename = f"{export_type}.zip"
+            from psynet.artifact import ArtifactStorage
+
+            filename = ArtifactStorage.EXPORT_FILE
             path = storage.prepare_path(deployment_id, filename)
             try:
                 timestamp = (
@@ -1153,8 +1154,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 }
 
         deployment_id = deployment_information["deployment_id"]
-        psynet_export = unpack_export("psynet", deployment_id)
-        database_export = unpack_export("database", deployment_id)
+        export_info = unpack_export(deployment_id)
 
         error_msgs = [
             f"{error.kind}:{error.message}" for error in cls.get_all_error_records()
@@ -1178,10 +1178,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "dashboard_url": cls.dashboard_url,
             "logs_url": logs_url,
             "basic_data_url": cls.basic_data_url,
-            "psynet_export_url": psynet_export["url"],
-            "psynet_export_timestamp": psynet_export["timestamp"],
-            "database_export_url": database_export["url"],
-            "database_export_timestamp": database_export["timestamp"],
+            "export_url": export_info["url"],
+            "export_timestamp": export_info["timestamp"],
+            # Backward-compatible aliases for older dashboard JS.
+            "psynet_export_url": export_info["url"],
+            "psynet_export_timestamp": export_info["timestamp"],
+            "database_export_url": None,
+            "database_export_timestamp": None,
         }
 
     @classmethod
@@ -1253,8 +1256,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def backup_database(cls):
         with tempfile.TemporaryDirectory() as tempdir:
-            # TODO: rewrite to avoid this psynet_export argument
-            input_path = cls._export(tempdir, psynet_export=False)
+            input_path = cls._export(tempdir)
             cls.artifact_storage.upload_export(
                 input_path, deployment_id=cls.deployment_id
             )
@@ -2883,7 +2885,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def dashboard_export(cls):
         return render_template(
             "dashboard_export.html",
-            title="Database export",
+            title="Export data",
             automatic_backups=cls.automatic_backups,
         )
 
@@ -3372,61 +3374,49 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         export_dir,
         config=None,
         n_parallel=None,
-        psynet_export: bool = True,
         **kwargs,
     ):
         if config is None:
             config = get_config()
-        if psynet_export:
-            from .command_line import export__local
+        from .command_line import export__local
+        from .export.paths import EXPORT_ZIP_NAME
 
-            ctx = Context(export__local)
-            ctx.invoke(
-                export__local,
-                path=export_dir,
-                n_parallel=n_parallel,
-                username=config.get("dashboard_user"),
-                password=config.get("dashboard_password"),
-                assets=kwargs.get("assets") or "collected",
-                legacy=True,
-            )
-        else:
-            from .export import export_database_snapshot
-
-            export_database_snapshot(export_dir)
-        zip_filename = "psynet" if psynet_export else "database"
+        ctx = Context(export__local)
+        ctx.invoke(
+            export__local,
+            path=export_dir,
+            n_parallel=n_parallel,
+            username=config.get("dashboard_user"),
+            password=config.get("dashboard_password"),
+            assets=kwargs.get("assets") or "collected",
+            legacy=True,
+            no_source=kwargs.get("no_source", False),
+        )
         from .export.zip_utils import build_zip_from_dir
 
-        zip_path = os.path.abspath(f"{zip_filename}.zip")
+        zip_path = os.path.abspath(EXPORT_ZIP_NAME)
         zip_name = build_zip_from_dir(export_dir, zip_path)
         exp = get_experiment()
         storage = exp.artifact_storage
         try:
             storage.upload_export(zip_name, exp.deployment_id)
-            if psynet_export:
-                url = exp.get_artifact_url(exp.deployment_id, "psynet.zip")
-                cls.notifier.notify(
-                    f"A fresh data export has been created, it can be accessed {cls.notifier.url('here', url)}."
-                )
+            url = exp.get_artifact_url(exp.deployment_id, EXPORT_ZIP_NAME)
+            cls.notifier.notify(
+                f"A fresh data export has been created, it can be accessed {cls.notifier.url('here', url)}."
+            )
         except Exception as e:
             logger.error(f"Failed to save backup: {e}")
         return zip_name
 
     @staticmethod
-    def _download_export(
-        export_type: str,  # can be "database" or "psynet"
-        **kwargs,
-    ):
-        assert export_type in ("psynet", "database")
+    def _download_export(**kwargs):
         exp = get_experiment()
 
         with tempfile.TemporaryDirectory() as tempdir:
             config = get_config()
-            psynet_export = export_type == "psynet"
             zip_filepath = exp._export(
                 tempdir,
                 config=config,
-                psynet_export=psynet_export,
                 **kwargs,
             )
             return send_file(zip_filepath, mimetype="zip")
@@ -3462,10 +3452,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         kwargs = dict(request.args)
         kwargs.pop("anonymize", None)  # deprecated
-        export_type = kwargs.pop("type", "database")
+        kwargs.pop("type", None)  # deprecated; single export product
 
         exp = get_experiment()
-        return exp._download_export(export_type, **kwargs)
+        return exp._download_export(**kwargs)
 
     @dashboard.route("/export/trigger", methods=["GET"])
     @staticmethod
@@ -3473,18 +3463,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def trigger_export():
         kwargs = dict(request.args)
         kwargs.pop("anonymize", None)  # deprecated
-        export_type = kwargs.pop("type", "database")
+        kwargs.pop("type", None)  # deprecated; single export product
         assets = kwargs.get("assets", "none")
 
         # We just call _download_export for the side effect of uploading the export to the storage service.
         exp = get_experiment()
         exp._download_export(
-            export_type=export_type,
             assets=assets,
         )
 
         return success_response(
-            export_type=export_type,
             assets=assets,
         )
 

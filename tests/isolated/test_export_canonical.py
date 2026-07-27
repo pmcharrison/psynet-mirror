@@ -142,7 +142,8 @@ def test_identifier_separation_writes_sidecars_and_pseudonyms(tmp_path):
 
 
 def test_analysis_helpers_round_trip(tmp_path):
-    database_zip = tmp_path / "database.zip"
+    # Legacy zip layout still loads.
+    database_zip = tmp_path / "legacy.zip"
     with zipfile.ZipFile(database_zip, "w") as archive:
         archive.writestr(
             "data/trial.csv",
@@ -153,10 +154,57 @@ def test_analysis_helpers_round_trip(tmp_path):
     unpacked = unpack_json_column(trials, "definition")
     assert unpacked.iloc[0]["animal"] == "cat"
 
+    # Flat database/ directory.
+    database_dir = tmp_path / "database"
+    database_dir.mkdir()
+    (database_dir / "trial.csv").write_text(
+        'id,definition\n2,"{""animal"": ""dog""}"\n'
+    )
+    trials = load_export_table(str(database_dir), "trial")
+    assert unpack_json_column(trials, "definition").iloc[0]["animal"] == "dog"
+
+    # Extracted export directory containing database/.
+    export_dir = tmp_path / "export"
+    nested = export_dir / "database"
+    nested.mkdir(parents=True)
+    (nested / "trial.csv").write_text('id,definition\n3,"{""animal"": ""bird""}"\n')
+    trials = load_export_table(str(export_dir), "trial")
+    assert unpack_json_column(trials, "definition").iloc[0]["animal"] == "bird"
+
+    # New export.zip layout.
+    export_zip = tmp_path / "export.zip"
+    with zipfile.ZipFile(export_zip, "w") as archive:
+        archive.writestr(
+            "database/trial.csv",
+            'id,definition\n4,"{""animal"": ""fish""}"\n',
+        )
+    trials = load_export_table(str(export_zip), "trial")
+    assert unpack_json_column(trials, "definition").iloc[0]["animal"] == "fish"
+
     identifiers = pd.DataFrame([{"participant_id": 1, "worker_id": "worker-1"}])
     frame = pd.DataFrame([{"participant_id": 1, "score": 3}])
     merged = merge_participant_identifiers(frame, identifiers)
     assert merged.iloc[0]["worker_id"] == "worker-1"
+
+
+def test_empty_lucid_table_omits_sidecar(tmp_path):
+    raw_dir = tmp_path / "raw"
+    export_path = tmp_path / "export"
+    export_path.mkdir()
+    _write_csv(
+        raw_dir / "lucid_rid.csv",
+        [
+            "id",
+            "rid",
+            "lucid_panelist_id",
+            "lucid_respondent_id",
+            "participant_id",
+        ],
+        [],
+    )
+    sidecars = write_identifier_sidecars_from_csv_dir(str(raw_dir), str(export_path))
+    assert "lucid_entrant_identifiers" not in sidecars
+    assert not (export_path / "lucid_entrant_identifiers.csv").exists()
 
 
 def test_unpack_json_column_does_not_overwrite_unless_requested():

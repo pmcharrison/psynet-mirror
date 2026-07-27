@@ -1,6 +1,5 @@
 import os
 import tempfile
-import zipfile
 from collections import Counter
 
 import dallinger
@@ -29,8 +28,8 @@ def basic_data_dir(data_root_dir):
 
 
 @pytest.fixture
-def database_zip_file(data_root_dir):
-    return os.path.join(data_root_dir, "database.zip")
+def database_dir(data_root_dir):
+    return os.path.join(data_root_dir, "database")
 
 
 @pytest.fixture
@@ -47,7 +46,7 @@ class TestExpWithExport:
     def test_exp_with_export(
         self,
         data_root_dir,
-        database_zip_file,
+        database_dir,
         coin_class,
     ):
         import time
@@ -70,16 +69,16 @@ class TestExpWithExport:
 
 @pytest.mark.dependency(depends=["TestExpWithExport"])
 class TestExport:
-    def test_participants_file(self, database_zip_file):
-        participants = load_export_table(database_zip_file, "participant")
+    def test_participants_file(self, database_dir):
+        participants = load_export_table(database_dir, "participant")
         assert participants.shape[0] == 6
         # Physical COPY exports use SQLAlchemy polymorphic identity strings.
         assert (participants["type"] == "psynet.bot.Bot").all()
 
-    def test_networks_and_trials_files(self, database_zip_file):
-        networks = load_export_table(database_zip_file, "network")
-        trials = load_export_table(database_zip_file, "trial")
-        nodes = load_export_table(database_zip_file, "node")
+    def test_networks_and_trials_files(self, database_dir):
+        networks = load_export_table(database_dir, "network")
+        trials = load_export_table(database_dir, "trial")
+        nodes = load_export_table(database_dir, "node")
 
         assert networks.shape[0] == 8
         assert not networks.failed.any()
@@ -101,8 +100,8 @@ class TestExport:
                 f"Could not unpack trial definitions from export: {exc}"
             ) from exc
 
-    def test_coins_file(self, database_zip_file):
-        coins = load_export_table(database_zip_file, "coin")
+    def test_coins_file(self, database_dir):
+        coins = load_export_table(database_dir, "coin")
         assert coins.shape[0] == 6
 
     def test_basic_data_export(self, basic_data_dir):
@@ -123,8 +122,8 @@ class TestExport:
         assert set(trials["participant_id"]).issubset(set(participants["id"]))
         assert not trials["answer"].isna().all()
 
-    def test_experiment_feedback(self, database_zip_file):
-        df = load_export_table(database_zip_file, "response")
+    def test_experiment_feedback(self, database_dir):
+        df = load_export_table(database_dir, "response")
 
         df_ = df.query("question == 'liked_experiment'")
         assert df_.shape[0] == 6
@@ -141,25 +140,24 @@ class TestExport:
         assert list(df_.participant_id) == [1, 2, 3, 4, 5, 6]
         assert list(df_.answer) == ["No technical problems."] * 6
 
-    def test_database_snapshot_members(self, database_zip_file):
-        with tempfile.TemporaryDirectory() as tempdir:
-            with zipfile.ZipFile(database_zip_file, "r") as zip_ref:
-                zip_ref.extractall(tempdir)
-                exported_csv_files = sorted(os.listdir(os.path.join(tempdir, "data")))
-                db_tables = sorted(list(dallinger.db.Base.metadata.tables.keys()))
+    def test_database_snapshot_members(self, database_dir):
+        exported_csv_files = sorted(
+            name for name in os.listdir(database_dir) if name.endswith(".csv")
+        )
+        db_tables = sorted(list(dallinger.db.Base.metadata.tables.keys()))
 
-                assert exported_csv_files == [t + ".csv" for t in db_tables]
+        assert exported_csv_files == [t + ".csv" for t in db_tables]
 
 
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("gibbs")], indirect=True
 )
 @pytest.mark.usefixtures("db_session")
-def test_populate_db_from_zip_file(database_zip_file, coin_class):
+def test_populate_db_from_zip_file(database_dir, coin_class):
     """
-    Test loading objects described in an exported zip file into the local database.
+    Test loading objects described in an exported archive into the local database.
     """
-    populate_db_from_zip_file(database_zip_file)
+    populate_db_from_zip_file(database_dir)
 
     trials = Trial.query.all()
     assert len(trials) > 15

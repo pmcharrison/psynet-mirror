@@ -3,29 +3,49 @@
 from __future__ import annotations
 
 import json
+import os
 import zipfile
 from typing import Optional, Union
 
 import pandas as pd
 
+from .paths import (
+    find_table_member_in_zip,
+    is_zip_path,
+    resolve_database_dir,
+    table_csv_path,
+)
+
 
 def load_export_table(
-    database_zip: str,
+    archive: str,
     table: str,
 ) -> pd.DataFrame:
-    """Load a physical table CSV from ``database.zip``.
+    """Load a physical table CSV from an export archive.
 
     Parameters
     ----------
-    database_zip :
-        Path to the exported ``database.zip``.
+    archive :
+        Path to ``export.zip``, a ``database/`` directory, or an extracted
+        export directory containing ``database/``. Legacy zips that store
+        members as ``data/<table>.csv`` are also accepted.
     table :
         Physical table name (for example ``trial`` or ``participant``).
     """
-    member = f"data/{table}.csv"
-    with zipfile.ZipFile(database_zip, "r") as archive:
-        with archive.open(member) as handle:
-            return pd.read_csv(handle)
+    archive = os.path.expanduser(archive)
+    if is_zip_path(archive):
+        with zipfile.ZipFile(archive, "r") as zip_file:
+            member = find_table_member_in_zip(zip_file, table)
+            if member is None:
+                raise KeyError(f"Table CSV for {table!r} not found in {archive}")
+            with zip_file.open(member) as handle:
+                return pd.read_csv(handle)
+
+    database_dir = resolve_database_dir(archive)
+    path = table_csv_path(database_dir, table)
+    if not os.path.exists(path):
+        raise KeyError(f"Table CSV for {table!r} not found in {database_dir}")
+    return pd.read_csv(path)
 
 
 def unpack_json_column(

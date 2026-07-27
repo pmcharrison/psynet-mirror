@@ -136,19 +136,32 @@ def _count_csv_rows(path: Path) -> int:
         return sum(1 for _ in reader)
 
 
-def _zip_table_row_counts(database_zip: Path) -> dict[str, int]:
+def _database_table_row_counts(export_path: Path) -> dict[str, int]:
     """Return exported row counts keyed by physical table name."""
 
     import zipfile
 
     counts: dict[str, int] = {}
+    database_dir = export_path / "database"
+    if database_dir.is_dir():
+        for member in sorted(database_dir.glob("*.csv")):
+            counts[member.stem] = _count_csv_rows(member)
+        return counts
+
+    database_zip = export_path / "database.zip"
+    if not database_zip.is_file():
+        return counts
+
     with zipfile.ZipFile(database_zip, "r") as archive:
         for member in archive.namelist():
-            if not member.startswith("data/") or not member.endswith(".csv"):
+            if not member.endswith(".csv"):
+                continue
+            if not (
+                member.startswith("data/") or member.startswith("database/")
+            ):
                 continue
             table = Path(member).stem
             with archive.open(member) as handle:
-                # Text mode wrapper for csv.reader
                 text = handle.read().decode("utf-8").splitlines()
                 reader = csv.reader(text)
                 next(reader, None)
@@ -163,8 +176,7 @@ def _summarize_export(
 ) -> dict[str, float | int]:
     """Summarize the files created by a canonical export."""
 
-    database_zip = export_path / "database.zip"
-    table_row_counts = _zip_table_row_counts(database_zip)
+    table_row_counts = _database_table_row_counts(export_path)
     expected = dict(expected_table_rows)
     actual = {table: table_row_counts.get(table, 0) for table in expected}
     if actual != expected:
@@ -174,11 +186,19 @@ def _summarize_export(
             "Update the fixture expectations and benchmark version if intentional."
         )
 
+    database_dir = export_path / "database"
+    if database_dir.is_dir():
+        database_size_bytes = sum(
+            path.stat().st_size for path in database_dir.rglob("*") if path.is_file()
+        )
+    else:
+        database_size_bytes = (export_path / "database.zip").stat().st_size
+
     return {
         "export_time_s": export_time_s,
         "data_csv_count": len(table_row_counts),
         "data_row_count": sum(table_row_counts.values()),
-        "database_zip_size_bytes": database_zip.stat().st_size,
+        "database_zip_size_bytes": database_size_bytes,
     }
 
 
@@ -214,7 +234,7 @@ def _write_asset_payloads(
         payload = _deterministic_bytes(key, profile.file_size_bytes)
         input_path = input_dir / f"{key}.bin"
         input_path.write_bytes(payload)
-        export_path = f"objects/sha256/{hashlib.sha256(payload).hexdigest()}"
+        export_path = f"asset_benchmark/{key}.bin"
         manifest.append(
             {
                 "key": key,
@@ -256,30 +276,27 @@ def _summarize_asset_export(
 ) -> dict[str, float | int]:
     """Validate and summarize exported benchmark assets."""
 
-    objects_root = export_path / "assets" / "objects" / "sha256"
-    if not objects_root.is_dir():
-        # Allow tests that stage files directly under objects/sha256 relative to export_path.
-        objects_root = export_path / "objects" / "sha256"
+    assets_root = export_path / "assets"
+    if not assets_root.is_dir():
+        assets_root = export_path
 
-    exported_files = sorted(path for path in objects_root.rglob("*") if path.is_file())
-    expected_by_digest = {str(item["sha256"]): item for item in manifest}
-    actual_digests = {path.name for path in exported_files}
-    if actual_digests != set(expected_by_digest):
-        raise RuntimeError(
-            "Asset export benchmark fixture shape changed. "
-            f"Expected digests {sorted(expected_by_digest)}, got {sorted(actual_digests)}."
-        )
-
-    for path in exported_files:
-        expected = expected_by_digest[path.name]
-        payload = path.read_bytes()
-        if len(payload) != expected["size_bytes"]:
+    exported_files = []
+    for item in manifest:
+        path = assets_root / str(item["export_path"])
+        if not path.is_file():
             raise RuntimeError(
-                f"Unexpected size for {path.name}: "
-                f"expected {expected['size_bytes']}, got {len(payload)}."
+                "Asset export benchmark fixture shape changed. "
+                f"Missing exported file {path}."
             )
-        if hashlib.sha256(payload).hexdigest() != expected["sha256"]:
-            raise RuntimeError(f"Unexpected SHA-256 digest for {path.name}.")
+        exported_files.append(path)
+        payload = path.read_bytes()
+        if len(payload) != item["size_bytes"]:
+            raise RuntimeError(
+                f"Unexpected size for {path}: "
+                f"expected {item['size_bytes']}, got {len(payload)}."
+            )
+        if hashlib.sha256(payload).hexdigest() != item["sha256"]:
+            raise RuntimeError(f"Unexpected SHA-256 digest for {path}.")
 
     return {
         "asset_export_time_s": export_time_s,

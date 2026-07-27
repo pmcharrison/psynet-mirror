@@ -19,9 +19,11 @@ def test_simulate():
     assert result.exit_code == 0
 
     assert Path("data/simulated_data").exists()
-    assert Path("data/simulated_data/database.zip").exists()
+    assert Path("data/simulated_data/database").is_dir()
+    assert Path("data/simulated_data/database/participant.csv").exists()
     assert Path("data/simulated_data/participant_identifiers.csv").exists()
     assert Path("data/simulated_data/manifest.json").exists()
+    assert not Path("data/simulated_data/database.zip").exists()
 
 
 @pytest.fixture

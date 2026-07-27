@@ -169,13 +169,45 @@ def reset_console():
 @click.option(
     "--archive",
     type=click.Path(exists=True),
-    help="Path to database archive for re-deployment",
+    help=(
+        "Path to an export archive for re-deployment. Accepts export.zip, "
+        "a database/ directory, or an extracted export directory containing database/."
+    ),
 )
 def prepare(archive):
     """
     Prepare the experiment for deployment.
     """
     _prepare(archive)
+
+
+def _install_archive_template(archive: str, template_path: str) -> None:
+    """Copy or normalize an archive into the deploy template zip path.
+
+    Zip inputs are copied as-is (``export.zip`` or legacy ``database.zip``).
+    Directory inputs are packed into a zip containing ``database/<table>.csv``.
+    """
+    from .export.paths import DATABASE_DIRNAME, is_zip_path, resolve_database_dir
+    from .utils import make_parents
+
+    archive = os.path.abspath(os.path.expanduser(archive))
+    make_parents(template_path)
+    if os.path.exists(template_path):
+        os.remove(template_path)
+
+    if is_zip_path(archive):
+        shutil.copyfile(archive, template_path)
+        return
+
+    database_dir = resolve_database_dir(archive)
+    with zipfile.ZipFile(template_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for name in sorted(os.listdir(database_dir)):
+            if not name.endswith(".csv"):
+                continue
+            zf.write(
+                os.path.join(database_dir, name),
+                f"{DATABASE_DIRNAME}/{name}",
+            )
 
 
 def _prepare(archive=None):
@@ -188,7 +220,7 @@ def _prepare(archive=None):
     if archive:
         from psynet.experiment import database_template_path
 
-        shutil.copyfile(archive, database_template_path)
+        _install_archive_template(archive, database_template_path)
 
     db.init_db(drop_all=True)
     experiment = get_experiment()
@@ -2124,9 +2156,10 @@ def export_arguments(func):
             default="collected",
             help=(
                 "Which assets to export; valid values are none, collected, and all. "
-                "'collected' exports managed assets deposited during this deployment "
-                "(e.g. recordings), excluding cached stimuli, external URLs, and "
-                "on-demand generation. 'all' includes those pre-existing and generated assets."
+                "'collected' exports files uploaded or recorded during this deployment "
+                "(e.g. recordings), excluding stimuli, external URLs, and "
+                "on-demand generation. 'all' includes those stimuli and generated assets. "
+                "'none' omits the assets folder."
             ),
         ),
         click.option(
@@ -2247,20 +2280,26 @@ def export_(
     ::
 
         export_path/
-        ├── database.zip
+        ├── database/
+        │   ├── participant.csv
+        │   ├── trial.csv
+        │   └── …
         ├── participant_identifiers.csv
         ├── lucid_entrant_identifiers.csv   # Lucid experiments only
         ├── manifest.json
         ├── basic_data.json OR basic_data/  # optional
-        ├── assets/
+        ├── assets/                         # omitted when --assets none
         │   ├── manifest.csv
-        │   └── objects/sha256/<content-hash>
+        │   └── <semantic export paths>
         ├── source_code.zip                 # optional
         └── logs.jsonl                      # SSH exports when available
 
-    ``database.zip`` contains pseudonymous participant identifiers so it remains
-    loadable. Original recruiter identifiers are written to the sidecar CSV
-    files. This is identifier separation, not anonymization.
+    Table CSVs under ``database/`` use pseudonymous participant identifiers so
+    the archive remains loadable. Original recruiter identifiers are written to
+    the sidecar CSV files. This is identifier separation, not anonymization.
+
+    ``--archive`` (debug/deploy) accepts ``export.zip``, a ``database/``
+    directory, or an extracted export directory containing ``database/``.
     """
     # Ignore deprecated anonymize kwargs from older callers.
     kwargs.pop("anonymize", None)
@@ -2313,7 +2352,6 @@ def export_(
                 raise
             experiment_url = _get_local_export_url(config)
         params = {
-            "type": "psynet",
             "assets": assets,
         }
         export_endpoint = f"{experiment_url}/dashboard/export/download?" + urlencode(
@@ -2326,15 +2364,20 @@ def export_(
             )
             spinner.ok("✔")
         os.makedirs(path, exist_ok=True)
-        zip_path = os.path.join(path, "data.zip")
         if response.status_code == 200:
-            with open(zip_path, "wb") as f:
-                f.write(response.content)
-            # unzip the file
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(path)
-            # Download source code unless --no-source was passed
-            if not no_source:
+            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
+                tmp.write(response.content)
+                zip_path = tmp.name
+            try:
+                with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                    zip_ref.extractall(path)
+            finally:
+                os.unlink(zip_path)
+            if no_source:
+                bundled_source = os.path.join(path, "source_code.zip")
+                if os.path.exists(bundled_source):
+                    os.remove(bundled_source)
+            else:
                 _export_source_code(
                     app,
                     local,
@@ -2358,6 +2401,7 @@ def export_(
                     f"\nResponse content: {response.content}"
                 )
             log("You can add the --legacy flag to retry the export locally.")
+            raise click.Abort
     else:
         _export_(
             ctx,

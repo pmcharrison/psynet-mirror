@@ -1,7 +1,6 @@
 import os
 import shutil
 import tempfile
-import zipfile
 
 import pytest
 from click import Context
@@ -114,11 +113,16 @@ class TestAssetExport:
 
             ctx.invoke(export__local, path=tempdir, assets="all", legacy=True)
 
-            self.assert_database_zip(os.path.join(tempdir, "database.zip"))
+            self.assert_database_dir(os.path.join(tempdir, "database"))
             self.assert_identifier_sidecar(
                 os.path.join(tempdir, "participant_identifiers.csv")
             )
             assert os.path.exists(os.path.join(tempdir, "manifest.json"))
+            assert not os.path.exists(
+                os.path.join(tempdir, "lucid_entrant_identifiers.csv")
+            )
+            assert not os.path.exists(os.path.join(tempdir, "data.zip"))
+            assert not os.path.exists(os.path.join(tempdir, "database.zip"))
 
     def _test_asset_export_modes(self, ctx):
         import csv
@@ -127,8 +131,9 @@ class TestAssetExport:
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(export__local, path=tempdir, assets="none", legacy=legacy)
 
-                assert os.path.exists(os.path.join(tempdir, "database.zip"))
+                assert os.path.isdir(os.path.join(tempdir, "database"))
                 assert not os.path.exists(os.path.join(tempdir, "assets"))
+                assert not os.path.exists(os.path.join(tempdir, "data.zip"))
 
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(
@@ -138,15 +143,7 @@ class TestAssetExport:
                 path = os.path.join(tempdir, "assets")
                 assert os.path.exists(path) and os.path.isdir(path)
                 assert os.path.exists(os.path.join(path, "manifest.csv"))
-                objects_dir = os.path.join(path, "objects", "sha256")
-                assert os.path.isdir(objects_dir)
-                object_files = [
-                    name
-                    for name in os.listdir(objects_dir)
-                    if os.path.isfile(os.path.join(objects_dir, name))
-                ]
-                # Two ExperimentAssets share the same content, so one object file.
-                assert len(object_files) == 1
+                assert not os.path.exists(os.path.join(path, "objects"))
 
                 with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
                     rows = list(csv.DictReader(csv_file))
@@ -155,9 +152,10 @@ class TestAssetExport:
                 assert "test_public_asset" in labels
                 assert "test_external_asset" not in labels
                 assert "test_on_demand_asset" not in labels
-                assert all(
-                    row["object_path"].startswith("objects/sha256/") for row in rows
-                )
+                for row in rows:
+                    export_path = row["export_path"]
+                    assert export_path
+                    assert os.path.exists(os.path.join(path, export_path))
 
             with tempfile.TemporaryDirectory() as tempdir:
                 ctx.invoke(export__local, path=tempdir, assets="all", legacy=legacy)
@@ -178,31 +176,24 @@ class TestAssetExport:
                     row for row in rows if row["local_key"] == "test_on_demand_asset"
                 ]
                 assert len(on_demand_rows) == 1
-                assert on_demand_rows[0]["object_path"].startswith("objects/sha256/")
+                assert on_demand_rows[0]["export_path"]
                 assert os.path.exists(
-                    os.path.join(path, on_demand_rows[0]["object_path"])
+                    os.path.join(path, on_demand_rows[0]["export_path"])
                 )
 
-    def assert_database_zip(self, path):
+    def assert_database_dir(self, path):
         import pandas as pd
 
-        archive = zipfile.ZipFile(path, "r")
+        assert os.path.isdir(path)
+        for name in ["participant.csv", "response.csv", "network.csv", "trial.csv"]:
+            assert os.path.exists(os.path.join(path, name))
 
-        files = [f.filename for f in archive.filelist]
-        assert "data/participant.csv" in files
-        assert "data/response.csv" in files
-        assert "data/network.csv" in files
-        assert "data/trial.csv" in files
-
-        with archive.open("data/asset.csv") as f:
-            asset_csv = pd.read_csv(f)
-
+        asset_csv = pd.read_csv(os.path.join(path, "asset.csv"))
         assert asset_csv.shape[0] >= 2
 
-        with archive.open("data/participant.csv") as f:
-            participant_csv = pd.read_csv(f)
+        participant_csv = pd.read_csv(os.path.join(path, "participant.csv"))
 
-        # Pseudonyms replace recruiter worker IDs inside the zip.
+        # Pseudonyms replace recruiter worker IDs inside the table CSVs.
         assert all(
             str(id_) == str(pid)
             for id_, pid in zip(participant_csv.worker_id, participant_csv.id)
