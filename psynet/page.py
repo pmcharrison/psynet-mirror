@@ -19,6 +19,7 @@ from .timeline import (
     Module,
     Page,
     PageMaker,
+    _normalize_js_page_code,
     get_template,
     join,
     while_loop,
@@ -208,13 +209,10 @@ class WaitPage(Page):
             f"    trial.setTimer(() => psynet.nextPage(), {wait_ms_literal});\n"
             "});"
         )
-        caller_js_page_code = kwargs.pop("js_page_code", None)
-        if caller_js_page_code is None:
-            js_page_code = [wait_timer_code]
-        elif isinstance(caller_js_page_code, str):
-            js_page_code = [wait_timer_code, caller_js_page_code]
-        else:
-            js_page_code = [wait_timer_code, *caller_js_page_code]
+        js_page_code = [
+            wait_timer_code,
+            *_normalize_js_page_code(kwargs.pop("js_page_code", None)),
+        ]
         super().__init__(
             label="wait",
             time_estimate=wait_time,
