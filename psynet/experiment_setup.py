@@ -76,10 +76,13 @@ def _scaffold_experiment(ctx, *, skip_constraints, refresh_constraints=False):
         skip_constraints = True
     scaffold_result = scaffold_experiment_directory()
     if not skip_constraints:
-        requirements_changed = (
-            "requirements.txt" in scaffold_result["written"]
-            or pin_unpinned_psynet_requirement()
-        )
+        try:
+            requirements_changed = (
+                "requirements.txt" in scaffold_result["written"]
+                or pin_unpinned_psynet_requirement()
+            )
+        except ValueError as exc:
+            raise click.UsageError(str(exc)) from exc
         _generate_constraints_if_missing(
             ctx,
             requirements_changed=requirements_changed or refresh_constraints,

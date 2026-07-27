@@ -1012,6 +1012,31 @@ def test_scripts_scaffold_pins_psynet_and_preserves_extra_requirements(
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
 
 
+def test_scripts_scaffold_surfaces_existing_pin_failure_as_usage_error(
+    tmp_path, monkeypatch
+):
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    monkeypatch.setattr("psynet.experiment_setup.is_in_repo_experiment", lambda: False)
+
+    def _fail():
+        raise ValueError(
+            "Commit deadbeefdead is not available on git remote 'origin'. "
+            "Push your PsyNet commits first (`git push origin HEAD`), then retry."
+        )
+
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._default_psynet_requirement",
+        _fail,
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
+
+    assert result.exit_code != 0
+    assert "not available on git remote 'origin'" in result.output
+    assert (tmp_path / "requirements.txt").read_text() == "psynet\n"
+
+
 def test_scripts_scaffold_skips_constraints_and_psynet_pinning(tmp_path):
     requirements = "psynet\nmusic21==9.1.0\n"
     (tmp_path / "requirements.txt").write_text(requirements)

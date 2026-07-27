@@ -167,6 +167,11 @@ def _default_requirements_txt() -> str:
 _PUBLIC_HTTPS_GIT_HOSTS = frozenset({"gitlab.com", "github.com", "www.github.com"})
 
 
+def _normalize_git_repo_path(path: str) -> str:
+    """Strip trailing slashes and an optional ``.git`` suffix from a repo path."""
+    return path.rstrip("/").removesuffix(".git")
+
+
 def _normalize_git_remote_to_pip_base(remote_url: str) -> str:
     """Convert a git remote URL into a pip ``git+…`` base without a ref.
 
@@ -177,7 +182,7 @@ def _normalize_git_remote_to_pip_base(remote_url: str) -> str:
     scp_match = re.match(r"^git@([^:]+):(.+)$", remote_url)
     if scp_match:
         host, path = scp_match.groups()
-        path = path.removesuffix(".git").lstrip("/")
+        path = _normalize_git_repo_path(path).lstrip("/")
         if host in _PUBLIC_HTTPS_GIT_HOSTS:
             return f"git+https://{host}/{path}"
         return f"git+ssh://git@{host}/{path}"
@@ -187,11 +192,11 @@ def _normalize_git_remote_to_pip_base(remote_url: str) -> str:
 
     parsed = urlparse(remote_url)
     if parsed.scheme in {"http", "https"} and parsed.hostname and parsed.path:
-        path = parsed.path.removesuffix(".git").rstrip("/")
+        path = _normalize_git_repo_path(parsed.path)
         return f"git+{parsed.scheme}://{parsed.hostname}{path}"
 
     if parsed.scheme == "ssh" and parsed.hostname and parsed.path:
-        path = parsed.path.removesuffix(".git").lstrip("/")
+        path = _normalize_git_repo_path(parsed.path).lstrip("/")
         if parsed.hostname in _PUBLIC_HTTPS_GIT_HOSTS:
             return f"git+https://{parsed.hostname}/{path}"
         return f"git+ssh://git@{parsed.hostname}/{path}"

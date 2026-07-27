@@ -19,6 +19,10 @@ from psynet.experiment_scaffold import (
             "git+https://gitlab.com/PsyNetDev/PsyNet",
         ),
         (
+            "https://gitlab.com/PsyNetDev/PsyNet.git/",
+            "git+https://gitlab.com/PsyNetDev/PsyNet",
+        ),
+        (
             "https://gitlab.com/alice/PsyNet.git",
             "git+https://gitlab.com/alice/PsyNet",
         ),
@@ -27,7 +31,15 @@ from psynet.experiment_scaffold import (
             "git+https://gitlab.com/alice/PsyNet",
         ),
         (
+            "git@gitlab.com:alice/PsyNet.git/",
+            "git+https://gitlab.com/alice/PsyNet",
+        ),
+        (
             "ssh://git@gitlab.com/alice/PsyNet.git",
+            "git+https://gitlab.com/alice/PsyNet",
+        ),
+        (
+            "ssh://git@gitlab.com/alice/PsyNet.git/",
             "git+https://gitlab.com/alice/PsyNet",
         ),
         (
@@ -40,6 +52,10 @@ from psynet.experiment_scaffold import (
         ),
         (
             "ssh://git@git.example.com/alice/PsyNet.git",
+            "git+ssh://git@git.example.com/alice/PsyNet",
+        ),
+        (
+            "ssh://git@git.example.com/alice/PsyNet.git/",
             "git+ssh://git@git.example.com/alice/PsyNet",
         ),
     ],
@@ -73,6 +89,34 @@ def test_commit_psynet_requirement_uses_origin_remote(tmp_path, monkeypatch):
     assert commit_psynet_requirement(source) == (
         f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
     )
+
+
+def test_commit_psynet_requirement_strips_trailing_slash_from_origin(
+    tmp_path, monkeypatch
+):
+    from psynet.experiment_scaffold import is_unambiguous_psynet_requirement
+
+    source = tmp_path / "psynet"
+    source.mkdir()
+    commit = "b" * 40
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._current_source_commit",
+        lambda _source=None: commit,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._git_remote_url",
+        lambda _source, remote="origin": "ssh://git@gitlab.com/alice/PsyNet.git/",
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._remote_tracking_refs_contain_commit",
+        lambda _source, _commit, remote="origin": True,
+    )
+
+    requirement = commit_psynet_requirement(source)
+    assert requirement == (
+        f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+    )
+    assert is_unambiguous_psynet_requirement(requirement)
 
 
 def test_commit_psynet_requirement_requires_pushed_commit(tmp_path, monkeypatch):
