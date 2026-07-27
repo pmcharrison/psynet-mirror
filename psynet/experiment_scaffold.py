@@ -23,12 +23,14 @@ _TEMPLATE_FILES = (
     "__init__.py",
     "pytest.ini",
     "test.py",
+    "config.txt",
     ".github/workflows/test.yml",
     ".vscode/launch.json",
     "AGENTS.md",
 )
 
-_OPTIONAL_TEMPLATE_FILES = ("config.txt",)
+# Create these when missing, but never overwrite existing copies (authors customize them).
+_PRESERVE_EXISTING_TEMPLATE_FILES = frozenset({"config.txt"})
 
 _TEMPLATE_DIRECTORIES = ("docker",)
 
@@ -38,10 +40,11 @@ _TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
     ".gitignore",
     "Dockerfile",
     "test.py",
+    "config.txt",
 )
 
 _GENERATED_FILES = {
-    "Dockertag": lambda: f"{Path.cwd().name}\n",
+    "Dockertag": lambda: dockertag_contents(),
     ".python-version": lambda: f"{_current_python_major_minor()}\n",
 }
 
@@ -81,6 +84,16 @@ def _current_python_major_minor() -> str:
     return f"{sys.version_info.major}.{sys.version_info.minor}"
 
 
+def dockertag_contents() -> str:
+    """Return Dockertag file contents for the current experiment directory."""
+    return f"{Path.cwd().name}\n"
+
+
+def _experiment_script_resource(relative_path: str):
+    """Return a Traversable for a packaged experiment-script template path."""
+    return resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
+
+
 def scaffold_managed_paths() -> frozenset[str]:
     """Return paths managed by the experiment scaffold.
 
@@ -90,7 +103,6 @@ def scaffold_managed_paths() -> frozenset[str]:
         Relative paths to scaffold-managed files and directories.
     """
     paths = set(_TEMPLATE_FILES)
-    paths.update(_OPTIONAL_TEMPLATE_FILES)
     paths.update(_TEMPLATE_DIRECTORIES)
     paths.update(_GENERATED_FILES)
     return frozenset(paths)
@@ -103,11 +115,7 @@ def scaffold_paths_required_for_local_run() -> frozenset[str]:
     files and directories needed for local runs rather than optional IDE/CI
     templates.
     """
-    required = (
-        set(_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN)
-        | set(_OPTIONAL_TEMPLATE_FILES)
-        | set(_TEMPLATE_DIRECTORIES)
-    )
+    required = set(_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN) | set(_TEMPLATE_DIRECTORIES)
     managed = scaffold_managed_paths()
     unexpected = required - managed
     if unexpected:
@@ -299,16 +307,47 @@ def commit_psynet_requirement(source: Path) -> str:
     return f"psynet@{pip_base}@{commit}#egg=psynet"
 
 
+def _is_psynet_requirement_line(line: str) -> bool:
+    """Return whether a requirements.txt line is a PsyNet dependency entry."""
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#"):
+        return False
+    return bool(
+        re.match(r"(?i)^psynet(?:\s*$|\s*[@<>=!~\[])", stripped)
+        or re.search(r"(?i)#egg=psynet(?:\s|$)", stripped)
+    )
+
+
+def is_unambiguous_psynet_requirement(requirement: str) -> bool:
+    """Return whether a PsyNet requirement pins a version or commit.
+
+    Accepted formats are:
+    - ``psynet==<version>``
+    - ``psynet@git+https://<host>/<path>@v<version>#egg=psynet``
+    - ``psynet@git+https://<host>/<path>@<commit-hash>#egg=psynet``
+    - ``psynet@git+ssh://git@<host>/<path>@<commit-hash>#egg=psynet``
+    """
+    commit_or_tag = (
+        r"(?:[a-fA-F0-9]{8,40}|v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+        r"(?:(?:rc|a)\d+)?)"
+    )
+    git_path = r"[\w.+\-]+(?:/[\w.+\-]+)+"
+    patterns = [
+        rf"^psynet(\s?)@(\s?)git\+https://[\w.-]+/{git_path}(\.git)?@"
+        rf"{commit_or_tag}(#egg=psynet)?$",
+        rf"^psynet(\s?)@(\s?)git\+ssh://git@[\w.-]+/{git_path}(\.git)?@"
+        rf"{commit_or_tag}(#egg=psynet)?$",
+        r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+((rc|a)\d+)?$",
+    ]
+    return any(re.fullmatch(pattern, requirement.strip()) for pattern in patterns)
+
+
 def get_psynet_requirement() -> str | None:
     """Return the active PsyNet entry from requirements.txt."""
     matches = [
         line.strip()
         for line in Path("requirements.txt").read_text().splitlines()
-        if not line.strip().startswith("#")
-        and (
-            re.match(r"(?i)^psynet(?:\s*$|\s*[@<>=!~\[])", line.strip())
-            or re.search(r"(?i)#egg=psynet(?:\s|$)", line)
-        )
+        if _is_psynet_requirement_line(line)
     ]
     if len(matches) > 1:
         raise ValueError("requirements.txt contains multiple PsyNet requirements.")
@@ -432,15 +471,15 @@ def _report_scaffold_result(written, *, overwrite):
 def _copy_template_file(relative_path, overwrite):
     """Copy one scaffold-managed template file into the experiment directory."""
     destination = Path(relative_path)
+    if relative_path in _PRESERVE_EXISTING_TEMPLATE_FILES:
+        overwrite = False
     if destination.exists() and not overwrite:
         return False
     if overwrite and _template_file_matches(relative_path):
         return False
 
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with resources.as_file(
-        resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
-    ) as path:
+    with resources.as_file(_experiment_script_resource(relative_path)) as path:
         shutil.copyfile(path, destination)
     return True
 
@@ -488,9 +527,7 @@ def _template_file_matches(relative_path):
     if not destination.is_file():
         return False
 
-    with resources.as_file(
-        resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
-    ) as template:
+    with resources.as_file(_experiment_script_resource(relative_path)) as template:
         return destination.read_bytes() == template.read_bytes()
 
 
@@ -508,15 +545,13 @@ def _template_directory_matches(relative_path):
     destination = Path(relative_path)
     if not destination.is_dir():
         return False
-    with resources.as_file(
-        resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
-    ) as template:
+    with resources.as_file(_experiment_script_resource(relative_path)) as template:
         return md5_directory(destination) == md5_directory(template)
 
 
 def _managed_path_matches_scaffold(relative_path):
     """Return whether a managed path still has its generated contents."""
-    if relative_path in _TEMPLATE_FILES or relative_path in _OPTIONAL_TEMPLATE_FILES:
+    if relative_path in _TEMPLATE_FILES:
         return _template_file_matches(relative_path)
     if relative_path in _GENERATED_FILES:
         return _generated_file_matches(relative_path)
@@ -609,10 +644,13 @@ def _make_docker_entries_executable():
 def scaffold_experiment_directory(
     *,
     overwrite=False,
-    include_optional_files=False,
     skip_files=None,
 ):
-    """Create or refresh the standard scaffold-managed experiment files."""
+    """Create or refresh the standard scaffold-managed experiment files.
+
+    ``config.txt`` is part of the default scaffold and is created when missing,
+    but existing copies are never overwritten (authors commonly customize them).
+    """
     skip_files = set(skip_files or [])
     _assert_scaffold_paths_are_safe(
         (scaffold_managed_paths() | set(_BOOTSTRAP_FILES)) - skip_files
@@ -625,11 +663,7 @@ def scaffold_experiment_directory(
     written.extend(bootstrap_written)
     skipped.extend(bootstrap_skipped)
 
-    template_files = list(_TEMPLATE_FILES)
-    if include_optional_files:
-        template_files.extend(_OPTIONAL_TEMPLATE_FILES)
-
-    for relative_path in template_files:
+    for relative_path in _TEMPLATE_FILES:
         if relative_path in skip_files:
             skipped.append(relative_path)
             continue
@@ -655,9 +689,7 @@ def scaffold_experiment_directory(
             continue
 
         destination = Path(relative_path)
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
-        ) as path:
+        with resources.as_file(_experiment_script_resource(relative_path)) as path:
             if destination.exists() and not overwrite:
                 if _copy_missing_directory_entries(path, destination):
                     written.append(relative_path)

@@ -47,29 +47,24 @@ from psynet.version import (
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
-    commit_psynet_requirement,
-    editable_psynet_requirement,
-    get_editable_psynet_source,
+    dockertag_contents,
     get_psynet_requirement,
+    is_unambiguous_psynet_requirement,
     missing_scaffold_paths_required_for_local_run,
-    pin_unpinned_psynet_requirement,
     prune_experiment_scaffold,
     scaffold_experiment_directory,
-    set_psynet_requirement,
 )
+from .experiment_setup import _scaffold_experiment, setup_experiment
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
-    ExperimentDirectoryNameError,
-    ensure_experiment_directory_name_does_not_conflict,
     get_args,
     get_experiment_url,
     get_logger,
     get_package_name,
-    get_psynet_root,
     git_repository_available,
     in_python_package,
     is_in_repo_experiment,
@@ -128,14 +123,7 @@ def clean_sys_modules():
 
 
 def update_docker_tag():
-    with open("Dockertag", "w") as file:
-        file.write(os.path.basename(os.getcwd()))
-        file.write("\n")
-
-
-def _missing_scaffold_boilerplate():
-    """List scaffold paths required for local runs that are missing."""
-    return missing_scaffold_paths_required_for_local_run()
+    Path("Dockertag").write_text(dockertag_contents())
 
 
 @click.group()
@@ -1352,7 +1340,7 @@ def _prepare_in_repo_experiment():
     """Generate ignored boilerplate when running an in-repo experiment."""
     if not is_in_repo_experiment():
         return False
-    scaffold_experiment_directory(include_optional_files=True)
+    scaffold_experiment_directory()
     return True
 
 
@@ -1366,7 +1354,7 @@ def _check_experiment_directory(mode):
     """
     _prepare_in_repo_experiment()
 
-    missing_boilerplate = _missing_scaffold_boilerplate()
+    missing_boilerplate = missing_scaffold_paths_required_for_local_run()
     if missing_boilerplate:
         missing_paths = ", ".join(missing_boilerplate)
         raise click.ClickException(
@@ -1391,7 +1379,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from .experiment import get_experiment
     from .utils import check_todos_before_deployment
 
-    _check_experiment_directory(mode)
+    # Directory readiness is checked earlier in ``_pre_launch`` (before Redis)
+    # and directly from ``psynet test local``. Avoid duplicating that work here.
 
     exp = get_experiment()
     exp.check_config()
@@ -2053,11 +2042,8 @@ def check_psynet_requirement_is_unambiguous():
     Validate that ``requirements.txt`` pins PsyNet unambiguously.
 
     The check requires a deterministic PsyNet specification so deployments are
-    reproducible. Accepted formats are:
-    - ``psynet==<version>``
-    - ``psynet@git+https://<host>/<path>@v<version>#egg=psynet``
-    - ``psynet@git+https://<host>/<path>@<commit-hash>#egg=psynet``
-    - ``psynet@git+ssh://git@<host>/<path>@<commit-hash>#egg=psynet``
+    reproducible. Accepted formats are documented on
+    :func:`psynet.experiment_scaffold.is_unambiguous_psynet_requirement`.
 
     Raises
     ------
@@ -2075,30 +2061,10 @@ def check_psynet_requirement_is_unambiguous():
         text="Verifying PsyNet version in requirements.txt...",
         color="green",
     ) as spinner:
-        valid = False
-        with open("requirements.txt", "r") as file:
-            commit_or_tag = (
-                r"(?:[a-fA-F0-9]{8,40}|v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
-                r"(?:(?:rc|a)\d+)?)"
-            )
-            git_path = r"[\w.+\-]+(?:/[\w.+\-]+)+"
-            regexes = [
-                rf"^psynet(\s?)@(\s?)git\+https://[\w.-]+/{git_path}(\.git)?@"
-                rf"{commit_or_tag}(#egg=psynet)?$",
-                rf"^psynet(\s?)@(\s?)git\+ssh://git@[\w.-]+/{git_path}(\.git)?@"
-                rf"{commit_or_tag}(#egg=psynet)?$",
-                r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+((rc|a)\d+)?$",
-            ]
-            file_content = file.read()
-            for regex in regexes:
-                match = re.search(
-                    regex,
-                    file_content,
-                    re.MULTILINE,
-                )
-                if match is not None:
-                    valid = True
-                    break
+        requirement = get_psynet_requirement()
+        valid = requirement is not None and is_unambiguous_psynet_requirement(
+            requirement
+        )
 
         if valid:
             spinner.ok("✔")
@@ -2891,49 +2857,6 @@ def scripts():
     pass
 
 
-def _assert_directory_is_scaffoldable():
-    """Block scaffolding only when the directory name conflicts with a Python module."""
-    try:
-        ensure_experiment_directory_name_does_not_conflict()
-    except ExperimentDirectoryNameError as exc:
-        raise click.UsageError(str(exc)) from exc
-
-
-def _generate_constraints_if_missing(ctx, *, requirements_changed=False):
-    """Generate a non-empty constraints file when scaffolding needs one."""
-    constraints_path = Path("constraints.txt")
-    if constraints_path.exists() and not constraints_path.is_file():
-        raise click.UsageError("constraints.txt exists but is not a regular file.")
-    if (
-        not requirements_changed
-        and constraints_path.is_file()
-        and constraints_path.stat().st_size > 0
-    ):
-        return
-
-    click.echo("Generating constraints.txt...")
-    ctx.invoke(generate_constraints)
-    if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
-        raise click.ClickException(
-            "Failed to generate a non-empty constraints.txt file."
-        )
-
-
-def _scaffold_experiment(ctx, *, skip_constraints, refresh_constraints=False):
-    """Scaffold an experiment and optionally prepare its constraints."""
-    _assert_directory_is_scaffoldable()
-    scaffold_result = scaffold_experiment_directory(include_optional_files=True)
-    if not skip_constraints:
-        requirements_changed = (
-            "requirements.txt" in scaffold_result["written"]
-            or pin_unpinned_psynet_requirement()
-        )
-        _generate_constraints_if_missing(
-            ctx,
-            requirements_changed=requirements_changed or refresh_constraints,
-        )
-
-
 @scripts.command("scaffold")
 @click.option(
     "--skip-constraints",
@@ -2949,179 +2872,6 @@ def scripts_scaffold(ctx, skip_constraints):
     created as well.
     """
     _scaffold_experiment(ctx, skip_constraints=skip_constraints)
-
-
-def _ensure_active_virtualenv():
-    """Require setup to run inside an active virtual environment."""
-    if sys.prefix == sys.base_prefix and not os.environ.get("VIRTUAL_ENV"):
-        raise click.UsageError(
-            "PsyNet setup must run in an active virtual environment. "
-            "Create one with 'uv venv --python 3.13', then activate it before "
-            "trying again."
-        )
-
-
-def _run_uv(args, description):
-    """Run one uv command and report a concise Click error on failure."""
-    if shutil.which("uv") is None:
-        raise click.ClickException(
-            "Could not find uv. Install it with 'pip install uv' and try again."
-        )
-    try:
-        subprocess.run(["uv", *args], check=True)
-    except subprocess.CalledProcessError as exc:
-        raise click.ClickException(f"Failed to {description}.") from exc
-
-
-def _is_interactive():
-    """Return whether setup can prompt for user choices."""
-    return sys.stdin.isatty()
-
-
-def _is_psynet_checkout_virtualenv():
-    """Return whether the active interpreter is PsyNet's shared checkout venv."""
-    prefix = Path(sys.prefix).resolve()
-    root = get_psynet_root().resolve()
-    return prefix.is_relative_to(root)
-
-
-def _warn_shared_checkout_sync():
-    """Emit a stern warning before syncing PsyNet's shared checkout venv."""
-    click.echo(
-        "Warning: synchronizing will run 'uv pip sync --strict' against this "
-        "shared PsyNet development environment and can remove packages that "
-        "other PsyNet work depends on.",
-        err=True,
-    )
-
-
-def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
-    """Decide how setup should treat PsyNet's shared checkout virtualenv.
-
-    Returns ``"prepare-only"`` or ``"sync"``. Raises on cancel or invalid flags.
-    """
-    if prepare_only and force_shared_env:
-        raise click.UsageError(
-            "--prepare-only and --force-shared-env cannot be used together."
-        )
-
-    in_shared_env = _is_psynet_checkout_virtualenv()
-    if force_shared_env and not in_shared_env:
-        raise click.UsageError(
-            "--force-shared-env is only applicable when the active virtual "
-            "environment is PsyNet's shared checkout environment."
-        )
-    if not in_shared_env:
-        return "prepare-only" if prepare_only else "sync"
-
-    if prepare_only:
-        return "prepare-only"
-    if force_shared_env:
-        _warn_shared_checkout_sync()
-        return "sync"
-
-    if not _is_interactive():
-        raise click.UsageError(
-            "The active virtual environment appears to be PsyNet's shared "
-            "checkout environment. Refusing to synchronize without an explicit "
-            "choice. Use --prepare-only to scaffold and generate constraints "
-            "without syncing, --force-shared-env to sync anyway (this can remove "
-            "packages from the shared PsyNet development environment), or cancel "
-            "by not running setup."
-        )
-
-    click.echo(
-        "The active virtual environment appears to be PsyNet's shared checkout "
-        "environment."
-    )
-    click.echo(
-        "Choose 'cancel' to abort with no changes, 'prepare-only' to scaffold "
-        "and generate constraints without syncing, or 'sync' to synchronize "
-        "anyway (this can remove packages from the shared PsyNet development "
-        "environment)."
-    )
-    choice = click.prompt(
-        "Shared environment action",
-        type=click.Choice(["cancel", "prepare-only", "sync"]),
-        default="cancel",
-    )
-    if choice == "cancel":
-        click.echo("Aborted setup; no experiment or environment changes were made.")
-        raise click.Abort()
-    if choice == "sync":
-        _warn_shared_checkout_sync()
-    return choice
-
-
-def _editable_checkout_is_dirty(source):
-    """Return whether an editable PsyNet checkout has uncommitted changes."""
-    result = subprocess.run(
-        ["git", "-C", str(source), "status", "--porcelain"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.returncode == 0 and bool(result.stdout.strip())
-
-
-def _choose_editable_psynet_requirement(source, requested_source):
-    """Resolve how setup should represent an active editable PsyNet checkout."""
-    editable_requirement = editable_psynet_requirement(source)
-    requirements_path = Path("requirements.txt")
-    try:
-        existing_requirement = (
-            get_psynet_requirement() if requirements_path.is_file() else None
-        )
-    except ValueError as exc:
-        raise click.UsageError(str(exc)) from exc
-    if existing_requirement == editable_requirement and requested_source is None:
-        return editable_requirement
-
-    explicit_existing = (
-        existing_requirement is not None and existing_requirement.lower() != "psynet"
-    )
-    choices = ["editable", "commit"]
-    if explicit_existing:
-        choices.append("existing")
-
-    if requested_source is None:
-        if not _is_interactive():
-            options = ", ".join(f"--psynet-source {choice}" for choice in choices)
-            raise click.UsageError(
-                f"PsyNet is installed editable from {source}. Choose how setup "
-                f"should represent it with one of: {options}."
-            )
-        click.echo(f"PsyNet is installed editable from {source}.")
-        click.echo(
-            "Choose 'editable' to include local changes, 'commit' for a portable "
-            "Git pin from this checkout's origin remote, or 'existing' to retain "
-            "the current requirements entry."
-        )
-        requested_source = click.prompt(
-            "PsyNet source",
-            type=click.Choice(choices),
-        )
-    elif requested_source not in choices:
-        raise click.UsageError(
-            f"--psynet-source {requested_source} is unavailable for this experiment."
-        )
-
-    if requested_source == "editable":
-        return editable_requirement
-    if requested_source == "existing":
-        return existing_requirement
-
-    try:
-        requirement = commit_psynet_requirement(source)
-    except ValueError as exc:
-        raise click.UsageError(str(exc)) from exc
-    if _editable_checkout_is_dirty(source):
-        click.echo(
-            "Warning: the commit pin excludes uncommitted changes in the editable "
-            "PsyNet checkout.",
-            err=True,
-        )
-    return requirement
 
 
 @psynet.command("setup")
@@ -3144,54 +2894,12 @@ def _choose_editable_psynet_requirement(source, requested_source):
 @click.pass_context
 def setup(ctx, psynet_source, prepare_only, force_shared_env):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
-    if is_in_repo_experiment():
-        _scaffold_experiment(ctx, skip_constraints=True)
-        click.echo(
-            "Prepared in-repo experiment using PsyNet's shared development environment."
-        )
-        return
-
-    _ensure_active_virtualenv()
-    action = _resolve_shared_checkout_venv_action(
+    setup_experiment(
+        ctx,
+        psynet_source=psynet_source,
         prepare_only=prepare_only,
         force_shared_env=force_shared_env,
     )
-
-    editable_source = get_editable_psynet_source()
-    if editable_source is None:
-        if psynet_source is not None:
-            raise click.UsageError(
-                "--psynet-source is only needed when PsyNet is installed editable."
-            )
-        _scaffold_experiment(
-            ctx,
-            skip_constraints=False,
-            refresh_constraints=True,
-        )
-    else:
-        requirement = _choose_editable_psynet_requirement(
-            editable_source,
-            psynet_source,
-        )
-        _assert_directory_is_scaffoldable()
-        scaffold_experiment_directory(include_optional_files=True)
-        set_psynet_requirement(requirement)
-        _generate_constraints_if_missing(ctx, requirements_changed=True)
-
-    if action == "prepare-only":
-        click.echo("Prepared experiment files without synchronizing dependencies.")
-        return
-
-    _run_uv(
-        [
-            "pip",
-            "sync",
-            "constraints.txt",
-            "--strict",
-        ],
-        "synchronize experiment dependencies",
-    )
-    _run_uv(["pip", "check"], "verify experiment dependencies")
 
 
 @scripts.command("update")
@@ -3200,7 +2908,7 @@ def scripts_update():
     """
     Overwrite experiment boilerplate with the latest PsyNet templates.
     """
-    update_scripts_()
+    scaffold_experiment_directory(overwrite=True)
 
 
 @scripts.command("prune")
@@ -3232,15 +2940,7 @@ def update_scripts():
         "psynet update-scripts is deprecated; use 'psynet scripts update' instead.",
         err=True,
     )
-    update_scripts_()
-
-
-def update_scripts_(skip_files=None):
-    """
-    To be run in an experiment directory; updates a collection of template scripts and help files to their
-    latest PsyNet versions.
-    """
-    scaffold_experiment_directory(overwrite=True, skip_files=skip_files)
+    scaffold_experiment_directory(overwrite=True)
 
 
 @psynet.group("destroy")

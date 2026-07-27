@@ -202,6 +202,64 @@ def test_bundled_demo_dependency_check_ignores_leftover_constraints(
         Experiment.check_python_dependencies(object())
 
 
+def test_in_experiment_directory_sets_skip_only_outside_repo(tmp_path, monkeypatch):
+    """Temp experiment dirs without constraints still get SKIP_DEPENDENCY_CHECK."""
+    import psynet.pytest_psynet as pytest_psynet
+
+    monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
+    monkeypatch.setattr(pytest_psynet.redis_vars, "clear", lambda: None)
+    monkeypatch.setattr(pytest_psynet, "clean_sys_modules", lambda: None)
+    monkeypatch.setattr(pytest_psynet, "clear_all_caches", lambda: None)
+    pytest_psynet.loaded_experiment_directory = None
+
+    experiment_dir = tmp_path / "temp_experiment"
+    experiment_dir.mkdir()
+    (experiment_dir / "experiment.py").write_text(
+        "from psynet.experiment import Experiment\n\nclass Exp(Experiment):\n    pass\n"
+    )
+    (experiment_dir / "requirements.txt").write_text("psynet==10.1.0\n")
+
+    fixture = pytest_psynet.in_experiment_directory
+    generator = fixture.__wrapped__(str(experiment_dir))
+    try:
+        next(generator)
+        assert os.environ.get("SKIP_DEPENDENCY_CHECK") == "1"
+    finally:
+        try:
+            next(generator)
+        except StopIteration:
+            pass
+        pytest_psynet.loaded_experiment_directory = None
+        os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+
+
+def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
+    """In-repo demos omit constraints without setting SKIP_DEPENDENCY_CHECK."""
+    import psynet.pytest_psynet as pytest_psynet
+
+    monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
+    monkeypatch.setattr(pytest_psynet.redis_vars, "clear", lambda: None)
+    monkeypatch.setattr(pytest_psynet, "clean_sys_modules", lambda: None)
+    monkeypatch.setattr(pytest_psynet, "clear_all_caches", lambda: None)
+    pytest_psynet.loaded_experiment_directory = None
+
+    demo = path_to_demo_experiment("hello_world")
+    assert not (Path(demo) / "constraints.txt").exists()
+
+    fixture = pytest_psynet.in_experiment_directory
+    generator = fixture.__wrapped__(demo)
+    try:
+        next(generator)
+        assert "SKIP_DEPENDENCY_CHECK" not in os.environ
+    finally:
+        try:
+            next(generator)
+        except StopIteration:
+            pass
+        pytest_psynet.loaded_experiment_directory = None
+        os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+
+
 def _hash_file(path: Path) -> str:
     """Return a stable hash for one file in a temporary demo copy."""
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -329,7 +387,7 @@ def test_scaffolded_copy_without_git_repo_prompts_for_git_init(tmp_path):
     shutil.copytree(source, temp_demo)
 
     with working_directory(temp_demo):
-        scaffold_experiment_directory(include_optional_files=True)
+        scaffold_experiment_directory()
         Path("constraints.txt").write_text("# Test-only dependency metadata\n")
 
     result = _run_command(
@@ -353,7 +411,7 @@ def test_demo_roundtrip_preserves_authored_files(label, demo_path, tmp_path):
     assert _preserved_snapshot(temp_demo) == original_snapshot
 
     with working_directory(temp_demo):
-        scaffold_experiment_directory(include_optional_files=True)
+        scaffold_experiment_directory()
 
     assert _preserved_snapshot(temp_demo) == original_snapshot
 

@@ -27,7 +27,6 @@ from psynet.utils import (
     get_package_source_directory,
     get_psynet_root,
     git_repository_available,
-    is_bundled_demo,
     is_in_repo_experiment,
     linspace,
     list_experiment_dirs,
@@ -43,23 +42,22 @@ from psynet.utils import (
 )
 
 
-def test_is_bundled_demo(tmp_path):
-    assert is_bundled_demo(path_to_demo_experiment("hello_world"))
-    (tmp_path / "experiment.py").touch()
-    assert not is_bundled_demo(tmp_path)
-
-
 def test_is_in_repo_experiment(tmp_path):
     from psynet.pytest_psynet import path_to_test_experiment
 
     assert is_in_repo_experiment(path_to_demo_experiment("hello_world"))
+    assert is_in_repo_experiment(
+        path_to_demo_experiment("hello_world"), roots=("demos",)
+    )
     assert is_in_repo_experiment(path_to_test_experiment("static"))
+    assert not is_in_repo_experiment(
+        path_to_test_experiment("static"), roots=("demos",)
+    )
     assert is_in_repo_experiment(
         get_psynet_root() / "tests/playwright/experiments/adversarial_lifecycle"
     )
     (tmp_path / "experiment.py").touch()
     assert not is_in_repo_experiment(tmp_path)
-    assert not is_bundled_demo(path_to_test_experiment("static"))
 
 
 def test_make_dirs():
@@ -225,6 +223,12 @@ def test_demo_dirs():
         psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
         in dirs
     )
+    assert (
+        psynet_root.joinpath(
+            "tests/playwright/experiments/adversarial_lifecycle"
+        ).__str__()
+        in dirs
+    )
 
     dirs = list_experiment_dirs(for_ci_tests=True)
     assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
@@ -234,6 +238,12 @@ def test_demo_dirs():
     )
     assert (
         psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
+        not in dirs
+    )
+    assert (
+        psynet_root.joinpath(
+            "tests/playwright/experiments/adversarial_lifecycle"
+        ).__str__()
         not in dirs
     )
 

@@ -1172,60 +1172,64 @@ _IN_REPO_EXPERIMENT_ROOTS = (
     "tests/manual_recruiter_testing",
 )
 
+# Path substrings / suffixes excluded from CI demo runs via ``for_ci_tests``.
+# Playwright experiments have dedicated CI jobs; recruiter demos and gibbs_video
+# are not meaningful (or lack deps) in the shared CI runner.
+_CI_EXCLUDED_EXPERIMENT_PATH_MARKERS = (
+    "recruiters",
+    "manual_recruiter_testing",
+    "playwright",
+)
+_CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES = ("/gibbs_video",)
 
-def is_bundled_demo(path="."):
-    """Return whether a path is an experiment in PsyNet's bundled demos."""
-    path = Path(path).resolve()
-    demos_root = (get_psynet_root() / "demos").resolve()
-    return (path / "experiment.py").is_file() and path.is_relative_to(demos_root)
 
-
-def is_in_repo_experiment(path="."):
+def is_in_repo_experiment(path=".", *, roots=None):
     """Return whether a path is a PsyNet in-repo experiment (demo or test).
 
     In-repo experiments use the shared development environment and omit checked-in
     scaffold/constraints files; local/CI flows auto-prepare ignored boilerplate.
+
+    Parameters
+    ----------
+    path :
+        Experiment directory to check.
+    roots :
+        Optional iterable of in-repo roots relative to the PsyNet checkout.
+        Defaults to :data:`_IN_REPO_EXPERIMENT_ROOTS`. Pass ``("demos",)`` to
+        restrict to bundled demos only.
     """
     path = Path(path).resolve()
     if not (path / "experiment.py").is_file():
         return False
     root = get_psynet_root().resolve()
+    relative_roots = _IN_REPO_EXPERIMENT_ROOTS if roots is None else roots
     return any(
-        path.is_relative_to((root / relative).resolve())
-        for relative in _IN_REPO_EXPERIMENT_ROOTS
+        path.is_relative_to((root / relative).resolve()) for relative in relative_roots
+    )
+
+
+def _excluded_from_ci_experiment_dirs(dir_path: str) -> bool:
+    """Return whether an experiment directory should be skipped in CI demo runs."""
+    return any(
+        marker in dir_path for marker in _CI_EXCLUDED_EXPERIMENT_PATH_MARKERS
+    ) or any(
+        dir_path.endswith(suffix) for suffix in _CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES
     )
 
 
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
-    demo_root = get_psynet_root() / "demos"
-    test_experiments_root = get_psynet_root() / "tests/experiments"
-    # Included so release tooling keeps its template scripts up to date;
-    # excluded from CI test runs via the for_ci_tests filter below.
-    manual_recruiter_testing_root = get_psynet_root() / "tests/manual_recruiter_testing"
+    """List in-repo experiment directories under :data:`_IN_REPO_EXPERIMENT_ROOTS`."""
+    psynet_root = get_psynet_root()
 
     dirs = sorted(
         [
             dir_
-            for root in [
-                demo_root,
-                test_experiments_root,
-                manual_recruiter_testing_root,
-            ]
-            for dir_, sub_dirs, files in os.walk(root)
+            for relative in _IN_REPO_EXPERIMENT_ROOTS
+            for dir_, sub_dirs, files in os.walk(psynet_root / relative)
             if (
                 "experiment.py" in files
                 and not dir_.endswith("/develop")
-                and (
-                    not for_ci_tests
-                    or not (
-                        # Skip the recruiter demos because they're not meaningful to run here
-                        "recruiters" in dir_
-                        or "manual_recruiter_testing" in dir_
-                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
-                        # in the CI environment
-                        or dir_.endswith("/gibbs_video")
-                    )
-                )
+                and (not for_ci_tests or not _excluded_from_ci_experiment_dirs(dir_))
             )
         ]
     )

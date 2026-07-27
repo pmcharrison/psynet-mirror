@@ -1,10 +1,65 @@
 import os
 import tempfile
+from pathlib import Path
 
 import pytest
 
 from psynet.command_line import check_psynet_requirement_is_unambiguous
+from psynet.experiment_scaffold import (
+    get_psynet_requirement,
+    is_unambiguous_psynet_requirement,
+)
 from psynet.utils import working_directory
+
+
+@pytest.mark.parametrize(
+    "requirement, expected",
+    [
+        ("psynet", False),
+        ("psynet@git+https://gitlab.com/PsyNetDev/PsyNet", False),
+        ("psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet", False),
+        ("psynet==10.1.0", True),
+        ("psynet == 10.1.0", True),
+        (
+            "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@"
+            "45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+            True,
+        ),
+        (
+            "psynet@git+ssh://git@git.example.com/alice/PsyNet@"
+            "45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+            True,
+        ),
+        ("psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet", True),
+        ("psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.0#egg=psynet", True),
+        ("psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.0rc1#egg=psynet", True),
+    ],
+)
+def test_is_unambiguous_psynet_requirement(requirement, expected):
+    assert is_unambiguous_psynet_requirement(requirement) is expected
+
+
+def test_get_psynet_requirement_finds_name_and_git_egg_forms():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("requirements.txt").write_text(
+                "# comment\nother-package==1.0\npsynet==10.1.0\n"
+            )
+            assert get_psynet_requirement() == "psynet==10.1.0"
+
+            Path("requirements.txt").write_text(
+                "git+https://gitlab.com/PsyNetDev/PsyNet@"
+                "45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
+            )
+            assert get_psynet_requirement().endswith("#egg=psynet")
+
+
+def test_get_psynet_requirement_rejects_multiple_entries():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("requirements.txt").write_text("psynet==10.1.0\npsynet==10.2.0\n")
+            with pytest.raises(ValueError, match="multiple PsyNet requirements"):
+                get_psynet_requirement()
 
 
 def test_check_psynet_requirement_is_unambiguous_missing_version():

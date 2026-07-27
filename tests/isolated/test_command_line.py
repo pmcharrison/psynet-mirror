@@ -20,14 +20,14 @@ from psynet.command_line import (
     _check_constraints,
     _create_sql_profile_run_dir,
     _enable_sql_profile,
-    _missing_scaffold_boilerplate,
     check_dockerfile,
     psynet,
-    update_scripts_,
 )
 from psynet.experiment_scaffold import (
     _remove_empty_parent_dirs,
+    missing_scaffold_paths_required_for_local_run,
     prune_experiment_scaffold,
+    scaffold_experiment_directory,
 )
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import working_directory
@@ -820,9 +820,9 @@ def test_check_dockerfile():
                 check_dockerfile()
 
             # Test 2: Dockerfile with new format - should not raise
-            # Use update_scripts_ to generate a proper Dockerfile
+            # Use scaffold overwrite to generate a proper Dockerfile
             with patch("click.echo"):  # Suppress output
-                update_scripts_()
+                scaffold_experiment_directory(overwrite=True)
             check_dockerfile()
 
             # Test 3: Dockerfile with old format (version tag) - should raise
@@ -1041,10 +1041,12 @@ def test_scripts_scaffold_regenerates_empty_constraints(tmp_path):
 def _mock_dedicated_experiment_venv(monkeypatch):
     """Treat setup tests as using a dedicated experiment venv, not the shared one."""
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: False,
     )
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
 
 
 def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypatch):
@@ -1053,7 +1055,7 @@ def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypa
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda args, description: calls.append((args, description)),
     )
 
@@ -1080,10 +1082,10 @@ def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypa
 
 
 def test_setup_requires_active_virtualenv(monkeypatch):
-    from psynet.command_line import _ensure_active_virtualenv
+    from psynet.experiment_setup import _ensure_active_virtualenv
 
-    monkeypatch.setattr("psynet.command_line.sys.prefix", "/usr")
-    monkeypatch.setattr("psynet.command_line.sys.base_prefix", "/usr")
+    monkeypatch.setattr("psynet.experiment_setup.sys.prefix", "/usr")
+    monkeypatch.setattr("psynet.experiment_setup.sys.base_prefix", "/usr")
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
 
     with pytest.raises(click.UsageError, match="uv venv"):
@@ -1093,13 +1095,13 @@ def test_setup_requires_active_virtualenv(monkeypatch):
 def test_setup_prepares_bundled_demo_without_dependency_changes(tmp_path, monkeypatch):
     requirements = "psynet\nmusic21==9.1.0\n"
     (tmp_path / "requirements.txt").write_text(requirements)
-    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
+    monkeypatch.setattr("psynet.experiment_setup.is_in_repo_experiment", lambda: True)
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda *args: pytest.fail("Bundled demo setup must not synchronize"),
     )
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: pytest.fail("Bundled demo setup must not gate on shared venv"),
     )
 
@@ -1120,10 +1122,10 @@ def test_setup_requires_source_choice_for_noninteractive_editable_install(
     source.mkdir()
     (tmp_path / "requirements.txt").write_text("psynet\n")
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: source,
     )
-    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: False)
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: False)
     _mock_dedicated_experiment_venv(monkeypatch)
 
     with working_directory(tmp_path):
@@ -1140,13 +1142,13 @@ def test_setup_prompts_to_preserve_editable_psynet(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet\nmusic21==9.1.0\n")
     calls = []
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: source,
     )
-    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
     _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda args, description: calls.append(args),
     )
 
@@ -1172,19 +1174,19 @@ def test_setup_can_pin_editable_psynet_commit(tmp_path, monkeypatch):
         f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{'a' * 40}#egg=psynet"
     )
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: source,
     )
     monkeypatch.setattr(
-        "psynet.command_line.commit_psynet_requirement",
+        "psynet.experiment_setup.commit_psynet_requirement",
         lambda path: requirement,
     )
     monkeypatch.setattr(
-        "psynet.command_line._editable_checkout_is_dirty",
+        "psynet.experiment_setup._editable_checkout_is_dirty",
         lambda path: False,
     )
     _mock_dedicated_experiment_venv(monkeypatch)
-    monkeypatch.setattr("psynet.command_line._run_uv", lambda *args: None)
+    monkeypatch.setattr("psynet.experiment_setup._run_uv", lambda *args: None)
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(
@@ -1201,11 +1203,11 @@ def test_setup_prepare_only_skips_sync_outside_shared_env(tmp_path, monkeypatch)
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: None,
     )
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda *args: pytest.fail("prepare-only must not run uv pip sync/check"),
     )
 
@@ -1231,9 +1233,11 @@ def test_setup_rejects_force_shared_env_outside_shared_venv(tmp_path, monkeypatc
 
 def test_setup_rejects_prepare_only_with_force_shared_env(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
 
@@ -1250,12 +1254,14 @@ def test_setup_rejects_prepare_only_with_force_shared_env(tmp_path, monkeypatch)
 
 def test_setup_shared_env_noninteractive_requires_explicit_flag(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
-    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: False)
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: False)
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"])
@@ -1269,17 +1275,19 @@ def test_setup_shared_env_noninteractive_requires_explicit_flag(tmp_path, monkey
 def test_setup_shared_env_prepare_only_skips_sync(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: None,
     )
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda *args: pytest.fail("prepare-only must not run uv pip sync/check"),
     )
 
@@ -1295,17 +1303,19 @@ def test_setup_shared_env_force_syncs_with_warning(tmp_path, monkeypatch):
     calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: None,
     )
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda args, description: calls.append(args),
     )
 
@@ -1322,14 +1332,16 @@ def test_setup_shared_env_force_syncs_with_warning(tmp_path, monkeypatch):
 
 def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
-    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda *args: pytest.fail("cancel must not synchronize"),
     )
 
@@ -1345,18 +1357,20 @@ def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypa
 def test_setup_shared_env_interactive_prepare_only(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
-    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: None,
     )
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda *args: pytest.fail("prepare-only must not synchronize"),
     )
 
@@ -1372,18 +1386,20 @@ def test_setup_shared_env_interactive_sync(tmp_path, monkeypatch):
     calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
     monkeypatch.setattr(
-        "psynet.command_line._is_psynet_checkout_virtualenv",
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
-    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
     monkeypatch.setattr(
-        "psynet.command_line.get_editable_psynet_source",
+        "psynet.experiment_setup.get_editable_psynet_source",
         lambda: None,
     )
     monkeypatch.setattr(
-        "psynet.command_line._run_uv",
+        "psynet.experiment_setup._run_uv",
         lambda args, description: calls.append(args),
     )
 
@@ -1399,17 +1415,19 @@ def test_setup_shared_env_interactive_sync(tmp_path, monkeypatch):
 
 
 def test_is_psynet_checkout_virtualenv_detects_prefix_under_root(tmp_path, monkeypatch):
-    from psynet.command_line import _is_psynet_checkout_virtualenv
+    from psynet.experiment_setup import _is_psynet_checkout_virtualenv
 
     root = tmp_path / "psynet"
     venv = root / ".venv"
     venv.mkdir(parents=True)
-    monkeypatch.setattr("psynet.command_line.get_psynet_root", lambda: root)
-    monkeypatch.setattr("psynet.command_line.sys.prefix", str(venv))
+    monkeypatch.setattr("psynet.experiment_setup.get_psynet_root", lambda: root)
+    monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(venv))
 
     assert _is_psynet_checkout_virtualenv() is True
 
-    monkeypatch.setattr("psynet.command_line.sys.prefix", str(tmp_path / "other-venv"))
+    monkeypatch.setattr(
+        "psynet.experiment_setup.sys.prefix", str(tmp_path / "other-venv")
+    )
     assert _is_psynet_checkout_virtualenv() is False
 
 
@@ -1421,7 +1439,7 @@ def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_pat
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
-        missing_boilerplate = _missing_scaffold_boilerplate()
+        missing_boilerplate = missing_scaffold_paths_required_for_local_run()
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "config.txt").read_text() == ""
@@ -1430,7 +1448,7 @@ def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_pat
 
 def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
     with working_directory(tmp_path):
-        assert _missing_scaffold_boilerplate() == [
+        assert missing_scaffold_paths_required_for_local_run() == [
             ".gitignore",
             "Dockerfile",
             "config.txt",
@@ -1440,7 +1458,7 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
 
         (tmp_path / ".gitignore").write_text("source_code.zip\n")
         (tmp_path / "config.txt").touch()
-        assert _missing_scaffold_boilerplate() == [
+        assert missing_scaffold_paths_required_for_local_run() == [
             "Dockerfile",
             "docker",
             "test.py",
@@ -1449,11 +1467,11 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
         (tmp_path / "Dockerfile").write_text("FROM python:3.13\n")
         (tmp_path / "test.py").write_text("def test_dummy():\n    assert True\n")
         (tmp_path / "docker").mkdir()
-        assert _missing_scaffold_boilerplate() == []
+        assert missing_scaffold_paths_required_for_local_run() == []
 
         (tmp_path / "docker").rmdir()
         (tmp_path / "docker").write_text("not a directory\n")
-        assert _missing_scaffold_boilerplate() == ["docker"]
+        assert missing_scaffold_paths_required_for_local_run() == ["docker"]
 
 
 def test_prepare_in_repo_experiment_satisfies_scaffold_boilerplate(
@@ -1468,7 +1486,7 @@ def test_prepare_in_repo_experiment_satisfies_scaffold_boilerplate(
 
     with working_directory(tmp_path):
         assert _prepare_in_repo_experiment() is True
-        assert _missing_scaffold_boilerplate() == []
+        assert missing_scaffold_paths_required_for_local_run() == []
         for relative_path in scaffold_paths_required_for_local_run():
             assert (tmp_path / relative_path).exists()
 
@@ -1514,7 +1532,6 @@ def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkey
 
 def test_check_experiment_directory_reports_missing_git(tmp_path, monkeypatch):
     from psynet.command_line import _check_experiment_directory
-    from psynet.experiment_scaffold import scaffold_experiment_directory
 
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
     monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: False)
@@ -1522,14 +1539,13 @@ def test_check_experiment_directory_reports_missing_git(tmp_path, monkeypatch):
     with working_directory(tmp_path):
         (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
         (tmp_path / "requirements.txt").write_text("psynet\n")
-        scaffold_experiment_directory(include_optional_files=True)
+        scaffold_experiment_directory()
         with pytest.raises(click.ClickException, match="git init"):
             _check_experiment_directory("debug")
 
 
 def test_check_experiment_directory_passes_with_scaffold_and_git(tmp_path, monkeypatch):
     from psynet.command_line import _check_experiment_directory
-    from psynet.experiment_scaffold import scaffold_experiment_directory
 
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
     monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
@@ -1537,7 +1553,7 @@ def test_check_experiment_directory_passes_with_scaffold_and_git(tmp_path, monke
     with working_directory(tmp_path):
         (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
         (tmp_path / "requirements.txt").write_text("psynet\n")
-        scaffold_experiment_directory(include_optional_files=True)
+        scaffold_experiment_directory()
         _check_experiment_directory("debug")
 
 
@@ -1678,6 +1694,22 @@ def test_scripts_update_does_not_overwrite_authored_bootstrap_files():
             assert Path("requirements.txt").read_text() == "psynet==0.0.0\n"
 
 
+def test_scripts_update_preserves_customized_config_txt():
+    runner = CliRunner()
+    custom_config = "[HIT Configuration]\ntitle = Custom experiment\n"
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("config.txt").write_text(custom_config)
+
+            result = runner.invoke(psynet, ["scripts", "update"])
+
+            assert result.exit_code == 0, result.output
+            assert Path("config.txt").read_text() == custom_config
+            assert Path("Dockerfile").exists()
+
+
 def test_scripts_prune_preserves_bootstrapped_authored_files():
     runner = CliRunner()
 
@@ -1785,7 +1817,7 @@ def test_scripts_prune_removes_boilerplate_and_keeps_readme():
             Path("constraints.txt").write_text("psynet==0.0.0\n")
             Path("README.md").write_text("# Minimal demo\n")
 
-            update_scripts_()
+            scaffold_experiment_directory(overwrite=True)
             Path("README.md").write_text("# Minimal demo\n")
             Path("static").mkdir()
             Path("templates").mkdir()
@@ -1809,7 +1841,7 @@ def test_scripts_prune_preserves_authored_resource_directories(tmp_path):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         Path("requirements.txt").write_text("psynet==0.0.0\n")
-        update_scripts_()
+        scaffold_experiment_directory(overwrite=True)
         Path("static").mkdir()
         Path("static/app.js").write_text("// Custom script\n")
         Path("templates").mkdir()
@@ -1830,7 +1862,7 @@ def test_scripts_prune_removes_generated_static_assets_symlink(tmp_path):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         Path("requirements.txt").write_text("psynet==0.0.0\n")
-        update_scripts_()
+        scaffold_experiment_directory(overwrite=True)
         Path("static").mkdir()
         Path("static/assets").symlink_to(assets_directory, target_is_directory=True)
 
@@ -1845,7 +1877,7 @@ def test_scripts_prune_warns_before_forcing_unrecognized_boilerplate(tmp_path):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         Path("requirements.txt").write_text("psynet==0.0.0\n")
-        update_scripts_()
+        scaffold_experiment_directory(overwrite=True)
         Path("test.py").write_text("# Custom test\n")
         Path("docker/psynet").write_text("# Custom helper\n")
 
@@ -1871,7 +1903,7 @@ def test_scripts_prune_force_removes_modified_boilerplate(tmp_path):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         Path("requirements.txt").write_text("psynet==0.0.0\n")
-        update_scripts_()
+        scaffold_experiment_directory(overwrite=True)
         Path("test.py").write_text("# Custom test\n")
         Path("docker/psynet").write_text("# Custom helper\n")
         Path("config.txt").write_text("[Config]\ntitle = Custom experiment\n")
@@ -1951,7 +1983,7 @@ def test_prune_experiment_scaffold_keeps_readme_only():
             Path("constraints.txt").write_text("psynet==0.0.0\n")
             Path("README.md").write_text("# Minimal demo\n")
 
-            update_scripts_()
+            scaffold_experiment_directory(overwrite=True)
             Path("README.md").write_text("# Minimal demo\n")
             custom_config = "[Config]\ntitle = Custom experiment\n"
             Path("config.txt").write_text(custom_config)
@@ -1975,7 +2007,7 @@ def test_prune_experiment_scaffold_propagates_directory_deletion_errors(
 ):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
-        update_scripts_()
+        scaffold_experiment_directory(overwrite=True)
 
         def fail_unless_errors_are_ignored(path, *, ignore_errors=False):
             if not ignore_errors:

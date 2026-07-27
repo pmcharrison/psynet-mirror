@@ -51,7 +51,7 @@ from .test_helpers.mock_s3 import (
 from .testing.chrome_driver import create_psynet_chrome_driver
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from .utils import clear_all_caches, wait_until
+from .utils import clear_all_caches, is_in_repo_experiment, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -363,9 +363,13 @@ def in_experiment_directory(experiment_directory):
     loaded_experiment_directory = experiment_directory
     redis_vars.clear()
     with working_directory(experiment_directory):
-        scaffold_experiment_directory(include_optional_files=True)
+        scaffold_experiment_directory()
+        # In-repo experiments skip dependency checks at runtime via
+        # ``Experiment.check_python_dependencies`` / ``is_in_repo_experiment``.
+        # Only temp / standalone experiment dirs still need the env override
+        # when constraints are absent.
         original_skip_dependency_check = os.getenv("SKIP_DEPENDENCY_CHECK")
-        if not Path("constraints.txt").exists():
+        if not Path("constraints.txt").exists() and not is_in_repo_experiment():
             os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
         try:
             yield experiment_directory
