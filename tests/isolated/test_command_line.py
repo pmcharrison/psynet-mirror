@@ -1035,6 +1035,9 @@ def test_scripts_scaffold_surfaces_existing_pin_failure_as_usage_error(
     assert result.exit_code != 0
     assert "not available on git remote 'origin'" in result.output
     assert (tmp_path / "requirements.txt").read_text() == "psynet\n"
+    assert not (tmp_path / "Dockerfile").exists()
+    assert not (tmp_path / "config.txt").exists()
+    assert not (tmp_path / "docker").exists()
 
 
 def test_scripts_scaffold_skips_constraints_and_psynet_pinning(tmp_path):

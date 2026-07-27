@@ -70,15 +70,28 @@ def _scaffold_experiment(ctx, *, skip_constraints, refresh_constraints=False):
     In-repo experiments (demos and test experiments) keep bare ``psynet``
     requirements and omit constraints by design, so pinning and constraint
     generation are skipped there even without ``--skip-constraints``.
+
+    When constraints are enabled, an existing bare ``psynet`` requirement is
+    pinned before template files are written so a failed pin does not leave a
+    half-complete scaffold.
     """
     _assert_directory_is_scaffoldable()
     if is_in_repo_experiment():
         skip_constraints = True
+
+    pinned_existing_requirement = False
+    if not skip_constraints and Path("requirements.txt").is_file():
+        try:
+            pinned_existing_requirement = pin_unpinned_psynet_requirement()
+        except ValueError as exc:
+            raise click.UsageError(str(exc)) from exc
+
     scaffold_result = scaffold_experiment_directory()
     if not skip_constraints:
         try:
             requirements_changed = (
                 "requirements.txt" in scaffold_result["written"]
+                or pinned_existing_requirement
                 or pin_unpinned_psynet_requirement()
             )
         except ValueError as exc:

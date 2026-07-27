@@ -180,8 +180,9 @@ dump.rdb
 /demos/**/test.py
 
 # Scaffold and dependency files generated inside test experiments.
-# Unlike demos, custom config.txt files may be tracked under these trees,
-# so config.txt is intentionally not ignored here.
+# Stock config.txt is ignored like demos; already-tracked custom configs stay
+# tracked. Use ``git add -f path/to/config.txt`` when first adding a new custom
+# config under these trees.
 /tests/experiments/**/.dockerignore
 /tests/experiments/**/.gitignore
 /tests/experiments/**/.python-version
@@ -191,6 +192,7 @@ dump.rdb
 /tests/experiments/**/Dockerfile
 /tests/experiments/**/Dockertag
 /tests/experiments/**/__init__.py
+/tests/experiments/**/config.txt
 /tests/experiments/**/constraints.txt
 /tests/experiments/**/docker/
 /tests/experiments/**/pytest.ini
@@ -204,6 +206,7 @@ dump.rdb
 /tests/playwright/experiments/**/Dockerfile
 /tests/playwright/experiments/**/Dockertag
 /tests/playwright/experiments/**/__init__.py
+/tests/playwright/experiments/**/config.txt
 /tests/playwright/experiments/**/constraints.txt
 /tests/playwright/experiments/**/docker/
 /tests/playwright/experiments/**/pytest.ini
@@ -217,6 +220,7 @@ dump.rdb
 /tests/manual_recruiter_testing/**/Dockerfile
 /tests/manual_recruiter_testing/**/Dockertag
 /tests/manual_recruiter_testing/**/__init__.py
+/tests/manual_recruiter_testing/**/config.txt
 /tests/manual_recruiter_testing/**/constraints.txt
 /tests/manual_recruiter_testing/**/docker/
 /tests/manual_recruiter_testing/**/pytest.ini

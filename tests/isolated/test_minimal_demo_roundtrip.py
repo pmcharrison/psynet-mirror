@@ -70,6 +70,7 @@ TEST_EXPERIMENT_TREE_PREFIXES = (
 )
 
 # Custom config.txt files that remain tracked under test experiment trees.
+# Stock configs are gitignored; add new customs with ``git add -f``.
 TEST_EXPERIMENT_CUSTOM_CONFIGS = {
     "tests/experiments/async_processes/config.txt",
     "tests/playwright/experiments/adversarial_lifecycle/config.txt",
@@ -173,6 +174,31 @@ def test_test_experiment_sources_contain_only_authored_files():
         assert _is_authored_test_experiment_path(tracked_path), (
             f"unexpected tracked path under test experiment: {tracked_path}"
         )
+
+
+def test_test_experiment_stock_config_is_gitignored():
+    """Stock config.txt under test trees is ignored; tracked customs stay tracked."""
+    psynet_root = get_psynet_root()
+    stock_configs = [
+        "tests/experiments/static/config.txt",
+        "tests/playwright/experiments/static/config.txt",
+        "tests/manual_recruiter_testing/example/config.txt",
+    ]
+    for relative_path in stock_configs:
+        result = subprocess.run(
+            ["git", "check-ignore", "--no-index", "-q", relative_path],
+            cwd=psynet_root,
+        )
+        assert result.returncode == 0, f"{relative_path} should be gitignored"
+
+    tracked_customs = set(
+        subprocess.check_output(
+            ["git", "ls-files", *TEST_EXPERIMENT_CUSTOM_CONFIGS],
+            cwd=psynet_root,
+            text=True,
+        ).splitlines()
+    )
+    assert tracked_customs == TEST_EXPERIMENT_CUSTOM_CONFIGS
 
 
 def test_skipped_dependency_check_does_not_require_constraints(monkeypatch):
