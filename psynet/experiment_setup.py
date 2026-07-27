@@ -173,8 +173,8 @@ def _create_dedicated_experiment_virtualenv():
     if venv_path.exists():
         raise click.UsageError(
             "A .venv directory already exists here. Activate it with "
-            "'source .venv/bin/activate' and re-run 'psynet setup', or remove it "
-            "first if you want setup to recreate it."
+            "'source .venv/bin/activate', install PsyNet into it, then re-run "
+            "'psynet setup', or remove it first if you want setup to recreate it."
         )
 
     _run_uv(
@@ -186,6 +186,11 @@ def _create_dedicated_experiment_virtualenv():
     click.echo()
     click.echo("Next steps:")
     click.echo("  source .venv/bin/activate")
+    editable_source = get_editable_psynet_source()
+    if editable_source is not None:
+        click.echo(f"  uv pip install -e {editable_source}")
+    else:
+        click.echo("  uv pip install psynet")
     click.echo("  psynet setup")
 
 
@@ -267,8 +272,8 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
         [
             (
                 "new-venv",
-                "Create a dedicated .venv here (recommended), then activate it "
-                "and re-run setup",
+                "Create a dedicated .venv here (recommended), then install "
+                "PsyNet into it and re-run setup",
             ),
             ("cancel", "Cancel — leave everything as-is"),
             (

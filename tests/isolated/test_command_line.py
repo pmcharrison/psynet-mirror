@@ -1459,9 +1459,38 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     assert "Created ./.venv." in result.output
     assert "Next steps:" in result.output
     assert "source .venv/bin/activate" in result.output
+    assert "uv pip install" in result.output
+    assert "psynet setup" in result.output
     assert "Aborted!" not in result.output
     assert not (tmp_path / "Dockerfile").exists()
     assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
+
+
+def test_setup_shared_env_interactive_new_venv_suggests_editable_install(
+    tmp_path, monkeypatch
+):
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: source,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._run_uv", lambda *args, **kwargs: None)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="1\n")
+
+    assert result.exit_code == 0, result.output
+    assert f"uv pip install -e {source}" in result.output
 
 
 def test_setup_shared_env_interactive_new_venv_default(tmp_path, monkeypatch):
