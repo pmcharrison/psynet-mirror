@@ -10,7 +10,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("slider page module activates", async ({ page, context }) => {
+test("slider page module activates", { tag: "@both" }, async ({ page, context }) => {
   await withExperiment(
     page,
     context,

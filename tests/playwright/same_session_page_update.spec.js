@@ -12,7 +12,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("same-session timeline update preserves page fragment and emits pageUpdated", async ({
+test("same-session timeline update preserves page fragment and emits pageUpdated", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -71,7 +71,7 @@ test("same-session timeline update preserves page fragment and emits pageUpdated
   });
 });
 
-test("non-same-session Unity transitions fall back to timeline reload", async ({
+test("non-same-session Unity transitions fall back to timeline reload", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {

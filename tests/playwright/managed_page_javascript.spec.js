@@ -11,7 +11,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("managed page JavaScript works in both transition modes", async ({
+test("managed page JavaScript works in both transition modes", { tag: "@both" }, async ({
   page,
   context
 }) => {

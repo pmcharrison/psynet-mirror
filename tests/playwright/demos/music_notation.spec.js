@@ -10,7 +10,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("music notation loads package-owned resources", async ({ page, context }) => {
+test("music notation loads package-owned resources", { tag: "@both" }, async ({ page, context }) => {
   await withExperiment(
     page,
     context,

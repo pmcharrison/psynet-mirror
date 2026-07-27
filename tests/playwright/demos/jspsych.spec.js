@@ -11,7 +11,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("jsPsych uses clean documents on entry and exit", async ({
+test("jsPsych uses clean documents on entry and exit", { tag: "@both" }, async ({
   page,
   context
 }) => {

@@ -50,7 +50,7 @@ function makeSilentWav(durationSeconds) {
   return buffer;
 }
 
-test("in-place timeline transitions replay embedded scripts and manage page assets", async ({
+test("in-place timeline transitions replay embedded scripts and manage page assets", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -227,7 +227,7 @@ test("in-place timeline transitions replay embedded scripts and manage page asse
     await expect(stylesheetMarker).not.toHaveCSS("border-left-width", "7px");
   });
 });
-test("in-place timeline transitions preload linked CSS before swapping DOM", async ({
+test("in-place timeline transitions preload linked CSS before swapping DOM", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -280,7 +280,7 @@ test("in-place timeline transitions preload linked CSS before swapping DOM", asy
   });
 });
 
-test("in-place timeline transitions manage stylesheets that target shell elements", async ({
+test("in-place timeline transitions manage stylesheets that target shell elements", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -358,7 +358,7 @@ test("in-place timeline transitions manage stylesheets that target shell element
   });
 });
 
-test("in-place media cleanup ignores late audio loads from previous pages", async ({
+test("in-place media cleanup ignores late audio loads from previous pages", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -435,7 +435,7 @@ test("in-place media cleanup ignores late audio loads from previous pages", asyn
   });
 });
 
-test("legacy response handler errors do not use SPA fragment failure UI", async ({
+test("legacy response handler errors do not use SPA fragment failure UI", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -474,7 +474,7 @@ test("legacy response handler errors do not use SPA fragment failure UI", async 
   });
 });
 
-test("in-place timeline transitions ignore duplicate nextPage while response is pending", async ({
+test("in-place timeline transitions ignore duplicate nextPage while response is pending", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -536,7 +536,7 @@ test("in-place timeline transitions ignore duplicate nextPage while response is 
   });
 });
 
-test("in-place timeline transition failures show refresh prompt and keep controls disabled", async ({
+test("in-place timeline transition failures show refresh prompt and keep controls disabled", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -593,7 +593,7 @@ test("in-place timeline transition failures show refresh prompt and keep control
   });
 });
 
-test("post-deactivation transition failures are handled once", async ({
+test("post-deactivation transition failures are handled once", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -640,7 +640,7 @@ test("post-deactivation transition failures are handled once", async ({
   });
 });
 
-test("post-commit activation failures clean up managed page modules", async ({
+test("post-commit activation failures clean up managed page modules", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {

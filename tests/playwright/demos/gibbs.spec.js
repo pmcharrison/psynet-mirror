@@ -15,7 +15,7 @@ and reaching this page must not raise an uncaught error. The failOnPageErrors
 fixture turns such an error into a test failure. Bot tests do not execute JS.
 */
 
-test("gibbs color-slider page activates without uncaught page errors", async ({
+test("gibbs color-slider page activates without uncaught page errors", { tag: "@both" }, async ({
   page,
   context
 }) => {

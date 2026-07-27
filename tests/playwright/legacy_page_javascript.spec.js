@@ -12,7 +12,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("deprecated scripts and js_links force full reloads with classic globals", async ({
+test("deprecated scripts and js_links force full reloads with classic globals", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {

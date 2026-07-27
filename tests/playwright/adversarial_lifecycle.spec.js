@@ -29,7 +29,7 @@ async function nextPageFromBrowser(page, answer = null) {
   return result;
 }
 
-test("adversarial lifecycle handles rejection retry and page listener cleanup", async ({
+test("adversarial lifecycle handles rejection retry and page listener cleanup", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
