@@ -1,0 +1,1 @@
+Moved non-trivial demo and test CSS from inline ``css`` / ``get_css()`` strings into ``static`` stylesheets via ``css_links`` / ``get_css_links()``, and taught ``ModularPage`` to collect component ``get_css_links()``.

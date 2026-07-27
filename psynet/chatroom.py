@@ -219,6 +219,10 @@ class ChatRoom(JavaScriptContributor):
             .read_text(encoding="utf-8")
         ]
 
+    def get_css_links(self):
+        """Stylesheet URLs contributed to the hosting :class:`ModularPage`."""
+        return []
+
     def get_js_vars(self):
         """Page-local configuration contributed to the hosting page."""
         return {

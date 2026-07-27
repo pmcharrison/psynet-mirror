@@ -82,32 +82,8 @@ class CreatePrompt(Prompt):
             "rule": self.rule,
         }
 
-    def get_css(self):
-        return [
-            """
-            ul {
-                list-style-type: none;
-            }
-
-            .comma-list {
-                display: inline;
-                list-style: none;
-                padding: 0;
-            }
-
-            .comma-list li {
-                display: inline;
-            }
-
-            .comma-list li::after {
-                content: ", ";
-            }
-
-            .comma-list li:last-child::after {
-                content: "";
-            }
-            """
-        ]
+    def get_css_links(self):
+        return ["/static/create-prompt.css"]
 
 
 class CreateControl(Control):

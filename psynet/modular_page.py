@@ -170,6 +170,10 @@ class Prompt(JavaScriptContributor):
     def get_css(self):
         return []
 
+    def get_css_links(self):
+        """Stylesheet URLs this component contributes to the hosting page."""
+        return []
+
     def get_js_vars(self):
         """Page-local JavaScript variables this component contributes.
 
@@ -747,6 +751,10 @@ class Control(JavaScriptContributor):
         return {}
 
     def get_css(self):
+        return []
+
+    def get_css_links(self):
+        """Stylesheet URLs this control contributes to the hosting page."""
         return []
 
     def get_js_vars(self):
@@ -1978,6 +1986,9 @@ class ModularPage(Page):
             components.append(("chatroom", self.chatroom))
 
         css = [c for _, component in components for c in component.get_css()]
+        css_links = [
+            link for _, component in components for link in component.get_css_links()
+        ]
         js_dependencies = [
             dependency
             for _, component in components
@@ -1994,6 +2005,7 @@ class ModularPage(Page):
 
         for key, collected in (
             ("css", css),
+            ("css_links", css_links),
             ("js_dependencies", js_dependencies),
             ("js_page_code", js_page_code),
             ("js_page_modules", js_page_modules),
@@ -2040,6 +2052,7 @@ class ModularPage(Page):
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,
+            css_links=css_links,
             js_dependencies=js_dependencies,
             js_page_code=js_page_code,
             js_page_modules=js_page_modules,

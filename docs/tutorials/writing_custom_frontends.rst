@@ -87,16 +87,17 @@ arguments:
   ``templates/``. ``template_fragment_str`` is useful for small generated
   fragments, but file-based fragments are usually clearer for authored pages.
 * Use ``css_links`` for authored page-local CSS files stored in ``static/``.
+  Prefer this over embedding non-trivial CSS in Python.
 * Use ``js_dependencies`` for JavaScript libraries that are loaded once per
   browser document.
 * Use ``js_page_code`` for short inline activation snippets.
 * Use ``js_page_modules`` for JavaScript behavior activated for each page.
   Each file exports ``activate(context)`` and may return a cleanup function.
-* Use ``css`` for small generated style snippets when a file would be less
-  clear.
+* Use ``css`` only for small generated or one-off style snippets when a file
+  would be less clear.
 
 Custom prompts and controls supply the equivalent assets from Python through
-``get_css()``, ``get_js_dependencies()``, ``get_js_page_code()``,
+``get_css()``, ``get_css_links()``, ``get_js_dependencies()``, ``get_js_page_code()``,
 ``get_js_page_modules()`` and ``get_js_vars()``, which are described below.
 
 Do not rely on ``DOMContentLoaded`` for page setup when using in-place

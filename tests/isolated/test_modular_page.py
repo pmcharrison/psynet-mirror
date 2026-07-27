@@ -393,6 +393,29 @@ def test_modular_page_accepts_page_css_list():
     ]
 
 
+def test_modular_page_collects_component_css_links():
+    class LinkedPrompt(Prompt):
+        def get_css_links(self):
+            return ["/static/prompt.css"]
+
+    class LinkedControl(PushButtonControl):
+        def get_css_links(self):
+            return ["/static/control.css"]
+
+    page = ModularPage(
+        "test",
+        LinkedPrompt("Hi!"),
+        LinkedControl(choices=["Yes", "No"]),
+        css_links=["/static/page.css"],
+    )
+
+    assert page.css_links == [
+        "/static/prompt.css",
+        "/static/control.css",
+        "/static/page.css",
+    ]
+
+
 def test_get_values_and_labels():
     # int input
     values, labels = RatingScale.get_values_and_labels(5)

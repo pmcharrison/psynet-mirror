@@ -101,27 +101,9 @@ def find_nearest(array, value):
         return array[idx]
 
 
-extra_css = """
-    #prompt-text {
-        text-align: center;
-        font-size: 1.5em;
-    }
-    #prompt-image, .prompt_img {
-        image-rendering: -moz-crisp-edges; /* Firefox */
-        image-rendering: -o-crisp-edges; /* Opera */
-        image-rendering: -webkit-optimize-contrast; /* Webkit (non-standard naming) */
-        image-rendering: crisp-edges;
-        -ms-interpolation-mode: nearest-neighbor; /* IE (non-standard property) */
-        width: 100%;
-        max-width: 350px;
-        max-height: 350px;
-    }
-"""
-
-
 class RobotVoicePrompt(ImagePrompt):
-    def get_css(self):
-        return [extra_css]
+    def get_css_links(self):
+        return ["/static/robot-voice-prompt.css"]
 
 
 def get_prompt(trial):
