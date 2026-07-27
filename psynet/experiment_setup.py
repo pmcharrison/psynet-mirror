@@ -246,24 +246,29 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
         )
 
     click.echo(
-        "The active virtual environment appears to be PsyNet's shared checkout "
-        "environment."
+        "You're running setup from PsyNet's own developer virtualenv "
+        "(.venv in the PsyNet repo). A standalone experiment should use a "
+        "dedicated virtualenv in this experiment directory instead, so setup "
+        "does not change the shared PsyNet environment."
     )
+    click.echo()
     choice = _prompt_numeric_choice(
-        "Shared environment action",
+        "What do you want to do?",
         [
-            ("cancel", "Cancel — abort with no changes"),
-            (
-                "prepare-only",
-                "Prepare only — scaffold and generate constraints without syncing",
-            ),
             (
                 "new-venv",
-                "New venv — create ./.venv here, then re-run setup after activating it",
+                "Create a dedicated .venv here (recommended), then activate it "
+                "and re-run setup",
+            ),
+            ("cancel", "Cancel — leave everything as-is"),
+            (
+                "prepare-only",
+                "Prepare files only — scaffold/constraints, don't install packages",
             ),
             (
                 "sync",
-                "Sync — synchronize the shared environment anyway (can remove packages)",
+                "Install into PsyNet's shared .venv anyway "
+                "(can break other PsyNet work)",
             ),
         ],
         default_index=0,

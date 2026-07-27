@@ -131,12 +131,13 @@ requirement. The same choice can be supplied non-interactively with
 
 If the active virtual environment is PsyNet's shared checkout environment
 (typically the repository ``.venv``), setup refuses to synchronize by default.
-Interactively it offers a numeric menu: cancel (default), prepare-only, create a
-dedicated ``.venv`` here (then re-run setup after activating it), or sync;
-non-interactively use ``--prepare-only`` to scaffold and generate constraints
-without syncing, or ``--force-shared-env`` to sync anyway. ``--prepare-only``
-also works in dedicated experiment environments when you want to skip
-``uv pip sync`` / ``uv pip check``.
+Interactively it explains the situation and offers a numeric menu: create a
+dedicated ``.venv`` here (recommended default), cancel, prepare files only, or
+install into the shared environment anyway; non-interactively use
+``--prepare-only`` to scaffold and generate constraints without syncing, or
+``--force-shared-env`` to sync anyway. ``--prepare-only`` also works in
+dedicated experiment environments when you want to skip ``uv pip sync`` /
+``uv pip check``.
 
 PsyNet's own monorepo CI uses ``psynet scripts scaffold --skip-constraints``
 because in-repo demos and test experiments share the repository's development

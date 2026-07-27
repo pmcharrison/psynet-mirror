@@ -1,1 +1,1 @@
-Added a ``new-venv`` option when ``psynet setup`` detects PsyNet's shared checkout environment: create ``./.venv``, then re-run setup after activating it.
+Added a clearer interactive menu when ``psynet setup`` detects PsyNet's shared checkout environment: plain-language explanation, numeric choices with create-dedicated-``.venv`` recommended by default, plus prepare-files-only and risky shared-sync options.
