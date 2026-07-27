@@ -69,6 +69,7 @@ from .utils import (
     get_experiment_url,
     get_logger,
     get_package_name,
+    get_psynet_root,
     git_repository_available,
     in_python_package,
     is_bundled_demo,
@@ -2973,8 +2974,83 @@ def _run_uv(args, description):
 
 
 def _is_interactive():
-    """Return whether setup can prompt for an editable-source choice."""
+    """Return whether setup can prompt for user choices."""
     return sys.stdin.isatty()
+
+
+def _is_psynet_checkout_virtualenv():
+    """Return whether the active interpreter is PsyNet's shared checkout venv."""
+    prefix = Path(sys.prefix).resolve()
+    root = get_psynet_root().resolve()
+    return prefix.is_relative_to(root)
+
+
+def _warn_shared_checkout_sync():
+    """Emit a stern warning before syncing PsyNet's shared checkout venv."""
+    click.echo(
+        "Warning: synchronizing will run 'uv pip sync --strict' against this "
+        "shared PsyNet development environment and can remove packages that "
+        "other PsyNet work depends on.",
+        err=True,
+    )
+
+
+def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
+    """Decide how setup should treat PsyNet's shared checkout virtualenv.
+
+    Returns ``"prepare-only"`` or ``"sync"``. Raises on cancel or invalid flags.
+    """
+    if prepare_only and force_shared_env:
+        raise click.UsageError(
+            "--prepare-only and --force-shared-env cannot be used together."
+        )
+
+    in_shared_env = _is_psynet_checkout_virtualenv()
+    if force_shared_env and not in_shared_env:
+        raise click.UsageError(
+            "--force-shared-env is only applicable when the active virtual "
+            "environment is PsyNet's shared checkout environment."
+        )
+    if not in_shared_env:
+        return "prepare-only" if prepare_only else "sync"
+
+    if prepare_only:
+        return "prepare-only"
+    if force_shared_env:
+        _warn_shared_checkout_sync()
+        return "sync"
+
+    if not _is_interactive():
+        raise click.UsageError(
+            "The active virtual environment appears to be PsyNet's shared "
+            "checkout environment. Refusing to synchronize without an explicit "
+            "choice. Use --prepare-only to scaffold and generate constraints "
+            "without syncing, --force-shared-env to sync anyway (this can remove "
+            "packages from the shared PsyNet development environment), or cancel "
+            "by not running setup."
+        )
+
+    click.echo(
+        "The active virtual environment appears to be PsyNet's shared checkout "
+        "environment."
+    )
+    click.echo(
+        "Choose 'cancel' to abort with no changes, 'prepare-only' to scaffold "
+        "and generate constraints without syncing, or 'sync' to synchronize "
+        "anyway (this can remove packages from the shared PsyNet development "
+        "environment)."
+    )
+    choice = click.prompt(
+        "Shared environment action",
+        type=click.Choice(["cancel", "prepare-only", "sync"]),
+        default="cancel",
+    )
+    if choice == "cancel":
+        click.echo("Aborted setup; no experiment or environment changes were made.")
+        raise click.Abort()
+    if choice == "sync":
+        _warn_shared_checkout_sync()
+    return choice
 
 
 def _editable_checkout_is_dirty(source):
@@ -3055,8 +3131,18 @@ def _choose_editable_psynet_requirement(source, requested_source):
     default=None,
     help="How to represent an active editable PsyNet installation.",
 )
+@click.option(
+    "--prepare-only",
+    is_flag=True,
+    help="Scaffold and generate constraints without synchronizing dependencies.",
+)
+@click.option(
+    "--force-shared-env",
+    is_flag=True,
+    help="Allow synchronizing PsyNet's shared checkout virtual environment.",
+)
 @click.pass_context
-def setup(ctx, psynet_source):
+def setup(ctx, psynet_source, prepare_only, force_shared_env):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
     if is_bundled_demo():
         _scaffold_experiment(ctx, skip_constraints=True)
@@ -3066,6 +3152,11 @@ def setup(ctx, psynet_source):
         return
 
     _ensure_active_virtualenv()
+    action = _resolve_shared_checkout_venv_action(
+        prepare_only=prepare_only,
+        force_shared_env=force_shared_env,
+    )
+
     editable_source = get_editable_psynet_source()
     if editable_source is None:
         if psynet_source is not None:
@@ -3086,6 +3177,10 @@ def setup(ctx, psynet_source):
         scaffold_experiment_directory(include_optional_files=True)
         set_psynet_requirement(requirement)
         _generate_constraints_if_missing(ctx, requirements_changed=True)
+
+    if action == "prepare-only":
+        click.echo("Prepared experiment files without synchronizing dependencies.")
+        return
 
     _run_uv(
         [

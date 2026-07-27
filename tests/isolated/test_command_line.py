@@ -1002,11 +1002,20 @@ def test_scripts_scaffold_regenerates_empty_constraints(tmp_path):
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
 
 
+def _mock_dedicated_experiment_venv(monkeypatch):
+    """Treat setup tests as using a dedicated experiment venv, not the shared one."""
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: False,
+    )
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+
+
 def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypatch):
     calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
         "psynet.command_line._run_uv",
         lambda args, description: calls.append((args, description)),
@@ -1053,6 +1062,10 @@ def test_setup_prepares_bundled_demo_without_dependency_changes(tmp_path, monkey
         "psynet.command_line._run_uv",
         lambda *args: pytest.fail("Bundled demo setup must not synchronize"),
     )
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: pytest.fail("Bundled demo setup must not gate on shared venv"),
+    )
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"])
@@ -1075,7 +1088,7 @@ def test_setup_requires_source_choice_for_noninteractive_editable_install(
         lambda: source,
     )
     monkeypatch.setattr("psynet.command_line._is_interactive", lambda: False)
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    _mock_dedicated_experiment_venv(monkeypatch)
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"])
@@ -1095,7 +1108,7 @@ def test_setup_prompts_to_preserve_editable_psynet(tmp_path, monkeypatch):
         lambda: source,
     )
     monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
         "psynet.command_line._run_uv",
         lambda args, description: calls.append(args),
@@ -1134,7 +1147,7 @@ def test_setup_can_pin_editable_psynet_commit(tmp_path, monkeypatch):
         "psynet.command_line._editable_checkout_is_dirty",
         lambda path: False,
     )
-    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr("psynet.command_line._run_uv", lambda *args: None)
 
     with working_directory(tmp_path):
@@ -1145,6 +1158,223 @@ def test_setup_can_pin_editable_psynet_commit(tmp_path, monkeypatch):
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "requirements.txt").read_text() == f"{requirement}\n"
+
+
+def test_setup_prepare_only_skips_sync_outside_shared_env(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda *args: pytest.fail("prepare-only must not run uv pip sync/check"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup", "--prepare-only"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+    assert "without synchronizing dependencies" in result.output
+
+
+def test_setup_rejects_force_shared_env_outside_shared_venv(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup", "--force-shared-env"])
+
+    assert result.exit_code != 0
+    assert "--force-shared-env is only applicable" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
+
+
+def test_setup_rejects_prepare_only_with_force_shared_env(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--prepare-only", "--force-shared-env"],
+        )
+
+    assert result.exit_code != 0
+    assert "cannot be used together" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
+
+
+def test_setup_shared_env_noninteractive_requires_explicit_flag(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: False)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"])
+
+    assert result.exit_code != 0
+    assert "--prepare-only" in result.output
+    assert "--force-shared-env" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
+
+
+def test_setup_shared_env_prepare_only_skips_sync(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda *args: pytest.fail("prepare-only must not run uv pip sync/check"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup", "--prepare-only"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+    assert "without synchronizing dependencies" in result.output
+
+
+def test_setup_shared_env_force_syncs_with_warning(tmp_path, monkeypatch):
+    calls = []
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda args, description: calls.append(args),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup", "--force-shared-env"])
+
+    assert result.exit_code == 0, result.output
+    assert "can remove packages" in result.output
+    assert calls == [
+        ["pip", "sync", "constraints.txt", "--strict"],
+        ["pip", "check"],
+    ]
+
+
+def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda *args: pytest.fail("cancel must not synchronize"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="cancel\n")
+
+    assert result.exit_code != 0
+    assert "Aborted setup" in result.output
+    assert not (tmp_path / "Dockerfile").exists()
+    assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
+
+
+def test_setup_shared_env_interactive_prepare_only(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda *args: pytest.fail("prepare-only must not synchronize"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="prepare-only\n")
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "Dockerfile").exists()
+    assert "without synchronizing dependencies" in result.output
+
+
+def test_setup_shared_env_interactive_sync(tmp_path, monkeypatch):
+    calls = []
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    monkeypatch.setattr("psynet.command_line._ensure_active_virtualenv", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line._is_psynet_checkout_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr("psynet.command_line._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.command_line.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line._run_uv",
+        lambda args, description: calls.append(args),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="sync\n")
+
+    assert result.exit_code == 0, result.output
+    assert "can remove packages" in result.output
+    assert calls == [
+        ["pip", "sync", "constraints.txt", "--strict"],
+        ["pip", "check"],
+    ]
+
+
+def test_is_psynet_checkout_virtualenv_detects_prefix_under_root(tmp_path, monkeypatch):
+    from psynet.command_line import _is_psynet_checkout_virtualenv
+
+    root = tmp_path / "psynet"
+    venv = root / ".venv"
+    venv.mkdir(parents=True)
+    monkeypatch.setattr("psynet.command_line.get_psynet_root", lambda: root)
+    monkeypatch.setattr("psynet.command_line.sys.prefix", str(venv))
+
+    assert _is_psynet_checkout_virtualenv() is True
+
+    monkeypatch.setattr("psynet.command_line.sys.prefix", str(tmp_path / "other-venv"))
+    assert _is_psynet_checkout_virtualenv() is False
 
 
 def test_scripts_scaffold_preserves_empty_config_for_existing_experiment(tmp_path):

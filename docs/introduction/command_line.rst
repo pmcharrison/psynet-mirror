@@ -129,6 +129,14 @@ forks work once the commit has been pushed), or retain an existing explicit
 requirement. The same choice can be supplied non-interactively with
 ``--psynet-source editable``, ``commit``, or ``existing``.
 
+If the active virtual environment is PsyNet's shared checkout environment
+(typically the repository ``.venv``), setup refuses to synchronize by default.
+Interactively it offers ``cancel`` (default), ``prepare-only``, or ``sync``;
+non-interactively use ``--prepare-only`` to scaffold and generate constraints
+without syncing, or ``--force-shared-env`` to sync anyway. ``--prepare-only``
+also works in dedicated experiment environments when you want to skip
+``uv pip sync`` / ``uv pip check``.
+
 PsyNet's own monorepo CI uses ``psynet scripts scaffold --skip-constraints``
 because bundled demos share the repository's development environment. Local
 ``debug`` and ``test`` commands recognize bundled demos and prepare their
