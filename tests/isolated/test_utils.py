@@ -22,6 +22,7 @@ from psynet.utils import (
     generate_text_file,
     get_authenticated_session,
     get_folder_size_mb,
+    get_installed_package_source_directory,
     get_locales_dir_from_path,
     get_package_name,
     get_package_source_directory,
@@ -484,6 +485,26 @@ where = ["src"]
         locales_dir = get_locales_dir_from_path(tmp_path)
 
     assert locales_dir == expected
+
+
+def test_get_installed_package_source_directory_supports_namespace_packages(
+    tmp_path, monkeypatch
+):
+    """Deployment copies may omit gitignored ``__init__.py`` files."""
+    import sys
+    import types
+
+    package_root = tmp_path / "deployed_experiment"
+    package_root.mkdir()
+    (package_root / "locales").mkdir()
+
+    package = types.ModuleType("dallinger_experiment")
+    package.__path__ = [str(package_root)]
+    monkeypatch.setitem(sys.modules, "dallinger_experiment", package)
+
+    assert get_installed_package_source_directory("dallinger_experiment") == (
+        package_root.resolve()
+    )
 
 
 def test_get_package_source_directory_setuptools_where_list(tmp_path):

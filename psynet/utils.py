@@ -1432,7 +1432,20 @@ def get_installed_package_source_directory(package_name: str) -> Path:
         If the package root directory cannot be found.
     """
     package = importlib.import_module(package_name)
-    return Path(package.__file__).parent
+    if getattr(package, "__file__", None) is not None:
+        return Path(package.__file__).parent
+
+    # Namespace packages (no ``__init__.py``) expose their location via
+    # ``__path__``. Deployment copies of in-repo demos often omit scaffolded
+    # ``__init__.py`` files because they are gitignored, so Dallinger loads
+    # them as namespace packages.
+    paths = getattr(package, "__path__", None)
+    if paths:
+        return Path(next(iter(paths))).resolve()
+
+    raise FileNotFoundError(
+        f"Could not determine the source directory for package {package_name!r}."
+    )
 
 
 def get_package_source_directory(path="."):

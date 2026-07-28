@@ -220,7 +220,7 @@ def _git_remote_url(source: Path, remote: str = "origin") -> str | None:
 def _remote_tracking_refs_contain_commit(
     source: Path, commit: str, remote: str = "origin"
 ) -> bool:
-    """Return whether a remote-tracking ref already contains ``commit``."""
+    """Return whether a local remote-tracking ref already contains ``commit``."""
     try:
         output = subprocess.check_output(
             ["git", "-C", str(source), "branch", "-r", "--contains", commit],
@@ -231,6 +231,38 @@ def _remote_tracking_refs_contain_commit(
         return False
     prefix = f"{remote}/"
     return any(line.strip().startswith(prefix) for line in output.splitlines())
+
+
+def _remote_advertises_commit(
+    source: Path, commit: str, remote: str = "origin"
+) -> bool:
+    """Return whether ``remote`` can serve ``commit``.
+
+    Uses ``git fetch --dry-run`` so CI merge-request checkouts still work when
+    they lack ``origin/<branch>`` remote-tracking refs for ``git branch -r
+    --contains``. Looking up the SHA with ``git ls-remote <remote> <sha>`` is
+    not reliable on GitLab.
+    """
+    try:
+        subprocess.check_call(
+            ["git", "-C", str(source), "fetch", "--dry-run", remote, commit],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    return True
+
+
+def _remote_contains_commit(source: Path, commit: str, remote: str = "origin") -> bool:
+    """Return whether ``commit`` is available on ``remote``.
+
+    Prefers local remote-tracking refs, then falls back to asking the remote
+    whether it can serve ``commit``.
+    """
+    return _remote_tracking_refs_contain_commit(
+        source, commit, remote=remote
+    ) or _remote_advertises_commit(source, commit, remote=remote)
 
 
 def _installed_psynet_file_path() -> Path | None:
@@ -333,7 +365,7 @@ def commit_psynet_requirement(source: Path) -> str:
             "https/ssh git URL."
         ) from exc
 
-    if not _remote_tracking_refs_contain_commit(source, commit, remote="origin"):
+    if not _remote_contains_commit(source, commit, remote="origin"):
         raise ValueError(
             f"Commit {commit[:12]} is not available on git remote 'origin' "
             f"({remote_url}). Push your PsyNet commits first "

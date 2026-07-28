@@ -1,5 +1,6 @@
 """Tests for PsyNet requirement pinning helpers."""
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -82,7 +83,7 @@ def test_commit_psynet_requirement_uses_origin_remote(tmp_path, monkeypatch):
         lambda _source, remote="origin": "git@gitlab.com:alice/PsyNet.git",
     )
     monkeypatch.setattr(
-        "psynet.experiment_scaffold._remote_tracking_refs_contain_commit",
+        "psynet.experiment_scaffold._remote_contains_commit",
         lambda _source, _commit, remote="origin": True,
     )
 
@@ -108,7 +109,7 @@ def test_commit_psynet_requirement_strips_trailing_slash_from_origin(
         lambda _source, remote="origin": "ssh://git@gitlab.com/alice/PsyNet.git/",
     )
     monkeypatch.setattr(
-        "psynet.experiment_scaffold._remote_tracking_refs_contain_commit",
+        "psynet.experiment_scaffold._remote_contains_commit",
         lambda _source, _commit, remote="origin": True,
     )
 
@@ -132,12 +133,61 @@ def test_commit_psynet_requirement_requires_pushed_commit(tmp_path, monkeypatch)
         lambda _source, remote="origin": "https://gitlab.com/alice/PsyNet.git",
     )
     monkeypatch.setattr(
-        "psynet.experiment_scaffold._remote_tracking_refs_contain_commit",
+        "psynet.experiment_scaffold._remote_contains_commit",
         lambda _source, _commit, remote="origin": False,
     )
 
     with pytest.raises(ValueError, match="not available on git remote 'origin'"):
         commit_psynet_requirement(source)
+
+
+def test_remote_contains_commit_falls_back_to_ls_remote(tmp_path, monkeypatch):
+    from psynet.experiment_scaffold import _remote_contains_commit
+
+    source = tmp_path / "psynet"
+    source.mkdir()
+    commit = "a" * 40
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._remote_tracking_refs_contain_commit",
+        lambda _source, _commit, remote="origin": False,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._remote_advertises_commit",
+        lambda _source, _commit, remote="origin": True,
+    )
+
+    assert _remote_contains_commit(source, commit) is True
+
+
+def test_remote_advertises_commit_uses_fetch_dry_run(tmp_path, monkeypatch):
+    from psynet.experiment_scaffold import _remote_advertises_commit
+
+    source = tmp_path / "psynet"
+    source.mkdir()
+    commit = "ab" * 20
+    calls = []
+
+    def _fake_check_call(args, **kwargs):
+        calls.append(args)
+        assert args[:5] == ["git", "-C", str(source), "fetch", "--dry-run"]
+        assert args[5:] == ["origin", commit]
+
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold.subprocess.check_call",
+        _fake_check_call,
+    )
+
+    assert _remote_advertises_commit(source, commit) is True
+    assert calls
+
+    def _fake_fail(args, **kwargs):
+        raise subprocess.CalledProcessError(128, args)
+
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold.subprocess.check_call",
+        _fake_fail,
+    )
+    assert _remote_advertises_commit(source, commit) is False
 
 
 def test_commit_psynet_requirement_requires_origin_remote(tmp_path, monkeypatch):

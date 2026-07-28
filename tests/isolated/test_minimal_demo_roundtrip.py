@@ -291,8 +291,8 @@ def _hash_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _copy_demo_to_tmp(src: Path, tmp_path: Path, label: str) -> Path:
-    """Copy a demo into a temporary git repository for round-trip checks."""
+def _ignore_generated_static_assets(src: Path):
+    """Ignore generated ``static/assets`` symlinks when copying a demo tree."""
     static_directory = (src / "static").resolve()
 
     def ignore_generated_paths(directory, names):
@@ -300,9 +300,15 @@ def _copy_demo_to_tmp(src: Path, tmp_path: Path, label: str) -> Path:
             return {"assets"}
         return set()
 
+    return ignore_generated_paths
+
+
+def _copy_demo_to_tmp(src: Path, tmp_path: Path, label: str, *, init_git=True) -> Path:
+    """Copy a demo into a temporary directory for round-trip checks."""
     target = tmp_path / label.replace("/", "__")
-    shutil.copytree(src, target, ignore=ignore_generated_paths)
-    subprocess.run(["git", "init", "-q"], cwd=target, check=True)
+    shutil.copytree(src, target, ignore=_ignore_generated_static_assets(src))
+    if init_git:
+        subprocess.run(["git", "init", "-q"], cwd=target, check=True)
     return target
 
 
@@ -409,8 +415,9 @@ def test_relative_imports_work_in_minimal_demo_without_init_py(tmp_path):
 
 def test_scaffolded_copy_without_git_repo_prompts_for_git_init(tmp_path):
     source = Path(path_to_demo_feature("api"))
-    temp_demo = tmp_path / "api_copy"
-    shutil.copytree(source, temp_demo)
+    # Ignore generated static/assets: in-repo demo runs in the same CI shard can
+    # leave a dangling symlink that breaks a naive shutil.copytree.
+    temp_demo = _copy_demo_to_tmp(source, tmp_path, "api_copy", init_git=False)
 
     with working_directory(temp_demo):
         scaffold_experiment_directory()
