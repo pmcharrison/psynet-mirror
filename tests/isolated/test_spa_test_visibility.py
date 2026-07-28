@@ -48,13 +48,14 @@ def test_check_static_spa_contracts_surfaces_non_template_codes_without_app_cont
         external_template = "custom-control.html"
         macro = "control"
 
-    page = ModularPage(
-        "dogfood_modular",
-        Prompt("Hi!"),
-        CustomControl(),
-        time_estimate=5,
-        js_links=["/static/legacy.js"],
-    )
+    with pytest.warns(FutureWarning, match="js_links is deprecated"):
+        page = ModularPage(
+            "dogfood_modular",
+            Prompt("Hi!"),
+            CustomControl(),
+            time_estimate=5,
+            js_links=["/static/legacy.js"],
+        )
     experiment = MagicMock()
     experiment.timeline = Timeline(page)
     monkeypatch.setattr(

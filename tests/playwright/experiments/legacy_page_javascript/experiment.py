@@ -17,6 +17,9 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
+            # Deprecated scripts/js_links force reload and raise under inplace
+            # unless the page explicitly opts out of the SPA migration error.
+            requires_full_page_reload=True,
             scripts=[
                 "var legacyGlobal = 'from-scripts';",
                 "document.getElementById('legacy-global-marker').textContent = "
