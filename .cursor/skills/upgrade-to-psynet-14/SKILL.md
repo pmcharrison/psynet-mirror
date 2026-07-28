@@ -33,4 +33,8 @@ Related reading (not a second checklist):
 - Prefer fixing SPA contract errors page by page over leaving
   ``inplace_timeline_transitions = false`` indefinitely.
 - ``psynet test local`` needs a complete experiment directory
-  (``experiment.py``, ``test.py``, and usually ``constraints.txt``).
+  (``experiment.py``, ``test.py``, ``constraints.txt``, ``config.txt``,
+  ``requirements.txt``, ``.gitignore``, and ``.python-version``).
+- SPA contract failures on static timeline pages should appear directly in
+  the pytest failure from ``psynet test local``; PageMaker pages may still
+  surface via bot HTTP errors that include the server message.

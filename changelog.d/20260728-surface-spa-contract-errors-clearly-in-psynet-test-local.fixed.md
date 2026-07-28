@@ -1,0 +1,1 @@
+Made SPA contract failures visible during ``psynet test local`` by checking static timeline pages before bots run and by including server error details in bot HTTP 500 failures. Documented the full experiment scaffold files needed for local validation.

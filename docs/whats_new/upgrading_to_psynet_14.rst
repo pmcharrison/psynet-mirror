@@ -106,14 +106,23 @@ Details: :doc:`/tutorials/writing_custom_frontends`.
 9. Validate
 -----------
 
-From a complete experiment directory (``experiment.py``, ``test.py``,
-``constraints.txt``, and typically ``config.txt`` / ``requirements.txt``;
-see :doc:`/tutorials/creating_a_new_experiment` if you are scaffolding
-from scratch):
+From a complete experiment directory. At minimum you typically need:
+
+* ``experiment.py``, ``test.py``, ``constraints.txt``
+* ``config.txt``, ``requirements.txt``
+* ``.gitignore`` (must include ``source_code.zip``) and ``.python-version``
+
+If you are scaffolding from scratch, see
+:doc:`/tutorials/creating_a_new_experiment` or run ``psynet update-scripts``
+to generate the standard support files.
 
 .. code-block:: console
 
     psynet test local
+
+``psynet test local`` checks static timeline pages for SPA contract problems
+before bots run, so migration errors should appear directly in the pytest
+failure. PageMaker-created pages are still checked when first rendered.
 
 Confirm the default in-place mode works (opt-out removed if possible), page
 modules activate without console errors, and cleanup runs for persistent

@@ -1343,6 +1343,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
+        self._check_static_spa_contracts()
 
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
@@ -1357,6 +1358,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
         self._report_request_statistics()
+
+    def _check_static_spa_contracts(self):
+        """Fail fast on static timeline pages that are not SPA-compatible.
+
+        PageMakers are skipped here because their pages do not exist until
+        runtime; bots still surface those via richer HTTP 500 details.
+        """
+        from .timeline import Page
+        from .utils import get_config
+
+        config = get_config()
+        inplace = config.get("inplace_timeline_transitions")
+        for elt in self.timeline.all_elts:
+            if not isinstance(elt, Page):
+                continue
+            try:
+                elt._check_spa_template_contract(inplace_timeline_transitions=inplace)
+            except RuntimeError as exc:
+                # ModularPage external templates need a Jinja app context.
+                if "application context" in str(exc).lower():
+                    continue
+                raise
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
