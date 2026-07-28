@@ -1,3 +1,4 @@
+import warnings
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -116,7 +117,7 @@ def test_manual_trial_waits_for_request_and_page_ready():
 def test_embedded_module_is_rejected(html):
     with pytest.raises(
         ValueError,
-        match=r"Embedded modules are not supported.*js_page_modules.*upgrade-to-psynet-14",
+        match=r"(?s)error codes: embedded_module.*upgrade-to-psynet-14",
     ):
         Page._check_embedded_script_contract(html)
 
@@ -206,7 +207,7 @@ def test_inplace_transitions_reject_complete_custom_templates():
 
     with pytest.raises(
         ValueError,
-        match=r"template_fragment_path.*upgrading_to_psynet_14",
+        match=r"(?s)reload the whole page \(error codes: complete_template\).*inplace_timeline_transitions = false.*upgrading_to_psynet_14\.html.*upgrade-to-psynet-14",
     ):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
@@ -214,7 +215,7 @@ def test_inplace_transitions_reject_complete_custom_templates():
 def test_legacy_transitions_warn_on_complete_custom_templates():
     page = Page(template_str='{% extends "timeline-page.html" %}')
 
-    with pytest.warns(UserWarning, match="template_fragment_path"):
+    with pytest.warns(UserWarning, match=r"error codes: complete_template"):
         page._check_spa_template_contract(inplace_timeline_transitions=False)
 
 
@@ -240,7 +241,7 @@ def test_inplace_transitions_reject_dom_content_loaded_in_custom_templates():
 
     with pytest.raises(
         ValueError,
-        match=r"DOMContentLoaded.*activate\(\).*upgrading_to_psynet_14",
+        match=r"error codes: dom_content_loaded",
     ):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
@@ -252,35 +253,52 @@ def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates()
 
 
 @pytest.mark.parametrize(
-    "template_fragment, match",
+    "template_fragment, code",
     [
         (
             "<script>psynet.trial.onEvent('trialConstruct', function () {});</script>",
-            "raw <script>",
+            "embedded_script",
         ),
-        ('<script src="/static/example.js"></script>', "js_page_modules"),
-        ("<style>.example { color: red; }</style>", "css_links"),
-        ('<link rel="stylesheet" href="/static/example.css">', "css_links"),
+        ('<script src="/static/example.js"></script>', "embedded_script"),
+        ("<style>.example { color: red; }</style>", "style_tag"),
+        ('<link rel="stylesheet" href="/static/example.css">', "stylesheet_link"),
         (
             "<script>window.addEventListener('resize', function () {});</script>",
-            r"window event listener.*upgrading_to_psynet_14",
+            "window_listener_no_cleanup",
         ),
     ],
 )
 def test_inplace_transitions_reject_forbidden_custom_template_content(
-    template_fragment, match
+    template_fragment, code
 ):
     page = Page(template_fragment_str=template_fragment)
 
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ValueError, match=rf"error codes: .*{code}"):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_legacy_transitions_warn_on_forbidden_custom_template_content():
     page = Page(template_fragment_str="<style>.example { color: red; }</style>")
 
-    with pytest.warns(UserWarning, match="css_links"):
+    with pytest.warns(UserWarning, match=r"error codes: style_tag"):
         page._check_spa_template_contract(inplace_timeline_transitions=False)
+
+
+def test_legacy_js_args_fail_spa_contract_even_with_fragment_template():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", FutureWarning)
+        page = Page(
+            template_fragment_str="<p>ok</p>",
+            js_links=["/static/helper.js"],
+            scripts=["document.addEventListener('DOMContentLoaded', function () {});"],
+        )
+
+    assert page.requires_full_page_reload
+    with pytest.raises(
+        ValueError,
+        match=r"error codes: legacy_js_links, legacy_scripts, dom_content_loaded",
+    ):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_window_event_listener_with_cleanup_evidence_is_allowed():
@@ -311,22 +329,22 @@ def test_managed_page_asset_arguments_are_not_forbidden_template_content():
 
 
 @pytest.mark.parametrize(
-    "content, match",
+    "content, code",
     [
         (
             "<p>Page content</p><style>.example { color: red; }</style>",
-            "css_links",
+            "style_tag",
         ),
         (
             '<p>Page content</p><link rel="stylesheet" href="/static/example.css">',
-            "css_links",
+            "stylesheet_link",
         ),
     ],
 )
-def test_inplace_transitions_reject_prompt_markup_stylesheets(content, match):
+def test_inplace_transitions_reject_prompt_markup_stylesheets(content, code):
     page = InfoPage(Markup(content))
 
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ValueError, match=rf"error codes: {code}"):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
@@ -335,7 +353,7 @@ def test_legacy_transitions_warn_on_prompt_markup_stylesheets():
         Markup("<p>Page content</p><style>.example { color: red; }</style>")
     )
 
-    with pytest.warns(UserWarning, match="css_links"):
+    with pytest.warns(UserWarning, match=r"error codes: style_tag"):
         page._check_spa_template_contract(inplace_timeline_transitions=False)
 
 

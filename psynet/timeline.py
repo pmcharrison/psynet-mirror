@@ -914,10 +914,31 @@ class ProgressDisplay(dict):
                     )
 
 
-_SPA_MIGRATION_HELP = (
-    "See docs/whats_new/upgrading_to_psynet_14.rst. "
-    "In Cursor, you can also run /upgrade-to-psynet-14."
+_SPA_UPGRADE_DOCS_URL = (
+    "https://psynetdev.gitlab.io/PsyNet/whats_new/upgrading_to_psynet_14.html"
 )
+
+
+def _format_spa_incompatibility_message(page_label, codes):
+    """Build the author-facing SPA incompatibility message.
+
+    Keep this short: explain the reload consequence, list stable error codes,
+    and offer opt-out vs migration (docs URL or Cursor skill).
+    """
+    unique_codes = list(dict.fromkeys(codes))
+    codes_text = ", ".join(unique_codes)
+    return (
+        f"Page '{page_label}' cannot use in-place timeline transitions, "
+        f"so PsyNet would need to reload the whole page "
+        f"(error codes: {codes_text}).\n\n"
+        "You can either:\n"
+        "1. Keep full-page reloads for now by setting "
+        "inplace_timeline_transitions = false in config.txt "
+        "(temporary opt-out while you migrate), or\n"
+        "2. Migrate the page following "
+        f"{_SPA_UPGRADE_DOCS_URL}"
+        " — or, in Cursor, run /upgrade-to-psynet-14"
+    )
 
 
 class Page(Elt):
@@ -1691,14 +1712,11 @@ class Page(Elt):
         return rendered
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
-        if self.framework_owned_template:
+        codes = self._collect_spa_incompatibility_codes()
+        if not codes:
             return
 
-        problems = self._collect_spa_template_contract_problems()
-        if not problems:
-            return
-
-        message = "\n\n".join(problems)
+        message = _format_spa_incompatibility_message(self.label, codes)
         if inplace_timeline_transitions:
             raise ValueError(message)
 
@@ -1706,25 +1724,41 @@ class Page(Elt):
             warnings.warn(message, UserWarning, stacklevel=2)
             self._spa_template_contract_warning_shown = True
 
-    def _collect_spa_template_contract_problems(self):
-        problems = []
-        template_source = self.template_contract_source or ""
+    def _collect_spa_incompatibility_codes(self):
+        """Return stable SPA error codes for this page."""
+        codes = []
 
-        if self.template_kind == "complete":
-            problems.append(self._complete_template_spa_contract_message())
-
-        problems.extend(
-            self._collect_spa_markup_contract_problems(
-                template_source, source_description="The template"
+        if not self.framework_owned_template:
+            if self.template_kind == "complete":
+                codes.append("complete_template")
+            codes.extend(
+                self._collect_spa_markup_contract_codes(self.template_contract_source)
             )
-        )
 
-        return problems
+        if getattr(self, "legacy_js_links", None):
+            codes.append("legacy_js_links")
+        if getattr(self, "legacy_scripts", None):
+            codes.append("legacy_scripts")
+            codes.extend(
+                self._collect_spa_markup_contract_codes(
+                    "\n".join(self.legacy_scripts),
+                    allow_scripts=False,
+                )
+            )
+
+        js_page_code = getattr(self, "js_page_code", None) or []
+        if js_page_code:
+            codes.extend(
+                self._collect_spa_markup_contract_codes(
+                    "\n".join(js_page_code),
+                    allow_scripts=False,
+                )
+            )
+
+        return list(dict.fromkeys(codes))
 
     @staticmethod
-    def _collect_spa_markup_contract_problems(
-        markup_source, source_description="The template", allow_scripts=False
-    ):
+    def _collect_spa_markup_contract_codes(markup_source, allow_scripts=False):
         # These checks intentionally cover common authoring mistakes rather
         # than trying to prove that arbitrary HTML/JS is SPA-safe.
         #
@@ -1734,51 +1768,25 @@ class Page(Elt):
         # prohibition still applies to author-provided page/prompt/control
         # templates, which should route page JavaScript through
         # js_dependencies, js_page_code, and js_page_modules.
-        problems = []
+        codes = []
         markup_source = markup_source or ""
         soup = BeautifulSoup(markup_source, "html.parser")
 
-        if not allow_scripts:
-            for script in soup.find_all("script"):
-                if script.get("src"):
-                    problems.append(
-                        f"{source_description} includes a <script src=...> tag. "
-                        "Use js_dependencies for libraries or js_page_modules "
-                        "for page behavior. " + _SPA_MIGRATION_HELP
-                    )
-                else:
-                    problems.append(
-                        f"{source_description} includes a raw <script> block. "
-                        "Move it to js_page_code or js_page_modules. "
-                        + _SPA_MIGRATION_HELP
-                    )
+        if not allow_scripts and soup.find_all("script"):
+            codes.append("embedded_script")
 
         if soup.find_all("style"):
-            problems.append(
-                f"{source_description} includes a <style> tag. "
-                "Move CSS to css_links (or get_css_links()); use css/get_css "
-                "only for tiny generated snippets. " + _SPA_MIGRATION_HELP
-            )
+            codes.append("style_tag")
 
-        for link in soup.find_all(
-            "link", rel=lambda value: value and "stylesheet" in value
-        ):
-            problems.append(
-                f"{source_description} includes a stylesheet <link> tag. "
-                "Use css_links (or get_css_links()) instead. " + _SPA_MIGRATION_HELP
-            )
+        if soup.find_all("link", rel=lambda value: value and "stylesheet" in value):
+            codes.append("stylesheet_link")
 
         if re.search(
             r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
             r"['\"]DOMContentLoaded['\"]",
             markup_source,
         ):
-            problems.append(
-                f"{source_description} registers a DOMContentLoaded listener. "
-                "Put page setup in js_page_modules activate() or js_page_code "
-                "(use pageReady/trialConstruct only for timing gates). "
-                + _SPA_MIGRATION_HELP
-            )
+            codes.append("dom_content_loaded")
 
         has_window_event_listener = re.search(
             r"\bwindow\s*\.\s*addEventListener\s*\(",
@@ -1791,24 +1799,9 @@ class Page(Elt):
             or "return async function cleanup" in markup_source
         )
         if has_window_event_listener and not has_page_cleanup:
-            problems.append(
-                f"{source_description} registers a window event listener without "
-                "cleanup. Return cleanup from activate(), or use "
-                "psynet.addPageEventListener / "
-                "psynet.addPageCleanupCallback. " + _SPA_MIGRATION_HELP
-            )
+            codes.append("window_listener_no_cleanup")
 
-        return problems
-
-    def _complete_template_spa_contract_message(self):
-        return (
-            f"Page '{self.label}' uses a complete custom template. "
-            "Pass template_fragment_path or template_fragment_str with only "
-            "the former main_body contents, and supply assets via css, "
-            "css_links, js_dependencies, js_page_code, and js_page_modules. "
-            f"{_SPA_MIGRATION_HELP} Search for Page(...) with "
-            f"label='{self.label}'."
-        )
+        return codes
 
     @staticmethod
     def _extract_partial_render(rendered_html):
@@ -1829,8 +1822,11 @@ class Page(Elt):
             script_type = (script.get("type") or "").strip().lower()
             if script_type == "module":
                 raise ValueError(
-                    "Embedded modules are not supported. Use js_page_modules "
-                    "and standard imports for dependencies. " + _SPA_MIGRATION_HELP
+                    'Embedded <script type="module"> tags are not supported '
+                    "(error codes: embedded_module).\n\n"
+                    "Migrate following "
+                    f"{_SPA_UPGRADE_DOCS_URL}"
+                    " — or, in Cursor, run /upgrade-to-psynet-14"
                 )
 
     @staticmethod

@@ -454,14 +454,14 @@ def _validate_jspsych_timeline_module(timeline):
 
     timeline_path = urlparse(timeline).path.lower()
     migration_message = (
-        "Pass a JavaScript module URL exporting buildTimeline(context). "
-        "See docs/whats_new/upgrading_to_psynet_14.rst. "
-        "In Cursor, you can also run /upgrade-to-psynet-14."
+        "Migrate following "
+        "https://psynetdev.gitlab.io/PsyNet/whats_new/upgrading_to_psynet_14.html"
+        " — or, in Cursor, run /upgrade-to-psynet-14"
     )
     if timeline_path.endswith((".html", ".htm")):
         raise ValueError(
-            "JsPsychPage no longer accepts HTML timeline templates. "
-            + migration_message
+            "JsPsychPage no longer accepts HTML timeline templates "
+            "(error codes: jspsych_html_timeline).\n\n" + migration_message
         )
 
     local_path = Path(timeline)
@@ -469,8 +469,8 @@ def _validate_jspsych_timeline_module(timeline):
         source = local_path.read_text(encoding="utf-8")
         if "jspsych-page.html" in source or "{% block timeline" in source:
             raise ValueError(
-                "JsPsychPage detected an old Jinja timeline template. "
-                + migration_message
+                "JsPsychPage detected an old Jinja timeline template "
+                "(error codes: jspsych_html_timeline).\n\n" + migration_message
             )
 
 

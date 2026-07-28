@@ -1,0 +1,1 @@
+Simplified in-place timeline incompatibility errors to one short message: reload consequence, parenthesized error codes, and two options (temporary ``inplace_timeline_transitions = false`` opt-out, or migrate via the published checklist / ``/upgrade-to-psynet-14``).

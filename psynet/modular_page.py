@@ -17,7 +17,15 @@ from .bot import BotResponse
 from .chatroom import ChatRoom  # noqa: F401
 from .javascript_hooks import JavaScriptContributor
 from .static_resources import package_static_url
-from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
+from .timeline import (
+    Event,
+    FailedValidation,
+    MediaSpec,
+    Page,
+    Trigger,
+    _format_spa_incompatibility_message,
+    is_list_of,
+)
 from .utils import (
     NoArgumentProvided,
     as_plain_text,
@@ -182,13 +190,12 @@ class Prompt(JavaScriptContributor):
         """
         return {}
 
-    def _collect_spa_markup_contract_problems(self):
+    def _collect_spa_markup_contract_codes(self):
         if self.text_html is None:
             return []
 
-        return Page._collect_spa_markup_contract_problems(
+        return Page._collect_spa_markup_contract_codes(
             str(self.text_html),
-            source_description="The page prompt/content",
             allow_scripts=True,
         )
 
@@ -2061,16 +2068,11 @@ class ModularPage(Page):
         )
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
-        super()._check_spa_template_contract(inplace_timeline_transitions)
-
-        problems = (
-            self.prompt._collect_spa_markup_contract_problems()
-            + self._collect_external_template_contract_problems()
-        )
-        if not problems:
+        codes = self._collect_spa_incompatibility_codes()
+        if not codes:
             return
 
-        message = "\n\n".join(problems)
+        message = _format_spa_incompatibility_message(self.label, codes)
         if inplace_timeline_transitions:
             raise ValueError(message)
 
@@ -2078,19 +2080,20 @@ class ModularPage(Page):
             warnings.warn(message, UserWarning, stacklevel=2)
             self._spa_template_contract_warning_shown = True
 
-    def _collect_external_template_contract_problems(self):
-        problems = []
+    def _collect_spa_incompatibility_codes(self):
+        codes = super()._collect_spa_incompatibility_codes()
+        codes.extend(self.prompt._collect_spa_markup_contract_codes())
+        codes.extend(self._collect_external_template_contract_codes())
+        return list(dict.fromkeys(codes))
+
+    def _collect_external_template_contract_codes(self):
+        codes = []
 
         for role, template_name in self._external_template_sources:
             template_source = self._load_external_template_source(template_name)
-            problems.extend(
-                Page._collect_spa_markup_contract_problems(
-                    template_source,
-                    source_description=f"The {role} external template '{template_name}'",
-                )
-            )
+            codes.extend(Page._collect_spa_markup_contract_codes(template_source))
 
-        return problems
+        return codes
 
     @property
     def _external_template_sources(self):

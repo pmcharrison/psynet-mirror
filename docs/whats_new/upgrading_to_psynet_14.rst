@@ -21,9 +21,10 @@ Also see: :doc:`/whats_new/psynet_14`,
    as a short-term opt-out, then keep migrating so you can remove it.
 3. Work page by page.
 
-To surface SPA contract errors quickly, call
-``page._check_spa_template_contract(inplace_timeline_transitions=True)``, or
-run ``psynet debug local`` / ``psynet test local`` and read the traceback.
+To surface SPA contract errors, run ``psynet debug local`` /
+``psynet test local`` and read the traceback. Incompatible pages raise one
+short message that lists **error codes** in parentheses; use the glossary
+below to map each code to a checklist step.
 
 1. Find and migrate custom page templates
 -----------------------------------------
@@ -54,6 +55,10 @@ See the same tutorial section for details.
 Search for ``js_links=``, ``scripts=``, and ``<script>`` tags in author-owned
 templates or component ``external_template`` files. Classify each script
 before moving it (load-once library vs per-page behavior vs short inline).
+
+Converting the HTML template alone is not enough: leftover ``scripts=`` /
+``js_links=`` still force a full-page reload and appear as
+``legacy_scripts`` / ``legacy_js_links`` error codes.
 
 4. Migrate load-once libraries
 ------------------------------
@@ -98,8 +103,10 @@ Details: :doc:`/tutorials/writing_custom_frontends`.
 9. Validate
 -----------
 
-From a complete experiment directory (``experiment.py``, ``test.py``, and
-usually ``constraints.txt``):
+From a complete experiment directory (``experiment.py``, ``test.py``,
+``constraints.txt``, and typically ``config.txt`` / ``requirements.txt``;
+see :doc:`/tutorials/creating_a_new_experiment` if you are scaffolding
+from scratch):
 
 .. code-block:: console
 
@@ -110,3 +117,18 @@ modules activate without console errors, and cleanup runs for persistent
 listeners.
 
 PsyNet-repository Playwright coverage is optional and harness-specific.
+
+Error codes
+-----------
+
+SPA incompatibility messages list codes such as
+``(error codes: complete_template, style_tag)``. Use them to jump to the
+relevant step:
+
+* ``complete_template`` → step 1
+* ``style_tag``, ``stylesheet_link`` → step 2
+* ``embedded_script``, ``legacy_js_links``, ``legacy_scripts`` → steps 3–5
+* ``embedded_module`` → step 5 (use ``js_page_modules``, not
+  ``<script type="module">`` in HTML)
+* ``dom_content_loaded``, ``window_listener_no_cleanup`` → steps 5 and 8
+* ``jspsych_html_timeline`` → step 7

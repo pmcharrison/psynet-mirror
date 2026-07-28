@@ -54,7 +54,7 @@ def test_inplace_transitions_reject_forbidden_external_control_template():
     page = ModularPage("test", Prompt("Hi!"), CustomControl())
 
     with app.app_context():
-        with pytest.raises(ValueError, match="control external template"):
+        with pytest.raises(ValueError, match=r"error codes: embedded_script"):
             page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
@@ -77,7 +77,7 @@ def test_legacy_transitions_warn_on_forbidden_external_control_template():
     page = ModularPage("test", Prompt("Hi!"), CustomControl())
 
     with app.app_context():
-        with pytest.warns(UserWarning, match="control external template"):
+        with pytest.warns(UserWarning, match=r"error codes: style_tag"):
             page._check_spa_template_contract(inplace_timeline_transitions=False)
 
 
@@ -136,7 +136,7 @@ def test_inplace_transitions_still_reject_style_in_page_content():
     # not managed by the deferral machinery.
     page = ModularPage("test", Prompt(Markup("<style>.x { color: red; }</style>")))
 
-    with pytest.raises(ValueError, match="page prompt/content"):
+    with pytest.raises(ValueError, match=r"error codes: style_tag"):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
