@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import subprocess
 from pathlib import Path
 from typing import Union
 
@@ -64,6 +65,28 @@ def md5_directory(directory: Union[str, Path]) -> str:
     h = hashlib.md5()
     _md5_update_from_dir(directory, h)
     return h.hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Git repository detection
+# ---------------------------------------------------------------------------
+
+
+def git_repository_available() -> bool:
+    """Return whether the current directory is inside a git work tree.
+
+    Requires ``git`` to be installed and on ``PATH``. Used by bootstrap
+    commands (``psynet setup``) and by local launch checks.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
 
 # ---------------------------------------------------------------------------

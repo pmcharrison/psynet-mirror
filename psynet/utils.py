@@ -40,6 +40,7 @@ from psynet.light_utils import (  # noqa: F401 – re-exported for backwards com
     _md5_update_from_file,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
+    git_repository_available,
     is_in_repo_experiment,
     md5_directory,
 )
@@ -1631,28 +1632,6 @@ def get_experiment_url(app=None, server=None):
 def generate_text_file(path, text="Lorem ipsum"):
     with open(path, "w") as file:
         file.write(text)
-
-
-def git_repository_available():
-    """
-    Check if the current directory is inside a git repository and git is installed.
-
-    Returns
-    -------
-    bool
-        True if inside a git repository and git is available, False otherwise.
-    """
-    import subprocess
-
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--is-inside-work-tree"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
 
 
 def patch_yaspin_jupyter_detection():

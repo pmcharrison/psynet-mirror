@@ -29,8 +29,20 @@ from .light_utils import (
     ExperimentDirectoryNameError,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
+    git_repository_available,
     is_in_repo_experiment,
 )
+
+
+def _ensure_git_repository():
+    """Require a git work tree before scaffolding or syncing a standalone experiment."""
+    if git_repository_available():
+        return
+    raise click.UsageError(
+        "This directory is not a git repository, or git is not installed. "
+        "Please ensure git is installed and create a repository by running "
+        "'git init' before 'psynet setup'."
+    )
 
 
 def _assert_directory_is_scaffoldable():
@@ -509,6 +521,7 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
         _echo_in_repo_setup_success()
         return
 
+    _ensure_git_repository()
     _ensure_active_virtualenv()
     mismatch = _psynet_command_env_mismatch_error()
     if mismatch is not None:
