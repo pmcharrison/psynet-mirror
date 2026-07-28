@@ -1,3 +1,5 @@
+import types
+
 import pytest
 import sqlalchemy.exc
 
@@ -17,20 +19,29 @@ def operational_error(orig):
 
 
 @pytest.fixture
-def quiet_db(monkeypatch):
+def terminate_calls(monkeypatch):
+    """Replace terminate_other_postgres_connections with a counting stub."""
+    calls = []
+    monkeypatch.setattr(
+        pytest_psynet,
+        "terminate_other_postgres_connections",
+        lambda: calls.append("terminate"),
+    )
+    return calls
+
+
+@pytest.fixture
+def quiet_db(monkeypatch, terminate_calls):
     """Stub out the real database interactions of init_db_with_retries."""
     import dallinger.db
 
     monkeypatch.setattr(
-        pytest_psynet, "terminate_other_postgres_connections", lambda: None
-    )
-    monkeypatch.setattr(
-        dallinger.db, "session", type("S", (), {"rollback": staticmethod(lambda: None)})
+        dallinger.db, "session", types.SimpleNamespace(rollback=lambda: None)
     )
     return dallinger.db
 
 
-def test_retries_on_deadlock_then_succeeds(quiet_db, monkeypatch):
+def test_retries_on_deadlock_then_succeeds(quiet_db, terminate_calls, monkeypatch):
     calls = []
 
     def fake_init_db(drop_all=False):
@@ -42,6 +53,9 @@ def test_retries_on_deadlock_then_succeeds(quiet_db, monkeypatch):
     monkeypatch.setattr(quiet_db, "init_db", fake_init_db)
     assert pytest_psynet.init_db_with_retries(wait_sec=0) == "session"
     assert calls == [True, True]
+    # Leftover connections must be terminated before every attempt, not just
+    # the first one; that ordering is the essence of the deadlock fix.
+    assert terminate_calls == ["terminate", "terminate"]
 
 
 def test_non_deadlock_error_propagates_immediately(quiet_db, monkeypatch):
@@ -68,3 +82,18 @@ def test_persistent_deadlock_raises_after_max_attempts(quiet_db, monkeypatch):
     with pytest.raises(sqlalchemy.exc.OperationalError):
         pytest_psynet.init_db_with_retries(max_attempts=3, wait_sec=0)
     assert len(calls) == 3
+
+
+def test_deadlock_pgcode_matches_psycopg2_deadlock_class():
+    """Pin the driver contract: SQLSTATE 40P01 is psycopg2's DeadlockDetected.
+
+    Green CI pipelines only exercise the no-deadlock path, so if the driver
+    ever stopped exposing ``pgcode`` this way, retries would silently stop
+    working. This test makes such a change visible.
+    """
+    import psycopg2.errors
+
+    assert (
+        psycopg2.errors.lookup(pytest_psynet.DEADLOCK_PGCODE)
+        is psycopg2.errors.DeadlockDetected
+    )

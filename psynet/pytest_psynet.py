@@ -513,8 +513,10 @@ def terminate_other_postgres_connections():
     the test run, such as a developer's ``psql`` shell.
 
     Closes local sessions and disposes the engine's connection pool first, so
-    that this process does not have its own pooled connections terminated out
-    from under it.
+    that this process's own idle pooled connections are not terminated out
+    from under it. Connections checked out elsewhere in the process would
+    still be terminated, so this must only run when no other component holds
+    a database connection (as is the case at the test-setup call sites).
     """
     from sqlalchemy import text
     from sqlalchemy.orm.session import close_all_sessions
