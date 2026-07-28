@@ -53,9 +53,11 @@ def _extract_server_error_details(response_text):
     if not response_text:
         return None
 
+    from .timeline import _SPA_INCOMPATIBILITY_MARKER
+
     spa_match = re.search(
         r"Page '[^']+' uses HTML/JS that needs a full browser reload.*?"
-        r"temporary experiment-wide opt-out\)",
+        + re.escape(_SPA_INCOMPATIBILITY_MARKER),
         response_text,
         flags=re.DOTALL,
     )

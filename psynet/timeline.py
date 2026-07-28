@@ -918,6 +918,9 @@ _SPA_UPGRADE_DOCS_URL = (
     "https://psynetdev.gitlab.io/PsyNet/whats_new/upgrading_to_psynet_14.html"
 )
 
+# Stable footer for author-facing SPA errors; HTTP extractors match on this.
+_SPA_INCOMPATIBILITY_MARKER = "[psynet-spa-incompatibility]"
+
 
 def _format_spa_incompatibility_message(page_label, codes):
     """Build the author-facing SPA incompatibility message.
@@ -940,12 +943,15 @@ def _format_spa_incompatibility_message(page_label, codes):
         "2. Leave the HTML/JS as is, and allow full reloads for this page by "
         "passing requires_full_page_reload=True to the Page or ModularPage "
         "constructor (or set inplace_timeline_transitions = false in "
-        "config.txt for a temporary experiment-wide opt-out)"
+        "config.txt for a temporary experiment-wide opt-out)\n"
+        f"{_SPA_INCOMPATIBILITY_MARKER}"
     )
 
 
+# Accept only zero-arg arrow cleanups or an explicitly named cleanup function.
+# Broader patterns like ``return (x) =>`` are ordinary returns, not SPA cleanup.
 _SPA_CLEANUP_RETURN_RE = re.compile(
-    r"\breturn\s+(?:async\s+)?(?:function\b|\([^)]*\)\s*=>|\w+\s*=>)"
+    r"\breturn\s+(?:async\s+)?(?:function\s+cleanup\b|\(\s*\)\s*=>)"
 )
 
 

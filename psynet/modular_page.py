@@ -2079,7 +2079,15 @@ class ModularPage(Page):
         codes = []
 
         for role, template_name in self._external_template_sources:
-            template_source = self._load_external_template_source(template_name)
+            try:
+                template_source = self._load_external_template_source(template_name)
+            except RuntimeError as exc:
+                # External templates need a Jinja app context. Skip only that
+                # source so non-template SPA codes (legacy_*, js_page_code) still
+                # surface during static checks without an app context.
+                if "application context" in str(exc).lower():
+                    continue
+                raise
             codes.extend(Page._collect_spa_markup_contract_codes(template_source))
 
         return codes

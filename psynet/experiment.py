@@ -1373,13 +1373,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for elt in self.timeline.all_elts:
             if not isinstance(elt, Page):
                 continue
-            try:
-                elt._check_spa_template_contract(inplace_timeline_transitions=inplace)
-            except RuntimeError as exc:
-                # ModularPage external templates need a Jinja app context.
-                if "application context" in str(exc).lower():
-                    continue
-                raise
+            elt._check_spa_template_contract(inplace_timeline_transitions=inplace)
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1

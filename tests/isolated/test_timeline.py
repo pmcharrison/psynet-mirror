@@ -269,6 +269,37 @@ def test_js_page_code_allows_arrow_cleanup_and_ignores_html_like_strings():
     page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
+def test_js_page_code_allows_named_cleanup_function():
+    page = Page(
+        template_fragment_str="<p>ok</p>",
+        js_page_code=[
+            """
+            window.addEventListener('resize', onResize);
+            return function cleanup() {
+                window.removeEventListener('resize', onResize);
+            };
+            """
+        ],
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_js_page_code_rejects_non_cleanup_arrow_return_as_cleanup_evidence():
+    page = Page(
+        template_fragment_str="<p>ok</p>",
+        js_page_code=[
+            """
+            window.addEventListener('resize', onResize);
+            return (event) => onResize(event);
+            """
+        ],
+    )
+
+    with pytest.raises(ValueError, match=r"error codes: window_listener_no_cleanup"):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
 def test_js_page_code_rejects_window_listener_without_cleanup():
     page = Page(
         template_fragment_str="<p>ok</p>",
