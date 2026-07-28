@@ -1402,7 +1402,7 @@ def _check_experiment_directory(mode):
         if not git_command_available():
             raise click.ClickException(
                 "Git does not appear to be installed. Install it from "
-                "https://git-scm.com/downloads , then create a repository by "
+                "https://git-scm.com/downloads, then create a repository by "
                 "running 'git init'. If you copied a demo into a new directory, "
                 "run 'git init' before 'psynet debug local' or 'psynet test local'."
             )

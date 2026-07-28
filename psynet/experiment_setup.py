@@ -42,14 +42,13 @@ def _git_next_step_lines():
     if not git_command_available():
         return [
             "  Git does not appear to be installed. Install it from",
-            "  https://git-scm.com/downloads , then in this directory run:",
+            "  https://git-scm.com/downloads, then in this directory run:",
             "    git init",
             "  Local debug needs a repository so Dallinger can honour .gitignore.",
         ]
     return [
-        "  This directory is not a git repository yet. Initialise one with:",
+        "  Local debug requires a git repository. Initialise one with:",
         "    git init",
-        "  Local debug needs a repository so Dallinger can honour .gitignore.",
     ]
 
 
