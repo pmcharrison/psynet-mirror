@@ -754,6 +754,7 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
     managed_paths = scaffold_managed_paths()
     _assert_scaffold_paths_are_safe(managed_paths - preserve_files)
     preserved_unrecognized = []
+    removed = []
 
     for relative_path in sorted(
         managed_paths - set(_TEMPLATE_DIRECTORIES) - preserve_files
@@ -765,6 +766,7 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
                 preserved_unrecognized.append(relative_path)
                 continue
             path.unlink()
+            removed.append(relative_path)
             _remove_empty_parent_dirs(path.parent)
 
     for relative_path in _TEMPLATE_DIRECTORIES:
@@ -776,6 +778,14 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
                 preserved_unrecognized.append(relative_path)
                 continue
             shutil.rmtree(path)
+            removed.append(relative_path)
+
+    if removed:
+        click.echo(
+            "Removed scaffold-managed boilerplate: " + ", ".join(sorted(removed))
+        )
+    elif not preserved_unrecognized:
+        click.echo("Nothing to prune; no matching scaffold-managed files found.")
 
     if preserved_unrecognized:
         click.echo(
@@ -793,4 +803,7 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
 
     _remove_empty_resource_directories()
 
-    return {"preserved_unrecognized": preserved_unrecognized}
+    return {
+        "preserved_unrecognized": preserved_unrecognized,
+        "removed": removed,
+    }

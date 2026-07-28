@@ -1,0 +1,1 @@
+Documented the two experiment-folder workflows (bundled demos vs standalone), recommended commands by goal, ``psynet setup --docker`` / ``--no-install``, and the distinction between ``psynet installation update`` and ``psynet scripts update``.

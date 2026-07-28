@@ -1336,6 +1336,30 @@ def check_prolific_payment(experiment, config):
     )
 
 
+def _missing_boilerplate_fix(*, mode=None):
+    """Return actionable guidance when experiment boilerplate is missing."""
+    if is_in_repo_experiment():
+        command = "psynet scripts scaffold"
+        context = (
+            "This looks like a PsyNet bundled demo or test experiment, so only "
+            "template files are needed."
+        )
+    else:
+        command = "psynet setup"
+        context = (
+            "For a standalone experiment this prepares files, pins PsyNet, "
+            "writes constraints.txt, and installs packages into your active "
+            "virtual environment. If you only need template files, run "
+            "'psynet scripts scaffold' instead."
+        )
+
+    mode_clause = ""
+    if mode is not None:
+        mode_clause = f" before running 'psynet {mode} ...'"
+
+    return f"{context} Run '{command}' to generate the missing files{mode_clause}."
+
+
 def _prepare_in_repo_experiment():
     """Generate ignored boilerplate when running an in-repo experiment."""
     if not is_in_repo_experiment():
@@ -1359,8 +1383,7 @@ def _check_experiment_directory(mode):
         missing_paths = ", ".join(missing_boilerplate)
         raise click.ClickException(
             "Experiment directory is missing required PsyNet boilerplate files "
-            f"({missing_paths}). Run 'psynet scripts scaffold' to generate them "
-            f"before running 'psynet {mode} ...'."
+            f"({missing_paths}). {_missing_boilerplate_fix(mode=mode)}"
         )
 
     # We need an active git repository for Dallinger to recognize .gitignore properly
@@ -1403,7 +1426,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     except FileNotFoundError:
         raise click.ClickException(
             f".gitignore is missing from your experiment directory ({os.getcwd()}). "
-            "Run 'psynet scripts scaffold' to generate the standard boilerplate files."
+            + _missing_boilerplate_fix()
         )
 
     try:
@@ -1665,25 +1688,11 @@ def install_autocomplete():
         )
 
 
-##########
-# update #
-##########
-@psynet.command()
-@click.option(
-    "--dallinger-version",
-    default="latest",
-    help="The git branch, commit or tag of the Dallinger version to install.",
-)
-@click.option(
-    "--psynet-version",
-    default="latest",
-    help="The git branch, commit or tag of the psynet version to install.",
-)
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-def update(dallinger_version, psynet_version, verbose):
-    """
-    Update the locally installed `Dallinger` and `PsyNet` versions.
-    """
+#######################
+# installation update #
+#######################
+def _run_installation_update(dallinger_version, psynet_version, verbose):
+    """Update the locally installed Dallinger and PsyNet packages."""
 
     def _git_checkout(version, cwd, capture_output):
         with yaspin(text=f"Checking out {version}...", color="green") as spinner:
@@ -1808,6 +1817,62 @@ def update(dallinger_version, psynet_version, verbose):
         spinner.ok("✔")
 
     log(f"Updated PsyNet to version {get_version('psynet')}")
+
+
+_installation_update_options = [
+    click.option(
+        "--dallinger-version",
+        default="latest",
+        help="The git branch, commit or tag of the Dallinger version to install.",
+    ),
+    click.option(
+        "--psynet-version",
+        default="latest",
+        help="The git branch, commit or tag of the psynet version to install.",
+    ),
+    click.option("--verbose", is_flag=True, help="Verbose mode"),
+]
+
+
+def _add_installation_update_options(command):
+    """Attach shared options to installation-update entry points."""
+    for option in reversed(_installation_update_options):
+        command = option(command)
+    return command
+
+
+@psynet.group("installation")
+def installation():
+    """
+    Manage the local PsyNet and Dallinger installation.
+    """
+    pass
+
+
+@installation.command("update")
+@_add_installation_update_options
+def installation_update(dallinger_version, psynet_version, verbose):
+    """
+    Update the locally installed Dallinger and PsyNet packages.
+
+    This upgrades (or pin-selects) the PsyNet/Dallinger *installation* in your
+    environment. It does not refresh experiment boilerplate files; for that,
+    use ``psynet scripts update``.
+    """
+    _run_installation_update(dallinger_version, psynet_version, verbose)
+
+
+@psynet.command("update")
+@_add_installation_update_options
+def update(dallinger_version, psynet_version, verbose):
+    """
+    Deprecated alias for ``psynet installation update``.
+    """
+    click.echo(
+        "psynet update is deprecated; use 'psynet installation update' instead.",
+        err=True,
+    )
+    _run_installation_update(dallinger_version, psynet_version, verbose)
 
 
 def dallinger_dir():
@@ -2011,8 +2076,10 @@ def _check_constraints(spinner=None):
         # raise click.Abort()
 
     generate_constraints_cmd = (
+        "    psynet setup\n"
+        "or only refresh the lockfile with:\n"
         "    psynet generate-constraints\n"
-        "or, if you are using Docker:\n"
+        "or, for Docker image-based generation:\n"
         "    bash docker/generate-constraints"
     )
 
@@ -2021,9 +2088,10 @@ def _check_constraints(spinner=None):
             spinner.fail("✘")
         raise click.ClickException(
             "Error: Experiment directory is missing a constraints.txt file. "
-            "This file pins all of your experiment's Python package dependencies, both explicit and implicit. "
-            "Please check that your requirements.txt file is up-to-date, then generate the constraints.txt file "
-            "by running the following command:\n" + generate_constraints_cmd
+            "Standalone experiments need this lockfile so installs are "
+            "reproducible. Please check that your requirements.txt file is "
+            "up-to-date, then create constraints.txt by running:\n"
+            + generate_constraints_cmd
         )
 
     requirements_path_hash = md5(requirements_path.read_bytes()).hexdigest()
@@ -2032,8 +2100,7 @@ def _check_constraints(spinner=None):
             spinner.fail("✘")
         raise click.ClickException(
             "The constraints.txt file is not up-to-date with the requirements.txt file. "
-            "Please generate a new constraints.txt file by running the following command:\n"
-            + generate_constraints_cmd
+            "Please regenerate constraints.txt by running:\n" + generate_constraints_cmd
         )
 
 
@@ -2869,7 +2936,9 @@ def scripts_scaffold(ctx, skip_constraints):
     Create any missing PsyNet boilerplate files for the experiment directory.
 
     If ``experiment.py`` or ``requirements.txt`` are missing, starter versions are
-    created as well.
+    created as well. For standalone experiments, also pins a bare ``psynet``
+    requirement and generates ``constraints.txt`` unless ``--skip-constraints``
+    is set (or the directory is a PsyNet bundled demo/test experiment).
     """
     _scaffold_experiment(ctx, skip_constraints=skip_constraints)
 
@@ -2882,9 +2951,23 @@ def scripts_scaffold(ctx, skip_constraints):
     help="How to represent an active editable PsyNet installation.",
 )
 @click.option(
+    "--no-install",
+    is_flag=True,
+    help="Scaffold and generate constraints without installing packages.",
+)
+@click.option(
     "--prepare-only",
     is_flag=True,
-    help="Scaffold and generate constraints without synchronizing dependencies.",
+    hidden=True,
+    help="Deprecated alias for --no-install.",
+)
+@click.option(
+    "--docker",
+    is_flag=True,
+    help=(
+        "Prepare files for Docker mode (same as --no-install, with Docker "
+        "next-step guidance)."
+    ),
 )
 @click.option(
     "--force-shared-env",
@@ -2892,13 +2975,26 @@ def scripts_scaffold(ctx, skip_constraints):
     help="Allow synchronizing PsyNet's shared checkout virtual environment.",
 )
 @click.pass_context
-def setup(ctx, psynet_source, prepare_only, force_shared_env):
+def setup(ctx, psynet_source, no_install, prepare_only, docker, force_shared_env):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
+    if prepare_only:
+        click.echo(
+            "Warning: --prepare-only is deprecated; use --no-install instead.",
+            err=True,
+        )
+        no_install = True
+    if docker:
+        if force_shared_env:
+            raise click.UsageError(
+                "--docker and --force-shared-env cannot be used together."
+            )
+        no_install = True
     setup_experiment(
         ctx,
         psynet_source=psynet_source,
-        prepare_only=prepare_only,
+        no_install=no_install,
         force_shared_env=force_shared_env,
+        docker=docker,
     )
 
 

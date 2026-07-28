@@ -1156,8 +1156,8 @@ def test_setup_prepares_bundled_demo_without_dependency_changes(tmp_path, monkey
     assert (tmp_path / "requirements.txt").read_text() == requirements
     assert not (tmp_path / "constraints.txt").exists()
     assert (tmp_path / "Dockerfile").exists()
-    assert "shared development environment" in result.output
-    assert "not dependency-synced" in result.output
+    assert "bundled demo or test experiment" in result.output
+    assert "does not install packages here" in result.output
     assert "Prepared in-repo" not in result.output
 
 
@@ -1250,7 +1250,7 @@ def test_setup_can_pin_editable_psynet_commit(tmp_path, monkeypatch):
     assert (tmp_path / "requirements.txt").read_text() == f"{requirement}\n"
 
 
-def test_setup_prepare_only_skips_sync_outside_shared_env(tmp_path, monkeypatch):
+def test_setup_no_install_skips_sync_outside_shared_env(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     _mock_dedicated_experiment_venv(monkeypatch)
@@ -1260,15 +1260,76 @@ def test_setup_prepare_only_skips_sync_outside_shared_env(tmp_path, monkeypatch)
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda *args: pytest.fail("prepare-only must not run uv pip sync/check"),
+        lambda *args: pytest.fail("no-install must not run uv pip sync/check"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup", "--no-install"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
+    assert "without installing packages" in result.output
+    assert "Next steps" in result.output
+
+
+def test_setup_prepare_only_alias_warns_and_skips_install(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args: pytest.fail("prepare-only alias must not install"),
     )
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup", "--prepare-only"])
 
     assert result.exit_code == 0, result.output
+    assert "--prepare-only is deprecated" in result.output
+    assert "without installing packages" in result.output
+
+
+def test_setup_docker_skips_install_and_points_to_docker_docs(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args: pytest.fail("docker setup must not install"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup", "--docker"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "Dockerfile").exists()
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
-    assert "without synchronizing dependencies" in result.output
+    assert "Prepared experiment files for Docker" in result.output
+    assert "docker/docs" in result.output
+
+
+def test_setup_rejects_docker_with_force_shared_env(tmp_path, monkeypatch):
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--docker", "--force-shared-env"],
+        )
+
+    assert result.exit_code != 0
+    assert "cannot be used together" in result.output
 
 
 def test_setup_rejects_force_shared_env_outside_shared_venv(tmp_path, monkeypatch):
@@ -1283,7 +1344,7 @@ def test_setup_rejects_force_shared_env_outside_shared_venv(tmp_path, monkeypatc
     assert not (tmp_path / "Dockerfile").exists()
 
 
-def test_setup_rejects_prepare_only_with_force_shared_env(tmp_path, monkeypatch):
+def test_setup_rejects_no_install_with_force_shared_env(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
@@ -1296,7 +1357,7 @@ def test_setup_rejects_prepare_only_with_force_shared_env(tmp_path, monkeypatch)
     with working_directory(tmp_path):
         result = CliRunner().invoke(
             psynet,
-            ["setup", "--prepare-only", "--force-shared-env"],
+            ["setup", "--no-install", "--force-shared-env"],
         )
 
     assert result.exit_code != 0
@@ -1319,13 +1380,13 @@ def test_setup_shared_env_noninteractive_requires_explicit_flag(tmp_path, monkey
         result = CliRunner().invoke(psynet, ["setup"])
 
     assert result.exit_code != 0
-    assert "--prepare-only" in result.output
+    assert "--no-install" in result.output
     assert "--force-shared-env" in result.output
     assert "uv venv" in result.output
     assert not (tmp_path / "Dockerfile").exists()
 
 
-def test_setup_shared_env_prepare_only_skips_sync(tmp_path, monkeypatch):
+def test_setup_shared_env_no_install_skips_sync(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     monkeypatch.setattr(
@@ -1341,15 +1402,15 @@ def test_setup_shared_env_prepare_only_skips_sync(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda *args: pytest.fail("prepare-only must not run uv pip sync/check"),
+        lambda *args: pytest.fail("no-install must not run uv pip sync/check"),
     )
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup", "--prepare-only"])
+        result = CliRunner().invoke(psynet, ["setup", "--no-install"])
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
-    assert "without synchronizing dependencies" in result.output
+    assert "without installing packages" in result.output
 
 
 def test_setup_shared_env_force_syncs_with_warning(tmp_path, monkeypatch):
@@ -1409,7 +1470,7 @@ def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypa
     assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
 
 
-def test_setup_shared_env_interactive_prepare_only(tmp_path, monkeypatch):
+def test_setup_shared_env_interactive_no_install(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     monkeypatch.setattr(
@@ -1426,7 +1487,7 @@ def test_setup_shared_env_interactive_prepare_only(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda *args: pytest.fail("prepare-only must not synchronize"),
+        lambda *args: pytest.fail("no-install must not synchronize"),
     )
 
     with working_directory(tmp_path):
@@ -1434,10 +1495,10 @@ def test_setup_shared_env_interactive_prepare_only(tmp_path, monkeypatch):
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "Dockerfile").exists()
-    assert "without synchronizing dependencies" in result.output
+    assert "without installing packages" in result.output
 
 
-def test_setup_prepare_only_skips_editable_source_prompt(tmp_path, monkeypatch):
+def test_setup_no_install_skips_editable_source_prompt(tmp_path, monkeypatch):
     source = tmp_path / "psynet-source"
     source.mkdir()
     (tmp_path / "requirements.txt").write_text("psynet\n")
@@ -1455,7 +1516,7 @@ def test_setup_prepare_only_skips_editable_source_prompt(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda *args, **kwargs: pytest.fail("prepare-only must not synchronize"),
+        lambda *args, **kwargs: pytest.fail("no-install must not synchronize"),
     )
 
     with working_directory(tmp_path):
@@ -1467,10 +1528,10 @@ def test_setup_prepare_only_skips_editable_source_prompt(tmp_path, monkeypatch):
     assert (tmp_path / "requirements.txt").read_text() == (
         f"-e {source.as_uri()}#egg=psynet\n"
     )
-    assert "without synchronizing dependencies" in result.output
+    assert "without installing packages" in result.output
 
 
-def test_setup_prepare_only_keeps_existing_explicit_pin(tmp_path, monkeypatch):
+def test_setup_no_install_keeps_existing_explicit_pin(tmp_path, monkeypatch):
     source = tmp_path / "psynet-source"
     source.mkdir()
     requirements = "psynet==0.0.0\n"
@@ -1489,7 +1550,7 @@ def test_setup_prepare_only_keeps_existing_explicit_pin(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda *args, **kwargs: pytest.fail("prepare-only must not synchronize"),
+        lambda *args, **kwargs: pytest.fail("no-install must not synchronize"),
     )
 
     with working_directory(tmp_path):
@@ -1772,11 +1833,10 @@ def test_check_experiment_directory_reports_missing_boilerplate(tmp_path):
     from psynet.command_line import _check_experiment_directory
 
     with working_directory(tmp_path):
-        with pytest.raises(
-            click.ClickException, match="psynet scripts scaffold"
-        ) as exc:
+        with pytest.raises(click.ClickException, match="psynet setup") as exc:
             _check_experiment_directory("debug")
     message = str(exc.value)
+    assert "standalone" in message.lower()
     for required_path in (
         ".gitignore",
         "config.txt",
@@ -1787,6 +1847,32 @@ def test_check_experiment_directory_reports_missing_boilerplate(tmp_path):
         assert required_path in message
 
 
+def test_check_experiment_directory_suggests_scaffold_for_in_repo(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
+    monkeypatch.setattr(
+        "psynet.command_line._prepare_in_repo_experiment",
+        lambda: False,
+    )
+    monkeypatch.setattr(
+        "psynet.command_line.missing_scaffold_paths_required_for_local_run",
+        lambda: ["Dockerfile"],
+    )
+
+    with working_directory(tmp_path):
+        with pytest.raises(
+            click.ClickException, match="psynet scripts scaffold"
+        ) as exc:
+            _check_experiment_directory("debug")
+    assert (
+        "bundled demo" in str(exc.value).lower()
+        or "test experiment" in str(exc.value).lower()
+    )
+
+
 def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkeypatch):
     from psynet.command_line import _check_experiment_directory
 
@@ -1795,9 +1881,7 @@ def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkey
     (tmp_path / "config.txt").touch()
 
     with working_directory(tmp_path):
-        with pytest.raises(
-            click.ClickException, match="psynet scripts scaffold"
-        ) as exc:
+        with pytest.raises(click.ClickException, match="psynet setup") as exc:
             _check_experiment_directory("debug")
     missing_section = str(exc.value).split("(")[1].split(")")[0]
     assert "Dockerfile" in missing_section
@@ -1845,7 +1929,7 @@ def test_test_local_reports_missing_scaffold_like_debug(tmp_path, monkeypatch):
 
     assert result.exit_code != 0
     message = result.output
-    assert "psynet scripts scaffold" in message
+    assert "psynet setup" in message
     for required_path in (
         ".gitignore",
         "config.txt",
@@ -2057,6 +2141,32 @@ def test_update_scripts_alias_emits_deprecation_warning():
                 "use 'psynet scripts update' instead."
             ) in result.output
             assert Path("Dockerfile").exists()
+
+
+def test_update_alias_emits_installation_update_deprecation(monkeypatch):
+    calls = []
+
+    def fake_update(dallinger_version, psynet_version, verbose):
+        calls.append((dallinger_version, psynet_version, verbose))
+
+    monkeypatch.setattr(
+        "psynet.command_line._run_installation_update",
+        fake_update,
+    )
+    result = CliRunner().invoke(psynet, ["update", "--verbose"])
+
+    assert result.exit_code == 0, result.output
+    assert "psynet update is deprecated" in result.output
+    assert "psynet installation update" in result.output
+    assert calls == [("latest", "latest", True)]
+
+
+def test_installation_update_help_mentions_scripts_update_distinction():
+    result = CliRunner().invoke(psynet, ["installation", "update", "--help"])
+
+    assert result.exit_code == 0, result.output
+    assert "scripts update" in result.output
+    assert "boilerplate" in result.output.lower() or "experiment" in result.output
 
 
 def test_scripts_update_overwrites_boilerplate():
@@ -2290,9 +2400,11 @@ def test_prune_experiment_scaffold_keeps_readme_only():
             assert Path("test.py").exists() is False
             assert Path("config.txt").read_text() == custom_config
             assert Path("docker").exists() is False
-            assert prune_result == {
-                "preserved_unrecognized": ["config.txt"],
-            }
+            assert prune_result["preserved_unrecognized"] == ["config.txt"]
+            assert "Dockerfile" in prune_result["removed"]
+            assert "test.py" in prune_result["removed"]
+            assert "docker" in prune_result["removed"]
+            assert "config.txt" not in prune_result["removed"]
 
 
 def test_prune_experiment_scaffold_propagates_directory_deletion_errors(
@@ -2441,7 +2553,7 @@ def test_pre_launch_reports_missing_boilerplate_without_redis(tmp_path):
             patch("psynet.command_line.deployment_info.init"),
             patch("psynet.command_line.run_pre_checks"),
         ):
-            with pytest.raises(click.ClickException, match="psynet scripts scaffold"):
+            with pytest.raises(click.ClickException, match="psynet setup"):
                 _pre_launch(
                     ctx,
                     mode="debug",

@@ -5,8 +5,24 @@ Command line
 ============
 
 Once you have installed PsyNet, you interact with it by running commands in your Unix shell.
-Generally speaking, you should execute all of these commands within your experiment directory
-(e.g. if you are running the timeline demo: ``PsyNet/demos/experiments/timeline``).
+Generally speaking, you should execute these commands inside the experiment directory you are
+working on.
+
+PsyNet has two common kinds of experiment folder:
+
+* **Bundled demos / test experiments inside the PsyNet repository**
+  (for example ``PsyNet/demos/experiments/timeline``). These use the PsyNet
+  repository's development ``.venv``. Generated boilerplate is omitted from git
+  on purpose; ``debug`` / ``test`` prepare it automatically.
+* **Standalone experiments outside the PsyNet repository** (your own project
+  copy). These should use a dedicated ``.venv`` in that project directory.
+  Run ``psynet setup`` there to prepare files, write ``constraints.txt``, and
+  install packages.
+
+Do not treat a bundled demo path as the place to run a full standalone
+``psynet setup`` install unless you intentionally want only the lightweight
+in-repo preparation.
+
 
 .. _debug:
 
@@ -95,103 +111,109 @@ append ``--help`` to these commands:
 For more information on PsyNet data export see `Data <../deploy/data.html>`_.
 
 
-.. _generate_constraints:
+.. _experiment_setup_commands:
 
-
-Generate the constraints.txt file (``generate-constraints``)
-------------------------------------------------------------
-
-This command generates a constraints.txt file in the experiment directory stating the exact versions of Python
-packages that will be installed when the server is deployed. The role of this command is still
-under discussion at the moment, so don't worry too much about it.
-
-.. code:: bash
-
-  psynet generate-constraints
-
-
-Set up an experiment (``setup``)
+Experiment setup and boilerplate
 --------------------------------
 
-This command scaffolds missing experiment files, pins a bare ``psynet``
-requirement to the active PsyNet installation, generates ``constraints.txt``,
-synchronizes the constrained dependencies with ``uv``, and runs
-``uv pip check``. Run it inside a dedicated active virtual environment:
+Recommended commands by goal:
+
+* **Run a bundled demo inside the PsyNet repo:** activate the repository
+  ``.venv``, then ``psynet debug local`` (boilerplate is prepared automatically).
+* **Start a standalone experiment (virtualenv mode):** in a dedicated project
+  ``.venv``, run ``psynet setup``.
+* **Start a standalone experiment (Docker mode):** ``psynet setup --docker``,
+  then follow ``docker/docs``.
+* **Refresh template files only:** ``psynet scripts update`` (overwrites
+  scaffold-managed files; preserves ``config.txt`` / ``README.md``).
+* **Refresh dependency locks only:** ``psynet generate-constraints``.
+* **Upgrade the installed PsyNet/Dallinger packages:**
+  ``psynet installation update`` (not the same as ``psynet scripts update``).
+
+
+.. _setup:
+
+Set up an experiment (``setup``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``psynet setup`` is the main path for a **standalone** experiment. In order it:
+
+1. Creates any missing standard experiment files (scaffold).
+2. Pins a bare ``psynet`` line in ``requirements.txt`` to the active PsyNet
+   installation (a "bare" requirement is just the word ``psynet`` with no
+   version or URL).
+3. Writes ``constraints.txt`` (the locked dependency list).
+4. Installs from ``constraints.txt`` with ``uv pip sync`` and verifies with
+   ``uv pip check``.
+
+Run it inside the experiment's dedicated active virtual environment:
 
 .. code:: bash
 
   psynet setup
 
-Synchronization removes packages that are not required by the experiment.
+Useful flags:
+
+* ``--no-install`` — do steps 1–3 only (write files and constraints; do not
+  install packages).
+* ``--docker`` — same as ``--no-install``, then print Docker next steps
+  (follow ``docker/docs``). Prefer this for Docker-mode bootstraps.
+* ``--force-shared-env`` — allow installing into the PsyNet repository's
+  development ``.venv`` (rarely what you want; can remove packages other
+  PsyNet work depends on).
+
+``--prepare-only`` remains as a deprecated alias for ``--no-install``.
+
 If PsyNet is installed editable, setup asks how to record it in
-``requirements.txt``: keep the editable checkout, pin its current commit from
-the checkout's ``origin`` remote (so forks work once the commit has been
-pushed), or retain an existing explicit requirement. The same choice can be
+``requirements.txt``: keep the editable checkout, pin a specific pushed Git
+commit URL, or retain an existing explicit requirement. The same choice can be
 supplied non-interactively with ``--psynet-source editable``, ``commit``, or
 ``existing``.
 
-If the active virtual environment is PsyNet's shared checkout environment
-(typically the repository ``.venv``), setup refuses to synchronize by default.
-Interactively it explains the situation and offers a numeric menu: create a
-dedicated ``.venv`` here (recommended default), cancel, prepare files only, or
-install into the shared environment anyway; non-interactively use
-``--prepare-only`` to scaffold and generate constraints without syncing, or
-``--force-shared-env`` to sync anyway. ``--prepare-only`` also works in
-dedicated experiment environments when you want to skip ``uv pip sync`` /
-``uv pip check``.
+If the active virtual environment is the PsyNet repository's development
+``.venv``, setup refuses to install packages by default. Interactively it
+offers a numeric menu: create a dedicated ``.venv`` here (recommended),
+cancel, write files only, or install into the repository ``.venv`` anyway.
 
-PsyNet's own monorepo CI uses ``psynet scripts scaffold --skip-constraints``
-because in-repo demos and test experiments share the repository's development
-environment. Local ``debug`` and ``test`` commands recognize those directories
-and prepare their ignored boilerplate automatically. Running ``psynet setup``
-there performs only this lightweight preparation and does not rewrite
-requirements or synchronize the shared environment. See :ref:`scripts` for the
-standalone ``scaffold`` / ``update`` / ``prune`` commands.
+**Inside bundled demos / test experiments**, ``psynet setup`` always performs
+only lightweight file preparation and never installs packages or rewrites
+requirements. You do not need ``--no-install`` there; that behavior is
+automatic. PsyNet CI uses ``psynet scripts scaffold --skip-constraints`` for
+the same reason.
 
 
 .. _scripts:
 
 Manage experiment boilerplate (``scripts``)
--------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``psynet scripts`` group manages standard experiment boilerplate
-(Dockerfile, ``docker/`` helpers, ``pytest.ini``, ``test.py``, and related
-templates) without synchronizing a virtual environment. Use these when you want
-file-level control; prefer ``psynet setup`` when creating a dedicated constrained
-environment for a standalone experiment.
-
-Inspect the available subcommands with:
+The ``psynet scripts`` group is for **file-level** control of standard
+boilerplate (Dockerfile, ``docker/`` helpers, ``pytest.ini``, ``test.py``, and
+related templates). Prefer ``psynet setup`` when you also need a dedicated
+constrained environment.
 
 .. code:: bash
 
   psynet scripts --help
 
 ``scaffold``
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
-Create any missing PsyNet boilerplate files in the current experiment directory.
-If ``experiment.py`` or ``requirements.txt`` are missing, starter versions are
-created as well. Existing authored files are left alone.
+Create any missing PsyNet boilerplate files. Existing authored files are left
+alone. For standalone experiments, also pins a bare ``psynet`` requirement and
+generates ``constraints.txt`` when needed (unless ``--skip-constraints``).
 
 .. code:: bash
 
   psynet scripts scaffold
-
-By default, standalone experiments also pin a bare ``psynet`` requirement and
-generate ``constraints.txt`` when needed. Pass ``--skip-constraints`` to skip
-pinning and constraint generation (in-repo demos and test experiments do this
-automatically):
-
-.. code:: bash
-
   psynet scripts scaffold --skip-constraints
 
 ``update``
-~~~~~~~~~~
+^^^^^^^^^^
 
 Overwrite scaffold-managed boilerplate with the latest templates from the
 installed PsyNet version. Existing ``config.txt`` and ``README.md`` files are
-preserved because authors commonly customize them.
+preserved. This is **not** ``psynet installation update``.
 
 .. code:: bash
 
@@ -200,18 +222,38 @@ preserved because authors commonly customize them.
 ``psynet update-scripts`` remains as a deprecated alias for this command.
 
 ``prune``
-~~~~~~~~~
+^^^^^^^^^
 
-Remove scaffold-managed boilerplate from the experiment directory, leaving
-authored files such as ``experiment.py`` and ``requirements.txt``. ``README.md``
-is always preserved. Paths that differ from the current PsyNet templates,
-including customized ``config.txt`` files, are preserved by default;
-``--force`` removes those paths without checking their contents.
+Remove scaffold-managed boilerplate, leaving authored files such as
+``experiment.py`` and ``requirements.txt``. ``README.md`` is always preserved.
+Paths that differ from current templates (including customized ``config.txt``)
+are preserved by default; ``--force`` removes them without checking contents.
 
 .. code:: bash
 
   psynet scripts prune
   psynet scripts prune --force
+
+
+.. _generate_constraints:
+
+Generate the constraints.txt file (``generate-constraints``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Standalone experiments need a ``constraints.txt`` lockfile so installs and
+deploys are reproducible. Prefer ``psynet setup`` (or ``psynet setup --docker``)
+when bootstrapping an experiment; that command creates the lockfile for you.
+
+Use ``psynet generate-constraints`` when you only need to refresh an existing
+lockfile after changing ``requirements.txt`` (for example after bumping the
+PsyNet version pin):
+
+.. code:: bash
+
+  psynet generate-constraints
+
+You can also regenerate locks inside the PsyNet Docker image with
+``bash docker/generate-constraints``.
 
 
 Run the experiment's regression test
@@ -260,28 +302,33 @@ of an editable PsyNet installation. For more information about shell completion,
 
 .. _update:
 
-Update PsyNet/Dallinger (``update``)
-------------------------------------
+Update the PsyNet/Dallinger installation (``installation update``)
+------------------------------------------------------------------
 
 .. note::
 
     The following command only applies if you have installed PsyNet in a local
     environment, rather than using Docker.
 
-This command updates the local installations of `PsyNet` and `Dallinger` to their latest versions.
+This command updates the local **installations** of PsyNet and Dallinger
+(the packages in your environment). It does **not** refresh experiment
+boilerplate files; use ``psynet scripts update`` for that.
+
 While the default is to update both packages, they can also be set to specific
 versions (e.g. downgraded) using the ``--psynet-version`` and
 ``--dallinger-version`` command line options.
 
 .. code:: bash
 
-  psynet update
+  psynet installation update
+
+``psynet update`` remains as a deprecated alias for this command.
 
 **Usage**
 
 .. code:: bash
 
-  psynet update [OPTIONS]
+  psynet installation update [OPTIONS]
 
   Options:
     --dallinger-version TEXT  The git branch, commit or tag of the Dallinger

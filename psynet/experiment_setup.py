@@ -263,16 +263,16 @@ def _warn_shared_checkout_sync():
     )
 
 
-def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
+def _resolve_shared_checkout_venv_action(*, no_install, force_shared_env):
     """Decide how setup should treat PsyNet's shared checkout virtualenv.
 
-    Returns ``"prepare-only"``, ``"sync"``, ``"new-venv"``, or ``"cancel"``.
+    Returns ``"no-install"``, ``"sync"``, ``"new-venv"``, or ``"cancel"``.
     Raises on invalid flags. ``new-venv`` means create a dedicated environment
     and stop so the user can install PsyNet into it and re-run setup.
     """
-    if prepare_only and force_shared_env:
+    if no_install and force_shared_env:
         raise click.UsageError(
-            "--prepare-only and --force-shared-env cannot be used together."
+            "--no-install and --force-shared-env cannot be used together."
         )
 
     in_shared_env = _is_psynet_checkout_virtualenv()
@@ -282,10 +282,10 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
             "environment is PsyNet's shared checkout environment."
         )
     if not in_shared_env:
-        return "prepare-only" if prepare_only else "sync"
+        return "no-install" if no_install else "sync"
 
-    if prepare_only:
-        return "prepare-only"
+    if no_install:
+        return "no-install"
     if force_shared_env:
         _warn_shared_checkout_sync()
         return "sync"
@@ -296,10 +296,10 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
             "checkout environment. Refusing to synchronize without an explicit "
             "choice. Create a dedicated environment with "
             f"'uv venv --python={_recommended_python()}', activate it, and "
-            "re-run setup; or use --prepare-only to scaffold and generate "
-            "constraints without syncing; or use --force-shared-env to sync "
-            "anyway (this can remove packages from the shared PsyNet "
-            "development environment)."
+            "re-run setup; or use --no-install to scaffold and generate "
+            "constraints without installing packages; or use "
+            "--force-shared-env to sync anyway (this can remove packages from "
+            "the shared PsyNet development environment)."
         )
 
     choice = _prompt_numeric_choice(
@@ -312,8 +312,8 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
             ),
             ("cancel", "Cancel — leave everything as-is"),
             (
-                "prepare-only",
-                "Prepare files only — scaffold/constraints, don't install packages",
+                "no-install",
+                "Write files only — scaffold/constraints, don't install packages",
             ),
             (
                 "sync",
@@ -325,7 +325,8 @@ def _resolve_shared_checkout_venv_action(*, prepare_only, force_shared_env):
         intro=(
             "Setup for a standalone experiment should use a dedicated "
             "virtualenv in this directory. You're currently using PsyNet's "
-            "shared developer .venv, so choose how to continue:"
+            "development .venv from the repository checkout, so choose how "
+            "to continue:"
         ),
     )
     if choice == "cancel":
@@ -380,7 +381,10 @@ def _choose_editable_psynet_requirement(source, requested_source):
                 "Editable — point requirements at this local checkout "
                 "(includes uncommitted changes)"
             ),
-            "commit": ("Commit — pin the current pushed commit from origin (portable)"),
+            "commit": (
+                "Git commit pin — record a specific PsyNet Git commit URL "
+                "(the commit must already be pushed)"
+            ),
             "existing": (
                 "Existing — keep the current PsyNet entry in requirements.txt"
             ),
@@ -417,8 +421,8 @@ def _choose_editable_psynet_requirement(source, requested_source):
     return requirement
 
 
-def _default_prepare_only_psynet_source():
-    """Choose a non-interactive PsyNet source for prepare-only setup.
+def _default_no_install_psynet_source():
+    """Choose a non-interactive PsyNet source for no-install setup.
 
     Prefer retaining an explicit requirements pin; otherwise use the editable
     checkout. Bare ``psynet`` falls through to editable.
@@ -435,14 +439,51 @@ def _default_prepare_only_psynet_source():
     return "editable"
 
 
-def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
+def _echo_in_repo_setup_success():
+    """Explain that bundled demos use the repository development environment."""
+    click.echo(
+        "This folder is a PsyNet bundled demo or test experiment. "
+        "Prepared ignored boilerplate only; the PsyNet repository's "
+        "development .venv is used on purpose, and setup does not install "
+        "packages here.\n\n"
+        "To make a standalone experiment, copy the folder outside the PsyNet "
+        "repo, then run:\n"
+        f"  uv venv --python {_recommended_python()}\n"
+        "  source .venv/bin/activate\n"
+        "  uv pip install psynet\n"
+        "  psynet setup"
+    )
+
+
+def _echo_no_install_success(*, docker):
+    """Print success and next steps after a files-only setup."""
+    if docker:
+        click.echo(
+            "Prepared experiment files for Docker "
+            "(scaffolded boilerplate and constraints; did not install packages "
+            "into the local virtual environment).\n\n"
+            "Next steps:\n"
+            "  Follow the generated instructions under docker/docs."
+        )
+        return
+
+    click.echo(
+        "Prepared experiment files without installing packages "
+        "(scaffolded boilerplate and constraints).\n\n"
+        "Next steps:\n"
+        "  Make sure this directory's dedicated .venv is active and PsyNet is "
+        "installed in it, then run:\n"
+        "  psynet setup\n"
+        "  (omit --no-install / --docker so setup can install from "
+        "constraints.txt)"
+    )
+
+
+def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker=False):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
     if is_in_repo_experiment():
         _scaffold_experiment(ctx, skip_constraints=True)
-        click.echo(
-            "Using PsyNet's shared development environment "
-            "(in-repo experiments are not dependency-synced by setup)."
-        )
+        _echo_in_repo_setup_success()
         return
 
     _ensure_active_virtualenv()
@@ -451,7 +492,7 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
         raise click.UsageError(mismatch)
 
     action = _resolve_shared_checkout_venv_action(
-        prepare_only=prepare_only,
+        no_install=no_install,
         force_shared_env=force_shared_env,
     )
     if action == "cancel":
@@ -460,14 +501,14 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
         _create_dedicated_experiment_virtualenv()
         return
 
-    # Prepare-only already answered the shared-env question; don't add a second
+    # No-install already answered the shared-env question; don't add a second
     # interactive menu. Keep an explicit pin if present, otherwise use editable.
     if (
-        action == "prepare-only"
+        action == "no-install"
         and psynet_source is None
         and get_editable_psynet_source() is not None
     ):
-        psynet_source = _default_prepare_only_psynet_source()
+        psynet_source = _default_no_install_psynet_source()
 
     editable_source = get_editable_psynet_source()
     if editable_source is None:
@@ -489,8 +530,8 @@ def setup_experiment(ctx, *, psynet_source, prepare_only, force_shared_env):
         set_psynet_requirement(requirement)
         _generate_constraints_if_missing(ctx, requirements_changed=True)
 
-    if action == "prepare-only":
-        click.echo("Prepared experiment files without synchronizing dependencies.")
+    if action == "no-install":
+        _echo_no_install_success(docker=docker)
         return
 
     _run_uv(

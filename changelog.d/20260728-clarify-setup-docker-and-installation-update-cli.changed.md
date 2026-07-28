@@ -1,0 +1,1 @@
+Changed experiment setup UX: renamed ``psynet setup --prepare-only`` to ``--no-install`` (deprecated alias kept), added ``psynet setup --docker`` for Docker bootstraps, moved package upgrades to ``psynet installation update`` (``psynet update`` deprecated), and clarified missing-boilerplate, constraints, prune, and in-repo success messaging.

@@ -38,11 +38,13 @@ setup mode:
 Docker mode
 -----------
 
-If you are using Docker, generate the standalone experiment files first:
+Both Docker and virtualenv mode need standard experiment files. Docker does not
+need PsyNet to install packages into your local ``.venv``, so use the Docker
+setup flag (same file preparation as ``--no-install``, with Docker next steps):
 
 .. code-block:: bash
 
-    psynet scripts scaffold
+    psynet setup --docker
 
 Then follow the generated instructions under ``docker/docs``.
 
@@ -50,14 +52,14 @@ Virtual environment mode
 ------------------------
 
 For virtual environment mode, let ``psynet setup`` pin the active PsyNet
-version, generate constraints, scaffold the experiment, synchronize the
+version, generate constraints, scaffold the experiment, install the
 constrained dependencies with ``uv``, and verify the environment:
 
 .. code-block:: bash
 
     psynet setup
 
-The synchronization removes packages that are not required by the experiment,
+The install step removes packages that are not required by the experiment,
 so use a dedicated experiment virtual environment.
 
 .. note::
@@ -69,11 +71,14 @@ so use a dedicated experiment virtual environment.
 
 .. note::
 
-    If you are using PyCharm, when you open a new project you should see a dialog box that says something like
-    "File requirements.txt contains project dependencies. Would you like to create a virtual environment using it?".
-    In the dependencies field you should see a path ending in requirements.txt. Replace "requirements.txt"
-    with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
-    and install all the required packages. Note that PyCharm remote debugging is currently not working (as of February 2025).
+    **Alternate IDE path:** If you skipped the shell bootstrap above and prefer
+    PyCharm to create the environment, open the project and look for a dialog
+    that mentions ``requirements.txt``. In the dependencies field, replace
+    ``requirements.txt`` with ``constraints.txt`` (after ``psynet setup
+    --no-install`` has created it, or after a full ``psynet setup`` elsewhere),
+    then click OK. Do **not** create a second virtual environment if you already
+    ran the shell ``uv venv`` + ``psynet setup`` flow. Note that PyCharm remote
+    debugging is currently not working (as of February 2025).
 
 When the process is done, if you open a new terminal window in your IDE, you should see ``(<your-project-name)``
 prefixed to the terminal prompt. This indicates that you are in the desired virtual environment.
@@ -81,11 +86,16 @@ You should be able to run ``psynet --version`` in this terminal to confirm that 
 successfully installed PsyNet.
 You should then be able to run ``psynet debug local`` to launch a local version of your experiment.
 
-If you decide at some point you want to make a fresh virtual environment for a pre-existing project,
-you can do this by creating a new virtual environment using the commands above, then selecting it in your IDE's
-interpreter settings. To install the dependencies, open a new terminal, verify you are in the correct virtual environment
-(by confirming that you see ``(<your-project-name)`` prefixed to the terminal prompt),
-then run ``uv pip install -r requirements.txt -c constraints.txt``.
+If you decide at some point you want to make a fresh virtual environment for a pre-existing project
+that already has ``constraints.txt``, create a new virtual environment using the commands above,
+select it in your IDE's interpreter settings, then install with:
+
+.. code-block:: bash
+
+    uv pip install -r requirements.txt -c constraints.txt
+
+If ``constraints.txt`` is missing (for example you just copied a bundled demo),
+run ``psynet setup`` instead of installing from requirements alone.
 
 Updating PsyNet
 ---------------
@@ -111,11 +121,19 @@ so for example from 10.3.1 to 11.0.0.
 If both version tags begin with the same number, then you should probably be fine,
 and you can just go ahead and increase the PsyNet version number in ``requirements.txt``.
 
-If you have indeed increased the PsyNet version number, you need to update ``constraints.txt``.
+If you have indeed increased the PsyNet version number, refresh ``constraints.txt``
+and your environment:
+
+.. code:: bash
+
+    psynet setup
+
+Or only refresh the lockfile, then reinstall:
 
 .. code:: bash
 
     psynet generate-constraints
+    uv pip install -r requirements.txt -c constraints.txt
 
 Once it is complete, you should be able to run ``psynet debug local`` as before.
 
