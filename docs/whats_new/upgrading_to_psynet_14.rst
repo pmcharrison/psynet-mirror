@@ -3,8 +3,9 @@ Upgrading to PsyNet 14
 =====================
 
 This checklist migrates an existing experiment onto PsyNet 14's default
-in-place timeline transitions. It is written for humans; the Cursor skill
-``/upgrade-to-psynet-14`` follows the same steps.
+in-place timeline transitions. It is the single source of truth for the
+migration steps. The Cursor skill ``/upgrade-to-psynet-14`` is a thin wrapper
+that points agents here.
 
 Background: :doc:`/whats_new/psynet_14`. Frontend patterns:
 :doc:`/tutorials/writing_custom_frontends`. Config keys:
