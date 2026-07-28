@@ -1113,7 +1113,10 @@ def _mock_dedicated_experiment_venv(monkeypatch):
     )
 
 
-def test_setup_requires_git_repository(tmp_path, monkeypatch):
+def test_setup_warns_when_git_repository_missing(tmp_path, monkeypatch):
+    calls = []
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
         "psynet.experiment_setup.git_repository_available",
@@ -1121,18 +1124,20 @@ def test_setup_requires_git_repository(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("setup should fail before syncing")
-        ),
+        lambda args, description: calls.append((args, description)),
     )
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"])
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--psynet-source", "existing"],
+        )
 
-    assert result.exit_code != 0
+    assert result.exit_code == 0, result.output
     assert "git init" in result.output
-    assert "psynet setup" in result.output
-    assert not (tmp_path / "Dockerfile").exists()
+    assert "not a git repository" in result.output
+    assert (tmp_path / "Dockerfile").exists()
+    assert calls  # setup still syncs
 
 
 def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypatch):

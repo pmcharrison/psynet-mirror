@@ -34,14 +34,20 @@ from .light_utils import (
 )
 
 
-def _ensure_git_repository():
-    """Require a git work tree before scaffolding or syncing a standalone experiment."""
+def _warn_if_missing_git_repository():
+    """Suggest ``git init`` when standalone setup is outside a git work tree.
+
+    Local debug still requires a repository later; setup only warns so authors
+    can finish scaffolding and sync first.
+    """
     if git_repository_available():
         return
-    raise click.UsageError(
-        "This directory is not a git repository, or git is not installed. "
-        "Please ensure git is installed and create a repository by running "
-        "'git init' before 'psynet setup'."
+    click.echo(
+        "Warning: this directory is not a git repository (or git is not "
+        "installed). Local debug needs a repository so Dallinger can honour "
+        ".gitignore. Initialise one with:\n"
+        "  git init",
+        err=True,
     )
 
 
@@ -521,7 +527,7 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
         _echo_in_repo_setup_success()
         return
 
-    _ensure_git_repository()
+    _warn_if_missing_git_repository()
     _ensure_active_virtualenv()
     mismatch = _psynet_command_env_mismatch_error()
     if mismatch is not None:
