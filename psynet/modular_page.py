@@ -175,13 +175,6 @@ class Prompt(JavaScriptContributor):
     def update_events(self, events):
         pass
 
-    def get_css(self):
-        return []
-
-    def get_css_links(self):
-        """Stylesheet URLs this component contributes to the hosting page."""
-        return []
-
     def get_js_vars(self):
         """Page-local JavaScript variables this component contributes.
 
@@ -756,13 +749,6 @@ class Control(JavaScriptContributor):
     @property
     def metadata(self):
         return {}
-
-    def get_css(self):
-        return []
-
-    def get_css_links(self):
-        """Stylesheet URLs this control contributes to the hosting page."""
-        return []
 
     def get_js_vars(self):
         """Page-local JavaScript variables this control contributes.
@@ -2068,7 +2054,7 @@ class ModularPage(Page):
         )
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
-        if self.requires_full_page_reload:
+        if getattr(self, "_spa_contract_opt_out", False):
             return
 
         codes = self._collect_spa_incompatibility_codes()

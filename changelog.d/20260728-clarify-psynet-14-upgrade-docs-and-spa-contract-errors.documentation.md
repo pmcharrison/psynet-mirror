@@ -1,1 +1,0 @@
-Clarified PsyNet 14 upgrade docs and SPA contract errors: unified ``DOMContentLoaded``/CSS/script guidance, documented ``inplace_timeline_transitions``, and pointed authors at ``docs/whats_new/upgrading_to_psynet_14.rst``.

@@ -1,1 +1,1 @@
-Added a What's new documentation section with PsyNet 14 highlights, a human upgrade checklist, relocated PsyNet 10 notes, and a repo-local ``/upgrade-to-psynet-14`` Cursor skill aligned with that checklist.
+Added PsyNet 14 What's new docs with a human upgrade checklist as the migration source of truth, patterns living in the custom-frontends tutorial, and a thin ``/upgrade-to-psynet-14`` Cursor skill that wraps that checklist.

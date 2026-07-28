@@ -60,8 +60,8 @@ templates or component ``external_template`` files. Classify each script
 before moving it (load-once library vs per-page behavior vs short inline).
 
 Converting the HTML template alone is not enough: leftover ``scripts=`` /
-``js_links=`` still force a full-page reload (via
-``requires_full_page_reload``) and remain deprecated.
+``js_links=`` still force a full-page reload and raise ``legacy_scripts`` /
+``legacy_js_links`` unless you also pass ``requires_full_page_reload=True``.
 
 4. Migrate load-once libraries
 ------------------------------
@@ -131,8 +131,8 @@ relevant step:
 * ``complete_template`` → step 1
 * ``style_tag``, ``stylesheet_link`` → step 2
 * ``embedded_script`` → steps 3–5
-* ``legacy_js_links``, ``legacy_scripts`` → steps 3–5 (also force
-  ``requires_full_page_reload``)
+* ``legacy_js_links``, ``legacy_scripts`` → steps 3–5 (also force a reload;
+  pass ``requires_full_page_reload=True`` to silence while migrating)
 * ``embedded_module`` → step 5 (use ``js_page_modules``, not
   ``<script type="module">`` in HTML)
 * ``dom_content_loaded``, ``window_listener_no_cleanup`` → steps 5 and 8

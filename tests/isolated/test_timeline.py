@@ -219,10 +219,11 @@ def test_requires_full_page_reload_skips_spa_contract_error():
     )
 
     assert page.requires_full_page_reload
+    assert page._spa_contract_opt_out
     page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
-def test_legacy_js_args_force_full_page_reload_and_skip_spa_error():
+def test_legacy_js_args_still_surface_spa_error_codes():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FutureWarning)
         page = Page(
@@ -232,7 +233,50 @@ def test_legacy_js_args_force_full_page_reload_and_skip_spa_error():
         )
 
     assert page.requires_full_page_reload
+    assert not page._spa_contract_opt_out
+    with pytest.raises(
+        ValueError,
+        match=r"error codes: legacy_js_links, legacy_scripts, dom_content_loaded",
+    ):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_js_args_with_explicit_opt_out_skip_spa_error():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", FutureWarning)
+        page = Page(
+            template_fragment_str="<p>ok</p>",
+            js_links=["/static/helper.js"],
+            requires_full_page_reload=True,
+        )
+
+    assert page._spa_contract_opt_out
     page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_js_page_code_allows_arrow_cleanup_and_ignores_html_like_strings():
+    page = Page(
+        template_fragment_str="<p>ok</p>",
+        js_page_code=[
+            """
+            window.addEventListener('resize', onResize);
+            const label = '<script src="/static/x.js"></script>';
+            return () => window.removeEventListener('resize', onResize);
+            """
+        ],
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_js_page_code_rejects_window_listener_without_cleanup():
+    page = Page(
+        template_fragment_str="<p>ok</p>",
+        js_page_code=["window.addEventListener('resize', onResize);"],
+    )
+
+    with pytest.raises(ValueError, match=r"error codes: window_listener_no_cleanup"):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_legacy_transitions_warn_on_complete_custom_templates():

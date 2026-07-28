@@ -58,6 +58,36 @@ def test_inplace_transitions_reject_forbidden_external_control_template():
             page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
+def test_modular_page_requires_full_page_reload_skips_external_template_errors():
+    app = Flask(__name__)
+    app.jinja_loader = DictLoader(
+        {
+            "custom-control.html": """
+            {% macro control(config) %}
+                <button>Continue</button>
+                <script>psynet.nextPage();</script>
+            {% endmacro %}
+            """,
+        }
+    )
+
+    class CustomControl(Control):
+        external_template = "custom-control.html"
+        macro = "control"
+
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        CustomControl(),
+        requires_full_page_reload=True,
+    )
+
+    assert page.requires_full_page_reload
+    assert page._spa_contract_opt_out
+    with app.app_context():
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
 def test_legacy_transitions_warn_on_forbidden_external_control_template():
     app = Flask(__name__)
     app.jinja_loader = DictLoader(

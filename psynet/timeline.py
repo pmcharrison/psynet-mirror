@@ -937,10 +937,15 @@ def _format_spa_incompatibility_message(page_label, codes):
         f"   {_SPA_UPGRADE_DOCS_URL}\n"
         "   (or in Cursor, run /upgrade-to-psynet-14)\n"
         "2. Leave the HTML/JS as is, and allow full reloads for this page by "
-        "passing requires_full_page_reload=True to the Page constructor "
-        "(or set inplace_timeline_transitions = false in config.txt for a "
-        "temporary experiment-wide opt-out)"
+        "passing requires_full_page_reload=True to the Page or ModularPage "
+        "constructor (or set inplace_timeline_transitions = false in "
+        "config.txt for a temporary experiment-wide opt-out)"
     )
+
+
+_SPA_CLEANUP_RETURN_RE = re.compile(
+    r"\breturn\s+(?:async\s+)?(?:function\b|\([^)]*\)\s*=>|\w+\s*=>)"
+)
 
 
 class Page(Elt):
@@ -1258,11 +1263,19 @@ class Page(Elt):
             js_page_modules, "js_page_modules"
         )
         self.js_page_code = _normalize_js_page_code(js_page_code)
+        # Framework classes (e.g. JsPsychPage) and explicit constructor opt-out
+        # skip the SPA migration error. Deprecated js_links/scripts still force
+        # a reload but continue to surface legacy_* error codes until migrated
+        # or opted out explicitly.
+        class_requires_reload = type(self).requires_full_page_reload
+        self._spa_contract_opt_out = bool(
+            requires_full_page_reload or class_requires_reload
+        )
         if (
             requires_full_page_reload
             or legacy_js_links
             or legacy_scripts
-            or self.requires_full_page_reload
+            or class_requires_reload
         ):
             # Classic script semantics (global ``var``, non-module scope) are not
             # emulated across in-place transitions; force a clean document instead.
@@ -1727,9 +1740,10 @@ class Page(Elt):
         return rendered
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
-        # Pages that already require a full reload have opted out of in-place
-        # transitions; do not raise the migration error for them.
-        if self.requires_full_page_reload:
+        # Explicit / framework reload opt-out skips the migration error.
+        # Legacy js_links/scripts still force reload but keep raising so authors
+        # see legacy_* codes unless they also pass requires_full_page_reload=True.
+        if getattr(self, "_spa_contract_opt_out", False):
             return
 
         codes = self._collect_spa_incompatibility_codes()
@@ -1760,22 +1774,49 @@ class Page(Elt):
         if getattr(self, "legacy_scripts", None):
             codes.append("legacy_scripts")
             codes.extend(
-                self._collect_spa_markup_contract_codes(
-                    "\n".join(self.legacy_scripts),
-                    allow_scripts=False,
+                self._collect_spa_javascript_contract_codes(
+                    "\n".join(self.legacy_scripts)
                 )
             )
 
         js_page_code = getattr(self, "js_page_code", None) or []
         if js_page_code:
             codes.extend(
-                self._collect_spa_markup_contract_codes(
-                    "\n".join(js_page_code),
-                    allow_scripts=False,
-                )
+                self._collect_spa_javascript_contract_codes("\n".join(js_page_code))
             )
 
         return list(dict.fromkeys(codes))
+
+    @staticmethod
+    def _collect_spa_javascript_contract_codes(javascript_source):
+        """SPA checks for plain JavaScript (js_page_code / legacy scripts).
+
+        Do not parse JS with BeautifulSoup: HTML-tag heuristics false-positive on
+        ordinary script text (for example strings containing ``<script``).
+        """
+        codes = []
+        javascript_source = javascript_source or ""
+
+        if re.search(
+            r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
+            r"['\"]DOMContentLoaded['\"]",
+            javascript_source,
+        ):
+            codes.append("dom_content_loaded")
+
+        has_window_event_listener = re.search(
+            r"\bwindow\s*\.\s*addEventListener\s*\(",
+            javascript_source,
+        )
+        has_page_cleanup = (
+            "psynet.addPageEventListener" in javascript_source
+            or "psynet.addPageCleanupCallback" in javascript_source
+            or _SPA_CLEANUP_RETURN_RE.search(javascript_source) is not None
+        )
+        if has_window_event_listener and not has_page_cleanup:
+            codes.append("window_listener_no_cleanup")
+
+        return codes
 
     @staticmethod
     def _collect_spa_markup_contract_codes(markup_source, allow_scripts=False):
@@ -1801,25 +1842,7 @@ class Page(Elt):
         if soup.find_all("link", rel=lambda value: value and "stylesheet" in value):
             codes.append("stylesheet_link")
 
-        if re.search(
-            r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
-            r"['\"]DOMContentLoaded['\"]",
-            markup_source,
-        ):
-            codes.append("dom_content_loaded")
-
-        has_window_event_listener = re.search(
-            r"\bwindow\s*\.\s*addEventListener\s*\(",
-            markup_source,
-        )
-        has_page_cleanup = (
-            "psynet.addPageEventListener" in markup_source
-            or "psynet.addPageCleanupCallback" in markup_source
-            or "return function cleanup" in markup_source
-            or "return async function cleanup" in markup_source
-        )
-        if has_window_event_listener and not has_page_cleanup:
-            codes.append("window_listener_no_cleanup")
+        codes.extend(Page._collect_spa_javascript_contract_codes(markup_source))
 
         return codes
 
