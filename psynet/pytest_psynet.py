@@ -499,13 +499,18 @@ def debug_server_process(debug_experiment):
 
 def terminate_other_postgres_connections():
     """
-    Terminate all other backends connected to the test database.
+    Terminate other backends of the current role connected to the test database.
 
     Server/worker processes from a previous test in the same session are killed
     asynchronously at teardown, so their database connections can still hold
     row locks when the next test's ``drop_all`` runs, causing Postgres to
     report a deadlock. Since the tests are about to drop all tables anyway,
     it is safe to terminate those connections outright.
+
+    Only backends owned by the current database role are targeted: terminating
+    other roles' backends would require extra privileges (raising
+    ``InsufficientPrivilege`` otherwise) and could kill sessions unrelated to
+    the test run, such as a developer's ``psql`` shell.
 
     Closes local sessions and disposes the engine's connection pool first, so
     that this process does not have its own pooled connections terminated out
@@ -521,9 +526,20 @@ def terminate_other_postgres_connections():
         con.execute(
             text(
                 "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-                "WHERE datname = current_database() AND pid <> pg_backend_pid()"
+                "WHERE datname = current_database() AND pid <> pg_backend_pid() "
+                "AND usename = current_user"
             )
         )
+
+
+# Postgres SQLSTATE code for "deadlock detected"; matching on the code rather
+# than the error message keeps detection independent of the server's locale.
+DEADLOCK_PGCODE = "40P01"
+
+
+def _is_deadlock_error(err):
+    """Check whether a SQLAlchemy error wraps a Postgres deadlock."""
+    return getattr(err.orig, "pgcode", None) == DEADLOCK_PGCODE
 
 
 def init_db_with_retries(max_attempts=3, wait_sec=2.0):
@@ -535,7 +551,7 @@ def init_db_with_retries(max_attempts=3, wait_sec=2.0):
         try:
             return dallinger.db.init_db(drop_all=True)
         except sqlalchemy.exc.OperationalError as err:
-            if "deadlock detected" not in str(err) or attempt == max_attempts:
+            if not _is_deadlock_error(err) or attempt == max_attempts:
                 raise
             logger.warning(
                 "Deadlock detected while resetting the database "
