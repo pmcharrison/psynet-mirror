@@ -1,0 +1,1 @@
+Consolidated PsyNet 14 upgrade guidance so the migration checklist owns search/order, the custom-frontends tutorial owns patterns and examples, and SPA contract errors stay short (violation, one fix sentence, checklist pointer).

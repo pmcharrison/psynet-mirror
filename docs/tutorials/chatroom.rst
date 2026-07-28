@@ -158,14 +158,11 @@ per-page resources that are refreshed across fragment swaps:
         def get_js_page_modules(self):
             return ["/static/my-chatroom.js"]
 
-The standalone script should read its configuration from the managed
-``psynet.var`` namespace instead of defining ad-hoc globals. For backwards
-compatibility, PsyNet temporarily exposes ``js_vars`` keys through matching
-``window`` properties, but this access is deprecated. The default
-``legacy_js_var_globals = warn`` mode reports each accessed key once in the
-browser console. Set the mode to ``error`` to find legacy accesses during
-development, or ``off`` to disable compatibility properties entirely. In all
-modes, new code should use ``psynet.var`` directly:
+The standalone script should read its configuration from ``psynet.var`` (via
+``vars`` in ``activate()``), not ad-hoc globals. Deprecated ``window`` access
+to ``js_vars`` is controlled by ``legacy_js_var_globals``; see
+:doc:`/tutorials/writing_custom_frontends` and
+:doc:`/experiment_development/configuration`.
 
 .. code-block:: javascript
 

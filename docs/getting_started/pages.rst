@@ -352,101 +352,16 @@ early. For example:
 Custom classes
 ^^^^^^^^^^^^^^
 
-It is also possible to define your own modular page classes.
-This way you can have full flexibility about your experiment interface.
-The first step is to create an HTML file in ``templates/``, perhaps called
-``templates/custom-control.html``.
-Here's an example...
+It is also possible to define your own modular page classes for full control
+over the experiment interface. Create a markup-only Jinja macro in
+``templates/``, then a matching Python ``Control`` or ``Prompt`` subclass that
+supplies CSS and JavaScript through hooks such as ``get_css()`` /
+``get_css_links()`` and ``get_js_page_modules()`` rather than embedding
+``<style>`` or ``<script>`` in the template.
 
-.. code-block:: jinja
-
-    // templates/custom-control.html
-
-    {% macro color_text_area(params) %}
-
-    <textarea id="text-input" type="text" class="form-control color-text-area"></textarea>
-
-    {% endmacro %}
-
-There are a few key things to note here.
-
-- The control is rendered using Jinja.
-  Jinja is a templating language that allows you to inject Python variables into HTML.
-- The control takes the form of a Jinja macro called ``color_text_area``
-  that takes a single input, ``params``.
-- The control is specified like an ordinary HTML file, but the customizable aspects are acquired
-  from the ``params`` object using curly bracket notation.
-- Page-local CSS and JavaScript should be supplied through page arguments such as
-  ``css``, ``css_links``, ``js_dependencies``, and ``js_page_modules`` rather
-  than by putting ``<style>`` or ``<script>`` blocks inside the macro template.
-- The accompanying JavaScript should export ``activate(context)``. It can
-  register response handling for the page and return cleanup for any resources
-  it creates.
-
-The user must then define a corresponding class in Python, writing code like this:
-
-.. code-block:: python
-
-    # experiment.py
-
-    from psynet.modular_page import Control
-
-    class ColorTextAreaControl(Control):
-        macro = "color_text_area"
-        external_template = "custom-control.html"
-
-        def __init__(self, color, **kwargs):
-            super().__init__(**kwargs)
-            self.color = color
-
-        def format_answer(self, raw_answer, **kwargs):
-            return super().format_answer(raw_answer, **kwargs)
-
-        def get_bot_response(self, experiment, bot, page, prompt):
-            return "Hello, I am a bot!"
-
-        def get_css(self):
-            return [
-                f"""
-                #text-input {{
-                    background-color: {self.color};
-                    margin-bottom: 40px;
-                }}
-                """
-            ]
-
-        def get_js_page_modules(self):
-            return ["/static/color-text.js"]
-
-The corresponding ``static/color-text.js`` file manages the response handler:
-
-.. code-block:: javascript
-
-    export async function activate({root, psynet}) {
-        const input = root.querySelector("#text-input");
-
-        function stageResponse() {
-            psynet.response.staged.rawAnswer = input.value;
-        }
-
-        psynet.setStageResponseHandler(stageResponse);
-    }
-
-There are a few more key things to note here:
-
-- The ``macro`` and ``external_template`` attributes link to our Jinja template and the macro
-  defined within it.
-- The ``__init__`` method stores attributes that can later be accessed in the ``params`` template
-  object.
-- The ``format_answer`` method can optionally be used to clean up the submitted answer before
-  saving it in the database.
-- The ``get_bot_response`` method is used to simulate a bot's response to that control when running
-  automated tests.
-- The ``get_js_page_modules`` method supplies behavior that PsyNet activates
-  for each hosting page.
-
-Defining custom prompts works in a similar way, except you don't need response
-handling, ``format_answer``, or ``get_bot_response``.
+A complete walkthrough (including the ``ColorTextAreaControl`` example and
+``activate(context)`` response handling) is in
+:doc:`/tutorials/writing_custom_frontends`.
 
 **Exercise**: think of an interesting prompt or control that is not listed above.
 Implement it yourself using a custom template, and add it to ``demos/features/pages/``.

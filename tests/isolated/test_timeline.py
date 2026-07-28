@@ -204,7 +204,10 @@ def test_template_fragment_input_wraps_main_body_content():
 def test_inplace_transitions_reject_complete_custom_templates():
     page = Page(template_str='{% extends "timeline-page.html" %}')
 
-    with pytest.raises(ValueError, match="template_fragment_path"):
+    with pytest.raises(
+        ValueError,
+        match=r"template_fragment_path.*upgrading_to_psynet_14",
+    ):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
@@ -235,7 +238,10 @@ def test_inplace_transitions_reject_dom_content_loaded_in_custom_templates():
         """
     )
 
-    with pytest.raises(ValueError, match="DOMContentLoaded"):
+    with pytest.raises(
+        ValueError,
+        match=r"DOMContentLoaded.*activate\(\).*upgrading_to_psynet_14",
+    ):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
@@ -252,12 +258,12 @@ def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates()
             "<script>psynet.trial.onEvent('trialConstruct', function () {});</script>",
             "raw <script>",
         ),
-        ('<script src="/static/example.js"></script>', "js_dependencies"),
+        ('<script src="/static/example.js"></script>', "js_page_modules"),
         ("<style>.example { color: red; }</style>", "css_links"),
         ('<link rel="stylesheet" href="/static/example.css">', "css_links"),
         (
             "<script>window.addEventListener('resize', function () {});</script>",
-            "window event listener",
+            r"window event listener.*upgrading_to_psynet_14",
         ),
     ],
 )

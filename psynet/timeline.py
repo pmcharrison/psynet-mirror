@@ -1742,33 +1742,30 @@ class Page(Elt):
             for script in soup.find_all("script"):
                 if script.get("src"):
                     problems.append(
-                        f"{source_description} includes a page JavaScript link in a "
-                        "<script src=...> tag. Supply libraries via "
-                        "js_dependencies or page behavior via js_page_modules. "
-                        + _SPA_MIGRATION_HELP
+                        f"{source_description} includes a <script src=...> tag. "
+                        "Use js_dependencies for libraries or js_page_modules "
+                        "for page behavior. " + _SPA_MIGRATION_HELP
                     )
                 else:
                     problems.append(
                         f"{source_description} includes a raw <script> block. "
-                        "Move short behavior to js_page_code or reusable behavior "
-                        "to js_page_modules. " + _SPA_MIGRATION_HELP
+                        "Move it to js_page_code or js_page_modules. "
+                        + _SPA_MIGRATION_HELP
                     )
 
         if soup.find_all("style"):
             problems.append(
-                f"{source_description} includes inline CSS in a <style> tag. "
-                "Prefer a static stylesheet via css_links (or get_css_links()); "
-                "use the Page css argument (or get_css()) only for small "
-                "generated snippets. " + _SPA_MIGRATION_HELP
+                f"{source_description} includes a <style> tag. "
+                "Move CSS to css_links (or get_css_links()); use css/get_css "
+                "only for tiny generated snippets. " + _SPA_MIGRATION_HELP
             )
 
         for link in soup.find_all(
             "link", rel=lambda value: value and "stylesheet" in value
         ):
             problems.append(
-                f"{source_description} includes a stylesheet <link> tag. Supply "
-                "page-local stylesheet links via the Page css_links argument "
-                "(or get_css_links()). " + _SPA_MIGRATION_HELP
+                f"{source_description} includes a stylesheet <link> tag. "
+                "Use css_links (or get_css_links()) instead. " + _SPA_MIGRATION_HELP
             )
 
         if re.search(
@@ -1778,10 +1775,9 @@ class Page(Elt):
         ):
             problems.append(
                 f"{source_description} registers a DOMContentLoaded listener. "
-                "In-place timeline transitions do not reload the document for "
-                "each page, so put page setup in a js_page_modules activate() "
-                "function (or js_page_code). Use pageReady/trialConstruct only "
-                "for timing gates. " + _SPA_MIGRATION_HELP
+                "Put page setup in js_page_modules activate() or js_page_code "
+                "(use pageReady/trialConstruct only for timing gates). "
+                + _SPA_MIGRATION_HELP
             )
 
         has_window_event_listener = re.search(
@@ -1796,11 +1792,10 @@ class Page(Elt):
         )
         if has_window_event_listener and not has_page_cleanup:
             problems.append(
-                f"{source_description} registers a window event listener without a "
-                "PsyNet cleanup hook. Prefer returning cleanup from a "
-                "js_page_modules activate() function, or use "
-                "psynet.addPageEventListener(...) / "
-                "psynet.addPageCleanupCallback(...)."
+                f"{source_description} registers a window event listener without "
+                "cleanup. Return cleanup from activate(), or use "
+                "psynet.addPageEventListener / "
+                "psynet.addPageCleanupCallback. " + _SPA_MIGRATION_HELP
             )
 
         return problems
@@ -1808,15 +1803,11 @@ class Page(Elt):
     def _complete_template_spa_contract_message(self):
         return (
             f"Page '{self.label}' uses a complete custom template. "
-            "Complete templates that extend timeline-page.html are supported "
-            "only by the legacy full-page reload path unless PsyNet explicitly "
-            "marks the template as framework-owned. For custom pages used "
-            "with inplace_timeline_transitions, pass "
-            "template_fragment_path or template_fragment_str with only the "
-            "contents of the main_body block, and supply page-local assets via "
-            "css, css_links, js_dependencies, js_page_code, and js_page_modules. "
-            f"{_SPA_MIGRATION_HELP} Search your experiment "
-            f"code for Page(...) calls with label='{self.label}'."
+            "Pass template_fragment_path or template_fragment_str with only "
+            "the former main_body contents, and supply assets via css, "
+            "css_links, js_dependencies, js_page_code, and js_page_modules. "
+            f"{_SPA_MIGRATION_HELP} Search for Page(...) with "
+            f"label='{self.label}'."
         )
 
     @staticmethod
@@ -1838,9 +1829,8 @@ class Page(Elt):
             script_type = (script.get("type") or "").strip().lower()
             if script_type == "module":
                 raise ValueError(
-                    "Embedded modules are not supported. Supply the module "
-                    "through js_page_modules and use standard imports for its "
-                    "dependencies. " + _SPA_MIGRATION_HELP
+                    "Embedded modules are not supported. Use js_page_modules "
+                    "and standard imports for dependencies. " + _SPA_MIGRATION_HELP
                 )
 
     @staticmethod

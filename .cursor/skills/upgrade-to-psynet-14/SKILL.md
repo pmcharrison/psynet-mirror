@@ -17,8 +17,8 @@ Read and follow the full checklist in:
 
 ``docs/whats_new/upgrading_to_psynet_14.rst``
 
-That page is the single migration procedure for humans and agents. Keep this
-skill thin; put checklist edits there, not here.
+That page owns migration order and search targets. Keep this skill thin; put
+checklist edits there, not here.
 
 Related reading (not a second checklist):
 
@@ -30,15 +30,7 @@ Related reading (not a second checklist):
 
 ## Agent notes
 
-- Search the experiment with the patterns listed in the checklist
-  (``template_path=``, ``extends "timeline-page.html"``, ``js_links=``,
-  ``scripts=``, embedded ``<script>`` / ``<style>``, and so on).
 - Prefer fixing SPA contract errors page by page over leaving
   ``inplace_timeline_transitions = false`` indefinitely.
-- To surface contract errors quickly, instantiate the page and call
-  ``page._check_spa_template_contract(inplace_timeline_transitions=True)``, or
-  run ``psynet debug local`` / ``psynet test local`` and read the traceback.
-- ``psynet test local`` needs a complete experiment directory (``experiment.py``,
-  ``test.py``, and usually ``constraints.txt``).
-- PsyNet-repository Playwright commands in the checklist are optional and
-  harness-specific; use them only when you already maintain specs in this repo.
+- ``psynet test local`` needs a complete experiment directory
+  (``experiment.py``, ``test.py``, and usually ``constraints.txt``).

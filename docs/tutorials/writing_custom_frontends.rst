@@ -515,36 +515,13 @@ wheel-packaging requirements.
 Embedded HTML scripts
 ^^^^^^^^^^^^^^^^^^^^^
 
-PsyNet also supports scripts embedded directly in rendered HTML. These are
-literal ``<script>`` elements produced by framework macros or supported page
-content. They are not another public resource argument and should not be
-confused with ``js_page_modules``.
+Framework macros and some supported page content may still embed classic
+``<script>`` tags. PsyNet replays those across in-place transitions; author-owned
+external templates should remain markup-only and use ``js_page_code`` /
+``js_page_modules`` instead. Embedded ``<script type="module">`` tags are not
+supported.
 
-On a full page load, the browser executes embedded scripts while parsing the
-document. During an in-place transition, HTML insertion does not execute
-scripts automatically, so PsyNet makes them inert on the server, inserts the
-fragment, and then replays them in DOM order. Linked embedded scripts are
-loaded once per browser document; inline embedded scripts run on each page
-activation. Embedded scripts run after ``js_dependencies`` and before
-deprecated ``js_links``, ``js_page_code``, and ``js_page_modules``.
-
-Embedded ``<script type="module">`` tags are not supported, whether inline or
-linked with ``src``. Put the ESM entry point in ``js_page_modules`` and use
-standard ``import`` statements there for its dependency graph. This keeps all
-module loading within the explicit page-module lifecycle.
-
-Classic inline scripts are grouped into a page-local function during in-place
-replay. They should therefore not rely on top-level ``var`` or function
-declarations becoming browser globals, or on sharing local variables with a
-page module. Use ``psynet.page``, ``js_vars``, or an explicit
-module interface when code needs to communicate across components.
-
-For new PsyNet ``Prompt`` and ``Control`` contributions, use
-``get_js_page_code()`` for short snippets and ``get_js_page_modules()`` for
-substantial or reusable behavior. Both have explicit activation and cleanup
-semantics. An embedded script is still reasonable for short behavior tightly
-coupled to a PsyNet-owned macro and nearby Jinja values. Author-owned external
-templates should remain markup-only.
+For the full replay/ordering contract, see :doc:`/developer/page_lifecycle`.
 
 The older ``js_links`` and ``scripts`` Page arguments remain supported but are
 deprecated. They keep classic linked/inline script semantics and therefore
