@@ -1107,7 +1107,6 @@ def _mock_dedicated_experiment_venv(monkeypatch):
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
-    _assume_git_repository(monkeypatch)
     monkeypatch.setattr(
         "psynet.experiment_setup._handle_setup_services",
         lambda **kwargs: None,
