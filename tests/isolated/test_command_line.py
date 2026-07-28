@@ -1272,27 +1272,6 @@ def test_setup_no_install_skips_sync_outside_shared_env(tmp_path, monkeypatch):
     assert "Next steps" in result.output
 
 
-def test_setup_prepare_only_alias_warns_and_skips_install(tmp_path, monkeypatch):
-    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
-    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
-    _mock_dedicated_experiment_venv(monkeypatch)
-    monkeypatch.setattr(
-        "psynet.experiment_setup.get_editable_psynet_source",
-        lambda: None,
-    )
-    monkeypatch.setattr(
-        "psynet.experiment_setup._run_uv",
-        lambda *args: pytest.fail("prepare-only alias must not install"),
-    )
-
-    with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup", "--prepare-only"])
-
-    assert result.exit_code == 0, result.output
-    assert "--prepare-only is deprecated" in result.output
-    assert "without installing packages" in result.output
-
-
 def test_setup_docker_skips_install_and_points_to_docker_docs(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")

@@ -2956,12 +2956,6 @@ def scripts_scaffold(ctx, skip_constraints):
     help="Scaffold and generate constraints without installing packages.",
 )
 @click.option(
-    "--prepare-only",
-    is_flag=True,
-    hidden=True,
-    help="Deprecated alias for --no-install.",
-)
-@click.option(
     "--docker",
     is_flag=True,
     help=(
@@ -2975,14 +2969,8 @@ def scripts_scaffold(ctx, skip_constraints):
     help="Allow synchronizing PsyNet's shared checkout virtual environment.",
 )
 @click.pass_context
-def setup(ctx, psynet_source, no_install, prepare_only, docker, force_shared_env):
+def setup(ctx, psynet_source, no_install, docker, force_shared_env):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
-    if prepare_only:
-        click.echo(
-            "Warning: --prepare-only is deprecated; use --no-install instead.",
-            err=True,
-        )
-        no_install = True
     if docker:
         if force_shared_env:
             raise click.UsageError(

@@ -162,8 +162,6 @@ Useful flags:
   development ``.venv`` (rarely what you want; can remove packages other
   PsyNet work depends on).
 
-``--prepare-only`` remains as a deprecated alias for ``--no-install``.
-
 If PsyNet is installed editable, setup asks how to record it in
 ``requirements.txt``: keep the editable checkout, pin a specific pushed Git
 commit URL, or retain an existing explicit requirement. The same choice can be
