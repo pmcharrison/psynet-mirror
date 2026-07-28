@@ -33,6 +33,16 @@ from flask.globals import current_app
 from flask.templating import Environment, _render
 from sqlalchemy import or_
 
+from psynet.light_utils import (  # noqa: F401 – re-exported for backwards compat
+    _IN_REPO_EXPERIMENT_ROOTS,
+    ExperimentDirectoryNameError,
+    _md5_update_from_dir,
+    _md5_update_from_file,
+    ensure_experiment_directory_name_does_not_conflict,
+    get_psynet_root,
+    is_in_repo_experiment,
+    md5_directory,
+)
 from psynet.translation.utils import load_po
 
 package_root = os.path.dirname(os.path.abspath(__file__))
@@ -43,10 +53,6 @@ def get_logger(name="psynet"):
 
 
 logger = get_logger()
-
-
-class ExperimentDirectoryNameError(ValueError):
-    """Raised when an experiment directory name collides with a non-package module."""
 
 
 class NoArgumentProvided:
@@ -350,34 +356,22 @@ def md5_object(x):
 # MD5 hashing code:
 # https://stackoverflow.com/a/54477583/8454486
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
-    if not Path(filename).is_file():
-        raise FileNotFoundError(f"File not found: {filename}")
-    with open(str(filename), "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash.update(chunk)
+    """Update *hash* with the contents of *filename* and return it."""
+    _md5_update_from_file(filename, hash)
     return hash
 
 
 def md5_file(filename: Union[str, Path]) -> str:
-    return str(md5_update_from_file(filename, hashlib.md5()).hexdigest())
+    """Return the MD5 hex digest of a single file."""
+    h = hashlib.md5()
+    _md5_update_from_file(filename, h)
+    return h.hexdigest()
 
 
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
-    assert Path(directory).is_dir()
-    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
-        # Skip hidden files and directories (those starting with '.')
-        if path.name.startswith("."):
-            continue
-        hash.update(path.name.encode())
-        if path.is_file():
-            hash = md5_update_from_file(path, hash)
-        elif path.is_dir():
-            hash = md5_update_from_dir(path, hash)
+    """Recursively update *hash* with all non-hidden files under *directory*."""
+    _md5_update_from_dir(directory, hash)
     return hash
-
-
-def md5_directory(directory: Union[str, Path]) -> str:
-    return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
 
 
 def serialise_datetime(x):
@@ -1159,19 +1153,6 @@ def log_level(logger: logging.Logger, level):
     logger.setLevel(original_level)
 
 
-def get_psynet_root():
-    import psynet
-
-    return Path(psynet.__file__).parent.parent
-
-
-_IN_REPO_EXPERIMENT_ROOTS = (
-    "demos",
-    "tests/experiments",
-    "tests/playwright/experiments",
-    "tests/manual_recruiter_testing",
-)
-
 # Path substrings / suffixes excluded from CI demo runs via ``for_ci_tests``.
 # Playwright experiments have dedicated CI jobs; recruiter demos and gibbs_video
 # are not meaningful (or lack deps) in the shared CI runner.
@@ -1181,31 +1162,6 @@ _CI_EXCLUDED_EXPERIMENT_PATH_MARKERS = (
     "playwright",
 )
 _CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES = ("/gibbs_video",)
-
-
-def is_in_repo_experiment(path=".", *, roots=None):
-    """Return whether a path is a PsyNet in-repo experiment (demo or test).
-
-    In-repo experiments use the shared development environment and omit checked-in
-    scaffold/constraints files; local/CI flows auto-prepare ignored boilerplate.
-
-    Parameters
-    ----------
-    path :
-        Experiment directory to check.
-    roots :
-        Optional iterable of in-repo roots relative to the PsyNet checkout.
-        Defaults to :data:`_IN_REPO_EXPERIMENT_ROOTS`. Pass ``("demos",)`` to
-        restrict to bundled demos only.
-    """
-    path = Path(path).resolve()
-    if not (path / "experiment.py").is_file():
-        return False
-    root = get_psynet_root().resolve()
-    relative_roots = _IN_REPO_EXPERIMENT_ROOTS if roots is None else roots
-    return any(
-        path.is_relative_to((root / relative).resolve()) for relative in relative_roots
-    )
 
 
 def _excluded_from_ci_experiment_dirs(dir_path: str) -> bool:
@@ -1475,68 +1431,6 @@ def get_installed_package_source_directory(package_name: str) -> Path:
     """
     package = importlib.import_module(package_name)
     return Path(package.__file__).parent
-
-
-def ensure_experiment_directory_name_does_not_conflict(path="."):
-    """
-    Check that the experiment directory basename is safe for Dallinger imports.
-
-    Dallinger imports a local experiment as ``<directory_name>.experiment``. A
-    directory named like an existing non-package module, for example ``code``,
-    can resolve to the standard library module instead of the local experiment
-    directory.
-
-    Parameters
-    ----------
-    path : str or Path, optional
-        Path to the experiment directory.
-
-    Raises
-    ------
-    ExperimentDirectoryNameError
-        If Python resolves the directory name to an unrelated non-package module.
-    """
-    path = Path(path).resolve()
-    module_name = path.name
-    try:
-        spec = importlib.util.find_spec(module_name)
-    except (ImportError, AttributeError, ValueError) as exc:
-        raise ExperimentDirectoryNameError(
-            f"The current experiment directory is named '{module_name}', which "
-            "Python cannot import as a top-level package. Dallinger imports "
-            "experiments by directory name, so it cannot import this experiment "
-            "reliably. Rename the directory to a valid top-level package name."
-        ) from exc
-    if spec is None:
-        return
-    # A package resolution can still support ``<name>.experiment``. The
-    # problematic case is a plain module such as the standard-library
-    # ``code.py``, which has no submodule search path and cannot contain
-    # ``code.experiment``.
-    if spec.submodule_search_locations is not None:
-        return
-
-    candidate_paths = []
-    if spec.origin not in (None, "built-in"):
-        candidate_paths.append(Path(spec.origin))
-
-    # If Python resolves the name back into the experiment directory, the import
-    # machinery will see the local experiment rather than an unrelated module.
-    if any(
-        candidate_path.resolve().is_relative_to(path)
-        for candidate_path in candidate_paths
-    ):
-        return
-
-    module_path = spec.origin if spec.origin is not None else module_name
-    raise ExperimentDirectoryNameError(
-        f"The current experiment directory is named '{module_name}', but Python's "
-        f"module '{module_name}' resolves to '{module_path}' instead of "
-        "this directory. Dallinger imports experiments by directory name, so it "
-        "cannot import this experiment reliably. Rename the directory or move the "
-        "runnable experiment into a nested non-conflicting directory, for example "
-        f"'{module_name}/<experiment_slug>/'."
-    )
 
 
 def get_package_source_directory(path="."):

@@ -12,6 +12,7 @@ rather than auto-starting host-port containers.
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -35,12 +36,26 @@ class ServiceCheck:
     detail: str
 
 
+def _postgres_url() -> str:
+    """Return the PostgreSQL DSN to probe, honouring ``DATABASE_URL``."""
+    return os.environ.get(
+        "DATABASE_URL", "postgresql://dallinger:dallinger@localhost/dallinger"
+    )
+
+
+def _redis_url() -> str:
+    """Return the Redis URL to probe, honouring ``REDIS_URL``."""
+    return os.environ.get("REDIS_URL", "redis://localhost:6379")
+
+
 def check_postgres() -> ServiceCheck:
     """Return whether PostgreSQL accepts connections on the configured URL."""
     try:
-        from dallinger.db import check_connection
+        import psycopg2
 
-        check_connection()
+        dsn = _postgres_url()
+        conn = psycopg2.connect(dsn, connect_timeout=3)
+        conn.close()
     except Exception as exc:
         return ServiceCheck(
             "PostgreSQL",
@@ -54,9 +69,11 @@ def check_postgres() -> ServiceCheck:
 def check_redis() -> ServiceCheck:
     """Return whether Redis responds to PING on the configured URL."""
     try:
-        from dallinger.db import redis_conn
+        import redis as redis_lib
 
-        if not redis_conn.ping():
+        url = _redis_url()
+        client = redis_lib.from_url(url, socket_connect_timeout=3)
+        if not client.ping():
             return ServiceCheck(
                 "Redis",
                 False,

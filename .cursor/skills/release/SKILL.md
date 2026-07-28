@@ -25,7 +25,7 @@ announcement. Throughout, `X.Y.Z` stands for the version being released.
 ## Prerequisites
 
 - The virtual environment is active: `source .venv/bin/activate`
-- Dependencies are installed: `uv pip install -e '.[dev,slack]'`
+- Dependencies are installed: `uv pip install -e '.[experiment,dev,slack]'`
 - For a **minor** release: all merge requests intended for the release have
   been merged into `master`, and `master` CI is green.
 - For a **patch** release: all bug-fix commits intended for the release have

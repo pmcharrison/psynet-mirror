@@ -98,7 +98,7 @@ Posting requires `slack_sdk`, which is provided by PsyNet's
 `[slack]` extra:
 
 ```bash
-uv pip install -e '.[dev,slack]'
+uv pip install -e '.[experiment,dev,slack]'
 ```
 
 This is already part of the prerequisites listed in the `release` skill.

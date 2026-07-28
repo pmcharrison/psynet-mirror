@@ -121,7 +121,9 @@ Recommended commands by goal:
 * **Run a bundled demo inside the PsyNet repo:** activate the repository
   ``.venv``, then ``psynet debug local`` (boilerplate is prepared automatically).
 * **Start a standalone experiment (virtualenv mode):** in a dedicated project
-  ``.venv``, run ``psynet setup``.
+  ``.venv``, run ``uv pip install psynet`` (thin bootstrap install), then
+  ``psynet setup`` (installs the full ``psynet[experiment]`` runtime via
+  ``constraints.txt``).
 * **Start a standalone experiment (Docker mode):** ``psynet setup --docker``,
   then follow ``docker/docs``.
 * **Refresh template files only:** ``psynet scripts update`` (overwrites
@@ -138,12 +140,16 @@ Recommended commands by goal:
 Set up an experiment (``setup``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``psynet setup`` is the main path for a **standalone** experiment. In order it:
+``psynet setup`` is the main path for a **standalone** experiment. Install the
+thin PsyNet bootstrap package first (``uv pip install psynet``), then run
+setup inside the experiment's dedicated active virtual environment. In order
+it:
 
 1. Creates any missing standard experiment files (scaffold).
-2. Pins a bare ``psynet`` line in ``requirements.txt`` to the active PsyNet
-   installation (a "bare" requirement is just the word ``psynet`` with no
-   version or URL).
+2. Pins a bare ``psynet`` line in ``requirements.txt`` to
+   ``psynet[experiment]`` at the active PsyNet installation (the
+   ``[experiment]`` extra is the full runtime; a "bare" requirement is just
+   the word ``psynet`` with no version, URL, or extras).
 3. Writes ``constraints.txt`` (the locked dependency list).
 4. Installs from ``constraints.txt`` with ``uv pip sync`` and verifies with
    ``uv pip check``.
@@ -151,10 +157,9 @@ Set up an experiment (``setup``)
    Docker). Missing services do not fail setup; use
    ``psynet services ensure`` if you want a hard guarantee before debugging.
 
-Run it inside the experiment's dedicated active virtual environment:
-
 .. code:: bash
 
+  uv pip install psynet
   psynet setup
 
 Useful flags:

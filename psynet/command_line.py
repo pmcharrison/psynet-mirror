@@ -39,6 +39,7 @@ from yaspin import yaspin
 
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
+from psynet.runtime_init import ensure_runtime
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
@@ -77,6 +78,8 @@ from .utils import (
     run_subprocess_with_live_output,
     working_directory,
 )
+
+ensure_runtime()
 
 logger = get_logger()
 
@@ -1974,15 +1977,12 @@ def generate_constraints(ctx):
     """
     Generate the constraints.txt file from requirements.txt.
     """
-    from dallinger.command_line import (
-        generate_constraints as dallinger_generate_constraints,
-    )
+    from .constraints_compile import generate_constraints_file
 
     try:
         # We have removed check_psynet_requirement_is_unambiguous here because it caused problems for Docker users.
         # Instead, we just run this in the sandbox/deploy prechecks.
-        # check_psynet_requirement_is_unambiguous()
-        ctx.invoke(dallinger_generate_constraints)
+        generate_constraints_file()
     finally:
         reset_console()
 

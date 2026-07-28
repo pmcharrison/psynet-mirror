@@ -41,8 +41,15 @@ def stub_scaffold_constraints_generation(monkeypatch):
     def generate_constraints():
         Path("constraints.txt").write_text("# generated constraints\n")
 
+    def _fake_generate_constraints_file():
+        Path("constraints.txt").write_text("# generated constraints\n")
+
     monkeypatch.setattr(
         "dallinger.command_line.generate_constraints", generate_constraints
+    )
+    monkeypatch.setattr(
+        "psynet.constraints_compile.generate_constraints_file",
+        _fake_generate_constraints_file,
     )
     monkeypatch.setattr("psynet.command_line.reset_console", lambda: None)
 
@@ -909,7 +916,7 @@ def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monke
     monkeypatch.setattr(
         "psynet.experiment_scaffold.commit_psynet_requirement",
         lambda _source: (
-            f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+            f"psynet[experiment]@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
         ),
     )
 
@@ -919,7 +926,7 @@ def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monke
         assert result.exit_code == 0, result.output
         requirement_line = Path("requirements.txt").read_text().splitlines()[0]
         assert requirement_line == (
-            f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+            f"psynet[experiment]@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
         )
         assert "PsyNetDev/PsyNet" not in requirement_line
         check_psynet_requirement_is_unambiguous()
@@ -1217,7 +1224,7 @@ def test_setup_prompts_to_preserve_editable_psynet(tmp_path, monkeypatch):
     assert "What do you want to do?" in result.output
     assert "point requirements at this local checkout" in result.output
     assert (tmp_path / "requirements.txt").read_text() == (
-        f"-e {source.as_uri()}#egg=psynet\nmusic21==9.1.0\n"
+        f"-e {source.as_uri()}#egg=psynet[experiment]\nmusic21==9.1.0\n"
     )
     assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
     assert calls == [
@@ -1537,7 +1544,7 @@ def test_setup_no_install_skips_editable_source_prompt(tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert "How should setup record it" not in result.output
     assert (tmp_path / "requirements.txt").read_text() == (
-        f"-e {source.as_uri()}#egg=psynet\n"
+        f"-e {source.as_uri()}#egg=psynet[experiment]\n"
     )
     assert "without installing packages" in result.output
 

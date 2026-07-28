@@ -87,7 +87,7 @@ def test_commit_psynet_requirement_uses_origin_remote(tmp_path, monkeypatch):
     )
 
     assert commit_psynet_requirement(source) == (
-        f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+        f"psynet[experiment]@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
     )
 
 
@@ -114,7 +114,7 @@ def test_commit_psynet_requirement_strips_trailing_slash_from_origin(
 
     requirement = commit_psynet_requirement(source)
     assert requirement == (
-        f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+        f"psynet[experiment]@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
     )
     assert is_unambiguous_psynet_requirement(requirement)
 
@@ -159,7 +159,12 @@ def test_commit_psynet_requirement_requires_origin_remote(tmp_path, monkeypatch)
 def test_default_psynet_requirement_propagates_commit_pin_errors(monkeypatch):
     """Alpha pins must not invent a PsyNetDev URL when commit pinning fails."""
     commit = "e" * 40
+    source = Path("/tmp/fake-psynet-editable")
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold.get_editable_psynet_source",
+        lambda: source,
+    )
     monkeypatch.setattr(
         "psynet.experiment_scaffold._current_source_commit",
         lambda _source=None: commit,
@@ -184,7 +189,12 @@ def test_default_psynet_requirement_propagates_commit_pin_errors(monkeypatch):
 
 def test_default_psynet_requirement_uses_origin_commit_pin(monkeypatch):
     commit = "f" * 40
+    source = Path("/tmp/fake-psynet-editable")
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold.get_editable_psynet_source",
+        lambda: source,
+    )
     monkeypatch.setattr(
         "psynet.experiment_scaffold._current_source_commit",
         lambda _source=None: commit,
@@ -192,20 +202,24 @@ def test_default_psynet_requirement_uses_origin_commit_pin(monkeypatch):
     monkeypatch.setattr(
         "psynet.experiment_scaffold.commit_psynet_requirement",
         lambda _source: (
-            f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+            f"psynet[experiment]@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
         ),
     )
 
     assert _default_psynet_requirement() == (
-        f"psynet@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
+        f"psynet[experiment]@git+https://gitlab.com/alice/PsyNet@{commit}#egg=psynet"
     )
 
 
 def test_default_psynet_requirement_falls_back_to_version_without_git(monkeypatch):
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
     monkeypatch.setattr(
-        "psynet.experiment_scaffold._current_source_commit",
-        lambda _source=None: None,
+        "psynet.experiment_scaffold.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._installed_psynet_file_path",
+        lambda: None,
     )
 
-    assert _default_psynet_requirement() == "psynet==13.4.0a0"
+    assert _default_psynet_requirement() == "psynet[experiment]==13.4.0a0"

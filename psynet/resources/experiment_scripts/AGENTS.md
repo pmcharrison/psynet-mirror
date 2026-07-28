@@ -43,9 +43,10 @@ Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 
-- (For PsyNet): `uv pip install -e '.[dev,demos,slack]'`
-- (For standalone experiments): `uv pip install psynet`, followed by
-  `psynet setup` to scaffold and synchronize the dedicated constrained environment.
+- (For PsyNet source checkout): `uv pip install -e '.[experiment,dev,demos,slack]'`
+- (For standalone experiments): `uv pip install psynet` (bootstrap only), followed by
+  `psynet setup` to scaffold and install `psynet[experiment]` via the generated
+  `constraints.txt`.
 
 If dependency installation fails with `pg_config executable not found`, install
 PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
@@ -81,8 +82,8 @@ For a copied standalone demo, initialize Git and create its complete environment
 git init
 uv venv --python 3.13
 source .venv/bin/activate
-uv pip install psynet
-psynet setup
+uv pip install psynet      # bootstrap only (no experiment runtime yet)
+psynet setup               # scaffolds files and installs psynet[experiment]
 ```
 
 To run an experiment in debug mode:

@@ -28,7 +28,7 @@ We suggest using `uv <https://docs.astral.sh/uv/>`_, but ``python -m venv`` also
 
     uv venv --python 3.13
     source .venv/bin/activate
-    uv pip install -e '.[dev,demos]'
+    uv pip install -e '.[experiment,dev,demos]'
 
 Bundled demos use this shared source-checkout environment. They intentionally
 omit generated scaffold files and per-demo constraints.

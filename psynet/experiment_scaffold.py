@@ -12,7 +12,7 @@ from urllib.parse import unquote, urlparse
 
 import click
 
-from psynet.utils import md5_directory
+from psynet.light_utils import md5_directory
 from psynet.version import psynet_version
 
 _TEMPLATE_FILES = (
@@ -233,21 +233,49 @@ def _remote_tracking_refs_contain_commit(
     return any(line.strip().startswith(prefix) for line in output.splitlines())
 
 
+def _installed_psynet_file_path() -> Path | None:
+    """Return the local path when PsyNet was installed from a ``file://`` URL.
+
+    Covers both editable and non-editable path installs (for example
+    ``uv pip install /path/to/PsyNet`` or ``uv pip install -e /path/to/PsyNet``).
+    """
+    try:
+        direct_url = metadata.distribution("psynet").read_text("direct_url.json")
+    except metadata.PackageNotFoundError:
+        return None
+    if direct_url is None:
+        return None
+    installation = json.loads(direct_url)
+    parsed_url = urlparse(installation["url"])
+    if parsed_url.scheme != "file":
+        return None
+    return Path(unquote(parsed_url.path)).resolve()
+
+
 def _default_psynet_requirement() -> str:
     """Return a resolvable PsyNet requirement for a new experiment.
 
-    Alpha versions prefer a portable commit pin from the editable checkout's
-    ``origin`` remote via :func:`commit_psynet_requirement`. Errors from that
-    path (missing origin, unpushed commit, etc.) are propagated so users get
-    clear guidance. When there is no local Git commit (e.g. a non-git install),
-    fall back to a version pin. Never invent a PsyNetDev URL with a local SHA.
+    Always includes the ``[experiment]`` extra so that ``psynet setup`` installs
+    the full runtime.
+
+    Resolution order:
+
+    1. Editable checkout → commit pin (alphas, when pushed) or editable path.
+    2. Non-editable local path install → ``psynet[experiment] @ file://...``.
+    3. Otherwise → version pin ``psynet[experiment]==<version>``.
     """
-    if re.search(r"a\d+$", psynet_version):
-        source = Path(__file__).parent.parent
-        if _current_source_commit(source) is None:
-            return f"psynet=={psynet_version}"
-        return commit_psynet_requirement(source)
-    return f"psynet=={psynet_version}"
+    editable_source = get_editable_psynet_source()
+    if editable_source is not None:
+        if re.search(r"a\d+$", psynet_version):
+            if _current_source_commit(editable_source) is not None:
+                return commit_psynet_requirement(editable_source)
+        return editable_psynet_requirement(editable_source)
+
+    local_path = _installed_psynet_file_path()
+    if local_path is not None:
+        return f"psynet[experiment] @ {local_path.as_uri()}"
+
+    return f"psynet[experiment]=={psynet_version}"
 
 
 def get_editable_psynet_source() -> Path | None:
@@ -269,8 +297,12 @@ def get_editable_psynet_source() -> Path | None:
 
 
 def editable_psynet_requirement(source: Path) -> str:
-    """Return a named editable requirement for a local PsyNet checkout."""
-    return f"-e {source.resolve().as_uri()}#egg=psynet"
+    """Return a named editable requirement for a local PsyNet checkout.
+
+    The ``[experiment]`` extra is included so that a standalone experiment's
+    environment gets the full runtime even when PsyNet is installed editable.
+    """
+    return f"-e {source.resolve().as_uri()}#egg=psynet[experiment]"
 
 
 def commit_psynet_requirement(source: Path) -> str:
@@ -309,40 +341,47 @@ def commit_psynet_requirement(source: Path) -> str:
             "--psynet-source editable."
         )
 
-    return f"psynet@{pip_base}@{commit}#egg=psynet"
+    return f"psynet[experiment]@{pip_base}@{commit}#egg=psynet"
 
 
 def _is_psynet_requirement_line(line: str) -> bool:
-    """Return whether a requirements.txt line is a PsyNet dependency entry."""
+    """Return whether a requirements.txt line is a PsyNet dependency entry.
+
+    Matches bare ``psynet``, ``psynet[experiment]``, and git-URL forms with
+    ``#egg=psynet`` or ``#egg=psynet[experiment]``.
+    """
     stripped = line.strip()
     if not stripped or stripped.startswith("#"):
         return False
     return bool(
         re.match(r"(?i)^psynet(?:\s*$|\s*[@<>=!~\[])", stripped)
-        or re.search(r"(?i)#egg=psynet(?:\s|$)", stripped)
+        or re.search(r"(?i)#egg=psynet(?:\[[\w,]+\])?(?:\s|$)", stripped)
     )
 
 
 def is_unambiguous_psynet_requirement(requirement: str) -> bool:
     """Return whether a PsyNet requirement pins a version or commit.
 
-    Accepted formats are:
-    - ``psynet==<version>``
-    - ``psynet@git+https://<host>/<path>@v<version>#egg=psynet``
-    - ``psynet@git+https://<host>/<path>@<commit-hash>#egg=psynet``
-    - ``psynet@git+ssh://git@<host>/<path>@<commit-hash>#egg=psynet``
+    Accepted formats are (with or without the ``[experiment]`` extra):
+
+    - ``psynet[experiment]==<version>`` / ``psynet==<version>``
+    - ``psynet[experiment]@git+https://<host>/<path>@v<version>#egg=psynet``
+    - ``psynet[experiment]@git+https://<host>/<path>@<commit-hash>#egg=psynet``
+    - ``psynet[experiment]@git+ssh://git@<host>/<path>@<commit-hash>#egg=psynet``
     """
     commit_or_tag = (
         r"(?:[a-fA-F0-9]{8,40}|v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
         r"(?:(?:rc|a)\d+)?)"
     )
     git_path = r"[\w.+\-]+(?:/[\w.+\-]+)+"
+    extras = r"(?:\[[\w,\s]+\])?"
+    egg = r"(?:#egg=psynet(?:\[[\w,]+\])?)?"
     patterns = [
-        rf"^psynet(\s?)@(\s?)git\+https://[\w.-]+/{git_path}(\.git)?@"
-        rf"{commit_or_tag}(#egg=psynet)?$",
-        rf"^psynet(\s?)@(\s?)git\+ssh://git@[\w.-]+/{git_path}(\.git)?@"
-        rf"{commit_or_tag}(#egg=psynet)?$",
-        r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+((rc|a)\d+)?$",
+        rf"^psynet{extras}(\s?)@(\s?)git\+https://[\w.-]+/{git_path}(\.git)?@"
+        rf"{commit_or_tag}{egg}$",
+        rf"^psynet{extras}(\s?)@(\s?)git\+ssh://git@[\w.-]+/{git_path}(\.git)?@"
+        rf"{commit_or_tag}{egg}$",
+        rf"^psynet{extras}(\s?)==(\s?)\d+\.\d+\.\d+((rc|a)\d+)?$",
     ]
     return any(re.fullmatch(pattern, requirement.strip()) for pattern in patterns)
 
@@ -383,9 +422,17 @@ def set_psynet_requirement(requirement: str) -> bool:
 
 
 def pin_unpinned_psynet_requirement() -> bool:
-    """Pin a bare PsyNet requirement to the active version or source commit."""
+    """Pin a bare PsyNet requirement to the active version or source commit.
+
+    Both ``psynet`` and ``psynet[experiment]`` (case-insensitive) are treated
+    as unpinned and will be replaced with the result of
+    :func:`_default_psynet_requirement`.
+    """
     requirement = get_psynet_requirement()
-    if requirement is None or requirement.lower() != "psynet":
+    if requirement is None:
+        return False
+    bare = re.sub(r"\[.*\]", "", requirement).strip().lower()
+    if bare != "psynet":
         return False
     return set_psynet_requirement(_default_psynet_requirement())
 

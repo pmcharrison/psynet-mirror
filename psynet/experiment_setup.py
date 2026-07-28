@@ -25,7 +25,7 @@ from .experiment_scaffold import (
     scaffold_experiment_directory,
     set_psynet_requirement,
 )
-from .utils import (
+from .light_utils import (
     ExperimentDirectoryNameError,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
@@ -54,10 +54,9 @@ def _generate_constraints_if_missing(ctx, *, requirements_changed=False):
         return
 
     click.echo("Generating constraints.txt...")
-    # Lazy import avoids a circular import with command_line at module load.
-    from .command_line import generate_constraints
+    from .constraints_compile import generate_constraints_file
 
-    ctx.invoke(generate_constraints)
+    generate_constraints_file()
     if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
         raise click.ClickException(
             "Failed to generate a non-empty constraints.txt file."

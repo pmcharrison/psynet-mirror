@@ -24,8 +24,9 @@ The PsyNet demo directories contain authored experiment files and an unpinned
 ``psynet`` entry in ``requirements.txt``. Generated boilerplate and
 ``constraints.txt`` are intentionally omitted.
 
-Initialize Git and install PsyNet as a bootstrap tool before choosing either
-setup mode:
+Initialize Git and install the thin PsyNet bootstrap package before choosing
+either setup mode (``psynet setup`` then installs the full
+``psynet[experiment]`` runtime):
 
 .. code-block:: bash
 
