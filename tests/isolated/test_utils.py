@@ -60,6 +60,26 @@ def test_is_in_repo_experiment(tmp_path):
     assert not is_in_repo_experiment(tmp_path)
 
 
+def test_is_in_repo_experiment_finds_checkout_when_package_root_differs(
+    tmp_path, monkeypatch
+):
+    """Wheel/ASV installs should still recognize demos under a source checkout."""
+    checkout = tmp_path / "PsyNet"
+    demo = checkout / "demos" / "experiments" / "demo"
+    demo.mkdir(parents=True)
+    (checkout / "pyproject.toml").write_text(
+        '[project]\nname = "psynet"\nversion = "0.0.0"\n',
+        encoding="utf-8",
+    )
+    (demo / "experiment.py").write_text("class Exp: pass\n", encoding="utf-8")
+    monkeypatch.setattr(
+        "psynet.light_utils.get_psynet_root",
+        lambda: tmp_path / "site-packages",
+    )
+    assert is_in_repo_experiment(demo)
+    assert not is_in_repo_experiment(demo, roots=("tests/experiments",))
+
+
 def test_make_dirs():
     with tempfile.TemporaryDirectory() as tempdir:
         subdir = "abc123"

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -106,6 +107,21 @@ def get_psynet_root() -> Path:
     return Path(psynet.__file__).parent.parent
 
 
+def _find_psynet_checkout_root(start: Path) -> Path | None:
+    """Walk parents of *start* for a PsyNet ``pyproject.toml`` checkout."""
+    for candidate in (start, *start.parents):
+        pyproject = candidate / "pyproject.toml"
+        if not pyproject.is_file():
+            continue
+        try:
+            text = pyproject.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if re.search(r'(?m)^name\s*=\s*["\']psynet["\']', text):
+            return candidate
+    return None
+
+
 _IN_REPO_EXPERIMENT_ROOTS = (
     "demos",
     "tests/experiments",
@@ -121,6 +137,10 @@ def is_in_repo_experiment(path=".", *, roots=None) -> bool:
     checked-in scaffold/constraints files; local/CI flows auto-prepare
     ignored boilerplate.
 
+    Detection prefers a PsyNet checkout containing *path* (so wheel/ASV
+    installs still recognize demos under a source tree). Falls back to the
+    installed package location for editable checkouts.
+
     Parameters
     ----------
     path :
@@ -133,7 +153,11 @@ def is_in_repo_experiment(path=".", *, roots=None) -> bool:
     path = Path(path).resolve()
     if not (path / "experiment.py").is_file():
         return False
-    root = get_psynet_root().resolve()
+    root = _find_psynet_checkout_root(path)
+    if root is None:
+        root = get_psynet_root().resolve()
+    else:
+        root = root.resolve()
     relative_roots = _IN_REPO_EXPERIMENT_ROOTS if roots is None else roots
     return any(
         path.is_relative_to((root / relative).resolve()) for relative in relative_roots

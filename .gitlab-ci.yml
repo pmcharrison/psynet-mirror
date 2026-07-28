@@ -65,7 +65,7 @@ changelog_check:
   image: python:3.13
   stage: test
   before_script:
-    - python -m pip install -e .
+    - python -m pip install -e '.[experiment,dev]'
   script:
     - |
       git fetch --unshallow origin || git fetch --depth=100 origin
