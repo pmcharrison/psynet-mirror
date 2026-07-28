@@ -14,7 +14,7 @@ repository root:
 .. code-block:: bash
 
     uv venv --python 3.13
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    source .venv/bin/activate
     uv pip install -e '.[experiment,dev,demos]'
 
 Then open the demo directory and run ``psynet debug local``.
@@ -22,14 +22,15 @@ Then open the demo directory and run ``psynet debug local``.
 Copied demos and other standalone experiments
 ---------------------------------------------
 
-Copied demos do not ship ``constraints.txt``. Initialize Git and let
-``psynet setup`` create the constrained environment:
+Copied demos do not ship ``constraints.txt``. You need **Git** and **uv** first
+(see :doc:`/tutorials/creating_a_new_experiment` for install links). Initialize
+Git and let ``psynet setup`` create the constrained environment:
 
 .. code-block:: bash
 
     git init
     uv venv --python 3.13
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    source .venv/bin/activate
     uv pip install psynet
     psynet setup
 
@@ -43,7 +44,7 @@ environment with:
 .. code-block:: bash
 
     uv venv --python 3.13
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    source .venv/bin/activate
     uv pip install -r requirements.txt -c constraints.txt
 
 .. note::

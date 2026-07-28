@@ -24,15 +24,30 @@ The PsyNet demo directories contain authored experiment files and an unpinned
 ``psynet`` entry in ``requirements.txt``. Generated boilerplate and
 ``constraints.txt`` are intentionally omitted.
 
-Initialize Git and install the thin PsyNet bootstrap package before choosing
-either setup mode (``psynet setup`` then installs the full
+Before you create an experiment environment, make sure these tools are
+available on your computer (once per machine):
+
+* **Git** — required so the experiment folder can be a repository
+  (``git init``). If you need to install it, follow the instructions on the
+  `Git downloads page <https://git-scm.com/downloads>`_. A GUI client is fine;
+  PsyNet only needs the ``git`` command to be available in your terminal.
+* **uv** — used to create the virtual environment and install packages.
+  The usual install is::
+
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  See the `uv installation docs <https://docs.astral.sh/uv/getting-started/installation/>`_
+  for other options (Homebrew, pip, …).
+
+Then initialize Git and install the thin PsyNet bootstrap package before
+choosing either setup mode (``psynet setup`` then installs the full
 ``psynet[experiment]`` runtime):
 
 .. code-block:: bash
 
     git init
     uv venv --python 3.13
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    source .venv/bin/activate
     uv pip install psynet
 
 

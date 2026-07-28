@@ -10,13 +10,16 @@ Open the new experiment directory in your IDE.
 
 Bundled demos ship only their authored experiment files (plus an unpinned ``psynet`` entry in
 ``requirements.txt``). Generated boilerplate and ``constraints.txt`` are intentionally omitted.
-Initialize Git and create a standalone environment for the copied demo:
+
+You need **Git** and **uv** on your machine first (see
+:doc:`/tutorials/creating_a_new_experiment` for install links). Then initialize
+Git and create a standalone environment for the copied demo:
 
 .. code-block:: bash
 
     git init
     uv venv --python 3.13
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    source .venv/bin/activate
     uv pip install psynet
     psynet setup
 
