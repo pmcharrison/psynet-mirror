@@ -930,8 +930,9 @@ def _format_spa_incompatibility_message(page_label, codes):
     return (
         f"Page '{page_label}' uses HTML/JS that needs a full browser reload "
         f"between pages (error codes: {codes_text}).\n\n"
-        "PsyNet can usually update pages in place without reloading the "
-        "browser.\n\n"
+        "Ideally, PsyNet pages are designed to support in-place loading, "
+        "which creates a smoother user experience. However, this is not "
+        "compulsory.\n\n"
         "What would you like to do?\n"
         "1. Update this page to support in-place loading:\n"
         f"   {_SPA_UPGRADE_DOCS_URL}\n"

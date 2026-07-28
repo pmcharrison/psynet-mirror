@@ -39,7 +39,7 @@ def test_extract_server_error_details_finds_spa_message():
     <html><body><pre>
     ValueError: Page 'dogfood_legacy' uses HTML/JS that needs a full browser reload between pages (error codes: complete_template).
 
-PsyNet can usually update pages in place without reloading the browser.
+Ideally, PsyNet pages are designed to support in-place loading, which creates a smoother user experience. However, this is not compulsory.
 
 What would you like to do?
 1. Update this page to support in-place loading:
@@ -59,7 +59,7 @@ def test_raise_for_status_includes_server_error_details():
     response.text = (
         "ValueError: Page 'dogfood_legacy' uses HTML/JS that needs a full browser "
         "reload between pages (error codes: complete_template).\n\n"
-        "PsyNet can usually update pages in place without reloading the browser.\n\n"
+        "Ideally, PsyNet pages are designed to support in-place loading, which creates a smoother user experience. However, this is not compulsory.\n\n"
         "What would you like to do?\n"
         "1. Update this page to support in-place loading:\n"
         "   https://example.test/upgrading_to_psynet_14.html\n"
