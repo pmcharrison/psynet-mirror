@@ -23,7 +23,6 @@ from .timeline import (
     MediaSpec,
     Page,
     Trigger,
-    _format_spa_incompatibility_message,
     is_list_of,
 )
 from .utils import (
@@ -1970,42 +1969,10 @@ class ModularPage(Page):
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
 
-        # Reusable components (prompt, control, chatroom) contribute their
-        # page-local assets through component hooks, so they don't have to inline
-        # <style>/<script> in a template (which the SPA contract forbids). Collect
-        # them here and merge with any assets the caller passed directly.
-        components = [("prompt", self.prompt), ("control", self.control)]
-        if self.chatroom is not None and "chatroom" in self.layout:
-            components.append(("chatroom", self.chatroom))
-
-        css = [c for _, component in components for c in component.get_css()]
-        css_links = [
-            link for _, component in components for link in component.get_css_links()
-        ]
-        js_dependencies = [
-            dependency
-            for _, component in components
-            for dependency in component.get_js_dependencies()
-        ]
-        js_page_modules = [
-            module
-            for _, component in components
-            for module in component.get_js_page_modules()
-        ]
-        js_page_code = [
-            code for _, component in components for code in component.get_js_page_code()
-        ]
-
-        for key, collected in (
-            ("css", css),
-            ("css_links", css_links),
-            ("js_dependencies", js_dependencies),
-            ("js_page_code", js_page_code),
-            ("js_page_modules", js_page_modules),
-        ):
-            if key in kwargs:
-                extra = kwargs.pop(key)
-                collected.extend(extra if isinstance(extra, (list, tuple)) else [extra])
+        # Reusable components contribute page-local assets through hooks so they
+        # do not need inline <style>/<script> (forbidden by the SPA contract).
+        components = list(self._iter_layout_components())
+        assets = self._collect_component_assets(components, kwargs)
 
         modular_page_components = {
             "prompt": self.prompt.macro,
@@ -2044,30 +2011,51 @@ class ModularPage(Page):
             js_vars=_merge_js_var_sources(*js_var_sources),
             start_trial_automatically=start_trial_automatically,
             validate=validate,
-            css=css,
-            css_links=css_links,
-            js_dependencies=js_dependencies,
-            js_page_code=js_page_code,
-            js_page_modules=js_page_modules,
             framework_owned_template=True,
+            **assets,
             **kwargs,
         )
 
-    def _check_spa_template_contract(self, inplace_timeline_transitions):
-        if getattr(self, "_spa_contract_opt_out", False):
-            return
+    def _iter_layout_components(self):
+        """Yield layout-active components that contribute page assets."""
+        yield "prompt", self.prompt
+        yield "control", self.control
+        if self.chatroom is not None and "chatroom" in self.layout:
+            yield "chatroom", self.chatroom
 
-        codes = self._collect_spa_incompatibility_codes()
-        if not codes:
-            return
+    @staticmethod
+    def _collect_component_assets(components, kwargs):
+        """Collect component assets and merge any matching caller kwargs."""
+        css = [c for _, component in components for c in component.get_css()]
+        css_links = [
+            link for _, component in components for link in component.get_css_links()
+        ]
+        js_dependencies = [
+            dependency
+            for _, component in components
+            for dependency in component.get_js_dependencies()
+        ]
+        js_page_modules = [
+            module
+            for _, component in components
+            for module in component.get_js_page_modules()
+        ]
+        js_page_code = [
+            code for _, component in components for code in component.get_js_page_code()
+        ]
 
-        message = _format_spa_incompatibility_message(self.label, codes)
-        if inplace_timeline_transitions:
-            raise ValueError(message)
-
-        if not self._spa_template_contract_warning_shown:
-            warnings.warn(message, UserWarning, stacklevel=2)
-            self._spa_template_contract_warning_shown = True
+        assets = {
+            "css": css,
+            "css_links": css_links,
+            "js_dependencies": js_dependencies,
+            "js_page_code": js_page_code,
+            "js_page_modules": js_page_modules,
+        }
+        for key, collected in assets.items():
+            if key in kwargs:
+                extra = kwargs.pop(key)
+                collected.extend(extra if isinstance(extra, (list, tuple)) else [extra])
+        return assets
 
     def _collect_spa_incompatibility_codes(self):
         codes = super()._collect_spa_incompatibility_codes()
@@ -2094,16 +2082,10 @@ class ModularPage(Page):
 
     @property
     def _external_template_sources(self):
-        template_names = [
-            ("prompt", self.prompt.external_template),
-            ("control", self.control.external_template),
-            (
-                "chatroom",
-                self.chatroom.external_template if self.chatroom is not None else None,
-            ),
-        ]
+        # Match _iter_layout_components: only check templates that can render.
         seen = set()
-        for role, template_name in template_names:
+        for role, component in self._iter_layout_components():
+            template_name = component.external_template
             if template_name is None or template_name in seen:
                 continue
             seen.add(template_name)

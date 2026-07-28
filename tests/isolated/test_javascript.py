@@ -178,11 +178,15 @@ def test_wait_page_gates_auto_advance_on_page_ready():
 
 
 @pytest.mark.parametrize(
-    "requires_reload, expect_fragment",
-    [(False, True), (True, False)],
+    "requires_reload, include_timeline_fragment, expect_fragment",
+    [
+        (False, True, True),
+        (True, True, False),
+        (False, False, False),
+    ],
 )
 def test_response_approved_skips_fragment_for_reload_pages(
-    monkeypatch, requires_reload, expect_fragment
+    monkeypatch, requires_reload, include_timeline_fragment, expect_fragment
 ):
     from types import SimpleNamespace
 
@@ -207,7 +211,9 @@ def test_response_approved_skips_fragment_for_reload_pages(
     )
     exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
     exp.timeline = SimpleNamespace(get_current_elt=lambda *args: page)
-    payload = experiment_module.Experiment.response_approved(exp, object())
+    payload = experiment_module.Experiment.response_approved(
+        exp, object(), include_timeline_fragment=include_timeline_fragment
+    )
 
     assert ("timeline_fragment" in payload) is expect_fragment
     if expect_fragment:

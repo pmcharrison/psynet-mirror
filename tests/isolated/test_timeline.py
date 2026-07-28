@@ -306,8 +306,29 @@ def test_js_page_code_rejects_window_listener_without_cleanup():
         js_page_code=["window.addEventListener('resize', onResize);"],
     )
 
-    with pytest.raises(ValueError, match=r"error codes: window_listener_no_cleanup"):
+    with pytest.raises(
+        ValueError,
+        match=r"(?s)error codes: window_listener_no_cleanup.*"
+        r"return \(\) => \{ \.\.\. \}.*"
+        r"psynet\.addPageCleanupCallback",
+    ):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_js_page_code_allows_add_page_cleanup_callback():
+    page = Page(
+        template_fragment_str="<p>ok</p>",
+        js_page_code=[
+            """
+            window.addEventListener('resize', onResize);
+            psynet.addPageCleanupCallback(function () {
+                window.removeEventListener('resize', onResize);
+            });
+            """
+        ],
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_legacy_transitions_warn_on_complete_custom_templates():

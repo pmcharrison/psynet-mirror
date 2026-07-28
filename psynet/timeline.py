@@ -930,6 +930,16 @@ def _format_spa_incompatibility_message(page_label, codes):
     """
     unique_codes = list(dict.fromkeys(codes))
     codes_text = ", ".join(unique_codes)
+    tips = []
+    if "window_listener_no_cleanup" in unique_codes:
+        tips.append(
+            "For window_listener_no_cleanup, register cleanup PsyNet can see: "
+            "return () => { ... } or return function cleanup() { ... } from "
+            "js_page_code / activate(), or use psynet.addPageCleanupCallback(...) "
+            "/ psynet.addPageEventListener(...). Returning another function "
+            "reference (for example return teardown) is not detected."
+        )
+    tip_text = ("\n\n" + "\n".join(tips)) if tips else ""
     return (
         f"Page '{page_label}' uses HTML/JS that needs a full browser reload "
         f"between pages (error codes: {codes_text}).\n\n"
@@ -943,7 +953,8 @@ def _format_spa_incompatibility_message(page_label, codes):
         "2. Leave the HTML/JS as is, and allow full reloads for this page by "
         "passing requires_full_page_reload=True to the Page or ModularPage "
         "constructor (or set inplace_timeline_transitions = false in "
-        "config.txt for a temporary experiment-wide opt-out)\n"
+        "config.txt for a temporary experiment-wide opt-out)"
+        f"{tip_text}\n"
         f"{_SPA_INCOMPATIBILITY_MARKER}"
     )
 

@@ -144,5 +144,10 @@ relevant step:
   pass ``requires_full_page_reload=True`` to silence while migrating)
 * ``embedded_module`` → step 5 (use ``js_page_modules``, not
   ``<script type="module">`` in HTML)
-* ``dom_content_loaded``, ``window_listener_no_cleanup`` → steps 5 and 8
+* ``dom_content_loaded``, ``window_listener_no_cleanup`` → steps 5 and 8.
+  For ``window_listener_no_cleanup``, PsyNet only recognizes cleanup as
+  ``return () => { ... }``, ``return function cleanup() { ... }``,
+  ``psynet.addPageCleanupCallback(...)``, or ``psynet.addPageEventListener(...)``.
+  Returning another function reference (for example ``return teardown``) is not
+  detected.
 * ``jspsych_html_timeline`` → step 7
