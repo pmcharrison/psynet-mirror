@@ -1139,7 +1139,7 @@ def test_setup_suggests_git_init_when_repository_missing(tmp_path, monkeypatch):
 
     assert result.exit_code == 0, result.output
     assert "Next steps:" in result.output
-    assert "not a git repository yet" in result.output
+    assert "Local debug requires a git repository" in result.output
     assert "git init" in result.output
     assert "does not appear to be installed" not in result.output
     assert (tmp_path / "Dockerfile").exists()
