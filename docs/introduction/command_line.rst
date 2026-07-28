@@ -145,7 +145,73 @@ because in-repo demos and test experiments share the repository's development
 environment. Local ``debug`` and ``test`` commands recognize those directories
 and prepare their ignored boilerplate automatically. Running ``psynet setup``
 there performs only this lightweight preparation and does not rewrite
-requirements or synchronize the shared environment.
+requirements or synchronize the shared environment. See :ref:`scripts` for the
+standalone ``scaffold`` / ``update`` / ``prune`` commands.
+
+
+.. _scripts:
+
+Manage experiment boilerplate (``scripts``)
+-------------------------------------------
+
+The ``psynet scripts`` group manages standard experiment boilerplate
+(Dockerfile, ``docker/`` helpers, ``pytest.ini``, ``test.py``, and related
+templates) without synchronizing a virtual environment. Use these when you want
+file-level control; prefer ``psynet setup`` when creating a dedicated constrained
+environment for a standalone experiment.
+
+Inspect the available subcommands with:
+
+.. code:: bash
+
+  psynet scripts --help
+
+``scaffold``
+~~~~~~~~~~~~
+
+Create any missing PsyNet boilerplate files in the current experiment directory.
+If ``experiment.py`` or ``requirements.txt`` are missing, starter versions are
+created as well. Existing authored files are left alone.
+
+.. code:: bash
+
+  psynet scripts scaffold
+
+By default, standalone experiments also pin a bare ``psynet`` requirement and
+generate ``constraints.txt`` when needed. Pass ``--skip-constraints`` to skip
+pinning and constraint generation (in-repo demos and test experiments do this
+automatically):
+
+.. code:: bash
+
+  psynet scripts scaffold --skip-constraints
+
+``update``
+~~~~~~~~~~
+
+Overwrite scaffold-managed boilerplate with the latest templates from the
+installed PsyNet version. Existing ``config.txt`` and ``README.md`` files are
+preserved because authors commonly customize them.
+
+.. code:: bash
+
+  psynet scripts update
+
+``psynet update-scripts`` remains as a deprecated alias for this command.
+
+``prune``
+~~~~~~~~~
+
+Remove scaffold-managed boilerplate from the experiment directory, leaving
+authored files such as ``experiment.py`` and ``requirements.txt``. ``README.md``
+is always preserved. Paths that differ from the current PsyNet templates,
+including customized ``config.txt`` files, are preserved by default;
+``--force`` removes those paths without checking their contents.
+
+.. code:: bash
+
+  psynet scripts prune
+  psynet scripts prune --force
 
 
 Run the experiment's regression test
