@@ -453,6 +453,7 @@ def _echo_in_repo_setup_success():
         "  uv pip install psynet\n"
         "  psynet setup"
     )
+    _handle_setup_services(mode="verify")
 
 
 def _echo_no_install_success(*, docker):
@@ -465,6 +466,7 @@ def _echo_no_install_success(*, docker):
             "Next steps:\n"
             "  Follow the generated instructions under docker/docs."
         )
+        _handle_setup_services(mode="verify")
         return
 
     click.echo(
@@ -477,6 +479,28 @@ def _echo_no_install_success(*, docker):
         "  (omit --no-install / --docker so setup can install from "
         "constraints.txt)"
     )
+    _handle_setup_services(mode="ensure-soft")
+
+
+def _handle_setup_services(*, mode):
+    """Run post-setup service guidance without blocking soft setup paths.
+
+    Parameters
+    ----------
+    mode :
+        ``"verify"`` checks only (in-repo / Docker). ``"ensure-soft"`` may
+        offer to start Docker services but never fails setup.
+    """
+    from .services import ensure_local_services, verify_local_services
+
+    click.echo()
+    if mode == "verify":
+        verify_local_services(strict=False)
+        return
+    if mode == "ensure-soft":
+        ensure_local_services(assume_yes=False, strict=False)
+        return
+    raise ValueError(f"Unknown setup services mode: {mode}")
 
 
 def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker=False):
@@ -545,3 +569,4 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
     )
     _run_uv(["pip", "check"], "verify experiment dependencies")
     click.echo("Setup complete.")
+    _handle_setup_services(mode="ensure-soft")

@@ -1091,6 +1091,10 @@ def _mock_dedicated_experiment_venv(monkeypatch):
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
 
 
 def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypatch):
@@ -1147,6 +1151,10 @@ def test_setup_prepares_bundled_demo_without_dependency_changes(tmp_path, monkey
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: pytest.fail("Bundled demo setup must not gate on shared venv"),
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
 
     with working_directory(tmp_path):
@@ -1350,6 +1358,10 @@ def test_setup_shared_env_noninteractive_requires_explicit_flag(tmp_path, monkey
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
     monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
@@ -1370,6 +1382,10 @@ def test_setup_shared_env_no_install_skips_sync(tmp_path, monkeypatch):
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
@@ -1398,6 +1414,10 @@ def test_setup_shared_env_force_syncs_with_warning(tmp_path, monkeypatch):
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
@@ -1429,6 +1449,10 @@ def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypa
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
     monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
@@ -1454,6 +1478,10 @@ def test_setup_shared_env_interactive_no_install(tmp_path, monkeypatch):
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
@@ -1483,6 +1511,10 @@ def test_setup_no_install_skips_editable_source_prompt(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
@@ -1519,6 +1551,10 @@ def test_setup_no_install_keeps_existing_explicit_pin(tmp_path, monkeypatch):
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
     monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
@@ -1545,6 +1581,10 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
@@ -1579,6 +1619,10 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
 
 
 def test_setup_detects_psynet_running_from_other_virtualenv(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
     experiment_venv = tmp_path / ".venv"
     experiment_venv.mkdir()
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
@@ -1625,6 +1669,10 @@ def test_setup_shared_env_interactive_new_venv_suggests_editable_install(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
     monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
@@ -1647,6 +1695,10 @@ def test_setup_shared_env_interactive_new_venv_default(tmp_path, monkeypatch):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
@@ -1677,6 +1729,10 @@ def test_setup_shared_env_interactive_new_venv_rejects_existing_venv(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
     monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",
         lambda: True,
     )
@@ -1700,6 +1756,10 @@ def test_setup_shared_env_interactive_sync(tmp_path, monkeypatch):
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv",

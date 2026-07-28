@@ -1084,6 +1084,12 @@ def _pre_launch(
     # even when Redis is not running.
     _check_experiment_directory(mode)
 
+    if local_ and not docker:
+        from .services import ensure_local_services
+
+        # Fail fast with actionable guidance before redis_vars.clear() / DB work.
+        ensure_local_services(assume_yes=False, strict=True)
+
     redis_vars.clear()
     deployment_info.init(
         redeploying_from_archive=archive is not None,
@@ -2922,6 +2928,46 @@ def scripts():
     Manage experiment boilerplate scripts and templates.
     """
     pass
+
+
+@psynet.group("services")
+def services():
+    """
+    Check and ensure local PostgreSQL and Redis services.
+    """
+    pass
+
+
+@services.command("check")
+def services_check():
+    """
+    Verify that local PostgreSQL and Redis are reachable.
+
+    Does not start services. Exits with an error if either is unavailable.
+    """
+    from .services import verify_local_services
+
+    verify_local_services(strict=True)
+
+
+@services.command("ensure")
+@click.option(
+    "--yes",
+    "assume_yes",
+    is_flag=True,
+    help="Start missing services with Docker without prompting.",
+)
+def services_ensure(assume_yes):
+    """
+    Ensure local PostgreSQL and Redis are reachable.
+
+    If a service is missing, offers to start Docker containers that publish
+    localhost ports 5432 and 6379 (what virtualenv ``psynet debug local``
+    expects). Exits with an error if services remain unavailable.
+    """
+    from .services import ensure_local_services
+
+    ensure_local_services(assume_yes=assume_yes, strict=True)
 
 
 @scripts.command("scaffold")

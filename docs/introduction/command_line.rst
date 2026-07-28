@@ -129,6 +129,8 @@ Recommended commands by goal:
 * **Refresh dependency locks only:** ``psynet generate-constraints``.
 * **Upgrade the installed PsyNet/Dallinger packages:**
   ``psynet installation update`` (not the same as ``psynet scripts update``).
+* **Check local PostgreSQL/Redis:** ``psynet services check``.
+* **Start missing local services with Docker:** ``psynet services ensure``.
 
 
 .. _setup:
@@ -145,6 +147,9 @@ Set up an experiment (``setup``)
 3. Writes ``constraints.txt`` (the locked dependency list).
 4. Installs from ``constraints.txt`` with ``uv pip sync`` and verifies with
    ``uv pip check``.
+5. Softly checks local PostgreSQL/Redis (and may offer to start them with
+   Docker). Missing services do not fail setup; use
+   ``psynet services ensure`` if you want a hard guarantee before debugging.
 
 Run it inside the experiment's dedicated active virtual environment:
 
@@ -177,7 +182,30 @@ cancel, write files only, or install into the repository ``.venv`` anyway.
 only lightweight file preparation and never installs packages or rewrites
 requirements. You do not need ``--no-install`` there; that behavior is
 automatic. PsyNet CI uses ``psynet scripts scaffold --skip-constraints`` for
-the same reason.
+the same reason. After preparation it only **verifies** local services (it
+does not offer to start Docker containers).
+
+
+.. _services:
+
+Local PostgreSQL and Redis (``services``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Virtualenv ``psynet debug local`` expects PostgreSQL and Redis on localhost
+(Dallinger defaults: ports 5432 and 6379).
+
+.. code:: bash
+
+  psynet services check
+  psynet services ensure
+  psynet services ensure --yes
+
+``check`` only verifies connectivity and exits with an error if either service
+is down. ``ensure`` does the same check, then offers to start Docker containers
+that publish those host ports (``--yes`` skips the prompt). Local
+``psynet debug`` / ``psynet deploy`` call ``ensure`` automatically in
+virtualenv mode; Docker mode skips that step because services are managed by
+the Docker workflow instead.
 
 
 .. _scripts:
