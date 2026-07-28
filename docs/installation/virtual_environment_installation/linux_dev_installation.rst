@@ -40,9 +40,13 @@ PsyNet supports Python 3.11 through 3.14. Python 3.13 is the recommended version
 for developing and deploying experiments.
 To see the current version of Python 3 on your system, enter ``python3 --version`` in your terminal.
 If your current version is lower than the minimum version, you should update your Python
-to the recommended version.
-The easiest way to do this is via the ``apt install`` command above, for example
-``sudo apt install python3.11-dev`` for Python 3.11.
+to a supported version.
+The easiest way to do this is via the ``apt install`` command above, which installs the
+newest supported Python packaged for your Ubuntu release (3.11 on Ubuntu 22.04,
+3.12 on Ubuntu 24.04). If you want the recommended Python 3.13, which these Ubuntu
+releases do not package themselves, you can install it via the
+`deadsnakes PPA <https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa>`_ or let
+``uv`` (installed below) manage it for you.
 
 Install uv
 ~~~~~~~~~~
