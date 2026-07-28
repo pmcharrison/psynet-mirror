@@ -26,7 +26,7 @@ kept for backwards compatibility, but new and migrated custom pages should be
 written for in-place transitions.
 
 If you are upgrading an existing experiment, start with
-:doc:`/whats_new/psynet_14`. Maintainers extending PsyNet's Page,
+:doc:`/whats_new/upgrading_to_psynet_14`. Maintainers extending PsyNet's Page,
 Prompt, or Control internals should also read
 :doc:`/developer/page_lifecycle`, which documents the complete rendering,
 activation, cleanup, and failure contract.
@@ -103,6 +103,9 @@ Custom prompts and controls supply the equivalent assets from Python through
 Do not rely on ``DOMContentLoaded`` for page setup when using in-place
 transitions. In-place transitions do not reload the browser document for every
 timeline page, so ``DOMContentLoaded`` will not fire for each page activation.
+Put ordinary page setup in a ``js_page_modules`` ``activate()`` function (or
+short ``js_page_code``). Use trial events such as ``pageReady`` only for
+timing gates (for example auto-advance).
 
 Template validation
 ~~~~~~~~~~~~~~~~~~~
@@ -118,17 +121,23 @@ The validation checks only author-provided template content, not PsyNet's own
 timeline shell or assets supplied through supported page arguments. The checked
 patterns are:
 
-* ``document.addEventListener("DOMContentLoaded", ...)``. Use
-  ``psynet.trial.onEvent("trialConstruct", ...)`` instead.
-* ``window.addEventListener(...)`` without evidence of PsyNet cleanup. Use
-  ``psynet.addPageEventListener(...)`` where possible, or register cleanup with
+* ``document.addEventListener("DOMContentLoaded", ...)``. Move page setup into
+  a ``js_page_modules`` ``activate()`` function (or ``js_page_code``). Use
+  ``pageReady`` / ``trialConstruct`` only for timing gates.
+* ``window.addEventListener(...)`` without evidence of PsyNet cleanup. Prefer
+  returning cleanup from ``activate()``, or use
+  ``psynet.addPageEventListener(...)`` /
   ``psynet.addPageCleanupCallback(...)``.
-* Raw template ``<script>`` blocks. Use ``js_page_modules`` instead.
-* Template ``<script src=...>`` tags. Use ``js_dependencies`` or
-  ``js_page_modules`` according to the intended lifecycle.
-* Template ``<style>`` blocks. Use the ``css`` argument instead.
+* Raw template ``<script>`` blocks. Use ``js_page_code`` for short snippets or
+  ``js_page_modules`` for substantial / reusable behavior.
+* Template ``<script src=...>`` tags. Use ``js_dependencies`` (load-once
+  libraries) or ``js_page_modules`` (per-page modules) according to the
+  intended lifecycle.
+* Template ``<style>`` blocks. Prefer a ``static`` stylesheet via ``css_links``
+  (or ``get_css_links()``); use ``css`` / ``get_css()`` only for small
+  generated snippets.
 * Template stylesheet ``<link rel="stylesheet">`` tags. Use the ``css_links``
-  argument instead.
+  argument (or ``get_css_links()``) instead.
 
 Existing experiments may therefore be legacy-only, SPA-ready, or incidentally
 compatible with both modes. A validation error in the default mode means that
@@ -541,8 +550,9 @@ The older ``js_links`` and ``scripts`` Page arguments remain supported but are
 deprecated. They keep classic linked/inline script semantics and therefore
 force a full page reload rather than participating in the managed SPA
 JavaScript path (``js_dependencies``, ``js_page_code``, and
-``js_page_modules``). Run the repo-local ``/upgrade-to-psynet-14`` skill to
-move them to explicit dependency, page-code, or page-module lifecycles.
+``js_page_modules``). Follow :doc:`/whats_new/upgrading_to_psynet_14` to move
+them to explicit dependency, page-code, or page-module lifecycles (in Cursor,
+``/upgrade-to-psynet-14`` follows that checklist).
 
 Historically, PsyNet also copied each ``js_vars`` key onto ``window``. This
 global access is deprecated because in-place timeline transitions reuse the

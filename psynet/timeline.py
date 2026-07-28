@@ -914,6 +914,12 @@ class ProgressDisplay(dict):
                     )
 
 
+_SPA_MIGRATION_HELP = (
+    "See docs/whats_new/upgrading_to_psynet_14.rst. "
+    "In Cursor, you can also run /upgrade-to-psynet-14."
+)
+
+
 class Page(Elt):
     """
     The base class for pages, customised by passing values to the ``__init__``
@@ -1739,20 +1745,21 @@ class Page(Elt):
                         f"{source_description} includes a page JavaScript link in a "
                         "<script src=...> tag. Supply libraries via "
                         "js_dependencies or page behavior via js_page_modules. "
-                        "See docs/whats_new/psynet_14.rst. In Cursor, run /upgrade-to-psynet-14."
+                        + _SPA_MIGRATION_HELP
                     )
                 else:
                     problems.append(
                         f"{source_description} includes a raw <script> block. "
                         "Move short behavior to js_page_code or reusable behavior "
-                        "to js_page_modules. See docs/whats_new/psynet_14.rst. "
-                        "In Cursor, run /upgrade-to-psynet-14."
+                        "to js_page_modules. " + _SPA_MIGRATION_HELP
                     )
 
         if soup.find_all("style"):
             problems.append(
-                f"{source_description} includes inline CSS in a <style> tag. Supply "
-                "page-local CSS via the Page css argument instead."
+                f"{source_description} includes inline CSS in a <style> tag. "
+                "Prefer a static stylesheet via css_links (or get_css_links()); "
+                "use the Page css argument (or get_css()) only for small "
+                "generated snippets. " + _SPA_MIGRATION_HELP
             )
 
         for link in soup.find_all(
@@ -1761,7 +1768,7 @@ class Page(Elt):
             problems.append(
                 f"{source_description} includes a stylesheet <link> tag. Supply "
                 "page-local stylesheet links via the Page css_links argument "
-                "instead."
+                "(or get_css_links()). " + _SPA_MIGRATION_HELP
             )
 
         if re.search(
@@ -1772,10 +1779,9 @@ class Page(Elt):
             problems.append(
                 f"{source_description} registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
-                "each page, so page setup should use the activate(context) "
-                "function of a js_page_modules file. See "
-                "docs/whats_new/psynet_14.rst. In Cursor, run "
-                "/upgrade-to-psynet-14."
+                "each page, so put page setup in a js_page_modules activate() "
+                "function (or js_page_code). Use pageReady/trialConstruct only "
+                "for timing gates. " + _SPA_MIGRATION_HELP
             )
 
         has_window_event_listener = re.search(
@@ -1785,12 +1791,15 @@ class Page(Elt):
         has_page_cleanup = (
             "psynet.addPageEventListener" in markup_source
             or "psynet.addPageCleanupCallback" in markup_source
+            or "return function cleanup" in markup_source
+            or "return async function cleanup" in markup_source
         )
         if has_window_event_listener and not has_page_cleanup:
             problems.append(
                 f"{source_description} registers a window event listener without a "
-                "PsyNet cleanup hook. Use psynet.addPageEventListener(...) "
-                "when possible, or register cleanup with "
+                "PsyNet cleanup hook. Prefer returning cleanup from a "
+                "js_page_modules activate() function, or use "
+                "psynet.addPageEventListener(...) / "
                 "psynet.addPageCleanupCallback(...)."
             )
 
@@ -1806,8 +1815,7 @@ class Page(Elt):
             "template_fragment_path or template_fragment_str with only the "
             "contents of the main_body block, and supply page-local assets via "
             "css, css_links, js_dependencies, js_page_code, and js_page_modules. "
-            "See docs/whats_new/psynet_14.rst. In Cursor, run "
-            "/upgrade-to-psynet-14. Search your experiment "
+            f"{_SPA_MIGRATION_HELP} Search your experiment "
             f"code for Page(...) calls with label='{self.label}'."
         )
 
@@ -1832,8 +1840,7 @@ class Page(Elt):
                 raise ValueError(
                     "Embedded modules are not supported. Supply the module "
                     "through js_page_modules and use standard imports for its "
-                    "dependencies. See docs/whats_new/psynet_14.rst. In "
-                    "Cursor, run /upgrade-to-psynet-14."
+                    "dependencies. " + _SPA_MIGRATION_HELP
                 )
 
     @staticmethod

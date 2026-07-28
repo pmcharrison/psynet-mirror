@@ -455,7 +455,8 @@ def _validate_jspsych_timeline_module(timeline):
     timeline_path = urlparse(timeline).path.lower()
     migration_message = (
         "Pass a JavaScript module URL exporting buildTimeline(context). "
-        "See docs/whats_new/psynet_14.rst. In Cursor, run /upgrade-to-psynet-14."
+        "See docs/whats_new/upgrading_to_psynet_14.rst. "
+        "In Cursor, you can also run /upgrade-to-psynet-14."
     )
     if timeline_path.endswith((".html", ".htm")):
         raise ValueError(

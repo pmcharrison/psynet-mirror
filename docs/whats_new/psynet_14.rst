@@ -14,16 +14,22 @@ Under the hood this is powered by clearer page lifecycle APIs for templates,
 styles, and JavaScript, so custom pages can take part in that fluent
 navigation instead of fighting a full reload on every step.
 
+What authors need to know
+-------------------------
+
+* Prefer **fragment templates** plus explicit assets
+  (``css_links``, ``js_dependencies``, ``js_page_code``, ``js_page_modules``).
+* Read page data from ``psynet.var``, not ``window``.
+* Put page setup in a module ``activate()`` function — do not rely on
+  ``DOMContentLoaded``.
+* Temporary opt-out while migrating:
+  ``inplace_timeline_transitions = false``.
+
 Upgrading
 ---------
 
-PsyNet 14 is a breaking release for some custom frontends. If you are updating
-an existing experiment:
+PsyNet 14 is a breaking release for some custom frontends.
 
-* Start from the author-facing frontend guide:
-  :doc:`/tutorials/writing_custom_frontends`.
-* In Cursor, run the repo-local ``/upgrade-to-psynet-14`` skill for a
-  step-by-step migration.
-* If you need the old full-reload behavior temporarily while migrating, set
-  ``inplace_timeline_transitions = false``, then remove it once the experiment
-  is ready for the default.
+* Human checklist: :doc:`/whats_new/upgrading_to_psynet_14`.
+* Patterns and examples: :doc:`/tutorials/writing_custom_frontends`.
+* In Cursor, ``/upgrade-to-psynet-14`` can walk the same checklist.

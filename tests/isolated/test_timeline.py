@@ -253,7 +253,7 @@ def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates()
             "raw <script>",
         ),
         ('<script src="/static/example.js"></script>', "js_dependencies"),
-        ("<style>.example { color: red; }</style>", "Page css argument"),
+        ("<style>.example { color: red; }</style>", "css_links"),
         ('<link rel="stylesheet" href="/static/example.css">', "css_links"),
         (
             "<script>window.addEventListener('resize', function () {});</script>",
@@ -273,7 +273,7 @@ def test_inplace_transitions_reject_forbidden_custom_template_content(
 def test_legacy_transitions_warn_on_forbidden_custom_template_content():
     page = Page(template_fragment_str="<style>.example { color: red; }</style>")
 
-    with pytest.warns(UserWarning, match="Page css argument"):
+    with pytest.warns(UserWarning, match="css_links"):
         page._check_spa_template_contract(inplace_timeline_transitions=False)
 
 
@@ -309,11 +309,11 @@ def test_managed_page_asset_arguments_are_not_forbidden_template_content():
     [
         (
             "<p>Page content</p><style>.example { color: red; }</style>",
-            "Page css argument",
+            "css_links",
         ),
         (
             '<p>Page content</p><link rel="stylesheet" href="/static/example.css">',
-            "Page css_links argument",
+            "css_links",
         ),
     ],
 )
@@ -329,7 +329,7 @@ def test_legacy_transitions_warn_on_prompt_markup_stylesheets():
         Markup("<p>Page content</p><style>.example { color: red; }</style>")
     )
 
-    with pytest.warns(UserWarning, match="Page css argument"):
+    with pytest.warns(UserWarning, match="css_links"):
         page._check_spa_template_contract(inplace_timeline_transitions=False)
 
 

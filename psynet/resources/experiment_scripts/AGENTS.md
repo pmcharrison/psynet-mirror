@@ -134,5 +134,5 @@ If in an experiment directory, find more information at https://psynetdev.gitlab
 
 For PsyNet 14 migrations (in-place timeline defaults, fragment templates,
 managed page JavaScript, `psynet.var`, JsPsych module timelines), read
-`docs/whats_new/psynet_14.rst` and run the repo-local `/upgrade-to-psynet-14`
-skill.
+`docs/whats_new/upgrading_to_psynet_14.rst`. In Cursor, run
+`/upgrade-to-psynet-14` to follow that checklist.

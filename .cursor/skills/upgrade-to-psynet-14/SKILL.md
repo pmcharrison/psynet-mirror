@@ -8,31 +8,42 @@ description: Migrates an existing PsyNet experiment through PsyNet 14 breaking c
 Use this skill when an experiment needs to move onto PsyNet 14, or when PsyNet
 raises an in-place timeline / page JavaScript contract error.
 
-User-facing summary of what changed:
-``docs/whats_new/psynet_14.rst``.
-Frontend patterns:
-``docs/tutorials/writing_custom_frontends.rst``.
-Maintainer lifecycle detail:
-``docs/developer/page_lifecycle.rst``.
+Follow the human checklist in
+``docs/whats_new/upgrading_to_psynet_14.rst`` (same steps as below).
+
+Also useful:
+
+- ``docs/whats_new/psynet_14.rst`` — short release highlights
+- ``docs/tutorials/writing_custom_frontends.rst`` — authoring patterns
+- ``docs/developer/page_lifecycle.rst`` — maintainer lifecycle detail
+
+Do **not** use this skill for greenfield custom pages; point new authors at
+the writing-custom-frontends tutorial instead.
 
 ## 0. Orient and choose a migration mode
 
-1. Read ``docs/whats_new/psynet_14.rst``.
-2. Run the experiment under the default
-   ``inplace_timeline_transitions = true`` configuration.
-3. If the author is temporarily blocked, set
-   ``inplace_timeline_transitions = false`` only as a short-term opt-out, then
-   continue migrating pages so the opt-out can be removed.
+1. Read ``docs/whats_new/upgrading_to_psynet_14.rst``.
+2. Run under default ``inplace_timeline_transitions = true``.
+3. If temporarily blocked, set ``inplace_timeline_transitions = false`` only as
+   a short-term opt-out, then keep migrating pages.
 
 Work page by page. Prefer fixing contract errors over keeping the global
 opt-out.
 
-## 1. Migrate custom page templates
+To surface SPA errors quickly, instantiate the page and call
+``page._check_spa_template_contract(inplace_timeline_transitions=True)``, or
+run ``psynet debug local`` / ``psynet test local`` and read the traceback.
 
-Search for custom ``Page`` subclasses or ``Page(...)`` calls that still use a
-complete template extending ``timeline-page.html``.
+## 1. Find and migrate custom page templates
 
-Replace with a fragment template:
+Search for:
+
+- ``template_path=``
+- ``template_str=``
+- ``{% extends "timeline-page.html" %}``
+- ``template_fragment_path=`` / ``template_fragment_str=`` (already migrated)
+
+Replace complete templates with fragments:
 
 ```python
 class MyPage(Page):
@@ -53,221 +64,152 @@ Fragment HTML rules:
   ``<body>``;
 - do not embed ``<script>``, ``<style>``, or stylesheet ``<link>`` tags.
 
-Also fix author-owned template patterns PsyNet rejects under the default:
+## 2. Migrate CSS
 
-- ``DOMContentLoaded`` listeners → page module ``activate()`` or trial events;
-- ``window.addEventListener(...)`` without cleanup →
-  ``psynet.addPageEventListener`` / returned module cleanup /
-  ``psynet.addPageCleanupCallback``;
-- raw template scripts/styles → managed page asset arguments.
+Search author-owned templates for ``<style>`` and
+``<link rel="stylesheet"``.
 
-## 2. Find deprecated page JavaScript APIs
+- Stylesheet links → ``css_links`` / ``get_css_links()``
+- Authored/reusable ``<style>`` blocks → move into ``static/*.css`` and link
+  with ``css_links`` / ``get_css_links()``
+- Tiny generated snippets → ``css`` / ``get_css()``
 
-Search the experiment for:
+## 3. Find deprecated page JavaScript APIs
+
+Search for:
 
 - ``js_links=``
 - ``scripts=``
-- JavaScript ``<script>`` tags in author-owned page templates or component
+- ``<script>`` tags in author-owned templates or component
   ``external_template`` files
 
-Classify each JavaScript file by lifecycle before changing it.
-Remove deprecated arguments once their contents have moved to the appropriate
-explicit lifecycle.
+Classify each file before changing it. Remove deprecated arguments once
+migrated.
 
-## 3. Migrate a load-once library
+## 4. Migrate a load-once library
 
-Use ``js_dependencies`` for libraries whose top-level code should run once per
-browser document. Dependencies are loaded as classic ``<script src>`` files;
-ES modules with page behavior belong in ``js_page_modules`` instead.
+Use ``js_dependencies`` / ``get_js_dependencies()`` for classic libraries whose
+top-level code should run once per browser document.
 
 ```python
-Page(
-    ...,
-    js_dependencies=["/static/vendor/chart.js"],
-)
+Page(..., js_dependencies=["/static/vendor/chart.js"])
 ```
 
-For new modular-component code:
+Do not put page initialization in a dependency.
 
-```python
-def get_js_dependencies(self):
-    return ["/static/vendor/chart.js"]
+## 5. Migrate per-page behavior
+
+Classic top-level scripts must be **rewritten** as ES modules that export
+``activate``. Do not leave top-level DOM side effects in a file and only change
+the Page argument.
+
+Before (classic):
+
+```javascript
+document.querySelector("#my-button").addEventListener("click", ...);
 ```
 
-Do not put page initialization in a dependency. PsyNet does not rerun dependency
-top-level code when another page uses the same URL.
-
-## 4. Migrate per-page behavior
-
-Replace ``js_links`` with ``js_page_modules`` when the file initializes controls,
-registers trial handlers, opens sockets, starts timers, or otherwise acts on each
-page:
-
-```python
-Page(
-    ...,
-    js_page_modules=["/static/my-page.js"],
-)
-```
-
-For new modular-component code:
-
-```python
-def get_js_page_modules(self):
-    return ["/static/my-control.js"]
-```
-
-The JavaScript file must be an ES module with a named ``activate`` export:
+After (page module):
 
 ```javascript
 export async function activate({root, trial, vars, page, psynet}) {
     const button = root.querySelector("#my-button");
-
-    function handleClick() {
+    button.addEventListener("click", () => {
         psynet.response.staged.rawAnswer = vars["my_config"].answer;
-    }
-
-    button.addEventListener("click", handleClick);
+    });
 }
 ```
 
-Do not embed a ``<script type="module">`` tag, whether inline or linked with
-``src``. PsyNet reserves ES modules for ``js_page_modules``; use standard
-``import`` statements from that page module for further dependencies.
+Wire with ``js_page_modules`` / ``get_js_page_modules()``.
 
-PsyNet imports the file once and calls ``activate()`` for every hosting page.
-Most page modules do not need to return cleanup: PsyNet removes the page DOM,
-stops trial-owned timers and handlers, and resets page response state.
+PsyNet imports the module once and calls ``activate()`` for every hosting page.
+Most modules need no cleanup: PsyNet removes the page DOM and trial-owned
+timers/handlers automatically.
 
-## 5. Migrate inline ``scripts``
+## 6. Migrate inline ``scripts``
 
-Move short inline JavaScript to ``js_page_code``. PsyNet executes it as the body
-of an asynchronous activation function with ``root``, ``trial``, ``vars``,
-``page``, and ``psynet`` in scope:
+Short inline JavaScript → ``js_page_code`` / ``get_js_page_code()`` (runs as an
+async activation body with ``root``, ``trial``, ``vars``, ``page``, ``psynet``).
 
-Before:
+Substantial/reusable code → a ``js_page_modules`` file instead.
+Move generated values into ``js_vars`` / ``get_js_vars()`` and read ``vars``.
 
-```python
-Page(
-    ...,
-    scripts=[f"window.setup({json.dumps(config)});"],
-)
-```
-
-After:
-
-```python
-Page(
-    ...,
-    js_vars={"my_config": config},
-    js_page_code="window.setup(vars['my_config']);",
-)
-```
-
-For substantial or reusable code, move the code into a static
-``js_page_modules`` file instead. Move Python- or Jinja-generated values into
-``js_vars`` or ``get_js_vars()`` and read them from ``vars`` inside
-``activate()``.
-
-## 6. Migrate page variables to ``psynet.var``
-
-Replace legacy ``window`` reads of ``js_vars`` keys with ``psynet.var``:
+## 7. Migrate page variables to ``psynet.var``
 
 ```javascript
 const value = psynet.var.my_variable;
 ```
 
-Optionally set ``legacy_js_var_globals = error`` while testing to find remaining
-global reads. Do not use ``typeof legacy_name`` in ``error`` mode; test with
-``"name" in psynet.var``.
+Optionally set ``legacy_js_var_globals = error`` while testing. Do not use
+``typeof legacy_name`` in ``error`` mode; test with ``"name" in psynet.var``.
 
-## 7. Migrate ``JsPsychPage`` timeline templates
+## 8. Migrate ``JsPsychPage`` timeline templates
 
-``JsPsychPage`` now accepts a JavaScript module URL rather than an HTML/Jinja
-timeline template:
+Pass a module URL exporting ``buildTimeline(context)``:
 
 ```python
-JsPsychPage(
-    ...,
-    timeline="/static/my-jspsych-timeline.js",
-)
+JsPsychPage(..., timeline="/static/my-jspsych-timeline.js")
 ```
-
-The module must export ``buildTimeline(context)`` and return the timeline array:
 
 ```javascript
 export function buildTimeline({jsPsych, vars}) {
-    return [
-        {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: vars["welcome_message"],
-        },
-    ];
+    return [{ type: jsPsychHtmlKeyboardResponse, stimulus: vars["welcome_message"] }];
 }
 ```
 
-Move code from the old template's ``{% block timeline %}`` into this function,
-replace ``psynet.var`` reads with ``vars``, and remove the old HTML template.
 See ``demos/experiments/jspsych``.
 
-## 8. Choose cleanup deliberately
+## 9. Choose cleanup deliberately
 
-Return cleanup only when ``activate()`` creates resources outside PsyNet's
-normal page teardown, such as:
+For resources that survive DOM removal (``window``/``document`` listeners, raw
+timers, sockets, observers, object URLs):
 
-- event listeners on persistent targets such as ``window`` or ``document``
-- raw timers not created through the trial
-- WebSockets
-- observers
-- object URLs
-- other resources that can survive removal of the page DOM
+- **Preferred for page modules:** return cleanup from ``activate()``
+- **Also fine:** ``psynet.addPageEventListener`` /
+  ``psynet.addPageCleanupCallback``
 
 ```javascript
 export function activate({root}) {
     function updateWidth() {
         root.querySelector("#width").textContent = window.innerWidth;
     }
-
     window.addEventListener("resize", updateWidth);
     updateWidth();
-
     return function cleanup() {
         window.removeEventListener("resize", updateWidth);
     };
 }
 ```
 
-Cleanup functions run in reverse activation order and may be asynchronous.
+## 10. Fix timing that assumed document load
 
-## 9. Fix timing that assumed document load
+- **Page setup** → ``activate()`` / ``js_page_code`` (not ``DOMContentLoaded``)
+- **Timing gates** (auto-advance, wait-until-ready) → ``pageReady`` /
+  ``trialConstruct``
 
-Replace ``DOMContentLoaded``-based page setup with trial events such as
-``pageReady`` or ``trialConstruct``. Gate custom auto-advance timers on
-``pageReady``.
+```javascript
+trial.onEvent("pageReady", () => {
+    // safe to auto-advance or enable delayed actions
+});
+```
 
-## 10. Validate the migration
+## 11. Validate the migration
+
+From a complete experiment directory (``experiment.py``, ``test.py``, and
+usually ``constraints.txt`` / ``.gitignore``):
 
 ```bash
 psynet test local
 ```
 
-When the experiment has browser coverage in this repository:
+Optional PsyNet-repository Playwright only when you already maintain specs
+here (harness-specific):
 
 ```bash
 npx playwright test <relevant-spec>
 inplace_timeline_transitions=false npx playwright test <relevant-spec>
 ```
 
-For ordinary experiment testing, set
-``inplace_timeline_transitions = false`` temporarily in ``config.txt`` only if
-needed. The environment-variable form above is for PsyNet's repository
-Playwright harness.
-
-Check that:
-
-- the experiment runs with the default in-place mode (opt-out removed if
-  possible);
-- dependencies load before page behavior;
-- repeated pages activate fresh behavior without reloading dependencies;
-- leaving a page runs cleanup exactly once;
-- the browser console contains no module import or missing ``activate`` errors.
+Check that the default in-place mode works (opt-out removed if possible),
+modules activate without console errors, and cleanup runs for persistent
+listeners.
