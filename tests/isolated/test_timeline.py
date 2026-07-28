@@ -207,9 +207,32 @@ def test_inplace_transitions_reject_complete_custom_templates():
 
     with pytest.raises(
         ValueError,
-        match=r"(?s)reload the whole page \(error codes: complete_template\).*inplace_timeline_transitions = false.*upgrading_to_psynet_14\.html.*upgrade-to-psynet-14",
+        match=r"(?s)still needs a full browser reload between pages \(error codes: complete_template\).*requires_full_page_reload=True.*upgrading_to_psynet_14\.html.*upgrade-to-psynet-14",
     ):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_requires_full_page_reload_skips_spa_contract_error():
+    page = Page(
+        template_str='{% extends "timeline-page.html" %}',
+        requires_full_page_reload=True,
+    )
+
+    assert page.requires_full_page_reload
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_js_args_force_full_page_reload_and_skip_spa_error():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", FutureWarning)
+        page = Page(
+            template_fragment_str="<p>ok</p>",
+            js_links=["/static/helper.js"],
+            scripts=["document.addEventListener('DOMContentLoaded', function () {});"],
+        )
+
+    assert page.requires_full_page_reload
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_legacy_transitions_warn_on_complete_custom_templates():
@@ -282,23 +305,6 @@ def test_legacy_transitions_warn_on_forbidden_custom_template_content():
 
     with pytest.warns(UserWarning, match=r"error codes: style_tag"):
         page._check_spa_template_contract(inplace_timeline_transitions=False)
-
-
-def test_legacy_js_args_fail_spa_contract_even_with_fragment_template():
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", FutureWarning)
-        page = Page(
-            template_fragment_str="<p>ok</p>",
-            js_links=["/static/helper.js"],
-            scripts=["document.addEventListener('DOMContentLoaded', function () {});"],
-        )
-
-    assert page.requires_full_page_reload
-    with pytest.raises(
-        ValueError,
-        match=r"error codes: legacy_js_links, legacy_scripts, dom_content_loaded",
-    ):
-        page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_window_event_listener_with_cleanup_evidence_is_allowed():

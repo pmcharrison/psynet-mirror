@@ -922,20 +922,20 @@ _SPA_UPGRADE_DOCS_URL = (
 def _format_spa_incompatibility_message(page_label, codes):
     """Build the author-facing SPA incompatibility message.
 
-    Keep this short: explain the reload consequence, list stable error codes,
-    and offer opt-out vs migration (docs URL or Cursor skill).
+    Keep this short: plain-language reload consequence, stable error codes,
+    and opt-out vs migration (per-page flag, config, docs URL, or Cursor skill).
     """
     unique_codes = list(dict.fromkeys(codes))
     codes_text = ", ".join(unique_codes)
     return (
-        f"Page '{page_label}' cannot use in-place timeline transitions, "
-        f"so PsyNet would need to reload the whole page "
+        f"Page '{page_label}' still needs a full browser reload between pages "
         f"(error codes: {codes_text}).\n\n"
         "You can either:\n"
-        "1. Keep full-page reloads for now by setting "
-        "inplace_timeline_transitions = false in config.txt "
-        "(temporary opt-out while you migrate), or\n"
-        "2. Migrate the page following "
+        "1. Allow that for this page by passing "
+        "requires_full_page_reload=True to the Page constructor "
+        "(or set inplace_timeline_transitions = false in config.txt "
+        "for a temporary experiment-wide opt-out), or\n"
+        "2. Update the page following "
         f"{_SPA_UPGRADE_DOCS_URL}"
         " — or, in Cursor, run /upgrade-to-psynet-14"
     )
@@ -975,6 +975,12 @@ class Page(Elt):
         use complete templates in SPA mode because PsyNet controls their page
         shell and lifecycle; experiment-authored complete templates should use
         ``template_fragment_path`` or ``template_fragment_str`` for SPA.
+
+    requires_full_page_reload:
+        If ``True``, this page always uses a full browser reload rather than an
+        in-place transition. Use this as a per-page opt-out while migrating
+        older custom frontends. Deprecated ``js_links`` / ``scripts`` also set
+        this automatically. Default: ``False``.
 
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
@@ -1162,6 +1168,7 @@ class Page(Elt):
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
         framework_owned_template: bool = False,
+        requires_full_page_reload: bool = False,
     ):
         super().__init__()
 
@@ -1249,9 +1256,15 @@ class Page(Elt):
             js_page_modules, "js_page_modules"
         )
         self.js_page_code = _normalize_js_page_code(js_page_code)
-        if legacy_js_links or legacy_scripts:
+        if (
+            requires_full_page_reload
+            or legacy_js_links
+            or legacy_scripts
+            or self.requires_full_page_reload
+        ):
             # Classic script semantics (global ``var``, non-module scope) are not
             # emulated across in-place transitions; force a clean document instead.
+            # Authors may also opt in explicitly via requires_full_page_reload=True.
             self.requires_full_page_reload = True
         overlapping_javascript = set(self.js_dependencies) & set(self.js_page_modules)
         if overlapping_javascript:
@@ -1712,6 +1725,11 @@ class Page(Elt):
         return rendered
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
+        # Pages that already require a full reload have opted out of in-place
+        # transitions; do not raise the migration error for them.
+        if self.requires_full_page_reload:
+            return
+
         codes = self._collect_spa_incompatibility_codes()
         if not codes:
             return

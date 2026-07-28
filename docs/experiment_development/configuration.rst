@@ -123,9 +123,10 @@ General
     When ``True`` (default), PsyNet keeps the browser document open and swaps
     timeline page content in place. Custom pages must use fragment templates
     and managed asset arguments; see :doc:`/whats_new/upgrading_to_psynet_14`
-    and :doc:`/tutorials/writing_custom_frontends`. Set to ``False`` only as a
-    temporary opt-out while migrating legacy complete templates or classic
-    ``scripts`` / ``js_links`` pages. Default: ``True``.
+    and :doc:`/tutorials/writing_custom_frontends`. Prefer opting out for a
+    single page with ``requires_full_page_reload=True`` on that page's
+    constructor. Set this config to ``False`` only as a temporary
+    experiment-wide opt-out while migrating. Default: ``True``.
 
 ``label`` *str* |psynet-icon|
     This variable is used internally for data export.

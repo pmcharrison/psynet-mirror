@@ -2068,6 +2068,9 @@ class ModularPage(Page):
         )
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
+        if self.requires_full_page_reload:
+            return
+
         codes = self._collect_spa_incompatibility_codes()
         if not codes:
             return

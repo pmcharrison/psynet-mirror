@@ -17,9 +17,12 @@ Also see: :doc:`/whats_new/psynet_14`,
 ---------
 
 1. Run under the default ``inplace_timeline_transitions = true``.
-2. If temporarily blocked, set ``inplace_timeline_transitions = false`` only
-   as a short-term opt-out, then keep migrating so you can remove it.
-3. Work page by page.
+2. If one page is temporarily blocked, pass
+   ``requires_full_page_reload=True`` to that page's constructor.
+3. If many pages are blocked, set ``inplace_timeline_transitions = false``
+   only as a short-term experiment-wide opt-out, then keep migrating so you
+   can remove it.
+4. Work page by page.
 
 To surface SPA contract errors, run ``psynet debug local`` /
 ``psynet test local`` and read the traceback. Incompatible pages raise one
@@ -57,8 +60,8 @@ templates or component ``external_template`` files. Classify each script
 before moving it (load-once library vs per-page behavior vs short inline).
 
 Converting the HTML template alone is not enough: leftover ``scripts=`` /
-``js_links=`` still force a full-page reload and appear as
-``legacy_scripts`` / ``legacy_js_links`` error codes.
+``js_links=`` still force a full-page reload (via
+``requires_full_page_reload``) and remain deprecated.
 
 4. Migrate load-once libraries
 ------------------------------
@@ -127,7 +130,9 @@ relevant step:
 
 * ``complete_template`` → step 1
 * ``style_tag``, ``stylesheet_link`` → step 2
-* ``embedded_script``, ``legacy_js_links``, ``legacy_scripts`` → steps 3–5
+* ``embedded_script`` → steps 3–5
+* ``legacy_js_links``, ``legacy_scripts`` → steps 3–5 (also force
+  ``requires_full_page_reload``)
 * ``embedded_module`` → step 5 (use ``js_page_modules``, not
   ``<script type="module">`` in HTML)
 * ``dom_content_loaded``, ``window_listener_no_cleanup`` → steps 5 and 8

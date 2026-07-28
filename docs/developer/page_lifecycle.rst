@@ -209,11 +209,13 @@ sessions such as Unity integrations.
 Document-owning pages
 ~~~~~~~~~~~~~~~~~~~~~
 
-Pages can set ``requires_full_page_reload = True`` when they own document-level
-state that should not participate in fragment teardown. PsyNet reloads when
-either the current or next page sets this flag. Deprecated ``js_links`` and
-``scripts`` also set this flag automatically because classic global script
-semantics are not emulated across in-place transitions.
+Pages can set ``requires_full_page_reload = True`` (constructor argument or
+class attribute) when they own document-level state that should not
+participate in fragment teardown, or as a temporary per-page opt-out while
+migrating older custom frontends. PsyNet reloads when either the current or
+next page sets this flag. Deprecated ``js_links`` and ``scripts`` also set
+this flag automatically because classic global script semantics are not
+emulated across in-place transitions.
 
 UnityPage and JsPsychPage use this policy. Unity owns a persistent runtime;
 jsPsych installs document-level interaction and hardware listeners whose
