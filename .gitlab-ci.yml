@@ -84,7 +84,23 @@ changelog_check:
       when: always
     - when: never
 
-.full_test_suite:
+.release_branch_only: &release_branch_only
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
+      when: always
+    - when: never
+
+# Shared definition of a PsyNet test-suite job, parameterized by PYTHON_VERSION
+# and TEST_SCOPE.
+#
+# run-ci-tests.sh splits tests by CI_NODE_INDEX/CI_NODE_TOTAL, but GitLab owns
+# those variables: for `parallel:matrix` jobs it numbers them across all
+# permutations rather than within one, so a matrix job cannot set them directly.
+# Shard coordinates therefore travel as SHARD_INDEX/SHARD_TOTAL and are mapped
+# on to CI_NODE_* below, falling back to GitLab's own numbering when unset. That
+# keeps plain `parallel: N` jobs working unchanged while letting matrix jobs
+# declare a shard dimension of their own.
+.test_suite:
   parallel: 10
   stage: test
   <<: *default_rules
@@ -97,7 +113,9 @@ changelog_check:
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      -e CI -e CI_NODE_TOTAL -e CI_NODE_INDEX
+      -e CI
+      -e CI_NODE_TOTAL="${SHARD_TOTAL:-$CI_NODE_TOTAL}"
+      -e CI_NODE_INDEX="${SHARD_INDEX:-$CI_NODE_INDEX}"
       -e CI_COMMIT_REF_NAME
       -e SKIP_PYTHON_VERSION_CHECK
       -e PYTHON_VERSION -e TEST_SCOPE
@@ -111,10 +129,11 @@ changelog_check:
       - public/
 
 tests_python_3_13:
-  extends: .full_test_suite
+  extends: .test_suite
+  # Stated explicitly rather than inherited from the global default, so this
+  # job keeps testing 3.13 even if the default Python version changes.
   variables:
     PYTHON_VERSION: "3.13"
-    TEST_SCOPE: full
 
 # To reduce CI cost, non-recommended Python versions (3.11, 3.12, 3.14) are
 # only verified on release branches: day-to-day MRs rarely affect version
@@ -124,29 +143,17 @@ tests_python_3_13:
 # run `psynet dev ci update-dallinger-constraints`, and fully tested on
 # release-branch pipelines.
 tests_python_3_14:
-  extends: .full_test_suite
-  rules:
-    - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
-      when: always
-    - when: never
+  extends: .test_suite
+  <<: *release_branch_only
   variables:
     PYTHON_VERSION: "3.14"
     SKIP_PYTHON_VERSION_CHECK: "1"
-    TEST_SCOPE: full
 
+# GitLab does not allow combining `parallel: N` with a matrix, so the shard is
+# added as its own matrix dimension; see the SHARD_* note on `.test_suite`.
 compatibility_tests:
-  stage: test
-  rules:
-    - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
-      when: always
-    - when: never
-  # GitLab does not allow combining `parallel: N` with a matrix, so we add the
-  # shard as its own matrix dimension. The shard variables must not be named
-  # CI_NODE_INDEX/CI_NODE_TOTAL: GitLab sets those itself for every
-  # `parallel:matrix` job, numbering them across all permutations (here 1..10
-  # of 10), so declaring them here would be overridden and each Python version
-  # would silently run only half the tests. We forward our own variables into
-  # the container as the CI_NODE_* values that run-ci-tests.sh splits tests by.
+  extends: .test_suite
+  <<: *release_branch_only
   parallel:
     matrix:
       - PYTHON_VERSION: ["3.11", "3.12"]
@@ -155,25 +162,6 @@ compatibility_tests:
   variables:
     SKIP_PYTHON_VERSION_CHECK: "1"
     TEST_SCOPE: isolated
-  script:
-    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
-    - docker run
-      --add-host=postgres:$POSTGRES_IP
-      --add-host=redis:$REDIS_IP
-      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
-      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      -e CI -e CI_NODE_TOTAL="$SHARD_TOTAL" -e CI_NODE_INDEX="$SHARD_INDEX"
-      -e CI_COMMIT_REF_NAME
-      -e SKIP_PYTHON_VERSION_CHECK
-      -e PYTHON_VERSION -e TEST_SCOPE
-      -e PSYNET_WORKSPACE
-      -v "$PWD:$PSYNET_WORKSPACE"
-      -v "$PWD/public:/public"
-      -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
-  artifacts:
-    paths:
-      - public/
 
 playwright_e2e_legacy:
   stage: test
