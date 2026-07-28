@@ -37,7 +37,10 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@master",
+    # Temporarily pinned to an unreleased Dallinger commit (master as of
+    # 2026-07-28, version 12.3.0a1) for Python 3.11-3.14 support. Re-pin to a
+    # released version before the next PsyNet release; see the release skill.
+    "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@3108a7f164e0986577cddeac6d111fbd8d85aa19",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf
