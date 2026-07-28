@@ -142,10 +142,10 @@ Set up an experiment (``setup``)
 
 ``psynet setup`` is the main path for a **standalone** experiment. Install the
 thin PsyNet bootstrap package first (``uv pip install psynet``), then run
-setup inside the experiment's dedicated active virtual environment. Prefer
-initialising a Git repository first (``git init``); if you skip that, setup
-still continues but prints a warning, and local debug will require a
-repository later. In order it:
+setup inside the experiment's dedicated active virtual environment. Prefer initialising a Git repository first (``git init``). If Git is missing
+or the directory is not a repository yet, setup still continues and prints
+gentle next-step guidance; local debug will require a repository later. In
+order it:
 
 1. Creates any missing standard experiment files (scaffold).
 2. Pins a bare ``psynet`` line in ``requirements.txt`` to

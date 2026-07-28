@@ -1397,11 +1397,19 @@ def _check_experiment_directory(mode):
 
     # We need an active git repository for Dallinger to recognize .gitignore properly
     if not git_repository_available():
+        from .light_utils import git_command_available
+
+        if not git_command_available():
+            raise click.ClickException(
+                "Git does not appear to be installed. Install it from "
+                "https://git-scm.com/downloads , then create a repository by "
+                "running 'git init'. If you copied a demo into a new directory, "
+                "run 'git init' before 'psynet debug local' or 'psynet test local'."
+            )
         raise click.ClickException(
-            "This directory is not a git repository, or git is not installed. "
-            "Please ensure git is installed and create a repository by running "
-            "'git init' if needed. If you copied a demo into a new directory, "
-            "run 'git init' before 'psynet debug local' or 'psynet test local'."
+            "This directory is not a git repository. Create one by running "
+            "'git init'. If you copied a demo into a new directory, run "
+            "'git init' before 'psynet debug local' or 'psynet test local'."
         )
 
 

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Union
@@ -72,21 +73,25 @@ def md5_directory(directory: Union[str, Path]) -> str:
 # ---------------------------------------------------------------------------
 
 
+def git_command_available() -> bool:
+    """Return whether the ``git`` executable is on ``PATH``."""
+    return shutil.which("git") is not None
+
+
 def git_repository_available() -> bool:
     """Return whether the current directory is inside a git work tree.
 
     Requires ``git`` to be installed and on ``PATH``. Used by bootstrap
     commands (``psynet setup``) and by local launch checks.
     """
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--is-inside-work-tree"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
+    if not git_command_available():
         return False
+    result = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    return result.returncode == 0
 
 
 # ---------------------------------------------------------------------------

@@ -40,6 +40,7 @@ from psynet.light_utils import (  # noqa: F401 – re-exported for backwards com
     _md5_update_from_file,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
+    git_command_available,
     git_repository_available,
     is_in_repo_experiment,
     md5_directory,

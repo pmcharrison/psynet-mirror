@@ -1113,13 +1113,50 @@ def _mock_dedicated_experiment_venv(monkeypatch):
     )
 
 
-def test_setup_warns_when_git_repository_missing(tmp_path, monkeypatch):
+def test_setup_suggests_git_init_when_repository_missing(tmp_path, monkeypatch):
     calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
     _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
         "psynet.experiment_setup.git_repository_available",
+        lambda: False,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup.git_command_available",
+        lambda: True,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda args, description: calls.append((args, description)),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--psynet-source", "existing"],
+        )
+
+    assert result.exit_code == 0, result.output
+    assert "Next steps:" in result.output
+    assert "not a git repository yet" in result.output
+    assert "git init" in result.output
+    assert "does not appear to be installed" not in result.output
+    assert (tmp_path / "Dockerfile").exists()
+    assert calls  # setup still syncs
+
+
+def test_setup_suggests_installing_git_when_command_missing(tmp_path, monkeypatch):
+    calls = []
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.git_repository_available",
+        lambda: False,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup.git_command_available",
         lambda: False,
     )
     monkeypatch.setattr(
@@ -1134,10 +1171,11 @@ def test_setup_warns_when_git_repository_missing(tmp_path, monkeypatch):
         )
 
     assert result.exit_code == 0, result.output
+    assert "Next steps:" in result.output
+    assert "does not appear to be installed" in result.output
+    assert "git-scm.com/downloads" in result.output
     assert "git init" in result.output
-    assert "not a git repository" in result.output
-    assert (tmp_path / "Dockerfile").exists()
-    assert calls  # setup still syncs
+    assert calls
 
 
 def test_setup_scaffolds_synchronizes_and_checks_dependencies(tmp_path, monkeypatch):

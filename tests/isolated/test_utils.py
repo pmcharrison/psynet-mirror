@@ -536,6 +536,15 @@ def test_git_repository_available_false(tmp_path):
         assert git_repository_available() is False
 
 
+def test_git_command_available_matches_which(monkeypatch):
+    from psynet.light_utils import git_command_available
+
+    monkeypatch.setattr("psynet.light_utils.shutil.which", lambda name: "/usr/bin/git")
+    assert git_command_available() is True
+    monkeypatch.setattr("psynet.light_utils.shutil.which", lambda name: None)
+    assert git_command_available() is False
+
+
 def test_safe_decorator(caplog):
     @safe
     def no_error(x):

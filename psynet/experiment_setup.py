@@ -29,26 +29,46 @@ from .light_utils import (
     ExperimentDirectoryNameError,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
+    git_command_available,
     git_repository_available,
     is_in_repo_experiment,
 )
 
 
-def _warn_if_missing_git_repository():
-    """Suggest ``git init`` when standalone setup is outside a git work tree.
-
-    Local debug still requires a repository later; setup only warns so authors
-    can finish scaffolding and sync first.
-    """
+def _git_next_step_lines():
+    """Return indented guidance lines when git or a work tree is missing."""
     if git_repository_available():
+        return []
+    if not git_command_available():
+        return [
+            "  Git does not appear to be installed. Install it from",
+            "  https://git-scm.com/downloads , then in this directory run:",
+            "    git init",
+            "  Local debug needs a repository so Dallinger can honour .gitignore.",
+        ]
+    return [
+        "  This directory is not a git repository yet. Initialise one with:",
+        "    git init",
+        "  Local debug needs a repository so Dallinger can honour .gitignore.",
+    ]
+
+
+def _echo_git_next_steps(*, under_existing_heading=False):
+    """Print gentle next steps when git or a work tree is missing.
+
+    Local debug still requires a repository; setup continues either way.
+    """
+    lines = _git_next_step_lines()
+    if not lines:
         return
-    click.echo(
-        "Warning: this directory is not a git repository (or git is not "
-        "installed). Local debug needs a repository so Dallinger can honour "
-        ".gitignore. Initialise one with:\n"
-        "  git init",
-        err=True,
-    )
+    if under_existing_heading:
+        for line in lines:
+            click.echo(line)
+        return
+    click.echo()
+    click.echo("Next steps:")
+    for line in lines:
+        click.echo(line)
 
 
 def _assert_directory_is_scaffoldable():
@@ -250,6 +270,7 @@ def _create_dedicated_experiment_virtualenv():
     else:
         click.echo("  uv pip install psynet")
     click.echo("  psynet setup")
+    _echo_git_next_steps(under_existing_heading=True)
 
 
 def _recommended_python():
@@ -483,6 +504,7 @@ def _echo_no_install_success(*, docker):
             "Next steps:\n"
             "  Follow the generated instructions under docker/docs."
         )
+        _echo_git_next_steps(under_existing_heading=True)
         _handle_setup_services(mode="verify")
         return
 
@@ -496,6 +518,7 @@ def _echo_no_install_success(*, docker):
         "  (omit --no-install / --docker so setup can install from "
         "constraints.txt)"
     )
+    _echo_git_next_steps(under_existing_heading=True)
     _handle_setup_services(mode="ensure-soft")
 
 
@@ -527,7 +550,6 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
         _echo_in_repo_setup_success()
         return
 
-    _warn_if_missing_git_repository()
     _ensure_active_virtualenv()
     mismatch = _psynet_command_env_mismatch_error()
     if mismatch is not None:
@@ -588,3 +610,4 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
     _run_uv(["pip", "check"], "verify experiment dependencies")
     click.echo("Setup complete.")
     _handle_setup_services(mode="ensure-soft")
+    _echo_git_next_steps()
