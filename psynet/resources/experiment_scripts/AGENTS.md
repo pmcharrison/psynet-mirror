@@ -133,6 +133,8 @@ If in the PsyNet repository, find further documentation in `docs`.
 If in an experiment directory, find more information at https://psynetdev.gitlab.io/PsyNet/.
 
 For PsyNet 14 migrations (in-place timeline defaults, fragment templates,
-managed page JavaScript, `psynet.var`, JsPsych module timelines), read
-`docs/whats_new/upgrading_to_psynet_14.rst`. In Cursor, run
-`/upgrade-to-psynet-14` to follow that checklist.
+managed page JavaScript, `psynet.var`, JsPsych module timelines), follow
+https://psynetdev.gitlab.io/PsyNet/whats_new/upgrading_to_psynet_14.html
+(pip installs do not ship the `docs/` RST tree). In a PsyNet source checkout
+you may read `docs/whats_new/upgrading_to_psynet_14.rst` instead. In Cursor,
+run `/upgrade-to-psynet-14` to follow that checklist.

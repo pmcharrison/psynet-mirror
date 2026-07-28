@@ -8,7 +8,9 @@ in-place timeline transitions. It is the single source of truth for
 live in :doc:`/tutorials/writing_custom_frontends`.
 
 The Cursor skill ``/upgrade-to-psynet-14`` is a thin wrapper that points agents
-here.
+here. When PsyNet is not available as a source checkout (typical experiment
+venv), agents should fetch the published HTML version of this page rather than
+looking for ``docs/*.rst`` on disk.
 
 Also see: :doc:`/whats_new/psynet_14`,
 :doc:`/experiment_development/configuration`.
