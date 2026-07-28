@@ -1,7 +1,7 @@
 """SPA contract errors should be visible during local testing."""
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import requests
