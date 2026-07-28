@@ -207,7 +207,7 @@ def test_inplace_transitions_reject_complete_custom_templates():
 
     with pytest.raises(
         ValueError,
-        match=r"(?s)still needs a full browser reload between pages \(error codes: complete_template\).*requires_full_page_reload=True.*upgrading_to_psynet_14\.html.*upgrade-to-psynet-14",
+        match=r"(?s)uses HTML/JS that needs a full browser reload between pages \(error codes: complete_template\).*Update this page to support in-place loading:.*upgrading_to_psynet_14\.html.*upgrade-to-psynet-14.*requires_full_page_reload=True",
     ):
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 

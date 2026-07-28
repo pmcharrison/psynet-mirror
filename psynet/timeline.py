@@ -923,21 +923,23 @@ def _format_spa_incompatibility_message(page_label, codes):
     """Build the author-facing SPA incompatibility message.
 
     Keep this short: plain-language reload consequence, stable error codes,
-    and opt-out vs migration (per-page flag, config, docs URL, or Cursor skill).
+    and migrate-first vs per-page / experiment-wide opt-out.
     """
     unique_codes = list(dict.fromkeys(codes))
     codes_text = ", ".join(unique_codes)
     return (
-        f"Page '{page_label}' still needs a full browser reload between pages "
-        f"(error codes: {codes_text}).\n\n"
-        "You can either:\n"
-        "1. Allow that for this page by passing "
-        "requires_full_page_reload=True to the Page constructor "
-        "(or set inplace_timeline_transitions = false in config.txt "
-        "for a temporary experiment-wide opt-out), or\n"
-        "2. Update the page following "
-        f"{_SPA_UPGRADE_DOCS_URL}"
-        " — or, in Cursor, run /upgrade-to-psynet-14"
+        f"Page '{page_label}' uses HTML/JS that needs a full browser reload "
+        f"between pages (error codes: {codes_text}).\n\n"
+        "PsyNet can usually update pages in place without reloading the "
+        "browser.\n\n"
+        "What would you like to do?\n"
+        "1. Update this page to support in-place loading:\n"
+        f"   {_SPA_UPGRADE_DOCS_URL}\n"
+        "   (or in Cursor, run /upgrade-to-psynet-14)\n"
+        "2. Leave the HTML/JS as is, and allow full reloads for this page by "
+        "passing requires_full_page_reload=True to the Page constructor "
+        "(or set inplace_timeline_transitions = false in config.txt for a "
+        "temporary experiment-wide opt-out)"
     )
 
 
