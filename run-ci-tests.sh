@@ -32,8 +32,11 @@ if [[ "$TEST_SCOPE" == "full" ]]; then
     echo "Testing experiment $file"
     test_id=$(printf "%s" "$file" | tr "/." "__")
     # We use -Werror to ensure that we see all warnings as errors, but ignore yaspin color warnings
+    # The suite name carries the Python version so the merged JUnit report can
+    # distinguish otherwise identical tests run on different versions.
     pytest \
       --junitxml=/public/${PYTHON_VERSION}_${test_id}_junit.xml \
+      -o junit_suite_name=py${PYTHON_VERSION} \
       $file/test.py \
       -Werror \
       -W "ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core" \
@@ -53,6 +56,7 @@ for file in $(psynet list-isolated-tests --ci-node-total $CI_NODE_TOTAL --ci-nod
   # We use -Werror to ensure that we see all warnings as errors, but ignore yaspin color warnings
   pytest \
     --junitxml=/public/${PYTHON_VERSION}_${test_id}_junit.xml \
+    -o junit_suite_name=py${PYTHON_VERSION} \
     $file \
     -Werror \
     -W "ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core" \
