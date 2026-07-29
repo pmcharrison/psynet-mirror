@@ -386,7 +386,7 @@ def in_experiment_directory(experiment_directory):
             # isolated tests on the same CI shard are not polluted.
             try:
                 if is_in_repo_experiment():
-                    prune_experiment_scaffold(force=True, preserve_tracked=True)
+                    prune_experiment_scaffold(include_modified=True)
             except Exception as exc:
                 cleanup_error = exc
     clean_sys_modules()

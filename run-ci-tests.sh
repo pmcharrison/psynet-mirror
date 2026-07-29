@@ -41,7 +41,7 @@ for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NOD
     --chrome \
     --timeout=$TIMEOUT_SECONDS
   status=$?
-  if ! (cd "$file" && psynet scripts prune --force --preserve-tracked); then
+  if ! (cd "$file" && psynet scripts prune --include-modified); then
     echo "Failed to restore authored-only layout for $file"
     EXIT_CODE=1
   fi

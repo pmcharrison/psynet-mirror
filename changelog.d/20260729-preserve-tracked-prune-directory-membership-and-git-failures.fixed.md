@@ -1,1 +1,1 @@
-Fixed ``psynet scripts prune --preserve-tracked`` to preserve managed directories that contain git-tracked files and to error when git cannot list tracked paths.
+Simplified ``psynet scripts prune`` with ``--include-modified`` / ``--include-tracked``: tracked managed paths are kept by default, divergent untracked scaffold is opt-in, and generated ``static/assets`` plus untracked ``constraints.txt`` are always cleaned.

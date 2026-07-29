@@ -49,8 +49,8 @@ from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
     PRUNE_COMMAND_HELP,
-    PRUNE_FORCE_OPTION_HELP,
-    PRUNE_PRESERVE_TRACKED_OPTION_HELP,
+    PRUNE_INCLUDE_MODIFIED_OPTION_HELP,
+    PRUNE_INCLUDE_TRACKED_OPTION_HELP,
     dockertag_contents,
     get_psynet_requirement,
     is_unambiguous_psynet_requirement,
@@ -3064,19 +3064,21 @@ def scripts_update():
 
 @scripts.command("prune", help=PRUNE_COMMAND_HELP)
 @click.option(
-    "--force",
+    "--include-modified",
     is_flag=True,
-    help=PRUNE_FORCE_OPTION_HELP,
+    help=PRUNE_INCLUDE_MODIFIED_OPTION_HELP,
 )
 @click.option(
-    "--preserve-tracked",
+    "--include-tracked",
     is_flag=True,
-    help=PRUNE_PRESERVE_TRACKED_OPTION_HELP,
+    help=PRUNE_INCLUDE_TRACKED_OPTION_HELP,
 )
 @require_exp_directory
-def scripts_prune(force, preserve_tracked):
+def scripts_prune(include_modified, include_tracked):
     """Remove scaffold-managed boilerplate files from the experiment directory."""
-    run_scripts_prune(force=force, preserve_tracked=preserve_tracked)
+    run_scripts_prune(
+        include_modified=include_modified, include_tracked=include_tracked
+    )
 
 
 @psynet.command("update-scripts")

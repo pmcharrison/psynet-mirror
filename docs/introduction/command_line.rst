@@ -260,22 +260,22 @@ preserved. This is **not** ``psynet installation update``.
 ``prune``
 ^^^^^^^^^
 
-Remove scaffold-managed boilerplate, leaving authored files such as
-``experiment.py`` and ``requirements.txt``. Paths that differ from current
-templates (including customized ``config.txt`` and ``README.md``) are
-preserved by default; ``--force`` removes them without checking contents.
-``--preserve-tracked`` keeps any path that is tracked by git, even under
-``--force``. A managed directory such as ``docker/`` is kept wholesale if any
-nested path is tracked. It also removes generated ``static/assets`` (runtime
-output that must not be tracked) plus an untracked ``constraints.txt`` (used
-after in-repo demo tests in CI). If git cannot list tracked files, the command
-errors instead of force-deleting.
+Remove scaffold-managed boilerplate and generated leftovers
+(``static/assets``, untracked ``constraints.txt``), leaving authored files
+such as ``experiment.py`` and ``requirements.txt``.
+
+By default only unmodified, untracked scaffold paths are removed. Git-tracked
+managed paths are kept (a directory such as ``docker/`` is kept if any nested
+path is tracked). ``--include-modified`` also removes divergent untracked
+scaffold paths. ``--include-tracked`` also removes git-tracked managed paths.
+If this directory is a git work tree but tracked files cannot be listed, the
+command errors unless ``--include-tracked`` is passed.
 
 .. code:: bash
 
   psynet scripts prune
-  psynet scripts prune --force
-  psynet scripts prune --force --preserve-tracked
+  psynet scripts prune --include-modified
+  psynet scripts prune --include-modified --include-tracked
 
 
 .. _generate_constraints:

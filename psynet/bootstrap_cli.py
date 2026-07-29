@@ -33,8 +33,8 @@ import click
 
 from psynet.experiment_scaffold import (
     PRUNE_COMMAND_HELP,
-    PRUNE_FORCE_OPTION_HELP,
-    PRUNE_PRESERVE_TRACKED_OPTION_HELP,
+    PRUNE_INCLUDE_MODIFIED_OPTION_HELP,
+    PRUNE_INCLUDE_TRACKED_OPTION_HELP,
 )
 from psynet.version import psynet_version
 
@@ -164,21 +164,23 @@ def scripts_update(ctx):
 
 @scripts.command("prune", help=PRUNE_COMMAND_HELP)
 @click.option(
-    "--force",
+    "--include-modified",
     is_flag=True,
-    help=PRUNE_FORCE_OPTION_HELP,
+    help=PRUNE_INCLUDE_MODIFIED_OPTION_HELP,
 )
 @click.option(
-    "--preserve-tracked",
+    "--include-tracked",
     is_flag=True,
-    help=PRUNE_PRESERVE_TRACKED_OPTION_HELP,
+    help=PRUNE_INCLUDE_TRACKED_OPTION_HELP,
 )
 @click.pass_context
-def scripts_prune(ctx, force, preserve_tracked):
+def scripts_prune(ctx, include_modified, include_tracked):
     """Remove scaffold-managed boilerplate files from the experiment directory."""
     from psynet.experiment_scaffold import run_scripts_prune
 
-    run_scripts_prune(force=force, preserve_tracked=preserve_tracked)
+    run_scripts_prune(
+        include_modified=include_modified, include_tracked=include_tracked
+    )
 
 
 # -- services ---------------------------------------------------------------

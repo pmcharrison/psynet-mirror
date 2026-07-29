@@ -78,7 +78,7 @@ psynet debug local
 
 Pytest for in-repo demos scaffolds via the `in_experiment_directory` fixture and
 restores the authored-only tree on teardown with
-`psynet scripts prune --force --preserve-tracked` (so CI shards do not leave
+`psynet scripts prune --include-modified` (so CI shards do not leave
 boilerplate that would pollute later isolated tests).
 
 For a copied standalone demo, initialize Git and create its complete environment:
