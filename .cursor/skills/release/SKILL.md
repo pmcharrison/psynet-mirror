@@ -329,10 +329,11 @@ file, e.g. `/tmp/release-highlights-X.Y.Z.md`:
     the relevant documentation section. For release candidates, use
     the RC docs site (`https://psynetdev.gitlab.io/PsyNet/rc/vX.Y.ZrcN/...`)
     so links show the new behavior.
-  - Link mentioned classes/APIs to their API reference anchor when one
-    exists (e.g. `api/sync.html#psynet.sync.SyncGroup`); check the
-    defining module against `docs/api/` and confirm the anchor is
-    present on the rendered page before linking.
+  - Link concrete class/API names to their API reference anchor whenever
+    one exists, including names mentioned inside Documentation or Fixed
+    bullets (e.g. `AsyncCodeBlock`, `AudioForcedChoiceTest`,
+    `SyncGroup`). Check the defining module against `docs/api/` and
+    confirm the anchor is present on the rendered page before linking.
   - Link new or moved demos to their directory in the repo at the tag
     (`https://gitlab.com/PsyNetDev/PsyNet/-/tree/vX.Y.Z/demos/...`),
     and also to the demo's docs page when one exists (check
@@ -436,6 +437,8 @@ may have gained additional changes after the release branch was created.
 - Review the changes one last time in the MR "Changes" tab.
 - Use a **merge commit** (do not squash), so the individual release commits
   are preserved on `master`.
+- Disable source-branch deletion. Release branches are long-lived maintenance
+  branches and must remain available after they are merged back into `master`.
 
 ### 5. Publish
 
@@ -455,9 +458,60 @@ Perform the shared steps, in this order:
 > release branch back into `master`.
 
 Merge the release MR via the GitLab interface using a **merge commit** (not
-squash). This carries forward release bookkeeping such as the finalized
-`CHANGELOG.md`, version bump, and regenerated demo constraints. It is not
-the commit that should be tagged for the release.
+squash), and make sure the source branch is not deleted. This carries forward
+release bookkeeping such as the finalized `CHANGELOG.md`, version bump, and
+regenerated demo constraints. It is not the commit that should be tagged for
+the release.
+
+#### Resolving merge conflicts on the release MR
+
+If `master` has moved since the release branch was cut, the release MR may
+report merge conflicts (typically in regenerated demo/test files, where
+`master` tracks `psynet:master` while the release branch pins the release
+version). **Do not resolve them by merging `master` into the release
+branch.** That pulls every unreleased `master` change onto the release
+branch, polluting it as the base for future patch releases (a later
+`X.Y.1` would silently include unvalidated work).
+
+If such a merge does land on the release branch anyway, repair it after
+the release MR has merged: the merge commit is preserved on `master`, so
+the release branch can safely be reset to the release tag
+(`git checkout release-X.Y && git reset --hard vX.Y.Z &&
+git push --force origin release-X.Y`), restoring a clean patch base.
+This force push needs explicit release-manager approval.
+
+Instead, resolve conflicts without contaminating the release branch —
+for example, merge the release branch into `master` locally, resolve the
+conflicts there (keeping the pinned release versions; the post-release
+alpha bump re-points `master`'s copies at `master` again), and push that
+merge commit to `master` in place of the MR-button merge.
+
+#### Verify fragments after the merge-back
+
+After the release MR has merged, check `changelog.d/` on `master` for
+**resurrected fragments**. Fragments that were cherry-picked onto the
+release branch and consumed there by the CHANGELOG fold exist on both
+sides but were created after the branch point, so git's merge treats the
+`master` copies as new additions and keeps them — leaving fragments on
+`master` whose text is already in the released CHANGELOG section. If the
+next release folds them again, the entries are duplicated.
+
+Check each remaining fragment against the just-released section:
+
+```bash
+for f in changelog.d/*.md; do
+  [ "$(basename "$f")" = "README.md" ] && continue
+  snippet=$(head -c 60 "$f")
+  if awk '/^## \[X.Y.Z\]/{f=1;next} /^## \[/{f=0} f' CHANGELOG.md \
+      | grep -qF "$snippet"; then
+    echo "DUPLICATE: $f"
+  fi
+done
+```
+
+Delete any duplicates on `master` in a small follow-up commit. Fragments
+that do not appear in the released section are genuinely unreleased and
+must stay for the next release.
 
 ### 7. Bump master to the next alpha
 
@@ -488,11 +542,26 @@ git commit -m "Bump version to 13.3.0a0"
 git push --set-upstream origin bump-master-post-release
 ```
 
+- **Title:** `Bump version to 13.3.0a0`
+- **Description**, substituting the just-released version for `13.2.0`
+  and the next development version for `13.3.0a0`:
+
+  > Post-release bump after the 13.2.0 release: sets `master` to the next
+  > development version `13.3.0a0` and regenerates demo/test experiment
+  > files so they track the `master` image and branch again (instead of
+  > the pinned `v13.2.0`).
+
 > **Human checkpoint:** the release manager must approve the
 > `bump-master-post-release` MR before it is merged.
 
 Merge this MR promptly before any new feature branches land, so the version
 and generated demo/test files on `master` stay aligned with the CHANGELOG.
+
+Unlike release branches, **delete `bump-master-post-release` when the MR
+merges** (e.g. create the MR with `remove_source_branch=true`). It is a
+throwaway vehicle for the two bookkeeping commits, recreated from fresh
+`master` each cycle; a stale leftover from the previous cycle otherwise
+forces the next release to force-push over it.
 
 ## Patch release path
 
@@ -645,6 +714,17 @@ using the shared steps with the RC version:
 
    Tag any specific people whose feedback you need on a thread under the
    post rather than `@channel`-ing the whole channel.
+9. **Validate the RC with a deployment test.** Run the deployment test
+   suite against the RC tag by following the `deployment-test` skill
+   (`.cursor/skills/deployment-test/SKILL.md`): by default this deploys
+   the two Prolific test experiments (`payment_flows_prolific` and
+   `audio_gibbs`) in parallel plus the `audio_gibbs` Lucid variant. The
+   skill's default flow — basing the deployment branch on the latest
+   release tag, including RCs — is designed for exactly this step. The
+   test produces an `analysis.md` per app under `deployment-tests/`
+   (not committed to PsyNet; archived in the private
+   `computational-audition-lab/psynet-deployment-tests` repository); their
+   verdicts feed the promotion decision below.
 
 ### Iterate: RC2, RC3, …
 
@@ -674,6 +754,15 @@ announcement, with the same human checkpoints. Repeat for `rc3`, `rc4`,
 etc. until you are confident the release is ready.
 
 ### Promote the final RC to the official release
+
+Validation of an RC means at minimum one successful deployment test of the
+RC tag via the `deployment-test` skill, with `analysis.md` files
+(one per deployed app under `deployment-tests/`) whose verdicts recommend
+promotion (see step 9 of the RC sequence). If the deployment test surfaced
+bugs, fix them and cut another RC instead. Record a link to the
+deployment-test branch and to the archived `analysis.md` files in the
+`computational-audition-lab/psynet-deployment-tests` repository in the
+release MR description.
 
 Once the latest RC has been validated and no further changes are needed:
 
