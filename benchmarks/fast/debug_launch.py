@@ -29,7 +29,6 @@ _TEMPLATE_FILES = (
     ".python-version",
 )
 
-
 @contextmanager
 def _temporary_static_payload(experiment_dir, count, file_size):
     """Create deterministic static files for the duration of a benchmark."""
@@ -56,7 +55,6 @@ def _temporary_static_payload(experiment_dir, count, file_size):
             and not any(static_dir.iterdir())
         ):
             static_dir.rmdir()
-
 
 def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> None:
     """Ensure pruned in-repo demos can launch under older PsyNet checkouts.
@@ -87,8 +85,6 @@ def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> None:
             "# Generated for ASV debug-launch benchmarks.\n",
             encoding="utf-8",
         )
-
-
 class StaticFilesDebugLaunch:
     """Benchmark debug launch with representative static-file payloads."""
 
