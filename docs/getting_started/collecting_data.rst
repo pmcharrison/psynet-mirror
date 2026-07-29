@@ -112,7 +112,18 @@ Two scenarios are possible for successful completions:
 Partial payments are handled separately. If a participant reaches an
 :class:`~psynet.page.UnsuccessfulEndPage`, for example because they fail a pre-screening task, PsyNet
 marks them as failed rather than successfully completed. In this case PsyNet may try to pay them only
-the reward they have accumulated so far. If ``prolific_enable_return_for_bonus`` is set to ``True``
+the reward they have accumulated so far.
+
+The recommended way to handle such participants is to set the
+``prolific_unsuccessful_base_payment`` config parameter. PsyNet then registers a dedicated Prolific
+completion code with a fixed screen-out payment. Unsuccessful participants submit their study
+normally, Prolific automatically pays them the fixed amount, and PsyNet tops them up to their
+accumulated reward with a bonus. This also applies to participants who encounter an error page.
+Note that this relies on a Prolific feature (custom screening with fixed rewards) that is currently
+only enabled for selected workspaces. See :doc:`../experiment_development/configuration` for details.
+
+If ``prolific_unsuccessful_base_payment`` is not set, PsyNet falls back to the older flow: if
+``prolific_enable_return_for_bonus`` is set to ``True``
 (the default), PsyNet tells the participant that they will receive a partial payment, but that they
 first need to return the submission in Prolific. When the participant declares they have done this,
 PsyNet checks with Prolific via their API to see if the submission has actually been returned. If so,
@@ -124,12 +135,9 @@ return the submission and contact the experimenter, leaving the payment to be ha
 
     Advanced users can customize these default end-of-experiment behaviors by subclassing
     :class:`~psynet.end.SuccessfulEndLogic` or :class:`~psynet.end.UnsuccessfulEndLogic` and
-    overriding the relevant methods.
-
-.. note::
-
-    We plan to add support soon for Prolific's custom completion URL functionality, which should
-    make it easier to route participants to different Prolific completion outcomes.
+    overriding the relevant methods. Custom completion-code routing can be implemented by
+    overriding :meth:`~psynet.experiment.Experiment.recruiter_exit_info` and registering
+    additional codes via the ``prolific_completion_config`` config parameter.
 
 You should therefore normally set ``base_payment`` close to the reward expected for a successful
 completion. If a successful participant accumulates less reward than the base payment, PsyNet will

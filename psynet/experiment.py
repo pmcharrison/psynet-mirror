@@ -53,6 +53,7 @@ from dallinger.utils import classproperty
 from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
+from dominate.util import raw
 from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
@@ -88,6 +89,7 @@ from .recruiters import (  # noqa: F401
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
+    PsyNetProlificRecruiterMixin,
     StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
 )
@@ -1511,6 +1513,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment_id,
         worker_id,
         external_submit_url,
+        participant_id=None,
     ):
         _ = get_translator()
         _p = get_translator(context=True)
@@ -1523,7 +1526,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
-            return self.error_page_content__prolific()
+            return self.error_page_content__prolific(assignment_id, participant_id)
         elif isinstance(self.recruiter, MTurkRecruiter):
             html = tags.div()
             with html:
@@ -1547,25 +1550,66 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return ""
 
-    def error_page_content__prolific(self):
+    def error_page_content__prolific(self, assignment_id=None, participant_id=None):
         _p = get_translator(context=True)
+
+        recruiter = self.recruiter
+        can_submit_unsuccessful = (
+            isinstance(recruiter, PsyNetProlificRecruiterMixin)
+            and recruiter.pays_unsuccessful_participants_via_screen_out
+            and assignment_id
+            and participant_id
+        )
 
         html = tags.div()
         with html:
             tags.p(
-                " ".join(
-                    [
-                        _p(
-                            "prolific_error",
-                            "Don't worry, your progress has been recorded.",
-                        ),
-                        _p(
-                            "prolific_error",
-                            "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
-                        ),
-                    ]
+                _p(
+                    "prolific_error",
+                    "Don't worry, your progress has been recorded.",
                 )
             )
+            if can_submit_unsuccessful:
+                submit_url = recruiter.external_submission_url(
+                    code_type=recruiter.unsuccessful_code_type
+                )
+                tags.p(
+                    _p(
+                        "prolific_error",
+                        "Click the button below to submit your study to Prolific and receive compensation for your time.",
+                    )
+                )
+                tags.button(
+                    _p("prolific_error", "Submit to Prolific"),
+                    id="prolific-unsuccessful-submit",
+                    cls="btn btn-primary btn-lg",
+                )
+                tags.script(
+                    raw(
+                        """
+                        document.getElementById("prolific-unsuccessful-submit").onclick = function () {
+                            this.disabled = true;
+                            const data = new URLSearchParams();
+                            data.append("assignmentId", %s);
+                            data.append("participantId", %s);
+                            fetch("/prolific-submission-listener", {method: "POST", body: data})
+                                .finally(() => { window.location = %s; });
+                        };
+                        """
+                        % (
+                            json.dumps(assignment_id),
+                            json.dumps(str(participant_id)),
+                            json.dumps(submit_url),
+                        )
+                    )
+                )
+            else:
+                tags.p(
+                    _p(
+                        "prolific_error",
+                        "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
+                    )
+                )
         return html
 
     @scheduled_task("interval", minutes=1, max_instances=1)
@@ -1819,6 +1863,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
             "prolific_enable_return_for_bonus": True,
+            "prolific_unsuccessful_topup": True,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
@@ -2141,6 +2186,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
         cls.check_base_payment(config)
+        cls.check_prolific_unsuccessful_base_payment(config)
 
         parser = configparser.ConfigParser()
         parser.read("config.txt")
@@ -2155,6 +2201,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Config variable {key} was registered both in config.txt and experiment.py. "
                     f"Please choose just one location."
                 )
+
+    @classmethod
+    def check_prolific_unsuccessful_base_payment(cls, config):
+        unsuccessful = config.get("prolific_unsuccessful_base_payment", None)
+        if unsuccessful is not None and unsuccessful >= config.get("base_payment"):
+            raise ValueError(
+                "`prolific_unsuccessful_base_payment` "
+                f"({unsuccessful}) must be less than `base_payment` "
+                f"({config.get('base_payment')}); Prolific requires the fixed "
+                "screen-out reward to be less than the study reward."
+            )
 
     @classmethod
     def check_base_payment(cls, config):
@@ -2324,13 +2381,52 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             The calculated reward, rounded to 2 decimal places.
         """
         reward = participant.calculate_reward()
-        print(f"Initially computed reward: {reward}")
-        print(f"Participant status: {participant.status}")
         if participant.status not in ["screened_out", "returned"]:
-            print(f"Subtracting base payment: {self.base_payment}")
-            reward -= self.base_payment
-        print(f"After base payment subtraction: {reward}")
+            if self.prolific_pays_unsuccessful_via_screen_out(participant):
+                # Prolific pays these participants a fixed screen-out reward
+                # instead of the full base payment.
+                if get_config().get("prolific_unsuccessful_topup"):
+                    reward = max(
+                        0.0,
+                        reward - participant.recruiter.unsuccessful_base_payment,
+                    )
+                else:
+                    # Even without a top-up, performance rewards are always paid.
+                    reward = participant.performance_reward or 0.0
+            else:
+                reward -= self.base_payment
         return round(self.check_bonus(reward, participant), 2)
+
+    @staticmethod
+    def prolific_pays_unsuccessful_via_screen_out(participant) -> bool:
+        """Whether this participant will be paid via Prolific's fixed
+        screen-out reward (rather than the full base payment) because they
+        failed or errored and ``prolific_unsuccessful_base_payment`` is set.
+        """
+        recruiter = participant.recruiter
+        return (
+            participant.failed
+            and isinstance(recruiter, PsyNetProlificRecruiterMixin)
+            and recruiter.pays_unsuccessful_participants_via_screen_out
+        )
+
+    def recruiter_exit_info(self, participant):
+        """Return the Prolific completion-code type for this participant.
+
+        Unsuccessful participants are given the UNSUCCESSFUL code, which
+        triggers Prolific's fixed screen-out payment. Returning ``None``
+        selects the recruiter's default (auto-approving) code.
+        """
+        if self.prolific_pays_unsuccessful_via_screen_out(participant):
+            return participant.recruiter.unsuccessful_code_type
+        return None
+
+    def on_recruiter_submission_complete(self, participant, event):
+        super().on_recruiter_submission_complete(participant, event)
+        if self.prolific_pays_unsuccessful_via_screen_out(participant):
+            # Dallinger recorded the full base payment, but Prolific actually
+            # pays these participants the fixed screen-out reward.
+            participant.base_pay = participant.recruiter.unsuccessful_base_payment
 
     def check_bonus(self, reward, participant):
         """
@@ -2839,6 +2935,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             bool,
             validators=[unsupported_prolific_screen_out_validator],
         )
+
+        def is_positive_int(value):
+            assert int(value) > 0
+
+        config.register(
+            "prolific_unsuccessful_base_payment",
+            float,
+            validators=[is_positive_float],
+        )
+        config.register("prolific_unsuccessful_topup", bool)
+        config.register("prolific_screen_out_slots", int, validators=[is_positive_int])
 
     @dashboard_tab("Export")
     @classmethod
