@@ -242,7 +242,10 @@ for exp in payment_flows_prolific audio_gibbs; do
   # If boilerplate is missing entirely, use:
   # psynet scripts scaffold --skip-constraints
 done
-git add tests/deployment && git commit -m "Refresh experiment scripts via psynet scripts update"
+# Scaffold paths are gitignored under tests/deployment/; force-add so the
+# deployment branch records the exact deployable tree.
+git add -f tests/deployment
+git commit -m "Refresh experiment scripts via psynet scripts update"
 ```
 
    Review the diff before committing; template changes should be plausible for
@@ -278,7 +281,10 @@ git add tests/deployment && git commit -m "Refresh experiment scripts via psynet
 for exp in payment_flows_prolific audio_gibbs; do
   (cd <psynet-root>/tests/deployment/$exp && psynet generate-constraints)
 done
-git add tests/deployment/*/constraints.txt && git commit -m "Generate constraints from pinned requirements"
+# constraints.txt is gitignored under tests/deployment/; force-add for the
+# deployment-branch audit trail.
+git add -f tests/deployment/*/constraints.txt
+git commit -m "Generate constraints from pinned requirements"
 ```
 
 10. Ensure neither experiment enables `prolific_is_custom_screening`
@@ -351,7 +357,8 @@ variants.
 cd <psynet-root>/tests/deployment/payment_flows_prolific
 cp experiment.py.prolific experiment.py
 cp config.txt.prolific config.txt
-git add experiment.py config.txt
+# config.txt is gitignored under tests/deployment/.
+git add experiment.py && git add -f config.txt
 git commit -m "Switch payment_flows_prolific to Prolific variant for deployment"
 git push
 ```
@@ -367,7 +374,8 @@ git worktree add -b deployment-tests/<base-tag>-audio-gibbs-prolific \
 cd /tmp/psynet-audio-gibbs-prolific-deploy/tests/deployment/audio_gibbs
 cp experiment.py.prolific experiment.py
 cp config.txt.prolific config.txt
-git add experiment.py config.txt
+# config.txt is gitignored under tests/deployment/.
+git add experiment.py && git add -f config.txt
 git commit -m "Switch audio_gibbs to Prolific variant for deployment"
 git push -u origin deployment-tests/<base-tag>-audio-gibbs-prolific
 
@@ -377,7 +385,7 @@ git worktree add -b deployment-tests/<base-tag>-audio-gibbs-lucid \
 cd /tmp/psynet-audio-gibbs-lucid-deploy/tests/deployment/audio_gibbs
 cp experiment.py.lucid experiment.py
 cp config.txt.lucid config.txt
-git add experiment.py config.txt
+git add experiment.py && git add -f config.txt
 git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
 git push -u origin deployment-tests/<base-tag>-audio-gibbs-lucid
 ```

@@ -211,6 +211,8 @@ dump.rdb
 /tests/playwright/experiments/**/docker/
 /tests/playwright/experiments/**/pytest.ini
 /tests/playwright/experiments/**/test.py
+# Authored-only in master; deployment-test branches force-add these with
+# ``git add -f`` when materializing a deployable tree (see deployment-test skill).
 /tests/deployment/**/.dockerignore
 /tests/deployment/**/.gitignore
 /tests/deployment/**/.python-version

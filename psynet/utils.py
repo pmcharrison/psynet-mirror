@@ -1160,7 +1160,6 @@ def log_level(logger: logging.Logger, level):
 # are not meaningful (or lack deps) in the shared CI runner.
 _CI_EXCLUDED_EXPERIMENT_PATH_MARKERS = (
     "recruiters",
-    "manual_recruiter_testing",
     "/tests/deployment/",
     "playwright",
 )

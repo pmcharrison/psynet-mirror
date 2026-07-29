@@ -2622,6 +2622,21 @@ def test_scripts_group_help_lists_subcommands():
     assert "prune" in result.output
 
 
+def test_scripts_prune_help_is_shared_across_cli_surfaces():
+    from psynet.bootstrap_cli import _bootstrap
+    from psynet.experiment_scaffold import PRUNE_COMMAND_HELP
+
+    for cli in (psynet, _bootstrap):
+        result = CliRunner().invoke(cli, ["scripts", "prune", "--help"])
+        assert result.exit_code == 0, result.output
+        assert "--preserve-tracked" in result.output
+        assert "--force" in result.output
+        # Click may rewrap text; check a distinctive shared phrase.
+        assert "differ from current PsyNet templates" in result.output
+        assert "tracked by git" in result.output
+        assert PRUNE_COMMAND_HELP.splitlines()[0] in result.output
+
+
 def test_scaffold_fills_partial_directories_without_overwriting_existing_files():
     runner = CliRunner()
 

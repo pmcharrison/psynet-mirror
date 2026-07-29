@@ -32,6 +32,7 @@ import sys
 import click
 
 from psynet.experiment_scaffold import (
+    PRUNE_COMMAND_HELP,
     PRUNE_FORCE_OPTION_HELP,
     PRUNE_PRESERVE_TRACKED_OPTION_HELP,
 )
@@ -161,7 +162,7 @@ def scripts_update(ctx):
     scaffold_experiment_directory(overwrite=True)
 
 
-@scripts.command("prune")
+@scripts.command("prune", help=PRUNE_COMMAND_HELP)
 @click.option(
     "--force",
     is_flag=True,

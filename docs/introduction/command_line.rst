@@ -264,11 +264,12 @@ Remove scaffold-managed boilerplate, leaving authored files such as
 ``experiment.py`` and ``requirements.txt``. Paths that differ from current
 templates (including customized ``config.txt`` and ``README.md``) are
 preserved by default; ``--force`` removes them without checking contents.
-``--preserve-tracked`` keeps any path that is tracked by git (including files
-under managed directories such as ``docker/``), even under ``--force``. It also
-removes generated ``static/assets`` (runtime output that must not be tracked)
-plus an untracked ``constraints.txt`` (used after in-repo demo tests in CI).
-If git cannot list tracked files, the command errors instead of force-deleting.
+``--preserve-tracked`` keeps any path that is tracked by git, even under
+``--force``. A managed directory such as ``docker/`` is kept wholesale if any
+nested path is tracked. It also removes generated ``static/assets`` (runtime
+output that must not be tracked) plus an untracked ``constraints.txt`` (used
+after in-repo demo tests in CI). If git cannot list tracked files, the command
+errors instead of force-deleting.
 
 .. code:: bash
 
