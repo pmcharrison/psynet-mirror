@@ -2024,6 +2024,22 @@ def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkey
     assert "docker" in missing_section
     assert ".gitignore" not in missing_section
     assert "config.txt" not in missing_section
+    assert "touch config.txt" not in str(exc.value)
+
+
+def test_missing_boilerplate_fix_mentions_blank_config_for_upgrades():
+    from psynet.command_line import _missing_boilerplate_fix
+
+    message = _missing_boilerplate_fix(
+        mode="debug", missing_paths=["config.txt", "Dockerfile"]
+    )
+    assert "touch config.txt" in message
+    assert "Experiment.config" in message
+
+    without_config = _missing_boilerplate_fix(
+        mode="debug", missing_paths=["Dockerfile"]
+    )
+    assert "touch config.txt" not in without_config
 
 
 def test_check_experiment_directory_reports_missing_git(tmp_path, monkeypatch):

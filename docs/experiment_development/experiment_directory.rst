@@ -72,10 +72,14 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 
 -   ``carillon_samples.csv`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
--   ``config.txt`` is a configuration file. It defines various important configuration parameters for when you deploy an
-    experiment online. PsyNet can generate a default version of this file with ``psynet scripts scaffold``.
-    An existing file (including an empty one) is preserved on scaffold and update so that configuration can instead
-    live in ``Experiment.config`` or retain author edits.
+-   ``config.txt`` is required in every experiment directory (it may be empty).
+    It defines configuration parameters for local runs and online deployment.
+    New experiments can get a demo template via ``psynet scripts scaffold`` /
+    ``psynet setup``. An existing file (including an empty one) is preserved on
+    scaffold and update. If you are upgrading an older experiment that never had
+    a ``config.txt`` and you keep settings in ``Experiment.config``, create a
+    blank file with ``touch config.txt`` rather than scaffolding a full
+    template; see :ref:`configuration`.
 
 -   ``constraints.txt`` stores the locked versions of Python packages used when
     you install or deploy a **standalone** experiment. It is generated

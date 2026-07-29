@@ -1345,7 +1345,7 @@ def check_prolific_payment(experiment, config):
     )
 
 
-def _missing_boilerplate_fix(*, mode=None):
+def _missing_boilerplate_fix(*, mode=None, missing_paths=None):
     """Return actionable guidance when experiment boilerplate is missing."""
     if is_in_repo_experiment():
         command = "psynet scripts scaffold"
@@ -1366,7 +1366,14 @@ def _missing_boilerplate_fix(*, mode=None):
     if mode is not None:
         mode_clause = f" before running 'psynet {mode} ...'"
 
-    return f"{context} Run '{command}' to generate the missing files{mode_clause}."
+    message = f"{context} Run '{command}' to generate the missing files{mode_clause}."
+    if missing_paths and "config.txt" in missing_paths:
+        message += (
+            " If you are upgrading an experiment that already sets options in "
+            "Experiment.config, create an empty config.txt with 'touch config.txt' "
+            "instead of scaffolding a full template."
+        )
+    return message
 
 
 def _prepare_in_repo_experiment():
@@ -1392,7 +1399,8 @@ def _check_experiment_directory(mode):
         missing_paths = ", ".join(missing_boilerplate)
         raise click.ClickException(
             "Experiment directory is missing required PsyNet boilerplate files "
-            f"({missing_paths}). {_missing_boilerplate_fix(mode=mode)}"
+            f"({missing_paths}). "
+            f"{_missing_boilerplate_fix(mode=mode, missing_paths=missing_boilerplate)}"
         )
 
     # We need an active git repository for Dallinger to recognize .gitignore properly
