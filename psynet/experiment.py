@@ -2449,8 +2449,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         super().on_recruiter_submission_complete(participant, event)
         if self.prolific_pays_unsuccessful_via_screen_out(participant):
             # Dallinger recorded the full base payment, but Prolific actually
-            # pays these participants the fixed screen-out reward.
+            # pays these participants the fixed screen-out reward. We update
+            # both Dallinger's base_pay and PsyNet's base_payment (the latter
+            # is used for spending accounting, e.g. Experiment.amount_spent).
             participant.base_pay = participant.recruiter.unsuccessful_base_payment
+            participant.base_payment = participant.recruiter.unsuccessful_base_payment
 
     def check_bonus(self, reward, participant):
         """
@@ -3659,6 +3662,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 recruiter.set_termination_details(
                     participant.assignment_id, "error-page_route"
                 )
+
+            # Not all error paths fail the participant before redirecting here
+            # (e.g. errors raised while processing a response). When Prolific
+            # pays unsuccessful participants via the screen-out completion
+            # code, mark the participant as failed so that the exit code and
+            # bonus top-up logic treat them consistently.
+            if (
+                isinstance(recruiter, PsyNetProlificRecruiterMixin)
+                and recruiter.pays_unsuccessful_participants_via_screen_out
+                and not participant.failed
+                and not participant.complete
+            ):
+                participant.fail("error_page")
 
         return cls.error_page(
             participant=participant,
