@@ -1161,6 +1161,7 @@ def log_level(logger: logging.Logger, level):
 _CI_EXCLUDED_EXPERIMENT_PATH_MARKERS = (
     "recruiters",
     "manual_recruiter_testing",
+    "/tests/deployment/",
     "playwright",
 )
 _CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES = ("/gibbs_video",)

@@ -126,7 +126,7 @@ _IN_REPO_EXPERIMENT_ROOTS = (
     "demos",
     "tests/experiments",
     "tests/playwright/experiments",
-    "tests/manual_recruiter_testing",
+    "tests/deployment",
 )
 
 

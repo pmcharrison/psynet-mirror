@@ -211,31 +211,26 @@ dump.rdb
 /tests/playwright/experiments/**/docker/
 /tests/playwright/experiments/**/pytest.ini
 /tests/playwright/experiments/**/test.py
-/tests/manual_recruiter_testing/**/.dockerignore
-/tests/manual_recruiter_testing/**/.gitignore
-/tests/manual_recruiter_testing/**/.python-version
-/tests/manual_recruiter_testing/**/.github/workflows/test.yml
-/tests/manual_recruiter_testing/**/.vscode/launch.json
-/tests/manual_recruiter_testing/**/AGENTS.md
-/tests/manual_recruiter_testing/**/Dockerfile
-/tests/manual_recruiter_testing/**/Dockertag
-/tests/manual_recruiter_testing/**/__init__.py
-/tests/manual_recruiter_testing/**/config.txt
-/tests/manual_recruiter_testing/**/constraints.txt
-/tests/manual_recruiter_testing/**/docker/
-/tests/manual_recruiter_testing/**/pytest.ini
-/tests/manual_recruiter_testing/**/test.py
+/tests/deployment/**/.dockerignore
+/tests/deployment/**/.gitignore
+/tests/deployment/**/.python-version
+/tests/deployment/**/.github/workflows/test.yml
+/tests/deployment/**/.vscode/launch.json
+/tests/deployment/**/AGENTS.md
+/tests/deployment/**/Dockerfile
+/tests/deployment/**/Dockertag
+/tests/deployment/**/__init__.py
+/tests/deployment/**/config.txt
+/tests/deployment/**/constraints.txt
+/tests/deployment/**/docker/
+/tests/deployment/**/pytest.ini
+/tests/deployment/**/test.py
 
 # ASV benchmark artifacts
 .asv/
 .asv-sync.conf.json
 .asv-local.conf.json
 
-# Deployment-test artifacts: each deployment gets a folder
-# deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/ containing a tracked
-# analysis.md and a local/ subfolder (logs, database export, Prolific data)
-# that stays local because it contains participant identifiers.
-deployment-tests/**
-!deployment-tests/**/
-!deployment-tests/**/*.md
-deployment-tests/*/local/**
+# Deployment-test audit trail: local-only analyses and raw artifacts
+# (logs, exports, recruiter JSON). Do not commit this tree.
+deployment-tests/

@@ -68,7 +68,7 @@ def test_demo_sources_contain_only_authored_experiment_files():
 TEST_EXPERIMENT_TREE_PREFIXES = (
     "tests/experiments/",
     "tests/playwright/experiments/",
-    "tests/manual_recruiter_testing/",
+    "tests/deployment/",
 )
 
 # Custom config.txt files that remain tracked under test experiment trees.
@@ -78,7 +78,8 @@ TEST_EXPERIMENT_CUSTOM_CONFIGS = {
     "tests/playwright/experiments/adversarial_lifecycle/config.txt",
     "tests/playwright/experiments/deferred_page_scripts/config.txt",
     "tests/playwright/experiments/same_session_page_update/config.txt",
-    "tests/manual_recruiter_testing/prolific/config.txt",
+    "tests/deployment/payment_flows_prolific/config.txt",
+    "tests/deployment/audio_gibbs/config.txt",
 }
 
 # Parent-level helpers that are not inside an experiment directory.
@@ -112,6 +113,9 @@ def _is_authored_test_experiment_path(relative_path: str) -> bool:
     parts = Path(relative_path).parts
     if name in AUTHORED_TEST_EXPERIMENT_FILENAMES:
         return True
+    # Recruiter/deployment variants, e.g. experiment.py.prolific / config.txt.lucid.
+    if name.startswith("experiment.py") or name.startswith("config.txt"):
+        return True
     if name.endswith((".wav", ".csv")):
         return True
     if "templates" in parts and name.endswith(".html"):
@@ -120,7 +124,7 @@ def _is_authored_test_experiment_path(relative_path: str) -> bool:
         return True
     if "locales" in parts and name.endswith((".po", ".pot")):
         return True
-    if "synth_files" in parts:
+    if "synth_files" in parts or "consents_cococo" in parts:
         return True
     return False
 
@@ -136,7 +140,7 @@ def test_test_experiment_sources_contain_only_authored_files():
                 "ls-files",
                 "tests/experiments",
                 "tests/playwright/experiments",
-                "tests/manual_recruiter_testing",
+                "tests/deployment",
             ],
             cwd=psynet_root,
             text=True,
@@ -184,7 +188,7 @@ def test_test_experiment_stock_config_is_gitignored():
     stock_configs = [
         "tests/experiments/static/config.txt",
         "tests/playwright/experiments/static/config.txt",
-        "tests/manual_recruiter_testing/example/config.txt",
+        "tests/deployment/example/config.txt",
     ]
     for relative_path in stock_configs:
         result = subprocess.run(
