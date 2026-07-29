@@ -6,6 +6,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import click
 import pytest
 
 from psynet.experiment_scaffold import (
@@ -334,6 +335,54 @@ def test_prune_force_without_preserve_tracked_can_delete_untracked_readme(tmp_pa
 
         assert not Path("README.md").exists()
         assert Path("experiment.py").exists()
+
+
+def test_prune_preserve_tracked_keeps_tracked_docker_directory(tmp_path):
+    experiment_dir = tmp_path / "standalone"
+    experiment_dir.mkdir()
+    with working_directory(experiment_dir):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet\n")
+        Path("docker").mkdir()
+        Path("docker/psynet").write_text("# Tracked\n")
+        subprocess.run(["git", "init", "-q"], check=True)
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.email=test@example.com",
+                "-c",
+                "user.name=Test",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+        scaffold_experiment_directory()
+        Path("docker/psynet").write_text("# Tracked\n")
+
+        result = prune_experiment_scaffold(force=True, preserve_tracked=True)
+
+    assert "docker" in result["preserved_tracked"]
+    assert (experiment_dir / "docker/psynet").read_text() == "# Tracked\n"
+    assert not (experiment_dir / "Dockerfile").exists()
+
+
+def test_prune_preserve_tracked_errors_when_not_a_git_repo(tmp_path):
+    experiment_dir = tmp_path / "standalone"
+    experiment_dir.mkdir()
+    with working_directory(experiment_dir):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet\n")
+        scaffold_experiment_directory()
+        Path("README.md").write_text("# Custom README\n")
+
+        with pytest.raises(click.UsageError, match="listing tracked files failed"):
+            prune_experiment_scaffold(force=True, preserve_tracked=True)
+
+        assert Path("README.md").read_text() == "# Custom README\n"
 
 
 def _hash_file(path: Path) -> str:

@@ -48,6 +48,8 @@ from psynet.version import (
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    PRUNE_FORCE_OPTION_HELP,
+    PRUNE_PRESERVE_TRACKED_OPTION_HELP,
     dockertag_contents,
     get_psynet_requirement,
     is_unambiguous_psynet_requirement,
@@ -3063,15 +3065,12 @@ def scripts_update():
 @click.option(
     "--force",
     is_flag=True,
-    help="Remove unrecognized scaffold paths without checking their contents.",
+    help=PRUNE_FORCE_OPTION_HELP,
 )
 @click.option(
     "--preserve-tracked",
     is_flag=True,
-    help=(
-        "Never delete paths tracked by git in this directory. Also removes "
-        "generated static/assets and an untracked constraints.txt."
-    ),
+    help=PRUNE_PRESERVE_TRACKED_OPTION_HELP,
 )
 @require_exp_directory
 def scripts_prune(force, preserve_tracked):

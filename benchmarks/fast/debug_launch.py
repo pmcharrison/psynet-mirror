@@ -29,6 +29,7 @@ _TEMPLATE_FILES = (
     ".python-version",
 )
 
+
 @contextmanager
 def _temporary_static_payload(experiment_dir, count, file_size):
     """Create deterministic static files for the duration of a benchmark."""
@@ -56,7 +57,18 @@ def _temporary_static_payload(experiment_dir, count, file_size):
         ):
             static_dir.rmdir()
 
-def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> None:
+
+@contextmanager
+def _prepared_benchmark_experiment(demo_dir: Path, repo_root: Path):
+    """Copy missing scaffold files for ASV, then restore the demo tree."""
+    created_paths = _prepare_benchmark_experiment(demo_dir, repo_root)
+    try:
+        yield created_paths
+    finally:
+        _restore_benchmark_experiment(created_paths)
+
+
+def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> list[Path]:
     """Ensure pruned in-repo demos can launch under older PsyNet checkouts.
 
     ASV continuous installs each compared commit into its env, but runs
@@ -65,19 +77,28 @@ def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> None:
     tracked scaffold files. Copy missing templates from this checkout and
     write a stub constraints file when needed — without calling the ``psynet``
     CLI, which may be an older build that lacks ``scripts scaffold``.
+
+    Returns
+    -------
+    list of Path
+        Paths created by this helper so callers can restore the tree.
     """
     templates = repo_root / "psynet" / "resources" / "experiment_scripts"
+    created_paths: list[Path] = []
+
     for relative_path in _TEMPLATE_FILES:
         destination = demo_dir / relative_path
         source = templates / relative_path
         if destination.exists() or not source.is_file():
             continue
         shutil.copyfile(source, destination)
+        created_paths.append(destination)
 
     docker_destination = demo_dir / "docker"
     docker_source = templates / "docker"
     if not docker_destination.exists() and docker_source.is_dir():
         shutil.copytree(docker_source, docker_destination)
+        created_paths.append(docker_destination)
 
     constraints_path = demo_dir / "constraints.txt"
     if not constraints_path.is_file():
@@ -85,6 +106,20 @@ def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> None:
             "# Generated for ASV debug-launch benchmarks.\n",
             encoding="utf-8",
         )
+        created_paths.append(constraints_path)
+
+    return created_paths
+
+
+def _restore_benchmark_experiment(created_paths: list[Path]) -> None:
+    """Remove scaffold files created by ``_prepare_benchmark_experiment``."""
+    for path in reversed(created_paths):
+        if path.is_symlink() or path.is_file():
+            path.unlink(missing_ok=True)
+        elif path.is_dir():
+            shutil.rmtree(path)
+
+
 class StaticFilesDebugLaunch:
     """Benchmark debug launch with representative static-file payloads."""
 
@@ -106,20 +141,20 @@ class StaticFilesDebugLaunch:
         results = {}
 
         try:
-            _prepare_benchmark_experiment(demo_dir, repo_root)
-            os.chdir(demo_dir)
-            for profile, (count, file_size) in _STATIC_FILE_PROFILES.items():
-                server_info = None
-                with _temporary_static_payload(demo_dir, count, file_size):
-                    started_at = time.perf_counter()
-                    try:
-                        server_info = _start_local_server_and_wait_for_ready(
-                            ["debug", "local"]
-                        )
-                        results[profile] = time.perf_counter() - started_at
-                    finally:
-                        if server_info is not None:
-                            _stop_server(server_info)
+            with _prepared_benchmark_experiment(demo_dir, repo_root):
+                os.chdir(demo_dir)
+                for profile, (count, file_size) in _STATIC_FILE_PROFILES.items():
+                    server_info = None
+                    with _temporary_static_payload(demo_dir, count, file_size):
+                        started_at = time.perf_counter()
+                        try:
+                            server_info = _start_local_server_and_wait_for_ready(
+                                ["debug", "local"]
+                            )
+                            results[profile] = time.perf_counter() - started_at
+                        finally:
+                            if server_info is not None:
+                                _stop_server(server_info)
         finally:
             os.chdir(original_directory)
 

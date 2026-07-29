@@ -31,6 +31,10 @@ import sys
 
 import click
 
+from psynet.experiment_scaffold import (
+    PRUNE_FORCE_OPTION_HELP,
+    PRUNE_PRESERVE_TRACKED_OPTION_HELP,
+)
 from psynet.version import psynet_version
 
 _BOOTSTRAP_COMMANDS = frozenset(
@@ -161,37 +165,19 @@ def scripts_update(ctx):
 @click.option(
     "--force",
     is_flag=True,
-    help="Remove unrecognized scaffold paths without checking their contents.",
+    help=PRUNE_FORCE_OPTION_HELP,
 )
 @click.option(
     "--preserve-tracked",
     is_flag=True,
-    help=(
-        "Never delete paths tracked by git in this directory. Also removes "
-        "generated static/assets and an untracked constraints.txt."
-    ),
+    help=PRUNE_PRESERVE_TRACKED_OPTION_HELP,
 )
 @click.pass_context
 def scripts_prune(ctx, force, preserve_tracked):
     """Remove scaffold-managed boilerplate files from the experiment directory."""
-    from pathlib import Path
+    from psynet.experiment_scaffold import run_scripts_prune
 
-    from psynet.experiment_scaffold import prune_experiment_scaffold
-    from psynet.light_utils import (
-        ExperimentDirectoryNameError,
-        ensure_experiment_directory_name_does_not_conflict,
-    )
-
-    try:
-        ensure_experiment_directory_name_does_not_conflict()
-    except ExperimentDirectoryNameError as e:
-        raise click.UsageError(str(e))
-    if not Path("experiment.py").is_file():
-        raise click.UsageError(
-            "The current directory is not a valid PsyNet experiment "
-            "(missing experiment.py)."
-        )
-    prune_experiment_scaffold(force=force, preserve_tracked=preserve_tracked)
+    run_scripts_prune(force=force, preserve_tracked=preserve_tracked)
 
 
 # -- services ---------------------------------------------------------------

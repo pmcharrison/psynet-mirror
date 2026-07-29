@@ -2506,6 +2506,113 @@ def test_scripts_prune_preserve_tracked_keeps_git_tracked_readme(tmp_path):
     assert not (tmp_path / "test.py").exists()
 
 
+def test_scripts_prune_preserve_tracked_keeps_tracked_files_under_docker(tmp_path):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        Path("docker").mkdir()
+        Path("docker/psynet").write_text("# Tracked custom helper\n")
+        subprocess.run(["git", "init", "-q"], check=True)
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.email=test@example.com",
+                "-c",
+                "user.name=Test",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+        scaffold_experiment_directory(overwrite=True)
+        Path("docker/psynet").write_text("# Tracked custom helper\n")
+
+        result = CliRunner().invoke(
+            psynet, ["scripts", "prune", "--force", "--preserve-tracked"]
+        )
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "docker/psynet").read_text() == "# Tracked custom helper\n"
+    assert not (tmp_path / "Dockerfile").exists()
+
+
+def test_scripts_prune_preserve_tracked_errors_when_git_listing_fails(
+    tmp_path, monkeypatch
+):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        Path("README.md").write_text("# Custom README\n")
+        scaffold_experiment_directory(overwrite=True)
+        Path("README.md").write_text("# Custom README\n")
+
+        def _fail_git_ls_files(*args, **kwargs):
+            raise subprocess.CalledProcessError(128, args[0])
+
+        monkeypatch.setattr(
+            "psynet.experiment_scaffold.subprocess.check_output",
+            _fail_git_ls_files,
+        )
+
+        result = CliRunner().invoke(
+            psynet, ["scripts", "prune", "--force", "--preserve-tracked"]
+        )
+
+    assert result.exit_code != 0
+    assert "listing tracked files failed" in result.output
+    assert (tmp_path / "README.md").read_text() == "# Custom README\n"
+
+
+def test_scripts_prune_removes_template_identical_readme_by_default(tmp_path):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        scaffold_experiment_directory(overwrite=True)
+        assert Path("README.md").exists()
+
+        result = CliRunner().invoke(psynet, ["scripts", "prune"])
+
+    assert result.exit_code == 0, result.output
+    assert not (tmp_path / "README.md").exists()
+
+
+def test_bootstrap_cli_prune_preserve_tracked(tmp_path):
+    from psynet.bootstrap_cli import _bootstrap
+
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        Path("README.md").write_text("# Tracked README\n")
+        subprocess.run(["git", "init", "-q"], check=True)
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.email=test@example.com",
+                "-c",
+                "user.name=Test",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+        scaffold_experiment_directory(overwrite=True)
+        Path("README.md").write_text("# Tracked README\n")
+
+        result = CliRunner().invoke(
+            _bootstrap, ["scripts", "prune", "--force", "--preserve-tracked"]
+        )
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "README.md").read_text() == "# Tracked README\n"
+    assert not (tmp_path / "Dockerfile").exists()
+
+
 def test_scripts_group_help_lists_subcommands():
     result = CliRunner().invoke(psynet, ["scripts", "--help"])
 
