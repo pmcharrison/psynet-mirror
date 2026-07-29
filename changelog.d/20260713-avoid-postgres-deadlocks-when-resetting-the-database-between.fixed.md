@@ -1,1 +1,1 @@
-Fixed intermittent Postgres deadlocks in CI when resetting the database between experiment tests, by terminating stale database connections before dropping tables and retrying on deadlock.
+Fixed intermittent Postgres deadlocks in CI when resetting the database between experiment tests, by waiting for the previous experiment server to fully stop before the next reset and retrying on deadlock.

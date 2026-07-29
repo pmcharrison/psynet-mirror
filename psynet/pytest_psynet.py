@@ -37,6 +37,7 @@ from .command_line import (
     clean_sys_modules,
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
+    stop_local_debug_process,
     working_directory,
 )
 from .experiment import get_experiment, import_local_experiment
@@ -433,7 +434,7 @@ def debug_experiment(
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
     print(f"Launching experiment in directory '{in_experiment_directory}'...")
-    init_db_with_retries()
+    # db_session already reset the database for this test class.
     time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
@@ -470,14 +471,13 @@ def debug_experiment(
 
         yield p
     finally:
+        # Wait for the server (and orphaned workers) to fully stop before the
+        # next test class resets the database; a short Ctrl-C + log flush is
+        # not enough and can leave backends holding locks during drop_all.
         try:
             flush_output(p, timeout=0.1)
-            p.sendcontrol("c")
-            flush_output(p, timeout=3)
-            # Why do we need to call flush_output twice? Good question.
-            # Something about calling p.sendcontrol("c") seems to disrupt the log.
-            # Better to call it both before and after.
-        except (IOError, pexpect.exceptions.EOF):
+            stop_local_debug_process(p)
+        except (IOError, OSError, pexpect.exceptions.EOF):
             pass
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
@@ -497,43 +497,6 @@ def debug_server_process(debug_experiment):
     return debug_experiment
 
 
-def terminate_other_postgres_connections():
-    """
-    Terminate other backends of the current role connected to the test database.
-
-    Server/worker processes from a previous test in the same session are killed
-    asynchronously at teardown, so their database connections can still hold
-    row locks when the next test's ``drop_all`` runs, causing Postgres to
-    report a deadlock. Since the tests are about to drop all tables anyway,
-    it is safe to terminate those connections outright.
-
-    Only backends owned by the current database role are targeted: terminating
-    other roles' backends would require extra privileges (raising
-    ``InsufficientPrivilege`` otherwise) and could kill sessions unrelated to
-    the test run, such as a developer's ``psql`` shell.
-
-    Closes local sessions and disposes the engine's connection pool first, so
-    that this process's own idle pooled connections are not terminated out
-    from under it. Connections checked out elsewhere in the process would
-    still be terminated, so this must only run when no other component holds
-    a database connection (as is the case at the test-setup call sites).
-    """
-    from sqlalchemy import text
-    from sqlalchemy.orm.session import close_all_sessions
-
-    close_all_sessions()
-    db.engine.dispose()
-
-    with db.engine.connect() as con:
-        con.execute(
-            text(
-                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-                "WHERE datname = current_database() AND pid <> pg_backend_pid() "
-                "AND usename = current_user"
-            )
-        )
-
-
 # Postgres SQLSTATE code for "deadlock detected"; matching on the code rather
 # than the error message keeps detection independent of the server's locale.
 DEADLOCK_PGCODE = "40P01"
@@ -545,11 +508,17 @@ def _is_deadlock_error(err):
 
 
 def init_db_with_retries(max_attempts=3, wait_sec=2.0):
-    """Reset the database for a test, retrying if a deadlock is detected."""
+    """
+    Reset the database for a test, retrying if a deadlock is detected.
+
+    The primary mitigation for between-test deadlocks is waiting for the
+    previous experiment server to fully stop in ``debug_experiment`` teardown.
+    This retry is a cheap backstop for rare residual timing races.
+    """
     import dallinger.db
+    from sqlalchemy.orm.session import close_all_sessions
 
     for attempt in range(1, max_attempts + 1):
-        terminate_other_postgres_connections()
         try:
             return dallinger.db.init_db(drop_all=True)
         except sqlalchemy.exc.OperationalError as err:
@@ -561,7 +530,7 @@ def init_db_with_retries(max_attempts=3, wait_sec=2.0):
                 attempt,
                 max_attempts,
             )
-            dallinger.db.session.rollback()
+            close_all_sessions()
             time.sleep(wait_sec)
 
 

@@ -1,5 +1,3 @@
-import types
-
 import pytest
 import sqlalchemy.exc
 
@@ -19,29 +17,14 @@ def operational_error(orig):
 
 
 @pytest.fixture
-def terminate_calls(monkeypatch):
-    """Replace terminate_other_postgres_connections with a counting stub."""
-    calls = []
-    monkeypatch.setattr(
-        pytest_psynet,
-        "terminate_other_postgres_connections",
-        lambda: calls.append("terminate"),
-    )
-    return calls
-
-
-@pytest.fixture
-def quiet_db(monkeypatch, terminate_calls):
-    """Stub out the real database interactions of init_db_with_retries."""
+def quiet_db(monkeypatch):
+    """Stub out init_db used by init_db_with_retries."""
     import dallinger.db
 
-    monkeypatch.setattr(
-        dallinger.db, "session", types.SimpleNamespace(rollback=lambda: None)
-    )
     return dallinger.db
 
 
-def test_retries_on_deadlock_then_succeeds(quiet_db, terminate_calls, monkeypatch):
+def test_retries_on_deadlock_then_succeeds(quiet_db, monkeypatch):
     calls = []
 
     def fake_init_db(drop_all=False):
@@ -51,11 +34,9 @@ def test_retries_on_deadlock_then_succeeds(quiet_db, terminate_calls, monkeypatc
         return "session"
 
     monkeypatch.setattr(quiet_db, "init_db", fake_init_db)
+    monkeypatch.setattr("sqlalchemy.orm.session.close_all_sessions", lambda: None)
     assert pytest_psynet.init_db_with_retries(wait_sec=0) == "session"
     assert calls == [True, True]
-    # Leftover connections must be terminated before every attempt, not just
-    # the first one; that ordering is the essence of the deadlock fix.
-    assert terminate_calls == ["terminate", "terminate"]
 
 
 def test_non_deadlock_error_propagates_immediately(quiet_db, monkeypatch):
@@ -79,9 +60,31 @@ def test_persistent_deadlock_raises_after_max_attempts(quiet_db, monkeypatch):
         raise operational_error(FakeDeadlock())
 
     monkeypatch.setattr(quiet_db, "init_db", fake_init_db)
+    monkeypatch.setattr("sqlalchemy.orm.session.close_all_sessions", lambda: None)
     with pytest.raises(sqlalchemy.exc.OperationalError):
         pytest_psynet.init_db_with_retries(max_attempts=3, wait_sec=0)
     assert len(calls) == 3
+
+
+def test_closes_sessions_between_deadlock_retries(quiet_db, monkeypatch):
+    """Failed transactions must be cleared before the next drop_all attempt."""
+    calls = []
+    close_calls = []
+
+    def fake_init_db(drop_all=False):
+        calls.append(drop_all)
+        if len(calls) == 1:
+            raise operational_error(FakeDeadlock())
+        return "session"
+
+    monkeypatch.setattr(quiet_db, "init_db", fake_init_db)
+    monkeypatch.setattr(
+        "sqlalchemy.orm.session.close_all_sessions",
+        lambda: close_calls.append("close"),
+    )
+    assert pytest_psynet.init_db_with_retries(wait_sec=0) == "session"
+    assert calls == [True, True]
+    assert close_calls == ["close"]
 
 
 def test_deadlock_pgcode_matches_psycopg2_deadlock_class():

@@ -1036,6 +1036,25 @@ def test_stop_server_gracefully_stops_debug_subprocess():
     kill_workers.assert_called_once()
 
 
+def test_stop_local_debug_process_reaps_workers_even_if_terminate_fails():
+    from psynet.command_line import stop_local_debug_process
+
+    process = Mock()
+
+    with (
+        patch(
+            "psynet.command_line._terminate_server_process",
+            side_effect=RuntimeError("boom"),
+        ) as terminate,
+        patch("psynet.command_line.kill_psynet_worker_processes") as kill_workers,
+    ):
+        with pytest.raises(RuntimeError, match="boom"):
+            stop_local_debug_process(process)
+
+    terminate.assert_called_once_with(process)
+    kill_workers.assert_called_once()
+
+
 def test_load_runtime_server_config_loads_generated_config():
     from psynet.command_line import _load_runtime_server_config
 

@@ -3631,6 +3631,20 @@ def _terminate_server_process(process):
     process.close(force=True)
 
 
+def stop_local_debug_process(process):
+    """
+    Stop a local ``psynet debug`` pexpect process and reap leftover workers.
+
+    Waits for the process to exit after Ctrl-C (escalating to SIGTERM/SIGKILL
+    if needed), then terminates any orphaned ``dallinger_heroku_*`` worker
+    processes so they cannot keep database connections open.
+    """
+    try:
+        _terminate_server_process(process)
+    finally:
+        kill_psynet_worker_processes()
+
+
 def _stop_server(server_info):
     """Stop ``psynet debug local`` and clean up resources."""
 
@@ -3638,7 +3652,7 @@ def _stop_server(server_info):
     tmp_log_path = server_info["tmp_log_path"]
     log_file = server_info["log_file"]
     try:
-        _terminate_server_process(process)
+        stop_local_debug_process(process)
     finally:
         try:
             process.logfile = None
@@ -3650,7 +3664,6 @@ def _stop_server(server_info):
         except Exception:
             pass
 
-    kill_psynet_worker_processes()
     print(f"✓ Server stopped (log: {tmp_log_path})")
 
 
