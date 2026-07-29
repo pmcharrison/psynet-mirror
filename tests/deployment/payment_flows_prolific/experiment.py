@@ -6,20 +6,19 @@ This experiment is designed to test the integration between PsyNet and the Proli
 It simulates different participant flows to ensure that screen-out and reward mechanisms work as expected
 when using Prolific.
 
-Participants are assigned to one of three experiment flows based on their participant ID:
-    1. **Normal**: Participant completes a simple flow (consent, info pages, and debrief; ~4.5 minutes estimated). They get the full £0.50 base payment.
-    2. **Failed prescreening**: Participant fails a prescreen after accruing 3 minutes (1-minute consent plus 2-minute info page). They get no base payment, but a £0.50 screen-out bonus at wage_per_hour = 10.
-    3. **Increment performance reward**: Participant completes the full experiment and also receives a performance reward increment. They get base payment plus £0.10 bonus.
+Participants are assigned to one of four experiment flows based on their participant ID (ID % 4):
+    0. **Normal plus performance reward**: Participant completes the full experiment and also receives
+        a performance reward increment. They get base payment plus £0.10 bonus.
+    1. **Normal**: Participant completes a simple flow (consent, info pages, and debrief; ~4.5 minutes
+        estimated). They get the full £0.50 base payment.
+    2. **Failed prescreening**: Participant fails a prescreen after accruing 3 minutes (1-minute consent
+        plus 2-minute info page), i.e. £0.50 at wage_per_hour = 10.
+    3. **Errored**: Participant hits a deliberate error after accruing the same 3 minutes and lands on
+        the error page (skipped for bots so that automated tests pass).
 
-
-The experimenter should check the following in the Prolific dashboard:
-1. Recruitment: Verify that participants are correctly recruited and appear in the Prolific dashboard for the study.
-2. Completion Status: Check that participants (ID % 3 == 0 and ID % 3 == 2) who complete the experiment are marked
-    as complete in both Prolific and PsyNet.
-3. Prescreening Failures: Confirm that participants (ID % 3 == 1) who fail the prescreening are handled appropriately
-    (e.g., marked as returned/screened-out in both Prolific and PsyNet).
-4. Bonus/Reward Payments: For participants (ID % 3 == 2) in the increment performance reward flow, ensure that
-    the bonus payment is correctly set in both Prolific and PsyNet.
+See ``experiment.py.prolific`` for how unsuccessful participants (flows 2 and 3) are paid under the
+different Prolific deployment configurations, and for the checks the experimenter should perform in
+the Prolific dashboard.
 
 This default file uses the HotAir recruiter so running the directory
 directly cannot accidentally start paid recruitment. The deployable paid
@@ -67,6 +66,34 @@ def failed_prescreening():
             time_estimate=0,
         ),
         UnsuccessfulEndPage(),
+    )
+
+
+class SimulatedExperimentError(Exception):
+    """Deliberate error used to test error-page payment handling."""
+
+
+def _raise_simulated_error(participant):
+    from psynet.bot import Bot
+
+    if isinstance(participant, Bot):
+        # Automated (bot) test runs should not crash on the simulated error;
+        # only real participants exercise the error-page payment flow.
+        logger.info("Skipping simulated error for bot participant.")
+        return
+    raise SimulatedExperimentError(
+        "This is a deliberate error raised to test the error page payment flow."
+    )
+
+
+def errored():
+    return join(
+        InfoPage(
+            "In this simulation, you are a participant who is about to experience a technical error. "
+            "Please follow the instructions on the next page.",
+            time_estimate=0,
+        ),
+        CodeBlock(_raise_simulated_error),
     )
 
 
@@ -119,11 +146,12 @@ class Exp(psynet.experiment.Experiment):
         ),
         switch(
             "participant_flow",
-            lambda participant: participant.id % 3,
+            lambda participant: participant.id % 4,
             {
                 0: normal_plus_performance_reward(),
                 1: normal(),
                 2: failed_prescreening(),
+                3: errored(),
             },
         ),
         debrief_page(),

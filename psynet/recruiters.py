@@ -1,3 +1,28 @@
+"""PsyNet recruiter integrations.
+
+This module wraps Dallinger's recruiter classes (Prolific, MTurk, generic/CLI)
+and implements PsyNet-specific recruiters (Lucid, LabRecruiter). Recruiters
+own the participant lifecycle at the platform boundary: opening and closing
+recruitment, routing participants back to the platform at the end of the
+experiment, and paying base payments and bonuses.
+
+Key design constraints for maintainers:
+
+- Recruiter classes are typically composed as ``PsyNet<X>RecruiterMixin`` plus
+  the corresponding Dallinger recruiter, so PsyNet behavior layers on top of
+  Dallinger's via the MRO. Mixin overrides should call ``super()`` where the
+  Dallinger implementation is still wanted.
+- End-of-experiment payment flows differ per platform. For Prolific,
+  successful participants are approved (receiving ``base_payment``) and topped
+  up with a bonus; unsuccessful (failed/errored) participants are either paid
+  via a fixed screen-out completion code (when
+  ``prolific_unsuccessful_base_payment`` is set; see
+  ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``) or asked to
+  return their submission for a bonus (the legacy fallback).
+- Payment amounts are computed in ``psynet.experiment.Experiment.bonus``;
+  recruiters are only responsible for transferring the money.
+"""
+
 import hashlib
 import json
 import os
@@ -23,6 +48,7 @@ from dallinger.recruiters import (
     MockRecruiter,
     RecruitmentStatus,
     RedisStore,
+    alphanumeric_code,
 )
 from dallinger.utils import get_base_url
 from dominate import tags
@@ -57,6 +83,14 @@ PROLIFIC_MESSAGE_FIELD_ALIASES = {
 
 
 RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES = {408, 429, 500, 502, 503, 504}
+
+# Prolific completion-code type used for participants who fail or error out of
+# the experiment. See ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``.
+PROLIFIC_UNSUCCESSFUL_CODE_TYPE = "UNSUCCESSFUL"
+
+# The Prolific completion-code action that pays a fixed screen-out reward.
+# Prolific allows at most one completion code with this action per study.
+PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 
 
 def _prolific_error_status(error: ProlificServiceException):
@@ -130,11 +164,86 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
 
 
 class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
+    unsuccessful_code_type = PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+
+    @property
+    def unsuccessful_base_payment(self):
+        """The fixed screen-out reward (in currency units) paid to unsuccessful
+        participants via a Prolific completion code, or ``None`` if the feature
+        is disabled (see the ``prolific_unsuccessful_base_payment`` config parameter).
+        """
+        return get_config().get("prolific_unsuccessful_base_payment", None)
+
+    @property
+    def pays_unsuccessful_participants_via_screen_out(self):
+        """Whether unsuccessful (failed or errored) participants are paid
+        automatically via a Prolific screen-out completion code.
+        """
+        return self.unsuccessful_base_payment is not None
+
+    @property
+    def screen_out_slots(self):
+        """The maximum number of screen-out payments Prolific will make before
+        pausing the study (see the ``prolific_screen_out_slots`` config parameter).
+        """
+        config = get_config()
+        slots = config.get("prolific_screen_out_slots", None)
+        if slots is None:
+            slots = 10 * config.get("initial_recruitment_size")
+        return slots
+
+    @property
+    def completion_codes_and_actions(self) -> list[dict]:
+        """Extend Dallinger's Prolific completion codes with an UNSUCCESSFUL code.
+
+        When ``prolific_unsuccessful_base_payment`` is set, failed or errored
+        participants are sent back to Prolific with this code, which triggers
+        Prolific's fixed screen-out payment instead of the full base payment.
+        """
+        codes = super().completion_codes_and_actions
+        if not self.pays_unsuccessful_participants_via_screen_out:
+            return codes
+        for code in codes:
+            for action in code.get("actions", []):
+                if action.get("action") == PROLIFIC_SCREEN_OUT_ACTION:
+                    raise RuntimeError(
+                        "Prolific only supports one completion code with a "
+                        f"{PROLIFIC_SCREEN_OUT_ACTION} action per study. "
+                        f"Please remove this action from the completion code "
+                        f"'{code['code_type']}' in `prolific_completion_config`, "
+                        "or unset `prolific_unsuccessful_base_payment`."
+                    )
+        codes.append(
+            {
+                "code": alphanumeric_code(
+                    self.unsuccessful_code_type + get_config().get("id")
+                ),
+                "code_type": self.unsuccessful_code_type,
+                "actor": "participant",
+                "actions": [
+                    {
+                        "action": PROLIFIC_SCREEN_OUT_ACTION,
+                        "fixed_screen_out_reward": int(
+                            round(self.unsuccessful_base_payment * 100)
+                        ),
+                        "slots": self.screen_out_slots,
+                    }
+                ],
+            }
+        )
+        return codes
+
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
-        if participant.failed:
+        if (
+            participant.failed
+            and not self.pays_unsuccessful_participants_via_screen_out
+        ):
             return self.reject_assignment(participant)
+        # Unsuccessful participants covered by the screen-out completion code
+        # submit normally; Prolific then pays them the fixed screen-out reward
+        # (see Experiment.recruiter_exit_info and Experiment.bonus).
         return self.approve_assignment()
 
     def reject_assignment(self, participant) -> TimelineLogic:
