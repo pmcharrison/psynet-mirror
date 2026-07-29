@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from psynet.experiment_scaffold import (
+    missing_scaffold_paths_required_for_local_run,
     prune_experiment_scaffold,
     scaffold_experiment_directory,
     scaffold_managed_paths,
@@ -328,16 +329,54 @@ def test_copy_demo_to_tmp_ignores_generated_static_assets(tmp_path):
     assert not (copied / "static/assets").is_symlink()
 
 
-def _run_command(args, cwd: Path):
+def _run_command(args, cwd: Path, *, env_updates=None):
     """Run a subprocess in a demo directory and capture its output."""
+    env = os.environ.copy()
+    if env_updates:
+        env.update(env_updates)
     return subprocess.run(
         args,
         cwd=cwd,
-        env=os.environ.copy(),
+        env=env,
         capture_output=True,
         text=True,
         timeout=240,
     )
+
+
+def test_empty_directory_scaffold_git_init_and_test_local(tmp_path):
+    """Standalone Workflow A: empty dir → scaffold → git init → test local."""
+    experiment_dir = tmp_path / "my_experiment"
+    experiment_dir.mkdir()
+
+    scaffold = _run_command(
+        ["psynet", "scripts", "scaffold", "--skip-constraints"],
+        experiment_dir,
+    )
+    assert scaffold.returncode == 0, scaffold.stdout + scaffold.stderr
+    assert (experiment_dir / "experiment.py").exists()
+    assert (experiment_dir / "config.txt").exists()
+    assert (experiment_dir / "requirements.txt").exists()
+
+    # Constraints are produced by setup / generate-constraints in real use; stub
+    # them here so the e2e focuses on scaffold + git + test orchestration.
+    (experiment_dir / "constraints.txt").write_text("# Test-only dependency metadata\n")
+    assert not missing_scaffold_paths_required_for_local_run(experiment_dir)
+
+    git_init = _run_command(["git", "init", "-q"], experiment_dir)
+    assert git_init.returncode == 0, git_init.stderr
+
+    result = _run_command(
+        ["psynet", "test", "local"],
+        experiment_dir,
+        env_updates={"SKIP_DEPENDENCY_CHECK": "1"},
+    )
+    assert result.returncode == 0, (
+        "Empty-directory Workflow A failed\n"
+        f"STDOUT:\n{result.stdout}\n"
+        f"STDERR:\n{result.stderr}"
+    )
+    assert "passed" in result.stdout.lower()
 
 
 def _preserved_snapshot(root: Path) -> dict[str, str]:
