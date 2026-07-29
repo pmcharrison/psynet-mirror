@@ -201,7 +201,7 @@ def test_demo_dirs():
         in dirs
     )
     assert (
-        psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
+        psynet_root.joinpath("tests/deployment/payment_flows_prolific").__str__()
         in dirs
     )
 
@@ -212,7 +212,7 @@ def test_demo_dirs():
         not in dirs
     )
     assert (
-        psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
+        psynet_root.joinpath("tests/deployment/payment_flows_prolific").__str__()
         not in dirs
     )
 
