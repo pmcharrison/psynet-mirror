@@ -42,7 +42,7 @@ from .command_line import (
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .experiment_scaffold import (
-    restore_in_repo_experiment_directory,
+    prune_experiment_scaffold,
     scaffold_experiment_directory,
 )
 from .modular_page import ModularPage, PushButtonControl
@@ -385,7 +385,8 @@ def in_experiment_directory(experiment_directory):
             # Restore authored-only layout for in-repo demos/tests so later
             # isolated tests on the same CI shard are not polluted.
             try:
-                restore_in_repo_experiment_directory()
+                if is_in_repo_experiment():
+                    prune_experiment_scaffold(force=True, preserve_tracked=True)
             except Exception as exc:
                 cleanup_error = exc
     clean_sys_modules()

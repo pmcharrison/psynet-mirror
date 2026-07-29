@@ -2361,7 +2361,7 @@ def test_scripts_update_reports_only_actual_changes(tmp_path):
         assert Path("docker/run").read_text() == expected_run_script
 
 
-def test_scripts_prune_removes_boilerplate_and_keeps_readme():
+def test_scripts_prune_removes_boilerplate_and_preserves_divergent_readme():
     runner = CliRunner()
 
     with tempfile.TemporaryDirectory() as dir:
@@ -2380,6 +2380,7 @@ def test_scripts_prune_removes_boilerplate_and_keeps_readme():
             result = runner.invoke(psynet, ["scripts", "prune"])
 
             assert result.exit_code == 0
+            # Divergent README is preserved without --force (no special README rule).
             assert Path("README.md").read_text() == "# Minimal demo\n"
             assert Path("requirements.txt").exists()
             assert Path("constraints.txt").exists()
@@ -2469,7 +2470,40 @@ def test_scripts_prune_force_removes_modified_boilerplate(tmp_path):
     assert not (tmp_path / "test.py").exists()
     assert not (tmp_path / "docker").exists()
     assert not (tmp_path / "config.txt").exists()
-    assert (tmp_path / "README.md").read_text() == "# Custom README\n"
+    assert not (tmp_path / "README.md").exists()
+
+
+def test_scripts_prune_preserve_tracked_keeps_git_tracked_readme(tmp_path):
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet==0.0.0\n")
+        Path("README.md").write_text("# Tracked README\n")
+        subprocess.run(["git", "init", "-q"], check=True)
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.email=test@example.com",
+                "-c",
+                "user.name=Test",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            check=True,
+        )
+        scaffold_experiment_directory(overwrite=True)
+        Path("README.md").write_text("# Tracked README\n")
+
+        result = CliRunner().invoke(
+            psynet, ["scripts", "prune", "--force", "--preserve-tracked"]
+        )
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "README.md").read_text() == "# Tracked README\n"
+    assert not (tmp_path / "Dockerfile").exists()
+    assert not (tmp_path / "test.py").exists()
 
 
 def test_scripts_group_help_lists_subcommands():
@@ -2529,22 +2563,19 @@ def test_scaffold_makes_docker_entries_executable():
                 assert path.stat().st_mode & stat.S_IXUSR
 
 
-def test_prune_experiment_scaffold_keeps_readme_only():
+def test_prune_experiment_scaffold_preserves_divergent_config_without_force():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             Path("experiment.py").write_text("class Exp:\n    pass\n")
             Path("requirements.txt").write_text("psynet==0.0.0\n")
             Path("constraints.txt").write_text("psynet==0.0.0\n")
-            Path("README.md").write_text("# Minimal demo\n")
 
             scaffold_experiment_directory(overwrite=True)
-            Path("README.md").write_text("# Minimal demo\n")
             custom_config = "[Config]\ntitle = Custom experiment\n"
             Path("config.txt").write_text(custom_config)
 
-            prune_result = prune_experiment_scaffold(preserve_files={"README.md"})
+            prune_result = prune_experiment_scaffold()
 
-            assert Path("README.md").read_text() == "# Minimal demo\n"
             assert Path("requirements.txt").exists()
             assert Path("constraints.txt").exists()
             assert Path("Dockerfile").exists() is False
@@ -2575,7 +2606,7 @@ def test_prune_experiment_scaffold_propagates_directory_deletion_errors(
         )
 
         with pytest.raises(PermissionError, match="docker"):
-            prune_experiment_scaffold(preserve_files={"README.md"})
+            prune_experiment_scaffold()
 
 
 def test_remove_empty_parent_dirs_stops_at_workspace_root(tmp_path, monkeypatch):

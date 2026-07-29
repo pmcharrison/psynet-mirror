@@ -163,8 +163,16 @@ def scripts_update(ctx):
     is_flag=True,
     help="Remove unrecognized scaffold paths without checking their contents.",
 )
+@click.option(
+    "--preserve-tracked",
+    is_flag=True,
+    help=(
+        "Never delete paths tracked by git in this directory. Also removes "
+        "generated static/assets and an untracked constraints.txt."
+    ),
+)
 @click.pass_context
-def scripts_prune(ctx, force):
+def scripts_prune(ctx, force, preserve_tracked):
     """Remove scaffold-managed boilerplate files from the experiment directory."""
     from pathlib import Path
 
@@ -183,7 +191,7 @@ def scripts_prune(ctx, force):
             "The current directory is not a valid PsyNet experiment "
             "(missing experiment.py)."
         )
-    prune_experiment_scaffold(preserve_files={"README.md"}, force=force)
+    prune_experiment_scaffold(force=force, preserve_tracked=preserve_tracked)
 
 
 # -- services ---------------------------------------------------------------

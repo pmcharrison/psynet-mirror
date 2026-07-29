@@ -261,14 +261,18 @@ preserved. This is **not** ``psynet installation update``.
 ^^^^^^^^^
 
 Remove scaffold-managed boilerplate, leaving authored files such as
-``experiment.py`` and ``requirements.txt``. ``README.md`` is always preserved.
-Paths that differ from current templates (including customized ``config.txt``)
-are preserved by default; ``--force`` removes them without checking contents.
+``experiment.py`` and ``requirements.txt``. Paths that differ from current
+templates (including customized ``config.txt`` and ``README.md``) are
+preserved by default; ``--force`` removes them without checking contents.
+``--preserve-tracked`` keeps any path that is tracked by git, even under
+``--force``, and also removes generated ``static/assets`` plus an untracked
+``constraints.txt`` (used after in-repo demo tests in CI).
 
 .. code:: bash
 
   psynet scripts prune
   psynet scripts prune --force
+  psynet scripts prune --force --preserve-tracked
 
 
 .. _generate_constraints:

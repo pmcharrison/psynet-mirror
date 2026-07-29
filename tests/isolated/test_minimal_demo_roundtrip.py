@@ -292,16 +292,10 @@ def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
     assert not (Path(demo) / "Dockerfile").exists()
 
 
-def test_restore_in_repo_experiment_directory_removes_generated_files(tmp_path):
-    from psynet.experiment_scaffold import (
-        restore_in_repo_experiment_directory,
-        scaffold_experiment_directory,
-    )
-
+def test_prune_preserve_tracked_keeps_git_files_and_removes_generated(tmp_path):
     demo = Path(path_to_demo_experiment("hello_world"))
-    restore_in_repo_experiment_directory(demo)
-
     with working_directory(demo):
+        prune_experiment_scaffold(force=True, preserve_tracked=True)
         scaffold_experiment_directory()
         Path("constraints.txt").write_text("# leftover\n")
         Path("static").mkdir(exist_ok=True)
@@ -314,9 +308,9 @@ def test_restore_in_repo_experiment_directory_removes_generated_files(tmp_path):
         assets.symlink_to(tmp_path / "missing-assets")
         assert Path("test.py").exists()
 
-        result = restore_in_repo_experiment_directory()
+        result = prune_experiment_scaffold(force=True, preserve_tracked=True)
 
-    assert result["skipped"] is False
+    assert "README.md" in result["preserved_tracked"]
     assert result["removed_assets"] is True
     assert result["removed_constraints"] is True
     assert not (demo / "test.py").exists()
@@ -327,18 +321,19 @@ def test_restore_in_repo_experiment_directory_removes_generated_files(tmp_path):
     assert (demo / "README.md").exists()
 
 
-def test_restore_in_repo_experiment_directory_skips_non_repo_trees(tmp_path):
-    from psynet.experiment_scaffold import restore_in_repo_experiment_directory
-
+def test_prune_force_without_preserve_tracked_can_delete_untracked_readme(tmp_path):
     experiment_dir = tmp_path / "standalone"
     experiment_dir.mkdir()
-    (experiment_dir / "experiment.py").write_text("class Exp:\n    pass\n")
-    (experiment_dir / "Dockerfile").write_text("FROM scratch\n")
+    with working_directory(experiment_dir):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet\n")
+        scaffold_experiment_directory()
+        Path("README.md").write_text("# Custom README\n")
 
-    result = restore_in_repo_experiment_directory(experiment_dir)
+        prune_experiment_scaffold(force=True)
 
-    assert result == {"skipped": True}
-    assert (experiment_dir / "Dockerfile").exists()
+        assert not Path("README.md").exists()
+        assert Path("experiment.py").exists()
 
 
 def _hash_file(path: Path) -> str:
@@ -364,6 +359,21 @@ def _copy_demo_to_tmp(src: Path, tmp_path: Path, label: str, *, init_git=True) -
     shutil.copytree(src, target, ignore=_ignore_generated_static_assets(src))
     if init_git:
         subprocess.run(["git", "init", "-q"], cwd=target, check=True)
+        subprocess.run(["git", "add", "-A"], cwd=target, check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.email=test@example.com",
+                "-c",
+                "user.name=Test",
+                "commit",
+                "-qm",
+                "init",
+            ],
+            cwd=target,
+            check=True,
+        )
     return target
 
 
@@ -460,7 +470,7 @@ def test_minimal_demo_prompts_for_scaffold_before_debug(tmp_path):
         Path(path_to_demo_feature("api")), tmp_path, "features/api"
     )
     with working_directory(demo_path):
-        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
+        prune_experiment_scaffold(force=True, preserve_tracked=True)
 
     result = _run_command(
         ["psynet", "debug", "local", "--legacy", "--no-browsers"], demo_path
@@ -486,7 +496,7 @@ def test_relative_imports_work_in_minimal_demo_without_init_py(tmp_path):
         Path(path_to_demo_feature("api")), tmp_path, "features/api"
     )
     with working_directory(demo_path):
-        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
+        prune_experiment_scaffold(force=True, preserve_tracked=True)
 
     assert not (demo_path / "__init__.py").exists()
 
@@ -533,7 +543,7 @@ def test_demo_roundtrip_preserves_authored_files(label, demo_path, tmp_path):
     original_snapshot = _preserved_snapshot(temp_demo)
 
     with working_directory(temp_demo):
-        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
+        prune_experiment_scaffold(force=True, preserve_tracked=True)
 
     assert _preserved_snapshot(temp_demo) == original_snapshot
 
@@ -552,7 +562,7 @@ def test_demo_roundtrip_runs_local_test_command(label, demo_path, tmp_path):
     temp_demo = _copy_demo_to_tmp(demo_path, tmp_path, label)
 
     with working_directory(temp_demo):
-        prune_experiment_scaffold(preserve_files={"README.md"}, force=True)
+        prune_experiment_scaffold(force=True, preserve_tracked=True)
 
     scaffold_result = _run_command(["psynet", "scripts", "scaffold"], temp_demo)
     assert scaffold_result.returncode == 0, scaffold_result.stderr

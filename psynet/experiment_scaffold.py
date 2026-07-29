@@ -12,7 +12,7 @@ from urllib.parse import unquote, urlparse
 
 import click
 
-from psynet.light_utils import is_in_repo_experiment, md5_directory
+from psynet.light_utils import md5_directory
 from psynet.version import psynet_version
 
 _TEMPLATE_FILES = (
@@ -827,9 +827,27 @@ def scaffold_experiment_directory(
     return {"written": written, "skipped": skipped}
 
 
-def prune_experiment_scaffold(*, preserve_files=None, force=False):
-    """Remove unmodified scaffold files while preserving authored experiment files."""
+def prune_experiment_scaffold(
+    *, preserve_files=None, force=False, preserve_tracked=False
+):
+    """Remove unmodified scaffold files while preserving authored experiment files.
+
+    Parameters
+    ----------
+    preserve_files :
+        Extra relative paths to leave untouched.
+    force :
+        When true, delete scaffold paths even if they differ from the current
+        templates. When false, divergent paths are preserved and reported.
+    preserve_tracked :
+        When true, never delete paths that are tracked by git in this directory.
+        Also removes generated ``static/assets`` and an untracked
+        ``constraints.txt``. Intended for restoring authored-only in-repo demo
+        trees after tests.
+    """
     preserve_files = set(preserve_files or [])
+    tracked = _git_tracked_paths(Path(".")) if preserve_tracked else set()
+    preserve_files |= tracked
     managed_paths = scaffold_managed_paths()
     _assert_scaffold_paths_are_safe(managed_paths - preserve_files)
     preserved_unrecognized = []
@@ -859,11 +877,17 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
             shutil.rmtree(path)
             removed.append(relative_path)
 
+    preserved_tracked = sorted(
+        relative_path
+        for relative_path in managed_paths & tracked
+        if Path(relative_path).exists()
+    )
+
     if removed:
         click.echo(
             "Removed scaffold-managed boilerplate: " + ", ".join(sorted(removed))
         )
-    elif not preserved_unrecognized:
+    elif not preserved_unrecognized and not preserved_tracked:
         click.echo("Nothing to prune; no matching scaffold-managed files found.")
 
     if preserved_unrecognized:
@@ -880,11 +904,23 @@ def prune_experiment_scaffold(*, preserve_files=None, force=False):
             "'psynet scripts prune --force'."
         )
 
+    removed_assets = False
+    removed_constraints = False
+    if preserve_tracked:
+        removed_assets = _remove_generated_static_assets(Path("."))
+        constraints = Path("constraints.txt")
+        if constraints.exists() and "constraints.txt" not in tracked:
+            constraints.unlink()
+            removed_constraints = True
+
     _remove_empty_resource_directories()
 
     return {
         "preserved_unrecognized": preserved_unrecognized,
+        "preserved_tracked": preserved_tracked,
         "removed": removed,
+        "removed_assets": removed_assets,
+        "removed_constraints": removed_constraints,
     }
 
 
@@ -916,60 +952,3 @@ def _remove_generated_static_assets(root: Path) -> bool:
         static_directory.rmdir()
         removed = True
     return removed
-
-
-def _remove_pycache_directories(root: Path) -> bool:
-    """Remove ``__pycache__`` directories under an experiment tree."""
-    removed = False
-    for path in sorted(root.rglob("__pycache__"), reverse=True):
-        if path.is_dir():
-            shutil.rmtree(path)
-            removed = True
-    return removed
-
-
-def restore_in_repo_experiment_directory(root: Path | str | None = None) -> dict:
-    """Remove disposable scaffold/runtime files from an in-repo experiment tree.
-
-    Used by the pytest harness after demo/experiment tests so CI shards do not
-    leave generated boilerplate that would pollute later isolated tests.
-    Git-tracked files are preserved. No-op when ``root`` is not an in-repo
-    experiment.
-
-    Parameters
-    ----------
-    root :
-        Experiment directory. Defaults to the current working directory.
-
-    Returns
-    -------
-    dict
-        Summary with ``skipped``, ``removed_assets``, and prune results when
-        cleanup runs.
-    """
-    from psynet.utils import working_directory
-
-    base = Path(".") if root is None else Path(root)
-    if not is_in_repo_experiment(base):
-        return {"skipped": True}
-
-    with working_directory(base):
-        removed_assets = _remove_generated_static_assets(Path("."))
-        removed_pycache = _remove_pycache_directories(Path("."))
-        tracked = _git_tracked_paths(Path("."))
-        preserve = set(tracked) | {"README.md"}
-        prune_result = prune_experiment_scaffold(preserve_files=preserve, force=True)
-
-        constraints = Path("constraints.txt")
-        removed_constraints = False
-        if constraints.exists() and "constraints.txt" not in tracked:
-            constraints.unlink()
-            removed_constraints = True
-
-    return {
-        "skipped": False,
-        "removed_assets": removed_assets,
-        "removed_pycache": removed_pycache,
-        "removed_constraints": removed_constraints,
-        **prune_result,
-    }
