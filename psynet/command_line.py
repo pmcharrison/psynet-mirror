@@ -3602,7 +3602,8 @@ def _terminate_server_process(process):
         process.sendcontrol("c")
         process.expect_exact(pexpect.EOF, timeout=15)
         finished = True
-    except (pexpect.TIMEOUT, pexpect.EOF):
+    except (OSError, pexpect.TIMEOUT, pexpect.EOF):
+        # OSError is common when the PTY is already gone; still escalate below.
         pass
 
     if not finished:

@@ -475,13 +475,21 @@ def debug_experiment(
         # next test class resets the database; a short Ctrl-C + log flush is
         # not enough and can leave backends holding locks during drop_all.
         try:
-            flush_output(p, timeout=0.1)
-            stop_local_debug_process(p)
-        except (IOError, OSError, pexpect.exceptions.EOF):
-            pass
-        kill_psynet_chrome_processes()
-        kill_chromedriver_processes()
-        clear_all_caches()
+            try:
+                flush_output(p, timeout=0.1)
+                stop_local_debug_process(p)
+            except (OSError, pexpect.exceptions.EOF) as err:
+                logger.warning(
+                    "Error while stopping the debug experiment process: %s", err
+                )
+            except Exception:
+                logger.exception(
+                    "Unexpected error while stopping the debug experiment process"
+                )
+        finally:
+            kill_psynet_chrome_processes()
+            kill_chromedriver_processes()
+            clear_all_caches()
 
 
 dallinger.pytest_dallinger.debug_experiment = debug_experiment
@@ -514,6 +522,10 @@ def init_db_with_retries(max_attempts=3, wait_sec=2.0):
     The primary mitigation for between-test deadlocks is waiting for the
     previous experiment server to fully stop in ``debug_experiment`` teardown.
     This retry is a cheap backstop for rare residual timing races.
+
+    Calls ``dallinger.db.init_db``, which is PsyNet's patched version once
+    ``psynet.data`` has been imported (as it is via the pytest_psynet import
+    graph). That wrapper closes sessions before ``drop_all``.
     """
     import dallinger.db
     from sqlalchemy.orm.session import close_all_sessions

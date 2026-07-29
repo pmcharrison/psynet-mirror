@@ -1055,6 +1055,26 @@ def test_stop_local_debug_process_reaps_workers_even_if_terminate_fails():
     kill_workers.assert_called_once()
 
 
+def test_terminate_server_process_escalates_when_sendcontrol_raises_oserror():
+    from psynet.command_line import _terminate_server_process
+
+    process = Mock()
+    process.isalive.return_value = True
+    process.pid = 12345
+    process.sendcontrol.side_effect = OSError("PTY already gone")
+    process.expect_exact.side_effect = [None]  # SIGTERM wait succeeds
+
+    with (
+        patch("psynet.command_line.os.getpgid", return_value=12345),
+        patch("psynet.command_line.os.killpg") as killpg,
+    ):
+        _terminate_server_process(process)
+
+    process.sendcontrol.assert_called_once_with("c")
+    killpg.assert_called()
+    process.close.assert_called_once_with(force=True)
+
+
 def test_load_runtime_server_config_loads_generated_config():
     from psynet.command_line import _load_runtime_server_config
 
