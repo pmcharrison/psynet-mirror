@@ -41,7 +41,10 @@ from .command_line import (
 )
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
-from .experiment_scaffold import scaffold_experiment_directory
+from .experiment_scaffold import (
+    restore_in_repo_experiment_directory,
+    scaffold_experiment_directory,
+)
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .test_helpers.mock_s3 import (
@@ -362,6 +365,7 @@ def in_experiment_directory(experiment_directory):
         )
     loaded_experiment_directory = experiment_directory
     redis_vars.clear()
+    cleanup_error = None
     with working_directory(experiment_directory):
         scaffold_experiment_directory()
         # In-repo experiments skip dependency checks at runtime via
@@ -378,8 +382,16 @@ def in_experiment_directory(experiment_directory):
                 os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
             else:
                 os.environ["SKIP_DEPENDENCY_CHECK"] = original_skip_dependency_check
+            # Restore authored-only layout for in-repo demos/tests so later
+            # isolated tests on the same CI shard are not polluted.
+            try:
+                restore_in_repo_experiment_directory()
+            except Exception as exc:
+                cleanup_error = exc
     clean_sys_modules()
     clear_all_caches()
+    if cleanup_error is not None:
+        raise cleanup_error
 
 
 @pytest.fixture(scope="class")

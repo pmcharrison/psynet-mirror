@@ -22,7 +22,10 @@ EXIT_CODE=0
 
 for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing experiment $file"
-  echo "Scaffolding any missing demo boilerplate for $file"
+  # Materialize ignored boilerplate (including test.py) so pytest can collect.
+  # The in_experiment_directory fixture also scaffolds, then restores the
+  # authored-only tree on teardown; the explicit restore below is a backstop
+  # when collection fails before fixtures run.
   if ! (cd "$file" && psynet scripts scaffold --skip-constraints); then
     EXIT_CODE=1
     continue
@@ -37,7 +40,12 @@ for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NOD
     -o log_cli=False \
     --chrome \
     --timeout=$TIMEOUT_SECONDS
-  if [ $? -ne 0 ]; then
+  status=$?
+  if ! (cd "$file" && python -c "from psynet.experiment_scaffold import restore_in_repo_experiment_directory as r; r()"); then
+    echo "Failed to restore authored-only layout for $file"
+    EXIT_CODE=1
+  fi
+  if [ $status -ne 0 ]; then
     EXIT_CODE=1
   fi
 done

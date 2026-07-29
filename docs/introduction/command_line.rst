@@ -189,9 +189,11 @@ cancel, write files only, or install into the repository ``.venv`` anyway.
 **Inside bundled demos / test experiments**, ``psynet setup`` always performs
 only lightweight file preparation and never installs packages or rewrites
 requirements. You do not need ``--no-install`` there; that behavior is
-automatic. PsyNet CI uses ``psynet scripts scaffold --skip-constraints`` for
-the same reason. After preparation it only **verifies** local services (it
-does not offer to start Docker containers).
+automatic. PsyNet CI scaffolds ignored demo boilerplate before collecting
+``test.py``, and the pytest harness restores the authored-only tree afterwards
+so later isolated tests are not polluted. After preparation, ``psynet setup``
+in demos only **verifies** local services (it does not offer to start Docker
+containers).
 
 
 .. _services:

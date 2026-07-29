@@ -278,6 +278,7 @@ def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
     try:
         next(generator)
         assert "SKIP_DEPENDENCY_CHECK" not in os.environ
+        assert (Path(demo) / "test.py").exists()
     finally:
         try:
             next(generator)
@@ -285,6 +286,59 @@ def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
             pass
         pytest_psynet.loaded_experiment_directory = None
         os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+
+    # Teardown restores the authored-only tree.
+    assert not (Path(demo) / "test.py").exists()
+    assert not (Path(demo) / "Dockerfile").exists()
+
+
+def test_restore_in_repo_experiment_directory_removes_generated_files(tmp_path):
+    from psynet.experiment_scaffold import (
+        restore_in_repo_experiment_directory,
+        scaffold_experiment_directory,
+    )
+
+    demo = Path(path_to_demo_experiment("hello_world"))
+    restore_in_repo_experiment_directory(demo)
+
+    with working_directory(demo):
+        scaffold_experiment_directory()
+        Path("constraints.txt").write_text("# leftover\n")
+        Path("static").mkdir(exist_ok=True)
+        assets = Path("static/assets")
+        if assets.exists() or assets.is_symlink():
+            if assets.is_dir() and not assets.is_symlink():
+                shutil.rmtree(assets)
+            else:
+                assets.unlink()
+        assets.symlink_to(tmp_path / "missing-assets")
+        assert Path("test.py").exists()
+
+        result = restore_in_repo_experiment_directory()
+
+    assert result["skipped"] is False
+    assert result["removed_assets"] is True
+    assert result["removed_constraints"] is True
+    assert not (demo / "test.py").exists()
+    assert not (demo / "Dockerfile").exists()
+    assert not (demo / "constraints.txt").exists()
+    assert not (demo / "static" / "assets").exists()
+    assert (demo / "experiment.py").exists()
+    assert (demo / "README.md").exists()
+
+
+def test_restore_in_repo_experiment_directory_skips_non_repo_trees(tmp_path):
+    from psynet.experiment_scaffold import restore_in_repo_experiment_directory
+
+    experiment_dir = tmp_path / "standalone"
+    experiment_dir.mkdir()
+    (experiment_dir / "experiment.py").write_text("class Exp:\n    pass\n")
+    (experiment_dir / "Dockerfile").write_text("FROM scratch\n")
+
+    result = restore_in_repo_experiment_directory(experiment_dir)
+
+    assert result == {"skipped": True}
+    assert (experiment_dir / "Dockerfile").exists()
 
 
 def _hash_file(path: Path) -> str:
