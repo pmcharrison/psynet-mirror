@@ -1132,13 +1132,12 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         )
 
 
-# Keeps the finalize backstop poller cheap: only rows still in the
-# complete-but-not-finalized window are indexed.
+# Keeps the finalize backstop poller cheap: a compact list of row IDs still
+# in the complete-but-not-finalized window (predicate columns are constant
+# inside that window, so we index id rather than complete/finalized/failed).
 Index(
     "ix_info_pending_finalization",
-    Trial.complete,
-    Trial.finalized,
-    Trial.failed,
+    Trial.id,
     postgresql_where=text(
         "complete IS true AND finalized IS false AND failed IS false"
     ),
