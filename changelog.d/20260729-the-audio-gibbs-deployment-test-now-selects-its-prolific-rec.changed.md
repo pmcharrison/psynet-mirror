@@ -1,0 +1,1 @@
+The `audio_gibbs` deployment test now selects its Prolific recruiter via the config file: `config.txt` defaults to the simulated `devprolific` recruiter for safe local runs, and `config.txt.prolific` opts into real recruitment for paid deployments.
