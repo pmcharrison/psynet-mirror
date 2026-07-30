@@ -1,14 +1,25 @@
-"""Audio Gibbs sampler test experiment with a safe HotAir default.
+"""Audio Gibbs sampler test experiment.
 
 Participants adjust a slider to make a synthesized word sound as
 "dominant" or "trustworthy" as possible. Compared to the sibling
 payment-flow test experiment, this one additionally exercises on-the-fly
 audio synthesis (parselmouth), asset generation and storage, parallel
-async worker processes, and a headphone prescreen. Recruiter-specific
-deployment variants live in ``experiment.py.prolific`` and
-``experiment.py.lucid``.
+async worker processes, and a headphone prescreen.
+
+The recruiter is selected via the config file rather than in this experiment file:
+
+- ``config.txt`` (default) sets ``recruiter = devprolific``, which simulates the Prolific API
+    locally (requests are logged instead of sent, and no credentials or payments are involved), so
+    running this directory directly cannot accidentally start paid recruitment.
+- ``config.txt.prolific`` sets ``recruiter = prolific`` and is swapped in explicitly for paid test
+    deployments with real participants.
+
+The Lucid variant still lives in ``experiment.py.lucid`` (with ``config.txt.lucid``) because its
+timeline and Experiment class genuinely differ (LucidConsent, a welcome page, and a ``recruit()``
+override).
 """
 
+import json
 import os
 import sys
 from typing import List
@@ -117,12 +128,24 @@ trial_maker = CustomTrialMaker(
 )
 
 
-def get_hotair_settings():
-    """Return recruiter settings safe for local runs."""
+def get_prolific_settings():
+    """Prolific-related settings shared by both recruiters.
+
+    The recruiter itself is set in ``config.txt`` (``devprolific`` by default,
+    ``prolific`` in ``config.txt.prolific`` for paid deployments); see the
+    module docstring.
+    """
+    with open("qualification_prolific_en.json", "r") as f:
+        qualification = json.dumps(json.load(f))
+
     return {
-        "recruiter": "hotair",
         "base_payment": 0.50,
         "prolific_estimated_completion_minutes": 3,
+        "prolific_recruitment_config": qualification,
+        # True so deployment tests exercise the programmatic top-up path
+        # (ProlificRecruiter.recruit); recruitment grows from
+        # INITIAL_RECRUITMENT_SIZE toward TARGET_N_PARTICIPANTS.
+        "auto_recruit": True,
         "currency": "£",
         "wage_per_hour": 10,
     }
@@ -132,7 +155,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Audio game - play with sounds."
     asset_storage = LocalStorage()
     config = {
-        **get_hotair_settings(),
+        **get_prolific_settings(),
         "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
         "force_incognito_mode": False,
         "title": "Sound game: play with sounds (Chrome browser, Headphones required ~3 min)",
