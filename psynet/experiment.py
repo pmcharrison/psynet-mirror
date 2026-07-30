@@ -1638,6 +1638,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             logger.info("Finished growing networks.")
 
+    @scheduled_task("interval", seconds=5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _finalize_pending_trials():
+        if not is_experiment_launched():
+            return
+        from psynet.trial.main import Trial
+
+        # Event-driven finalize checks remain the fast path. This poller only
+        # recovers trials that became ready without those callbacks running.
+        Trial.finalize_pending_trials()
+
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
     @staticmethod

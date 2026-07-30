@@ -17,6 +17,7 @@ from sqlalchemy import (
     Column,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     and_,
@@ -25,6 +26,7 @@ from sqlalchemy import (
     not_,
     or_,
     select,
+    text,
 )
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -756,47 +758,100 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
+        """Finalize the trial when complete and no blockers remain.
+
+        Expected intermediate states (pending assets, pending async work, or
+        failure) are silent; callers and the finalize backstop poller re-check
+        as preconditions clear.
+        """
         if not self.complete:
             return
         if self.finalized:
             return
         if self.failed:
-            logger.info("Cannot mark as finalized because the trial is failed.")
-        elif self.asset_deposit_pending:
+            return
+        if self.asset_deposit_pending:
+            return
+        if self.async_post_trial_requested and not self.async_post_trial_complete:
+            return
+        self.finalized = True
+        self.on_finalized()
+
+    @classmethod
+    def _ready_to_finalize_condition(cls):
+        """SQL condition for trials that appear ready to finalize."""
+        return and_(
+            cls.complete.is_(True),
+            cls.finalized.is_(False),
+            cls.failed.is_(False),
+            ~cls.asset_deposit_pending,
+            ~and_(
+                cls.async_post_trial_requested.is_(True),
+                cls.async_post_trial_complete.is_(False),
+            ),
+        )
+
+    @classmethod
+    def ready_to_finalize_id_select(cls):
+        """Select IDs of trials that appear ready to finalize."""
+        return select(cls.id).where(cls._ready_to_finalize_condition())
+
+    @classmethod
+    def get_trials_ready_to_finalize(cls):
+        """
+        Return trials that appear ready to finalize, locking them for update.
+
+        Locks IDs first with ``skip_locked=True`` so the poller stays
+        non-blocking when participant requests or async workers already hold
+        a row lock. Known blockers (undeposited assets, pending async
+        post-trial) are excluded in SQL so the steady-state result is empty.
+        """
+        id_rows = db.session.execute(
+            cls.ready_to_finalize_id_select().with_for_update(of=cls, skip_locked=True)
+        ).all()
+        trial_ids = [row[0] for row in id_rows]
+        if not trial_ids:
+            return []
+        return cls.query.filter(cls.id.in_(trial_ids)).populate_existing().all()
+
+    @classmethod
+    def finalize_pending_trials(cls):
+        """
+        Backstop for missed event-driven finalize checks.
+
+        The participant response path, asset deposit callbacks, and async
+        post-trial completion remain the fast path. This method recovers
+        trials that became ready without those callbacks running.
+        """
+        trials = cls.get_trials_ready_to_finalize()
+        if not trials:
+            return 0
+        finalized_count = 0
+        for trial in trials:
+            trial.check_if_can_mark_as_finalized()
+            if trial.finalized:
+                finalized_count += 1
+        if finalized_count:
             logger.info(
-                "Cannot mark as finalized yet because the trial is awaiting an asset deposit."
+                "Finalize backstop marked %i trial(s) as finalized.",
+                finalized_count,
             )
-        elif self.async_post_trial_requested and not self.async_post_trial_complete:
-            logger.info(
-                "Cannot mark as finalized yet because the trial is awaiting async_post_trial."
-            )
-        else:
-            self.finalized = True
-            self.on_finalized()
+        return finalized_count
 
     def check_if_can_run_async_post_trial(self):
-        msg = "Checking if we should run async_post_trial... "
-        answer = False
-
         if self.async_post_trial_requested:
-            msg += "no need, async_post_trial has already been requested."
+            return
 
-        elif self.run_async_post_trial is not None and not self.run_async_post_trial:
-            msg += "no need, as run_async_post_trial is False."
+        if self.run_async_post_trial is not None and not self.run_async_post_trial:
+            return
 
-        elif not is_method_overridden(self, Trial, "async_post_trial"):
-            msg += "no need, as no async_post_trial method is defined."
+        if not is_method_overridden(self, Trial, "async_post_trial"):
+            return
 
-        elif self.asset_deposit_pending:
-            msg += "the trial is awaiting an asset deposit, so we have to wait."
+        if self.asset_deposit_pending:
+            return
 
-        else:
-            msg = "All conditions seem to be satisfied, calling call_async_post_trial if it hasn't been called already."
-            answer = True
-
-        logger.info(msg)
-        if answer:
-            self.queue_async_post_trial()
+        self.queue_async_post_trial()
 
     def queue_async_post_trial(self):
         self.async_post_trial_requested = True
@@ -1042,6 +1097,19 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             )
             .exists()
         )
+
+
+# Keeps the finalize backstop poller cheap: only rows still in the
+# complete-but-not-finalized window are indexed.
+Index(
+    "ix_info_pending_finalization",
+    Trial.complete,
+    Trial.finalized,
+    Trial.failed,
+    postgresql_where=text(
+        "complete IS true AND finalized IS false AND failed IS false"
+    ),
+)
 
 
 class TrialMakerState(ModuleState):
