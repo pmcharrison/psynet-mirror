@@ -246,6 +246,28 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         # (see Experiment.recruiter_exit_info and Experiment.bonus).
         return self.approve_assignment()
 
+    def approve_hit(self, assignment_id: str):
+        """Skip Prolific approval for participants paid via the screen-out code.
+
+        Such submissions are screened out by Prolific automatically, so they are
+        never in ``AWAITING REVIEW`` status; attempting to approve them would
+        trigger Dallinger's retry loop and a spurious recruitment error.
+        """
+        if self.pays_unsuccessful_participants_via_screen_out:
+            participant = (
+                Participant.query.filter_by(assignment_id=assignment_id)
+                .order_by(Participant.id.desc())
+                .first()
+            )
+            if participant is not None and participant.failed:
+                logger.info(
+                    "Skipping Prolific approval for assignment %s: the participant "
+                    "failed and is paid via the screen-out completion code.",
+                    assignment_id,
+                )
+                return True
+        return super().approve_hit(assignment_id)
+
     def reject_assignment(self, participant) -> TimelineLogic:
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 

@@ -1,9 +1,11 @@
 import json
 from unittest.mock import MagicMock, PropertyMock, patch
 
+import dallinger.recruiters
 import pytest
 from dallinger.prolific import ProlificServiceException
 
+from psynet.participant import Participant
 from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
@@ -320,6 +322,41 @@ def test_release_participant_branching(failed, payment_configured, expected):
     else:
         reject.assert_called_once_with(participant)
         approve.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "failed,payment_configured,expect_skipped",
+    [
+        (True, True, True),
+        (True, False, False),
+        (False, True, False),
+        (False, False, False),
+    ],
+)
+def test_approve_hit_skips_screened_out_participants(
+    failed, payment_configured, expect_skipped
+):
+    config = make_config(
+        prolific_unsuccessful_base_payment=0.50 if payment_configured else None
+    )
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock(failed=failed)
+
+    query = MagicMock()
+    query.filter_by.return_value.order_by.return_value.first.return_value = participant
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch.object(Participant, "query", query):
+            with patch.object(
+                dallinger.recruiters.ProlificRecruiter, "approve_hit"
+            ) as super_approve:
+                result = recruiter.approve_hit("assignment-1")
+
+    if expect_skipped:
+        super_approve.assert_not_called()
+        assert result is True
+    else:
+        super_approve.assert_called_once_with("assignment-1")
 
 
 def make_participant_with_recruiter(config, failed=True, status="working"):
