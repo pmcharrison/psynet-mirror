@@ -17,7 +17,19 @@ def operational_error(orig):
     return sqlalchemy.exc.OperationalError("DROP TABLE ...", None, orig)
 
 
-def test_retries_on_deadlock_then_succeeds(monkeypatch):
+@pytest.fixture
+def terminate_calls(monkeypatch):
+    """Replace terminate_other_postgres_connections with a counting stub."""
+    calls = []
+    monkeypatch.setattr(
+        pytest_psynet,
+        "terminate_other_postgres_connections",
+        lambda: calls.append("terminate"),
+    )
+    return calls
+
+
+def test_retries_on_deadlock_then_succeeds(terminate_calls, monkeypatch):
     calls = []
 
     def fake_init_db(drop_all=False):
@@ -27,12 +39,19 @@ def test_retries_on_deadlock_then_succeeds(monkeypatch):
         return "session"
 
     monkeypatch.setattr(dallinger.db, "init_db", fake_init_db)
-    monkeypatch.setattr("sqlalchemy.orm.session.close_all_sessions", lambda: None)
     assert pytest_psynet.init_db_with_retries(wait_sec=0) == "session"
     assert calls == [True, True]
+    # Terminate only after a deadlock, never before the first attempt.
+    assert terminate_calls == ["terminate"]
 
 
-def test_non_deadlock_error_propagates_immediately(monkeypatch):
+def test_happy_path_does_not_terminate_backends(terminate_calls, monkeypatch):
+    monkeypatch.setattr(dallinger.db, "init_db", lambda drop_all=False: "session")
+    assert pytest_psynet.init_db_with_retries(wait_sec=0) == "session"
+    assert terminate_calls == []
+
+
+def test_non_deadlock_error_propagates_immediately(terminate_calls, monkeypatch):
     calls = []
 
     def fake_init_db(drop_all=False):
@@ -43,9 +62,10 @@ def test_non_deadlock_error_propagates_immediately(monkeypatch):
     with pytest.raises(sqlalchemy.exc.OperationalError):
         pytest_psynet.init_db_with_retries(wait_sec=0)
     assert len(calls) == 1
+    assert terminate_calls == []
 
 
-def test_persistent_deadlock_raises_after_max_attempts(monkeypatch):
+def test_persistent_deadlock_raises_after_max_attempts(terminate_calls, monkeypatch):
     calls = []
 
     def fake_init_db(drop_all=False):
@@ -53,31 +73,11 @@ def test_persistent_deadlock_raises_after_max_attempts(monkeypatch):
         raise operational_error(FakeDeadlock())
 
     monkeypatch.setattr(dallinger.db, "init_db", fake_init_db)
-    monkeypatch.setattr("sqlalchemy.orm.session.close_all_sessions", lambda: None)
     with pytest.raises(sqlalchemy.exc.OperationalError):
         pytest_psynet.init_db_with_retries(max_attempts=3, wait_sec=0)
     assert len(calls) == 3
-
-
-def test_closes_sessions_between_deadlock_retries(monkeypatch):
-    """Failed transactions must be cleared before the next drop_all attempt."""
-    calls = []
-    close_calls = []
-
-    def fake_init_db(drop_all=False):
-        calls.append(drop_all)
-        if len(calls) == 1:
-            raise operational_error(FakeDeadlock())
-        return "session"
-
-    monkeypatch.setattr(dallinger.db, "init_db", fake_init_db)
-    monkeypatch.setattr(
-        "sqlalchemy.orm.session.close_all_sessions",
-        lambda: close_calls.append("close"),
-    )
-    assert pytest_psynet.init_db_with_retries(wait_sec=0) == "session"
-    assert calls == [True, True]
-    assert close_calls == ["close"]
+    # Terminate between attempts only (not after the final failed attempt).
+    assert terminate_calls == ["terminate", "terminate"]
 
 
 def test_deadlock_pgcode_matches_psycopg2_deadlock_class():

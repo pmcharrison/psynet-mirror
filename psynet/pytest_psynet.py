@@ -505,6 +505,42 @@ def debug_server_process(debug_experiment):
     return debug_experiment
 
 
+def terminate_other_postgres_connections():
+    """
+    Terminate other backends of the current role connected to the test database.
+
+    Used only as a deadlock-retry backstop: the primary mitigation is waiting
+    for the previous experiment server to fully stop in ``debug_experiment``
+    teardown. If a rare leftover session still holds locks during ``drop_all``,
+    terminating those backends clears them before the next attempt.
+
+    Only backends owned by the current database role are targeted: terminating
+    other roles' backends would require extra privileges (raising
+    ``InsufficientPrivilege`` otherwise) and could kill sessions unrelated to
+    the test run, such as a developer's ``psql`` shell.
+
+    Closes local sessions and disposes the engine's connection pool first, so
+    that this process's own idle pooled connections are not terminated out
+    from under it. Connections checked out elsewhere in the process would
+    still be terminated, so this must only run when no other component holds
+    a database connection (as is the case at the test-setup call sites).
+    """
+    from sqlalchemy import text
+    from sqlalchemy.orm.session import close_all_sessions
+
+    close_all_sessions()
+    db.engine.dispose()
+
+    with db.engine.connect() as con:
+        con.execute(
+            text(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                "WHERE datname = current_database() AND pid <> pg_backend_pid() "
+                "AND usename = current_user"
+            )
+        )
+
+
 # Postgres SQLSTATE code for "deadlock detected"; matching on the code rather
 # than the error message keeps detection independent of the server's locale.
 DEADLOCK_PGCODE = "40P01"
@@ -521,14 +557,14 @@ def init_db_with_retries(max_attempts=3, wait_sec=2.0):
 
     The primary mitigation for between-test deadlocks is waiting for the
     previous experiment server to fully stop in ``debug_experiment`` teardown.
-    This retry is a cheap backstop for rare residual timing races.
+    On deadlock, terminate leftover same-role backends and retry; that
+    termination is intentionally not done on the happy path.
 
     Calls ``dallinger.db.init_db``, which is PsyNet's patched version once
     ``psynet.data`` has been imported (as it is via the pytest_psynet import
     graph). That wrapper closes sessions before ``drop_all``.
     """
     import dallinger.db
-    from sqlalchemy.orm.session import close_all_sessions
 
     for attempt in range(1, max_attempts + 1):
         try:
@@ -538,11 +574,11 @@ def init_db_with_retries(max_attempts=3, wait_sec=2.0):
                 raise
             logger.warning(
                 "Deadlock detected while resetting the database "
-                "(attempt %d/%d); retrying...",
+                "(attempt %d/%d); terminating leftover connections and retrying...",
                 attempt,
                 max_attempts,
             )
-            close_all_sessions()
+            terminate_other_postgres_connections()
             time.sleep(wait_sec)
 
 
