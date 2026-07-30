@@ -93,3 +93,22 @@ def test_deadlock_pgcode_matches_psycopg2_deadlock_class():
         psycopg2.errors.lookup(pytest_psynet.DEADLOCK_PGCODE)
         is psycopg2.errors.DeadlockDetected
     )
+
+
+def test_stop_debug_experiment_process_still_stops_when_flush_fails(monkeypatch):
+    """Flush failures must not skip server/worker shutdown."""
+    stop_calls = []
+
+    def fail_flush(*args, **kwargs):
+        raise OSError("PTY gone")
+
+    monkeypatch.setattr(pytest_psynet, "flush_output", fail_flush)
+    monkeypatch.setattr(
+        pytest_psynet,
+        "stop_local_debug_process",
+        lambda process: stop_calls.append(process),
+    )
+
+    process = object()
+    pytest_psynet._stop_debug_experiment_process(process)
+    assert stop_calls == [process]

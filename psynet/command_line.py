@@ -3565,7 +3565,7 @@ def _start_local_server_and_wait_for_ready(
         }
     except (pexpect.TIMEOUT, pexpect.EOF) as exc:
         recent_output = (process.before or "").splitlines()[-50:]
-        _terminate_server_process(process)
+        stop_local_debug_process(process)
 
         if isinstance(exc, pexpect.EOF):
             failure_message = "Server process exited before becoming ready"

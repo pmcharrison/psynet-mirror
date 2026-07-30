@@ -33,6 +33,7 @@ from psynet.participant import Participant
 
 from . import artifact as psynet_artifact
 from . import asset as psynet_asset
+from . import data as _psynet_data  # noqa: F401  # patches dallinger.db.init_db
 from .command_line import (
     clean_sys_modules,
     kill_chromedriver_processes,
@@ -434,7 +435,8 @@ def debug_experiment(
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
     print(f"Launching experiment in directory '{in_experiment_directory}'...")
-    # db_session already reset the database for this test class.
+    # db_session already reset the database for this test class. Brief pause so
+    # any lingering teardown from the previous class can finish before launch.
     time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
@@ -475,17 +477,7 @@ def debug_experiment(
         # next test class resets the database; a short Ctrl-C + log flush is
         # not enough and can leave backends holding locks during drop_all.
         try:
-            try:
-                flush_output(p, timeout=0.1)
-                stop_local_debug_process(p)
-            except (OSError, pexpect.exceptions.EOF) as err:
-                logger.warning(
-                    "Error while stopping the debug experiment process: %s", err
-                )
-            except Exception:
-                logger.exception(
-                    "Unexpected error while stopping the debug experiment process"
-                )
+            _stop_debug_experiment_process(p)
         finally:
             kill_psynet_chrome_processes()
             kill_chromedriver_processes()
@@ -493,6 +485,23 @@ def debug_experiment(
 
 
 dallinger.pytest_dallinger.debug_experiment = debug_experiment
+
+
+def _stop_debug_experiment_process(process):
+    """Flush logs best-effort, then always stop the debug process and workers."""
+    try:
+        flush_output(process, timeout=0.1)
+    except (OSError, pexpect.exceptions.EOF) as err:
+        logger.warning("Error while flushing debug experiment output: %s", err)
+    except Exception:
+        logger.exception("Unexpected error while flushing debug experiment output")
+
+    try:
+        stop_local_debug_process(process)
+    except (OSError, pexpect.exceptions.EOF) as err:
+        logger.warning("Error while stopping the debug experiment process: %s", err)
+    except Exception:
+        logger.exception("Unexpected error while stopping the debug experiment process")
 
 
 @pytest.fixture(scope="class")
@@ -560,9 +569,9 @@ def init_db_with_retries(max_attempts=3, wait_sec=2.0):
     On deadlock, terminate leftover same-role backends and retry; that
     termination is intentionally not done on the happy path.
 
-    Calls ``dallinger.db.init_db``, which is PsyNet's patched version once
-    ``psynet.data`` has been imported (as it is via the pytest_psynet import
-    graph). That wrapper closes sessions before ``drop_all``.
+    Calls ``dallinger.db.init_db``, which is PsyNet's patched version
+    (``psynet.data`` is imported by this module for that side effect). That
+    wrapper closes sessions before ``drop_all``.
     """
     import dallinger.db
 
