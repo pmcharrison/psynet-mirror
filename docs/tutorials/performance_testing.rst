@@ -57,7 +57,8 @@ The behavior of the test is governed by a handful of options:
     The total measurement window in minutes. Timing begins before the first bot
     initializes, so this includes initialization and ramp-up rather than
     guaranteeing the full duration at target concurrency. Choose a run long
-    enough for the target number of bots to become active. Defaults to ``1``.
+    enough for the target number of bots to become active. Defaults to
+    ``Experiment.test_duration_minutes`` (``1`` minute).
 
 ``--stagger``
     The average delay, in seconds, between starting successive bots. Real
