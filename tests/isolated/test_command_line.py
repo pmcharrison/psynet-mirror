@@ -1246,6 +1246,124 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
     load_runtime_config.assert_called_once_with()
 
 
+def test_performance_test_preserves_explicit_zero_options():
+    from psynet.command_line import _run_performance_test_with_existing_server
+
+    experiment = Mock(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        label="test",
+        test_n_bots=3,
+        test_duration_minutes=2.0,
+        test_parallel_stagger_interval_s=0.5,
+        test_time_factor=2.5,
+    )
+    tester = Mock()
+    tester.run.return_value = []
+    bot_log_file = Mock(name="/tmp/psynet_bots_test.log")
+
+    with (
+        patch("logging.getLogger", return_value=Mock(handlers=[])),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch(
+            "psynet.perf_test.PerformanceTester", return_value=tester
+        ) as performance_tester,
+        patch(
+            "psynet.command_line.tempfile.NamedTemporaryFile",
+            return_value=bot_log_file,
+        ),
+    ):
+        _run_performance_test_with_existing_server(
+            n_bots="1",
+            stagger=0,
+            time_factor=0,
+            duration_minutes=0,
+            debug=False,
+        )
+
+    performance_tester.assert_called_once_with(
+        authenticated_session=experiment.authenticated_session,
+        base_url=experiment.base_url,
+        n_bots=experiment.test_n_bots,
+        duration_minutes=0,
+        stagger_interval_s=0.0,
+        time_factor=0,
+    )
+
+
+def test_performance_test_uses_defaults_when_options_omitted():
+    from psynet.command_line import _run_performance_test_with_existing_server
+
+    experiment = Mock(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        label="test",
+        test_n_bots=3,
+        test_duration_minutes=2.0,
+        test_parallel_stagger_interval_s=0.5,
+        test_time_factor=2.5,
+    )
+    tester = Mock()
+    tester.run.return_value = []
+    bot_log_file = Mock(name="/tmp/psynet_bots_test.log")
+
+    with (
+        patch("logging.getLogger", return_value=Mock(handlers=[])),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch(
+            "psynet.perf_test.PerformanceTester", return_value=tester
+        ) as performance_tester,
+        patch(
+            "psynet.command_line.tempfile.NamedTemporaryFile",
+            return_value=bot_log_file,
+        ),
+    ):
+        _run_performance_test_with_existing_server(
+            n_bots=None,
+            stagger=None,
+            time_factor=None,
+            duration_minutes=None,
+            debug=False,
+        )
+
+    performance_tester.assert_called_once_with(
+        authenticated_session=experiment.authenticated_session,
+        base_url=experiment.base_url,
+        n_bots=experiment.test_n_bots,
+        duration_minutes=2.0,
+        stagger_interval_s=0.5,
+        time_factor=1.0,
+    )
+
+
+def test_ssh_performance_test_command_forwards_zero_valued_options():
+    from psynet.command_line import _build_ssh_performance_test_cmd
+
+    assert _build_ssh_performance_test_cmd(
+        n_bots="5",
+        stagger=0,
+        time_factor=0,
+        duration_minutes=0,
+    ) == (
+        "psynet performance-test local --existing "
+        "--n-bots 5 --stagger 0 --time-factor 0 --duration-minutes 0"
+    )
+
+
+def test_ssh_performance_test_command_omits_unspecified_options():
+    from psynet.command_line import _build_ssh_performance_test_cmd
+
+    assert (
+        _build_ssh_performance_test_cmd(
+            n_bots=None,
+            stagger=None,
+            time_factor=None,
+            duration_minutes=None,
+        )
+        == "psynet performance-test local --existing"
+    )
+
+
 @pytest.mark.parametrize(
     "value,expected",
     [
