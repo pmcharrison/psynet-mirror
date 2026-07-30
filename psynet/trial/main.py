@@ -801,11 +801,18 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         """
         Return trials that appear ready to finalize, locking them for update.
 
-        Locks IDs first with ``skip_locked=True`` so the poller stays
-        non-blocking when participant requests or async workers already hold
-        a row lock. Known blockers (undeposited assets, pending async
-        post-trial) are excluded in SQL so the steady-state result is empty.
+        Known blockers (undeposited assets, pending async post-trial) are
+        excluded in SQL so the steady-state result is empty.
+
+        We use a two-step query on purpose: lock candidate IDs first with
+        ``FOR UPDATE SKIP LOCKED``, then load full polymorphic ``Trial``
+        objects by those IDs. Loading polymorphic rows in the locked query
+        can introduce ``DISTINCT``, which PostgreSQL rejects with
+        ``FOR UPDATE``. ``skip_locked`` keeps the poller non-blocking when
+        participant requests or async workers already hold a row lock.
         """
+        # Lock IDs first; polymorphic Trial loads may add DISTINCT, which
+        # PostgreSQL does not allow with FOR UPDATE.
         id_rows = db.session.execute(
             cls.ready_to_finalize_id_select().with_for_update(of=cls, skip_locked=True)
         ).all()
