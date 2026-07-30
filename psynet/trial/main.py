@@ -829,15 +829,41 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         The participant response path, asset deposit callbacks, and async
         post-trial completion remain the fast path. This method recovers
         trials that became ready without those callbacks running.
+
+        Failures are isolated per trial (same idea as network growth): one
+        bad ``on_finalized`` must not leave the whole candidate set retrying
+        forever. ``handle_error`` rolls back the current session, so earlier
+        successes in the same batch are undone and retried on the next poll;
+        the failing trial is marked failed so it is not selected again.
         """
+        from psynet.experiment import get_experiment
+
         trials = cls.get_trials_ready_to_finalize()
         if not trials:
             return 0
+
+        exp = get_experiment()
         finalized_count = 0
-        for trial in trials:
-            trial.check_if_can_mark_as_finalized()
-            if trial.finalized:
-                finalized_count += 1
+        # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+        # holding detached ORM instances for later trials.
+        for trial_id in [trial.id for trial in trials]:
+            trial = db.session.get(cls, trial_id)
+            if trial is None:
+                continue
+            try:
+                trial.check_if_can_mark_as_finalized()
+                if trial.finalized:
+                    finalized_count += 1
+            except Exception as err:
+                if not isinstance(err, exp.HandledError):
+                    exp.handle_error(err, trial=trial)
+                # Rollback undid earlier successes in this batch; they will be
+                # picked up again on the next poll.
+                finalized_count = 0
+                failed_trial = db.session.get(cls, trial_id)
+                if failed_trial is not None and not failed_trial.failed:
+                    failed_trial.fail(reason="finalize_backstop_error")
+
         if finalized_count:
             logger.info(
                 "Finalize backstop marked %i trial(s) as finalized.",

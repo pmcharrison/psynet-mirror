@@ -134,3 +134,56 @@ def test_finalize_pending_trials_skips_blocked_trials(db_session, participant):
     assert Trial.get_trials_ready_to_finalize() == []
     assert Trial.finalize_pending_trials() == 0
     assert trial.finalized is False
+
+
+class ExplodingFinalizeTrial(FinalizeBackstopTrial):
+    def on_finalized(self):
+        raise RuntimeError("intentional finalize backstop failure")
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_finalize_pending_trials_isolates_per_trial_errors(
+    db_session, participant, monkeypatch
+):
+    # handle_error -> report_error -> notifier needs a base URL; skip notifier I/O.
+    monkeypatch.setattr(
+        type(get_experiment()),
+        "log_to_notifier",
+        classmethod(lambda cls, *args, **kwargs: None),
+    )
+
+    exp = get_experiment()
+    trial_maker = _chain_trial_maker()
+    good_network = _create_network(trial_maker, exp)
+    bad_network = _create_network(trial_maker, exp)
+
+    good_trial = _add_complete_unfinalized_trial(good_network.head, participant)
+    bad_trial = ExplodingFinalizeTrial(
+        experiment=exp,
+        node=bad_network.head,
+        participant=participant,
+        propagate_failure=False,
+        is_repeat_trial=False,
+    )
+    bad_trial.answer = 1
+    bad_trial.complete = True
+    bad_trial.finalized = False
+    db.session.add(bad_trial)
+    db.session.commit()
+
+    Trial.finalize_pending_trials()
+    db.session.commit()
+
+    db.session.refresh(good_trial)
+    db.session.refresh(bad_trial)
+    assert bad_trial.failed is True
+    assert "finalize_backstop_error" in (bad_trial.failed_reason or "")
+    # handle_error rolls back the batch, so the good trial is retried next poll.
+    assert good_trial.finalized is False
+    assert Trial.finalize_pending_trials() == 1
+    db.session.commit()
+    db.session.refresh(good_trial)
+    assert good_trial.finalized is True
