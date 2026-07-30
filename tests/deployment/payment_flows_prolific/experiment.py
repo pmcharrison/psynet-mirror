@@ -16,18 +16,45 @@ Participants are assigned to one of four experiment flows based on their partici
     3. **Errored**: Participant hits a deliberate error after accruing the same 3 minutes and lands on
         the error page (skipped for bots so that automated tests pass).
 
-See ``experiment.py.prolific`` for how unsuccessful participants (flows 2 and 3) are paid under the
-different Prolific deployment configurations, and for the checks the experimenter should perform in
-the Prolific dashboard.
+The recruiter is selected via the config file rather than in this experiment file:
 
-This default file uses the HotAir recruiter so running the directory
-directly cannot accidentally start paid recruitment. The deployable paid
-variant lives in ``experiment.py.prolific`` (with ``config.txt.prolific``)
-and is intended to be deployed and run with real participants.
+- ``config.txt`` (default) sets ``recruiter = devprolific``, which simulates the Prolific API
+    locally (requests are logged instead of sent, and no credentials or payments are involved), so
+    running this directory directly cannot accidentally start paid recruitment.
+- ``config.txt.prolific`` sets ``recruiter = prolific`` and is swapped in explicitly for paid test
+    deployments with real participants.
+
+How unsuccessful participants (flows 2 and 3) are paid depends on the deployment configuration
+(see Exp.config below):
+
+- With `prolific_unsuccessful_base_payment` set (e.g. £0.20): unsuccessful participants submit their
+    study normally (flow 3 via the "Submit to Prolific" button on the error page). Prolific marks them
+    as screened out and automatically pays the fixed £0.20, and PsyNet tops them up with a £0.30 bonus
+    to reach their £0.50 accumulated reward. Requires a workspace with Prolific's custom screening
+    feature enabled.
+- Without it, the legacy flows apply: with `prolific_enable_return_for_bonus = True`, flow-2
+    participants are asked to return their submission and then receive their accumulated reward as a
+    bonus; with `False`, they are asked to return and message the experimenter. Flow-3 participants
+    are asked to message the experimenter.
+
+The experimenter should check the following in the Prolific dashboard:
+1. Recruitment: Verify that participants are correctly recruited and appear in the Prolific dashboard for the study.
+2. Completion Status: Check that participants (ID % 4 == 0 and ID % 4 == 1) who complete the experiment are marked
+    as complete in both Prolific and PsyNet.
+3. Prescreening Failures: Confirm that participants (ID % 4 == 2) who fail the prescreening are handled appropriately
+    (marked as returned or screened-out in both Prolific and PsyNet, depending on the configuration, and paid £0.50 in total).
+4. Errors: Confirm that participants (ID % 4 == 3) who hit the error page are handled appropriately
+    (with `prolific_unsuccessful_base_payment` set they should be screened out and paid £0.50 in total via the
+    error page's "Submit to Prolific" button).
+5. Bonus/Reward Payments: For participants (ID % 4 == 0) in the increment performance reward flow, ensure that
+    the bonus payment is correctly set in both Prolific and PsyNet.
+
+This test is intended to be deployed and run with real participants.
 """
 
 # pylint: disable=unused-import,abstract-method,unused-argument
 
+import json
 import os
 import sys
 
@@ -108,12 +135,23 @@ def normal_plus_performance_reward():
     )
 
 
-def get_hotair_settings():
-    """Return recruiter settings safe for local runs."""
+def get_prolific_settings():
+    """Prolific-related settings shared by both recruiters.
+
+    The recruiter itself is set in ``config.txt`` (``devprolific`` by default,
+    ``prolific`` in ``config.txt.prolific`` for paid deployments); see the
+    module docstring.
+    """
+    with open("qualification_prolific_en.json", "r") as f:
+        qualification = json.dumps(json.load(f))
+
     return {
-        "recruiter": "hotair",
         "base_payment": 0.50,
+        "prolific_is_custom_screening": False,
+        "prolific_estimated_completion_minutes": 1,
+        "prolific_recruitment_config": qualification,
         "initial_recruitment_size": 12,
+        "auto_recruit": True,
         "currency": "£",
         "wage_per_hour": 10,
     }
@@ -123,19 +161,26 @@ class Exp(psynet.experiment.Experiment):
     label = "Simple test experiment"
 
     config = {
-        **get_hotair_settings(),
+        **get_prolific_settings(),
         "force_incognito_mode": False,
         "title": "Test experiment (Chrome browser, ~1-2 min)",
         "description": "This is a short technical test of our experimental software. While this is not a real experiment, you will be compensated for your time at the regular rate. We appreciate your help in testing our system.",
         "contact_email_on_error": "computational.audition@gmail.com",
         "organization_name": "Max Planck Institute for Empirical Aesthetics",
         "show_reward": False,
+        # The experiment should be tested with three configurations (three deployments):
+        # 1. prolific_unsuccessful_base_payment = 0.20 (screen-out completion code flow;
+        #    requires a workspace with Prolific's custom screening feature enabled)
+        # 2. prolific_unsuccessful_base_payment unset, prolific_enable_return_for_bonus = True
+        # 3. prolific_unsuccessful_base_payment unset, prolific_enable_return_for_bonus = False
+        "prolific_unsuccessful_base_payment": 0.20,
+        "prolific_enable_return_for_bonus": True,
     }
 
     timeline = Timeline(
         # DURATION/PAYMENT are passed explicitly because this experiment sets
-        # its payment settings in Exp.config rather than config.txt, where the
-        # consent module would read them.
+        # prolific_estimated_completion_minutes and base_payment in Exp.config
+        # rather than config.txt, where the consent module would read them.
         consent_irb_cultural_foundation(consent="MAIN", DURATION=2, PAYMENT=0.50),
         InfoPage(
             "What happens next will depend on chance. Either way, you will receive some payment for your time. However, we will be trialling different methods of payment to make sure they are all working properly.",
