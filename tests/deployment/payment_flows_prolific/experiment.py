@@ -157,7 +157,9 @@ def get_prolific_settings():
     return {
         "base_payment": 0.50,
         "prolific_is_custom_screening": False,
-        "prolific_estimated_completion_minutes": 1,
+        # 2 minutes at a £0.50 reward advertises £15/hr on Prolific (1 minute
+        # advertised £30/hr, which was deemed too high for a test study).
+        "prolific_estimated_completion_minutes": 2,
         "prolific_recruitment_config": qualification,
         "initial_recruitment_size": 12,
         "auto_recruit": True,
