@@ -13,8 +13,10 @@ Participants are assigned to one of four experiment flows based on their partici
         estimated). They get the full £0.50 base payment.
     2. **Failed prescreening**: Participant fails a prescreen after accruing 3 minutes (1-minute consent
         plus 2-minute info page), i.e. £0.50 at wage_per_hour = 10.
-    3. **Errored**: Participant hits a deliberate error after accruing the same 3 minutes and lands on
-        the error page (skipped for bots so that automated tests pass).
+    3. **Errored**: Participant receives a £0.15 performance reward and then hits a deliberate error,
+        landing on the error page (skipped for bots so that automated tests pass). The extra reward
+        makes the errored payout (£0.65) differ from the failed-prescreening payout (£0.50), verifying
+        that the screen-out top-up bonus is computed per participant.
 
 The recruiter is selected via the config file rather than in this experiment file:
 
@@ -29,8 +31,9 @@ How unsuccessful participants (flows 2 and 3) are paid depends on the deployment
 
 - With `prolific_unsuccessful_base_payment` set (e.g. £0.20): unsuccessful participants submit their
     study normally (flow 3 via the "Submit to Prolific" button on the error page). Prolific marks them
-    as screened out and automatically pays the fixed £0.20, and PsyNet tops them up with a £0.30 bonus
-    to reach their £0.50 accumulated reward. Requires a workspace with Prolific's custom screening
+    as screened out and automatically pays the fixed £0.20, and PsyNet tops them up with a bonus to
+    reach their accumulated reward: £0.30 for flow 2 (total £0.50) and £0.45 for flow 3 (total £0.65,
+    including the £0.15 performance reward). Requires a workspace with Prolific's custom screening
     feature enabled.
 - Without it, the legacy flows apply: with `prolific_enable_return_for_bonus = True`, flow-2
     participants are asked to return their submission and then receive their accumulated reward as a
@@ -44,8 +47,8 @@ The experimenter should check the following in the Prolific dashboard:
 3. Prescreening Failures: Confirm that participants (ID % 4 == 2) who fail the prescreening are handled appropriately
     (marked as returned or screened-out in both Prolific and PsyNet, depending on the configuration, and paid £0.50 in total).
 4. Errors: Confirm that participants (ID % 4 == 3) who hit the error page are handled appropriately
-    (with `prolific_unsuccessful_base_payment` set they should be screened out and paid £0.50 in total via the
-    error page's "Submit to Prolific" button).
+    (with `prolific_unsuccessful_base_payment` set they should be screened out and paid £0.65 in total via the
+    error page's "Submit to Prolific" button; the £0.15 performance reward makes this differ from flow 2).
 5. Bonus/Reward Payments: For participants (ID % 4 == 0) in the increment performance reward flow, ensure that
     the bonus payment is correctly set in both Prolific and PsyNet.
 
@@ -120,6 +123,12 @@ def errored():
             "Please follow the instructions on the next page.",
             time_estimate=0,
         ),
+        # Granting a performance reward before the error makes the errored
+        # payout (£0.65) differ from the failed-prescreening payout (£0.50),
+        # verifying that the screen-out top-up bonus is per participant rather
+        # than a flat category amount. This must run before the error is
+        # raised, since nothing after the raise executes.
+        CodeBlock(lambda participant: participant.inc_performance_reward(0.15)),
         CodeBlock(_raise_simulated_error),
     )
 
