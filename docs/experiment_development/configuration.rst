@@ -534,6 +534,17 @@ submits their study with the same completion code.
     ``initial_recruitment_size``. If the limit is reached, the study pauses and can be resumed by
     increasing the slot count via the Prolific interface or API.
 
+.. warning::
+
+    Screened-out submissions do not count towards the study's places on Prolific: each screen-out
+    releases its place and Prolific recruits a replacement participant. A study therefore only
+    completes once enough participants finish *successfully*. If your experiment screens out a
+    large proportion of participants, recruitment (and screen-out payments) will continue until
+    the places are filled by successful participants or ``prolific_screen_out_slots`` is
+    exhausted — this slot limit is the only budget backstop in the extreme case where almost all
+    participants are screened out. Size ``prolific_screen_out_slots`` deliberately if you expect
+    a high screen-out rate, and monitor the study's spending via the Prolific interface.
+
 If ``prolific_unsuccessful_base_payment`` is not set, PsyNet falls back to the older return-for-bonus
 flow: PsyNet will check if ``prolific_enable_return_for_bonus`` is ``True`` (default). If so, the
 participant will be asked to return the submission in order to receive their payment.
