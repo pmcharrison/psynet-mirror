@@ -170,7 +170,9 @@ def get_prolific_settings():
         # advertised £30/hr, which was deemed too high for a test study).
         "prolific_estimated_completion_minutes": 2,
         "prolific_recruitment_config": qualification,
-        "initial_recruitment_size": 12,
+        # TEMPORARY (this deployment branch only): smaller run, screen-out
+        # flows only (3 failed-prescreening + 3 errored).
+        "initial_recruitment_size": 6,
         "auto_recruit": True,
         "currency": "£",
         "wage_per_hour": 10,
@@ -209,14 +211,15 @@ class Exp(psynet.experiment.Experiment):
             # wage_per_hour = 10.
             time_estimate=2 * 60,
         ),
+        # TEMPORARY (this deployment branch only): restrict to the two
+        # screen-out flows to verify that failed-prescreening (£0.50 total)
+        # and errored (£0.65 total) participants receive different payouts.
         switch(
             "participant_flow",
-            lambda participant: participant.id % 4,
+            lambda participant: participant.id % 2,
             {
-                0: normal_plus_performance_reward(),
-                1: normal(),
-                2: failed_prescreening(),
-                3: errored(),
+                0: failed_prescreening(),
+                1: errored(),
             },
         ),
         debrief_page(),
