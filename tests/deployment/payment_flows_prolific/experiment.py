@@ -126,9 +126,18 @@ def errored():
         # Granting a performance reward before the error makes the errored
         # payout (£0.65) differ from the failed-prescreening payout (£0.50),
         # verifying that the screen-out top-up bonus is per participant rather
-        # than a flat category amount. This must run before the error is
-        # raised, since nothing after the raise executes.
+        # than a flat category amount.
         CodeBlock(lambda participant: participant.inc_performance_reward(0.15)),
+        # The reward increment must be committed in an *earlier request* than
+        # the error: consecutive CodeBlocks run in the same HTTP request, and
+        # the error rolls back that request's database transaction (observed
+        # in deployment run 2, where the increment was silently lost). This
+        # intermediate page forces a commit between the two code blocks.
+        InfoPage(
+            "You received a small performance reward of £0.15. "
+            "The error will occur when you click Next.",
+            time_estimate=0,
+        ),
         CodeBlock(_raise_simulated_error),
     )
 
