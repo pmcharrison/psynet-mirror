@@ -51,9 +51,15 @@ AUDIT_TOP_LEVEL_REQUIRED = {
     "blockers",
 }
 DEFAULT_AUDIT_PROFILE = "psynet.core"
-# Core does not register workshop extensions. Declared extension ids are
-# opaque to PsyNet validate/render; unknown ids warn but do not fail.
+# Core does not register workshop plugins. Declared extension ids are opaque to
+# PsyNet validate/render. Documented external ids are ignored silently; other
+# unknown ids warn but do not fail.
 CORE_KNOWN_EXTENSION_IDS: frozenset[str] = frozenset()
+DOCUMENTED_EXTERNAL_EXTENSION_IDS: frozenset[str] = frozenset(
+    {
+        "psynetskills.challenge",
+    }
+)
 SECTION_REQUIRED_FIELDS = {"id", "title", "kind"}
 SECTION_KINDS = {
     "markdown",
@@ -783,7 +789,10 @@ def collect_audit_warnings(
     for extension_id in extensions:
         if not isinstance(extension_id, str) or not extension_id.strip():
             continue
-        if extension_id not in CORE_KNOWN_EXTENSION_IDS:
+        if (
+            extension_id not in CORE_KNOWN_EXTENSION_IDS
+            and extension_id not in DOCUMENTED_EXTERNAL_EXTENSION_IDS
+        ):
             warnings.append(
                 f"{manifest_path}: unknown extension id {extension_id!r} "
                 "(ignored by core validate/render)",

@@ -96,8 +96,10 @@ Manifests may declare:
 * ``extensions`` is a list of opaque extension ids (for example
   ``psynetskills.challenge``). Extensions add more ``sections`` rows that still
   use **core** section kinds (``markdown``, ``files``, ``json``, and so on).
-* Core ``psynet audit validate`` / ``render`` ignore unknown extension ids and
-  may print a warning. Unknown section **kinds** remain a validation error.
+* Core ``psynet audit validate`` / ``render`` ignore unknown extension ids.
+  Documented external ids such as ``psynetskills.challenge`` are silent;
+  other unknown ids may print a warning. Unknown section **kinds** remain a
+  validation error.
 * PsyNet does not import workshop plugins. Consumers such as PsyNetSkills read
   declared extension ids and apply their own overlay rendering.
 

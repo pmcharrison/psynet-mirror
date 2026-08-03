@@ -3872,13 +3872,19 @@ def audit_validate(audit_dir):
     """Validate an experiment audit directory."""
     from pathlib import Path
 
-    from psynet.audit.cli import validate_audit, validate_success_message
+    from psynet.audit.cli import (
+        collect_audit_warnings,
+        validate_audit,
+        validate_success_message,
+    )
 
     problems = validate_audit(Path(audit_dir))
     if problems:
         for problem in problems:
             click.echo(problem, err=True)
         raise SystemExit(1)
+    for warning in collect_audit_warnings(Path(audit_dir)):
+        click.echo(f"Warning: {warning}", err=True)
     click.echo(validate_success_message(Path(audit_dir)))
 
 

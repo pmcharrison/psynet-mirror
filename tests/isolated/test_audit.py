@@ -533,13 +533,14 @@ def test_validate_audit_accepts_unknown_extension_ids_with_warning(
 
     assert validate_audit(audit_dir) == []
     warnings = collect_audit_warnings(audit_dir)
-    assert any("psynetskills.challenge" in warning for warning in warnings)
+    assert not any("psynetskills.challenge" in warning for warning in warnings)
     assert any("example.unknown" in warning for warning in warnings)
 
     main(["validate", str(audit_dir)])
     captured = capsys.readouterr()
     assert "Warning:" in captured.err
-    assert "psynetskills.challenge" in captured.err
+    assert "example.unknown" in captured.err
+    assert "psynetskills.challenge" not in captured.err
     assert "structurally valid" in captured.out
 
 
