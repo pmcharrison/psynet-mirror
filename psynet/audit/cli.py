@@ -91,8 +91,79 @@ BLOCKER_SEVERITIES = {"warning", "error"}
 CHECK_STATUSES = {"pass", "fail", "warning", "not_run"}
 MAX_AUDIT_NOTEBOOK_BYTES = 100_000
 CLI_NAME = "psynet audit"
-# Resolved via importlib.resources in _audit_css_path()
 AUDIT_CSS_OUTPUT = "css/audit.css"
+
+
+class AuditValidationError(ValueError):
+    """Raised when render is blocked by validation problems."""
+
+    def __init__(self, problems: list[str]):
+        self.problems = problems
+        super().__init__("\n".join(problems))
+
+
+def cli_program_name(argv: list[str] | None = None) -> str:
+    """Return the public program name for next-step hints."""
+
+    if argv:
+        prog = Path(argv[0]).name
+        if prog.startswith("psynet-audit"):
+            return "psynet-audit"
+    return CLI_NAME
+
+
+def format_allowed(values: set[str] | frozenset[str]) -> str:
+    """Format allowed enum values for validation errors."""
+
+    return ", ".join(sorted(values))
+
+
+def artifact_label(audit_dir: Path, index: int, artifact_id: object) -> str:
+    """Return a human-oriented label for an artifact validation error."""
+
+    base = f"{audit_dir / 'audit.json'}: artifacts[{index}]"
+    if isinstance(artifact_id, str) and artifact_id:
+        return f"{base} (id={artifact_id})"
+    return base
+
+
+def count_blockers(manifest: dict[str, Any]) -> int:
+    """Return the number of blocker records in a manifest."""
+
+    blockers = manifest.get("blockers")
+    return len(blockers) if isinstance(blockers, list) else 0
+
+
+def validate_success_message(audit_dir: Path, manifest: dict[str, Any] | None = None) -> str:
+    """Return the validate success line, including blocker count when known."""
+
+    if manifest is None:
+        try:
+            manifest = read_audit_manifest(audit_dir)
+        except (OSError, ValueError, json.JSONDecodeError):
+            return f"Experiment audit structurally valid: {audit_dir}"
+    n = count_blockers(manifest)
+    if n:
+        return (
+            f"Experiment audit structurally valid: {audit_dir} "
+            f"({n} blocker{'s' if n != 1 else ''} recorded; not yet complete)"
+        )
+    return f"Experiment audit structurally valid: {audit_dir} (no blockers)"
+
+
+def init_success_messages(audit_dir: Path, prog: str = CLI_NAME) -> list[str]:
+    """Return user-facing lines printed after a successful init."""
+
+    return [
+        f"Initialized experiment audit directory: {audit_dir}",
+        "This is a starter packet: validate can pass while required evidence is "
+        "still blocked. Fill artifacts, then mark them present (see "
+        f"`{prog} mark-present`).",
+        "Required artifacts use status blocked + a blocker; optional gaps may use "
+        "missing without a blocker.",
+        f"Next: {prog} validate {audit_dir}",
+        f"Next: {prog} render {audit_dir}",
+    ]
 
 
 def audit_css_path() -> Path:
@@ -134,7 +205,8 @@ def read_audit_manifest(audit_dir: Path) -> dict[str, Any]:
 def display_title_from_path(audit_dir: Path) -> str:
     """Derive a human-readable experiment title from an audit path."""
 
-    source = audit_dir.parent if audit_dir.name == "audit" else audit_dir
+    resolved = audit_dir.resolve()
+    source = resolved.parent if resolved.name == "audit" else resolved
     normalized = re.sub(r"[-_]+", " ", source.name).strip()
     return normalized.title() if normalized else "Experiment Audit"
 
@@ -186,7 +258,7 @@ def starter_blocker(artifact_id: str, reason: str, next_step: str) -> dict[str, 
 
     return {
         "artifact_id": artifact_id,
-        "severity": "warning",
+        "severity": "error",
         "reason": reason,
         "next_step": next_step,
     }
@@ -236,10 +308,10 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
             starter_section("plan", "Plan", "markdown", path="PLAN.md"),
             starter_section("timeline", "Timeline", "markdown", path="TIMELINE.md"),
             starter_section("report", "Report", "markdown", path="REPORT.md"),
+            starter_section("blockers", "Blockers", "blockers"),
             starter_section("evidence", "Evidence", "evidence"),
             starter_section("files", "Additional files", "files"),
             starter_section("checks", "Checks", "checks"),
-            starter_section("blockers", "Blockers", "blockers"),
         ],
         "artifacts": [
             starter_artifact(
@@ -372,9 +444,9 @@ def relative_audit_path(
     if relative_path.is_absolute():
         return None, [f"{label}: path must be relative to the experiment audit directory"]
 
-    review_root = audit_dir.resolve()
+    audit_root = audit_dir.resolve()
     resolved_path = (audit_dir / relative_path).resolve()
-    if not resolved_path.is_relative_to(review_root):
+    if not resolved_path.is_relative_to(audit_root):
         return None, [f"{label}: path must stay inside the experiment audit directory"]
     return resolved_path, []
 
@@ -530,7 +602,8 @@ def validate_audit_artifacts(
     problems: list[str] = []
     artifact_ids: set[str] = set()
     for index, artifact in enumerate(artifacts):
-        label = f"{audit_dir / 'audit.json'}: artifacts[{index}]"
+        artifact_id_hint = artifact.get("id") if isinstance(artifact, dict) else None
+        label = artifact_label(audit_dir, index, artifact_id_hint)
         if not isinstance(artifact, dict):
             problems.append(f"{label}: artifact must be a JSON object")
             continue
@@ -546,14 +619,24 @@ def validate_audit_artifacts(
             problems.append(f"{label}: duplicate artifact ID {artifact_id!r}")
         else:
             artifact_ids.add(artifact_id)
+            label = artifact_label(audit_dir, index, artifact_id)
 
         if artifact.get("kind") not in ARTIFACT_KINDS:
-            problems.append(f"{label}: kind is not recognized")
+            problems.append(
+                f"{label}: kind is not recognized "
+                f"(allowed: {format_allowed(ARTIFACT_KINDS)})"
+            )
         status = artifact.get("status")
         if status not in ARTIFACT_STATUSES:
-            problems.append(f"{label}: status is not recognized")
+            problems.append(
+                f"{label}: status is not recognized "
+                f"(allowed: {format_allowed(ARTIFACT_STATUSES)})"
+            )
         if artifact.get("created_by") not in ARTIFACT_CREATORS:
-            problems.append(f"{label}: created_by is not recognized")
+            problems.append(
+                f"{label}: created_by is not recognized "
+                f"(allowed: {format_allowed(ARTIFACT_CREATORS)})"
+            )
         if not isinstance(artifact.get("required"), bool):
             problems.append(f"{label}: required must be a boolean")
         for field in ("title", "description"):
@@ -877,8 +960,9 @@ def render_audit_section(
 
     panel_class = section_panel_class(section)
     class_attr = f"attempt-panel {panel_class}".strip()
+    open_attr = " open" if section_open_by_default(section) else ""
     return (
-        f'<details id="{section_id}" class="{html.escape(class_attr, quote=True)}" open>'
+        f'<details id="{section_id}" class="{html.escape(class_attr, quote=True)}"{open_attr}>'
         f"<summary><h2>{title}</h2></summary>"
         f"{body}"
         "</details>"
@@ -930,8 +1014,159 @@ def render_blockers(manifest: dict[str, Any]) -> str:
     return f"<ul>{''.join(items)}</ul>"
 
 
-def render_audit_site(audit_dir: Path, site_dir: Path | None = None) -> Path:
-    """Render a standalone static experiment audit site."""
+
+def mark_artifact_present(
+    audit_dir: Path,
+    artifact_id: str,
+    path: str | None = None,
+) -> dict[str, Any]:
+    """Mark an artifact present, optionally updating its path, and drop its blockers."""
+
+    if not ARTIFACT_ID_RE.fullmatch(artifact_id):
+        raise ValueError(f"artifact id must be snake_case: {artifact_id!r}")
+
+    manifest = read_audit_manifest(audit_dir)
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        raise ValueError(f"{audit_dir / 'audit.json'}: artifacts must be a list")
+
+    target: dict[str, Any] | None = None
+    for artifact in artifacts:
+        if isinstance(artifact, dict) and artifact.get("id") == artifact_id:
+            target = artifact
+            break
+    if target is None:
+        raise ValueError(f"artifact id not found: {artifact_id!r}")
+
+    if path is not None:
+        resolved, path_problems = relative_audit_path(
+            audit_dir,
+            path,
+            f"{audit_dir / 'audit.json'}: artifact {artifact_id}",
+        )
+        if path_problems:
+            raise ValueError("; ".join(path_problems))
+        target["path"] = path
+    else:
+        resolved, path_problems = relative_audit_path(
+            audit_dir,
+            target.get("path"),
+            f"{audit_dir / 'audit.json'}: artifact {artifact_id}",
+        )
+        if path_problems:
+            raise ValueError("; ".join(path_problems))
+
+    assert resolved is not None
+    if not resolved.is_file():
+        raise FileNotFoundError(
+            f"{resolved}: file missing; create it before marking present"
+        )
+
+    target["status"] = "present"
+    blockers = manifest.get("blockers")
+    if isinstance(blockers, list):
+        manifest["blockers"] = [
+            blocker
+            for blocker in blockers
+            if not (isinstance(blocker, dict) and blocker.get("artifact_id") == artifact_id)
+        ]
+    manifest["updated_at"] = utc_timestamp()
+    (audit_dir / "audit.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return manifest
+
+
+def section_open_by_default(section: dict[str, Any]) -> bool:
+    """Return whether a section panel should start expanded."""
+
+    section_id = str(section.get("id") or "")
+    kind = str(section.get("kind") or "")
+    return section_id in {"report", "blockers"} or kind == "blockers"
+
+
+def readiness_score_card(manifest: dict[str, Any]) -> str:
+    """Render a compact readiness summary for the audit hero."""
+
+    artifacts = manifest.get("artifacts")
+    blockers = manifest.get("blockers")
+    artifact_rows = [a for a in artifacts if isinstance(a, dict)] if isinstance(artifacts, list) else []
+    required = [a for a in artifact_rows if a.get("required") is True]
+    present_required = [a for a in required if a.get("status") == "present"]
+    present_all = [a for a in artifact_rows if a.get("status") == "present"]
+    blocker_count = len(blockers) if isinstance(blockers, list) else 0
+    if required:
+        headline = f"{len(present_required)}/{len(required)} required present"
+    else:
+        headline = f"{len(present_all)} present"
+    detail = f"{blocker_count} blocker{'s' if blocker_count != 1 else ''}"
+    return (
+        '<div class="score-card">'
+        '<span class="score-label">Readiness</span>'
+        f"<strong>{html.escape(headline)}</strong>"
+        f'<span class="score-detail">{html.escape(detail)}</span>'
+        "</div>"
+    )
+
+
+def completeness_from_manifest(
+    manifest: dict[str, Any],
+    evidence: Any,
+) -> list[Any]:
+    """Build completeness rows from declared manifest artifacts."""
+
+    from psynet.audit.model import CompletenessItem
+
+    items: list[CompletenessItem] = []
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        return items
+    for artifact in artifacts:
+        if not isinstance(artifact, dict):
+            continue
+        path = str(artifact.get("path") or "")
+        title = str(artifact.get("title") or artifact.get("id") or path)
+        status = str(artifact.get("status") or "missing")
+        if status == "present":
+            present = True
+            detail = "present"
+        elif status == "not_applicable":
+            present = True
+            detail = "n/a"
+        elif status == "blocked":
+            present = False
+            detail = "blocked"
+        else:
+            present = False
+            detail = "missing"
+        items.append(
+            CompletenessItem(
+                str(artifact.get("id") or path),
+                title if title else path,
+                present,
+                detail,
+            )
+        )
+    return items
+
+
+def render_audit_site(
+    audit_dir: Path,
+    site_dir: Path | None = None,
+    *,
+    allow_invalid: bool = False,
+) -> Path:
+    """Render a standalone static experiment audit site.
+
+    By default, validation must pass first. Pass ``allow_invalid=True`` to render
+    a structurally broken manifest for debugging.
+    """
+
+    if not allow_invalid:
+        problems = validate_audit(audit_dir)
+        if problems:
+            raise AuditValidationError(problems)
 
     manifest = read_audit_manifest(audit_dir)
     if site_dir is None:
@@ -951,17 +1186,21 @@ def render_audit_site(audit_dir: Path, site_dir: Path | None = None) -> Path:
         if isinstance(implementation, dict) and implementation.get("summary")
         else ""
     )
+    from dataclasses import replace
+
     evidence = classify_audit_evidence(rendered_artifacts)
+    evidence = replace(
+        evidence,
+        completeness=completeness_from_manifest(manifest, evidence),
+    )
     css_url = write_audit_static_assets(site_dir)
     sections = display_sections(manifest)
     experiment = manifest.get("experiment", {})
     environment = manifest.get("environment", {})
-    artifacts = manifest.get("artifacts", [])
     checks = manifest.get("checks", [])
     blockers = manifest.get("blockers", [])
     experiment = experiment if isinstance(experiment, dict) else {}
     environment = environment if isinstance(environment, dict) else {}
-    artifact_count = len(artifacts) if isinstance(artifacts, list) else 0
     check_count = len(checks) if isinstance(checks, list) else 0
     blocker_count = len(blockers) if isinstance(blockers, list) else 0
     metadata = render_metadata_grid(
@@ -999,14 +1238,11 @@ def render_audit_site(audit_dir: Path, site_dir: Path | None = None) -> Path:
   <article class="prose attempt-detail">
     <header class="attempt-hero">
       <div>
-        <p class="eyebrow">Experiment experiment audit</p>
+        <p class="eyebrow">Experiment readiness audit</p>
         <h1>{html.escape(title)}</h1>
         <p>{html.escape(summary)}</p>
       </div>
-      <div class="score-card">
-        <span class="score-label">Artifacts</span>
-        <strong>{artifact_count}</strong>
-      </div>
+      {readiness_score_card(manifest)}
     </header>
     {metadata}
     <div class="attempt-layout">
@@ -1054,10 +1290,23 @@ def render_audit_site(audit_dir: Path, site_dir: Path | None = None) -> Path:
     return site_dir
 
 
+SOURCE_PATH_HELP = (
+    "path to the experiment directory that contains the audit folder, relative "
+    "to the audit directory's parent (default: .). Run init from the experiment "
+    "root so ./audit/ is created and source_path stays ."
+)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
 
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=(
+            "Package and render an experiment readiness audit. "
+            "Records artifacts, checks, and blockers for human inspection; "
+            "does not run tests or collect evidence for you."
+        ),
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
     init_parser = subparsers.add_parser(
         "init",
@@ -1068,12 +1317,12 @@ def build_parser() -> argparse.ArgumentParser:
         nargs="?",
         default="audit",
         type=Path,
-        help="experiment audit directory to create",
+        help="experiment audit directory to create (default: audit under cwd)",
     )
     init_parser.add_argument(
         "--source-path",
         default=".",
-        help="experiment source path, relative to the experiment audit directory",
+        help=SOURCE_PATH_HELP,
     )
     init_parser.add_argument(
         "--force",
@@ -1107,33 +1356,81 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="output directory for the rendered site",
     )
+    render_parser.add_argument(
+        "--allow-invalid",
+        action="store_true",
+        help="render even when validate would fail",
+    )
+    mark_parser = subparsers.add_parser(
+        "mark-present",
+        help="mark an artifact present and remove its blockers",
+    )
+    mark_parser.add_argument(
+        "artifact_id",
+        help="artifact id from audit.json",
+    )
+    mark_parser.add_argument(
+        "audit_dir",
+        nargs="?",
+        default="audit",
+        type=Path,
+        help="experiment audit directory containing audit.json",
+    )
+    mark_parser.add_argument(
+        "--path",
+        default=None,
+        help="optional new artifact path relative to the audit directory",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> None:
     """Run the experiment audit command."""
 
+    prog = cli_program_name(argv)
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "init":
         try:
             init_audit(args.audit_dir, args.source_path, args.force)
         except FileExistsError as exc:
-            print(exc)
+            print(f"Error: {exc}", file=sys.stderr)
             raise SystemExit(1) from exc
-        print(f"Initialized experiment audit directory: {args.audit_dir}")
-        print(f"Next: {CLI_NAME} validate {args.audit_dir}")
-        print(f"Next: {CLI_NAME} render {args.audit_dir}")
+        for line in init_success_messages(args.audit_dir, prog=prog):
+            print(line)
     elif args.command == "validate":
         problems = validate_audit(args.audit_dir)
         if problems:
             for problem in problems:
-                print(problem)
+                print(problem, file=sys.stderr)
             raise SystemExit(1)
-        print(f"Experiment audit validation passed: {args.audit_dir}")
+        print(validate_success_message(args.audit_dir))
     elif args.command == "render":
-        site_dir = render_audit_site(args.audit_dir, args.output)
-        print(f"Rendered experiment audit site to {site_dir}")
+        try:
+            site_dir = render_audit_site(
+                args.audit_dir,
+                args.output,
+                allow_invalid=args.allow_invalid,
+            )
+        except AuditValidationError as exc:
+            for problem in exc.problems:
+                print(problem, file=sys.stderr)
+            print(
+                "Render blocked by validation errors; "
+                "fix them or pass --allow-invalid.",
+                file=sys.stderr,
+            )
+            raise SystemExit(1) from exc
+        print(f"Rendered experiment audit site: {site_dir / 'index.html'}")
+    elif args.command == "mark-present":
+        try:
+            mark_artifact_present(args.audit_dir, args.artifact_id, args.path)
+        except (OSError, ValueError) as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            raise SystemExit(1) from exc
+        print(
+            f"Marked {args.artifact_id!r} present in {args.audit_dir / 'audit.json'}"
+        )
 
 
 if __name__ == "__main__":

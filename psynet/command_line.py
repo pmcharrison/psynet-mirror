@@ -3827,10 +3827,11 @@ def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
 @click.pass_context
 def audit(ctx):
     """
-    Package and render an experiment readiness audit.
+    Package experiment readiness evidence (does not run tests).
 
     An audit records artifacts, checks, and blockers for human inspection.
-    It does not run tests or collect evidence for you.
+    It does not run tests or collect evidence for you. Create the audit/
+    folder inside the experiment directory (default layout).
     """
     pass
 
@@ -3840,7 +3841,11 @@ def audit(ctx):
 @click.option(
     "--source-path",
     default=".",
-    help="Experiment source path, relative to the audit directory.",
+    help=(
+        "Path to the experiment directory that contains the audit folder, "
+        "relative to the audit directory's parent (default: .). Run from the "
+        "experiment root so ./audit/ is created and source_path stays ."
+    ),
 )
 @click.option(
     "--force",
@@ -3851,15 +3856,14 @@ def audit_init(audit_dir, source_path, force):
     """Create a starter experiment audit directory."""
     from pathlib import Path
 
-    from psynet.audit.cli import init_audit
+    from psynet.audit.cli import init_audit, init_success_messages
 
     try:
         init_audit(Path(audit_dir), source_path, force)
     except FileExistsError as exc:
         raise click.ClickException(str(exc)) from exc
-    click.echo(f"Initialized experiment audit directory: {audit_dir}")
-    click.echo(f"Next: psynet audit validate {audit_dir}")
-    click.echo(f"Next: psynet audit render {audit_dir}")
+    for line in init_success_messages(Path(audit_dir)):
+        click.echo(line)
 
 
 @audit.command("validate")
@@ -3868,14 +3872,14 @@ def audit_validate(audit_dir):
     """Validate an experiment audit directory."""
     from pathlib import Path
 
-    from psynet.audit.cli import validate_audit
+    from psynet.audit.cli import validate_audit, validate_success_message
 
     problems = validate_audit(Path(audit_dir))
     if problems:
         for problem in problems:
             click.echo(problem, err=True)
         raise SystemExit(1)
-    click.echo(f"Experiment audit validation passed: {audit_dir}")
+    click.echo(validate_success_message(Path(audit_dir)))
 
 
 @audit.command("render")
@@ -3886,17 +3890,51 @@ def audit_validate(audit_dir):
     default=None,
     help="Output directory for the rendered site.",
 )
-def audit_render(audit_dir, output):
+@click.option(
+    "--allow-invalid",
+    is_flag=True,
+    help="Render even when validate would fail.",
+)
+def audit_render(audit_dir, output, allow_invalid):
     """Render a static experiment audit site."""
     from pathlib import Path
 
-    from psynet.audit.cli import render_audit_site
+    from psynet.audit.cli import AuditValidationError, render_audit_site
 
-    site_dir = render_audit_site(
-        Path(audit_dir),
-        Path(output) if output is not None else None,
-    )
+    try:
+        site_dir = render_audit_site(
+            Path(audit_dir),
+            Path(output) if output is not None else None,
+            allow_invalid=allow_invalid,
+        )
+    except AuditValidationError as exc:
+        for problem in exc.problems:
+            click.echo(problem, err=True)
+        raise click.ClickException(
+            "Render blocked by validation errors; fix them or pass --allow-invalid."
+        ) from exc
     click.echo(f"Rendered experiment audit site: {site_dir / 'index.html'}")
+
+
+@audit.command("mark-present")
+@click.argument("artifact_id")
+@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+@click.option(
+    "--path",
+    default=None,
+    help="Optional new artifact path relative to the audit directory.",
+)
+def audit_mark_present(artifact_id, audit_dir, path):
+    """Mark an artifact present and remove its blockers."""
+    from pathlib import Path
+
+    from psynet.audit.cli import mark_artifact_present
+
+    try:
+        mark_artifact_present(Path(audit_dir), artifact_id, path)
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"Marked {artifact_id!r} present in {Path(audit_dir) / 'audit.json'}")
 
 
 @psynet.group("lucid")

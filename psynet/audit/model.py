@@ -9,7 +9,7 @@ from typing import Protocol
 
 
 class AuditFileLike(Protocol):
-    """A file-like object used by review renderers."""
+    """A file-like object used by audit renderers."""
 
     path: str
     url: str
@@ -23,7 +23,7 @@ class AuditFileLike(Protocol):
 
 @dataclass(frozen=True)
 class AuditFile:
-    """A file available to a review renderer."""
+    """A file available to a audit renderer."""
 
     path: str
     url: str
@@ -37,7 +37,7 @@ class AuditFile:
 
 @dataclass(frozen=True)
 class CompletenessItem:
-    """A review completeness row."""
+    """A audit completeness row."""
 
     key: str
     label: str
@@ -47,7 +47,7 @@ class CompletenessItem:
 
 @dataclass(frozen=True)
 class AuditEvidenceView:
-    """Classified review evidence artifacts."""
+    """Classified audit evidence artifacts."""
 
     participant_video: AuditFile | None
     screenshots: list[AuditFile]
@@ -136,7 +136,7 @@ def file_kind(path: str) -> str:
 
 
 def audit_file_from_file(file: AuditFileLike) -> AuditFile:
-    """Convert a compatible file object into a shared review file."""
+    """Convert a compatible file object into a shared audit file."""
 
     return AuditFile(
         path=file.path,
@@ -178,7 +178,7 @@ def first_file_by_evidence_path(
 
 
 def parse_json_content(file: AuditFile | None) -> dict[str, object]:
-    """Parse a JSON object from a review file's text content."""
+    """Parse a JSON object from a audit file's text content."""
 
     if file is None or not file.content:
         return {}
@@ -235,7 +235,7 @@ def analysis_files(files: list[AuditFile]) -> list[AuditFile]:
 
 
 def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
-    """Classify review evidence files using shared path conventions."""
+    """Classify audit evidence files using shared path conventions."""
 
     review_files = [audit_file_from_file(file) for file in files]
     participant_video = first_file_by_evidence_path(review_files, "participant.mp4")

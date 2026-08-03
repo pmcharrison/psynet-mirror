@@ -232,7 +232,7 @@ def render_file_grid(
     grid_class: str = "artifact-grid",
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render review files as a grid of reusable file cards."""
+    """Render audit files as a grid of reusable file cards."""
 
     file_list = list(files)
     if not file_list:

@@ -158,11 +158,14 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert '<body class="attempt-page">' in index
     assert 'class="attempt-layout"' in index
     assert "Pitch Discrimination Demo" in index
+    assert "Experiment readiness audit" in index
+    assert "Readiness" in index
     assert "<h1>Report</h1>" in index
     assert "Experiment <strong>behaves</strong> as expected." in index
     assert "<li>Functional check passed</li>" in index
     assert "<script>bad()</script>" not in index
-    assert '<details id="plan" class="attempt-panel plan-panel" open>' in index
+    assert '<details id="plan" class="attempt-panel plan-panel">' in index
+    assert '<details id="report" class="attempt-panel report-panel" open>' in index
     assert "<h1>Plan</h1>" in index
     assert "Use a chain trial maker." in index
     assert "psynet test local" in index
@@ -343,8 +346,9 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     assert "<h3><code>artifacts/source/experiment.py</code></h3>" in index
     assert '<div class="file-preview code-preview">' in index
     assert "print" in index
-    assert "participant.mp4 <span>present</span>" in index
-    assert "screenshots/ <span>2 images</span>" in index
+    assert "Participant walkthrough <span>present</span>" in index
+    assert "Intro screenshot <span>present</span>" in index
+    assert "Screenshot manifest <span>present</span>" in index
 
 
 def test_render_audit_site_renders_timeline_and_json_sections(tmp_path: Path) -> None:
@@ -385,10 +389,10 @@ def test_render_audit_site_renders_timeline_and_json_sections(tmp_path: Path) ->
     site_dir = render_audit_site(audit_dir)
 
     index = (site_dir / "index.html").read_text(encoding="utf-8")
-    assert '<details id="timeline" class="attempt-panel" open>' in index
+    assert '<details id="timeline" class="attempt-panel">' in index
     assert 'class="timeline-list"' in index
     assert "Finished with <strong>evidence</strong>." in index
-    assert '<details id="agent_metadata" class="attempt-panel" open>' in index
+    assert '<details id="agent_metadata" class="attempt-panel">' in index
     assert "{&quot;model&quot;: &quot;test-model&quot;}" in index
 
 
@@ -526,7 +530,8 @@ def test_validate_audit_cli_exits_nonzero_on_problems(
         main(["validate", str(audit_dir)])
 
     assert exc_info.value.code == 1
-    assert "section file is missing" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "section file is missing" in captured.err
 
 
 def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> None:
@@ -550,13 +555,14 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
         "plan",
         "timeline",
         "report",
+        "blockers",
         "evidence",
         "files",
         "checks",
-        "blockers",
     ]
     assert manifest["artifacts"][0]["id"] == "participant_video"
     assert manifest["artifacts"][0]["status"] == "blocked"
+    assert manifest["blockers"][0]["severity"] == "error"
     assert {
         blocker["artifact_id"]
         for blocker in manifest["blockers"]
@@ -580,6 +586,7 @@ def test_init_audit_cli_prints_next_steps(
 
     out = capsys.readouterr().out
     assert "Initialized experiment audit directory" in out
+    assert "starter packet" in out
     assert f"psynet audit validate {audit_dir}" in out
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     assert manifest["experiment"]["source_path"] == "../experiment"
@@ -609,3 +616,79 @@ def test_init_audit_force_replaces_starter_files(tmp_path: Path) -> None:
     assert "Summarize the implementation" in (audit_dir / "REPORT.md").read_text(
         encoding="utf-8",
     )
+
+
+def test_render_audit_site_uses_resolved_parent_title(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "tone-comparison" / "audit"
+    init_audit(audit_dir)
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+    assert "Tone Comparison" in index
+    assert "Experiment readiness audit" in index
+    assert "0/5 required present" in index
+
+
+def test_render_refuses_invalid_manifest_unless_allowed(tmp_path: Path) -> None:
+    from psynet.audit.cli import AuditValidationError
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["artifacts"][0]["status"] = "done"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    with pytest.raises(AuditValidationError) as exc_info:
+        render_audit_site(audit_dir)
+    assert any("status is not recognized" in problem for problem in exc_info.value.problems)
+    assert any("allowed:" in problem for problem in exc_info.value.problems)
+
+    site_dir = render_audit_site(audit_dir, allow_invalid=True)
+    assert (site_dir / "index.html").is_file()
+
+
+def test_mark_artifact_present_updates_manifest_and_drops_blocker(tmp_path: Path) -> None:
+    from psynet.audit.cli import mark_artifact_present
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    write(audit_dir / "artifacts/monitor.html", "<html></html>")
+
+    mark_artifact_present(audit_dir, "monitor_snapshot")
+
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    monitor = next(a for a in manifest["artifacts"] if a["id"] == "monitor_snapshot")
+    assert monitor["status"] == "present"
+    assert all(b["artifact_id"] != "monitor_snapshot" for b in manifest["blockers"])
+    assert validate_audit(audit_dir) == []
+
+
+def test_validate_success_message_mentions_blockers(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+
+    main(["validate", str(audit_dir)])
+
+    out = capsys.readouterr().out
+    assert "structurally valid" in out
+    assert "blocker" in out
+
+
+def test_render_cli_blocked_by_validation(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["artifacts"][0]["status"] = "done"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    with pytest.raises(SystemExit) as exc_info:
+        main(["render", str(audit_dir)])
+
+    assert exc_info.value.code == 1
+    err = capsys.readouterr().err
+    assert "Render blocked by validation errors" in err
