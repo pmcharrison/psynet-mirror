@@ -283,3 +283,38 @@ def test_performance_summary_handles_no_completed_or_failed_bots():
     }
     lines = format_performance_summary([result])
     assert isinstance(lines, list)
+
+
+def test_resolve_performance_json_output_prefers_explicit_path(tmp_path):
+    from pathlib import Path
+
+    import click
+    import pytest
+
+    from psynet.command_line import resolve_performance_json_output
+
+    assert resolve_performance_json_output("results.json") == "results.json"
+    assert resolve_performance_json_output() is None
+
+    audit_dir = tmp_path / "audit"
+    audit_dir.mkdir()
+    (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
+    resolved = resolve_performance_json_output(audit_dir=audit_dir)
+    assert Path(resolved) == audit_dir / "artifacts" / "performance.json"
+    assert (audit_dir / "artifacts").is_dir()
+
+    with pytest.raises(click.UsageError):
+        resolve_performance_json_output("results.json", audit_dir=audit_dir)
+
+
+def test_resolve_performance_json_output_warns_without_manifest(tmp_path, capsys):
+    from pathlib import Path
+
+    from psynet.command_line import resolve_performance_json_output
+
+    audit_dir = tmp_path / "attempt"
+    audit_dir.mkdir()
+    resolved = resolve_performance_json_output(audit_dir=audit_dir)
+    assert Path(resolved) == audit_dir / "artifacts" / "performance.json"
+    err = capsys.readouterr().err
+    assert "audit.json" in err

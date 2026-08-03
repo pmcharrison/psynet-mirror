@@ -3305,8 +3305,57 @@ _test_options["performance_json_output"] = click.option(
     started_at / finished_at (ISO timestamps), options (n_bots_sweep,
     duration_minutes, stagger_interval_s, time_factor), and results
     (one entry per bot count tested, with all metrics).
-    Useful for downstream consumption (e.g. benchmarking tools like asv).""",
+    Useful for downstream consumption (e.g. benchmarking tools like asv).
+    Do not combine with --audit-dir.""",
 )
+
+_test_options["performance_audit_dir"] = click.option(
+    "--audit-dir",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=None,
+    help="""
+    Write performance results to <audit-dir>/artifacts/performance.json.
+    Use this when the experiment is being reviewed as a PsyNet audit packet
+    (standalone audit/ folder or a challenge attempt root). Creates the
+    artifacts/ directory if needed. Do not combine with --json-output.""",
+)
+
+AUDIT_PERFORMANCE_JSON = Path("artifacts") / "performance.json"
+
+
+def resolve_performance_json_output(json_output=None, audit_dir=None):
+    """Resolve the JSON output path for a performance test.
+
+    Parameters
+    ----------
+    json_output :
+        Explicit JSON output path from ``--json-output``.
+    audit_dir :
+        Audit packet directory from ``--audit-dir``. When set, results are
+        written to ``<audit-dir>/artifacts/performance.json``.
+
+    Returns
+    -------
+    str or None
+        Absolute or relative path to write, or ``None`` when no JSON output is
+        requested.
+    """
+    if json_output and audit_dir is not None:
+        raise click.UsageError("Use either --json-output or --audit-dir, not both.")
+    if json_output:
+        return str(json_output)
+    if audit_dir is None:
+        return None
+    audit_root = Path(audit_dir)
+    if not (audit_root / "audit.json").is_file():
+        click.echo(
+            f"Warning: {audit_root / 'audit.json'} not found; "
+            f"writing {AUDIT_PERFORMANCE_JSON} under {audit_root} anyway.",
+            err=True,
+        )
+    output_path = audit_root / AUDIT_PERFORMANCE_JSON
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    return str(output_path)
 
 
 @psynet.group("performance-test")
@@ -3326,6 +3375,7 @@ def performance_test(ctx):
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
+@_test_options["performance_audit_dir"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 def performance_test__local(
     existing=False,
@@ -3334,6 +3384,7 @@ def performance_test__local(
     time_factor=None,
     duration_minutes=None,
     json_output=None,
+    audit_dir=None,
     debug=False,
 ):
     """
@@ -3346,6 +3397,7 @@ def performance_test__local(
     By default, this command starts a new experiment server automatically.
     Use --existing to connect to an already-running server instead.
     """
+    json_output = resolve_performance_json_output(json_output, audit_dir)
     if existing:
         _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
@@ -3703,6 +3755,7 @@ def _run_performance_test_with_new_server(
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
+@_test_options["performance_audit_dir"]
 @click.pass_context
 def performance_test__docker_ssh(
     ctx,
@@ -3713,6 +3766,7 @@ def performance_test__docker_ssh(
     time_factor=None,
     duration_minutes=None,
     json_output=None,
+    audit_dir=None,
 ):
     """
     Runs performance tests on the remote server. Assumes that the app has
@@ -3725,13 +3779,14 @@ def performance_test__docker_ssh(
     If the app is in use during the performance test, results may not be
     reliable.
 
-    Note: The --json-output option is not yet supported for remote SSH execution.
-    For JSON output, run ``psynet performance-test local --json-output`` instead.
+    Note: The --json-output and --audit-dir options are not yet supported for
+    remote SSH execution. For JSON output, run
+    ``psynet performance-test local --json-output`` or ``--audit-dir`` instead.
     """
-    if json_output:
+    if json_output or audit_dir is not None:
         print(
-            "Warning: --json-output is not yet implemented for SSH mode. "
-            "Use 'psynet performance-test local --json-output' instead.",
+            "Warning: --json-output/--audit-dir are not yet implemented for SSH "
+            "mode. Use 'psynet performance-test local' with those options instead.",
             file=sys.stderr,
         )
 
