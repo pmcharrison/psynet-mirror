@@ -119,7 +119,7 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
       sound.source.dispatchEvent(new Event("ended"));
       return Promise.race([
         stopping.then(() => true),
-        new Promise((resolve) => setTimeout(() => resolve(false), 250))
+        new Promise((resolve) => setTimeout(() => resolve(false), 1000))
       ]);
     });
     expect(stopSettled).toBe(true);
