@@ -692,3 +692,29 @@ def test_render_cli_blocked_by_validation(
     assert exc_info.value.code == 1
     err = capsys.readouterr().err
     assert "Render blocked by validation errors" in err
+
+
+def test_validate_rejects_escaping_render_site_path(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["render"] = {"site_path": "../../outside-site", "generator": "psynet audit"}
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    problems = validate_audit(audit_dir)
+    assert any("render.site_path" in problem for problem in problems)
+    assert any("must stay inside" in problem for problem in problems)
+
+
+def test_render_refuses_escaping_site_path_even_with_allow_invalid(
+    tmp_path: Path,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["render"] = {"site_path": "../../outside-site", "generator": "psynet audit"}
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    with pytest.raises(ValueError, match="render.site_path|must stay inside"):
+        render_audit_site(audit_dir, allow_invalid=True)
+    assert not (tmp_path / "outside-site").exists()

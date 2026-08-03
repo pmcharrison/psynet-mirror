@@ -16,23 +16,8 @@ ARTIFACT_URL_PREFIX_ENV = "PSYNET_AUDIT_ARTIFACT_URL_PREFIX"
 # Workshop dashboard CI historically used this name; still honored as fallback.
 LEGACY_ARTIFACT_URL_PREFIX_ENV = "PSYNETSK_ARTIFACT_URL_PREFIX"
 LEGACY_ATTEMPT_ARTIFACTS_DIR = "artifacts/challenges"
-MONITOR_STATIC_ROOT = None  # lazy; use monitor_static_root()
-
-
-def monitor_static_root() -> Path:
-    """Return the packaged Dallinger monitor static asset root."""
-    from importlib import resources
-
-    return Path(
-        resources.files("psynet")
-        / "resources"
-        / "audit"
-        / "monitor-static"
-        / "static"
-    )
-
-
 STATIC_REF_RE = re.compile(r'(?:href|src)="/static/(?P<path>[^"]+)"')
+# Large shared assets are published once under MONITOR_STATIC_ARTIFACTS_DIR.
 CENTRAL_MONITOR_STATIC_REFS = {"vis@4.17.0/dist/vis.min.js"}
 CREDENTIAL_REDACTIONS = (
     (re.compile(r"(?i)(dashboard_password=)[^&\"'\s<)]+"), r"\1[REDACTED]"),
@@ -61,11 +46,47 @@ TEXT_ARTIFACT_EXTENSIONS = {
 
 @dataclass(frozen=True)
 class ArtifactPublication:
-    """Publication metadata for a experiment audit artifact."""
+    """Publication metadata for an experiment audit artifact."""
 
     url: str
     published: bool = True
     note: str = ""
+
+
+def monitor_static_root() -> Path:
+    """Return Dallinger's packaged frontend static root for monitor snapshots.
+
+    Raises
+    ------
+    ModuleNotFoundError
+        If Dallinger is not installed.
+    FileNotFoundError
+        If the expected static directory is missing from the Dallinger install.
+    """
+    from importlib import resources
+
+    root = Path(resources.files("dallinger") / "frontend" / "static")
+    if not root.is_dir():
+        raise FileNotFoundError(
+            f"Dallinger monitor static assets not found at {root}. "
+            "Install Dallinger (comes with PsyNet) to publish monitor snapshots."
+        )
+    return root.resolve()
+
+
+def contained_path(root: Path, relative: str) -> Path | None:
+    """Resolve ``relative`` under ``root``, or return None if it escapes."""
+
+    if not relative or relative.startswith(("/", "\\")):
+        return None
+    rel = Path(relative)
+    if rel.is_absolute() or ".." in rel.parts:
+        return None
+    root = root.resolve()
+    candidate = (root / rel).resolve()
+    if not candidate.is_relative_to(root):
+        return None
+    return candidate
 
 
 def normalized_hashed_artifact_url_prefix(base_url: str | None = None) -> str:
@@ -122,7 +143,7 @@ def sanitize_html_artifact(path: Path) -> None:
     html = re.sub(r'src="/dashboard/[^"]*"', 'src="#"', html)
     html = html.replace('href="/static/', 'href="./static/')
     html = html.replace('src="/static/', 'src="./static/')
-    html = re.sub(r'<script([^>]*)\s*/></script>', r'<script\1></script>', html)
+    html = re.sub(r"<script([^>]*)\s*/></script>", r"<script\1></script>", html)
     for ref in CENTRAL_MONITOR_STATIC_REFS:
         html = html.replace(
             f'src="./static/{ref}"',
@@ -167,15 +188,19 @@ def sanitize_html_artifact(path: Path) -> None:
 
 
 def copy_monitor_static_assets(html_dir: Path, static_refs: list[str]) -> None:
-    """Copy vendored Dallinger monitor assets next to a copied HTML artifact."""
+    """Copy Dallinger monitor assets next to a copied HTML artifact."""
 
+    root = monitor_static_root()
+    html_root = html_dir.resolve()
     for ref in static_refs:
         if ref in CENTRAL_MONITOR_STATIC_REFS:
             continue
-        source = monitor_static_root() / ref
-        if not source.is_file():
+        source = contained_path(root, ref)
+        if source is None or not source.is_file():
             continue
-        destination = html_dir / "static" / ref
+        destination = contained_path(html_root, f"static/{ref}")
+        if destination is None:
+            continue
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
         if ref == "scripts/network-monitor.js":
@@ -198,11 +223,16 @@ def disable_live_node_details(script_path: Path) -> None:
 def write_shared_monitor_static_assets(target_root: Path) -> None:
     """Write monitor static assets shared by all hashed HTML snapshots."""
 
+    root = monitor_static_root()
+    target = target_root.resolve()
+    target.mkdir(parents=True, exist_ok=True)
     for ref in sorted(CENTRAL_MONITOR_STATIC_REFS):
-        source = monitor_static_root() / ref
-        if not source.is_file():
+        source = contained_path(root, ref)
+        if source is None or not source.is_file():
             continue
-        destination = target_root / ref
+        destination = contained_path(target, ref)
+        if destination is None:
+            continue
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
 

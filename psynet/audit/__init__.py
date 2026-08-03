@@ -2,6 +2,7 @@
 
 from psynet.audit.artifacts import (
     ARTIFACT_URL_PREFIX_ENV,
+    LEGACY_ARTIFACT_URL_PREFIX_ENV,
     ArtifactPublication,
     HASHED_ARTIFACTS_DIR,
     MONITOR_STATIC_ARTIFACTS_DIR,
@@ -31,6 +32,7 @@ from psynet.audit.model import (
 
 __all__ = [
     "ARTIFACT_URL_PREFIX_ENV",
+    "LEGACY_ARTIFACT_URL_PREFIX_ENV",
     "ArtifactPublication",
     "AuditEvidenceView",
     "AuditFile",

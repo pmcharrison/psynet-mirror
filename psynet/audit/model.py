@@ -237,38 +237,38 @@ def analysis_files(files: list[AuditFile]) -> list[AuditFile]:
 def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
     """Classify audit evidence files using shared path conventions."""
 
-    review_files = [audit_file_from_file(file) for file in files]
-    participant_video = first_file_by_evidence_path(review_files, "participant.mp4")
+    audit_files = [audit_file_from_file(file) for file in files]
+    participant_video = first_file_by_evidence_path(audit_files, "participant.mp4")
     screenshot_files = [
         file
-        for file in review_files
+        for file in audit_files
         if evidence_path(file.path).startswith("screenshots/")
         and file.kind in SCREENSHOT_EXTENSIONS
     ]
     screenshot_manifest = first_file_by_evidence_path(
-        review_files,
+        audit_files,
         "screenshots/manifest.json",
     )
     screenshot_captions = parse_screenshot_captions(screenshot_manifest)
-    performance_file = first_file_by_evidence_path(review_files, "performance.json")
+    performance_file = first_file_by_evidence_path(audit_files, "performance.json")
     performance_data = parse_json_content(performance_file)
-    monitor_file = first_file_by_evidence_path(review_files, "monitor.html")
-    data_file = first_file_by_evidence_path(review_files, "data.zip")
+    monitor_file = first_file_by_evidence_path(audit_files, "monitor.html")
+    data_file = first_file_by_evidence_path(audit_files, "data.zip")
     simulated_data_file = first_file_by_evidence_path(
-        review_files,
+        audit_files,
         "simulated_data.zip",
     )
-    analyses = analysis_files(review_files)
+    analyses = analysis_files(audit_files)
     notebook_files = [file for file in analyses if file.kind == "ipynb"]
     analysis_notebook_file = (
-        first_file_by_evidence_path(review_files, "analyses/analysis.ipynb")
+        first_file_by_evidence_path(audit_files, "analyses/analysis.ipynb")
         or (notebook_files[0] if notebook_files else None)
     )
     analysis_notebook = parse_json_content(analysis_notebook_file)
 
     visible_files = [
         file
-        for file in review_files
+        for file in audit_files
         if not is_special_rendered_file(
             file,
             screenshot_files,

@@ -105,10 +105,6 @@ class AuditValidationError(ValueError):
 def cli_program_name(argv: list[str] | None = None) -> str:
     """Return the public program name for next-step hints."""
 
-    if argv:
-        prog = Path(argv[0]).name
-        if prog.startswith("psynet-audit"):
-            return "psynet-audit"
     return CLI_NAME
 
 
@@ -713,6 +709,15 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
     problems.extend(validate_audit_sections(audit_dir, manifest))
     problems.extend(validate_audit_checks(audit_dir, manifest))
     problems.extend(validate_audit_artifacts(audit_dir, manifest, blocker_ids))
+
+    render = manifest.get("render")
+    if isinstance(render, dict) and "site_path" in render:
+        _, site_problems = relative_audit_path(
+            audit_dir,
+            render.get("site_path"),
+            f"{audit_dir / 'audit.json'}: render.site_path",
+        )
+        problems.extend(site_problems)
     return problems
 
 
@@ -759,8 +764,12 @@ def publish_audit_artifacts(
         status = str(artifact.get("status") or "missing")
         if not relative_path or status != "present":
             continue
-        source_file = audit_dir / relative_path
-        if not source_file.is_file():
+        source_file, path_problems = relative_audit_path(
+            audit_dir,
+            relative_path,
+            f"artifact {artifact.get('id')!r}",
+        )
+        if path_problems or source_file is None or not source_file.is_file():
             continue
         artifact_url = artifact_output_url(
             write_hashed_artifact(
@@ -1132,7 +1141,7 @@ def completeness_from_manifest(
             present = True
             detail = "present"
         elif status == "not_applicable":
-            present = True
+            present = False
             detail = "n/a"
         elif status == "blocked":
             present = False
@@ -1172,7 +1181,14 @@ def render_audit_site(
     if site_dir is None:
         configured_site = manifest.get("render", {})
         if isinstance(configured_site, dict) and configured_site.get("site_path"):
-            site_dir = audit_dir / str(configured_site["site_path"])
+            resolved_site, site_problems = relative_audit_path(
+                audit_dir,
+                configured_site.get("site_path"),
+                f"{audit_dir / 'audit.json'}: render.site_path",
+            )
+            if site_problems or resolved_site is None:
+                raise ValueError("; ".join(site_problems) or "invalid render.site_path")
+            site_dir = resolved_site
         else:
             site_dir = audit_dir / "site"
 

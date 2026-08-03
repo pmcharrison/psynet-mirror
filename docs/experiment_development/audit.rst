@@ -45,9 +45,6 @@ Commands
   ``audit/site/``. Pass ``--allow-invalid`` only when you need to preview a
   broken manifest.
 
-There is also a console script alias ``psynet-audit`` with the same
-subcommands.
-
 Status conventions
 ------------------
 
@@ -97,6 +94,13 @@ Python API
 ----------
 
 Shared helpers live under :mod:`psynet.audit` (model classification, HTML
-rendering, and artifact sanitization). These modules intentionally avoid
-importing the experiment runtime or Dallinger so they can be reused by light
-tooling such as the PsyNetSkills dashboard exporter.
+rendering, and artifact sanitization). The audit package modules avoid importing
+the experiment runtime. Publishing monitor snapshots copies static assets from
+the installed Dallinger package (``dallinger/frontend/static``).
+
+Monitor snapshots
+-----------------
+
+``monitor.html`` snapshots are rewritten for static viewing and their
+``/static/...`` assets are copied from the installed Dallinger frontend. PsyNet
+does not vendor a second copy of those files.
