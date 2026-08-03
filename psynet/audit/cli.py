@@ -1,0 +1,1140 @@
+"""Package and render PsyNet experiment audit bundles."""
+
+from __future__ import annotations
+
+import argparse
+import html
+import json
+import platform
+import re
+import shutil
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+from psynet.audit.artifacts import (
+    HASHED_ARTIFACTS_DIR,
+    MONITOR_STATIC_ARTIFACTS_DIR,
+    redact_known_credentials,
+    write_hashed_artifact,
+    write_shared_monitor_static_assets,
+)
+from psynet.audit.html import (
+    pygments_css,
+    render_evidence_section,
+    render_json_block,
+    render_markdown_block,
+    render_visible_artifacts,
+    render_timeline_section as render_shared_timeline_section,
+    safe_section_html,
+)
+from psynet.audit.model import (
+    AuditFile,
+    TEXT_AUDIT_EXTENSIONS,
+    classify_audit_evidence,
+    file_kind,
+)
+from psynet.audit.timeline import parse_timeline_entries
+from psynet.audit.video import validate_evidence_video
+
+AUDIT_TOP_LEVEL_REQUIRED = {
+    "schema_version",
+    "created_at",
+    "updated_at",
+    "experiment",
+    "implementation",
+    "environment",
+    "sections",
+    "artifacts",
+    "checks",
+    "blockers",
+}
+SECTION_REQUIRED_FIELDS = {"id", "title", "kind"}
+SECTION_KINDS = {
+    "markdown",
+    "evidence",
+    "files",
+    "timeline",
+    "json",
+    "checks",
+    "blockers",
+}
+ARTIFACT_REQUIRED_FIELDS = {
+    "id",
+    "kind",
+    "path",
+    "title",
+    "description",
+    "required",
+    "status",
+    "created_by",
+}
+BLOCKER_REQUIRED_FIELDS = {"artifact_id", "severity", "reason", "next_step"}
+CHECK_REQUIRED_FIELDS = {"id", "title", "status"}
+ARTIFACT_ID_RE = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
+ARTIFACT_KINDS = {
+    "video",
+    "screenshot",
+    "notebook",
+    "data_export",
+    "performance",
+    "monitor_snapshot",
+    "log",
+    "report",
+    "source",
+    "other",
+}
+ARTIFACT_STATUSES = {"present", "missing", "blocked", "not_applicable"}
+ARTIFACT_CREATORS = {"agent", "cli", "manual", "unknown"}
+BLOCKER_SEVERITIES = {"warning", "error"}
+CHECK_STATUSES = {"pass", "fail", "warning", "not_run"}
+MAX_AUDIT_NOTEBOOK_BYTES = 100_000
+CLI_NAME = "psynet audit"
+# Resolved via importlib.resources in _audit_css_path()
+AUDIT_CSS_OUTPUT = "css/audit.css"
+
+
+def audit_css_path() -> Path:
+    """Return the packaged audit stylesheet path."""
+    from importlib import resources
+
+    return Path(resources.files("psynet") / "resources" / "audit" / "audit.css")
+
+STARTER_PROMPT = """# Prompt
+
+Summarize the original request or experiment brief.
+"""
+STARTER_PLAN = """# Plan
+
+Summarize the implementation plan or remove this section from `audit.json`.
+"""
+STARTER_TIMELINE = """# Timeline
+
+Record notable implementation and evidence-collection events, or remove this
+section from `audit.json`.
+"""
+STARTER_REPORT = """# Experiment audit report
+
+Summarize the implementation, validation, analysis, and any unresolved issues.
+"""
+
+
+def read_audit_manifest(audit_dir: Path) -> dict[str, Any]:
+    """Read the experiment audit manifest from an experiment audit directory."""
+
+    manifest_path = audit_dir / "audit.json"
+    with manifest_path.open(encoding="utf-8") as file:
+        manifest = json.load(file)
+    if not isinstance(manifest, dict):
+        raise ValueError(f"{manifest_path}: manifest must be a JSON object")
+    return manifest
+
+
+def display_title_from_path(audit_dir: Path) -> str:
+    """Derive a human-readable experiment title from an audit path."""
+
+    source = audit_dir.parent if audit_dir.name == "audit" else audit_dir
+    normalized = re.sub(r"[-_]+", " ", source.name).strip()
+    return normalized.title() if normalized else "Experiment Audit"
+
+
+def audit_display_title(audit_dir: Path, manifest: dict[str, Any]) -> str:
+    """Return the display title for an experiment audit."""
+
+    experiment = manifest.get("experiment")
+    if isinstance(experiment, dict):
+        title = experiment.get("title")
+        if isinstance(title, str) and title.strip():
+            return title
+    return display_title_from_path(audit_dir)
+
+
+def utc_timestamp() -> str:
+    """Return a UTC ISO timestamp for generated audit metadata."""
+
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def starter_artifact(
+    artifact_id: str,
+    kind: str,
+    path: str,
+    title: str,
+    description: str,
+    *,
+    required: bool,
+    status: str,
+    created_by: str = "unknown",
+) -> dict[str, object]:
+    """Create a starter artifact record."""
+
+    return {
+        "id": artifact_id,
+        "kind": kind,
+        "path": path,
+        "title": title,
+        "description": description,
+        "required": required,
+        "status": status,
+        "created_by": created_by,
+    }
+
+
+def starter_blocker(artifact_id: str, reason: str, next_step: str) -> dict[str, str]:
+    """Create a starter blocker for an incomplete required artifact."""
+
+    return {
+        "artifact_id": artifact_id,
+        "severity": "warning",
+        "reason": reason,
+        "next_step": next_step,
+    }
+
+
+def starter_section(
+    section_id: str,
+    title: str,
+    kind: str,
+    *,
+    path: str | None = None,
+    display: bool = True,
+) -> dict[str, object]:
+    """Create a starter audit section."""
+
+    section: dict[str, object] = {
+        "id": section_id,
+        "title": title,
+        "kind": kind,
+        "display": display,
+    }
+    if path is not None:
+        section["path"] = path
+    return section
+
+
+def starter_audit_manifest(source_path: str) -> dict[str, object]:
+    """Create a starter experiment audit manifest."""
+
+    timestamp = utc_timestamp()
+    return {
+        "schema_version": "1.0",
+        "created_at": timestamp,
+        "updated_at": timestamp,
+        "experiment": {
+            "source_path": source_path,
+        },
+        "implementation": {
+            "summary": "TODO: Summarize the experiment implementation.",
+        },
+        "environment": {
+            "os": platform.system().lower(),
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
+        },
+        "sections": [
+            starter_section("prompt", "Prompt", "markdown", path="PROMPT.md"),
+            starter_section("plan", "Plan", "markdown", path="PLAN.md"),
+            starter_section("timeline", "Timeline", "markdown", path="TIMELINE.md"),
+            starter_section("report", "Report", "markdown", path="REPORT.md"),
+            starter_section("evidence", "Evidence", "evidence"),
+            starter_section("files", "Additional files", "files"),
+            starter_section("checks", "Checks", "checks"),
+            starter_section("blockers", "Blockers", "blockers"),
+        ],
+        "artifacts": [
+            starter_artifact(
+                "participant_video",
+                "video",
+                "artifacts/participant.mp4",
+                "Participant walkthrough",
+                "Participant-facing walkthrough video.",
+                required=True,
+                status="blocked",
+            ),
+            starter_artifact(
+                "screenshots",
+                "screenshot",
+                "artifacts/screenshots/manifest.json",
+                "Screenshot walkthrough",
+                "Manifest describing targeted participant-facing screenshots.",
+                required=False,
+                status="missing",
+            ),
+            starter_artifact(
+                "performance_result",
+                "performance",
+                "artifacts/performance.json",
+                "Performance test result",
+                "PsyNet performance-test output.",
+                required=True,
+                status="blocked",
+            ),
+            starter_artifact(
+                "monitor_snapshot",
+                "monitor_snapshot",
+                "artifacts/monitor.html",
+                "Monitor snapshot",
+                "Static PsyNet monitor snapshot.",
+                required=True,
+                status="blocked",
+            ),
+            starter_artifact(
+                "simulation_export",
+                "data_export",
+                "artifacts/simulated_data.zip",
+                "Simulated data export",
+                "Data export produced by simulated participants.",
+                required=True,
+                status="blocked",
+            ),
+            starter_artifact(
+                "analysis_notebook",
+                "notebook",
+                "analyses/analysis.ipynb",
+                "Analysis notebook",
+                "Executed notebook that reads the simulated export and summarizes results.",
+                required=True,
+                status="blocked",
+            ),
+        ],
+        "checks": [],
+        "blockers": [
+            starter_blocker(
+                "participant_video",
+                "Participant walkthrough has not been recorded yet.",
+                "Record or explicitly mark participant video as not applicable.",
+            ),
+            starter_blocker(
+                "performance_result",
+                "Performance test has not been run yet.",
+                "Run psynet performance-test and save artifacts/performance.json.",
+            ),
+            starter_blocker(
+                "monitor_snapshot",
+                "Monitor snapshot has not been captured yet.",
+                "Capture a static PsyNet monitor snapshot at artifacts/monitor.html.",
+            ),
+            starter_blocker(
+                "simulation_export",
+                "Simulation export has not been produced yet.",
+                "Run psynet simulate and save artifacts/simulated_data.zip.",
+            ),
+            starter_blocker(
+                "analysis_notebook",
+                "Analysis notebook has not been executed yet.",
+                "Create and execute analyses/analysis.ipynb.",
+            ),
+        ],
+        "render": {
+            "site_path": "site",
+            "generator": CLI_NAME,
+        },
+    }
+
+
+def init_audit(audit_dir: Path, source_path: str = ".", force: bool = False) -> None:
+    """Create a starter experiment audit directory."""
+
+    manifest_path = audit_dir / "audit.json"
+    if manifest_path.exists() and not force:
+        raise FileExistsError(f"{manifest_path}: already exists; pass --force to replace it")
+
+    for directory in (
+        audit_dir,
+        audit_dir / "artifacts",
+        audit_dir / "artifacts" / "screenshots",
+        audit_dir / "analyses",
+        audit_dir / "logs",
+    ):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    manifest_path.write_text(
+        json.dumps(starter_audit_manifest(source_path), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (audit_dir / "REPORT.md").write_text(STARTER_REPORT, encoding="utf-8")
+    (audit_dir / "PROMPT.md").write_text(STARTER_PROMPT, encoding="utf-8")
+    (audit_dir / "PLAN.md").write_text(STARTER_PLAN, encoding="utf-8")
+    (audit_dir / "TIMELINE.md").write_text(STARTER_TIMELINE, encoding="utf-8")
+
+
+def relative_audit_path(
+    audit_dir: Path,
+    path_text: object,
+    label: str,
+) -> tuple[Path | None, list[str]]:
+    """Resolve a manifest path and ensure it stays inside the bundle directory."""
+
+    if not isinstance(path_text, str) or not path_text:
+        return None, [f"{label}: path must be a non-empty string"]
+
+    relative_path = Path(path_text)
+    if relative_path.is_absolute():
+        return None, [f"{label}: path must be relative to the experiment audit directory"]
+
+    review_root = audit_dir.resolve()
+    resolved_path = (audit_dir / relative_path).resolve()
+    if not resolved_path.is_relative_to(review_root):
+        return None, [f"{label}: path must stay inside the experiment audit directory"]
+    return resolved_path, []
+
+
+def validate_audit_notebook(notebook_file: Path) -> list[str]:
+    """Validate that an audit notebook is parseable and small enough to render."""
+
+    problems: list[str] = []
+    size_bytes = notebook_file.stat().st_size
+    if size_bytes > MAX_AUDIT_NOTEBOOK_BYTES:
+        problems.append(
+            f"{notebook_file}: audit notebooks must be at most "
+            f"{MAX_AUDIT_NOTEBOOK_BYTES} bytes",
+        )
+    try:
+        notebook = json.loads(notebook_file.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        problems.append(f"{notebook_file}: invalid notebook JSON: {exc}")
+        return problems
+    if not isinstance(notebook, dict):
+        problems.append(f"{notebook_file}: notebook must be a JSON object")
+    return problems
+
+
+def validate_audit_blockers(
+    audit_dir: Path,
+    manifest: dict[str, Any],
+) -> tuple[set[str], list[str]]:
+    """Validate blocker records and return the artifact IDs they cover."""
+
+    blockers = manifest.get("blockers")
+    if not isinstance(blockers, list):
+        return set(), [f"{audit_dir / 'audit.json'}: blockers must be a list"]
+
+    blocker_ids: set[str] = set()
+    problems: list[str] = []
+    for index, blocker in enumerate(blockers):
+        label = f"{audit_dir / 'audit.json'}: blockers[{index}]"
+        if not isinstance(blocker, dict):
+            problems.append(f"{label}: blocker must be a JSON object")
+            continue
+        for field in sorted(BLOCKER_REQUIRED_FIELDS):
+            if field not in blocker:
+                problems.append(f"{label}: missing {field}")
+        artifact_id = blocker.get("artifact_id")
+        if not isinstance(artifact_id, str) or not ARTIFACT_ID_RE.fullmatch(artifact_id):
+            problems.append(f"{label}: artifact_id must be a valid artifact ID")
+        else:
+            blocker_ids.add(artifact_id)
+        if blocker.get("severity") not in BLOCKER_SEVERITIES:
+            problems.append(f"{label}: severity must be warning or error")
+        for field in ("reason", "next_step"):
+            if not isinstance(blocker.get(field), str) or not blocker[field].strip():
+                problems.append(f"{label}: {field} must be a non-empty string")
+    return blocker_ids, problems
+
+
+def validate_audit_checks(audit_dir: Path, manifest: dict[str, Any]) -> list[str]:
+    """Validate check records in an experiment audit manifest."""
+
+    checks = manifest.get("checks")
+    if not isinstance(checks, list):
+        return [f"{audit_dir / 'audit.json'}: checks must be a list"]
+
+    problems: list[str] = []
+    for index, check in enumerate(checks):
+        label = f"{audit_dir / 'audit.json'}: checks[{index}]"
+        if not isinstance(check, dict):
+            problems.append(f"{label}: check must be a JSON object")
+            continue
+        for field in sorted(CHECK_REQUIRED_FIELDS):
+            if field not in check:
+                problems.append(f"{label}: missing {field}")
+        check_id = check.get("id")
+        if not isinstance(check_id, str) or not ARTIFACT_ID_RE.fullmatch(check_id):
+            problems.append(f"{label}: id must be a valid check ID")
+        if not isinstance(check.get("title"), str) or not check["title"].strip():
+            problems.append(f"{label}: title must be a non-empty string")
+        if check.get("status") not in CHECK_STATUSES:
+            problems.append(
+                f"{label}: status must be pass, fail, warning, or not_run",
+            )
+    return problems
+
+
+def validate_audit_sections(audit_dir: Path, manifest: dict[str, Any]) -> list[str]:
+    """Validate section records in an experiment audit manifest."""
+
+    sections = manifest.get("sections")
+    if not isinstance(sections, list):
+        return [f"{audit_dir / 'audit.json'}: sections must be a list"]
+
+    problems: list[str] = []
+    section_ids: set[str] = set()
+    for index, section in enumerate(sections):
+        label = f"{audit_dir / 'audit.json'}: sections[{index}]"
+        if not isinstance(section, dict):
+            problems.append(f"{label}: section must be a JSON object")
+            continue
+        for field in sorted(SECTION_REQUIRED_FIELDS):
+            if field not in section:
+                problems.append(f"{label}: missing {field}")
+
+        section_id = section.get("id")
+        if not isinstance(section_id, str) or not ARTIFACT_ID_RE.fullmatch(section_id):
+            problems.append(f"{label}: id must be a valid section ID")
+        elif section_id in section_ids:
+            problems.append(f"{label}: duplicate section ID {section_id!r}")
+        else:
+            section_ids.add(section_id)
+
+        if not isinstance(section.get("title"), str) or not section["title"].strip():
+            problems.append(f"{label}: title must be a non-empty string")
+        kind = section.get("kind")
+        if kind not in SECTION_KINDS:
+            problems.append(f"{label}: kind is not recognized")
+        if "display" in section and not isinstance(section.get("display"), bool):
+            problems.append(f"{label}: display must be a boolean")
+        if kind in {"markdown", "timeline", "json"} and not isinstance(
+            section.get("content"),
+            str,
+        ):
+            section_path, path_problems = relative_audit_path(
+                audit_dir,
+                section.get("path"),
+                f"{label}: path",
+            )
+            problems.extend(path_problems)
+            if section_path is not None and section.get("display") is not False:
+                if not section_path.is_file():
+                    problems.append(f"{label}: section file is missing: {section_path}")
+        elif "path" in section:
+            _, path_problems = relative_audit_path(
+                audit_dir,
+                section.get("path"),
+                f"{label}: path",
+            )
+            problems.extend(path_problems)
+    return problems
+
+
+def validate_audit_artifacts(
+    audit_dir: Path,
+    manifest: dict[str, Any],
+    blocker_ids: set[str],
+) -> list[str]:
+    """Validate artifact records and their files."""
+
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        return [f"{audit_dir / 'audit.json'}: artifacts must be a list"]
+
+    problems: list[str] = []
+    artifact_ids: set[str] = set()
+    for index, artifact in enumerate(artifacts):
+        label = f"{audit_dir / 'audit.json'}: artifacts[{index}]"
+        if not isinstance(artifact, dict):
+            problems.append(f"{label}: artifact must be a JSON object")
+            continue
+        for field in sorted(ARTIFACT_REQUIRED_FIELDS):
+            if field not in artifact:
+                problems.append(f"{label}: missing {field}")
+
+        artifact_id = artifact.get("id")
+        if not isinstance(artifact_id, str) or not ARTIFACT_ID_RE.fullmatch(artifact_id):
+            problems.append(f"{label}: id must be a valid artifact ID")
+            artifact_id = None
+        elif artifact_id in artifact_ids:
+            problems.append(f"{label}: duplicate artifact ID {artifact_id!r}")
+        else:
+            artifact_ids.add(artifact_id)
+
+        if artifact.get("kind") not in ARTIFACT_KINDS:
+            problems.append(f"{label}: kind is not recognized")
+        status = artifact.get("status")
+        if status not in ARTIFACT_STATUSES:
+            problems.append(f"{label}: status is not recognized")
+        if artifact.get("created_by") not in ARTIFACT_CREATORS:
+            problems.append(f"{label}: created_by is not recognized")
+        if not isinstance(artifact.get("required"), bool):
+            problems.append(f"{label}: required must be a boolean")
+        for field in ("title", "description"):
+            if not isinstance(artifact.get(field), str) or not artifact[field].strip():
+                problems.append(f"{label}: {field} must be a non-empty string")
+
+        artifact_path, path_problems = relative_audit_path(
+            audit_dir,
+            artifact.get("path"),
+            label,
+        )
+        problems.extend(path_problems)
+        if artifact_path is None:
+            continue
+
+        if status == "present":
+            if not artifact_path.is_file():
+                problems.append(
+                    f"{label}: artifact marked present but file is missing: "
+                    f"{artifact_path}",
+                )
+                continue
+            if artifact_path.suffix.lower() == ".mp4":
+                problems.extend(validate_evidence_video(artifact_path))
+            if artifact_path.suffix.lower() == ".ipynb":
+                problems.extend(validate_audit_notebook(artifact_path))
+
+        if artifact.get("required") is True and status != "present":
+            if artifact_id is None or artifact_id not in blocker_ids:
+                problems.append(
+                    f"{label}: required artifact must be present or have a "
+                    "matching blocker",
+                )
+    return problems
+
+
+def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[str]:
+    """Validate experiment audit manifest structure and local artifact files."""
+
+    problems: list[str] = []
+    manifest_path = audit_dir / "audit.json"
+    for field in sorted(AUDIT_TOP_LEVEL_REQUIRED):
+        if field not in manifest:
+            problems.append(f"{manifest_path}: missing {field}")
+
+    if manifest.get("schema_version") != "1.0":
+        problems.append(f"{manifest_path}: schema_version must be '1.0'")
+    for field in ("created_at", "updated_at"):
+        if not isinstance(manifest.get(field), str) or not manifest[field].strip():
+            problems.append(f"{manifest_path}: {field} must be a non-empty string")
+    for field in ("experiment", "implementation", "environment"):
+        if not isinstance(manifest.get(field), dict):
+            problems.append(f"{manifest_path}: {field} must be a JSON object")
+
+    if isinstance(manifest.get("experiment"), dict):
+        experiment = manifest["experiment"]
+        if "title" in experiment and (
+            not isinstance(experiment.get("title"), str) or not experiment["title"].strip()
+        ):
+            problems.append(f"{manifest_path}: experiment.title must be a non-empty string")
+        if "source_path" not in experiment:
+            problems.append(f"{manifest_path}: experiment missing source_path")
+    if isinstance(manifest.get("implementation"), dict):
+        implementation = manifest["implementation"]
+        if (
+            not isinstance(implementation.get("summary"), str)
+            or not implementation["summary"].strip()
+        ):
+            problems.append(
+                f"{manifest_path}: implementation.summary must be a non-empty string",
+            )
+    blocker_ids, blocker_problems = validate_audit_blockers(audit_dir, manifest)
+    problems.extend(blocker_problems)
+    problems.extend(validate_audit_sections(audit_dir, manifest))
+    problems.extend(validate_audit_checks(audit_dir, manifest))
+    problems.extend(validate_audit_artifacts(audit_dir, manifest, blocker_ids))
+    return problems
+
+
+def validate_audit(audit_dir: Path) -> list[str]:
+    """Validate a standalone experiment audit directory."""
+
+    manifest_path = audit_dir / "audit.json"
+    if not manifest_path.exists():
+        return [f"{manifest_path}: missing experiment audit manifest"]
+    try:
+        manifest = read_audit_manifest(audit_dir)
+    except json.JSONDecodeError as exc:
+        return [f"{manifest_path}: invalid JSON: {exc}"]
+    except ValueError as exc:
+        return [str(exc)]
+    return validate_audit_manifest(audit_dir, manifest)
+
+
+def artifact_output_url(relative_url: str) -> str:
+    """Return a browser path from a rendered audit page to a published artifact."""
+
+    return f"static/{relative_url}"
+
+
+def publish_audit_artifacts(
+    audit_dir: Path,
+    site_dir: Path,
+    manifest: dict[str, Any],
+) -> list[AuditFile]:
+    """Publish present artifacts and return render metadata."""
+
+    target_root = site_dir / "static" / HASHED_ARTIFACTS_DIR
+    shared_static_root = site_dir / "static" / MONITOR_STATIC_ARTIFACTS_DIR
+    shutil.rmtree(target_root, ignore_errors=True)
+    shutil.rmtree(shared_static_root, ignore_errors=True)
+    target_root.mkdir(parents=True, exist_ok=True)
+    write_shared_monitor_static_assets(shared_static_root)
+
+    rendered: list[AuditFile] = []
+    for artifact in manifest.get("artifacts", []):
+        if not isinstance(artifact, dict):
+            continue
+        relative_path = str(artifact.get("path") or "")
+        status = str(artifact.get("status") or "missing")
+        if not relative_path or status != "present":
+            continue
+        source_file = audit_dir / relative_path
+        if not source_file.is_file():
+            continue
+        artifact_url = artifact_output_url(
+            write_hashed_artifact(
+                source_file,
+                target_root,
+                HASHED_ARTIFACTS_DIR,
+            ),
+        )
+        rendered.append(
+            AuditFile(
+                path=relative_path,
+                url=artifact_url,
+                content=read_audit_artifact_content(source_file),
+                size_bytes=source_file.stat().st_size,
+                kind=file_kind(relative_path),
+            )
+        )
+    return rendered
+
+
+def read_audit_artifact_content(source_file: Path, max_bytes: int = 100_000) -> str | None:
+    """Read text artifact content for audit classification."""
+
+    if source_file.suffix.lower() not in TEXT_AUDIT_EXTENSIONS:
+        return None
+    try:
+        data = source_file.read_bytes()
+    except OSError:
+        return None
+    if len(data) > max_bytes:
+        data = data[:max_bytes]
+    try:
+        return redact_known_credentials(data.decode("utf-8"))
+    except UnicodeDecodeError:
+        return None
+
+
+def render_metadata_grid(items: list[tuple[str, str]]) -> str:
+    """Render a dashboard-style metadata grid."""
+
+    rows = []
+    for label, value in items:
+        rows.append(
+            "<div>"
+            f"<dt>{html.escape(label)}</dt>"
+            f"<dd>{value}</dd>"
+            "</div>",
+        )
+    return '<dl class="metadata-grid attempt-summary">' + "".join(rows) + "</dl>"
+
+
+def render_metadata_value(value: object, fallback: str = "-") -> str:
+    """Render one metadata value."""
+
+    if value is None or value == "":
+        return html.escape(fallback)
+    return html.escape(str(value))
+
+
+def render_metadata_code(value: object, fallback: str = "-") -> str:
+    """Render one metadata value as code."""
+
+    return f"<code>{render_metadata_value(value, fallback)}</code>"
+
+
+def write_audit_static_assets(site_dir: Path) -> str:
+    """Write static experiment audit CSS and return its page-relative URL."""
+
+    target = site_dir / "static" / AUDIT_CSS_OUTPUT
+    target.parent.mkdir(parents=True, exist_ok=True)
+    css = audit_css_path().read_text(encoding="utf-8")
+    target.write_text(f"{css}\n\n{pygments_css()}\n", encoding="utf-8")
+    return f"static/{AUDIT_CSS_OUTPUT}"
+
+
+def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return displayable section records in manifest order."""
+
+    sections = manifest.get("sections")
+    if not isinstance(sections, list):
+        return []
+    return [
+        section
+        for section in sections
+        if isinstance(section, dict) and section.get("display") is not False
+    ]
+
+
+def section_panel_class(section: dict[str, Any]) -> str:
+    """Return the section-specific panel class."""
+
+    section_id = str(section.get("id") or "")
+    kind = str(section.get("kind") or "")
+    if section_id == "report":
+        return "report-panel"
+    if section_id == "plan":
+        return "plan-panel"
+    if kind == "evidence":
+        return "evidence-panel"
+    return ""
+
+
+def render_markdown_section(audit_dir: Path, section: dict[str, Any]) -> str:
+    """Render one markdown section."""
+
+    content = section.get("content")
+    if isinstance(content, str):
+        return render_markdown_block(content)
+    section_path, problems = relative_audit_path(
+        audit_dir,
+        section.get("path"),
+        f"{audit_dir / 'audit.json'}: sections[{section.get('id', '')}].path",
+    )
+    if problems or section_path is None:
+        return '<p class="missing">Section path is invalid.</p>'
+    if not section_path.is_file():
+        return '<p class="missing">Section file missing.</p>'
+    return render_markdown_block(section_path.read_text(encoding="utf-8"))
+
+
+def section_text(audit_dir: Path, section: dict[str, Any]) -> str | None:
+    """Return inline or file-backed section text."""
+
+    content = section.get("content")
+    if isinstance(content, str):
+        return content
+    section_path, problems = relative_audit_path(
+        audit_dir,
+        section.get("path"),
+        f"{audit_dir / 'audit.json'}: sections[{section.get('id', '')}].path",
+    )
+    if problems or section_path is None or not section_path.is_file():
+        return None
+    return section_path.read_text(encoding="utf-8")
+
+
+def render_timeline_section(audit_dir: Path, section: dict[str, Any]) -> str:
+    """Render one timeline section."""
+
+    text = section_text(audit_dir, section)
+    if text is None:
+        return '<p class="missing">Timeline section file missing.</p>'
+    entries = parse_timeline_entries(text)
+    return render_shared_timeline_section(entries, fallback_markdown=text)
+
+
+def render_json_section(audit_dir: Path, section: dict[str, Any]) -> str:
+    """Render one JSON or metadata section."""
+
+    text = section_text(audit_dir, section)
+    if text is None:
+        return '<p class="missing">JSON section file missing.</p>'
+    return render_json_block(text)
+
+
+def section_paths(manifest: dict[str, Any]) -> set[str]:
+    """Return paths rendered by markdown sections."""
+
+    paths: set[str] = set()
+    for section in display_sections(manifest):
+        if section.get("kind") == "markdown" and isinstance(section.get("path"), str):
+            paths.add(section["path"])
+    return paths
+
+
+def render_audit_section(
+    audit_dir: Path,
+    manifest: dict[str, Any],
+    section: dict[str, Any],
+    evidence: Any,
+) -> str:
+    """Render one experiment audit section."""
+
+    section_id_raw = str(section.get("id") or "section")
+    section_id = html.escape(section_id_raw, quote=True)
+    title = html.escape(str(section.get("title") or section_id_raw))
+    kind = section.get("kind")
+
+    def render_body() -> str:
+        if kind == "markdown":
+            return render_markdown_section(audit_dir, section)
+        if kind == "evidence":
+            return render_evidence_section(evidence, include_heading=False, section_id=None)
+        if kind == "files":
+            return render_visible_artifacts(evidence, exclude_paths=section_paths(manifest))
+        if kind == "timeline":
+            return render_timeline_section(audit_dir, section)
+        if kind == "json":
+            return render_json_section(audit_dir, section)
+        if kind == "checks":
+            return render_check_list(manifest)
+        if kind == "blockers":
+            return render_blockers(manifest)
+        return '<p class="missing">Section kind is not supported.</p>'
+
+    body = safe_section_html(section_id_raw, render_body)
+
+    panel_class = section_panel_class(section)
+    class_attr = f"attempt-panel {panel_class}".strip()
+    return (
+        f'<details id="{section_id}" class="{html.escape(class_attr, quote=True)}" open>'
+        f"<summary><h2>{title}</h2></summary>"
+        f"{body}"
+        "</details>"
+    )
+
+
+def render_check_list(manifest: dict[str, Any]) -> str:
+    """Render validation checks from the manifest."""
+
+    checks = manifest.get("checks", [])
+    if not isinstance(checks, list) or not checks:
+        return "<p>No checks recorded.</p>"
+
+    items: list[str] = []
+    for check in checks:
+        if not isinstance(check, dict):
+            continue
+        title = html.escape(str(check.get("title") or check.get("id") or "Check"))
+        status = html.escape(str(check.get("status") or "unknown"))
+        command = check.get("command")
+        command_html = (
+            f" <code>{html.escape(str(command))}</code>"
+            if isinstance(command, str) and command
+            else ""
+        )
+        items.append(f"<li><strong>{status}</strong> {title}{command_html}</li>")
+    return f"<ul>{''.join(items)}</ul>"
+
+
+def render_blockers(manifest: dict[str, Any]) -> str:
+    """Render blockers from the manifest."""
+
+    blockers = manifest.get("blockers", [])
+    if not isinstance(blockers, list) or not blockers:
+        return "<p>No blockers recorded.</p>"
+
+    items: list[str] = []
+    for blocker in blockers:
+        if not isinstance(blocker, dict):
+            continue
+        reason = html.escape(str(blocker.get("reason") or "Blocker"))
+        next_step = html.escape(str(blocker.get("next_step") or ""))
+        severity = html.escape(str(blocker.get("severity") or "warning"))
+        artifact_id = html.escape(str(blocker.get("artifact_id") or ""))
+        items.append(
+            f"<li><strong>{severity}</strong> <code>{artifact_id}</code>: "
+            f"{reason}<br>Next step: {next_step}</li>"
+        )
+    return f"<ul>{''.join(items)}</ul>"
+
+
+def render_audit_site(audit_dir: Path, site_dir: Path | None = None) -> Path:
+    """Render a standalone static experiment audit site."""
+
+    manifest = read_audit_manifest(audit_dir)
+    if site_dir is None:
+        configured_site = manifest.get("render", {})
+        if isinstance(configured_site, dict) and configured_site.get("site_path"):
+            site_dir = audit_dir / str(configured_site["site_path"])
+        else:
+            site_dir = audit_dir / "site"
+
+    site_dir.mkdir(parents=True, exist_ok=True)
+    rendered_artifacts = publish_audit_artifacts(audit_dir, site_dir, manifest)
+
+    implementation = manifest.get("implementation", {})
+    title = audit_display_title(audit_dir, manifest)
+    summary = (
+        str(implementation.get("summary"))
+        if isinstance(implementation, dict) and implementation.get("summary")
+        else ""
+    )
+    evidence = classify_audit_evidence(rendered_artifacts)
+    css_url = write_audit_static_assets(site_dir)
+    sections = display_sections(manifest)
+    experiment = manifest.get("experiment", {})
+    environment = manifest.get("environment", {})
+    artifacts = manifest.get("artifacts", [])
+    checks = manifest.get("checks", [])
+    blockers = manifest.get("blockers", [])
+    experiment = experiment if isinstance(experiment, dict) else {}
+    environment = environment if isinstance(environment, dict) else {}
+    artifact_count = len(artifacts) if isinstance(artifacts, list) else 0
+    check_count = len(checks) if isinstance(checks, list) else 0
+    blocker_count = len(blockers) if isinstance(blockers, list) else 0
+    metadata = render_metadata_grid(
+        [
+            ("Source path", render_metadata_code(experiment.get("source_path"))),
+            ("Entry point", render_metadata_code(experiment.get("entry_point"))),
+            ("PsyNet version", render_metadata_value(experiment.get("psynet_version"))),
+            ("Git commit", render_metadata_code(experiment.get("git_commit"))),
+            ("OS", render_metadata_value(environment.get("os"))),
+            ("Python", render_metadata_value(environment.get("python_version"))),
+            ("Sections", render_metadata_value(len(sections))),
+            ("Checks", render_metadata_value(check_count)),
+            ("Blockers", render_metadata_value(blocker_count)),
+        ],
+    )
+    section_nav = "".join(
+        f'<li><a href="#{html.escape(str(section.get("id")), quote=True)}">'
+        f'{html.escape(str(section.get("title") or section.get("id")))}</a></li>'
+        for section in sections
+    )
+    section_panels = "\n".join(
+        render_audit_section(audit_dir, manifest, section, evidence)
+        for section in sections
+    )
+
+    html_text = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{html.escape(title)}</title>
+  <link rel="stylesheet" href="{html.escape(css_url)}">
+</head>
+<body class="attempt-page">
+  <article class="prose attempt-detail">
+    <header class="attempt-hero">
+      <div>
+        <p class="eyebrow">Experiment experiment audit</p>
+        <h1>{html.escape(title)}</h1>
+        <p>{html.escape(summary)}</p>
+      </div>
+      <div class="score-card">
+        <span class="score-label">Artifacts</span>
+        <strong>{artifact_count}</strong>
+      </div>
+    </header>
+    {metadata}
+    <div class="attempt-layout">
+      <aside class="attempt-sidebar" aria-label="Experiment audit sections">
+        <nav class="attempt-section-nav">
+          <ol>
+            {section_nav}
+          </ol>
+        </nav>
+      </aside>
+      <div class="attempt-main">
+        {section_panels}
+      </div>
+    </div>
+  </article>
+  <script>
+    document.querySelectorAll("[data-screenshot-gallery]").forEach((gallery) => {{
+      const cards = Array.from(gallery.querySelectorAll("[data-screenshot-card]"));
+      const panel = gallery.closest(".screenshot-gallery");
+      const counter = panel.querySelector("[data-screenshot-counter]");
+      const previous = panel.querySelector("[data-screenshot-prev]");
+      const next = panel.querySelector("[data-screenshot-next]");
+      const caption = panel.querySelector("[data-screenshot-caption]");
+      const show = (index) => {{
+        cards.forEach((card, cardIndex) => {{ card.hidden = cardIndex !== index; }});
+        caption.textContent = cards[index]?.dataset.screenshotCaptionText || "";
+        counter.textContent = `${{index + 1}} / ${{cards.length}}`;
+        gallery.dataset.screenshotIndex = String(index);
+      }};
+      const step = (offset) => {{
+        const current = Number(gallery.dataset.screenshotIndex || 0);
+        show((current + offset + cards.length) % cards.length);
+      }};
+      if (cards.length > 0) {{
+        show(0);
+        previous.addEventListener("click", () => step(-1));
+        next.addEventListener("click", () => step(1));
+      }}
+    }});
+  </script>
+</body>
+</html>
+"""
+    (site_dir / "index.html").write_text(html_text, encoding="utf-8")
+    return site_dir
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line parser."""
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    init_parser = subparsers.add_parser(
+        "init",
+        help="create a starter experiment audit directory",
+    )
+    init_parser.add_argument(
+        "audit_dir",
+        nargs="?",
+        default="audit",
+        type=Path,
+        help="experiment audit directory to create",
+    )
+    init_parser.add_argument(
+        "--source-path",
+        default=".",
+        help="experiment source path, relative to the experiment audit directory",
+    )
+    init_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="replace audit.json and starter section files",
+    )
+    validate_parser = subparsers.add_parser(
+        "validate",
+        help="validate an experiment audit directory",
+    )
+    validate_parser.add_argument(
+        "audit_dir",
+        nargs="?",
+        default="audit",
+        type=Path,
+        help="experiment audit directory containing audit.json",
+    )
+    render_parser = subparsers.add_parser(
+        "render",
+        help="render a static experiment audit site",
+    )
+    render_parser.add_argument(
+        "audit_dir",
+        nargs="?",
+        default="audit",
+        type=Path,
+        help="experiment audit directory containing audit.json",
+    )
+    render_parser.add_argument(
+        "--output",
+        type=Path,
+        help="output directory for the rendered site",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Run the experiment audit command."""
+
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.command == "init":
+        try:
+            init_audit(args.audit_dir, args.source_path, args.force)
+        except FileExistsError as exc:
+            print(exc)
+            raise SystemExit(1) from exc
+        print(f"Initialized experiment audit directory: {args.audit_dir}")
+        print(f"Next: {CLI_NAME} validate {args.audit_dir}")
+        print(f"Next: {CLI_NAME} render {args.audit_dir}")
+    elif args.command == "validate":
+        problems = validate_audit(args.audit_dir)
+        if problems:
+            for problem in problems:
+                print(problem)
+            raise SystemExit(1)
+        print(f"Experiment audit validation passed: {args.audit_dir}")
+    elif args.command == "render":
+        site_dir = render_audit_site(args.audit_dir, args.output)
+        print(f"Rendered experiment audit site to {site_dir}")
+
+
+if __name__ == "__main__":
+    main()

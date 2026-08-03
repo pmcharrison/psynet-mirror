@@ -8,6 +8,7 @@ Experiment development
    development_workflow
    configuration
    dependencies
+   audit
    troubleshooting
    ../demos/index
    ../example_experiments/index

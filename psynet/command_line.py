@@ -3823,6 +3823,82 @@ def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
 
 
 # Recruiter specific
+@psynet.group("audit")
+@click.pass_context
+def audit(ctx):
+    """
+    Package and render an experiment readiness audit.
+
+    An audit records artifacts, checks, and blockers for human inspection.
+    It does not run tests or collect evidence for you.
+    """
+    pass
+
+
+@audit.command("init")
+@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+@click.option(
+    "--source-path",
+    default=".",
+    help="Experiment source path, relative to the audit directory.",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Replace audit.json and starter section files.",
+)
+def audit_init(audit_dir, source_path, force):
+    """Create a starter experiment audit directory."""
+    from pathlib import Path
+
+    from psynet.audit.cli import init_audit
+
+    try:
+        init_audit(Path(audit_dir), source_path, force)
+    except FileExistsError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"Initialized experiment audit directory: {audit_dir}")
+    click.echo(f"Next: psynet audit validate {audit_dir}")
+    click.echo(f"Next: psynet audit render {audit_dir}")
+
+
+@audit.command("validate")
+@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+def audit_validate(audit_dir):
+    """Validate an experiment audit directory."""
+    from pathlib import Path
+
+    from psynet.audit.cli import validate_audit
+
+    problems = validate_audit(Path(audit_dir))
+    if problems:
+        for problem in problems:
+            click.echo(problem, err=True)
+        raise SystemExit(1)
+    click.echo(f"Experiment audit validation passed: {audit_dir}")
+
+
+@audit.command("render")
+@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+@click.option(
+    "--output",
+    type=click.Path(),
+    default=None,
+    help="Output directory for the rendered site.",
+)
+def audit_render(audit_dir, output):
+    """Render a static experiment audit site."""
+    from pathlib import Path
+
+    from psynet.audit.cli import render_audit_site
+
+    site_dir = render_audit_site(
+        Path(audit_dir),
+        Path(output) if output is not None else None,
+    )
+    click.echo(f"Rendered experiment audit site: {site_dir / 'index.html'}")
+
+
 @psynet.group("lucid")
 @click.pass_context
 def lucid(ctx):
