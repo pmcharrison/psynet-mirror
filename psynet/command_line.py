@@ -3892,7 +3892,9 @@ def audit(ctx):
 
     An audit records artifacts, checks, and blockers for human inspection.
     It does not run tests or collect evidence for you. Create the audit/
-    folder inside the experiment directory (default layout).
+    folder inside the experiment directory (default layout). Commands
+    auto-detect ./audit.json or ./audit/audit.json when AUDIT_DIR is omitted
+    or points at the experiment root.
     """
     pass
 
@@ -3914,7 +3916,11 @@ def audit(ctx):
     help="Replace audit.json and starter section files.",
 )
 def audit_init(audit_dir, source_path, force):
-    """Create a starter experiment audit directory."""
+    """Create a starter experiment audit directory.
+
+    AUDIT_DIR defaults to ./audit. Pass an explicit path to create a flat
+    packet (for example ``.`` for the current directory).
+    """
     from pathlib import Path
 
     from psynet.audit.cli import init_audit, init_success_messages, resolve_audit_dir
@@ -3933,7 +3939,12 @@ def audit_init(audit_dir, source_path, force):
 @audit.command("validate")
 @click.argument("audit_dir", required=False, default=None, type=click.Path())
 def audit_validate(audit_dir):
-    """Validate an experiment audit directory."""
+    """Validate an experiment audit directory.
+
+    AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
+    ./audit.json or ./audit/audit.json. Exit 0 means the packet is coherent,
+    not that the experiment is ready (blockers may remain).
+    """
     from pathlib import Path
 
     from psynet.audit.cli import (
@@ -3968,7 +3979,11 @@ def audit_validate(audit_dir):
     help="Render even when validate would fail.",
 )
 def audit_render(audit_dir, output, allow_invalid):
-    """Render a static experiment audit site."""
+    """Render a static experiment audit site.
+
+    AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
+    ./audit.json or ./audit/audit.json.
+    """
     from pathlib import Path
 
     from psynet.audit.cli import (
@@ -4002,7 +4017,11 @@ def audit_render(audit_dir, output, allow_invalid):
     help="Optional new artifact path relative to the audit directory.",
 )
 def audit_mark_present(artifact_id, audit_dir, path):
-    """Mark an artifact present and remove its blockers."""
+    """Mark an artifact present and remove its blockers.
+
+    AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
+    ./audit.json or ./audit/audit.json.
+    """
     from pathlib import Path
 
     from psynet.audit.cli import mark_artifact_present, resolve_audit_dir

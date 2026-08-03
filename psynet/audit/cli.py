@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import argparse
 import html
 import json
 import platform
@@ -106,6 +105,15 @@ CHECK_STATUSES = {"pass", "fail", "warning", "not_run"}
 MAX_AUDIT_NOTEBOOK_BYTES = 100_000
 CLI_NAME = "psynet audit"
 AUDIT_CSS_OUTPUT = "css/audit.css"
+AUDIT_DIR_HELP = (
+    "Audit packet directory or experiment root. When omitted (or when the path "
+    "is an experiment root), auto-detects ./audit.json or ./audit/audit.json."
+)
+SOURCE_PATH_HELP = (
+    "Path to the experiment directory that contains the audit folder, relative "
+    "to the audit directory's parent (default: .). Run init from the experiment "
+    "root so ./audit/ is created and source_path stays ."
+)
 
 
 class AuditValidationError(ValueError):
@@ -114,12 +122,6 @@ class AuditValidationError(ValueError):
     def __init__(self, problems: list[str]):
         self.problems = problems
         super().__init__("\n".join(problems))
-
-
-def cli_program_name(argv: list[str] | None = None) -> str:
-    """Return the public program name for next-step hints."""
-
-    return CLI_NAME
 
 
 def format_allowed(values: set[str] | frozenset[str]) -> str:
@@ -1507,166 +1509,3 @@ def render_audit_site(
 """
     (site_dir / "index.html").write_text(html_text, encoding="utf-8")
     return site_dir
-
-
-SOURCE_PATH_HELP = (
-    "path to the experiment directory that contains the audit folder, relative "
-    "to the audit directory's parent (default: .). Run init from the experiment "
-    "root so ./audit/ is created and source_path stays ."
-)
-
-
-def build_parser() -> argparse.ArgumentParser:
-    """Build the command-line parser."""
-
-    parser = argparse.ArgumentParser(
-        description=(
-            "Package and render an experiment readiness audit. "
-            "Records artifacts, checks, and blockers for human inspection; "
-            "does not run tests or collect evidence for you."
-        ),
-    )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    init_parser = subparsers.add_parser(
-        "init",
-        help="create a starter experiment audit directory",
-    )
-    init_parser.add_argument(
-        "audit_dir",
-        nargs="?",
-        default=None,
-        type=Path,
-        help=(
-            "experiment audit directory to create "
-            "(default: ./audit, or cwd when it already has audit.json)"
-        ),
-    )
-    init_parser.add_argument(
-        "--source-path",
-        default=".",
-        help=SOURCE_PATH_HELP,
-    )
-    init_parser.add_argument(
-        "--force",
-        action="store_true",
-        help="replace audit.json and starter section files",
-    )
-    validate_parser = subparsers.add_parser(
-        "validate",
-        help="validate an experiment audit directory",
-    )
-    validate_parser.add_argument(
-        "audit_dir",
-        nargs="?",
-        default=None,
-        type=Path,
-        help=(
-            "audit packet directory, or experiment root "
-            "(auto-detects ./audit.json or ./audit/audit.json; default: auto)"
-        ),
-    )
-    render_parser = subparsers.add_parser(
-        "render",
-        help="render a static experiment audit site",
-    )
-    render_parser.add_argument(
-        "audit_dir",
-        nargs="?",
-        default=None,
-        type=Path,
-        help=(
-            "audit packet directory, or experiment root "
-            "(auto-detects ./audit.json or ./audit/audit.json; default: auto)"
-        ),
-    )
-    render_parser.add_argument(
-        "--output",
-        type=Path,
-        help="output directory for the rendered site",
-    )
-    render_parser.add_argument(
-        "--allow-invalid",
-        action="store_true",
-        help="render even when validate would fail",
-    )
-    mark_parser = subparsers.add_parser(
-        "mark-present",
-        help="mark an artifact present and remove its blockers",
-    )
-    mark_parser.add_argument(
-        "artifact_id",
-        help="artifact id from audit.json",
-    )
-    mark_parser.add_argument(
-        "audit_dir",
-        nargs="?",
-        default=None,
-        type=Path,
-        help=(
-            "audit packet directory, or experiment root "
-            "(auto-detects ./audit.json or ./audit/audit.json; default: auto)"
-        ),
-    )
-    mark_parser.add_argument(
-        "--path",
-        default=None,
-        help="optional new artifact path relative to the audit directory",
-    )
-    return parser
-
-
-def main(argv: list[str] | None = None) -> None:
-    """Run the experiment audit command."""
-
-    prog = cli_program_name(argv)
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    if args.command == "init":
-        audit_dir = resolve_audit_dir(args.audit_dir, for_init=True)
-        try:
-            init_audit(audit_dir, args.source_path, args.force)
-        except FileExistsError as exc:
-            print(f"Error: {exc}", file=sys.stderr)
-            raise SystemExit(1) from exc
-        for line in init_success_messages(audit_dir, prog=prog):
-            print(line)
-    elif args.command == "validate":
-        audit_dir = resolve_audit_dir(args.audit_dir)
-        problems = validate_audit(audit_dir)
-        if problems:
-            for problem in problems:
-                print(problem, file=sys.stderr)
-            raise SystemExit(1)
-        for warning in collect_audit_warnings(audit_dir):
-            print(f"Warning: {warning}", file=sys.stderr)
-        print(validate_success_message(audit_dir))
-    elif args.command == "render":
-        audit_dir = resolve_audit_dir(args.audit_dir)
-        try:
-            site_dir = render_audit_site(
-                audit_dir,
-                args.output,
-                allow_invalid=args.allow_invalid,
-            )
-        except AuditValidationError as exc:
-            for problem in exc.problems:
-                print(problem, file=sys.stderr)
-            print(
-                "Render blocked by validation errors; "
-                "fix them or pass --allow-invalid.",
-                file=sys.stderr,
-            )
-            raise SystemExit(1) from exc
-        print(f"Rendered experiment audit site: {site_dir / 'index.html'}")
-    elif args.command == "mark-present":
-        audit_dir = resolve_audit_dir(args.audit_dir)
-        try:
-            mark_artifact_present(audit_dir, args.artifact_id, args.path)
-        except (OSError, ValueError) as exc:
-            print(f"Error: {exc}", file=sys.stderr)
-            raise SystemExit(1) from exc
-        print(f"Marked {args.artifact_id!r} present in {audit_dir / 'audit.json'}")
-
-
-if __name__ == "__main__":
-    main()

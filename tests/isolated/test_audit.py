@@ -2,14 +2,21 @@ import json
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
 from psynet.audit.cli import (
     init_audit,
-    main,
     render_audit_section,
     render_audit_site,
     validate_audit,
 )
+from psynet.command_line import psynet
+
+
+def run_audit_cli(*args: str):
+    """Invoke ``psynet audit`` via Click (the supported CLI)."""
+
+    return CliRunner().invoke(psynet, ["audit", *args], catch_exceptions=False)
 
 
 def write(path: Path, text: str) -> None:
@@ -530,7 +537,6 @@ def test_validate_audit_requires_plan_section_for_core_profile(tmp_path: Path) -
 
 def test_validate_audit_accepts_unknown_extension_ids_with_warning(
     tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     from psynet.audit.cli import collect_audit_warnings
 
@@ -554,12 +560,12 @@ def test_validate_audit_accepts_unknown_extension_ids_with_warning(
     assert not any("psynetskills.challenge" in warning for warning in warnings)
     assert any("example.unknown" in warning for warning in warnings)
 
-    main(["validate", str(audit_dir)])
-    captured = capsys.readouterr()
-    assert "Warning:" in captured.err
-    assert "example.unknown" in captured.err
-    assert "psynetskills.challenge" not in captured.err
-    assert "Audit packet coherent" in captured.out
+    result = run_audit_cli("validate", str(audit_dir))
+    assert result.exit_code == 0
+    assert "Warning:" in result.stderr
+    assert "example.unknown" in result.stderr
+    assert "psynetskills.challenge" not in result.stderr
+    assert "Audit packet coherent" in result.output
 
 
 def test_validate_audit_fails_for_invalid_notebook_json(tmp_path: Path) -> None:
@@ -585,19 +591,15 @@ def test_validate_audit_fails_for_invalid_notebook_json(tmp_path: Path) -> None:
     assert any("invalid notebook JSON" in problem for problem in problems)
 
 
-def test_validate_audit_cli_exits_nonzero_on_problems(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
+def test_validate_audit_cli_exits_nonzero_on_problems(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     write(audit_dir / "audit.json", json.dumps(audit_manifest()) + "\n")
 
-    with pytest.raises(SystemExit) as exc_info:
-        main(["validate", str(audit_dir)])
+    result = CliRunner().invoke(psynet, ["audit", "validate", str(audit_dir)])
 
-    assert exc_info.value.code == 1
-    captured = capsys.readouterr()
-    assert "section file is missing" in captured.err
+    assert result.exit_code == 1
+    combined = f"{result.output}{result.stderr}"
+    assert "section file is missing" in combined
 
 
 def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> None:
@@ -641,19 +643,16 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
     assert validate_audit(audit_dir) == []
 
 
-def test_init_audit_cli_prints_next_steps(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
+def test_init_audit_cli_prints_next_steps(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
 
-    main(["init", str(audit_dir), "--source-path", "../experiment"])
+    result = run_audit_cli("init", str(audit_dir), "--source-path", "../experiment")
 
-    out = capsys.readouterr().out
-    assert "Initialized experiment audit directory" in out
-    assert "starter packet" in out
-    assert "psynet audit validate" in out
-    assert "packet coherent ≠ experiment ready" in out
+    assert result.exit_code == 0
+    assert "Initialized experiment audit directory" in result.output
+    assert "starter packet" in result.output
+    assert "psynet audit validate" in result.output
+    assert "packet coherent ≠ experiment ready" in result.output
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     assert manifest["experiment"]["source_path"] == "../experiment"
 
@@ -732,19 +731,16 @@ def test_mark_artifact_present_updates_manifest_and_drops_blocker(
     assert validate_audit(audit_dir) == []
 
 
-def test_validate_success_message_mentions_blockers(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
+def test_validate_success_message_mentions_blockers(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
 
-    main(["validate", str(audit_dir)])
+    result = run_audit_cli("validate", str(audit_dir))
 
-    out = capsys.readouterr().out
-    assert "Audit packet coherent" in out
-    assert "blocker" in out
-    assert "readiness incomplete" in out
+    assert result.exit_code == 0
+    assert "Audit packet coherent" in result.output
+    assert "blocker" in result.output
+    assert "readiness incomplete" in result.output
 
 
 def test_resolve_audit_dir_autodetects_nested_and_flat(
@@ -776,37 +772,33 @@ def test_resolve_audit_dir_autodetects_nested_and_flat(
 def test_validate_cli_accepts_experiment_root_dot(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     experiment = tmp_path / "exp"
     experiment.mkdir()
     monkeypatch.chdir(experiment)
-    main(["init"])
+    result = run_audit_cli("init")
+    assert result.exit_code == 0
     assert (experiment / "audit" / "audit.json").is_file()
 
-    main(["validate", "."])
+    result = run_audit_cli("validate", ".")
 
-    out = capsys.readouterr().out
-    assert "Audit packet coherent" in out
-    assert "readiness incomplete" in out
+    assert result.exit_code == 0
+    assert "Audit packet coherent" in result.output
+    assert "readiness incomplete" in result.output
 
 
-def test_render_cli_blocked_by_validation(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
+def test_render_cli_blocked_by_validation(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     manifest["artifacts"][0]["status"] = "done"
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
 
-    with pytest.raises(SystemExit) as exc_info:
-        main(["render", str(audit_dir)])
+    result = CliRunner().invoke(psynet, ["audit", "render", str(audit_dir)])
 
-    assert exc_info.value.code == 1
-    err = capsys.readouterr().err
-    assert "Render blocked by validation errors" in err
+    assert result.exit_code != 0
+    combined = f"{result.output}{result.stderr}"
+    assert "Render blocked by validation errors" in combined
 
 
 def test_validate_rejects_escaping_render_site_path(tmp_path: Path) -> None:

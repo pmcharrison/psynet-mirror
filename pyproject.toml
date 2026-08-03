@@ -63,7 +63,11 @@ dependencies = [
     "tqdm",
     "yaspin",
     "arabic-reshaper",  # Used by VocabTest
-    "pillow"  # Used by VocabTest
+    "pillow",  # Used by VocabTest
+    # Experiment audit render/validate (core, not an optional extra)
+    "markdown-it-py>=3,<4",  # via Dallinger today; keep an explicit compatible pin
+    "nh3>=0.3.6",
+    "pygments>=2.20.0",
 ]
 
 [project.optional-dependencies]
@@ -96,12 +100,6 @@ demos = [
     "sing4me",
     "soundfile",
     "statsmodels",
-]
-audit = [
-    # markdown-it-py comes via Dallinger (currently <4); pin stays compatible.
-    "markdown-it-py>=3,<4",
-    "nh3>=0.3.6",
-    "pygments>=2.20.0",
 ]
 
 [project.entry-points.pytest11]

@@ -18,14 +18,8 @@ you can pass ``.`` or omit the path and PsyNet will use ``./audit/`` when that
 is where ``audit.json`` lives (or the current directory when it already contains
 ``audit.json``).
 
-Install the optional extra when you need the renderer:
-
-.. code-block:: bash
-
-   uv pip install -e '.[audit]'
-
-Commands
---------
+Audit support is part of core PsyNet (no optional extra). Use a PsyNet revision
+that includes ``psynet audit``, then:
 
 .. code-block:: bash
 
