@@ -26,12 +26,14 @@ from psynet.audit.html import (
     render_json_block,
     render_markdown_block,
     render_visible_artifacts,
-    render_timeline_section as render_shared_timeline_section,
     safe_section_html,
 )
+from psynet.audit.html import (
+    render_timeline_section as render_shared_timeline_section,
+)
 from psynet.audit.model import (
-    AuditFile,
     TEXT_AUDIT_EXTENSIONS,
+    AuditFile,
     classify_audit_evidence,
     file_kind,
 )
@@ -135,6 +137,50 @@ def artifact_label(audit_dir: Path, index: int, artifact_id: object) -> str:
     return base
 
 
+def _has_audit_manifest(candidate: Path) -> bool:
+    """Return whether ``candidate/audit.json`` exists."""
+
+    return (candidate / "audit.json").is_file()
+
+
+def resolve_audit_dir(
+    path: Path | str | None = None,
+    *,
+    for_init: bool = False,
+) -> Path:
+    """Resolve an audit packet directory from a CLI path argument.
+
+    When ``path`` is omitted, prefer the current directory if it already
+    contains ``audit.json`` (challenge attempt root or cwd inside the packet),
+    otherwise use ``./audit`` (standalone experiment layout). Default ``init``
+    always targets ``./audit``.
+
+    When ``path`` is given for validate/render/mark-present, use it if it
+    contains ``audit.json``; otherwise, if ``path/audit/audit.json`` exists, use
+    that nested packet. This lets ``psynet audit validate .`` work from an
+    experiment root that holds ``./audit/``. Explicit ``init`` paths are never
+    redirected: ``init .`` still creates a flat packet in the current directory.
+    """
+
+    if path is None:
+        cwd = Path(".")
+        if for_init:
+            return cwd / "audit"
+        if _has_audit_manifest(cwd):
+            return cwd
+        return cwd / "audit"
+
+    requested = Path(path)
+    if for_init:
+        return requested
+    if _has_audit_manifest(requested):
+        return requested
+    nested = requested / "audit"
+    if _has_audit_manifest(nested):
+        return nested
+    return requested
+
+
 def count_blockers(manifest: dict[str, Any]) -> int:
     """Return the number of blocker records in a manifest."""
 
@@ -142,21 +188,23 @@ def count_blockers(manifest: dict[str, Any]) -> int:
     return len(blockers) if isinstance(blockers, list) else 0
 
 
-def validate_success_message(audit_dir: Path, manifest: dict[str, Any] | None = None) -> str:
+def validate_success_message(
+    audit_dir: Path, manifest: dict[str, Any] | None = None
+) -> str:
     """Return the validate success line, including blocker count when known."""
 
     if manifest is None:
         try:
             manifest = read_audit_manifest(audit_dir)
         except (OSError, ValueError, json.JSONDecodeError):
-            return f"Experiment audit structurally valid: {audit_dir}"
+            return f"Audit packet coherent: {audit_dir}"
     n = count_blockers(manifest)
     if n:
         return (
-            f"Experiment audit structurally valid: {audit_dir} "
-            f"({n} blocker{'s' if n != 1 else ''} recorded; not yet complete)"
+            f"Audit packet coherent: {audit_dir} "
+            f"({n} blocker{'s' if n != 1 else ''} recorded; readiness incomplete)"
         )
-    return f"Experiment audit structurally valid: {audit_dir} (no blockers)"
+    return f"Audit packet coherent: {audit_dir} (no blockers)"
 
 
 def init_success_messages(audit_dir: Path, prog: str = CLI_NAME) -> list[str]:
@@ -165,12 +213,12 @@ def init_success_messages(audit_dir: Path, prog: str = CLI_NAME) -> list[str]:
     return [
         f"Initialized experiment audit directory: {audit_dir}",
         "This is a starter packet: validate can pass while required evidence is "
-        "still blocked. Fill artifacts, then mark them present (see "
-        f"`{prog} mark-present`).",
+        "still blocked (packet coherent ≠ experiment ready). Fill artifacts, then "
+        f"mark them present (see `{prog} mark-present`).",
         "Required artifacts use status blocked + a blocker; optional gaps may use "
         "missing without a blocker.",
-        f"Next: {prog} validate {audit_dir}",
-        f"Next: {prog} render {audit_dir}",
+        f"Next: {prog} validate",
+        f"Next: {prog} render",
     ]
 
 
@@ -179,6 +227,7 @@ def audit_css_path() -> Path:
     from importlib import resources
 
     return Path(resources.files("psynet") / "resources" / "audit" / "audit.css")
+
 
 STARTER_PROMPT = """# Prompt
 
@@ -398,7 +447,7 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
             starter_blocker(
                 "performance_result",
                 "Performance test has not been run yet.",
-                "Run psynet performance-test and save artifacts/performance.json.",
+                "Run psynet performance-test local … --audit (or --audit <packet>).",
             ),
             starter_blocker(
                 "monitor_snapshot",
@@ -408,7 +457,8 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
             starter_blocker(
                 "simulation_export",
                 "Simulation export has not been produced yet.",
-                "Run psynet simulate and save artifacts/simulated_data.zip.",
+                "Run psynet simulate, then zip data/simulated_data/ to "
+                "artifacts/simulated_data.zip (simulate does not write the audit path).",
             ),
             starter_blocker(
                 "analysis_notebook",
@@ -428,7 +478,9 @@ def init_audit(audit_dir: Path, source_path: str = ".", force: bool = False) -> 
 
     manifest_path = audit_dir / "audit.json"
     if manifest_path.exists() and not force:
-        raise FileExistsError(f"{manifest_path}: already exists; pass --force to replace it")
+        raise FileExistsError(
+            f"{manifest_path}: already exists; pass --force to replace it"
+        )
 
     for directory in (
         audit_dir,
@@ -440,7 +492,8 @@ def init_audit(audit_dir: Path, source_path: str = ".", force: bool = False) -> 
         directory.mkdir(parents=True, exist_ok=True)
 
     manifest_path.write_text(
-        json.dumps(starter_audit_manifest(source_path), indent=2, sort_keys=True) + "\n",
+        json.dumps(starter_audit_manifest(source_path), indent=2, sort_keys=True)
+        + "\n",
         encoding="utf-8",
     )
     (audit_dir / "REPORT.md").write_text(STARTER_REPORT, encoding="utf-8")
@@ -461,7 +514,9 @@ def relative_audit_path(
 
     relative_path = Path(path_text)
     if relative_path.is_absolute():
-        return None, [f"{label}: path must be relative to the experiment audit directory"]
+        return None, [
+            f"{label}: path must be relative to the experiment audit directory"
+        ]
 
     audit_root = audit_dir.resolve()
     resolved_path = (audit_dir / relative_path).resolve()
@@ -511,7 +566,9 @@ def validate_audit_blockers(
             if field not in blocker:
                 problems.append(f"{label}: missing {field}")
         artifact_id = blocker.get("artifact_id")
-        if not isinstance(artifact_id, str) or not ARTIFACT_ID_RE.fullmatch(artifact_id):
+        if not isinstance(artifact_id, str) or not ARTIFACT_ID_RE.fullmatch(
+            artifact_id
+        ):
             problems.append(f"{label}: artifact_id must be a valid artifact ID")
         else:
             blocker_ids.add(artifact_id)
@@ -631,7 +688,9 @@ def validate_audit_artifacts(
                 problems.append(f"{label}: missing {field}")
 
         artifact_id = artifact.get("id")
-        if not isinstance(artifact_id, str) or not ARTIFACT_ID_RE.fullmatch(artifact_id):
+        if not isinstance(artifact_id, str) or not ARTIFACT_ID_RE.fullmatch(
+            artifact_id
+        ):
             problems.append(f"{label}: id must be a valid artifact ID")
             artifact_id = None
         elif artifact_id in artifact_ids:
@@ -821,9 +880,12 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
     if isinstance(manifest.get("experiment"), dict):
         experiment = manifest["experiment"]
         if "title" in experiment and (
-            not isinstance(experiment.get("title"), str) or not experiment["title"].strip()
+            not isinstance(experiment.get("title"), str)
+            or not experiment["title"].strip()
         ):
-            problems.append(f"{manifest_path}: experiment.title must be a non-empty string")
+            problems.append(
+                f"{manifest_path}: experiment.title must be a non-empty string"
+            )
         if "source_path" not in experiment:
             problems.append(f"{manifest_path}: experiment missing source_path")
     if isinstance(manifest.get("implementation"), dict):
@@ -923,7 +985,9 @@ def publish_audit_artifacts(
     return rendered
 
 
-def read_audit_artifact_content(source_file: Path, max_bytes: int = 100_000) -> str | None:
+def read_audit_artifact_content(
+    source_file: Path, max_bytes: int = 100_000
+) -> str | None:
     """Read text artifact content for audit classification."""
 
     if source_file.suffix.lower() not in TEXT_AUDIT_EXTENSIONS:
@@ -946,10 +1010,7 @@ def render_metadata_grid(items: list[tuple[str, str]]) -> str:
     rows = []
     for label, value in items:
         rows.append(
-            "<div>"
-            f"<dt>{html.escape(label)}</dt>"
-            f"<dd>{value}</dd>"
-            "</div>",
+            f"<div><dt>{html.escape(label)}</dt><dd>{value}</dd></div>",
         )
     return '<dl class="metadata-grid attempt-summary">' + "".join(rows) + "</dl>"
 
@@ -1085,9 +1146,13 @@ def render_audit_section(
         if kind == "markdown":
             return render_markdown_section(audit_dir, section)
         if kind == "evidence":
-            return render_evidence_section(evidence, include_heading=False, section_id=None)
+            return render_evidence_section(
+                evidence, include_heading=False, section_id=None
+            )
         if kind == "files":
-            return render_visible_artifacts(evidence, exclude_paths=section_paths(manifest))
+            return render_visible_artifacts(
+                evidence, exclude_paths=section_paths(manifest)
+            )
         if kind == "timeline":
             return render_timeline_section(audit_dir, section)
         if kind == "json":
@@ -1156,7 +1221,6 @@ def render_blockers(manifest: dict[str, Any]) -> str:
     return f"<ul>{''.join(items)}</ul>"
 
 
-
 def mark_artifact_present(
     audit_dir: Path,
     artifact_id: str,
@@ -1210,7 +1274,9 @@ def mark_artifact_present(
         manifest["blockers"] = [
             blocker
             for blocker in blockers
-            if not (isinstance(blocker, dict) and blocker.get("artifact_id") == artifact_id)
+            if not (
+                isinstance(blocker, dict) and blocker.get("artifact_id") == artifact_id
+            )
         ]
     manifest["updated_at"] = utc_timestamp()
     (audit_dir / "audit.json").write_text(
@@ -1233,7 +1299,11 @@ def readiness_score_card(manifest: dict[str, Any]) -> str:
 
     artifacts = manifest.get("artifacts")
     blockers = manifest.get("blockers")
-    artifact_rows = [a for a in artifacts if isinstance(a, dict)] if isinstance(artifacts, list) else []
+    artifact_rows = (
+        [a for a in artifacts if isinstance(a, dict)]
+        if isinstance(artifacts, list)
+        else []
+    )
     required = [a for a in artifact_rows if a.get("required") is True]
     present_required = [a for a in required if a.get("status") == "present"]
     present_all = [a for a in artifact_rows if a.get("status") == "present"]
@@ -1367,7 +1437,7 @@ def render_audit_site(
     )
     section_nav = "".join(
         f'<li><a href="#{html.escape(str(section.get("id")), quote=True)}">'
-        f'{html.escape(str(section.get("title") or section.get("id")))}</a></li>'
+        f"{html.escape(str(section.get('title') or section.get('id')))}</a></li>"
         for section in sections
     )
     section_panels = "\n".join(
@@ -1464,9 +1534,12 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument(
         "audit_dir",
         nargs="?",
-        default="audit",
+        default=None,
         type=Path,
-        help="experiment audit directory to create (default: audit under cwd)",
+        help=(
+            "experiment audit directory to create "
+            "(default: ./audit, or cwd when it already has audit.json)"
+        ),
     )
     init_parser.add_argument(
         "--source-path",
@@ -1485,9 +1558,12 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument(
         "audit_dir",
         nargs="?",
-        default="audit",
+        default=None,
         type=Path,
-        help="experiment audit directory containing audit.json",
+        help=(
+            "audit packet directory, or experiment root "
+            "(auto-detects ./audit.json or ./audit/audit.json; default: auto)"
+        ),
     )
     render_parser = subparsers.add_parser(
         "render",
@@ -1496,9 +1572,12 @@ def build_parser() -> argparse.ArgumentParser:
     render_parser.add_argument(
         "audit_dir",
         nargs="?",
-        default="audit",
+        default=None,
         type=Path,
-        help="experiment audit directory containing audit.json",
+        help=(
+            "audit packet directory, or experiment root "
+            "(auto-detects ./audit.json or ./audit/audit.json; default: auto)"
+        ),
     )
     render_parser.add_argument(
         "--output",
@@ -1521,9 +1600,12 @@ def build_parser() -> argparse.ArgumentParser:
     mark_parser.add_argument(
         "audit_dir",
         nargs="?",
-        default="audit",
+        default=None,
         type=Path,
-        help="experiment audit directory containing audit.json",
+        help=(
+            "audit packet directory, or experiment root "
+            "(auto-detects ./audit.json or ./audit/audit.json; default: auto)"
+        ),
     )
     mark_parser.add_argument(
         "--path",
@@ -1540,26 +1622,29 @@ def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "init":
+        audit_dir = resolve_audit_dir(args.audit_dir, for_init=True)
         try:
-            init_audit(args.audit_dir, args.source_path, args.force)
+            init_audit(audit_dir, args.source_path, args.force)
         except FileExistsError as exc:
             print(f"Error: {exc}", file=sys.stderr)
             raise SystemExit(1) from exc
-        for line in init_success_messages(args.audit_dir, prog=prog):
+        for line in init_success_messages(audit_dir, prog=prog):
             print(line)
     elif args.command == "validate":
-        problems = validate_audit(args.audit_dir)
+        audit_dir = resolve_audit_dir(args.audit_dir)
+        problems = validate_audit(audit_dir)
         if problems:
             for problem in problems:
                 print(problem, file=sys.stderr)
             raise SystemExit(1)
-        for warning in collect_audit_warnings(args.audit_dir):
+        for warning in collect_audit_warnings(audit_dir):
             print(f"Warning: {warning}", file=sys.stderr)
-        print(validate_success_message(args.audit_dir))
+        print(validate_success_message(audit_dir))
     elif args.command == "render":
+        audit_dir = resolve_audit_dir(args.audit_dir)
         try:
             site_dir = render_audit_site(
-                args.audit_dir,
+                audit_dir,
                 args.output,
                 allow_invalid=args.allow_invalid,
             )
@@ -1574,14 +1659,13 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(1) from exc
         print(f"Rendered experiment audit site: {site_dir / 'index.html'}")
     elif args.command == "mark-present":
+        audit_dir = resolve_audit_dir(args.audit_dir)
         try:
-            mark_artifact_present(args.audit_dir, args.artifact_id, args.path)
+            mark_artifact_present(audit_dir, args.artifact_id, args.path)
         except (OSError, ValueError) as exc:
             print(f"Error: {exc}", file=sys.stderr)
             raise SystemExit(1) from exc
-        print(
-            f"Marked {args.artifact_id!r} present in {args.audit_dir / 'audit.json'}"
-        )
+        print(f"Marked {args.artifact_id!r} present in {audit_dir / 'audit.json'}")
 
 
 if __name__ == "__main__":

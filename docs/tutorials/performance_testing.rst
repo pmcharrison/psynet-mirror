@@ -156,7 +156,7 @@ A few things to keep in mind for SSH tests:
   bots you want to run.
 * If the app is being used by anyone else during the test, the results will not
   be reliable.
-* ``--json-output`` / ``--audit-dir`` (see below) are not currently supported
+* ``--json-output`` / ``--audit`` (see below) are not currently supported
   over SSH; use ``performance-test local`` with those options for
   machine-readable results.
 
@@ -185,19 +185,20 @@ used), to a JSON file:
 
     psynet performance-test local --n-bots "10,25,50" --json-output results.json
 
-When the experiment is being packaged as a PsyNet audit, prefer ``--audit-dir``
+When the experiment is being packaged as a PsyNet audit, prefer ``--audit``
 instead. It writes the canonical audit path
-``<audit-dir>/artifacts/performance.json`` (creating ``artifacts/`` if needed):
+``<audit>/artifacts/performance.json`` (creating ``artifacts/`` if needed):
 
 .. code-block:: bash
 
-    # Standalone experiment audit under ./audit/
-    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit-dir audit
+    # From the experiment root with ./audit/ (auto-detect)
+    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit
 
-    # Challenge attempt whose attempt root is the audit packet
-    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit-dir ../..
+    # Explicit packet path (standalone nested audit, or challenge attempt root)
+    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit audit
+    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit ../..
 
-Do not combine ``--json-output`` and ``--audit-dir``.
+Do not combine ``--json-output`` and ``--audit``.
 
 This is useful for tracking performance over time or feeding results into other
 tools. PsyNet's own :ref:`ASV benchmark suite <asv_performance_tests>` uses

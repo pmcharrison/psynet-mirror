@@ -3306,33 +3306,37 @@ _test_options["performance_json_output"] = click.option(
     duration_minutes, stagger_interval_s, time_factor), and results
     (one entry per bot count tested, with all metrics).
     Useful for downstream consumption (e.g. benchmarking tools like asv).
-    Do not combine with --audit-dir.""",
+    Do not combine with --audit.""",
 )
 
-_test_options["performance_audit_dir"] = click.option(
-    "--audit-dir",
+_test_options["performance_audit"] = click.option(
+    "--audit",
+    "audit",
     type=click.Path(file_okay=False, path_type=Path),
+    is_flag=False,
+    flag_value=Path("."),
     default=None,
     help="""
-    Write performance results to <audit-dir>/artifacts/performance.json.
-    Use this when the experiment is being reviewed as a PsyNet audit packet
-    (standalone audit/ folder or a challenge attempt root). Creates the
-    artifacts/ directory if needed. Do not combine with --json-output.""",
+    Write performance results to <audit>/artifacts/performance.json.
+    Pass a packet path, or --audit alone to auto-detect from the current
+    directory (./audit.json or ./audit/audit.json). Creates artifacts/ if
+    needed. Do not combine with --json-output.""",
 )
 
 AUDIT_PERFORMANCE_JSON = Path("artifacts") / "performance.json"
 
 
-def resolve_performance_json_output(json_output=None, audit_dir=None):
+def resolve_performance_json_output(json_output=None, audit=None):
     """Resolve the JSON output path for a performance test.
 
     Parameters
     ----------
     json_output :
         Explicit JSON output path from ``--json-output``.
-    audit_dir :
-        Audit packet directory from ``--audit-dir``. When set, results are
-        written to ``<audit-dir>/artifacts/performance.json``.
+    audit :
+        Audit packet path or experiment root from ``--audit``. When set,
+        results are written to ``<resolved>/artifacts/performance.json``.
+        Bare ``--audit`` passes ``.`` and auto-detects the packet.
 
     Returns
     -------
@@ -3340,13 +3344,15 @@ def resolve_performance_json_output(json_output=None, audit_dir=None):
         Absolute or relative path to write, or ``None`` when no JSON output is
         requested.
     """
-    if json_output and audit_dir is not None:
-        raise click.UsageError("Use either --json-output or --audit-dir, not both.")
+    if json_output and audit is not None:
+        raise click.UsageError("Use either --json-output or --audit, not both.")
     if json_output:
         return str(json_output)
-    if audit_dir is None:
+    if audit is None:
         return None
-    audit_root = Path(audit_dir)
+    from psynet.audit.cli import resolve_audit_dir
+
+    audit_root = resolve_audit_dir(audit)
     if not (audit_root / "audit.json").is_file():
         click.echo(
             f"Warning: {audit_root / 'audit.json'} not found; "
@@ -3375,7 +3381,7 @@ def performance_test(ctx):
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
-@_test_options["performance_audit_dir"]
+@_test_options["performance_audit"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 def performance_test__local(
     existing=False,
@@ -3384,7 +3390,7 @@ def performance_test__local(
     time_factor=None,
     duration_minutes=None,
     json_output=None,
-    audit_dir=None,
+    audit=None,
     debug=False,
 ):
     """
@@ -3397,7 +3403,7 @@ def performance_test__local(
     By default, this command starts a new experiment server automatically.
     Use --existing to connect to an already-running server instead.
     """
-    json_output = resolve_performance_json_output(json_output, audit_dir)
+    json_output = resolve_performance_json_output(json_output, audit)
     if existing:
         _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
@@ -3755,7 +3761,7 @@ def _run_performance_test_with_new_server(
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
-@_test_options["performance_audit_dir"]
+@_test_options["performance_audit"]
 @click.pass_context
 def performance_test__docker_ssh(
     ctx,
@@ -3766,7 +3772,7 @@ def performance_test__docker_ssh(
     time_factor=None,
     duration_minutes=None,
     json_output=None,
-    audit_dir=None,
+    audit=None,
 ):
     """
     Runs performance tests on the remote server. Assumes that the app has
@@ -3779,13 +3785,13 @@ def performance_test__docker_ssh(
     If the app is in use during the performance test, results may not be
     reliable.
 
-    Note: The --json-output and --audit-dir options are not yet supported for
+    Note: The --json-output and --audit options are not yet supported for
     remote SSH execution. For JSON output, run
-    ``psynet performance-test local --json-output`` or ``--audit-dir`` instead.
+    ``psynet performance-test local --json-output`` or ``--audit`` instead.
     """
-    if json_output or audit_dir is not None:
+    if json_output or audit is not None:
         print(
-            "Warning: --json-output/--audit-dir are not yet implemented for SSH "
+            "Warning: --json-output/--audit are not yet implemented for SSH "
             "mode. Use 'psynet performance-test local' with those options instead.",
             file=sys.stderr,
         )
@@ -3892,7 +3898,7 @@ def audit(ctx):
 
 
 @audit.command("init")
-@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+@click.argument("audit_dir", required=False, default=None, type=click.Path())
 @click.option(
     "--source-path",
     default=".",
@@ -3911,40 +3917,45 @@ def audit_init(audit_dir, source_path, force):
     """Create a starter experiment audit directory."""
     from pathlib import Path
 
-    from psynet.audit.cli import init_audit, init_success_messages
+    from psynet.audit.cli import init_audit, init_success_messages, resolve_audit_dir
 
+    resolved = resolve_audit_dir(
+        Path(audit_dir) if audit_dir is not None else None, for_init=True
+    )
     try:
-        init_audit(Path(audit_dir), source_path, force)
+        init_audit(resolved, source_path, force)
     except FileExistsError as exc:
         raise click.ClickException(str(exc)) from exc
-    for line in init_success_messages(Path(audit_dir)):
+    for line in init_success_messages(resolved):
         click.echo(line)
 
 
 @audit.command("validate")
-@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+@click.argument("audit_dir", required=False, default=None, type=click.Path())
 def audit_validate(audit_dir):
     """Validate an experiment audit directory."""
     from pathlib import Path
 
     from psynet.audit.cli import (
         collect_audit_warnings,
+        resolve_audit_dir,
         validate_audit,
         validate_success_message,
     )
 
-    problems = validate_audit(Path(audit_dir))
+    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
+    problems = validate_audit(resolved)
     if problems:
         for problem in problems:
             click.echo(problem, err=True)
         raise SystemExit(1)
-    for warning in collect_audit_warnings(Path(audit_dir)):
+    for warning in collect_audit_warnings(resolved):
         click.echo(f"Warning: {warning}", err=True)
-    click.echo(validate_success_message(Path(audit_dir)))
+    click.echo(validate_success_message(resolved))
 
 
 @audit.command("render")
-@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+@click.argument("audit_dir", required=False, default=None, type=click.Path())
 @click.option(
     "--output",
     type=click.Path(),
@@ -3960,11 +3971,16 @@ def audit_render(audit_dir, output, allow_invalid):
     """Render a static experiment audit site."""
     from pathlib import Path
 
-    from psynet.audit.cli import AuditValidationError, render_audit_site
+    from psynet.audit.cli import (
+        AuditValidationError,
+        render_audit_site,
+        resolve_audit_dir,
+    )
 
+    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
     try:
         site_dir = render_audit_site(
-            Path(audit_dir),
+            resolved,
             Path(output) if output is not None else None,
             allow_invalid=allow_invalid,
         )
@@ -3979,7 +3995,7 @@ def audit_render(audit_dir, output, allow_invalid):
 
 @audit.command("mark-present")
 @click.argument("artifact_id")
-@click.argument("audit_dir", required=False, default="audit", type=click.Path())
+@click.argument("audit_dir", required=False, default=None, type=click.Path())
 @click.option(
     "--path",
     default=None,
@@ -3989,13 +4005,14 @@ def audit_mark_present(artifact_id, audit_dir, path):
     """Mark an artifact present and remove its blockers."""
     from pathlib import Path
 
-    from psynet.audit.cli import mark_artifact_present
+    from psynet.audit.cli import mark_artifact_present, resolve_audit_dir
 
+    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
     try:
-        mark_artifact_present(Path(audit_dir), artifact_id, path)
+        mark_artifact_present(resolved, artifact_id, path)
     except (OSError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
-    click.echo(f"Marked {artifact_id!r} present in {Path(audit_dir) / 'audit.json'}")
+    click.echo(f"Marked {artifact_id!r} present in {resolved / 'audit.json'}")
 
 
 @psynet.group("lucid")

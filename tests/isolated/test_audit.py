@@ -173,9 +173,18 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert "psynet test local" in index
     assert "No simulated export has been produced yet." in index
     assert index.count('class="attempt-file"') >= 2
-    assert '<summary class="file-header"><h3><code>artifacts/psynet_debug.log</code></h3>' in index
-    assert '<pre class="file-preview"><code>Dashboard user: admin password: [REDACTED]' in index
-    assert '<summary class="file-header"><h3><code>artifacts/monitor.html</code></h3>' in index
+    assert (
+        '<summary class="file-header"><h3><code>artifacts/psynet_debug.log</code></h3>'
+        in index
+    )
+    assert (
+        '<pre class="file-preview"><code>Dashboard user: admin password: [REDACTED]'
+        in index
+    )
+    assert (
+        '<summary class="file-header"><h3><code>artifacts/monitor.html</code></h3>'
+        in index
+    )
 
     published_files = sorted((site_dir / "static/artifacts/blobs/sha256").glob("**/*"))
     published_text = "\n".join(
@@ -188,8 +197,7 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert "/dashboard/index" not in published_text
 
     assert (
-        site_dir
-        / "static/artifacts/monitor-static/vis@4.17.0/dist/vis.min.js"
+        site_dir / "static/artifacts/monitor-static/vis@4.17.0/dist/vis.min.js"
     ).exists()
     assert (site_dir / "static/css/audit.css").exists()
 
@@ -291,7 +299,9 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     write(audit_dir / "PLAN.md", "# Plan\n\nUse a chain trial maker.\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "debug\n")
-    write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
+    write(
+        audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>"
+    )
     write_bytes(audit_dir / "artifacts/participant.mp4", b"video bytes")
     write_bytes(audit_dir / "artifacts/screenshots/01-intro.png", b"png bytes")
     write_bytes(audit_dir / "artifacts/screenshots/02-trial.png", b"png bytes 2")
@@ -338,7 +348,7 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     assert "Screenshot walkthrough" in index
     assert "Intro screen" in index
     assert "Trial screen" in index
-    assert 'data-screenshot-counter>1 / 2</span>' in index
+    assert "data-screenshot-counter>1 / 2</span>" in index
     assert "Performance test result" in index
     assert "<td>4</td>" in index
     assert "<td>3</td>" in index
@@ -462,7 +472,9 @@ def test_validate_audit_fails_when_present_artifact_file_is_missing(
 
     problems = validate_audit(audit_dir)
 
-    assert any("artifact marked present but file is missing" in problem for problem in problems)
+    assert any(
+        "artifact marked present but file is missing" in problem for problem in problems
+    )
 
 
 def test_validate_audit_fails_when_required_artifact_lacks_blocker(
@@ -475,19 +487,25 @@ def test_validate_audit_fails_when_required_artifact_lacks_blocker(
     write(audit_dir / "PLAN.md", "# Plan\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "ok\n")
-    write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
+    write(
+        audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>"
+    )
 
     problems = validate_audit(audit_dir)
 
     assert any("required artifact must be present" in problem for problem in problems)
 
 
-def test_validate_audit_fails_when_markdown_section_path_is_missing(tmp_path: Path) -> None:
+def test_validate_audit_fails_when_markdown_section_path_is_missing(
+    tmp_path: Path,
+) -> None:
     audit_dir = tmp_path / "audit"
     write(audit_dir / "audit.json", json.dumps(audit_manifest()) + "\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "ok\n")
-    write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
+    write(
+        audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>"
+    )
 
     problems = validate_audit(audit_dir)
 
@@ -499,15 +517,15 @@ def test_validate_audit_requires_plan_section_for_core_profile(tmp_path: Path) -
     write_valid_review(audit_dir)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     manifest["sections"] = [
-        section
-        for section in manifest["sections"]
-        if section["id"] != "plan"
+        section for section in manifest["sections"] if section["id"] != "plan"
     ]
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
 
     problems = validate_audit(audit_dir)
 
-    assert any("requires a displayed markdown section" in problem for problem in problems)
+    assert any(
+        "requires a displayed markdown section" in problem for problem in problems
+    )
 
 
 def test_validate_audit_accepts_unknown_extension_ids_with_warning(
@@ -541,7 +559,7 @@ def test_validate_audit_accepts_unknown_extension_ids_with_warning(
     assert "Warning:" in captured.err
     assert "example.unknown" in captured.err
     assert "psynetskills.challenge" not in captured.err
-    assert "structurally valid" in captured.out
+    assert "Audit packet coherent" in captured.out
 
 
 def test_validate_audit_fails_for_invalid_notebook_json(tmp_path: Path) -> None:
@@ -557,7 +575,9 @@ def test_validate_audit_fails_for_invalid_notebook_json(tmp_path: Path) -> None:
     write(audit_dir / "PLAN.md", "# Plan\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "ok\n")
-    write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
+    write(
+        audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>"
+    )
     write(audit_dir / "analyses/analysis.ipynb", "{not json")
 
     problems = validate_audit(audit_dir)
@@ -611,10 +631,7 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
     assert manifest["artifacts"][0]["id"] == "participant_video"
     assert manifest["artifacts"][0]["status"] == "blocked"
     assert manifest["blockers"][0]["severity"] == "error"
-    assert {
-        blocker["artifact_id"]
-        for blocker in manifest["blockers"]
-    } == {
+    assert {blocker["artifact_id"] for blocker in manifest["blockers"]} == {
         "participant_video",
         "performance_result",
         "monitor_snapshot",
@@ -635,7 +652,8 @@ def test_init_audit_cli_prints_next_steps(
     out = capsys.readouterr().out
     assert "Initialized experiment audit directory" in out
     assert "starter packet" in out
-    assert f"psynet audit validate {audit_dir}" in out
+    assert "psynet audit validate" in out
+    assert "packet coherent ≠ experiment ready" in out
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     assert manifest["experiment"]["source_path"] == "../experiment"
 
@@ -687,14 +705,18 @@ def test_render_refuses_invalid_manifest_unless_allowed(tmp_path: Path) -> None:
 
     with pytest.raises(AuditValidationError) as exc_info:
         render_audit_site(audit_dir)
-    assert any("status is not recognized" in problem for problem in exc_info.value.problems)
+    assert any(
+        "status is not recognized" in problem for problem in exc_info.value.problems
+    )
     assert any("allowed:" in problem for problem in exc_info.value.problems)
 
     site_dir = render_audit_site(audit_dir, allow_invalid=True)
     assert (site_dir / "index.html").is_file()
 
 
-def test_mark_artifact_present_updates_manifest_and_drops_blocker(tmp_path: Path) -> None:
+def test_mark_artifact_present_updates_manifest_and_drops_blocker(
+    tmp_path: Path,
+) -> None:
     from psynet.audit.cli import mark_artifact_present
 
     audit_dir = tmp_path / "audit"
@@ -720,8 +742,53 @@ def test_validate_success_message_mentions_blockers(
     main(["validate", str(audit_dir)])
 
     out = capsys.readouterr().out
-    assert "structurally valid" in out
+    assert "Audit packet coherent" in out
     assert "blocker" in out
+    assert "readiness incomplete" in out
+
+
+def test_resolve_audit_dir_autodetects_nested_and_flat(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from psynet.audit.cli import resolve_audit_dir
+
+    experiment = tmp_path / "exp"
+    nested = experiment / "audit"
+    nested.mkdir(parents=True)
+    write(nested / "audit.json", "{}\n")
+    monkeypatch.chdir(experiment)
+
+    assert resolve_audit_dir(None) == Path("audit")
+    assert resolve_audit_dir(Path(".")) == Path("audit")
+    assert resolve_audit_dir(Path("audit")) == Path("audit")
+    assert resolve_audit_dir(None, for_init=True) == Path("audit")
+    assert resolve_audit_dir(Path("."), for_init=True) == Path(".")
+
+    attempt = tmp_path / "attempt"
+    attempt.mkdir()
+    write(attempt / "audit.json", "{}\n")
+    monkeypatch.chdir(attempt)
+    assert resolve_audit_dir(None) == Path(".")
+    assert resolve_audit_dir(Path(".")) == Path(".")
+
+
+def test_validate_cli_accepts_experiment_root_dot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    experiment = tmp_path / "exp"
+    experiment.mkdir()
+    monkeypatch.chdir(experiment)
+    main(["init"])
+    assert (experiment / "audit" / "audit.json").is_file()
+
+    main(["validate", "."])
+
+    out = capsys.readouterr().out
+    assert "Audit packet coherent" in out
+    assert "readiness incomplete" in out
 
 
 def test_render_cli_blocked_by_validation(
@@ -746,7 +813,10 @@ def test_validate_rejects_escaping_render_site_path(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
-    manifest["render"] = {"site_path": "../../outside-site", "generator": "psynet audit"}
+    manifest["render"] = {
+        "site_path": "../../outside-site",
+        "generator": "psynet audit",
+    }
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
 
     problems = validate_audit(audit_dir)
@@ -760,7 +830,10 @@ def test_render_refuses_escaping_site_path_even_with_allow_invalid(
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
-    manifest["render"] = {"site_path": "../../outside-site", "generator": "psynet audit"}
+    manifest["render"] = {
+        "site_path": "../../outside-site",
+        "generator": "psynet audit",
+    }
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
 
     with pytest.raises(ValueError, match="render.site_path|must stay inside"):

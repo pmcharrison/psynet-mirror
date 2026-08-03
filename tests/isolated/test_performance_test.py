@@ -299,12 +299,12 @@ def test_resolve_performance_json_output_prefers_explicit_path(tmp_path):
     audit_dir = tmp_path / "audit"
     audit_dir.mkdir()
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
-    resolved = resolve_performance_json_output(audit_dir=audit_dir)
+    resolved = resolve_performance_json_output(audit=audit_dir)
     assert Path(resolved) == audit_dir / "artifacts" / "performance.json"
     assert (audit_dir / "artifacts").is_dir()
 
     with pytest.raises(click.UsageError):
-        resolve_performance_json_output("results.json", audit_dir=audit_dir)
+        resolve_performance_json_output("results.json", audit=audit_dir)
 
 
 def test_resolve_performance_json_output_warns_without_manifest(tmp_path, capsys):
@@ -314,7 +314,27 @@ def test_resolve_performance_json_output_warns_without_manifest(tmp_path, capsys
 
     audit_dir = tmp_path / "attempt"
     audit_dir.mkdir()
-    resolved = resolve_performance_json_output(audit_dir=audit_dir)
+    resolved = resolve_performance_json_output(audit=audit_dir)
     assert Path(resolved) == audit_dir / "artifacts" / "performance.json"
     err = capsys.readouterr().err
     assert "audit.json" in err
+
+
+def test_resolve_performance_json_output_autodetects_nested_audit(
+    tmp_path, monkeypatch
+):
+    from pathlib import Path
+
+    from psynet.command_line import resolve_performance_json_output
+
+    experiment = tmp_path / "exp"
+    audit_dir = experiment / "audit"
+    audit_dir.mkdir(parents=True)
+    (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
+    monkeypatch.chdir(experiment)
+
+    resolved = resolve_performance_json_output(audit=Path("."))
+    assert (
+        Path(resolved).resolve()
+        == (audit_dir / "artifacts" / "performance.json").resolve()
+    )

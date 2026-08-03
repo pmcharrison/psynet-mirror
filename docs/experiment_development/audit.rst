@@ -13,7 +13,10 @@ on), then record the outcomes in ``audit/audit.json``.
 **Default layout:** run the CLI from the experiment directory so the audit lives
 at ``./audit/``. ``experiment.source_path`` defaults to ``.``, meaning “the
 experiment directory that contains this audit folder” (relative to the audit
-directory’s parent).
+directory’s parent). Commands auto-detect the packet: from the experiment root
+you can pass ``.`` or omit the path and PsyNet will use ``./audit/`` when that
+is where ``audit.json`` lives (or the current directory when it already contains
+``audit.json``).
 
 Install the optional extra when you need the renderer:
 
@@ -28,16 +31,16 @@ Commands
 
    psynet audit init
    psynet audit validate
+   psynet audit validate .
    psynet audit mark-present <artifact_id>
    psynet audit render
 
 * ``init`` creates a starter ``audit/`` directory whose required-but-missing
   artifacts are covered by starter blockers. Validate can pass on this sparse
-  starter; that means the packet is structurally coherent, not that the
-  experiment is ready.
+  starter; that means the packet is coherent, not that the experiment is ready.
 * ``validate`` checks the manifest structure, required artifact files, blocker
   coverage, video limits, and notebook JSON readiness. It reports how many
-  blockers are still recorded.
+  blockers are still recorded and that readiness may still be incomplete.
 * ``mark-present`` sets an artifact to ``present``, verifies the file exists,
   removes matching blockers, and updates ``updated_at``. Use this after you
   add a real file instead of hand-editing status fields.
