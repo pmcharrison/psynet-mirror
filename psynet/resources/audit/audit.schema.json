@@ -27,6 +27,25 @@
     "updated_at": {
       "$ref": "#/$defs/isoTimestamp"
     },
+    "profile": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Audit profile. Default is psynet.core, which requires a displayed plan markdown section."
+    },
+    "extensions": {
+      "type": "array",
+      "description": "Opaque extension ids the packet opts into (for example psynetskills.challenge). Core validate ignores unknown ids with a warning.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "extensions_meta": {
+      "type": "object",
+      "description": "Optional opaque metadata keyed by extension id.",
+      "additionalProperties": true
+    },
     "experiment": {
       "type": "object",
       "additionalProperties": false,

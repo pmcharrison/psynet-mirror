@@ -77,6 +77,30 @@ Bundle layout
 audit context. Incomplete required artifacts must be represented by blockers
 rather than hidden by rendering.
 
+Profiles and extensions
+-----------------------
+
+Manifests may declare:
+
+.. code-block:: json
+
+   {
+     "profile": "psynet.core",
+     "extensions": []
+   }
+
+* ``profile`` defaults to ``psynet.core`` when omitted.
+* The default core profile requires a displayed markdown section with id
+  ``plan`` pointing at ``PLAN.md`` (unless the section supplies inline
+  ``content``).
+* ``extensions`` is a list of opaque extension ids (for example
+  ``psynetskills.challenge``). Extensions add more ``sections`` rows that still
+  use **core** section kinds (``markdown``, ``files``, ``json``, and so on).
+* Core ``psynet audit validate`` / ``render`` ignore unknown extension ids and
+  may print a warning. Unknown section **kinds** remain a validation error.
+* PsyNet does not import workshop plugins. Consumers such as PsyNetSkills read
+  declared extension ids and apply their own overlay rendering.
+
 Worked example: record a log
 ----------------------------
 

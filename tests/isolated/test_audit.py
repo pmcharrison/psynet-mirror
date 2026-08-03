@@ -27,6 +27,8 @@ def audit_manifest() -> dict[str, object]:
         "schema_version": "1.0",
         "created_at": "2026-06-14T13:00:00Z",
         "updated_at": "2026-06-14T13:00:00Z",
+        "profile": "psynet.core",
+        "extensions": [],
         "experiment": {
             "source_path": ".",
             "entry_point": "experiment.py",
@@ -38,6 +40,12 @@ def audit_manifest() -> dict[str, object]:
             "os": "linux",
         },
         "sections": [
+            {
+                "id": "plan",
+                "title": "Plan",
+                "kind": "markdown",
+                "path": "PLAN.md",
+            },
             {
                 "id": "report",
                 "title": "Report",
@@ -116,20 +124,14 @@ def audit_manifest() -> dict[str, object]:
     }
 
 
+def write_core_section_files(audit_dir: Path) -> None:
+    write(audit_dir / "PLAN.md", "# Plan\n\nUse a chain trial maker.\n")
+    write(audit_dir / "REPORT.md", "# Report\n\nReady for review.\n")
+
+
 def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None:
     audit_dir = tmp_path / "pitch-discrimination-demo" / "audit"
     manifest = audit_manifest()
-    sections = manifest["sections"]
-    assert isinstance(sections, list)
-    sections.insert(
-        1,
-        {
-            "id": "plan",
-            "title": "Plan",
-            "kind": "markdown",
-            "path": "PLAN.md",
-        },
-    )
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
     write(
         audit_dir / "REPORT.md",
@@ -286,6 +288,7 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     )
     manifest["blockers"] = []
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir / "PLAN.md", "# Plan\n\nUse a chain trial maker.\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "debug\n")
     write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
@@ -375,6 +378,7 @@ def test_render_audit_site_renders_timeline_and_json_sections(tmp_path: Path) ->
         },
     )
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir / "PLAN.md", "# Plan\n\nUse a chain trial maker.\n")
     write(audit_dir / "REPORT.md", "# Report\n\nExperiment works.\n")
     write(
         audit_dir / "TIMELINE.md",
@@ -425,6 +429,7 @@ def test_render_audit_section_isolates_render_failures(
 
 def write_valid_review(audit_dir: Path) -> None:
     write(audit_dir / "audit.json", json.dumps(audit_manifest()) + "\n")
+    write(audit_dir / "PLAN.md", "# Plan\n\nUse a chain trial maker.\n")
     write(audit_dir / "REPORT.md", "# Report\n\nExperiment behaves as expected.\n")
     write(
         audit_dir / "artifacts/psynet_debug.log",
@@ -467,6 +472,7 @@ def test_validate_audit_fails_when_required_artifact_lacks_blocker(
     manifest = audit_manifest()
     manifest["blockers"] = []
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir / "PLAN.md", "# Plan\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "ok\n")
     write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
@@ -478,18 +484,7 @@ def test_validate_audit_fails_when_required_artifact_lacks_blocker(
 
 def test_validate_audit_fails_when_markdown_section_path_is_missing(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
-    manifest = audit_manifest()
-    sections = manifest["sections"]
-    assert isinstance(sections, list)
-    sections.append(
-        {
-            "id": "plan",
-            "title": "Plan",
-            "kind": "markdown",
-            "path": "PLAN.md",
-        },
-    )
-    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir / "audit.json", json.dumps(audit_manifest()) + "\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "ok\n")
     write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
@@ -497,6 +492,55 @@ def test_validate_audit_fails_when_markdown_section_path_is_missing(tmp_path: Pa
     problems = validate_audit(audit_dir)
 
     assert any("section file is missing" in problem for problem in problems)
+
+
+def test_validate_audit_requires_plan_section_for_core_profile(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    write_valid_review(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["sections"] = [
+        section
+        for section in manifest["sections"]
+        if section["id"] != "plan"
+    ]
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    problems = validate_audit(audit_dir)
+
+    assert any("requires a displayed markdown section" in problem for problem in problems)
+
+
+def test_validate_audit_accepts_unknown_extension_ids_with_warning(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from psynet.audit.cli import collect_audit_warnings
+
+    audit_dir = tmp_path / "audit"
+    write_valid_review(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["extensions"] = ["psynetskills.challenge", "example.unknown"]
+    manifest["sections"].append(
+        {
+            "id": "evaluation",
+            "title": "Evaluation",
+            "kind": "markdown",
+            "path": "EVALUATION.md",
+        },
+    )
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir / "EVALUATION.md", "# Evaluation\n\nScore pending.\n")
+
+    assert validate_audit(audit_dir) == []
+    warnings = collect_audit_warnings(audit_dir)
+    assert any("psynetskills.challenge" in warning for warning in warnings)
+    assert any("example.unknown" in warning for warning in warnings)
+
+    main(["validate", str(audit_dir)])
+    captured = capsys.readouterr()
+    assert "Warning:" in captured.err
+    assert "psynetskills.challenge" in captured.err
+    assert "structurally valid" in captured.out
 
 
 def test_validate_audit_fails_for_invalid_notebook_json(tmp_path: Path) -> None:
@@ -509,6 +553,7 @@ def test_validate_audit_fails_for_invalid_notebook_json(tmp_path: Path) -> None:
     notebook["status"] = "present"
     manifest["blockers"] = []
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir / "PLAN.md", "# Plan\n")
     write(audit_dir / "REPORT.md", "# Report\n")
     write(audit_dir / "artifacts/psynet_debug.log", "ok\n")
     write(audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>")
@@ -550,6 +595,8 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     assert "title" not in manifest["experiment"]
     assert manifest["experiment"]["source_path"] == "."
+    assert manifest["profile"] == "psynet.core"
+    assert manifest["extensions"] == []
     assert [section["id"] for section in manifest["sections"]] == [
         "prompt",
         "plan",

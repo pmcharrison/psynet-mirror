@@ -50,6 +50,10 @@ AUDIT_TOP_LEVEL_REQUIRED = {
     "checks",
     "blockers",
 }
+DEFAULT_AUDIT_PROFILE = "psynet.core"
+# Core does not register workshop extensions. Declared extension ids are
+# opaque to PsyNet validate/render; unknown ids warn but do not fail.
+CORE_KNOWN_EXTENSION_IDS: frozenset[str] = frozenset()
 SECTION_REQUIRED_FIELDS = {"id", "title", "kind"}
 SECTION_KINDS = {
     "markdown",
@@ -60,6 +64,8 @@ SECTION_KINDS = {
     "checks",
     "blockers",
 }
+PLAN_SECTION_ID = "plan"
+PLAN_SECTION_PATH = "PLAN.md"
 ARTIFACT_REQUIRED_FIELDS = {
     "id",
     "kind",
@@ -174,7 +180,7 @@ Summarize the original request or experiment brief.
 """
 STARTER_PLAN = """# Plan
 
-Summarize the implementation plan or remove this section from `audit.json`.
+Summarize the implementation plan for this experiment audit.
 """
 STARTER_TIMELINE = """# Timeline
 
@@ -281,6 +287,15 @@ def starter_section(
     return section
 
 
+def audit_profile(manifest: dict[str, Any]) -> str:
+    """Return the effective audit profile, defaulting to the core profile."""
+
+    profile = manifest.get("profile", DEFAULT_AUDIT_PROFILE)
+    if isinstance(profile, str) and profile.strip():
+        return profile.strip()
+    return DEFAULT_AUDIT_PROFILE
+
+
 def starter_audit_manifest(source_path: str) -> dict[str, object]:
     """Create a starter experiment audit manifest."""
 
@@ -289,6 +304,8 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
         "schema_version": "1.0",
         "created_at": timestamp,
         "updated_at": timestamp,
+        "profile": DEFAULT_AUDIT_PROFILE,
+        "extensions": [],
         "experiment": {
             "source_path": source_path,
         },
@@ -669,6 +686,111 @@ def validate_audit_artifacts(
     return problems
 
 
+def validate_audit_profile_and_extensions(
+    audit_dir: Path,
+    manifest: dict[str, Any],
+) -> list[str]:
+    """Validate profile and extensions fields (errors only)."""
+
+    problems: list[str] = []
+    manifest_path = audit_dir / "audit.json"
+    if "profile" in manifest:
+        profile = manifest.get("profile")
+        if not isinstance(profile, str) or not profile.strip():
+            problems.append(f"{manifest_path}: profile must be a non-empty string")
+    if "extensions" in manifest:
+        extensions = manifest.get("extensions")
+        if not isinstance(extensions, list):
+            problems.append(f"{manifest_path}: extensions must be a list")
+        else:
+            for index, extension_id in enumerate(extensions):
+                if not isinstance(extension_id, str) or not extension_id.strip():
+                    problems.append(
+                        f"{manifest_path}: extensions[{index}] must be a non-empty string",
+                    )
+    if "extensions_meta" in manifest:
+        extensions_meta = manifest.get("extensions_meta")
+        if not isinstance(extensions_meta, dict):
+            problems.append(f"{manifest_path}: extensions_meta must be a JSON object")
+    return problems
+
+
+def validate_core_plan_section(
+    audit_dir: Path,
+    manifest: dict[str, Any],
+) -> list[str]:
+    """Require a displayed plan markdown section for the default core profile."""
+
+    if audit_profile(manifest) != DEFAULT_AUDIT_PROFILE:
+        return []
+
+    manifest_path = audit_dir / "audit.json"
+    sections = manifest.get("sections")
+    if not isinstance(sections, list):
+        return []
+
+    plan_sections = [
+        section
+        for section in sections
+        if isinstance(section, dict) and section.get("id") == PLAN_SECTION_ID
+    ]
+    if not plan_sections:
+        return [
+            f"{manifest_path}: profile {DEFAULT_AUDIT_PROFILE!r} requires a "
+            f"displayed markdown section with id {PLAN_SECTION_ID!r} "
+            f"pointing at {PLAN_SECTION_PATH}",
+        ]
+
+    problems: list[str] = []
+    plan = plan_sections[0]
+    if plan.get("kind") != "markdown":
+        problems.append(
+            f"{manifest_path}: section id {PLAN_SECTION_ID!r} must have kind 'markdown'",
+        )
+    if plan.get("display") is False:
+        problems.append(
+            f"{manifest_path}: profile {DEFAULT_AUDIT_PROFILE!r} requires the "
+            f"{PLAN_SECTION_ID!r} section to be displayed",
+        )
+    path = plan.get("path")
+    if path != PLAN_SECTION_PATH and not (
+        isinstance(plan.get("content"), str) and plan.get("content")
+    ):
+        problems.append(
+            f"{manifest_path}: section id {PLAN_SECTION_ID!r} must use path "
+            f"{PLAN_SECTION_PATH!r} (or inline content)",
+        )
+    return problems
+
+
+def collect_audit_warnings(
+    audit_dir: Path,
+    manifest: dict[str, Any] | None = None,
+) -> list[str]:
+    """Return non-fatal validation warnings for an experiment audit."""
+
+    if manifest is None:
+        try:
+            manifest = read_audit_manifest(audit_dir)
+        except (OSError, ValueError, json.JSONDecodeError):
+            return []
+
+    warnings: list[str] = []
+    manifest_path = audit_dir / "audit.json"
+    extensions = manifest.get("extensions", [])
+    if not isinstance(extensions, list):
+        return warnings
+    for extension_id in extensions:
+        if not isinstance(extension_id, str) or not extension_id.strip():
+            continue
+        if extension_id not in CORE_KNOWN_EXTENSION_IDS:
+            warnings.append(
+                f"{manifest_path}: unknown extension id {extension_id!r} "
+                "(ignored by core validate/render)",
+            )
+    return warnings
+
+
 def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[str]:
     """Validate experiment audit manifest structure and local artifact files."""
 
@@ -704,6 +826,8 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
             problems.append(
                 f"{manifest_path}: implementation.summary must be a non-empty string",
             )
+    problems.extend(validate_audit_profile_and_extensions(audit_dir, manifest))
+    problems.extend(validate_core_plan_section(audit_dir, manifest))
     blocker_ids, blocker_problems = validate_audit_blockers(audit_dir, manifest)
     problems.extend(blocker_problems)
     problems.extend(validate_audit_sections(audit_dir, manifest))
@@ -1420,6 +1544,8 @@ def main(argv: list[str] | None = None) -> None:
             for problem in problems:
                 print(problem, file=sys.stderr)
             raise SystemExit(1)
+        for warning in collect_audit_warnings(args.audit_dir):
+            print(f"Warning: {warning}", file=sys.stderr)
         print(validate_success_message(args.audit_dir))
     elif args.command == "render":
         try:
