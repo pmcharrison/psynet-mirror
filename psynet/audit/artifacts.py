@@ -13,14 +13,23 @@ from pathlib import Path
 HASHED_ARTIFACTS_DIR = "artifacts/blobs/sha256"
 MONITOR_STATIC_ARTIFACTS_DIR = "artifacts/monitor-static"
 ARTIFACT_URL_PREFIX_ENV = "PSYNET_AUDIT_ARTIFACT_URL_PREFIX"
+# Workshop dashboard CI historically used this name; still honored as fallback.
+LEGACY_ARTIFACT_URL_PREFIX_ENV = "PSYNETSK_ARTIFACT_URL_PREFIX"
 LEGACY_ATTEMPT_ARTIFACTS_DIR = "artifacts/challenges"
 MONITOR_STATIC_ROOT = None  # lazy; use monitor_static_root()
+
 
 def monitor_static_root() -> Path:
     """Return the packaged Dallinger monitor static asset root."""
     from importlib import resources
 
-    return Path(resources.files("psynet") / "resources" / "audit" / "monitor-static" / "static")
+    return Path(
+        resources.files("psynet")
+        / "resources"
+        / "audit"
+        / "monitor-static"
+        / "static"
+    )
 
 
 STATIC_REF_RE = re.compile(r'(?:href|src)="/static/(?P<path>[^"]+)"')
@@ -63,7 +72,11 @@ def normalized_hashed_artifact_url_prefix(base_url: str | None = None) -> str:
     """Return a URL prefix compatible with old and new preview workflows."""
 
     if base_url is None:
-        base_url = os.environ.get(ARTIFACT_URL_PREFIX_ENV, HASHED_ARTIFACTS_DIR)
+        base_url = (
+            os.environ.get(ARTIFACT_URL_PREFIX_ENV)
+            or os.environ.get(LEGACY_ARTIFACT_URL_PREFIX_ENV)
+            or HASHED_ARTIFACTS_DIR
+        )
     base_url = base_url.rstrip("/")
     old_attempt_suffix = f"/{LEGACY_ATTEMPT_ARTIFACTS_DIR}"
     if base_url.endswith(old_attempt_suffix):
