@@ -1,0 +1,168 @@
+---
+name: psynet-experiment-implementation
+description: A structured process for implementing PsyNet experiments, including planning, simulations, analysis, and reporting.
+authors: [pmcharrison]
+---
+
+# Implement PsyNet experiments
+
+Use this skill when implementing a PsyNet experiment from a natural-language
+specification.
+
+## Required reads
+
+- Use the `explore-psynet-repository` skill before starting.
+- Read `references/validation.md` before finalizing functional, interactive, or
+  performance checks.
+- Read `psynet-simulated-participants/SKILL.md` before designing multi-profile,
+  stochastic, mock-LLM, or export-validation simulations.
+- Read `produce-experiment-audit/references/populating-an-audit.md` for the
+  audit population contract. Standalone experiments use nested `audit/` via
+  `psynet audit init` (skill `produce-experiment-audit`).
+
+Repository-specific wrapper skills may add extra conventions around planning or
+review; do not invent workshop-only layouts in this skill.
+
+## Preview links
+
+When a temporary public preview is needed, use `prepare-experiment-tunnel`
+(and `public-tunnel`).
+
+## Steps
+
+### Planning
+
+The planning phase is responsible for turning the original natural-language specification into a detailed implementation plan.
+The plan should be saved in `audit/PLAN.md` (required core audit section id `plan`).
+Include the following sections:
+
+#### Science (optional)
+
+Decide whether to include this based on the prompt.
+The section is most relevant if the prompt is asking specifically about
+research questions, hypotheses, and the like.
+
+#### Methods
+
+This section should look something like methods sections in a scientific paper.
+It should describe the experiment, including:
+
+- Design: includes conditions, variables, randomizations.
+- Materials: includes stimuli, questionnaires, etc.
+- Procedures: includes participant workflow, trial structure, stimulus presentation, response collection.
+
+Format in academic prose.
+
+#### Implementation
+
+This section focuses on the software implementation of the experiment, including:
+
+- What PsyNet constructs to use (trials, trial makers, modules, etc.)
+- The general shape of the timeline
+- The strategy for generating the stimuli
+- Any external dependencies
+
+### Human review
+
+Once the plan is complete, ask the human user to review it and provide feedback.
+Only continue when they are happy.
+
+You may skip waiting for human confirmation when doing infrastructure testing
+or dogfooding the implementation/audit workflow itself; record that assumption
+briefly in `audit/PLAN.md` or `audit/TIMELINE.md` and continue.
+
+### Developing the experiment
+
+#### Setup
+
+- Use a relevant PsyNet demo as a starting point. Prefer copying a full demo
+  directory (or run `psynet update-scripts`) so scaffolding such as `test.py`,
+  `pytest.ini`, and `.gitignore` is present—not only `experiment.py`.
+- In `requirements.txt`, pin PsyNet to the local checkout commit used for the
+  implementation, for example:
+  `psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit>#egg=psynet`.
+- Generate `constraints.txt` using `dallinger constraints generate` for future
+  deploy. While developing against an editable `~/PsyNet` install, do **not**
+  `uv pip install -r constraints.txt` (that replaces the editable install with a
+  git-pinned wheel). Keep PsyNet installed editable from the local checkout;
+  re-install editable after any constraints install if needed.
+
+#### Coding
+
+- Build a minimal runnable experiment first, then add complexity.
+- Develop front end and back end components as relevant,
+  using the `develop-experiment-front-end` and `develop-experiment-back-end` skills.
+- Add short comment where the PsyNet pattern is not obvious.
+- Where possible, keep the implementation close to PsyNet's native style.
+  Prefer built-in pages, controls, events, chatrooms, grouping, and timeline
+  constructs over bespoke browser scripts. If custom JavaScript is unavoidable,
+  keep it small, isolated, and justified by a requirement that PsyNet cannot
+  express natively.
+- For websocket or other live multi-participant interactions within one trial,
+  use the `psynet-realtime-synchronous-experiments` skill alongside this general
+  implementation workflow.
+
+### Run simulations
+
+Use `psynet simulate` to simulate participants and produce an example dataset.
+This dataset should contain a decent number of participants representative of a real study;
+adjust `Exp.test_n_bots` to ensure this. `psynet simulate` writes
+`data/simulated_data/` (a directory). Zip it into the audit packet from the
+experiment root:
+
+```bash
+zip -r audit/artifacts/simulated_data.zip data/simulated_data
+```
+
+Write into those audit paths from the first useful simulation onward; overwrite
+interim exports rather than regenerating later for packaging.
+For profile design, data-path parity, mock-LLM patterns, and simulation
+limitations, follow `psynet-simulated-participants/SKILL.md`.
+
+### Develop analysis scripts
+
+Write scripts to analyze the generated data. Use a Jupyter notebook for this,
+with the canonical filename `audit/analyses/analysis.ipynb`.
+The notebook should be self-contained for review, including all code, tables,
+and plots.
+If the implementation is inspired by a published paper, replicate the analyses reported in the paper as closely as possible.
+
+The analysis-notebook tooling is not part of the PsyNet editable install. Install
+it into the PsyNet virtualenv before executing the notebook, and execute it
+headlessly so its outputs are embedded for review:
+
+```bash
+uv pip install matplotlib jupyter nbconvert nbformat ipykernel
+jupyter nbconvert --to notebook --execute --inplace audit/analyses/analysis.ipynb
+```
+
+Keep the executed notebook small (many review tools truncate large inline file
+content above ~100KB, which breaks notebook rendering): prefer low-DPI inline
+figures (e.g. `plt.rcParams["figure.dpi"] = 50`) or link out large figures.
+
+### Review
+
+Review the outcomes of the previous steps and identify any serious issues that need to be addressed.
+Return to previous steps if necessary to address these.
+
+### Final report
+
+Compile a final report of the experiment (`audit/REPORT.md`), summarizing the
+process taken and any findings that arose. This is the core audit report section.
+When a temporary public preview is needed, use `prepare-experiment-tunnel`.
+
+### Completion gate
+
+Do not treat an experiment implementation as complete until the simulation
+export, canonical analysis notebook, and `audit/REPORT.md` are present, or until a
+blocker for each missing artifact is recorded honestly:
+
+- From the experiment root, update `audit/audit.json` (prefer
+  `psynet audit mark-present <artifact_id>`) and record blockers in the audit
+  packet. Validate and render with `psynet audit validate` / `psynet audit render`
+  (auto-detects `./audit/`). See `produce-experiment-audit`.
+
+Closing the audit packet is inventory and bookkeeping, not a second evidence
+campaign. Do not re-run performance tests, simulations, or other expensive
+checks solely because the audit skill checklist mentions them when review-ready
+files already exist.

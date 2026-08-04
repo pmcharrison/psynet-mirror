@@ -7,6 +7,12 @@ and with the development of individual PsyNet experiments.
 If the root contains a file called `experiment.py`, assume that we are working on an experiment.
 Otherwise assume we are working on the PsyNet source code.
 
+PsyNet experiment skills are installed under `.cursor/skills/psynet/` by
+`psynet update-scripts`. Treat that directory as PsyNet-managed: update the
+canonical skills in the PsyNet source repository rather than editing generated
+copies in an experiment. Skills elsewhere under `.cursor/skills/` belong to the
+experiment and are preserved by `psynet update-scripts`.
+
 ## Initial setup
 
 - Install Python 3.13 (use same version specified in `Dockerfile`)

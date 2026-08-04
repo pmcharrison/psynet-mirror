@@ -2830,8 +2830,10 @@ def generate_config(ctx):
 @require_exp_directory
 def update_scripts():
     """
-    To be run in an experiment directory; updates a collection of template scripts and help files to their
-    latest PsyNet versions.
+    Update template scripts, help files, and PsyNet-managed Agent Skills.
+
+    Run this in an experiment directory. User-owned skills outside
+    ``.cursor/skills/psynet`` are preserved.
     """
     update_scripts_()
 
@@ -2894,6 +2896,8 @@ def update_scripts_():
                 dir,
                 dirs_exist_ok=True,
             )
+
+    _update_experiment_skills()
     os.system("chmod +x docker/*")
 
     # We remove no-longer-wanted directories only if we can be confident that the
@@ -2904,6 +2908,36 @@ def update_scripts_():
             if md5_directory(directory) == hash:
                 # The directory is unchanged, we can remove it
                 shutil.rmtree(directory)
+
+
+def _update_experiment_skills():
+    """Install PsyNet-managed Agent Skills without touching user skills."""
+
+    target = Path(".cursor/skills/psynet")
+    click.echo(f"...updating {target} directory.")
+
+    if target.exists():
+        shutil.rmtree(target)
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    # Editable PsyNet checkouts keep the canonical skills at the repository
+    # root, where IDEs discover them for PsyNet development. Built wheels
+    # force-include the same tree as a package resource for installed PsyNet.
+    checkout_source = Path(__file__).resolve().parents[1] / ".cursor/skills/experiment"
+    if checkout_source.is_dir():
+        shutil.copytree(checkout_source, target)
+        return
+
+    packaged_source = (
+        resources.files("psynet")
+        / "resources"
+        / "experiment_scripts"
+        / ".cursor"
+        / "skills"
+        / "psynet"
+    )
+    with resources.as_file(packaged_source) as path:
+        shutil.copytree(path, target)
 
 
 @psynet.group("destroy")

@@ -1,0 +1,193 @@
+# Populate an experiment audit
+
+Use this reference whenever populating a PsyNet experiment audit under the
+experiment's `audit/` directory.
+
+Let `AUDIT_ROOT` mean `audit/` relative to the experiment root (the directory
+that contains `experiment.py`). Paths below are relative to `AUDIT_ROOT` unless
+noted otherwise.
+
+## Ownership
+
+Implementation and validation skills **produce** audit artifacts as they run.
+This reference owns paths, statuses, blockers, inventory, validate, and render.
+
+Do **not** treat audit population as a second evidence campaign. If
+`artifacts/performance.json` (or another required output) is already present
+from implementation, mark it present and move on. Re-run an expensive check only
+when the existing file is missing, invalid, or no longer represents the final
+implementation.
+
+## PsyNet revision
+
+`psynet audit` is part of core PsyNet (Click group on the `psynet` CLI). Use a
+PsyNet checkout that includes the audit commands. Do not assume older
+revisions have the command until that work is available in the checkout you
+are using.
+
+## Path cheat-sheet
+
+`psynet audit` auto-detects the packet from the current directory:
+
+| Working directory | Typical command | Resolved packet |
+|-------------------|-----------------|-----------------|
+| Experiment root (`./audit/audit.json`) | `psynet audit validate` or `validate .` | `./audit` |
+| Inside the packet itself | `psynet audit validate` | `.` |
+
+Prefer staying at the experiment root. Running from inside `audit/` also works
+when `audit.json` is in the current directory.
+
+For `mark-present` / `render`, the same rules apply. Pass an explicit packet
+path only when you are not already at the experiment root.
+
+## Early audit-aware habit
+
+Initialize the packet before meaningful runs. From the first useful command
+onward, write outputs into the audit layout even when they are interim:
+
+- Prefer canonical paths such as `artifacts/performance.json`,
+  `artifacts/simulated_data.zip`, and `analyses/analysis.ipynb`.
+- Overwrite the same path when a later run supersedes an interim result.
+- Mark artifacts `present` when the file is the evidence you intend to hand
+  off (including smoke runs used for infrastructure testing).
+- Update `audit.json` as files land (`psynet audit mark-present ...`).
+
+## Workflow
+
+1. Initialize the packet before collecting evidence: from the experiment
+   directory, run `psynet audit init`.
+2. Fill the core section files:
+   - `PLAN.md`: implementation plan;
+   - `REPORT.md`: implementation, validation, analysis, and limitations;
+   - `TIMELINE.md`: notable implementation and evidence events;
+   - `PROMPT.md`: original prompt or brief when useful.
+3. Collect reviewable outputs under:
+   - `artifacts/` for participant flow, exports, monitor snapshots, performance
+     results, and other primary evidence;
+   - `analyses/` for notebooks and analysis outputs;
+   - `logs/` for concise command logs.
+4. Keep evidence-generation scripts with the implementation source. Evidence
+   should be reproducible, not just a manually assembled folder.
+5. After an artifact exists, run:
+
+   ```bash
+   psynet audit mark-present <artifact_id>
+   ```
+
+   Add a manifest entry first when the artifact is not already declared.
+6. Record checks and blockers honestly in `audit.json`. A coherent packet may
+   still have blockers; validate success means structure is OK, not that the
+   experiment is ready.
+7. Before handoff, run:
+
+   ```bash
+   psynet audit validate
+   psynet audit render
+   ```
+
+## Evidence checklist
+
+Choose evidence that matches the experiment. Common artifacts are:
+
+- `artifacts/participant.mp4`: concise participant walkthrough;
+- `artifacts/screenshots/*.png`: targeted participant-facing states;
+- `artifacts/screenshots/manifest.json`: optional screenshot captions;
+- `artifacts/performance.json`: sustained performance-test output;
+- `artifacts/monitor.html`: static monitor snapshot;
+- `artifacts/data.zip`: exported local or real-run data;
+- `artifacts/simulated_data.zip`: simulated-participant export;
+- `analyses/analysis.ipynb`: executed, self-contained analysis notebook;
+- `logs/*.log`: concise logs that explain commands and failures.
+
+Use `record-participant-video` for screenshot and video production. Keep videos
+at most 3 minutes and 1280×720. Keep rendered notebooks small enough for typical
+review tooling (normally under about 100 KB).
+
+### Simulation export packaging
+
+`psynet simulate` writes `data/simulated_data/` (a directory). It does **not**
+write the audit zip. After a useful simulation, from the experiment root:
+
+```bash
+zip -r audit/artifacts/simulated_data.zip data/simulated_data
+psynet audit mark-present simulation_export
+```
+
+Overwrite the same zip when a later simulation supersedes an interim run.
+
+### Performance evidence
+
+For review-ready performance evidence, prefer a sustained test (typically
+`--n-bots 40 --duration-minutes 5`). Prefer `--audit` so PsyNet writes the
+canonical path. From the experiment root:
+
+```bash
+psynet performance-test local \
+  --n-bots 40 \
+  --duration-minutes 5 \
+  --time-factor 1.0 \
+  --audit
+```
+
+`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/performance.json`.
+Use `--json-output` only for a non-audit path. Prefer an absolute `--audit`
+path when PsyNet may execute from a temporary deployment directory.
+
+Shorter smoke runs are fine while iterating or infrastructure-testing; write
+them with `--audit` and mark present when the file is the evidence you intend
+to hand off. Skip an expensive re-run when a suitable
+`artifacts/performance.json` already exists for the current implementation.
+
+## Manifest rules
+
+For every review-relevant artifact, declare a stable lowercase snake-case id,
+kind, relative path, title, description, whether it is required, status, and
+creator.
+
+Use statuses consistently:
+
+- `present`: the declared file exists and is ready to inspect;
+- `missing`: no completed artifact exists yet;
+- `blocked`: a real attempt failed or cannot proceed;
+- `not_applicable`: the experiment design does not need the artifact.
+
+Every required non-present artifact needs a matching blocker. A useful blocker
+states what was attempted, what prevented completion, and the next concrete
+step. Never turn a skipped or failed check into passing evidence.
+
+Each screenshot intended for display must be declared as an artifact; a caption
+manifest alone does not publish the images.
+
+## Analysis and reporting
+
+The canonical analysis is `analyses/analysis.ipynb` unless another format is
+more appropriate. It should:
+
+- read exported data directly;
+- show data loading and cleaning;
+- display useful summary tables or plots;
+- distinguish technical validation from scientific conclusions.
+
+`REPORT.md` should state:
+
+- what was implemented;
+- which commands and procedures ran;
+- where the important evidence lives;
+- what export and analysis showed;
+- which checks remain blocked, missing, or not applicable;
+- how a reviewer can reproduce or extend the checks.
+
+Do not claim an experiment is fully validated unless every required artifact
+and check supports that claim.
+
+## Safety
+
+Use only safe local credentials and redact secrets from logs and artifacts.
+Never commit production tokens, custom service credentials, or participant
+secrets.
+
+When a requirement depends on an external service, collect evidence that the
+real integration worked end to end. Mocks and simulated payloads support
+development but do not prove the real integration unless the task explicitly
+defines simulation as acceptable. If safe access is unavailable, record a
+blocker that says exactly what remains unverified.

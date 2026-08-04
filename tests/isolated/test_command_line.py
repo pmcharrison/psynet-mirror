@@ -832,6 +832,31 @@ def test_check_dockerfile():
                 check_dockerfile()
 
 
+def test_update_scripts_installs_managed_skills_and_preserves_user_skills():
+    with tempfile.TemporaryDirectory() as directory:
+        with working_directory(directory):
+            custom_skill = Path(".cursor/skills/custom/SKILL.md")
+            custom_skill.parent.mkdir(parents=True)
+            custom_skill.write_text("# Custom skill\n", encoding="utf-8")
+
+            stale_skill = Path(".cursor/skills/psynet/stale/SKILL.md")
+            stale_skill.parent.mkdir(parents=True)
+            stale_skill.write_text("# Stale managed skill\n", encoding="utf-8")
+
+            with patch("click.echo"):
+                update_scripts_()
+
+            assert custom_skill.read_text(encoding="utf-8") == "# Custom skill\n"
+            assert not stale_skill.exists()
+            assert Path(
+                ".cursor/skills/psynet/psynet-experiment-implementation/SKILL.md"
+            ).is_file()
+            assert Path(
+                ".cursor/skills/psynet/record-participant-video/SKILL.md"
+            ).is_file()
+            assert not Path(".cursor/skills/psynet/release").exists()
+
+
 def test_abort_if_app_exists():
     from psynet.command_line import _abort_if_app_exists
 

@@ -118,6 +118,9 @@ Repository = "https://gitlab.com/PsyNetDev/PsyNet/"
 [tool.hatch.build.targets.wheel]
 include = ["/psynet"]
 
+[tool.hatch.build.targets.wheel.force-include]
+".cursor/skills/experiment" = "psynet/resources/experiment_scripts/.cursor/skills/psynet"
+
 [tool.hatch.build.targets.sdist]
 exclude = [
     "/.gitlab",

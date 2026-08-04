@@ -56,6 +56,12 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     directly, but instead use the boilerplate file provided by PsyNet. You can update this file to
     their latest PsyNet versions by running ``psynet update-scripts`` within an experiment directory.
 
+-   ``.cursor/skills/psynet/`` contains PsyNet-managed Agent Skills for experiment
+    implementation, validation, deployment, data, and participant evidence.
+    ``psynet update-scripts`` replaces this managed subdirectory with the version
+    shipped by the installed PsyNet release. Other directories under
+    ``.cursor/skills/`` are experiment-owned and are preserved.
+
 -   ``Dockertag`` determines the name of the Docker image that is built for the present experiment.
     It defaults to the name of the current directory.
 
