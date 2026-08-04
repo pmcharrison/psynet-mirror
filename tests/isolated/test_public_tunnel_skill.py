@@ -4,10 +4,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
-
 SCRIPT_PATH = (
-    Path(__file__).parents[1]
-    .parent
+    Path(__file__).parents[1].parent
     / ".cursor"
     / "skills"
     / "experiment"
@@ -72,7 +70,9 @@ def test_public_tunnel_falls_back_to_localtunnel(monkeypatch) -> None:
     module = load_public_tunnel_module()
 
     monkeypatch.setattr(module, "resolve_cloudflared_command", lambda: None)
-    monkeypatch.setattr(module, "command_available", lambda command: command == "localtunnel")
+    monkeypatch.setattr(
+        module, "command_available", lambda command: command == "localtunnel"
+    )
 
     tunnel = module.PublicTunnel(5000)
 
@@ -131,8 +131,7 @@ def test_public_tunnel_rewrites_local_urls() -> None:
     )
 
     assert (
-        public_url
-        == "https://example.trycloudflare.com/ad?assignmentId=A1&workerId=W1"
+        public_url == "https://example.trycloudflare.com/ad?assignmentId=A1&workerId=W1"
     )
     assert (
         dashboard_url
@@ -165,7 +164,9 @@ def test_public_tunnel_accepts_handoff_object() -> None:
 def test_public_tunnel_print_command(monkeypatch, capsys) -> None:
     module = load_public_tunnel_module()
 
-    monkeypatch.setattr(module, "resolve_cloudflared_command", lambda: "/tmp/cloudflared")
+    monkeypatch.setattr(
+        module, "resolve_cloudflared_command", lambda: "/tmp/cloudflared"
+    )
 
     assert module.main(["--port", "1313", "--print-command"]) == 0
     output = capsys.readouterr().out

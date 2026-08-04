@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Callable, Protocol, Sequence
 from urllib.parse import quote, urlsplit, urlunsplit
 
-
 URL_PATTERN = re.compile(r"https?://[^\s'\")<>]+")
 CLOUDFLARED_DOWNLOADS = {
     "aarch64": "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64",
@@ -218,7 +217,9 @@ def strip_userinfo(url: str) -> str:
     netloc = parsed.hostname or ""
     if parsed.port:
         netloc = f"{netloc}:{parsed.port}"
-    return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
+    return urlunsplit(
+        (parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment)
+    )
 
 
 def with_path(url: str, path: str) -> str:
@@ -261,7 +262,9 @@ def to_public_url(
     return urlunsplit((public.scheme, netloc, local.path, local.query, local.fragment))
 
 
-def run_quietly(command: Sequence[str], timeout: int = 15) -> subprocess.CompletedProcess[str]:
+def run_quietly(
+    command: Sequence[str], timeout: int = 15
+) -> subprocess.CompletedProcess[str]:
     """Run a short command without raising on non-zero exit."""
 
     try:

@@ -16,7 +16,6 @@ from dataclasses import dataclass
 from difflib import get_close_matches
 from typing import Any
 
-
 DEFAULT_PROVIDERS = ["openrouter", "openai", "anthropic", "google"]
 ALL_PROVIDERS = DEFAULT_PROVIDERS + ["deepseek", "qwen"]
 
@@ -132,7 +131,9 @@ def request_json(
     try:
         return json.loads(payload)
     except json.JSONDecodeError as error:
-        raise RequestError("parse_error", "Provider returned non-JSON output") from error
+        raise RequestError(
+            "parse_error", "Provider returned non-JSON output"
+        ) from error
 
 
 def safe_error_detail(error: urllib.error.HTTPError) -> str:
@@ -175,7 +176,9 @@ def auth_headers(provider: Provider, key: str | None) -> dict[str, str]:
 def parse_models(provider: Provider, payload: Any) -> list[str]:
     if provider.parser == "data_id":
         rows = payload.get("data", []) if isinstance(payload, dict) else []
-        return sorted({row["id"] for row in rows if isinstance(row, dict) and row.get("id")})
+        return sorted(
+            {row["id"] for row in rows if isinstance(row, dict) and row.get("id")}
+        )
     if provider.parser == "google_models":
         rows = payload.get("models", []) if isinstance(payload, dict) else []
         names: set[str] = set()
@@ -239,7 +242,9 @@ def evaluate_model(requested: str | None, models: list[str]) -> dict[str, Any]:
         }
 
     requested_normalized = normalized(requested)
-    normalized_matches = [model for model in models if normalized(model) == requested_normalized]
+    normalized_matches = [
+        model for model in models if normalized(model) == requested_normalized
+    ]
     if normalized_matches:
         return {
             "model_status": "available_with_spelling_variant",
@@ -250,7 +255,12 @@ def evaluate_model(requested: str | None, models: list[str]) -> dict[str, Any]:
 
     candidates = list(models)
     normalized_index = {normalized(model): model for model in models}
-    close = [normalized_index[item] for item in get_close_matches(requested_normalized, normalized_index, n=5, cutoff=0.58)]
+    close = [
+        normalized_index[item]
+        for item in get_close_matches(
+            requested_normalized, normalized_index, n=5, cutoff=0.58
+        )
+    ]
     if not close:
         close = get_close_matches(requested, candidates, n=5, cutoff=0.45)
     return {
@@ -283,7 +293,9 @@ def check_provider(
 
     if provider.requires_key and not key:
         result["provider_status"] = "missing_key"
-        result["note"] = "Configure the provider key securely; do not paste it into chat."
+        result["note"] = (
+            "Configure the provider key securely; do not paste it into chat."
+        )
         return result
 
     try:
@@ -314,7 +326,9 @@ def check_provider(
             return result
         if error.kind == "not_found" and provider.endpoint_may_be_unsupported:
             result["provider_status"] = "endpoint_unsupported"
-            result["note"] = "Model-list endpoint is unsupported for this provider; model validity is not disproven."
+            result["note"] = (
+                "Model-list endpoint is unsupported for this provider; model validity is not disproven."
+            )
             if allow_paid_probe and model and key and provider.probe_url:
                 return paid_probe(provider, result, model, key, timeout)
             if provider.probe_url and not allow_paid_probe:
@@ -377,7 +391,9 @@ def parse_providers(raw: str) -> list[str]:
 def print_human(results: list[dict[str, Any]]) -> None:
     for result in results:
         print(f"[{result['provider']}]")
-        print(f"  key: {result['key_status']} ({result.get('key_env') or 'no env var present'})")
+        print(
+            f"  key: {result['key_status']} ({result.get('key_env') or 'no env var present'})"
+        )
         print(f"  network: {result['network_status']}")
         print(f"  provider: {result['provider_status']}")
         print(f"  model: {result['model_status']}")
@@ -387,14 +403,20 @@ def print_human(results: list[dict[str, Any]]) -> None:
             print(f"  suggestions: {', '.join(result['suggestions'])}")
         if result.get("note"):
             print(f"  note: {result['note']}")
-        if result.get("error") and result["provider_status"] not in {"auth_error", "missing_key"}:
+        if result.get("error") and result["provider_status"] not in {
+            "auth_error",
+            "missing_key",
+        }:
             print(f"  error: {result['error']}")
 
 
 def strict_exit_code(results: list[dict[str, Any]], model: str | None) -> int:
     if not model:
         return 0
-    if any(result["model_status"] in {"model_available", "model_available_by_probe"} for result in results):
+    if any(
+        result["model_status"] in {"model_available", "model_available_by_probe"}
+        for result in results
+    ):
         return 0
     if any(result["model_status"].startswith("available_with_") for result in results):
         return 1
@@ -411,9 +433,15 @@ def main(argv: list[str] | None = None) -> int:
         default="default",
         help="default, all, or comma-separated providers: openrouter,openai,anthropic,google,deepseek,qwen.",
     )
-    parser.add_argument("--timeout", type=float, default=15, help="HTTP timeout in seconds.")
+    parser.add_argument(
+        "--timeout", type=float, default=15, help="HTTP timeout in seconds."
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON output.")
-    parser.add_argument("--strict", action="store_true", help="Exit nonzero unless the model is exactly confirmed available.")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Exit nonzero unless the model is exactly confirmed available.",
+    )
     parser.add_argument(
         "--allow-paid-probe",
         action="store_true",
