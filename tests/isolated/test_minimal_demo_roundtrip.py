@@ -238,6 +238,8 @@ def test_in_experiment_directory_sets_skip_only_outside_repo(tmp_path, monkeypat
     """Temp experiment dirs without constraints still get SKIP_DEPENDENCY_CHECK."""
     import psynet.pytest_psynet as pytest_psynet
 
+    config = "[Custom]\nvalue = true\n"
+    dockerfile = "# Existing scaffold leftover\n"
     monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
     monkeypatch.setattr(pytest_psynet.redis_vars, "clear", lambda: None)
     monkeypatch.setattr(pytest_psynet, "clean_sys_modules", lambda: None)
@@ -250,6 +252,8 @@ def test_in_experiment_directory_sets_skip_only_outside_repo(tmp_path, monkeypat
         "from psynet.experiment import Experiment\n\nclass Exp(Experiment):\n    pass\n"
     )
     (experiment_dir / "requirements.txt").write_text("psynet==10.1.0\n")
+    (experiment_dir / "config.txt").write_text(config)
+    (experiment_dir / "Dockerfile").write_text(dockerfile)
 
     fixture = pytest_psynet.in_experiment_directory
     generator = fixture.__wrapped__(str(experiment_dir))
@@ -263,6 +267,10 @@ def test_in_experiment_directory_sets_skip_only_outside_repo(tmp_path, monkeypat
             pass
         pytest_psynet.loaded_experiment_directory = None
         os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+
+    assert (experiment_dir / "config.txt").read_text() == config
+    assert (experiment_dir / "Dockerfile").read_text() == dockerfile
+    assert not (experiment_dir / "test.py").exists()
 
 
 def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
