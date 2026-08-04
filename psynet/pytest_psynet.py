@@ -42,8 +42,7 @@ from .command_line import (
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .experiment_scaffold import (
-    prune_experiment_scaffold,
-    scaffold_experiment_directory,
+    scaffold_missing_files,
 )
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
@@ -367,28 +366,26 @@ def in_experiment_directory(experiment_directory):
     redis_vars.clear()
     cleanup_error = None
     with working_directory(experiment_directory):
-        scaffold_experiment_directory()
-        # In-repo experiments skip dependency checks at runtime via
-        # ``Experiment.check_python_dependencies`` / ``is_in_repo_experiment``.
-        # Only temp / standalone experiment dirs still need the env override
-        # when constraints are absent.
-        original_skip_dependency_check = os.getenv("SKIP_DEPENDENCY_CHECK")
-        if not Path("constraints.txt").exists() and not is_in_repo_experiment():
-            os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
         try:
-            yield experiment_directory
-        finally:
-            if original_skip_dependency_check is None:
-                os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
-            else:
-                os.environ["SKIP_DEPENDENCY_CHECK"] = original_skip_dependency_check
-            # Restore authored-only layout for in-repo demos/tests so later
-            # isolated tests on the same CI shard are not polluted.
-            try:
-                if is_in_repo_experiment():
-                    prune_experiment_scaffold(include_modified=True)
-            except Exception as exc:
-                cleanup_error = exc
+            with scaffold_missing_files():
+                # In-repo experiments skip dependency checks at runtime via
+                # ``Experiment.check_python_dependencies`` / ``is_in_repo_experiment``.
+                # Only temp / standalone experiment dirs still need the env override
+                # when constraints are absent.
+                original_skip_dependency_check = os.getenv("SKIP_DEPENDENCY_CHECK")
+                if not Path("constraints.txt").exists() and not is_in_repo_experiment():
+                    os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+                try:
+                    yield experiment_directory
+                finally:
+                    if original_skip_dependency_check is None:
+                        os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+                    else:
+                        os.environ["SKIP_DEPENDENCY_CHECK"] = (
+                            original_skip_dependency_check
+                        )
+        except Exception as exc:
+            cleanup_error = exc
     clean_sys_modules()
     clear_all_caches()
     if cleanup_error is not None:

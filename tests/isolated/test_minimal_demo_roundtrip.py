@@ -13,6 +13,7 @@ from psynet.experiment_scaffold import (
     prune_experiment_scaffold,
     scaffold_experiment_directory,
     scaffold_managed_paths,
+    scaffold_missing_files,
 )
 from psynet.pytest_psynet import (
     local_only,
@@ -294,6 +295,30 @@ def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
     # Teardown restores the authored-only tree.
     assert not (Path(demo) / "test.py").exists()
     assert not (Path(demo) / "Dockerfile").exists()
+
+
+def test_scaffold_missing_files_restores_preexisting_tree(tmp_path):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    (tmp_path / "config.txt").write_text("[Custom]\nvalue = true\n")
+    (tmp_path / "Dockerfile").write_text("# Existing scaffold leftover\n")
+    (tmp_path / "docker").mkdir()
+    (tmp_path / "docker" / "custom").write_text("# Custom helper\n")
+    (tmp_path / "constraints.txt").write_text("# Existing constraints\n")
+
+    with working_directory(tmp_path):
+        with scaffold_missing_files():
+            assert Path("test.py").exists()
+            assert Path("docker/run").exists()
+            Path("static/assets").mkdir(parents=True)
+
+    assert (tmp_path / "config.txt").read_text() == "[Custom]\nvalue = true\n"
+    assert (tmp_path / "Dockerfile").read_text() == "# Existing scaffold leftover\n"
+    assert (tmp_path / "docker" / "custom").read_text() == "# Custom helper\n"
+    assert (tmp_path / "constraints.txt").read_text() == "# Existing constraints\n"
+    assert not (tmp_path / "test.py").exists()
+    assert not (tmp_path / "docker" / "run").exists()
+    assert not (tmp_path / "static" / "assets").exists()
 
 
 def test_prune_include_modified_keeps_git_files_and_removes_generated(tmp_path):

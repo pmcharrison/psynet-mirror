@@ -1,1 +1,1 @@
-Fixed in-repo demo/experiment pytest runs to restore authored-only trees after tests via ``psynet scripts prune --include-modified``, so CI shards do not leave scaffold boilerplate for later isolated tests.
+Fixed experiment pytest runs to remove only scaffold and generated-leftover paths introduced during the fixture, preserving pre-existing customized files and scaffold leftovers.

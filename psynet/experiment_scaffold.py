@@ -6,6 +6,7 @@ import shutil
 import stat
 import subprocess
 import sys
+from contextlib import contextmanager
 from importlib import metadata, resources
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -825,6 +826,87 @@ def scaffold_experiment_directory(
     _report_scaffold_result(written, overwrite=overwrite)
 
     return {"written": written, "skipped": skipped}
+
+
+def _scaffold_context_paths():
+    """Return paths whose temporary additions should be removed after tests."""
+    return (
+        scaffold_managed_paths()
+        | set(_BOOTSTRAP_FILES)
+        | {"constraints.txt", "static/assets"}
+    )
+
+
+def _snapshot_scaffold_context_paths():
+    """Snapshot existing scaffold-context paths and their permission modes."""
+    paths = set()
+    modes = {}
+    for relative_path in _scaffold_context_paths():
+        path = Path(relative_path)
+        if not path.exists() and not path.is_symlink():
+            continue
+        candidates = [path]
+        if path.is_dir() and not path.is_symlink():
+            candidates.extend(path.rglob("*"))
+        for candidate in candidates:
+            relative_candidate = candidate.as_posix()
+            paths.add(relative_candidate)
+            if not candidate.is_symlink():
+                modes[relative_candidate] = stat.S_IMODE(candidate.stat().st_mode)
+    return paths, modes
+
+
+def _remove_new_scaffold_context_paths(original_paths):
+    """Remove paths introduced within a scaffold context."""
+    current_paths, _ = _snapshot_scaffold_context_paths()
+    new_paths = current_paths - original_paths
+    removal_roots = {
+        relative_path
+        for relative_path in new_paths
+        if not any(
+            parent.as_posix() in new_paths
+            for parent in Path(relative_path).parents
+            if parent != Path(".")
+        )
+    }
+    for relative_path in sorted(
+        removal_roots, key=lambda value: len(Path(value).parts), reverse=True
+    ):
+        path = Path(relative_path)
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(path)
+        elif path.exists() or path.is_symlink():
+            path.unlink()
+        _remove_empty_parent_dirs(path.parent)
+
+
+def _restore_scaffold_context_modes(original_modes):
+    """Restore permission modes changed while scaffolding."""
+    for relative_path, mode in original_modes.items():
+        path = Path(relative_path)
+        if path.exists() and not path.is_symlink():
+            path.chmod(mode)
+
+
+@contextmanager
+def scaffold_missing_files():
+    """Temporarily scaffold missing files and restore the original tree on exit.
+
+    Existing scaffold files and generated leftovers are left untouched. Files
+    added by scaffolding or by the code running inside the context are removed
+    only when they occupy scaffold-managed or generated-leftover paths.
+
+    Yields
+    ------
+    dict
+        The result returned by :func:`scaffold_experiment_directory`.
+    """
+    original_paths, original_modes = _snapshot_scaffold_context_paths()
+    try:
+        yield scaffold_experiment_directory()
+    finally:
+        _remove_new_scaffold_context_paths(original_paths)
+        _restore_scaffold_context_modes(original_modes)
 
 
 # Shared Click help for the prune command (bootstrap + full CLI).
