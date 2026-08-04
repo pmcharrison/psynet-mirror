@@ -273,7 +273,7 @@ def test_in_experiment_directory_sets_skip_only_outside_repo(tmp_path, monkeypat
     assert not (experiment_dir / "test.py").exists()
 
 
-def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
+def test_in_experiment_directory_relies_on_in_repo_gate(tmp_path, monkeypatch):
     """In-repo demos omit constraints without setting SKIP_DEPENDENCY_CHECK."""
     import psynet.pytest_psynet as pytest_psynet
 
@@ -281,17 +281,20 @@ def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
     monkeypatch.setattr(pytest_psynet.redis_vars, "clear", lambda: None)
     monkeypatch.setattr(pytest_psynet, "clean_sys_modules", lambda: None)
     monkeypatch.setattr(pytest_psynet, "clear_all_caches", lambda: None)
+    monkeypatch.setattr(pytest_psynet, "is_in_repo_experiment", lambda: True)
     pytest_psynet.loaded_experiment_directory = None
 
-    demo = path_to_demo_experiment("hello_world")
-    assert not (Path(demo) / "constraints.txt").exists()
+    experiment_dir = tmp_path / "in_repo_experiment"
+    experiment_dir.mkdir()
+    (experiment_dir / "experiment.py").write_text("class Exp:\n    pass\n")
+    (experiment_dir / "requirements.txt").write_text("psynet\n")
 
     fixture = pytest_psynet.in_experiment_directory
-    generator = fixture.__wrapped__(demo)
+    generator = fixture.__wrapped__(str(experiment_dir))
     try:
         next(generator)
         assert "SKIP_DEPENDENCY_CHECK" not in os.environ
-        assert (Path(demo) / "test.py").exists()
+        assert (experiment_dir / "test.py").exists()
     finally:
         try:
             next(generator)
@@ -301,8 +304,8 @@ def test_in_experiment_directory_relies_on_in_repo_gate(monkeypatch):
         os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
 
     # Teardown restores the authored-only tree.
-    assert not (Path(demo) / "test.py").exists()
-    assert not (Path(demo) / "Dockerfile").exists()
+    assert not (experiment_dir / "test.py").exists()
+    assert not (experiment_dir / "Dockerfile").exists()
 
 
 def test_scaffold_missing_files_restores_preexisting_tree(tmp_path):
