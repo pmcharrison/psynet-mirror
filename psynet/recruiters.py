@@ -93,6 +93,23 @@ PROLIFIC_UNSUCCESSFUL_CODE_TYPE = "UNSUCCESSFUL"
 PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 
 
+def latest_participant_for_assignment(assignment_id):
+    """Return the most recent participant with this assignment id, or ``None``.
+
+    Unlike ``Experiment.get_participant_from_assignment_id``, this lookup is
+    tolerant: it returns ``None`` when no participant matches and the newest
+    row when several do, making it suitable for best-effort contexts such as
+    error pages and approval hooks.
+    """
+    if not assignment_id:
+        return None
+    return (
+        Participant.query.filter_by(assignment_id=assignment_id)
+        .order_by(Participant.id.desc())
+        .first()
+    )
+
+
 def _prolific_error_status(error: ProlificServiceException):
     try:
         payload = json.loads(str(error))
@@ -254,11 +271,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         trigger Dallinger's retry loop and a spurious recruitment error.
         """
         if self.pays_unsuccessful_participants_via_screen_out:
-            participant = (
-                Participant.query.filter_by(assignment_id=assignment_id)
-                .order_by(Participant.id.desc())
-                .first()
-            )
+            participant = latest_participant_for_assignment(assignment_id)
             if participant is not None and participant.failed:
                 logger.info(
                     "Skipping Prolific approval for assignment %s: the participant "
