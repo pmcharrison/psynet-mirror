@@ -1,1 +1,1 @@
-Added ``psynet setup`` and ``psynet scripts`` (``scaffold``, ``update``, ``prune``) for standalone experiment environments. ``psynet generate-constraints`` locks dependencies via Dallinger's script under ``uv run``.
+Added ``psynet setup``, ``psynet scripts`` (``scaffold``/``update``/``prune``), and ``psynet generate-constraints`` for standalone experiments.
