@@ -85,17 +85,6 @@ so use a dedicated experiment virtual environment.
     In most IDEs, you can do this by looking for an interpreter or Python environment selector (often in the bottom-right corner
     or in settings/preferences), and selecting the Python executable from the ``.venv`` folder you just created.
 
-.. note::
-
-    **Alternate IDE path:** If you skipped the shell bootstrap above and prefer
-    PyCharm to create the environment, open the project and look for a dialog
-    that mentions ``requirements.txt``. In the dependencies field, replace
-    ``requirements.txt`` with ``constraints.txt`` (after ``psynet setup
-    --no-install`` has created it, or after a full ``psynet setup`` elsewhere),
-    then click OK. Do **not** create a second virtual environment if you already
-    ran the shell ``uv venv`` + ``psynet setup`` flow. Note that PyCharm remote
-    debugging is currently not working (as of February 2025).
-
 When the process is done, if you open a new terminal window in your IDE, you should see ``(<your-project-name)``
 prefixed to the terminal prompt. This indicates that you are in the desired virtual environment.
 You should be able to run ``psynet --version`` in this terminal to confirm that you have
