@@ -163,6 +163,71 @@ source_code.zip
 **/deploy_logs/
 dump.rdb
 
+# Scaffold and dependency files generated inside bundled demos.
+/demos/**/.dockerignore
+/demos/**/.gitignore
+/demos/**/.python-version
+/demos/**/.github/workflows/test.yml
+/demos/**/.vscode/launch.json
+/demos/**/AGENTS.md
+/demos/**/Dockerfile
+/demos/**/Dockertag
+/demos/**/__init__.py
+/demos/**/config.txt
+/demos/**/constraints.txt
+/demos/**/docker/
+/demos/**/pytest.ini
+/demos/**/test.py
+
+# Scaffold and dependency files generated inside test experiments.
+# Stock config.txt is ignored like demos; already-tracked custom configs stay
+# tracked. Use ``git add -f path/to/config.txt`` when first adding a new custom
+# config under these trees.
+/tests/experiments/**/.dockerignore
+/tests/experiments/**/.gitignore
+/tests/experiments/**/.python-version
+/tests/experiments/**/.github/workflows/test.yml
+/tests/experiments/**/.vscode/launch.json
+/tests/experiments/**/AGENTS.md
+/tests/experiments/**/Dockerfile
+/tests/experiments/**/Dockertag
+/tests/experiments/**/__init__.py
+/tests/experiments/**/config.txt
+/tests/experiments/**/constraints.txt
+/tests/experiments/**/docker/
+/tests/experiments/**/pytest.ini
+/tests/experiments/**/test.py
+/tests/playwright/experiments/**/.dockerignore
+/tests/playwright/experiments/**/.gitignore
+/tests/playwright/experiments/**/.python-version
+/tests/playwright/experiments/**/.github/workflows/test.yml
+/tests/playwright/experiments/**/.vscode/launch.json
+/tests/playwright/experiments/**/AGENTS.md
+/tests/playwright/experiments/**/Dockerfile
+/tests/playwright/experiments/**/Dockertag
+/tests/playwright/experiments/**/__init__.py
+/tests/playwright/experiments/**/config.txt
+/tests/playwright/experiments/**/constraints.txt
+/tests/playwright/experiments/**/docker/
+/tests/playwright/experiments/**/pytest.ini
+/tests/playwright/experiments/**/test.py
+# Authored-only in master; deployment-test branches force-add these with
+# ``git add -f`` when materializing a deployable tree (see deployment-test skill).
+/tests/deployment/**/.dockerignore
+/tests/deployment/**/.gitignore
+/tests/deployment/**/.python-version
+/tests/deployment/**/.github/workflows/test.yml
+/tests/deployment/**/.vscode/launch.json
+/tests/deployment/**/AGENTS.md
+/tests/deployment/**/Dockerfile
+/tests/deployment/**/Dockertag
+/tests/deployment/**/__init__.py
+/tests/deployment/**/config.txt
+/tests/deployment/**/constraints.txt
+/tests/deployment/**/docker/
+/tests/deployment/**/pytest.ini
+/tests/deployment/**/test.py
+
 # ASV benchmark artifacts
 .asv/
 .asv-sync.conf.json

@@ -8,9 +8,8 @@ then choose one as your starting point.
 Copy the demo's directory to a new location on your computer, outside the original PsyNet repository.
 Open the new experiment directory in your IDE.
 
-Bundled demos are a good starting point. When you copy one out of the PsyNet
-repository, treat it as a standalone experiment and run ``psynet setup`` to
-ensure boilerplate and a constrained environment are present.
+Bundled demos ship only their authored experiment files (plus an unpinned ``psynet`` entry in
+``requirements.txt``). Generated boilerplate and ``constraints.txt`` are intentionally omitted.
 
 You need **Git** and **uv** on your machine first (see
 :doc:`/tutorials/creating_a_new_experiment` for install links). Then initialize
