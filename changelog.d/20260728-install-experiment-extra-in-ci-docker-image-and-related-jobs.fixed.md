@@ -1,1 +1,0 @@
-Fixed CI installs to include the ``psynet[experiment]`` extra (Docker image constraints, changelog job, and ASV environments), and made in-repo demo detection work when PsyNet is installed as a wheel under a source checkout.

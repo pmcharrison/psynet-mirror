@@ -1,1 +1,0 @@
-`psynet setup --psynet-source commit` now pins PsyNet from the editable checkout's `origin` remote (so forks work) and requires that commit to be present on a remote-tracking ref. Deployment PsyNet pin validation accepts commit/tag pins from non-PsyNetDev remotes as well.

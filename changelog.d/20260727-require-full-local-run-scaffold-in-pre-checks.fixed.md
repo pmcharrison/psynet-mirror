@@ -1,1 +1,0 @@
-Pre-launch checks now require the minimal local-run scaffold (``.gitignore``, ``config.txt``, ``Dockerfile``, ``test.py``, and ``docker/``), derived from a shared scaffold path inventory, instead of only ``.gitignore`` and ``config.txt``.

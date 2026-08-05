@@ -1,1 +1,0 @@
-Simplified ``psynet scripts prune`` with ``--include-modified`` / ``--include-tracked``: tracked managed paths are kept by default, divergent untracked scaffold is opt-in, and generated ``static/assets`` plus untracked ``constraints.txt`` are always cleaned.

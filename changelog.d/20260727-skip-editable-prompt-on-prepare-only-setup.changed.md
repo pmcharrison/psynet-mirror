@@ -1,1 +1,0 @@
-Changed no-install ``psynet setup`` so it no longer asks how to record an editable PsyNet install: it keeps an existing explicit pin, otherwise uses the editable checkout, while ``--psynet-source`` still overrides.

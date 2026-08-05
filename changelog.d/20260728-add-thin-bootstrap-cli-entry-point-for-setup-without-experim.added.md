@@ -1,1 +1,0 @@
-Added a thin bootstrap CLI entry point so ``psynet setup``, ``psynet scripts``, ``psynet services``, and ``psynet generate-constraints`` work without the experiment runtime, with a clear error when heavier commands need ``psynet[experiment]``.

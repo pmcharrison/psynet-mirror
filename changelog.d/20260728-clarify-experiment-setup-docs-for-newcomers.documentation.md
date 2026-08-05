@@ -1,1 +1,1 @@
-Documented the two experiment-folder workflows (bundled demos vs standalone), recommended commands by goal, ``psynet setup --docker`` / ``--no-install``, and the distinction between ``psynet installation update`` and ``psynet scripts update``.
+Documented standalone vs bundled-demo workflows, Git/uv prerequisites, ``psynet setup`` / ``psynet scripts`` / ``psynet services``, ``psynet installation update`` vs ``psynet scripts update``, and that every experiment needs a ``config.txt`` (blank is enough when upgrading from Python-only config).

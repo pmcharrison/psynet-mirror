@@ -1,1 +1,0 @@
-Changed ``psynet setup`` to gate synchronization when the active virtual environment is PsyNet's shared checkout environment, with interactive cancel / write-files-only / sync choices and ``--no-install`` / ``--force-shared-env`` flags.

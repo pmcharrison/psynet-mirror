@@ -1,1 +1,0 @@
-Made experiment scaffolding regenerate constraints after pinning bare PsyNet requirements, follow the active Python version, preserve custom configuration and boilerplate by default while allowing `--force` to remove them, report invalid directory names cleanly, and surface file-removal failures.
