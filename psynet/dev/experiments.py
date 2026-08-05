@@ -23,9 +23,7 @@ def update_command() -> int:
     """
     assert_running_from_source_checkout_root()
     click.echo(
-        "No experiment-template updates required "
-        "(constraints locking uses uv run; scaffold Dockerfiles do not pin "
-        "a PsyNet image tag)."
+        "Experiment scripts no longer need to be updated with new PsyNet releases."
     )
     return 0
 
