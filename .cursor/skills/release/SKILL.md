@@ -119,11 +119,8 @@ git commit -m "Bump version to X.Y.Z"
 
 ### Update experiment templates (no longer required)
 
-Do **not** run `psynet dev experiments update` as part of a release.
-That step used to rewrite PsyNet Docker image tags in scaffold helpers;
-constraints locking now uses `uv run` of Dallinger's standalone script, and
-scaffold Dockerfiles no longer pin a PsyNet image tag. Bundled demos keep bare
-`psynet` requirements and are not rewritten at release time.
+PsyNet demos used to contain boilerplate that needed to be updated as part 
+of a release, but this has been removed now, so this step is no longer necessary.
 
 ### Tag the release
 
