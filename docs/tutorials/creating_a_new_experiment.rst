@@ -134,14 +134,6 @@ If you have indeed increased the PsyNet version number, refresh
 
     psynet setup
 
-(That regenerates the lockfile because ``requirements.txt`` changed, then
-synchronizes the environment.) Or only refresh the lockfile, then re-run setup
-/ sync:
-
-.. code:: bash
-
-    psynet generate-constraints
-    psynet setup
 
 Once it is complete, you should be able to run ``psynet debug local`` as before.
 
