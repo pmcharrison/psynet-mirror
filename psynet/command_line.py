@@ -2103,9 +2103,7 @@ def _check_constraints(spinner=None):
     generate_constraints_cmd = (
         "    psynet setup\n"
         "or only refresh the lockfile with:\n"
-        "    psynet generate-constraints\n"
-        "or, for Docker image-based generation:\n"
-        "    bash docker/generate-constraints"
+        "    psynet generate-constraints"
     )
 
     if not constraints_path.exists():

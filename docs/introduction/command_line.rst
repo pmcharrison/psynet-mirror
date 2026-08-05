@@ -295,8 +295,9 @@ PsyNet version pin):
 
   psynet generate-constraints
 
-You can also regenerate locks inside the PsyNet Docker image with
-``bash docker/generate-constraints``.
+This runs Dallinger's standalone constraints script via ``uv run`` (the same
+lock policy as ``dallinger constraints generate``), including when only the
+thin PsyNet bootstrap package is installed.
 
 
 Run the experiment's regression test
