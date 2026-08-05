@@ -12,10 +12,9 @@ for the Dallinger version implied by the experiment requirements, using
 Dallinger package, so thin-bootstrap ``psynet setup`` can lock before
 ``uv pip sync``.
 
-When Dallinger is installed (editable or via ``psynet[experiment]``), the
-installed ``dallinger.constraints`` module is preferred so local Dallinger
-checkouts are used. Otherwise PsyNet's vendored copy under
-``psynet/resources/dallinger_constraints.py`` is used.
+An editable Dallinger checkout supplies its local ``dallinger.constraints``
+script, so PsyNet and Dallinger can be developed together. Otherwise the
+canonical script is run directly from Dallinger's GitHub repository.
 
 Callers
 -------
@@ -28,15 +27,18 @@ Callers
 from __future__ import annotations
 
 import importlib.util
+import json
 import shutil
 import subprocess
 from hashlib import md5
+from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
 
 import click
 
-_VENDORED_CONSTRAINTS_SCRIPT = (
-    Path(__file__).resolve().parent / "resources" / "dallinger_constraints.py"
+_DALLINGER_CONSTRAINTS_URL = (
+    "https://raw.githubusercontent.com/Dallinger/Dallinger/"
+    "master/dallinger/constraints.py"
 )
 
 
@@ -103,19 +105,42 @@ def generate_constraints_file() -> None:
         )
 
 
-def _dallinger_constraints_script() -> Path:
-    """Return the Dallinger constraints script to run with ``uv run``.
+def _dallinger_constraints_script() -> str:
+    """Return and describe the Dallinger constraints script used by ``uv``.
 
-    Prefers an installed ``dallinger.constraints`` module when importable so
-    editable Dallinger checkouts are used; otherwise the vendored PsyNet copy.
+    Uses a local script only when Dallinger is installed editable. Ordinary
+    installs and thin-bootstrap environments use Dallinger's canonical GitHub
+    script.
     """
-    spec = importlib.util.find_spec("dallinger.constraints")
-    if spec is not None and spec.origin is not None:
-        return Path(spec.origin)
-
-    if not _VENDORED_CONSTRAINTS_SCRIPT.is_file():
-        raise click.ClickException(
-            "Vendored Dallinger constraints script is missing from the PsyNet "
-            f"install ({_VENDORED_CONSTRAINTS_SCRIPT})."
+    local_script = _editable_dallinger_constraints_script()
+    if local_script is not None:
+        click.echo(
+            f"Using constraints script from editable Dallinger checkout: {local_script}"
         )
-    return _VENDORED_CONSTRAINTS_SCRIPT
+        return str(local_script)
+
+    click.echo(
+        f"Using Dallinger constraints script from GitHub: {_DALLINGER_CONSTRAINTS_URL}"
+    )
+    return _DALLINGER_CONSTRAINTS_URL
+
+
+def _editable_dallinger_constraints_script() -> Path | None:
+    """Return ``dallinger.constraints`` only for an editable installation."""
+    try:
+        direct_url_text = distribution("dallinger").read_text("direct_url.json")
+    except PackageNotFoundError:
+        return None
+    if direct_url_text is None:
+        return None
+    try:
+        direct_url = json.loads(direct_url_text)
+    except json.JSONDecodeError:
+        return None
+    if not direct_url.get("dir_info", {}).get("editable", False):
+        return None
+
+    spec = importlib.util.find_spec("dallinger.constraints")
+    if spec is None or spec.origin is None:
+        return None
+    return Path(spec.origin)

@@ -298,8 +298,9 @@ PsyNet version pin):
   psynet generate-constraints
 
 This runs Dallinger's standalone constraints script via ``uv run`` (the same
-lock policy as ``dallinger constraints generate``), including when only the
-thin PsyNet bootstrap package is installed.
+lock policy as ``dallinger constraints generate``). An editable Dallinger
+checkout supplies its local script; otherwise PsyNet runs the canonical script
+from Dallinger's GitHub repository.
 
 
 Run the experiment's regression test

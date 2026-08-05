@@ -200,36 +200,36 @@ def test_generate_constraints_invokes_uv_run_dallinger_script(tmp_path, monkeypa
     assert (tmp_path / "constraints.txt").read_text() == "# locked\n"
 
 
-def test_dallinger_constraints_script_prefers_installed_module(monkeypatch, tmp_path):
-    """Editable/installed Dallinger should win over the vendored copy."""
+def test_dallinger_constraints_script_prefers_editable_checkout(
+    monkeypatch, tmp_path, capsys
+):
+    """An editable Dallinger checkout supplies its local constraints script."""
     installed = tmp_path / "installed_constraints.py"
     installed.write_text("# installed\n")
 
-    class Spec:
-        origin = str(installed)
-
     monkeypatch.setattr(
-        "psynet.constraints_compile.importlib.util.find_spec",
-        lambda name: Spec() if name == "dallinger.constraints" else None,
+        "psynet.constraints_compile._editable_dallinger_constraints_script",
+        lambda: installed,
     )
     from psynet.constraints_compile import _dallinger_constraints_script
 
-    assert _dallinger_constraints_script() == installed
+    assert _dallinger_constraints_script() == str(installed)
+    assert "editable Dallinger checkout" in capsys.readouterr().out
 
 
-def test_dallinger_constraints_script_falls_back_to_vendored(monkeypatch):
-    """Thin bootstrap without Dallinger uses the vendored script."""
+def test_dallinger_constraints_script_uses_github_otherwise(monkeypatch, capsys):
+    """A thin or non-editable installation uses Dallinger's GitHub script."""
     monkeypatch.setattr(
-        "psynet.constraints_compile.importlib.util.find_spec",
-        lambda name: None,
+        "psynet.constraints_compile._editable_dallinger_constraints_script",
+        lambda: None,
     )
     from psynet.constraints_compile import (
-        _VENDORED_CONSTRAINTS_SCRIPT,
+        _DALLINGER_CONSTRAINTS_URL,
         _dallinger_constraints_script,
     )
 
-    assert _dallinger_constraints_script() == _VENDORED_CONSTRAINTS_SCRIPT
-    assert _VENDORED_CONSTRAINTS_SCRIPT.is_file()
+    assert _dallinger_constraints_script() == _DALLINGER_CONSTRAINTS_URL
+    assert "from GitHub" in capsys.readouterr().out
 
 
 def test_constraints_are_up_to_date_requires_requirements_md5(tmp_path):
