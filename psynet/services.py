@@ -123,8 +123,15 @@ def docker_available() -> bool:
 
 
 def _docker_container_exists(name: str) -> bool:
+    """Return whether a Docker container with this name exists.
+
+    Scoped to ``docker container inspect`` because bare ``docker inspect``
+    also matches volumes, images, and networks. The service volumes reuse
+    their container's name, so a bare inspect succeeds when only a leftover
+    volume remains and the subsequent ``docker start`` then fails.
+    """
     result = subprocess.run(
-        ["docker", "inspect", name],
+        ["docker", "container", "inspect", name],
         capture_output=True,
         text=True,
         check=False,
@@ -133,8 +140,9 @@ def _docker_container_exists(name: str) -> bool:
 
 
 def _docker_container_running(name: str) -> bool:
+    """Return whether a Docker container with this name is running."""
     result = subprocess.run(
-        ["docker", "inspect", "-f", "{{.State.Running}}", name],
+        ["docker", "container", "inspect", "-f", "{{.State.Running}}", name],
         capture_output=True,
         text=True,
         check=False,

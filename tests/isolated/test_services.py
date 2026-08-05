@@ -113,6 +113,33 @@ def test_start_local_services_requires_docker(monkeypatch):
         start_local_services_via_docker()
 
 
+def test_leftover_volume_does_not_look_like_a_container(monkeypatch):
+    """A volume sharing the container name must not trigger 'docker start'."""
+    from psynet.services import _ensure_docker_container
+
+    commands = []
+
+    def fake_run(args, **kwargs):
+        commands.append(args)
+        result = Mock()
+        # Only volumes remain, so container-scoped inspects fail.
+        result.returncode = 1 if "inspect" in args else 0
+        result.stdout = ""
+        result.stderr = ""
+        return result
+
+    monkeypatch.setattr("psynet.services.subprocess.run", fake_run)
+
+    _ensure_docker_container("dallinger_redis", ["run", "-d", "redis"])
+
+    inspect_commands = [args for args in commands if "inspect" in args]
+    assert inspect_commands
+    for args in inspect_commands:
+        assert args[:3] == ["docker", "container", "inspect"]
+    assert ["docker", "start", "dallinger_redis"] not in commands
+    assert ["docker", "run", "-d", "redis"] in commands
+
+
 def test_pre_launch_skips_service_ensure_for_docker_mode(monkeypatch):
     from psynet.command_line import _pre_launch
 
