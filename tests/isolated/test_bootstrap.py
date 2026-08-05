@@ -277,3 +277,25 @@ def test_psynet_init_does_not_import_dallinger_at_top_level():
 
     assert isinstance(psynet.__version__, str)
     assert psynet.__version__
+
+
+# ---------------------------------------------------------------------------
+# 8. psynet.debugger is created lazily but stays a single shared callable
+# ---------------------------------------------------------------------------
+
+
+def test_debugger_listens_once_across_repeated_breakpoints(monkeypatch):
+    """Repeated psynet.debugger() calls must not re-run debugpy.listen()."""
+    import psynet
+
+    monkeypatch.delitem(psynet.__dict__, "debugger", raising=False)
+    debugpy = MagicMock()
+    monkeypatch.setitem(sys.modules, "debugpy", debugpy)
+    monkeypatch.setattr("psynet.runtime_init.ensure_runtime", lambda: None)
+
+    psynet.debugger()
+    psynet.debugger()
+
+    assert psynet.debugger is psynet.debugger
+    debugpy.listen.assert_called_once_with(5678)
+    assert debugpy.breakpoint.call_count == 2

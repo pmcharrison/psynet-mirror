@@ -21,7 +21,12 @@ def __getattr__(name):
         from psynet.runtime_init import ensure_runtime
 
         ensure_runtime()
-        return _make_debugger()
+        # Cache in module globals so every call site shares one callable, and
+        # hence one debugpy listener; a fresh closure per access would re-run
+        # ``debugpy.listen`` and fail at the second breakpoint.
+        debugger = _make_debugger()
+        globals()["debugger"] = debugger
+        return debugger
     raise AttributeError(f"module 'psynet' has no attribute {name!r}")
 
 
