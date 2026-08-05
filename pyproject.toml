@@ -50,6 +50,8 @@ dependencies = [
 # unconditional `dependencies` list.  Install with:
 #   pip install psynet[experiment]
 # or (recommended) let `psynet setup` install it via constraints.txt.
+# PsyNet source/docs installs should prefer the ``dev`` extra, which includes
+# this runtime.
 experiment = [
     "babel",
     "dallinger[docker]>=12.2.0,<13",
@@ -80,7 +82,10 @@ experiment = [
     "arabic-reshaper",  # Used by VocabTest
     "pillow",  # Used by VocabTest
 ]
+# PsyNet source development and docs: runtime plus tooling.
+# Demo-only packages stay in ``demos`` so docs/CI installs stay lean.
 dev = [
+    "psynet[experiment]",
     "asv",
     "beautifulsoup4",
     "google-cloud-translate",

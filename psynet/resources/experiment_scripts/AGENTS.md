@@ -43,7 +43,7 @@ Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 
-- (For PsyNet source checkout): `uv pip install -e '.[experiment,dev,demos,slack]'`
+- (For PsyNet source checkout): `uv pip install -e '.[dev,demos,slack]'`
 - (For standalone experiments): `uv pip install psynet` (bootstrap only), followed by
   `psynet setup` to scaffold and install `psynet[experiment]` via the generated
   `constraints.txt`.

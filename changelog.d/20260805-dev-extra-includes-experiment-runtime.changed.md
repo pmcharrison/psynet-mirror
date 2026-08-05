@@ -1,0 +1,1 @@
+Changed the ``dev`` optional dependency group so it includes ``psynet[experiment]``. PsyNet source and docs installs can use ``.[dev]`` (plus ``demos``/``slack`` as needed) without listing ``experiment`` separately.

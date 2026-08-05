@@ -15,7 +15,7 @@ repository root:
 
     uv venv --python 3.13
     source .venv/bin/activate
-    uv pip install -e '.[experiment,dev,demos]'
+    uv pip install -e '.[dev,demos]'
 
 Then open the demo directory and run ``psynet debug local``.
 
