@@ -1,1 +1,1 @@
-Added ``psynet services check`` and ``psynet services ensure`` to verify local PostgreSQL/Redis (and optionally start Docker containers on localhost ports 5432/6379). ``psynet setup`` uses soft service verification; local virtualenv ``debug``/``deploy`` call ``ensure`` strictly before Redis/DB work.
+Added ``psynet services check`` and ``psynet services ensure`` for local PostgreSQL/Redis (optional Docker start). Setup checks softly; local ``debug``/``deploy`` require services.

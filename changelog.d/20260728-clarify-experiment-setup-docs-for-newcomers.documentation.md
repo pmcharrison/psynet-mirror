@@ -1,1 +1,1 @@
-Documented standalone vs bundled-demo workflows, Git/uv prerequisites, ``psynet setup`` / ``psynet scripts`` / ``psynet services``, ``psynet installation update`` vs ``psynet scripts update``, and that every experiment needs a ``config.txt`` (blank is enough when upgrading from Python-only config).
+Documented standalone setup (Git, uv, ``psynet setup`` / ``scripts`` / ``services``) and that every experiment needs a ``config.txt`` (blank is fine).

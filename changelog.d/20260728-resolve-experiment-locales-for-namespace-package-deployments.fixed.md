@@ -1,1 +1,1 @@
-Fixed experiment locale loading for deployment packages that omit ``__init__.py`` and are imported as namespace packages.
+Fixed locale loading for deployed experiments imported as namespace packages (no ``__init__.py``).

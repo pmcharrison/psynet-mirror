@@ -1,1 +1,1 @@
-In-repo demos and test experiments auto-prepare missing local-run scaffold for debug/test, skip per-demo dependency checks (even with leftover ``constraints.txt``), and align ``psynet test local`` with debug directory readiness. The pytest experiment-directory fixture scaffolds temporarily and on teardown removes only paths introduced during the run. ASV debug-launch prepares demos the same way for older baselines.
+In-repo demos and test experiments auto-prepare missing scaffold for local debug/test; pytest removes only files it added.
