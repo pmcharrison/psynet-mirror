@@ -117,6 +117,14 @@ git add psynet/version.py pyproject.toml
 git commit -m "Bump version to X.Y.Z"
 ```
 
+### Update experiment templates (no longer required)
+
+Do **not** run `psynet dev experiments update` as part of a release.
+That step used to rewrite PsyNet Docker image tags in scaffold helpers;
+constraints locking now uses `uv run` of Dallinger's standalone script, and
+scaffold Dockerfiles no longer pin a PsyNet image tag. Bundled demos keep bare
+`psynet` requirements and are not rewritten at release time.
+
 ### Tag the release
 
 > **Human checkpoint:** confirm with the release manager that the current
