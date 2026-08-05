@@ -1514,7 +1514,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment_id,
         worker_id,
         external_submit_url,
-        participant_id=None,
     ):
         _ = get_translator()
         _p = get_translator(context=True)
@@ -1527,7 +1526,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
-            return self.error_page_content__prolific(assignment_id, participant_id)
+            return self.error_page_content__prolific(assignment_id)
         elif isinstance(self.recruiter, MTurkRecruiter):
             html = tags.div()
             with html:
@@ -1551,15 +1550,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return ""
 
-    def error_page_content__prolific(self, assignment_id=None, participant_id=None):
+    def error_page_content__prolific(self, assignment_id=None):
+        from .recruiters import latest_participant_for_assignment
+
         _p = get_translator(context=True)
 
         recruiter = self.recruiter
+        # The participant id is needed for the submit button's POST to
+        # /prolific-submission-listener; resolve it from the assignment id so
+        # that error_page_content keeps its original public signature.
+        error_participant = latest_participant_for_assignment(assignment_id)
         can_submit_unsuccessful = (
             isinstance(recruiter, PsyNetProlificRecruiterMixin)
             and recruiter.pays_unsuccessful_participants_via_screen_out
             and assignment_id
-            and participant_id
+            and error_participant is not None
         )
 
         html = tags.div()
@@ -1599,7 +1604,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         """
                         % (
                             json.dumps(assignment_id),
-                            json.dumps(str(participant_id)),
+                            json.dumps(str(error_participant.id)),
                             json.dumps(submit_url),
                         )
                     )
