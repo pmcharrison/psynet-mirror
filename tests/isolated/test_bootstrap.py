@@ -207,9 +207,20 @@ def test_dallinger_constraints_script_prefers_editable_checkout(
     installed = tmp_path / "installed_constraints.py"
     installed.write_text("# installed\n")
 
+    class Dist:
+        def read_text(self, name):
+            return '{"dir_info": {"editable": true}}'
+
+    class Spec:
+        origin = str(installed)
+
     monkeypatch.setattr(
-        "psynet.constraints_compile._editable_dallinger_constraints_script",
-        lambda: installed,
+        "psynet.constraints_compile.distribution",
+        lambda name: Dist(),
+    )
+    monkeypatch.setattr(
+        "psynet.constraints_compile.importlib.util.find_spec",
+        lambda name: Spec(),
     )
     from psynet.constraints_compile import _dallinger_constraints_script
 
@@ -219,9 +230,14 @@ def test_dallinger_constraints_script_prefers_editable_checkout(
 
 def test_dallinger_constraints_script_uses_github_otherwise(monkeypatch, capsys):
     """A thin or non-editable installation uses Dallinger's GitHub script."""
+
+    class Dist:
+        def read_text(self, name):
+            return '{"dir_info": {"editable": false}}'
+
     monkeypatch.setattr(
-        "psynet.constraints_compile._editable_dallinger_constraints_script",
-        lambda: None,
+        "psynet.constraints_compile.distribution",
+        lambda name: Dist(),
     )
     from psynet.constraints_compile import (
         _DALLINGER_CONSTRAINTS_URL,
