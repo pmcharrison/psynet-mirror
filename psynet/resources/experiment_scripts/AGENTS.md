@@ -67,9 +67,7 @@ If you copied a demo into a brand new directory, initialize a Git repository fir
 git init
 ```
 
-The PsyNet demo directories include just the authored experiment files.
-Their unpinned `requirements.txt` files and omitted constraints are intentional.
-Within the PsyNet source checkout, PsyNet automatically generates ignored
+Within the PsyNet source checkout, PsyNet fills in missing experiment
 boilerplate when a bundled demo is run or tested:
 
 ```bash
