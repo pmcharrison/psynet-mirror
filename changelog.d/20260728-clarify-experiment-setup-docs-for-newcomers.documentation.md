@@ -1,1 +1,1 @@
-Documented standalone setup (Git, uv, ``psynet setup`` / ``scripts`` / ``services``) and that every experiment needs a ``config.txt`` (blank is fine).
+Documented standalone setup (Git, uv, ``psynet setup`` / ``scripts`` / ``services``), recreating environments via setup when constraints are up to date, and that every experiment needs a ``config.txt`` (blank is fine).

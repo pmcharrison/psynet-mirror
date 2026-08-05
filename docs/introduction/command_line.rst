@@ -152,7 +152,9 @@ order it:
    ``psynet[experiment]`` at the active PsyNet installation (the
    ``[experiment]`` extra is the full runtime; a "bare" requirement is just
    the word ``psynet`` with no version, URL, or extras).
-3. Writes ``constraints.txt`` (the locked dependency list).
+3. Ensures ``constraints.txt`` (the locked dependency list): reuses it when it
+   is already up to date with ``requirements.txt``, otherwise regenerates it
+   (same freshness rule as ``psynet check-constraints``).
 4. Installs from ``constraints.txt`` with ``uv pip sync`` and verifies with
    ``uv pip check``.
 5. Softly checks local PostgreSQL/Redis (and may offer to start them with
@@ -167,8 +169,8 @@ order it:
 
 Useful flags:
 
-* ``--no-install`` — do steps 1–3 only (write files and constraints; do not
-  install packages).
+* ``--no-install`` — do steps 1–3 only (write files; ensure constraints when
+  missing or stale; do not install packages).
 * ``--docker`` — same as ``--no-install``, then print Docker next steps
   (follow ``docker/docs``). Prefer this for Docker-mode bootstraps.
 * ``--force-shared-env`` — allow installing into the PsyNet repository's

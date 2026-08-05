@@ -1,1 +1,1 @@
-Improved ``psynet setup`` UX: shared-checkout ``.venv`` guard, create-new-venv option, ``--no-install`` / ``--docker``, and ``psynet installation update`` (``psynet update`` deprecated).
+Improved ``psynet setup`` UX: shared-checkout ``.venv`` guard, create-new-venv option, ``--no-install`` / ``--docker``, reuse of up-to-date ``constraints.txt``, and ``psynet installation update`` (``psynet update`` deprecated).

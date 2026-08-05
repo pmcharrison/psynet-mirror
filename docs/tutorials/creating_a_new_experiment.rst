@@ -102,16 +102,17 @@ You should be able to run ``psynet --version`` in this terminal to confirm that 
 successfully installed PsyNet.
 You should then be able to run ``psynet debug local`` to launch a local version of your experiment.
 
-If you decide at some point you want to make a fresh virtual environment for a pre-existing project
-that already has ``constraints.txt``, create a new virtual environment using the commands above,
-select it in your IDE's interpreter settings, then install with:
+If you decide at some point you want to make a fresh virtual environment for a
+pre-existing project, create a new virtual environment using the commands above,
+select it in your IDE's interpreter settings, then run the same bootstrap as
+first-time setup. When ``constraints.txt`` is already present and up to date
+with ``requirements.txt``, ``psynet setup`` reuses it and only synchronizes the
+environment:
 
 .. code-block:: bash
 
-    uv pip install -r requirements.txt -c constraints.txt
-
-If ``constraints.txt`` is missing (for example you just copied a bundled demo),
-run ``psynet setup`` instead of installing from requirements alone.
+    uv pip install psynet
+    psynet setup
 
 Updating PsyNet
 ---------------
@@ -137,19 +138,21 @@ so for example from 10.3.1 to 11.0.0.
 If both version tags begin with the same number, then you should probably be fine,
 and you can just go ahead and increase the PsyNet version number in ``requirements.txt``.
 
-If you have indeed increased the PsyNet version number, refresh ``constraints.txt``
-and your environment:
+If you have indeed increased the PsyNet version number, refresh
+``constraints.txt`` and your environment with:
 
 .. code:: bash
 
     psynet setup
 
-Or only refresh the lockfile, then reinstall:
+(That regenerates the lockfile because ``requirements.txt`` changed, then
+synchronizes the environment.) Or only refresh the lockfile, then re-run setup
+/ sync:
 
 .. code:: bash
 
     psynet generate-constraints
-    uv pip install -r requirements.txt -c constraints.txt
+    psynet setup
 
 Once it is complete, you should be able to run ``psynet debug local`` as before.
 

@@ -37,13 +37,13 @@ import platform
 import re
 import subprocess
 import tempfile
-import tomllib
 from hashlib import md5
 from pathlib import Path
 from typing import List, Optional
 
 import click
 import requests
+import tomllib
 
 logger = logging.getLogger(__name__)
 

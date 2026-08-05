@@ -12,7 +12,6 @@ import tempfile
 import threading
 import zipfile
 from contextlib import contextmanager
-from hashlib import md5
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -2086,8 +2085,7 @@ def check_dockerfile():
 def _check_constraints(spinner=None):
     directory = os.getcwd()
 
-    # This code comes from dallinger.utils.ensure_constraints_file_presence.
-    # Ideally this Dallinger function would be refactored into exportable components.
+    # Freshness uses the same MD5-in-lockfile rule as ``psynet setup``.
     requirements_path = Path(directory) / "requirements.txt"
     constraints_path = Path(directory) / "constraints.txt"
 
@@ -2117,8 +2115,12 @@ def _check_constraints(spinner=None):
             + generate_constraints_cmd
         )
 
-    requirements_path_hash = md5(requirements_path.read_bytes()).hexdigest()
-    if requirements_path_hash not in constraints_path.read_text():
+    from .constraints_compile import constraints_are_up_to_date
+
+    if not constraints_are_up_to_date(
+        requirements_path=requirements_path,
+        constraints_path=constraints_path,
+    ):
         if spinner:
             spinner.fail("✘")
         raise click.ClickException(

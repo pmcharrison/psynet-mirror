@@ -77,21 +77,28 @@ def _assert_directory_is_scaffoldable():
         raise click.UsageError(str(exc)) from exc
 
 
-def _generate_constraints_if_missing(ctx, *, requirements_changed=False):
-    """Generate a non-empty constraints file when scaffolding needs one."""
+def _ensure_constraints_up_to_date(ctx):
+    """Create or refresh ``constraints.txt`` when missing or stale.
+
+    Reuses an existing lockfile when it embeds the current
+    ``requirements.txt`` MD5 (same freshness rule as ``psynet
+    check-constraints``). Regenerates when the file is absent, empty, or
+    out of date with ``requirements.txt``.
+    """
     constraints_path = Path("constraints.txt")
     if constraints_path.exists() and not constraints_path.is_file():
         raise click.UsageError("constraints.txt exists but is not a regular file.")
-    if (
-        not requirements_changed
-        and constraints_path.is_file()
-        and constraints_path.stat().st_size > 0
-    ):
+
+    from .constraints_compile import (
+        constraints_are_up_to_date,
+        generate_constraints_file,
+    )
+
+    if constraints_are_up_to_date():
+        click.echo("constraints.txt is up to date with requirements.txt.")
         return
 
     click.echo("Generating constraints.txt...")
-    from .constraints_compile import generate_constraints_file
-
     generate_constraints_file()
     if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
         raise click.ClickException(
@@ -99,7 +106,7 @@ def _generate_constraints_if_missing(ctx, *, requirements_changed=False):
         )
 
 
-def _scaffold_experiment(ctx, *, skip_constraints, refresh_constraints=False):
+def _scaffold_experiment(ctx, *, skip_constraints):
     """Scaffold an experiment and optionally prepare its constraints.
 
     In-repo experiments (demos and test experiments) keep bare ``psynet``
@@ -108,33 +115,26 @@ def _scaffold_experiment(ctx, *, skip_constraints, refresh_constraints=False):
 
     When constraints are enabled, an existing bare ``psynet`` requirement is
     pinned before template files are written so a failed pin does not leave a
-    half-complete scaffold.
+    half-complete scaffold. Constraints are then ensured only when missing or
+    stale relative to ``requirements.txt``.
     """
     _assert_directory_is_scaffoldable()
     if is_in_repo_experiment():
         skip_constraints = True
 
-    pinned_existing_requirement = False
     if not skip_constraints and Path("requirements.txt").is_file():
         try:
-            pinned_existing_requirement = pin_unpinned_psynet_requirement()
+            pin_unpinned_psynet_requirement()
         except ValueError as exc:
             raise click.UsageError(str(exc)) from exc
 
-    scaffold_result = scaffold_experiment_directory()
+    scaffold_experiment_directory()
     if not skip_constraints:
         try:
-            requirements_changed = (
-                "requirements.txt" in scaffold_result["written"]
-                or pinned_existing_requirement
-                or pin_unpinned_psynet_requirement()
-            )
+            pin_unpinned_psynet_requirement()
         except ValueError as exc:
             raise click.UsageError(str(exc)) from exc
-        _generate_constraints_if_missing(
-            ctx,
-            requirements_changed=requirements_changed or refresh_constraints,
-        )
+        _ensure_constraints_up_to_date(ctx)
 
 
 def _ensure_active_virtualenv():
@@ -578,11 +578,7 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
             raise click.UsageError(
                 "--psynet-source is only needed when PsyNet is installed editable."
             )
-        _scaffold_experiment(
-            ctx,
-            skip_constraints=False,
-            refresh_constraints=True,
-        )
+        _scaffold_experiment(ctx, skip_constraints=False)
     else:
         requirement = _choose_editable_psynet_requirement(
             editable_source,
@@ -590,7 +586,7 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
         )
         _scaffold_experiment(ctx, skip_constraints=True)
         set_psynet_requirement(requirement)
-        _generate_constraints_if_missing(ctx, requirements_changed=True)
+        _ensure_constraints_up_to_date(ctx)
 
     if action == "no-install":
         _echo_no_install_success(docker=docker)

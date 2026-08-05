@@ -3,7 +3,7 @@
 Covers:
 - Bootstrap module imports without heavy deps (experiment extra mocked missing).
 - _default_psynet_requirement includes [experiment] extra.
-- constraints_compile embeds MD5 in fallback uv path.
+- constraints_compile locks via uv run; freshness uses requirements MD5.
 - bootstrap_cli dispatches setup without importing command_line.
 - psynet[experiment] and bare psynet both count as unpinned.
 """
@@ -11,6 +11,7 @@ Covers:
 from __future__ import annotations
 
 import sys
+from hashlib import md5
 from unittest.mock import MagicMock
 
 import pytest
@@ -229,6 +230,103 @@ def test_dallinger_constraints_script_falls_back_to_vendored(monkeypatch):
 
     assert _dallinger_constraints_script() == _VENDORED_CONSTRAINTS_SCRIPT
     assert _VENDORED_CONSTRAINTS_SCRIPT.is_file()
+
+
+def test_constraints_are_up_to_date_requires_requirements_md5(tmp_path):
+    """Freshness matches check-constraints: embed requirements.txt MD5."""
+    from psynet.constraints_compile import constraints_are_up_to_date
+
+    requirements = tmp_path / "requirements.txt"
+    constraints = tmp_path / "constraints.txt"
+    requirements.write_text("psynet[experiment]==13.4.0\n")
+
+    assert not constraints_are_up_to_date(
+        requirements_path=requirements,
+        constraints_path=constraints,
+    )
+
+    constraints.write_text("# stale lock without digest\n")
+    assert not constraints_are_up_to_date(
+        requirements_path=requirements,
+        constraints_path=constraints,
+    )
+
+    digest = md5(requirements.read_bytes()).hexdigest()
+    constraints.write_text(f"# locked\n# md5sum {digest}\n")
+    assert constraints_are_up_to_date(
+        requirements_path=requirements,
+        constraints_path=constraints,
+    )
+
+    requirements.write_text("psynet[experiment]==13.5.0\n")
+    assert not constraints_are_up_to_date(
+        requirements_path=requirements,
+        constraints_path=constraints,
+    )
+
+
+def test_ensure_constraints_reuses_up_to_date_lockfile(tmp_path, monkeypatch):
+    """Setup must not regenerate when constraints already match requirements."""
+    import os
+
+    from psynet.experiment_setup import _ensure_constraints_up_to_date
+
+    requirements = tmp_path / "requirements.txt"
+    constraints = tmp_path / "constraints.txt"
+    requirements.write_text("psynet[experiment]==13.4.0\n")
+    digest = md5(requirements.read_bytes()).hexdigest()
+    original = f"# existing lock\n# md5sum {digest}\n"
+    constraints.write_text(original)
+
+    def fail_generate():
+        raise AssertionError("generate_constraints_file should not run")
+
+    monkeypatch.setattr(
+        "psynet.constraints_compile.generate_constraints_file",
+        fail_generate,
+    )
+
+    orig = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        _ensure_constraints_up_to_date(ctx=None)
+    finally:
+        os.chdir(orig)
+
+    assert constraints.read_text() == original
+
+
+def test_ensure_constraints_regenerates_when_stale(tmp_path, monkeypatch):
+    """Setup regenerates when the lockfile lacks the current requirements MD5."""
+    import os
+
+    from psynet.experiment_setup import _ensure_constraints_up_to_date
+
+    requirements = tmp_path / "requirements.txt"
+    constraints = tmp_path / "constraints.txt"
+    requirements.write_text("psynet[experiment]==13.4.0\n")
+    constraints.write_text("# stale\n")
+    calls = []
+
+    def fake_generate():
+        calls.append(True)
+        digest = md5(requirements.read_bytes()).hexdigest()
+        constraints.write_text(f"# regenerated\n# md5sum {digest}\n")
+
+    monkeypatch.setattr(
+        "psynet.constraints_compile.generate_constraints_file",
+        fake_generate,
+    )
+
+    orig = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        _ensure_constraints_up_to_date(ctx=None)
+    finally:
+        os.chdir(orig)
+
+    assert calls == [True]
+    assert "regenerated" in constraints.read_text()
 
 
 # ---------------------------------------------------------------------------

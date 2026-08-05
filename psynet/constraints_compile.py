@@ -1,8 +1,9 @@
-"""Constraints-file generation for PsyNet experiments.
+"""Constraints-file generation and freshness checks for PsyNet experiments.
 
 This module provides :func:`generate_constraints_file`, which produces a
 ``constraints.txt`` from ``requirements.txt`` using Dallinger's standalone
-constraints script via ``uv run``.
+constraints script via ``uv run``, and :func:`constraints_are_up_to_date`,
+which decides whether an existing lockfile still matches ``requirements.txt``.
 
 That script (PEP 723, dependencies only ``click`` and ``requests``) implements
 the real lock policy: resolve against the Dallinger ``dev-requirements.txt``
@@ -19,8 +20,9 @@ checkouts are used. Otherwise PsyNet's vendored copy under
 Callers
 -------
 - ``psynet.bootstrap_cli`` – ``generate-constraints`` command.
-- ``psynet.experiment_setup._generate_constraints_if_missing`` – called
-  during ``psynet setup`` to create the initial constraints file.
+- ``psynet.experiment_setup._ensure_constraints_up_to_date`` – called during
+  ``psynet setup`` to create or refresh the lockfile when missing or stale.
+- ``psynet.command_line._check_constraints`` – deploy/debug verification.
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ from __future__ import annotations
 import importlib.util
 import shutil
 import subprocess
+from hashlib import md5
 from pathlib import Path
 
 import click
@@ -35,6 +38,27 @@ import click
 _VENDORED_CONSTRAINTS_SCRIPT = (
     Path(__file__).resolve().parent / "resources" / "dallinger_constraints.py"
 )
+
+
+def constraints_are_up_to_date(
+    *,
+    requirements_path: Path | None = None,
+    constraints_path: Path | None = None,
+) -> bool:
+    """Return whether ``constraints.txt`` matches ``requirements.txt``.
+
+    A lockfile is up to date when it exists, is non-empty, and embeds the MD5
+    digest of the current ``requirements.txt`` contents (the same signal
+    ``psynet check-constraints`` uses).
+    """
+    requirements_path = requirements_path or Path("requirements.txt")
+    constraints_path = constraints_path or Path("constraints.txt")
+    if not requirements_path.is_file():
+        return False
+    if not constraints_path.is_file() or constraints_path.stat().st_size == 0:
+        return False
+    requirements_hash = md5(requirements_path.read_bytes()).hexdigest()
+    return requirements_hash in constraints_path.read_text()
 
 
 def generate_constraints_file() -> None:

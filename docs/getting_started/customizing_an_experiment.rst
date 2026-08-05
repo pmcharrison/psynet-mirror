@@ -50,9 +50,7 @@ then restart it by running ``psynet debug local`` again.
     to see what has changed in PsyNet since the experiment was written.
     You'll want to update the ``requirements.txt`` file to use the latest version of PsyNet
     (you can see the latest released version in the top-left corner of the online documentation website),
-    then run ``psynet setup`` (or ``psynet generate-constraints`` followed by
-    ``uv pip install -r requirements.txt -c constraints.txt``) to refresh constraints and your
-    local environment.
+    then run ``psynet setup`` to refresh constraints and your local environment.
 
     Once this is all done, try running ``psynet debug local`` -- you might encounter some errors on account of your version upgrade,
     but hopefully the error message will guide you towards what needs fixing.

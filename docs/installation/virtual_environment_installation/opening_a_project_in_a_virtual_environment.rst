@@ -36,15 +36,17 @@ Git and let ``psynet setup`` create the constrained environment:
 ``psynet setup`` pins PsyNet, generates ``constraints.txt``, scaffolds boilerplate,
 and synchronizes dependencies with ``uv``.
 
-For an experiment that already has ``constraints.txt`` (for example after a previous
-``psynet setup``, or a fully published experiment repo), you can recreate the
-environment with:
+For an experiment that already has ``constraints.txt`` (for example after a
+previous ``psynet setup``, or a fully published experiment repo), recreate the
+environment with the same bootstrap. Setup reuses an up-to-date lockfile and
+synchronizes packages into the new virtual environment:
 
 .. code-block:: bash
 
     uv venv --python 3.13
     source .venv/bin/activate
-    uv pip install -r requirements.txt -c constraints.txt
+    uv pip install psynet
+    psynet setup
 
 .. note::
 
