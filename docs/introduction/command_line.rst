@@ -147,17 +147,19 @@ or the directory is not a repository yet, setup still continues and prints
 gentle next-step guidance; local debug will require a repository later. In
 order it:
 
-1. Creates any missing standard experiment files (scaffold).
-2. Pins a bare ``psynet`` line in ``requirements.txt`` to
-   ``psynet[experiment]`` at the active PsyNet installation (the
+1. Scaffolds any missing standard experiment files and pins PsyNet. An
+   existing bare ``psynet`` line in ``requirements.txt`` is pinned to
+   ``psynet[experiment]`` at the active PsyNet installation *before* templates
+   are written, so a failed pin never leaves a half-written scaffold; a
+   ``requirements.txt`` created by the scaffold is pinned afterwards. (The
    ``[experiment]`` extra is the full runtime; a "bare" requirement is just
-   the word ``psynet`` with no version, URL, or extras).
-3. Ensures ``constraints.txt`` (the locked dependency list): reuses it when it
+   the word ``psynet`` with no version, URL, or extras.)
+2. Ensures ``constraints.txt`` (the locked dependency list): reuses it when it
    is already up to date with ``requirements.txt``, otherwise regenerates it
    (same freshness rule as ``psynet check-constraints``).
-4. Installs from ``constraints.txt`` with ``uv pip sync`` and verifies with
+3. Installs from ``constraints.txt`` with ``uv pip sync`` and verifies with
    ``uv pip check``.
-5. Softly checks local PostgreSQL/Redis (and may offer to start them with
+4. Softly checks local PostgreSQL/Redis (and may offer to start them with
    Docker). Missing services do not fail setup; use
    ``psynet services ensure`` if you want a hard guarantee before debugging.
 
@@ -169,8 +171,8 @@ order it:
 
 Useful flags:
 
-* ``--no-install`` — do steps 1–3 only (write files; ensure constraints when
-  missing or stale; do not install packages).
+* ``--no-install`` — do steps 1–2 only (write files and pin; ensure
+  constraints when missing or stale; do not install packages).
 * ``--docker`` — same as ``--no-install``, then print Docker next steps
   (follow ``docker/docs``). Prefer this for Docker-mode bootstraps.
 * ``--force-shared-env`` — allow installing into the PsyNet repository's
