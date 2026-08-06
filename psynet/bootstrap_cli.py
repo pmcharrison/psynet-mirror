@@ -10,9 +10,10 @@ Dispatch strategy
 The ``main()`` function inspects ``sys.argv`` to decide which CLI to run:
 
 - If the first user-visible argument is one of the *bootstrap commands*
-  (``setup``, ``scripts``, ``services``, ``generate-constraints``) **or** a
-  version flag (``--version`` / ``-V``), the lightweight bootstrap group is
-  invoked directly without importing experiment-runtime code.
+  (``setup``, ``scripts``, ``services``, ``generate-constraints``), or the
+  entire argument list is exactly a version flag (``psynet --version`` /
+  ``psynet -V``), the lightweight bootstrap group is invoked directly without
+  importing experiment-runtime code.
 
 - Otherwise (or for bare ``psynet`` / ``psynet --help``) the full heavy CLI
   in ``psynet.command_line`` is imported and invoked.  If that import fails
@@ -46,8 +47,6 @@ _BOOTSTRAP_COMMANDS = frozenset(
         "generate-constraints",
     }
 )
-
-_VERSION_FLAGS = frozenset({"--version", "-V"})
 
 
 # ---------------------------------------------------------------------------
@@ -246,8 +245,12 @@ def _first_user_arg() -> str | None:
 
 
 def _has_version_flag() -> bool:
-    """Return True if sys.argv contains a version flag."""
-    return bool(_VERSION_FLAGS & set(sys.argv[1:]))
+    """Return True only for bare ``psynet --version`` / ``psynet -V``.
+
+    Nested uses such as ``psynet debug -V`` must reach the full CLI instead of
+    being hijacked by the bootstrap group (which has no ``debug`` command).
+    """
+    return sys.argv[1:] in (["--version"], ["-V"])
 
 
 def _load_full_psynet_cli():
@@ -261,8 +264,9 @@ def main() -> None:
     """Dispatcher: run bootstrap CLI or full experiment CLI.
 
     Bootstrap commands (``setup``, ``scripts``, ``services``,
-    ``generate-constraints``) and version flags are handled without importing
-    the experiment runtime.  Every other invocation delegates to the full
+    ``generate-constraints``) and bare version invocations (``psynet
+    --version`` / ``psynet -V``) are handled without importing the experiment
+    runtime.  Every other invocation delegates to the full
     ``psynet.command_line.psynet`` group, printing a helpful message if the
     ``[experiment]`` extra is not installed.
     """

@@ -397,6 +397,25 @@ def test_bootstrap_cli_reports_missing_experiment_extra(monkeypatch, capsys):
     assert "psynet[experiment]" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize(
+    ("argv", "expected"),
+    [
+        (["psynet", "--version"], True),
+        (["psynet", "-V"], True),
+        (["psynet", "debug", "-V"], False),
+        (["psynet", "debug", "--version"], False),
+        (["psynet", "--version", "setup"], False),
+        (["psynet", "setup", "--no-install"], False),
+    ],
+)
+def test_has_version_flag_exact_match_only(monkeypatch, argv, expected):
+    """Only bare ``psynet --version`` / ``-V`` should select the bootstrap CLI."""
+    monkeypatch.setattr("sys.argv", argv)
+    from psynet.bootstrap_cli import _has_version_flag
+
+    assert _has_version_flag() is expected
+
+
 # ---------------------------------------------------------------------------
 # 6. light_utils imports without dallinger
 # ---------------------------------------------------------------------------
