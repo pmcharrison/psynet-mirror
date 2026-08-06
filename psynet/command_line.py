@@ -45,19 +45,15 @@ from psynet.version import (
 )
 
 from . import deployment_info
+from .bootstrap_commands import register_bootstrap_commands
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
-    PRUNE_COMMAND_HELP,
-    PRUNE_INCLUDE_MODIFIED_OPTION_HELP,
-    PRUNE_INCLUDE_TRACKED_OPTION_HELP,
     dockertag_contents,
     get_psynet_requirement,
     is_unambiguous_psynet_requirement,
     missing_scaffold_paths_required_for_local_run,
-    run_scripts_prune,
     scaffold_experiment_directory,
 )
-from .experiment_setup import _scaffold_experiment, setup_experiment
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
@@ -2971,153 +2967,7 @@ def generate_config(ctx):
             file.write(f"{key} = {value}\n")
 
 
-@psynet.group("scripts")
-def scripts():
-    """
-    Manage experiment boilerplate scripts and templates.
-    """
-    pass
-
-
-@psynet.group("services")
-def services():
-    """
-    Check and ensure local PostgreSQL and Redis services.
-    """
-    pass
-
-
-@services.command("check")
-def services_check():
-    """
-    Verify that local PostgreSQL and Redis are reachable.
-
-    Does not start services. Exits with an error if either is unavailable.
-    """
-    from .services import verify_local_services
-
-    verify_local_services(strict=True)
-
-
-@services.command("ensure")
-@click.option(
-    "--yes",
-    "assume_yes",
-    is_flag=True,
-    help="Start missing services with Docker without prompting.",
-)
-def services_ensure(assume_yes):
-    """
-    Ensure local PostgreSQL and Redis are reachable.
-
-    If a service is missing, offers to start Docker containers that publish
-    localhost ports 5432 and 6379 (what virtualenv ``psynet debug local``
-    expects). Exits with an error if services remain unavailable.
-    """
-    from .services import ensure_local_services
-
-    ensure_local_services(assume_yes=assume_yes, strict=True)
-
-
-@scripts.command("scaffold")
-@click.option(
-    "--skip-constraints",
-    is_flag=True,
-    help="Do not pin PsyNet or generate constraints.txt.",
-)
-@click.pass_context
-def scripts_scaffold(ctx, skip_constraints):
-    """
-    Create any missing PsyNet boilerplate files for the experiment directory.
-
-    If ``experiment.py`` or ``requirements.txt`` are missing, starter versions are
-    created as well. For standalone experiments, also pins a bare ``psynet``
-    requirement and generates ``constraints.txt`` unless ``--skip-constraints``
-    is set (or the directory is a PsyNet bundled demo/test experiment).
-    """
-    _scaffold_experiment(ctx, skip_constraints=skip_constraints)
-
-
-@psynet.command("setup")
-@click.option(
-    "--psynet-source",
-    type=click.Choice(["editable", "commit", "existing"]),
-    default=None,
-    help="How to represent an active editable PsyNet installation.",
-)
-@click.option(
-    "--no-install",
-    is_flag=True,
-    help="Scaffold and generate constraints without installing packages.",
-)
-@click.option(
-    "--docker",
-    is_flag=True,
-    help=(
-        "Prepare files for Docker mode (same as --no-install, with Docker "
-        "next-step guidance)."
-    ),
-)
-@click.option(
-    "--force-shared-env",
-    is_flag=True,
-    help="Allow synchronizing PsyNet's shared checkout virtual environment.",
-)
-@click.option(
-    "--force-foreign-env",
-    is_flag=True,
-    help=(
-        "Allow synchronizing a virtual environment that is not this "
-        "experiment's ./.venv."
-    ),
-)
-@click.pass_context
-def setup(ctx, psynet_source, no_install, docker, force_shared_env, force_foreign_env):
-    """Scaffold and synchronize an experiment's dedicated virtual environment."""
-    if docker:
-        if force_shared_env:
-            raise click.UsageError(
-                "--docker and --force-shared-env cannot be used together."
-            )
-        no_install = True
-    setup_experiment(
-        ctx,
-        psynet_source=psynet_source,
-        no_install=no_install,
-        force_shared_env=force_shared_env,
-        force_foreign_env=force_foreign_env,
-        docker=docker,
-    )
-
-
-@scripts.command("update")
-@require_exp_directory
-def scripts_update():
-    """
-    Overwrite experiment boilerplate with the latest PsyNet templates.
-
-    Existing ``config.txt`` and ``README.md`` files are preserved.
-    """
-    scaffold_experiment_directory(overwrite=True)
-
-
-@scripts.command("prune", help=PRUNE_COMMAND_HELP)
-@click.option(
-    "--include-modified",
-    is_flag=True,
-    help=PRUNE_INCLUDE_MODIFIED_OPTION_HELP,
-)
-@click.option(
-    "--include-tracked",
-    is_flag=True,
-    help=PRUNE_INCLUDE_TRACKED_OPTION_HELP,
-)
-@require_exp_directory
-def scripts_prune(include_modified, include_tracked):
-    """Remove scaffold-managed boilerplate files from the experiment directory."""
-    run_scripts_prune(
-        include_modified=include_modified, include_tracked=include_tracked
-    )
+register_bootstrap_commands(psynet)
 
 
 @psynet.command("update-scripts")

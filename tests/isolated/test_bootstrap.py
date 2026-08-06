@@ -382,6 +382,28 @@ def test_bootstrap_cli_setup_does_not_import_command_line(tmp_path, monkeypatch)
     assert setup_called[0]["no_install"] is True
 
 
+def test_bootstrap_and_full_cli_share_setup_scripts_services_commands():
+    """setup/scripts/services must be one shared definition on both CLIs."""
+    from click.testing import CliRunner
+
+    from psynet.bootstrap_cli import _bootstrap
+    from psynet.bootstrap_commands import scripts, services, setup
+    from psynet.command_line import psynet
+
+    assert _bootstrap.commands["setup"] is setup
+    assert psynet.commands["setup"] is setup
+    assert _bootstrap.commands["scripts"] is scripts
+    assert psynet.commands["scripts"] is scripts
+    assert _bootstrap.commands["services"] is services
+    assert psynet.commands["services"] is services
+
+    for cli in (_bootstrap, psynet):
+        result = CliRunner().invoke(cli, ["setup", "--help"])
+        assert result.exit_code == 0, result.output
+        assert "--force-foreign-env" in result.output
+        assert "--force-shared-env" in result.output
+
+
 def test_bootstrap_cli_reports_missing_experiment_extra(monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["psynet", "debug", "local"])
     monkeypatch.setattr(
