@@ -41,9 +41,23 @@ SCAFFOLD_MANAGED_PATHS = {
 PRUNABLE_RESOURCE_PATHS = {Path("templates/.keep")}
 
 
+def _tracked_experiment_dirs(tracked_paths):
+    """Return relative experiment dirs from tracked ``experiment.py`` paths.
+
+    Prefer git-tracked paths over filesystem globs so leftover virtualenvs under
+    a demo (which contain packaged ``experiment.py`` files) are ignored.
+    """
+    return sorted(
+        {
+            Path(path).parent
+            for path in tracked_paths
+            if Path(path).name == "experiment.py"
+        }
+    )
+
+
 def test_demo_sources_contain_only_authored_experiment_files():
     psynet_root = get_psynet_root()
-    demos_root = psynet_root / "demos"
     managed_paths = scaffold_managed_paths() - {"README.md"}
     tracked_paths = set(
         subprocess.check_output(
@@ -53,9 +67,8 @@ def test_demo_sources_contain_only_authored_experiment_files():
         ).splitlines()
     )
 
-    for experiment_file in demos_root.rglob("experiment.py"):
-        demo = experiment_file.parent
-        relative_demo = demo.relative_to(psynet_root)
+    for relative_demo in _tracked_experiment_dirs(tracked_paths):
+        demo = psynet_root / relative_demo
         assert (relative_demo / "constraints.txt").as_posix() not in tracked_paths
         assert (demo / "requirements.txt").read_text().splitlines()[0] == "psynet"
         for relative_path in managed_paths:
@@ -63,6 +76,18 @@ def test_demo_sources_contain_only_authored_experiment_files():
             assert tracked_path not in tracked_paths, (
                 f"{demo} tracks scaffold-managed path {relative_path}"
             )
+
+
+def test_tracked_experiment_dirs_ignore_untracked_venv_paths():
+    tracked = {
+        "demos/experiments/timeline/experiment.py",
+        "demos/experiments/timeline/requirements.txt",
+    }
+    assert _tracked_experiment_dirs(tracked) == [Path("demos/experiments/timeline")]
+    # A filesystem-only venv path is never in git ls-files output.
+    assert Path("demos/experiments/timeline/.venv/lib/dallinger") not in [
+        Path(p).parent for p in tracked if Path(p).name == "experiment.py"
+    ]
 
 
 TEST_EXPERIMENT_TREE_PREFIXES = (
@@ -147,29 +172,20 @@ def test_test_experiment_sources_contain_only_authored_files():
         ).splitlines()
     )
 
-    for prefix in TEST_EXPERIMENT_TREE_PREFIXES:
-        root = psynet_root / prefix
-        if not root.exists():
-            continue
-        for experiment_file in root.rglob("experiment.py"):
-            experiment = experiment_file.parent
-            relative_experiment = experiment.relative_to(psynet_root)
-            assert (
-                relative_experiment / "constraints.txt"
-            ).as_posix() not in tracked_paths
-            assert (experiment / "requirements.txt").read_text().splitlines()[
-                0
-            ] == "psynet"
-            for relative_path in managed_paths:
-                tracked_path = (relative_experiment / relative_path).as_posix()
-                if (
-                    relative_path == "config.txt"
-                    and tracked_path in TEST_EXPERIMENT_CUSTOM_CONFIGS
-                ):
-                    continue
-                assert tracked_path not in tracked_paths, (
-                    f"{experiment} tracks scaffold-managed path {relative_path}"
-                )
+    for relative_experiment in _tracked_experiment_dirs(tracked_paths):
+        experiment = psynet_root / relative_experiment
+        assert (relative_experiment / "constraints.txt").as_posix() not in tracked_paths
+        assert (experiment / "requirements.txt").read_text().splitlines()[0] == "psynet"
+        for relative_path in managed_paths:
+            tracked_path = (relative_experiment / relative_path).as_posix()
+            if (
+                relative_path == "config.txt"
+                and tracked_path in TEST_EXPERIMENT_CUSTOM_CONFIGS
+            ):
+                continue
+            assert tracked_path not in tracked_paths, (
+                f"{experiment} tracks scaffold-managed path {relative_path}"
+            )
 
     for config_path in TEST_EXPERIMENT_CUSTOM_CONFIGS:
         assert config_path in tracked_paths, f"missing custom config {config_path}"
