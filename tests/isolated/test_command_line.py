@@ -1105,6 +1105,10 @@ def _mock_dedicated_experiment_venv(monkeypatch):
         lambda: False,
     )
     monkeypatch.setattr(
+        "psynet.experiment_setup._is_experiment_local_virtualenv",
+        lambda: True,
+    )
+    monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
     monkeypatch.setattr(
@@ -1527,6 +1531,145 @@ def test_setup_shared_env_force_syncs_with_warning(tmp_path, monkeypatch):
         ["pip", "sync", "constraints.txt", "--strict"],
         ["pip", "check"],
     ]
+
+
+def test_setup_foreign_env_noninteractive_scaffolds_then_refuses_sync(
+    tmp_path, monkeypatch
+):
+    foreign = tmp_path / "other-project" / ".venv"
+    foreign.mkdir(parents=True)
+    experiment = tmp_path / "experiment"
+    experiment.mkdir()
+
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    _assume_git_repository(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: False,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: False)
+    monkeypatch.setenv("VIRTUAL_ENV", str(foreign))
+    monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(foreign))
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args, **kwargs: pytest.fail("foreign env must not sync"),
+    )
+
+    with working_directory(experiment):
+        result = CliRunner().invoke(psynet, ["setup"])
+
+    assert result.exit_code != 0
+    assert "--force-foreign-env" in result.output
+    assert "not this experiment's ./.venv" in result.output
+    assert (experiment / "Dockerfile").exists()
+    assert (experiment / "requirements.txt").exists()
+
+
+def test_setup_foreign_env_force_flag_syncs_with_warning(tmp_path, monkeypatch):
+    calls = []
+    foreign = tmp_path / "other-project" / ".venv"
+    foreign.mkdir(parents=True)
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    _assume_git_repository(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: False,
+    )
+    monkeypatch.setenv("VIRTUAL_ENV", str(foreign))
+    monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(foreign))
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda args, description: calls.append(args),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup", "--force-foreign-env"])
+
+    assert result.exit_code == 0, result.output
+    assert "not this experiment's ./.venv" in result.output
+    assert calls == [
+        ["pip", "sync", "constraints.txt", "--strict"],
+        ["pip", "check"],
+    ]
+
+
+def test_setup_foreign_env_interactive_decline_cancels_after_scaffold(
+    tmp_path, monkeypatch
+):
+    foreign = tmp_path / "other-project" / ".venv"
+    foreign.mkdir(parents=True)
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    _assume_git_repository(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services",
+        lambda **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv",
+        lambda: False,
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setenv("VIRTUAL_ENV", str(foreign))
+    monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(foreign))
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args, **kwargs: pytest.fail("decline must not sync"),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="n\n")
+
+    assert result.exit_code == 0, result.output
+    assert "Cancelled setup" in result.output
+    assert (tmp_path / "Dockerfile").exists()
+
+
+def test_is_experiment_local_virtualenv_matches_cwd_venv(tmp_path, monkeypatch):
+    from psynet.experiment_setup import _is_experiment_local_virtualenv
+
+    local = tmp_path / ".venv"
+    local.mkdir()
+    monkeypatch.setenv("VIRTUAL_ENV", str(local))
+    with working_directory(tmp_path):
+        assert _is_experiment_local_virtualenv()
+
+    foreign = tmp_path / "other" / ".venv"
+    foreign.mkdir(parents=True)
+    monkeypatch.setenv("VIRTUAL_ENV", str(foreign))
+    with working_directory(tmp_path):
+        assert not _is_experiment_local_virtualenv()
 
 
 def test_setup_shared_env_interactive_cancel_makes_no_changes(tmp_path, monkeypatch):

@@ -3035,8 +3035,16 @@ def scripts_scaffold(ctx, skip_constraints):
     is_flag=True,
     help="Allow synchronizing PsyNet's shared checkout virtual environment.",
 )
+@click.option(
+    "--force-foreign-env",
+    is_flag=True,
+    help=(
+        "Allow synchronizing a virtual environment that is not this "
+        "experiment's ./.venv."
+    ),
+)
 @click.pass_context
-def setup(ctx, psynet_source, no_install, docker, force_shared_env):
+def setup(ctx, psynet_source, no_install, docker, force_shared_env, force_foreign_env):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
     if docker:
         if force_shared_env:
@@ -3049,6 +3057,7 @@ def setup(ctx, psynet_source, no_install, docker, force_shared_env):
         psynet_source=psynet_source,
         no_install=no_install,
         force_shared_env=force_shared_env,
+        force_foreign_env=force_foreign_env,
         docker=docker,
     )
 

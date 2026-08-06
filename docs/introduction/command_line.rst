@@ -176,6 +176,9 @@ Useful flags:
 * ``--force-shared-env`` — allow installing into the PsyNet repository's
   development ``.venv`` (rarely what you want; can remove packages other
   PsyNet work depends on).
+* ``--force-foreign-env`` — allow installing into a virtual environment that
+  is not this experiment's ``./.venv`` (for example another project's
+  environment). Prefer creating and activating ``./.venv`` instead.
 
 If PsyNet is installed editable, setup asks how to record it in
 ``requirements.txt``: keep the editable checkout, pin a specific pushed Git
@@ -187,6 +190,11 @@ If the active virtual environment is the PsyNet repository's development
 ``.venv``, setup refuses to install packages by default. Interactively it
 offers a numeric menu: create a dedicated ``.venv`` here (recommended),
 cancel, write files only, or install into the repository ``.venv`` anyway.
+
+If the active environment is some other foreign virtualenv (not this
+experiment's ``./.venv``), setup still scaffolds and writes constraints, but
+refuses to ``uv pip sync`` into that environment unless you confirm
+interactively or pass ``--force-foreign-env``.
 
 **Inside bundled demos / test experiments**, ``psynet setup`` always performs
 only lightweight file preparation and never installs packages or rewrites

@@ -147,6 +147,82 @@ def _ensure_active_virtualenv():
         )
 
 
+def _active_virtualenv_root():
+    """Return the resolved root of the active virtual environment."""
+    virtual_env = os.environ.get("VIRTUAL_ENV")
+    if virtual_env:
+        return Path(virtual_env).resolve()
+    return Path(sys.prefix).resolve()
+
+
+def _experiment_local_virtualenv_path():
+    """Return the expected dedicated virtualenv path for this experiment."""
+    return (Path.cwd() / ".venv").resolve()
+
+
+def _is_experiment_local_virtualenv():
+    """Return whether the active interpreter is this experiment's ``./.venv``."""
+    active = _active_virtualenv_root()
+    expected = _experiment_local_virtualenv_path()
+    return active == expected or active.is_relative_to(expected)
+
+
+def _warn_foreign_virtualenv_sync(active, expected):
+    """Emit a stern warning before syncing a non-experiment virtualenv."""
+    click.echo(
+        "Warning: synchronizing will run 'uv pip sync --strict' against "
+        f"{active}, which is not this experiment's ./.venv ({expected}). "
+        "That can remove or replace packages in the active environment.",
+        err=True,
+    )
+
+
+def _resolve_foreign_virtualenv_action(*, force_foreign_env):
+    """Decide whether package sync may target a non-experiment virtualenv.
+
+    Returns ``"sync"`` or ``"cancel"``. PsyNet's shared checkout ``.venv`` is
+    handled earlier by ``_resolve_shared_checkout_venv_action``; this guard
+    covers other foreign environments (for example another project's
+    ``.venv``). Scaffolding is intentionally allowed before this check so an
+    empty experiment directory can still receive boilerplate.
+    """
+    if _is_psynet_checkout_virtualenv() or _is_experiment_local_virtualenv():
+        return "sync"
+
+    active = _active_virtualenv_root()
+    expected = _experiment_local_virtualenv_path()
+    if force_foreign_env:
+        _warn_foreign_virtualenv_sync(active, expected)
+        return "sync"
+
+    summary = (
+        "The active virtual environment is not this experiment's ./.venv "
+        f"(active: {active}; expected: {expected}). Syncing would install "
+        "packages into that environment."
+    )
+    if not _is_interactive():
+        raise click.UsageError(
+            f"{summary} Create a dedicated environment with "
+            f"'uv venv --python={_recommended_python()}', activate it with "
+            "'source .venv/bin/activate', install PsyNet, and re-run setup; "
+            "or use --force-foreign-env to sync anyway."
+        )
+
+    click.echo(summary)
+    if not click.confirm(
+        "Continue syncing into the active environment?",
+        default=False,
+    ):
+        click.echo(
+            "Cancelled setup; experiment files may have been prepared, but no "
+            "packages were installed."
+        )
+        return "cancel"
+
+    _warn_foreign_virtualenv_sync(active, expected)
+    return "sync"
+
+
 def _psynet_command_env_mismatch_error():
     """Return an error if the shell venv and running PsyNet disagree.
 
@@ -541,7 +617,15 @@ def _handle_setup_services(*, mode):
     raise ValueError(f"Unknown setup services mode: {mode}")
 
 
-def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker=False):
+def setup_experiment(
+    ctx,
+    *,
+    psynet_source,
+    no_install,
+    force_shared_env,
+    force_foreign_env=False,
+    docker=False,
+):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
     if is_in_repo_experiment():
         _scaffold_experiment(ctx, skip_constraints=True)
@@ -590,6 +674,12 @@ def setup_experiment(ctx, *, psynet_source, no_install, force_shared_env, docker
 
     if action == "no-install":
         _echo_no_install_success(docker=docker)
+        return
+
+    if (
+        _resolve_foreign_virtualenv_action(force_foreign_env=force_foreign_env)
+        == "cancel"
+    ):
         return
 
     _run_uv(
