@@ -200,23 +200,19 @@ def test_generate_constraints_invokes_uv_run_dallinger_script(tmp_path, monkeypa
     assert (tmp_path / "constraints.txt").read_text() == "# locked\n"
 
 
-def test_dallinger_constraints_script_prefers_editable_checkout(
+def test_dallinger_constraints_script_prefers_installed_package(
     monkeypatch, tmp_path, capsys
 ):
-    """An editable Dallinger checkout supplies its local constraints script."""
+    """An installed Dallinger package supplies its local constraints script."""
     installed = tmp_path / "installed_constraints.py"
     installed.write_text("# installed\n")
-
-    class Dist:
-        def read_text(self, name):
-            return '{"dir_info": {"editable": true}}'
 
     class Spec:
         origin = str(installed)
 
     monkeypatch.setattr(
         "psynet.constraints_compile.distribution",
-        lambda name: Dist(),
+        lambda name: object(),
     )
     monkeypatch.setattr(
         "psynet.constraints_compile.importlib.util.find_spec",
@@ -225,27 +221,30 @@ def test_dallinger_constraints_script_prefers_editable_checkout(
     from psynet.constraints_compile import _dallinger_constraints_script
 
     assert _dallinger_constraints_script() == str(installed)
-    assert "editable Dallinger checkout" in capsys.readouterr().out
+    assert "installed Dallinger" in capsys.readouterr().out
 
 
-def test_dallinger_constraints_script_uses_github_otherwise(monkeypatch, capsys):
-    """A thin or non-editable installation uses Dallinger's GitHub script."""
+def test_dallinger_constraints_script_uses_pinned_github_when_missing(
+    monkeypatch, capsys
+):
+    """Thin bootstrap (no Dallinger) uses a pinned GitHub release, not master."""
+    from importlib.metadata import PackageNotFoundError
 
-    class Dist:
-        def read_text(self, name):
-            return '{"dir_info": {"editable": false}}'
+    def missing(_name):
+        raise PackageNotFoundError("dallinger")
 
-    monkeypatch.setattr(
-        "psynet.constraints_compile.distribution",
-        lambda name: Dist(),
-    )
+    monkeypatch.setattr("psynet.constraints_compile.distribution", missing)
     from psynet.constraints_compile import (
+        _DALLINGER_CONSTRAINTS_REF,
         _DALLINGER_CONSTRAINTS_URL,
         _dallinger_constraints_script,
     )
 
+    assert _DALLINGER_CONSTRAINTS_REF != "master"
+    assert _DALLINGER_CONSTRAINTS_REF in _DALLINGER_CONSTRAINTS_URL
+    assert "master" not in _DALLINGER_CONSTRAINTS_URL
     assert _dallinger_constraints_script() == _DALLINGER_CONSTRAINTS_URL
-    assert "from GitHub" in capsys.readouterr().out
+    assert _DALLINGER_CONSTRAINTS_REF in capsys.readouterr().out
 
 
 def test_constraints_are_up_to_date_requires_requirements_md5(tmp_path):

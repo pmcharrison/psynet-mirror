@@ -12,9 +12,10 @@ for the Dallinger version implied by the experiment requirements, using
 Dallinger package, so thin-bootstrap ``psynet setup`` can lock before
 ``uv pip sync``.
 
-An editable Dallinger checkout supplies its local ``dallinger.constraints``
-script, so PsyNet and Dallinger can be developed together. Otherwise the
-canonical script is run directly from Dallinger's GitHub repository.
+When Dallinger is installed (editable or otherwise), its local
+``dallinger.constraints`` script is used so generation matches the installed
+package. Otherwise the script is fetched from a pinned Dallinger release tag
+on GitHub (never ``master``).
 
 Callers
 -------
@@ -27,7 +28,6 @@ Callers
 from __future__ import annotations
 
 import importlib.util
-import json
 import shutil
 import subprocess
 from hashlib import md5
@@ -36,9 +36,12 @@ from pathlib import Path
 
 import click
 
+# Pinned release used when Dallinger is not installed (thin bootstrap). Keep in
+# sync with the lower end of PsyNet's supported Dallinger range in pyproject.toml.
+_DALLINGER_CONSTRAINTS_REF = "v12.2.1"
 _DALLINGER_CONSTRAINTS_URL = (
     "https://raw.githubusercontent.com/Dallinger/Dallinger/"
-    "master/dallinger/constraints.py"
+    f"{_DALLINGER_CONSTRAINTS_REF}/dallinger/constraints.py"
 )
 
 
@@ -108,36 +111,27 @@ def generate_constraints_file() -> None:
 def _dallinger_constraints_script() -> str:
     """Return and describe the Dallinger constraints script used by ``uv``.
 
-    Uses a local script only when Dallinger is installed editable. Ordinary
-    installs and thin-bootstrap environments use Dallinger's canonical GitHub
-    script.
+    Prefers the script from an installed Dallinger package so generation matches
+    that package. Thin-bootstrap environments (Dallinger not installed) use a
+    pinned GitHub release URL instead of ``master``.
     """
-    local_script = _editable_dallinger_constraints_script()
+    local_script = _installed_dallinger_constraints_script()
     if local_script is not None:
-        click.echo(
-            f"Using constraints script from editable Dallinger checkout: {local_script}"
-        )
+        click.echo(f"Using constraints script from installed Dallinger: {local_script}")
         return str(local_script)
 
     click.echo(
-        f"Using Dallinger constraints script from GitHub: {_DALLINGER_CONSTRAINTS_URL}"
+        "Using Dallinger constraints script from GitHub "
+        f"({_DALLINGER_CONSTRAINTS_REF}): {_DALLINGER_CONSTRAINTS_URL}"
     )
     return _DALLINGER_CONSTRAINTS_URL
 
 
-def _editable_dallinger_constraints_script() -> Path | None:
-    """Return ``dallinger.constraints`` only for an editable installation."""
+def _installed_dallinger_constraints_script() -> Path | None:
+    """Return ``dallinger.constraints`` when Dallinger is installed."""
     try:
-        direct_url_text = distribution("dallinger").read_text("direct_url.json")
+        distribution("dallinger")
     except PackageNotFoundError:
-        return None
-    if direct_url_text is None:
-        return None
-    try:
-        direct_url = json.loads(direct_url_text)
-    except json.JSONDecodeError:
-        return None
-    if not direct_url.get("dir_info", {}).get("editable", False):
         return None
 
     spec = importlib.util.find_spec("dallinger.constraints")
