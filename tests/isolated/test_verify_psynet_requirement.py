@@ -212,3 +212,25 @@ def test_check_psynet_requirement_is_unambiguous_name_based_with_spaces():
                 file.flush()
 
                 check_psynet_requirement_is_unambiguous()
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        "psynet[experiment] @ file:///home/frank/projects/PsyNet",
+        "-e file:///home/frank/projects/PsyNet#egg=psynet[experiment]",
+    ],
+)
+def test_check_psynet_requirement_is_unambiguous_local_path_suggests_commit_pin(
+    requirement,
+):
+    try:
+        del os.environ["SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"]
+    except KeyError:
+        pass
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("requirements.txt").write_text(f"{requirement}\n")
+            with pytest.raises(ValueError, match="psynet setup --psynet-source commit"):
+                check_psynet_requirement_is_unambiguous()

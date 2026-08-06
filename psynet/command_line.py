@@ -2166,28 +2166,52 @@ def check_psynet_requirement_is_unambiguous():
             spinner.color = "red"
             spinner.fail("✗")
 
-        branch_note = (
-            "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
-            "or a commit hash."
-        )
-
-        examples = [
-            "* psynet==10.1.1",
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
-            "* psynet@git+https://gitlab.com/alice/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
-        ]
-
         if not valid:
-            raise ValueError(
-                "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
-                + branch_note
-                + "\n\nExamples:\n"
-                + "\n".join(examples)
-                + "\nYou can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
-                "in your terminal."
+            raise ValueError(_ambiguous_psynet_requirement_message(requirement))
+
+
+def _is_local_psynet_requirement(requirement: str) -> bool:
+    """Return whether a PsyNet requirement points at a local filesystem path."""
+    compact = requirement.lower().replace(" ", "")
+    return compact.startswith("-e") or "file://" in compact
+
+
+def _ambiguous_psynet_requirement_message(requirement: str | None) -> str:
+    """Build the deploy-time error for a missing or ambiguous PsyNet pin."""
+    branch_note = (
+        "This means you can't just give a branch name, e.g. master; you have to "
+        "specify a particular version or a commit hash."
+    )
+    examples = [
+        "* psynet==10.1.1",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+        "* psynet@git+https://gitlab.com/alice/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
+    ]
+
+    parts = [
+        "When deploying an experiment, you need to specify PsyNet in an "
+        "unambiguous way. " + branch_note,
+    ]
+    if requirement:
+        parts.append(f"\n\nYour current requirements.txt entry is:\n  {requirement}")
+        if _is_local_psynet_requirement(requirement):
+            parts.append(
+                "\n\nLocal path and editable installs cannot be resolved on a "
+                "remote deploy server. If you developed against a local PsyNet "
+                "checkout, re-run:\n"
+                "  psynet setup --psynet-source commit\n"
+                "to pin a pushed Git commit before deploying."
             )
+    parts.append(
+        "\n\nExamples:\n"
+        + "\n".join(examples)
+        + "\nYou can skip this check by writing "
+        "`export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+        "in your terminal."
+    )
+    return "".join(parts)
 
 
 ##########
