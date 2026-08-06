@@ -1089,11 +1089,13 @@ def _pre_launch(
     # even when Redis is not running.
     _check_experiment_directory(mode)
 
-    if local_ and not docker:
-        from .services import ensure_local_services
+    from .services import ensure_local_services
 
-        # Fail fast with actionable guidance before redis_vars.clear() / DB work.
-        ensure_local_services(assume_yes=False, strict=True)
+    # All launch paths (local, SSH, Heroku, Docker) run ``prepare`` / Redis
+    # helpers on this machine before any remote packaging, so local Postgres
+    # and Redis are required here even when the experiment ultimately runs
+    # elsewhere.
+    ensure_local_services(assume_yes=False, strict=True)
 
     redis_vars.clear()
     deployment_info.init(

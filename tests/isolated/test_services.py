@@ -140,7 +140,8 @@ def test_leftover_volume_does_not_look_like_a_container(monkeypatch):
     assert ["docker", "run", "-d", "redis"] in commands
 
 
-def test_pre_launch_skips_service_ensure_for_docker_mode(monkeypatch):
+def test_pre_launch_ensures_services_for_docker_mode(monkeypatch):
+    """Docker launches still prepare locally, so services are required here too."""
     from psynet.command_line import _pre_launch
 
     ensure = Mock()
@@ -163,7 +164,7 @@ def test_pre_launch_skips_service_ensure_for_docker_mode(monkeypatch):
             docker=True,
         )
 
-    ensure.assert_not_called()
+    ensure.assert_called_once_with(assume_yes=False, strict=True)
 
 
 def test_pre_launch_ensures_services_for_local_venv_mode(monkeypatch):
@@ -187,6 +188,36 @@ def test_pre_launch_ensures_services_for_local_venv_mode(monkeypatch):
             archive=None,
             local_=True,
             docker=False,
+        )
+
+    ensure.assert_called_once_with(assume_yes=False, strict=True)
+
+
+def test_pre_launch_ensures_services_for_ssh_deploy(monkeypatch):
+    """SSH deploy still prepares against local Postgres/Redis."""
+    from psynet.command_line import _pre_launch
+
+    ensure = Mock()
+    monkeypatch.setattr("psynet.services.ensure_local_services", ensure)
+    monkeypatch.setattr(
+        "psynet.command_line._check_experiment_directory", lambda mode: None
+    )
+    monkeypatch.setattr(
+        "psynet.command_line.redis_vars.clear",
+        Mock(side_effect=RuntimeError("stop-after-redis")),
+    )
+
+    ctx = Mock()
+    with pytest.raises(RuntimeError, match="stop-after-redis"):
+        _pre_launch(
+            ctx,
+            mode="live",
+            archive=None,
+            local_=False,
+            ssh=True,
+            docker=True,
+            server="test-server",
+            app="test-app",
         )
 
     ensure.assert_called_once_with(assume_yes=False, strict=True)
