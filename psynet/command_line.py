@@ -1125,10 +1125,14 @@ def _pre_launch(
     # Always use the Dallinger version in requirements.txt, not the local editable one
     os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-    if docker:
-        if Path("Dockerfile").exists():
-            # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
-            os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+    if is_in_repo_experiment():
+        # In-repo demos/tests use PsyNet's shared development .venv; do not let
+        # Dallinger invent a per-demo constraints.txt from PyPI.
+        os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+    elif docker and Path("Dockerfile").exists():
+        # Tell Dallinger not to rebuild constraints.txt, because we'll manage
+        # this within the Docker image.
+        os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     experiment = get_experiment()
     experiment.update_deployment_id()

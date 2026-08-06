@@ -107,8 +107,8 @@ def test_in_experiment_directory_sets_skip_only_outside_repo(tmp_path, monkeypat
     assert not (experiment_dir / "test.py").exists()
 
 
-def test_in_experiment_directory_relies_on_in_repo_gate(tmp_path, monkeypatch):
-    """In-repo demos omit constraints without setting SKIP_DEPENDENCY_CHECK."""
+def test_in_experiment_directory_sets_skip_for_in_repo(tmp_path, monkeypatch):
+    """In-repo demos set SKIP_DEPENDENCY_CHECK so Dallinger won't invent constraints."""
     import psynet.pytest_psynet as pytest_psynet
 
     monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
@@ -127,7 +127,7 @@ def test_in_experiment_directory_relies_on_in_repo_gate(tmp_path, monkeypatch):
     generator = fixture.__wrapped__(str(experiment_dir))
     try:
         next(generator)
-        assert "SKIP_DEPENDENCY_CHECK" not in os.environ
+        assert os.environ.get("SKIP_DEPENDENCY_CHECK") == "1"
         assert (experiment_dir / "test.py").exists()
     finally:
         try:
@@ -140,6 +140,7 @@ def test_in_experiment_directory_relies_on_in_repo_gate(tmp_path, monkeypatch):
     # Teardown restores the authored-only tree.
     assert not (experiment_dir / "test.py").exists()
     assert not (experiment_dir / "Dockerfile").exists()
+    assert "SKIP_DEPENDENCY_CHECK" not in os.environ
 
 
 def test_scaffold_missing_files_restores_preexisting_tree(tmp_path):

@@ -368,12 +368,12 @@ def in_experiment_directory(experiment_directory):
     with working_directory(experiment_directory):
         try:
             with scaffold_missing_files():
-                # In-repo experiments skip dependency checks at runtime via
-                # ``Experiment.check_python_dependencies`` / ``is_in_repo_experiment``.
-                # Only temp / standalone experiment dirs still need the env override
-                # when constraints are absent.
+                # In-repo demos/tests use PsyNet's shared development .venv, so
+                # skip Dallinger's constraints regeneration. Standalone temp
+                # experiment dirs still need the env override when constraints
+                # are absent.
                 original_skip_dependency_check = os.getenv("SKIP_DEPENDENCY_CHECK")
-                if not Path("constraints.txt").exists() and not is_in_repo_experiment():
+                if is_in_repo_experiment() or not Path("constraints.txt").exists():
                     os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
                 try:
                     yield experiment_directory

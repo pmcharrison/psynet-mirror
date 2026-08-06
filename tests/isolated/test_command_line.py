@@ -2913,6 +2913,46 @@ def test_pre_launch_aborts_when_app_exists():
     mock_run_pre_checks.assert_not_called()
 
 
+def test_pre_launch_skips_dependency_check_for_in_repo_experiments(
+    tmp_path, monkeypatch
+):
+    """In-repo demos must not let Dallinger invent constraints.txt."""
+    import os
+
+    from psynet.command_line import _pre_launch
+
+    monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
+    monkeypatch.setattr(
+        "psynet.command_line._check_experiment_directory", lambda mode: None
+    )
+    monkeypatch.setattr("psynet.services.ensure_local_services", lambda **kwargs: None)
+    monkeypatch.setattr("psynet.command_line.redis_vars.clear", lambda: None)
+    monkeypatch.setattr(
+        "psynet.command_line.deployment_info.init", lambda **kwargs: None
+    )
+    monkeypatch.setattr(
+        "psynet.command_line.run_pre_checks", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_experiment",
+        Mock(side_effect=RuntimeError("stop-after-skip")),
+    )
+
+    with working_directory(tmp_path):
+        with pytest.raises(RuntimeError, match="stop-after-skip"):
+            _pre_launch(
+                Mock(),
+                mode="debug",
+                archive=None,
+                local_=True,
+                docker=False,
+            )
+
+    assert os.environ.get("SKIP_DEPENDENCY_CHECK") == "1"
+    os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+
+
 def test_pre_launch_checks_directory_before_redis():
     """Directory guidance must run before Redis I/O when Redis is unavailable."""
     from psynet.command_line import _pre_launch
