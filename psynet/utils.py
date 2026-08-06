@@ -1176,21 +1176,26 @@ def _excluded_from_ci_experiment_dirs(dir_path: str) -> bool:
 
 
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
-    """List in-repo experiment directories under :data:`_IN_REPO_EXPERIMENT_ROOTS`."""
-    psynet_root = get_psynet_root()
+    """List in-repo experiment directories under :data:`_IN_REPO_EXPERIMENT_ROOTS`.
 
-    dirs = sorted(
-        [
-            dir_
-            for relative in _IN_REPO_EXPERIMENT_ROOTS
-            for dir_, sub_dirs, files in os.walk(psynet_root / relative)
-            if (
-                "experiment.py" in files
-                and not dir_.endswith("/develop")
-                and (not for_ci_tests or not _excluded_from_ci_experiment_dirs(dir_))
-            )
-        ]
-    )
+    Skips hidden directories while walking so leftover virtualenvs under a demo
+    (e.g. ``.venv``) are not mistaken for experiments when they contain an
+    ``experiment.py`` inside ``site-packages``.
+    """
+    psynet_root = get_psynet_root()
+    dirs = []
+    for relative in _IN_REPO_EXPERIMENT_ROOTS:
+        for dir_, sub_dirs, files in os.walk(psynet_root / relative):
+            # Prune in place so os.walk does not descend into .venv, .git, etc.
+            sub_dirs[:] = [name for name in sub_dirs if not name.startswith(".")]
+            if "experiment.py" not in files:
+                continue
+            if dir_.endswith("/develop"):
+                continue
+            if for_ci_tests and _excluded_from_ci_experiment_dirs(dir_):
+                continue
+            dirs.append(dir_)
+    dirs = sorted(dirs)
 
     if ci_node_total is not None and ci_node_index is not None:
         dirs = with_parallel_ci(dirs, ci_node_total, ci_node_index)

@@ -269,6 +269,33 @@ def test_demo_dirs():
     )
 
 
+def test_list_experiment_dirs_skips_hidden_venv_trees(tmp_path, monkeypatch):
+    """Leftover .venv trees must not be treated as experiment directories."""
+    demos = tmp_path / "demos" / "experiments"
+    real_demo = demos / "timeline"
+    real_demo.mkdir(parents=True)
+    (real_demo / "experiment.py").write_text("class Exp: pass\n")
+
+    venv_experiment = (
+        real_demo
+        / ".venv-psynet-3.13"
+        / "lib"
+        / "python3.13"
+        / "site-packages"
+        / "dallinger"
+    )
+    venv_experiment.mkdir(parents=True)
+    (venv_experiment / "experiment.py").write_text("# packaged dallinger\n")
+
+    monkeypatch.setattr("psynet.utils.get_psynet_root", lambda: tmp_path)
+    monkeypatch.setattr("psynet.utils._IN_REPO_EXPERIMENT_ROOTS", ("demos",))
+
+    dirs = list_experiment_dirs()
+    assert str(real_demo) in dirs
+    assert str(venv_experiment) not in dirs
+    assert all("/.venv" not in path for path in dirs)
+
+
 def test_isolated_tests():
     psynet_root = get_psynet_root()
     tests = list_isolated_tests()
