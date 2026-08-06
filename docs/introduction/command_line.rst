@@ -214,10 +214,10 @@ Virtualenv ``psynet debug local`` expects PostgreSQL and Redis on localhost
 
 ``check`` only verifies connectivity and exits with an error if either service
 is down. ``ensure`` does the same check, then offers to start Docker containers
-that publish those host ports (``--yes`` skips the prompt). Local
-``psynet debug`` / ``psynet deploy`` call ``ensure`` automatically in
-virtualenv mode; Docker mode skips that step because services are managed by
-the Docker workflow instead.
+that publish those host ports (``--yes`` skips the prompt). In virtualenv mode,
+``psynet debug local``, ``psynet deploy local``, and ``psynet test local`` call
+``ensure`` automatically. Docker mode skips that step because services are
+managed by the Docker workflow instead.
 
 
 .. _scripts:

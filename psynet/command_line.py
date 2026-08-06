@@ -3362,6 +3362,12 @@ def test__local(
     if not existing:
         _check_experiment_directory("test")
 
+    # Same local Postgres/Redis requirement as ``psynet debug local`` /
+    # ``psynet deploy local`` (virtualenv mode).
+    from .services import ensure_local_services
+
+    ensure_local_services(assume_yes=False, strict=True)
+
     from psynet.experiment import get_experiment
 
     exp = get_experiment()

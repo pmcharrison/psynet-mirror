@@ -190,3 +190,24 @@ def test_pre_launch_ensures_services_for_local_venv_mode(monkeypatch):
         )
 
     ensure.assert_called_once_with(assume_yes=False, strict=True)
+
+
+def test_test_local_ensures_services(monkeypatch):
+    """``psynet test local`` must ensure Postgres/Redis like local debug/deploy."""
+    from psynet.command_line import test__local
+
+    ensure = Mock()
+    experiment = Mock()
+    monkeypatch.setattr("psynet.services.ensure_local_services", ensure)
+    monkeypatch.setattr(
+        "psynet.command_line._check_experiment_directory", lambda mode: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_experiment",
+        lambda: experiment,
+    )
+    monkeypatch.setattr("pytest.main", lambda args: 0)
+
+    result = CliRunner().invoke(test__local, [])
+    assert result.exit_code == 0, result.output
+    ensure.assert_called_once_with(assume_yes=False, strict=True)
