@@ -141,7 +141,9 @@ def test_commit_psynet_requirement_requires_pushed_commit(tmp_path, monkeypatch)
         commit_psynet_requirement(source)
 
 
-def test_remote_contains_commit_falls_back_to_ls_remote(tmp_path, monkeypatch):
+def test_remote_contains_commit_falls_back_to_remote_advertisement(
+    tmp_path, monkeypatch
+):
     from psynet.experiment_scaffold import _remote_contains_commit
 
     source = tmp_path / "psynet"
@@ -159,35 +161,69 @@ def test_remote_contains_commit_falls_back_to_ls_remote(tmp_path, monkeypatch):
     assert _remote_contains_commit(source, commit) is True
 
 
-def test_remote_advertises_commit_uses_fetch_dry_run(tmp_path, monkeypatch):
+def _git_repo_with_remote(tmp_path: Path) -> tuple[Path, Path]:
+    """Create a bare remote and a clone configured for empty commits."""
+    remote = tmp_path / "remote.git"
+    work = tmp_path / "work"
+    subprocess.check_call(["git", "init", "--bare", str(remote)])
+    subprocess.check_call(["git", "clone", str(remote), str(work)])
+    subprocess.check_call(["git", "-C", str(work), "config", "user.email", "a@b.c"])
+    subprocess.check_call(["git", "-C", str(work), "config", "user.name", "Test"])
+    return remote, work
+
+
+def _empty_commit(work: Path, message: str) -> str:
+    subprocess.check_call(
+        ["git", "-C", str(work), "commit", "--allow-empty", "-m", message]
+    )
+    return subprocess.check_output(
+        ["git", "-C", str(work), "rev-parse", "HEAD"],
+        text=True,
+    ).strip()
+
+
+def test_remote_advertises_commit_rejects_unpushed_local_sha(tmp_path):
+    """Local-only SHAs must not satisfy the remote availability check."""
     from psynet.experiment_scaffold import _remote_advertises_commit
 
-    source = tmp_path / "psynet"
-    source.mkdir()
-    commit = "ab" * 20
-    calls = []
+    _remote, work = _git_repo_with_remote(tmp_path)
+    pushed = _empty_commit(work, "pushed")
+    subprocess.check_call(["git", "-C", str(work), "push", "origin", "HEAD:master"])
+    unpushed = _empty_commit(work, "local only")
 
-    def _fake_check_call(args, **kwargs):
-        calls.append(args)
-        assert args[:5] == ["git", "-C", str(source), "fetch", "--dry-run"]
-        assert args[5:] == ["origin", commit]
+    # The old ``git fetch --dry-run origin <sha>`` check returned success here.
+    dry_run = subprocess.run(
+        ["git", "-C", str(work), "fetch", "--dry-run", "origin", unpushed],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert dry_run.returncode == 0
 
-    monkeypatch.setattr(
-        "psynet.experiment_scaffold.subprocess.check_call",
-        _fake_check_call,
+    assert _remote_advertises_commit(work, unpushed) is False
+    assert _remote_advertises_commit(work, pushed) is True
+
+
+def test_remote_advertises_commit_without_remote_tracking_refs(tmp_path):
+    """CI-style checkouts without origin/<branch> still detect pushed commits."""
+    from psynet.experiment_scaffold import (
+        _remote_advertises_commit,
+        _remote_tracking_refs_contain_commit,
     )
 
-    assert _remote_advertises_commit(source, commit) is True
-    assert calls
-
-    def _fake_fail(args, **kwargs):
-        raise subprocess.CalledProcessError(128, args)
-
-    monkeypatch.setattr(
-        "psynet.experiment_scaffold.subprocess.check_call",
-        _fake_fail,
+    _remote, work = _git_repo_with_remote(tmp_path)
+    older = _empty_commit(work, "older")
+    subprocess.check_call(["git", "-C", str(work), "push", "origin", "HEAD:master"])
+    tip = _empty_commit(work, "tip")
+    subprocess.check_call(["git", "-C", str(work), "push", "origin", "HEAD:master"])
+    subprocess.check_call(
+        ["git", "-C", str(work), "update-ref", "-d", "refs/remotes/origin/master"]
     )
-    assert _remote_advertises_commit(source, commit) is False
+
+    assert _remote_tracking_refs_contain_commit(work, tip) is False
+    assert _remote_tracking_refs_contain_commit(work, older) is False
+    assert _remote_advertises_commit(work, tip) is True
+    assert _remote_advertises_commit(work, older) is True
 
 
 def test_commit_psynet_requirement_requires_origin_remote(tmp_path, monkeypatch):

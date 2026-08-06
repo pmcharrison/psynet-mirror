@@ -239,27 +239,71 @@ def _remote_advertises_commit(
 ) -> bool:
     """Return whether ``remote`` can serve ``commit``.
 
-    Uses ``git fetch --dry-run`` so CI merge-request checkouts still work when
-    they lack ``origin/<branch>`` remote-tracking refs for ``git branch -r
-    --contains``. Looking up the SHA with ``git ls-remote <remote> <sha>`` is
-    not reliable on GitLab.
+    Lists advertised refs with ``git ls-remote`` and checks whether ``commit``
+    equals an advertised tip or is an ancestor of one whose object exists
+    locally. Avoids ``git fetch --dry-run``, which exits successfully for any
+    SHA already in the local object store even when the remote does not have
+    it.
+
+    Passing a SHA as a ``git ls-remote`` ref pattern is not reliable on GitLab
+    (SHAs are not advertised as refs), which is why this lists all refs and
+    compares locally.
     """
     try:
-        subprocess.check_call(
-            ["git", "-C", str(source), "fetch", "--dry-run", remote, commit],
-            stdout=subprocess.DEVNULL,
+        output = subprocess.check_output(
+            ["git", "-C", str(source), "ls-remote", remote],
             stderr=subprocess.DEVNULL,
+            text=True,
         )
     except (OSError, subprocess.CalledProcessError):
         return False
-    return True
+
+    advertised = [
+        line.split("\t", 1)[0].strip()
+        for line in output.splitlines()
+        if line.strip() and "\t" in line
+    ]
+    if commit in advertised:
+        return True
+
+    for tip in advertised:
+        try:
+            subprocess.check_call(
+                [
+                    "git",
+                    "-C",
+                    str(source),
+                    "cat-file",
+                    "-e",
+                    f"{tip}^{{commit}}",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            subprocess.check_call(
+                [
+                    "git",
+                    "-C",
+                    str(source),
+                    "merge-base",
+                    "--is-ancestor",
+                    commit,
+                    tip,
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            continue
+        return True
+    return False
 
 
 def _remote_contains_commit(source: Path, commit: str, remote: str = "origin") -> bool:
     """Return whether ``commit`` is available on ``remote``.
 
     Prefers local remote-tracking refs, then falls back to asking the remote
-    whether it can serve ``commit``.
+    which refs it advertises.
     """
     return _remote_tracking_refs_contain_commit(
         source, commit, remote=remote
@@ -370,8 +414,9 @@ def commit_psynet_requirement(source: Path) -> str:
         raise ValueError(
             f"Commit {commit[:12]} is not available on git remote 'origin' "
             f"({remote_url}). Push your PsyNet commits first "
-            "(`git push origin HEAD`), then retry, or use "
-            "--psynet-source editable."
+            "(`git push origin HEAD`), or fetch the remote tip "
+            "(`git fetch origin`) if this commit was already pushed from "
+            "another clone, then retry. Or use --psynet-source editable."
         )
 
     return f"psynet[experiment]@{pip_base}@{commit}#egg=psynet"
