@@ -250,6 +250,8 @@ def _remote_advertises_commit(
     compares locally.
     """
     try:
+        # Ask the remote which commits its tips currently point at
+        # (branch/tag SHAs). Output lines look like "<sha>\t<ref>".
         output = subprocess.check_output(
             ["git", "-C", str(source), "ls-remote", remote],
             stderr=subprocess.DEVNULL,
@@ -263,11 +265,17 @@ def _remote_advertises_commit(
         for line in output.splitlines()
         if line.strip() and "\t" in line
     ]
+    # Fast path: the commit is itself a remote tip (e.g. current HEAD after push).
     if commit in advertised:
         return True
 
+    # Otherwise the commit may still be on the remote as an ancestor of a tip
+    # (pinning an older pushed SHA). We can only prove that when we already
+    # have that tip's objects locally.
     for tip in advertised:
         try:
+            # Skip tips we have never fetched: cat-file -e fails if the object
+            # is missing. The ^{commit} suffix peels tags to their commit.
             subprocess.check_call(
                 [
                     "git",
@@ -280,6 +288,7 @@ def _remote_advertises_commit(
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
+            # Exit 0 iff ``commit`` is an ancestor of ``tip`` (or equal to it).
             subprocess.check_call(
                 [
                     "git",
