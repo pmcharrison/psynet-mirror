@@ -239,73 +239,102 @@ def _remote_advertises_commit(
 ) -> bool:
     """Return whether ``remote`` can serve ``commit``.
 
-    Lists advertised refs with ``git ls-remote`` and checks whether ``commit``
-    equals an advertised tip or is an ancestor of one whose object exists
-    locally. Avoids ``git fetch --dry-run``, which exits successfully for any
-    SHA already in the local object store even when the remote does not have
-    it.
+    Lists advertised heads/tags with ``git ls-remote`` and checks whether
+    ``commit`` equals an advertised tip or is an ancestor of one whose object
+    exists locally. Avoids ``git fetch --dry-run``, which exits successfully for
+    any SHA already in the local object store even when the remote does not
+    have it.
 
     Passing a SHA as a ``git ls-remote`` ref pattern is not reliable on GitLab
-    (SHAs are not advertised as refs), which is why this lists all refs and
-    compares locally.
+    (SHAs are not advertised as refs), which is why this lists refs and
+    compares locally. Ancestry against many tips is done in one ``rev-list``
+    call so unpushed commits fail quickly instead of spawning two subprocesses
+    per advertised tip.
     """
     try:
-        # Ask the remote which commits its tips currently point at
-        # (branch/tag SHAs). Output lines look like "<sha>\t<ref>".
+        # Ask the remote which commits its heads/tags currently point at.
+        # Output lines look like "<sha>\t<ref>". Limiting to heads/tags skips
+        # GitLab merge-request refs and other advertisement noise.
         output = subprocess.check_output(
-            ["git", "-C", str(source), "ls-remote", remote],
+            ["git", "-C", str(source), "ls-remote", "--heads", "--tags", remote],
             stderr=subprocess.DEVNULL,
             text=True,
         )
     except (OSError, subprocess.CalledProcessError):
         return False
 
-    advertised = [
-        line.split("\t", 1)[0].strip()
-        for line in output.splitlines()
-        if line.strip() and "\t" in line
-    ]
+    advertised = []
+    seen = set()
+    for line in output.splitlines():
+        if not line.strip() or "\t" not in line:
+            continue
+        sha = line.split("\t", 1)[0].strip()
+        if not sha or sha in seen:
+            continue
+        seen.add(sha)
+        advertised.append(sha)
+
     # Fast path: the commit is itself a remote tip (e.g. current HEAD after push).
     if commit in advertised:
         return True
 
-    # Otherwise the commit may still be on the remote as an ancestor of a tip
-    # (pinning an older pushed SHA). We can only prove that when we already
-    # have that tip's objects locally.
-    for tip in advertised:
-        try:
-            # Skip tips we have never fetched: cat-file -e fails if the object
-            # is missing. The ^{commit} suffix peels tags to their commit.
-            subprocess.check_call(
-                [
-                    "git",
-                    "-C",
-                    str(source),
-                    "cat-file",
-                    "-e",
-                    f"{tip}^{{commit}}",
-                ],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            # Exit 0 iff ``commit`` is an ancestor of ``tip`` (or equal to it).
-            subprocess.check_call(
-                [
-                    "git",
-                    "-C",
-                    str(source),
-                    "merge-base",
-                    "--is-ancestor",
-                    commit,
-                    tip,
-                ],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        except (OSError, subprocess.CalledProcessError):
-            continue
-        return True
-    return False
+    local_tips = _locally_present_commit_tips(source, advertised)
+    if not local_tips:
+        return False
+
+    # Empty rev-list means ``commit`` is reachable from at least one tip
+    # (i.e. it is an ancestor of a tip the remote advertises).
+    try:
+        reachable_only_from_commit = subprocess.check_output(
+            [
+                "git",
+                "-C",
+                str(source),
+                "rev-list",
+                "-n1",
+                commit,
+                "--not",
+                *local_tips,
+            ],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    return reachable_only_from_commit == ""
+
+
+def _locally_present_commit_tips(source: Path, tips: list[str]) -> list[str]:
+    """Return advertised tip SHAs whose commit objects exist in ``source``."""
+    if not tips:
+        return []
+
+    try:
+        # Batch existence checks: one process for all tips instead of cat-file
+        # per tip. Input lines are object names; output is "<sha> <type> <size>"
+        # or "<sha> missing".
+        completed = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(source),
+                "cat-file",
+                "--batch-check=%(objectname) %(objecttype)",
+            ],
+            input="".join(f"{tip}^{{commit}}\n" for tip in tips),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return []
+
+    present = []
+    for line in completed.stdout.splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == "commit":
+            present.append(parts[0])
+    return present
 
 
 def _remote_contains_commit(source: Path, commit: str, remote: str = "origin") -> bool:
