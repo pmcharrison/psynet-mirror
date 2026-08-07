@@ -236,11 +236,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (submitted) return;
     submitted = true;
     psynet.nextPage({
-      completed_live_canvas_browser: true,
-      client_collected_coin_ids: collectedCoinIds,
-      client_coin_bonus: bonus,
-      client_final_position: {x: own.x, y: own.y, vx: own.vx, vy: own.vy},
-      world_id: cfg.world_id
+      final_position: {x: own.x, y: own.y, vx: own.vx, vy: own.vy},
+      n_collected_coins: collectedCoinIds.length
     });
   }
 

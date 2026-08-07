@@ -16,7 +16,7 @@ from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
-from psynet.page import InfoPage
+from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
 from psynet.session import LiveSession, LiveSessionControl
 from psynet.sync import GroupBarrier, SimpleGrouper
@@ -213,14 +213,6 @@ def instruction_page():
     return InfoPage(content, time_estimate=20)
 
 
-def build_bot_answer(bot) -> dict:
-    return {
-        "completed_live_canvas_browser": True,
-        "bot_participant_id": bot.id,
-        "note": "PsyNet bot path bypasses browser websocket canvas interaction.",
-    }
-
-
 class SharedCanvasSession(LiveSession):
     """Persisted live session for one shared-canvas group."""
 
@@ -307,7 +299,10 @@ class SharedCanvasControl(LiveSessionControl):
         }
 
     def get_bot_response(self, experiment, bot, page, prompt):
-        return build_bot_answer(bot)
+        return {
+            "final_position": {"x": 0, "y": 0, "vx": 0, "vy": 0},
+            "n_collected_coins": 0,
+        }
 
 
 class SharedCanvasTrial(StaticTrial):
@@ -337,12 +332,14 @@ class SharedCanvasTrial(StaticTrial):
             GroupBarrier(
                 id_="canvas_start",
                 group_type=GROUP_TYPE,
+                waiting_logic=WaitPage(wait_time=0.5, save_answer=False),
                 max_wait_time=90,
             ),
             self.play_canvas(participant),
             GroupBarrier(
                 id_="canvas_finished",
                 group_type=GROUP_TYPE,
+                waiting_logic=WaitPage(wait_time=0.5, save_answer=False),
                 max_wait_time=90,
             ),
         )
@@ -358,7 +355,6 @@ class SharedCanvasTrial(StaticTrial):
             "shared_canvas",
             prompt,
             SharedCanvasControl(self, participant),
-            save_answer="shared_canvas_browser_answer",
             time_estimate=TRIAL_SECONDS + 5,
         )
 
@@ -517,7 +513,7 @@ class Exp(psynet.experiment.Experiment):
 
         for bot in bots:
             assert bot.current_page_label == "shared_canvas"
-            bot.take_page(response=build_bot_answer(bot))
+            bot.take_page()
 
         advance_past_wait_pages(bots)
 
@@ -526,8 +522,10 @@ class Exp(psynet.experiment.Experiment):
             assert "Navigation complete" in bot.current_page_text
             answer = bot.current_trial.answer
             assert isinstance(answer, dict)
-            assert answer["completed_live_canvas_browser"] is True
-            assert answer["bot_participant_id"] == bot.id
+            assert answer == {
+                "final_position": {"x": 0, "y": 0, "vx": 0, "vy": 0},
+                "n_collected_coins": 0,
+            }
             assert bot.current_trial.score == 0
             participant = Participant.query.get(bot.id)
             group_id = int(participant.active_sync_groups[GROUP_TYPE].id)
