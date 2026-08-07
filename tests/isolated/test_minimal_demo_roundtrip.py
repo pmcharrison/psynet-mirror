@@ -349,6 +349,35 @@ def test_scaffold_missing_files_restores_preexisting_tree(tmp_path):
     assert not (tmp_path / "static" / "assets").exists()
 
 
+def test_prune_include_modified_keeps_git_files_and_removes_generated(tmp_path):
+    demo = Path(path_to_demo_experiment("hello_world"))
+    with working_directory(demo):
+        prune_experiment_scaffold(include_modified=True)
+        scaffold_experiment_directory()
+        Path("constraints.txt").write_text("# leftover\n")
+        Path("static").mkdir(exist_ok=True)
+        assets = Path("static/assets")
+        if assets.exists() or assets.is_symlink():
+            if assets.is_dir() and not assets.is_symlink():
+                shutil.rmtree(assets)
+            else:
+                assets.unlink()
+        assets.symlink_to(tmp_path / "missing-assets")
+        assert Path("test.py").exists()
+
+        result = prune_experiment_scaffold(include_modified=True)
+
+    assert "README.md" in result["preserved_tracked"]
+    assert result["removed_assets"] is True
+    assert result["removed_constraints"] is True
+    assert not (demo / "test.py").exists()
+    assert not (demo / "Dockerfile").exists()
+    assert not (demo / "constraints.txt").exists()
+    assert not (demo / "static" / "assets").exists()
+    assert (demo / "experiment.py").exists()
+    assert (demo / "README.md").exists()
+
+
 def test_prune_include_modified_deletes_untracked_readme(tmp_path):
     experiment_dir = tmp_path / "standalone"
     experiment_dir.mkdir()
@@ -572,6 +601,59 @@ def _preserved_snapshot(root: Path) -> dict[str, str]:
 
         snapshot[relative_path.as_posix()] = _hash_file(file_path)
     return snapshot
+
+
+def test_minimal_demo_prompts_for_scaffold_before_debug(tmp_path):
+    demo_path = _copy_demo_to_tmp(
+        Path(path_to_demo_feature("api")), tmp_path, "features/api"
+    )
+    with working_directory(demo_path):
+        prune_experiment_scaffold(include_modified=True)
+
+    result = _run_command(
+        ["psynet", "debug", "local", "--legacy", "--no-browsers"], demo_path
+    )
+
+    assert result.returncode != 0
+    combined_output = result.stdout + result.stderr
+    assert "Run 'psynet setup'" in combined_output
+    assert "required PsyNet boilerplate files" in combined_output
+    assert "touch config.txt" in combined_output
+    for required_path in (
+        ".gitignore",
+        ".python-version",
+        "config.txt",
+        "Dockerfile",
+        "test.py",
+        "docker",
+    ):
+        assert required_path in combined_output
+
+
+def test_relative_imports_work_in_minimal_demo_without_init_py(tmp_path):
+    demo_path = _copy_demo_to_tmp(
+        Path(path_to_demo_feature("api")), tmp_path, "features/api"
+    )
+    with working_directory(demo_path):
+        prune_experiment_scaffold(include_modified=True)
+
+    assert not (demo_path / "__init__.py").exists()
+
+    result = _run_command(
+        [
+            "python",
+            "-c",
+            (
+                "from psynet.experiment import import_local_experiment; "
+                "exp = import_local_experiment()['class'](); "
+                "print(exp.__class__.__name__)"
+            ),
+        ],
+        demo_path,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Exp" in result.stdout
 
 
 def test_scaffolded_copy_without_git_repo_prompts_for_git_init(tmp_path):
