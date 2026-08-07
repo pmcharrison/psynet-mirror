@@ -37,12 +37,11 @@ classifiers = [
 
 # Minimal core: only what is needed to run bootstrap commands
 # (psynet setup, psynet scripts …, psynet services …, psynet generate-constraints).
-# Service probes use stdlib / pg_isready so psycopg2 and redis stay out of core;
-# they arrive via psynet[experiment] (Dallinger) when the full runtime is installed.
+# Service probes and version checks avoid psycopg2 / redis / yaspin so core stays
+# click-only; those arrive via psynet[experiment] when the full runtime is installed.
 # Experiment authors need psynet[experiment] (installed automatically by `psynet setup`).
 dependencies = [
     "click",
-    "yaspin",
 ]
 
 [project.optional-dependencies]

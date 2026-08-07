@@ -310,6 +310,21 @@ def test_dallinger_constraints_github_ref_tracks_pyproject_lower_bound():
     assert pyproject_version in declared
 
 
+def test_bootstrap_core_depends_only_on_click():
+    """Thin bootstrap package metadata must stay click-only."""
+    from pathlib import Path
+
+    import tomllib
+
+    pyproject = tomllib.loads(
+        (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert pyproject["project"]["dependencies"] == ["click"]
+    assert "yaspin" in pyproject["project"]["optional-dependencies"]["experiment"]
+
+
 def test_constraints_are_up_to_date_requires_requirements_md5(tmp_path):
     """Freshness matches check-constraints: embed requirements.txt MD5."""
     from psynet.constraints_compile import constraints_are_up_to_date
