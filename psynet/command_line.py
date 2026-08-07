@@ -3335,12 +3335,12 @@ _test_options["performance_n_bots"] = click.option(
 _test_options["performance_time_factor"] = click.option(
     "--time-factor",
     type=float,
-    default=1.0,
+    default=None,
     help="""
     Multiply the timings in time_estimate by a random amount around this factor.
     Actual multiplier will vary randomly using a lognormal distribution with an upper
     bound of 3x this factor. When equal to zero, the bot will run through the
-    experiment as fast as possible. Default: 1.0""",
+    experiment as fast as possible. If not specified, defaults to 1.0""",
 )
 
 _test_options["performance_stagger"] = click.option(
@@ -3354,11 +3354,12 @@ _test_options["performance_stagger"] = click.option(
 _test_options["duration_minutes"] = click.option(
     "--duration-minutes",
     type=float,
-    default=1.0,
+    default=None,
     help="""
-    Duration of the performance test in minutes.
-    The performance test will attempt to keep 'n-bots' running for 'duration-minutes' minutes.
-    Default: 1 minute""",
+    Total performance-test measurement window in minutes. This includes
+    first-bot initialization and ramp-up towards 'n-bots', so the test may spend
+    less than 'duration-minutes' at the target concurrency.
+    If not specified, defaults to Experiment.test_duration_minutes (1 minute)""",
 )
 
 _test_options["performance_json_output"] = click.option(
@@ -3508,11 +3509,15 @@ def _run_performance_test_with_existing_server(
         authenticated_session=exp.authenticated_session,
         base_url=exp.base_url,
         n_bots=exp.test_n_bots,
-        duration_minutes=duration_minutes or exp.test_duration_minutes,
-        stagger_interval_s=(
-            float(stagger) if stagger else exp.test_parallel_stagger_interval_s
+        duration_minutes=(
+            exp.test_duration_minutes if duration_minutes is None else duration_minutes
         ),
-        time_factor=time_factor or exp.test_time_factor,
+        stagger_interval_s=(
+            exp.test_parallel_stagger_interval_s if stagger is None else float(stagger)
+        ),
+        # Documented CLI default is 1.0 (realistic pacing). Do not fall back to
+        # Experiment.test_time_factor, which defaults to 0.0 for correctness tests.
+        time_factor=(1.0 if time_factor is None else time_factor),
     )
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
     all_results = tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
@@ -3633,7 +3638,7 @@ def _start_local_server_and_wait_for_ready(
         }
     except (pexpect.TIMEOUT, pexpect.EOF) as exc:
         recent_output = (process.before or "").splitlines()[-50:]
-        _terminate_server_process(process)
+        stop_local_debug_process(process)
 
         if isinstance(exc, pexpect.EOF):
             failure_message = "Server process exited before becoming ready"
@@ -3670,7 +3675,8 @@ def _terminate_server_process(process):
         process.sendcontrol("c")
         process.expect_exact(pexpect.EOF, timeout=15)
         finished = True
-    except (pexpect.TIMEOUT, pexpect.EOF):
+    except (OSError, pexpect.TIMEOUT, pexpect.EOF):
+        # OSError is common when the PTY is already gone; still escalate below.
         pass
 
     if not finished:
@@ -3699,6 +3705,20 @@ def _terminate_server_process(process):
     process.close(force=True)
 
 
+def stop_local_debug_process(process):
+    """
+    Stop a local ``psynet debug`` pexpect process and reap leftover workers.
+
+    Waits for the process to exit after Ctrl-C (escalating to SIGTERM/SIGKILL
+    if needed), then terminates any orphaned ``dallinger_heroku_*`` worker
+    processes so they cannot keep database connections open.
+    """
+    try:
+        _terminate_server_process(process)
+    finally:
+        kill_psynet_worker_processes()
+
+
 def _stop_server(server_info):
     """Stop ``psynet debug local`` and clean up resources."""
 
@@ -3706,7 +3726,7 @@ def _stop_server(server_info):
     tmp_log_path = server_info["tmp_log_path"]
     log_file = server_info["log_file"]
     try:
-        _terminate_server_process(process)
+        stop_local_debug_process(process)
     finally:
         try:
             process.logfile = None
@@ -3718,7 +3738,6 @@ def _stop_server(server_info):
         except Exception:
             pass
 
-    kill_psynet_worker_processes()
     print(f"✓ Server stopped (log: {tmp_log_path})")
 
 
@@ -3786,25 +3805,37 @@ def performance_test__docker_ssh(
 
     from dallinger.command_line.docker_ssh import Executor
 
-    cmd = "psynet performance-test local --existing"
-
-    if n_bots:
-        cmd += f" --n-bots {n_bots}"
-
-    if stagger:
-        cmd += f" --stagger {stagger}"
-
-    if time_factor:
-        cmd += f" --time-factor {time_factor}"
-
-    if duration_minutes:
-        cmd += f" --duration-minutes {duration_minutes}"
+    cmd = _build_ssh_performance_test_cmd(
+        n_bots=n_bots,
+        stagger=stagger,
+        time_factor=time_factor,
+        duration_minutes=duration_minutes,
+    )
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
     executor = Executor(ssh_host, user=ssh_user)
     executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
+
+
+def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minutes):
+    """Build the remote performance-test command, preserving explicit zeros."""
+    cmd = "psynet performance-test local --existing"
+
+    if n_bots is not None:
+        cmd += f" --n-bots {n_bots}"
+
+    if stagger is not None:
+        cmd += f" --stagger {stagger}"
+
+    if time_factor is not None:
+        cmd += f" --time-factor {time_factor}"
+
+    if duration_minutes is not None:
+        cmd += f" --duration-minutes {duration_minutes}"
+
+    return cmd
 
 
 @psynet.command()

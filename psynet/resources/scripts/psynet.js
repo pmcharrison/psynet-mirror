@@ -1747,6 +1747,8 @@
             let stopTimer = null;
             let completionTimer = null;
             let stopCompletionTimer = null;
+            let stopPromise = null;
+            let resolveStopPromise = null;
             let completed = false;
 
             let clearSoundTimers = function () {
@@ -1762,6 +1764,14 @@
                 clearTimeout(stopCompletionTimer);
                 stopCompletionTimer = null;
               }
+            };
+
+            let settleStopPromise = function () {
+              if (resolveStopPromise !== null) {
+                resolveStopPromise();
+                resolveStopPromise = null;
+              }
+              stopPromise = null;
             };
 
             let isSoundTrialActive = function () {
@@ -1795,6 +1805,7 @@
               }
               completed = true;
               clearSoundTimers();
+              settleStopPromise();
               psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
               psynet.media.sounds = psynet.media.sounds.filter(
                 (s) => s !== sound,
@@ -1861,6 +1872,12 @@
 
               sound.manuallyStopped = options.manual;
 
+              if (stopPromise === null) {
+                stopPromise = new Promise((resolve) => {
+                  resolveStopPromise = resolve;
+                });
+              }
+
               let gainNow = sound.gainNode.gain.value;
               let timeNow = psynet.media.audioContext.currentTime;
 
@@ -1872,13 +1889,11 @@
                 );
               }
 
-              return new Promise((resolve) => {
-                stopCompletionTimer = soundTrial.setTimer(() => {
-                  stopCompletionTimer = null;
-                  stopSource();
-                  resolve();
-                }, options.fadeOut * 1000);
-              });
+              stopCompletionTimer = soundTrial.setTimer(() => {
+                stopCompletionTimer = null;
+                stopSource();
+              }, options.fadeOut * 1000);
+              return stopPromise;
             };
 
             sound.source.addEventListener("ended", function () {

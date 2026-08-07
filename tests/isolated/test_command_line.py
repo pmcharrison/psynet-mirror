@@ -3152,6 +3152,45 @@ def test_stop_server_gracefully_stops_debug_subprocess():
     kill_workers.assert_called_once()
 
 
+def test_stop_local_debug_process_reaps_workers_even_if_terminate_fails():
+    from psynet.command_line import stop_local_debug_process
+
+    process = Mock()
+
+    with (
+        patch(
+            "psynet.command_line._terminate_server_process",
+            side_effect=RuntimeError("boom"),
+        ) as terminate,
+        patch("psynet.command_line.kill_psynet_worker_processes") as kill_workers,
+    ):
+        with pytest.raises(RuntimeError, match="boom"):
+            stop_local_debug_process(process)
+
+    terminate.assert_called_once_with(process)
+    kill_workers.assert_called_once()
+
+
+def test_terminate_server_process_escalates_when_sendcontrol_raises_oserror():
+    from psynet.command_line import _terminate_server_process
+
+    process = Mock()
+    process.isalive.return_value = True
+    process.pid = 12345
+    process.sendcontrol.side_effect = OSError("PTY already gone")
+    process.expect_exact.side_effect = [None]  # SIGTERM wait succeeds
+
+    with (
+        patch("psynet.command_line.os.getpgid", return_value=12345),
+        patch("psynet.command_line.os.killpg") as killpg,
+    ):
+        _terminate_server_process(process)
+
+    process.sendcontrol.assert_called_once_with("c")
+    killpg.assert_called()
+    process.close.assert_called_once_with(force=True)
+
+
 def test_load_runtime_server_config_loads_generated_config():
     from psynet.command_line import _load_runtime_server_config
 
@@ -3321,6 +3360,124 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
         debug=False,
     )
     load_runtime_config.assert_called_once_with()
+
+
+def test_performance_test_preserves_explicit_zero_options():
+    from psynet.command_line import _run_performance_test_with_existing_server
+
+    experiment = Mock(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        label="test",
+        test_n_bots=3,
+        test_duration_minutes=2.0,
+        test_parallel_stagger_interval_s=0.5,
+        test_time_factor=2.5,
+    )
+    tester = Mock()
+    tester.run.return_value = []
+    bot_log_file = Mock(name="/tmp/psynet_bots_test.log")
+
+    with (
+        patch("logging.getLogger", return_value=Mock(handlers=[])),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch(
+            "psynet.perf_test.PerformanceTester", return_value=tester
+        ) as performance_tester,
+        patch(
+            "psynet.command_line.tempfile.NamedTemporaryFile",
+            return_value=bot_log_file,
+        ),
+    ):
+        _run_performance_test_with_existing_server(
+            n_bots="1",
+            stagger=0,
+            time_factor=0,
+            duration_minutes=0,
+            debug=False,
+        )
+
+    performance_tester.assert_called_once_with(
+        authenticated_session=experiment.authenticated_session,
+        base_url=experiment.base_url,
+        n_bots=experiment.test_n_bots,
+        duration_minutes=0,
+        stagger_interval_s=0.0,
+        time_factor=0,
+    )
+
+
+def test_performance_test_uses_defaults_when_options_omitted():
+    from psynet.command_line import _run_performance_test_with_existing_server
+
+    experiment = Mock(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        label="test",
+        test_n_bots=3,
+        test_duration_minutes=2.0,
+        test_parallel_stagger_interval_s=0.5,
+        test_time_factor=2.5,
+    )
+    tester = Mock()
+    tester.run.return_value = []
+    bot_log_file = Mock(name="/tmp/psynet_bots_test.log")
+
+    with (
+        patch("logging.getLogger", return_value=Mock(handlers=[])),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch(
+            "psynet.perf_test.PerformanceTester", return_value=tester
+        ) as performance_tester,
+        patch(
+            "psynet.command_line.tempfile.NamedTemporaryFile",
+            return_value=bot_log_file,
+        ),
+    ):
+        _run_performance_test_with_existing_server(
+            n_bots=None,
+            stagger=None,
+            time_factor=None,
+            duration_minutes=None,
+            debug=False,
+        )
+
+    performance_tester.assert_called_once_with(
+        authenticated_session=experiment.authenticated_session,
+        base_url=experiment.base_url,
+        n_bots=experiment.test_n_bots,
+        duration_minutes=2.0,
+        stagger_interval_s=0.5,
+        time_factor=1.0,
+    )
+
+
+def test_ssh_performance_test_command_forwards_zero_valued_options():
+    from psynet.command_line import _build_ssh_performance_test_cmd
+
+    assert _build_ssh_performance_test_cmd(
+        n_bots="5",
+        stagger=0,
+        time_factor=0,
+        duration_minutes=0,
+    ) == (
+        "psynet performance-test local --existing "
+        "--n-bots 5 --stagger 0 --time-factor 0 --duration-minutes 0"
+    )
+
+
+def test_ssh_performance_test_command_omits_unspecified_options():
+    from psynet.command_line import _build_ssh_performance_test_cmd
+
+    assert (
+        _build_ssh_performance_test_cmd(
+            n_bots=None,
+            stagger=None,
+            time_factor=None,
+            duration_minutes=None,
+        )
+        == "psynet performance-test local --existing"
+    )
 
 
 @pytest.mark.parametrize(
