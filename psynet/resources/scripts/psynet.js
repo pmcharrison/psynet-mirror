@@ -349,6 +349,9 @@
       let startedHandlers = [];
       let endHandlers = [];
       let endHandled = false;
+      let unsubscribeStateSnapshot = null;
+      let unsubscribeSessionEnd = null;
+      let unsubscribeConnect = null;
 
       let api = {
         snapshot: null,
@@ -406,16 +409,41 @@
         });
       }
 
+      function resetState() {
+        api.snapshot = null;
+        api.state = {};
+        api.started = false;
+        api.ended = false;
+        endHandled = false;
+      }
+
+      function unsubscribeBuiltInHandlers() {
+        if (unsubscribeStateSnapshot) unsubscribeStateSnapshot();
+        if (unsubscribeSessionEnd) unsubscribeSessionEnd();
+        if (unsubscribeConnect) unsubscribeConnect();
+        unsubscribeStateSnapshot = null;
+        unsubscribeSessionEnd = null;
+        unsubscribeConnect = null;
+      }
+
       api.init = function (options) {
+        let previousSessionId = config.session_id;
         config = Object.assign(config, options || {});
+        if (previousSessionId !== config.session_id) {
+          resetState();
+        }
         if (config.session_id) {
           psynet.websocket.setMessageContext({
             session_id: config.session_id,
           });
         }
-        psynet.websocket.handle("stateSnapshot", applySnapshot);
-        psynet.websocket.handle("sessionEnd", applyEnd);
-        psynet.websocket.onConnect(request);
+        unsubscribeBuiltInHandlers();
+        unsubscribeStateSnapshot = psynet.websocket.handle(
+          "stateSnapshot",
+          applySnapshot,
+        );
+        unsubscribeSessionEnd = psynet.websocket.handle("sessionEnd", applyEnd);
+        unsubscribeConnect = psynet.websocket.onConnect(request);
         request();
         return api;
       };

@@ -42,6 +42,16 @@ def test_live_session_tracks_ready_participants_and_started():
     assert state.started is True
 
 
+def test_live_session_rejects_unknown_ready_participant():
+    """Readiness only accepts expected live-session participants."""
+
+    state = _state()
+
+    assert state.mark_ready(SimpleNamespace(id=3)) is False
+    assert state.ready_participant_ids == []
+    assert state.started is False
+
+
 def test_live_session_snapshot_payload_is_json_ready():
     """Snapshots expose state, readiness, and participant IDs as browser data."""
 
@@ -63,8 +73,9 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
 
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
-    participant = SimpleNamespace(id=1)
-    monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
+    participant = SimpleNamespace(
+        id=1, current_trial=SimpleNamespace(live_session=state)
+    )
 
     LiveSession.handle_state_request(
         experiment,
@@ -78,12 +89,32 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
     )
 
 
+def test_state_request_rejects_non_member(monkeypatch):
+    """StateRequest does not disclose snapshots to non-members."""
+
+    state = _state()
+    experiment = SimpleNamespace(websocket=MagicMock())
+    participant = SimpleNamespace(
+        id=3, current_trial=SimpleNamespace(live_session=state)
+    )
+
+    LiveSession.handle_state_request(
+        experiment,
+        participant,
+        StateRequestMessage(session_id="session-1"),
+    )
+
+    experiment.websocket.send.assert_not_called()
+
+
 def test_ready_event_marks_state_and_sends_snapshot(monkeypatch):
     """ReadyEvent updates the row and sends the resulting snapshot."""
 
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
-    participant = SimpleNamespace(id=1)
+    participant = SimpleNamespace(
+        id=1, current_trial=SimpleNamespace(live_session=state)
+    )
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", MagicMock())
 
@@ -95,6 +126,29 @@ def test_ready_event_marks_state_and_sends_snapshot(monkeypatch):
 
     assert state.ready_participant_ids == [1]
     experiment.websocket.send.assert_called_once()
+
+
+def test_ready_event_rejects_non_member(monkeypatch):
+    """ReadyEvent does not mutate sessions for non-members."""
+
+    state = _state()
+    experiment = SimpleNamespace(websocket=MagicMock())
+    participant = SimpleNamespace(
+        id=3, current_trial=SimpleNamespace(live_session=state)
+    )
+    commit = MagicMock()
+    monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
+    monkeypatch.setattr("psynet.session.db.session.commit", commit)
+
+    LiveSession.handle_ready_event(
+        experiment,
+        participant,
+        ReadyMessage(session_id="session-1"),
+    )
+
+    assert state.ready_participant_ids == []
+    experiment.websocket.send.assert_not_called()
+    commit.assert_not_called()
 
 
 def test_live_session_end_marks_ended_and_notifies():

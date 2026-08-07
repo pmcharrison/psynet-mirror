@@ -218,7 +218,7 @@ def dispatch_websocket_frame(
         return None
 
     page_uuid = frame.get("page_uuid")
-    if page_uuid is not None and page_uuid != participant.page_uuid:
+    if not page_uuid or page_uuid != participant.page_uuid:
         logger.warning(
             "Rejected websocket event: stale page UUID "
             "(participant_id=%s, event_type=%s)",

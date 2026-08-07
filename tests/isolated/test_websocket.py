@@ -108,6 +108,23 @@ def test_dispatch_rejects_stale_page_uuid():
     assert not hasattr(participant, "handled_value")
 
 
+def test_dispatch_rejects_missing_page_uuid():
+    """Client event dispatch requires the current page UUID."""
+
+    participant = _participant()
+    experiment = EchoExperiment()
+
+    assert (
+        dispatch_websocket_frame(
+            experiment,
+            participant=participant,
+            frame={"type": "echo", "message": {"value": 1}},
+        )
+        is None
+    )
+    assert not hasattr(participant, "handled_value")
+
+
 def test_dispatch_rejects_invalid_payload():
     """Pydantic validation failures stop dispatch before the handler runs."""
 
@@ -118,7 +135,11 @@ def test_dispatch_rejects_invalid_payload():
         dispatch_websocket_frame(
             experiment,
             participant=participant,
-            frame={"type": "echo", "message": {"value": 0}},
+            frame={
+                "type": "echo",
+                "message": {"value": 0},
+                "page_uuid": "current-page",
+            },
         )
         is None
     )

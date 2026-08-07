@@ -135,6 +135,9 @@ class _LiveSessionMixin:
     def mark_ready(self, participant):
         """Mark a participant ready and return whether this started the session."""
 
+        if not self.has_participant(participant):
+            return False
+
         participant_id = int(getattr(participant, "id", participant))
         ready = {int(value) for value in (self.ready_participant_ids or [])}
         ready.add(participant_id)
@@ -147,6 +150,31 @@ class _LiveSessionMixin:
             started_now = True
 
         return started_now
+
+    def has_participant(self, participant):
+        """Return whether a participant belongs to this live session."""
+
+        participant_id = int(getattr(participant, "id", participant))
+        expected = {int(value) for value in (self.participant_ids or [])}
+        return participant_id in expected
+
+    @classmethod
+    def get_for_participant(cls, participant, session_id: str, *, for_update=False):
+        """Return a participant's current live session if it matches a session ID."""
+
+        trial = getattr(participant, "current_trial", None)
+        live_session = getattr(trial, "live_session", None)
+        if live_session is None or live_session.session_id != session_id:
+            return None
+
+        if for_update:
+            live_session = cls.get(live_session.session_id, for_update=True)
+            if live_session is None:
+                return None
+
+        if not live_session.has_participant(participant):
+            return None
+        return live_session
 
     def mark_ended(self):
         """Mark this live session ended if it has not already ended."""
@@ -238,7 +266,7 @@ class _LiveSessionMixin:
     ):
         """Send the latest state snapshot to the requesting participant."""
 
-        live_session = cls.get(message.session_id)
+        live_session = cls.get_for_participant(participant, message.session_id)
         if live_session is not None:
             live_session.send_snapshot(experiment, participants=participant)
 
@@ -246,7 +274,9 @@ class _LiveSessionMixin:
     def handle_ready_event(cls, experiment, participant, message: ReadyMessage):
         """Mark a participant ready and send the resulting snapshot."""
 
-        live_session = cls.get(message.session_id, for_update=True)
+        live_session = cls.get_for_participant(
+            participant, message.session_id, for_update=True
+        )
         if live_session is None:
             return
         live_session.mark_ready(participant)

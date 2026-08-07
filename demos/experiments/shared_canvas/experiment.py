@@ -4,6 +4,7 @@ import math
 import random
 from copy import deepcopy
 from datetime import datetime
+from types import SimpleNamespace
 from typing import List
 
 from dallinger import db
@@ -430,15 +431,15 @@ class Exp(psynet.experiment.Experiment):
     def position(self, participant, message: PositionMessage, receive_time):
         """Persist and broadcast a high-frequency position event."""
 
-        group = participant.active_sync_groups[GROUP_TYPE]
-        target_participant_ids = [
-            p.id for p in sorted(group.participants, key=lambda p: p.id)
-        ]
-        if int(participant.id) not in [int(p) for p in target_participant_ids]:
+        live_session = SharedCanvasSession.get_for_participant(
+            participant, message.session_id
+        )
+        if live_session is None:
             return
+        target_participant_ids = [int(p) for p in live_session.participant_ids or []]
 
         logged_event = CanvasPositionEvent(
-            session_id=message.session_id,
+            session_id=live_session.session_id,
             participant_id=participant.id,
             x=message.x,
             y=message.y,
@@ -463,10 +464,10 @@ class Exp(psynet.experiment.Experiment):
     def collect(self, participant, message: CollectMessage, receive_time):
         """Apply a coin collection attempt to authoritative state."""
 
-        live_session = SharedCanvasSession.get(message.session_id, for_update=True)
-        if live_session is None or int(participant.id) not in [
-            int(p) for p in live_session.participant_ids
-        ]:
+        live_session = SharedCanvasSession.get_for_participant(
+            participant, message.session_id, for_update=True
+        )
+        if live_session is None:
             return
 
         accepted, reason, collection = live_session.record_collection(
@@ -616,9 +617,38 @@ class Exp(psynet.experiment.Experiment):
         assert accepted is False
         assert reason == "already_collected_or_unknown"
 
+    @staticmethod
+    def test_position_session_validation():
+        """Position events must target the participant's linked live session."""
+
+        live_session = SharedCanvasSession(
+            session_id="session-1",
+            participant_ids=[1],
+        )
+        participant = SimpleNamespace(
+            id=1,
+            current_trial=SimpleNamespace(live_session=live_session),
+        )
+
+        assert (
+            SharedCanvasSession.get_for_participant(
+                participant,
+                "session-1",
+            )
+            is live_session
+        )
+        assert (
+            SharedCanvasSession.get_for_participant(
+                participant,
+                "wrong-session",
+            )
+            is None
+        )
+
     def test_canvas_websocket_contracts(self):
         self.test_websocket_event_parsing()
         self.test_canvas_state_transitions()
+        self.test_position_session_validation()
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
         self.test_canvas_websocket_contracts()

@@ -1,6 +1,6 @@
 # Updating
 
-To update your experiment to use a new PsyNet version, 
+To update your experiment to use a new PsyNet version,
 simply specify an updated version in requirements.txt.
 This version will be automatically installed and used next time you run
 a Docker command such as `docker/psynet` or `docker/run`.
