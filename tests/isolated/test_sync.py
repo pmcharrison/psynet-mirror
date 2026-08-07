@@ -468,18 +468,39 @@ def test_barrier_registry_strips_waiting_logic(db_session):
     assert loaded.barrier.waiting_logic is None
 
 
+def test_group_barrier_timeout_between_barriers_requires_time():
+    with pytest.raises(ValueError, match="timeout_between_barriers_time"):
+        GroupBarrier(
+            id_="timeout_between_barriers_requires_time",
+            group_type="group",
+            timeout_between_barriers=True,
+        )
+
+
+def test_group_barrier_timeout_between_barriers_rejects_bad_action():
+    with pytest.raises(ValueError, match="timeout_between_barriers_action"):
+        GroupBarrier(
+            id_="timeout_between_barriers_bad_action",
+            group_type="group",
+            timeout_between_barriers=True,
+            timeout_between_barriers_time=5,
+            timeout_between_barriers_action="remove",
+        )
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_group_barrier_late_participant_timeout_kick_missing_participants(
+def test_group_barrier_timeout_between_barriers_kick_missing_participants(
     in_experiment_directory, db_session
 ):
     exp = get_experiment()
     barrier = GroupBarrier(
-        id_="late_participant_timeout_kick",
+        id_="timeout_between_barriers_kick",
         group_type="main",
-        late_participant_timeout=5,
-        late_participant_timeout_action="kick",
+        timeout_between_barriers=True,
+        timeout_between_barriers_time=5,
+        timeout_between_barriers_action="kick",
     )
 
     # Create 3 participants in the same sync group, but only 2 "reach" this barrier.
@@ -515,15 +536,16 @@ def test_group_barrier_late_participant_timeout_kick_missing_participants(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_group_barrier_late_participant_timeout_kick_releases_waiters_after_dissolution(
+def test_group_barrier_timeout_between_barriers_kick_releases_waiters_after_dissolution(
     in_experiment_directory, db_session
 ):
     exp = get_experiment()
     barrier = GroupBarrier(
-        id_="late_participant_timeout_kick_below_min",
+        id_="timeout_between_barriers_kick_below_min",
         group_type="main",
-        late_participant_timeout=5,
-        late_participant_timeout_action="kick",
+        timeout_between_barriers=True,
+        timeout_between_barriers_time=5,
+        timeout_between_barriers_action="kick",
     )
 
     participants = [new_participant(exp) for _ in range(3)]
@@ -558,15 +580,16 @@ def test_group_barrier_late_participant_timeout_kick_releases_waiters_after_diss
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_group_barrier_late_participant_timeout_fail_missing_participants(
+def test_group_barrier_timeout_between_barriers_fail_missing_participants(
     in_experiment_directory, db_session
 ):
     exp = get_experiment()
     barrier = GroupBarrier(
-        id_="late_participant_timeout_fail",
+        id_="timeout_between_barriers_fail",
         group_type="main",
-        late_participant_timeout=5,
-        late_participant_timeout_action="fail",
+        timeout_between_barriers=True,
+        timeout_between_barriers_time=5,
+        timeout_between_barriers_action="fail",
     )
 
     participants = [new_participant(exp) for _ in range(3)]

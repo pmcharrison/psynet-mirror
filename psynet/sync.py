@@ -345,14 +345,18 @@ class GroupBarrier(Barrier):
         When ``max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end of the
         experiment; ``"kick"`` removes them from the group and lets them continue. Default is ``"fail"``.
 
-    late_participant_timeout
+    timeout_between_barriers
+        If ``True``, participants who fail to reach a later barrier in time are kicked or failed according to
+        ``timeout_between_barriers_action``. Default is ``False``.
+
+    timeout_between_barriers_time
         The maximum amount of time in seconds that a participant is allowed to reach the barrier, measured from when
-        the group collectively passed the previous barrier. If ``None`` (default), no late-participant timeout is applied.
+        the group collectively passed the previous barrier. Required when ``timeout_between_barriers`` is ``True``.
         Only applies from the second barrier onward (time since previous barrier pass).
 
-    late_participant_timeout_action
-        When a participant exceeds ``late_participant_timeout``: ``"kick"`` removes them from the group (so the rest can
-        proceed without them), or ``"fail"`` fails the participant and sends them to the end of the experiment.
+    timeout_between_barriers_action
+        When a participant exceeds ``timeout_between_barriers_time``: ``"kick"`` removes them from the group (so the
+        rest can proceed without them), or ``"fail"`` fails the participant and sends them to the end of the experiment.
         Default is ``"fail"``.
 
     on_release
@@ -394,8 +398,9 @@ class GroupBarrier(Barrier):
         max_wait_action: Literal["fail", "kick"] = "fail",
         on_release: Optional[Callable] = None,
         fix_time_credit=False,
-        late_participant_timeout: Optional[int] = None,
-        late_participant_timeout_action: Literal["kick", "fail"] = "fail",
+        timeout_between_barriers: bool = False,
+        timeout_between_barriers_time: Optional[float] = None,
+        timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
         self._validate_max_wait_action(max_wait_action)
         super().__init__(
@@ -408,25 +413,24 @@ class GroupBarrier(Barrier):
         self.max_wait_action = max_wait_action
         self.group_type = group_type
         self.on_release = on_release
-        self.late_participant_timeout = late_participant_timeout
+        self.timeout_between_barriers = timeout_between_barriers
+        self.timeout_between_barriers_time = timeout_between_barriers_time
         if max_wait_action == "kick":
             self.on_max_wait_timeout = SerializedCallable(
                 function=GroupBarrier._kick_participant_after_max_wait,
                 arguments={"group_type": group_type},
             )
-        if (
-            late_participant_timeout is not None
-            and late_participant_timeout_action
-            not in (
-                "kick",
-                "fail",
-            )
-        ):
+        if timeout_between_barriers and timeout_between_barriers_time is None:
             raise ValueError(
-                "late_participant_timeout_action must be 'kick' or 'fail', "
-                f"got {late_participant_timeout_action!r}"
+                "timeout_between_barriers_time must be provided when "
+                "timeout_between_barriers is True."
             )
-        self.late_participant_timeout_action = late_participant_timeout_action
+        if timeout_between_barriers_action not in ("kick", "fail"):
+            raise ValueError(
+                "timeout_between_barriers_action must be 'kick' or 'fail', "
+                f"got {timeout_between_barriers_action!r}"
+            )
+        self.timeout_between_barriers_action = timeout_between_barriers_action
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
         waiting_participant_ids = {p.id for p in waiting_participants}
@@ -490,7 +494,7 @@ class GroupBarrier(Barrier):
     def check_waiting_participants(self, waiting_participants: List[Participant]):
         for group in self.get_waiting_groups(waiting_participants).values():
             group.check_numbers()
-            self.timeout_late_participants(group, waiting_participants)
+            self._timeout_participants_between_barriers(group, waiting_participants)
 
     def get_waiting_groups(self, waiting_participants: List[Participant]):
         groups = {
@@ -502,18 +506,19 @@ class GroupBarrier(Barrier):
         }
         return groups
 
-    def timeout_late_participants(
+    def _timeout_participants_between_barriers(
         self, group: "SyncGroup", waiting_participants: List[Participant]
     ):
         """Kick or fail group members who are late reaching this barrier."""
         if (
-            self.late_participant_timeout is None
+            not self.timeout_between_barriers
+            or self.timeout_between_barriers_time is None
             or group.last_barrier_pass_time is None
         ):
             return
 
         elapsed_seconds = (timenow() - group.last_barrier_pass_time).total_seconds()
-        if elapsed_seconds <= self.late_participant_timeout:
+        if elapsed_seconds <= self.timeout_between_barriers_time:
             return
 
         waiting_participant_ids = {p.id for p in waiting_participants}
@@ -521,9 +526,9 @@ class GroupBarrier(Barrier):
             p for p in group.active_participants if p.id not in waiting_participant_ids
         ]
         for participant in missing:
-            if self.late_participant_timeout_action == "kick":
+            if self.timeout_between_barriers_action == "kick":
                 logger.info(
-                    "GroupBarrier '%s': kicking participant %s from group %s (timeout)",
+                    "GroupBarrier '%s': kicking participant %s from group %s (timeout between barriers)",
                     self.id,
                     participant.id,
                     group.id,
@@ -531,11 +536,11 @@ class GroupBarrier(Barrier):
                 group.remove_participant(participant)
             else:
                 logger.info(
-                    "GroupBarrier '%s': failing participant %s (timeout)",
+                    "GroupBarrier '%s': failing participant %s (timeout between barriers)",
                     self.id,
                     participant.id,
                 )
-                participant.fail("late participant timeout at barrier")
+                participant.fail("timeout between barriers")
 
     def release(self, participant: Participant):
         link = participant.active_barriers.get(self.id, None)
