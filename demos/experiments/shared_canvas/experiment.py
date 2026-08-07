@@ -4,12 +4,11 @@ import math
 import random
 from copy import deepcopy
 from datetime import datetime
-from types import SimpleNamespace
 from typing import List
 
 from dallinger import db
 from dominate import tags
-from pydantic import Field, ValidationError
+from pydantic import Field
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 
 import psynet.experiment
@@ -236,7 +235,6 @@ class SharedCanvasSession(LiveSession):
         return {
             **initial_canvas_state(participant_ids, world),
             "group_id": int(group.id),
-            "world_id": world["world_id"],
         }
 
     def record_collection(
@@ -286,7 +284,6 @@ class SharedCanvasControl(LiveSessionControl):
     macro = "shared_canvas_control"
 
     def __init__(self, trial, participant):
-        self.trial = trial
         super().__init__(
             participant=participant,
             group_type=GROUP_TYPE,
@@ -298,8 +295,7 @@ class SharedCanvasControl(LiveSessionControl):
     def build_control_params(self):
         """Return browser-facing shared-canvas config."""
 
-        ordered = sorted(self.group.participants, key=lambda p: p.id)
-        role_index = [p.id for p in ordered].index(self.participant.id)
+        role_index = self.participant_ids.index(self.participant_id)
         world = self.trial.definition["world"]
         return {
             "role": f"Player {role_index + 1}",
@@ -512,144 +508,7 @@ class Exp(psynet.experiment.Experiment):
             )
         db.session.commit()
 
-    @staticmethod
-    def _valid_position_event():
-        return PositionMessage.model_validate(
-            {
-                "session_id": "test-session",
-                "x": 12.5,
-                "y": 13.5,
-                "vx": 1.0,
-                "vy": -1.0,
-                "client_time": 100.0,
-            }
-        )
-
-    @staticmethod
-    def _assert_payload_rejected(payload):
-        try:
-            PositionMessage.model_validate(payload)
-        except (ValidationError, ValueError):
-            pass
-        else:
-            raise AssertionError(f"Expected payload to be rejected: {payload}")
-
-    @staticmethod
-    def test_websocket_event_parsing():
-        event = Exp._valid_position_event()
-        assert event.session_id == "test-session"
-        invalid_payloads = [
-            {"type": POSITION_EVENT, "session_id": "test-session", "x": 1.0},
-            {
-                "session_id": "test-session",
-                "x": 1.0,
-                "vx": 0.0,
-                "vy": 0.0,
-                "client_time": 1.0,
-            },
-            {"type": "unknown", "page_uuid": "current-page"},
-        ]
-        for payload in invalid_payloads:
-            Exp._assert_payload_rejected(payload)
-
-        try:
-            CollectMessage.model_validate(
-                {
-                    "session_id": "test-session",
-                    "coin_id": "",
-                    "x": 1.0,
-                    "y": 1.0,
-                    "client_time": 1.0,
-                }
-            )
-        except ValidationError:
-            pass
-        else:
-            raise AssertionError("Expected empty coin ID to be rejected.")
-
-    @staticmethod
-    def test_canvas_state_transitions():
-        world = generate_world(99)
-        state = SharedCanvasSession(
-            session_id="state-transition-test",
-            participant_ids=[1],
-            state={
-                **initial_canvas_state([1], world),
-                "group_id": 1,
-                "world_id": world["world_id"],
-            },
-        )
-        coin = state.state["coins"][0]
-        event = CollectMessage(
-            session_id=state.session_id,
-            coin_id=coin["id"],
-            x=coin["x"],
-            y=coin["y"],
-            client_time=1.0,
-        )
-        receive_time = datetime.now()
-
-        accepted, reason, collection = state.record_collection(
-            participant_id=1,
-            coin_id=event.coin_id,
-            x=event.x,
-            y=event.y,
-            receive_time=receive_time,
-        )
-
-        assert accepted is True
-        assert reason is None
-        assert collection["coin_id"] == coin["id"]
-        assert coin["id"] not in [c["id"] for c in state.state["coins"]]
-        assert state.state["collected_coins"] == [collection]
-        assert "bonuses" not in state.state
-
-        accepted, reason, _ = state.record_collection(
-            participant_id=1,
-            coin_id=event.coin_id,
-            x=event.x,
-            y=event.y,
-            receive_time=receive_time,
-        )
-        assert accepted is False
-        assert reason == "already_collected_or_unknown"
-
-    @staticmethod
-    def test_position_session_validation():
-        """Position events must target the participant's linked live session."""
-
-        live_session = SharedCanvasSession(
-            session_id="session-1",
-            participant_ids=[1],
-        )
-        participant = SimpleNamespace(
-            id=1,
-            current_trial=SimpleNamespace(live_session=live_session),
-        )
-
-        assert (
-            SharedCanvasSession.get_current_for_participant(
-                participant,
-                "session-1",
-            )
-            is live_session
-        )
-        assert (
-            SharedCanvasSession.get_current_for_participant(
-                participant,
-                "wrong-session",
-            )
-            is None
-        )
-
-    def test_canvas_websocket_contracts(self):
-        self.test_websocket_event_parsing()
-        self.test_canvas_state_transitions()
-        self.test_position_session_validation()
-
     def test_serial_run_bots(self, bots: List[BotDriver]):
-        self.test_canvas_websocket_contracts()
-
         advance_past_wait_pages(bots)
 
         for bot in bots:

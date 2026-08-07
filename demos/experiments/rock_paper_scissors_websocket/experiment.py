@@ -431,7 +431,9 @@ class Exp(psynet.experiment.Experiment):
     def choose(self, participant, message: ChooseMessage):
         """Handle a browser-submitted rock-paper-scissors choice."""
 
-        live_session = RockPaperScissorsSession.get(message.session_id, for_update=True)
+        live_session = RockPaperScissorsSession.get_current_for_participant(
+            participant, message.session_id, for_update=True
+        )
         if live_session is not None and live_session.record_choice(
             participant.id, message
         ):
