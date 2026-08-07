@@ -298,7 +298,6 @@ class RockPaperScissorsControl(LiveSessionControl):
     WebSocket. The submitted answer is the participant's list of ``n_rounds``
     moves."""
 
-    session_class = RockPaperScissorsSession
     external_template = "rps-control.html"
     macro = "rps_control"
 
@@ -322,6 +321,7 @@ class RockPaperScissorsControl(LiveSessionControl):
 
 
 class RockPaperScissorsTrial(StaticTrial):
+    live_session_class = RockPaperScissorsSession
     time_estimate = 30
 
     def show_trial(self, experiment, participant):

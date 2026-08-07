@@ -390,6 +390,19 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
+    live_session_class = None
+
+    @classmethod
+    def prepare_live_session(cls, *, participant, group, trials):
+        """Prepare an optional live session for synchronized group trials."""
+
+        if cls.live_session_class is None:
+            return None
+        return cls.live_session_class.prepare_for_group(
+            participant=participant,
+            group=group,
+            trials=trials,
+        )
 
     @property
     def var(self):
@@ -2034,6 +2047,15 @@ class TrialMaker(Module):
                 participant=follower,
                 leader=group.leader,
             )
+        self.trial_class.prepare_live_session(
+            participant=leader,
+            group=group,
+            trials=[
+                participant.current_trial
+                for participant in group.active_participants
+                if participant.trial_status == "available"
+            ],
+        )
 
     max_time_waiting_for_trial = 60
 

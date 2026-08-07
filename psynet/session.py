@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from dallinger import db
 from pydantic import Field
 from sqlalchemy import Boolean, Column, String
@@ -76,30 +78,58 @@ class _LiveSessionMixin:
         return query.one_or_none()
 
     @classmethod
-    def get_or_create(
+    def create(
         cls,
         session_id: str,
         *,
         state: dict | None = None,
         participant_ids: list[int] | None = None,
-        for_update=False,
     ):
-        """Return an existing live-session row or create it."""
+        """Create a live-session row."""
 
-        live_session = cls.get(session_id, for_update=for_update)
+        live_session = cls(
+            session_id=session_id,
+            state=state or {},
+            participant_ids=[
+                int(participant_id) for participant_id in participant_ids or []
+            ],
+            ready_participant_ids=[],
+            started=False,
+            ended=False,
+        )
+        db.session.add(live_session)
+        db.session.flush()
+        return live_session
+
+    @classmethod
+    def prepare_for_group(cls, *, participant, group, trials):
+        """Create and link the live session for a synchronized group of trials."""
+
+        trials = [trial for trial in trials if trial is not None]
+        if not trials:
+            return None
+
+        participant_ids = [
+            int(p.id) for p in sorted(group.participants, key=lambda p: p.id)
+        ]
+        context = SimpleNamespace(trial=trials[0])
+        session_id = cls.build_session_id(participant, group, context)
+        live_session = cls.get(session_id)
         if live_session is None:
-            live_session = cls(
-                session_id=session_id,
-                state=state or {},
-                participant_ids=[
-                    int(participant_id) for participant_id in (participant_ids or [])
-                ],
-                ready_participant_ids=[],
-                started=False,
-                ended=False,
+            live_session = cls.create(
+                session_id,
+                state=cls.build_initial_state(
+                    participant_ids,
+                    participant,
+                    group,
+                    context,
+                ),
+                participant_ids=participant_ids,
             )
-            db.session.add(live_session)
-            db.session.flush()
+
+        for trial in trials:
+            live_session.link_trial(trial)
+
         return live_session
 
     def mark_ready(self, participant):
@@ -202,6 +232,39 @@ class _LiveSessionMixin:
             )
         return trials[0] if trials else None
 
+    @classmethod
+    def handle_state_request(
+        cls, experiment, participant, message: StateRequestMessage
+    ):
+        """Send the latest state snapshot to the requesting participant."""
+
+        live_session = cls.get(message.session_id)
+        if live_session is not None:
+            live_session.send_snapshot(experiment, participants=participant)
+
+    @classmethod
+    def handle_ready_event(cls, experiment, participant, message: ReadyMessage):
+        """Mark a participant ready and send the resulting snapshot."""
+
+        live_session = cls.get(message.session_id, for_update=True)
+        if live_session is None:
+            return
+        live_session.mark_ready(participant)
+        live_session.send_snapshot(experiment)
+        db.session.commit()
+
+    @classmethod
+    def trigger_end_event(cls, experiment, session_id):
+        """Mark a live session ended and send its built-in sessionEnd event."""
+
+        from psynet.db import transaction
+
+        with transaction():
+            live_session = cls.get(session_id, for_update=True)
+            if live_session is None:
+                return False
+            return live_session.end(experiment)
+
 
 @register_table
 class LiveSession(_LiveSessionMixin, SQLBase, SQLMixin):
@@ -216,8 +279,6 @@ class LiveSession(_LiveSessionMixin, SQLBase, SQLMixin):
 
 class LiveSessionControl(Control):
     """Control base class that configures a live session for browser code."""
-
-    session_class = LiveSession
 
     def __init__(
         self,
@@ -237,6 +298,7 @@ class LiveSessionControl(Control):
         )
         self.participant = participant
         self.trial = trial
+        self.session_class = self._resolve_session_class(trial)
         self.group_type = group_type
         self.group = self._get_group(participant, group_type)
         self.group_id = int(self.group.id)
@@ -247,16 +309,19 @@ class LiveSessionControl(Control):
         self.session_id = self.session_class.build_session_id(
             participant, self.group, self
         )
-        initial_state = self.session_class.build_initial_state(
-            self.participant_ids, participant, self.group, self
-        )
-        self.live_session = self.session_class.get_or_create(
-            self.session_id,
-            state=initial_state,
-            participant_ids=self.participant_ids,
-        )
-        if trial is not None:
-            self.live_session.link_trial(trial)
+        self.live_session = getattr(trial, "live_session", None)
+        if self.live_session is None:
+            self.live_session = self.session_class.get(self.session_id)
+        if self.live_session is None:
+            raise RuntimeError(
+                f"Trial {trial.id} has no prepared live session {self.session_id!r}."
+            )
+        if self.live_session.session_id != self.session_id:
+            raise RuntimeError(
+                f"Trial {trial.id} is linked to live session "
+                f"{self.live_session.session_id!r}, expected {self.session_id!r}."
+            )
+        self.live_session.link_trial(trial)
         custom_params = self.session_class.build_params(participant, self.group, self)
         self.live_session_config = {
             "session_id": self.session_id,
@@ -266,6 +331,19 @@ class LiveSessionControl(Control):
             **(custom_params or {}),
             **(params or {}),
         }
+
+    @classmethod
+    def _resolve_session_class(cls, trial):
+        if trial is None:
+            raise ValueError("LiveSessionControl currently requires a trial.")
+
+        session_class = getattr(trial, "live_session_class", None)
+        if session_class is None:
+            raise ValueError(
+                f"Trial {trial.__class__.__name__} must define live_session_class "
+                "to use LiveSessionControl."
+            )
+        return session_class
 
     @staticmethod
     def _get_group(participant, group_type: str):
@@ -280,38 +358,3 @@ class LiveSessionControl(Control):
         raise ValueError(
             f"Could not derive live-session group {group_type!r} for participant."
         )
-
-
-def handle_state_request(experiment, participant, message: StateRequestMessage):
-    """Send the latest state snapshot to the requesting participant."""
-
-    live_session = LiveSession.get(message.session_id)
-    if live_session is not None:
-        experiment.websocket.send(
-            participant,
-            STATE_SNAPSHOT_EVENT,
-            live_session.snapshot_payload(),
-        )
-
-
-def handle_ready_event(experiment, participant, message: ReadyMessage):
-    """Mark a participant ready and send the resulting snapshot."""
-
-    live_session = LiveSession.get(message.session_id, for_update=True)
-    if live_session is None:
-        return
-    live_session.mark_ready(participant)
-    live_session.send_snapshot(experiment)
-    db.session.commit()
-
-
-def trigger_session_end_event(experiment, session_id):
-    """Mark a live session ended and send its built-in sessionEnd event."""
-
-    from psynet.db import transaction
-
-    with transaction():
-        live_session = LiveSession.get(session_id, for_update=True)
-        if live_session is None:
-            return False
-        return live_session.end(experiment)

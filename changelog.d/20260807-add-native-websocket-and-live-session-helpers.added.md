@@ -1,1 +1,1 @@
-Added persisted live-session helpers for real-time experiment pages, including recoverable state snapshots, participant readiness tracking, configurable live-session controls, and explicit session-end events.
+Added persisted live-session helpers for real-time experiment pages, including synchronized trial-group setup, recoverable state snapshots, participant readiness tracking, configurable live-session controls, and explicit session-end events.

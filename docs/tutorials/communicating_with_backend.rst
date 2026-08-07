@@ -96,14 +96,15 @@ For multiplayer or other shared real-time pages, store authoritative state in
 fresh snapshots on connect/reconnect and tracks whether all expected participants
 are ready:
 
-For custom live controls, subclass ``psynet.session.LiveSessionControl`` and set
-``session_class`` to a concrete ``LiveSession`` subclass. The control derives
-the browser config (``session_id``, ``group_id``, ``participant_id``, and
-``participant_ids``) and creates the persisted live-session row before the page
-is rendered.
-If the control is created with a trial, PsyNet links that trial to the live
-session so server-side WebSocket handlers can update trial state from the
+For custom live controls, subclass ``psynet.session.LiveSessionControl``. The
+control derives the browser config (``session_id``, ``group_id``,
+``participant_id``, and ``participant_ids``).
+If the control is created with a trial, set ``live_session_class`` on the trial
+class so PsyNet prepares one persisted live-session row for the synchronized
+group before the live page is rendered, then links each participant's trial to
+that row. This lets server-side WebSocket handlers update trial state from the
 authoritative live session.
+For now, ``LiveSessionControl`` is intended for trial-backed live pages.
 Experiment code can call ``live_session.end(experiment)`` when its own
 completion condition is met; this sends a built-in ``sessionEnd`` event.
 

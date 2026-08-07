@@ -301,7 +301,6 @@ class SharedCanvasSession(LiveSession):
 class SharedCanvasControl(LiveSessionControl):
     """Custom canvas renderer wrapped in PsyNet's modular page API."""
 
-    session_class = SharedCanvasSession
     external_template = "shared_canvas.html"
     macro = "shared_canvas_control"
 
@@ -320,6 +319,7 @@ class SharedCanvasControl(LiveSessionControl):
 
 
 class SharedCanvasTrial(StaticTrial):
+    live_session_class = SharedCanvasSession
     time_estimate = TRIAL_SECONDS + 35
 
     @property

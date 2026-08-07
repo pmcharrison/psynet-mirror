@@ -9,9 +9,6 @@ from psynet.session import (
     LiveSessionControl,
     ReadyMessage,
     StateRequestMessage,
-    handle_ready_event,
-    handle_state_request,
-    trigger_session_end_event,
 )
 
 
@@ -69,7 +66,7 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
     participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
-    handle_state_request(
+    LiveSession.handle_state_request(
         experiment,
         participant,
         StateRequestMessage(session_id="session-1"),
@@ -90,7 +87,7 @@ def test_ready_event_marks_state_and_sends_snapshot(monkeypatch):
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", MagicMock())
 
-    handle_ready_event(
+    LiveSession.handle_ready_event(
         experiment,
         participant,
         ReadyMessage(session_id="session-1"),
@@ -130,16 +127,7 @@ def test_live_session_control_derives_config(monkeypatch):
         def build_params(cls, participant, group, control):
             return {"custom": control.custom_value}
 
-        @classmethod
-        def get_or_create(cls, session_id, **kwargs):
-            cls.created_with = {"session_id": session_id, **kwargs}
-            cls.created_session = SimpleNamespace(
-                session_id=session_id, link_trial=MagicMock()
-            )
-            return cls.created_session
-
     class DemoControl(LiveSessionControl):
-        session_class = DemoSession
         macro = "demo"
 
         def __init__(self, participant, trial=None):
@@ -156,7 +144,12 @@ def test_live_session_control_derives_config(monkeypatch):
     participant = SimpleNamespace(
         id=1, active_sync_groups={"demo_group": group}, sync_group=None
     )
-    trial = SimpleNamespace(id=7)
+    live_session = SimpleNamespace(session_id="demo:9", link_trial=MagicMock())
+    trial = SimpleNamespace(
+        id=7,
+        live_session=live_session,
+        live_session_class=DemoSession,
+    )
 
     control = DemoControl(participant, trial=trial)
 
@@ -168,12 +161,23 @@ def test_live_session_control_derives_config(monkeypatch):
         "custom": 10,
         "extra": "value",
     }
-    assert DemoSession.created_with == {
-        "session_id": "demo:9",
-        "state": {"participant_ids": [1, 2]},
-        "participant_ids": [1, 2],
-    }
-    DemoSession.created_session.link_trial.assert_called_once_with(trial)
+    live_session.link_trial.assert_called_once_with(trial)
+
+
+def test_live_session_control_requires_trial_context():
+    """LiveSessionControl currently consumes a prepared trial context."""
+
+    with pytest.raises(ValueError, match="requires a trial"):
+        LiveSessionControl._resolve_session_class(None)
+
+
+def test_live_session_control_requires_trial_session_class():
+    """Trial-backed live controls derive the session class from the trial."""
+
+    trial = SimpleNamespace(live_session_class=None)
+
+    with pytest.raises(ValueError, match="must define live_session_class"):
+        LiveSessionControl._resolve_session_class(trial)
 
 
 def test_live_session_links_trials_by_participant():
@@ -195,6 +199,51 @@ def test_live_session_links_trials_by_participant():
     state.__dict__["trials"] = [trial]
     assert state.get_participant_trial(1) is trial
     assert state.get_participant_trial(SimpleNamespace(id=2)) is None
+
+
+def test_live_session_prepare_for_group_creates_and_links_trials(monkeypatch):
+    """Live sessions are prepared once for a synchronized trial group."""
+
+    added = MagicMock()
+    monkeypatch.setattr("psynet.session.db.session.add", added)
+    monkeypatch.setattr("psynet.session.db.session.flush", MagicMock())
+    monkeypatch.setattr(
+        PolymorphicDemoLiveSession,
+        "get",
+        classmethod(lambda cls, session_id: None),
+    )
+
+    participants = [SimpleNamespace(id=2), SimpleNamespace(id=1)]
+    group = SimpleNamespace(id=9, participants=participants)
+    trials = [
+        SimpleNamespace(
+            id=7,
+            participant_id=1,
+            failed=False,
+            live_session_id=None,
+            live_session=None,
+            network=SimpleNamespace(id=12),
+        ),
+        SimpleNamespace(
+            id=8,
+            participant_id=2,
+            failed=False,
+            live_session_id=None,
+            live_session=None,
+            network=SimpleNamespace(id=12),
+        ),
+    ]
+
+    live_session = PolymorphicDemoLiveSession.prepare_for_group(
+        participant=participants[0],
+        group=group,
+        trials=trials,
+    )
+
+    assert live_session.session_id == "polymorphic_demo_live_session:network:12:group:9"
+    assert live_session.participant_ids == [1, 2]
+    assert [trial.live_session for trial in trials] == [live_session, live_session]
+    added.assert_called_once_with(live_session)
 
 
 def test_live_session_default_session_id_uses_class_and_network():
@@ -230,7 +279,7 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
     monkeypatch.setattr("psynet.db.transaction", lambda: MagicMock())
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
-    trigger_session_end_event(
+    LiveSession.trigger_end_event(
         experiment,
         "session-1",
     )

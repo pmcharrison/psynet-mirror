@@ -96,10 +96,9 @@ from .serialize import serialize, unserialize
 from .session import (
     READY_EVENT,
     STATE_REQUEST_EVENT,
+    LiveSession,
     ReadyMessage,
     StateRequestMessage,
-    handle_ready_event,
-    handle_state_request,
 )
 from .timeline import (
     WEBSOCKET_CHANNEL,
@@ -606,13 +605,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _websocket_state_request(self, participant, message: StateRequestMessage):
         """Handle a generic real-time state recovery request."""
 
-        return handle_state_request(self, participant, message)
+        return LiveSession.handle_state_request(self, participant, message)
 
     @websocket_handler(READY_EVENT, model=ReadyMessage)
     def _websocket_ready(self, participant, message: ReadyMessage):
         """Handle a participant readiness notification."""
 
-        return handle_ready_event(self, participant, message)
+        return LiveSession.handle_ready_event(self, participant, message)
 
     @classmethod
     def get_index_html(cls):
