@@ -110,6 +110,8 @@ def test_check_redis_ping_over_socket(monkeypatch):
     """Redis probe uses stdlib RESP PING, not the redis package."""
     from psynet.services import check_redis
 
+    monkeypatch.setenv("REDIS_URL", "redis://localhost:6379")
+
     class FakeSock:
         def __enter__(self):
             return self
@@ -170,6 +172,8 @@ def test_check_redis_requires_exact_pong(monkeypatch):
     """A non-Redis listener mentioning PONG must not pass the probe."""
     from psynet.services import check_redis
 
+    monkeypatch.setenv("REDIS_URL", "redis://localhost:6379")
+
     class FakeSock:
         def __enter__(self):
             return self
@@ -208,14 +212,10 @@ def test_check_postgres_falls_back_to_pg_isready(monkeypatch):
         "psynet.services.shutil.which", lambda name: "/usr/bin/pg_isready"
     )
 
+    from psynet.services import _postgres_url
+
     def fake_run(args, **kwargs):
-        assert args == [
-            "pg_isready",
-            "-d",
-            "postgresql://dallinger:dallinger@localhost/dallinger",
-            "-t",
-            "3",
-        ]
+        assert args == ["pg_isready", "-d", _postgres_url(), "-t", "3"]
         result = Mock()
         result.returncode = 0
         result.stdout = "accepting connections\n"
@@ -270,6 +270,9 @@ def test_check_postgres_fallback_accepts_protocol_response(monkeypatch):
 
     from psynet.services import check_postgres
 
+    monkeypatch.setenv(
+        "DATABASE_URL", "postgresql://dallinger:dallinger@localhost/dallinger"
+    )
     real_import = builtins.__import__
 
     def fake_import(name, *args, **kwargs):
