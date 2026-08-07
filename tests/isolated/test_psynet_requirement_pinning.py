@@ -141,18 +141,12 @@ def test_commit_psynet_requirement_requires_pushed_commit(tmp_path, monkeypatch)
         commit_psynet_requirement(source)
 
 
-def test_remote_contains_commit_falls_back_to_remote_advertisement(
-    tmp_path, monkeypatch
-):
+def test_remote_contains_commit_uses_remote_advertisement(tmp_path, monkeypatch):
     from psynet.experiment_scaffold import _remote_contains_commit
 
     source = tmp_path / "psynet"
     source.mkdir()
     commit = "a" * 40
-    monkeypatch.setattr(
-        "psynet.experiment_scaffold._remote_tracking_refs_contain_commit",
-        lambda _source, _commit, remote="origin": False,
-    )
     monkeypatch.setattr(
         "psynet.experiment_scaffold._remote_advertises_commit",
         lambda _source, _commit, remote="origin": True,
@@ -206,10 +200,7 @@ def test_remote_advertises_commit_rejects_unpushed_local_sha(tmp_path):
 
 def test_remote_advertises_commit_without_remote_tracking_refs(tmp_path):
     """CI-style checkouts without origin/<branch> still detect pushed commits."""
-    from psynet.experiment_scaffold import (
-        _remote_advertises_commit,
-        _remote_tracking_refs_contain_commit,
-    )
+    from psynet.experiment_scaffold import _remote_advertises_commit
 
     _remote, work = _git_repo_with_remote(tmp_path)
     older = _empty_commit(work, "older")
@@ -220,10 +211,37 @@ def test_remote_advertises_commit_without_remote_tracking_refs(tmp_path):
         ["git", "-C", str(work), "update-ref", "-d", "refs/remotes/origin/master"]
     )
 
-    assert _remote_tracking_refs_contain_commit(work, tip) is False
-    assert _remote_tracking_refs_contain_commit(work, older) is False
     assert _remote_advertises_commit(work, tip) is True
     assert _remote_advertises_commit(work, older) is True
+
+
+def test_remote_contains_commit_rejects_stale_remote_tracking_ref(tmp_path):
+    """A deleted remote branch must not remain deployable via a stale local ref."""
+    from psynet.experiment_scaffold import _remote_contains_commit
+
+    _remote, work = _git_repo_with_remote(tmp_path)
+    commit = _empty_commit(work, "temporary remote branch")
+    subprocess.check_call(["git", "-C", str(work), "push", "origin", "HEAD:stale"])
+    subprocess.check_call(
+        ["git", "-C", str(work), "push", "origin", "--delete", "stale"]
+    )
+    subprocess.check_call(
+        [
+            "git",
+            "-C",
+            str(work),
+            "update-ref",
+            "refs/remotes/origin/stale",
+            commit,
+        ]
+    )
+
+    containing_refs = subprocess.check_output(
+        ["git", "-C", str(work), "branch", "-r", "--contains", commit],
+        text=True,
+    )
+    assert "origin/stale" in containing_refs
+    assert _remote_contains_commit(work, commit) is False
 
 
 def test_commit_psynet_requirement_requires_origin_remote(tmp_path, monkeypatch):

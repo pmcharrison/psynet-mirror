@@ -387,7 +387,7 @@ def test_bootstrap_and_full_cli_share_setup_scripts_services_commands():
     from click.testing import CliRunner
 
     from psynet.bootstrap_cli import _bootstrap
-    from psynet.bootstrap_commands import scripts, services, setup
+    from psynet.bootstrap_commands import generate_constraints, scripts, services, setup
     from psynet.command_line import psynet
 
     assert _bootstrap.commands["setup"] is setup
@@ -396,6 +396,8 @@ def test_bootstrap_and_full_cli_share_setup_scripts_services_commands():
     assert psynet.commands["scripts"] is scripts
     assert _bootstrap.commands["services"] is services
     assert psynet.commands["services"] is services
+    assert _bootstrap.commands["generate-constraints"] is generate_constraints
+    assert psynet.commands["generate-constraints"] is generate_constraints
 
     for cli in (_bootstrap, psynet):
         result = CliRunner().invoke(cli, ["setup", "--help"])
@@ -408,7 +410,9 @@ def test_bootstrap_cli_reports_missing_experiment_extra(monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["psynet", "debug", "local"])
     monkeypatch.setattr(
         "psynet.bootstrap_cli._load_full_psynet_cli",
-        lambda: (_ for _ in ()).throw(ImportError("no experiment extra")),
+        lambda: (_ for _ in ()).throw(
+            ModuleNotFoundError("No module named 'dallinger'", name="dallinger")
+        ),
     )
     from psynet.bootstrap_cli import main
 
@@ -416,6 +420,41 @@ def test_bootstrap_cli_reports_missing_experiment_extra(monkeypatch, capsys):
         main()
     assert exc.value.code == 1
     assert "psynet[experiment]" in capsys.readouterr().err
+
+
+def test_bootstrap_cli_does_not_mask_internal_import_error(monkeypatch):
+    """Ordinary import defects propagate instead of looking like missing extras."""
+    monkeypatch.setattr("sys.argv", ["psynet", "debug", "local"])
+    monkeypatch.setattr(
+        "psynet.bootstrap_cli._load_full_psynet_cli",
+        lambda: (_ for _ in ()).throw(ImportError("missing internal symbol")),
+    )
+    from psynet.bootstrap_cli import main
+
+    with pytest.raises(ImportError, match="missing internal symbol"):
+        main()
+
+
+def test_runtime_initialization_retries_after_failure(monkeypatch):
+    """A failed initialization attempt must not poison later calls."""
+    from psynet import runtime_init
+
+    attempts = iter([RuntimeError("transient failure"), None])
+
+    def initialize():
+        outcome = next(attempts)
+        if outcome is not None:
+            raise outcome
+
+    monkeypatch.setattr(runtime_init, "_runtime_initialized", False)
+    monkeypatch.setattr(runtime_init, "_initialize_runtime", initialize)
+
+    with pytest.raises(RuntimeError, match="transient failure"):
+        runtime_init.ensure_runtime()
+    assert runtime_init._runtime_initialized is False
+
+    runtime_init.ensure_runtime()
+    assert runtime_init._runtime_initialized is True
 
 
 @pytest.mark.parametrize(

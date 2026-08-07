@@ -1,8 +1,9 @@
 """Shared Click commands for the bootstrap and full PsyNet CLIs.
 
-``setup``, ``scripts``, and ``services`` are registered on both the thin
-bootstrap group and the full ``psynet.command_line`` group. Keeping a single
-definition prevents option/help drift (for example ``--force-foreign-env``).
+``setup``, ``scripts``, ``services``, and ``generate-constraints`` are
+registered on both the thin bootstrap group and the full
+``psynet.command_line`` group. Keeping a single definition prevents
+option/help drift (for example ``--force-foreign-env``).
 
 These commands must remain importable without ``psynet[experiment]`` or
 Dallinger. Heavy imports stay inside command bodies.
@@ -196,8 +197,17 @@ def services_ensure(assume_yes):
     ensure_local_services(assume_yes=assume_yes, strict=True)
 
 
+@click.command("generate-constraints")
+def generate_constraints():
+    """Generate constraints.txt from requirements.txt."""
+    from psynet.constraints_compile import generate_constraints_file
+
+    generate_constraints_file()
+
+
 def register_bootstrap_commands(group: click.Group) -> None:
-    """Attach shared ``setup``, ``scripts``, and ``services`` to ``group``."""
+    """Attach shared thin-bootstrap commands to ``group``."""
     group.add_command(setup)
     group.add_command(scripts)
     group.add_command(services)
+    group.add_command(generate_constraints)

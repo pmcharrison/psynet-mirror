@@ -988,8 +988,10 @@ def test_scripts_scaffold_rejects_dotted_directory_name(tmp_path):
 
 
 def test_scripts_scaffold_preserves_existing_constraints(tmp_path):
-    constraints = "# existing constraints\n"
-    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    requirements = "psynet==0.0.0\n"
+    digest = hashlib.md5(requirements.encode()).hexdigest()
+    constraints = f"# existing constraints\n# requirements md5: {digest}\n"
+    (tmp_path / "requirements.txt").write_text(requirements)
     (tmp_path / "constraints.txt").write_text(constraints)
 
     with working_directory(tmp_path):
@@ -2010,6 +2012,7 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
     with working_directory(tmp_path):
         assert missing_scaffold_paths_required_for_local_run() == [
             ".gitignore",
+            ".python-version",
             "Dockerfile",
             "config.txt",
             "docker",
@@ -2017,6 +2020,7 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
         ]
 
         (tmp_path / ".gitignore").write_text("source_code.zip\n")
+        (tmp_path / ".python-version").write_text("3.13\n")
         (tmp_path / "config.txt").touch()
         assert missing_scaffold_paths_required_for_local_run() == [
             "Dockerfile",
@@ -2061,6 +2065,7 @@ def test_check_experiment_directory_reports_missing_boilerplate(tmp_path):
     assert "standalone" in message.lower()
     for required_path in (
         ".gitignore",
+        ".python-version",
         "config.txt",
         "Dockerfile",
         "test.py",
@@ -2100,6 +2105,7 @@ def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkey
 
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
     (tmp_path / ".gitignore").write_text("source_code.zip\n")
+    (tmp_path / ".python-version").write_text("3.13\n")
     (tmp_path / "config.txt").touch()
 
     with working_directory(tmp_path):
@@ -2170,6 +2176,7 @@ def test_test_local_reports_missing_scaffold_like_debug(tmp_path, monkeypatch):
     assert "psynet setup" in message
     for required_path in (
         ".gitignore",
+        ".python-version",
         "config.txt",
         "Dockerfile",
         "test.py",

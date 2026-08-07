@@ -25,6 +25,7 @@ _STATIC_FILE_PROFILES = {
 _LEGACY_LOCAL_RUN_SCAFFOLD_PATHS = frozenset(
     {
         ".gitignore",
+        ".python-version",
         "Dockerfile",
         "config.txt",
         "test.py",

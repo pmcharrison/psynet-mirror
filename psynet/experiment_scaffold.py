@@ -39,6 +39,7 @@ _TEMPLATE_DIRECTORIES = ("docker",)
 # templates such as ``.vscode/`` and ``.github/workflows/``.
 _TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
     ".gitignore",
+    ".python-version",
     "Dockerfile",
     "test.py",
     "config.txt",
@@ -218,22 +219,6 @@ def _git_remote_url(source: Path, remote: str = "origin") -> str | None:
     return url or None
 
 
-def _remote_tracking_refs_contain_commit(
-    source: Path, commit: str, remote: str = "origin"
-) -> bool:
-    """Return whether a local remote-tracking ref already contains ``commit``."""
-    try:
-        output = subprocess.check_output(
-            ["git", "-C", str(source), "branch", "-r", "--contains", commit],
-            stderr=subprocess.DEVNULL,
-            text=True,
-        )
-    except (OSError, subprocess.CalledProcessError):
-        return False
-    prefix = f"{remote}/"
-    return any(line.strip().startswith(prefix) for line in output.splitlines())
-
-
 def _remote_advertises_commit(
     source: Path, commit: str, remote: str = "origin"
 ) -> bool:
@@ -340,12 +325,11 @@ def _locally_present_commit_tips(source: Path, tips: list[str]) -> list[str]:
 def _remote_contains_commit(source: Path, commit: str, remote: str = "origin") -> bool:
     """Return whether ``commit`` is available on ``remote``.
 
-    Prefers local remote-tracking refs, then falls back to asking the remote
-    which refs it advertises.
+    Current remote heads and tags are authoritative. Local remote-tracking refs
+    can be stale after a branch deletion or force-push, so they must not prove
+    deployability by themselves.
     """
-    return _remote_tracking_refs_contain_commit(
-        source, commit, remote=remote
-    ) or _remote_advertises_commit(source, commit, remote=remote)
+    return _remote_advertises_commit(source, commit, remote=remote)
 
 
 def _installed_psynet_file_path() -> Path | None:

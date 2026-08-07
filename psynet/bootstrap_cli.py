@@ -17,9 +17,9 @@ The ``main()`` function inspects ``sys.argv`` to decide which CLI to run:
 
 - Otherwise (or for bare ``psynet`` / ``psynet --help``) the full heavy CLI
   in ``psynet.command_line`` is imported and invoked.  If that import fails
-  with an ``ImportError`` (i.e. the ``[experiment]`` extra is not installed),
-  a friendly message is printed that directs the user to run ``psynet setup``
-  or install ``psynet[experiment]``.
+  because a runtime module is missing, a friendly message names that module
+  and directs the user to run ``psynet setup`` or install
+  ``psynet[experiment]``. Other import defects propagate unchanged.
 
 This pattern means that bootstrap commands are always fast and never require
 the experiment runtime, while full-featured experiment commands are still
@@ -63,17 +63,6 @@ def _bootstrap():
 
 
 register_bootstrap_commands(_bootstrap)
-
-
-# -- generate-constraints ---------------------------------------------------
-
-
-@_bootstrap.command("generate-constraints")
-def generate_constraints():
-    """Generate the constraints.txt file from requirements.txt."""
-    from psynet.constraints_compile import generate_constraints_file
-
-    generate_constraints_file()
 
 
 # ---------------------------------------------------------------------------
@@ -125,12 +114,15 @@ def main() -> None:
     # Try loading the full experiment CLI.
     try:
         _full_psynet = _load_full_psynet_cli()
-    except ImportError as exc:
-        # Experiment runtime not installed.
+    except ModuleNotFoundError as exc:
+        # A dependency of the experiment runtime is not installed. Include the
+        # exact module name rather than masking every ImportError as this case.
+        missing_module = exc.name or str(exc)
         if first is None or first in ("--help", "-h"):
             # Show bootstrap help, note that more commands need [experiment].
             click.echo(
-                "PsyNet bootstrap CLI (psynet[experiment] not installed).\n\n"
+                "PsyNet bootstrap CLI "
+                f"(full runtime module {missing_module!r} is unavailable).\n\n"
                 "Available commands: setup, scripts, services, generate-constraints\n\n"
                 "To access full experiment commands:\n"
                 "  psynet setup          (installs psynet[experiment] via constraints)\n"
@@ -140,7 +132,7 @@ def main() -> None:
         else:
             click.echo(
                 f"Error: command '{first}' requires the full PsyNet experiment "
-                "runtime, which is not installed.\n\n"
+                f"runtime, but module {missing_module!r} is unavailable.\n\n"
                 "Install it with:\n"
                 "  psynet setup\n"
                 "or:\n"

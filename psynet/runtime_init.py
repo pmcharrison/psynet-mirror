@@ -39,7 +39,12 @@ def ensure_runtime() -> None:
     global _runtime_initialized
     if _runtime_initialized:
         return
+    _initialize_runtime()
     _runtime_initialized = True
+
+
+def _initialize_runtime() -> None:
+    """Apply heavy runtime imports and patches."""
 
     import asyncio
     import warnings

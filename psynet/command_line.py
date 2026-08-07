@@ -1987,26 +1987,6 @@ def setup_experiment_variables(experiment_class):
     return experiment
 
 
-########################
-# generate-constraints #
-########################
-@psynet.command()
-@click.pass_context
-@require_requirements_txt
-def generate_constraints(ctx):
-    """
-    Generate the constraints.txt file from requirements.txt.
-    """
-    from .constraints_compile import generate_constraints_file
-
-    try:
-        # We have removed check_psynet_requirement_is_unambiguous here because it caused problems for Docker users.
-        # Instead, we just run this in the sandbox/deploy prechecks.
-        generate_constraints_file()
-    finally:
-        reset_console()
-
-
 @psynet.command()
 @require_requirements_txt
 def check_constraints():
