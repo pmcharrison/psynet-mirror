@@ -101,6 +101,9 @@ For custom live controls, subclass ``psynet.session.LiveSessionControl`` and set
 the browser config (``session_id``, ``group_id``, ``participant_id``, and
 ``participant_ids``) and creates the persisted live-session row before the page
 is rendered.
+If the control is created with a trial, PsyNet links that trial to the live
+session so server-side WebSocket handlers can update trial state from the
+authoritative live session.
 Experiment code can call ``live_session.end(experiment)`` when its own
 completion condition is met; this sends a built-in ``sessionEnd`` event.
 

@@ -329,15 +329,17 @@ class RockPaperScissorsControl(LiveSessionControl):
     external_template = "rps-control.html"
     macro = "rps_control"
 
-    def __init__(self, participant, color, n_rounds=N_ROUNDS, choices=CHOICES):
+    def __init__(self, trial, participant, color, n_rounds=N_ROUNDS, choices=CHOICES):
         # The board advances itself once all rounds are revealed, so we hide the
         # default 'Next' button and submit programmatically from the template.
+        self.trial = trial
         self.color = color
         self.n_rounds = n_rounds
         self.choices = choices
         super().__init__(
             participant=participant,
             group_type=GROUP_TYPE,
+            trial=trial,
             show_next_button=False,
         )
 
@@ -385,7 +387,7 @@ class RockPaperScissorsTrial(StaticTrial):
         return ModularPage(
             "play_game",
             prompt,
-            RockPaperScissorsControl(participant=participant, color=color),
+            RockPaperScissorsControl(trial=self, participant=participant, color=color),
             time_estimate=30,
             save_answer="rps_moves",
         )

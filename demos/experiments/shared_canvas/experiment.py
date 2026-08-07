@@ -233,15 +233,6 @@ def instruction_page():
     return InfoPage(content, time_estimate=20)
 
 
-def build_session_id(trial, group) -> str:
-    return f"shared_canvas:{trial.network.id}:group:{int(group.id)}"
-
-
-def participant_order(participant: Participant):
-    group = participant.active_sync_groups[GROUP_TYPE]
-    return sorted(group.participants, key=lambda p: p.id)
-
-
 def build_bot_answer(bot) -> dict:
     return {
         "completed_live_canvas_browser": True,
@@ -252,12 +243,6 @@ def build_bot_answer(bot) -> dict:
 
 class SharedCanvasSession(LiveSession):
     """Persisted live session for one shared-canvas group."""
-
-    @classmethod
-    def build_session_id(cls, participant, group, control):
-        """Return the shared-canvas session ID."""
-
-        return build_session_id(control.trial, group)
 
     @classmethod
     def build_initial_state(cls, participant_ids, participant, group, control):
@@ -342,12 +327,10 @@ class SharedCanvasControl(LiveSessionControl):
         super().__init__(
             participant=participant,
             group_type=GROUP_TYPE,
+            trial=trial,
             show_next_button=False,
         )
         trial.initialize_coin_count()
-
-    def format_answer(self, raw_answer, **kwargs):
-        return raw_answer
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return build_bot_answer(bot)
@@ -404,9 +387,6 @@ class SharedCanvasTrial(StaticTrial):
             time_estimate=TRIAL_SECONDS + 5,
         )
 
-    def format_answer(self, raw_answer, **kwargs):
-        return raw_answer
-
     def score_answer(self, answer, definition):
         return self.coin_count
 
@@ -421,11 +401,6 @@ class SharedCanvasTrial(StaticTrial):
             tags.p(f"Your coin bonus is ${bonus:.2f}.")
             tags.p("Thank you for exploring the shared canvas.")
         return InfoPage(content, time_estimate=5)
-
-
-class WorldNode(StaticNode):
-    def create_definition_from_seed(self, seed, experiment, participant):
-        return self.definition
 
 
 class Exp(psynet.experiment.Experiment):
@@ -457,7 +432,7 @@ class Exp(psynet.experiment.Experiment):
             id_="shared_canvas_worlds",
             trial_class=SharedCanvasTrial,
             nodes=[
-                WorldNode(definition={"world": world}) for world in WORLD_DEFINITIONS
+                StaticNode(definition={"world": world}) for world in WORLD_DEFINITIONS
             ],
             expected_trials_per_participant=1,
             max_trials_per_participant=1,
@@ -473,7 +448,10 @@ class Exp(psynet.experiment.Experiment):
     def position(self, participant, message: PositionMessage, receive_time):
         """Persist and broadcast a high-frequency position event."""
 
-        target_participant_ids = [p.id for p in participant_order(participant)]
+        group = participant.active_sync_groups[GROUP_TYPE]
+        target_participant_ids = [
+            p.id for p in sorted(group.participants, key=lambda p: p.id)
+        ]
         if int(participant.id) not in [int(p) for p in target_participant_ids]:
             return
 
@@ -531,8 +509,8 @@ class Exp(psynet.experiment.Experiment):
         )
         if accepted:
             state = live_session.state or {}
-            trial = participant.current_trial
-            if isinstance(trial, SharedCanvasTrial):
+            trial = live_session.get_participant_trial(participant)
+            if trial is not None:
                 trial.record_coin()
             self.websocket.send(
                 live_session.participant_ids,

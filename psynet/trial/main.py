@@ -310,6 +310,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     score = Column(Float)
     performance_reward = Column(Float)
     parent_trial_id = Column(Integer, ForeignKey("info.id"), index=True)
+    live_session_id = Column(Integer, ForeignKey("live_session.id"), index=True)
     answer = Column(PythonObject)
     propagate_failure = Column(Boolean)
     response_id = Column(Integer, ForeignKey("response.id"), index=True)
@@ -362,6 +363,11 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     )
     parent_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[parent_trial_id], uselist=False
+    )
+    live_session = relationship(
+        "psynet.session.LiveSession",
+        foreign_keys=[live_session_id],
+        back_populates="trials",
     )
     response = relationship("psynet.timeline.Response")
 

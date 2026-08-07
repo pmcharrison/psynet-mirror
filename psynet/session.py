@@ -5,10 +5,12 @@ from __future__ import annotations
 from dallinger import db
 from pydantic import Field
 from sqlalchemy import Boolean, Column, String
+from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonDict, PythonList
 from psynet.modular_page import Control, NoArgumentProvided
+from psynet.utils import model_name_to_snake_case
 from psynet.websocket import WebSocketMessage
 
 STATE_REQUEST_EVENT = "stateRequest"
@@ -43,7 +45,14 @@ class _LiveSessionMixin:
     def build_session_id(cls, participant, group, control):
         """Return the live-session ID for a participant/group/control context."""
 
-        return f"{cls.__name__}:group:{int(group.id)}"
+        parts = [model_name_to_snake_case(cls.__name__)]
+        trial = getattr(control, "trial", None)
+        network = getattr(trial, "network", None)
+        network_id = getattr(network, "id", None)
+        if network_id is not None:
+            parts.extend(["network", str(int(network_id))])
+        parts.extend(["group", str(int(group.id))])
+        return ":".join(parts)
 
     @classmethod
     def build_initial_state(cls, participant_ids, participant, group, control):
@@ -159,12 +168,50 @@ class _LiveSessionMixin:
             self.snapshot_payload(),
         )
 
+    def link_trial(self, trial):
+        """Associate a participant trial with this live session."""
+
+        if trial is None:
+            return None
+
+        current_id = getattr(trial, "live_session_id", None)
+        if (
+            current_id is not None
+            and getattr(self, "id", None) is not None
+            and int(current_id) != int(self.id)
+        ):
+            raise ValueError(
+                f"Trial {trial.id} is already linked to live session {current_id}."
+            )
+        trial.live_session = self
+        return trial
+
+    def get_participant_trial(self, participant):
+        """Return the trial linked to this live session for a participant."""
+
+        participant_id = int(getattr(participant, "id", participant))
+        trials = [
+            trial
+            for trial in (self.trials or [])
+            if int(trial.participant_id) == participant_id and not trial.failed
+        ]
+        if len(trials) > 1:
+            raise ValueError(
+                f"Live session {self.session_id!r} has multiple trials for "
+                f"participant {participant_id}."
+            )
+        return trials[0] if trials else None
+
 
 @register_table
 class LiveSession(_LiveSessionMixin, SQLBase, SQLMixin):
     """Generic persisted live session."""
 
     __tablename__ = "live_session"
+    trials = relationship(
+        "psynet.trial.main.Trial",
+        back_populates="live_session",
+    )
 
 
 class LiveSessionControl(Control):
@@ -177,6 +224,7 @@ class LiveSessionControl(Control):
         *,
         participant,
         group_type: str,
+        trial=None,
         params: dict | None = None,
         bot_response=NoArgumentProvided,
         buttons=None,
@@ -188,6 +236,7 @@ class LiveSessionControl(Control):
             show_next_button=show_next_button,
         )
         self.participant = participant
+        self.trial = trial
         self.group_type = group_type
         self.group = self._get_group(participant, group_type)
         self.group_id = int(self.group.id)
@@ -206,6 +255,8 @@ class LiveSessionControl(Control):
             state=initial_state,
             participant_ids=self.participant_ids,
         )
+        if trial is not None:
+            self.live_session.link_trial(trial)
         custom_params = self.session_class.build_params(participant, self.group, self)
         self.live_session_config = {
             "session_id": self.session_id,

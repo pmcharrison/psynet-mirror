@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 from sqlalchemy import Column, String
 
 from psynet.session import (
@@ -132,17 +133,21 @@ def test_live_session_control_derives_config(monkeypatch):
         @classmethod
         def get_or_create(cls, session_id, **kwargs):
             cls.created_with = {"session_id": session_id, **kwargs}
-            return SimpleNamespace(session_id=session_id)
+            cls.created_session = SimpleNamespace(
+                session_id=session_id, link_trial=MagicMock()
+            )
+            return cls.created_session
 
     class DemoControl(LiveSessionControl):
         session_class = DemoSession
         macro = "demo"
 
-        def __init__(self, participant):
+        def __init__(self, participant, trial=None):
             self.custom_value = 10
             super().__init__(
                 participant=participant,
                 group_type="demo_group",
+                trial=trial,
                 params={"extra": "value"},
             )
 
@@ -151,8 +156,9 @@ def test_live_session_control_derives_config(monkeypatch):
     participant = SimpleNamespace(
         id=1, active_sync_groups={"demo_group": group}, sync_group=None
     )
+    trial = SimpleNamespace(id=7)
 
-    control = DemoControl(participant)
+    control = DemoControl(participant, trial=trial)
 
     assert control.live_session_config == {
         "session_id": "demo:9",
@@ -167,6 +173,52 @@ def test_live_session_control_derives_config(monkeypatch):
         "state": {"participant_ids": [1, 2]},
         "participant_ids": [1, 2],
     }
+    DemoSession.created_session.link_trial.assert_called_once_with(trial)
+
+
+def test_live_session_links_trials_by_participant():
+    """LiveSession tracks participant trials associated with a shared session."""
+
+    state = _state()
+    state.id = 10
+    trial = SimpleNamespace(
+        id=7,
+        participant_id=1,
+        failed=False,
+        live_session_id=None,
+        live_session=None,
+    )
+
+    assert state.link_trial(trial) is trial
+    assert trial.live_session is state
+
+    state.__dict__["trials"] = [trial]
+    assert state.get_participant_trial(1) is trial
+    assert state.get_participant_trial(SimpleNamespace(id=2)) is None
+
+
+def test_live_session_default_session_id_uses_class_and_network():
+    """Default live-session IDs include the session class and shared network."""
+
+    group = SimpleNamespace(id=9)
+    trial = SimpleNamespace(network=SimpleNamespace(id=12))
+    control = SimpleNamespace(trial=trial)
+
+    assert (
+        PolymorphicDemoLiveSession.build_session_id(None, group, control)
+        == "polymorphic_demo_live_session:network:12:group:9"
+    )
+
+
+def test_live_session_rejects_mismatched_trial_link():
+    """A trial cannot be silently moved to a different live session."""
+
+    state = _state()
+    state.id = 10
+    trial = SimpleNamespace(id=7, live_session_id=11)
+
+    with pytest.raises(ValueError, match="already linked"):
+        state.link_trial(trial)
 
 
 def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
