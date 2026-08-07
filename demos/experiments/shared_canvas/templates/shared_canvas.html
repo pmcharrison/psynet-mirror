@@ -46,7 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
   var cfg = {{ params.game_config | tojson }};
   var canvas = document.getElementById("shared-canvas");
   var ctx = canvas.getContext("2d");
-  var socket = null;
   var players = {};
   var coins = [];
   var pendingCollections = {};
@@ -66,20 +65,9 @@ document.addEventListener("DOMContentLoaded", function () {
   };
   var bonus = 0;
   var lastDrawAt = performance.now();
-  var startedAt = performance.now();
+  var startedAt = null;
   var submitted = false;
-
-  function wsSend(payload) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      var message = Object.assign({
-        session_id: cfg.session_id,
-        page_uuid: pageUuid,
-        sender: String(cfg.participant_id),
-        immediate: Boolean(cfg.immediate)
-      }, payload);
-      socket.send(cfg.channel + ":" + JSON.stringify(message));
-    }
-  }
+  var gameStarted = false;
 
   function updateBonus(value) {
     bonus = Number(value || 0);
@@ -97,9 +85,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function applySnapshot(msg) {
+    var state = msg.state || msg;
     players = {};
-    Object.keys(msg.players || {}).forEach(function (participantId) {
-      var player = msg.players[participantId];
+    Object.keys(state.players || {}).forEach(function (participantId) {
+      var player = state.players[participantId];
       players[String(participantId)] = Object.assign({}, player, {
         received_at: performance.now()
       });
@@ -107,8 +96,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (players[String(cfg.participant_id)]) {
       own = Object.assign(own, players[String(cfg.participant_id)]);
     }
-    coins = (msg.coins || []).slice();
-    var bonuses = msg.bonuses || {};
+    coins = (state.coins || []).slice();
+    var bonuses = state.bonuses || {};
     updateBonus(bonuses[String(cfg.participant_id)] || 0);
   }
 
@@ -216,8 +205,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var distance = Math.hypot(Number(coin.x) - own.x, Number(coin.y) - own.y);
       if (distance <= (coin.radius || cfg.coin_radius) + cfg.player_radius) {
         pendingCollections[coin.id] = true;
-        wsSend({
-          type: "collect",
+        psynet.websocket.send("collect", {
           coin_id: coin.id,
           x: own.x,
           y: own.y,
@@ -228,8 +216,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function sendPosition() {
-    wsSend({
-      type: "position",
+    psynet.websocket.send("position", {
+      label: own.label,
+      color: own.color,
       x: own.x,
       y: own.y,
       vx: own.vx,
@@ -297,49 +286,31 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("blur", function () { keys = {}; });
   focusCanvas();
 
-  var wsScheme = location.protocol === "https:" ? "wss://" : "ws://";
-  socket = new ReconnectingWebSocket(
-    wsScheme + location.host + "/chat?channel=" + cfg.channel
-    + "&worker_id=" + dallinger.identity.workerId
-    + "&participant_id=" + cfg.participant_id
-    + "&tolerance=" + encodeURIComponent(String(cfg.tolerance))
-  );
-  socket.onopen = function () {
-    wsSend({type: "state_request"});
-  };
-  socket.onmessage = function (event) {
-    if (event.data.indexOf(cfg.channel + ":") !== 0) return;
-    var msg;
-    try {
-      msg = JSON.parse(event.data.slice(cfg.channel.length + 1));
-    } catch (e) { return; }
-    if (msg.session_id && String(msg.session_id) !== String(cfg.session_id)) return;
-    // The current Dallinger relay broadcasts channel messages to subscribers;
-    // target filtering is for rendering only, not a privacy boundary.
-    var targetIds = Array.isArray(msg.target_participant_ids)
-      ? msg.target_participant_ids.map(String)
-      : null;
-    if (targetIds && targetIds.indexOf(String(cfg.participant_id)) === -1) return;
-    if (msg.target_participant_id &&
-        String(msg.target_participant_id) !== String(cfg.participant_id)) return;
-    if (!targetIds && !msg.target_participant_id &&
-        Number(msg.group_id) !== Number(cfg.group_id)) return;
-    if (msg.type === "state_snapshot") {
-      applySnapshot(msg);
-    } else if (msg.type === "position_update") {
-      applyPosition(msg.player);
-    } else if (msg.type === "coin_collected") {
-      applyCollection(msg);
-    } else if (msg.type === "collect_rejected") {
-      handleCollectRejected(msg);
-    }
-  };
+  psynet.session_state.init(cfg);
+  psynet.session_state.onSnapshot(applySnapshot);
+  psynet.session_state.onStarted(startGame);
+  psynet.session_state.ready();
 
-  setInterval(function () { draw(performance.now()); }, cfg.draw_interval_ms);
-  setInterval(sendPosition, cfg.send_interval_ms);
-  setInterval(function () {
-    if (performance.now() - startedAt >= cfg.trial_seconds * 1000) submitFinalAnswer();
-  }, 200);
+  psynet.websocket.handle("position_update", function (msg) {
+    applyPosition(msg.player);
+  });
+  psynet.websocket.handle("coin_collected", function (msg) {
+    applyCollection(msg);
+  });
+  psynet.websocket.handle("collect_rejected", function (msg) {
+    handleCollectRejected(msg);
+  });
+
+  function startGame() {
+    if (gameStarted) return;
+    gameStarted = true;
+    startedAt = performance.now();
+    setInterval(function () { draw(performance.now()); }, cfg.draw_interval_ms);
+    setInterval(sendPosition, cfg.send_interval_ms);
+    setInterval(function () {
+      if (performance.now() - startedAt >= cfg.trial_seconds * 1000) submitFinalAnswer();
+    }, 200);
+  }
 });
 </script>
 {% endmacro %}

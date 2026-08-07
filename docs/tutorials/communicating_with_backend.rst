@@ -9,6 +9,110 @@ The standard way for PsyNet pages to communicate information to the web server i
 
 However, for true flexibility, it can be useful to communicate with the server at arbitrary points in time, without necessarily advancing to the next page. To achieve this, we need some custom code on both the Python side (``experiment.py``) and the HTML side (e.g., ``custom-prompt.html``).
 
+Real-time communication with WebSockets
+---------------------------------------
+
+For real-time pages, use PsyNet's native WebSocket helpers. On the browser side,
+``psynet.websocket.send`` sends a named message to the experiment, and
+``psynet.websocket.handle`` registers a callback for messages from the server:
+
+.. code-block:: javascript
+
+    psynet.websocket.send(
+        "userMessage",
+        "Hi I'm a participant, what's up"
+    );
+
+    psynet.websocket.send(
+        "shoot",
+        {coords: [60, 64], type: "bullet"}
+    );
+
+    psynet.websocket.handle("serverMessage", function(message) {
+        display.innerHTML = message;
+    });
+
+On the Python side, add ``@websocket_handler`` methods to the experiment class:
+
+.. code-block:: python
+
+    import logging
+
+    import psynet.experiment
+    from dallinger.experiment import scheduled_task
+    from dallinger.models import timenow
+    from psynet.participant import Participant
+    from psynet.websocket import websocket_handler
+
+    logger = logging.getLogger()
+
+
+    class Exp(psynet.experiment.Experiment):
+        @scheduled_task("interval", seconds=1.0, max_instances=1)
+        @staticmethod
+        def time_update():
+            participants = Participant.query.filter_by(status="working").all()
+            for participant in participants:
+                participant.websocket.send(
+                    "serverMessage",
+                    f"Hi, the time is {timenow()}",
+                )
+
+        @websocket_handler("userMessage")
+        def user_message(self, participant, message):
+            logger.info(
+                "Participant %i sent the following message: %r",
+                participant.id,
+                message,
+            )
+
+        @websocket_handler("shoot")
+        def shoot(self, participant, message):
+            coords = message["coords"]
+            projectile_type = message["type"]
+
+For structured payloads, pass a Pydantic model to the decorator:
+
+.. code-block:: python
+
+    from pydantic import BaseModel
+
+
+    class ShootMessage(BaseModel):
+        coords: tuple[float, float]
+        type: str
+
+
+    class Exp(psynet.experiment.Experiment):
+        @websocket_handler("shoot", model=ShootMessage)
+        def shoot(self, participant, message: ShootMessage):
+            process_shot(participant, message.coords, message.type)
+
+Recovering shared state after reconnects
+----------------------------------------
+
+For multiplayer or other shared real-time pages, store authoritative state in
+``psynet.session_state.SessionState``. The browser helper ``psynet.session_state`` requests
+fresh snapshots on connect/reconnect and tracks whether all expected participants
+are ready:
+
+.. code-block:: javascript
+
+    psynet.session_state.init({
+        namespace: "my_game",
+        session_id: "round-1"
+    });
+
+    psynet.session_state.onSnapshot(function(snapshot) {
+        render(snapshot.state);
+    });
+
+    psynet.session_state.onStarted(function(snapshot) {
+        startGameLoop(snapshot.state);
+    });
+
+    psynet.session_state.ready();
+
 The Python side involves using a special decorator called ``experiment_route``. We use this in our ``Experiment`` class. For example, we might write something like this:
 
 .. code-block:: python

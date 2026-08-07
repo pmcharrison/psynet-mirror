@@ -177,6 +177,254 @@
       psynet.log.generic(msg, "debug");
     };
 
+    psynet.websocket = (function () {
+      let socket = null;
+      let reconnectTimer = null;
+      let manuallyClosed = false;
+      let pendingFrames = [];
+      let handlers = {};
+      let connectHandlers = [];
+      let messageContext = {};
+
+      function participantId() {
+        return String(
+          (window.dallinger &&
+            dallinger.identity &&
+            dallinger.identity.participantId) ||
+            psynetTemplateData.participantId ||
+            "",
+        );
+      }
+
+      function uniqueId() {
+        return String(
+          psynet.uniqueId ||
+            psynetTemplateData.uniqueId ||
+            psynetTemplateData.jsVars.uniqueId ||
+            "",
+        );
+      }
+
+      function pageUuid() {
+        return String(
+          (typeof window.pageUuid !== "undefined" && window.pageUuid) ||
+            psynetTemplateData.jsVars.pageUuid ||
+            "",
+        );
+      }
+
+      function url() {
+        let wsScheme = location.protocol === "https:" ? "wss://" : "ws://";
+        let params = new URLSearchParams({
+          participant_id: participantId(),
+          unique_id: uniqueId(),
+          page_uuid: pageUuid(),
+        });
+        return wsScheme + location.host + "/psynet/websocket?" + params.toString();
+      }
+
+      function flushPendingFrames() {
+        while (pendingFrames.length > 0 && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(pendingFrames.shift()));
+        }
+      }
+
+      function dispatch(frame) {
+        let callbacks = handlers[frame.type] || [];
+        let message = Object.prototype.hasOwnProperty.call(frame, "message")
+          ? frame.message
+          : frame;
+        callbacks.forEach((callback) => callback(message, frame));
+      }
+
+      function scheduleReconnect() {
+        if (manuallyClosed || reconnectTimer !== null) return;
+        reconnectTimer = setTimeout(function () {
+          reconnectTimer = null;
+          connect();
+        }, 1000);
+      }
+
+      function connect() {
+        if (
+          socket &&
+          (socket.readyState === WebSocket.OPEN ||
+            socket.readyState === WebSocket.CONNECTING)
+        ) {
+          return socket;
+        }
+
+        manuallyClosed = false;
+        socket = new WebSocket(url());
+
+        socket.onopen = function () {
+          flushPendingFrames();
+          connectHandlers.forEach((handler) => handler());
+        };
+
+        socket.onmessage = function (event) {
+          try {
+            dispatch(JSON.parse(event.data));
+          } catch (error) {
+            psynet.log.warning("Could not parse websocket message: " + error);
+          }
+        };
+
+        socket.onclose = scheduleReconnect;
+        socket.onerror = function () {
+          if (socket) socket.close();
+        };
+
+        return socket;
+      }
+
+      function send(type, message) {
+        if (
+          message &&
+          typeof message === "object" &&
+          !Array.isArray(message) &&
+          Object.keys(messageContext).length > 0
+        ) {
+          message = Object.assign({}, messageContext, message);
+        }
+        let frame = {
+          type: type,
+          participant_id: participantId(),
+          unique_id: uniqueId(),
+          page_uuid: pageUuid(),
+        };
+        if (message !== undefined) {
+          frame.message = message;
+        }
+
+        connect();
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(frame));
+        } else {
+          pendingFrames.push(frame);
+        }
+      }
+
+      function handle(type, callback) {
+        if (!handlers[type]) handlers[type] = [];
+        handlers[type].push(callback);
+        connect();
+        return function () {
+          handlers[type] = (handlers[type] || []).filter((x) => x !== callback);
+        };
+      }
+
+      function onConnect(callback) {
+        connectHandlers.push(callback);
+        connect();
+        return function () {
+          connectHandlers = connectHandlers.filter((x) => x !== callback);
+        };
+      }
+
+      function setMessageContext(context) {
+        messageContext = Object.assign({}, messageContext, context || {});
+      }
+
+      function close() {
+        manuallyClosed = true;
+        if (socket) socket.close();
+      }
+
+      return {
+        connect: connect,
+        close: close,
+        handle: handle,
+        onConnect: onConnect,
+        send: send,
+        setMessageContext: setMessageContext,
+      };
+    })();
+
+    psynet.session_state = (function () {
+      let config = {
+        namespace: "default",
+        session_id: null,
+      };
+      let snapshotHandlers = [];
+      let startedHandlers = [];
+
+      let api = {
+        snapshot: null,
+        state: {},
+        started: false,
+      };
+
+      function matchesConfig(snapshot) {
+        return (
+          snapshot &&
+          snapshot.namespace === config.namespace &&
+          snapshot.session_id === config.session_id
+        );
+      }
+
+      function applySnapshot(snapshot) {
+        if (!matchesConfig(snapshot)) return;
+        let wasStarted = api.started;
+        api.snapshot = snapshot;
+        api.state = snapshot.state || {};
+        api.started = Boolean(snapshot.started);
+        snapshotHandlers.forEach((handler) => handler(snapshot));
+        if (!wasStarted && api.started) {
+          startedHandlers.forEach((handler) => handler(snapshot));
+        }
+      }
+
+      function request() {
+        if (!config.session_id) return;
+        psynet.websocket.send("stateRequest", {
+          namespace: config.namespace,
+          session_id: config.session_id,
+        });
+      }
+
+      api.init = function (options) {
+        config = Object.assign(config, options || {});
+        if (config.session_id) {
+          psynet.websocket.setMessageContext({
+            session_id: config.session_id,
+          });
+        }
+        psynet.websocket.handle("stateSnapshot", applySnapshot);
+        psynet.websocket.onConnect(request);
+        request();
+        return api;
+      };
+
+      api.ready = function () {
+        if (!config.session_id) return;
+        psynet.websocket.send("ready", {
+          namespace: config.namespace,
+          session_id: config.session_id,
+        });
+      };
+
+      api.request = request;
+
+      api.onSnapshot = function (handler) {
+        snapshotHandlers.push(handler);
+        if (api.snapshot) handler(api.snapshot);
+        return function () {
+          snapshotHandlers = snapshotHandlers.filter((x) => x !== handler);
+        };
+      };
+
+      api.onStarted = function (handler) {
+        startedHandlers.push(handler);
+        if (api.started && api.snapshot) handler(api.snapshot);
+        return function () {
+          startedHandlers = startedHandlers.filter((x) => x !== handler);
+        };
+      };
+
+      return api;
+    })();
+
     let Trial = function () {
       let trial = {
         state: null,

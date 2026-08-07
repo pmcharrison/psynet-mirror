@@ -138,6 +138,12 @@ GroupBarriers within the trial, for example:
             ),
         )
 
+For real-time synchronized games, use :class:`psynet.session_state.SessionState` to
+persist the server's authoritative state and let clients recover after refreshes
+or reconnects. The browser-side ``psynet.session_state`` helper requests state
+snapshots automatically and tracks whether all expected participants have sent a
+ready event before the shared interaction starts.
+
 Demo
 ----
 

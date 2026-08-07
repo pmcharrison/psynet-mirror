@@ -28,14 +28,17 @@
 
 <script>
     // The server owns the game: this script only sends the chosen action and
-    // renders the snapshots the server sends back (see EnableRockPaperScissors).
+    // renders the snapshots the server sends back.
     document.addEventListener("DOMContentLoaded", function () {
-        var CHANNEL = {{ config.channel | tojson }};
-        var ROOM_ID = {{ config.room_id | tojson }};
-        var MY_ID   = String(dallinger.identity.participantId);
-        var round   = 1;
+        var NAMESPACE = {{ config.namespace | tojson }};
+        var ROOM_ID   = {{ config.room_id | tojson }};
+        var MY_ID     = String(dallinger.identity.participantId);
+        var round     = 1;
+        var completed = false;
 
-        var buttons  = Array.prototype.slice.call(document.getElementsByClassName("rps-choice"));
+        var buttons  = Array.prototype.slice.call(
+            document.getElementsByClassName("rps-choice")
+        );
         var statusEl = document.getElementById("rps-status");
         var scoreEl  = document.getElementById("rps-score");
         var logEl    = document.getElementById("rps-log");
@@ -44,50 +47,75 @@
             buttons.forEach(function (b) { b.disabled = !enabled; });
         }
 
-        var wsScheme = location.protocol === "https:" ? "wss://" : "ws://";
-        var socket = new ReconnectingWebSocket(
-            wsScheme + location.host + "/chat?channel=" + CHANNEL
-            + "&worker_id=" + dallinger.identity.workerId
-            + "&participant_id=" + MY_ID
-        );
-
-        socket.onopen = function () { setEnabled(true); };
-
-        socket.onmessage = function (event) {
-            if (event.data.indexOf(CHANNEL + ":") !== 0) return;
-            var msg;
-            try { msg = JSON.parse(event.data.slice(CHANNEL.length + 1)); }
-            catch (e) { return; }
-            if (msg.type !== "reveal" || msg.target !== MY_ID) return;
-
+        function appendReveal(msg) {
             var line = document.createElement("p");
             line.textContent = msg.result;
             logEl.appendChild(line);
             logEl.scrollTop = logEl.scrollHeight;
             scoreEl.textContent = msg.scoreboard;
             statusEl.textContent = msg.status;
+        }
 
-            if (msg.finished) {
-                psynet.nextPage(msg.answer);
+        function participantHasSubmitted(state) {
+            return (
+                (state.submitted_participant_ids || [])
+                    .map(String)
+                    .indexOf(MY_ID) !== -1
+            );
+        }
+
+        function renderSnapshot(snapshot) {
+            if (!snapshot || snapshot.session_id !== ROOM_ID) return;
+
+            var state = snapshot.state || {};
+            var history = ((state.reveal_history || {})[MY_ID]) || [];
+            round = state.current_round || round;
+            logEl.innerHTML = "";
+            history.forEach(appendReveal);
+
+            if (history.length === 0) {
+                scoreEl.textContent = "Score — you: 0, partner: 0";
+                statusEl.textContent = (
+                    "Round " + round + " of {{ config.n_rounds }}: choose your action."
+                );
+            }
+
+            var latest = history[history.length - 1];
+            if (latest && latest.finished) {
+                setEnabled(false);
+                if (!completed) {
+                    completed = true;
+                    psynet.nextPage(latest.answer);
+                }
+                return;
+            }
+
+            if (!snapshot.started) {
+                statusEl.textContent = "Waiting for your partner to load the game…";
+                setEnabled(false);
+            } else if (participantHasSubmitted(state)) {
+                statusEl.textContent = "Waiting for your partner…";
+                setEnabled(false);
             } else {
-                round = msg.round;
                 setEnabled(true);
             }
-        };
+        }
+
+        psynet.session_state.init({
+            namespace: NAMESPACE,
+            session_id: ROOM_ID
+        });
+        psynet.session_state.onSnapshot(renderSnapshot);
+        psynet.session_state.ready();
 
         buttons.forEach(function (button) {
             button.onclick = function () {
                 setEnabled(false);
                 statusEl.textContent = "Waiting for your partner…";
-                // ``sender`` tells Dallinger which participant this message is from.
-                socket.send(CHANNEL + ":" + JSON.stringify({
-                    type: "choose",
-                    room_id: ROOM_ID,
+                psynet.websocket.send("choose", {
                     round: round,
-                    action: button.getAttribute("data-action"),
-                    page_uuid: pageUuid,
-                    sender: MY_ID,
-                }));
+                    action: button.getAttribute("data-action")
+                });
             };
         });
     });

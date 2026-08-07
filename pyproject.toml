@@ -38,6 +38,7 @@ classifiers = [
 dependencies = [
     "babel",
     "dallinger[docker]>=12.2.0,<13",
+    "flask-sock",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf

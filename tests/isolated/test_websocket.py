@@ -1,239 +1,192 @@
 import json
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from typing import Literal, Optional
 from unittest.mock import MagicMock
 
-import pytest
-from pydantic import Field, ValidationError
+from pydantic import Field
 
-from psynet.timeline import NullElt
 from psynet.websocket import (
-    ClientWebSocketEvent,
-    ServerWebSocketEvent,
-    ValidatedWebSocketElt,
-    WebSocketEventService,
+    ExperimentWebSocket,
+    ParticipantWebSocket,
+    WebSocketMessage,
     _extract_websocket_participant_id,
+    collect_websocket_handlers,
+    dispatch_websocket_frame,
+    extract_websocket_event_type,
+    make_frame,
     websocket_handler,
 )
 
 
-class EchoService(WebSocketEventService):
-    class EchoEvent(ClientWebSocketEvent):
-        """An event used to exercise validated dispatch."""
+class EchoMessage(WebSocketMessage):
+    """Message used to exercise Pydantic validation."""
 
-        type: Literal["echo"]
-        value: int = Field(gt=0)
-
-    @websocket_handler(EchoEvent)
-    def echo(self, event):
-        """Record the event and publish a response."""
-        self.participant.handled_value = event.value
-        self.participant.handled_receive_time = event.receive_time
-        self.publish({"type": "echoed", "value": event.value})
-        return event.value
+    value: int = Field(gt=0)
 
 
-class EnableEcho(NullElt, ValidatedWebSocketElt):
-    channel = "echo_channel"
-    service_class = EchoService
+class DoneMessage(WebSocketMessage):
+    """Server message used to exercise serialization."""
+
+    answer: list[str] | None = None
 
 
-class ResolveEcho(EnableEcho):
-    def resolve_participant(self, message):
-        """Resolve test participants from immediate-style websocket messages."""
-        self.resolved_participant_id = _extract_websocket_participant_id(message)
-        return _participant()
+class EchoExperiment:
+    def __init__(self):
+        self._native_websocket_handlers = collect_websocket_handlers(self)
+        self.websocket = MagicMock()
 
+    @websocket_handler("echo", model=EchoMessage)
+    def echo(self, participant, message, receive_time):
+        participant.handled_value = message.value
+        participant.handled_receive_time = receive_time
+        return message.value
 
-class ExplodingService(WebSocketEventService):
-    class ExplodeEvent(ClientWebSocketEvent):
-        type: Literal["explode"]
-
-    @websocket_handler(ExplodeEvent)
-    def explode(self, event):
-        """Raise a domain error after successful parsing."""
-        raise ValueError("handler failure")
-
-
-class EnableExploding(NullElt, ValidatedWebSocketElt):
-    channel = "explode_channel"
-    service_class = ExplodingService
+    @websocket_handler("raw")
+    def raw(self, participant, message):
+        participant.raw_message = message
+        return message
 
 
 def _participant(page_uuid="current-page"):
     return SimpleNamespace(id=7, page_uuid=page_uuid)
 
 
-def _experiment():
-    experiment = MagicMock()
-    experiment.publish_to_subscribers = MagicMock()
-    return experiment
+def test_decorated_experiment_handler_validates_and_dispatches_event():
+    """A direct experiment handler receives validated message payloads."""
 
+    participant = _participant()
+    experiment = EchoExperiment()
+    receive_time = datetime(2026, 7, 8, 16, 30, tzinfo=UTC)
 
-def test_decorated_service_handler_parses_and_dispatches_event():
-    """A decorated service method handles its registered Pydantic event model."""
-    service = EchoService(_participant(), _experiment(), "echo_channel")
-
-    assert EchoService.get_rejection_log_label() == "EchoService"
-
-    result = service.dispatch(
-        json.dumps({"type": "echo", "page_uuid": "current-page", "value": 3})
+    result = dispatch_websocket_frame(
+        experiment,
+        participant=participant,
+        frame={
+            "type": "echo",
+            "message": {"value": 3},
+            "page_uuid": "current-page",
+        },
+        receive_time=receive_time,
     )
 
     assert result == 3
-    assert service.participant.handled_value == 3
-    payload = json.loads(service.experiment.publish_to_subscribers.call_args[0][0])
-    assert payload == {"type": "echoed", "value": 3}
+    assert participant.handled_value == 3
+    assert participant.handled_receive_time == receive_time
 
 
-def test_validated_websocket_elt_uses_configured_service():
-    """ValidatedWebSocketElt delegates incoming messages to its service class."""
+def test_raw_experiment_handler_receives_unvalidated_message():
+    """String handlers can receive arbitrary JSON-compatible messages."""
+
     participant = _participant()
-    experiment = _experiment()
+    experiment = EchoExperiment()
+    message = {"coords": [60, 64], "type": "bullet"}
 
-    EnableEcho().handle_message(
-        json.dumps({"type": "echo", "page_uuid": "current-page", "value": 5}),
-        channel_name="echo_channel",
+    result = dispatch_websocket_frame(
+        experiment,
         participant=participant,
-        node=None,
-        receive_time=None,
-        experiment=experiment,
+        frame={"type": "raw", "message": message, "page_uuid": "current-page"},
     )
 
-    assert participant.handled_value == 5
-    experiment.publish_to_subscribers.assert_called_once()
+    assert result == message
+    assert participant.raw_message == message
 
 
-def test_validated_websocket_elt_resolves_participant_from_message():
-    """Immediate websocket messages can resolve participant context from payloads."""
-    experiment = _experiment()
-    elt = ResolveEcho()
-
-    elt.handle_message(
-        json.dumps(
-            {
-                "type": "echo",
-                "page_uuid": "current-page",
-                "value": 8,
-                "sender": "7",
-                "immediate": True,
-            }
-        ),
-        channel_name="echo_channel",
-        participant=None,
-        node=None,
-        receive_time=None,
-        experiment=experiment,
-    )
-
-    assert elt.resolved_participant_id == 7
-    experiment.publish_to_subscribers.assert_called_once()
-
-
-def test_extract_websocket_participant_id_supports_dallinger_fields():
-    """Participant IDs can be extracted from Dallinger websocket payload shapes."""
-    assert _extract_websocket_participant_id(json.dumps({"sender": "12"})) == 12
-    assert _extract_websocket_participant_id(json.dumps({"participant_id": 13})) == 13
-    assert (
-        _extract_websocket_participant_id(
-            json.dumps({"client": {"participant_id": "14"}})
-        )
-        == 14
-    )
-    assert _extract_websocket_participant_id(json.dumps({"sender": "bad"})) is None
-
-
-def test_validated_websocket_elt_ignores_server_events_without_participant(caplog):
-    """Server broadcasts on the same channel are not rejected as client events."""
-    experiment = _experiment()
-
-    EnableEcho().handle_message(
-        json.dumps({"type": "echoed", "value": 3}),
-        channel_name="echo_channel",
-        participant=None,
-        node=None,
-        receive_time=None,
-        experiment=experiment,
-    )
-
-    assert "missing participant" not in caplog.text
-    experiment.publish_to_subscribers.assert_not_called()
-
-
-def test_client_event_rejects_stale_page_uuid():
+def test_dispatch_rejects_stale_page_uuid():
     """Client event dispatch rejects messages from stale pages."""
-    service = EchoService(_participant(), _experiment(), "echo_channel")
+
+    participant = _participant()
+    experiment = EchoExperiment()
 
     assert (
-        service.dispatch(
-            json.dumps({"type": "echo", "page_uuid": "old-page", "value": 1})
+        dispatch_websocket_frame(
+            experiment,
+            participant=participant,
+            frame={"type": "echo", "message": {"value": 1}, "page_uuid": "old"},
         )
         is None
     )
-
-    assert not hasattr(service.participant, "handled_value")
-    service.experiment.publish_to_subscribers.assert_not_called()
+    assert not hasattr(participant, "handled_value")
 
 
-def test_dispatch_stamps_event_with_receive_time():
-    """Dispatch passes server receive time through validated events."""
-    receive_time = datetime(2026, 7, 8, 16, 30)
-    service = EchoService(
-        _participant(),
-        _experiment(),
-        "echo_channel",
-        receive_time=receive_time,
-    )
-    service.dispatch(
-        json.dumps({"type": "echo", "page_uuid": "current-page", "value": 3})
-    )
+def test_dispatch_rejects_invalid_payload():
+    """Pydantic validation failures stop dispatch before the handler runs."""
 
-    assert service.participant.handled_receive_time == datetime(
-        2026, 7, 8, 16, 30, tzinfo=UTC
-    )
+    participant = _participant()
+    experiment = EchoExperiment()
 
-
-def test_invalid_or_unknown_messages_are_rejected():
-    """Unknown types and invalid payloads fail before dispatch."""
-    with pytest.raises(ValueError):
-        EchoService.parse_event(json.dumps({"type": "unknown"}))
-
-    with pytest.raises(ValidationError):
-        EchoService.parse_event(
-            json.dumps({"type": "echo", "page_uuid": "current-page", "value": 0})
+    assert (
+        dispatch_websocket_frame(
+            experiment,
+            participant=participant,
+            frame={"type": "echo", "message": {"value": 0}},
         )
-
-    experiment = _experiment()
-    EnableEcho().handle_message(
-        "not JSON",
-        channel_name="echo_channel",
-        participant=_participant(),
-        node=None,
-        receive_time=None,
-        experiment=experiment,
+        is None
     )
-    experiment.publish_to_subscribers.assert_not_called()
+    assert not hasattr(participant, "handled_value")
 
 
-def test_handler_value_errors_are_not_swallowed():
-    """Handler errors propagate after a message has been validated."""
-    with pytest.raises(ValueError, match="handler failure"):
-        EnableExploding().handle_message(
-            json.dumps({"type": "explode", "page_uuid": "current-page"}),
-            channel_name="explode_channel",
-            participant=_participant(),
-            node=None,
-            receive_time=None,
-            experiment=_experiment(),
-        )
+def test_event_type_and_participant_extraction():
+    """Utilities can inspect raw JSON frames."""
+
+    assert extract_websocket_event_type(json.dumps({"type": "echo"})) == "echo"
+    assert _extract_websocket_participant_id(json.dumps({"participant_id": 13})) == 13
 
 
-def test_outbound_message_serialization_excludes_none():
-    """Outbound message models serialize to compact WebSocket JSON payloads."""
+def test_make_frame_serializes_server_event_models():
+    """Outbound message models serialize to compact WebSocket frame payloads."""
 
-    class DoneMessage(ServerWebSocketEvent):
-        type: Literal["done"] = "done"
-        answer: Optional[list[str]] = None
+    frame = make_frame("done", DoneMessage(answer=None))
+    assert frame == {"type": "done", "message": {}}
 
-    assert json.loads(DoneMessage().to_json()) == {"type": "done"}
+
+def test_participant_websocket_publishes_targeted_event(monkeypatch):
+    """Participant helpers publish targeted Redis fanout frames."""
+
+    published = []
+
+    class FakeRedis:
+        def publish(self, channel, payload):
+            published.append((channel, json.loads(payload)))
+
+    monkeypatch.setattr("psynet.websocket.redis_conn", FakeRedis())
+
+    participant = _participant()
+    ParticipantWebSocket(participant).send("serverMessage", "hello")
+
+    assert len(published) == 1
+    channel, frame = published[0]
+    assert channel == "psynet:websocket:outbound"
+    assert frame == {
+        "type": "serverMessage",
+        "message": "hello",
+        "target_participant_ids": ["7"],
+    }
+
+
+def test_experiment_websocket_send_accepts_one_or_many_targets(monkeypatch):
+    """Experiment helpers publish to one participant or a list of IDs."""
+
+    published = []
+
+    class FakeRedis:
+        def publish(self, channel, payload):
+            published.append(json.loads(payload))
+
+    monkeypatch.setattr("psynet.websocket.redis_conn", FakeRedis())
+
+    websocket = ExperimentWebSocket(SimpleNamespace())
+    websocket.send(SimpleNamespace(id=7), "one", "hello")
+    websocket.send([7, SimpleNamespace(id=8)], "many", {"ok": True})
+
+    assert published == [
+        {
+            "type": "one",
+            "message": "hello",
+            "target_participant_ids": ["7"],
+        },
+        {
+            "type": "many",
+            "message": {"ok": True},
+            "target_participant_ids": ["7", "8"],
+        },
+    ]

@@ -1,111 +1,182 @@
-"""Utilities for building Pydantic-validated WebSocket protocols.
+"""Native WebSocket helpers for PsyNet experiments.
 
-PsyNet's low-level WebSocket integration is provided by
-:class:`psynet.timeline.WebSocketElt`. This module adds a small protocol layer
-for components that want to parse incoming messages with Pydantic, authorize
-them against the current page, and dispatch them to service methods.
+The public API is intentionally small:
+
+* JavaScript sends browser events with ``psynet.websocket.send(type, message)``.
+* Experiment classes receive them with ``@websocket_handler(type)`` methods.
+* Server code sends browser events with ``participant.websocket.send(type, message)``
+  or ``experiment.websocket.send(participant_or_participants, type, message)``.
+
+Browser sockets are owned by the web process that accepted the connection.
+Outbound server messages are therefore fanned out through Redis so scheduled
+tasks and other worker processes can still address connected participants.
 """
 
+from __future__ import annotations
+
+import inspect
 import json
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import ClassVar, Literal, Optional, Type, get_args, get_origin
+from typing import Callable, Optional, Type
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
-from pydantic_core import PydanticUndefined
+from dallinger.db import redis_conn
+from pydantic import BaseModel, ConfigDict, ValidationError
 
-from psynet.timeline import WebSocketElt
 from psynet.utils import get_logger
 
 logger = get_logger()
 
-# TODO: Add private WebSocket delivery in a follow-up PR.
-# Dallinger currently relays every Redis message on a channel to every browser
-# socket subscribed to that channel, so client-side ``target`` filtering is not
-# a privacy boundary. A proper solution should split browser publish and
-# subscribe channels, let the experiment subscribe to command channels, and
-# let services publish server events to participant-specific private receive
-# channels. Private channel access should use unguessable names or signed
-# channel-authorization tokens, and PsyNet can then expose a helper such as
-# ``publish_to_participant(participant_id, event)``.
+WEBSOCKET_ROUTE = "/psynet/websocket"
+REDIS_OUTBOUND_CHANNEL = "psynet:websocket:outbound"
+INTERNAL_FRAME_KEYS = {
+    "type",
+    "message",
+    "participant_id",
+    "unique_id",
+    "page_uuid",
+}
 
 
-class ClientWebSocketEvent(BaseModel):
-    """A browser-authored event authorized against the current PsyNet page."""
-
-    model_config = ConfigDict(extra="ignore", strict=True)
-
-    type: str = Field(min_length=1)
-    page_uuid: str = Field(min_length=1)
-    receive_time: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        exclude=True,
-    )
-
-    def with_receive_time(self, receive_time):
-        """Return a copy stamped with the server receive time."""
-        if receive_time is None:
-            receive_time = datetime.now(timezone.utc)
-        elif receive_time.tzinfo is None:
-            receive_time = receive_time.replace(tzinfo=timezone.utc)
-        else:
-            receive_time = receive_time.astimezone(timezone.utc)
-        return self.model_copy(update={"receive_time": receive_time})
-
-
-class ServerWebSocketEvent(BaseModel):
-    """A server-authored event sent to browser WebSocket clients."""
+class WebSocketMessage(BaseModel):
+    """Base class for typed WebSocket message payloads."""
 
     model_config = ConfigDict(extra="forbid", strict=True)
 
-    def to_json(self):
-        """Serialize the message for WebSocket delivery."""
-        return self.model_dump_json(exclude_none=True)
-
 
 @dataclass(frozen=True)
-class _WebSocketHandler:
-    event_model: Type[ClientWebSocketEvent]
+class WebSocketHandlerSpec:
+    """Description of a direct experiment-level WebSocket handler."""
+
+    event_type: str
     method_name: str
+    model: Optional[Type[BaseModel]] = None
 
 
-def get_websocket_event_type(event_model: Type[ClientWebSocketEvent]):
-    """Return the event type declared by a WebSocket event model."""
-    try:
-        field = event_model.model_fields["type"]
-    except KeyError as exc:
-        raise ValueError(f"{event_model.__name__} must define a 'type' field.") from exc
+def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = None):
+    """Decorate an experiment method as a native WebSocket event handler.
 
-    annotation = field.annotation
-    if get_origin(annotation) is Literal:
-        literal_args = get_args(annotation)
-        if len(literal_args) == 1 and isinstance(literal_args[0], str):
-            return literal_args[0]
+    Parameters
+    ----------
+    event_type
+        Event type sent by the browser through ``psynet.websocket.send``.
 
-    if field.default is not PydanticUndefined and isinstance(field.default, str):
-        return field.default
+    model
+        Optional Pydantic model used to validate the incoming message payload
+        before it is passed to the handler.
+    """
 
-    raise ValueError(
-        f"{event_model.__name__}.type must be a single string Literal or default."
-    )
+    if not isinstance(event_type, str) or not event_type:
+        raise ValueError("websocket_handler event_type must be a non-empty string.")
 
-
-def websocket_handler(
-    event_model: Type[ClientWebSocketEvent], type_: Optional[str] = None
-):
-    """Decorate a service method as the handler for a WebSocket event model."""
-    event_type = type_ or get_websocket_event_type(event_model)
+    if model is not None and not issubclass(model, BaseModel):
+        raise TypeError("websocket_handler model must be a Pydantic BaseModel class.")
 
     def decorate(method):
-        method._psynet_websocket_event_model = event_model
-        method._psynet_websocket_event_type = event_type
+        method._psynet_websocket_handler = WebSocketHandlerSpec(
+            event_type=event_type,
+            method_name=method.__name__,
+            model=model,
+        )
         return method
 
     return decorate
 
 
+def collect_websocket_handlers(experiment) -> dict[str, WebSocketHandlerSpec]:
+    """Collect direct WebSocket handlers declared on an experiment instance."""
+
+    handlers: dict[str, WebSocketHandlerSpec] = {}
+    for cls in reversed(experiment.__class__.__mro__):
+        for method_name, method in cls.__dict__.items():
+            spec = getattr(method, "_psynet_websocket_handler", None)
+            if spec is not None:
+                handlers[spec.event_type] = WebSocketHandlerSpec(
+                    event_type=spec.event_type,
+                    method_name=method_name,
+                    model=spec.model,
+                )
+    return handlers
+
+
+def _json_dumps(data) -> str:
+    return json.dumps(data, separators=(",", ":"))
+
+
+def _normalize_message(message):
+    if isinstance(message, BaseModel):
+        return message.model_dump(mode="json", exclude_none=True)
+    return message
+
+
+def make_frame(event_type: str, message=None, **extra):
+    """Return the JSON-serializable WebSocket frame for an event."""
+
+    if not isinstance(event_type, str) or not event_type:
+        raise ValueError("WebSocket event type must be a non-empty string.")
+
+    frame = {"type": event_type, **extra}
+    if message is not None:
+        frame["message"] = _normalize_message(message)
+    return frame
+
+
+def _extract_frame_type(frame: dict):
+    event_type = frame.get("type")
+    if not isinstance(event_type, str) or not event_type:
+        raise ValueError("WebSocket frame must include a non-empty string 'type'.")
+    return event_type
+
+
+def _extract_message(frame: dict):
+    if "message" in frame:
+        return frame["message"]
+    return {
+        key: value for key, value in frame.items() if key not in INTERNAL_FRAME_KEYS
+    }
+
+
+def _coerce_participant_id(value):
+    if value in (None, ""):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _participant_id_from_frame(frame: dict):
+    participant_id = _coerce_participant_id(frame.get("participant_id"))
+    if participant_id is not None:
+        return participant_id
+
+    return None
+
+
 def extract_websocket_event_type(message):
     """Extract the ``type`` field from a raw WebSocket JSON message."""
+
+    frame = parse_websocket_frame(message)
+    return _extract_frame_type(frame)
+
+
+def _extract_websocket_participant_id(message):
+    """Extract a participant ID from a raw WebSocket JSON message, if present."""
+
+    try:
+        frame = json.loads(message)
+    except json.JSONDecodeError:
+        return None
+
+    if not isinstance(frame, dict):
+        return None
+    return _participant_id_from_frame(frame)
+
+
+def parse_websocket_frame(message) -> dict:
+    """Parse a raw WebSocket message into a frame dictionary."""
+
     try:
         data = json.loads(message)
     except json.JSONDecodeError as exc:
@@ -114,195 +185,329 @@ def extract_websocket_event_type(message):
     if not isinstance(data, dict):
         raise ValueError("WebSocket message must be a JSON object.")
 
-    event_type = data.get("type")
-    if not isinstance(event_type, str) or not event_type:
-        raise ValueError("WebSocket message must include a non-empty string type.")
-
-    return event_type
+    _extract_frame_type(data)
+    return data
 
 
-def _extract_websocket_participant_id(message):
-    """Extract a participant ID from a raw WebSocket JSON message, if present."""
-    try:
-        data = json.loads(message)
-    except json.JSONDecodeError:
-        return None
-
-    if not isinstance(data, dict):
-        return None
-
-    participant_id = data.get("sender") or data.get("participant_id")
-    client = data.get("client")
-    if participant_id is None and isinstance(client, dict):
-        participant_id = client.get("participant_id")
-
-    if participant_id in (None, ""):
-        return None
-
-    try:
-        return int(participant_id)
-    except (TypeError, ValueError):
-        return None
-
-
-class WebSocketEventService:
-    """Parse, authorize, and dispatch WebSocket events for one request context."""
-
-    rejection_log_label = None
-    _websocket_handlers: ClassVar[dict[str, _WebSocketHandler]] = {}
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-
-        handlers = {}
-        for base in reversed(cls.__mro__[1:]):
-            handlers.update(getattr(base, "_websocket_handlers", {}))
-
-        for method_name, method in cls.__dict__.items():
-            event_model = getattr(method, "_psynet_websocket_event_model", None)
-            if event_model is not None:
-                event_type = getattr(method, "_psynet_websocket_event_type")
-                handlers[event_type] = _WebSocketHandler(event_model, method_name)
-
-        cls._websocket_handlers = handlers
-
-    def __init__(self, participant, experiment, channel, node=None, receive_time=None):
-        self.participant = participant
-        self.experiment = experiment
-        self.channel = channel
-        self.node = node
-        self.receive_time = receive_time
-
-    @classmethod
-    def get_rejection_log_label(cls):
-        """Return the label used when logging rejected WebSocket events."""
-        return cls.rejection_log_label or cls.__name__
-
-    @classmethod
-    def parse_event(cls, message):
-        """Parse a raw JSON message into a registered event model."""
-        event_type = extract_websocket_event_type(message)
-        try:
-            handler = cls._websocket_handlers[event_type]
-        except KeyError as exc:
-            raise ValueError(
-                f"No WebSocket handler registered for event type '{event_type}'."
-            ) from exc
-        return handler.event_model.model_validate_json(message)
-
-    def dispatch(self, message):
-        """Parse and dispatch a raw WebSocket message."""
-        event = self.parse_event(message).with_receive_time(self.receive_time)
-        return self.dispatch_event(event)
-
-    def dispatch_event(self, event):
-        """Dispatch a parsed WebSocket event."""
-        if not self.accepts_event(event):
-            return None
-
-        handler = self._websocket_handlers[event.type]
-        return getattr(self, handler.method_name)(event)
-
-    def accepts_event(self, event):
-        """Return whether an event is authorized for this participant context."""
-        if event.page_uuid != self.participant.page_uuid:
-            self.warn_rejected_event("stale page UUID", event)
-            return False
-        return True
-
-    def publish(self, message, channel_name=None):
-        """Publish a message to subscribers on this service's channel."""
-        self.experiment.publish_to_subscribers(
-            self.serialize_message(message), channel_name=channel_name or self.channel
-        )
-
-    @staticmethod
-    def serialize_message(message):
-        """Serialize a message object for WebSocket delivery."""
-        if isinstance(message, str):
-            return message
-        if hasattr(message, "to_json"):
-            return message.to_json()
-        if isinstance(message, BaseModel):
-            return message.model_dump_json(exclude_none=True)
-        return json.dumps(message)
-
-    def warn_rejected_event(self, reason, event=None, error=None):
-        """Log a rejected WebSocket event with participant context."""
-        warn_rejected_websocket_event(
-            reason,
-            participant=self.participant,
-            channel=self.channel,
-            event=event,
-            error=error,
-            label=self.get_rejection_log_label(),
-        )
-
-
-class ValidatedWebSocketElt(WebSocketElt):
-    """A ``WebSocketElt`` that dispatches Pydantic-validated service events."""
-
-    service_class = WebSocketEventService
-
-    def resolve_participant(self, message):
-        """Resolve a participant from a raw WebSocket message."""
-        participant_id = _extract_websocket_participant_id(message)
-        if participant_id is None:
-            return None
-
-        from psynet.participant import Participant
-
-        return Participant.query.get(participant_id)
-
-    def handle_message(
-        self, message, channel_name, participant, node, receive_time, experiment
-    ):
-        """Parse, authorize, and dispatch an incoming WebSocket message."""
-        if participant is None:
-            participant = self.resolve_participant(message)
-
-        if participant is None:
-            try:
-                event = self.service_class.parse_event(message)
-            except (ValidationError, ValueError):
-                return
-
-            warn_rejected_websocket_event(
-                "missing participant",
-                channel=channel_name or self.channel,
-                event=event,
-                label=self.service_class.get_rejection_log_label(),
-            )
-            return
-
-        service = self.service_class(
-            participant=participant,
-            experiment=experiment,
-            channel=self.channel,
-            node=node,
-            receive_time=receive_time,
-        )
-        try:
-            event = service.parse_event(message)
-        except (ValidationError, ValueError) as err:
-            service.warn_rejected_event("validation failed", error=err)
-            return
-
-        service.dispatch_event(event.with_receive_time(receive_time))
-
-
-def warn_rejected_websocket_event(
-    reason, *, participant=None, channel=None, event=None, error=None, label="websocket"
+def dispatch_websocket_frame(
+    experiment,
+    *,
+    participant,
+    frame: dict,
+    receive_time=None,
 ):
-    """Log a rejected WebSocket event."""
-    event_type = getattr(event, "type", None)
-    logger.warning(
-        "Rejected %s event: %s (participant_id=%s, channel=%s, event_type=%s, "
-        "error=%s)",
-        label,
-        reason,
-        getattr(participant, "id", None),
-        channel,
-        event_type,
-        str(error) if error is not None else None,
+    """Dispatch an incoming native WebSocket frame to an experiment handler."""
+
+    event_type = _extract_frame_type(frame)
+    try:
+        spec = experiment._native_websocket_handlers[event_type]
+    except KeyError:
+        logger.warning(
+            "Rejected websocket event: no handler registered "
+            "(participant_id=%s, event_type=%s)",
+            getattr(participant, "id", None),
+            event_type,
+        )
+        return None
+
+    if participant is None:
+        logger.warning(
+            "Rejected websocket event: missing participant (event_type=%s)",
+            event_type,
+        )
+        return None
+
+    page_uuid = frame.get("page_uuid")
+    if page_uuid is not None and page_uuid != participant.page_uuid:
+        logger.warning(
+            "Rejected websocket event: stale page UUID "
+            "(participant_id=%s, event_type=%s)",
+            participant.id,
+            event_type,
+        )
+        return None
+
+    message = _extract_message(frame)
+    if spec.model is not None:
+        try:
+            message = spec.model.model_validate(message)
+        except ValidationError as exc:
+            logger.warning(
+                "Rejected websocket event: validation failed "
+                "(participant_id=%s, event_type=%s, error=%s)",
+                participant.id,
+                event_type,
+                str(exc),
+            )
+            return None
+
+    return _call_handler(
+        getattr(experiment, spec.method_name),
+        experiment=experiment,
+        participant=participant,
+        message=message,
+        event=message,
+        receive_time=receive_time,
     )
+
+
+def _call_handler(method: Callable, **context):
+    """Call a handler with the subset of context arguments it requests."""
+
+    signature = inspect.signature(method)
+    if any(
+        parameter.kind == inspect.Parameter.VAR_KEYWORD
+        for parameter in signature.parameters.values()
+    ):
+        return method(**context)
+
+    kwargs = {name: context[name] for name in signature.parameters if name in context}
+    return method(**kwargs)
+
+
+class _Connection:
+    def __init__(self, participant_id: int, ws):
+        self.participant_id = int(participant_id)
+        self.ws = ws
+
+    def send_frame(self, frame: dict):
+        self.ws.send(_json_dumps(frame))
+
+
+class _ConnectionManager:
+    def __init__(self):
+        self._connections_by_participant: dict[int, set[_Connection]] = {}
+        self._lock = threading.RLock()
+
+    def add(self, participant_id: int, ws):
+        connection = _Connection(participant_id, ws)
+        with self._lock:
+            self._connections_by_participant.setdefault(participant_id, set()).add(
+                connection
+            )
+        return connection
+
+    def remove(self, connection: _Connection):
+        with self._lock:
+            connections = self._connections_by_participant.get(
+                connection.participant_id
+            )
+            if not connections:
+                return
+            connections.discard(connection)
+            if not connections:
+                self._connections_by_participant.pop(connection.participant_id, None)
+
+    def send_to_participants(self, participant_ids: list[int], frame: dict):
+        stale_connections = []
+        with self._lock:
+            connections = [
+                connection
+                for participant_id in participant_ids
+                for connection in self._connections_by_participant.get(
+                    int(participant_id), set()
+                )
+            ]
+
+        for connection in connections:
+            try:
+                connection.send_frame(frame)
+            except Exception as exc:  # pragma: no cover - depends on socket runtime
+                logger.warning(
+                    "Failed to send websocket frame to participant %s: %s",
+                    connection.participant_id,
+                    exc,
+                )
+                stale_connections.append(connection)
+
+        for connection in stale_connections:
+            self.remove(connection)
+
+
+connection_manager = _ConnectionManager()
+_redis_listener_started = False
+_redis_listener_lock = threading.Lock()
+
+
+def _target_participant_ids(frame):
+    ids = frame.get("target_participant_ids", [])
+    if frame.get("target_participant_id") is not None:
+        ids = [*ids, frame["target_participant_id"]]
+    return [
+        participant_id
+        for participant_id in (_coerce_participant_id(value) for value in ids)
+        if participant_id is not None
+    ]
+
+
+def _handle_outbound_frame(frame):
+    participant_ids = _target_participant_ids(frame)
+    if participant_ids:
+        connection_manager.send_to_participants(participant_ids, frame)
+
+
+def _redis_listener_loop():  # pragma: no cover - exercised in live experiments
+    pubsub = redis_conn.pubsub(ignore_subscribe_messages=True)
+    pubsub.subscribe(REDIS_OUTBOUND_CHANNEL)
+    for item in pubsub.listen():
+        if item.get("type") != "message":
+            continue
+        try:
+            raw = item["data"]
+            if isinstance(raw, bytes):
+                raw = raw.decode("utf-8")
+            frame = json.loads(raw)
+            if isinstance(frame, dict):
+                _handle_outbound_frame(frame)
+        except Exception as exc:
+            logger.warning("Failed to process outbound websocket frame: %s", exc)
+
+
+def start_redis_listener():
+    """Start the per-process Redis listener used for outbound WebSocket fanout."""
+
+    global _redis_listener_started
+    with _redis_listener_lock:
+        if _redis_listener_started:
+            return
+        thread = threading.Thread(
+            target=_redis_listener_loop,
+            name="psynet-websocket-redis-listener",
+            daemon=True,
+        )
+        thread.start()
+        _redis_listener_started = True
+
+
+def publish_websocket_event(participant_ids, event_type: str, message=None):
+    """Publish an outbound event to one or more participants."""
+
+    if not isinstance(participant_ids, (list, tuple, set)):
+        participant_ids = [participant_ids]
+
+    target_participant_ids = [
+        int(participant_id)
+        for participant_id in participant_ids
+        if participant_id is not None
+    ]
+    if not target_participant_ids:
+        return
+
+    frame = make_frame(
+        event_type,
+        message,
+        target_participant_ids=[
+            str(participant_id) for participant_id in target_participant_ids
+        ],
+    )
+    redis_conn.publish(REDIS_OUTBOUND_CHANNEL, _json_dumps(frame))
+
+
+class ParticipantWebSocket:
+    """Outbound WebSocket helper bound to one participant."""
+
+    def __init__(self, participant):
+        self.participant = participant
+
+    def send(self, event_type: str, message=None):
+        """Send an event to this participant's connected browser sockets."""
+
+        publish_websocket_event([self.participant.id], event_type, message)
+
+
+class ExperimentWebSocket:
+    """Outbound WebSocket helper bound to an experiment instance."""
+
+    def __init__(self, experiment):
+        self.experiment = experiment
+
+    def send(self, participants, event_type: str, message=None):
+        """Send an event to one or more participants."""
+
+        if isinstance(participants, (list, tuple, set)):
+            participant_ids = [
+                getattr(participant, "id", participant) for participant in participants
+            ]
+        else:
+            participant_ids = [getattr(participants, "id", participants)]
+        publish_websocket_event(participant_ids, event_type, message)
+
+
+def _participant_from_request():
+    from flask import request
+
+    from psynet.participant import Participant
+
+    participant_id = _coerce_participant_id(request.args.get("participant_id"))
+    unique_id = request.args.get("unique_id")
+
+    query = Participant.query
+    if unique_id:
+        query = query.filter_by(unique_id=unique_id)
+    elif participant_id is not None:
+        query = query.filter_by(id=participant_id)
+    else:
+        return None
+
+    participant = query.one_or_none()
+    if participant is None:
+        return None
+
+    if participant_id is not None and int(participant.id) != participant_id:
+        return None
+
+    return participant
+
+
+def _handle_socket(ws):  # pragma: no cover - exercised in live experiments
+    from psynet.experiment import get_experiment
+
+    participant = _participant_from_request()
+    if participant is None:
+        logger.warning("Rejected websocket connection: unknown participant.")
+        return
+
+    start_redis_listener()
+    connection = connection_manager.add(participant.id, ws)
+    experiment = get_experiment()
+
+    try:
+        while True:
+            raw = ws.receive()
+            if raw is None:
+                break
+            try:
+                frame = parse_websocket_frame(raw)
+            except ValueError as exc:
+                logger.warning(
+                    "Rejected websocket message: %s (participant_id=%s)",
+                    exc,
+                    participant.id,
+                )
+                continue
+            dispatch_websocket_frame(
+                experiment,
+                participant=participant,
+                frame=frame,
+                receive_time=datetime.now(timezone.utc),
+            )
+    finally:
+        connection_manager.remove(connection)
+
+
+def _register_route():
+    try:
+        from dallinger.experiment import Experiment as DallingerExperiment
+        from flask_sock import Sock
+    except ImportError as exc:  # pragma: no cover - dependency/runtime specific
+        logger.warning("Could not register native PsyNet websocket route: %s", exc)
+        return
+
+    sock = Sock()
+
+    @sock.route(WEBSOCKET_ROUTE, bp=DallingerExperiment.experiment_routes)
+    def psynet_websocket(ws):
+        _handle_socket(ws)
+
+
+_register_route()

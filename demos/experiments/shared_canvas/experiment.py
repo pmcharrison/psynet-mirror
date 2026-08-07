@@ -7,22 +7,13 @@ import random
 from copy import deepcopy
 from datetime import datetime
 from types import SimpleNamespace
-from typing import List, Literal
+from typing import List
 
 from dallinger import db
 from dominate import tags
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import Field, ValidationError
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    Integer,
-    String,
-    UniqueConstraint,
-)
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
@@ -31,21 +22,14 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import Control, ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
+from psynet.session_state import SessionState
 from psynet.sync import GroupBarrier, SimpleGrouper
-from psynet.timeline import NullElt, PageMaker, Timeline, join
+from psynet.timeline import PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.websocket import (
-    ClientWebSocketEvent,
-    ServerWebSocketEvent,
-    ValidatedWebSocketElt,
-    WebSocketEventService,
-    websocket_handler,
-)
+from psynet.websocket import WebSocketMessage, websocket_handler
 
 GROUP_TYPE = "shared_canvas_group"
-CANVAS_WS_CHANNEL = "shared_canvas_live"
-CANVAS_WS_IMMEDIATE = True
-CANVAS_WS_TOLERANCE = 0.005
+CANVAS_SESSION_NAMESPACE = "shared_canvas"
 GROUP_SIZE = max(2, int(os.environ.get("CANVAS_GROUP_SIZE", "2")))
 CANVAS_SIZE = 640
 TRIAL_SECONDS = int(os.environ.get("CANVAS_TRIAL_SECONDS", "35"))
@@ -58,7 +42,6 @@ COINS_PER_WORLD = 8
 N_WORLDS = 3
 POSITION_EVENT = "position"
 COLLECT_EVENT = "collect"
-STATE_REQUEST_EVENT = "state_request"
 
 PLAYER_COLORS = [
     "#1f77b4",
@@ -111,7 +94,7 @@ class CanvasPositionEvent(SQLBase, SQLMixin):
     """Persisted high-frequency position event.
 
     Position events are recorded for analysis and replay, but they do not mutate
-    the authoritative ``CanvasGameState``.
+    the authoritative ``SessionState``.
     """
 
     __tablename__ = "canvas_position_event"
@@ -143,389 +126,183 @@ class CanvasCollectEvent(SQLBase, SQLMixin):
     receive_time = Column(DateTime(timezone=True), nullable=False)
 
 
-@register_table
-class CanvasStateRequestEvent(SQLBase, SQLMixin):
-    """Persisted reload/resume state request event."""
+def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
+    """Return the initial authoritative canvas state."""
 
-    __tablename__ = "canvas_state_request_event"
-
-    session_id = Column(String(128), index=True)
-    participant_id = Column(Integer, index=True, nullable=True)
-    receive_time = Column(DateTime(timezone=True), nullable=False)
-
-
-@register_table
-class CanvasGameState(SQLBase, SQLMixin):
-    """Authoritative shared state for one canvas game session."""
-
-    __tablename__ = "canvas_game_state"
-    __table_args__ = (UniqueConstraint("session_id"),)
-
-    session_id = Column(String(128), index=True)
-    group_id = Column(Integer, index=True)
-    network_id = Column(Integer, index=True)
-    world_id = Column(String(64), index=True)
-    state = Column(JSON)
-
-    @classmethod
-    def get_or_create(cls, session_id: str, *, defaults=None, for_update=False):
-        query = cls.query.filter_by(session_id=session_id)
-        if for_update:
-            query = query.with_for_update(of=cls)
-        session = query.one_or_none()
-        if session is None:
-            session = cls(session_id=session_id, **(defaults or {}))
-            db.session.add(session)
-            db.session.flush()
-        return session
-
-    @staticmethod
-    def initial_state(participant_ids: list[int], world: dict) -> dict:
-        ordered_ids = [str(p) for p in participant_ids]
-        canvas_size = world["canvas_size"]
-        players = {}
-        for index, participant_id in enumerate(ordered_ids):
-            angle = (2 * math.pi * index) / max(1, len(ordered_ids))
-            players[participant_id] = {
-                "participant_id": participant_id,
-                "label": f"Player {index + 1}",
-                "color": PLAYER_COLORS[index % len(PLAYER_COLORS)],
-                "x": round(canvas_size / 2 + math.cos(angle) * 70, 2),
-                "y": round(canvas_size / 2 + math.sin(angle) * 70, 2),
-                "vx": 0,
-                "vy": 0,
-                "client_time": 0,
-                "receive_time": None,
-            }
-
-        return {
-            "params": {
-                "participant_ids": ordered_ids,
-                "world": deepcopy(world),
-                "trial_seconds": TRIAL_SECONDS,
-                "send_interval_ms": SEND_INTERVAL_MS,
-                "draw_interval_ms": DRAW_INTERVAL_MS,
-            },
-            "players": players,
-            "coins": deepcopy(world["coins"]),
-            "collected_coins": [],
-            "bonuses": {participant_id: 0.0 for participant_id in ordered_ids},
-            "collection_counts": {participant_id: 0 for participant_id in ordered_ids},
-        }
-
-    @property
-    def participant_ids(self) -> list[int]:
-        state = self.state or {}
-        return [int(p) for p in state.get("params", {}).get("participant_ids", [])]
-
-    def record_collection(
-        self,
-        *,
-        participant_id: int,
-        coin_id: str,
-        x: float,
-        y: float,
-        receive_time,
-    ):
-        """Apply a validated collection attempt to authoritative state."""
-        state = deepcopy(self.state or {})
-        participant_id = str(participant_id)
-        coin = next((c for c in state.get("coins", []) if c["id"] == coin_id), None)
-        if coin is None:
-            return False, "already_collected_or_unknown", None
-
-        player = state.get("players", {}).get(participant_id)
-        if player is None:
-            return False, "unknown_player", None
-
-        distance = math.hypot(float(coin["x"]) - x, float(coin["y"]) - y)
-        collect_radius = float(coin.get("radius", COIN_RADIUS)) + PLAYER_RADIUS + 4
-        if distance > collect_radius:
-            return False, "too_far", None
-
-        state["coins"] = [c for c in state.get("coins", []) if c["id"] != coin_id]
-        collected = {
-            "coin_id": coin_id,
+    ordered_ids = [str(p) for p in participant_ids]
+    canvas_size = world["canvas_size"]
+    players = {}
+    for index, participant_id in enumerate(ordered_ids):
+        angle = (2 * math.pi * index) / max(1, len(ordered_ids))
+        players[participant_id] = {
             "participant_id": participant_id,
-            "x": coin["x"],
-            "y": coin["y"],
-            "bonus": COIN_BONUS,
-            "receive_time": receive_time_iso(receive_time),
-        }
-        state.setdefault("collected_coins", []).append(collected)
-        state.setdefault("collection_counts", {}).setdefault(participant_id, 0)
-        state["collection_counts"][participant_id] += 1
-        state.setdefault("bonuses", {}).setdefault(participant_id, 0.0)
-        state["bonuses"][participant_id] = round(
-            float(state["bonuses"][participant_id]) + COIN_BONUS,
-            2,
-        )
-        self.state = state
-        return True, None, collected
-
-    def state_snapshot_payload(self, participant_id: int) -> dict:
-        state = self.state or {}
-        return {
-            "session_id": self.session_id,
-            "group_id": self.group_id,
-            "network_id": self.network_id,
-            "world_id": self.world_id,
-            "target_participant_ids": [str(p) for p in self.participant_ids],
-            "players": state.get("players", {}),
-            "coins": state.get("coins", []),
-            "collected_coins": state.get("collected_coins", []),
-            "bonuses": state.get("bonuses", {}),
-            "collection_counts": state.get("collection_counts", {}),
-            "params": state.get("params", {}),
+            "label": f"Player {index + 1}",
+            "color": PLAYER_COLORS[index % len(PLAYER_COLORS)],
+            "x": round(canvas_size / 2 + math.cos(angle) * 70, 2),
+            "y": round(canvas_size / 2 + math.sin(angle) * 70, 2),
+            "vx": 0,
+            "vy": 0,
+            "client_time": 0,
+            "receive_time": None,
         }
 
-    def participant_result(self, participant_id: int) -> dict:
-        state = self.state or {}
-        participant_id_str = str(participant_id)
-        collected_coins = [
-            c
-            for c in state.get("collected_coins", [])
-            if str(c.get("participant_id")) == participant_id_str
-        ]
-        latest_position = (
-            CanvasPositionEvent.query.filter_by(
-                session_id=self.session_id,
-                participant_id=participant_id,
-            )
-            .order_by(CanvasPositionEvent.id.desc())
-            .first()
+    return {
+        "params": {
+            "participant_ids": ordered_ids,
+            "world": deepcopy(world),
+            "trial_seconds": TRIAL_SECONDS,
+            "send_interval_ms": SEND_INTERVAL_MS,
+            "draw_interval_ms": DRAW_INTERVAL_MS,
+        },
+        "players": players,
+        "coins": deepcopy(world["coins"]),
+        "collected_coins": [],
+        "bonuses": {participant_id: 0.0 for participant_id in ordered_ids},
+        "collection_counts": {participant_id: 0 for participant_id in ordered_ids},
+    }
+
+
+def canvas_state_payload(session_state: SessionState) -> dict:
+    """Return the canvas-specific snapshot nested inside a generic SessionState."""
+
+    state = session_state.state or {}
+    payload = session_state.snapshot_payload()
+    payload["state"] = {
+        **state,
+        "target_participant_ids": [str(p) for p in session_state.participant_ids],
+        "session_id": session_state.session_id,
+    }
+    return payload
+
+
+def record_collection(
+    session_state: SessionState,
+    *,
+    participant_id: int,
+    coin_id: str,
+    x: float,
+    y: float,
+    receive_time,
+):
+    """Apply a validated collection attempt to authoritative state."""
+
+    state = deepcopy(session_state.state or {})
+    participant_id = str(participant_id)
+    coin = next((c for c in state.get("coins", []) if c["id"] == coin_id), None)
+    if coin is None:
+        return False, "already_collected_or_unknown", None
+
+    player = state.get("players", {}).get(participant_id)
+    if player is None:
+        return False, "unknown_player", None
+
+    distance = math.hypot(float(coin["x"]) - x, float(coin["y"]) - y)
+    collect_radius = float(coin.get("radius", COIN_RADIUS)) + PLAYER_RADIUS + 4
+    if distance > collect_radius:
+        return False, "too_far", None
+
+    state["coins"] = [c for c in state.get("coins", []) if c["id"] != coin_id]
+    collected = {
+        "coin_id": coin_id,
+        "participant_id": participant_id,
+        "x": coin["x"],
+        "y": coin["y"],
+        "bonus": COIN_BONUS,
+        "receive_time": receive_time_iso(receive_time),
+    }
+    state.setdefault("collected_coins", []).append(collected)
+    state.setdefault("collection_counts", {}).setdefault(participant_id, 0)
+    state["collection_counts"][participant_id] += 1
+    state.setdefault("bonuses", {}).setdefault(participant_id, 0.0)
+    state["bonuses"][participant_id] = round(
+        float(state["bonuses"][participant_id]) + COIN_BONUS,
+        2,
+    )
+    session_state.state = state
+    return True, None, collected
+
+
+def participant_result(session_state: SessionState, participant_id: int) -> dict:
+    """Return the final participant result from the authoritative state."""
+
+    state = session_state.state or {}
+    participant_id_str = str(participant_id)
+    collected_coins = [
+        c
+        for c in state.get("collected_coins", [])
+        if str(c.get("participant_id")) == participant_id_str
+    ]
+    latest_position = (
+        CanvasPositionEvent.query.filter_by(
+            session_id=session_state.session_id,
+            participant_id=participant_id,
         )
-        final_position = None
-        if latest_position is not None:
-            final_position = {
-                "x": latest_position.x,
-                "y": latest_position.y,
-                "vx": latest_position.vx,
-                "vy": latest_position.vy,
-            }
-        return {
-            "completed_live_canvas": True,
-            "participant_id": participant_id,
-            "collected_coin_ids": [c["coin_id"] for c in collected_coins],
-            "coin_bonus": round(
-                float(state.get("bonuses", {}).get(participant_id_str, 0.0)), 2
-            ),
-            "collection_count": int(
-                state.get("collection_counts", {}).get(participant_id_str, 0)
-            ),
-            "final_position": final_position,
-            "world_id": self.world_id,
+        .order_by(CanvasPositionEvent.id.desc())
+        .first()
+    )
+    final_position = None
+    if latest_position is not None:
+        final_position = {
+            "x": latest_position.x,
+            "y": latest_position.y,
+            "vx": latest_position.vx,
+            "vy": latest_position.vy,
         }
+    return {
+        "completed_live_canvas": True,
+        "participant_id": participant_id,
+        "collected_coin_ids": [c["coin_id"] for c in collected_coins],
+        "coin_bonus": round(
+            float(state.get("bonuses", {}).get(participant_id_str, 0.0)), 2
+        ),
+        "collection_count": int(
+            state.get("collection_counts", {}).get(participant_id_str, 0)
+        ),
+        "final_position": final_position,
+        "world_id": state.get("params", {}).get("world", {}).get("world_id"),
+    }
 
 
-class CanvasGameService(WebSocketEventService):
-    """Typed websocket service for the shared-canvas game protocol."""
+class PositionMessage(WebSocketMessage):
+    """High-frequency player position payload."""
 
-    class PositionEvent(ClientWebSocketEvent):
-        type: Literal[POSITION_EVENT] = POSITION_EVENT
-        session_id: str = Field(min_length=1)
-        x: float = Field(ge=0, le=CANVAS_SIZE)
-        y: float = Field(ge=0, le=CANVAS_SIZE)
-        vx: float
-        vy: float
-        client_time: float
-        low_latency: bool = True
-
-    class CollectEvent(ClientWebSocketEvent):
-        type: Literal[COLLECT_EVENT] = COLLECT_EVENT
-        session_id: str = Field(min_length=1)
-        coin_id: str = Field(min_length=1)
-        x: float = Field(ge=0, le=CANVAS_SIZE)
-        y: float = Field(ge=0, le=CANVAS_SIZE)
-        client_time: float
-
-    class StateRequestEvent(ClientWebSocketEvent):
-        type: Literal[STATE_REQUEST_EVENT] = STATE_REQUEST_EVENT
-        session_id: str = Field(min_length=1)
-
-    class StateSnapshotEvent(ServerWebSocketEvent):
-        type: Literal["state_snapshot"] = "state_snapshot"
-        target_participant_ids: list[str]
-        session_id: str
-        group_id: int
-        network_id: int
-        world_id: str
-        players: dict
-        coins: list[dict]
-        collected_coins: list[dict]
-        bonuses: dict
-        collection_counts: dict
-        params: dict
-
-    class PositionUpdateEvent(ServerWebSocketEvent):
-        type: Literal["position_update"] = "position_update"
-        session_id: str
-        group_id: int
-        target_participant_ids: list[str]
-        event_id: int
-        player: dict
-
-    class CoinCollectedEvent(ServerWebSocketEvent):
-        type: Literal["coin_collected"] = "coin_collected"
-        session_id: str
-        group_id: int
-        target_participant_ids: list[str]
-        collection: dict
-        coins: list[dict]
-        bonuses: dict
-
-    class CollectRejectedEvent(ServerWebSocketEvent):
-        type: Literal["collect_rejected"] = "collect_rejected"
-        session_id: str
-        target_participant_id: str
-        participant_id: str
-        coin_id: str
-        reason: str
-
-    @websocket_handler(PositionEvent)
-    def position(self, event: PositionEvent):
-        game_state = self.get_game_state(event.session_id)
-        logged_event = CanvasPositionEvent(
-            session_id=event.session_id,
-            participant_id=self.participant.id,
-            x=event.x,
-            y=event.y,
-            vx=event.vx,
-            vy=event.vy,
-            client_time=event.client_time,
-            receive_time=event.receive_time,
-        )
-        db.session.add(logged_event)
-        db.session.flush()
-        player = self.position_player_payload(game_state, event)
-        self.publish(
-            self.PositionUpdateEvent(
-                session_id=game_state.session_id,
-                group_id=game_state.group_id,
-                target_participant_ids=[
-                    str(p_id) for p_id in game_state.participant_ids
-                ],
-                event_id=logged_event.id,
-                player=player,
-            )
-        )
-        db.session.commit()
-
-    @websocket_handler(CollectEvent)
-    def collect(self, event: CollectEvent):
-        game_state = self.get_game_state(event.session_id, for_update=True)
-        accepted, reason, collection = game_state.record_collection(
-            participant_id=self.participant.id,
-            coin_id=event.coin_id,
-            x=event.x,
-            y=event.y,
-            receive_time=event.receive_time,
-        )
-        db.session.add(
-            CanvasCollectEvent(
-                session_id=event.session_id,
-                participant_id=self.participant.id,
-                coin_id=event.coin_id,
-                x=event.x,
-                y=event.y,
-                client_time=event.client_time,
-                accepted=accepted,
-                rejection_reason=reason,
-                receive_time=event.receive_time,
-            )
-        )
-        if accepted:
-            self.publish(
-                self.CoinCollectedEvent(
-                    session_id=game_state.session_id,
-                    group_id=game_state.group_id,
-                    target_participant_ids=[
-                        str(p_id) for p_id in game_state.participant_ids
-                    ],
-                    collection=collection,
-                    coins=(game_state.state or {}).get("coins", []),
-                    bonuses=(game_state.state or {}).get("bonuses", {}),
-                )
-            )
-        else:
-            self.publish(
-                self.CollectRejectedEvent(
-                    session_id=game_state.session_id,
-                    target_participant_id=str(self.participant.id),
-                    participant_id=str(self.participant.id),
-                    coin_id=event.coin_id,
-                    reason=reason,
-                )
-            )
-        db.session.commit()
-
-    @websocket_handler(StateRequestEvent)
-    def state_request(self, event: StateRequestEvent):
-        game_state = self.get_game_state(event.session_id)
-        db.session.add(
-            CanvasStateRequestEvent(
-                session_id=event.session_id,
-                participant_id=self.participant.id,
-                receive_time=event.receive_time,
-            )
-        )
-        self.publish(
-            self.StateSnapshotEvent(
-                **game_state.state_snapshot_payload(self.participant.id)
-            )
-        )
-        db.session.commit()
-
-    def accepts_event(self, event: ClientWebSocketEvent):
-        if not super().accepts_event(event):
-            return False
-        game_state = self.get_game_state(getattr(event, "session_id", ""), warn=False)
-        if game_state is None:
-            self.warn_rejected_event("unknown session ID", event)
-            return False
-        if int(self.participant.id) not in game_state.participant_ids:
-            self.warn_rejected_event("participant not in canvas session", event)
-            return False
-        return True
-
-    def get_game_state(self, session_id: str, *, for_update=False, warn=True):
-        query = CanvasGameState.query.filter_by(session_id=session_id)
-        if for_update:
-            query = query.with_for_update(of=CanvasGameState)
-        game_state = query.one_or_none()
-        if game_state is None and warn:
-            raise ValueError(f"Unknown canvas session_id: {session_id}")
-        return game_state
-
-    def position_player_payload(
-        self, game_state: CanvasGameState, event: PositionEvent
-    ):
-        state = game_state.state or {}
-        participant_id = str(self.participant.id)
-        players = state.get("players", {})
-        player = deepcopy(players.get(participant_id, {}))
-        canvas_size = (
-            state.get("params", {}).get("world", {}).get("canvas_size", CANVAS_SIZE)
-        )
-        player.update(
-            {
-                "participant_id": participant_id,
-                "x": round(clamp(event.x, 0, canvas_size), 3),
-                "y": round(clamp(event.y, 0, canvas_size), 3),
-                "vx": round(event.vx, 3),
-                "vy": round(event.vy, 3),
-                "client_time": event.client_time,
-                "receive_time": receive_time_iso(event.receive_time),
-            }
-        )
-        return player
+    session_id: str = Field(min_length=1)
+    label: str | None = None
+    color: str | None = None
+    x: float = Field(ge=0, le=CANVAS_SIZE)
+    y: float = Field(ge=0, le=CANVAS_SIZE)
+    vx: float
+    vy: float
+    client_time: float
+    low_latency: bool = True
 
 
-class EnableSharedCanvas(NullElt, ValidatedWebSocketElt):
-    """Timeline element that activates the shared-canvas websocket channel."""
+class CollectMessage(WebSocketMessage):
+    """Coin collection attempt payload."""
 
-    channel = CANVAS_WS_CHANNEL
-    service_class = CanvasGameService
+    session_id: str = Field(min_length=1)
+    coin_id: str = Field(min_length=1)
+    x: float = Field(ge=0, le=CANVAS_SIZE)
+    y: float = Field(ge=0, le=CANVAS_SIZE)
+    client_time: float
+
+
+def position_player_payload(
+    participant: Participant, message: PositionMessage, receive_time
+):
+    """Return a player payload without reading authoritative session state."""
+
+    return {
+        "participant_id": str(participant.id),
+        "label": message.label,
+        "color": message.color,
+        "x": round(clamp(message.x, 0, CANVAS_SIZE), 3),
+        "y": round(clamp(message.y, 0, CANVAS_SIZE), 3),
+        "vx": round(message.vx, 3),
+        "vy": round(message.vy, 3),
+        "client_time": message.client_time,
+        "receive_time": receive_time_iso(receive_time),
+    }
 
 
 def waiting_page(participant: Participant):
@@ -583,22 +360,22 @@ def build_game_config(trial, participant: Participant) -> dict:
     role_index = [p.id for p in ordered].index(participant.id)
     world = trial.definition["world"]
     session_id = build_session_id(trial, group)
-    CanvasGameState.get_or_create(
+    participant_ids = [p.id for p in ordered]
+    SessionState.get_or_create(
+        CANVAS_SESSION_NAMESPACE,
         session_id,
-        defaults={
+        state={
+            **initial_canvas_state(participant_ids, world),
             "group_id": int(group.id),
             "network_id": trial.network.id,
             "world_id": world["world_id"],
-            "state": CanvasGameState.initial_state([p.id for p in ordered], world),
         },
+        participant_ids=participant_ids,
     )
     return {
-        "channel": CANVAS_WS_CHANNEL,
-        "immediate": CANVAS_WS_IMMEDIATE,
-        "tolerance": CANVAS_WS_TOLERANCE,
+        "namespace": CANVAS_SESSION_NAMESPACE,
         "session_id": session_id,
         "participant_id": participant.id,
-        "group_id": int(group.id),
         "role": f"Player {role_index + 1}",
         "world_id": world["world_id"],
         "canvas_size": world["canvas_size"],
@@ -667,18 +444,20 @@ class SharedCanvasTrial(StaticTrial):
         group = participants[0].active_sync_groups[GROUP_TYPE]
         ordered = sorted(participants, key=lambda p: p.id)
         world = self.definition["world"]
-        game_state = CanvasGameState.get_or_create(
+        session_state = SessionState.get_or_create(
+            CANVAS_SESSION_NAMESPACE,
             build_session_id(self, group),
-            defaults={
+            state={
+                **initial_canvas_state([p.id for p in ordered], world),
                 "group_id": int(group.id),
                 "network_id": self.network.id,
                 "world_id": world["world_id"],
-                "state": CanvasGameState.initial_state([p.id for p in ordered], world),
             },
+            participant_ids=[p.id for p in ordered],
         )
         for participant in participants:
-            participant.var.shared_canvas_result = game_state.participant_result(
-                participant.id
+            participant.var.shared_canvas_result = participant_result(
+                session_state, participant.id
             )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -742,7 +521,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        EnableSharedCanvas(),
         SimpleGrouper(
             group_type=GROUP_TYPE,
             initial_group_size=GROUP_SIZE,
@@ -766,27 +544,108 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 4
     test_mode = "serial"
 
+    @websocket_handler(POSITION_EVENT, model=PositionMessage)
+    def position(self, participant, message: PositionMessage, receive_time):
+        """Persist and broadcast a high-frequency position event."""
+
+        target_participant_ids = [p.id for p in participant_order(participant)]
+        if int(participant.id) not in [int(p) for p in target_participant_ids]:
+            return
+
+        logged_event = CanvasPositionEvent(
+            session_id=message.session_id,
+            participant_id=participant.id,
+            x=message.x,
+            y=message.y,
+            vx=message.vx,
+            vy=message.vy,
+            client_time=message.client_time,
+            receive_time=receive_time,
+        )
+        db.session.add(logged_event)
+        db.session.flush()
+        self.websocket.send(
+            target_participant_ids,
+            "position_update",
+            {
+                "event_id": logged_event.id,
+                "player": position_player_payload(participant, message, receive_time),
+            },
+        )
+        db.session.commit()
+
+    @websocket_handler(COLLECT_EVENT, model=CollectMessage)
+    def collect(self, participant, message: CollectMessage, receive_time):
+        """Apply a coin collection attempt to authoritative state."""
+
+        session_state = SessionState.get(
+            CANVAS_SESSION_NAMESPACE, message.session_id, for_update=True
+        )
+        if session_state is None or int(participant.id) not in [
+            int(p) for p in session_state.participant_ids
+        ]:
+            return
+
+        accepted, reason, collection = record_collection(
+            session_state,
+            participant_id=participant.id,
+            coin_id=message.coin_id,
+            x=message.x,
+            y=message.y,
+            receive_time=receive_time,
+        )
+        db.session.add(
+            CanvasCollectEvent(
+                session_id=message.session_id,
+                participant_id=participant.id,
+                coin_id=message.coin_id,
+                x=message.x,
+                y=message.y,
+                client_time=message.client_time,
+                accepted=accepted,
+                rejection_reason=reason,
+                receive_time=receive_time,
+            )
+        )
+        if accepted:
+            state = session_state.state or {}
+            self.websocket.send(
+                session_state.participant_ids,
+                "coin_collected",
+                {
+                    "collection": collection,
+                    "coins": state.get("coins", []),
+                    "bonuses": state.get("bonuses", {}),
+                },
+            )
+        else:
+            self.websocket.send(
+                participant,
+                "collect_rejected",
+                {
+                    "coin_id": message.coin_id,
+                    "reason": reason,
+                },
+            )
+        db.session.commit()
+
     @staticmethod
     def _valid_position_event():
-        return CanvasGameService.parse_event(
-            json.dumps(
-                {
-                    "type": POSITION_EVENT,
-                    "session_id": "test-session",
-                    "x": 12.5,
-                    "y": 13.5,
-                    "vx": 1.0,
-                    "vy": -1.0,
-                    "client_time": 100.0,
-                    "page_uuid": "current-page",
-                }
-            )
+        return PositionMessage.model_validate(
+            {
+                "session_id": "test-session",
+                "x": 12.5,
+                "y": 13.5,
+                "vx": 1.0,
+                "vy": -1.0,
+                "client_time": 100.0,
+            }
         )
 
     @staticmethod
     def _assert_payload_rejected(payload):
         try:
-            CanvasGameService.parse_event(json.dumps(payload))
+            PositionMessage.model_validate(payload)
         except (ValidationError, ValueError):
             pass
         else:
@@ -795,117 +654,105 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def test_websocket_event_parsing():
         event = Exp._valid_position_event()
-        assert event.type == POSITION_EVENT
         assert event.session_id == "test-session"
-        assert event.receive_time.tzinfo is not None
         invalid_payloads = [
             {"type": POSITION_EVENT, "session_id": "test-session", "x": 1.0},
             {
-                "type": POSITION_EVENT,
                 "session_id": "test-session",
                 "x": 1.0,
-                "y": 1.0,
                 "vx": 0.0,
                 "vy": 0.0,
                 "client_time": 1.0,
-            },
-            {
-                "type": COLLECT_EVENT,
-                "session_id": "test-session",
-                "coin_id": "",
-                "x": 1.0,
-                "y": 1.0,
-                "client_time": 1.0,
-                "page_uuid": "current-page",
             },
             {"type": "unknown", "page_uuid": "current-page"},
         ]
         for payload in invalid_payloads:
             Exp._assert_payload_rejected(payload)
 
+        try:
+            CollectMessage.model_validate(
+                {
+                    "session_id": "test-session",
+                    "coin_id": "",
+                    "x": 1.0,
+                    "y": 1.0,
+                    "client_time": 1.0,
+                }
+            )
+        except ValidationError:
+            pass
+        else:
+            raise AssertionError("Expected empty coin ID to be rejected.")
+
     @staticmethod
     def test_canvas_state_transitions():
         world = generate_world(99)
-        state = CanvasGameState(
+        state = SessionState(
+            namespace=CANVAS_SESSION_NAMESPACE,
             session_id="state-transition-test",
-            group_id=1,
-            network_id=1,
-            world_id=world["world_id"],
-            state=CanvasGameState.initial_state([1], world),
+            participant_ids=[1],
+            state={
+                **initial_canvas_state([1], world),
+                "group_id": 1,
+                "network_id": 1,
+                "world_id": world["world_id"],
+            },
         )
         coin = state.state["coins"][0]
-        event = CanvasGameService.CollectEvent(
-            type=COLLECT_EVENT,
+        event = CollectMessage(
             session_id=state.session_id,
             coin_id=coin["id"],
             x=coin["x"],
             y=coin["y"],
             client_time=1.0,
-            page_uuid="current-page",
         )
+        receive_time = datetime.now()
 
-        accepted, reason, collection = state.record_collection(
+        accepted, reason, collection = record_collection(
+            state,
             participant_id=1,
             coin_id=event.coin_id,
             x=event.x,
             y=event.y,
-            receive_time=event.receive_time,
+            receive_time=receive_time,
         )
 
         assert accepted is True
         assert reason is None
         assert collection["coin_id"] == coin["id"]
         assert coin["id"] not in [c["id"] for c in state.state["coins"]]
-        assert state.participant_result(1)["coin_bonus"] == COIN_BONUS
+        assert participant_result(state, 1)["coin_bonus"] == COIN_BONUS
 
-        accepted, reason, _ = state.record_collection(
+        accepted, reason, _ = record_collection(
+            state,
             participant_id=1,
             coin_id=event.coin_id,
             x=event.x,
             y=event.y,
-            receive_time=event.receive_time,
+            receive_time=receive_time,
         )
         assert accepted is False
         assert reason == "already_collected_or_unknown"
 
     @staticmethod
-    def test_websocket_event_authorization():
-        world = generate_world(100)
-        session = CanvasGameState(
-            session_id="authorization-test",
-            group_id=1,
-            network_id=1,
-            world_id=world["world_id"],
-            state=CanvasGameState.initial_state([1], world),
+    def test_position_event_bypasses_session_state():
+        event = Exp._valid_position_event()
+        player = position_player_payload(
+            SimpleNamespace(id=1),
+            event,
+            datetime.now(),
         )
-        db.session.add(session)
-        db.session.flush()
-        service = CanvasGameService(
-            SimpleNamespace(id=1, page_uuid="current-page"),
-            SimpleNamespace(),
-            CANVAS_WS_CHANNEL,
-        )
-        event = Exp._valid_position_event().model_copy(
-            update={"session_id": session.session_id}
-        )
-        assert service.accepts_event(event)
-        assert not service.accepts_event(event.model_copy(update={"page_uuid": "old"}))
-        assert not service.accepts_event(event.model_copy(update={"session_id": "bad"}))
+        assert player["participant_id"] == "1"
+        assert player["x"] == event.x
+        assert player["y"] == event.y
 
     @staticmethod
     def test_server_event_serialization():
-        event = CanvasGameService.CollectRejectedEvent(
-            session_id="test-session",
-            target_participant_id="1",
-            participant_id="1",
-            coin_id="coin-1",
-            reason="too_far",
-        )
-        assert json.loads(event.to_json()) == {
-            "type": "collect_rejected",
-            "session_id": "test-session",
-            "target_participant_id": "1",
-            "participant_id": "1",
+        event = {
+            "coin_id": "coin-1",
+            "reason": "too_far",
+        }
+        assert json.loads(json.dumps(event)) == {
             "coin_id": "coin-1",
             "reason": "too_far",
         }
@@ -919,12 +766,9 @@ class Exp(psynet.experiment.Experiment):
         )
         template = env.get_template("shared_canvas.html")
         config = {
-            "channel": CANVAS_WS_CHANNEL,
-            "immediate": CANVAS_WS_IMMEDIATE,
-            "tolerance": CANVAS_WS_TOLERANCE,
+            "namespace": CANVAS_SESSION_NAMESPACE,
             "session_id": "shared_canvas:1:group:1",
             "participant_id": 1,
-            "group_id": 1,
             "role": "Player 1",
             "world_id": WORLD_DEFINITIONS[0]["world_id"],
             "canvas_size": CANVAS_SIZE,
@@ -945,19 +789,21 @@ class Exp(psynet.experiment.Experiment):
         )
         assert config_line.startswith("var cfg = {")
         assert "&#" not in config_line
-        assert '"channel": "shared_canvas_live"' in config_line
-        assert '"immediate": true' in config_line
+        assert '"namespace": "shared_canvas"' in config_line
         assert 'tabindex="0"' in html
         assert 'aria-label="Shared canvas arrow-key navigation area"' in html
         assert 'window.addEventListener("keydown", handleArrowKeyDown, true);' in html
         assert 'window.addEventListener("keyup", handleArrowKeyUp, true);' in html
         assert 'canvas.addEventListener("click", focusCanvas);' in html
+        assert "psynet.session_state.init" in html
+        assert "function wsSend" not in html
+        assert 'psynet.websocket.send("position"' in html
         assert "if (!wasPressed) {" in html
 
     def test_canvas_websocket_contracts(self):
         self.test_websocket_event_parsing()
         self.test_canvas_state_transitions()
-        self.test_websocket_event_authorization()
+        self.test_position_event_bypasses_session_state()
         self.test_server_event_serialization()
         self.test_canvas_template_config_initialization()
 

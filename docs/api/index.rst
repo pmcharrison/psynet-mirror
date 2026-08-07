@@ -16,6 +16,7 @@ API Documentation
    error
    experiment
    field
+   session_state
    graphics
    js_synth
    media
@@ -32,3 +33,4 @@ API Documentation
    trial/index
    utils
    version
+   websocket
