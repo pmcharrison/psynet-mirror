@@ -10,6 +10,7 @@ from psynet.session import (
     ReadyMessage,
     StateRequestMessage,
 )
+from psynet.trial.main import TrialMaker
 
 
 class PolymorphicDemoLiveSession(LiveSession):
@@ -332,6 +333,31 @@ def test_live_session_prepare_for_group_requires_leader_trial(monkeypatch):
 
     with pytest.raises(ValueError, match="no trial for leader"):
         PolymorphicDemoLiveSession.prepare_for_group(group=group)
+
+
+def test_group_trial_preparation_skips_live_session_when_exiting(monkeypatch):
+    """Trial-maker completion should not try to prepare a live session."""
+
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: object())
+
+    trial_class = SimpleNamespace(prepare_live_session=MagicMock())
+    trial_maker = SimpleNamespace(trial_class=trial_class)
+
+    def prepare_trial(experiment, participant, leader=None):
+        return None, "exit"
+
+    trial_maker._prepare_trial = prepare_trial
+    leader = SimpleNamespace(id=1, current_trial="old", trial_status=None)
+    follower = SimpleNamespace(id=2, current_trial="old", trial_status=None)
+    group = SimpleNamespace(leader=leader, active_followers=[follower])
+
+    TrialMaker._try_to_prepare_trial_group(trial_maker, group)
+
+    assert leader.current_trial is None
+    assert leader.trial_status == "exit"
+    assert follower.current_trial is None
+    assert follower.trial_status == "exit"
+    trial_class.prepare_live_session.assert_not_called()
 
 
 def test_live_session_default_session_id_uses_class_and_network():

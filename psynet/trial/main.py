@@ -2043,7 +2043,8 @@ class TrialMaker(Module):
                 participant=follower,
                 leader=group.leader,
             )
-        self.trial_class.prepare_live_session(group=group)
+        if leader.trial_status == "available":
+            self.trial_class.prepare_live_session(group=group)
 
     max_time_waiting_for_trial = 60
 
