@@ -156,51 +156,6 @@ def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
         "players": players,
         "coins": deepcopy(world["coins"]),
         "collected_coins": [],
-        "bonuses": {participant_id: 0.0 for participant_id in ordered_ids},
-        "collection_counts": {participant_id: 0 for participant_id in ordered_ids},
-    }
-
-
-def participant_result(
-    live_session: "SharedCanvasSession", participant_id: int
-) -> dict:
-    """Return the final participant result from the authoritative state."""
-
-    state = live_session.state or {}
-    participant_id_str = str(participant_id)
-    collected_coins = [
-        c
-        for c in state.get("collected_coins", [])
-        if str(c.get("participant_id")) == participant_id_str
-    ]
-    latest_position = (
-        CanvasPositionEvent.query.filter_by(
-            session_id=live_session.session_id,
-            participant_id=participant_id,
-        )
-        .order_by(CanvasPositionEvent.id.desc())
-        .first()
-    )
-    final_position = None
-    if latest_position is not None:
-        final_position = {
-            "x": latest_position.x,
-            "y": latest_position.y,
-            "vx": latest_position.vx,
-            "vy": latest_position.vy,
-        }
-    return {
-        "completed_live_canvas": True,
-        "participant_id": participant_id,
-        "collected_coin_ids": [c["coin_id"] for c in collected_coins],
-        "coin_bonus": round(
-            float(state.get("bonuses", {}).get(participant_id_str, 0.0)), 2
-        ),
-        "collection_count": int(
-            state.get("collection_counts", {}).get(participant_id_str, 0)
-        ),
-        "final_position": final_position,
-        "world_id": state.get("params", {}).get("world", {}).get("world_id"),
     }
 
 
@@ -371,13 +326,6 @@ class SharedCanvasSession(LiveSession):
             "receive_time": receive_time_iso(receive_time),
         }
         state.setdefault("collected_coins", []).append(collected)
-        state.setdefault("collection_counts", {}).setdefault(participant_id, 0)
-        state["collection_counts"][participant_id] += 1
-        state.setdefault("bonuses", {}).setdefault(participant_id, 0.0)
-        state["bonuses"][participant_id] = round(
-            float(state["bonuses"][participant_id]) + COIN_BONUS,
-            2,
-        )
         self.state = state
         return True, None, collected
 
@@ -396,6 +344,7 @@ class SharedCanvasControl(LiveSessionControl):
             group_type=GROUP_TYPE,
             show_next_button=False,
         )
+        trial.initialize_coin_count()
 
     def format_answer(self, raw_answer, **kwargs):
         return raw_answer
@@ -406,6 +355,23 @@ class SharedCanvasControl(LiveSessionControl):
 
 class SharedCanvasTrial(StaticTrial):
     time_estimate = TRIAL_SECONDS + 35
+
+    @property
+    def coin_count(self) -> int:
+        """Return the number of accepted coins for this participant's trial."""
+
+        return int((self.vars or {}).get("coins", 0))
+
+    def initialize_coin_count(self):
+        """Initialize the trial coin count if needed."""
+
+        if "coins" not in (self.vars or {}):
+            self.var.coins = 0
+
+    def record_coin(self):
+        """Increment the trial coin count after an accepted collection."""
+
+        self.var.coins = self.coin_count + 1
 
     def show_trial(self, experiment, participant):
         return join(
@@ -419,7 +385,6 @@ class SharedCanvasTrial(StaticTrial):
             GroupBarrier(
                 id_="canvas_finished",
                 group_type=GROUP_TYPE,
-                on_release=self.score_canvas_game,
                 max_wait_time=90,
             ),
         )
@@ -439,55 +404,17 @@ class SharedCanvasTrial(StaticTrial):
             time_estimate=TRIAL_SECONDS + 5,
         )
 
-    def score_canvas_game(self, participants: List[Participant]):
-        group = participants[0].active_sync_groups[GROUP_TYPE]
-        ordered = sorted(participants, key=lambda p: p.id)
-        world = self.definition["world"]
-        live_session = SharedCanvasSession.get_or_create(
-            build_session_id(self, group),
-            state={
-                **initial_canvas_state([p.id for p in ordered], world),
-                "group_id": int(group.id),
-                "network_id": self.network.id,
-                "world_id": world["world_id"],
-            },
-            participant_ids=[p.id for p in ordered],
-        )
-        for participant in participants:
-            participant.var.shared_canvas_result = participant_result(
-                live_session, participant.id
-            )
-
     def format_answer(self, raw_answer, **kwargs):
-        participant = kwargs.get("participant", self.participant)
-        if participant is not None:
-            try:
-                result = participant.var.shared_canvas_result
-            except AttributeError:
-                result = None
-            if isinstance(result, dict):
-                return result
-        return {
-            "completed_live_canvas": False,
-            "world_id": self.definition["world"]["world_id"],
-            "coin_bonus": 0.0,
-            "raw_answer": raw_answer,
-        }
+        return raw_answer
 
     def score_answer(self, answer, definition):
-        if isinstance(answer, dict):
-            return int(round(float(answer.get("coin_bonus", 0.0)) / COIN_BONUS))
-        return 0
+        return self.coin_count
 
     def compute_performance_reward(self, score):
         return max(0.0, score * COIN_BONUS)
 
     def show_feedback(self, experiment, participant):
-        try:
-            answer = participant.var.shared_canvas_result
-        except AttributeError:
-            answer = self.answer if isinstance(self.answer, dict) else {}
-        bonus = float(answer.get("coin_bonus", 0.0))
+        bonus = self.compute_performance_reward(self.coin_count)
         content = tags.div()
         with content:
             tags.h2("Navigation complete")
@@ -604,13 +531,15 @@ class Exp(psynet.experiment.Experiment):
         )
         if accepted:
             state = live_session.state or {}
+            trial = participant.current_trial
+            if isinstance(trial, SharedCanvasTrial):
+                trial.record_coin()
             self.websocket.send(
                 live_session.participant_ids,
                 "coin_collected",
                 {
                     "collection": collection,
                     "coins": state.get("coins", []),
-                    "bonuses": state.get("bonuses", {}),
                 },
             )
         else:
@@ -714,7 +643,8 @@ class Exp(psynet.experiment.Experiment):
         assert reason is None
         assert collection["coin_id"] == coin["id"]
         assert coin["id"] not in [c["id"] for c in state.state["coins"]]
-        assert participant_result(state, 1)["coin_bonus"] == COIN_BONUS
+        assert state.state["collected_coins"] == [collection]
+        assert "bonuses" not in state.state
 
         accepted, reason, _ = state.record_collection(
             participant_id=1,
@@ -820,10 +750,9 @@ class Exp(psynet.experiment.Experiment):
             assert "Navigation complete" in bot.current_page_text
             answer = bot.current_trial.answer
             assert isinstance(answer, dict)
-            assert answer["completed_live_canvas"] is True
-            assert answer["coin_bonus"] == 0.0
-            assert answer["collected_coin_ids"] == []
-            assert answer["participant_id"] == bot.id
+            assert answer["completed_live_canvas_browser"] is True
+            assert answer["bot_participant_id"] == bot.id
+            assert bot.current_trial.score == 0
             participant = Participant.query.get(bot.id)
             group_id = int(participant.active_sync_groups[GROUP_TYPE].id)
             answers_by_group.setdefault(group_id, []).append(answer)

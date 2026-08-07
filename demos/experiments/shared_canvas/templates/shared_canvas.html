@@ -97,8 +97,12 @@ document.addEventListener("DOMContentLoaded", function () {
       own = Object.assign(own, players[String(cfg.participant_id)]);
     }
     coins = (state.coins || []).slice();
-    var bonuses = state.bonuses || {};
-    updateBonus(bonuses[String(cfg.participant_id)] || 0);
+    collectedCoinIds = (state.collected_coins || [])
+      .filter(function (collection) {
+        return String(collection.participant_id) === String(cfg.participant_id);
+      })
+      .map(function (collection) { return collection.coin_id; });
+    updateBonus(collectedCoinIds.length * cfg.coin_bonus);
   }
 
   function applyPosition(player) {
@@ -115,9 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
     delete pendingCollections[collection.coin_id];
     if (String(collection.participant_id) === String(cfg.participant_id)) {
       collectedCoinIds.push(collection.coin_id);
-      updateBonus((msg.bonuses || {})[String(cfg.participant_id)] || (bonus + cfg.coin_bonus));
-    } else if (msg.bonuses) {
-      updateBonus(msg.bonuses[String(cfg.participant_id)] || bonus);
+      updateBonus(bonus + cfg.coin_bonus);
     }
   }
 
