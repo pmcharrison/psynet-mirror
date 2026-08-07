@@ -30,9 +30,9 @@ from psynet.websocket import WebSocketMessage, websocket_handler
 
 GROUP_TYPE = "shared_canvas_group"
 CANVAS_SESSION_NAMESPACE = "shared_canvas"
-GROUP_SIZE = max(2, int(os.environ.get("CANVAS_GROUP_SIZE", "2")))
+GROUP_SIZE = 2
 CANVAS_SIZE = 640
-TRIAL_SECONDS = int(os.environ.get("CANVAS_TRIAL_SECONDS", "35"))
+TRIAL_SECONDS = 35
 SEND_INTERVAL_MS = 50
 DRAW_INTERVAL_MS = 25
 PLAYER_RADIUS = 12
