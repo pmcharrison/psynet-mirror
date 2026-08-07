@@ -16,7 +16,7 @@ API Documentation
    error
    experiment
    field
-   session_state
+   session
    graphics
    js_synth
    media

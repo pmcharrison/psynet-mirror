@@ -38,12 +38,12 @@
 <div class="canvas-shell">
   <h2>Shared canvas</h2>
   <div class="bonus-pill">Coin bonus: $<span id="coin-bonus">0.00</span></div>
-  <canvas id="shared-canvas" width="{{ params.game_config.canvas_size }}" height="{{ params.game_config.canvas_size }}" tabindex="0" aria-label="Shared canvas arrow-key navigation area"></canvas>
+  <canvas id="shared-canvas" width="{{ params.live_session_config.canvas_size }}" height="{{ params.live_session_config.canvas_size }}" tabindex="0" aria-label="Shared canvas arrow-key navigation area"></canvas>
   <p class="canvas-help">Use the arrow keys to move. Collect the gold coins before the session ends.</p>
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  var cfg = {{ params.game_config | tojson }};
+  var cfg = {{ params.live_session_config | tojson }};
   var canvas = document.getElementById("shared-canvas");
   var ctx = canvas.getContext("2d");
   var players = {};
@@ -286,10 +286,11 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("blur", function () { keys = {}; });
   focusCanvas();
 
-  psynet.session_state.init(cfg);
-  psynet.session_state.onSnapshot(applySnapshot);
-  psynet.session_state.onStarted(startGame);
-  psynet.session_state.ready();
+  psynet.session.init(cfg);
+  psynet.session.onSnapshot(applySnapshot);
+  psynet.session.onStarted(startGame);
+  psynet.session.onEnd(submitFinalAnswer);
+  psynet.session.ready();
 
   psynet.websocket.handle("position_update", function (msg) {
     applyPosition(msg.player);

@@ -93,7 +93,7 @@ from .recruiters import (  # noqa: F401
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
-from .session_state import (
+from .session import (
     READY_EVENT,
     STATE_REQUEST_EVENT,
     ReadyMessage,

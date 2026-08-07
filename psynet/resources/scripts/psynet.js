@@ -341,18 +341,21 @@
       };
     })();
 
-    psynet.session_state = (function () {
+    psynet.session = (function () {
       let config = {
         namespace: "default",
         session_id: null,
       };
       let snapshotHandlers = [];
       let startedHandlers = [];
+      let endHandlers = [];
+      let endHandled = false;
 
       let api = {
         snapshot: null,
         state: {},
         started: false,
+        ended: false,
       };
 
       function matchesConfig(snapshot) {
@@ -366,13 +369,39 @@
       function applySnapshot(snapshot) {
         if (!matchesConfig(snapshot)) return;
         let wasStarted = api.started;
+        let wasEnded = api.ended;
         api.snapshot = snapshot;
         api.state = snapshot.state || {};
         api.started = Boolean(snapshot.started);
+        api.ended = Boolean(snapshot.ended);
         snapshotHandlers.forEach((handler) => handler(snapshot));
         if (!wasStarted && api.started) {
           startedHandlers.forEach((handler) => handler(snapshot));
         }
+        if (!wasEnded && api.ended) {
+          finish(snapshot);
+        }
+      }
+
+      function finish(snapshot) {
+        if (endHandled) return;
+        endHandled = true;
+        setTimeout(function () {
+          if (endHandlers.length > 0) {
+            endHandlers.forEach((handler) => handler(snapshot));
+          } else {
+            psynet.nextPage();
+          }
+        }, 0);
+      }
+
+      function applyEnd(snapshot) {
+        if (!matchesConfig(snapshot)) return;
+        if (!api.ended) applySnapshot(snapshot);
+        api.ended = true;
+        api.snapshot = snapshot;
+        api.state = snapshot.state || {};
+        finish(snapshot);
       }
 
       function request() {
@@ -391,6 +420,7 @@
           });
         }
         psynet.websocket.handle("stateSnapshot", applySnapshot);
+        psynet.websocket.handle("sessionEnd", applyEnd);
         psynet.websocket.onConnect(request);
         request();
         return api;
@@ -419,6 +449,14 @@
         if (api.started && api.snapshot) handler(api.snapshot);
         return function () {
           startedHandlers = startedHandlers.filter((x) => x !== handler);
+        };
+      };
+
+      api.onEnd = function (handler) {
+        endHandlers.push(handler);
+        if (api.ended && api.snapshot) handler(api.snapshot);
+        return function () {
+          endHandlers = endHandlers.filter((x) => x !== handler);
         };
       };
 

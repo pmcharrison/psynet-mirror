@@ -10,21 +10,21 @@ The participant-facing interface mirrors ``demos/experiments/rock_paper_scissors
 (a coloured "choose your action" prompt with rock/paper/scissors push buttons),
 but the round-by-round coordination is driven entirely over WebSockets rather
 than by a page reload per round. The design follows PsyNet's built-in WebSocket
-and session-state machinery:
+and live-session machinery:
 
 * The experiment defines a direct ``@websocket_handler("choose")`` method that
   receives every browser choice. Once both players have submitted a move for the
   current round it scores the round and stores ready-to-render public snapshots
-  in :class:`~psynet.session_state.SessionState`.
+  in :class:`~psynet.session.LiveSession`.
 * :class:`RockPaperScissorsControl` is a :class:`~psynet.modular_page.Control`
   backed by a small custom template that renders the buttons and uses
-  ``psynet.websocket`` and ``psynet.session_state`` for real-time communication
+  ``psynet.websocket`` and ``psynet.session`` for real-time communication
   and refresh/reconnect recovery.
 
 The server is the sole authority for the game state; the browser only sends the
 chosen action and drops the server's snapshot text into the page, so there is
 almost no game logic in JavaScript. Public recoverable state is persisted in
-``SessionState`` rows, while hidden choices are kept in ``RockPaperScissorsMove``
+``LiveSession`` rows, while hidden choices are kept in ``RockPaperScissorsMove``
 rows until a round is complete. The final score is recomputed from participant
 submissions inside a :class:`~psynet.sync.GroupBarrier` on release, so the flow
 is also fully testable with non-WebSocket bots.
@@ -43,10 +43,10 @@ from sqlalchemy import Column, Integer, String, UniqueConstraint
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.modular_page import Control, ModularPage
+from psynet.modular_page import ModularPage
 from psynet.page import InfoPage
 from psynet.participant import Participant
-from psynet.session_state import SessionState
+from psynet.session import LiveSessionControl, LiveSessionMixin
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -115,14 +115,6 @@ class RevealSnapshot(WebSocketMessage):
 RPS_SESSION_NAMESPACE = "rock_paper_scissors"
 
 
-def participant_ids_for_sync_group(participant):
-    """Return sorted participant IDs for the participant's sync group."""
-
-    sync_group = getattr(participant, "sync_group", None)
-    participants = getattr(sync_group, "participants", None) or [participant]
-    return [int(p.id) for p in sorted(participants, key=lambda p: p.id)]
-
-
 def initial_rps_state(participant_ids: list[int]) -> dict:
     """Return the public recoverable state for a new RPS session."""
 
@@ -136,19 +128,96 @@ def initial_rps_state(participant_ids: list[int]) -> dict:
     }
 
 
-def get_or_create_rps_session_state(
-    room_id: str, participant_ids: list[int] | None = None, *, for_update=False
-):
-    """Return the generic SessionState row backing an RPS room."""
+@register_table
+class RockPaperScissorsSession(LiveSessionMixin, SQLBase, SQLMixin):
+    """Persisted live session for one rock-paper-scissors room."""
 
-    participant_ids = sorted(set(participant_ids or []))
-    return SessionState.get_or_create(
-        RPS_SESSION_NAMESPACE,
-        room_id,
-        state=initial_rps_state(participant_ids),
-        participant_ids=participant_ids,
-        for_update=for_update,
-    )
+    live_session_namespace = RPS_SESSION_NAMESPACE
+
+    @classmethod
+    def build_session_id(cls, participant, group, control):
+        """Return the session ID for a rock-paper-scissors sync group."""
+
+        return room_id_for_sync_group(group.id)
+
+    @classmethod
+    def build_initial_state(cls, participant_ids, participant, group, control):
+        """Return the public recoverable state for a new RPS session."""
+
+        return initial_rps_state(participant_ids)
+
+    @classmethod
+    def build_params(cls, participant, group, control):
+        """Return browser-facing rock-paper-scissors config."""
+
+        return {
+            "color": control.color,
+            "n_rounds": control.n_rounds,
+            "choices": control.choices,
+        }
+
+    def record_choice(self, participant_id: int, message: ChooseMessage):
+        """Record a choice and update the public live-session snapshot."""
+
+        participant_id = int(participant_id)
+        public_state = deepcopy(self.state or {})
+        current_round = int(public_state.get("current_round", 1))
+        expected_ids = [int(value) for value in (self.participant_ids or [])]
+
+        if bool(public_state.get("finished")):
+            return False
+        if message.round != current_round:
+            return False
+        if participant_id not in expected_ids:
+            return False
+        if participant_id in moves_for_round(message.session_id, message.round):
+            return False
+
+        db.session.add(
+            RockPaperScissorsMove(
+                room_id=message.session_id,
+                round_number=message.round,
+                participant_id=participant_id,
+                action=message.action,
+            )
+        )
+        db.session.flush()
+
+        round_moves = moves_for_round(message.session_id, message.round)
+        submitted = sorted(str(pid) for pid in round_moves)
+        public_state["submitted_participant_ids"] = submitted
+
+        if len(round_moves) >= len(expected_ids):
+            pids = sorted(round_moves.keys())
+            score_1, score_2 = score_match(
+                [round_moves[pids[0]]], [round_moves[pids[1]]]
+            )
+            scores = dict(public_state.get("scores", {}))
+            scores.setdefault(str(pids[0]), 0)
+            scores.setdefault(str(pids[1]), 0)
+            scores[str(pids[0])] += score_1
+            scores[str(pids[1])] += score_2
+            public_state["scores"] = scores
+            public_state["finished"] = message.round >= N_ROUNDS
+            public_state["submitted_participant_ids"] = []
+            if not public_state["finished"]:
+                public_state["current_round"] = message.round + 1
+
+            reveal_history = dict(public_state.get("reveal_history", {}))
+            for pid in pids:
+                pid_key = str(pid)
+                reveal_history.setdefault(pid_key, [])
+                reveal = reveal_for(
+                    public_state, message.session_id, pid, message.round
+                )
+                reveal_history[pid_key] = [
+                    *reveal_history[pid_key],
+                    reveal.model_dump(mode="json", exclude_none=True),
+                ]
+            public_state["reveal_history"] = reveal_history
+
+        self.state = public_state
+        return True
 
 
 def accepts_choose_message(participant, message: ChooseMessage):
@@ -238,68 +307,6 @@ def reveal_for(
     )
 
 
-def record_choice(
-    session_state: SessionState, participant_id: int, message: ChooseMessage
-):
-    """Record a choice and update the public SessionState snapshot."""
-
-    participant_id = int(participant_id)
-    public_state = deepcopy(session_state.state or {})
-    current_round = int(public_state.get("current_round", 1))
-    expected_ids = [int(value) for value in (session_state.participant_ids or [])]
-
-    if bool(public_state.get("finished")):
-        return False
-    if message.round != current_round:
-        return False
-    if participant_id not in expected_ids:
-        return False
-    if participant_id in moves_for_round(message.session_id, message.round):
-        return False
-
-    db.session.add(
-        RockPaperScissorsMove(
-            room_id=message.session_id,
-            round_number=message.round,
-            participant_id=participant_id,
-            action=message.action,
-        )
-    )
-    db.session.flush()
-
-    round_moves = moves_for_round(message.session_id, message.round)
-    submitted = sorted(str(pid) for pid in round_moves)
-    public_state["submitted_participant_ids"] = submitted
-
-    if len(round_moves) >= len(expected_ids):
-        pids = sorted(round_moves.keys())
-        score_1, score_2 = score_match([round_moves[pids[0]]], [round_moves[pids[1]]])
-        scores = dict(public_state.get("scores", {}))
-        scores.setdefault(str(pids[0]), 0)
-        scores.setdefault(str(pids[1]), 0)
-        scores[str(pids[0])] += score_1
-        scores[str(pids[1])] += score_2
-        public_state["scores"] = scores
-        public_state["finished"] = message.round >= N_ROUNDS
-        public_state["submitted_participant_ids"] = []
-        if not public_state["finished"]:
-            public_state["current_round"] = message.round + 1
-
-        reveal_history = dict(public_state.get("reveal_history", {}))
-        for pid in pids:
-            pid_key = str(pid)
-            reveal_history.setdefault(pid_key, [])
-            reveal = reveal_for(public_state, message.session_id, pid, message.round)
-            reveal_history[pid_key] = [
-                *reveal_history[pid_key],
-                reveal.model_dump(mode="json", exclude_none=True),
-            ]
-        public_state["reveal_history"] = reveal_history
-
-    session_state.state = public_state
-    return True
-
-
 @register_table
 class RockPaperScissorsMove(SQLBase, SQLMixin):
     """A single move submitted by a participant during one round."""
@@ -319,23 +326,26 @@ class RockPaperScissorsMove(SQLBase, SQLMixin):
         self.action = action
 
 
-class RockPaperScissorsControl(Control):
+class RockPaperScissorsControl(LiveSessionControl):
     """Control that renders the rock-paper-scissors board and drives it over a
     WebSocket. The submitted answer is the participant's list of ``n_rounds``
     moves."""
 
+    session_class = RockPaperScissorsSession
     external_template = "rps-control.html"
     macro = "rps_control"
 
-    def __init__(self, room_id, color, n_rounds=N_ROUNDS, choices=CHOICES):
+    def __init__(self, participant, color, n_rounds=N_ROUNDS, choices=CHOICES):
         # The board advances itself once all rounds are revealed, so we hide the
         # default 'Next' button and submit programmatically from the template.
-        super().__init__(show_next_button=False)
-        self.namespace = RPS_SESSION_NAMESPACE
-        self.room_id = room_id
         self.color = color
         self.n_rounds = n_rounds
         self.choices = choices
+        super().__init__(
+            participant=participant,
+            group_type=GROUP_TYPE,
+            show_next_button=False,
+        )
 
     def format_answer(self, raw_answer, **kwargs):
         return raw_answer
@@ -354,18 +364,13 @@ class RockPaperScissorsTrial(StaticTrial):
     time_estimate = 30
 
     def show_trial(self, experiment, participant):
-        room_id = room_id_for_sync_group(participant.sync_group.id)
-        get_or_create_rps_session_state(
-            room_id,
-            participant_ids_for_sync_group(participant),
-        )
         return join(
             GroupBarrier(
                 id_="wait_for_partner",
                 group_type=GROUP_TYPE,
                 max_wait_time=120,
             ),
-            self.play_game(room_id=room_id, color=self.definition["color"]),
+            self.play_game(participant=participant, color=self.definition["color"]),
             GroupBarrier(
                 id_="game_finished",
                 group_type=GROUP_TYPE,
@@ -374,7 +379,7 @@ class RockPaperScissorsTrial(StaticTrial):
             ),
         )
 
-    def play_game(self, room_id, color):
+    def play_game(self, participant, color):
         prompt = tags.div()
         with prompt:
             tags.h1("Rock, paper, scissors!")
@@ -386,7 +391,7 @@ class RockPaperScissorsTrial(StaticTrial):
         return ModularPage(
             "play_game",
             prompt,
-            RockPaperScissorsControl(room_id=room_id, color=color),
+            RockPaperScissorsControl(participant=participant, color=color),
             time_estimate=30,
             save_answer="rps_moves",
         )
@@ -469,13 +474,13 @@ class Exp(psynet.experiment.Experiment):
         if not accepts_choose_message(participant, message):
             return
 
-        session_state = get_or_create_rps_session_state(
-            message.session_id,
-            participant_ids_for_sync_group(participant),
-            for_update=True,
-        )
-        if record_choice(session_state, participant.id, message):
-            session_state.send_snapshot(self)
+        live_session = RockPaperScissorsSession.get(message.session_id, for_update=True)
+        if live_session is not None and live_session.record_choice(
+            participant.id, message
+        ):
+            live_session.send_snapshot(self)
+            if bool((live_session.state or {}).get("finished")):
+                live_session.end(self)
             db.session.commit()
 
     @staticmethod
@@ -567,8 +572,8 @@ class Exp(psynet.experiment.Experiment):
             raise AssertionError("Expected unequal move sequences to be rejected.")
 
     @staticmethod
-    def test_session_state_initialization():
-        """Check the public recoverable session-state shape."""
+    def test_live_session_initialization():
+        """Check the public recoverable live-session shape."""
         state = initial_rps_state([2, 1])
         assert state == {
             "current_round": 1,
@@ -601,7 +606,7 @@ class Exp(psynet.experiment.Experiment):
 
     @staticmethod
     def test_reveal_formatting():
-        """Check reveal formatting from public SessionState and hidden move log."""
+        """Check reveal formatting from public LiveSession and hidden move log."""
         room_id = room_id_for_sync_group(1)
         state = initial_rps_state([1, 2])
         state["scores"] = {"1": 1, "2": -1}
@@ -622,7 +627,7 @@ class Exp(psynet.experiment.Experiment):
         self.test_websocket_event_parsing()
         self.test_websocket_event_authorization()
         self.test_scoring_and_room_helpers()
-        self.test_session_state_initialization()
+        self.test_live_session_initialization()
         self.test_reveal_serialization()
         self.test_reveal_formatting()
 

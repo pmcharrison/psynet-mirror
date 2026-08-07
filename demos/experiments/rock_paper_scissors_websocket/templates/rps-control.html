@@ -30,11 +30,13 @@
     // The server owns the game: this script only sends the chosen action and
     // renders the snapshots the server sends back.
     document.addEventListener("DOMContentLoaded", function () {
-        var NAMESPACE = {{ config.namespace | tojson }};
-        var ROOM_ID   = {{ config.room_id | tojson }};
+        var liveSession = {{ config.live_session_config | tojson }};
+        var ROOM_ID   = liveSession.session_id;
         var MY_ID     = String(dallinger.identity.participantId);
         var round     = 1;
         var completed = false;
+        var submitted = false;
+        var finalAnswer = null;
 
         var buttons  = Array.prototype.slice.call(
             document.getElementsByClassName("rps-choice")
@@ -83,10 +85,8 @@
             var latest = history[history.length - 1];
             if (latest && latest.finished) {
                 setEnabled(false);
-                if (!completed) {
-                    completed = true;
-                    psynet.nextPage(latest.answer);
-                }
+                completed = true;
+                finalAnswer = latest.answer;
                 return;
             }
 
@@ -101,12 +101,15 @@
             }
         }
 
-        psynet.session_state.init({
-            namespace: NAMESPACE,
-            session_id: ROOM_ID
+        psynet.session.init(liveSession);
+        psynet.session.onSnapshot(renderSnapshot);
+        psynet.session.onEnd(function (snapshot) {
+            renderSnapshot(snapshot);
+            if (submitted) return;
+            submitted = true;
+            psynet.nextPage(finalAnswer);
         });
-        psynet.session_state.onSnapshot(renderSnapshot);
-        psynet.session_state.ready();
+        psynet.session.ready();
 
         buttons.forEach(function (button) {
             button.onclick = function () {

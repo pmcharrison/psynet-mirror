@@ -19,10 +19,10 @@ import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.modular_page import Control, ModularPage
+from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
-from psynet.session_state import SessionState
+from psynet.session import LiveSessionControl, LiveSessionMixin
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -94,7 +94,7 @@ class CanvasPositionEvent(SQLBase, SQLMixin):
     """Persisted high-frequency position event.
 
     Position events are recorded for analysis and replay, but they do not mutate
-    the authoritative ``SessionState``.
+    the authoritative live session.
     """
 
     __tablename__ = "canvas_position_event"
@@ -162,70 +162,12 @@ def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
     }
 
 
-def canvas_state_payload(session_state: SessionState) -> dict:
-    """Return the canvas-specific snapshot nested inside a generic SessionState."""
-
-    state = session_state.state or {}
-    payload = session_state.snapshot_payload()
-    payload["state"] = {
-        **state,
-        "target_participant_ids": [str(p) for p in session_state.participant_ids],
-        "session_id": session_state.session_id,
-    }
-    return payload
-
-
-def record_collection(
-    session_state: SessionState,
-    *,
-    participant_id: int,
-    coin_id: str,
-    x: float,
-    y: float,
-    receive_time,
-):
-    """Apply a validated collection attempt to authoritative state."""
-
-    state = deepcopy(session_state.state or {})
-    participant_id = str(participant_id)
-    coin = next((c for c in state.get("coins", []) if c["id"] == coin_id), None)
-    if coin is None:
-        return False, "already_collected_or_unknown", None
-
-    player = state.get("players", {}).get(participant_id)
-    if player is None:
-        return False, "unknown_player", None
-
-    distance = math.hypot(float(coin["x"]) - x, float(coin["y"]) - y)
-    collect_radius = float(coin.get("radius", COIN_RADIUS)) + PLAYER_RADIUS + 4
-    if distance > collect_radius:
-        return False, "too_far", None
-
-    state["coins"] = [c for c in state.get("coins", []) if c["id"] != coin_id]
-    collected = {
-        "coin_id": coin_id,
-        "participant_id": participant_id,
-        "x": coin["x"],
-        "y": coin["y"],
-        "bonus": COIN_BONUS,
-        "receive_time": receive_time_iso(receive_time),
-    }
-    state.setdefault("collected_coins", []).append(collected)
-    state.setdefault("collection_counts", {}).setdefault(participant_id, 0)
-    state["collection_counts"][participant_id] += 1
-    state.setdefault("bonuses", {}).setdefault(participant_id, 0.0)
-    state["bonuses"][participant_id] = round(
-        float(state["bonuses"][participant_id]) + COIN_BONUS,
-        2,
-    )
-    session_state.state = state
-    return True, None, collected
-
-
-def participant_result(session_state: SessionState, participant_id: int) -> dict:
+def participant_result(
+    live_session: "SharedCanvasSession", participant_id: int
+) -> dict:
     """Return the final participant result from the authoritative state."""
 
-    state = session_state.state or {}
+    state = live_session.state or {}
     participant_id_str = str(participant_id)
     collected_coins = [
         c
@@ -234,7 +176,7 @@ def participant_result(session_state: SessionState, participant_id: int) -> dict
     ]
     latest_position = (
         CanvasPositionEvent.query.filter_by(
-            session_id=session_state.session_id,
+            session_id=live_session.session_id,
             participant_id=participant_id,
         )
         .order_by(CanvasPositionEvent.id.desc())
@@ -290,7 +232,7 @@ class CollectMessage(WebSocketMessage):
 def position_player_payload(
     participant: Participant, message: PositionMessage, receive_time
 ):
-    """Return a player payload without reading authoritative session state."""
+    """Return a player payload without reading authoritative live-session state."""
 
     return {
         "participant_id": str(participant.id),
@@ -354,49 +296,110 @@ def build_bot_answer(bot) -> dict:
     }
 
 
-def build_game_config(trial, participant: Participant) -> dict:
-    ordered = participant_order(participant)
-    group = participant.active_sync_groups[GROUP_TYPE]
-    role_index = [p.id for p in ordered].index(participant.id)
-    world = trial.definition["world"]
-    session_id = build_session_id(trial, group)
-    participant_ids = [p.id for p in ordered]
-    SessionState.get_or_create(
-        CANVAS_SESSION_NAMESPACE,
-        session_id,
-        state={
+@register_table
+class SharedCanvasSession(LiveSessionMixin, SQLBase, SQLMixin):
+    """Persisted live session for one shared-canvas group."""
+
+    live_session_namespace = CANVAS_SESSION_NAMESPACE
+
+    @classmethod
+    def build_session_id(cls, participant, group, control):
+        """Return the shared-canvas session ID."""
+
+        return build_session_id(control.trial, group)
+
+    @classmethod
+    def build_initial_state(cls, participant_ids, participant, group, control):
+        """Return the initial authoritative shared-canvas state."""
+
+        world = control.trial.definition["world"]
+        return {
             **initial_canvas_state(participant_ids, world),
             "group_id": int(group.id),
-            "network_id": trial.network.id,
+            "network_id": control.trial.network.id,
             "world_id": world["world_id"],
-        },
-        participant_ids=participant_ids,
-    )
-    return {
-        "namespace": CANVAS_SESSION_NAMESPACE,
-        "session_id": session_id,
-        "participant_id": participant.id,
-        "role": f"Player {role_index + 1}",
-        "world_id": world["world_id"],
-        "canvas_size": world["canvas_size"],
-        "trial_seconds": TRIAL_SECONDS,
-        "send_interval_ms": SEND_INTERVAL_MS,
-        "draw_interval_ms": DRAW_INTERVAL_MS,
-        "player_radius": PLAYER_RADIUS,
-        "coin_radius": world["coin_radius"],
-        "coin_bonus": COIN_BONUS,
-    }
+        }
+
+    @classmethod
+    def build_params(cls, participant, group, control):
+        """Return browser-facing shared-canvas config."""
+
+        ordered = sorted(group.participants, key=lambda p: p.id)
+        role_index = [p.id for p in ordered].index(participant.id)
+        world = control.trial.definition["world"]
+        return {
+            "role": f"Player {role_index + 1}",
+            "world_id": world["world_id"],
+            "canvas_size": world["canvas_size"],
+            "trial_seconds": TRIAL_SECONDS,
+            "send_interval_ms": SEND_INTERVAL_MS,
+            "draw_interval_ms": DRAW_INTERVAL_MS,
+            "player_radius": PLAYER_RADIUS,
+            "coin_radius": world["coin_radius"],
+            "coin_bonus": COIN_BONUS,
+        }
+
+    def record_collection(
+        self,
+        *,
+        participant_id: int,
+        coin_id: str,
+        x: float,
+        y: float,
+        receive_time,
+    ):
+        """Apply a validated collection attempt to authoritative state."""
+
+        state = deepcopy(self.state or {})
+        participant_id = str(participant_id)
+        coin = next((c for c in state.get("coins", []) if c["id"] == coin_id), None)
+        if coin is None:
+            return False, "already_collected_or_unknown", None
+
+        player = state.get("players", {}).get(participant_id)
+        if player is None:
+            return False, "unknown_player", None
+
+        distance = math.hypot(float(coin["x"]) - x, float(coin["y"]) - y)
+        collect_radius = float(coin.get("radius", COIN_RADIUS)) + PLAYER_RADIUS + 4
+        if distance > collect_radius:
+            return False, "too_far", None
+
+        state["coins"] = [c for c in state.get("coins", []) if c["id"] != coin_id]
+        collected = {
+            "coin_id": coin_id,
+            "participant_id": participant_id,
+            "x": coin["x"],
+            "y": coin["y"],
+            "bonus": COIN_BONUS,
+            "receive_time": receive_time_iso(receive_time),
+        }
+        state.setdefault("collected_coins", []).append(collected)
+        state.setdefault("collection_counts", {}).setdefault(participant_id, 0)
+        state["collection_counts"][participant_id] += 1
+        state.setdefault("bonuses", {}).setdefault(participant_id, 0.0)
+        state["bonuses"][participant_id] = round(
+            float(state["bonuses"][participant_id]) + COIN_BONUS,
+            2,
+        )
+        self.state = state
+        return True, None, collected
 
 
-class SharedCanvasControl(Control):
+class SharedCanvasControl(LiveSessionControl):
     """Custom canvas renderer wrapped in PsyNet's modular page API."""
 
+    session_class = SharedCanvasSession
     external_template = "shared_canvas.html"
     macro = "shared_canvas_control"
 
-    def __init__(self, game_config):
-        super().__init__(show_next_button=False)
-        self.game_config = game_config
+    def __init__(self, trial, participant):
+        self.trial = trial
+        super().__init__(
+            participant=participant,
+            group_type=GROUP_TYPE,
+            show_next_button=False,
+        )
 
     def format_answer(self, raw_answer, **kwargs):
         return raw_answer
@@ -435,7 +438,7 @@ class SharedCanvasTrial(StaticTrial):
         return ModularPage(
             "shared_canvas",
             prompt,
-            SharedCanvasControl(build_game_config(self, participant)),
+            SharedCanvasControl(self, participant),
             save_answer="shared_canvas_browser_answer",
             time_estimate=TRIAL_SECONDS + 5,
         )
@@ -444,8 +447,7 @@ class SharedCanvasTrial(StaticTrial):
         group = participants[0].active_sync_groups[GROUP_TYPE]
         ordered = sorted(participants, key=lambda p: p.id)
         world = self.definition["world"]
-        session_state = SessionState.get_or_create(
-            CANVAS_SESSION_NAMESPACE,
+        live_session = SharedCanvasSession.get_or_create(
             build_session_id(self, group),
             state={
                 **initial_canvas_state([p.id for p in ordered], world),
@@ -457,7 +459,7 @@ class SharedCanvasTrial(StaticTrial):
         )
         for participant in participants:
             participant.var.shared_canvas_result = participant_result(
-                session_state, participant.id
+                live_session, participant.id
             )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -578,16 +580,13 @@ class Exp(psynet.experiment.Experiment):
     def collect(self, participant, message: CollectMessage, receive_time):
         """Apply a coin collection attempt to authoritative state."""
 
-        session_state = SessionState.get(
-            CANVAS_SESSION_NAMESPACE, message.session_id, for_update=True
-        )
-        if session_state is None or int(participant.id) not in [
-            int(p) for p in session_state.participant_ids
+        live_session = SharedCanvasSession.get(message.session_id, for_update=True)
+        if live_session is None or int(participant.id) not in [
+            int(p) for p in live_session.participant_ids
         ]:
             return
 
-        accepted, reason, collection = record_collection(
-            session_state,
+        accepted, reason, collection = live_session.record_collection(
             participant_id=participant.id,
             coin_id=message.coin_id,
             x=message.x,
@@ -608,9 +607,9 @@ class Exp(psynet.experiment.Experiment):
             )
         )
         if accepted:
-            state = session_state.state or {}
+            state = live_session.state or {}
             self.websocket.send(
-                session_state.participant_ids,
+                live_session.participant_ids,
                 "coin_collected",
                 {
                     "collection": collection,
@@ -687,7 +686,7 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def test_canvas_state_transitions():
         world = generate_world(99)
-        state = SessionState(
+        state = SharedCanvasSession(
             namespace=CANVAS_SESSION_NAMESPACE,
             session_id="state-transition-test",
             participant_ids=[1],
@@ -708,8 +707,7 @@ class Exp(psynet.experiment.Experiment):
         )
         receive_time = datetime.now()
 
-        accepted, reason, collection = record_collection(
-            state,
+        accepted, reason, collection = state.record_collection(
             participant_id=1,
             coin_id=event.coin_id,
             x=event.x,
@@ -723,8 +721,7 @@ class Exp(psynet.experiment.Experiment):
         assert coin["id"] not in [c["id"] for c in state.state["coins"]]
         assert participant_result(state, 1)["coin_bonus"] == COIN_BONUS
 
-        accepted, reason, _ = record_collection(
-            state,
+        accepted, reason, _ = state.record_collection(
             participant_id=1,
             coin_id=event.coin_id,
             x=event.x,
@@ -735,7 +732,7 @@ class Exp(psynet.experiment.Experiment):
         assert reason == "already_collected_or_unknown"
 
     @staticmethod
-    def test_position_event_bypasses_session_state():
+    def test_position_event_bypasses_live_session():
         event = Exp._valid_position_event()
         player = position_player_payload(
             SimpleNamespace(id=1),
@@ -780,7 +777,7 @@ class Exp(psynet.experiment.Experiment):
             "coin_bonus": COIN_BONUS,
         }
         html = template.module.shared_canvas_control(
-            SimpleNamespace(game_config=config)
+            SimpleNamespace(live_session_config=config)
         )
         config_line = next(
             line.strip()
@@ -795,7 +792,7 @@ class Exp(psynet.experiment.Experiment):
         assert 'window.addEventListener("keydown", handleArrowKeyDown, true);' in html
         assert 'window.addEventListener("keyup", handleArrowKeyUp, true);' in html
         assert 'canvas.addEventListener("click", focusCanvas);' in html
-        assert "psynet.session_state.init" in html
+        assert "psynet.session.init" in html
         assert "function wsSend" not in html
         assert 'psynet.websocket.send("position"' in html
         assert "if (!wasPressed) {" in html
@@ -803,7 +800,7 @@ class Exp(psynet.experiment.Experiment):
     def test_canvas_websocket_contracts(self):
         self.test_websocket_event_parsing()
         self.test_canvas_state_transitions()
-        self.test_position_event_bypasses_session_state()
+        self.test_position_event_bypasses_live_session()
         self.test_server_event_serialization()
         self.test_canvas_template_config_initialization()
 

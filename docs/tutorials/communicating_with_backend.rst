@@ -92,26 +92,38 @@ Recovering shared state after reconnects
 ----------------------------------------
 
 For multiplayer or other shared real-time pages, store authoritative state in
-``psynet.session_state.SessionState``. The browser helper ``psynet.session_state`` requests
+``psynet.session.LiveSession``. The browser helper ``psynet.session`` requests
 fresh snapshots on connect/reconnect and tracks whether all expected participants
 are ready:
 
+For custom live controls, subclass ``psynet.session.LiveSessionControl`` and set
+``session_class`` to a concrete ``LiveSessionMixin`` class. The control derives
+the browser config (``namespace``, ``session_id``, ``group_id``,
+``participant_id``, and ``participant_ids``) and creates the persisted live
+session row before the page is rendered.
+Experiment code can call ``live_session.end(experiment)`` when its own
+completion condition is met; this sends a built-in ``sessionEnd`` event.
+
 .. code-block:: javascript
 
-    psynet.session_state.init({
+    psynet.session.init({
         namespace: "my_game",
         session_id: "round-1"
     });
 
-    psynet.session_state.onSnapshot(function(snapshot) {
+    psynet.session.onSnapshot(function(snapshot) {
         render(snapshot.state);
     });
 
-    psynet.session_state.onStarted(function(snapshot) {
+    psynet.session.onStarted(function(snapshot) {
         startGameLoop(snapshot.state);
     });
 
-    psynet.session_state.ready();
+    psynet.session.onEnd(function(snapshot) {
+        psynet.nextPage();
+    });
+
+    psynet.session.ready();
 
 The Python side involves using a special decorator called ``experiment_route``. We use this in our ``Experiment`` class. For example, we might write something like this:
 

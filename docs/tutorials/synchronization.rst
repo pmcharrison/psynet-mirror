@@ -138,11 +138,14 @@ GroupBarriers within the trial, for example:
             ),
         )
 
-For real-time synchronized games, use :class:`psynet.session_state.SessionState` to
+For real-time synchronized games, use :class:`psynet.session.LiveSession` to
 persist the server's authoritative state and let clients recover after refreshes
-or reconnects. The browser-side ``psynet.session_state`` helper requests state
+or reconnects. The browser-side ``psynet.session`` helper requests state
 snapshots automatically and tracks whether all expected participants have sent a
-ready event before the shared interaction starts.
+ready event before the shared interaction starts. When a
+session-specific completion condition is met, experiment code can call
+``live_session.end(experiment)`` to send a built-in ``sessionEnd`` event that
+clients can use to submit their answers.
 
 Demo
 ----
