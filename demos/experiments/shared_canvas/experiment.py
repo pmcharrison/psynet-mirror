@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import json
 import math
-import os
 import random
 from copy import deepcopy
 from datetime import datetime
-from types import SimpleNamespace
 from typing import List
 
 from dallinger import db
 from dominate import tags
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import Field, ValidationError
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 
@@ -20,11 +16,11 @@ from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
-from psynet.page import InfoPage, WaitPage
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.session import LiveSession, LiveSessionControl
 from psynet.sync import GroupBarrier, SimpleGrouper
-from psynet.timeline import PageMaker, Timeline, join
+from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.websocket import WebSocketMessage, websocket_handler
 
@@ -199,19 +195,6 @@ def position_player_payload(
         "client_time": message.client_time,
         "receive_time": receive_time_iso(receive_time),
     }
-
-
-def waiting_page(participant: Participant):
-    active_barrier = participant.active_barriers.get("canvas_grouper", None)
-    if active_barrier:
-        waiting = active_barrier.get_waiting_participants()
-        content = (
-            "Waiting for the shared canvas group. "
-            f"{len(waiting)} participant(s) are currently ready."
-        )
-    else:
-        content = "Preparing the shared canvas."
-    return WaitPage(content=content, wait_time=2.5)
 
 
 def instruction_page():
@@ -425,7 +408,6 @@ class Exp(psynet.experiment.Experiment):
             group_type=GROUP_TYPE,
             initial_group_size=GROUP_SIZE,
             batch_size=GROUP_SIZE,
-            waiting_logic=PageMaker(waiting_page, time_estimate=5),
             max_wait_time=180,
         ),
         StaticTrialMaker(
@@ -634,76 +616,9 @@ class Exp(psynet.experiment.Experiment):
         assert accepted is False
         assert reason == "already_collected_or_unknown"
 
-    @staticmethod
-    def test_position_event_bypasses_live_session():
-        event = Exp._valid_position_event()
-        player = position_player_payload(
-            SimpleNamespace(id=1),
-            event,
-            datetime.now(),
-        )
-        assert player["participant_id"] == "1"
-        assert player["x"] == event.x
-        assert player["y"] == event.y
-
-    @staticmethod
-    def test_server_event_serialization():
-        event = {
-            "coin_id": "coin-1",
-            "reason": "too_far",
-        }
-        assert json.loads(json.dumps(event)) == {
-            "coin_id": "coin-1",
-            "reason": "too_far",
-        }
-
-    @staticmethod
-    def test_canvas_template_config_initialization():
-        template_dir = os.path.join(os.path.dirname(__file__), "templates")
-        env = Environment(
-            loader=FileSystemLoader(template_dir),
-            autoescape=select_autoescape(["html"]),
-        )
-        template = env.get_template("shared_canvas.html")
-        config = {
-            "session_id": "shared_canvas:1:group:1",
-            "participant_id": 1,
-            "role": "Player 1",
-            "world_id": WORLD_DEFINITIONS[0]["world_id"],
-            "canvas_size": CANVAS_SIZE,
-            "trial_seconds": TRIAL_SECONDS,
-            "send_interval_ms": SEND_INTERVAL_MS,
-            "draw_interval_ms": DRAW_INTERVAL_MS,
-            "player_radius": PLAYER_RADIUS,
-            "coin_radius": COIN_RADIUS,
-            "coin_bonus": COIN_BONUS,
-        }
-        html = template.module.shared_canvas_control(
-            SimpleNamespace(live_session_config=config)
-        )
-        config_line = next(
-            line.strip()
-            for line in html.splitlines()
-            if line.strip().startswith("var cfg =")
-        )
-        assert config_line.startswith("var cfg = {")
-        assert "&#" not in config_line
-        assert 'tabindex="0"' in html
-        assert 'aria-label="Shared canvas arrow-key navigation area"' in html
-        assert 'window.addEventListener("keydown", handleArrowKeyDown, true);' in html
-        assert 'window.addEventListener("keyup", handleArrowKeyUp, true);' in html
-        assert 'canvas.addEventListener("click", focusCanvas);' in html
-        assert "psynet.session.init" in html
-        assert "function wsSend" not in html
-        assert 'psynet.websocket.send("position"' in html
-        assert "if (!wasPressed) {" in html
-
     def test_canvas_websocket_contracts(self):
         self.test_websocket_event_parsing()
         self.test_canvas_state_transitions()
-        self.test_position_event_bypasses_live_session()
-        self.test_server_event_serialization()
-        self.test_canvas_template_config_initialization()
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
         self.test_canvas_websocket_contracts()

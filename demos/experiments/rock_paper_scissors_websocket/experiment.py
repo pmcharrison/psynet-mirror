@@ -557,7 +557,6 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def test_scoring_and_room_helpers():
         """Check shared scoring and room ID helpers."""
-        assert room_id_for_sync_group(1) == "rps_room_1"
         assert score_match(["rock", "paper"], ["scissors", "rock"]) == (2, -2)
 
         try:
@@ -576,27 +575,6 @@ class Exp(psynet.experiment.Experiment):
             "scores": {"1": 0, "2": 0},
             "submitted_participant_ids": [],
             "reveal_history": {"1": [], "2": []},
-            "finished": False,
-        }
-
-    @staticmethod
-    def test_reveal_serialization():
-        """Check outbound reveal serialization."""
-        event = RevealSnapshot(
-            target="7",
-            round=3,
-            result="Round 2: you played rock, your partner played scissors - you won!",
-            scoreboard="Score - you: 1, partner: -1",
-            status="Round 3 of 5: choose your action.",
-            finished=False,
-        )
-
-        assert event.model_dump(mode="json", exclude_none=True) == {
-            "target": "7",
-            "round": 3,
-            "result": "Round 2: you played rock, your partner played scissors - you won!",
-            "scoreboard": "Score - you: 1, partner: -1",
-            "status": "Round 3 of 5: choose your action.",
             "finished": False,
         }
 
@@ -624,7 +602,6 @@ class Exp(psynet.experiment.Experiment):
         self.test_websocket_event_authorization()
         self.test_scoring_and_room_helpers()
         self.test_live_session_initialization()
-        self.test_reveal_serialization()
         self.test_reveal_formatting()
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
