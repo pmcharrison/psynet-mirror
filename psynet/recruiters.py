@@ -20,11 +20,10 @@ Key design constraints for maintainers:
   ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``) or asked to
   return their submission for a bonus (the legacy fallback).
 - Payment amounts are computed in ``psynet.experiment.Experiment.bonus``,
-  which delegates platform-specific adjustments (such as the Prolific
-  screen-out top-up in
-  ``PsyNetProlificRecruiterMixin.unsuccessful_participant_bonus``) to the
-  recruiter; recruiters are otherwise only responsible for transferring the
-  money.
+  which consults the recruiter for platform-specific inputs (such as the
+  Prolific screen-out reward in
+  ``PsyNetProlificRecruiterMixin.unsuccessful_base_payment``); recruiters
+  are otherwise only responsible for transferring the money.
 """
 
 import hashlib
@@ -272,17 +271,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return self.unsuccessful_code_type
         return None
 
-    def unsuccessful_participant_bonus(self, participant, accumulated_reward) -> float:
-        """The bonus for a participant paid via the screen-out completion code.
-
-        With ``prolific_unsuccessful_topup`` enabled (the default), the bonus
-        tops the fixed screen-out reward up to the participant's accumulated
-        reward (never negative). Otherwise only the performance reward is
-        paid on top of the fixed payment.
+    @property
+    def tops_up_unsuccessful_participants(self) -> bool:
+        """Whether participants paid via the screen-out completion code are
+        topped up to their full accumulated reward with a bonus (see the
+        ``prolific_unsuccessful_topup`` config parameter). When disabled,
+        only performance rewards are paid on top of the fixed payment.
         """
-        if get_config().get("prolific_unsuccessful_topup"):
-            return max(0.0, accumulated_reward - self.unsuccessful_base_payment)
-        return participant.performance_reward or 0.0
+        return bool(get_config().get("prolific_unsuccessful_topup"))
 
     def on_recruiter_submission_complete(self, participant):
         """Correct the recorded base payment for screen-out participants.
@@ -392,7 +388,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return self.reject_assignment(participant)
         # Unsuccessful participants covered by the screen-out completion code
         # submit normally; Prolific then pays them the fixed screen-out reward
-        # (see exit_code_type and unsuccessful_participant_bonus above).
+        # (see exit_code_type above and Experiment.bonus).
         return self.approve_assignment()
 
     def approve_hit(self, assignment_id: str):

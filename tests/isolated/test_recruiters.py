@@ -457,6 +457,13 @@ def test_bonus_subtracts_base_payment_for_failed_participant_without_feature():
     assert bonus_for(participant, config) == 1.50
 
 
+def test_bonus_never_negative():
+    config = make_config()
+    participant = make_participant_with_recruiter(config, failed=False)
+    participant.calculate_reward.return_value = 0.20
+    assert bonus_for(participant, config) == 0.00
+
+
 def test_check_unsuccessful_base_payment_must_be_less_than_base_payment():
     config = make_config(prolific_unsuccessful_base_payment=1.00)
     with pytest.raises(ValueError, match="must be less than"):

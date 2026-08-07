@@ -2293,32 +2293,47 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         super().assignment_reassigned(participant)
 
     def bonus(self, participant: Participant) -> float:
-        """Calculate the reward the participant gets when completing the experiment.
+        """Calculate the bonus the participant gets when completing the experiment.
+
+        The bonus makes up the difference between the total reward owed to
+        the participant and the base payment the recruitment platform has
+        already paid them, and is never negative.
 
         Parameters
         ----------
         participant : Participant
-            The participant to calculate reward for.
+            The participant to calculate the bonus for.
 
         Returns
         -------
         float
-            The calculated reward, rounded to 2 decimal places.
+            The calculated bonus, rounded to 2 decimal places.
         """
-        reward = participant.calculate_reward()
-        if participant.status not in ["screened_out", "returned"]:
+        total_owed = participant.calculate_reward()
+        base_already_paid = self.base_payment
+
+        if participant.status in ("screened_out", "returned"):
+            # Return-for-bonus flow: the platform pays no base payment, so
+            # the accumulated reward is paid entirely as a bonus.
+            base_already_paid = 0.0
+        else:
             recruiter = participant.recruiter
             pays_via_screen_out = getattr(
                 recruiter, "pays_participant_via_screen_out", None
             )
             if pays_via_screen_out is not None and pays_via_screen_out(participant):
-                # The recruiter pays these participants a fixed screen-out
-                # reward instead of the full base payment and computes the
-                # appropriate bonus adjustment.
-                reward = recruiter.unsuccessful_participant_bonus(participant, reward)
-            else:
-                reward -= self.base_payment
-        return round(self.check_bonus(reward, participant), 2)
+                # The platform already paid the fixed screen-out reward
+                # instead of the full base payment.
+                base_already_paid = recruiter.unsuccessful_base_payment
+                if not recruiter.tops_up_unsuccessful_participants:
+                    # Time rewards are forfeited, but performance rewards
+                    # are always paid.
+                    total_owed = base_already_paid + (
+                        participant.performance_reward or 0.0
+                    )
+
+        bonus = max(0.0, total_owed - base_already_paid)
+        return round(self.check_bonus(bonus, participant), 2)
 
     def recruiter_exit_info(self, participant):
         """Ask the recruiter which completion-code type to use for this
