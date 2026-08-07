@@ -408,9 +408,6 @@ class BonusHarness:
 
     base_payment = 1.00
     bonus = _Experiment.bonus
-    prolific_pays_unsuccessful_via_screen_out = staticmethod(
-        _Experiment.prolific_pays_unsuccessful_via_screen_out
-    )
 
     def check_bonus(self, reward, participant):
         return reward
@@ -460,14 +457,12 @@ def test_bonus_subtracts_base_payment_for_failed_participant_without_feature():
     assert bonus_for(participant, config) == 1.50
 
 
-def test_check_prolific_unsuccessful_base_payment_must_be_less_than_base_payment():
-    from psynet.experiment import Experiment
-
+def test_check_unsuccessful_base_payment_must_be_less_than_base_payment():
     config = make_config(prolific_unsuccessful_base_payment=1.00)
     with pytest.raises(ValueError, match="must be less than"):
-        Experiment.check_prolific_unsuccessful_base_payment(config)
+        PsyNetProlificRecruiterMixin.check_unsuccessful_base_payment(config)
 
-    Experiment.check_prolific_unsuccessful_base_payment(
+    PsyNetProlificRecruiterMixin.check_unsuccessful_base_payment(
         make_config(prolific_unsuccessful_base_payment=0.99)
     )
-    Experiment.check_prolific_unsuccessful_base_payment(make_config())
+    PsyNetProlificRecruiterMixin.check_unsuccessful_base_payment(make_config())
