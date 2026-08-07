@@ -91,41 +91,14 @@ For structured payloads, pass a Pydantic model to the decorator:
 Recovering shared state after reconnects
 ----------------------------------------
 
-For multiplayer or other shared real-time pages, store authoritative state in
-``psynet.session.LiveSession``. The browser helper ``psynet.session`` requests
-fresh snapshots on connect/reconnect and tracks whether all expected participants
-are ready:
+For multiplayer or other shared real-time pages, WebSockets are typically
+combined with :class:`psynet.session.LiveSession`, which stores the server's
+authoritative state and helps clients recover after refreshes. See
+:doc:`live_experiments` for a full explanation and a minimal live
+rock-paper-scissors example.
 
-For custom live controls, subclass ``psynet.session.LiveSessionControl``. The
-control derives the browser config (``session_id``, ``group_id``,
-``participant_id``, and ``participant_ids``).
-Set ``live_session_class`` on the trial class so PsyNet prepares one persisted
-live-session row for the synchronized group before the live page is rendered,
-then links each participant's trial to that row. This lets server-side
-WebSocket handlers update trial state from the authoritative live session.
-For now, ``LiveSessionControl`` requires a trial-backed live page.
-Experiment code can call ``live_session.end(experiment)`` when its own
-completion condition is met; this sends a built-in ``sessionEnd`` event.
-
-.. code-block:: javascript
-
-    psynet.session.init({
-        session_id: "round-1"
-    });
-
-    psynet.session.onSnapshot(function(snapshot) {
-        render(snapshot.state);
-    });
-
-    psynet.session.onStarted(function(snapshot) {
-        startGameLoop(snapshot.state);
-    });
-
-    psynet.session.onEnd(function(snapshot) {
-        psynet.nextPage();
-    });
-
-    psynet.session.ready();
+Custom HTTP routes
+------------------
 
 The Python side involves using a special decorator called ``experiment_route``. We use this in our ``Experiment`` class. For example, we might write something like this:
 
