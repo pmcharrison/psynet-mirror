@@ -19,14 +19,17 @@ _STATIC_FILE_PROFILES = {
     "few_large_files": (25, 4 * 1024 * 1024),
 }
 
-_TEMPLATE_FILES = (
-    ".gitignore",
-    "Dockerfile",
-    "config.txt",
-    "test.py",
-    "__init__.py",
-    "pytest.ini",
-    ".python-version",
+# Used only when the installed PsyNet lacks scaffold_paths_required_for_local_run
+# (ASV continuous can compare against older commits). Keep aligned with today's
+# ``_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN`` + ``docker``.
+_LEGACY_LOCAL_RUN_SCAFFOLD_PATHS = frozenset(
+    {
+        ".gitignore",
+        "Dockerfile",
+        "config.txt",
+        "test.py",
+        "docker",
+    }
 )
 
 
@@ -68,15 +71,30 @@ def _prepared_benchmark_experiment(demo_dir: Path, repo_root: Path):
         _restore_benchmark_experiment(created_paths)
 
 
+def _local_run_scaffold_paths() -> frozenset[str]:
+    """Return scaffold paths required for local debug of the installed PsyNet.
+
+    Prefer the installed package's public helper so ASV prep stays aligned with
+    what ``psynet debug local`` checks. Fall back to a frozen legacy set when
+    comparing against older commits that lack the helper.
+    """
+    try:
+        from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
+    except ImportError:
+        return _LEGACY_LOCAL_RUN_SCAFFOLD_PATHS
+    return frozenset(scaffold_paths_required_for_local_run())
+
+
 def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> list[Path]:
     """Ensure pruned in-repo demos can launch under older PsyNet checkouts.
 
     ASV continuous installs each compared commit into its env, but runs
     benchmarks from the current tree. Older PsyNet versions always open
     ``constraints.txt`` during debug pre-checks, and pruned demos omit
-    tracked scaffold files. Copy missing templates from this checkout and
-    write a stub constraints file when needed — without calling the ``psynet``
-    CLI, which may be an older build that lacks ``scripts scaffold``.
+    tracked scaffold files. Copy missing local-run templates from this
+    checkout and write a stub constraints file when needed — without calling
+    the ``psynet`` CLI, which may be an older build that lacks
+    ``scripts scaffold``.
 
     Returns
     -------
@@ -86,19 +104,18 @@ def _prepare_benchmark_experiment(demo_dir: Path, repo_root: Path) -> list[Path]
     templates = repo_root / "psynet" / "resources" / "experiment_scripts"
     created_paths: list[Path] = []
 
-    for relative_path in _TEMPLATE_FILES:
+    for relative_path in sorted(_local_run_scaffold_paths()):
         destination = demo_dir / relative_path
         source = templates / relative_path
-        if destination.exists() or not source.is_file():
+        if destination.exists():
             continue
-        shutil.copyfile(source, destination)
-        created_paths.append(destination)
-
-    docker_destination = demo_dir / "docker"
-    docker_source = templates / "docker"
-    if not docker_destination.exists() and docker_source.is_dir():
-        shutil.copytree(docker_source, docker_destination)
-        created_paths.append(docker_destination)
+        if source.is_dir():
+            shutil.copytree(source, destination)
+            created_paths.append(destination)
+        elif source.is_file():
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, destination)
+            created_paths.append(destination)
 
     constraints_path = demo_dir / "constraints.txt"
     if not constraints_path.is_file():
