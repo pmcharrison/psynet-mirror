@@ -1,22 +1,27 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+from sqlalchemy import Column, String
+
 from psynet.session import (
-    LIVE_SESSION_CLASSES,
     LiveSession,
     LiveSessionControl,
     ReadyMessage,
     StateRequestMessage,
     handle_ready_event,
     handle_state_request,
-    register_live_session_class,
     trigger_session_end_event,
 )
 
 
+class PolymorphicDemoLiveSession(LiveSession):
+    """Demo custom live session that shares the generic live_session table."""
+
+    custom_value = Column(String)
+
+
 def _state():
     return LiveSession(
-        namespace="default",
         session_id="session-1",
         state={"score": 3},
         participant_ids=[1, 2],
@@ -46,7 +51,6 @@ def test_live_session_snapshot_payload_is_json_ready():
     state.mark_ready(1)
 
     assert state.snapshot_payload() == {
-        "namespace": "default",
         "session_id": "session-1",
         "state": {"score": 3},
         "participant_ids": ["1", "2"],
@@ -67,7 +71,7 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
     handle_state_request(
         experiment,
         participant,
-        StateRequestMessage(namespace="default", session_id="session-1"),
+        StateRequestMessage(session_id="session-1"),
     )
     experiment.websocket.send.assert_called_once_with(
         participant,
@@ -88,7 +92,7 @@ def test_ready_event_marks_state_and_sends_snapshot(monkeypatch):
     handle_ready_event(
         experiment,
         participant,
-        ReadyMessage(namespace="default", session_id="session-1"),
+        ReadyMessage(session_id="session-1"),
     )
 
     assert state.ready_participant_ids == [1]
@@ -113,12 +117,6 @@ def test_live_session_control_derives_config(monkeypatch):
     """LiveSessionControl derives transport config from participant and group."""
 
     class DemoSession:
-        live_session_namespace = "demo"
-
-        @classmethod
-        def get_namespace(cls):
-            return cls.live_session_namespace
-
         @classmethod
         def build_session_id(cls, participant, group, control):
             return f"demo:{group.id}"
@@ -157,7 +155,6 @@ def test_live_session_control_derives_config(monkeypatch):
     control = DemoControl(participant)
 
     assert control.live_session_config == {
-        "namespace": "demo",
         "session_id": "demo:9",
         "group_id": 9,
         "participant_id": 1,
@@ -178,17 +175,11 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
 
-    class DemoSession:
-        @classmethod
-        def get(cls, *args, **kwargs):
-            return state
-
     monkeypatch.setattr("psynet.db.transaction", lambda: MagicMock())
+    monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
     trigger_session_end_event(
         experiment,
-        DemoSession,
-        "default",
         "session-1",
     )
 
@@ -198,29 +189,10 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
     )
 
 
-def test_register_live_session_class_restores_namespace():
-    """Concrete live-session classes are looked up by namespace."""
-
-    previous = dict(LIVE_SESSION_CLASSES)
-
-    class DemoSession:
-        live_session_namespace = "registered-demo"
-
-    try:
-        register_live_session_class(DemoSession)
-        assert LIVE_SESSION_CLASSES["registered-demo"] is DemoSession
-    finally:
-        LIVE_SESSION_CLASSES.clear()
-        LIVE_SESSION_CLASSES.update(previous)
-
-
-def test_live_session_mixin_derives_table_name_and_constraint():
-    """Concrete live-session classes inherit generic table metadata."""
+def test_live_session_uses_shared_polymorphic_table():
+    """Custom live-session classes share the generic live_session table."""
 
     assert LiveSession.__tablename__ == "live_session"
-    constraint = next(
-        constraint
-        for constraint in LiveSession.__table__.constraints
-        if {column.name for column in constraint.columns} == {"namespace", "session_id"}
-    )
-    assert constraint is not None
+    assert PolymorphicDemoLiveSession.__table__ is LiveSession.__table__
+    assert "custom_value" in LiveSession.__table__.columns
+    assert LiveSession.__table__.columns["session_id"].unique is True

@@ -97,17 +97,16 @@ fresh snapshots on connect/reconnect and tracks whether all expected participant
 are ready:
 
 For custom live controls, subclass ``psynet.session.LiveSessionControl`` and set
-``session_class`` to a concrete ``LiveSessionMixin`` class. The control derives
-the browser config (``namespace``, ``session_id``, ``group_id``,
-``participant_id``, and ``participant_ids``) and creates the persisted live
-session row before the page is rendered.
+``session_class`` to a concrete ``LiveSession`` subclass. The control derives
+the browser config (``session_id``, ``group_id``, ``participant_id``, and
+``participant_ids``) and creates the persisted live-session row before the page
+is rendered.
 Experiment code can call ``live_session.end(experiment)`` when its own
 completion condition is met; this sends a built-in ``sessionEnd`` event.
 
 .. code-block:: javascript
 
     psynet.session.init({
-        namespace: "my_game",
         session_id: "round-1"
     });
 

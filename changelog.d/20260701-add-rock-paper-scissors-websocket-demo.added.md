@@ -1,1 +1,0 @@
-Added a `rock_paper_scissors_websocket` demo where two grouped participants play five rounds of rock-paper-scissors inside a single trial over WebSockets, with each round revealed in real time using PsyNet's built-in `WebSocketElt` machinery (author: [Peter Harrison])

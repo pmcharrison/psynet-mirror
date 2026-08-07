@@ -1,1 +1,1 @@
-Added Pydantic-backed websocket event models with page-scoped validation.
+Added a native PsyNet WebSocket API with direct experiment-level handlers, participant-targeted server sends, Redis fan-out, page-scoped dispatch, and optional Pydantic validation for browser messages.

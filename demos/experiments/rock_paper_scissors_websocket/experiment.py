@@ -46,7 +46,7 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage
 from psynet.participant import Participant
-from psynet.session import LiveSessionControl, LiveSessionMixin
+from psynet.session import LiveSession, LiveSessionControl
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -112,9 +112,6 @@ class RevealSnapshot(WebSocketMessage):
     answer: Optional[List[str]] = None
 
 
-RPS_SESSION_NAMESPACE = "rock_paper_scissors"
-
-
 def initial_rps_state(participant_ids: list[int]) -> dict:
     """Return the public recoverable state for a new RPS session."""
 
@@ -128,11 +125,8 @@ def initial_rps_state(participant_ids: list[int]) -> dict:
     }
 
 
-@register_table
-class RockPaperScissorsSession(LiveSessionMixin, SQLBase, SQLMixin):
+class RockPaperScissorsSession(LiveSession):
     """Persisted live session for one rock-paper-scissors room."""
-
-    live_session_namespace = RPS_SESSION_NAMESPACE
 
     @classmethod
     def build_session_id(cls, participant, group, control):

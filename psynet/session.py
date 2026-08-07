@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from dallinger import db
 from pydantic import Field
-from sqlalchemy import Boolean, Column, String, UniqueConstraint
-from sqlalchemy.orm import declared_attr
+from sqlalchemy import Boolean, Column, String
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonDict, PythonList
@@ -17,88 +16,34 @@ STATE_SNAPSHOT_EVENT = "stateSnapshot"
 READY_EVENT = "ready"
 SESSION_END_EVENT = "sessionEnd"
 
-LIVE_SESSION_CLASSES = {}
-
-
-def _camel_to_snake(name: str) -> str:
-    """Convert a CamelCase class name to a snake_case table name."""
-
-    chars = []
-    for i, char in enumerate(name):
-        if char.isupper() and i > 0:
-            chars.append("_")
-        chars.append(char.lower())
-    return "".join(chars)
-
 
 class StateRequestMessage(WebSocketMessage):
     """Request the latest authoritative state for a live session."""
 
-    namespace: str = Field(default="default", min_length=1)
     session_id: str = Field(min_length=1)
 
 
 class ReadyMessage(WebSocketMessage):
     """Notify the server that a participant is ready for a live session to start."""
 
-    namespace: str = Field(default="default", min_length=1)
     session_id: str = Field(min_length=1)
 
 
-def register_live_session_class(cls):
-    """Register a concrete live-session class for generic websocket handlers."""
-
-    namespace = getattr(cls, "live_session_namespace", None)
-    if namespace:
-        LIVE_SESSION_CLASSES[namespace] = cls
-    return cls
-
-
-def get_live_session_class(namespace: str):
-    """Return the concrete live-session class for a namespace."""
-
-    return LIVE_SESSION_CLASSES.get(namespace, LiveSession)
-
-
-class LiveSessionMixin:
+class _LiveSessionMixin:
     """Shared columns and behavior for persisted live-session rows."""
 
-    live_session_namespace = None
-
-    namespace = Column(String(128), index=True)
-    session_id = Column(String(256), index=True)
+    session_id = Column(String(256), unique=True, index=True)
     state = Column(PythonDict, default=lambda: {})
     participant_ids = Column(PythonList, default=lambda: [])
     ready_participant_ids = Column(PythonList, default=lambda: [])
     started = Column(Boolean, default=False)
     ended = Column(Boolean, default=False)
 
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        register_live_session_class(cls)
-
-    @declared_attr
-    def __tablename__(cls):
-        return _camel_to_snake(cls.__name__)
-
-    @declared_attr
-    def __table_args__(cls):
-        return (UniqueConstraint("namespace", "session_id"),)
-
-    @classmethod
-    def get_namespace(cls):
-        """Return the namespace handled by this live-session class."""
-
-        namespace = getattr(cls, "live_session_namespace", None)
-        if not namespace:
-            raise ValueError(f"{cls.__name__} must define live_session_namespace.")
-        return namespace
-
     @classmethod
     def build_session_id(cls, participant, group, control):
         """Return the live-session ID for a participant/group/control context."""
 
-        return f"{cls.get_namespace()}:group:{int(group.id)}"
+        return f"{cls.__name__}:group:{int(group.id)}"
 
     @classmethod
     def build_initial_state(cls, participant_ids, participant, group, control):
@@ -113,11 +58,10 @@ class LiveSessionMixin:
         return {}
 
     @classmethod
-    def get(cls, session_id: str, *, namespace: str | None = None, for_update=False):
-        """Return the live session for a namespace/session pair, if it exists."""
+    def get(cls, session_id: str, *, for_update=False):
+        """Return the live session for a session ID, if it exists."""
 
-        namespace = namespace or cls.get_namespace()
-        query = cls.query.filter_by(namespace=namespace, session_id=session_id)
+        query = cls.query.filter_by(session_id=session_id)
         if for_update:
             query = query.with_for_update(of=cls).populate_existing()
         return query.one_or_none()
@@ -127,18 +71,15 @@ class LiveSessionMixin:
         cls,
         session_id: str,
         *,
-        namespace: str | None = None,
         state: dict | None = None,
         participant_ids: list[int] | None = None,
         for_update=False,
     ):
         """Return an existing live-session row or create it."""
 
-        namespace = namespace or cls.get_namespace()
-        live_session = cls.get(session_id, namespace=namespace, for_update=for_update)
+        live_session = cls.get(session_id, for_update=for_update)
         if live_session is None:
             live_session = cls(
-                namespace=namespace,
                 session_id=session_id,
                 state=state or {},
                 participant_ids=[
@@ -188,7 +129,6 @@ class LiveSessionMixin:
         """Return a JSON-serializable state snapshot payload."""
 
         return {
-            "namespace": self.namespace,
             "session_id": self.session_id,
             "state": self.state or {},
             "participant_ids": [str(value) for value in (self.participant_ids or [])],
@@ -221,10 +161,10 @@ class LiveSessionMixin:
 
 
 @register_table
-class LiveSession(LiveSessionMixin, SQLBase, SQLMixin):
+class LiveSession(_LiveSessionMixin, SQLBase, SQLMixin):
     """Generic persisted live session."""
 
-    live_session_namespace = "default"
+    __tablename__ = "live_session"
 
 
 class LiveSessionControl(Control):
@@ -255,7 +195,6 @@ class LiveSessionControl(Control):
             int(p.id) for p in sorted(self.group.participants, key=lambda p: p.id)
         ]
         self.participant_id = int(participant.id)
-        self.namespace = self.session_class.get_namespace()
         self.session_id = self.session_class.build_session_id(
             participant, self.group, self
         )
@@ -269,7 +208,6 @@ class LiveSessionControl(Control):
         )
         custom_params = self.session_class.build_params(participant, self.group, self)
         self.live_session_config = {
-            "namespace": self.namespace,
             "session_id": self.session_id,
             "group_id": self.group_id,
             "participant_id": self.participant_id,
@@ -296,10 +234,7 @@ class LiveSessionControl(Control):
 def handle_state_request(experiment, participant, message: StateRequestMessage):
     """Send the latest state snapshot to the requesting participant."""
 
-    live_session_class = get_live_session_class(message.namespace)
-    live_session = live_session_class.get(
-        message.session_id, namespace=message.namespace
-    )
+    live_session = LiveSession.get(message.session_id)
     if live_session is not None:
         experiment.websocket.send(
             participant,
@@ -311,10 +246,7 @@ def handle_state_request(experiment, participant, message: StateRequestMessage):
 def handle_ready_event(experiment, participant, message: ReadyMessage):
     """Mark a participant ready and send the resulting snapshot."""
 
-    live_session_class = get_live_session_class(message.namespace)
-    live_session = live_session_class.get(
-        message.session_id, namespace=message.namespace, for_update=True
-    )
+    live_session = LiveSession.get(message.session_id, for_update=True)
     if live_session is None:
         return
     live_session.mark_ready(participant)
@@ -322,15 +254,13 @@ def handle_ready_event(experiment, participant, message: ReadyMessage):
     db.session.commit()
 
 
-def trigger_session_end_event(experiment, live_session_class, namespace, session_id):
+def trigger_session_end_event(experiment, session_id):
     """Mark a live session ended and send its built-in sessionEnd event."""
 
     from psynet.db import transaction
 
     with transaction():
-        live_session = live_session_class.get(
-            session_id, namespace=namespace, for_update=True
-        )
+        live_session = LiveSession.get(session_id, for_update=True)
         if live_session is None:
             return False
         return live_session.end(experiment)

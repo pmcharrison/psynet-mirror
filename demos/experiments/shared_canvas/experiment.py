@@ -22,14 +22,13 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
-from psynet.session import LiveSessionControl, LiveSessionMixin
+from psynet.session import LiveSession, LiveSessionControl
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.websocket import WebSocketMessage, websocket_handler
 
 GROUP_TYPE = "shared_canvas_group"
-CANVAS_SESSION_NAMESPACE = "shared_canvas"
 GROUP_SIZE = 2
 CANVAS_SIZE = 640
 TRIAL_SECONDS = 35
@@ -296,11 +295,8 @@ def build_bot_answer(bot) -> dict:
     }
 
 
-@register_table
-class SharedCanvasSession(LiveSessionMixin, SQLBase, SQLMixin):
+class SharedCanvasSession(LiveSession):
     """Persisted live session for one shared-canvas group."""
-
-    live_session_namespace = CANVAS_SESSION_NAMESPACE
 
     @classmethod
     def build_session_id(cls, participant, group, control):
@@ -687,7 +683,6 @@ class Exp(psynet.experiment.Experiment):
     def test_canvas_state_transitions():
         world = generate_world(99)
         state = SharedCanvasSession(
-            namespace=CANVAS_SESSION_NAMESPACE,
             session_id="state-transition-test",
             participant_ids=[1],
             state={
@@ -763,7 +758,6 @@ class Exp(psynet.experiment.Experiment):
         )
         template = env.get_template("shared_canvas.html")
         config = {
-            "namespace": CANVAS_SESSION_NAMESPACE,
             "session_id": "shared_canvas:1:group:1",
             "participant_id": 1,
             "role": "Player 1",
@@ -786,7 +780,6 @@ class Exp(psynet.experiment.Experiment):
         )
         assert config_line.startswith("var cfg = {")
         assert "&#" not in config_line
-        assert '"namespace": "shared_canvas"' in config_line
         assert 'tabindex="0"' in html
         assert 'aria-label="Shared canvas arrow-key navigation area"' in html
         assert 'window.addEventListener("keydown", handleArrowKeyDown, true);' in html

@@ -343,7 +343,6 @@
 
     psynet.session = (function () {
       let config = {
-        namespace: "default",
         session_id: null,
       };
       let snapshotHandlers = [];
@@ -359,11 +358,7 @@
       };
 
       function matchesConfig(snapshot) {
-        return (
-          snapshot &&
-          snapshot.namespace === config.namespace &&
-          snapshot.session_id === config.session_id
-        );
+        return snapshot && snapshot.session_id === config.session_id;
       }
 
       function applySnapshot(snapshot) {
@@ -407,7 +402,6 @@
       function request() {
         if (!config.session_id) return;
         psynet.websocket.send("stateRequest", {
-          namespace: config.namespace,
           session_id: config.session_id,
         });
       }
@@ -429,7 +423,6 @@
       api.ready = function () {
         if (!config.session_id) return;
         psynet.websocket.send("ready", {
-          namespace: config.namespace,
           session_id: config.session_id,
         });
       };
