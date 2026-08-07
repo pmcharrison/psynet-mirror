@@ -359,15 +359,17 @@ def _default_psynet_requirement() -> str:
 
     Resolution order:
 
-    1. Editable checkout → commit pin (alphas, when pushed) or editable path.
+    1. Editable checkout → commit pin (alphas, when the commit is servable) or
+       editable path.
     2. Non-editable local path install → ``psynet[experiment] @ file://...``.
     3. Otherwise → version pin ``psynet[experiment]==<version>``.
     """
     editable_source = get_editable_psynet_source()
     if editable_source is not None:
         if re.search(r"a\d+$", psynet_version):
-            if _current_source_commit(editable_source) is not None:
-                return commit_psynet_requirement(editable_source)
+            commit_requirement = _optional_commit_psynet_requirement(editable_source)
+            if commit_requirement is not None:
+                return commit_requirement
         return editable_psynet_requirement(editable_source)
 
     local_path = _installed_psynet_file_path()
@@ -375,6 +377,35 @@ def _default_psynet_requirement() -> str:
         return f"psynet[experiment] @ {local_path.as_uri()}"
 
     return f"psynet[experiment]=={psynet_version}"
+
+
+def _optional_commit_psynet_requirement(source: Path) -> str | None:
+    """Return a commit pin for ``source``, or ``None`` when one is impossible.
+
+    Alpha scaffolds prefer a deployable commit pin, but this automatic path must
+    still produce a working experiment when the checkout's commit cannot be
+    served by ``origin``. That happens for unpushed work and, unavoidably, in CI
+    merged-result pipelines whose HEAD exists only under
+    ``refs/merge-requests/*``. Falling back to the editable requirement matches
+    what a checkout without any commit already does, and is announced rather
+    than silent because the result is machine-local.
+
+    Callers that explicitly request a commit pin (``psynet setup
+    --psynet-source commit``) use :func:`commit_psynet_requirement` directly so
+    an impossible pin stays a hard error there.
+    """
+    if _current_source_commit(source) is None:
+        return None
+    try:
+        return commit_psynet_requirement(source)
+    except ValueError as exc:
+        click.echo(
+            f"Warning: {exc}\nRecording an editable PsyNet requirement instead, "
+            "which only resolves on this machine. Use 'psynet setup "
+            "--psynet-source commit' to require a deployable commit pin.",
+            err=True,
+        )
+        return None
 
 
 def get_editable_psynet_source() -> Path | None:

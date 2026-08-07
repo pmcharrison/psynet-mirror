@@ -9,6 +9,7 @@ from psynet.experiment_scaffold import (
     _default_psynet_requirement,
     _normalize_git_remote_to_pip_base,
     commit_psynet_requirement,
+    editable_psynet_requirement,
 )
 
 
@@ -260,8 +261,15 @@ def test_commit_psynet_requirement_requires_origin_remote(tmp_path, monkeypatch)
         commit_psynet_requirement(source)
 
 
-def test_default_psynet_requirement_propagates_commit_pin_errors(monkeypatch):
-    """Alpha pins must not invent a PsyNetDev URL when commit pinning fails."""
+def test_default_psynet_requirement_degrades_when_commit_is_unservable(
+    monkeypatch, capsys
+):
+    """Unservable commits degrade to an editable pin instead of failing setup.
+
+    An alpha checkout whose HEAD cannot be served by ``origin`` (unpushed work,
+    or a CI merged-result commit) must still scaffold, and must not invent a
+    PsyNetDev URL.
+    """
     commit = "e" * 40
     source = Path("/tmp/fake-psynet-editable")
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
@@ -287,8 +295,13 @@ def test_default_psynet_requirement_propagates_commit_pin_errors(monkeypatch):
         _fail,
     )
 
-    with pytest.raises(ValueError, match="not available on git remote 'origin'"):
-        _default_psynet_requirement()
+    requirement = _default_psynet_requirement()
+
+    assert requirement == editable_psynet_requirement(source)
+    assert "PsyNetDev/PsyNet" not in requirement
+    warning = capsys.readouterr().err
+    assert "not available on git remote 'origin'" in warning
+    assert "--psynet-source commit" in warning
 
 
 def test_default_psynet_requirement_uses_origin_commit_pin(monkeypatch):

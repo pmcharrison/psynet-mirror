@@ -932,7 +932,10 @@ def test_scripts_scaffold_generates_resolvable_alpha_requirement(tmp_path, monke
         check_psynet_requirement_is_unambiguous()
 
 
-def test_scripts_scaffold_alpha_propagates_unpushed_commit_error(tmp_path, monkeypatch):
+def test_scripts_scaffold_alpha_warns_and_degrades_on_unpushed_commit(
+    tmp_path, monkeypatch
+):
+    """Scaffold still succeeds when the checkout commit cannot be served."""
     commit = "b" * 40
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
     monkeypatch.setattr(
@@ -954,10 +957,12 @@ def test_scripts_scaffold_alpha_propagates_unpushed_commit_error(tmp_path, monke
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["scripts", "scaffold"])
 
-        assert result.exit_code != 0
+        assert result.exit_code == 0, result.output
         assert "not available on git remote 'origin'" in result.output
-        assert not Path("experiment.py").exists()
-        assert not Path("requirements.txt").exists()
+        assert Path("experiment.py").exists()
+        requirement_line = Path("requirements.txt").read_text().splitlines()[0]
+        assert requirement_line.startswith("-e ")
+        assert "PsyNetDev/PsyNet" not in requirement_line
 
 
 def test_scripts_scaffold_rejects_conflicting_directory_name():
