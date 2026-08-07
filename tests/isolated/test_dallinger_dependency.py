@@ -47,3 +47,44 @@ experiment = ['dallinger[docker] (>=9.1.0,<10) ; python_version >= "3.10"']
         encoding="utf-8",
     )
     assert dallinger_lower_bound_from_pyproject(pyproject) == "9.1.0"
+
+
+def test_source_pyproject_takes_priority_over_installed_metadata(tmp_path, monkeypatch):
+    """Editable source declarations must not be shadowed by stale dist-info."""
+    from psynet import dallinger_dependency
+
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        """
+[project]
+dependencies = []
+[project.optional-dependencies]
+experiment = ["dallinger[docker]>=12.3.0,<13"]
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        dallinger_dependency, "_default_pyproject_path", lambda: pyproject
+    )
+    monkeypatch.setattr(
+        dallinger_dependency,
+        "_lower_bound_from_installed_metadata",
+        lambda: pytest.fail("source checkout should not consult stale metadata"),
+    )
+    assert supported_dallinger_lower_bound() == "12.3.0"
+
+
+def test_requirement_match_does_not_accept_similarly_named_distribution(tmp_path):
+    """A dallinger-plugin dependency must not masquerade as Dallinger."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        """
+[project]
+dependencies = ["dallinger-plugin>=99.0.0"]
+[project.optional-dependencies]
+experiment = []
+""",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Could not find a Dallinger dependency"):
+        dallinger_lower_bound_from_pyproject(pyproject)

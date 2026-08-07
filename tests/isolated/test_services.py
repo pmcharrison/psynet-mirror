@@ -132,6 +132,64 @@ def test_check_redis_ping_over_socket(monkeypatch):
     assert "PONG" in result.detail.upper() or "PING" in result.detail.upper()
 
 
+def test_check_redis_honors_auth_and_database(monkeypatch):
+    """Redis URLs retain authentication, decoding, and database semantics."""
+    from psynet.services import check_redis
+
+    commands = []
+    responses = iter([b"+OK\r\n", b"+OK\r\n", b"+PONG\r\n"])
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def sendall(self, data):
+            commands.append(data)
+
+        def recv(self, _size):
+            return next(responses)
+
+    monkeypatch.setenv("REDIS_URL", "redis://user:p%40ss@redis.example:6380/2")
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+
+    assert check_redis().ok
+    assert commands == [
+        b"*3\r\n$4\r\nAUTH\r\n$4\r\nuser\r\n$4\r\np@ss\r\n",
+        b"*2\r\n$6\r\nSELECT\r\n$1\r\n2\r\n",
+        b"*1\r\n$4\r\nPING\r\n",
+    ]
+
+
+def test_check_redis_requires_exact_pong(monkeypatch):
+    """A non-Redis listener mentioning PONG must not pass the probe."""
+    from psynet.services import check_redis
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def sendall(self, _data):
+            pass
+
+        def recv(self, _size):
+            return b"HTTP/1.1 200 PONG\r\n"
+
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+    assert not check_redis().ok
+
+
 def test_check_postgres_falls_back_to_pg_isready(monkeypatch):
     """Without psycopg2, thin bootstrap uses pg_isready when available."""
     import builtins
@@ -151,7 +209,13 @@ def test_check_postgres_falls_back_to_pg_isready(monkeypatch):
     )
 
     def fake_run(args, **kwargs):
-        assert args[:1] == ["pg_isready"]
+        assert args == [
+            "pg_isready",
+            "-d",
+            "postgresql://dallinger:dallinger@localhost/dallinger",
+            "-t",
+            "3",
+        ]
         result = Mock()
         result.returncode = 0
         result.stdout = "accepting connections\n"
@@ -162,6 +226,77 @@ def test_check_postgres_falls_back_to_pg_isready(monkeypatch):
     result = check_postgres()
     assert result.ok
     assert "pg_isready" in result.detail
+
+
+def test_check_postgres_fallback_validates_protocol(monkeypatch):
+    """An unrelated open TCP port must not pass as PostgreSQL."""
+    import builtins
+
+    from psynet.services import check_postgres
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "psycopg2":
+            raise ImportError("no psycopg2 in thin bootstrap")
+        return real_import(name, *args, **kwargs)
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def sendall(self, _data):
+            pass
+
+        def recv(self, _size):
+            return b"HTTP/"
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    monkeypatch.setattr("psynet.services.shutil.which", lambda _name: None)
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+    assert not check_postgres().ok
+
+
+def test_check_postgres_fallback_accepts_protocol_response(monkeypatch):
+    """The stdlib fallback recognizes a framed PostgreSQL auth response."""
+    import builtins
+    import struct
+
+    from psynet.services import check_postgres
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "psycopg2":
+            raise ImportError("no psycopg2 in thin bootstrap")
+        return real_import(name, *args, **kwargs)
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def sendall(self, data):
+            assert b"user\x00dallinger\x00database\x00dallinger\x00" in data
+
+        def recv(self, _size):
+            return b"R" + struct.pack("!I", 8)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    monkeypatch.setattr("psynet.services.shutil.which", lambda _name: None)
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+    assert check_postgres().ok
 
 
 def test_leftover_volume_does_not_look_like_a_container(monkeypatch):

@@ -19,13 +19,16 @@ rather than auto-starting host-port containers.
 from __future__ import annotations
 
 import os
+import shlex
 import shutil
 import socket
+import ssl
+import struct
 import subprocess
 import sys
 import time
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 import click
 
@@ -56,11 +59,23 @@ def _redis_url() -> str:
     return os.environ.get("REDIS_URL", "redis://localhost:6379")
 
 
-def _host_port_from_url(url: str, *, default_port: int) -> tuple[str, int]:
-    """Return ``(host, port)`` from a database/redis URL."""
+def _host_port_from_url(
+    url: str, *, schemes: set[str], default_port: int
+) -> tuple[str, int]:
+    """Return a validated ``(host, port)`` from a service URL."""
     parsed = urlparse(url)
-    host = parsed.hostname or "localhost"
-    port = parsed.port or default_port
+    if parsed.scheme not in schemes:
+        expected = " or ".join(sorted(schemes))
+        raise ValueError(
+            f"Unsupported URL scheme {parsed.scheme!r}; expected {expected}."
+        )
+    if parsed.hostname is None:
+        raise ValueError("Service URL must include a hostname.")
+    host = parsed.hostname
+    try:
+        port = parsed.port or default_port
+    except ValueError as exc:
+        raise ValueError(f"Invalid port in service URL: {exc}") from exc
     return host, port
 
 
@@ -87,15 +102,14 @@ def check_postgres() -> ServiceCheck:
 
 def _check_postgres_without_psycopg2(dsn: str) -> ServiceCheck:
     """Probe PostgreSQL without the ``psycopg2`` package (thin bootstrap)."""
-    host, port = _host_port_from_url(dsn, default_port=5432)
     if shutil.which("pg_isready") is not None:
         result = subprocess.run(
-            ["pg_isready", "-h", host, "-p", str(port)],
+            ["pg_isready", "-d", dsn, "-t", "3"],
             capture_output=True,
             text=True,
             check=False,
         )
-        detail = (result.stdout or result.stderr or "").strip() or f"{host}:{port}"
+        detail = (result.stdout or result.stderr or "").strip() or dsn
         if result.returncode == 0:
             return ServiceCheck("PostgreSQL", True, f"pg_isready: {detail}")
         return ServiceCheck(
@@ -105,43 +119,129 @@ def _check_postgres_without_psycopg2(dsn: str) -> ServiceCheck:
         )
 
     try:
-        with socket.create_connection((host, port), timeout=3):
-            return ServiceCheck(
-                "PostgreSQL",
-                True,
-                f"port {port} open (install psynet[experiment] for a full auth check)",
-            )
-    except OSError as exc:
+        host, port, user, database, require_tls = _postgres_connection_params(dsn)
+        with socket.create_connection((host, port), timeout=3) as raw_sock:
+            sock = _postgres_tls_socket(raw_sock, host) if require_tls else raw_sock
+            if sock is not raw_sock:
+                with sock:
+                    _probe_postgres_protocol(sock, user=user, database=database)
+            else:
+                _probe_postgres_protocol(sock, user=user, database=database)
+    except (OSError, ValueError, ssl.SSLError) as exc:
         return ServiceCheck(
             "PostgreSQL",
             False,
             str(exc).strip()
             or "Failed to connect to PostgreSQL. Is it running on port 5432?",
         )
+    return ServiceCheck("PostgreSQL", True, "PostgreSQL protocol responded")
+
+
+def _postgres_connection_params(dsn: str) -> tuple[str, int, str, str, bool]:
+    """Parse URI or libpq key/value DSN fields needed by the protocol probe."""
+    if "://" in dsn:
+        parsed = urlparse(dsn)
+        host, port = _host_port_from_url(
+            dsn, schemes={"postgres", "postgresql"}, default_port=5432
+        )
+        user = unquote(parsed.username or os.environ.get("USER", "postgres"))
+        database = unquote(parsed.path.lstrip("/") or user)
+        sslmode = parse_qs(parsed.query).get("sslmode", ["prefer"])[0]
+    else:
+        values = {}
+        for field in shlex.split(dsn):
+            if "=" not in field:
+                raise ValueError(f"Invalid PostgreSQL DSN field: {field!r}.")
+            key, value = field.split("=", 1)
+            values[key] = value
+        host = values.get("host", "localhost")
+        try:
+            port = int(values.get("port", "5432"))
+        except ValueError as exc:
+            raise ValueError("PostgreSQL DSN port must be an integer.") from exc
+        user = values.get("user", os.environ.get("USER", "postgres"))
+        database = values.get("dbname", user)
+        sslmode = values.get("sslmode", "prefer")
+    return (
+        host,
+        port,
+        user,
+        database,
+        sslmode in {"require", "verify-ca", "verify-full"},
+    )
+
+
+def _postgres_tls_socket(raw_sock, host: str):
+    """Negotiate PostgreSQL TLS and return the wrapped socket."""
+    raw_sock.sendall(struct.pack("!II", 8, 80877103))
+    if raw_sock.recv(1) != b"S":
+        raise OSError("PostgreSQL server refused the requested TLS connection.")
+    return ssl.create_default_context().wrap_socket(raw_sock, server_hostname=host)
+
+
+def _probe_postgres_protocol(sock, *, user: str, database: str) -> None:
+    """Send a PostgreSQL startup packet and validate the response framing."""
+    parameters = (
+        b"user\0" + user.encode() + b"\0database\0" + database.encode() + b"\0\0"
+    )
+    sock.sendall(struct.pack("!II", len(parameters) + 8, 196608) + parameters)
+    header = sock.recv(5)
+    if len(header) != 5 or header[:1] not in {b"R", b"E", b"S", b"K", b"Z"}:
+        raise OSError("Service did not return a PostgreSQL protocol response.")
+    if struct.unpack("!I", header[1:])[0] < 4:
+        raise OSError("Service returned an invalid PostgreSQL message length.")
 
 
 def check_redis() -> ServiceCheck:
     """Return whether Redis responds to PING on the configured URL."""
     url = _redis_url()
-    host, port = _host_port_from_url(url, default_port=6379)
     try:
-        with socket.create_connection((host, port), timeout=3) as sock:
-            sock.sendall(b"*1\r\n$4\r\nPING\r\n")
-            response = sock.recv(1024)
-    except OSError as exc:
+        parsed = urlparse(url)
+        host, port = _host_port_from_url(
+            url, schemes={"redis", "rediss"}, default_port=6379
+        )
+        database = parsed.path.lstrip("/") or "0"
+        if not database.isdigit():
+            raise ValueError(f"Redis database must be an integer, got {database!r}.")
+
+        raw_sock = socket.create_connection((host, port), timeout=3)
+        sock = (
+            ssl.create_default_context().wrap_socket(raw_sock, server_hostname=host)
+            if parsed.scheme == "rediss"
+            else raw_sock
+        )
+        with sock:
+            username = unquote(parsed.username) if parsed.username else None
+            password = unquote(parsed.password) if parsed.password else None
+            if username and password is None:
+                raise ValueError("Redis URL username requires a password.")
+            if password is not None:
+                auth = (username, password) if username else (password,)
+                _expect_redis_response(sock, "OK", "AUTH", *auth)
+            if database != "0":
+                _expect_redis_response(sock, "OK", "SELECT", database)
+            _expect_redis_response(sock, "PONG", "PING")
+    except (OSError, ValueError, ssl.SSLError) as exc:
         return ServiceCheck(
             "Redis",
             False,
             f"Failed to connect to Redis ({exc}). Is Redis running on port 6379?",
         )
-    if b"PONG" not in response:
-        detail = response.decode("utf-8", errors="replace").strip() or repr(response)
-        return ServiceCheck(
-            "Redis",
-            False,
-            f"Redis did not respond to PING ({detail}). Is it running on port 6379?",
-        )
     return ServiceCheck("Redis", True, "responded to PING")
+
+
+def _expect_redis_response(sock, expected: str, *command: str) -> None:
+    """Send a RESP command and require an exact simple-string response."""
+    encoded = [part.encode() for part in command]
+    payload = f"*{len(encoded)}\r\n".encode() + b"".join(
+        f"${len(part)}\r\n".encode() + part + b"\r\n" for part in encoded
+    )
+    sock.sendall(payload)
+    response = sock.recv(4096).split(b"\r\n", 1)[0]
+    expected_response = f"+{expected}".encode()
+    if response != expected_response:
+        detail = response.decode("utf-8", errors="replace") or repr(response)
+        raise OSError(f"Redis {command[0]} failed: {detail}")
 
 
 def check_local_services() -> list[ServiceCheck]:

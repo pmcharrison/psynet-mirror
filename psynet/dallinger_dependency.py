@@ -7,9 +7,10 @@ tag must track the same lower bound declared in ``pyproject.toml`` under
 
 Resolution order:
 
-1. Installed package metadata (``Requires-Dist`` for the ``experiment`` extra).
-2. The repository ``pyproject.toml`` next to the ``psynet`` package (editable /
+1. The repository ``pyproject.toml`` next to the ``psynet`` package (editable /
    source checkouts and CI helpers).
+2. Installed package metadata (``Requires-Dist`` for the ``experiment`` extra)
+   for wheels, which do not contain the repository ``pyproject.toml``.
 """
 
 from __future__ import annotations
@@ -24,14 +25,23 @@ except ModuleNotFoundError:  # pragma: no cover
     import tomli as tomllib
 
 _LOWER_BOUND_PATTERN = re.compile(r">=\s*(\d+\.\d+\.\d+)")
+_DALLINGER_REQUIREMENT_PATTERN = re.compile(
+    r"^\s*dallinger(?:\[[^\]]+\])?\s*(?:\(|[<>=!~;@\s]|$)", re.IGNORECASE
+)
 
 
 def supported_dallinger_lower_bound() -> str:
     """Return PsyNet's supported Dallinger lower-bound version (e.g. ``12.2.0``)."""
+    pyproject_path = _default_pyproject_path()
+    if pyproject_path.is_file():
+        return dallinger_lower_bound_from_pyproject(pyproject_path)
     from_metadata = _lower_bound_from_installed_metadata()
     if from_metadata is not None:
         return from_metadata
-    return dallinger_lower_bound_from_pyproject(_default_pyproject_path())
+    raise ValueError(
+        "Could not determine PsyNet's supported Dallinger version from "
+        "pyproject.toml or installed package metadata."
+    )
 
 
 def dallinger_constraints_github_ref() -> str:
@@ -73,7 +83,7 @@ def _lower_bound_from_requirement_strings(
         (
             requirement
             for requirement in requirements
-            if requirement.lstrip().startswith("dallinger")
+            if _DALLINGER_REQUIREMENT_PATTERN.match(requirement)
         ),
         None,
     )
