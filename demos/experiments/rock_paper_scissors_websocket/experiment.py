@@ -32,7 +32,6 @@ is also fully testable with non-WebSocket bots.
 
 import random
 from copy import deepcopy
-from types import SimpleNamespace
 from typing import List, Literal, Optional
 
 from dallinger import db
@@ -84,11 +83,6 @@ def score_match(player_1_moves, player_2_moves):
     return player_1_score, player_2_score
 
 
-def room_id_for_sync_group(sync_group_id):
-    """Return the websocket room ID for a PsyNet sync group."""
-    return f"rps_room_{sync_group_id}"
-
-
 Choice = Literal["rock", "paper", "scissors"]
 
 
@@ -126,13 +120,7 @@ def initial_rps_state(participant_ids: list[int]) -> dict:
 
 
 class RockPaperScissorsSession(LiveSession):
-    """Persisted live session for one rock-paper-scissors room."""
-
-    @classmethod
-    def build_session_id(cls, participant, group, control):
-        """Return the session ID for a rock-paper-scissors sync group."""
-
-        return room_id_for_sync_group(group.id)
+    """Persisted live session for one rock-paper-scissors game."""
 
     @classmethod
     def build_initial_state(cls, participant_ids, participant, group, control):
@@ -169,7 +157,7 @@ class RockPaperScissorsSession(LiveSession):
 
         db.session.add(
             RockPaperScissorsMove(
-                room_id=message.session_id,
+                session_id=message.session_id,
                 round_number=message.round,
                 participant_id=participant_id,
                 action=message.action,
@@ -214,34 +202,25 @@ class RockPaperScissorsSession(LiveSession):
         return True
 
 
-def accepts_choose_message(participant, message: ChooseMessage):
-    """Return whether a choice belongs to the participant's current room."""
-
-    sync_group_id = getattr(getattr(participant, "sync_group", None), "id", None)
-    return sync_group_id is not None and message.session_id == room_id_for_sync_group(
-        sync_group_id
-    )
-
-
-def moves_for_round(room_id: str, round_number: int):
-    """Return submitted moves for a given room and round."""
+def moves_for_round(session_id: str, round_number: int):
+    """Return submitted moves for a given live session and round."""
 
     return {
         move.participant_id: move.action
         for move in RockPaperScissorsMove.query.filter_by(
-            room_id=room_id,
+            session_id=session_id,
             round_number=round_number,
         ).all()
     }
 
 
-def participant_moves(room_id: str, participant_id: int):
+def participant_moves(session_id: str, participant_id: int):
     """Return a participant's submitted moves in round order."""
 
     return [
         move.action
         for move in RockPaperScissorsMove.query.filter_by(
-            room_id=room_id,
+            session_id=session_id,
             participant_id=participant_id,
         )
         .order_by(RockPaperScissorsMove.round_number)
@@ -251,7 +230,7 @@ def participant_moves(room_id: str, participant_id: int):
 
 def reveal_for(
     public_state: dict,
-    room_id: str,
+    session_id: str,
     participant_id: int,
     round_number: int,
     *,
@@ -260,7 +239,7 @@ def reveal_for(
 ) -> RevealSnapshot:
     """Return a participant-specific reveal for a completed round."""
 
-    round_moves = round_moves or moves_for_round(room_id, round_number)
+    round_moves = round_moves or moves_for_round(session_id, round_number)
     partner_id = next(pid for pid in round_moves if pid != participant_id)
     delta = score_round(round_moves[participant_id], round_moves[partner_id])
     outcome = (
@@ -294,7 +273,7 @@ def reveal_for(
         answer=(
             submitted_moves
             if submitted_moves is not None
-            else participant_moves(room_id, participant_id)
+            else participant_moves(session_id, participant_id)
             if finished
             else None
         ),
@@ -306,18 +285,12 @@ class RockPaperScissorsMove(SQLBase, SQLMixin):
     """A single move submitted by a participant during one round."""
 
     __tablename__ = "rock_paper_scissors_move"
-    __table_args__ = (UniqueConstraint("room_id", "round_number", "participant_id"),)
+    __table_args__ = (UniqueConstraint("session_id", "round_number", "participant_id"),)
 
-    room_id = Column(String(128), index=True)
+    session_id = Column(String(128), index=True)
     round_number = Column(Integer)
     participant_id = Column(Integer, index=True)
     action = Column(String)
-
-    def __init__(self, room_id, round_number, participant_id, action):
-        self.room_id = room_id
-        self.round_number = round_number
-        self.participant_id = participant_id
-        self.action = action
 
 
 class RockPaperScissorsControl(LiveSessionControl):
@@ -332,7 +305,6 @@ class RockPaperScissorsControl(LiveSessionControl):
     def __init__(self, trial, participant, color, n_rounds=N_ROUNDS, choices=CHOICES):
         # The board advances itself once all rounds are revealed, so we hide the
         # default 'Next' button and submit programmatically from the template.
-        self.trial = trial
         self.color = color
         self.n_rounds = n_rounds
         self.choices = choices
@@ -343,17 +315,10 @@ class RockPaperScissorsControl(LiveSessionControl):
             show_next_button=False,
         )
 
-    def format_answer(self, raw_answer, **kwargs):
-        return raw_answer
-
     def get_bot_response(self, experiment, bot, page, prompt):
         # Bots cannot use WebSockets, so they simply submit a full set of moves;
         # the authoritative scoring happens server-side in ``score_game``.
         return [random.choice(self.choices) for _ in range(self.n_rounds)]
-
-
-class RockPaperScissorsTrialMaker(StaticTrialMaker):
-    pass
 
 
 class RockPaperScissorsTrial(StaticTrial):
@@ -446,7 +411,7 @@ class Exp(psynet.experiment.Experiment):
             # Allow ample time for a second participant to arrive in the lobby.
             max_wait_time=300,
         ),
-        RockPaperScissorsTrialMaker(
+        StaticTrialMaker(
             id_="rock_paper_scissors_websocket",
             trial_class=RockPaperScissorsTrial,
             nodes=[
@@ -467,9 +432,6 @@ class Exp(psynet.experiment.Experiment):
     def choose(self, participant, message: ChooseMessage):
         """Handle a browser-submitted rock-paper-scissors choice."""
 
-        if not accepts_choose_message(participant, message):
-            return
-
         live_session = RockPaperScissorsSession.get(message.session_id, for_update=True)
         if live_session is not None and live_session.record_choice(
             participant.id, message
@@ -483,7 +445,7 @@ class Exp(psynet.experiment.Experiment):
     def _valid_choose_event():
         return ChooseMessage.model_validate(
             {
-                "session_id": room_id_for_sync_group(1),
+                "session_id": "test-session",
                 "round": 2,
                 "action": "paper",
             }
@@ -501,10 +463,10 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def test_websocket_event_parsing():
         """Check websocket event parsing and validation."""
-        room_id = room_id_for_sync_group(1)
+        session_id = "test-session"
         event = Exp._valid_choose_event()
         assert event == ChooseMessage(
-            session_id=room_id,
+            session_id=session_id,
             round=2,
             action="paper",
         )
@@ -512,7 +474,7 @@ class Exp(psynet.experiment.Experiment):
         invalid_payloads = [
             {"round": 1, "action": "rock"},
             {
-                "session_id": room_id,
+                "session_id": session_id,
                 "round": 1,
                 "action": "rock",
                 "extra": "unexpected",
@@ -523,17 +485,17 @@ class Exp(psynet.experiment.Experiment):
                 "action": "rock",
             },
             {
-                "session_id": room_id,
+                "session_id": session_id,
                 "round": "1",
                 "action": "rock",
             },
             {
-                "session_id": room_id,
+                "session_id": session_id,
                 "round": 0,
                 "action": "rock",
             },
             {
-                "session_id": room_id,
+                "session_id": session_id,
                 "round": 1,
                 "action": "lizard",
             },
@@ -542,21 +504,8 @@ class Exp(psynet.experiment.Experiment):
             Exp._assert_payload_rejected(payload)
 
     @staticmethod
-    def test_websocket_event_authorization():
-        """Check page UUID and room ownership authorization."""
-        event = Exp._valid_choose_event()
-        participant = SimpleNamespace(
-            id=1, page_uuid="current-page", sync_group=SimpleNamespace(id=1)
-        )
-        assert accepts_choose_message(participant, event)
-        assert not accepts_choose_message(
-            participant,
-            event.model_copy(update={"session_id": room_id_for_sync_group(2)}),
-        )
-
-    @staticmethod
-    def test_scoring_and_room_helpers():
-        """Check shared scoring and room ID helpers."""
+    def test_scoring_helpers():
+        """Check shared scoring helpers."""
         assert score_match(["rock", "paper"], ["scissors", "rock"]) == (2, -2)
 
         try:
@@ -581,13 +530,13 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def test_reveal_formatting():
         """Check reveal formatting from public LiveSession and hidden move log."""
-        room_id = room_id_for_sync_group(1)
+        session_id = "test-session"
         state = initial_rps_state([1, 2])
         state["scores"] = {"1": 1, "2": -1}
 
         reveal = reveal_for(
             state,
-            room_id,
+            session_id,
             participant_id=1,
             round_number=1,
             round_moves={1: "rock", 2: "scissors"},
@@ -599,8 +548,7 @@ class Exp(psynet.experiment.Experiment):
     def test_websocket_event_contracts(self):
         """Check websocket event, authorization, state, and reveal contracts."""
         self.test_websocket_event_parsing()
-        self.test_websocket_event_authorization()
-        self.test_scoring_and_room_helpers()
+        self.test_scoring_helpers()
         self.test_live_session_initialization()
         self.test_reveal_formatting()
 

@@ -43,7 +43,9 @@
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  var cfg = {{ params.live_session_config | tojson }};
+  var liveSession = {{ params.live_session_config | tojson }};
+  var cfg = liveSession;
+  var participantId = String(liveSession.participant_id);
   var canvas = document.getElementById("shared-canvas");
   var ctx = canvas.getContext("2d");
   var players = {};
@@ -53,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var keys = {};
   var arrowKeys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
   var own = {
-    participant_id: String(cfg.participant_id),
+    participant_id: participantId,
     label: cfg.role,
     color: "#1f77b4",
     x: cfg.canvas_size / 2,
@@ -87,28 +89,28 @@ document.addEventListener("DOMContentLoaded", function () {
   function applySnapshot(msg) {
     var state = msg.state || msg;
     players = {};
-    Object.keys(state.players || {}).forEach(function (participantId) {
-      var player = state.players[participantId];
-      players[String(participantId)] = Object.assign({}, player, {
+    Object.keys(state.players || {}).forEach(function (playerId) {
+      var player = state.players[playerId];
+      players[String(playerId)] = Object.assign({}, player, {
         received_at: performance.now()
       });
     });
-    if (players[String(cfg.participant_id)]) {
-      own = Object.assign(own, players[String(cfg.participant_id)]);
+    if (players[participantId]) {
+      own = Object.assign(own, players[participantId]);
     }
     coins = (state.coins || []).slice();
     collectedCoinIds = (state.collected_coins || [])
       .filter(function (collection) {
-        return String(collection.participant_id) === String(cfg.participant_id);
+        return String(collection.participant_id) === participantId;
       })
       .map(function (collection) { return collection.coin_id; });
     updateBonus(collectedCoinIds.length * cfg.coin_bonus);
   }
 
   function applyPosition(player) {
-    var participantId = String(player.participant_id);
-    if (participantId === String(cfg.participant_id)) return;
-    players[participantId] = Object.assign({}, player, {received_at: performance.now()});
+    var playerId = String(player.participant_id);
+    if (playerId === participantId) return;
+    players[playerId] = Object.assign({}, player, {received_at: performance.now()});
   }
 
   function applyCollection(msg) {
@@ -117,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return coin.id !== collection.coin_id;
     });
     delete pendingCollections[collection.coin_id];
-    if (String(collection.participant_id) === String(cfg.participant_id)) {
+    if (String(collection.participant_id) === participantId) {
       collectedCoinIds.push(collection.coin_id);
       updateBonus(bonus + cfg.coin_bonus);
     }
@@ -151,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
     own.y = Math.max(cfg.player_radius, Math.min(cfg.canvas_size - cfg.player_radius, own.y + own.vy * dt));
     own.client_time = now;
     own.received_at = now;
-    players[String(cfg.participant_id)] = Object.assign({}, own);
+    players[participantId] = Object.assign({}, own);
   }
 
   function renderedPlayer(player, now) {
@@ -186,9 +188,9 @@ document.addEventListener("DOMContentLoaded", function () {
       ctx.lineWidth = 2;
       ctx.stroke();
     });
-    Object.keys(players).forEach(function (participantId) {
-      var player = renderedPlayer(players[participantId], now);
-      var isOwn = String(participantId) === String(cfg.participant_id);
+    Object.keys(players).forEach(function (playerId) {
+      var player = renderedPlayer(players[playerId], now);
+      var isOwn = String(playerId) === participantId;
       ctx.beginPath();
       ctx.arc(player.x, player.y, cfg.player_radius, 0, Math.PI * 2);
       ctx.fillStyle = player.color || (isOwn ? "#1f77b4" : "#d62728");
@@ -288,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("blur", function () { keys = {}; });
   focusCanvas();
 
-  psynet.session.init(cfg);
+  psynet.session.init(liveSession);
   psynet.session.onSnapshot(applySnapshot);
   psynet.session.onStarted(startGame);
   psynet.session.onEnd(submitFinalAnswer);

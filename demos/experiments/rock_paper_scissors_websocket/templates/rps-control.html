@@ -31,8 +31,7 @@
     // renders the snapshots the server sends back.
     document.addEventListener("DOMContentLoaded", function () {
         var liveSession = {{ config.live_session_config | tojson }};
-        var ROOM_ID   = liveSession.session_id;
-        var MY_ID     = String(dallinger.identity.participantId);
+        var participantId = String(liveSession.participant_id);
         var round     = 1;
         var completed = false;
         var submitted = false;
@@ -62,15 +61,15 @@
             return (
                 (state.submitted_participant_ids || [])
                     .map(String)
-                    .indexOf(MY_ID) !== -1
+                    .indexOf(participantId) !== -1
             );
         }
 
         function renderSnapshot(snapshot) {
-            if (!snapshot || snapshot.session_id !== ROOM_ID) return;
+            if (!snapshot) return;
 
             var state = snapshot.state || {};
-            var history = ((state.reveal_history || {})[MY_ID]) || [];
+            var history = ((state.reveal_history || {})[participantId]) || [];
             round = state.current_round || round;
             logEl.innerHTML = "";
             history.forEach(appendReveal);
@@ -78,7 +77,7 @@
             if (history.length === 0) {
                 scoreEl.textContent = "Score — you: 0, partner: 0";
                 statusEl.textContent = (
-                    "Round " + round + " of {{ config.n_rounds }}: choose your action."
+                    "Round " + round + " of " + liveSession.n_rounds + ": choose your action."
                 );
             }
 
