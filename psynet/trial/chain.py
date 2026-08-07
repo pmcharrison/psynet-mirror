@@ -1255,16 +1255,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant; ``"kick"`` removes them
         from the group and lets them continue. Defaults to ``"fail"``.
 
-    sync_group_timeout_between_barriers
-        If ``True``, participants who fail to reach a later sync-group barrier in time are kicked or failed according
-        to ``sync_group_timeout_between_barriers_action``. Defaults to ``False``.
-
     sync_group_timeout_between_barriers_time
         Optional timeout in seconds (since the group's last barrier pass) after which a participant
-        is considered too slow. Required when ``sync_group_timeout_between_barriers`` is ``True``.
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
 
     sync_group_timeout_between_barriers_action
-        When ``sync_group_timeout_between_barriers`` is set: ``"kick"`` removes the participant from the group so
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
         the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
@@ -1344,7 +1340,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout_between_barriers: bool = False,
         sync_group_timeout_between_barriers_time: Optional[float] = None,
         sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
@@ -1488,7 +1483,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
             sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout_between_barriers=sync_group_timeout_between_barriers,
             sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
             sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )

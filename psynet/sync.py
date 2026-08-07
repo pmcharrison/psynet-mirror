@@ -345,13 +345,9 @@ class GroupBarrier(Barrier):
         When ``max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end of the
         experiment; ``"kick"`` removes them from the group and lets them continue. Default is ``"fail"``.
 
-    timeout_between_barriers
-        If ``True``, participants who fail to reach a later barrier in time are kicked or failed according to
-        ``timeout_between_barriers_action``. Default is ``False``.
-
     timeout_between_barriers_time
         The maximum amount of time in seconds that a participant is allowed to reach the barrier, measured from when
-        the group collectively passed the previous barrier. Required when ``timeout_between_barriers`` is ``True``.
+        the group collectively passed the previous barrier. If ``None`` (default), no between-barrier timeout is applied.
         Only applies from the second barrier onward (time since previous barrier pass).
 
     timeout_between_barriers_action
@@ -398,7 +394,6 @@ class GroupBarrier(Barrier):
         max_wait_action: Literal["fail", "kick"] = "fail",
         on_release: Optional[Callable] = None,
         fix_time_credit=False,
-        timeout_between_barriers: bool = False,
         timeout_between_barriers_time: Optional[float] = None,
         timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
@@ -413,17 +408,11 @@ class GroupBarrier(Barrier):
         self.max_wait_action = max_wait_action
         self.group_type = group_type
         self.on_release = on_release
-        self.timeout_between_barriers = timeout_between_barriers
         self.timeout_between_barriers_time = timeout_between_barriers_time
         if max_wait_action == "kick":
             self.on_max_wait_timeout = SerializedCallable(
                 function=GroupBarrier._kick_participant_after_max_wait,
                 arguments={"group_type": group_type},
-            )
-        if timeout_between_barriers and timeout_between_barriers_time is None:
-            raise ValueError(
-                "timeout_between_barriers_time must be provided when "
-                "timeout_between_barriers is True."
             )
         if timeout_between_barriers_action not in ("kick", "fail"):
             raise ValueError(
@@ -511,8 +500,7 @@ class GroupBarrier(Barrier):
     ):
         """Kick or fail group members who are late reaching this barrier."""
         if (
-            not self.timeout_between_barriers
-            or self.timeout_between_barriers_time is None
+            self.timeout_between_barriers_time is None
             or group.last_barrier_pass_time is None
         ):
             return

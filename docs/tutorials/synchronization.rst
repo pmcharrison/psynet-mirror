@@ -144,6 +144,30 @@ GroupBarriers within the trial, for example:
             ),
         )
 
+Timeout in Group Barriers
+-------------------------
+
+PsyNet provides two mechanisms for letting participants advance when others in their group are unresponsive:
+
+``max_wait_time`` (default: 20 seconds)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This ``GroupBarrier`` parameter specifies the maximum time period that a participant can wait at the barrier before
+being released automatically. By default, participants who exceed this timeout are failed. Set
+``max_wait_action="kick"`` to remove them from the group instead, allowing them to continue outside that group.
+
+``timeout_between_barriers_time`` (default: ``None``)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This ``GroupBarrier`` parameter handles participants who fall behind between successive group barriers. If set to a
+number of seconds, PsyNet measures from the time the group collectively passed the previous barrier. Any active group
+member who has not reached the current barrier within that interval is handled according to
+``timeout_between_barriers_action``, which can be ``"fail"`` (default) or ``"kick"``.
+
+Trial makers with ``sync_group_type`` expose the same behavior with the prefixed parameters
+``sync_group_timeout_between_barriers_time`` and ``sync_group_timeout_between_barriers_action``.
+
+
 Demo
 ----
 

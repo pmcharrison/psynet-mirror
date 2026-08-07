@@ -517,21 +517,11 @@ def test_barrier_registry_strips_waiting_logic(db_session):
     assert loaded.barrier.waiting_logic is None
 
 
-def test_group_barrier_timeout_between_barriers_requires_time():
-    with pytest.raises(ValueError, match="timeout_between_barriers_time"):
-        GroupBarrier(
-            id_="timeout_between_barriers_requires_time",
-            group_type="group",
-            timeout_between_barriers=True,
-        )
-
-
 def test_group_barrier_timeout_between_barriers_rejects_bad_action():
     with pytest.raises(ValueError, match="timeout_between_barriers_action"):
         GroupBarrier(
             id_="timeout_between_barriers_bad_action",
             group_type="group",
-            timeout_between_barriers=True,
             timeout_between_barriers_time=5,
             timeout_between_barriers_action="remove",
         )
@@ -547,7 +537,6 @@ def test_group_barrier_timeout_between_barriers_kick_missing_participants(
     barrier = GroupBarrier(
         id_="timeout_between_barriers_kick",
         group_type="main",
-        timeout_between_barriers=True,
         timeout_between_barriers_time=5,
         timeout_between_barriers_action="kick",
     )
@@ -592,7 +581,6 @@ def test_group_barrier_timeout_between_barriers_kick_releases_waiters_after_diss
     barrier = GroupBarrier(
         id_="timeout_between_barriers_kick_below_min",
         group_type="main",
-        timeout_between_barriers=True,
         timeout_between_barriers_time=5,
         timeout_between_barriers_action="kick",
     )
@@ -636,7 +624,6 @@ def test_group_barrier_timeout_between_barriers_fail_missing_participants(
     barrier = GroupBarrier(
         id_="timeout_between_barriers_fail",
         group_type="main",
-        timeout_between_barriers=True,
         timeout_between_barriers_time=5,
         timeout_between_barriers_action="fail",
     )

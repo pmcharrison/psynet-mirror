@@ -1232,16 +1232,12 @@ class TrialMaker(Module):
         When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
         of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
 
-    sync_group_timeout_between_barriers
-        If ``True``, participants who fail to reach a later sync-group barrier in time are kicked or failed according
-        to ``sync_group_timeout_between_barriers_action``. Defaults to ``False``.
-
     sync_group_timeout_between_barriers_time
         Optional timeout in seconds (since the group's last barrier pass) after which a participant
-        is considered too slow. Required when ``sync_group_timeout_between_barriers`` is ``True``.
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
 
     sync_group_timeout_between_barriers_action
-        When ``sync_group_timeout_between_barriers`` is set: ``"kick"`` removes the participant from the group so
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
         the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
     """
 
@@ -1264,7 +1260,6 @@ class TrialMaker(Module):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout_between_barriers: bool = False,
         sync_group_timeout_between_barriers_time: Optional[float] = None,
         sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
@@ -1304,7 +1299,6 @@ class TrialMaker(Module):
         self.sync_group_type = sync_group_type
         self.sync_group_max_wait_time = sync_group_max_wait_time
         self.sync_group_max_wait_action = sync_group_max_wait_action
-        self.sync_group_timeout_between_barriers = sync_group_timeout_between_barriers
         self.sync_group_timeout_between_barriers_time = (
             sync_group_timeout_between_barriers_time
         )
@@ -1381,7 +1375,6 @@ class TrialMaker(Module):
                 max_wait_time=self.sync_group_max_wait_time,
                 max_wait_action=self.sync_group_max_wait_action,
                 on_release=self._init_participants_in_sync_group,
-                timeout_between_barriers=self.sync_group_timeout_between_barriers,
                 timeout_between_barriers_time=self.sync_group_timeout_between_barriers_time,
                 timeout_between_barriers_action=self.sync_group_timeout_between_barriers_action,
             ),
@@ -2053,7 +2046,6 @@ class TrialMaker(Module):
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
                         max_wait_action=self.sync_group_max_wait_action,
-                        timeout_between_barriers=self.sync_group_timeout_between_barriers,
                         timeout_between_barriers_time=self.sync_group_timeout_between_barriers_time,
                         timeout_between_barriers_action=self.sync_group_timeout_between_barriers_action,
                     )
@@ -2261,16 +2253,12 @@ class NetworkTrialMaker(TrialMaker):
         When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
         of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
 
-    sync_group_timeout_between_barriers
-        If ``True``, participants who fail to reach a later sync-group barrier in time are kicked or failed according
-        to ``sync_group_timeout_between_barriers_action``. Defaults to ``False``.
-
     sync_group_timeout_between_barriers_time
         Optional timeout in seconds (since the group's last barrier pass) after which a participant
-        is considered too slow. Required when ``sync_group_timeout_between_barriers`` is ``True``.
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
 
     sync_group_timeout_between_barriers_action
-        When ``sync_group_timeout_between_barriers`` is set: ``"kick"`` removes the participant from the group so
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
         the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
@@ -2338,7 +2326,6 @@ class NetworkTrialMaker(TrialMaker):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout_between_barriers: bool = False,
         sync_group_timeout_between_barriers_time: Optional[float] = None,
         sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
@@ -2380,7 +2367,6 @@ class NetworkTrialMaker(TrialMaker):
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
             sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout_between_barriers=sync_group_timeout_between_barriers,
             sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
             sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
