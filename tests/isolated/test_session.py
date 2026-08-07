@@ -170,11 +170,11 @@ def test_live_session_control_derives_config(monkeypatch):
 
     class DemoSession:
         @classmethod
-        def build_session_id(cls, participant, group, control):
+        def build_session_id(cls, group, trial):
             return f"demo:{group.id}"
 
         @classmethod
-        def build_initial_state(cls, participant_ids, participant, group, control):
+        def build_initial_state(cls, participant_ids, group, trial):
             return {"participant_ids": participant_ids}
 
         @classmethod
@@ -184,7 +184,7 @@ def test_live_session_control_derives_config(monkeypatch):
     class DemoControl(LiveSessionControl):
         macro = "demo"
 
-        def __init__(self, participant, trial=None):
+        def __init__(self, participant, trial):
             self.custom_value = 10
             super().__init__(
                 participant=participant,
@@ -198,7 +198,7 @@ def test_live_session_control_derives_config(monkeypatch):
     participant = SimpleNamespace(
         id=1, active_sync_groups={"demo_group": group}, sync_group=None
     )
-    live_session = SimpleNamespace(session_id="demo:9", link_trial=MagicMock())
+    live_session = SimpleNamespace(session_id="demo:9")
     trial = SimpleNamespace(
         id=7,
         live_session=live_session,
@@ -215,7 +215,6 @@ def test_live_session_control_derives_config(monkeypatch):
         "custom": 10,
         "extra": "value",
     }
-    live_session.link_trial.assert_called_once_with(trial)
 
 
 def test_live_session_control_requires_trial_context():
@@ -267,8 +266,6 @@ def test_live_session_prepare_for_group_creates_and_links_trials(monkeypatch):
         classmethod(lambda cls, session_id: None),
     )
 
-    participants = [SimpleNamespace(id=2), SimpleNamespace(id=1)]
-    group = SimpleNamespace(id=9, participants=participants)
     trials = [
         SimpleNamespace(
             id=7,
@@ -276,7 +273,7 @@ def test_live_session_prepare_for_group_creates_and_links_trials(monkeypatch):
             failed=False,
             live_session_id=None,
             live_session=None,
-            network=SimpleNamespace(id=12),
+            network=SimpleNamespace(id=11),
         ),
         SimpleNamespace(
             id=8,
@@ -287,12 +284,18 @@ def test_live_session_prepare_for_group_creates_and_links_trials(monkeypatch):
             network=SimpleNamespace(id=12),
         ),
     ]
-
-    live_session = PolymorphicDemoLiveSession.prepare_for_group(
-        participant=participants[0],
-        group=group,
-        trials=trials,
+    participants = [
+        SimpleNamespace(id=2, current_trial=trials[1]),
+        SimpleNamespace(id=1, current_trial=trials[0]),
+    ]
+    group = SimpleNamespace(
+        id=9,
+        participants=participants,
+        active_participants=participants,
+        leader=participants[0],
     )
+
+    live_session = PolymorphicDemoLiveSession.prepare_for_group(group=group)
 
     assert live_session.session_id == "polymorphic_demo_live_session:network:12:group:9"
     assert live_session.participant_ids == [1, 2]
@@ -300,15 +303,46 @@ def test_live_session_prepare_for_group_creates_and_links_trials(monkeypatch):
     added.assert_called_once_with(live_session)
 
 
+def test_live_session_prepare_for_group_requires_leader_trial(monkeypatch):
+    """A synchronized live session must be derived from the group leader's trial."""
+
+    monkeypatch.setattr(
+        PolymorphicDemoLiveSession,
+        "get",
+        classmethod(lambda cls, session_id: None),
+    )
+
+    follower_trial = SimpleNamespace(
+        id=7,
+        participant_id=1,
+        failed=False,
+        live_session_id=None,
+        live_session=None,
+        network=SimpleNamespace(id=12),
+    )
+    participants = [
+        SimpleNamespace(id=2, current_trial=None),
+        SimpleNamespace(id=1, current_trial=follower_trial),
+    ]
+    group = SimpleNamespace(
+        id=9,
+        participants=participants,
+        active_participants=participants,
+        leader=participants[0],
+    )
+
+    with pytest.raises(ValueError, match="no trial for leader"):
+        PolymorphicDemoLiveSession.prepare_for_group(group=group)
+
+
 def test_live_session_default_session_id_uses_class_and_network():
     """Default live-session IDs include the session class and shared network."""
 
     group = SimpleNamespace(id=9)
     trial = SimpleNamespace(network=SimpleNamespace(id=12))
-    control = SimpleNamespace(trial=trial)
 
     assert (
-        PolymorphicDemoLiveSession.build_session_id(None, group, control)
+        PolymorphicDemoLiveSession.build_session_id(group, trial)
         == "polymorphic_demo_live_session:network:12:group:9"
     )
 

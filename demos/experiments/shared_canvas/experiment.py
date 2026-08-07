@@ -229,14 +229,14 @@ class SharedCanvasSession(LiveSession):
     """Persisted live session for one shared-canvas group."""
 
     @classmethod
-    def build_initial_state(cls, participant_ids, participant, group, control):
+    def build_initial_state(cls, participant_ids, group, trial):
         """Return the initial authoritative shared-canvas state."""
 
-        world = control.trial.definition["world"]
+        world = trial.definition["world"]
         return {
             **initial_canvas_state(participant_ids, world),
             "group_id": int(group.id),
-            "network_id": control.trial.network.id,
+            "network_id": trial.network.id,
             "world_id": world["world_id"],
         }
 
@@ -431,7 +431,7 @@ class Exp(psynet.experiment.Experiment):
     def position(self, participant, message: PositionMessage, receive_time):
         """Persist and broadcast a high-frequency position event."""
 
-        live_session = SharedCanvasSession.get_for_participant(
+        live_session = SharedCanvasSession.get_current_for_participant(
             participant, message.session_id
         )
         if live_session is None:
@@ -464,7 +464,7 @@ class Exp(psynet.experiment.Experiment):
     def collect(self, participant, message: CollectMessage, receive_time):
         """Apply a coin collection attempt to authoritative state."""
 
-        live_session = SharedCanvasSession.get_for_participant(
+        live_session = SharedCanvasSession.get_current_for_participant(
             participant, message.session_id, for_update=True
         )
         if live_session is None:
@@ -631,14 +631,14 @@ class Exp(psynet.experiment.Experiment):
         )
 
         assert (
-            SharedCanvasSession.get_for_participant(
+            SharedCanvasSession.get_current_for_participant(
                 participant,
                 "session-1",
             )
             is live_session
         )
         assert (
-            SharedCanvasSession.get_for_participant(
+            SharedCanvasSession.get_current_for_participant(
                 participant,
                 "wrong-session",
             )

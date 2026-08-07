@@ -123,7 +123,7 @@ class RockPaperScissorsSession(LiveSession):
     """Persisted live session for one rock-paper-scissors game."""
 
     @classmethod
-    def build_initial_state(cls, participant_ids, participant, group, control):
+    def build_initial_state(cls, participant_ids, group, trial):
         """Return the public recoverable state for a new RPS session."""
 
         return initial_rps_state(participant_ids)

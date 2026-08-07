@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 from dallinger import db
 from pydantic import Field
 from sqlalchemy import Boolean, Column, String
@@ -44,11 +42,10 @@ class _LiveSessionMixin:
     ended = Column(Boolean, default=False)
 
     @classmethod
-    def build_session_id(cls, participant, group, control):
-        """Return the live-session ID for a participant/group/control context."""
+    def build_session_id(cls, group, trial):
+        """Return the live-session ID for a group/trial."""
 
         parts = [model_name_to_snake_case(cls.__name__)]
-        trial = getattr(control, "trial", None)
         network = getattr(trial, "network", None)
         network_id = getattr(network, "id", None)
         if network_id is not None:
@@ -57,7 +54,7 @@ class _LiveSessionMixin:
         return ":".join(parts)
 
     @classmethod
-    def build_initial_state(cls, participant_ids, participant, group, control):
+    def build_initial_state(cls, participant_ids, group, trial):
         """Return initial public state for a new live session."""
 
         return {}
@@ -102,27 +99,33 @@ class _LiveSessionMixin:
         return live_session
 
     @classmethod
-    def prepare_for_group(cls, *, participant, group, trials):
+    def prepare_for_group(cls, *, group):
         """Create and link the live session for a synchronized group of trials."""
 
-        trials = [trial for trial in trials if trial is not None]
-        if not trials:
-            return None
+        leader = getattr(group, "leader", None)
+        if leader is None:
+            raise ValueError(f"Group {group.id} has no leader.")
 
-        participant_ids = [
-            int(p.id) for p in sorted(group.participants, key=lambda p: p.id)
-        ]
-        context = SimpleNamespace(trial=trials[0])
-        session_id = cls.build_session_id(participant, group, context)
+        participants = sorted(group.active_participants, key=lambda p: p.id)
+        participant_ids = [int(participant.id) for participant in participants]
+        trials = [participant.current_trial for participant in participants]
+        leader_trial = getattr(leader, "current_trial", None)
+        if leader_trial is None:
+            raise ValueError(
+                f"Live session group {group.id} has no trial for leader {leader.id}."
+            )
+        if any(trial is None for trial in trials):
+            raise ValueError(f"Live session group {group.id} has missing trials.")
+
+        session_id = cls.build_session_id(group, leader_trial)
         live_session = cls.get(session_id)
         if live_session is None:
             live_session = cls.create(
                 session_id,
                 state=cls.build_initial_state(
                     participant_ids,
-                    participant,
                     group,
-                    context,
+                    leader_trial,
                 ),
                 participant_ids=participant_ids,
             )
@@ -159,7 +162,9 @@ class _LiveSessionMixin:
         return participant_id in expected
 
     @classmethod
-    def get_for_participant(cls, participant, session_id: str, *, for_update=False):
+    def get_current_for_participant(
+        cls, participant, session_id: str, *, for_update=False
+    ):
         """Return a participant's current live session if it matches a session ID."""
 
         trial = getattr(participant, "current_trial", None)
@@ -266,7 +271,7 @@ class _LiveSessionMixin:
     ):
         """Send the latest state snapshot to the requesting participant."""
 
-        live_session = cls.get_for_participant(participant, message.session_id)
+        live_session = cls.get_current_for_participant(participant, message.session_id)
         if live_session is not None:
             live_session.send_snapshot(experiment, participants=participant)
 
@@ -274,7 +279,7 @@ class _LiveSessionMixin:
     def handle_ready_event(cls, experiment, participant, message: ReadyMessage):
         """Mark a participant ready and send the resulting snapshot."""
 
-        live_session = cls.get_for_participant(
+        live_session = cls.get_current_for_participant(
             participant, message.session_id, for_update=True
         )
         if live_session is None:
@@ -314,8 +319,8 @@ class LiveSessionControl(Control):
         self,
         *,
         participant,
+        trial,
         group_type: str,
-        trial=None,
         params: dict | None = None,
         bot_response=NoArgumentProvided,
         buttons=None,
@@ -336,9 +341,7 @@ class LiveSessionControl(Control):
             int(p.id) for p in sorted(self.group.participants, key=lambda p: p.id)
         ]
         self.participant_id = int(participant.id)
-        self.session_id = self.session_class.build_session_id(
-            participant, self.group, self
-        )
+        self.session_id = self.session_class.build_session_id(self.group, trial)
         self.live_session = getattr(trial, "live_session", None)
         if self.live_session is None:
             self.live_session = self.session_class.get(self.session_id)
@@ -351,7 +354,6 @@ class LiveSessionControl(Control):
                 f"Trial {trial.id} is linked to live session "
                 f"{self.live_session.session_id!r}, expected {self.session_id!r}."
             )
-        self.live_session.link_trial(trial)
         custom_params = self.session_class.build_params(participant, self.group, self)
         self.live_session_config = {
             "session_id": self.session_id,

@@ -393,16 +393,12 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     live_session_class = None
 
     @classmethod
-    def prepare_live_session(cls, *, participant, group, trials):
+    def prepare_live_session(cls, *, group):
         """Prepare an optional live session for synchronized group trials."""
 
         if cls.live_session_class is None:
             return None
-        return cls.live_session_class.prepare_for_group(
-            participant=participant,
-            group=group,
-            trials=trials,
-        )
+        return cls.live_session_class.prepare_for_group(group=group)
 
     @property
     def var(self):
@@ -2047,15 +2043,7 @@ class TrialMaker(Module):
                 participant=follower,
                 leader=group.leader,
             )
-        self.trial_class.prepare_live_session(
-            participant=leader,
-            group=group,
-            trials=[
-                participant.current_trial
-                for participant in group.active_participants
-                if participant.trial_status == "available"
-            ],
-        )
+        self.trial_class.prepare_live_session(group=group)
 
     max_time_waiting_for_trial = 60
 
