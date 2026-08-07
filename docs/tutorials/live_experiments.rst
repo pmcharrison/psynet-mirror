@@ -7,13 +7,10 @@ can show each participant a choice page, wait at a
 :class:`~psynet.sync.GroupBarrier`, then score the round once both participants
 have submitted a response.
 
-This page-based approach is reliable and easy to reason about. It works well
-when the interaction can be divided into discrete steps: show a page, collect an
-answer, synchronize the group, and move on. It is less suitable for real-time
-interactions where the browser needs to exchange information with the server
-without advancing the timeline. Examples include live games, shared drawing
-surfaces, continuous movement, and interactions where participants should see
-each other's actions immediately.
+This timeline-based approach is straightforward for experiments where participants interact sequentially. 
+However, it is not suitable for real-time
+interactions that can happen continuously and in no particular order.
+Examples include real-time movement on a shared canvas, real-time drawing, or real-time text communication.
 
 WebSockets
 ----------
