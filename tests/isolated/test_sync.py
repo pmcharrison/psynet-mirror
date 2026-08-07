@@ -1,5 +1,6 @@
 import uuid
 from datetime import timedelta
+from types import SimpleNamespace
 
 import pytest
 from dallinger import db
@@ -8,7 +9,10 @@ from sqlalchemy import Column, String
 
 from psynet.dashboard.sync_groups import (
     _fail_sync_group_participant,
+    _get_grouper_progress,
+    _index_waiting_barriers,
     _kick_sync_group_participant,
+    _summarize_waiting_at_barriers,
 )
 from psynet.data import SQLBase
 from psynet.experiment import get_experiment
@@ -152,6 +156,51 @@ def test_group_allocator(in_experiment_directory, db_session):
 
     assert participants[0].sync_group is None
     grouper.receive_participant(participants[0])
+
+
+def test_sync_group_dashboard_waiting_barrier_indexes():
+    waiting_by_participant, waiting_by_barrier = _index_waiting_barriers(
+        [
+            (2, "barrier_b"),
+            (1, "barrier_a"),
+            (2, "barrier_a"),
+        ]
+    )
+
+    assert waiting_by_participant[1] == ["barrier_a"]
+    assert waiting_by_participant[2] == ["barrier_b", "barrier_a"]
+    assert waiting_by_barrier == {
+        "barrier_a": (2, [1, 2]),
+        "barrier_b": (1, [2]),
+    }
+    assert _summarize_waiting_at_barriers({1, 2}, waiting_by_participant) == [
+        {"barrier_id": "barrier_a", "waiting_count": 2, "participant_ids": [1, 2]},
+        {"barrier_id": "barrier_b", "waiting_count": 1, "participant_ids": [2]},
+    ]
+
+
+def test_sync_group_dashboard_grouper_progress_uses_timeline_all_elts(monkeypatch):
+    grouper = SimpleGrouper(group_type="main", initial_group_size=3, batch_size=2)
+    timeline = SimpleNamespace(
+        all_elts=[
+            SimpleNamespace(links={"barrier": grouper}),
+            SimpleNamespace(links={"barrier": grouper}),
+            SimpleNamespace(links={}),
+        ]
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.get_experiment",
+        lambda: SimpleNamespace(timeline=timeline),
+    )
+
+    assert _get_grouper_progress() == [
+        {
+            "barrier_id": "main_grouper",
+            "group_type": "main",
+            "batch_size": 2,
+            "initial_group_size": 3,
+        }
+    ]
 
 
 @pytest.mark.parametrize(
