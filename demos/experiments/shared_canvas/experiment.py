@@ -168,6 +168,21 @@ class PositionMessage(WebSocketMessage):
     client_time: float
     low_latency: bool = True
 
+    def player_payload(self, participant: Participant, receive_time):
+        """Return a player payload for broadcasting or replay."""
+
+        return {
+            "participant_id": str(participant.id),
+            "label": self.label,
+            "color": self.color,
+            "x": round(clamp(self.x, 0, CANVAS_SIZE), 3),
+            "y": round(clamp(self.y, 0, CANVAS_SIZE), 3),
+            "vx": round(self.vx, 3),
+            "vy": round(self.vy, 3),
+            "client_time": self.client_time,
+            "receive_time": receive_time_iso(receive_time),
+        }
+
 
 class CollectMessage(WebSocketMessage):
     """Coin collection attempt payload."""
@@ -177,24 +192,6 @@ class CollectMessage(WebSocketMessage):
     x: float = Field(ge=0, le=CANVAS_SIZE)
     y: float = Field(ge=0, le=CANVAS_SIZE)
     client_time: float
-
-
-def position_player_payload(
-    participant: Participant, message: PositionMessage, receive_time
-):
-    """Return a player payload without reading authoritative live-session state."""
-
-    return {
-        "participant_id": str(participant.id),
-        "label": message.label,
-        "color": message.color,
-        "x": round(clamp(message.x, 0, CANVAS_SIZE), 3),
-        "y": round(clamp(message.y, 0, CANVAS_SIZE), 3),
-        "vx": round(message.vx, 3),
-        "vy": round(message.vy, 3),
-        "client_time": message.client_time,
-        "receive_time": receive_time_iso(receive_time),
-    }
 
 
 def instruction_page():
@@ -449,7 +446,7 @@ class Exp(psynet.experiment.Experiment):
             "position_update",
             {
                 "event_id": logged_event.id,
-                "player": position_player_payload(participant, message, receive_time),
+                "player": message.player_payload(participant, receive_time),
             },
         )
         db.session.commit()
