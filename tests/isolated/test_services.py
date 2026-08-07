@@ -10,7 +10,6 @@ from psynet.command_line import psynet
 from psynet.services import (
     ServiceCheck,
     ensure_local_services,
-    start_local_services_via_docker,
     verify_local_services,
 )
 
@@ -107,10 +106,62 @@ def test_ensure_local_services_soft_does_not_raise(monkeypatch):
     assert ensure_local_services(assume_yes=False, strict=False) is False
 
 
-def test_start_local_services_requires_docker(monkeypatch):
-    monkeypatch.setattr("psynet.services.docker_available", lambda: False)
-    with pytest.raises(click.ClickException, match="Docker is not available"):
-        start_local_services_via_docker()
+def test_check_redis_ping_over_socket(monkeypatch):
+    """Redis probe uses stdlib RESP PING, not the redis package."""
+    from psynet.services import check_redis
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def sendall(self, data):
+            assert data == b"*1\r\n$4\r\nPING\r\n"
+
+        def recv(self, _size):
+            return b"+PONG\r\n"
+
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+    result = check_redis()
+    assert result.ok
+    assert "PONG" in result.detail.upper() or "PING" in result.detail.upper()
+
+
+def test_check_postgres_falls_back_to_pg_isready(monkeypatch):
+    """Without psycopg2, thin bootstrap uses pg_isready when available."""
+    import builtins
+
+    from psynet.services import check_postgres
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "psycopg2":
+            raise ImportError("no psycopg2 in thin bootstrap")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    monkeypatch.setattr(
+        "psynet.services.shutil.which", lambda name: "/usr/bin/pg_isready"
+    )
+
+    def fake_run(args, **kwargs):
+        assert args[:1] == ["pg_isready"]
+        result = Mock()
+        result.returncode = 0
+        result.stdout = "accepting connections\n"
+        result.stderr = ""
+        return result
+
+    monkeypatch.setattr("psynet.services.subprocess.run", fake_run)
+    result = check_postgres()
+    assert result.ok
+    assert "pg_isready" in result.detail
 
 
 def test_leftover_volume_does_not_look_like_a_container(monkeypatch):

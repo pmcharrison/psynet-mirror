@@ -5,6 +5,12 @@ Dallinger defaults). This module probes those services without mutating Redis
 state, and can start Docker containers that publish the host ports PsyNet
 debug expects.
 
+Probes intentionally avoid requiring ``psycopg2`` or the ``redis`` package so
+the thin bootstrap CLI can keep core dependencies minimal (``click`` /
+``yaspin``). Redis is checked with a stdlib RESP ``PING``. PostgreSQL prefers
+an installed ``psycopg2`` when present (after ``psynet[experiment]``), otherwise
+``pg_isready``, otherwise a TCP port probe.
+
 Docker experiment workflows that use ``docker/run`` manage services on the
 ``dallinger`` network separately; prefer ``psynet services check`` there
 rather than auto-starting host-port containers.
@@ -14,10 +20,12 @@ from __future__ import annotations
 
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 import click
 
@@ -48,12 +56,23 @@ def _redis_url() -> str:
     return os.environ.get("REDIS_URL", "redis://localhost:6379")
 
 
+def _host_port_from_url(url: str, *, default_port: int) -> tuple[str, int]:
+    """Return ``(host, port)`` from a database/redis URL."""
+    parsed = urlparse(url)
+    host = parsed.hostname or "localhost"
+    port = parsed.port or default_port
+    return host, port
+
+
 def check_postgres() -> ServiceCheck:
     """Return whether PostgreSQL accepts connections on the configured URL."""
+    dsn = _postgres_url()
     try:
         import psycopg2
+    except ImportError:
+        return _check_postgres_without_psycopg2(dsn)
 
-        dsn = _postgres_url()
+    try:
         conn = psycopg2.connect(dsn, connect_timeout=3)
         conn.close()
     except Exception as exc:
@@ -66,24 +85,61 @@ def check_postgres() -> ServiceCheck:
     return ServiceCheck("PostgreSQL", True, "reachable")
 
 
+def _check_postgres_without_psycopg2(dsn: str) -> ServiceCheck:
+    """Probe PostgreSQL without the ``psycopg2`` package (thin bootstrap)."""
+    host, port = _host_port_from_url(dsn, default_port=5432)
+    if shutil.which("pg_isready") is not None:
+        result = subprocess.run(
+            ["pg_isready", "-h", host, "-p", str(port)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        detail = (result.stdout or result.stderr or "").strip() or f"{host}:{port}"
+        if result.returncode == 0:
+            return ServiceCheck("PostgreSQL", True, f"pg_isready: {detail}")
+        return ServiceCheck(
+            "PostgreSQL",
+            False,
+            detail or "pg_isready reports PostgreSQL is not accepting connections.",
+        )
+
+    try:
+        with socket.create_connection((host, port), timeout=3):
+            return ServiceCheck(
+                "PostgreSQL",
+                True,
+                f"port {port} open (install psynet[experiment] for a full auth check)",
+            )
+    except OSError as exc:
+        return ServiceCheck(
+            "PostgreSQL",
+            False,
+            str(exc).strip()
+            or "Failed to connect to PostgreSQL. Is it running on port 5432?",
+        )
+
+
 def check_redis() -> ServiceCheck:
     """Return whether Redis responds to PING on the configured URL."""
+    url = _redis_url()
+    host, port = _host_port_from_url(url, default_port=6379)
     try:
-        import redis as redis_lib
-
-        url = _redis_url()
-        client = redis_lib.from_url(url, socket_connect_timeout=3)
-        if not client.ping():
-            return ServiceCheck(
-                "Redis",
-                False,
-                "Redis did not respond to PING. Is it running on port 6379?",
-            )
-    except Exception as exc:
+        with socket.create_connection((host, port), timeout=3) as sock:
+            sock.sendall(b"*1\r\n$4\r\nPING\r\n")
+            response = sock.recv(1024)
+    except OSError as exc:
         return ServiceCheck(
             "Redis",
             False,
             f"Failed to connect to Redis ({exc}). Is Redis running on port 6379?",
+        )
+    if b"PONG" not in response:
+        detail = response.decode("utf-8", errors="replace").strip() or repr(response)
+        return ServiceCheck(
+            "Redis",
+            False,
+            f"Redis did not respond to PING ({detail}). Is it running on port 6379?",
         )
     return ServiceCheck("Redis", True, "responded to PING")
 
