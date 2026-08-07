@@ -144,8 +144,8 @@ GroupBarriers within the trial, for example:
             ),
         )
 
-Timeout in Group Barriers
--------------------------
+Timeouts
+--------
 
 PsyNet provides two mechanisms for letting participants advance when others in their group are unresponsive:
 
