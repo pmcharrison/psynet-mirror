@@ -128,16 +128,6 @@ class RockPaperScissorsSession(LiveSession):
 
         return initial_rps_state(participant_ids)
 
-    @classmethod
-    def build_params(cls, participant, group, control):
-        """Return browser-facing rock-paper-scissors config."""
-
-        return {
-            "color": control.color,
-            "n_rounds": control.n_rounds,
-            "choices": control.choices,
-        }
-
     def record_choice(self, participant_id: int, message: ChooseMessage):
         """Record a choice and update the public live-session snapshot."""
 
@@ -313,6 +303,15 @@ class RockPaperScissorsControl(LiveSessionControl):
             trial=trial,
             show_next_button=False,
         )
+
+    def build_control_params(self):
+        """Return browser-facing rock-paper-scissors config."""
+
+        return {
+            "color": self.color,
+            "n_rounds": self.n_rounds,
+            "choices": self.choices,
+        }
 
     def get_bot_response(self, experiment, bot, page, prompt):
         # Bots cannot use WebSockets, so they simply submit a full set of moves;

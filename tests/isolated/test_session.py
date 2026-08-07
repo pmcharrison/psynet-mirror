@@ -177,10 +177,6 @@ def test_live_session_control_derives_config(monkeypatch):
         def build_initial_state(cls, participant_ids, group, trial):
             return {"participant_ids": participant_ids}
 
-        @classmethod
-        def build_params(cls, participant, group, control):
-            return {"custom": control.custom_value}
-
     class DemoControl(LiveSessionControl):
         macro = "demo"
 
@@ -192,6 +188,9 @@ def test_live_session_control_derives_config(monkeypatch):
                 trial=trial,
                 params={"extra": "value"},
             )
+
+        def build_control_params(self):
+            return {"custom": self.custom_value}
 
     participants = [SimpleNamespace(id=2), SimpleNamespace(id=1)]
     group = SimpleNamespace(id=9, participants=participants)

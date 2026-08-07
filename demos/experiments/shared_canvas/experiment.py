@@ -236,27 +236,7 @@ class SharedCanvasSession(LiveSession):
         return {
             **initial_canvas_state(participant_ids, world),
             "group_id": int(group.id),
-            "network_id": trial.network.id,
             "world_id": world["world_id"],
-        }
-
-    @classmethod
-    def build_params(cls, participant, group, control):
-        """Return browser-facing shared-canvas config."""
-
-        ordered = sorted(group.participants, key=lambda p: p.id)
-        role_index = [p.id for p in ordered].index(participant.id)
-        world = control.trial.definition["world"]
-        return {
-            "role": f"Player {role_index + 1}",
-            "world_id": world["world_id"],
-            "canvas_size": world["canvas_size"],
-            "trial_seconds": TRIAL_SECONDS,
-            "send_interval_ms": SEND_INTERVAL_MS,
-            "draw_interval_ms": DRAW_INTERVAL_MS,
-            "player_radius": PLAYER_RADIUS,
-            "coin_radius": world["coin_radius"],
-            "coin_bonus": COIN_BONUS,
         }
 
     def record_collection(
@@ -314,6 +294,24 @@ class SharedCanvasControl(LiveSessionControl):
             show_next_button=False,
         )
         trial.initialize_coin_count()
+
+    def build_control_params(self):
+        """Return browser-facing shared-canvas config."""
+
+        ordered = sorted(self.group.participants, key=lambda p: p.id)
+        role_index = [p.id for p in ordered].index(self.participant.id)
+        world = self.trial.definition["world"]
+        return {
+            "role": f"Player {role_index + 1}",
+            "world_id": world["world_id"],
+            "canvas_size": world["canvas_size"],
+            "trial_seconds": TRIAL_SECONDS,
+            "send_interval_ms": SEND_INTERVAL_MS,
+            "draw_interval_ms": DRAW_INTERVAL_MS,
+            "player_radius": PLAYER_RADIUS,
+            "coin_radius": world["coin_radius"],
+            "coin_bonus": COIN_BONUS,
+        }
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return build_bot_answer(bot)
@@ -578,7 +576,6 @@ class Exp(psynet.experiment.Experiment):
             state={
                 **initial_canvas_state([1], world),
                 "group_id": 1,
-                "network_id": 1,
                 "world_id": world["world_id"],
             },
         )

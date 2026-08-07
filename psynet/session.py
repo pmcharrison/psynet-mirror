@@ -60,12 +60,6 @@ class _LiveSessionMixin:
         return {}
 
     @classmethod
-    def build_params(cls, participant, group, control):
-        """Return extra browser-facing live-session config."""
-
-        return {}
-
-    @classmethod
     def get(cls, session_id: str, *, for_update=False):
         """Return the live session for a session ID, if it exists."""
 
@@ -354,7 +348,7 @@ class LiveSessionControl(Control):
                 f"Trial {trial.id} is linked to live session "
                 f"{self.live_session.session_id!r}, expected {self.session_id!r}."
             )
-        custom_params = self.session_class.build_params(participant, self.group, self)
+        custom_params = self.build_control_params()
         self.live_session_config = {
             "session_id": self.session_id,
             "group_id": self.group_id,
@@ -363,6 +357,11 @@ class LiveSessionControl(Control):
             **(custom_params or {}),
             **(params or {}),
         }
+
+    def build_control_params(self):
+        """Return extra browser-facing live-session config."""
+
+        return {}
 
     @classmethod
     def _resolve_session_class(cls, trial):
