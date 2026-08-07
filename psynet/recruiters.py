@@ -19,8 +19,12 @@ Key design constraints for maintainers:
   ``prolific_unsuccessful_base_payment`` is set; see
   ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``) or asked to
   return their submission for a bonus (the legacy fallback).
-- Payment amounts are computed in ``psynet.experiment.Experiment.bonus``;
-  recruiters are only responsible for transferring the money.
+- Payment amounts are computed in ``psynet.experiment.Experiment.bonus``,
+  which delegates platform-specific adjustments (such as the Prolific
+  screen-out top-up in
+  ``PsyNetProlificRecruiterMixin.unsuccessful_participant_bonus``) to the
+  recruiter; recruiters are otherwise only responsible for transferring the
+  money.
 """
 
 import hashlib
@@ -250,6 +254,134 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
         return codes
 
+    def pays_participant_via_screen_out(self, participant) -> bool:
+        """Whether this participant will be paid via Prolific's fixed
+        screen-out reward (rather than the full base payment) because they
+        failed or errored and ``prolific_unsuccessful_base_payment`` is set.
+        """
+        return participant.failed and self.pays_unsuccessful_participants_via_screen_out
+
+    def exit_code_type(self, participant):
+        """Return the completion-code type for the participant's exit URL.
+
+        Unsuccessful participants get the UNSUCCESSFUL code, which triggers
+        Prolific's fixed screen-out payment. ``None`` selects the recruiter's
+        default (auto-approving) code.
+        """
+        if self.pays_participant_via_screen_out(participant):
+            return self.unsuccessful_code_type
+        return None
+
+    def unsuccessful_participant_bonus(self, participant, accumulated_reward) -> float:
+        """The bonus for a participant paid via the screen-out completion code.
+
+        With ``prolific_unsuccessful_topup`` enabled (the default), the bonus
+        tops the fixed screen-out reward up to the participant's accumulated
+        reward (never negative). Otherwise only the performance reward is
+        paid on top of the fixed payment.
+        """
+        if get_config().get("prolific_unsuccessful_topup"):
+            return max(0.0, accumulated_reward - self.unsuccessful_base_payment)
+        return participant.performance_reward or 0.0
+
+    def on_recruiter_submission_complete(self, participant):
+        """Correct the recorded base payment for screen-out participants.
+
+        Dallinger records the full base payment when the submission completes,
+        but Prolific actually pays these participants the fixed screen-out
+        reward. Both Dallinger's ``base_pay`` and PsyNet's ``base_payment``
+        (used for spending accounting, e.g. ``Experiment.amount_spent``) are
+        corrected accordingly.
+        """
+        if self.pays_participant_via_screen_out(participant):
+            participant.base_pay = self.unsuccessful_base_payment
+            participant.base_payment = self.unsuccessful_base_payment
+
+    @staticmethod
+    def check_unsuccessful_base_payment(config):
+        """Validate ``prolific_unsuccessful_base_payment`` at deploy time."""
+        unsuccessful = config.get("prolific_unsuccessful_base_payment", None)
+        if unsuccessful is not None and unsuccessful >= config.get("base_payment"):
+            raise ValueError(
+                "`prolific_unsuccessful_base_payment` "
+                f"({unsuccessful}) must be less than `base_payment` "
+                f"({config.get('base_payment')}); Prolific requires the fixed "
+                "screen-out reward to be less than the study reward."
+            )
+
+    def error_page_content(self, assignment_id=None, external_submit_url=None):
+        """Error-page HTML for Prolific participants.
+
+        When unsuccessful participants are paid via the screen-out completion
+        code, the page offers a "Submit to Prolific" button that reports the
+        submission to PsyNet and redirects to the UNSUCCESSFUL completion
+        code; otherwise participants are asked to message the experimenter.
+        (``external_submit_url`` is part of the recruiter error-page hook
+        signature but is not used here: the submit URL is derived from the
+        completion code.)
+        """
+        _p = get_translator(context=True)
+
+        # The participant id is needed for the submit button's POST to
+        # /prolific-submission-listener; resolve it from the assignment id.
+        error_participant = latest_participant_for_assignment(assignment_id)
+        can_submit_unsuccessful = (
+            self.pays_unsuccessful_participants_via_screen_out
+            and assignment_id
+            and error_participant is not None
+        )
+
+        html = tags.div()
+        with html:
+            tags.p(
+                _p(
+                    "prolific_error",
+                    "Don't worry, your progress has been recorded.",
+                )
+            )
+            if can_submit_unsuccessful:
+                submit_url = self.external_submission_url(
+                    code_type=self.unsuccessful_code_type
+                )
+                tags.p(
+                    _p(
+                        "prolific_error",
+                        "Click the button below to submit your study to Prolific and receive compensation for your time.",
+                    )
+                )
+                tags.button(
+                    _p("prolific_error", "Submit to Prolific"),
+                    id="prolific-unsuccessful-submit",
+                    cls="btn btn-primary btn-lg",
+                )
+                tags.script(
+                    raw(
+                        """
+                        document.getElementById("prolific-unsuccessful-submit").onclick = function () {
+                            this.disabled = true;
+                            const data = new URLSearchParams();
+                            data.append("assignmentId", %s);
+                            data.append("participantId", %s);
+                            fetch("/prolific-submission-listener", {method: "POST", body: data})
+                                .finally(() => { window.location = %s; });
+                        };
+                        """
+                        % (
+                            json.dumps(assignment_id),
+                            json.dumps(str(error_participant.id)),
+                            json.dumps(submit_url),
+                        )
+                    )
+                )
+            else:
+                tags.p(
+                    _p(
+                        "prolific_error",
+                        "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
+                    )
+                )
+        return html
+
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
@@ -260,7 +392,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return self.reject_assignment(participant)
         # Unsuccessful participants covered by the screen-out completion code
         # submit normally; Prolific then pays them the fixed screen-out reward
-        # (see Experiment.recruiter_exit_info and Experiment.bonus).
+        # (see exit_code_type and unsuccessful_participant_bonus above).
         return self.approve_assignment()
 
     def approve_hit(self, assignment_id: str):
