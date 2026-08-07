@@ -217,8 +217,8 @@ def test_live_session_control_derives_config(monkeypatch):
     }
 
 
-def test_live_session_control_requires_trial_context():
-    """LiveSessionControl currently consumes a prepared trial context."""
+def test_live_session_control_requires_trial():
+    """LiveSessionControl currently consumes a prepared trial."""
 
     with pytest.raises(ValueError, match="requires a trial"):
         LiveSessionControl._resolve_session_class(None)
