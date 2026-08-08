@@ -5,8 +5,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+from dallinger import db
 from pydantic import Field
+from sqlalchemy import Column, Integer, String
 
+from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.session import LiveSession
 from psynet.websocket import (
     ExperimentWebSocket,
@@ -41,6 +44,17 @@ class BroadcastMessage(WebSocketMessage):
     value: int
 
 
+@register_table
+class WebSocketBenchmarkEvent(SQLBase, SQLMixin):
+    """Synthetic event row used by the WebSocket performance test."""
+
+    __tablename__ = "websocket_benchmark_event"
+
+    session_id = Column(String)
+    participant_id = Column(Integer)
+    message_count = Column(Integer)
+
+
 class EchoExperiment:
     def __init__(self):
         self._native_websocket_handlers = collect_websocket_handlers(self)
@@ -69,6 +83,17 @@ class BroadcastExperiment:
             participant, message.session_id
         )
         if live_session is not None:
+            state = live_session.state or {}
+            message_count = int(state.get("message_count", 0)) + 1
+            state["message_count"] = message_count
+            live_session.state = state
+            db.session.add(
+                WebSocketBenchmarkEvent(
+                    session_id=live_session.session_id,
+                    participant_id=participant.id,
+                    message_count=message_count,
+                )
+            )
             live_session.send_snapshot(self)
 
 
@@ -210,6 +235,8 @@ def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
 
     fake_redis = FakeRedis()
     monkeypatch.setattr("psynet.websocket.redis_conn", fake_redis)
+    added_events = []
+    monkeypatch.setattr(db.session, "add", added_events.append)
 
     live_session, session_participants = _live_session_with_participants()
     participant = session_participants[0]
@@ -244,6 +271,9 @@ def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
 
     assert elapsed / n_messages < 0.005
     assert fake_redis.publish_count == n_messages + 20
+    assert live_session.state["message_count"] == n_messages + 20
+    assert len(added_events) == n_messages + 20
+    assert isinstance(added_events[-1], WebSocketBenchmarkEvent)
 
 
 def test_event_type_extraction():
