@@ -37,7 +37,13 @@
 
     <script>
         psynet.trial.setTimer(function () {
-            psynet.nextPage();
+            if (psynet.pageReady) {
+                psynet.nextPage();
+            } else {
+                window.addEventListener("timelinePageReady", function () {
+                    psynet.nextPage();
+                }, {once: true});
+            }
         }, 1000 * {{ wait_time }});
     </script>
 {% endblock %}
