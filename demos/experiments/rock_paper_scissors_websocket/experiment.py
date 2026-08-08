@@ -12,10 +12,10 @@ but the round-by-round coordination is driven entirely over WebSockets rather
 than by a page reload per round. The design follows PsyNet's built-in WebSocket
 and live-session machinery:
 
-* The experiment defines a direct ``@websocket_handler("choose")`` method that
-  receives every browser choice. Once both players have submitted a move for the
-  current round it scores the round and stores ready-to-render public snapshots
-  in :class:`~psynet.session.LiveSession`.
+* :class:`RockPaperScissorsSession` defines a ``@websocket_handler("choose")``
+  method that receives every browser choice. Once both players have submitted a
+  move for the current round it scores the round and stores ready-to-render
+  public snapshots in :class:`~psynet.session.LiveSession`.
 * :class:`RockPaperScissorsControl` is a :class:`~psynet.modular_page.Control`
   backed by a small custom template that renders the buttons and uses
   ``psynet.websocket`` and ``psynet.session`` for real-time communication
@@ -192,6 +192,25 @@ class RockPaperScissorsSession(LiveSession):
 
         self.state = public_state
         return reveals
+
+    @websocket_handler("choose", model=ChooseMessage, for_update=True)
+    def choose(self, experiment, participant, message: ChooseMessage):
+        """Handle a browser-submitted rock-paper-scissors choice."""
+
+        reveals = self.record_choice(participant.id, message)
+        if reveals is None:
+            return
+
+        participants_by_id = {int(p.id): p for p in self.participants}
+        for participant_id, reveal in reveals:
+            recipient = participants_by_id.get(int(participant_id))
+            if recipient is not None:
+                experiment.websocket.send(recipient, "roundReveal", reveal)
+
+        if bool((self.state or {}).get("finished")):
+            self.mark_ended()
+
+        db.session.commit()
 
 
 def moves_for_round(session_id: int, round_number: int):
@@ -421,31 +440,6 @@ class Exp(psynet.experiment.Experiment):
 
     test_n_bots = 2
     test_mode = "serial"
-
-    @websocket_handler("choose", model=ChooseMessage)
-    def choose(self, participant, message: ChooseMessage):
-        """Handle a browser-submitted rock-paper-scissors choice."""
-
-        live_session = RockPaperScissorsSession.get_current_for_participant(
-            participant, message.session_id, for_update=True
-        )
-        if live_session is None:
-            return
-
-        reveals = live_session.record_choice(participant.id, message)
-        if reveals is None:
-            return
-
-        participants_by_id = {int(p.id): p for p in live_session.participants}
-        for participant_id, reveal in reveals:
-            recipient = participants_by_id.get(int(participant_id))
-            if recipient is not None:
-                self.websocket.send(recipient, "roundReveal", reveal)
-
-        if bool((live_session.state or {}).get("finished")):
-            live_session.mark_ended()
-
-        db.session.commit()
 
     @staticmethod
     def _valid_choose_event():

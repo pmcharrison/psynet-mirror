@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import inspect
+from dataclasses import dataclass
+from typing import Optional, Type
+
 from dallinger import db
 from dallinger.models import timenow
-from pydantic import Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
@@ -14,7 +18,7 @@ from psynet.field import PythonDict, PythonList
 from psynet.modular_page import Control, NoArgumentProvided
 from psynet.page import WaitPage
 from psynet.sync import GroupBarrier
-from psynet.utils import model_name_to_snake_case
+from psynet.utils import get_logger, model_name_to_snake_case
 from psynet.websocket import WebSocketMessage
 
 STATE_REQUEST_EVENT = "stateRequest"
@@ -22,6 +26,64 @@ STATE_SNAPSHOT_EVENT = "stateSnapshot"
 READY_EVENT = "ready"
 SESSION_STATUS_EVENT = "sessionStatus"
 SESSION_END_EVENT = "sessionEnd"
+
+logger = get_logger()
+_LIVE_SESSION_WEBSOCKET_EVENT_TYPES: set[str] = set()
+
+
+@dataclass(frozen=True)
+class LiveSessionWebSocketHandlerSpec:
+    """Description of a WebSocket handler owned by a live-session class."""
+
+    event_type: str
+    method_name: str
+    model: Optional[Type[BaseModel]]
+    for_update: bool
+    accepted_context_keys: tuple[str, ...]
+    accepts_var_kwargs: bool
+
+
+def _build_live_session_handler_spec(event_type: str, method_name: str, method):
+    declaration = getattr(method, "_psynet_websocket_handler")
+    signature = inspect.signature(method)
+    accepts_var_kwargs = any(
+        parameter.kind == inspect.Parameter.VAR_KEYWORD
+        for parameter in signature.parameters.values()
+    )
+    return LiveSessionWebSocketHandlerSpec(
+        event_type=event_type,
+        method_name=method_name,
+        model=declaration.model,
+        for_update=declaration.for_update,
+        accepted_context_keys=tuple(signature.parameters),
+        accepts_var_kwargs=accepts_var_kwargs,
+    )
+
+
+def get_live_session_websocket_event_types():
+    """Return event types registered by imported LiveSession subclasses."""
+
+    return sorted(_LIVE_SESSION_WEBSOCKET_EVENT_TYPES)
+
+
+def make_live_session_websocket_dispatcher(event_type: str):
+    """Return a generic experiment-level dispatcher for a live-session event."""
+
+    def dispatch_live_session_websocket_event(
+        experiment,
+        participant,
+        message,
+        receive_time=None,
+    ):
+        return LiveSession.handle_websocket_event(
+            experiment=experiment,
+            participant=participant,
+            event_type=event_type,
+            message=message,
+            receive_time=receive_time,
+        )
+
+    return dispatch_live_session_websocket_event
 
 
 class StateRequestMessage(WebSocketMessage):
@@ -50,6 +112,22 @@ class _LiveSessionMixin:
     ended = Column(Boolean, default=False)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        handlers = {}
+        for base in reversed(cls.__mro__):
+            for method_name, method in base.__dict__.items():
+                declaration = getattr(method, "_psynet_websocket_handler", None)
+                if declaration is not None:
+                    handlers[declaration.event_type] = _build_live_session_handler_spec(
+                        declaration.event_type,
+                        method_name,
+                        method,
+                    )
+
+        cls._live_session_websocket_handlers = handlers
+        _LIVE_SESSION_WEBSOCKET_EVENT_TYPES.update(handlers)
 
     @declared_attr
     def sync_group_id(cls):
@@ -301,6 +379,99 @@ class _LiveSessionMixin:
         if not live_session.has_participant(participant):
             return None
         return live_session
+
+    @staticmethod
+    def _session_id_from_message(message):
+        if isinstance(message, dict):
+            session_id = message.get("session_id")
+        else:
+            session_id = getattr(message, "session_id", None)
+        try:
+            return int(session_id)
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def handle_websocket_event(
+        cls,
+        *,
+        experiment,
+        participant,
+        event_type: str,
+        message,
+        receive_time=None,
+    ):
+        """Dispatch a WebSocket event to a handler on the resolved session row."""
+
+        session_id = cls._session_id_from_message(message)
+        if session_id is None:
+            logger.warning(
+                "Rejected live-session websocket event: missing session_id "
+                "(participant_id=%s, event_type=%s)",
+                participant.id,
+                event_type,
+            )
+            return None
+
+        live_session = LiveSession.get_current_for_participant(participant, session_id)
+        if live_session is None:
+            return None
+
+        handler_spec = type(live_session)._live_session_websocket_handlers.get(
+            event_type
+        )
+        if handler_spec is None:
+            logger.warning(
+                "Rejected live-session websocket event: no handler registered "
+                "on session class (participant_id=%s, session_id=%s, "
+                "event_type=%s, session_class=%s)",
+                participant.id,
+                session_id,
+                event_type,
+                type(live_session).__name__,
+            )
+            return None
+
+        if handler_spec.for_update:
+            live_session = type(live_session).get_current_for_participant(
+                participant,
+                session_id,
+                for_update=True,
+            )
+            if live_session is None:
+                return None
+
+        if handler_spec.model is not None:
+            try:
+                message = handler_spec.model.model_validate(message)
+            except ValidationError as exc:
+                logger.warning(
+                    "Rejected live-session websocket event: validation failed "
+                    "(participant_id=%s, session_id=%s, event_type=%s, error=%s)",
+                    participant.id,
+                    session_id,
+                    event_type,
+                    str(exc),
+                )
+                return None
+
+        method = getattr(live_session, handler_spec.method_name)
+        context = {
+            "experiment": experiment,
+            "participant": participant,
+            "message": message,
+            "event": message,
+            "receive_time": receive_time,
+        }
+        if handler_spec.accepts_var_kwargs:
+            return method(**context)
+
+        kwargs = {
+            name: context[name]
+            for name in handler_spec.accepted_context_keys
+            if name in context
+        }
+        return method(**kwargs)
 
     def mark_ended(self):
         """Mark this live session ended if it has not already ended."""

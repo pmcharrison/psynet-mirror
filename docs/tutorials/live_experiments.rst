@@ -79,6 +79,9 @@ config to ``psynet.session.init()``, then sends a ready event once it has
 registered its handlers. After ``psynet.session.init()`` the browser
 automatically attaches the session ID to subsequent
 ``psynet.websocket.send(...)`` calls from that page.
+Live-session classes can define their own ``@websocket_handler(...)`` methods;
+PsyNet resolves the live-session row from ``session_id`` before calling the
+method, so handlers can operate directly on ``self``.
 Register ``psynet.session.onFreshState(...)`` to render authoritative state
 copies, and call ``psynet.session.pullState()`` when the browser needs a fresh
 copy. ``pullState(["field_a", "field_b"])`` requests only selected public state
@@ -142,6 +145,23 @@ live interaction.
             self.state = state
             return state["finished"], choices
 
+        @websocket_handler("choose", model=ChooseMessage, for_update=True)
+        def choose(self, experiment, participant, message: ChooseMessage):
+            result = self.record_choice(participant, message.action)
+            if result is None:
+                return
+
+            finished, choices = result
+            if finished:
+                for recipient in self.participants:
+                    experiment.websocket.send(
+                        recipient,
+                        "gameFinished",
+                        {"choice": choices[str(recipient.id)]},
+                    )
+                self.mark_ended()
+            db.session.commit()
+
 
     class RockPaperScissorsControl(LiveSessionControl):
         external_template = "rps.html"
@@ -193,31 +213,6 @@ live interaction.
             ),
             InfoPage("Finished.", time_estimate=5),
         )
-
-        @websocket_handler("choose", model=ChooseMessage)
-        def choose(self, participant, message: ChooseMessage):
-            live_session = RockPaperScissorsSession.get_current_for_participant(
-                participant,
-                message.session_id,
-                for_update=True,
-            )
-            if live_session is None:
-                return
-
-            result = live_session.record_choice(participant, message.action)
-            if result is None:
-                return
-
-            finished, choices = result
-            if finished:
-                for recipient in live_session.participants:
-                    self.websocket.send(
-                        recipient,
-                        "gameFinished",
-                        {"choice": choices[str(recipient.id)]},
-                    )
-                live_session.mark_ended()
-            db.session.commit()
 
 And in ``templates/rps.html``:
 

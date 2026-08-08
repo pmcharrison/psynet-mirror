@@ -50,6 +50,7 @@ class WebSocketMessage(BaseModel):
 class _WebSocketHandlerDeclaration:
     event_type: str
     model: Optional[Type[BaseModel]] = None
+    for_update: bool = False
 
 
 @dataclass(frozen=True)
@@ -65,8 +66,13 @@ class WebSocketHandlerSpec:
     accepts_var_kwargs: bool
 
 
-def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = None):
-    """Decorate an experiment method as a native WebSocket event handler.
+def websocket_handler(
+    event_type: str,
+    *,
+    model: Optional[Type[BaseModel]] = None,
+    for_update: bool = False,
+):
+    """Decorate a method as a native WebSocket event handler.
 
     Parameters
     ----------
@@ -76,6 +82,10 @@ def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = Non
     model
         Optional Pydantic model used to validate the incoming message payload
         before it is passed to the handler.
+
+    for_update
+        For live-session methods, whether to lock the session row before
+        calling the handler. Ignored for experiment-level handlers.
     """
 
     if not isinstance(event_type, str) or not event_type:
@@ -83,11 +93,14 @@ def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = Non
 
     if model is not None and not issubclass(model, BaseModel):
         raise TypeError("websocket_handler model must be a Pydantic BaseModel class.")
+    if not isinstance(for_update, bool):
+        raise TypeError("websocket_handler for_update must be a bool.")
 
     def decorate(method):
         method._psynet_websocket_handler = _WebSocketHandlerDeclaration(
             event_type=event_type,
             model=model,
+            for_update=for_update,
         )
         return method
 
@@ -110,7 +123,7 @@ def _build_handler_spec(event_type: str, method: Callable, model):
 
 
 def collect_websocket_handlers(experiment) -> dict[str, WebSocketHandlerSpec]:
-    """Collect direct WebSocket handlers declared on an experiment instance."""
+    """Collect WebSocket handlers declared for an experiment."""
 
     handlers: dict[str, WebSocketHandlerSpec] = {}
     for cls in reversed(experiment.__class__.__mro__):
@@ -122,6 +135,23 @@ def collect_websocket_handlers(experiment) -> dict[str, WebSocketHandlerSpec]:
                     getattr(experiment, method_name),
                     spec.model,
                 )
+
+    from psynet.session import (
+        get_live_session_websocket_event_types,
+        make_live_session_websocket_dispatcher,
+    )
+
+    for event_type in get_live_session_websocket_event_types():
+        if event_type in handlers:
+            raise ValueError(
+                f"WebSocket event type {event_type!r} is registered both on "
+                f"the experiment class and on a LiveSession class."
+            )
+        handlers[event_type] = _build_handler_spec(
+            event_type,
+            make_live_session_websocket_dispatcher(event_type),
+            model=None,
+        )
     return handlers
 
 

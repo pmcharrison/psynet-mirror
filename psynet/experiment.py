@@ -1025,7 +1025,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def get_hardware_status(cls):
-        cpu_freq = psutil.cpu_freq()
+        try:
+            cpu_freq = psutil.cpu_freq()
+        except (FileNotFoundError, OSError):
+            cpu_freq = None
         ghz_cpus = "N/A" if cpu_freq is None else f"{cpu_freq.current / 1000:.1f}GHz"
         n_cpus = psutil.cpu_count(logical=False)
         cpu_specs = f"{n_cpus}x @ {ghz_cpus}"

@@ -44,6 +44,13 @@ class BroadcastMessage(WebSocketMessage):
     value: int
 
 
+class SessionHandlerMessage(WebSocketMessage):
+    """Message used to exercise LiveSession-owned handlers."""
+
+    session_id: int
+    value: int = Field(gt=0)
+
+
 @register_table
 class WebSocketBenchmarkEvent(SQLBase, SQLMixin):
     """Synthetic event row used by the WebSocket performance test."""
@@ -97,16 +104,34 @@ class BroadcastExperiment:
             live_session.send_snapshot(self)
 
 
+class SessionHandlerLiveSession(LiveSession):
+    """Synthetic session class with websocket-owned handlers."""
+
+    @websocket_handler("sessionEcho", model=SessionHandlerMessage)
+    def session_echo(self, participant, message, receive_time):
+        self.handled = {
+            "participant_id": participant.id,
+            "value": message.value,
+            "receive_time": receive_time,
+        }
+        return message.value + 1
+
+    @websocket_handler("sessionLocked", model=SessionHandlerMessage, for_update=True)
+    def session_locked(self, message):
+        self.locked_value = message.value
+        return message.value
+
+
 def _participant(page_uuid="current-page"):
     return SimpleNamespace(id=7, page_uuid=page_uuid)
 
 
-def _live_session_with_participants(n_participants=4):
+def _live_session_with_participants(n_participants=4, session_class=LiveSession):
     participants = [
         SimpleNamespace(id=i, page_uuid=f"page-{i}")
         for i in range(1, n_participants + 1)
     ]
-    live_session = LiveSession(
+    live_session = session_class(
         state={"value": 1},
         participant_ids=[participant.id for participant in participants],
         ready_participant_ids=[],
@@ -213,6 +238,118 @@ def test_dispatch_rejects_invalid_payload():
         is None
     )
     assert not hasattr(participant, "handled_value")
+
+
+def test_live_session_handler_dispatches_after_resolving_session(monkeypatch):
+    """Session-owned handlers receive validated messages on the session row."""
+
+    live_session, session_participants = _live_session_with_participants(
+        session_class=SessionHandlerLiveSession
+    )
+    monkeypatch.setattr(
+        LiveSession,
+        "get",
+        classmethod(lambda cls, session_id, **kwargs: live_session),
+    )
+    participant = session_participants[0]
+    experiment = EchoExperiment()
+    receive_time = datetime(2026, 7, 8, 16, 30, tzinfo=UTC)
+
+    result = dispatch_websocket_frame(
+        experiment,
+        participant=participant,
+        frame={
+            "type": "sessionEcho",
+            "message": {"session_id": 1, "value": 4},
+            "page_uuid": participant.page_uuid,
+        },
+        receive_time=receive_time,
+    )
+
+    assert result == 5
+    assert live_session.handled == {
+        "participant_id": participant.id,
+        "value": 4,
+        "receive_time": receive_time,
+    }
+
+
+def test_live_session_handler_validates_after_resolving_session(monkeypatch):
+    """Session-owned handlers validate with their class-specific model."""
+
+    live_session, session_participants = _live_session_with_participants(
+        session_class=SessionHandlerLiveSession
+    )
+    monkeypatch.setattr(
+        LiveSession,
+        "get",
+        classmethod(lambda cls, session_id, **kwargs: live_session),
+    )
+    participant = session_participants[0]
+    experiment = EchoExperiment()
+
+    assert (
+        dispatch_websocket_frame(
+            experiment,
+            participant=participant,
+            frame={
+                "type": "sessionEcho",
+                "message": {"session_id": 1, "value": 0},
+                "page_uuid": participant.page_uuid,
+            },
+        )
+        is None
+    )
+    assert not hasattr(live_session, "handled")
+
+
+def test_live_session_handler_can_request_row_lock(monkeypatch):
+    """for_update=True reloads the resolved session row with a lock."""
+
+    live_session, session_participants = _live_session_with_participants(
+        session_class=SessionHandlerLiveSession
+    )
+    get_calls = []
+
+    def get(cls, session_id, **kwargs):
+        get_calls.append({"cls": cls, **kwargs})
+        return live_session
+
+    monkeypatch.setattr(LiveSession, "get", classmethod(get))
+    participant = session_participants[0]
+    experiment = EchoExperiment()
+
+    result = dispatch_websocket_frame(
+        experiment,
+        participant=participant,
+        frame={
+            "type": "sessionLocked",
+            "message": {"session_id": 1, "value": 4},
+            "page_uuid": participant.page_uuid,
+        },
+    )
+
+    assert result == 4
+    assert live_session.locked_value == 4
+    assert get_calls == [
+        {"cls": LiveSession, "for_update": False},
+        {"cls": SessionHandlerLiveSession, "for_update": True},
+    ]
+
+
+def test_experiment_and_live_session_handler_conflict_is_rejected():
+    """Experiment and session handlers cannot share an event type."""
+
+    class ConflictingExperiment:
+        @websocket_handler("sessionEcho")
+        def session_echo(self, message):
+            return message
+
+        def __init__(self):
+            self._native_websocket_handlers = collect_websocket_handlers(self)
+
+    with pytest.raises(ValueError, match="registered both"):
+        ConflictingExperiment()
 
 
 def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
