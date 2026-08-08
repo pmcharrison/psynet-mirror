@@ -111,9 +111,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function applyPosition(player) {
     var playerId = String(player.participant_id);
     if (playerId === participantId) return;
-    players[playerId] = Object.assign({}, players[playerId] || {}, player, {
-      received_at: performance.now()
-    });
+    var existing = players[playerId] || (players[playerId] = {});
+    Object.assign(existing, player);
+    existing.received_at = performance.now();
   }
 
   function applyCollection(msg) {
@@ -156,15 +156,21 @@ document.addEventListener("DOMContentLoaded", function () {
     own.y = Math.max(cfg.player_radius, Math.min(cfg.canvas_size - cfg.player_radius, own.y + own.vy * dt));
     own.client_time = now;
     own.received_at = now;
-    players[participantId] = Object.assign({}, own);
+    players[participantId] = own;
   }
 
-  function renderedPlayer(player, now) {
+  function drawPlayer(playerId, player, now) {
     var age = Math.min(160, now - (player.received_at || now)) / 1000;
-    return Object.assign({}, player, {
-      x: Number(player.x || 0) + Number(player.vx || 0) * age,
-      y: Number(player.y || 0) + Number(player.vy || 0) * age
-    });
+    var x = Number(player.x || 0) + Number(player.vx || 0) * age;
+    var y = Number(player.y || 0) + Number(player.vy || 0) * age;
+    var isOwn = String(playerId) === participantId;
+    ctx.beginPath();
+    ctx.arc(x, y, cfg.player_radius, 0, Math.PI * 2);
+    ctx.fillStyle = player.color || (isOwn ? "#1f77b4" : "#d62728");
+    ctx.fill();
+    ctx.lineWidth = isOwn ? 4 : 2;
+    ctx.strokeStyle = isOwn ? "#111827" : "#ffffff";
+    ctx.stroke();
   }
 
   function draw(now) {
@@ -192,15 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
       ctx.stroke();
     });
     Object.keys(players).forEach(function (playerId) {
-      var player = renderedPlayer(players[playerId], now);
-      var isOwn = String(playerId) === participantId;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, cfg.player_radius, 0, Math.PI * 2);
-      ctx.fillStyle = player.color || (isOwn ? "#1f77b4" : "#d62728");
-      ctx.fill();
-      ctx.lineWidth = isOwn ? 4 : 2;
-      ctx.strokeStyle = isOwn ? "#111827" : "#ffffff";
-      ctx.stroke();
+      drawPlayer(playerId, players[playerId], now);
     });
     checkCoinCollections();
     lastDrawAt = now;

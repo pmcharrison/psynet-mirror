@@ -423,14 +423,10 @@ class Exp(psynet.experiment.Experiment):
             receive_time=receive_time,
         )
         db.session.add(logged_event)
-        db.session.flush()
         self.websocket.send(
             target_participants,
             "position_update",
-            {
-                "event_id": logged_event.id,
-                "player": message.player_payload(participant, receive_time),
-            },
+            {"player": message.player_payload(participant, receive_time)},
         )
         db.session.commit()
 
