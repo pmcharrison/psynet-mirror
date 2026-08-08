@@ -10,6 +10,9 @@ The public API is intentionally small:
 Browser sockets are owned by the web process that accepted the connection.
 Outbound server messages are therefore fanned out through Redis so scheduled
 tasks and other worker processes can still address connected participants.
+Inbound messages are dispatched directly in the socket-owning process. Outbound
+messages travel through Redis as private routing envelopes whose payload is the
+exact browser-visible frame.
 """
 
 from __future__ import annotations
@@ -54,16 +57,12 @@ class WebSocketHandlerSpec:
     """Description of a direct experiment-level WebSocket handler."""
 
     event_type: str
+    # Bound methods and accepted kwargs are cached at experiment initialization
+    # so high-frequency messages do not repeatedly inspect handler signatures.
     method: Callable
     model: Optional[Type[BaseModel]]
     accepted_context_keys: tuple[str, ...]
     accepts_var_kwargs: bool
-
-
-@dataclass(frozen=True)
-class _OutboundTarget:
-    participant_id: int
-    page_uuid: str
 
 
 def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = None):
@@ -172,11 +171,13 @@ def _coerce_participant_id(value):
         return None
 
 
-def _normalize_participant_targets(participants):
+def _page_uuid_targets(participants):
     if not isinstance(participants, (list, tuple, set)):
         participants = [participants]
 
-    targets = []
+    # Outbound delivery is page-scoped. Raw participant IDs would require a DB
+    # lookup here, so server code passes participant objects with page UUIDs.
+    page_uuids = []
     for participant in participants:
         if participant is None:
             continue
@@ -191,9 +192,9 @@ def _normalize_participant_targets(participants):
             raise ValueError(
                 f"Participant {participant_id} has no page UUID for WebSocket delivery."
             )
-        targets.append(_OutboundTarget(participant_id, participant.page_uuid))
+        page_uuids.append(participant.page_uuid)
 
-    return targets
+    return page_uuids
 
 
 def extract_websocket_event_type(message):
@@ -246,6 +247,8 @@ def dispatch_websocket_frame(
         )
         return None
 
+    # A refreshed page gets a new page UUID; reject messages from older browser
+    # contexts so stale pages cannot mutate the current trial/session.
     page_uuid = frame.get("page_uuid")
     if not page_uuid or page_uuid != participant.page_uuid:
         logger.warning(
@@ -297,49 +300,39 @@ class _Connection:
 
 
 class _ConnectionManager:
+    # Connections are only known to the web process that accepted them. Redis
+    # fanout lets each process inspect outbound envelopes and deliver to its
+    # own matching sockets.
+
     def __init__(self):
-        self._connections_by_participant: dict[int, set[_Connection]] = {}
+        self._connections_by_page_uuid: dict[str, set[_Connection]] = {}
         self._lock = threading.RLock()
 
     def add(self, participant_id: int, page_uuid: str, ws):
         connection = _Connection(participant_id, page_uuid, ws)
         with self._lock:
-            self._connections_by_participant.setdefault(participant_id, set()).add(
-                connection
-            )
+            self._connections_by_page_uuid.setdefault(page_uuid, set()).add(connection)
         return connection
 
     def remove(self, connection: _Connection):
         with self._lock:
-            connections = self._connections_by_participant.get(
-                connection.participant_id
-            )
+            connections = self._connections_by_page_uuid.get(connection.page_uuid)
             if not connections:
                 return
             connections.discard(connection)
             if not connections:
-                self._connections_by_participant.pop(connection.participant_id, None)
+                self._connections_by_page_uuid.pop(connection.page_uuid, None)
 
-    def send_to_targets(self, targets: list[_OutboundTarget], payload: str):
-        page_uuids_by_participant_id = {
-            target.participant_id: target.page_uuid for target in targets
-        }
+    def send_to_pages(self, page_uuids: list[str], payload: str):
         stale_connections = []
         with self._lock:
             connections = [
                 connection
-                for participant_id in page_uuids_by_participant_id
-                for connection in self._connections_by_participant.get(
-                    int(participant_id), set()
-                )
+                for page_uuid in page_uuids
+                for connection in self._connections_by_page_uuid.get(page_uuid, set())
             ]
 
         for connection in connections:
-            if (
-                connection.page_uuid
-                != page_uuids_by_participant_id[connection.participant_id]
-            ):
-                continue
             try:
                 connection.send_payload(payload)
             except Exception as exc:  # pragma: no cover - depends on socket runtime
@@ -359,26 +352,19 @@ _redis_listener_started = False
 _redis_listener_lock = threading.Lock()
 
 
-def _make_outbound_envelope(targets: list[_OutboundTarget], payload: str):
+def _make_outbound_envelope(page_uuids: list[str], payload: str):
+    # The envelope is private transport metadata; payload is the serialized
+    # browser frame that matching sockets will receive unchanged.
     return {
-        "targets": [
-            {"participant_id": target.participant_id, "page_uuid": target.page_uuid}
-            for target in targets
-        ],
+        "page_uuids": page_uuids,
         "payload": payload,
     }
 
 
 def _handle_outbound_envelope(envelope):
-    targets = [
-        _OutboundTarget(
-            participant_id=int(target["participant_id"]),
-            page_uuid=target["page_uuid"],
-        )
-        for target in envelope["targets"]
-    ]
-    if targets:
-        connection_manager.send_to_targets(targets, envelope["payload"])
+    page_uuids = envelope["page_uuids"]
+    if page_uuids:
+        connection_manager.send_to_pages(page_uuids, envelope["payload"])
 
 
 def _redis_listener_loop():  # pragma: no cover - exercised in live experiments
@@ -417,12 +403,12 @@ def start_redis_listener():
 def publish_websocket_event(participant_ids, event_type: str, message=None):
     """Publish an outbound event to one or more participants."""
 
-    targets = _normalize_participant_targets(participant_ids)
-    if not targets:
+    page_uuids = _page_uuid_targets(participant_ids)
+    if not page_uuids:
         return
 
     payload = _json_dumps(make_frame(event_type, message))
-    envelope = _make_outbound_envelope(targets, payload)
+    envelope = _make_outbound_envelope(page_uuids, payload)
     redis_conn.publish(REDIS_OUTBOUND_CHANNEL, _json_dumps(envelope))
 
 
@@ -455,6 +441,8 @@ def _participant_from_request():
 
     from psynet.participant import Participant
 
+    # Participant identity is bound when the socket connects. Individual
+    # browser messages do not repeat participant_id or unique_id.
     participant_id = _coerce_participant_id(request.args.get("participant_id"))
     unique_id = request.args.get("unique_id")
     page_uuid = request.args.get("page_uuid")

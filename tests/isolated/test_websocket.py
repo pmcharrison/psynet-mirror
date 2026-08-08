@@ -13,7 +13,6 @@ from psynet.websocket import (
     ParticipantWebSocket,
     WebSocketMessage,
     _ConnectionManager,
-    _OutboundTarget,
     collect_websocket_handlers,
     dispatch_websocket_frame,
     extract_websocket_event_type,
@@ -278,7 +277,7 @@ def test_participant_websocket_publishes_targeted_event(monkeypatch):
     channel, envelope = published[0]
     assert channel == "psynet:websocket:outbound"
     assert envelope == {
-        "targets": [{"participant_id": 7, "page_uuid": "current-page"}],
+        "page_uuids": ["current-page"],
         "payload": json.dumps(
             {"type": "serverMessage", "message": "hello"}, separators=(",", ":")
         ),
@@ -313,16 +312,13 @@ def test_experiment_websocket_send_accepts_one_or_many_participants(monkeypatch)
 
     assert published == [
         {
-            "targets": [{"participant_id": 7, "page_uuid": "page-7"}],
+            "page_uuids": ["page-7"],
             "payload": json.dumps(
                 {"type": "one", "message": "hello"}, separators=(",", ":")
             ),
         },
         {
-            "targets": [
-                {"participant_id": 8, "page_uuid": "page-8"},
-                {"participant_id": 9, "page_uuid": "page-9"},
-            ],
+            "page_uuids": ["page-8", "page-9"],
             "payload": json.dumps(
                 {"type": "many", "message": {"ok": True}}, separators=(",", ":")
             ),
@@ -355,8 +351,8 @@ def test_connection_manager_filters_stale_page_sockets():
     manager.add(7, "current-page", FakeSocket("current"))
     manager.add(7, "old-page", FakeSocket("old"))
 
-    manager.send_to_targets(
-        [_OutboundTarget(7, "current-page")],
+    manager.send_to_pages(
+        ["current-page"],
         json.dumps({"type": "serverMessage", "message": "hello"}),
     )
 
