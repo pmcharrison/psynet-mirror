@@ -72,7 +72,7 @@ explicitly by a :class:`~psynet.session.LiveSessionInitializer`, which is a
 barrier that delegates row creation to the group leader. A
 :class:`~psynet.session.LiveSessionControl` resolves that existing row when the
 page renders and exposes a ``live_session_config`` object to the browser,
-including the SQL row ID as ``session_id`` and the current ``participant_id``.
+including ``session_id`` and the current ``participant_id``.
 This means you can construct the control in a normal ``ModularPage``
 immediately after the initializer in the timeline. Browser code passes this
 config to ``psynet.session.init()``, then sends a ready event once it has
