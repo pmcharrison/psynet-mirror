@@ -20,13 +20,26 @@ class PolymorphicDemoLiveSession(LiveSession):
 
 
 def _state():
-    return LiveSession(
+    state = LiveSession(
         session_id="session-1",
         state={"score": 3},
         participant_ids=[1, 2],
         ready_participant_ids=[],
         started=False,
     )
+    participants = [
+        SimpleNamespace(id=1, page_uuid="page-1"),
+        SimpleNamespace(id=2, page_uuid="page-2"),
+    ]
+    state.__dict__["trials"] = [
+        SimpleNamespace(
+            participant_id=participant.id,
+            participant=participant,
+            failed=False,
+        )
+        for participant in participants
+    ]
+    return state
 
 
 def test_live_session_tracks_ready_participants_and_started():
@@ -161,7 +174,7 @@ def test_live_session_end_marks_ended_and_notifies():
     assert state.end(experiment) is True
     assert state.ended is True
     experiment.websocket.send.assert_called_once_with(
-        [1, 2], "sessionEnd", state.snapshot_payload()
+        state.participants, "sessionEnd", state.snapshot_payload()
     )
     assert state.end(experiment) is False
 
@@ -408,7 +421,7 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
 
     assert state.ended is True
     experiment.websocket.send.assert_called_once_with(
-        [1, 2], "sessionEnd", state.snapshot_payload()
+        state.participants, "sessionEnd", state.snapshot_payload()
     )
 
 

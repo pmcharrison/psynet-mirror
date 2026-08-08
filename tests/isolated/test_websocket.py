@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 from pydantic import Field
 
 from psynet.websocket import (
@@ -10,6 +11,7 @@ from psynet.websocket import (
     ParticipantWebSocket,
     WebSocketMessage,
     _ConnectionManager,
+    _OutboundTarget,
     collect_websocket_handlers,
     dispatch_websocket_frame,
     extract_websocket_event_type,
@@ -174,18 +176,22 @@ def test_participant_websocket_publishes_targeted_event(monkeypatch):
     ParticipantWebSocket(participant).send("serverMessage", "hello")
 
     assert len(published) == 1
-    channel, frame = published[0]
+    channel, envelope = published[0]
     assert channel == "psynet:websocket:outbound"
-    assert frame == {
+    assert envelope == {
+        "targets": [{"participant_id": 7, "page_uuid": "current-page"}],
+        "payload": json.dumps(
+            {"type": "serverMessage", "message": "hello"}, separators=(",", ":")
+        ),
+    }
+    assert json.loads(envelope["payload"]) == {
         "type": "serverMessage",
         "message": "hello",
-        "target_participant_ids": ["7"],
-        "target_page_uuids": {"7": "current-page"},
     }
 
 
-def test_experiment_websocket_send_accepts_one_or_many_targets(monkeypatch):
-    """Experiment helpers publish to one participant or a list of IDs."""
+def test_experiment_websocket_send_accepts_one_or_many_participants(monkeypatch):
+    """Experiment helpers publish to one participant or a participant list."""
 
     published = []
 
@@ -195,34 +201,43 @@ def test_experiment_websocket_send_accepts_one_or_many_targets(monkeypatch):
 
     monkeypatch.setattr("psynet.websocket.redis_conn", FakeRedis())
 
-    def resolve_page_uuids(participant_ids, explicit_page_uuids=None):
-        return {
-            str(participant_id): str(page_uuid)
-            for participant_id, page_uuid in (explicit_page_uuids or {}).items()
-        }
-
-    monkeypatch.setattr(
-        "psynet.websocket._resolve_target_page_uuids", resolve_page_uuids
-    )
-
     websocket = ExperimentWebSocket(SimpleNamespace())
     websocket.send(SimpleNamespace(id=7, page_uuid="page-7"), "one", "hello")
-    websocket.send([7, SimpleNamespace(id=8, page_uuid="page-8")], "many", {"ok": True})
+    websocket.send(
+        [
+            SimpleNamespace(id=8, page_uuid="page-8"),
+            SimpleNamespace(id=9, page_uuid="page-9"),
+        ],
+        "many",
+        {"ok": True},
+    )
 
     assert published == [
         {
-            "type": "one",
-            "message": "hello",
-            "target_participant_ids": ["7"],
-            "target_page_uuids": {"7": "page-7"},
+            "targets": [{"participant_id": 7, "page_uuid": "page-7"}],
+            "payload": json.dumps(
+                {"type": "one", "message": "hello"}, separators=(",", ":")
+            ),
         },
         {
-            "type": "many",
-            "message": {"ok": True},
-            "target_participant_ids": ["7", "8"],
-            "target_page_uuids": {"8": "page-8"},
+            "targets": [
+                {"participant_id": 8, "page_uuid": "page-8"},
+                {"participant_id": 9, "page_uuid": "page-9"},
+            ],
+            "payload": json.dumps(
+                {"type": "many", "message": {"ok": True}}, separators=(",", ":")
+            ),
         },
     ]
+
+
+def test_experiment_websocket_send_rejects_participant_ids(monkeypatch):
+    """Page-scoped delivery requires participant objects, not raw IDs."""
+
+    websocket = ExperimentWebSocket(SimpleNamespace())
+
+    with pytest.raises(TypeError, match="Participant objects"):
+        websocket.send(7, "one", "hello")
 
 
 def test_connection_manager_filters_stale_page_sockets():
@@ -241,10 +256,9 @@ def test_connection_manager_filters_stale_page_sockets():
     manager.add(7, "current-page", FakeSocket("current"))
     manager.add(7, "old-page", FakeSocket("old"))
 
-    manager.send_to_participants(
-        [7],
-        {"type": "serverMessage", "message": "hello"},
-        {"7": "current-page"},
+    manager.send_to_targets(
+        [_OutboundTarget(7, "current-page")],
+        json.dumps({"type": "serverMessage", "message": "hello"}),
     )
 
     assert sent["current"] == [{"type": "serverMessage", "message": "hello"}]

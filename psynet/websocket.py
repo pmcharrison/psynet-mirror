@@ -54,6 +54,12 @@ class WebSocketHandlerSpec:
     model: Optional[Type[BaseModel]] = None
 
 
+@dataclass(frozen=True)
+class _OutboundTarget:
+    participant_id: int
+    page_uuid: str
+
+
 def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = None):
     """Decorate an experiment method as a native WebSocket event handler.
 
@@ -150,22 +156,24 @@ def _normalize_participant_targets(participants):
     if not isinstance(participants, (list, tuple, set)):
         participants = [participants]
 
-    participant_ids = []
-    explicit_page_uuids = {}
+    targets = []
     for participant in participants:
         if participant is None:
             continue
 
         if isinstance(participant, int):
-            participant_ids.append(int(participant))
-            continue
+            raise TypeError(
+                "WebSocket targets must be Participant objects, not participant IDs."
+            )
 
         participant_id = int(participant.id)
-        participant_ids.append(participant_id)
-        if participant.page_uuid:
-            explicit_page_uuids[participant_id] = participant.page_uuid
+        if not participant.page_uuid:
+            raise ValueError(
+                f"Participant {participant_id} has no page UUID for WebSocket delivery."
+            )
+        targets.append(_OutboundTarget(participant_id, participant.page_uuid))
 
-    return participant_ids, explicit_page_uuids
+    return targets
 
 
 def extract_websocket_event_type(message):
@@ -272,8 +280,8 @@ class _Connection:
         self.page_uuid = page_uuid
         self.ws = ws
 
-    def send_frame(self, frame: dict):
-        self.ws.send(_json_dumps(frame))
+    def send_payload(self, payload: str):
+        self.ws.send(payload)
 
 
 class _ConnectionManager:
@@ -300,26 +308,28 @@ class _ConnectionManager:
             if not connections:
                 self._connections_by_participant.pop(connection.participant_id, None)
 
-    def send_to_participants(
-        self, participant_ids: list[int], frame: dict, target_page_uuids=None
-    ):
-        target_page_uuids = target_page_uuids or {}
+    def send_to_targets(self, targets: list[_OutboundTarget], payload: str):
+        page_uuids_by_participant_id = {
+            target.participant_id: target.page_uuid for target in targets
+        }
         stale_connections = []
         with self._lock:
             connections = [
                 connection
-                for participant_id in participant_ids
+                for participant_id in page_uuids_by_participant_id
                 for connection in self._connections_by_participant.get(
                     int(participant_id), set()
                 )
             ]
 
         for connection in connections:
-            target_page_uuid = target_page_uuids.get(str(connection.participant_id))
-            if target_page_uuid and connection.page_uuid != target_page_uuid:
+            if (
+                connection.page_uuid
+                != page_uuids_by_participant_id[connection.participant_id]
+            ):
                 continue
             try:
-                connection.send_frame(frame)
+                connection.send_payload(payload)
             except Exception as exc:  # pragma: no cover - depends on socket runtime
                 logger.warning(
                     "Failed to send websocket frame to participant %s: %s",
@@ -337,56 +347,26 @@ _redis_listener_started = False
 _redis_listener_lock = threading.Lock()
 
 
-def _target_participant_ids(frame):
-    ids = frame.get("target_participant_ids", [])
-    if frame.get("target_participant_id") is not None:
-        ids = [*ids, frame["target_participant_id"]]
-    return [
-        participant_id
-        for participant_id in (_coerce_participant_id(value) for value in ids)
-        if participant_id is not None
-    ]
-
-
-def _target_page_uuids(frame):
-    page_uuids = frame.get("target_page_uuids", {}) or {}
-    return {str(key): str(value) for key, value in page_uuids.items() if value}
-
-
-def _handle_outbound_frame(frame):
-    participant_ids = _target_participant_ids(frame)
-    if participant_ids:
-        connection_manager.send_to_participants(
-            participant_ids, frame, _target_page_uuids(frame)
-        )
-
-
-def _resolve_target_page_uuids(participant_ids, explicit_page_uuids=None):
-    explicit_page_uuids = explicit_page_uuids or {}
-    target_page_uuids = {
-        str(participant_id): str(page_uuid)
-        for participant_id, page_uuid in explicit_page_uuids.items()
-        if page_uuid
+def _make_outbound_envelope(targets: list[_OutboundTarget], payload: str):
+    return {
+        "targets": [
+            {"participant_id": target.participant_id, "page_uuid": target.page_uuid}
+            for target in targets
+        ],
+        "payload": payload,
     }
-    missing_ids = [
-        int(participant_id)
-        for participant_id in participant_ids
-        if str(participant_id) not in target_page_uuids
+
+
+def _handle_outbound_envelope(envelope):
+    targets = [
+        _OutboundTarget(
+            participant_id=int(target["participant_id"]),
+            page_uuid=target["page_uuid"],
+        )
+        for target in envelope["targets"]
     ]
-    if not missing_ids:
-        return target_page_uuids
-
-    try:
-        from psynet.participant import Participant
-
-        participants = Participant.query.filter(Participant.id.in_(missing_ids)).all()
-        for participant in participants:
-            if participant.page_uuid:
-                target_page_uuids[str(participant.id)] = str(participant.page_uuid)
-    except Exception as exc:  # pragma: no cover - depends on runtime DB context
-        logger.warning("Could not resolve websocket target page UUIDs: %s", exc)
-
-    return target_page_uuids
+    if targets:
+        connection_manager.send_to_targets(targets, envelope["payload"])
 
 
 def _redis_listener_loop():  # pragma: no cover - exercised in live experiments
@@ -399,9 +379,9 @@ def _redis_listener_loop():  # pragma: no cover - exercised in live experiments
             raw = item["data"]
             if isinstance(raw, bytes):
                 raw = raw.decode("utf-8")
-            frame = json.loads(raw)
-            if isinstance(frame, dict):
-                _handle_outbound_frame(frame)
+            envelope = json.loads(raw)
+            if isinstance(envelope, dict):
+                _handle_outbound_envelope(envelope)
         except Exception as exc:
             logger.warning("Failed to process outbound websocket frame: %s", exc)
 
@@ -425,29 +405,13 @@ def start_redis_listener():
 def publish_websocket_event(participant_ids, event_type: str, message=None):
     """Publish an outbound event to one or more participants."""
 
-    target_participant_ids, explicit_page_uuids = _normalize_participant_targets(
-        participant_ids
-    )
-    if not target_participant_ids:
+    targets = _normalize_participant_targets(participant_ids)
+    if not targets:
         return
 
-    extra = {
-        "target_participant_ids": [
-            str(participant_id) for participant_id in target_participant_ids
-        ],
-    }
-    target_page_uuids = _resolve_target_page_uuids(
-        target_participant_ids, explicit_page_uuids
-    )
-    if target_page_uuids:
-        extra["target_page_uuids"] = target_page_uuids
-
-    frame = make_frame(
-        event_type,
-        message,
-        **extra,
-    )
-    redis_conn.publish(REDIS_OUTBOUND_CHANNEL, _json_dumps(frame))
+    payload = _json_dumps(make_frame(event_type, message))
+    envelope = _make_outbound_envelope(targets, payload)
+    redis_conn.publish(REDIS_OUTBOUND_CHANNEL, _json_dumps(envelope))
 
 
 class ParticipantWebSocket:

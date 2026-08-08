@@ -422,7 +422,7 @@ class Exp(psynet.experiment.Experiment):
         )
         if live_session is None:
             return
-        target_participant_ids = [int(p) for p in live_session.participant_ids or []]
+        target_participants = live_session.participants
 
         logged_event = CanvasPositionEvent(
             session_id=live_session.session_id,
@@ -437,7 +437,7 @@ class Exp(psynet.experiment.Experiment):
         db.session.add(logged_event)
         db.session.flush()
         self.websocket.send(
-            target_participant_ids,
+            target_participants,
             "position_update",
             {
                 "event_id": logged_event.id,
@@ -482,7 +482,7 @@ class Exp(psynet.experiment.Experiment):
             if trial is not None:
                 trial.record_coin()
             self.websocket.send(
-                live_session.participant_ids,
+                live_session.participants,
                 "coin_collected",
                 {
                     "collection": collection,

@@ -152,6 +152,16 @@ class _LiveSessionMixin:
         expected = {int(value) for value in (self.participant_ids or [])}
         return participant_id in expected
 
+    @property
+    def participants(self):
+        """Return participant objects linked to this live session."""
+
+        trials = sorted(
+            (trial for trial in (self.trials or []) if not trial.failed),
+            key=lambda trial: trial.participant_id,
+        )
+        return [trial.participant for trial in trials]
+
     @classmethod
     def get_current_for_participant(
         cls, participant, session_id: str, *, for_update=False
@@ -206,7 +216,7 @@ class _LiveSessionMixin:
         """Send the current snapshot to all live-session participants or a subset."""
 
         if participants is None:
-            participants = self.participant_ids or []
+            participants = self.participants
         experiment.websocket.send(
             participants,
             STATE_SNAPSHOT_EVENT,
@@ -217,7 +227,7 @@ class _LiveSessionMixin:
         """Send the built-in session end event to live-session participants."""
 
         experiment.websocket.send(
-            self.participant_ids or [],
+            self.participants,
             SESSION_END_EVENT,
             self.snapshot_payload(),
         )
