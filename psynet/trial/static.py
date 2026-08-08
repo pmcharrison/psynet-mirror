@@ -172,14 +172,16 @@ class StaticTrialMaker(ChainTrialMaker):
         for implementing performance checks.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
+        If ``True``, a participant's completed trials are marked as failed
         if they leave the experiment prematurely.
-        Defaults to ``True``.
+        Defaults to ``True``. Incomplete trials are always failed on
+        premature exit, regardless of this setting.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
+        If ``True``, a participant's completed trials are marked as failed
         if the participant fails a performance check.
-        Defaults to ``True``.
+        Defaults to ``True``. Incomplete trials are always failed on a
+        performance-check failure, regardless of this setting.
 
     n_repeat_trials
         Number of repeat trials to present to the participant. These trials

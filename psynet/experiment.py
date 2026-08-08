@@ -2314,16 +2314,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment reassignment describe the disposition of the recruitment
         assignment, not the quality of the participant's responses. We therefore
         treat them as a premature exit: the participant is marked as failed, and
-        each TrialMaker decides whether to invalidate its own trials via
-        ``fail_trials_on_premature_exit``. This deliberately replaces Dallinger's
-        default behaviour of unconditionally failing the participant's nodes,
-        which bypassed TrialMaker failure policy.
+        each TrialMaker decides whether to invalidate completed trials via
+        ``fail_trials_on_premature_exit`` (incomplete trials are always failed).
+        This deliberately replaces Dallinger's default behaviour of
+        unconditionally failing the participant's nodes, which bypassed
+        TrialMaker failure policy.
 
-        :meth:`~psynet.participant.Participant.fail` is a no-op for participants
-        who have already failed or completed, so a later settlement event (for
-        example a return-for-bonus after an unsuccessful end) records the
-        recruiter cause without re-running trial-invalidation logic.
+        If the participant has already failed or completed, only the recruiter
+        cause tag is recorded. Settlement returns after an unsuccessful end
+        therefore do not invent a second ``premature_exit`` or re-run
+        trial-invalidation logic.
         """
+        if participant.failed or participant.complete:
+            participant.append_failure_tags(cause_tag)
+            return
+
         participant.append_failure_tags(cause_tag, "premature_exit")
         participant.fail()
 

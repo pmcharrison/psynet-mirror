@@ -92,19 +92,24 @@ invalidation:
 
 If the corresponding option is ``True``, all non-failed trials belonging to
 that participant and TrialMaker are failed. This includes completed and
-finalized trials. If it is ``False``, those trials are preserved. Participant
-failure for any other reason preserves trials unless custom failure logic
-explicitly fails them.
+finalized trials. If it is ``False``, completed trials are preserved.
+Incomplete trials (``complete=False``) are always failed for these causes,
+because they are not usable contributions and can otherwise stall
+dependent logic such as chain growth. Participant failure for any other
+reason preserves trials unless custom failure logic explicitly fails them.
 
 Recruiter events count as premature exit. When a recruiter reports that a
-still-working participant abandoned, returned, or had their assignment
-reassigned (for example a submission returned on Prolific), PsyNet marks the
-participant as failed with the ``premature_exit`` tag. Trial invalidation then
-follows each TrialMaker's ``fail_trials_on_premature_exit`` setting, exactly as
+participant abandoned, returned, or had their assignment reassigned while
+still able to take part (for example a submission returned on Prolific),
+PsyNet marks the participant as failed with the ``premature_exit`` tag.
+Trial invalidation then follows each TrialMaker's
+``fail_trials_on_premature_exit`` setting for completed trials, exactly as
 for any other premature exit; the recruiter event does not decide trial
-validity on its own. A participant who has already failed or completed is left
-untouched, so a later return purely to settle a partial payment does not
-re-invalidate trials.
+validity on its own. If the participant has already failed or completed,
+PsyNet only records the recruiter cause tag (for example
+``assignment_returned``) and does not invent a second ``premature_exit`` or
+re-run trial-invalidation logic. That covers settlement returns after an
+unsuccessful end, such as return-for-bonus.
 
 A performance check is a participant-level quality decision. It can represent poor task performance,
 insufficiently grammatical responses, failed attention checks, or signs of
@@ -123,30 +128,31 @@ The default policies reflect the different data dependencies of each paradigm:
      - Premature exit
      - Performance-check failure
    * - Static
-     - Fail trials
-     - Fail trials
+     - Fail completed trials
+     - Fail completed trials
    * - Dense
-     - Fail trials
-     - Fail trials
+     - Fail completed trials
+     - Fail completed trials
    * - Chain
-     - Preserve trials
-     - Preserve trials
+     - Preserve completed trials
+     - Preserve completed trials
    * - Graph chain
-     - Preserve trials
-     - Preserve trials
+     - Preserve completed trials
+     - Preserve completed trials
    * - Most built-in prescreening tasks
-     - Preserve trials
-     - Fail trials
+     - Preserve completed trials
+     - Fail completed trials
 
 Static experiments commonly treat successful completion as a condition for
 including a participant's dataset. This is because it can cause trouble for
 standard data analyses if such datasets contain partial contributions.
-Chain experiments instead preserve trials
+Chain experiments instead preserve completed trials
 by default because failing an earlier trial can invalidate substantial amounts
-of downstream data. Built-in prescreening tasks generally preserve trials on
+of downstream data. Incomplete trials are still failed so they cannot stall
+chain growth. Built-in prescreening tasks generally preserve completed trials on
 premature exit because they do not recruit to a target quantity of valid trial
 data. Most retain the static default for performance-check failure;
-``FreeTappingRecordTest`` explicitly preserves trials in both cases.
+``FreeTappingRecordTest`` explicitly preserves completed trials in both cases.
 
 
 Choosing a participant failure policy
@@ -159,16 +165,18 @@ or count toward a recruitment target.
 Set ``fail_trials_on_premature_exit=True`` when the experiment requires
 complete-participant data. For example, an experiment targeting 30 ratings per
 stimulus might require all 30 ratings to come from participants who completed
-the experiment. Failing trials from premature exits prevents those partial
-ratings from contributing to the target, so PsyNet recruits replacements. Set
-it to ``False`` when valid partial contributions should remain usable.
+the experiment. Failing completed trials from premature exits prevents those
+partial ratings from contributing to the target, so PsyNet recruits
+replacements. Set it to ``False`` when valid completed partial contributions
+should remain usable. Incomplete trials are failed in either case.
 
 Set ``fail_trials_on_participant_performance_check=True`` when failing the
 performance check is evidence that this TrialMaker's data should not be
 analyzed, for example because the participant responded nonsensically or showed
 signs of bot behavior. Set it to ``False`` when the check only determines
-eligibility to continue and the collected trials remain meaningful. A failed
-prescreen can therefore preserve trials when those trials are valid
+eligibility to continue and the collected completed trials remain meaningful.
+Incomplete trials are failed in either case. A failed
+prescreen can therefore preserve completed trials when those trials are valid
 measurements of ineligibility.
 
 These policies are intentionally independent for each TrialMaker. In an
