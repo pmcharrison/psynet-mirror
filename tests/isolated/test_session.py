@@ -255,7 +255,7 @@ def test_live_session_control_requires_sync_group():
         LiveSessionControl._resolve_group(trial)
 
 
-def test_live_session_links_trials_by_participant():
+def test_live_session_links_trials():
     """LiveSession tracks participant trials associated with a shared session."""
 
     state = _state()
@@ -270,10 +270,6 @@ def test_live_session_links_trials_by_participant():
 
     assert state.link_trial(trial) is trial
     assert trial.live_session is state
-
-    state.__dict__["trials"] = [trial]
-    assert state.get_participant_trial(SimpleNamespace(id=1)) is trial
-    assert state.get_participant_trial(SimpleNamespace(id=2)) is None
 
 
 def test_live_session_prepare_for_group_creates_and_links_trials(monkeypatch):

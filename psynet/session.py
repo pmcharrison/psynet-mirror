@@ -247,22 +247,6 @@ class _LiveSessionMixin:
         trial.live_session = self
         return trial
 
-    def get_participant_trial(self, participant):
-        """Return the trial linked to this live session for a participant."""
-
-        participant_id = int(participant.id)
-        trials = [
-            trial
-            for trial in (self.trials or [])
-            if int(trial.participant_id) == participant_id and not trial.failed
-        ]
-        if len(trials) > 1:
-            raise ValueError(
-                f"Live session {self.session_id!r} has multiple trials for "
-                f"participant {participant_id}."
-            )
-        return trials[0] if trials else None
-
     @classmethod
     def handle_state_request(
         cls, experiment, participant, message: StateRequestMessage

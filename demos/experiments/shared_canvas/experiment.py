@@ -471,9 +471,7 @@ class Exp(psynet.experiment.Experiment):
         )
         if accepted:
             state = live_session.state or {}
-            trial = live_session.get_participant_trial(participant)
-            if trial is not None:
-                trial.record_coin()
+            participant.current_trial.record_coin()
             self.websocket.send(
                 live_session.participants,
                 "coin_collected",
