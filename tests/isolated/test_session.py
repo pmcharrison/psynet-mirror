@@ -375,9 +375,6 @@ def test_live_session_control_derives_config(monkeypatch):
     assert control.custom_value == 10
     assert control.live_session_config == {
         "session_id": 5,
-        "group_id": 9,
-        "node_id": 11,
-        "network_id": 12,
         "participant_id": 1,
         "participant_ids": [1, 2],
     }

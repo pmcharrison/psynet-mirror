@@ -504,9 +504,6 @@ class LiveSessionControl(Control):
             raise RuntimeError("Live session must be flushed before rendering.")
         self.live_session_config = {
             "session_id": int(self.session.id),
-            "group_id": int(self.session.sync_group_id),
-            "node_id": self.session.node_id,
-            "network_id": self.session.network_id,
             "participant_id": int(participant.id),
             "participant_ids": [int(value) for value in self.session.participant_ids],
         }
