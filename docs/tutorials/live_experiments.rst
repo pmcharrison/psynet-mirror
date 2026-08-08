@@ -39,7 +39,6 @@ In Python:
 
 
     class ChooseMessage(WebSocketMessage):
-        session_id: str
         action: str
 
 

@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var startedAt = null;
   var submitted = false;
   var gameStarted = false;
+  var gameIntervalIds = [];
 
   function updateBonus(value) {
     bonus = Number(value || 0);
@@ -281,10 +282,24 @@ document.addEventListener("DOMContentLoaded", function () {
     sendPosition();
   }
 
-  canvas.addEventListener("click", focusCanvas);
-  window.addEventListener("keydown", handleArrowKeyDown, true);
-  window.addEventListener("keyup", handleArrowKeyUp, true);
-  window.addEventListener("blur", function () { keys = {}; });
+  function handleWindowBlur() {
+    keys = {};
+  }
+
+  function setGameInterval(handler, interval) {
+    var intervalId = setInterval(handler, interval);
+    gameIntervalIds.push(intervalId);
+  }
+
+  psynet.addPageEventListener(canvas, "click", focusCanvas);
+  psynet.addPageEventListener(window, "keydown", handleArrowKeyDown, true);
+  psynet.addPageEventListener(window, "keyup", handleArrowKeyUp, true);
+  psynet.addPageEventListener(window, "blur", handleWindowBlur);
+  psynet.addPageCleanupCallback(function () {
+    gameIntervalIds.forEach(clearInterval);
+    gameIntervalIds = [];
+    keys = {};
+  });
   focusCanvas();
 
   psynet.session.init(liveSession);
@@ -307,9 +322,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (gameStarted) return;
     gameStarted = true;
     startedAt = performance.now();
-    setInterval(function () { draw(performance.now()); }, cfg.draw_interval_ms);
-    setInterval(sendPosition, cfg.send_interval_ms);
-    setInterval(function () {
+    setGameInterval(function () { draw(performance.now()); }, cfg.draw_interval_ms);
+    setGameInterval(sendPosition, cfg.send_interval_ms);
+    setGameInterval(function () {
       if (performance.now() - startedAt >= cfg.trial_seconds * 1000) submitFinalAnswer();
     }, 200);
   }

@@ -29,6 +29,133 @@ async function nextPageFromBrowser(page, answer = null) {
   return result;
 }
 
+async function installNativeLifecycleProbe(page) {
+  return page.evaluate(() => {
+    const OriginalWebSocket = window.WebSocket;
+    const sockets = [];
+
+    class FakeWebSocket {
+      constructor(url) {
+        this.url = url;
+        this.sent = [];
+        this.closed = false;
+        this.readyState = FakeWebSocket.OPEN;
+        sockets.push(this);
+      }
+
+      send(payload) {
+        this.sent.push(JSON.parse(payload));
+      }
+
+      close() {
+        this.closed = true;
+        this.readyState = FakeWebSocket.CLOSED;
+        if (this.onclose) this.onclose();
+      }
+    }
+
+    FakeWebSocket.CONNECTING = 0;
+    FakeWebSocket.OPEN = 1;
+    FakeWebSocket.CLOSING = 2;
+    FakeWebSocket.CLOSED = 3;
+
+    window.WebSocket = FakeWebSocket;
+    window.__nativeLifecycleProbe = {
+      sockets,
+      websocketMessages: 0,
+      sessionSnapshots: 0,
+      sessionEnds: 0,
+      restoreWebSocket() {
+        window.psynet.websocket.resetPageState();
+        window.WebSocket = OriginalWebSocket;
+      }
+    };
+
+    const probe = window.__nativeLifecycleProbe;
+    window.psynet.websocket.handle("probe", function () {
+      probe.websocketMessages += 1;
+    });
+    window.psynet.session.init({ session_id: "probe-session" });
+    window.psynet.session.onSnapshot(function () {
+      probe.sessionSnapshots += 1;
+    });
+    window.psynet.session.onEnd(function () {
+      probe.sessionEnds += 1;
+    });
+
+    const firstSocket = sockets[0];
+    firstSocket.onmessage({
+      data: JSON.stringify({ type: "probe", message: {} })
+    });
+    firstSocket.onmessage({
+      data: JSON.stringify({
+        type: "stateSnapshot",
+        message: {
+          session_id: "probe-session",
+          state: {},
+          started: true,
+          ended: false
+        }
+      })
+    });
+
+    return {
+      initialPageUuid: window.pageUuid,
+      socketUrl: firstSocket.url,
+      websocketMessages: probe.websocketMessages,
+      sessionSnapshots: probe.sessionSnapshots,
+      sessionEnds: probe.sessionEnds
+    };
+  });
+}
+
+async function inspectNativeLifecycleProbeAfterTransition(page) {
+  return page.evaluate(async () => {
+    const probe = window.__nativeLifecycleProbe;
+    const firstSocket = probe.sockets[0];
+
+    firstSocket.onmessage({
+      data: JSON.stringify({ type: "probe", message: {} })
+    });
+    firstSocket.onmessage({
+      data: JSON.stringify({
+        type: "stateSnapshot",
+        message: {
+          session_id: "probe-session",
+          state: {},
+          started: true,
+          ended: false
+        }
+      })
+    });
+    firstSocket.onmessage({
+      data: JSON.stringify({
+        type: "sessionEnd",
+        message: {
+          session_id: "probe-session",
+          state: {},
+          started: true,
+          ended: true
+        }
+      })
+    });
+
+    window.psynet.websocket.send("afterReset", { ok: true });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    const secondSocket = probe.sockets[1];
+    return {
+      currentPageUuid: window.pageUuid,
+      firstSocketClosed: firstSocket.closed,
+      socketUrls: probe.sockets.map((socket) => socket.url),
+      websocketMessages: probe.websocketMessages,
+      sessionSnapshots: probe.sessionSnapshots,
+      sessionEnds: probe.sessionEnds,
+      afterResetFrame: secondSocket.sent[0]
+    };
+  });
+}
+
 test("adversarial lifecycle handles rejection retry and page listener cleanup", async ({
   page,
   context
@@ -167,6 +294,13 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         activations: ["first"]
       });
 
+    const nativeProbeBeforeTransition = await installNativeLifecycleProbe(
+      experimentPage
+    );
+    expect(nativeProbeBeforeTransition.websocketMessages).toBe(1);
+    expect(nativeProbeBeforeTransition.sessionSnapshots).toBe(1);
+    expect(nativeProbeBeforeTransition.sessionEnds).toBe(0);
+
     // The listener from the previous page should be removed during cleanup.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(
@@ -186,9 +320,38 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         activations: ["first"]
       });
 
+    const nativeProbeAfterTransition =
+      await inspectNativeLifecycleProbeAfterTransition(experimentPage);
+    expect(nativeProbeAfterTransition.firstSocketClosed).toBe(true);
+    expect(nativeProbeAfterTransition.websocketMessages).toBe(1);
+    expect(nativeProbeAfterTransition.sessionSnapshots).toBe(1);
+    expect(nativeProbeAfterTransition.sessionEnds).toBe(0);
+    expect(nativeProbeAfterTransition.socketUrls).toHaveLength(2);
+    expect(
+      new URL(nativeProbeAfterTransition.socketUrls[0]).searchParams.get("page_uuid")
+    ).toBe(nativeProbeBeforeTransition.initialPageUuid);
+    expect(
+      new URL(nativeProbeAfterTransition.socketUrls[1]).searchParams.get("page_uuid")
+    ).toBe(nativeProbeAfterTransition.currentPageUuid);
+    expect(nativeProbeAfterTransition.afterResetFrame).toMatchObject({
+      type: "afterReset",
+      message: { ok: true },
+      page_uuid: nativeProbeAfterTransition.currentPageUuid
+    });
+    expect(
+      nativeProbeAfterTransition.afterResetFrame.message.session_id
+    ).toBeUndefined();
+    await experimentPage.evaluate(() =>
+      window.__nativeLifecycleProbe.restoreWebSocket()
+    );
+
     // A later page can register its own listener without reviving the old one.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
-    await waitForMainBodyContains(experimentPage, "Listener page second", STEP_TIMEOUT_MS);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Listener page second",
+      STEP_TIMEOUT_MS
+    );
     await dispatchWindowClick(experimentPage);
     await expect
       .poll(

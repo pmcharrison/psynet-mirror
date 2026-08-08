@@ -313,6 +313,12 @@
     };
 
     psynet.resetPageState = function () {
+      if (psynet.session && psynet.session.resetPageState) {
+        psynet.session.resetPageState();
+      }
+      if (psynet.websocket && psynet.websocket.resetPageState) {
+        psynet.websocket.resetPageState();
+      }
       psynet.runPageCleanupCallbacks();
       psynet.clearPageEventListeners();
       psynet.comments = [];
@@ -819,6 +825,13 @@
         }, 1000);
       }
 
+      function cancelReconnect() {
+        if (reconnectTimer !== null) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+      }
+
       function connect() {
         if (
           socket &&
@@ -900,7 +913,20 @@
 
       function close() {
         manuallyClosed = true;
-        if (socket) socket.close();
+        cancelReconnect();
+        if (socket) {
+          let closingSocket = socket;
+          socket = null;
+          closingSocket.close();
+        }
+      }
+
+      function resetPageState() {
+        handlers = {};
+        connectHandlers = [];
+        pendingFrames = [];
+        messageContext = {};
+        close();
       }
 
       return {
@@ -908,6 +934,7 @@
         close: close,
         handle: handle,
         onConnect: onConnect,
+        resetPageState: resetPageState,
         send: send,
         setMessageContext: setMessageContext,
       };
@@ -921,6 +948,7 @@
       let startedHandlers = [];
       let endHandlers = [];
       let endHandled = false;
+      let lifecycleToken = 0;
       let unsubscribeStateSnapshot = null;
       let unsubscribeSessionEnd = null;
       let unsubscribeConnect = null;
@@ -956,7 +984,9 @@
       function finish(snapshot) {
         if (endHandled) return;
         endHandled = true;
+        let finishToken = lifecycleToken;
         setTimeout(function () {
+          if (finishToken !== lifecycleToken || !config.session_id) return;
           if (endHandlers.length > 0) {
             endHandlers.forEach((handler) => handler(snapshot));
           } else {
@@ -998,10 +1028,23 @@
         unsubscribeConnect = null;
       }
 
+      function resetPageState() {
+        lifecycleToken += 1;
+        unsubscribeBuiltInHandlers();
+        config = {
+          session_id: null,
+        };
+        snapshotHandlers = [];
+        startedHandlers = [];
+        endHandlers = [];
+        resetState();
+      }
+
       api.init = function (options) {
         let previousSessionId = config.session_id;
         config = Object.assign(config, options || {});
         if (previousSessionId !== config.session_id) {
+          lifecycleToken += 1;
           resetState();
         }
         if (config.session_id) {
@@ -1028,6 +1071,7 @@
       };
 
       api.request = request;
+      api.resetPageState = resetPageState;
 
       api.onSnapshot = function (handler) {
         snapshotHandlers.push(handler);
