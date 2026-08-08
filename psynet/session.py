@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from dallinger import db
+from dallinger.models import timenow
 from pydantic import Field
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
@@ -39,14 +40,16 @@ class ReadyMessage(WebSocketMessage):
 class _LiveSessionMixin:
     """Shared columns and behavior for persisted live-session rows."""
 
-    session_type = Column(String(256), index=True)
-    group_type = Column(String(256), index=True)
-    initializer_id = Column(String(256), index=True)
+    session_type = Column(String, index=True)
+    group_type = Column(String, index=True)
+    initializer_id = Column(String, index=True)
     state = Column(PythonDict, default=lambda: {})
     participant_ids = Column(PythonList, default=lambda: [])
     ready_participant_ids = Column(PythonList, default=lambda: [])
     started = Column(Boolean, default=False)
     ended = Column(Boolean, default=False)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
 
     @declared_attr
     def sync_group_id(cls):
@@ -117,6 +120,8 @@ class _LiveSessionMixin:
             ready_participant_ids=[],
             started=False,
             ended=False,
+            start_time=None,
+            end_time=None,
         )
         db.session.add(live_session)
         db.session.flush()
@@ -233,6 +238,7 @@ class _LiveSessionMixin:
         expected = {int(value) for value in (self.participant_ids or [])}
         if expected and expected.issubset(ready) and not self.started:
             self.started = True
+            self.start_time = timenow()
             started_now = True
 
         return started_now
@@ -302,6 +308,7 @@ class _LiveSessionMixin:
         if self.ended:
             return False
         self.ended = True
+        self.end_time = timenow()
         return True
 
     def end(self, experiment):

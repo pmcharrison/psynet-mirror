@@ -1,3 +1,4 @@
+from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -78,18 +79,22 @@ def _group(*, leader_trial=True):
     return group
 
 
-def test_live_session_tracks_ready_participants_and_started():
+def test_live_session_tracks_ready_participants_and_started(monkeypatch):
     """LiveSession starts once all expected participants are ready."""
 
+    start_time = datetime(2026, 1, 1, 12, 0, 0)
+    monkeypatch.setattr("psynet.session.timenow", lambda: start_time)
     state = _state()
 
     assert state.mark_ready(SimpleNamespace(id=1)) is False
     assert state.ready_participant_ids == [1]
     assert state.started is False
+    assert state.start_time is None
 
     assert state.mark_ready(SimpleNamespace(id=2)) is True
     assert state.ready_participant_ids == [1, 2]
     assert state.started is True
+    assert state.start_time == start_time
 
 
 def test_live_session_rejects_unknown_ready_participant():
@@ -244,14 +249,17 @@ def test_ready_event_rejects_non_member(monkeypatch):
     commit.assert_not_called()
 
 
-def test_live_session_end_marks_ended_and_notifies():
+def test_live_session_end_marks_ended_and_notifies(monkeypatch):
     """Live sessions can explicitly emit the built-in sessionEnd event."""
 
+    end_time = datetime(2026, 1, 1, 12, 5, 0)
+    monkeypatch.setattr("psynet.session.timenow", lambda: end_time)
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
 
     assert state.end(experiment) is True
     assert state.ended is True
+    assert state.end_time == end_time
     experiment.websocket.send.assert_called_once_with(
         state.participants, "sessionEnd", state.snapshot_payload()
     )
@@ -280,6 +288,8 @@ def test_create_for_group_is_leader_owned(monkeypatch):
     assert live_session.node_id == 11
     assert live_session.network_id == 12
     assert live_session.participant_ids == [1, 2]
+    assert live_session.start_time is None
+    assert live_session.end_time is None
     assert live_session.state == {"participant_ids": [1, 2], "node_id": 11}
     added.assert_called_once_with(live_session)
 
