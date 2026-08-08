@@ -481,7 +481,7 @@ class LiveSessionControl(Control):
         self.session_class = session_class
         self.group_type = group_type
         self.session_initializer_id = session_initializer_id
-        self._session = None
+        self._session_id = None
 
     def _get_group(self):
         """Return the participant's active group for this live session."""
@@ -497,51 +497,40 @@ class LiveSessionControl(Control):
             raise ValueError("LiveSessionControl requires an active sync group.")
         return group
 
-    def _resolve_session(self):
-        """Resolve the initialized live-session row for this control."""
+    def _resolve_session_id(self):
+        """Resolve the initialized live-session row ID for this control."""
 
-        if self._session is not None:
-            return self._session
+        if self._session_id is not None:
+            return self._session_id
 
         group = self._get_group()
         context = self.session_class._current_trial_context(group)
-        self._session = self.session_class.get_for_group(
+        live_session = self.session_class.get_for_group(
             group=group,
             initializer_id=self.session_initializer_id,
             node_id=context["node_id"],
             network_id=context["network_id"],
         )
-        if self._session is None:
+        if live_session is None:
             raise RuntimeError(
                 f"No live session prepared for initializer "
                 f"{self.session_initializer_id!r} in group {int(group.id)}."
             )
-        if self._session.id is None:
+        if live_session.id is None:
             raise RuntimeError("Live session must be flushed before rendering.")
-        return self._session
-
-    @property
-    def session(self):
-        """Return the initialized live session, resolving it lazily if needed."""
-
-        return self._resolve_session()
-
-    @session.setter
-    def session(self, value):
-        self._session = value
+        self._session_id = int(live_session.id)
+        return self._session_id
 
     @property
     def live_session_config(self):
         """Return browser-facing live-session transport config."""
 
-        session = self.session
         return {
-            "session_id": int(session.id),
+            "session_id": self._resolve_session_id(),
             "participant_id": int(self.participant.id),
-            "participant_ids": [int(value) for value in session.participant_ids],
         }
 
     def pre_render(self):
-        """Resolve live-session state before rendering the control template."""
+        """Resolve the live-session ID before rendering the control template."""
 
-        self._resolve_session()
+        self._resolve_session_id()

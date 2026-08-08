@@ -284,21 +284,15 @@ class SharedCanvasControl(LiveSessionControl):
 
     @property
     def canvas_config(self):
-        """Return session-specific canvas settings for the browser template."""
+        """Return canvas settings for the browser template."""
 
-        session = self.session
-        participant_ids = [int(value) for value in session.participant_ids]
-        role_index = participant_ids.index(int(self.participant.id))
-        world = session.state["params"]["world"]
         return {
-            "role": f"Player {role_index + 1}",
-            "world_id": world["world_id"],
-            "canvas_size": world["canvas_size"],
+            "canvas_size": CANVAS_SIZE,
             "trial_seconds": TRIAL_SECONDS,
             "send_interval_ms": SEND_INTERVAL_MS,
             "draw_interval_ms": DRAW_INTERVAL_MS,
             "player_radius": PLAYER_RADIUS,
-            "coin_radius": world["coin_radius"],
+            "coin_radius": COIN_RADIUS,
             "coin_bonus": COIN_BONUS,
         }
 

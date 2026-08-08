@@ -379,12 +379,11 @@ def test_live_session_control_derives_config(monkeypatch):
     )
     control.pre_render()
 
-    assert control.session is live_session
     assert control.custom_value == 10
+    assert not hasattr(control, "session")
     assert control.live_session_config == {
         "session_id": 5,
         "participant_id": 1,
-        "participant_ids": [1, 2],
     }
     assert get_for_group_calls == [
         {
