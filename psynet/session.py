@@ -130,21 +130,20 @@ class _LiveSessionMixin:
         """Return optional node/network context from the group leader's trial."""
 
         leader = group.leader
-        trial = getattr(leader, "current_trial", None) if leader is not None else None
-        node = getattr(trial, "node", None)
-        network = getattr(trial, "network", None)
-        if network is None and node is not None:
-            network = getattr(node, "network", None)
+        trial = leader.current_trial if leader is not None else None
+        if trial is None:
+            return {
+                "trial": None,
+                "node": None,
+                "network": None,
+                "node_id": None,
+                "network_id": None,
+            }
 
-        node_id = getattr(trial, "node_id", None)
-        if node_id is None and node is not None:
-            node_id = getattr(node, "id", None)
-
-        network_id = getattr(trial, "network_id", None)
-        if network_id is None and network is not None:
-            network_id = getattr(network, "id", None)
-        if network_id is None and node is not None:
-            network_id = getattr(node, "network_id", None)
+        node = trial.node
+        network = trial.network
+        node_id = trial.node_id if trial.node_id is not None else node.id
+        network_id = trial.network_id if trial.network_id is not None else network.id
 
         return {
             "trial": trial,
