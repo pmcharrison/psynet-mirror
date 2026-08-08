@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -6,6 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from pydantic import Field
 
+from psynet.session import LiveSession
 from psynet.websocket import (
     ExperimentWebSocket,
     ParticipantWebSocket,
@@ -16,6 +18,7 @@ from psynet.websocket import (
     dispatch_websocket_frame,
     extract_websocket_event_type,
     make_frame,
+    parse_websocket_frame,
     websocket_handler,
 )
 
@@ -30,6 +33,13 @@ class DoneMessage(WebSocketMessage):
     """Server message used to exercise serialization."""
 
     answer: list[str] | None = None
+
+
+class BroadcastMessage(WebSocketMessage):
+    """Message used to exercise typed handling plus outbound broadcast."""
+
+    session_id: str
+    value: int
 
 
 class EchoExperiment:
@@ -49,8 +59,50 @@ class EchoExperiment:
         return message
 
 
+class BroadcastExperiment:
+    def __init__(self):
+        self.websocket = ExperimentWebSocket(self)
+        self._native_websocket_handlers = collect_websocket_handlers(self)
+
+    @websocket_handler("broadcast", model=BroadcastMessage)
+    def broadcast(self, participant, message):
+        live_session = LiveSession.get_current_for_participant(
+            participant, message.session_id
+        )
+        if live_session is not None:
+            live_session.send_snapshot(self)
+
+
 def _participant(page_uuid="current-page"):
     return SimpleNamespace(id=7, page_uuid=page_uuid)
+
+
+def _live_session_with_participants(n_participants=4):
+    participants = [
+        SimpleNamespace(id=i, page_uuid=f"page-{i}")
+        for i in range(1, n_participants + 1)
+    ]
+    live_session = LiveSession(
+        session_id="session-1",
+        state={"value": 1},
+        participant_ids=[participant.id for participant in participants],
+        ready_participant_ids=[],
+        started=True,
+        ended=False,
+    )
+    trials = []
+    for participant in participants:
+        trial = SimpleNamespace(
+            id=participant.id,
+            participant_id=participant.id,
+            participant=participant,
+            live_session=live_session,
+            failed=False,
+        )
+        participant.current_trial = trial
+        trials.append(trial)
+    live_session.__dict__["trials"] = trials
+    return live_session, participants
 
 
 def test_decorated_experiment_handler_validates_and_dispatches_event():
@@ -146,6 +198,53 @@ def test_dispatch_rejects_invalid_payload():
         is None
     )
     assert not hasattr(participant, "handled_value")
+
+
+def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
+    """Typed inbound handling plus outbound broadcast stays below 5 ms."""
+
+    class FakeRedis:
+        publish_count = 0
+
+        def publish(self, channel, payload):
+            self.publish_count += 1
+
+    fake_redis = FakeRedis()
+    monkeypatch.setattr("psynet.websocket.redis_conn", fake_redis)
+
+    live_session, session_participants = _live_session_with_participants()
+    participant = session_participants[0]
+    experiment = BroadcastExperiment()
+    raw_frame = json.dumps(
+        {
+            "type": "broadcast",
+            "message": {"session_id": live_session.session_id, "value": 1},
+            "page_uuid": participant.page_uuid,
+        }
+    )
+    receive_time = datetime(2026, 7, 8, 16, 30, tzinfo=UTC)
+
+    for _ in range(20):
+        dispatch_websocket_frame(
+            experiment,
+            participant=participant,
+            frame=parse_websocket_frame(raw_frame),
+            receive_time=receive_time,
+        )
+
+    n_messages = 1000
+    start = time.perf_counter()
+    for _ in range(n_messages):
+        dispatch_websocket_frame(
+            experiment,
+            participant=participant,
+            frame=parse_websocket_frame(raw_frame),
+            receive_time=receive_time,
+        )
+    elapsed = time.perf_counter() - start
+
+    assert elapsed / n_messages < 0.005
+    assert fake_redis.publish_count == n_messages + 20
 
 
 def test_event_type_extraction():
