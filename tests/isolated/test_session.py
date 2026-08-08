@@ -341,17 +341,15 @@ def test_live_session_initializer_delegates_creation_to_leader(monkeypatch):
 def test_live_session_control_derives_config(monkeypatch):
     """LiveSessionControl derives transport config from participant and group."""
 
-    live_session = SimpleNamespace(
-        id=5,
-        sync_group_id=9,
-        participant_ids=[1, 2],
-        node_id=11,
-        network_id=12,
-    )
+    live_session = None
+    get_for_group_calls = []
+
+    def get_for_group(cls, **kwargs):
+        get_for_group_calls.append(kwargs)
+        return live_session
+
     monkeypatch.setattr(
-        PolymorphicDemoLiveSession,
-        "get_for_group",
-        classmethod(lambda cls, **kwargs: live_session),
+        PolymorphicDemoLiveSession, "get_for_group", classmethod(get_for_group)
     )
 
     class DemoControl(LiveSessionControl):
@@ -370,6 +368,16 @@ def test_live_session_control_derives_config(monkeypatch):
     participant = group.active_participants[0]
 
     control = DemoControl(participant)
+    assert get_for_group_calls == []
+
+    live_session = SimpleNamespace(
+        id=5,
+        sync_group_id=9,
+        participant_ids=[1, 2],
+        node_id=11,
+        network_id=12,
+    )
+    control.pre_render()
 
     assert control.session is live_session
     assert control.custom_value == 10
@@ -378,10 +386,18 @@ def test_live_session_control_derives_config(monkeypatch):
         "participant_id": 1,
         "participant_ids": [1, 2],
     }
+    assert get_for_group_calls == [
+        {
+            "group": group,
+            "initializer_id": "demo_session",
+            "node_id": 11,
+            "network_id": 12,
+        }
+    ]
 
 
 def test_live_session_control_requires_existing_session(monkeypatch):
-    """Controls fail clearly if the initializer has not created a row."""
+    """Controls fail clearly at render time if no initializer row exists."""
 
     monkeypatch.setattr(
         PolymorphicDemoLiveSession,
@@ -398,8 +414,10 @@ def test_live_session_control_requires_existing_session(monkeypatch):
                 session_initializer_id="missing_session",
             )
 
+    control = DemoControl(participant=_group().active_participants[0])
+
     with pytest.raises(RuntimeError, match="No live session prepared"):
-        DemoControl(participant=_group().active_participants[0])
+        control.pre_render()
 
 
 def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):

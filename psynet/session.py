@@ -478,32 +478,70 @@ class LiveSessionControl(Control):
             show_next_button=show_next_button,
         )
         self.participant = participant
+        self.session_class = session_class
+        self.group_type = group_type
+        self.session_initializer_id = session_initializer_id
+        self._session = None
+
+    def _get_group(self):
+        """Return the participant's active group for this live session."""
+
         try:
-            group = participant.active_sync_groups[group_type]
+            group = self.participant.active_sync_groups[self.group_type]
         except KeyError as exc:
             raise ValueError(
-                f"Participant {participant.id} has no active sync group "
-                f"for group_type {group_type!r}."
+                f"Participant {self.participant.id} has no active sync group "
+                f"for group_type {self.group_type!r}."
             ) from exc
         if group is None:
             raise ValueError("LiveSessionControl requires an active sync group.")
+        return group
 
-        context = session_class._current_trial_context(group)
-        self.session = session_class.get_for_group(
+    def _resolve_session(self):
+        """Resolve the initialized live-session row for this control."""
+
+        if self._session is not None:
+            return self._session
+
+        group = self._get_group()
+        context = self.session_class._current_trial_context(group)
+        self._session = self.session_class.get_for_group(
             group=group,
-            initializer_id=session_initializer_id,
+            initializer_id=self.session_initializer_id,
             node_id=context["node_id"],
             network_id=context["network_id"],
         )
-        if self.session is None:
+        if self._session is None:
             raise RuntimeError(
                 f"No live session prepared for initializer "
-                f"{session_initializer_id!r} in group {int(group.id)}."
+                f"{self.session_initializer_id!r} in group {int(group.id)}."
             )
-        if self.session.id is None:
+        if self._session.id is None:
             raise RuntimeError("Live session must be flushed before rendering.")
-        self.live_session_config = {
-            "session_id": int(self.session.id),
-            "participant_id": int(participant.id),
-            "participant_ids": [int(value) for value in self.session.participant_ids],
+        return self._session
+
+    @property
+    def session(self):
+        """Return the initialized live session, resolving it lazily if needed."""
+
+        return self._resolve_session()
+
+    @session.setter
+    def session(self, value):
+        self._session = value
+
+    @property
+    def live_session_config(self):
+        """Return browser-facing live-session transport config."""
+
+        session = self.session
+        return {
+            "session_id": int(session.id),
+            "participant_id": int(self.participant.id),
+            "participant_ids": [int(value) for value in session.participant_ids],
         }
+
+    def pre_render(self):
+        """Resolve live-session state before rendering the control template."""
+
+        self._resolve_session()

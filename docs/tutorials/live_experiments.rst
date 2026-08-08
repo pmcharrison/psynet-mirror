@@ -70,13 +70,15 @@ PsyNet provides :class:`~psynet.session.LiveSession` for this purpose. A live
 session is a persisted row owned by a synchronized group. It is created
 explicitly by a :class:`~psynet.session.LiveSessionInitializer`, which is a
 barrier that delegates row creation to the group leader. A
-:class:`~psynet.session.LiveSessionControl` resolves that existing row and
-exposes a ``live_session_config`` object to the browser, including the SQL row
-ID as ``session_id`` and the participant IDs. Browser code passes this config
-to ``psynet.session.init()``, then sends a ready event once it has registered
-its handlers. After ``psynet.session.init()`` the browser automatically
-attaches the session ID to subsequent ``psynet.websocket.send(...)`` calls from
-that page.
+:class:`~psynet.session.LiveSessionControl` resolves that existing row when the
+page renders and exposes a ``live_session_config`` object to the browser,
+including the SQL row ID as ``session_id`` and the participant IDs. This means
+you can construct the control in a normal ``ModularPage`` immediately after the
+initializer in the timeline. Browser code passes this config to
+``psynet.session.init()``, then sends a ready event once it has registered its
+handlers. After ``psynet.session.init()`` the browser automatically attaches
+the session ID to subsequent ``psynet.websocket.send(...)`` calls from that
+page.
 Register ``psynet.session.onFreshState(...)`` to render authoritative state
 copies, and call ``psynet.session.pullState()`` when the browser needs a fresh
 copy. ``pullState(["field_a", "field_b"])`` requests only selected public state
