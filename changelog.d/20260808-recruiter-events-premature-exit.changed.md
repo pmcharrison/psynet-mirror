@@ -1,0 +1,1 @@
+Recruiter events that end a still-working participant (assignment abandonment, marketplace return such as a Prolific return, or reassignment) now mark the participant as a premature exit and defer trial invalidation to each TrialMaker's `fail_trials_on_premature_exit` policy, instead of unconditionally failing the participant's nodes.

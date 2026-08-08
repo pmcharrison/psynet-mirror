@@ -2299,16 +2299,33 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return (not self.need_more_participants) and self.num_working_participants == 0
 
     def assignment_abandoned(self, participant):
-        participant.append_failure_tags("assignment_abandoned", "premature_exit")
-        super().assignment_abandoned(participant)
+        self._handle_premature_exit(participant, "assignment_abandoned")
 
     def assignment_returned(self, participant):
-        participant.append_failure_tags("assignment_returned", "premature_exit")
-        super().assignment_returned(participant)
+        self._handle_premature_exit(participant, "assignment_returned")
 
     def assignment_reassigned(self, participant):
-        participant.append_failure_tags("assignment_reassigned", "premature_exit")
-        super().assignment_reassigned(participant)
+        self._handle_premature_exit(participant, "assignment_reassigned")
+
+    def _handle_premature_exit(self, participant, cause_tag):
+        """Handle a recruiter event that ends a still-working participant early.
+
+        Recruiter events such as assignment abandonment, marketplace return, and
+        assignment reassignment describe the disposition of the recruitment
+        assignment, not the quality of the participant's responses. We therefore
+        treat them as a premature exit: the participant is marked as failed, and
+        each TrialMaker decides whether to invalidate its own trials via
+        ``fail_trials_on_premature_exit``. This deliberately replaces Dallinger's
+        default behaviour of unconditionally failing the participant's nodes,
+        which bypassed TrialMaker failure policy.
+
+        :meth:`~psynet.participant.Participant.fail` is a no-op for participants
+        who have already failed or completed, so a later settlement event (for
+        example a return-for-bonus after an unsuccessful end) records the
+        recruiter cause without re-running trial-invalidation logic.
+        """
+        participant.append_failure_tags(cause_tag, "premature_exit")
+        participant.fail()
 
     def bonus(self, participant: Participant) -> float:
         """Calculate the reward the participant gets when completing the experiment.

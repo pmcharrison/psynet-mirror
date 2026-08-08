@@ -96,6 +96,16 @@ finalized trials. If it is ``False``, those trials are preserved. Participant
 failure for any other reason preserves trials unless custom failure logic
 explicitly fails them.
 
+Recruiter events count as premature exit. When a recruiter reports that a
+still-working participant abandoned, returned, or had their assignment
+reassigned (for example a submission returned on Prolific), PsyNet marks the
+participant as failed with the ``premature_exit`` tag. Trial invalidation then
+follows each TrialMaker's ``fail_trials_on_premature_exit`` setting, exactly as
+for any other premature exit; the recruiter event does not decide trial
+validity on its own. A participant who has already failed or completed is left
+untouched, so a later return purely to settle a partial payment does not
+re-invalidate trials.
+
 A performance check is a participant-level quality decision. It can represent poor task performance,
 insufficiently grammatical responses, failed attention checks, or signs of
 automated or bot behavior. When a participant receives the
