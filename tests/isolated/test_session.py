@@ -91,6 +91,21 @@ def test_live_session_snapshot_payload_can_filter_state_fields():
     assert state.snapshot_payload(fields=["score", "missing"])["state"] == {"score": 3}
 
 
+def test_live_session_status_payload_is_json_ready():
+    """Status payloads expose readiness without public state."""
+
+    state = _state()
+    state.mark_ready(SimpleNamespace(id=1))
+
+    assert state.status_payload() == {
+        "session_id": "session-1",
+        "participant_ids": ["1", "2"],
+        "ready_participant_ids": ["1"],
+        "started": False,
+        "ended": False,
+    }
+
+
 def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
     """StateRequest sends a snapshot through the experiment websocket helper."""
 
@@ -170,7 +185,11 @@ def test_ready_event_marks_state_and_sends_snapshot(monkeypatch):
     )
 
     assert state.ready_participant_ids == [1]
-    experiment.websocket.send.assert_called_once()
+    experiment.websocket.send.assert_called_once_with(
+        state.participants,
+        "sessionStatus",
+        state.status_payload(),
+    )
 
 
 def test_ready_event_rejects_non_member(monkeypatch):

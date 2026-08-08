@@ -16,6 +16,7 @@ from psynet.websocket import WebSocketMessage
 STATE_REQUEST_EVENT = "stateRequest"
 STATE_SNAPSHOT_EVENT = "stateSnapshot"
 READY_EVENT = "ready"
+SESSION_STATUS_EVENT = "sessionStatus"
 SESSION_END_EVENT = "sessionEnd"
 
 
@@ -205,10 +206,23 @@ class _LiveSessionMixin:
         state = self.state or {}
         if fields is not None:
             state = {field: state[field] for field in fields if field in state}
+        payload = {
+            "session_id": self.session_id,
+            "state": state,
+            "participant_ids": [str(value) for value in (self.participant_ids or [])],
+            "ready_participant_ids": [
+                str(value) for value in (self.ready_participant_ids or [])
+            ],
+            "started": bool(self.started),
+            "ended": bool(self.ended),
+        }
+        return payload
+
+    def status_payload(self) -> dict:
+        """Return JSON-serializable live-session lifecycle status."""
 
         return {
             "session_id": self.session_id,
-            "state": state,
             "participant_ids": [str(value) for value in (self.participant_ids or [])],
             "ready_participant_ids": [
                 str(value) for value in (self.ready_participant_ids or [])
@@ -228,6 +242,17 @@ class _LiveSessionMixin:
             participants,
             STATE_SNAPSHOT_EVENT,
             self.snapshot_payload(fields=fields),
+        )
+
+    def send_status(self, experiment, participants=None):
+        """Send the current lifecycle status to live-session participants."""
+
+        if participants is None:
+            participants = self.participants
+        experiment.websocket.send(
+            participants,
+            SESSION_STATUS_EVENT,
+            self.status_payload(),
         )
 
     def send_session_end(self, experiment):
@@ -276,7 +301,7 @@ class _LiveSessionMixin:
         if live_session is None:
             return
         live_session.mark_ready(participant)
-        live_session.send_snapshot(experiment)
+        live_session.send_status(experiment)
         db.session.commit()
 
     @classmethod

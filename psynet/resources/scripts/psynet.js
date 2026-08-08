@@ -950,12 +950,16 @@
       let endHandled = false;
       let lifecycleToken = 0;
       let unsubscribeStateSnapshot = null;
+      let unsubscribeSessionStatus = null;
       let unsubscribeSessionEnd = null;
       let unsubscribeConnect = null;
 
       let api = {
         snapshot: null,
+        status: null,
         state: {},
+        participant_ids: [],
+        ready_participant_ids: [],
         started: false,
         ended: false,
       };
@@ -969,7 +973,10 @@
         let wasStarted = api.started;
         let wasEnded = api.ended;
         api.snapshot = snapshot;
+        api.status = snapshot;
         api.state = snapshot.state || {};
+        api.participant_ids = snapshot.participant_ids || [];
+        api.ready_participant_ids = snapshot.ready_participant_ids || [];
         api.started = Boolean(snapshot.started);
         api.ended = Boolean(snapshot.ended);
         freshStateHandlers.forEach((handler) => handler(snapshot));
@@ -978,6 +985,24 @@
         }
         if (!wasEnded && api.ended) {
           finish(snapshot);
+        }
+      }
+
+      function applyStatus(status) {
+        if (!matchesConfig(status)) return;
+        let wasStarted = api.started;
+        let wasEnded = api.ended;
+        api.status = status;
+        api.participant_ids = status.participant_ids || api.participant_ids || [];
+        api.ready_participant_ids =
+          status.ready_participant_ids || api.ready_participant_ids || [];
+        api.started = Boolean(status.started);
+        api.ended = Boolean(status.ended);
+        if (!wasStarted && api.started) {
+          startedHandlers.forEach((handler) => handler(status));
+        }
+        if (!wasEnded && api.ended) {
+          finish(api.snapshot || status);
         }
       }
 
@@ -1017,7 +1042,10 @@
 
       function resetState() {
         api.snapshot = null;
+        api.status = null;
         api.state = {};
+        api.participant_ids = [];
+        api.ready_participant_ids = [];
         api.started = false;
         api.ended = false;
         endHandled = false;
@@ -1025,9 +1053,11 @@
 
       function unsubscribeBuiltInHandlers() {
         if (unsubscribeStateSnapshot) unsubscribeStateSnapshot();
+        if (unsubscribeSessionStatus) unsubscribeSessionStatus();
         if (unsubscribeSessionEnd) unsubscribeSessionEnd();
         if (unsubscribeConnect) unsubscribeConnect();
         unsubscribeStateSnapshot = null;
+        unsubscribeSessionStatus = null;
         unsubscribeSessionEnd = null;
         unsubscribeConnect = null;
       }
@@ -1061,6 +1091,10 @@
           "stateSnapshot",
           applySnapshot,
         );
+        unsubscribeSessionStatus = psynet.websocket.handle(
+          "sessionStatus",
+          applyStatus,
+        );
         unsubscribeSessionEnd = psynet.websocket.handle("sessionEnd", applyEnd);
         unsubscribeConnect = psynet.websocket.onConnect(pullState);
         pullState();
@@ -1087,7 +1121,7 @@
 
       api.onStarted = function (handler) {
         startedHandlers.push(handler);
-        if (api.started && api.snapshot) handler(api.snapshot);
+        if (api.started) handler(api.snapshot || api.status);
         return function () {
           startedHandlers = startedHandlers.filter((x) => x !== handler);
         };
@@ -1095,7 +1129,7 @@
 
       api.onEnd = function (handler) {
         endHandlers.push(handler);
-        if (api.ended && api.snapshot) handler(api.snapshot);
+        if (api.ended) handler(api.snapshot || api.status);
         return function () {
           endHandlers = endHandlers.filter((x) => x !== handler);
         };
