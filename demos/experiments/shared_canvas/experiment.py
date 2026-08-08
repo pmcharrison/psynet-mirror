@@ -278,7 +278,6 @@ class SharedCanvasControl(LiveSessionControl):
             trial=trial,
             show_next_button=False,
         )
-        trial.initialize_coin_count()
 
     def build_control_params(self):
         """Return browser-facing shared-canvas config."""
@@ -313,12 +312,6 @@ class SharedCanvasTrial(StaticTrial):
         """Return the number of accepted coins for this participant's trial."""
 
         return int((self.vars or {}).get("coins", 0))
-
-    def initialize_coin_count(self):
-        """Initialize the trial coin count if needed."""
-
-        if "coins" not in (self.vars or {}):
-            self.var.coins = 0
 
     def record_coin(self):
         """Increment the trial coin count after an accepted collection."""
