@@ -310,7 +310,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     score = Column(Float)
     performance_reward = Column(Float)
     parent_trial_id = Column(Integer, ForeignKey("info.id"), index=True)
-    live_session_id = Column(Integer, ForeignKey("live_session.id"), index=True)
     answer = Column(PythonObject)
     propagate_failure = Column(Boolean)
     response_id = Column(Integer, ForeignKey("response.id"), index=True)
@@ -364,11 +363,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     parent_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[parent_trial_id], uselist=False
     )
-    live_session = relationship(
-        "psynet.session.LiveSession",
-        foreign_keys=[live_session_id],
-        back_populates="trials",
-    )
     response = relationship("psynet.timeline.Response")
 
     async_processes = relationship("AsyncProcess")
@@ -390,15 +384,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
-    live_session_class = None
-
-    @classmethod
-    def prepare_live_session(cls, *, group):
-        """Prepare an optional live session for synchronized group trials."""
-
-        if cls.live_session_class is None:
-            return None
-        return cls.live_session_class.prepare_for_group(group=group)
 
     @property
     def var(self):
@@ -2055,8 +2040,6 @@ class TrialMaker(Module):
                 participant=follower,
                 leader=group.leader,
             )
-        if leader.trial_status == "available":
-            self.trial_class.prepare_live_session(group=group)
 
     max_time_waiting_for_trial = 60
 

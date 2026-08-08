@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from dallinger import db
 from pydantic import Field
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.session import LiveSession
@@ -40,7 +40,7 @@ class DoneMessage(WebSocketMessage):
 class BroadcastMessage(WebSocketMessage):
     """Message used to exercise typed handling plus outbound broadcast."""
 
-    session_id: str
+    session_id: int
     value: int
 
 
@@ -50,7 +50,7 @@ class WebSocketBenchmarkEvent(SQLBase, SQLMixin):
 
     __tablename__ = "websocket_benchmark_event"
 
-    session_id = Column(String)
+    session_id = Column(Integer)
     participant_id = Column(Integer)
     message_count = Column(Integer)
 
@@ -89,7 +89,7 @@ class BroadcastExperiment:
             live_session.state = state
             db.session.add(
                 WebSocketBenchmarkEvent(
-                    session_id=live_session.session_id,
+                    session_id=live_session.id,
                     participant_id=participant.id,
                     message_count=message_count,
                 )
@@ -107,25 +107,16 @@ def _live_session_with_participants(n_participants=4):
         for i in range(1, n_participants + 1)
     ]
     live_session = LiveSession(
-        session_id="session-1",
         state={"value": 1},
         participant_ids=[participant.id for participant in participants],
         ready_participant_ids=[],
         started=True,
         ended=False,
     )
-    trials = []
-    for participant in participants:
-        trial = SimpleNamespace(
-            id=participant.id,
-            participant_id=participant.id,
-            participant=participant,
-            live_session=live_session,
-            failed=False,
-        )
-        participant.current_trial = trial
-        trials.append(trial)
-    live_session.__dict__["trials"] = trials
+    live_session.id = 1
+    live_session.__dict__["sync_group"] = SimpleNamespace(
+        active_participants=participants
+    )
     return live_session, participants
 
 
@@ -239,12 +230,17 @@ def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
     monkeypatch.setattr(db.session, "add", added_events.append)
 
     live_session, session_participants = _live_session_with_participants()
+    monkeypatch.setattr(
+        LiveSession,
+        "get",
+        classmethod(lambda cls, session_id, **kwargs: live_session),
+    )
     participant = session_participants[0]
     experiment = BroadcastExperiment()
     raw_frame = json.dumps(
         {
             "type": "broadcast",
-            "message": {"session_id": live_session.session_id, "value": 1},
+            "message": {"session_id": live_session.id, "value": 1},
             "page_uuid": participant.page_uuid,
         }
     )

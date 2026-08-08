@@ -45,7 +45,7 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
-from psynet.session import LiveSession, LiveSessionControl
+from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -89,7 +89,7 @@ Choice = Literal["rock", "paper", "scissors"]
 class ChooseMessage(WebSocketMessage):
     """A participant's committed choice for one websocket game round."""
 
-    session_id: str = Field(min_length=1)
+    session_id: int = Field(ge=1)
     round: int = Field(ge=1, le=N_ROUNDS)
     action: Choice
 
@@ -123,7 +123,7 @@ class RockPaperScissorsSession(LiveSession):
     """Persisted live session for one rock-paper-scissors game."""
 
     @classmethod
-    def build_initial_state(cls, participant_ids, group, trial):
+    def build_initial_state(cls, participant_ids, group, context=None):
         """Return the public recoverable state for a new RPS session."""
 
         return initial_rps_state(participant_ids)
@@ -194,7 +194,7 @@ class RockPaperScissorsSession(LiveSession):
         return reveals
 
 
-def moves_for_round(session_id: str, round_number: int):
+def moves_for_round(session_id: int, round_number: int):
     """Return submitted moves for a given live session and round."""
 
     return {
@@ -206,7 +206,7 @@ def moves_for_round(session_id: str, round_number: int):
     }
 
 
-def participant_moves(session_id: str, participant_id: int):
+def participant_moves(session_id: int, participant_id: int):
     """Return a participant's submitted moves in round order."""
 
     return [
@@ -222,7 +222,7 @@ def participant_moves(session_id: str, participant_id: int):
 
 def reveal_for(
     public_state: dict,
-    session_id: str,
+    session_id: int,
     participant_id: int,
     round_number: int,
     *,
@@ -279,7 +279,7 @@ class RockPaperScissorsMove(SQLBase, SQLMixin):
     __tablename__ = "rock_paper_scissors_move"
     __table_args__ = (UniqueConstraint("session_id", "round_number", "participant_id"),)
 
-    session_id = Column(String(128), index=True)
+    session_id = Column(Integer, index=True)
     round_number = Column(Integer)
     participant_id = Column(Integer, index=True)
     action = Column(String)
@@ -293,7 +293,7 @@ class RockPaperScissorsControl(LiveSessionControl):
     external_template = "rps-control.html"
     macro = "rps_control"
 
-    def __init__(self, trial, participant, color, n_rounds=N_ROUNDS, choices=CHOICES):
+    def __init__(self, participant, color, n_rounds=N_ROUNDS, choices=CHOICES):
         # The board advances itself once all rounds are revealed, so we hide the
         # default 'Next' button and submit programmatically from the template.
         self.color = color
@@ -301,7 +301,9 @@ class RockPaperScissorsControl(LiveSessionControl):
         self.choices = choices
         super().__init__(
             participant=participant,
-            trial=trial,
+            session_class=RockPaperScissorsSession,
+            group_type=GROUP_TYPE,
+            session_initializer_id="rps_session",
             show_next_button=False,
         )
 
@@ -321,15 +323,14 @@ class RockPaperScissorsControl(LiveSessionControl):
 
 
 class RockPaperScissorsTrial(StaticTrial):
-    live_session_class = RockPaperScissorsSession
     time_estimate = 30
 
     def show_trial(self, experiment, participant):
         return join(
-            GroupBarrier(
-                id_="wait_for_partner",
+            LiveSessionInitializer(
+                id_="rps_session",
                 group_type=GROUP_TYPE,
-                waiting_logic=WaitPage(wait_time=0.5, save_answer=False),
+                session_class=RockPaperScissorsSession,
                 max_wait_time=120,
             ),
             self.play_game(participant=participant, color=self.definition["color"]),
@@ -354,7 +355,7 @@ class RockPaperScissorsTrial(StaticTrial):
         return ModularPage(
             "play_game",
             prompt,
-            RockPaperScissorsControl(trial=self, participant=participant, color=color),
+            RockPaperScissorsControl(participant=participant, color=color),
             time_estimate=30,
             save_answer="rps_moves",
         )
@@ -459,7 +460,7 @@ class Exp(psynet.experiment.Experiment):
     def _valid_choose_event():
         return ChooseMessage.model_validate(
             {
-                "session_id": "test-session",
+                "session_id": 1,
                 "round": 2,
                 "action": "paper",
             }
@@ -477,7 +478,7 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def test_websocket_event_parsing():
         """Check websocket event parsing and validation."""
-        session_id = "test-session"
+        session_id = 1
         event = Exp._valid_choose_event()
         assert event == ChooseMessage(
             session_id=session_id,
@@ -544,7 +545,7 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def test_reveal_formatting():
         """Check reveal formatting from public LiveSession and hidden move log."""
-        session_id = "test-session"
+        session_id = 1
         state = initial_rps_state([1, 2])
         state["scores"] = {"1": 1, "2": -1}
 

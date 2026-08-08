@@ -67,19 +67,27 @@ lets the experiment:
 * end the live interaction from the server.
 
 PsyNet provides :class:`~psynet.session.LiveSession` for this purpose. A live
-session is a persisted row linked to the synchronized trials in a group. A
-trial-backed :class:`~psynet.session.LiveSessionControl` exposes a
-``live_session_config`` object to the browser, including the ``session_id`` and
-participant IDs. Browser code passes this config to ``psynet.session.init()``,
-then sends a ready event once it has registered its handlers. After
-``psynet.session.init()`` the browser automatically attaches the session ID to
-subsequent ``psynet.websocket.send(...)`` calls from that page.
+session is a persisted row owned by a synchronized group. It is created
+explicitly by a :class:`~psynet.session.LiveSessionInitializer`, which is a
+barrier that delegates row creation to the group leader. A
+:class:`~psynet.session.LiveSessionControl` resolves that existing row and
+exposes a ``live_session_config`` object to the browser, including the SQL row
+ID as ``session_id`` and the participant IDs. Browser code passes this config
+to ``psynet.session.init()``, then sends a ready event once it has registered
+its handlers. After ``psynet.session.init()`` the browser automatically
+attaches the session ID to subsequent ``psynet.websocket.send(...)`` calls from
+that page.
 Register ``psynet.session.onFreshState(...)`` to render authoritative state
 copies, and call ``psynet.session.pullState()`` when the browser needs a fresh
 copy. ``pullState(["field_a", "field_b"])`` requests only selected public state
 fields. For frequent live updates, prefer custom ``psynet.websocket.send(...)``
 messages that include only the data needed for that update; reserve fresh state
 snapshots for synchronization and recovery.
+
+``LiveSessionInitializer`` uses a short
+``WaitPage(wait_time=0.5, save_answer=False)`` by default while the group waits
+for the barrier to release. You can pass a custom ``waiting_logic`` when an
+experiment needs a different waiting page.
 
 Minimal example
 ---------------
@@ -96,9 +104,9 @@ live interaction.
     import psynet.experiment
     from psynet.modular_page import ModularPage
     from psynet.page import InfoPage
-    from psynet.session import LiveSession, LiveSessionControl
+    from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer
     from psynet.sync import SimpleGrouper
-    from psynet.timeline import Timeline
+    from psynet.timeline import Timeline, join
     from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
     from psynet.websocket import WebSocketMessage, websocket_handler
 
@@ -108,13 +116,13 @@ live interaction.
 
 
     class ChooseMessage(WebSocketMessage):
-        session_id: str = Field(min_length=1)
+        session_id: int = Field(ge=1)
         action: str
 
 
     class RockPaperScissorsSession(LiveSession):
         @classmethod
-        def build_initial_state(cls, participant_ids, group, trial):
+        def build_initial_state(cls, participant_ids, group, context=None):
             return {
                 "choices": {},
                 "finished": False,
@@ -137,21 +145,35 @@ live interaction.
         external_template = "rps.html"
         macro = "rps_control"
 
+        def __init__(self, participant):
+            super().__init__(
+                participant=participant,
+                session_class=RockPaperScissorsSession,
+                group_type=GROUP_TYPE,
+                session_initializer_id="rps_session",
+            )
+
         def build_control_params(self):
             return {"choices": CHOICES}
 
 
     class RockPaperScissorsTrial(StaticTrial):
-        live_session_class = RockPaperScissorsSession
         time_estimate = 20
 
         def show_trial(self, experiment, participant):
-            return ModularPage(
-                "live_rps",
-                "Choose rock, paper, or scissors.",
-                RockPaperScissorsControl(participant=participant, trial=self),
-                save_answer="choice",
-                time_estimate=20,
+            return join(
+                LiveSessionInitializer(
+                    id_="rps_session",
+                    group_type=GROUP_TYPE,
+                    session_class=RockPaperScissorsSession,
+                ),
+                ModularPage(
+                    "live_rps",
+                    "Choose rock, paper, or scissors.",
+                    RockPaperScissorsControl(participant=participant),
+                    save_answer="choice",
+                    time_estimate=20,
+                ),
             )
 
 

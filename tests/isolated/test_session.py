@@ -7,10 +7,10 @@ from sqlalchemy import Column, String
 from psynet.session import (
     LiveSession,
     LiveSessionControl,
+    LiveSessionInitializer,
     ReadyMessage,
     StateRequestMessage,
 )
-from psynet.trial.main import TrialMaker
 
 
 class PolymorphicDemoLiveSession(LiveSession):
@@ -18,28 +18,64 @@ class PolymorphicDemoLiveSession(LiveSession):
 
     custom_value = Column(String)
 
+    @classmethod
+    def build_initial_state(cls, participant_ids, group, context=None):
+        context = context or {}
+        return {
+            "participant_ids": participant_ids,
+            "node_id": context.get("node_id"),
+        }
+
+
+def _participants():
+    return [
+        SimpleNamespace(id=1, page_uuid="page-1", module_state=None),
+        SimpleNamespace(id=2, page_uuid="page-2", module_state=None),
+    ]
+
 
 def _state():
+    participants = _participants()
     state = LiveSession(
-        session_id="session-1",
         state={"score": 3},
         participant_ids=[1, 2],
         ready_participant_ids=[],
         started=False,
+        ended=False,
     )
-    participants = [
-        SimpleNamespace(id=1, page_uuid="page-1"),
-        SimpleNamespace(id=2, page_uuid="page-2"),
-    ]
-    state.__dict__["trials"] = [
-        SimpleNamespace(
-            participant_id=participant.id,
-            participant=participant,
-            failed=False,
-        )
-        for participant in participants
-    ]
+    state.id = 1
+    state.__dict__["sync_group"] = SimpleNamespace(active_participants=participants)
     return state
+
+
+def _group(*, leader_trial=True):
+    participants = _participants()
+    node = SimpleNamespace(id=11, network_id=12, definition={"value": "node"})
+    network = SimpleNamespace(id=12)
+    trial = (
+        SimpleNamespace(
+            id=7,
+            node_id=11,
+            network_id=12,
+            node=node,
+            network=network,
+            definition={"value": "trial"},
+        )
+        if leader_trial
+        else None
+    )
+    participants[0].current_trial = trial
+    participants[1].current_trial = SimpleNamespace(id=8, node_id=11, network_id=12)
+    group = SimpleNamespace(
+        id=9,
+        group_type="demo_group",
+        participants=participants,
+        active_participants=participants,
+        leader=participants[0],
+    )
+    for participant in participants:
+        participant.active_sync_groups = {"demo_group": group}
+    return group
 
 
 def test_live_session_tracks_ready_participants_and_started():
@@ -73,7 +109,7 @@ def test_live_session_snapshot_payload_is_json_ready():
     state.mark_ready(SimpleNamespace(id=1))
 
     assert state.snapshot_payload() == {
-        "session_id": "session-1",
+        "session_id": 1,
         "state": {"score": 3},
         "participant_ids": ["1", "2"],
         "ready_participant_ids": ["1"],
@@ -98,7 +134,7 @@ def test_live_session_status_payload_is_json_ready():
     state.mark_ready(SimpleNamespace(id=1))
 
     assert state.status_payload() == {
-        "session_id": "session-1",
+        "session_id": 1,
         "participant_ids": ["1", "2"],
         "ready_participant_ids": ["1"],
         "started": False,
@@ -111,14 +147,13 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
 
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
-    participant = SimpleNamespace(
-        id=1, current_trial=SimpleNamespace(live_session=state)
-    )
+    participant = SimpleNamespace(id=1)
+    monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
     LiveSession.handle_state_request(
         experiment,
         participant,
-        StateRequestMessage(session_id="session-1"),
+        StateRequestMessage(session_id=1),
     )
     experiment.websocket.send.assert_called_once_with(
         participant,
@@ -133,14 +168,13 @@ def test_state_request_can_send_partial_state(monkeypatch):
     state = _state()
     state.state = {"score": 3, "round": 2}
     experiment = SimpleNamespace(websocket=MagicMock())
-    participant = SimpleNamespace(
-        id=1, current_trial=SimpleNamespace(live_session=state)
-    )
+    participant = SimpleNamespace(id=1)
+    monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
     LiveSession.handle_state_request(
         experiment,
         participant,
-        StateRequestMessage(session_id="session-1", fields=["round"]),
+        StateRequestMessage(session_id=1, fields=["round"]),
     )
     experiment.websocket.send.assert_called_once_with(
         participant,
@@ -154,34 +188,31 @@ def test_state_request_rejects_non_member(monkeypatch):
 
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
-    participant = SimpleNamespace(
-        id=3, current_trial=SimpleNamespace(live_session=state)
-    )
+    participant = SimpleNamespace(id=3)
+    monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
     LiveSession.handle_state_request(
         experiment,
         participant,
-        StateRequestMessage(session_id="session-1"),
+        StateRequestMessage(session_id=1),
     )
 
     experiment.websocket.send.assert_not_called()
 
 
-def test_ready_event_marks_state_and_sends_snapshot(monkeypatch):
-    """ReadyEvent updates the row and sends the resulting snapshot."""
+def test_ready_event_marks_state_and_sends_status(monkeypatch):
+    """ReadyEvent updates the row and sends status without a state snapshot."""
 
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
-    participant = SimpleNamespace(
-        id=1, current_trial=SimpleNamespace(live_session=state)
-    )
+    participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", MagicMock())
 
     LiveSession.handle_ready_event(
         experiment,
         participant,
-        ReadyMessage(session_id="session-1"),
+        ReadyMessage(session_id=1),
     )
 
     assert state.ready_participant_ids == [1]
@@ -197,9 +228,7 @@ def test_ready_event_rejects_non_member(monkeypatch):
 
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
-    participant = SimpleNamespace(
-        id=3, current_trial=SimpleNamespace(live_session=state)
-    )
+    participant = SimpleNamespace(id=3)
     commit = MagicMock()
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", commit)
@@ -207,7 +236,7 @@ def test_ready_event_rejects_non_member(monkeypatch):
     LiveSession.handle_ready_event(
         experiment,
         participant,
-        ReadyMessage(session_id="session-1"),
+        ReadyMessage(session_id=1),
     )
 
     assert state.ready_participant_ids == []
@@ -229,50 +258,130 @@ def test_live_session_end_marks_ended_and_notifies():
     assert state.end(experiment) is False
 
 
+def test_create_for_group_is_leader_owned(monkeypatch):
+    """The initializer creates exactly one session from the group leader context."""
+
+    added = MagicMock()
+    monkeypatch.setattr("psynet.session.db.session.add", added)
+    monkeypatch.setattr("psynet.session.db.session.flush", MagicMock())
+    group = _group()
+    initializer = SimpleNamespace(id="demo_session")
+
+    live_session = PolymorphicDemoLiveSession.create_for_group(
+        group=group,
+        initializer=initializer,
+        participant=group.leader,
+    )
+
+    assert live_session.session_type == "polymorphic_demo_live_session"
+    assert live_session.group_type == "demo_group"
+    assert live_session.sync_group_id == 9
+    assert live_session.initializer_id == "demo_session"
+    assert live_session.node_id == 11
+    assert live_session.network_id == 12
+    assert live_session.created_by_participant_id == 1
+    assert live_session.participant_ids == [1, 2]
+    assert live_session.state == {"participant_ids": [1, 2], "node_id": 11}
+    added.assert_called_once_with(live_session)
+
+
+def test_create_for_group_rejects_non_leader(monkeypatch):
+    """Only the group leader may create the live session."""
+
+    group = _group()
+    initializer = SimpleNamespace(id="demo_session")
+
+    with pytest.raises(ValueError, match="Only the group leader"):
+        PolymorphicDemoLiveSession.create_for_group(
+            group=group,
+            initializer=initializer,
+            participant=group.active_participants[1],
+        )
+
+
+def test_current_trial_context_is_optional():
+    """Group-level sessions can initialize without node/network context."""
+
+    group = _group(leader_trial=False)
+
+    assert PolymorphicDemoLiveSession._current_trial_context(group) == {
+        "trial": None,
+        "node": None,
+        "network": None,
+        "node_id": None,
+        "network_id": None,
+    }
+
+
+def test_live_session_initializer_delegates_creation_to_leader(monkeypatch):
+    """The initializer's barrier callback delegates creation to the session class."""
+
+    group = _group()
+    created = MagicMock()
+    monkeypatch.setattr(PolymorphicDemoLiveSession, "create_for_group", created)
+    initializer = LiveSessionInitializer(
+        id_="demo_session",
+        group_type="demo_group",
+        session_class=PolymorphicDemoLiveSession,
+    )
+
+    initializer.on_release(
+        group=group,
+        participants=group.active_participants,
+        participant=group.leader,
+        barrier=initializer,
+    )
+
+    created.assert_called_once_with(
+        group=group,
+        initializer=initializer,
+        participant=group.leader,
+    )
+
+
 def test_live_session_control_derives_config(monkeypatch):
     """LiveSessionControl derives transport config from participant and group."""
 
-    class DemoSession:
-        @classmethod
-        def build_session_id(cls, group, trial):
-            return f"demo:{group.id}"
-
-        @classmethod
-        def build_initial_state(cls, participant_ids, group, trial):
-            return {"participant_ids": participant_ids}
+    live_session = SimpleNamespace(
+        id=5,
+        sync_group_id=9,
+        participant_ids=[1, 2],
+        node_id=11,
+        network_id=12,
+    )
+    monkeypatch.setattr(
+        PolymorphicDemoLiveSession,
+        "get_for_group",
+        classmethod(lambda cls, **kwargs: live_session),
+    )
 
     class DemoControl(LiveSessionControl):
         macro = "demo"
 
-        def __init__(self, participant, trial):
+        def __init__(self, participant):
             self.custom_value = 10
             super().__init__(
                 participant=participant,
-                trial=trial,
+                session_class=PolymorphicDemoLiveSession,
+                group_type="demo_group",
+                session_initializer_id="demo_session",
                 params={"extra": "value"},
             )
 
         def build_control_params(self):
             return {"custom": self.custom_value}
 
-    participants = [SimpleNamespace(id=2), SimpleNamespace(id=1)]
-    group = SimpleNamespace(id=9, group_type="demo_group", participants=participants)
-    participant = SimpleNamespace(
-        id=1, active_sync_groups={"demo_group": group}, sync_group=None
-    )
-    live_session = SimpleNamespace(session_id="demo:9")
-    trial = SimpleNamespace(
-        id=7,
-        live_session=live_session,
-        live_session_class=DemoSession,
-        sync_group=group,
-    )
+    group = _group()
+    participant = group.active_participants[0]
 
-    control = DemoControl(participant, trial=trial)
+    control = DemoControl(participant)
 
+    assert control.session is live_session
     assert control.live_session_config == {
-        "session_id": "demo:9",
+        "session_id": 5,
         "group_id": 9,
+        "node_id": 11,
+        "network_id": 12,
         "participant_id": 1,
         "participant_ids": [1, 2],
         "custom": 10,
@@ -280,179 +389,30 @@ def test_live_session_control_derives_config(monkeypatch):
     }
 
 
-def test_live_session_control_requires_trial():
-    """LiveSessionControl currently consumes a prepared trial."""
-
-    with pytest.raises(ValueError, match="requires a trial"):
-        LiveSessionControl._resolve_session_class(None)
-
-
-def test_live_session_control_requires_trial_session_class():
-    """Trial-backed live controls derive the session class from the trial."""
-
-    trial = SimpleNamespace(live_session_class=None)
-
-    with pytest.raises(ValueError, match="must define live_session_class"):
-        LiveSessionControl._resolve_session_class(trial)
-
-
-def test_live_session_control_requires_sync_group():
-    """Trial-backed live controls derive the group from the trial."""
-
-    trial = SimpleNamespace(sync_group=None)
-
-    with pytest.raises(ValueError, match="sync group"):
-        LiveSessionControl._resolve_group(trial)
-
-
-def test_live_session_links_trials():
-    """LiveSession tracks participant trials associated with a shared session."""
-
-    state = _state()
-    state.id = 10
-    trial = SimpleNamespace(
-        id=7,
-        participant_id=1,
-        failed=False,
-        live_session_id=None,
-        live_session=None,
-    )
-
-    assert state.link_trial(trial) is trial
-    assert trial.live_session is state
-
-
-def test_live_session_prepare_for_group_creates_and_links_trials(monkeypatch):
-    """Live sessions are prepared once for a synchronized trial group."""
-
-    added = MagicMock()
-    monkeypatch.setattr("psynet.session.db.session.add", added)
-    monkeypatch.setattr("psynet.session.db.session.flush", MagicMock())
-    monkeypatch.setattr(
-        PolymorphicDemoLiveSession,
-        "get",
-        classmethod(lambda cls, session_id: None),
-    )
-
-    trials = [
-        SimpleNamespace(
-            id=7,
-            participant_id=1,
-            failed=False,
-            live_session_id=None,
-            live_session=None,
-            network=SimpleNamespace(id=11),
-        ),
-        SimpleNamespace(
-            id=8,
-            participant_id=2,
-            failed=False,
-            live_session_id=None,
-            live_session=None,
-            network=SimpleNamespace(id=12),
-        ),
-    ]
-    participants = [
-        SimpleNamespace(id=2, current_trial=trials[1]),
-        SimpleNamespace(id=1, current_trial=trials[0]),
-    ]
-    group = SimpleNamespace(
-        id=9,
-        participants=participants,
-        active_participants=participants,
-        leader=participants[0],
-    )
-
-    live_session = PolymorphicDemoLiveSession.prepare_for_group(group=group)
-
-    assert live_session.session_id == "polymorphic_demo_live_session:network:12:group:9"
-    assert live_session.participant_ids == [1, 2]
-    assert [trial.live_session for trial in trials] == [live_session, live_session]
-    added.assert_called_once_with(live_session)
-
-
-def test_live_session_prepare_for_group_requires_leader_trial(monkeypatch):
-    """A synchronized live session must be derived from the group leader's trial."""
+def test_live_session_control_requires_existing_session(monkeypatch):
+    """Controls fail clearly if the initializer has not created a row."""
 
     monkeypatch.setattr(
         PolymorphicDemoLiveSession,
-        "get",
-        classmethod(lambda cls, session_id: None),
+        "get_for_group",
+        classmethod(lambda cls, **kwargs: None),
     )
 
-    follower_trial = SimpleNamespace(
-        id=7,
-        participant_id=1,
-        failed=False,
-        live_session_id=None,
-        live_session=None,
-        network=SimpleNamespace(id=12),
-    )
-    participants = [
-        SimpleNamespace(id=2, current_trial=None),
-        SimpleNamespace(id=1, current_trial=follower_trial),
-    ]
-    group = SimpleNamespace(
-        id=9,
-        participants=participants,
-        active_participants=participants,
-        leader=participants[0],
-    )
+    class DemoControl(LiveSessionControl):
+        def __init__(self, participant):
+            super().__init__(
+                participant=participant,
+                session_class=PolymorphicDemoLiveSession,
+                group_type="demo_group",
+                session_initializer_id="missing_session",
+            )
 
-    with pytest.raises(ValueError, match="no trial for leader"):
-        PolymorphicDemoLiveSession.prepare_for_group(group=group)
-
-
-def test_group_trial_preparation_skips_live_session_when_exiting(monkeypatch):
-    """Trial-maker completion should not try to prepare a live session."""
-
-    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: object())
-
-    trial_class = SimpleNamespace(prepare_live_session=MagicMock())
-    trial_maker = SimpleNamespace(trial_class=trial_class)
-
-    def prepare_trial(experiment, participant, leader=None):
-        return None, "exit"
-
-    trial_maker._prepare_trial = prepare_trial
-    leader = SimpleNamespace(id=1, current_trial="old", trial_status=None)
-    follower = SimpleNamespace(id=2, current_trial="old", trial_status=None)
-    group = SimpleNamespace(leader=leader, active_followers=[follower])
-
-    TrialMaker._try_to_prepare_trial_group(trial_maker, group)
-
-    assert leader.current_trial is None
-    assert leader.trial_status == "exit"
-    assert follower.current_trial is None
-    assert follower.trial_status == "exit"
-    trial_class.prepare_live_session.assert_not_called()
-
-
-def test_live_session_default_session_id_uses_class_and_network():
-    """Default live-session IDs include the session class and shared network."""
-
-    group = SimpleNamespace(id=9)
-    trial = SimpleNamespace(network=SimpleNamespace(id=12))
-
-    assert (
-        PolymorphicDemoLiveSession.build_session_id(group, trial)
-        == "polymorphic_demo_live_session:network:12:group:9"
-    )
-
-
-def test_live_session_rejects_mismatched_trial_link():
-    """A trial cannot be silently moved to a different live session."""
-
-    state = _state()
-    state.id = 10
-    trial = SimpleNamespace(id=7, live_session_id=11)
-
-    with pytest.raises(ValueError, match="already linked"):
-        state.link_trial(trial)
+    with pytest.raises(RuntimeError, match="No live session prepared"):
+        DemoControl(participant=_group().active_participants[0])
 
 
 def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
-    """SessionEnd can be triggered from a session class and ID."""
+    """SessionEnd can be triggered from a session class and row ID."""
 
     state = _state()
     experiment = SimpleNamespace(websocket=MagicMock())
@@ -462,7 +422,7 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
 
     LiveSession.trigger_end_event(
         experiment,
-        "session-1",
+        1,
     )
 
     assert state.ended is True
@@ -477,4 +437,7 @@ def test_live_session_uses_shared_polymorphic_table():
     assert LiveSession.__tablename__ == "live_session"
     assert PolymorphicDemoLiveSession.__table__ is LiveSession.__table__
     assert "custom_value" in LiveSession.__table__.columns
-    assert LiveSession.__table__.columns["session_id"].unique is True
+    assert "session_id" not in LiveSession.__table__.columns
+    assert "session_type" in LiveSession.__table__.columns
+    assert "node_id" in LiveSession.__table__.columns
+    assert "network_id" in LiveSession.__table__.columns

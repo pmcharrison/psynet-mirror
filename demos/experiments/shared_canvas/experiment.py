@@ -18,7 +18,7 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
-from psynet.session import LiveSession, LiveSessionControl
+from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -94,7 +94,7 @@ class CanvasPositionEvent(SQLBase, SQLMixin):
 
     __tablename__ = "canvas_position_event"
 
-    session_id = Column(String(128), index=True)
+    session_id = Column(Integer, index=True)
     participant_id = Column(Integer, index=True, nullable=True)
     x = Column(Float)
     y = Column(Float)
@@ -110,7 +110,7 @@ class CanvasCollectEvent(SQLBase, SQLMixin):
 
     __tablename__ = "canvas_collect_event"
 
-    session_id = Column(String(128), index=True)
+    session_id = Column(Integer, index=True)
     participant_id = Column(Integer, index=True, nullable=True)
     coin_id = Column(String(128), index=True)
     x = Column(Float)
@@ -158,7 +158,7 @@ def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
 class PositionMessage(WebSocketMessage):
     """High-frequency player position payload."""
 
-    session_id: str = Field(min_length=1)
+    session_id: int = Field(ge=1)
     x: float = Field(ge=0, le=CANVAS_SIZE)
     y: float = Field(ge=0, le=CANVAS_SIZE)
     vx: float
@@ -182,7 +182,7 @@ class PositionMessage(WebSocketMessage):
 class CollectMessage(WebSocketMessage):
     """Coin collection attempt payload."""
 
-    session_id: str = Field(min_length=1)
+    session_id: int = Field(ge=1)
     coin_id: str = Field(min_length=1)
     x: float = Field(ge=0, le=CANVAS_SIZE)
     y: float = Field(ge=0, le=CANVAS_SIZE)
@@ -212,10 +212,16 @@ class SharedCanvasSession(LiveSession):
     """Persisted live session for one shared-canvas group."""
 
     @classmethod
-    def build_initial_state(cls, participant_ids, group, trial):
+    def build_initial_state(cls, participant_ids, group, context=None):
         """Return the initial authoritative shared-canvas state."""
 
-        world = trial.definition["world"]
+        context = context or {}
+        trial = context.get("trial")
+        node = context.get("node")
+        definition = getattr(trial, "definition", None) or getattr(
+            node, "definition", None
+        )
+        world = definition["world"]
         return {
             **initial_canvas_state(participant_ids, world),
             "group_id": int(group.id),
@@ -267,18 +273,21 @@ class SharedCanvasControl(LiveSessionControl):
     external_template = "shared_canvas.html"
     macro = "shared_canvas_control"
 
-    def __init__(self, trial, participant):
+    def __init__(self, participant):
         super().__init__(
             participant=participant,
-            trial=trial,
+            session_class=SharedCanvasSession,
+            group_type=GROUP_TYPE,
+            session_initializer_id="shared_canvas_session",
             show_next_button=False,
         )
 
     def build_control_params(self):
         """Return browser-facing shared-canvas config."""
 
-        role_index = self.participant_ids.index(self.participant_id)
-        world = self.trial.definition["world"]
+        participant_ids = [int(value) for value in self.session.participant_ids]
+        role_index = participant_ids.index(int(self.participant.id))
+        world = self.session.state["params"]["world"]
         return {
             "role": f"Player {role_index + 1}",
             "world_id": world["world_id"],
@@ -299,7 +308,6 @@ class SharedCanvasControl(LiveSessionControl):
 
 
 class SharedCanvasTrial(StaticTrial):
-    live_session_class = SharedCanvasSession
     time_estimate = TRIAL_SECONDS + 35
 
     @property
@@ -316,10 +324,10 @@ class SharedCanvasTrial(StaticTrial):
     def show_trial(self, experiment, participant):
         return join(
             instruction_page(),
-            GroupBarrier(
-                id_="canvas_start",
+            LiveSessionInitializer(
+                id_="shared_canvas_session",
                 group_type=GROUP_TYPE,
-                waiting_logic=WaitPage(wait_time=0.5, save_answer=False),
+                session_class=SharedCanvasSession,
                 max_wait_time=90,
             ),
             self.play_canvas(participant),
@@ -341,7 +349,7 @@ class SharedCanvasTrial(StaticTrial):
         return ModularPage(
             "shared_canvas",
             prompt,
-            SharedCanvasControl(self, participant),
+            SharedCanvasControl(participant),
             time_estimate=TRIAL_SECONDS + 5,
         )
 
@@ -413,7 +421,7 @@ class Exp(psynet.experiment.Experiment):
         target_participants = live_session.participants
 
         logged_event = CanvasPositionEvent(
-            session_id=live_session.session_id,
+            session_id=live_session.id,
             participant_id=participant.id,
             x=message.x,
             y=message.y,

@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from dallinger import db
 from pydantic import Field
-from sqlalchemy import Boolean, Column, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonDict, PythonList
 from psynet.modular_page import Control, NoArgumentProvided
+from psynet.page import WaitPage
+from psynet.sync import GroupBarrier
 from psynet.utils import model_name_to_snake_case
 from psynet.websocket import WebSocketMessage
 
@@ -23,46 +26,67 @@ SESSION_END_EVENT = "sessionEnd"
 class StateRequestMessage(WebSocketMessage):
     """Request the latest authoritative state for a live session."""
 
-    session_id: str = Field(min_length=1)
+    session_id: int = Field(ge=1)
     fields: list[str] | None = None
 
 
 class ReadyMessage(WebSocketMessage):
     """Notify the server that a participant is ready for a live session to start."""
 
-    session_id: str = Field(min_length=1)
+    session_id: int = Field(ge=1)
 
 
 class _LiveSessionMixin:
     """Shared columns and behavior for persisted live-session rows."""
 
-    session_id = Column(String(256), unique=True, index=True)
+    session_type = Column(String(256), index=True)
+    group_type = Column(String(256), index=True)
+    initializer_id = Column(String(256), index=True)
+    created_by_participant_id = Column(Integer, index=True)
     state = Column(PythonDict, default=lambda: {})
     participant_ids = Column(PythonList, default=lambda: [])
     ready_participant_ids = Column(PythonList, default=lambda: [])
     started = Column(Boolean, default=False)
     ended = Column(Boolean, default=False)
 
-    @classmethod
-    def build_session_id(cls, group, trial):
-        """Return the live-session ID for a group/trial."""
+    @declared_attr
+    def sync_group_id(cls):
+        return Column(Integer, ForeignKey("sync_group.id"), index=True)
 
-        parts = [model_name_to_snake_case(cls.__name__)]
-        parts.extend(["network", str(int(trial.network.id))])
-        parts.extend(["group", str(int(group.id))])
-        return ":".join(parts)
+    @declared_attr
+    def node_id(cls):
+        return Column(Integer, ForeignKey("node.id"), index=True, nullable=True)
+
+    @declared_attr
+    def network_id(cls):
+        return Column(Integer, ForeignKey("network.id"), index=True, nullable=True)
+
+    @declared_attr
+    def sync_group(cls):
+        return relationship("psynet.sync.SyncGroup", foreign_keys=[cls.sync_group_id])
 
     @classmethod
-    def build_initial_state(cls, participant_ids, group, trial):
+    def session_type_label(cls):
+        """Return the persistent label for this live-session class."""
+
+        return model_name_to_snake_case(cls.__name__)
+
+    @classmethod
+    def build_initial_state(cls, participant_ids, group, context=None):
         """Return initial public state for a new live session."""
 
         return {}
 
     @classmethod
-    def get(cls, session_id: str, *, for_update=False):
-        """Return the live session for a session ID, if it exists."""
+    def get(cls, session_id: int, *, for_update=False):
+        """Return the live session for a browser-facing row ID, if it exists."""
 
-        query = cls.query.filter_by(session_id=session_id)
+        try:
+            session_id = int(session_id)
+        except (TypeError, ValueError):
+            return None
+
+        query = cls.query.filter_by(id=session_id)
         if for_update:
             query = query.with_for_update(of=cls).populate_existing()
         return query.one_or_none()
@@ -70,15 +94,25 @@ class _LiveSessionMixin:
     @classmethod
     def create(
         cls,
-        session_id: str,
-        *,
         state: dict | None = None,
         participant_ids: list[int] | None = None,
+        group_type: str | None = None,
+        sync_group_id: int | None = None,
+        initializer_id: str | None = None,
+        node_id: int | None = None,
+        network_id: int | None = None,
+        created_by_participant_id: int | None = None,
     ):
         """Create a live-session row."""
 
         live_session = cls(
-            session_id=session_id,
+            session_type=cls.session_type_label(),
+            group_type=group_type,
+            sync_group_id=sync_group_id,
+            initializer_id=initializer_id,
+            node_id=node_id,
+            network_id=network_id,
+            created_by_participant_id=created_by_participant_id,
             state=state or {},
             participant_ids=[
                 int(participant_id) for participant_id in participant_ids or []
@@ -92,41 +126,102 @@ class _LiveSessionMixin:
         return live_session
 
     @classmethod
-    def prepare_for_group(cls, *, group):
-        """Create and link the live session for a synchronized group of trials."""
+    def _current_trial_context(cls, group):
+        """Return optional node/network context from the group leader's trial."""
+
+        leader = group.leader
+        trial = getattr(leader, "current_trial", None) if leader is not None else None
+        node = getattr(trial, "node", None)
+        network = getattr(trial, "network", None)
+        if network is None and node is not None:
+            network = getattr(node, "network", None)
+
+        node_id = getattr(trial, "node_id", None)
+        if node_id is None and node is not None:
+            node_id = getattr(node, "id", None)
+
+        network_id = getattr(trial, "network_id", None)
+        if network_id is None and network is not None:
+            network_id = getattr(network, "id", None)
+        if network_id is None and node is not None:
+            network_id = getattr(node, "network_id", None)
+
+        return {
+            "trial": trial,
+            "node": node,
+            "network": network,
+            "node_id": int(node_id) if node_id is not None else None,
+            "network_id": int(network_id) if network_id is not None else None,
+        }
+
+    @classmethod
+    def create_for_group(cls, *, group, initializer, participant=None):
+        """Create a live session from a leader-owned initializer barrier release."""
 
         leader = group.leader
         if leader is None:
             raise ValueError(f"Group {group.id} has no leader.")
 
+        if participant is not None and int(participant.id) != int(leader.id):
+            raise ValueError("Only the group leader can initialize a live session.")
+
         participants = sorted(group.active_participants, key=lambda p: p.id)
         participant_ids = [int(participant.id) for participant in participants]
-        trials = [participant.current_trial for participant in participants]
-        leader_trial = leader.current_trial
-        if leader_trial is None:
-            raise ValueError(
-                f"Live session group {group.id} has no trial for leader {leader.id}."
+        context = cls._current_trial_context(group)
+        context.update(
+            {
+                "group": group,
+                "participants": participants,
+                "initializer": initializer,
+                "initializer_id": initializer.id,
+            }
+        )
+        return cls.create(
+            state=cls.build_initial_state(participant_ids, group, context),
+            participant_ids=participant_ids,
+            group_type=getattr(group, "group_type", None),
+            sync_group_id=int(group.id),
+            initializer_id=initializer.id,
+            node_id=context["node_id"],
+            network_id=context["network_id"],
+            created_by_participant_id=int(leader.id),
+        )
+
+    @classmethod
+    def get_for_group(
+        cls,
+        *,
+        group,
+        initializer_id: str,
+        node_id: int | None = None,
+        network_id: int | None = None,
+        for_update=False,
+    ):
+        """Return an existing live session for group/session metadata."""
+
+        query = cls.query.filter_by(
+            session_type=cls.session_type_label(),
+            group_type=getattr(group, "group_type", None),
+            sync_group_id=int(group.id),
+            initializer_id=initializer_id,
+        )
+        query = query.filter(
+            cls.node_id.is_(None) if node_id is None else cls.node_id == node_id
+        )
+        query = query.filter(
+            cls.network_id.is_(None)
+            if network_id is None
+            else cls.network_id == network_id
+        )
+        if for_update:
+            query = query.with_for_update(of=cls).populate_existing()
+        matches = query.all()
+        if len(matches) > 1:
+            raise RuntimeError(
+                f"Multiple live sessions found for initializer {initializer_id!r} "
+                f"in group {group.id}."
             )
-        if any(trial is None for trial in trials):
-            raise ValueError(f"Live session group {group.id} has missing trials.")
-
-        session_id = cls.build_session_id(group, leader_trial)
-        live_session = cls.get(session_id)
-        if live_session is None:
-            live_session = cls.create(
-                session_id,
-                state=cls.build_initial_state(
-                    participant_ids,
-                    group,
-                    leader_trial,
-                ),
-                participant_ids=participant_ids,
-            )
-
-        for trial in trials:
-            live_session.link_trial(trial)
-
-        return live_session
+        return matches[0] if matches else None
 
     def mark_ready(self, participant):
         """Mark a participant ready and return whether this started the session."""
@@ -156,29 +251,51 @@ class _LiveSessionMixin:
 
     @property
     def participants(self):
-        """Return participant objects linked to this live session."""
+        """Return participant objects belonging to this live session."""
 
-        trials = sorted(
-            (trial for trial in (self.trials or []) if not trial.failed),
-            key=lambda trial: trial.participant_id,
-        )
-        return [trial.participant for trial in trials]
+        if self.sync_group is not None:
+            return sorted(self.sync_group.active_participants, key=lambda p: p.id)
+
+        participant_ids = [int(value) for value in (self.participant_ids or [])]
+        if not participant_ids:
+            return []
+
+        from psynet.participant import Participant
+
+        participants = Participant.query.filter(
+            Participant.id.in_(participant_ids)
+        ).all()
+        return sorted(participants, key=lambda participant: participant.id)
+
+    @property
+    def node(self):
+        """Return the node context used to initialize this session, if any."""
+
+        if self.node_id is None:
+            return None
+        from psynet.trial.main import TrialNode
+
+        return TrialNode.query.get(int(self.node_id))
+
+    @property
+    def network(self):
+        """Return the network context used to initialize this session, if any."""
+
+        if self.network_id is None:
+            return None
+        from psynet.trial.main import TrialNetwork
+
+        return TrialNetwork.query.get(int(self.network_id))
 
     @classmethod
     def get_current_for_participant(
-        cls, participant, session_id: str, *, for_update=False
+        cls, participant, session_id: int, *, for_update=False
     ):
-        """Return a participant's current live session if it matches a session ID."""
+        """Return a participant's live session if they belong to the session."""
 
-        trial = participant.current_trial
-        live_session = trial.live_session if trial is not None else None
-        if live_session is None or live_session.session_id != session_id:
+        live_session = cls.get(session_id, for_update=for_update)
+        if live_session is None:
             return None
-
-        if for_update:
-            live_session = cls.get(live_session.session_id, for_update=True)
-            if live_session is None:
-                return None
 
         if not live_session.has_participant(participant):
             return None
@@ -207,7 +324,7 @@ class _LiveSessionMixin:
         if fields is not None:
             state = {field: state[field] for field in fields if field in state}
         payload = {
-            "session_id": self.session_id,
+            "session_id": int(self.id),
             "state": state,
             "participant_ids": [str(value) for value in (self.participant_ids or [])],
             "ready_participant_ids": [
@@ -222,7 +339,7 @@ class _LiveSessionMixin:
         """Return JSON-serializable live-session lifecycle status."""
 
         return {
-            "session_id": self.session_id,
+            "session_id": int(self.id),
             "participant_ids": [str(value) for value in (self.participant_ids or [])],
             "ready_participant_ids": [
                 str(value) for value in (self.ready_participant_ids or [])
@@ -263,21 +380,6 @@ class _LiveSessionMixin:
             SESSION_END_EVENT,
             self.snapshot_payload(),
         )
-
-    def link_trial(self, trial):
-        """Associate a participant trial with this live session."""
-
-        current_id = trial.live_session_id
-        if (
-            current_id is not None
-            and self.id is not None
-            and int(current_id) != int(self.id)
-        ):
-            raise ValueError(
-                f"Trial {trial.id} is already linked to live session {current_id}."
-            )
-        trial.live_session = self
-        return trial
 
     @classmethod
     def handle_state_request(
@@ -322,10 +424,43 @@ class LiveSession(_LiveSessionMixin, SQLBase, SQLMixin):
     """Generic persisted live session."""
 
     __tablename__ = "live_session"
-    trials = relationship(
-        "psynet.trial.main.Trial",
-        back_populates="live_session",
+
+
+def _create_live_session_on_release(group, participants, participant, barrier):
+    """Create the live session owned by a released group barrier."""
+
+    barrier.session_class.create_for_group(
+        group=group,
+        initializer=barrier,
+        participant=participant,
     )
+
+
+class LiveSessionInitializer(GroupBarrier):
+    """Timeline element that creates a group-owned live session."""
+
+    def __init__(
+        self,
+        id_: str,
+        group_type: str,
+        session_class=LiveSession,
+        waiting_logic=NoArgumentProvided,
+        waiting_logic_expected_repetitions=3,
+        max_wait_time=20,
+        fix_time_credit=False,
+    ):
+        self.session_class = session_class
+        if waiting_logic is NoArgumentProvided:
+            waiting_logic = WaitPage(wait_time=0.5, save_answer=False)
+        super().__init__(
+            id_=id_,
+            group_type=group_type,
+            waiting_logic=waiting_logic,
+            waiting_logic_expected_repetitions=waiting_logic_expected_repetitions,
+            max_wait_time=max_wait_time,
+            on_release=_create_live_session_on_release,
+            fix_time_credit=fix_time_credit,
+        )
 
 
 class LiveSessionControl(Control):
@@ -335,7 +470,9 @@ class LiveSessionControl(Control):
         self,
         *,
         participant,
-        trial,
+        session_class,
+        group_type: str,
+        session_initializer_id: str,
         params: dict | None = None,
         bot_response=NoArgumentProvided,
         buttons=None,
@@ -347,33 +484,38 @@ class LiveSessionControl(Control):
             show_next_button=show_next_button,
         )
         self.participant = participant
-        self.trial = trial
-        self.session_class = self._resolve_session_class(trial)
-        self.group = self._resolve_group(trial)
-        self.group_id = int(self.group.id)
-        self.participant_ids = [
-            int(p.id) for p in sorted(self.group.participants, key=lambda p: p.id)
-        ]
-        self.participant_id = int(participant.id)
-        self.session_id = self.session_class.build_session_id(self.group, trial)
-        self.live_session = trial.live_session
-        if self.live_session is None:
-            self.live_session = self.session_class.get(self.session_id)
-        if self.live_session is None:
+        try:
+            group = participant.active_sync_groups[group_type]
+        except KeyError as exc:
+            raise ValueError(
+                f"Participant {participant.id} has no active sync group "
+                f"for group_type {group_type!r}."
+            ) from exc
+        if group is None:
+            raise ValueError("LiveSessionControl requires an active sync group.")
+
+        context = session_class._current_trial_context(group)
+        self.session = session_class.get_for_group(
+            group=group,
+            initializer_id=session_initializer_id,
+            node_id=context["node_id"],
+            network_id=context["network_id"],
+        )
+        if self.session is None:
             raise RuntimeError(
-                f"Trial {trial.id} has no prepared live session {self.session_id!r}."
+                f"No live session prepared for initializer "
+                f"{session_initializer_id!r} in group {int(group.id)}."
             )
-        if self.live_session.session_id != self.session_id:
-            raise RuntimeError(
-                f"Trial {trial.id} is linked to live session "
-                f"{self.live_session.session_id!r}, expected {self.session_id!r}."
-            )
+        if self.session.id is None:
+            raise RuntimeError("Live session must be flushed before rendering.")
         custom_params = self.build_control_params()
         self.live_session_config = {
-            "session_id": self.session_id,
-            "group_id": self.group_id,
-            "participant_id": self.participant_id,
-            "participant_ids": self.participant_ids,
+            "session_id": int(self.session.id),
+            "group_id": int(self.session.sync_group_id),
+            "node_id": self.session.node_id,
+            "network_id": self.session.network_id,
+            "participant_id": int(participant.id),
+            "participant_ids": [int(value) for value in self.session.participant_ids],
             **(custom_params or {}),
             **(params or {}),
         }
@@ -382,26 +524,3 @@ class LiveSessionControl(Control):
         """Return extra browser-facing live-session config."""
 
         return {}
-
-    @classmethod
-    def _resolve_session_class(cls, trial):
-        if trial is None:
-            raise ValueError("LiveSessionControl currently requires a trial.")
-
-        session_class = trial.live_session_class
-        if session_class is None:
-            raise ValueError(
-                f"Trial {trial.__class__.__name__} must define live_session_class "
-                "to use LiveSessionControl."
-            )
-        return session_class
-
-    @staticmethod
-    def _resolve_group(trial):
-        group = trial.sync_group
-        if group is None:
-            raise ValueError(
-                f"Trial {trial.__class__.__name__} must belong to a sync group "
-                "to use LiveSessionControl."
-            )
-        return group
