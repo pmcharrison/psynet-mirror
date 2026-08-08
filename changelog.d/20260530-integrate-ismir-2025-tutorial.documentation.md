@@ -1,1 +1,0 @@
-Integrated the ISMIR 2025 PsyNet tutorial: added the tutorial chapters under `docs/getting_started/`, added the companion `demos/features/pages` and `demos/features/timeline` demos, added the tutorial pipeline demos under `demos/pipelines/`, and included `psynet-step` in the demos extra so the `step_tag` pipeline runs in CI.

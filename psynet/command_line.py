@@ -819,6 +819,31 @@ def _debug_auto_reload(ctx, archive, no_browsers):
         reset_console()
 
 
+def _load_runtime_server_config(config=None, deployment_id=None):
+    config = config or get_config()
+    if not config.ready:
+        config.load()
+
+    # The debug server runs from Dallinger's generated development directory,
+    # whose config.txt includes runtime values such as dashboard credentials.
+    server_working_directory = redis_vars.get("server_working_directory", None)
+    if server_working_directory:
+        config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+        return config
+
+    if deployment_id:
+        launch_info_path = (
+            Path("~/psynet-data/launch-data").expanduser()
+            / deployment_id
+            / "launch-info.json"
+        )
+        if launch_info_path.exists():
+            with open(launch_info_path, encoding="utf-8") as f:
+                config.extend(json.load(f))
+
+    return config
+
+
 def patch_dallinger_develop():
     from dallinger.deployment import DevelopmentDeployment
 
@@ -2077,6 +2102,14 @@ def _resolve_ssh_app(ctx, app, server):
     return resolved_app
 
 
+def _get_local_export_url(config):
+    try:
+        port = config.get("base_port")
+    except KeyError:
+        port = 5000
+    return f"http://127.0.0.1:{port}"
+
+
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -2262,6 +2295,8 @@ def export_(
     config = get_config()
     if not config.ready:
         config.load()
+    if local:
+        _load_runtime_server_config(config, deployment_id=deployment_id)
 
     if path is None:
         path = experiment_class.export_path(deployment_id)
@@ -2289,7 +2324,12 @@ def export_(
 
     source_code_exported = False
     if not legacy:
-        experiment_url = get_experiment_url(app, server)
+        try:
+            experiment_url = get_experiment_url(app, server)
+        except KeyError:
+            if not local:
+                raise
+            experiment_url = _get_local_export_url(config)
         params = {
             "type": "psynet",
             "anonymize": anonymize,
@@ -2314,7 +2354,15 @@ def export_(
                 zip_ref.extractall(path)
             # Download source code unless --no-source was passed
             if not no_source:
-                _export_source_code(app, local, server, path, username, password)
+                _export_source_code(
+                    app,
+                    local,
+                    server,
+                    path,
+                    username,
+                    password,
+                    experiment_url=experiment_url,
+                )
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -2426,7 +2474,9 @@ def export_logs(app, server, export_path):
         log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
 
 
-def _export_source_code(app, local, server, export_path, username, password):
+def _export_source_code(
+    app, local, server, export_path, username, password, experiment_url=None
+):
     import requests
 
     config = get_config()
@@ -2455,7 +2505,9 @@ def _export_source_code(app, local, server, export_path, username, password):
     log(
         "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
     )
-    if local:
+    if experiment_url:
+        url = experiment_url.rstrip("/")
+    elif local:
         url = "http://localhost:5000"
     else:
         if server:
@@ -3215,12 +3267,12 @@ _test_options["performance_n_bots"] = click.option(
 _test_options["performance_time_factor"] = click.option(
     "--time-factor",
     type=float,
-    default=1.0,
+    default=None,
     help="""
     Multiply the timings in time_estimate by a random amount around this factor.
     Actual multiplier will vary randomly using a lognormal distribution with an upper
     bound of 3x this factor. When equal to zero, the bot will run through the
-    experiment as fast as possible. Default: 1.0""",
+    experiment as fast as possible. If not specified, defaults to 1.0""",
 )
 
 _test_options["performance_stagger"] = click.option(
@@ -3234,11 +3286,12 @@ _test_options["performance_stagger"] = click.option(
 _test_options["duration_minutes"] = click.option(
     "--duration-minutes",
     type=float,
-    default=1.0,
+    default=None,
     help="""
-    Duration of the performance test in minutes.
-    The performance test will attempt to keep 'n-bots' running for 'duration-minutes' minutes.
-    Default: 1 minute""",
+    Total performance-test measurement window in minutes. This includes
+    first-bot initialization and ramp-up towards 'n-bots', so the test may spend
+    less than 'duration-minutes' at the target concurrency.
+    If not specified, defaults to Experiment.test_duration_minutes (1 minute)""",
 )
 
 _test_options["performance_json_output"] = click.option(
@@ -3388,11 +3441,15 @@ def _run_performance_test_with_existing_server(
         authenticated_session=exp.authenticated_session,
         base_url=exp.base_url,
         n_bots=exp.test_n_bots,
-        duration_minutes=duration_minutes or exp.test_duration_minutes,
-        stagger_interval_s=(
-            float(stagger) if stagger else exp.test_parallel_stagger_interval_s
+        duration_minutes=(
+            exp.test_duration_minutes if duration_minutes is None else duration_minutes
         ),
-        time_factor=time_factor or exp.test_time_factor,
+        stagger_interval_s=(
+            exp.test_parallel_stagger_interval_s if stagger is None else float(stagger)
+        ),
+        # Documented CLI default is 1.0 (realistic pacing). Do not fall back to
+        # Experiment.test_time_factor, which defaults to 0.0 for correctness tests.
+        time_factor=(1.0 if time_factor is None else time_factor),
     )
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
     all_results = tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
@@ -3451,9 +3508,21 @@ def _drain_pexpect_output(process):
 
 
 def _start_local_server_and_wait_for_ready(
-    debug=False, max_wait=60, ready_phrase="Experiment launch complete!"
+    command_args,
+    *,
+    debug=False,
+    max_wait=60,
+    ready_phrase="Experiment launch complete!",
 ):
-    """Start ``psynet debug local`` and wait for launch completion."""
+    """Spawn ``psynet <command_args>`` and wait for launch completion.
+
+    Parameters
+    ----------
+    command_args : list[str]
+        Arguments passed to the ``psynet`` executable, for example
+        ``["debug", "local", "--legacy", "--no-browsers"]`` or
+        ``["debug", "local"]``.
+    """
     print("▶ Starting experiment server...")
 
     tmp_log = tempfile.NamedTemporaryFile(
@@ -3469,66 +3538,54 @@ def _start_local_server_and_wait_for_ready(
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
     env.setdefault("BROWSER", "true")
 
-    start_commands = [
-        ["debug", "local", "--legacy", "--no-browsers"],
-        ["debug", "local"],
-    ]
-    process = None
-    legacy_fallback_marker = "No such file or directory: 'heroku'"
+    try:
+        process = pexpect.spawn(
+            "psynet",
+            command_args,
+            env=env,
+            encoding="utf-8",
+            timeout=max_wait,
+        )
+    except Exception:
+        log_file.close()
+        raise click.ClickException("Failed to start experiment server process.")
 
-    for command_args in start_commands:
-        try:
-            process = pexpect.spawn(
-                "psynet",
-                command_args,
-                env=env,
-                encoding="utf-8",
-                timeout=max_wait,
-            )
-        except Exception:
-            log_file.close()
-            raise click.ClickException("Failed to start experiment server process.")
+    process.logfile = logfile
+    print("⏳ Waiting for server to be ready...", end="", flush=True)
 
-        process.logfile = logfile
-        print("⏳ Waiting for server to be ready...", end="", flush=True)
+    try:
+        process.expect_exact(ready_phrase, timeout=max_wait)
+        print(" Ready!")
+        print()
+        drain_thread = threading.Thread(
+            target=_drain_pexpect_output,
+            args=(process,),
+            daemon=True,
+        )
+        drain_thread.start()
+        return {
+            "process": process,
+            "tmp_log_path": tmp_log_path,
+            "log_file": log_file,
+        }
+    except (pexpect.TIMEOUT, pexpect.EOF) as exc:
+        recent_output = (process.before or "").splitlines()[-50:]
+        stop_local_debug_process(process)
 
-        try:
-            process.expect_exact(ready_phrase, timeout=max_wait)
-            print(" Ready!")
-            print()
-            drain_thread = threading.Thread(
-                target=_drain_pexpect_output,
-                args=(process,),
-                daemon=True,
-            )
-            drain_thread.start()
-            return {
-                "process": process,
-                "tmp_log_path": tmp_log_path,
-                "log_file": log_file,
-            }
-        except (pexpect.TIMEOUT, pexpect.EOF):
-            recent_output = (process.before or "").splitlines()[-50:]
-            _terminate_server_process(process)
-
-            if command_args == start_commands[0] and any(
-                legacy_fallback_marker in line for line in recent_output
-            ):
-                print(
-                    "\n⚠ Legacy debug server unavailable; retrying with auto-reload mode..."
-                )
-                continue
-
-            print(
-                f"\n❌ Server failed to start within {max_wait} seconds",
-                file=sys.stderr,
-            )
-            if recent_output:
-                print("Last server output:", file=sys.stderr)
-                for line in recent_output:
-                    print(line, file=sys.stderr)
-            log_file.close()
-            raise click.ClickException("Failed to start experiment server.")
+        if isinstance(exc, pexpect.EOF):
+            failure_message = "Server process exited before becoming ready"
+        else:
+            failure_message = f"Server failed to start within {max_wait} seconds"
+        print(
+            f"\n❌ {failure_message}",
+            file=sys.stderr,
+        )
+        if recent_output:
+            print("Last server output:", file=sys.stderr)
+            for line in recent_output:
+                print(line, file=sys.stderr)
+        log_file.close()
+        raise click.ClickException("Failed to start experiment server.")
 
 
 def _terminate_server_process(process):
@@ -3550,7 +3607,8 @@ def _terminate_server_process(process):
         process.sendcontrol("c")
         process.expect_exact(pexpect.EOF, timeout=15)
         finished = True
-    except (pexpect.TIMEOUT, pexpect.EOF):
+    except (OSError, pexpect.TIMEOUT, pexpect.EOF):
+        # OSError is common when the PTY is already gone; still escalate below.
         pass
 
     if not finished:
@@ -3579,6 +3637,20 @@ def _terminate_server_process(process):
     process.close(force=True)
 
 
+def stop_local_debug_process(process):
+    """
+    Stop a local ``psynet debug`` pexpect process and reap leftover workers.
+
+    Waits for the process to exit after Ctrl-C (escalating to SIGTERM/SIGKILL
+    if needed), then terminates any orphaned ``dallinger_heroku_*`` worker
+    processes so they cannot keep database connections open.
+    """
+    try:
+        _terminate_server_process(process)
+    finally:
+        kill_psynet_worker_processes()
+
+
 def _stop_server(server_info):
     """Stop ``psynet debug local`` and clean up resources."""
 
@@ -3586,7 +3658,7 @@ def _stop_server(server_info):
     tmp_log_path = server_info["tmp_log_path"]
     log_file = server_info["log_file"]
     try:
-        _terminate_server_process(process)
+        stop_local_debug_process(process)
     finally:
         try:
             process.logfile = None
@@ -3598,7 +3670,6 @@ def _stop_server(server_info):
         except Exception:
             pass
 
-    kill_psynet_worker_processes()
     print(f"✓ Server stopped (log: {tmp_log_path})")
 
 
@@ -3606,19 +3677,15 @@ def _run_performance_test_with_new_server(
     n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
 ):
     """Run performance test after starting a new experiment server"""
-    server_info = _start_local_server_and_wait_for_ready(debug=debug)
+    # Prefer legacy debug: it more closely matches a real deployed server than
+    # the auto-reload develop path used by normal ``psynet debug local``.
+    server_info = _start_local_server_and_wait_for_ready(
+        ["debug", "local", "--legacy", "--no-browsers"],
+        debug=debug,
+    )
 
     try:
-        config = get_config()
-        if not config.ready:
-            config.load()
-
-        # Load runtime server config so dashboard credentials and URL settings
-        # match the launched debug instance.
-        server_working_directory = redis_vars.get("server_working_directory")
-        if server_working_directory:
-            config.load_from_file(os.path.join(server_working_directory, "config.txt"))
-
+        _load_runtime_server_config()
         _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
@@ -3670,25 +3737,37 @@ def performance_test__docker_ssh(
 
     from dallinger.command_line.docker_ssh import Executor
 
-    cmd = "psynet performance-test local --existing"
-
-    if n_bots:
-        cmd += f" --n-bots {n_bots}"
-
-    if stagger:
-        cmd += f" --stagger {stagger}"
-
-    if time_factor:
-        cmd += f" --time-factor {time_factor}"
-
-    if duration_minutes:
-        cmd += f" --duration-minutes {duration_minutes}"
+    cmd = _build_ssh_performance_test_cmd(
+        n_bots=n_bots,
+        stagger=stagger,
+        time_factor=time_factor,
+        duration_minutes=duration_minutes,
+    )
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
     executor = Executor(ssh_host, user=ssh_user)
     executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
+
+
+def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minutes):
+    """Build the remote performance-test command, preserving explicit zeros."""
+    cmd = "psynet performance-test local --existing"
+
+    if n_bots is not None:
+        cmd += f" --n-bots {n_bots}"
+
+    if stagger is not None:
+        cmd += f" --stagger {stagger}"
+
+    if time_factor is not None:
+        cmd += f" --time-factor {time_factor}"
+
+    if duration_minutes is not None:
+        cmd += f" --duration-minutes {duration_minutes}"
+
+    return cmd
 
 
 @psynet.command()

@@ -84,6 +84,7 @@ class LabRecruiterStandardConsent(Module):
                 template_str=get_template(
                     "consents/cap-recruiter_standard_consent.html"
                 ),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -155,6 +156,7 @@ class LabRecruiterAudiovisualConsent(Module):
                 template_str=get_template(
                     "consents/cap-recruiter_audiovisual_consent.html"
                 ),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -230,6 +232,7 @@ class LucidConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template("consents/lucid_consent.html"),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -293,6 +296,7 @@ class PrincetonConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template("consents/princeton_consent.html"),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -356,6 +360,7 @@ class PrincetonLabRecruiterConsent(Module):
                 template_str=get_template(
                     "consents/princeton_lab_recruiter_consent.html"
                 ),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -421,6 +426,7 @@ class MainConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template("consents/main_consent.html"),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -484,6 +490,7 @@ class DatabaseConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template("consents/database_consent.html"),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -547,6 +554,7 @@ class AudiovisualConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template("consents/audiovisual_consent.html"),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -610,6 +618,7 @@ class OpenScienceConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template("consents/open_science_consent.html"),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):
@@ -678,6 +687,7 @@ class VoluntaryWithNoCompensationConsent(Module):
                 template_str=get_template(
                     "consents/voluntary_with_no_compensation_consent.html"
                 ),
+                framework_owned_template=True,
             )
 
         def format_answer(self, raw_answer, **kwargs):

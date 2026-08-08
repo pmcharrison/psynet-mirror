@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "psynet"
-version = "13.3.0a0"
+version = "13.4.0a0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -148,6 +148,11 @@ extend-exclude = [
     "docs/_build",
     "lib",
     "src",
+    # Vendored copies of the shared IRB consent modules from
+    # https://gitlab.com/computational-audition-lab/cococo-shared;
+    # kept byte-identical to upstream, so not linted/formatted here.
+    "tests/deployment/audio_gibbs/consents_cococo",
+    "tests/deployment/payment_flows_prolific/consents_cococo",
 ]
 
 [tool.ruff.lint]

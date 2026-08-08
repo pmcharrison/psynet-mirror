@@ -4,8 +4,16 @@ Minimal S3 client/resource mock for PsyNet's S3 tests.
 This helper intentionally implements only the boto surface exercised by the
 lightweight S3 tests: bucket creation, file upload/download/copy/delete, object
 metadata lookups, bucket object listings, and paginator-based object listings.
+
+Use the ``mock_s3_root`` pytest fixture to route both current-process and
+subprocess S3 calls to this filesystem-backed mock. The fixture sets
+``PSYNET_MOCK_S3_ROOT``, which is read by the helpers in this module. The mock
+does not provide a public HTTP endpoint, so it verifies storage operations and
+exports, not browser reachability of generated ``https://s3.amazonaws.com``
+URLs.
 """
 
+import os
 import shutil
 from datetime import datetime, timezone
 from functools import cache
@@ -210,6 +218,14 @@ class MockS3ObjectCollection:
         self.client._delete_prefix(self.bucket_name, self.prefix)
 
 
+class MockS3NoOpConfiguration:
+    def delete(self):
+        return None
+
+    def put(self, **_kwargs):
+        return None
+
+
 class MockS3Bucket:
     def __init__(self, client: MockS3Client, bucket_name: str):
         self.client = client
@@ -218,6 +234,12 @@ class MockS3Bucket:
 
     def Object(self, key: str):
         return MockS3ObjectSummary(self.client, self.bucket_name, key)
+
+    def Acl(self):
+        return MockS3NoOpConfiguration()
+
+    def Cors(self):
+        return MockS3NoOpConfiguration()
 
 
 class MockS3Resource:
@@ -228,6 +250,9 @@ class MockS3Resource:
     def Bucket(self, bucket_name: str):
         return MockS3Bucket(self.client, bucket_name)
 
+    def BucketPolicy(self, _bucket_name: str):
+        return MockS3NoOpConfiguration()
+
 
 @cache
 def get_mock_s3_client(root: str):
@@ -237,3 +262,30 @@ def get_mock_s3_client(root: str):
 @cache
 def get_mock_s3_resource(root: str):
     return MockS3Resource(get_mock_s3_client(root))
+
+
+def get_mock_s3_root():
+    """
+    Get the filesystem root for the test S3 mock, if configured.
+    """
+    return os.environ.get("PSYNET_MOCK_S3_ROOT")
+
+
+def get_configured_mock_s3_client():
+    """
+    Return the configured mock S3 client, if the filesystem mock is enabled.
+    """
+    root = get_mock_s3_root()
+    if root:
+        return get_mock_s3_client(root)
+    return None
+
+
+def get_configured_mock_s3_resource():
+    """
+    Return the configured mock S3 resource, if the filesystem mock is enabled.
+    """
+    root = get_mock_s3_root()
+    if root:
+        return get_mock_s3_resource(root)
+    return None

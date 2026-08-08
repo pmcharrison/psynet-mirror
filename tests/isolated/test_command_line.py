@@ -1,7 +1,9 @@
 import hashlib
+import io
 import json
 import subprocess
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
@@ -940,17 +942,74 @@ def test_start_local_server_uses_debug_local_subprocess():
     process = Mock()
     process.expect_exact.return_value = None
     process.isalive.return_value = False
+    command_args = ["debug", "local", "--legacy", "--no-browsers"]
 
     with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
-        server_info = _start_local_server_and_wait_for_ready(debug=False, max_wait=5)
+        server_info = _start_local_server_and_wait_for_ready(
+            command_args,
+            debug=False,
+            max_wait=5,
+        )
 
     assert server_info["process"] is process
     args, kwargs = spawn.call_args
-    assert args == ("psynet", ["debug", "local", "--legacy", "--no-browsers"])
+    assert args == ("psynet", command_args)
     assert kwargs["encoding"] == "utf-8"
     assert kwargs["env"]["SKIP_DEPENDENCY_CHECK"] == "1"
     assert kwargs["env"]["BROWSER"] == "true"
     _stop_server(server_info)
+
+
+def test_start_local_server_uses_exact_command_args():
+    from psynet.command_line import _start_local_server_and_wait_for_ready, _stop_server
+
+    process = Mock()
+    process.expect_exact.return_value = None
+    process.isalive.return_value = False
+    command_args = ["debug", "local"]
+
+    with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
+        server_info = _start_local_server_and_wait_for_ready(
+            command_args,
+            debug=False,
+            max_wait=5,
+        )
+
+    args, kwargs = spawn.call_args
+    assert args == ("psynet", command_args)
+    assert kwargs["encoding"] == "utf-8"
+    _stop_server(server_info)
+
+
+@pytest.mark.parametrize(
+    ("exception_name", "expected_message"),
+    [
+        ("EOF", "Server process exited before becoming ready"),
+        ("TIMEOUT", "Server failed to start within 5 seconds"),
+    ],
+)
+def test_start_local_server_reports_the_correct_failure(
+    capsys, exception_name, expected_message
+):
+    from psynet.command_line import (
+        _start_local_server_and_wait_for_ready,
+        pexpect,
+    )
+
+    process = Mock()
+    process.expect_exact.side_effect = getattr(pexpect, exception_name)("failed")
+    process.before = "underlying server error"
+    process.isalive.return_value = False
+
+    with (
+        patch("psynet.command_line.pexpect.spawn", return_value=process),
+        pytest.raises(click.ClickException, match="Failed to start experiment server"),
+    ):
+        _start_local_server_and_wait_for_ready(["debug", "local"], max_wait=5)
+
+    captured = capsys.readouterr()
+    assert expected_message in captured.err
+    assert "underlying server error" in captured.err
 
 
 def test_stop_server_gracefully_stops_debug_subprocess():
@@ -977,12 +1036,190 @@ def test_stop_server_gracefully_stops_debug_subprocess():
     kill_workers.assert_called_once()
 
 
+def test_stop_local_debug_process_reaps_workers_even_if_terminate_fails():
+    from psynet.command_line import stop_local_debug_process
+
+    process = Mock()
+
+    with (
+        patch(
+            "psynet.command_line._terminate_server_process",
+            side_effect=RuntimeError("boom"),
+        ) as terminate,
+        patch("psynet.command_line.kill_psynet_worker_processes") as kill_workers,
+    ):
+        with pytest.raises(RuntimeError, match="boom"):
+            stop_local_debug_process(process)
+
+    terminate.assert_called_once_with(process)
+    kill_workers.assert_called_once()
+
+
+def test_terminate_server_process_escalates_when_sendcontrol_raises_oserror():
+    from psynet.command_line import _terminate_server_process
+
+    process = Mock()
+    process.isalive.return_value = True
+    process.pid = 12345
+    process.sendcontrol.side_effect = OSError("PTY already gone")
+    process.expect_exact.side_effect = [None]  # SIGTERM wait succeeds
+
+    with (
+        patch("psynet.command_line.os.getpgid", return_value=12345),
+        patch("psynet.command_line.os.killpg") as killpg,
+    ):
+        _terminate_server_process(process)
+
+    process.sendcontrol.assert_called_once_with("c")
+    killpg.assert_called()
+    process.close.assert_called_once_with(force=True)
+
+
+def test_load_runtime_server_config_loads_generated_config():
+    from psynet.command_line import _load_runtime_server_config
+
+    config = Mock()
+    config.ready = True
+
+    with patch(
+        "psynet.command_line.redis_vars.get",
+        return_value="/tmp/dallinger_develop/exp",
+    ):
+        _load_runtime_server_config(config)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_called_once_with(
+        "/tmp/dallinger_develop/exp/config.txt"
+    )
+
+
+def test_load_runtime_server_config_loads_launch_info_when_runtime_dir_is_missing(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _load_runtime_server_config
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config = Mock()
+    config.ready = True
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with patch("psynet.command_line.redis_vars.get", return_value=None):
+        _load_runtime_server_config(config, deployment_id=deployment_id)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_not_called()
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
+
+
+def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
+    from psynet.command_line import export_
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config = Mock()
+    config.ready = True
+    config.values = {}
+
+    def get_config_value(key, default=None):
+        if key in config.values:
+            return config.values[key]
+        if key == "base_port":
+            return 5000
+        if default is not None:
+            return default
+        raise KeyError(key)
+
+    def extend_config(values):
+        config.values.update(values)
+
+    data_zip = io.BytesIO()
+    with zipfile.ZipFile(data_zip, "w"):
+        pass
+    data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
+    source_response = Mock(status_code=200, reason="OK", content=b"source-code")
+    experiment_class = Mock(label="Timeline demo")
+    experiment_class.export_path.return_value = str(tmp_path)
+    config.extend.side_effect = extend_config
+    config.get.side_effect = get_config_value
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.command_line.redis_vars.get", return_value=None),
+        patch(
+            "psynet.command_line.get_experiment_url",
+            side_effect=KeyError,
+        ),
+        patch(
+            "psynet.command_line.requests.get",
+            side_effect=[data_response, source_response],
+        ) as request_get,
+    ):
+        export_(
+            ctx=Mock(),
+            exp_variables={
+                "deployment_id": deployment_id,
+                "label": "Timeline demo",
+            },
+            local=True,
+            path=str(tmp_path),
+            no_source=False,
+            assets="experiment",
+            anonymize="no",
+        )
+
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
+    assert request_get.call_count == 2
+    data_request, source_request = request_get.call_args_list
+    assert data_request.args[0].startswith(
+        "http://127.0.0.1:5000/dashboard/export/download?"
+    )
+    assert data_request.kwargs["auth"] == ("admin", "generated-password")
+    assert source_request.args[0] == "http://127.0.0.1:5000/download_source"
+    assert source_request.kwargs["auth"] == ("admin", "generated-password")
+
+
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
     from psynet.command_line import _run_performance_test_with_new_server
 
     process = Mock()
-    config = Mock()
-    config.ready = True
     server_info = {
         "process": process,
         "tmp_log_path": "/tmp/psynet_server_test.log",
@@ -993,12 +1230,8 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
         patch(
             "psynet.command_line._start_local_server_and_wait_for_ready",
             return_value=server_info,
-        ),
-        patch("psynet.command_line.get_config", return_value=config),
-        patch(
-            "psynet.command_line.redis_vars.get",
-            return_value="/tmp/dallinger_develop/exp",
-        ),
+        ) as start_server,
+        patch("psynet.command_line._load_runtime_server_config") as load_runtime_config,
         patch("psynet.command_line._run_performance_test_with_existing_server"),
         patch("psynet.command_line._stop_server"),
     ):
@@ -1006,8 +1239,128 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             n_bots="2", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
         )
 
-    config.load_from_file.assert_called_once_with(
-        "/tmp/dallinger_develop/exp/config.txt"
+    start_server.assert_called_once_with(
+        ["debug", "local", "--legacy", "--no-browsers"],
+        debug=False,
+    )
+    load_runtime_config.assert_called_once_with()
+
+
+def test_performance_test_preserves_explicit_zero_options():
+    from psynet.command_line import _run_performance_test_with_existing_server
+
+    experiment = Mock(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        label="test",
+        test_n_bots=3,
+        test_duration_minutes=2.0,
+        test_parallel_stagger_interval_s=0.5,
+        test_time_factor=2.5,
+    )
+    tester = Mock()
+    tester.run.return_value = []
+    bot_log_file = Mock(name="/tmp/psynet_bots_test.log")
+
+    with (
+        patch("logging.getLogger", return_value=Mock(handlers=[])),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch(
+            "psynet.perf_test.PerformanceTester", return_value=tester
+        ) as performance_tester,
+        patch(
+            "psynet.command_line.tempfile.NamedTemporaryFile",
+            return_value=bot_log_file,
+        ),
+    ):
+        _run_performance_test_with_existing_server(
+            n_bots="1",
+            stagger=0,
+            time_factor=0,
+            duration_minutes=0,
+            debug=False,
+        )
+
+    performance_tester.assert_called_once_with(
+        authenticated_session=experiment.authenticated_session,
+        base_url=experiment.base_url,
+        n_bots=experiment.test_n_bots,
+        duration_minutes=0,
+        stagger_interval_s=0.0,
+        time_factor=0,
+    )
+
+
+def test_performance_test_uses_defaults_when_options_omitted():
+    from psynet.command_line import _run_performance_test_with_existing_server
+
+    experiment = Mock(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        label="test",
+        test_n_bots=3,
+        test_duration_minutes=2.0,
+        test_parallel_stagger_interval_s=0.5,
+        test_time_factor=2.5,
+    )
+    tester = Mock()
+    tester.run.return_value = []
+    bot_log_file = Mock(name="/tmp/psynet_bots_test.log")
+
+    with (
+        patch("logging.getLogger", return_value=Mock(handlers=[])),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch(
+            "psynet.perf_test.PerformanceTester", return_value=tester
+        ) as performance_tester,
+        patch(
+            "psynet.command_line.tempfile.NamedTemporaryFile",
+            return_value=bot_log_file,
+        ),
+    ):
+        _run_performance_test_with_existing_server(
+            n_bots=None,
+            stagger=None,
+            time_factor=None,
+            duration_minutes=None,
+            debug=False,
+        )
+
+    performance_tester.assert_called_once_with(
+        authenticated_session=experiment.authenticated_session,
+        base_url=experiment.base_url,
+        n_bots=experiment.test_n_bots,
+        duration_minutes=2.0,
+        stagger_interval_s=0.5,
+        time_factor=1.0,
+    )
+
+
+def test_ssh_performance_test_command_forwards_zero_valued_options():
+    from psynet.command_line import _build_ssh_performance_test_cmd
+
+    assert _build_ssh_performance_test_cmd(
+        n_bots="5",
+        stagger=0,
+        time_factor=0,
+        duration_minutes=0,
+    ) == (
+        "psynet performance-test local --existing "
+        "--n-bots 5 --stagger 0 --time-factor 0 --duration-minutes 0"
+    )
+
+
+def test_ssh_performance_test_command_omits_unspecified_options():
+    from psynet.command_line import _build_ssh_performance_test_cmd
+
+    assert (
+        _build_ssh_performance_test_cmd(
+            n_bots=None,
+            stagger=None,
+            time_factor=None,
+            duration_minutes=None,
+        )
+        == "psynet performance-test local --existing"
     )
 
 

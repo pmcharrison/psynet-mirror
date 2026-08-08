@@ -124,6 +124,7 @@ from .utils import (
     call_function,
     call_function_with_context,
     disable_logger,
+    ensure_experiment_directory_name_does_not_conflict,
     get_arg_from_dict,
     get_authenticated_session,
     get_logger,
@@ -1249,6 +1250,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def status_and_backups():
         # TODO: consider placing these in separate scheduled tasks
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         safe(exp.record_experiment_status)()
         if exp.automatic_backups:
@@ -1862,6 +1865,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
+            "inplace_timeline_transitions": False,
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -2506,7 +2510,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def response_approved(self, participant):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
-        return success_response(submission="approved", page=page.__json__(participant))
+        payload = {
+            "submission": "approved",
+            "page": page.__json__(participant),
+        }
+        config = get_config()
+        # In inplace mode, the same /response round-trip both advances the
+        # participant state and returns the next timeline fragment.
+        if config.get("inplace_timeline_transitions"):
+            payload["timeline_fragment"] = self.render_partial_timeline_payload(
+                page, self, participant
+            )
+        return success_response(**payload)
 
     def response_rejected(self, message):
         logger.warning(
@@ -2786,6 +2801,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
+        config.register("inplace_timeline_transitions", bool)
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
@@ -3905,7 +3921,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if not isinstance(participant, Bot):
                 participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
-            return cls.serialize_page(page, experiment, participant, mode)
+            if mode == "json":
+                return jsonify(page.__json__(participant))
+            if mode is not None:
+                raise ValueError(
+                    f"Unsupported /timeline mode '{mode}'. "
+                    "Only mode=json remains supported on this route."
+                )
+            # Full timeline renders still happen here for initial page loads and
+            # for the legacy reload-based mode. Inplace fragment rendering is an
+            # internal helper reached from /response instead.
+            return page.render(experiment, participant)
         except cls.HandledError as err:
             return err.error_page()
         except Exception as err:
@@ -4112,12 +4138,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return page
 
-    @classmethod
-    def serialize_page(cls, page, experiment, participant, mode):
-        if mode == "json":
-            return jsonify(page.__json__(participant))
-        else:
-            return page.render(experiment, participant)
+    @staticmethod
+    def render_partial_timeline_payload(page, experiment, participant):
+        """
+        Render the current timeline page as the internal inplace fragment payload.
+
+        This helper is the shared render authority for inplace fragment output
+        returned directly from /response.
+        """
+        return {
+            "html": page.render(experiment, participant, partial_mode=True),
+            "page_uuid": participant.page_uuid,
+        }
 
     @classmethod
     def check_unique_id(cls, participant, unique_id):
@@ -4332,6 +4364,7 @@ def import_local_experiment():
     # import pdb; pdb.set_trace()
     #
     # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
+    ensure_experiment_directory_name_does_not_conflict()
     dallinger_get_config()
 
     import dallinger.experiment
