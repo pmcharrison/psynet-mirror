@@ -146,12 +146,26 @@ def _coerce_participant_id(value):
         return None
 
 
-def _participant_id_from_frame(frame: dict):
-    participant_id = _coerce_participant_id(frame.get("participant_id"))
-    if participant_id is not None:
-        return participant_id
+def _normalize_participant_targets(participants):
+    if not isinstance(participants, (list, tuple, set)):
+        participants = [participants]
 
-    return None
+    participant_ids = []
+    explicit_page_uuids = {}
+    for participant in participants:
+        if participant is None:
+            continue
+
+        if isinstance(participant, int):
+            participant_ids.append(int(participant))
+            continue
+
+        participant_id = int(participant.id)
+        participant_ids.append(participant_id)
+        if participant.page_uuid:
+            explicit_page_uuids[participant_id] = participant.page_uuid
+
+    return participant_ids, explicit_page_uuids
 
 
 def extract_websocket_event_type(message):
@@ -159,19 +173,6 @@ def extract_websocket_event_type(message):
 
     frame = parse_websocket_frame(message)
     return _extract_frame_type(frame)
-
-
-def _extract_websocket_participant_id(message):
-    """Extract a participant ID from a raw WebSocket JSON message, if present."""
-
-    try:
-        frame = json.loads(message)
-    except json.JSONDecodeError:
-        return None
-
-    if not isinstance(frame, dict):
-        return None
-    return _participant_id_from_frame(frame)
 
 
 def parse_websocket_frame(message) -> dict:
@@ -199,20 +200,20 @@ def dispatch_websocket_frame(
     """Dispatch an incoming native WebSocket frame to an experiment handler."""
 
     event_type = _extract_frame_type(frame)
+    if participant is None:
+        logger.warning(
+            "Rejected websocket event: missing participant (event_type=%s)",
+            event_type,
+        )
+        return None
+
     try:
         spec = experiment._native_websocket_handlers[event_type]
     except KeyError:
         logger.warning(
             "Rejected websocket event: no handler registered "
             "(participant_id=%s, event_type=%s)",
-            getattr(participant, "id", None),
-            event_type,
-        )
-        return None
-
-    if participant is None:
-        logger.warning(
-            "Rejected websocket event: missing participant (event_type=%s)",
+            participant.id,
             event_type,
         )
         return None
@@ -266,8 +267,9 @@ def _call_handler(method: Callable, **context):
 
 
 class _Connection:
-    def __init__(self, participant_id: int, ws):
+    def __init__(self, participant_id: int, page_uuid: str, ws):
         self.participant_id = int(participant_id)
+        self.page_uuid = page_uuid
         self.ws = ws
 
     def send_frame(self, frame: dict):
@@ -279,8 +281,8 @@ class _ConnectionManager:
         self._connections_by_participant: dict[int, set[_Connection]] = {}
         self._lock = threading.RLock()
 
-    def add(self, participant_id: int, ws):
-        connection = _Connection(participant_id, ws)
+    def add(self, participant_id: int, page_uuid: str, ws):
+        connection = _Connection(participant_id, page_uuid, ws)
         with self._lock:
             self._connections_by_participant.setdefault(participant_id, set()).add(
                 connection
@@ -298,7 +300,10 @@ class _ConnectionManager:
             if not connections:
                 self._connections_by_participant.pop(connection.participant_id, None)
 
-    def send_to_participants(self, participant_ids: list[int], frame: dict):
+    def send_to_participants(
+        self, participant_ids: list[int], frame: dict, target_page_uuids=None
+    ):
+        target_page_uuids = target_page_uuids or {}
         stale_connections = []
         with self._lock:
             connections = [
@@ -310,6 +315,9 @@ class _ConnectionManager:
             ]
 
         for connection in connections:
+            target_page_uuid = target_page_uuids.get(str(connection.participant_id))
+            if target_page_uuid and connection.page_uuid != target_page_uuid:
+                continue
             try:
                 connection.send_frame(frame)
             except Exception as exc:  # pragma: no cover - depends on socket runtime
@@ -340,10 +348,45 @@ def _target_participant_ids(frame):
     ]
 
 
+def _target_page_uuids(frame):
+    page_uuids = frame.get("target_page_uuids", {}) or {}
+    return {str(key): str(value) for key, value in page_uuids.items() if value}
+
+
 def _handle_outbound_frame(frame):
     participant_ids = _target_participant_ids(frame)
     if participant_ids:
-        connection_manager.send_to_participants(participant_ids, frame)
+        connection_manager.send_to_participants(
+            participant_ids, frame, _target_page_uuids(frame)
+        )
+
+
+def _resolve_target_page_uuids(participant_ids, explicit_page_uuids=None):
+    explicit_page_uuids = explicit_page_uuids or {}
+    target_page_uuids = {
+        str(participant_id): str(page_uuid)
+        for participant_id, page_uuid in explicit_page_uuids.items()
+        if page_uuid
+    }
+    missing_ids = [
+        int(participant_id)
+        for participant_id in participant_ids
+        if str(participant_id) not in target_page_uuids
+    ]
+    if not missing_ids:
+        return target_page_uuids
+
+    try:
+        from psynet.participant import Participant
+
+        participants = Participant.query.filter(Participant.id.in_(missing_ids)).all()
+        for participant in participants:
+            if participant.page_uuid:
+                target_page_uuids[str(participant.id)] = str(participant.page_uuid)
+    except Exception as exc:  # pragma: no cover - depends on runtime DB context
+        logger.warning("Could not resolve websocket target page UUIDs: %s", exc)
+
+    return target_page_uuids
 
 
 def _redis_listener_loop():  # pragma: no cover - exercised in live experiments
@@ -382,23 +425,27 @@ def start_redis_listener():
 def publish_websocket_event(participant_ids, event_type: str, message=None):
     """Publish an outbound event to one or more participants."""
 
-    if not isinstance(participant_ids, (list, tuple, set)):
-        participant_ids = [participant_ids]
-
-    target_participant_ids = [
-        int(participant_id)
-        for participant_id in participant_ids
-        if participant_id is not None
-    ]
+    target_participant_ids, explicit_page_uuids = _normalize_participant_targets(
+        participant_ids
+    )
     if not target_participant_ids:
         return
+
+    extra = {
+        "target_participant_ids": [
+            str(participant_id) for participant_id in target_participant_ids
+        ],
+    }
+    target_page_uuids = _resolve_target_page_uuids(
+        target_participant_ids, explicit_page_uuids
+    )
+    if target_page_uuids:
+        extra["target_page_uuids"] = target_page_uuids
 
     frame = make_frame(
         event_type,
         message,
-        target_participant_ids=[
-            str(participant_id) for participant_id in target_participant_ids
-        ],
+        **extra,
     )
     redis_conn.publish(REDIS_OUTBOUND_CHANNEL, _json_dumps(frame))
 
@@ -412,7 +459,7 @@ class ParticipantWebSocket:
     def send(self, event_type: str, message=None):
         """Send an event to this participant's connected browser sockets."""
 
-        publish_websocket_event([self.participant.id], event_type, message)
+        publish_websocket_event(self.participant, event_type, message)
 
 
 class ExperimentWebSocket:
@@ -424,13 +471,7 @@ class ExperimentWebSocket:
     def send(self, participants, event_type: str, message=None):
         """Send an event to one or more participants."""
 
-        if isinstance(participants, (list, tuple, set)):
-            participant_ids = [
-                getattr(participant, "id", participant) for participant in participants
-            ]
-        else:
-            participant_ids = [getattr(participants, "id", participants)]
-        publish_websocket_event(participant_ids, event_type, message)
+        publish_websocket_event(participants, event_type, message)
 
 
 def _participant_from_request():
@@ -440,6 +481,7 @@ def _participant_from_request():
 
     participant_id = _coerce_participant_id(request.args.get("participant_id"))
     unique_id = request.args.get("unique_id")
+    page_uuid = request.args.get("page_uuid")
 
     query = Participant.query
     if unique_id:
@@ -456,6 +498,9 @@ def _participant_from_request():
     if participant_id is not None and int(participant.id) != participant_id:
         return None
 
+    if not page_uuid or page_uuid != participant.page_uuid:
+        return None
+
     return participant
 
 
@@ -468,7 +513,7 @@ def _handle_socket(ws):  # pragma: no cover - exercised in live experiments
         return
 
     start_redis_listener()
-    connection = connection_manager.add(participant.id, ws)
+    connection = connection_manager.add(participant.id, participant.page_uuid, ws)
     experiment = get_experiment()
 
     try:

@@ -57,7 +57,7 @@ def test_live_session_snapshot_payload_is_json_ready():
     """Snapshots expose state, readiness, and participant IDs as browser data."""
 
     state = _state()
-    state.mark_ready(1)
+    state.mark_ready(SimpleNamespace(id=1))
 
     assert state.snapshot_payload() == {
         "session_id": "session-1",
@@ -185,7 +185,6 @@ def test_live_session_control_derives_config(monkeypatch):
             self.custom_value = 10
             super().__init__(
                 participant=participant,
-                group_type="demo_group",
                 trial=trial,
                 params={"extra": "value"},
             )
@@ -194,7 +193,7 @@ def test_live_session_control_derives_config(monkeypatch):
             return {"custom": self.custom_value}
 
     participants = [SimpleNamespace(id=2), SimpleNamespace(id=1)]
-    group = SimpleNamespace(id=9, participants=participants)
+    group = SimpleNamespace(id=9, group_type="demo_group", participants=participants)
     participant = SimpleNamespace(
         id=1, active_sync_groups={"demo_group": group}, sync_group=None
     )
@@ -203,6 +202,7 @@ def test_live_session_control_derives_config(monkeypatch):
         id=7,
         live_session=live_session,
         live_session_class=DemoSession,
+        sync_group=group,
     )
 
     control = DemoControl(participant, trial=trial)
@@ -233,6 +233,15 @@ def test_live_session_control_requires_trial_session_class():
         LiveSessionControl._resolve_session_class(trial)
 
 
+def test_live_session_control_requires_sync_group():
+    """Trial-backed live controls derive the group from the trial."""
+
+    trial = SimpleNamespace(sync_group=None)
+
+    with pytest.raises(ValueError, match="sync group"):
+        LiveSessionControl._resolve_group(trial)
+
+
 def test_live_session_links_trials_by_participant():
     """LiveSession tracks participant trials associated with a shared session."""
 
@@ -250,7 +259,7 @@ def test_live_session_links_trials_by_participant():
     assert trial.live_session is state
 
     state.__dict__["trials"] = [trial]
-    assert state.get_participant_trial(1) is trial
+    assert state.get_participant_trial(SimpleNamespace(id=1)) is trial
     assert state.get_participant_trial(SimpleNamespace(id=2)) is None
 
 

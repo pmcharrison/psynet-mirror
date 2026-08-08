@@ -46,10 +46,7 @@ class _LiveSessionMixin:
         """Return the live-session ID for a group/trial."""
 
         parts = [model_name_to_snake_case(cls.__name__)]
-        network = getattr(trial, "network", None)
-        network_id = getattr(network, "id", None)
-        if network_id is not None:
-            parts.extend(["network", str(int(network_id))])
+        parts.extend(["network", str(int(trial.network.id))])
         parts.extend(["group", str(int(group.id))])
         return ":".join(parts)
 
@@ -96,14 +93,14 @@ class _LiveSessionMixin:
     def prepare_for_group(cls, *, group):
         """Create and link the live session for a synchronized group of trials."""
 
-        leader = getattr(group, "leader", None)
+        leader = group.leader
         if leader is None:
             raise ValueError(f"Group {group.id} has no leader.")
 
         participants = sorted(group.active_participants, key=lambda p: p.id)
         participant_ids = [int(participant.id) for participant in participants]
         trials = [participant.current_trial for participant in participants]
-        leader_trial = getattr(leader, "current_trial", None)
+        leader_trial = leader.current_trial
         if leader_trial is None:
             raise ValueError(
                 f"Live session group {group.id} has no trial for leader {leader.id}."
@@ -135,7 +132,7 @@ class _LiveSessionMixin:
         if not self.has_participant(participant):
             return False
 
-        participant_id = int(getattr(participant, "id", participant))
+        participant_id = int(participant.id)
         ready = {int(value) for value in (self.ready_participant_ids or [])}
         ready.add(participant_id)
         self.ready_participant_ids = sorted(ready)
@@ -151,7 +148,7 @@ class _LiveSessionMixin:
     def has_participant(self, participant):
         """Return whether a participant belongs to this live session."""
 
-        participant_id = int(getattr(participant, "id", participant))
+        participant_id = int(participant.id)
         expected = {int(value) for value in (self.participant_ids or [])}
         return participant_id in expected
 
@@ -161,8 +158,8 @@ class _LiveSessionMixin:
     ):
         """Return a participant's current live session if it matches a session ID."""
 
-        trial = getattr(participant, "current_trial", None)
-        live_session = getattr(trial, "live_session", None)
+        trial = participant.current_trial
+        live_session = trial.live_session if trial is not None else None
         if live_session is None or live_session.session_id != session_id:
             return None
 
@@ -228,13 +225,10 @@ class _LiveSessionMixin:
     def link_trial(self, trial):
         """Associate a participant trial with this live session."""
 
-        if trial is None:
-            return None
-
-        current_id = getattr(trial, "live_session_id", None)
+        current_id = trial.live_session_id
         if (
             current_id is not None
-            and getattr(self, "id", None) is not None
+            and self.id is not None
             and int(current_id) != int(self.id)
         ):
             raise ValueError(
@@ -246,7 +240,7 @@ class _LiveSessionMixin:
     def get_participant_trial(self, participant):
         """Return the trial linked to this live session for a participant."""
 
-        participant_id = int(getattr(participant, "id", participant))
+        participant_id = int(participant.id)
         trials = [
             trial
             for trial in (self.trials or [])
@@ -314,7 +308,6 @@ class LiveSessionControl(Control):
         *,
         participant,
         trial,
-        group_type: str,
         params: dict | None = None,
         bot_response=NoArgumentProvided,
         buttons=None,
@@ -328,15 +321,14 @@ class LiveSessionControl(Control):
         self.participant = participant
         self.trial = trial
         self.session_class = self._resolve_session_class(trial)
-        self.group_type = group_type
-        self.group = self._get_group(participant, group_type)
+        self.group = self._resolve_group(trial)
         self.group_id = int(self.group.id)
         self.participant_ids = [
             int(p.id) for p in sorted(self.group.participants, key=lambda p: p.id)
         ]
         self.participant_id = int(participant.id)
         self.session_id = self.session_class.build_session_id(self.group, trial)
-        self.live_session = getattr(trial, "live_session", None)
+        self.live_session = trial.live_session
         if self.live_session is None:
             self.live_session = self.session_class.get(self.session_id)
         if self.live_session is None:
@@ -368,7 +360,7 @@ class LiveSessionControl(Control):
         if trial is None:
             raise ValueError("LiveSessionControl currently requires a trial.")
 
-        session_class = getattr(trial, "live_session_class", None)
+        session_class = trial.live_session_class
         if session_class is None:
             raise ValueError(
                 f"Trial {trial.__class__.__name__} must define live_session_class "
@@ -377,15 +369,11 @@ class LiveSessionControl(Control):
         return session_class
 
     @staticmethod
-    def _get_group(participant, group_type: str):
-        active_sync_groups = getattr(participant, "active_sync_groups", {}) or {}
-        if group_type in active_sync_groups:
-            return active_sync_groups[group_type]
-
-        sync_group = getattr(participant, "sync_group", None)
-        if sync_group is not None:
-            return sync_group
-
-        raise ValueError(
-            f"Could not derive live-session group {group_type!r} for participant."
-        )
+    def _resolve_group(trial):
+        group = trial.sync_group
+        if group is None:
+            raise ValueError(
+                f"Trial {trial.__class__.__name__} must belong to a sync group "
+                "to use LiveSessionControl."
+            )
+        return group

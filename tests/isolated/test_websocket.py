@@ -9,7 +9,7 @@ from psynet.websocket import (
     ExperimentWebSocket,
     ParticipantWebSocket,
     WebSocketMessage,
-    _extract_websocket_participant_id,
+    _ConnectionManager,
     collect_websocket_handlers,
     dispatch_websocket_frame,
     extract_websocket_event_type,
@@ -146,11 +146,10 @@ def test_dispatch_rejects_invalid_payload():
     assert not hasattr(participant, "handled_value")
 
 
-def test_event_type_and_participant_extraction():
+def test_event_type_extraction():
     """Utilities can inspect raw JSON frames."""
 
     assert extract_websocket_event_type(json.dumps({"type": "echo"})) == "echo"
-    assert _extract_websocket_participant_id(json.dumps({"participant_id": 13})) == 13
 
 
 def test_make_frame_serializes_server_event_models():
@@ -181,6 +180,7 @@ def test_participant_websocket_publishes_targeted_event(monkeypatch):
         "type": "serverMessage",
         "message": "hello",
         "target_participant_ids": ["7"],
+        "target_page_uuids": {"7": "current-page"},
     }
 
 
@@ -195,19 +195,57 @@ def test_experiment_websocket_send_accepts_one_or_many_targets(monkeypatch):
 
     monkeypatch.setattr("psynet.websocket.redis_conn", FakeRedis())
 
+    def resolve_page_uuids(participant_ids, explicit_page_uuids=None):
+        return {
+            str(participant_id): str(page_uuid)
+            for participant_id, page_uuid in (explicit_page_uuids or {}).items()
+        }
+
+    monkeypatch.setattr(
+        "psynet.websocket._resolve_target_page_uuids", resolve_page_uuids
+    )
+
     websocket = ExperimentWebSocket(SimpleNamespace())
-    websocket.send(SimpleNamespace(id=7), "one", "hello")
-    websocket.send([7, SimpleNamespace(id=8)], "many", {"ok": True})
+    websocket.send(SimpleNamespace(id=7, page_uuid="page-7"), "one", "hello")
+    websocket.send([7, SimpleNamespace(id=8, page_uuid="page-8")], "many", {"ok": True})
 
     assert published == [
         {
             "type": "one",
             "message": "hello",
             "target_participant_ids": ["7"],
+            "target_page_uuids": {"7": "page-7"},
         },
         {
             "type": "many",
             "message": {"ok": True},
             "target_participant_ids": ["7", "8"],
+            "target_page_uuids": {"8": "page-8"},
         },
     ]
+
+
+def test_connection_manager_filters_stale_page_sockets():
+    """Outbound frames only reach sockets for the participant's current page."""
+
+    sent = {"current": [], "old": []}
+
+    class FakeSocket:
+        def __init__(self, key):
+            self.key = key
+
+        def send(self, payload):
+            sent[self.key].append(json.loads(payload))
+
+    manager = _ConnectionManager()
+    manager.add(7, "current-page", FakeSocket("current"))
+    manager.add(7, "old-page", FakeSocket("old"))
+
+    manager.send_to_participants(
+        [7],
+        {"type": "serverMessage", "message": "hello"},
+        {"7": "current-page"},
+    )
+
+    assert sent["current"] == [{"type": "serverMessage", "message": "hello"}]
+    assert sent["old"] == []

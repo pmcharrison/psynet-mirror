@@ -275,7 +275,6 @@ class SharedCanvasControl(LiveSessionControl):
     def __init__(self, trial, participant):
         super().__init__(
             participant=participant,
-            group_type=GROUP_TYPE,
             trial=trial,
             show_next_button=False,
         )

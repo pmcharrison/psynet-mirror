@@ -43,7 +43,7 @@ import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
-from psynet.page import InfoPage
+from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
 from psynet.session import LiveSession, LiveSessionControl
 from psynet.sync import GroupBarrier, SimpleGrouper
@@ -299,7 +299,6 @@ class RockPaperScissorsControl(LiveSessionControl):
         self.choices = choices
         super().__init__(
             participant=participant,
-            group_type=GROUP_TYPE,
             trial=trial,
             show_next_button=False,
         )
@@ -328,12 +327,14 @@ class RockPaperScissorsTrial(StaticTrial):
             GroupBarrier(
                 id_="wait_for_partner",
                 group_type=GROUP_TYPE,
+                waiting_logic=WaitPage(wait_time=0.5, save_answer=False),
                 max_wait_time=120,
             ),
             self.play_game(participant=participant, color=self.definition["color"]),
             GroupBarrier(
                 id_="game_finished",
                 group_type=GROUP_TYPE,
+                waiting_logic=WaitPage(wait_time=0.5, save_answer=False),
                 on_release=self.score_game,
                 max_wait_time=120,
             ),
