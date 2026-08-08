@@ -2315,7 +2315,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assignment, not the quality of the participant's responses. We therefore
         treat them as a premature exit: the participant is marked as failed, and
         each TrialMaker decides whether to invalidate completed trials via
-        ``fail_trials_on_premature_exit`` (incomplete trials are always failed).
+        ``fail_trials_on_premature_exit`` (incomplete trials are always failed
+        on any participant failure).
         This deliberately replaces Dallinger's default behaviour of
         unconditionally failing the participant's nodes, which bypassed
         TrialMaker failure policy.

@@ -118,6 +118,40 @@ class TestRecruiterReturnOptOut:
     "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
+class TestArbitraryFailureClearsIncomplete:
+    def test_arbitrary_failure_fails_incomplete_but_preserves_completed(
+        self, participant, trial, trial_class, node, launched_experiment, trial_maker
+    ):
+        trial.complete = True
+        db.session.commit()
+
+        incomplete = trial_class(
+            experiment=launched_experiment,
+            node=node,
+            participant=participant,
+            propagate_failure=False,
+            is_repeat_trial=False,
+        )
+        db.session.add(incomplete)
+        db.session.commit()
+        assert not incomplete.complete
+
+        # These flags only govern completed-trial invalidation for specific
+        # causes; an arbitrary failure should still clear incomplete work.
+        trial_maker.fail_trials_on_premature_exit = False
+        trial_maker.fail_trials_on_participant_performance_check = False
+
+        participant.fail("simulated_failure")
+
+        assert participant.failed
+        assert not trial.failed
+        assert incomplete.failed
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
 class TestSettlementReturn:
     def test_already_failed_return_records_cause_without_premature_exit(
         self, launched_experiment, participant, trial, trial_maker

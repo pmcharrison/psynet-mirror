@@ -81,8 +81,8 @@ the trials belonging to that TrialMaker. This keeps invalidation scoped
 correctly in experiments containing multiple TrialMakers with different data
 requirements.
 
-PsyNet currently recognizes two participant failure causes for automatic trial
-invalidation:
+PsyNet currently recognizes two participant failure causes for automatic
+invalidation of **completed** trials:
 
 ``premature_exit``
     Controlled by ``fail_trials_on_premature_exit``.
@@ -93,10 +93,11 @@ invalidation:
 If the corresponding option is ``True``, all non-failed trials belonging to
 that participant and TrialMaker are failed. This includes completed and
 finalized trials. If it is ``False``, completed trials are preserved.
-Incomplete trials (``complete=False``) are always failed for these causes,
-because they are not usable contributions and can otherwise stall
-dependent logic such as chain growth. Participant failure for any other
-reason preserves trials unless custom failure logic explicitly fails them.
+Incomplete trials (``complete=False``) are always failed on any participant
+failure, because they are not usable contributions and can otherwise stall
+dependent logic such as chain growth or synchronous barriers. Participant
+failure for any other reason therefore clears incomplete trials but preserves
+completed ones unless custom failure logic explicitly fails them.
 
 Recruiter events count as premature exit. When a recruiter reports that a
 participant abandoned, returned, or had their assignment reassigned while
@@ -168,14 +169,14 @@ stimulus might require all 30 ratings to come from participants who completed
 the experiment. Failing completed trials from premature exits prevents those
 partial ratings from contributing to the target, so PsyNet recruits
 replacements. Set it to ``False`` when valid completed partial contributions
-should remain usable. Incomplete trials are failed in either case.
+should remain usable. Incomplete trials are failed on any participant failure.
 
 Set ``fail_trials_on_participant_performance_check=True`` when failing the
 performance check is evidence that this TrialMaker's data should not be
 analyzed, for example because the participant responded nonsensically or showed
 signs of bot behavior. Set it to ``False`` when the check only determines
 eligibility to continue and the collected completed trials remain meaningful.
-Incomplete trials are failed in either case. A failed
+Incomplete trials are failed on any participant failure. A failed
 prescreen can therefore preserve completed trials when those trials are valid
 measurements of ineligibility.
 

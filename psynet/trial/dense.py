@@ -131,13 +131,13 @@ class DenseTrialMaker(StaticTrialMaker):
         If ``True``, a participant's completed trials are marked as failed
         if they leave the experiment prematurely.
         Defaults to ``True``. Incomplete trials are always failed on
-        premature exit, regardless of this setting.
+        any participant failure, regardless of this setting.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
         if the participant fails a performance check.
-        Defaults to ``True``. Incomplete trials are always failed on a
-        performance-check failure, regardless of this setting.
+        Defaults to ``True``. Incomplete trials are always failed on
+        any participant failure, regardless of this setting.
 
     n_repeat_trials
         Number of repeat trials to present to the participant. These trials

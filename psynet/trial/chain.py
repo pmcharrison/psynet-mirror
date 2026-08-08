@@ -1202,14 +1202,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         if they leave the experiment prematurely.
         Defaults to ``False`` because failing completed trials can end up
         destroying large parts of existing chains. Incomplete trials are
-        always failed on premature exit, regardless of this setting.
+        always failed on any participant failure, regardless of this setting.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
         if the participant fails a performance check.
         Defaults to ``False`` because failing completed trials can end up
         destroying large parts of existing chains. Incomplete trials are
-        always failed on a performance-check failure, regardless of this
+        always failed on any participant failure, regardless of this
         setting.
 
     propagate_failure
