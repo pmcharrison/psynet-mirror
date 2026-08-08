@@ -282,13 +282,10 @@ class SharedCanvasControl(LiveSessionControl):
             show_next_button=False,
         )
 
-    def build_control_params(self):
-        """Return browser-facing shared-canvas config."""
-
         participant_ids = [int(value) for value in self.session.participant_ids]
         role_index = participant_ids.index(int(self.participant.id))
         world = self.session.state["params"]["world"]
-        return {
+        self.canvas_config = {
             "role": f"Player {role_index + 1}",
             "world_id": world["world_id"],
             "canvas_size": world["canvas_size"],

@@ -472,7 +472,6 @@ class LiveSessionControl(Control):
         session_class,
         group_type: str,
         session_initializer_id: str,
-        params: dict | None = None,
         bot_response=NoArgumentProvided,
         buttons=None,
         show_next_button: bool | None = False,
@@ -507,7 +506,6 @@ class LiveSessionControl(Control):
             )
         if self.session.id is None:
             raise RuntimeError("Live session must be flushed before rendering.")
-        custom_params = self.build_control_params()
         self.live_session_config = {
             "session_id": int(self.session.id),
             "group_id": int(self.session.sync_group_id),
@@ -515,11 +513,4 @@ class LiveSessionControl(Control):
             "network_id": self.session.network_id,
             "participant_id": int(participant.id),
             "participant_ids": [int(value) for value in self.session.participant_ids],
-            **(custom_params or {}),
-            **(params or {}),
         }
-
-    def build_control_params(self):
-        """Return extra browser-facing live-session config."""
-
-        return {}

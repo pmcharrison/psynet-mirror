@@ -146,15 +146,13 @@ live interaction.
         macro = "rps_control"
 
         def __init__(self, participant):
+            self.choices = CHOICES
             super().__init__(
                 participant=participant,
                 session_class=RockPaperScissorsSession,
                 group_type=GROUP_TYPE,
                 session_initializer_id="rps_session",
             )
-
-        def build_control_params(self):
-            return {"choices": CHOICES}
 
 
     class RockPaperScissorsTrial(StaticTrial):
@@ -226,7 +224,7 @@ And in ``templates/rps.html``:
     {% macro rps_control(config) %}
     <div id="status">Waiting for your partner...</div>
 
-    {% for choice in config.live_session_config.choices %}
+    {% for choice in config.choices %}
         <button type="button" class="choice" data-choice="{{ choice }}" disabled>
             {{ choice }}
         </button>

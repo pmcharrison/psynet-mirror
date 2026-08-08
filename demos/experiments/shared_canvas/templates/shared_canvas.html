@@ -38,13 +38,13 @@
 <div class="canvas-shell">
   <h2>Shared canvas</h2>
   <div class="bonus-pill">Coin bonus: $<span id="coin-bonus">0.00</span></div>
-  <canvas id="shared-canvas" width="{{ params.live_session_config.canvas_size }}" height="{{ params.live_session_config.canvas_size }}" tabindex="0" aria-label="Shared canvas arrow-key navigation area"></canvas>
+  <canvas id="shared-canvas" width="{{ params.canvas_config.canvas_size }}" height="{{ params.canvas_config.canvas_size }}" tabindex="0" aria-label="Shared canvas arrow-key navigation area"></canvas>
   <p class="canvas-help">Use the arrow keys to move. Collect the gold coins before the session ends.</p>
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   var liveSession = {{ params.live_session_config | tojson }};
-  var cfg = liveSession;
+  var cfg = Object.assign({}, liveSession, {{ params.canvas_config | tojson }});
   var participantId = String(liveSession.participant_id);
   var canvas = document.getElementById("shared-canvas");
   var ctx = canvas.getContext("2d");

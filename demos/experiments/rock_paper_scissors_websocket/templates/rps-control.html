@@ -31,6 +31,7 @@
     // pulls fresh state for recovery, and renders targeted reveal events.
     document.addEventListener("DOMContentLoaded", function () {
         var liveSession = {{ config.live_session_config | tojson }};
+        var nRounds = {{ config.n_rounds | tojson }};
         var participantId = String(liveSession.participant_id);
         var round     = 1;
         var completed = false;
@@ -86,7 +87,7 @@
             if (history.length === 0) {
                 scoreEl.textContent = "Score — you: 0, partner: 0";
                 statusEl.textContent = (
-                    "Round " + round + " of " + liveSession.n_rounds + ": choose your action."
+                    "Round " + round + " of " + nRounds + ": choose your action."
                 );
             }
 

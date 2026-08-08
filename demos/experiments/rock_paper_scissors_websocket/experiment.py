@@ -307,15 +307,6 @@ class RockPaperScissorsControl(LiveSessionControl):
             show_next_button=False,
         )
 
-    def build_control_params(self):
-        """Return browser-facing rock-paper-scissors config."""
-
-        return {
-            "color": self.color,
-            "n_rounds": self.n_rounds,
-            "choices": self.choices,
-        }
-
     def get_bot_response(self, experiment, bot, page, prompt):
         # Bots cannot use WebSockets, so they simply submit a full set of moves;
         # the authoritative scoring happens server-side in ``score_game``.

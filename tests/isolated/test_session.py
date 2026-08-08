@@ -365,11 +365,7 @@ def test_live_session_control_derives_config(monkeypatch):
                 session_class=PolymorphicDemoLiveSession,
                 group_type="demo_group",
                 session_initializer_id="demo_session",
-                params={"extra": "value"},
             )
-
-        def build_control_params(self):
-            return {"custom": self.custom_value}
 
     group = _group()
     participant = group.active_participants[0]
@@ -377,6 +373,7 @@ def test_live_session_control_derives_config(monkeypatch):
     control = DemoControl(participant)
 
     assert control.session is live_session
+    assert control.custom_value == 10
     assert control.live_session_config == {
         "session_id": 5,
         "group_id": 9,
@@ -384,8 +381,6 @@ def test_live_session_control_derives_config(monkeypatch):
         "network_id": 12,
         "participant_id": 1,
         "participant_ids": [1, 2],
-        "custom": 10,
-        "extra": "value",
     }
 
 
