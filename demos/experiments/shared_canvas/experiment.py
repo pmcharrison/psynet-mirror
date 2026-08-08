@@ -159,22 +159,17 @@ class PositionMessage(WebSocketMessage):
     """High-frequency player position payload."""
 
     session_id: str = Field(min_length=1)
-    label: str | None = None
-    color: str | None = None
     x: float = Field(ge=0, le=CANVAS_SIZE)
     y: float = Field(ge=0, le=CANVAS_SIZE)
     vx: float
     vy: float
     client_time: float
-    low_latency: bool = True
 
     def player_payload(self, participant: Participant, receive_time):
         """Return a player payload for broadcasting or replay."""
 
         return {
             "participant_id": str(participant.id),
-            "label": self.label,
-            "color": self.color,
             "x": round(clamp(self.x, 0, CANVAS_SIZE), 3),
             "y": round(clamp(self.y, 0, CANVAS_SIZE), 3),
             "vx": round(self.vx, 3),

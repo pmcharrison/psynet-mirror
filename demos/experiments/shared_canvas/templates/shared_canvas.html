@@ -111,7 +111,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function applyPosition(player) {
     var playerId = String(player.participant_id);
     if (playerId === participantId) return;
-    players[playerId] = Object.assign({}, player, {received_at: performance.now()});
+    players[playerId] = Object.assign({}, players[playerId] || {}, player, {
+      received_at: performance.now()
+    });
   }
 
   function applyCollection(msg) {
@@ -222,14 +224,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function sendPosition() {
     psynet.websocket.send("position", {
-      label: own.label,
-      color: own.color,
       x: own.x,
       y: own.y,
       vx: own.vx,
       vy: own.vy,
-      client_time: performance.now(),
-      low_latency: true
+      client_time: performance.now()
     });
   }
 
