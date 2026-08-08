@@ -944,7 +944,7 @@
       let config = {
         session_id: null,
       };
-      let snapshotHandlers = [];
+      let freshStateHandlers = [];
       let startedHandlers = [];
       let endHandlers = [];
       let endHandled = false;
@@ -972,7 +972,7 @@
         api.state = snapshot.state || {};
         api.started = Boolean(snapshot.started);
         api.ended = Boolean(snapshot.ended);
-        snapshotHandlers.forEach((handler) => handler(snapshot));
+        freshStateHandlers.forEach((handler) => handler(snapshot));
         if (!wasStarted && api.started) {
           startedHandlers.forEach((handler) => handler(snapshot));
         }
@@ -1004,11 +1004,15 @@
         finish(snapshot);
       }
 
-      function request() {
+      function pullState(fields) {
         if (!config.session_id) return;
-        psynet.websocket.send("stateRequest", {
+        let message = {
           session_id: config.session_id,
-        });
+        };
+        if (fields !== undefined) {
+          message.fields = fields;
+        }
+        psynet.websocket.send("stateRequest", message);
       }
 
       function resetState() {
@@ -1034,7 +1038,7 @@
         config = {
           session_id: null,
         };
-        snapshotHandlers = [];
+        freshStateHandlers = [];
         startedHandlers = [];
         endHandlers = [];
         resetState();
@@ -1058,8 +1062,8 @@
           applySnapshot,
         );
         unsubscribeSessionEnd = psynet.websocket.handle("sessionEnd", applyEnd);
-        unsubscribeConnect = psynet.websocket.onConnect(request);
-        request();
+        unsubscribeConnect = psynet.websocket.onConnect(pullState);
+        pullState();
         return api;
       };
 
@@ -1070,14 +1074,14 @@
         });
       };
 
-      api.request = request;
+      api.pullState = pullState;
       api.resetPageState = resetPageState;
 
-      api.onSnapshot = function (handler) {
-        snapshotHandlers.push(handler);
+      api.onFreshState = function (handler) {
+        freshStateHandlers.push(handler);
         if (api.snapshot) handler(api.snapshot);
         return function () {
-          snapshotHandlers = snapshotHandlers.filter((x) => x !== handler);
+          freshStateHandlers = freshStateHandlers.filter((x) => x !== handler);
         };
       };
 

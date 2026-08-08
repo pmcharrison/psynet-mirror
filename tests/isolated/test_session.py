@@ -82,6 +82,15 @@ def test_live_session_snapshot_payload_is_json_ready():
     }
 
 
+def test_live_session_snapshot_payload_can_filter_state_fields():
+    """Snapshots can include only selected public state fields."""
+
+    state = _state()
+    state.state = {"score": 3, "round": 2}
+
+    assert state.snapshot_payload(fields=["score", "missing"])["state"] == {"score": 3}
+
+
 def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
     """StateRequest sends a snapshot through the experiment websocket helper."""
 
@@ -100,6 +109,28 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
         participant,
         "stateSnapshot",
         state.snapshot_payload(),
+    )
+
+
+def test_state_request_can_send_partial_state(monkeypatch):
+    """StateRequest forwards requested public state fields."""
+
+    state = _state()
+    state.state = {"score": 3, "round": 2}
+    experiment = SimpleNamespace(websocket=MagicMock())
+    participant = SimpleNamespace(
+        id=1, current_trial=SimpleNamespace(live_session=state)
+    )
+
+    LiveSession.handle_state_request(
+        experiment,
+        participant,
+        StateRequestMessage(session_id="session-1", fields=["round"]),
+    )
+    experiment.websocket.send.assert_called_once_with(
+        participant,
+        "stateSnapshot",
+        state.snapshot_payload(fields=["round"]),
     )
 
 

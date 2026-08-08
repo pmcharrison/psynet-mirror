@@ -129,7 +129,7 @@ class RockPaperScissorsSession(LiveSession):
         return initial_rps_state(participant_ids)
 
     def record_choice(self, participant_id: int, message: ChooseMessage):
-        """Record a choice and update the public live-session snapshot."""
+        """Record a choice and return reveals if this completed a round."""
 
         participant_id = int(participant_id)
         public_state = deepcopy(self.state or {})
@@ -137,13 +137,13 @@ class RockPaperScissorsSession(LiveSession):
         expected_ids = [int(value) for value in (self.participant_ids or [])]
 
         if bool(public_state.get("finished")):
-            return False
+            return None
         if message.round != current_round:
-            return False
+            return None
         if participant_id not in expected_ids:
-            return False
+            return None
         if participant_id in moves_for_round(message.session_id, message.round):
-            return False
+            return None
 
         db.session.add(
             RockPaperScissorsMove(
@@ -158,6 +158,7 @@ class RockPaperScissorsSession(LiveSession):
         round_moves = moves_for_round(message.session_id, message.round)
         submitted = sorted(str(pid) for pid in round_moves)
         public_state["submitted_participant_ids"] = submitted
+        reveals = []
 
         if len(round_moves) >= len(expected_ids):
             pids = sorted(round_moves.keys())
@@ -182,6 +183,7 @@ class RockPaperScissorsSession(LiveSession):
                 reveal = reveal_for(
                     public_state, message.session_id, pid, message.round
                 )
+                reveals.append((pid, reveal))
                 reveal_history[pid_key] = [
                     *reveal_history[pid_key],
                     reveal.model_dump(mode="json", exclude_none=True),
@@ -189,7 +191,7 @@ class RockPaperScissorsSession(LiveSession):
             public_state["reveal_history"] = reveal_history
 
         self.state = public_state
-        return True
+        return reveals
 
 
 def moves_for_round(session_id: str, round_number: int):
@@ -435,13 +437,23 @@ class Exp(psynet.experiment.Experiment):
         live_session = RockPaperScissorsSession.get_current_for_participant(
             participant, message.session_id, for_update=True
         )
-        if live_session is not None and live_session.record_choice(
-            participant.id, message
-        ):
-            live_session.send_snapshot(self)
-            if bool((live_session.state or {}).get("finished")):
-                live_session.end(self)
-            db.session.commit()
+        if live_session is None:
+            return
+
+        reveals = live_session.record_choice(participant.id, message)
+        if reveals is None:
+            return
+
+        participants_by_id = {int(p.id): p for p in live_session.participants}
+        for participant_id, reveal in reveals:
+            recipient = participants_by_id.get(int(participant_id))
+            if recipient is not None:
+                self.websocket.send(recipient, "roundReveal", reveal)
+
+        if bool((live_session.state or {}).get("finished")):
+            live_session.mark_ended()
+
+        db.session.commit()
 
     @staticmethod
     def _valid_choose_event():

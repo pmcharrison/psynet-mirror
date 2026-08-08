@@ -76,7 +76,7 @@ async function installNativeLifecycleProbe(page) {
       probe.websocketMessages += 1;
     });
     window.psynet.session.init({ session_id: "probe-session" });
-    window.psynet.session.onSnapshot(function () {
+    window.psynet.session.onFreshState(function () {
       probe.sessionSnapshots += 1;
     });
     window.psynet.session.onEnd(function () {

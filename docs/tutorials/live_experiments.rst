@@ -50,7 +50,8 @@ In Python:
 The browser includes the participant and page identity in each WebSocket frame.
 The server rejects messages from stale pages, so refreshing the page gives the
 participant a fresh connection while old browser tabs stop being able to mutate
-the experiment.
+the experiment. Browser WebSocket handlers are page-scoped; register them from
+page scripts so they are recreated for each live page.
 
 Live sessions
 -------------
@@ -70,7 +71,15 @@ session is a persisted row linked to the synchronized trials in a group. A
 trial-backed :class:`~psynet.session.LiveSessionControl` exposes a
 ``live_session_config`` object to the browser, including the ``session_id`` and
 participant IDs. Browser code passes this config to ``psynet.session.init()``,
-then sends a ready event once it has registered its handlers.
+then sends a ready event once it has registered its handlers. After
+``psynet.session.init()`` the browser automatically attaches the session ID to
+subsequent ``psynet.websocket.send(...)`` calls from that page.
+Register ``psynet.session.onFreshState(...)`` to render authoritative state
+copies, and call ``psynet.session.pullState()`` when the browser needs a fresh
+copy. ``pullState(["field_a", "field_b"])`` requests only selected public state
+fields. For frequent live updates, prefer custom ``psynet.websocket.send(...)``
+messages that include only the data needed for that update; reserve fresh state
+snapshots for synchronization and recovery.
 
 Minimal example
 ---------------
@@ -113,7 +122,7 @@ live interaction.
 
         def record_choice(self, participant, action):
             if not self.has_participant(participant):
-                return False
+                return None
 
             state = dict(self.state or {})
             choices = dict(state.get("choices", {}))
@@ -121,7 +130,7 @@ live interaction.
             state["choices"] = choices
             state["finished"] = len(choices) == len(self.participant_ids or [])
             self.state = state
-            return True
+            return state["finished"], choices
 
 
     class RockPaperScissorsControl(LiveSessionControl):
@@ -173,11 +182,20 @@ live interaction.
             if live_session is None:
                 return
 
-            if live_session.record_choice(participant, message.action):
-                live_session.send_snapshot(self)
-                if (live_session.state or {}).get("finished"):
-                    live_session.end(self)
-                db.session.commit()
+            result = live_session.record_choice(participant, message.action)
+            if result is None:
+                return
+
+            finished, choices = result
+            if finished:
+                for recipient in live_session.participants:
+                    self.websocket.send(
+                        recipient,
+                        "gameFinished",
+                        {"choice": choices[str(recipient.id)]},
+                    )
+                live_session.mark_ended()
+            db.session.commit()
 
 And in ``templates/rps.html``:
 
@@ -200,13 +218,19 @@ And in ``templates/rps.html``:
 
         psynet.session.init(liveSession);
 
-        psynet.session.onSnapshot(function(snapshot) {
-            var state = snapshot.state || {};
+        psynet.session.onFreshState(function(freshState) {
+            // Fresh state keeps reloaded clients in sync. Gameplay updates use
+            // smaller custom events below.
+            var state = freshState.state || {};
             var choices = state.choices || {};
             var hasChosen = Object.prototype.hasOwnProperty.call(
                 choices,
                 participantId
             );
+            if (state.finished && hasChosen) {
+                psynet.nextPage(choices[participantId]);
+                return;
+            }
 
             document.getElementById("status").textContent = hasChosen ?
                 "Waiting for your partner..." :
@@ -215,14 +239,13 @@ And in ``templates/rps.html``:
             Array.prototype.forEach.call(
                 document.getElementsByClassName("choice"),
                 function(button) {
-                    button.disabled = !snapshot.started || hasChosen;
+                    button.disabled = !freshState.started || hasChosen;
                 }
             );
         });
 
-        psynet.session.onEnd(function(snapshot) {
-            var choices = snapshot.state.choices || {};
-            psynet.nextPage(choices[participantId]);
+        psynet.websocket.handle("gameFinished", function(message) {
+            psynet.nextPage(message.choice);
         });
 
         psynet.session.ready();

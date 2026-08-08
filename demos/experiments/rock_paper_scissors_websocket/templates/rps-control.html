@@ -27,14 +27,14 @@
 </div>
 
 <script>
-    // The server owns the game: this script only sends the chosen action and
-    // renders the snapshots the server sends back.
+    // The server owns the game: this script only sends the chosen action,
+    // pulls fresh state for recovery, and renders targeted reveal events.
     document.addEventListener("DOMContentLoaded", function () {
         var liveSession = {{ config.live_session_config | tojson }};
         var participantId = String(liveSession.participant_id);
         var round     = 1;
         var completed = false;
-        var submitted = false;
+        var finalSubmitted = false;
         var finalAnswer = null;
 
         var buttons  = Array.prototype.slice.call(
@@ -65,10 +65,19 @@
             );
         }
 
-        function renderSnapshot(snapshot) {
-            if (!snapshot) return;
+        function advanceIfFinished(reveal) {
+            if (!reveal || !reveal.finished || finalSubmitted) return;
+            completed = true;
+            finalSubmitted = true;
+            finalAnswer = reveal.answer;
+            setEnabled(false);
+            psynet.nextPage(finalAnswer);
+        }
 
-            var state = snapshot.state || {};
+        function renderFreshState(freshState) {
+            if (!freshState) return;
+
+            var state = freshState.state || {};
             var history = ((state.reveal_history || {})[participantId]) || [];
             round = state.current_round || round;
             logEl.innerHTML = "";
@@ -86,10 +95,11 @@
                 setEnabled(false);
                 completed = true;
                 finalAnswer = latest.answer;
+                advanceIfFinished(latest);
                 return;
             }
 
-            if (!snapshot.started) {
+            if (!freshState.started) {
                 statusEl.textContent = "Waiting for your partner to load the game…";
                 setEnabled(false);
             } else if (participantHasSubmitted(state)) {
@@ -100,18 +110,24 @@
             }
         }
 
+        function applyRoundReveal(reveal) {
+            appendReveal(reveal);
+            round = reveal.round;
+            if (reveal.finished) {
+                advanceIfFinished(reveal);
+            } else {
+                setEnabled(true);
+            }
+        }
+
         psynet.session.init(liveSession);
-        psynet.session.onSnapshot(renderSnapshot);
-        psynet.session.onEnd(function (snapshot) {
-            renderSnapshot(snapshot);
-            if (submitted) return;
-            submitted = true;
-            psynet.nextPage(finalAnswer);
-        });
+        psynet.session.onFreshState(renderFreshState);
+        psynet.websocket.handle("roundReveal", applyRoundReveal);
         psynet.session.ready();
 
         buttons.forEach(function (button) {
             button.onclick = function () {
+                if (completed || button.disabled) return;
                 setEnabled(false);
                 statusEl.textContent = "Waiting for your partner…";
                 psynet.websocket.send("choose", {

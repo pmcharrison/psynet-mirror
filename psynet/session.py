@@ -23,6 +23,7 @@ class StateRequestMessage(WebSocketMessage):
     """Request the latest authoritative state for a live session."""
 
     session_id: str = Field(min_length=1)
+    fields: list[str] | None = None
 
 
 class ReadyMessage(WebSocketMessage):
@@ -198,12 +199,16 @@ class _LiveSessionMixin:
             return True
         return False
 
-    def snapshot_payload(self) -> dict:
+    def snapshot_payload(self, fields: list[str] | None = None) -> dict:
         """Return a JSON-serializable state snapshot payload."""
+
+        state = self.state or {}
+        if fields is not None:
+            state = {field: state[field] for field in fields if field in state}
 
         return {
             "session_id": self.session_id,
-            "state": self.state or {},
+            "state": state,
             "participant_ids": [str(value) for value in (self.participant_ids or [])],
             "ready_participant_ids": [
                 str(value) for value in (self.ready_participant_ids or [])
@@ -212,7 +217,9 @@ class _LiveSessionMixin:
             "ended": bool(self.ended),
         }
 
-    def send_snapshot(self, experiment, participants=None):
+    def send_snapshot(
+        self, experiment, participants=None, fields: list[str] | None = None
+    ):
         """Send the current snapshot to all live-session participants or a subset."""
 
         if participants is None:
@@ -220,7 +227,7 @@ class _LiveSessionMixin:
         experiment.websocket.send(
             participants,
             STATE_SNAPSHOT_EVENT,
-            self.snapshot_payload(),
+            self.snapshot_payload(fields=fields),
         )
 
     def send_session_end(self, experiment):
@@ -255,7 +262,9 @@ class _LiveSessionMixin:
 
         live_session = cls.get_current_for_participant(participant, message.session_id)
         if live_session is not None:
-            live_session.send_snapshot(experiment, participants=participant)
+            live_session.send_snapshot(
+                experiment, participants=participant, fields=message.fields
+            )
 
     @classmethod
     def handle_ready_event(cls, experiment, participant, message: ReadyMessage):

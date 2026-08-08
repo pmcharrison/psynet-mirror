@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", function () {
   focusCanvas();
 
   psynet.session.init(liveSession);
-  psynet.session.onSnapshot(applySnapshot);
+  psynet.session.onFreshState(applySnapshot);
   psynet.session.onStarted(startGame);
   psynet.session.onEnd(submitFinalAnswer);
   psynet.session.ready();
