@@ -42,7 +42,6 @@ class _LiveSessionMixin:
     session_type = Column(String(256), index=True)
     group_type = Column(String(256), index=True)
     initializer_id = Column(String(256), index=True)
-    created_by_participant_id = Column(Integer, index=True)
     state = Column(PythonDict, default=lambda: {})
     participant_ids = Column(PythonList, default=lambda: [])
     ready_participant_ids = Column(PythonList, default=lambda: [])
@@ -101,7 +100,6 @@ class _LiveSessionMixin:
         initializer_id: str | None = None,
         node_id: int | None = None,
         network_id: int | None = None,
-        created_by_participant_id: int | None = None,
     ):
         """Create a live-session row."""
 
@@ -112,7 +110,6 @@ class _LiveSessionMixin:
             initializer_id=initializer_id,
             node_id=node_id,
             network_id=network_id,
-            created_by_participant_id=created_by_participant_id,
             state=state or {},
             participant_ids=[
                 int(participant_id) for participant_id in participant_ids or []
@@ -183,7 +180,6 @@ class _LiveSessionMixin:
             initializer_id=initializer.id,
             node_id=context["node_id"],
             network_id=context["network_id"],
-            created_by_participant_id=int(leader.id),
         )
 
     @classmethod

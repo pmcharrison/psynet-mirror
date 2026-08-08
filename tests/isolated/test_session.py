@@ -279,7 +279,6 @@ def test_create_for_group_is_leader_owned(monkeypatch):
     assert live_session.initializer_id == "demo_session"
     assert live_session.node_id == 11
     assert live_session.network_id == 12
-    assert live_session.created_by_participant_id == 1
     assert live_session.participant_ids == [1, 2]
     assert live_session.state == {"participant_ids": [1, 2], "node_id": 11}
     added.assert_called_once_with(live_session)
