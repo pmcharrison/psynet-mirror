@@ -33,8 +33,6 @@ REDIS_OUTBOUND_CHANNEL = "psynet:websocket:outbound"
 INTERNAL_FRAME_KEYS = {
     "type",
     "message",
-    "participant_id",
-    "unique_id",
     "page_uuid",
 }
 
@@ -46,12 +44,20 @@ class WebSocketMessage(BaseModel):
 
 
 @dataclass(frozen=True)
+class _WebSocketHandlerDeclaration:
+    event_type: str
+    model: Optional[Type[BaseModel]] = None
+
+
+@dataclass(frozen=True)
 class WebSocketHandlerSpec:
     """Description of a direct experiment-level WebSocket handler."""
 
     event_type: str
-    method_name: str
-    model: Optional[Type[BaseModel]] = None
+    method: Callable
+    model: Optional[Type[BaseModel]]
+    accepted_context_keys: tuple[str, ...]
+    accepts_var_kwargs: bool
 
 
 @dataclass(frozen=True)
@@ -80,14 +86,28 @@ def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = Non
         raise TypeError("websocket_handler model must be a Pydantic BaseModel class.")
 
     def decorate(method):
-        method._psynet_websocket_handler = WebSocketHandlerSpec(
+        method._psynet_websocket_handler = _WebSocketHandlerDeclaration(
             event_type=event_type,
-            method_name=method.__name__,
             model=model,
         )
         return method
 
     return decorate
+
+
+def _build_handler_spec(event_type: str, method: Callable, model):
+    signature = inspect.signature(method)
+    accepts_var_kwargs = any(
+        parameter.kind == inspect.Parameter.VAR_KEYWORD
+        for parameter in signature.parameters.values()
+    )
+    return WebSocketHandlerSpec(
+        event_type=event_type,
+        method=method,
+        model=model,
+        accepted_context_keys=tuple(signature.parameters),
+        accepts_var_kwargs=accepts_var_kwargs,
+    )
 
 
 def collect_websocket_handlers(experiment) -> dict[str, WebSocketHandlerSpec]:
@@ -98,10 +118,10 @@ def collect_websocket_handlers(experiment) -> dict[str, WebSocketHandlerSpec]:
         for method_name, method in cls.__dict__.items():
             spec = getattr(method, "_psynet_websocket_handler", None)
             if spec is not None:
-                handlers[spec.event_type] = WebSocketHandlerSpec(
-                    event_type=spec.event_type,
-                    method_name=method_name,
-                    model=spec.model,
+                handlers[spec.event_type] = _build_handler_spec(
+                    spec.event_type,
+                    getattr(experiment, method_name),
+                    spec.model,
                 )
     return handlers
 
@@ -250,28 +270,20 @@ def dispatch_websocket_frame(
             )
             return None
 
-    return _call_handler(
-        getattr(experiment, spec.method_name),
-        experiment=experiment,
-        participant=participant,
-        message=message,
-        event=message,
-        receive_time=receive_time,
-    )
+    context = {
+        "experiment": experiment,
+        "participant": participant,
+        "message": message,
+        "event": message,
+        "receive_time": receive_time,
+    }
+    if spec.accepts_var_kwargs:
+        return spec.method(**context)
 
-
-def _call_handler(method: Callable, **context):
-    """Call a handler with the subset of context arguments it requests."""
-
-    signature = inspect.signature(method)
-    if any(
-        parameter.kind == inspect.Parameter.VAR_KEYWORD
-        for parameter in signature.parameters.values()
-    ):
-        return method(**context)
-
-    kwargs = {name: context[name] for name in signature.parameters if name in context}
-    return method(**kwargs)
+    kwargs = {
+        name: context[name] for name in spec.accepted_context_keys if name in context
+    }
+    return spec.method(**kwargs)
 
 
 class _Connection:

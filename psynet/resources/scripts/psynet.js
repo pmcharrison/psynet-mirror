@@ -863,8 +863,6 @@
         }
         let frame = {
           type: type,
-          participant_id: participantId(),
-          unique_id: uniqueId(),
           page_uuid: pageUuid(),
         };
         if (message !== undefined) {
