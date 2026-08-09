@@ -108,22 +108,21 @@ document.addEventListener("DOMContentLoaded", function () {
     updateBonus(collectedCoinIds.length * cfg.coin_bonus);
   }
 
-  function applyPosition(player) {
-    var playerId = String(player.participant_id);
-    if (playerId === participantId) return;
-    var existing = players[playerId] || (players[playerId] = {});
-    Object.assign(existing, player);
+  function applyPosition(update) {
+    var updateParticipantId = String(update.participant_id);
+    if (updateParticipantId === participantId) return;
+    var existing = players[updateParticipantId] || (players[updateParticipantId] = {});
+    Object.assign(existing, update);
     existing.received_at = performance.now();
   }
 
   function applyCollection(msg) {
-    var collection = msg.collection || {};
     coins = (msg.coins || coins).filter(function (coin) {
-      return coin.id !== collection.coin_id;
+      return coin.id !== msg.coin_id;
     });
-    delete pendingCollections[collection.coin_id];
-    if (String(collection.participant_id) === participantId) {
-      collectedCoinIds.push(collection.coin_id);
+    delete pendingCollections[msg.coin_id];
+    if (String(msg.participant_id) === participantId) {
+      collectedCoinIds.push(msg.coin_id);
       updateBonus(bonus + cfg.coin_bonus);
     }
   }
@@ -306,7 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
   psynet.session.ready();
 
   psynet.websocket.handle("position_update", function (msg) {
-    applyPosition(msg.player);
+    applyPosition(msg);
   });
   psynet.websocket.handle("coin_collected", function (msg) {
     applyCollection(msg);

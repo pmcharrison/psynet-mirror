@@ -25,7 +25,6 @@ STATE_SNAPSHOT_EVENT = "stateSnapshot"
 READY_EVENT = "ready"
 SESSION_STATUS_EVENT = "sessionStatus"
 SESSION_END_EVENT = "sessionEnd"
-PRIVATE_STATE_COLUMN_INFO_KEY = "live_session_private"
 
 _LIVE_SESSION_METADATA_COLUMNS = {
     "id",
@@ -46,13 +45,6 @@ _LIVE_SESSION_METADATA_COLUMNS = {
 }
 
 logger = get_logger()
-
-
-def private_state_attr(column):
-    """Mark a live-session SQL column as omitted from public state snapshots."""
-
-    column.info[PRIVATE_STATE_COLUMN_INFO_KEY] = True
-    return column
 
 
 def _resolve_session_argument_class(method, argument: str, explicit_session_class):
@@ -76,14 +68,14 @@ def _resolve_session_argument_class(method, argument: str, explicit_session_clas
     return session_class
 
 
-def _get_message_session(message, participant, session_class, *, for_update: bool):
+def _get_message_session(message, participant, session_class, *, lock: bool):
     session_id = message.session_id
     if session_id is None:
         return None
     return session_class.get_current_for_participant(
         participant,
         session_id,
-        for_update=for_update,
+        for_update=lock,
     )
 
 
@@ -115,7 +107,7 @@ def session(session_class=None, *, write: bool = False, argument: str = "session
                 self,
                 participant,
                 resolved_session_class,
-                for_update=write,
+                lock=write,
             )
             if live_session is None:
                 logger.warning(
@@ -235,11 +227,10 @@ class _LiveSessionMixin:
 
         return model_name_to_snake_case(cls.__name__)
 
-    @classmethod
-    def build_initial_values(cls, participant_ids, group, context=None):
-        """Return initial subclass column values for a new live session."""
+    def initialize(self, participant_ids, group):
+        """Initialize subclass-owned state columns for a new live session."""
 
-        return {}
+        return None
 
     @classmethod
     def get(cls, session_id: int, *, for_update=False):
@@ -256,66 +247,24 @@ class _LiveSessionMixin:
         return query.one_or_none()
 
     @classmethod
-    def create(
-        cls,
-        participant_ids: list[int] | None = None,
-        group_type: str | None = None,
-        sync_group_id: int | None = None,
-        initializer_id: str | None = None,
-        node_id: int | None = None,
-        network_id: int | None = None,
-        **initial_values,
-    ):
-        """Create a live-session row."""
-
-        live_session = cls(
-            session_type=cls.session_type_label(),
-            group_type=group_type,
-            sync_group_id=sync_group_id,
-            initializer_id=initializer_id,
-            node_id=node_id,
-            network_id=network_id,
-            participant_ids=[
-                int(participant_id) for participant_id in participant_ids or []
-            ],
-            ready_participant_ids=[],
-            started=False,
-            ended=False,
-            start_time=None,
-            end_time=None,
-            **initial_values,
-        )
-        db.session.add(live_session)
-        db.session.flush()
-        return live_session
-
-    @classmethod
-    def _current_trial_context(cls, group):
-        """Return optional node/network context from the group leader's trial."""
+    def _current_trial_details(cls, group):
+        """Return optional node/network IDs from the group leader's trial."""
 
         leader = group.leader
         trial = leader.current_trial if leader is not None else None
         if trial is None:
-            return {
-                "trial": None,
-                "node": None,
-                "network": None,
-                "node_id": None,
-                "network_id": None,
-            }
+            return None, None
 
         node = trial.node
-        network = trial.network
         node_id = trial.node_id if trial.node_id is not None else node.id
-        network_id = trial.network_id if trial.network_id is not None else network.id
+        network_id = (
+            trial.network_id if trial.network_id is not None else trial.network.id
+        )
 
-        return {
-            "trial": trial,
-            "node": node,
-            "network": network,
-            "node_id": int(node_id) if node_id is not None else None,
-            "network_id": int(network_id) if network_id is not None else None,
-        }
+        return (
+            int(node_id) if node_id is not None else None,
+            int(network_id) if network_id is not None else None,
+        )
 
     @classmethod
     def create_for_group(cls, *, group, initializer, participant=None):
@@ -330,24 +279,25 @@ class _LiveSessionMixin:
 
         participants = sorted(group.active_participants, key=lambda p: p.id)
         participant_ids = [int(participant.id) for participant in participants]
-        context = cls._current_trial_context(group)
-        context.update(
-            {
-                "group": group,
-                "participants": participants,
-                "initializer": initializer,
-                "initializer_id": initializer.id,
-            }
-        )
-        return cls.create(
-            participant_ids=participant_ids,
+        node_id, network_id = cls._current_trial_details(group)
+        live_session = cls(
+            session_type=cls.session_type_label(),
             group_type=getattr(group, "group_type", None),
             sync_group_id=int(group.id),
             initializer_id=initializer.id,
-            node_id=context["node_id"],
-            network_id=context["network_id"],
-            **cls.build_initial_values(participant_ids, group, context),
+            node_id=node_id,
+            network_id=network_id,
+            participant_ids=participant_ids,
+            ready_participant_ids=[],
+            started=False,
+            ended=False,
+            start_time=None,
+            end_time=None,
         )
+        live_session.initialize(participant_ids, group)
+        db.session.add(live_session)
+        db.session.flush()
+        return live_session
 
     @classmethod
     def get_for_group(
@@ -440,16 +390,6 @@ class _LiveSessionMixin:
 
         return TrialNode.query.get(int(self.node_id))
 
-    @property
-    def network(self):
-        """Return the network context used to initialize this session, if any."""
-
-        if self.network_id is None:
-            return None
-        from psynet.trial.main import TrialNetwork
-
-        return TrialNetwork.query.get(int(self.network_id))
-
     @classmethod
     def get_current_for_participant(
         cls, participant, session_id: int, *, for_update=False
@@ -481,12 +421,11 @@ class _LiveSessionMixin:
             return True
         return False
 
-    def snapshot_payload(self, fields: list[str] | None = None) -> dict:
-        """Return a JSON-serializable state snapshot payload."""
+    def _lifecycle_payload(self) -> dict:
+        """Return JSON-serializable live-session lifecycle fields."""
 
-        payload = {
+        return {
             "session_id": int(self.id),
-            "state": self.snapshot_state(fields=fields),
             "participant_ids": [str(value) for value in (self.participant_ids or [])],
             "ready_participant_ids": [
                 str(value) for value in (self.ready_participant_ids or [])
@@ -494,16 +433,25 @@ class _LiveSessionMixin:
             "started": bool(self.started),
             "ended": bool(self.ended),
         }
-        return payload
 
-    def snapshot_state(self, fields: list[str] | None = None) -> dict:
+    def snapshot_payload(
+        self, fields: list[str] | None = None, participant=None
+    ) -> dict:
+        """Return a JSON-serializable state snapshot payload."""
+
+        return {
+            **self._lifecycle_payload(),
+            "state": self.snapshot_state(fields=fields, participant=participant),
+        }
+
+    def snapshot_state(self, fields: list[str] | None = None, participant=None) -> dict:
         """Return browser-facing public state.
 
         Concrete subclasses are snapshotted from their SQL columns. Direct base
         ``LiveSession`` rows fall back to PsyNet's generic ``var``/``vars``
         store for compatibility, but explicit subclass columns are preferred.
-        Subclasses can override this when a field should be hidden, renamed, or
-        made participant-specific.
+        Subclasses can override this when state should be filtered, renamed, or
+        tailored to a specific participant.
         """
 
         requested = set(fields) if fields is not None else None
@@ -518,11 +466,6 @@ class _LiveSessionMixin:
             key = column_attr.key
             if key in _LIVE_SESSION_METADATA_COLUMNS:
                 continue
-            if any(
-                column.info.get(PRIVATE_STATE_COLUMN_INFO_KEY)
-                for column in column_attr.columns
-            ):
-                continue
             if requested is not None and key not in requested:
                 continue
             value = getattr(self, key)
@@ -530,23 +473,19 @@ class _LiveSessionMixin:
                 state[key] = deepcopy(value)
         return state
 
-    def snapshot_message(self, fields: list[str] | None = None) -> StateSnapshotMessage:
+    def snapshot_message(
+        self, fields: list[str] | None = None, participant=None
+    ) -> StateSnapshotMessage:
         """Return the typed state snapshot WebSocket message."""
 
-        return StateSnapshotMessage(**self.snapshot_payload(fields=fields))
+        return StateSnapshotMessage(
+            **self.snapshot_payload(fields=fields, participant=participant)
+        )
 
     def status_payload(self) -> dict:
         """Return JSON-serializable live-session lifecycle status."""
 
-        return {
-            "session_id": int(self.id),
-            "participant_ids": [str(value) for value in (self.participant_ids or [])],
-            "ready_participant_ids": [
-                str(value) for value in (self.ready_participant_ids or [])
-            ],
-            "started": bool(self.started),
-            "ended": bool(self.ended),
-        }
+        return self._lifecycle_payload()
 
     def status_message(self) -> SessionStatusMessage:
         """Return the typed lifecycle status WebSocket message."""
@@ -558,7 +497,12 @@ class _LiveSessionMixin:
 
         if participants is None:
             participants = self.participants
-        self.snapshot_message(fields=fields).send(participants)
+        if not isinstance(participants, (list, tuple, set)):
+            participants = [participants]
+        for participant in participants:
+            self.snapshot_message(fields=fields, participant=participant).send(
+                participant
+            )
 
     def send_status(self, participants=None):
         """Send the current lifecycle status to live-session participants."""
@@ -570,7 +514,10 @@ class _LiveSessionMixin:
     def send_session_end(self):
         """Send the built-in session end event to live-session participants."""
 
-        SessionEndMessage(**self.snapshot_payload()).send(self.participants)
+        for participant in self.participants:
+            SessionEndMessage(**self.snapshot_payload(participant=participant)).send(
+                participant
+            )
 
     @classmethod
     def trigger_end_event(cls, session_id):
@@ -675,12 +622,12 @@ class LiveSessionControl(Control):
             return self._session_id
 
         group = self._get_group()
-        context = self.session_class._current_trial_context(group)
+        node_id, network_id = self.session_class._current_trial_details(group)
         live_session = self.session_class.get_for_group(
             group=group,
             initializer_id=self.session_initializer_id,
-            node_id=context["node_id"],
-            network_id=context["network_id"],
+            node_id=node_id,
+            network_id=network_id,
         )
         if live_session is None:
             raise RuntimeError(

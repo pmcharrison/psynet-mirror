@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from sqlalchemy import Column, Integer, String
 
-from psynet.field import PythonList
+from psynet.field import PythonDict, PythonList
 from psynet.session import (
     LiveSession,
     LiveSessionControl,
@@ -13,7 +13,6 @@ from psynet.session import (
     ReadyMessage,
     SessionEndMessage,
     StateRequestMessage,
-    private_state_attr,
 )
 
 
@@ -26,15 +25,11 @@ class PolymorphicDemoLiveSession(LiveSession):
     initial_node_id = Column(Integer)
     initial_participant_ids = Column(PythonList)
 
-    @classmethod
-    def build_initial_values(cls, participant_ids, group, context=None):
-        """Return constructor values for test-specific session state columns."""
+    def initialize(self, participant_ids, group):
+        """Initialize test-specific session state columns."""
 
-        context = context or {}
-        return {
-            "initial_participant_ids": participant_ids,
-            "initial_node_id": context.get("node_id"),
-        }
+        self.initial_participant_ids = participant_ids
+        self.initial_node_id = self.node_id
 
 
 class FilteredDemoLiveSession(LiveSession):
@@ -43,7 +38,7 @@ class FilteredDemoLiveSession(LiveSession):
     public_value = Column(String)
     private_value = Column(String)
 
-    def snapshot_state(self, fields=None):
+    def snapshot_state(self, fields=None, participant=None):
         """Expose only the public column by default."""
 
         state = {"public_value": self.public_value}
@@ -52,11 +47,24 @@ class FilteredDemoLiveSession(LiveSession):
         return state
 
 
-class PrivateColumnDemoLiveSession(LiveSession):
-    """Demo live session with SQL columns hidden from automatic snapshots."""
+class ParticipantAwareDemoLiveSession(LiveSession):
+    """Demo live session with participant-specific snapshot overrides."""
 
-    auto_public_value = Column(String)
-    auto_private_value = private_state_attr(Column(String))
+    public_value = Column(String)
+    participant_values = Column(PythonDict)
+
+    def snapshot_state(self, fields=None, participant=None):
+        """Expose public state plus participant-specific state when available."""
+
+        state = super().snapshot_state(fields=None, participant=participant)
+        participant_values = state.pop("participant_values", {}) or {}
+        if participant is not None:
+            participant_value = participant_values.get(str(participant.id))
+            if participant_value is not None:
+                state["participant_value"] = participant_value
+        if fields is not None:
+            state = {field: state[field] for field in fields if field in state}
+        return state
 
 
 def _participants():
@@ -189,12 +197,12 @@ def test_live_session_snapshot_state_can_be_overridden():
     assert state.snapshot_payload()["state"] == {"public_value": "shown"}
 
 
-def test_live_session_snapshot_state_skips_private_columns():
-    """Columns marked private are omitted from automatic public snapshots."""
+def test_live_session_snapshot_state_can_use_participant():
+    """Snapshot overrides can tailor state to a specific participant."""
 
-    state = PrivateColumnDemoLiveSession(
-        auto_public_value="shown",
-        auto_private_value="hidden",
+    state = ParticipantAwareDemoLiveSession(
+        public_value="shown",
+        participant_values={"1": "one", "2": "two"},
         participant_ids=[1],
         ready_participant_ids=[],
         started=False,
@@ -202,8 +210,11 @@ def test_live_session_snapshot_state_skips_private_columns():
     )
     state.id = 1
 
-    assert state.snapshot_payload()["state"] == {"auto_public_value": "shown"}
-    assert state.snapshot_payload(fields=["auto_private_value"])["state"] == {}
+    assert state.snapshot_payload()["state"] == {"public_value": "shown"}
+    assert state.snapshot_payload(participant=SimpleNamespace(id=2))["state"] == {
+        "public_value": "shown",
+        "participant_value": "two",
+    }
 
 
 def test_live_session_status_payload_is_json_ready():
@@ -326,8 +337,38 @@ def test_live_session_end_marks_ended_and_notifies(monkeypatch):
     assert state.end() is True
     assert state.ended is True
     assert state.end_time == end_time
-    assert sent == [(state.participants, SessionEndMessage(**state.snapshot_payload()))]
+    assert sent == [
+        (
+            participant,
+            SessionEndMessage(**state.snapshot_payload(participant=participant)),
+        )
+        for participant in state.participants
+    ]
     assert state.end() is False
+
+
+def test_live_session_send_snapshot_renders_per_participant(monkeypatch):
+    """Snapshot sends render recipient-specific state separately."""
+
+    participants = _participants()
+    state = ParticipantAwareDemoLiveSession(
+        public_value="shown",
+        participant_values={"1": "one", "2": "two"},
+        participant_ids=[1, 2],
+        ready_participant_ids=[],
+        started=False,
+        ended=False,
+    )
+    state.id = 1
+    sent = _capture_server_sends(monkeypatch)
+
+    state.send_snapshot(participants)
+
+    assert [recipient.id for recipient, _message in sent] == [1, 2]
+    assert [message.state for _recipient, message in sent] == [
+        {"public_value": "shown", "participant_value": "one"},
+        {"public_value": "shown", "participant_value": "two"},
+    ]
 
 
 def test_create_for_group_is_leader_owned(monkeypatch):
@@ -375,18 +416,15 @@ def test_create_for_group_rejects_non_leader(monkeypatch):
         )
 
 
-def test_current_trial_context_is_optional():
+def test_current_trial_details_are_optional():
     """Group-level sessions can initialize without node/network context."""
 
     group = _group(leader_trial=False)
 
-    assert PolymorphicDemoLiveSession._current_trial_context(group) == {
-        "trial": None,
-        "node": None,
-        "network": None,
-        "node_id": None,
-        "network_id": None,
-    }
+    assert PolymorphicDemoLiveSession._current_trial_details(group) == (
+        None,
+        None,
+    )
 
 
 def test_live_session_initializer_delegates_creation_to_leader(monkeypatch):
@@ -508,7 +546,13 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
     LiveSession.trigger_end_event(1)
 
     assert state.ended is True
-    assert sent == [(state.participants, SessionEndMessage(**state.snapshot_payload()))]
+    assert sent == [
+        (
+            participant,
+            SessionEndMessage(**state.snapshot_payload(participant=participant)),
+        )
+        for participant in state.participants
+    ]
 
 
 def test_live_session_uses_shared_polymorphic_table():
@@ -540,5 +584,5 @@ def test_base_live_session_can_snapshot_generic_var_store():
     )
     state.id = 1
 
-    assert LiveSession.build_initial_values([], None) == {}
+    assert LiveSession().initialize([], None) is None
     assert state.snapshot_payload(fields=["score", "missing"])["state"] == {"score": 3}

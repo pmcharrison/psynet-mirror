@@ -14,8 +14,8 @@ and live-session machinery:
 
 * The experiment defines a ``ChooseMessage`` client WebSocket message whose
   ``handle`` method receives every browser choice. Once both players have
-  submitted a move for the current round it scores the round and stores
-  ready-to-render public snapshots in :class:`~psynet.session.LiveSession`.
+  submitted a move for the current round it scores the round and updates the
+  persisted :class:`~psynet.session.LiveSession` state.
 * :class:`RockPaperScissorsControl` is a :class:`~psynet.modular_page.Control`
   backed by a small custom template that renders the buttons and uses
   ``psynet.websocket`` and ``psynet.session`` for real-time communication
@@ -31,7 +31,8 @@ on release, so the flow is also fully testable with non-WebSocket bots.
 
 import random
 from copy import deepcopy
-from typing import ClassVar, List, Literal, Optional
+from types import SimpleNamespace
+from typing import ClassVar, Literal
 
 from dominate import tags
 from pydantic import Field, ValidationError
@@ -47,7 +48,6 @@ from psynet.session import (
     LiveSession,
     LiveSessionControl,
     LiveSessionInitializer,
-    private_state_attr,
     session,
 )
 from psynet.sync import GroupBarrier, SimpleGrouper
@@ -121,8 +121,8 @@ class ChooseMessage(ClientWebSocketMessage):
             session.mark_ended()
 
 
-class RevealSnapshot(ServerWebSocketMessage):
-    """A participant-specific snapshot for rendering a completed round."""
+class RevealMessage(ServerWebSocketMessage):
+    """A participant-specific reveal for a completed round."""
 
     event_type: ClassVar[str] = "roundReveal"
     target: str
@@ -131,22 +131,7 @@ class RevealSnapshot(ServerWebSocketMessage):
     scoreboard: str
     status: str
     finished: bool
-    answer: Optional[List[str]] = None
-
-
-def initial_rps_state(participant_ids: list[int]) -> dict:
-    """Return the public recoverable state for a new RPS session."""
-
-    ordered_ids = [str(participant_id) for participant_id in sorted(participant_ids)]
-    return {
-        "current_round": 1,
-        "scores": {participant_id: 0 for participant_id in ordered_ids},
-        "current_round_choices": {},
-        "submitted_moves": {participant_id: [] for participant_id in ordered_ids},
-        "submitted_participant_ids": [],
-        "reveal_history": {participant_id: [] for participant_id in ordered_ids},
-        "finished": False,
-    }
+    answer: list[str] | None = None
 
 
 class RockPaperScissorsSession(LiveSession):
@@ -154,17 +139,41 @@ class RockPaperScissorsSession(LiveSession):
 
     current_round = Column(Integer)
     scores = Column(PythonDict, default=lambda: {})
-    current_round_choices = private_state_attr(Column(PythonDict, default=lambda: {}))
-    submitted_moves = private_state_attr(Column(PythonDict, default=lambda: {}))
+    current_round_choices = Column(PythonDict, default=lambda: {})
+    submitted_moves = Column(PythonDict, default=lambda: {})
     submitted_participant_ids = Column(PythonList, default=lambda: [])
     reveal_history = Column(PythonDict, default=lambda: {})
     finished = Column(Boolean, default=False)
 
-    @classmethod
-    def build_initial_values(cls, participant_ids, group, context=None):
-        """Return the recoverable state for a new RPS session."""
+    def initialize(self, participant_ids, group):
+        """Initialize the recoverable state for a new RPS session."""
 
-        return initial_rps_state(participant_ids)
+        ordered_ids = [
+            str(participant_id) for participant_id in sorted(participant_ids)
+        ]
+        self.current_round = 1
+        self.scores = {participant_id: 0 for participant_id in ordered_ids}
+        self.current_round_choices = {}
+        self.submitted_moves = {participant_id: [] for participant_id in ordered_ids}
+        self.submitted_participant_ids = []
+        self.reveal_history = {participant_id: [] for participant_id in ordered_ids}
+        self.finished = False
+
+    def snapshot_state(self, fields=None, participant=None):
+        """Return reconnect state without leaking hidden participant data."""
+
+        state = super().snapshot_state(fields=None, participant=participant)
+        state.pop("current_round_choices", None)
+        state.pop("submitted_moves", None)
+        if participant is None:
+            state.pop("reveal_history", None)
+        else:
+            state["reveal_history"] = (self.reveal_history or {}).get(
+                str(participant.id), []
+            )
+        if fields is not None:
+            state = {field: state[field] for field in fields if field in state}
+        return state
 
     def record_choice(self, participant_id: int, message: ChooseMessage):
         """Record a choice and return reveals if this completed a round."""
@@ -252,7 +261,7 @@ def reveal_for(
     scores: dict[str, int],
     finished: bool,
     submitted_moves: list[Choice] | None = None,
-) -> RevealSnapshot:
+) -> RevealMessage:
     """Return a participant-specific reveal for a completed round."""
 
     partner_id = next(pid for pid in round_moves if pid != participant_id)
@@ -266,7 +275,7 @@ def reveal_for(
     )
     participant_key = str(participant_id)
     partner_key = str(partner_id)
-    return RevealSnapshot(
+    return RevealMessage(
         target=participant_key,
         round=round_number + 1,
         result=(
@@ -283,7 +292,7 @@ def reveal_for(
             else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
         ),
         finished=finished,
-        answer=(submitted_moves if submitted_moves is not None else None),
+        answer=submitted_moves,
     )
 
 
@@ -353,15 +362,15 @@ class RockPaperScissorsTrial(StaticTrial):
             save_answer="rps_moves",
         )
 
-    def score_game(self, participants: List[Participant]):
+    def score_game(self, participants: list[Participant]):
         assert len(participants) == 2
-        players = sorted(participants, key=lambda p: p.id)
-        moves = [player.var.rps_moves for player in players]
+        sorted_participants = sorted(participants, key=lambda p: p.id)
+        moves = [participant.var.rps_moves for participant in sorted_participants]
         totals = score_match(moves[0], moves[1])
 
-        for i, player in enumerate(players):
+        for i, participant in enumerate(sorted_participants):
             j = 1 - i
-            player.var.game_result = {
+            participant.var.game_result = {
                 "my_moves": moves[i],
                 "partner_moves": moves[j],
                 "my_score": totals[i],
@@ -499,17 +508,39 @@ class Exp(psynet.experiment.Experiment):
 
     @staticmethod
     def test_live_session_initialization():
-        """Check the public recoverable live-session shape."""
-        state = initial_rps_state([2, 1])
-        assert state == {
-            "current_round": 1,
-            "scores": {"1": 0, "2": 0},
-            "current_round_choices": {},
-            "submitted_moves": {"1": [], "2": []},
-            "submitted_participant_ids": [],
-            "reveal_history": {"1": [], "2": []},
-            "finished": False,
+        """Check the recoverable live-session shape."""
+        session = RockPaperScissorsSession()
+        session.initialize([2, 1], group=None)
+
+        assert session.current_round == 1
+        assert session.scores == {"1": 0, "2": 0}
+        assert session.current_round_choices == {}
+        assert session.submitted_moves == {"1": [], "2": []}
+        assert session.submitted_participant_ids == []
+        assert session.reveal_history == {"1": [], "2": []}
+        assert session.finished is False
+
+    @staticmethod
+    def test_live_session_snapshot_filtering():
+        """Check public snapshots and participant-specific reconnect history."""
+        session = RockPaperScissorsSession()
+        session.initialize([1, 2], group=None)
+        session.current_round_choices = {"1": "rock"}
+        session.submitted_moves = {"1": ["rock"], "2": ["scissors"]}
+        session.reveal_history = {
+            "1": [{"target": "1", "result": "you won"}],
+            "2": [{"target": "2", "result": "you lost"}],
         }
+
+        public_state = session.snapshot_state()
+        participant_state = session.snapshot_state(participant=SimpleNamespace(id=2))
+
+        assert "current_round_choices" not in public_state
+        assert "submitted_moves" not in public_state
+        assert "reveal_history" not in public_state
+        assert participant_state["reveal_history"] == [
+            {"target": "2", "result": "you lost"}
+        ]
 
     @staticmethod
     def test_reveal_formatting():
@@ -530,9 +561,10 @@ class Exp(psynet.experiment.Experiment):
         self.test_websocket_event_parsing()
         self.test_scoring_helpers()
         self.test_live_session_initialization()
+        self.test_live_session_snapshot_filtering()
         self.test_reveal_formatting()
 
-    def test_serial_run_bots(self, bots: List[BotDriver]):
+    def test_serial_run_bots(self, bots: list[BotDriver]):
         self.test_websocket_event_contracts()
 
         advance_past_wait_pages(bots)

@@ -295,7 +295,7 @@ def test_dispatch_saves_accepted_message_by_default(fake_websocket_redis):
 
     assert _saved_websocket_event_records(fake_websocket_redis) == [
         {
-            "participant_id": 7,
+            "connection_participant_id": 7,
             "event_type": "echo",
             "page_uuid": "current-page",
             "direction": INBOUND,
@@ -314,7 +314,7 @@ def test_websocket_message_model_generates_typed_event_table():
     assert event_model.__name__ == "BroadcastMessage"
     assert event_model.__tablename__ == "broadcast_message"
     assert {
-        "participant_id",
+        "connection_participant_id",
         "event_type",
         "page_uuid",
         "direction",
@@ -650,7 +650,7 @@ def test_websocket_message_event_queue_drains_to_database(
         json.dumps(
             {
                 "table_name": "echo_message",
-                "participant_id": 7,
+                "connection_participant_id": 7,
                 "event_type": "echo",
                 "page_uuid": "current-page",
                 "direction": INBOUND,
@@ -671,7 +671,7 @@ def test_websocket_message_event_queue_drains_to_database(
     assert len(added_events) == 1
     event = added_events[0]
     assert isinstance(event, get_websocket_message_event_model(EchoMessage))
-    assert event.participant_id == 7
+    assert event.connection_participant_id == 7
     assert event.event_type == "echo"
     assert event.page_uuid == "current-page"
     assert event.direction == INBOUND
@@ -710,7 +710,7 @@ def test_server_message_can_send_itself(fake_websocket_redis):
     assert len(records) == 1
     assert records[0]["direction"] == OUTBOUND
     assert records[0]["event_type"] == "done"
-    assert records[0]["participant_id"] == 7
+    assert records[0]["connection_participant_id"] == 7
     assert records[0]["values"] == {"answer": ["self-send"]}
 
 
@@ -745,7 +745,7 @@ def test_server_message_send_accepts_one_or_many_participants(
         },
     ]
     records = _saved_websocket_event_records(fake_websocket_redis)
-    assert [record["participant_id"] for record in records] == [7, 8, 9]
+    assert [record["connection_participant_id"] for record in records] == [7, 8, 9]
     assert all(record["direction"] == OUTBOUND for record in records)
     assert records[1]["values"] == {"answer": ["many"]}
     assert records[2]["values"] == {"answer": ["many"]}

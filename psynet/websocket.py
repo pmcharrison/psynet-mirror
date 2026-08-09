@@ -56,7 +56,7 @@ _WEBSOCKET_MESSAGE_EVENT_MODELS: dict[Type[BaseModel], Type[SQLBase]] = {}
 _WEBSOCKET_MESSAGE_EVENT_MODELS_BY_TABLE: dict[str, Type[SQLBase]] = {}
 _WEBSOCKET_MESSAGE_METADATA_COLUMNS = {
     "id",
-    "participant_id",
+    "connection_participant_id",
     "event_type",
     "page_uuid",
     "direction",
@@ -218,7 +218,7 @@ def _websocket_message_model_columns(message_model: Type[BaseModel]):
 
 def _base_websocket_message_event_columns():
     return {
-        "participant_id": Column(Integer, index=True, nullable=False),
+        "connection_participant_id": Column(Integer, index=True, nullable=False),
         "event_type": Column(String(128), index=True, nullable=False),
         "page_uuid": Column(String(128), index=True, nullable=False),
         "direction": Column(String(16), index=True, nullable=False),
@@ -306,7 +306,7 @@ def _make_websocket_message_event_record(
 
     return {
         "table_name": event_model.__tablename__,
-        "participant_id": int(participant.id),
+        "connection_participant_id": int(participant.id),
         "event_type": message_model.event_type,
         "page_uuid": page_uuid,
         "direction": direction,
@@ -394,7 +394,7 @@ def _requeue_websocket_message_event_payloads(payloads):
 def _websocket_message_event_from_record(record):
     event_model = _websocket_message_event_model_from_table_name(record["table_name"])
     return event_model(
-        participant_id=record["participant_id"],
+        connection_participant_id=record["connection_participant_id"],
         event_type=record["event_type"],
         page_uuid=record["page_uuid"],
         direction=record["direction"],

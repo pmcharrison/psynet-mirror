@@ -79,12 +79,11 @@ barrier that delegates row creation to the group leader. A
 page renders and exposes a ``live_session_config`` object to the browser,
 including ``session_id`` and the current ``participant_id``.
 Each concrete live-session subclass defines its own SQL columns for recoverable
-public state and can return initial column values from
-``build_initial_values(...)``. Browser-facing state snapshots are generated
-automatically from those subclass columns; override ``snapshot_state(...)`` only
-when you need custom visibility or filtering.
-Use ``private_state_attr(Column(...))`` for SQL columns that should be persisted
-on the session row but omitted from automatic snapshots.
+public state and can initialize those columns in ``initialize(...)``.
+Browser-facing state snapshots are generated automatically from those subclass
+columns. Override ``snapshot_state(fields=None, participant=None)`` when you
+need to hide columns, rename fields, or include participant-specific recovery
+state for the participant requesting a fresh snapshot.
 The base ``LiveSession`` class can still be used directly with PsyNet's generic
 ``var`` store, but explicit subclass columns are preferred for clarity and
 performance.
@@ -114,6 +113,28 @@ columns for the model fields. If a live update is sent at a high rate, set
 ``save=False`` on the corresponding message class to skip the default WebSocket
 message log.
 
+Private and participant-specific state should still be stored in ordinary SQL
+columns; the snapshot override decides what each browser receives. For example:
+
+.. code-block:: python
+
+    from sqlalchemy import Column, Integer
+
+    from psynet.field import PythonDict
+
+    class DemoSession(LiveSession):
+        public_score = Column(Integer)
+        participant_notes = Column(PythonDict, default=lambda: {})
+
+        def snapshot_state(self, fields=None, participant=None):
+            state = super().snapshot_state(fields=None, participant=participant)
+            notes = state.pop("participant_notes", {}) or {}
+            if participant is not None:
+                state["my_note"] = notes.get(str(participant.id))
+            if fields is not None:
+                state = {field: state[field] for field in fields if field in state}
+            return state
+
 ``LiveSessionInitializer`` uses a short
 ``WaitPage(wait_time=0.5, save_answer=False)`` by default while the group waits
 for the barrier to release. You can pass a custom ``waiting_logic`` when an
@@ -130,7 +151,6 @@ live interaction.
 
     from typing import ClassVar
 
-    from dallinger import db
     from sqlalchemy import Boolean, Column
 
     import psynet.experiment
@@ -171,9 +191,6 @@ live interaction.
                         recipient
                     )
                 session.mark_ended()
-            db.session.commit()
-
-
     class GameFinishedMessage(ServerWebSocketMessage):
         event_type: ClassVar[str] = "gameFinished"
         choice: str
@@ -183,9 +200,9 @@ live interaction.
         choices = Column(PythonDict, default=lambda: {})
         finished = Column(Boolean, default=False)
 
-        @classmethod
-        def build_initial_values(cls, participant_ids, group, context=None):
-            return {"choices": {}, "finished": False}
+        def initialize(self, participant_ids, group):
+            self.choices = {}
+            self.finished = False
 
         def record_choice(self, participant, action):
             if not self.has_participant(participant):

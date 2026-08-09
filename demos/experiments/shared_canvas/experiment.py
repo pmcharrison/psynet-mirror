@@ -4,7 +4,7 @@ import math
 import random
 from copy import deepcopy
 from datetime import datetime
-from typing import ClassVar, List
+from typing import ClassVar
 
 from dominate import tags
 from pydantic import Field
@@ -88,11 +88,10 @@ def receive_time_iso(receive_time: datetime):
     return receive_time.isoformat()
 
 
-def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
-    """Return the initial authoritative canvas state."""
+def initial_canvas_players(participant_ids: list[int], canvas_size: int) -> dict:
+    """Return initial participant positions for the shared canvas."""
 
     ordered_ids = [str(p) for p in participant_ids]
-    canvas_size = world["canvas_size"]
     players = {}
     for index, participant_id in enumerate(ordered_ids):
         angle = (2 * math.pi * index) / max(1, len(ordered_ids))
@@ -107,19 +106,7 @@ def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
             "client_time": 0,
             "receive_time": None,
         }
-
-    return {
-        "params": {
-            "participant_ids": ordered_ids,
-            "world": deepcopy(world),
-            "trial_seconds": TRIAL_SECONDS,
-            "send_interval_ms": SEND_INTERVAL_MS,
-            "draw_interval_ms": DRAW_INTERVAL_MS,
-        },
-        "players": players,
-        "coins": deepcopy(world["coins"]),
-        "collected_coins": [],
-    }
+    return players
 
 
 class PositionMessage(ClientWebSocketMessage):
@@ -132,19 +119,6 @@ class PositionMessage(ClientWebSocketMessage):
     vy: float
     client_time: float
 
-    def player_payload(self, participant: Participant, receive_time):
-        """Return a player payload for broadcasting or replay."""
-
-        return {
-            "participant_id": str(participant.id),
-            "x": round(clamp(self.x, 0, CANVAS_SIZE), 3),
-            "y": round(clamp(self.y, 0, CANVAS_SIZE), 3),
-            "vx": round(self.vx, 3),
-            "vy": round(self.vy, 3),
-            "client_time": self.client_time,
-            "receive_time": receive_time_iso(receive_time),
-        }
-
     @session()
     def handle(
         self,
@@ -156,7 +130,13 @@ class PositionMessage(ClientWebSocketMessage):
         """Broadcast this high-frequency position event."""
 
         PositionUpdateMessage(
-            player=self.player_payload(participant, receive_time),
+            participant_id=str(participant.id),
+            x=round(clamp(self.x, 0, CANVAS_SIZE), 3),
+            y=round(clamp(self.y, 0, CANVAS_SIZE), 3),
+            vx=round(self.vx, 3),
+            vy=round(self.vy, 3),
+            client_time=self.client_time,
+            receive_time=receive_time_iso(receive_time),
         ).send(
             session.participants,
         )
@@ -191,7 +171,12 @@ class CollectMessage(ClientWebSocketMessage):
         if accepted:
             participant.current_trial.record_coin()
             CoinCollectedMessage(
-                collection=collection,
+                coin_id=collection["coin_id"],
+                participant_id=collection["participant_id"],
+                x=collection["x"],
+                y=collection["y"],
+                bonus=collection["bonus"],
+                receive_time=collection["receive_time"],
                 coins=session.coins or [],
             ).send(
                 session.participants,
@@ -209,14 +194,25 @@ class PositionUpdateMessage(ServerWebSocketMessage):
     """Broadcast player position update."""
 
     event_type: ClassVar[str] = "position_update"
-    player: dict
+    participant_id: str
+    x: float
+    y: float
+    vx: float
+    vy: float
+    client_time: float
+    receive_time: str
 
 
 class CoinCollectedMessage(ServerWebSocketMessage):
     """Broadcast an accepted coin collection."""
 
     event_type: ClassVar[str] = "coin_collected"
-    collection: dict
+    coin_id: str
+    participant_id: str
+    x: float
+    y: float
+    bonus: float
+    receive_time: str
     coins: list[dict]
 
 
@@ -256,19 +252,21 @@ class SharedCanvasSession(LiveSession):
     coins = Column(PythonList, default=lambda: [])
     collected_coins = Column(PythonList, default=lambda: [])
 
-    @classmethod
-    def build_initial_values(cls, participant_ids, group, context=None):
-        """Return the initial authoritative shared-canvas state."""
+    def initialize(self, participant_ids, group):
+        """Initialize the authoritative shared-canvas state."""
 
-        context = context or {}
-        trial = context.get("trial")
-        node = context.get("node")
-        definition = getattr(trial, "definition", None) or getattr(
-            node, "definition", None
-        )
-        world = definition["world"]
-        state = initial_canvas_state(participant_ids, world)
-        return {**state, "group_id": int(group.id)}
+        world = self.node.definition["world"]
+        self.group_id = int(group.id)
+        self.params = {
+            "participant_ids": [str(p) for p in participant_ids],
+            "world": deepcopy(world),
+            "trial_seconds": TRIAL_SECONDS,
+            "send_interval_ms": SEND_INTERVAL_MS,
+            "draw_interval_ms": DRAW_INTERVAL_MS,
+        }
+        self.players = initial_canvas_players(participant_ids, world["canvas_size"])
+        self.coins = deepcopy(world["coins"])
+        self.collected_coins = []
 
     def record_collection(
         self,
@@ -447,7 +445,7 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 4
     test_mode = "serial"
 
-    def test_serial_run_bots(self, bots: List[BotDriver]):
+    def test_serial_run_bots(self, bots: list[BotDriver]):
         advance_past_wait_pages(bots)
 
         for bot in bots:

@@ -79,7 +79,7 @@
             if (!freshState) return;
 
             var state = freshState.state || {};
-            var history = ((state.reveal_history || {})[participantId]) || [];
+            var history = state.reveal_history || [];
             round = state.current_round || round;
             logEl.innerHTML = "";
             history.forEach(appendReveal);
