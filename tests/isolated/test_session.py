@@ -183,11 +183,11 @@ def _saved_state_log_records(fake_redis):
 
 
 class LoggedStateMessage(ClientWebSocketMessage):
-    """Message used to exercise state logging after a write handler."""
+    """Message used to exercise state logging after a mutating handler."""
 
     event_type = "loggedState"
 
-    @session_context(write=True, logging=True)
+    @session_context(mutate=True, logging=True)
     def handle(
         self,
         experiment,
@@ -207,7 +207,7 @@ class FailingLoggedStateMessage(ClientWebSocketMessage):
 
     event_type = "failingLoggedState"
 
-    @session_context(write=True, logging=True)
+    @session_context(mutate=True, logging=True)
     def handle(
         self,
         experiment,
@@ -646,7 +646,7 @@ def test_session_decorator_logging_skips_missing_session(
 def test_session_decorator_logging_skips_failed_handler(
     fake_state_log_redis, monkeypatch
 ):
-    """Failed write handlers roll back and do not queue state logs."""
+    """Failed mutating handlers roll back and do not queue state logs."""
 
     live_session = LoggedDemoLiveSession(counter=2)
     live_session.id = 123
@@ -704,10 +704,10 @@ def test_session_decorator_logging_skips_failed_commit(
     assert _saved_state_log_records(fake_state_log_redis) == []
 
 
-def test_session_logging_requires_write():
-    """State logging is only valid for write handlers."""
+def test_session_logging_requires_mutation():
+    """State logging is only valid for mutating handlers."""
 
-    with pytest.raises(TypeError, match="requires write=True"):
+    with pytest.raises(TypeError, match="requires mutate=True"):
         session_context(logging=True)
 
 

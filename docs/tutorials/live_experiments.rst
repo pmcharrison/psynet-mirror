@@ -212,7 +212,7 @@ Use ``@session()`` for handlers that only read from the row:
         def handle(self, experiment, participant, session: ScoreSession, receive_time):
             ScoreUpdate(score=session.score).send(participant)
 
-Use ``@session(write=True)`` for handlers that mutate session state. PsyNet
+Use ``@session(mutate=True)`` for handlers that mutate session state. PsyNet
 locks the row, commits on success, and rolls back if the handler raises an
 exception.
 
@@ -221,7 +221,7 @@ exception.
     class ScoreClick(ClientWebSocketMessage):
         event_type: ClassVar[str] = "scoreClick"
 
-        @session(write=True)
+        @session(mutate=True)
         def handle(self, experiment, participant, session: ScoreSession, receive_time):
             session.score += 1
             ScoreUpdate(score=session.score).send(session.participants)
@@ -232,9 +232,9 @@ exception.
         score: int
 
 If you also need an audit trail of the session state after each successful
-mutation, use ``@session(write=True, logging=True)``. PsyNet queues a full
-authoritative state record after the write commits, then saves it asynchronously
-in a structured log table for that live-session class. 
+mutation, use ``@session(mutate=True, logging=True)``. PsyNet queues a full
+authoritative state record after the mutation commits, then saves it
+asynchronously in a structured log table for that live-session class.
 
 Snapshots and private state
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -329,7 +329,7 @@ events for gameplay progress.
         event_type: ClassVar[str] = "choose"
         action: str
 
-        @session(write=True)
+        @session(mutate=True)
         def handle(
             self,
             experiment,

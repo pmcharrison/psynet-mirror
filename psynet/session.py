@@ -397,24 +397,24 @@ def _get_message_session(message, participant, session_class, *, lock: bool):
 def session(
     session_class=None,
     *,
-    write: bool = False,
+    mutate: bool = False,
     logging: bool = False,
     argument: str = "session",
 ):
     """Inject a participant-owned live session into a WebSocket message handler.
 
-    Set ``write=True`` for handlers that mutate session state. This locks the
+    Set ``mutate=True`` for handlers that mutate session state. This locks the
     row, commits on success, and rolls back if the handler raises. Set
-    ``logging=True`` with ``write=True`` to queue an authoritative state log
+    ``logging=True`` with ``mutate=True`` to queue an authoritative state log
     after a successful commit.
     """
 
-    if not isinstance(write, bool):
-        raise TypeError("session write must be a boolean.")
+    if not isinstance(mutate, bool):
+        raise TypeError("session mutate must be a boolean.")
     if not isinstance(logging, bool):
         raise TypeError("session logging must be a boolean.")
-    if logging and not write:
-        raise TypeError("session logging requires write=True.")
+    if logging and not mutate:
+        raise TypeError("session logging requires mutate=True.")
     if not isinstance(argument, str) or not argument:
         raise ValueError("session argument must be a non-empty string.")
 
@@ -434,7 +434,7 @@ def session(
                 self,
                 participant,
                 resolved_session_class,
-                lock=write,
+                lock=mutate,
             )
             if live_session is None:
                 logger.warning(
@@ -463,11 +463,11 @@ def session(
                         message_time=receive_time,
                     )
             except Exception:
-                if write:
+                if mutate:
                     db.session.rollback()
                 raise
 
-            if write:
+            if mutate:
                 try:
                     db.session.commit()
                 except Exception:
@@ -498,7 +498,7 @@ class ReadyMessage(ClientWebSocketMessage):
 
     event_type: ClassVar[str] = READY_EVENT
 
-    @session(write=True)
+    @session(mutate=True)
     def handle(self, experiment, participant, session: LiveSession, receive_time):
         if session.mark_ready(participant):
             session.send_session_start()

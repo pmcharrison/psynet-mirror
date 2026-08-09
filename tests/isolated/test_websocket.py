@@ -107,7 +107,7 @@ class WriteSessionEchoMessage(ClientWebSocketMessage):
 
     event_type = "lockedSessionEcho"
 
-    @session_context(write=True)
+    @session_context(mutate=True)
     def handle(self, experiment, participant, session: LiveSession, receive_time):
         participant.locked_session = session
         return session.id
@@ -118,7 +118,7 @@ class FailingWriteSessionMessage(ClientWebSocketMessage):
 
     event_type = "failingWriteSession"
 
-    @session_context(write=True)
+    @session_context(mutate=True)
     def handle(self, experiment, participant, session: LiveSession, receive_time):
         raise RuntimeError("write failed")
 

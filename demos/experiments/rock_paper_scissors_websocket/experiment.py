@@ -97,7 +97,7 @@ class ChooseMessage(ClientWebSocketMessage):
     round: int = Field(ge=1, le=N_ROUNDS)
     action: Choice
 
-    @session(write=True, logging=True)
+    @session(mutate=True, logging=True)
     def handle(
         self,
         experiment,
