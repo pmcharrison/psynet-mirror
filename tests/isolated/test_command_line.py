@@ -1202,12 +1202,45 @@ def test_setup_initialises_git_repository_when_missing(tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert (tmp_path / ".git").is_dir()
     assert "Initialised a Git repository" in result.output
-    assert "Useful commands (setup is already complete):" in result.output
+    assert "You can try running the experiment with the following command:" in (
+        result.output
+    )
+    assert "  psynet debug local" in result.output
     # Setup already did it, so it must not be listed as a command to run.
     assert "  git init" not in result.output
+    # This shell is already using the experiment environment.
+    assert "source .venv/bin/activate" not in result.output
     assert "does not appear to be installed" not in result.output
     assert (tmp_path / "Dockerfile").exists()
     assert calls  # setup still syncs
+
+
+def test_setup_tells_delegated_users_to_activate_the_new_environment(
+    tmp_path, monkeypatch
+):
+    """A delegated run's shell is not using .venv yet, so activation is required.
+
+    Without it the user runs a different interpreter than ``.python-version``.
+    """
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+    monkeypatch.setenv("PSYNET_SETUP_DELEGATED", "1")
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv", lambda args, description: None
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--psynet-source", "existing"],
+        )
+
+    assert result.exit_code == 0, result.output
+    assert "following commands:" in result.output
+    activate_index = result.output.index("source .venv/bin/activate")
+    debug_index = result.output.index("psynet debug local")
+    assert activate_index < debug_index
 
 
 def test_setup_leaves_existing_work_tree_alone(tmp_path, monkeypatch):
@@ -1260,8 +1293,8 @@ def test_setup_suggests_installing_git_when_command_missing(tmp_path, monkeypatc
     assert "does not appear to be installed" in result.output
     assert "git-scm.com/downloads" in result.output
     # Git is unavailable, so the user must run git init themselves later.
-    assert "Useful commands (after installing Git):" in result.output
     assert "  git init" in result.output
+    assert "  psynet debug local" in result.output
     assert calls
 
 

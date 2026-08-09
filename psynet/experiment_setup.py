@@ -96,23 +96,39 @@ def _ensure_git_repository():
     return True
 
 
-def _echo_useful_commands(*, git_available):
-    """Print post-setup commands, making clear that setup already finished."""
+def _setup_was_delegated():
+    """Return whether this run was launched by an outer ``psynet setup``.
+
+    When delegated, the environment was created by that outer run, so the
+    user's own shell is not using it yet and must activate it before running
+    anything else. Otherwise Dallinger's ``.python-version`` check fails against
+    whichever interpreter the shell still has active.
+    """
+    return bool(os.environ.get(_DELEGATED_SETUP_ENV_VAR))
+
+
+def _echo_useful_commands(*, git_available, activation_required):
+    """Print what to run next, making clear that setup itself already finished."""
+    commands = []
+    if not git_available:
+        commands.append("git init")
+    if activation_required:
+        commands.append("source .venv/bin/activate")
+    commands.append("psynet debug local")
+
     click.echo()
     if git_available:
-        click.echo("Useful commands (setup is already complete):")
+        noun = "command" if len(commands) == 1 else "commands"
+        click.echo(f"You can try running the experiment with the following {noun}:")
     else:
-        click.echo("Useful commands (after installing Git):")
+        click.echo(
+            "Git is not installed, so this experiment has no repository yet. "
+            "Install Git from https://git-scm.com/downloads, then you can try "
+            "running the experiment with the following commands:"
+        )
     click.echo()
-    if not git_available:
-        click.echo("  # Initialise this experiment's Git repository")
-        click.echo("  git init")
-        click.echo()
-    click.echo("  # Activate this experiment's environment in a new shell")
-    click.echo("  source .venv/bin/activate")
-    click.echo()
-    click.echo("  # Launch the experiment locally")
-    click.echo("  psynet debug local")
+    for command in commands:
+        click.echo(f"  {command}")
 
 
 def _assert_directory_is_scaffoldable():
@@ -854,4 +870,7 @@ def setup_experiment(
     git_available = _ensure_git_repository()
     click.echo("Setup complete.")
     _handle_setup_services(mode="ensure-soft")
-    _echo_useful_commands(git_available=git_available)
+    _echo_useful_commands(
+        git_available=git_available,
+        activation_required=_setup_was_delegated(),
+    )
