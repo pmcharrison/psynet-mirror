@@ -78,6 +78,16 @@ barrier that delegates row creation to the group leader. A
 :class:`~psynet.session.LiveSessionControl` resolves that existing row when the
 page renders and exposes a ``live_session_config`` object to the browser,
 including ``session_id`` and the current ``participant_id``.
+Each concrete live-session subclass defines its own SQL columns for recoverable
+public state and can return initial column values from
+``build_initial_values(...)``. Browser-facing state snapshots are generated
+automatically from those subclass columns; override ``snapshot_state(...)`` only
+when you need custom visibility or filtering.
+Use ``private_state_attr(Column(...))`` for SQL columns that should be persisted
+on the session row but omitted from automatic snapshots.
+The base ``LiveSession`` class can still be used directly with PsyNet's generic
+``var`` store, but explicit subclass columns are preferred for clarity and
+performance.
 This means you can construct the control in a normal ``ModularPage``
 immediately after the initializer in the timeline. Browser code passes this
 config to ``psynet.session.init()``, then sends a ready event once it has
@@ -95,8 +105,9 @@ When a typed WebSocket message needs the current live-session row, decorate its
 ``session_id`` for the current participant and injects the row as a ``session``
 argument. All client WebSocket messages include a nullable ``session_id`` field;
 ``psynet.session`` populates it for messages sent after
-``psynet.session.init()``. Use ``@session(for_update=True)`` when the handler
-mutates session state and needs a row lock.
+``psynet.session.init()``. Use ``@session(write=True)`` when the handler mutates
+session state and should lock the row, commit on success, and roll back on
+failure.
 Accepted WebSocket messages are saved by default, inbound and outbound. Typed
 messages are saved in tables derived from their Pydantic message classes, with
 columns for the model fields. If a live update is sent at a high rate, set
@@ -120,8 +131,10 @@ live interaction.
     from typing import ClassVar
 
     from dallinger import db
+    from sqlalchemy import Boolean, Column
 
     import psynet.experiment
+    from psynet.field import PythonDict
     from psynet.modular_page import ModularPage
     from psynet.page import InfoPage
     from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer, session
@@ -139,7 +152,7 @@ live interaction.
         event_type: ClassVar[str] = "choose"
         action: str
 
-        @session(for_update=True)
+        @session(write=True)
         def handle(
             self,
             experiment,
@@ -167,24 +180,22 @@ live interaction.
 
 
     class RockPaperScissorsSession(LiveSession):
+        choices = Column(PythonDict, default=lambda: {})
+        finished = Column(Boolean, default=False)
+
         @classmethod
-        def build_initial_state(cls, participant_ids, group, context=None):
-            return {
-                "choices": {},
-                "finished": False,
-            }
+        def build_initial_values(cls, participant_ids, group, context=None):
+            return {"choices": {}, "finished": False}
 
         def record_choice(self, participant, action):
             if not self.has_participant(participant):
                 return None
 
-            state = dict(self.state or {})
-            choices = dict(state.get("choices", {}))
+            choices = dict(self.choices or {})
             choices[str(participant.id)] = action
-            state["choices"] = choices
-            state["finished"] = len(choices) == len(self.participant_ids or [])
-            self.state = state
-            return state["finished"], choices
+            self.choices = choices
+            self.finished = len(choices) == len(self.participant_ids or [])
+            return self.finished, choices
 
 
     class RockPaperScissorsControl(LiveSessionControl):

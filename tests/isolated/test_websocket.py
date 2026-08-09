@@ -60,6 +60,12 @@ class DoneMessage(ServerWebSocketMessage):
     answer: list[str] | None = None
 
 
+class BenchmarkLiveSession(LiveSession):
+    """SQL-backed live session for WebSocket benchmark tests."""
+
+    message_count = Column(Integer, default=0)
+
+
 class BroadcastMessage(ClientWebSocketMessage):
     """Message used to exercise typed handling plus outbound broadcast."""
 
@@ -68,14 +74,12 @@ class BroadcastMessage(ClientWebSocketMessage):
     value: int
 
     def handle(self, experiment, participant, receive_time):
-        live_session = LiveSession.get_current_for_participant(
+        live_session = BenchmarkLiveSession.get_current_for_participant(
             participant, self.session_id
         )
         if live_session is not None:
-            state = live_session.state or {}
-            message_count = int(state.get("message_count", 0)) + 1
-            state["message_count"] = message_count
-            live_session.state = state
+            message_count = int(live_session.message_count or 0) + 1
+            live_session.message_count = message_count
             db.session.add(
                 WebSocketBenchmarkEvent(
                     session_id=live_session.id,
@@ -98,15 +102,25 @@ class SessionEchoMessage(ClientWebSocketMessage):
         return session.id
 
 
-class LockedSessionEchoMessage(ClientWebSocketMessage):
-    """Message used to exercise locked session injection."""
+class WriteSessionEchoMessage(ClientWebSocketMessage):
+    """Message used to exercise locked write-session injection."""
 
     event_type = "lockedSessionEcho"
 
-    @session_context(for_update=True)
+    @session_context(write=True)
     def handle(self, experiment, participant, session: LiveSession, receive_time):
         participant.locked_session = session
         return session.id
+
+
+class FailingWriteSessionMessage(ClientWebSocketMessage):
+    """Message used to exercise write-session rollback."""
+
+    event_type = "failingWriteSession"
+
+    @session_context(write=True)
+    def handle(self, experiment, participant, session: LiveSession, receive_time):
+        raise RuntimeError("write failed")
 
 
 @register_table
@@ -186,8 +200,8 @@ def _live_session_with_participants(n_participants=4):
         SimpleNamespace(id=i, page_uuid=f"page-{i}")
         for i in range(1, n_participants + 1)
     ]
-    live_session = LiveSession(
-        state={"value": 1},
+    live_session = BenchmarkLiveSession(
+        message_count=0,
         participant_ids=[participant.id for participant in participants],
         ready_participant_ids=[],
         started=True,
@@ -227,6 +241,29 @@ def test_client_message_subclass_registers_by_event_type():
     """Client message subclasses are auto-registered by event type."""
 
     assert get_client_websocket_message_type("echo") is EchoMessage
+
+
+def test_client_message_registration_allows_reimported_same_class():
+    """Legacy debug can import the same experiment module twice in one process."""
+
+    class ReloadableMessage(ClientWebSocketMessage):
+        event_type = "reloadable"
+        value: int
+
+        def handle(self, experiment, participant, receive_time):
+            return self.value
+
+    first_model = get_websocket_message_event_model(ReloadableMessage)
+
+    class ReloadableMessage(ClientWebSocketMessage):
+        event_type = "reloadable"
+        value: int
+
+        def handle(self, experiment, participant, receive_time):
+            return self.value
+
+    assert get_client_websocket_message_type("reloadable") is ReloadableMessage
+    assert get_websocket_message_event_model(ReloadableMessage) is first_model
 
 
 def test_client_messages_have_nullable_session_id_field():
@@ -346,13 +383,14 @@ def test_session_decorator_injects_resolved_session(monkeypatch):
     assert participant.injected_receive_time == receive_time
 
 
-def test_session_decorator_passes_for_update(monkeypatch):
-    """Decorated handlers can request a locked live-session row."""
+def test_session_decorator_write_locks_and_commits(monkeypatch):
+    """Write handlers lock the live-session row and commit on success."""
 
     participant = _participant()
     experiment = EchoExperiment()
     live_session = SimpleNamespace(id=124)
     calls = []
+    commits = []
 
     def fake_get_current_for_participant(
         cls, participant_arg, session_id, *, for_update
@@ -365,6 +403,7 @@ def test_session_decorator_passes_for_update(monkeypatch):
         "get_current_for_participant",
         classmethod(fake_get_current_for_participant),
     )
+    monkeypatch.setattr(db.session, "commit", lambda: commits.append(True))
 
     result = dispatch_websocket_frame(
         experiment,
@@ -379,6 +418,41 @@ def test_session_decorator_passes_for_update(monkeypatch):
     assert result == 124
     assert calls == [(participant, 124, True)]
     assert participant.locked_session is live_session
+    assert commits == [True]
+
+
+def test_session_decorator_write_rolls_back_on_exception(monkeypatch):
+    """Write handlers roll back if the wrapped handler fails."""
+
+    participant = _participant()
+    experiment = EchoExperiment()
+    live_session = SimpleNamespace(id=125)
+    rollbacks = []
+
+    def fake_get_current_for_participant(
+        cls, participant_arg, session_id, *, for_update
+    ):
+        return live_session
+
+    monkeypatch.setattr(
+        LiveSession,
+        "get_current_for_participant",
+        classmethod(fake_get_current_for_participant),
+    )
+    monkeypatch.setattr(db.session, "rollback", lambda: rollbacks.append(True))
+
+    with pytest.raises(RuntimeError, match="write failed"):
+        dispatch_websocket_frame(
+            experiment,
+            participant=participant,
+            frame={
+                "type": "failingWriteSession",
+                "message": {"session_id": 125},
+                "page_uuid": "current-page",
+            },
+        )
+
+    assert rollbacks == [True]
 
 
 def test_session_decorator_skips_handler_when_session_is_missing(monkeypatch):
@@ -561,7 +635,7 @@ def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
 
     assert elapsed / n_messages < 0.005
     assert fake_redis.publish_count == n_messages + 20
-    assert live_session.state["message_count"] == n_messages + 20
+    assert live_session.message_count == n_messages + 20
     assert len(added_events) == n_messages + 20
     assert isinstance(added_events[-1], WebSocketBenchmarkEvent)
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from functools import wraps
 from typing import ClassVar, get_type_hints
 
@@ -12,7 +13,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.field import PythonDict, PythonList
+from psynet.field import PythonList
 from psynet.modular_page import Control, NoArgumentProvided
 from psynet.page import WaitPage
 from psynet.sync import GroupBarrier
@@ -24,8 +25,34 @@ STATE_SNAPSHOT_EVENT = "stateSnapshot"
 READY_EVENT = "ready"
 SESSION_STATUS_EVENT = "sessionStatus"
 SESSION_END_EVENT = "sessionEnd"
+PRIVATE_STATE_COLUMN_INFO_KEY = "live_session_private"
+
+_LIVE_SESSION_METADATA_COLUMNS = {
+    "id",
+    "type",
+    "vars",
+    "session_type",
+    "group_type",
+    "initializer_id",
+    "participant_ids",
+    "ready_participant_ids",
+    "started",
+    "ended",
+    "start_time",
+    "end_time",
+    "sync_group_id",
+    "node_id",
+    "network_id",
+}
 
 logger = get_logger()
+
+
+def private_state_attr(column):
+    """Mark a live-session SQL column as omitted from public state snapshots."""
+
+    column.info[PRIVATE_STATE_COLUMN_INFO_KEY] = True
+    return column
 
 
 def _resolve_session_argument_class(method, argument: str, explicit_session_class):
@@ -60,11 +87,15 @@ def _get_message_session(message, participant, session_class, *, for_update: boo
     )
 
 
-def session(session_class=None, *, for_update: bool = False, argument: str = "session"):
-    """Inject a participant-owned live session into a WebSocket message handler."""
+def session(session_class=None, *, write: bool = False, argument: str = "session"):
+    """Inject a participant-owned live session into a WebSocket message handler.
 
-    if not isinstance(for_update, bool):
-        raise TypeError("session for_update must be a boolean.")
+    Set ``write=True`` for handlers that mutate session state. This locks the
+    row, commits on success, and rolls back if the handler raises.
+    """
+
+    if not isinstance(write, bool):
+        raise TypeError("session write must be a boolean.")
     if not isinstance(argument, str) or not argument:
         raise ValueError("session argument must be a non-empty string.")
 
@@ -84,7 +115,7 @@ def session(session_class=None, *, for_update: bool = False, argument: str = "se
                 self,
                 participant,
                 resolved_session_class,
-                for_update=for_update,
+                for_update=write,
             )
             if live_session is None:
                 logger.warning(
@@ -96,13 +127,22 @@ def session(session_class=None, *, for_update: bool = False, argument: str = "se
                 )
                 return None
 
-            return method(
-                self,
-                experiment=experiment,
-                participant=participant,
-                receive_time=receive_time,
-                **{argument: live_session},
-            )
+            try:
+                result = method(
+                    self,
+                    experiment=experiment,
+                    participant=participant,
+                    receive_time=receive_time,
+                    **{argument: live_session},
+                )
+            except Exception:
+                if write:
+                    db.session.rollback()
+                raise
+
+            if write:
+                db.session.commit()
+            return result
 
         return wrapper
 
@@ -125,11 +165,10 @@ class ReadyMessage(ClientWebSocketMessage):
 
     event_type: ClassVar[str] = READY_EVENT
 
-    @session(for_update=True)
+    @session(write=True)
     def handle(self, experiment, participant, session: LiveSession, receive_time):
         session.mark_ready(participant)
         session.send_status()
-        db.session.commit()
 
 
 class StateSnapshotMessage(ServerWebSocketMessage):
@@ -167,7 +206,6 @@ class _LiveSessionMixin:
     session_type = Column(String, index=True)
     group_type = Column(String, index=True)
     initializer_id = Column(String, index=True)
-    state = Column(PythonDict, default=lambda: {})
     participant_ids = Column(PythonList, default=lambda: [])
     ready_participant_ids = Column(PythonList, default=lambda: [])
     started = Column(Boolean, default=False)
@@ -198,8 +236,8 @@ class _LiveSessionMixin:
         return model_name_to_snake_case(cls.__name__)
 
     @classmethod
-    def build_initial_state(cls, participant_ids, group, context=None):
-        """Return initial public state for a new live session."""
+    def build_initial_values(cls, participant_ids, group, context=None):
+        """Return initial subclass column values for a new live session."""
 
         return {}
 
@@ -220,13 +258,13 @@ class _LiveSessionMixin:
     @classmethod
     def create(
         cls,
-        state: dict | None = None,
         participant_ids: list[int] | None = None,
         group_type: str | None = None,
         sync_group_id: int | None = None,
         initializer_id: str | None = None,
         node_id: int | None = None,
         network_id: int | None = None,
+        **initial_values,
     ):
         """Create a live-session row."""
 
@@ -237,7 +275,6 @@ class _LiveSessionMixin:
             initializer_id=initializer_id,
             node_id=node_id,
             network_id=network_id,
-            state=state or {},
             participant_ids=[
                 int(participant_id) for participant_id in participant_ids or []
             ],
@@ -246,6 +283,7 @@ class _LiveSessionMixin:
             ended=False,
             start_time=None,
             end_time=None,
+            **initial_values,
         )
         db.session.add(live_session)
         db.session.flush()
@@ -302,13 +340,13 @@ class _LiveSessionMixin:
             }
         )
         return cls.create(
-            state=cls.build_initial_state(participant_ids, group, context),
             participant_ids=participant_ids,
             group_type=getattr(group, "group_type", None),
             sync_group_id=int(group.id),
             initializer_id=initializer.id,
             node_id=context["node_id"],
             network_id=context["network_id"],
+            **cls.build_initial_values(participant_ids, group, context),
         )
 
     @classmethod
@@ -446,12 +484,9 @@ class _LiveSessionMixin:
     def snapshot_payload(self, fields: list[str] | None = None) -> dict:
         """Return a JSON-serializable state snapshot payload."""
 
-        state = self.state or {}
-        if fields is not None:
-            state = {field: state[field] for field in fields if field in state}
         payload = {
             "session_id": int(self.id),
-            "state": state,
+            "state": self.snapshot_state(fields=fields),
             "participant_ids": [str(value) for value in (self.participant_ids or [])],
             "ready_participant_ids": [
                 str(value) for value in (self.ready_participant_ids or [])
@@ -460,6 +495,40 @@ class _LiveSessionMixin:
             "ended": bool(self.ended),
         }
         return payload
+
+    def snapshot_state(self, fields: list[str] | None = None) -> dict:
+        """Return browser-facing public state.
+
+        Concrete subclasses are snapshotted from their SQL columns. Direct base
+        ``LiveSession`` rows fall back to PsyNet's generic ``var``/``vars``
+        store for compatibility, but explicit subclass columns are preferred.
+        Subclasses can override this when a field should be hidden, renamed, or
+        made participant-specific.
+        """
+
+        requested = set(fields) if fields is not None else None
+        if self.__class__ is LiveSession:
+            state = deepcopy(self.vars or {})
+            if requested is not None:
+                state = {field: state[field] for field in fields if field in state}
+            return state
+
+        state = {}
+        for column_attr in self.__mapper__.column_attrs:
+            key = column_attr.key
+            if key in _LIVE_SESSION_METADATA_COLUMNS:
+                continue
+            if any(
+                column.info.get(PRIVATE_STATE_COLUMN_INFO_KEY)
+                for column in column_attr.columns
+            ):
+                continue
+            if requested is not None and key not in requested:
+                continue
+            value = getattr(self, key)
+            if value is not None:
+                state[key] = deepcopy(value)
+        return state
 
     def snapshot_message(self, fields: list[str] | None = None) -> StateSnapshotMessage:
         """Return the typed state snapshot WebSocket message."""

@@ -123,6 +123,14 @@ def _validate_websocket_message_class(message_class: Type[WebSocketMessage]):
         raise TypeError(f"{message_class.__name__}.save must be a boolean.")
 
 
+def _message_class_identity(message_class: Type[BaseModel]):
+    return message_class.__module__, message_class.__qualname__
+
+
+def _same_message_class_identity(first: Type[BaseModel], second: Type[BaseModel]):
+    return _message_class_identity(first) == _message_class_identity(second)
+
+
 def _register_client_websocket_message_type(
     message_class: Type[ClientWebSocketMessage],
 ):
@@ -134,6 +142,9 @@ def _register_client_websocket_message_type(
     event_type = message_class.event_type
     existing = _CLIENT_WEBSOCKET_MESSAGE_TYPES.get(event_type)
     if existing is not None and existing is not message_class:
+        if _same_message_class_identity(existing, message_class):
+            _CLIENT_WEBSOCKET_MESSAGE_TYPES[event_type] = message_class
+            return
         raise ValueError(
             "Client WebSocket message event types must be unique; "
             f"{message_class.__name__!r} conflicts with {existing.__name__!r} "
@@ -227,7 +238,10 @@ def get_websocket_message_event_model(message_model: Type[BaseModel]):
         existing_message_model = getattr(
             existing_model, "__websocket_message_model__", None
         )
-        if existing_message_model is message_model:
+        if existing_message_model is message_model or _same_message_class_identity(
+            existing_message_model,
+            message_model,
+        ):
             _WEBSOCKET_MESSAGE_EVENT_MODELS[message_model] = existing_model
             return existing_model
         raise ValueError(

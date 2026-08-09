@@ -23,25 +23,23 @@ and live-session machinery:
 
 The server is the sole authority for the game state; the browser only sends the
 chosen action and drops the server's snapshot text into the page, so there is
-almost no game logic in JavaScript. Public recoverable state is persisted in
-``LiveSession`` rows, while hidden choices are kept in ``RockPaperScissorsMove``
-rows until a round is complete. The final score is recomputed from participant
-submissions inside a :class:`~psynet.sync.GroupBarrier` on release, so the flow
-is also fully testable with non-WebSocket bots.
+almost no game logic in JavaScript. Recoverable game state, including hidden
+current-round choices, is persisted in the live-session row. The final score is
+recomputed from participant submissions inside a :class:`~psynet.sync.GroupBarrier`
+on release, so the flow is also fully testable with non-WebSocket bots.
 """
 
 import random
 from copy import deepcopy
 from typing import ClassVar, List, Literal, Optional
 
-from dallinger import db
 from dominate import tags
 from pydantic import Field, ValidationError
-from sqlalchemy import Column, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, Column, Integer
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
-from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.field import PythonDict, PythonList
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
@@ -49,6 +47,7 @@ from psynet.session import (
     LiveSession,
     LiveSessionControl,
     LiveSessionInitializer,
+    private_state_attr,
     session,
 )
 from psynet.sync import GroupBarrier, SimpleGrouper
@@ -98,7 +97,7 @@ class ChooseMessage(ClientWebSocketMessage):
     round: int = Field(ge=1, le=N_ROUNDS)
     action: Choice
 
-    @session(for_update=True)
+    @session(write=True)
     def handle(
         self,
         experiment,
@@ -118,10 +117,8 @@ class ChooseMessage(ClientWebSocketMessage):
             if recipient is not None:
                 reveal.send(recipient)
 
-        if bool((session.state or {}).get("finished")):
+        if bool(session.finished):
             session.mark_ended()
-
-        db.session.commit()
 
 
 class RevealSnapshot(ServerWebSocketMessage):
@@ -144,6 +141,8 @@ def initial_rps_state(participant_ids: list[int]) -> dict:
     return {
         "current_round": 1,
         "scores": {participant_id: 0 for participant_id in ordered_ids},
+        "current_round_choices": {},
+        "submitted_moves": {participant_id: [] for participant_id in ordered_ids},
         "submitted_participant_ids": [],
         "reveal_history": {participant_id: [] for participant_id in ordered_ids},
         "finished": False,
@@ -153,9 +152,17 @@ def initial_rps_state(participant_ids: list[int]) -> dict:
 class RockPaperScissorsSession(LiveSession):
     """Persisted live session for one rock-paper-scissors game."""
 
+    current_round = Column(Integer)
+    scores = Column(PythonDict, default=lambda: {})
+    current_round_choices = private_state_attr(Column(PythonDict, default=lambda: {}))
+    submitted_moves = private_state_attr(Column(PythonDict, default=lambda: {}))
+    submitted_participant_ids = Column(PythonList, default=lambda: [])
+    reveal_history = Column(PythonDict, default=lambda: {})
+    finished = Column(Boolean, default=False)
+
     @classmethod
-    def build_initial_state(cls, participant_ids, group, context=None):
-        """Return the public recoverable state for a new RPS session."""
+    def build_initial_values(cls, participant_ids, group, context=None):
+        """Return the recoverable state for a new RPS session."""
 
         return initial_rps_state(participant_ids)
 
@@ -163,32 +170,29 @@ class RockPaperScissorsSession(LiveSession):
         """Record a choice and return reveals if this completed a round."""
 
         participant_id = int(participant_id)
-        public_state = deepcopy(self.state or {})
-        current_round = int(public_state.get("current_round", 1))
+        current_round = int(self.current_round or 1)
         expected_ids = [int(value) for value in (self.participant_ids or [])]
+        round_moves = {
+            int(pid): action
+            for pid, action in (self.current_round_choices or {}).items()
+        }
 
-        if bool(public_state.get("finished")):
+        if bool(self.finished):
             return None
         if message.round != current_round:
             return None
         if participant_id not in expected_ids:
             return None
-        if participant_id in moves_for_round(message.session_id, message.round):
+        if participant_id in round_moves:
             return None
 
-        db.session.add(
-            RockPaperScissorsMove(
-                session_id=message.session_id,
-                round_number=message.round,
-                participant_id=participant_id,
-                action=message.action,
-            )
-        )
-        db.session.flush()
+        round_moves[participant_id] = message.action
+        self.current_round_choices = {
+            str(pid): action for pid, action in sorted(round_moves.items())
+        }
 
-        round_moves = moves_for_round(message.session_id, message.round)
         submitted = sorted(str(pid) for pid in round_moves)
-        public_state["submitted_participant_ids"] = submitted
+        self.submitted_participant_ids = submitted
         reveals = []
 
         if len(round_moves) >= len(expected_ids):
@@ -196,73 +200,61 @@ class RockPaperScissorsSession(LiveSession):
             score_1, score_2 = score_match(
                 [round_moves[pids[0]]], [round_moves[pids[1]]]
             )
-            scores = dict(public_state.get("scores", {}))
+            scores = dict(self.scores or {})
             scores.setdefault(str(pids[0]), 0)
             scores.setdefault(str(pids[1]), 0)
             scores[str(pids[0])] += score_1
             scores[str(pids[1])] += score_2
-            public_state["scores"] = scores
-            public_state["finished"] = message.round >= N_ROUNDS
-            public_state["submitted_participant_ids"] = []
-            if not public_state["finished"]:
-                public_state["current_round"] = message.round + 1
+            finished = message.round >= N_ROUNDS
+            submitted_moves = deepcopy(self.submitted_moves or {})
+            for pid in pids:
+                pid_key = str(pid)
+                submitted_moves.setdefault(pid_key, [])
+                submitted_moves[pid_key] = [
+                    *submitted_moves[pid_key],
+                    round_moves[pid],
+                ]
+            self.scores = scores
+            self.finished = finished
+            self.submitted_participant_ids = []
+            self.submitted_moves = submitted_moves
+            self.current_round_choices = {}
+            if not finished:
+                self.current_round = message.round + 1
 
-            reveal_history = dict(public_state.get("reveal_history", {}))
+            reveal_history = deepcopy(self.reveal_history or {})
             for pid in pids:
                 pid_key = str(pid)
                 reveal_history.setdefault(pid_key, [])
                 reveal = reveal_for(
-                    public_state, message.session_id, pid, message.round
+                    participant_id=pid,
+                    round_number=message.round,
+                    round_moves=round_moves,
+                    scores=scores,
+                    finished=finished,
+                    submitted_moves=submitted_moves[pid_key] if finished else None,
                 )
                 reveals.append((pid, reveal))
                 reveal_history[pid_key] = [
                     *reveal_history[pid_key],
                     reveal.model_dump(mode="json", exclude_none=True),
                 ]
-            public_state["reveal_history"] = reveal_history
+            self.reveal_history = reveal_history
 
-        self.state = public_state
         return reveals
 
 
-def moves_for_round(session_id: int, round_number: int):
-    """Return submitted moves for a given live session and round."""
-
-    return {
-        move.participant_id: move.action
-        for move in RockPaperScissorsMove.query.filter_by(
-            session_id=session_id,
-            round_number=round_number,
-        ).all()
-    }
-
-
-def participant_moves(session_id: int, participant_id: int):
-    """Return a participant's submitted moves in round order."""
-
-    return [
-        move.action
-        for move in RockPaperScissorsMove.query.filter_by(
-            session_id=session_id,
-            participant_id=participant_id,
-        )
-        .order_by(RockPaperScissorsMove.round_number)
-        .all()
-    ]
-
-
 def reveal_for(
-    public_state: dict,
-    session_id: int,
     participant_id: int,
     round_number: int,
     *,
-    round_moves: dict[int, Choice] | None = None,
+    round_moves: dict[int, Choice],
+    scores: dict[str, int],
+    finished: bool,
     submitted_moves: list[Choice] | None = None,
 ) -> RevealSnapshot:
     """Return a participant-specific reveal for a completed round."""
 
-    round_moves = round_moves or moves_for_round(session_id, round_number)
     partner_id = next(pid for pid in round_moves if pid != participant_id)
     delta = score_round(round_moves[participant_id], round_moves[partner_id])
     outcome = (
@@ -272,10 +264,8 @@ def reveal_for(
         if delta < 0
         else "the round was a draw."
     )
-    scores = public_state.get("scores", {})
     participant_key = str(participant_id)
     partner_key = str(partner_id)
-    finished = bool(public_state.get("finished"))
     return RevealSnapshot(
         target=participant_key,
         round=round_number + 1,
@@ -293,27 +283,8 @@ def reveal_for(
             else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
         ),
         finished=finished,
-        answer=(
-            submitted_moves
-            if submitted_moves is not None
-            else participant_moves(session_id, participant_id)
-            if finished
-            else None
-        ),
+        answer=(submitted_moves if submitted_moves is not None else None),
     )
-
-
-@register_table
-class RockPaperScissorsMove(SQLBase, SQLMixin):
-    """A single move submitted by a participant during one round."""
-
-    __tablename__ = "rock_paper_scissors_move"
-    __table_args__ = (UniqueConstraint("session_id", "round_number", "participant_id"),)
-
-    session_id = Column(Integer, index=True)
-    round_number = Column(Integer)
-    participant_id = Column(Integer, index=True)
-    action = Column(String)
 
 
 class RockPaperScissorsControl(LiveSessionControl):
@@ -484,7 +455,6 @@ class Exp(psynet.experiment.Experiment):
         )
 
         invalid_payloads = [
-            {"round": 1, "action": "rock"},
             {
                 "session_id": session_id,
                 "round": 1,
@@ -534,6 +504,8 @@ class Exp(psynet.experiment.Experiment):
         assert state == {
             "current_round": 1,
             "scores": {"1": 0, "2": 0},
+            "current_round_choices": {},
+            "submitted_moves": {"1": [], "2": []},
             "submitted_participant_ids": [],
             "reveal_history": {"1": [], "2": []},
             "finished": False,
@@ -541,17 +513,13 @@ class Exp(psynet.experiment.Experiment):
 
     @staticmethod
     def test_reveal_formatting():
-        """Check reveal formatting from public LiveSession and hidden move log."""
-        session_id = 1
-        state = initial_rps_state([1, 2])
-        state["scores"] = {"1": 1, "2": -1}
-
+        """Check reveal formatting from public and hidden live-session state."""
         reveal = reveal_for(
-            state,
-            session_id,
             participant_id=1,
             round_number=1,
             round_moves={1: "rock", 2: "scissors"},
+            scores={"1": 1, "2": -1},
+            finished=False,
         )
 
         assert reveal.scoreboard == "Score — you: 1, partner: -1"

@@ -6,13 +6,14 @@ from copy import deepcopy
 from datetime import datetime
 from typing import ClassVar, List
 
-from dallinger import db
 from dominate import tags
 from pydantic import Field
+from sqlalchemy import Column, Integer
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.consent import NoConsent
+from psynet.field import PythonDict, PythonList
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
@@ -170,7 +171,7 @@ class CollectMessage(ClientWebSocketMessage):
     y: float = Field(ge=0, le=CANVAS_SIZE)
     client_time: float
 
-    @session(for_update=True)
+    @session(write=True)
     def handle(
         self,
         experiment,
@@ -188,11 +189,10 @@ class CollectMessage(ClientWebSocketMessage):
             receive_time=receive_time,
         )
         if accepted:
-            state = session.state or {}
             participant.current_trial.record_coin()
             CoinCollectedMessage(
                 collection=collection,
-                coins=state.get("coins", []),
+                coins=session.coins or [],
             ).send(
                 session.participants,
             )
@@ -203,7 +203,6 @@ class CollectMessage(ClientWebSocketMessage):
             ).send(
                 participant,
             )
-        db.session.commit()
 
 
 class PositionUpdateMessage(ServerWebSocketMessage):
@@ -251,8 +250,14 @@ def instruction_page():
 class SharedCanvasSession(LiveSession):
     """Persisted live session for one shared-canvas group."""
 
+    group_id = Column(Integer)
+    params = Column(PythonDict, default=lambda: {})
+    players = Column(PythonDict, default=lambda: {})
+    coins = Column(PythonList, default=lambda: [])
+    collected_coins = Column(PythonList, default=lambda: [])
+
     @classmethod
-    def build_initial_state(cls, participant_ids, group, context=None):
+    def build_initial_values(cls, participant_ids, group, context=None):
         """Return the initial authoritative shared-canvas state."""
 
         context = context or {}
@@ -262,10 +267,8 @@ class SharedCanvasSession(LiveSession):
             node, "definition", None
         )
         world = definition["world"]
-        return {
-            **initial_canvas_state(participant_ids, world),
-            "group_id": int(group.id),
-        }
+        state = initial_canvas_state(participant_ids, world)
+        return {**state, "group_id": int(group.id)}
 
     def record_collection(
         self,
@@ -278,13 +281,13 @@ class SharedCanvasSession(LiveSession):
     ):
         """Apply a validated collection attempt to authoritative state."""
 
-        state = deepcopy(self.state or {})
         participant_id = str(participant_id)
-        coin = next((c for c in state.get("coins", []) if c["id"] == coin_id), None)
+        coins = self.coins or []
+        coin = next((c for c in coins if c["id"] == coin_id), None)
         if coin is None:
             return False, "already_collected_or_unknown", None
 
-        player = state.get("players", {}).get(participant_id)
+        player = (self.players or {}).get(participant_id)
         if player is None:
             return False, "unknown_player", None
 
@@ -293,7 +296,7 @@ class SharedCanvasSession(LiveSession):
         if distance > collect_radius:
             return False, "too_far", None
 
-        state["coins"] = [c for c in state.get("coins", []) if c["id"] != coin_id]
+        self.coins = [c for c in coins if c["id"] != coin_id]
         collected = {
             "coin_id": coin_id,
             "participant_id": participant_id,
@@ -302,8 +305,7 @@ class SharedCanvasSession(LiveSession):
             "bonus": COIN_BONUS,
             "receive_time": receive_time_iso(receive_time),
         }
-        state.setdefault("collected_coins", []).append(collected)
-        self.state = state
+        self.collected_coins = [*(self.collected_coins or []), collected]
         return True, None, collected
 
 

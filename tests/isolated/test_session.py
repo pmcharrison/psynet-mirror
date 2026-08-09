@@ -3,8 +3,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-from sqlalchemy import Column, String
+from sqlalchemy import Column, Integer, String
 
+from psynet.field import PythonList
 from psynet.session import (
     LiveSession,
     LiveSessionControl,
@@ -12,6 +13,7 @@ from psynet.session import (
     ReadyMessage,
     SessionEndMessage,
     StateRequestMessage,
+    private_state_attr,
 )
 
 
@@ -19,14 +21,42 @@ class PolymorphicDemoLiveSession(LiveSession):
     """Demo custom live session that shares the generic live_session table."""
 
     custom_value = Column(String)
+    score = Column(Integer)
+    round_number = Column(Integer)
+    initial_node_id = Column(Integer)
+    initial_participant_ids = Column(PythonList)
 
     @classmethod
-    def build_initial_state(cls, participant_ids, group, context=None):
+    def build_initial_values(cls, participant_ids, group, context=None):
+        """Return constructor values for test-specific session state columns."""
+
         context = context or {}
         return {
-            "participant_ids": participant_ids,
-            "node_id": context.get("node_id"),
+            "initial_participant_ids": participant_ids,
+            "initial_node_id": context.get("node_id"),
         }
+
+
+class FilteredDemoLiveSession(LiveSession):
+    """Demo custom live session that overrides public snapshot filtering."""
+
+    public_value = Column(String)
+    private_value = Column(String)
+
+    def snapshot_state(self, fields=None):
+        """Expose only the public column by default."""
+
+        state = {"public_value": self.public_value}
+        if fields is not None:
+            state = {field: state[field] for field in fields if field in state}
+        return state
+
+
+class PrivateColumnDemoLiveSession(LiveSession):
+    """Demo live session with SQL columns hidden from automatic snapshots."""
+
+    auto_public_value = Column(String)
+    auto_private_value = private_state_attr(Column(String))
 
 
 def _participants():
@@ -36,10 +66,11 @@ def _participants():
     ]
 
 
-def _state():
+def _state(*, score=3, round_number=None):
     participants = _participants()
-    state = LiveSession(
-        state={"score": 3},
+    state = PolymorphicDemoLiveSession(
+        score=score,
+        round_number=round_number,
         participant_ids=[1, 2],
         ready_participant_ids=[],
         started=False,
@@ -137,10 +168,42 @@ def test_live_session_snapshot_payload_is_json_ready():
 def test_live_session_snapshot_payload_can_filter_state_fields():
     """Snapshots can include only selected public state fields."""
 
-    state = _state()
-    state.state = {"score": 3, "round": 2}
+    state = _state(round_number=2)
 
     assert state.snapshot_payload(fields=["score", "missing"])["state"] == {"score": 3}
+
+
+def test_live_session_snapshot_state_can_be_overridden():
+    """Subclasses can hide SQL columns from public state snapshots."""
+
+    state = FilteredDemoLiveSession(
+        public_value="shown",
+        private_value="hidden",
+        participant_ids=[1],
+        ready_participant_ids=[],
+        started=False,
+        ended=False,
+    )
+    state.id = 1
+
+    assert state.snapshot_payload()["state"] == {"public_value": "shown"}
+
+
+def test_live_session_snapshot_state_skips_private_columns():
+    """Columns marked private are omitted from automatic public snapshots."""
+
+    state = PrivateColumnDemoLiveSession(
+        auto_public_value="shown",
+        auto_private_value="hidden",
+        participant_ids=[1],
+        ready_participant_ids=[],
+        started=False,
+        ended=False,
+    )
+    state.id = 1
+
+    assert state.snapshot_payload()["state"] == {"auto_public_value": "shown"}
+    assert state.snapshot_payload(fields=["auto_private_value"])["state"] == {}
 
 
 def test_live_session_status_payload_is_json_ready():
@@ -178,19 +241,18 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
 def test_state_request_can_send_partial_state(monkeypatch):
     """StateRequest forwards requested public state fields."""
 
-    state = _state()
-    state.state = {"score": 3, "round": 2}
+    state = _state(round_number=2)
     sent = _capture_server_sends(monkeypatch)
     experiment = SimpleNamespace()
     participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
-    StateRequestMessage(session_id=1, fields=["round"]).handle(
+    StateRequestMessage(session_id=1, fields=["round_number"]).handle(
         experiment=experiment,
         participant=participant,
         receive_time=None,
     )
-    assert sent == [(participant, state.snapshot_message(fields=["round"]))]
+    assert sent == [(participant, state.snapshot_message(fields=["round_number"]))]
 
 
 def test_state_request_rejects_non_member(monkeypatch):
@@ -292,7 +354,10 @@ def test_create_for_group_is_leader_owned(monkeypatch):
     assert live_session.participant_ids == [1, 2]
     assert live_session.start_time is None
     assert live_session.end_time is None
-    assert live_session.state == {"participant_ids": [1, 2], "node_id": 11}
+    assert live_session.snapshot_state() == {
+        "initial_participant_ids": [1, 2],
+        "initial_node_id": 11,
+    }
     added.assert_called_once_with(live_session)
 
 
@@ -451,8 +516,29 @@ def test_live_session_uses_shared_polymorphic_table():
 
     assert LiveSession.__tablename__ == "live_session"
     assert PolymorphicDemoLiveSession.__table__ is LiveSession.__table__
+    assert "state" not in LiveSession.__table__.columns
+    assert "vars" in LiveSession.__table__.columns
     assert "custom_value" in LiveSession.__table__.columns
+    assert "score" in LiveSession.__table__.columns
     assert "session_id" not in LiveSession.__table__.columns
     assert "session_type" in LiveSession.__table__.columns
     assert "node_id" in LiveSession.__table__.columns
     assert "network_id" in LiveSession.__table__.columns
+
+
+def test_base_live_session_can_snapshot_generic_var_store():
+    """The base class remains usable via the generic PsyNet var store."""
+
+    assert "state" not in LiveSession.__table__.columns
+
+    state = LiveSession(
+        vars={"score": 3, "round": 2},
+        participant_ids=[1],
+        ready_participant_ids=[],
+        started=False,
+        ended=False,
+    )
+    state.id = 1
+
+    assert LiveSession.build_initial_values([], None) == {}
+    assert state.snapshot_payload(fields=["score", "missing"])["state"] == {"score": 3}
