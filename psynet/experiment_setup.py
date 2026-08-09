@@ -583,8 +583,25 @@ def _editable_checkout_is_dirty(source):
     return result.returncode == 0 and bool(result.stdout.strip())
 
 
-def _choose_editable_psynet_requirement(source, requested_source):
-    """Resolve how setup should represent an active editable PsyNet checkout."""
+_EDITABLE_SOURCE_DESCRIPTIONS = {
+    "editable": (
+        "Editable — point requirements at this local checkout "
+        "(includes uncommitted changes)"
+    ),
+    "commit": (
+        "Git commit pin — record a specific PsyNet Git commit URL "
+        "(the commit must already be pushed)"
+    ),
+    "existing": "Existing — keep the current PsyNet entry in requirements.txt",
+}
+
+
+def _editable_source_context(source):
+    """Return ``(existing_requirement, choices)`` for an editable checkout.
+
+    ``choices`` is ``None`` when ``requirements.txt`` already records this
+    editable checkout, meaning no decision is needed.
+    """
     editable_requirement = editable_psynet_requirement(source)
     requirements_path = Path("requirements.txt")
     try:
@@ -593,15 +610,55 @@ def _choose_editable_psynet_requirement(source, requested_source):
         )
     except ValueError as exc:
         raise click.UsageError(str(exc)) from exc
-    if existing_requirement == editable_requirement and requested_source is None:
-        return editable_requirement
-
-    explicit_existing = (
-        existing_requirement is not None and existing_requirement.lower() != "psynet"
-    )
+    if existing_requirement == editable_requirement:
+        return existing_requirement, None
     choices = ["editable", "commit"]
-    if explicit_existing:
+    if existing_requirement is not None and existing_requirement.lower() != "psynet":
         choices.append("existing")
+    return existing_requirement, choices
+
+
+def _prompt_editable_source_choice(source, choices):
+    """Prompt for how to record an editable PsyNet checkout in requirements.txt."""
+    return _prompt_numeric_choice(
+        "What do you want to do?",
+        [(choice, _EDITABLE_SOURCE_DESCRIPTIONS[choice]) for choice in choices],
+        intro=(
+            f"PsyNet is installed editable from {source}.\n"
+            "How should setup record it in this experiment's requirements.txt?"
+        ),
+    )
+
+
+def _resolve_delegated_psynet_source(psynet_source):
+    """Pre-resolve the editable source-recording choice before delegating setup.
+
+    Delegated setup creates a virtualenv and installs PsyNet before it would
+    reach this prompt, so asking there interrupts the flow partway through.
+    Asking up front (right after the environment-choice prompt) keeps the
+    delegated run non-interactive. Returns the source to forward, or ``None``
+    when the delegated run can decide unambiguously (or should raise its own
+    actionable error non-interactively).
+    """
+    if psynet_source is not None:
+        return psynet_source
+    source = get_editable_psynet_source()
+    if source is None:
+        return None
+    _existing, choices = _editable_source_context(source)
+    if choices is None or not _is_interactive():
+        return None
+    return _prompt_editable_source_choice(source, choices)
+
+
+def _choose_editable_psynet_requirement(source, requested_source):
+    """Resolve how setup should represent an active editable PsyNet checkout."""
+    editable_requirement = editable_psynet_requirement(source)
+    existing_requirement, choices = _editable_source_context(source)
+    if choices is None and requested_source is None:
+        return editable_requirement
+    if choices is None:
+        choices = ["editable", "commit"]
 
     if requested_source is None:
         if not _is_interactive():
@@ -611,28 +668,7 @@ def _choose_editable_psynet_requirement(source, requested_source):
                 f"should record it in this experiment's requirements.txt with "
                 f"one of: {options}."
             )
-        descriptions = {
-            "editable": (
-                "Editable — point requirements at this local checkout "
-                "(includes uncommitted changes)"
-            ),
-            "commit": (
-                "Git commit pin — record a specific PsyNet Git commit URL "
-                "(the commit must already be pushed)"
-            ),
-            "existing": (
-                "Existing — keep the current PsyNet entry in requirements.txt"
-            ),
-        }
-        requested_source = _prompt_numeric_choice(
-            "What do you want to do?",
-            [(choice, descriptions[choice]) for choice in choices],
-            intro=(
-                f"PsyNet is installed editable from {source}.\n"
-                "How should setup record it in this experiment's "
-                "requirements.txt?"
-            ),
-        )
+        requested_source = _prompt_editable_source_choice(source, choices)
     elif requested_source not in choices:
         raise click.UsageError(
             f"--psynet-source {requested_source} is unavailable for this experiment."
@@ -766,6 +802,7 @@ def setup_experiment(
     if action == "cancel":
         return
     if action == "new-venv":
+        psynet_source = _resolve_delegated_psynet_source(psynet_source)
         _create_dedicated_experiment_virtualenv(psynet_source=psynet_source)
         return
 

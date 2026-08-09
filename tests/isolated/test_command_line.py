@@ -1839,10 +1839,15 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     calls, delegated = _stub_new_venv_delegation(monkeypatch, tmp_path)
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"], input="1\n")
+        # First answer picks the dedicated venv; second records editable PsyNet.
+        result = CliRunner().invoke(psynet, ["setup"], input="1\n1\n")
 
     assert result.exit_code == 0, result.output
     assert "Create a dedicated .venv here and finish setup in it" in result.output
+    # The source-recording question is asked up front, before the long steps.
+    setup_index = result.output.index("How should setup record it")
+    created_index = result.output.index("Created ./.venv.")
+    assert setup_index < created_index
     assert "Created ./.venv." in result.output
     assert "Installed PsyNet into ./.venv." in result.output
 
@@ -1856,11 +1861,13 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     assert install_args[:3] == ["pip", "install", "--python"]
     assert install_args[-2:] == ["-e", str(source)]
 
-    # Setup is finished by the new environment's own entry point.
+    # Setup is finished by the new environment's own entry point, and the
+    # resolved source choice is forwarded so the delegated run never re-prompts.
     assert len(delegated) == 1
     command, env = delegated[0]
     assert command[0] == str(tmp_path / ".venv" / "bin" / "psynet")
     assert command[1] == "setup"
+    assert command[2:] == ["--psynet-source", "editable"]
     assert env["VIRTUAL_ENV"] == str((tmp_path / ".venv").resolve())
     assert env["PSYNET_SETUP_DELEGATED"] == "1"
     # The outer process must not scaffold or repin; the inner run owns that.
@@ -1936,7 +1943,7 @@ def test_setup_shared_env_interactive_new_venv_suggests_editable_install(
     uv_calls, _delegated = _stub_new_venv_delegation(monkeypatch, tmp_path)
 
     with working_directory(tmp_path):
-        result = CliRunner().invoke(psynet, ["setup"], input="1\n")
+        result = CliRunner().invoke(psynet, ["setup"], input="1\n1\n")
 
     assert result.exit_code == 0, result.output
     # The editable checkout is installed into the new environment, not merely
@@ -1962,6 +1969,9 @@ def test_setup_delegated_run_does_not_create_another_venv(tmp_path, monkeypatch)
         "psynet.experiment_setup._is_psynet_checkout_virtualenv", lambda: True
     )
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source", lambda: None
+    )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
         lambda *args, **kwargs: pytest.fail("delegated setup must not create a venv"),
@@ -1991,10 +2001,13 @@ def test_setup_shared_env_interactive_new_venv_default(tmp_path, monkeypatch):
         lambda: True,
     )
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source", lambda: None
+    )
     uv_calls, delegated = _stub_new_venv_delegation(monkeypatch, tmp_path)
 
     with working_directory(tmp_path):
-        # Accept the recommended default (new-venv).
+        # Accept the recommended default (new-venv); no editable source prompt.
         result = CliRunner().invoke(psynet, ["setup"], input="\n")
 
     assert result.exit_code == 0, result.output
@@ -2022,6 +2035,9 @@ def test_setup_shared_env_interactive_new_venv_rejects_existing_venv(
         lambda: True,
     )
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source", lambda: None
+    )
     monkeypatch.setattr(
         "psynet.experiment_setup._run_uv",
         lambda *args: pytest.fail("must not recreate an existing .venv"),
