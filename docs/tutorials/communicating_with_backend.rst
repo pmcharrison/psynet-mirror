@@ -20,7 +20,7 @@ For real-time pages, use PsyNet's native WebSocket helpers. On the browser side,
 
     psynet.websocket.send(
         "userMessage",
-        "Hi I'm a participant, what's up"
+        {text: "Hi I'm a participant, what's up"}
     );
 
     psynet.websocket.send(
@@ -29,22 +29,52 @@ For real-time pages, use PsyNet's native WebSocket helpers. On the browser side,
     );
 
     psynet.websocket.handle("serverMessage", function(message) {
-        display.innerHTML = message;
+        display.innerHTML = message.text;
     });
 
-On the Python side, add ``@websocket_handler`` methods to the experiment class:
+On the Python side, define typed message classes. Browser-to-server messages
+subclass ``ClientWebSocketMessage`` and implement ``handle``; server-to-browser
+messages subclass ``ServerWebSocketMessage`` and are passed directly to
+``participant.websocket.send`` or ``experiment.websocket.send``:
 
 .. code-block:: python
 
     import logging
+    from typing import ClassVar
 
     import psynet.experiment
     from dallinger.experiment import scheduled_task
     from dallinger.models import timenow
     from psynet.participant import Participant
-    from psynet.websocket import websocket_handler
+    from psynet.websocket import ClientWebSocketMessage, ServerWebSocketMessage
 
     logger = logging.getLogger()
+
+
+    class ServerMessage(ServerWebSocketMessage):
+        event_type: ClassVar[str] = "serverMessage"
+        text: str
+
+
+    class UserMessage(ClientWebSocketMessage):
+        event_type: ClassVar[str] = "userMessage"
+        text: str
+
+        def handle(self, experiment, participant, receive_time):
+            logger.info(
+                "Participant %i sent the following message: %r",
+                participant.id,
+                self.text,
+            )
+
+
+    class ShootMessage(ClientWebSocketMessage):
+        event_type: ClassVar[str] = "shoot"
+        coords: tuple[float, float]
+        projectile_type: str
+
+        def handle(self, experiment, participant, receive_time):
+            process_shot(participant, self.coords, self.projectile_type)
 
 
     class Exp(psynet.experiment.Experiment):
@@ -54,39 +84,29 @@ On the Python side, add ``@websocket_handler`` methods to the experiment class:
             participants = Participant.query.filter_by(status="working").all()
             for participant in participants:
                 participant.websocket.send(
-                    "serverMessage",
-                    f"Hi, the time is {timenow()}",
+                    ServerMessage(text=f"Hi, the time is {timenow()}"),
                 )
 
-        @websocket_handler("userMessage")
-        def user_message(self, participant, message):
-            logger.info(
-                "Participant %i sent the following message: %r",
-                participant.id,
-                message,
-            )
-
-        @websocket_handler("shoot")
-        def shoot(self, participant, message):
-            coords = message["coords"]
-            projectile_type = message["type"]
-
-For structured payloads, pass a Pydantic model to the decorator:
+By default, PsyNet saves each accepted WebSocket message, inbound and outbound.
+Messages are saved only after the server has matched the inbound message class,
+checked that the message comes from the participant's current page, and applied
+Pydantic validation. Messages are saved in a table derived from the message
+class, with columns for the model fields. For example, ``PositionMessage`` is
+saved in ``position_message`` with its own ``session_id``, ``x``, ``y``, and
+related columns. For very high-frequency messages, set ``save=False`` on the
+message class:
 
 .. code-block:: python
 
-    from pydantic import BaseModel
+    class PositionMessage(ClientWebSocketMessage):
+        event_type: ClassVar[str] = "position"
+        save: ClassVar[bool] = False
 
+        x: float
+        y: float
 
-    class ShootMessage(BaseModel):
-        coords: tuple[float, float]
-        type: str
-
-
-    class Exp(psynet.experiment.Experiment):
-        @websocket_handler("shoot", model=ShootMessage)
-        def shoot(self, participant, message: ShootMessage):
-            process_shot(participant, message.coords, message.type)
+        def handle(self, experiment, participant, receive_time):
+            broadcast_position_update(participant, self)
 
 Recovering shared state after reconnects
 ----------------------------------------

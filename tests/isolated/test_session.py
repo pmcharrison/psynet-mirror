@@ -10,6 +10,7 @@ from psynet.session import (
     LiveSessionControl,
     LiveSessionInitializer,
     ReadyMessage,
+    SessionEndMessage,
     StateRequestMessage,
 )
 
@@ -155,15 +156,14 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
     participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
-    LiveSession.handle_state_request(
-        experiment,
-        participant,
-        StateRequestMessage(session_id=1),
+    StateRequestMessage(session_id=1).handle(
+        experiment=experiment,
+        participant=participant,
+        receive_time=None,
     )
     experiment.websocket.send.assert_called_once_with(
         participant,
-        "stateSnapshot",
-        state.snapshot_payload(),
+        state.snapshot_message(),
     )
 
 
@@ -176,15 +176,14 @@ def test_state_request_can_send_partial_state(monkeypatch):
     participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
-    LiveSession.handle_state_request(
-        experiment,
-        participant,
-        StateRequestMessage(session_id=1, fields=["round"]),
+    StateRequestMessage(session_id=1, fields=["round"]).handle(
+        experiment=experiment,
+        participant=participant,
+        receive_time=None,
     )
     experiment.websocket.send.assert_called_once_with(
         participant,
-        "stateSnapshot",
-        state.snapshot_payload(fields=["round"]),
+        state.snapshot_message(fields=["round"]),
     )
 
 
@@ -196,10 +195,10 @@ def test_state_request_rejects_non_member(monkeypatch):
     participant = SimpleNamespace(id=3)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
-    LiveSession.handle_state_request(
-        experiment,
-        participant,
-        StateRequestMessage(session_id=1),
+    StateRequestMessage(session_id=1).handle(
+        experiment=experiment,
+        participant=participant,
+        receive_time=None,
     )
 
     experiment.websocket.send.assert_not_called()
@@ -214,17 +213,16 @@ def test_ready_event_marks_state_and_sends_status(monkeypatch):
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", MagicMock())
 
-    LiveSession.handle_ready_event(
-        experiment,
-        participant,
-        ReadyMessage(session_id=1),
+    ReadyMessage(session_id=1).handle(
+        experiment=experiment,
+        participant=participant,
+        receive_time=None,
     )
 
     assert state.ready_participant_ids == [1]
     experiment.websocket.send.assert_called_once_with(
         state.participants,
-        "sessionStatus",
-        state.status_payload(),
+        state.status_message(),
     )
 
 
@@ -238,10 +236,10 @@ def test_ready_event_rejects_non_member(monkeypatch):
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", commit)
 
-    LiveSession.handle_ready_event(
-        experiment,
-        participant,
-        ReadyMessage(session_id=1),
+    ReadyMessage(session_id=1).handle(
+        experiment=experiment,
+        participant=participant,
+        receive_time=None,
     )
 
     assert state.ready_participant_ids == []
@@ -261,7 +259,8 @@ def test_live_session_end_marks_ended_and_notifies(monkeypatch):
     assert state.ended is True
     assert state.end_time == end_time
     experiment.websocket.send.assert_called_once_with(
-        state.participants, "sessionEnd", state.snapshot_payload()
+        state.participants,
+        SessionEndMessage(**state.snapshot_payload()),
     )
     assert state.end(experiment) is False
 
@@ -445,7 +444,8 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
 
     assert state.ended is True
     experiment.websocket.send.assert_called_once_with(
-        state.participants, "sessionEnd", state.snapshot_payload()
+        state.participants,
+        SessionEndMessage(**state.snapshot_payload()),
     )
 
 

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from functools import wraps
+from typing import ClassVar, get_type_hints
+
 from dallinger import db
 from dallinger.models import timenow
-from pydantic import Field
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
@@ -14,8 +16,8 @@ from psynet.field import PythonDict, PythonList
 from psynet.modular_page import Control, NoArgumentProvided
 from psynet.page import WaitPage
 from psynet.sync import GroupBarrier
-from psynet.utils import model_name_to_snake_case
-from psynet.websocket import WebSocketMessage
+from psynet.utils import get_logger, model_name_to_snake_case
+from psynet.websocket import ClientWebSocketMessage, ServerWebSocketMessage
 
 STATE_REQUEST_EVENT = "stateRequest"
 STATE_SNAPSHOT_EVENT = "stateSnapshot"
@@ -23,18 +25,140 @@ READY_EVENT = "ready"
 SESSION_STATUS_EVENT = "sessionStatus"
 SESSION_END_EVENT = "sessionEnd"
 
+logger = get_logger()
 
-class StateRequestMessage(WebSocketMessage):
+
+def _resolve_session_argument_class(method, argument: str, explicit_session_class):
+    if explicit_session_class is not None:
+        return explicit_session_class
+
+    try:
+        session_class = get_type_hints(method).get(argument)
+    except (NameError, TypeError) as exc:
+        raise TypeError(
+            "Could not resolve live-session handler annotation for "
+            f"{method.__qualname__}.{argument}; pass the session class "
+            "explicitly to @session(...)."
+        ) from exc
+
+    if session_class is None:
+        raise TypeError(
+            f"{method.__qualname__} must annotate its {argument!r} "
+            "argument or pass a session class to @session(...)."
+        )
+    return session_class
+
+
+def _get_message_session(message, participant, session_class, *, for_update: bool):
+    session_id = message.session_id
+    if session_id is None:
+        return None
+    return session_class.get_current_for_participant(
+        participant,
+        session_id,
+        for_update=for_update,
+    )
+
+
+def session(session_class=None, *, for_update: bool = False, argument: str = "session"):
+    """Inject a participant-owned live session into a WebSocket message handler."""
+
+    if not isinstance(for_update, bool):
+        raise TypeError("session for_update must be a boolean.")
+    if not isinstance(argument, str) or not argument:
+        raise ValueError("session argument must be a non-empty string.")
+
+    def decorate(method):
+        resolved_session_class = None
+
+        @wraps(method)
+        def wrapper(self, experiment, participant, receive_time=None):
+            nonlocal resolved_session_class
+            if resolved_session_class is None:
+                resolved_session_class = _resolve_session_argument_class(
+                    method,
+                    argument,
+                    session_class,
+                )
+            live_session = _get_message_session(
+                self,
+                participant,
+                resolved_session_class,
+                for_update=for_update,
+            )
+            if live_session is None:
+                logger.warning(
+                    "Rejected live-session websocket event: invalid session "
+                    "(participant_id=%s, session_id=%s, event_type=%s)",
+                    participant.id,
+                    self.session_id,
+                    type(self).event_type,
+                )
+                return None
+
+            return method(
+                self,
+                experiment=experiment,
+                participant=participant,
+                receive_time=receive_time,
+                **{argument: live_session},
+            )
+
+        return wrapper
+
+    return decorate
+
+
+class StateRequestMessage(ClientWebSocketMessage):
     """Request the latest authoritative state for a live session."""
 
-    session_id: int = Field(ge=1)
+    event_type: ClassVar[str] = STATE_REQUEST_EVENT
     fields: list[str] | None = None
 
+    @session()
+    def handle(self, experiment, participant, session: LiveSession, receive_time):
+        session.send_snapshot(experiment, participants=participant, fields=self.fields)
 
-class ReadyMessage(WebSocketMessage):
+
+class ReadyMessage(ClientWebSocketMessage):
     """Notify the server that a participant is ready for a live session to start."""
 
-    session_id: int = Field(ge=1)
+    event_type: ClassVar[str] = READY_EVENT
+
+    @session(for_update=True)
+    def handle(self, experiment, participant, session: LiveSession, receive_time):
+        session.mark_ready(participant)
+        session.send_status(experiment)
+        db.session.commit()
+
+
+class StateSnapshotMessage(ServerWebSocketMessage):
+    """Authoritative live-session state sent to browser clients."""
+
+    event_type: ClassVar[str] = STATE_SNAPSHOT_EVENT
+    session_id: int
+    state: dict
+    participant_ids: list[str]
+    ready_participant_ids: list[str]
+    started: bool
+    ended: bool
+
+
+class SessionStatusMessage(ServerWebSocketMessage):
+    """Live-session lifecycle status sent to browser clients."""
+
+    event_type: ClassVar[str] = SESSION_STATUS_EVENT
+    session_id: int
+    participant_ids: list[str]
+    ready_participant_ids: list[str]
+    started: bool
+    ended: bool
+
+
+class SessionEndMessage(StateSnapshotMessage):
+    """Final live-session state sent when a live session ends."""
+
+    event_type: ClassVar[str] = SESSION_END_EVENT
 
 
 class _LiveSessionMixin:
@@ -337,6 +461,11 @@ class _LiveSessionMixin:
         }
         return payload
 
+    def snapshot_message(self, fields: list[str] | None = None) -> StateSnapshotMessage:
+        """Return the typed state snapshot WebSocket message."""
+
+        return StateSnapshotMessage(**self.snapshot_payload(fields=fields))
+
     def status_payload(self) -> dict:
         """Return JSON-serializable live-session lifecycle status."""
 
@@ -350,6 +479,11 @@ class _LiveSessionMixin:
             "ended": bool(self.ended),
         }
 
+    def status_message(self) -> SessionStatusMessage:
+        """Return the typed lifecycle status WebSocket message."""
+
+        return SessionStatusMessage(**self.status_payload())
+
     def send_snapshot(
         self, experiment, participants=None, fields: list[str] | None = None
     ):
@@ -357,56 +491,22 @@ class _LiveSessionMixin:
 
         if participants is None:
             participants = self.participants
-        experiment.websocket.send(
-            participants,
-            STATE_SNAPSHOT_EVENT,
-            self.snapshot_payload(fields=fields),
-        )
+        experiment.websocket.send(participants, self.snapshot_message(fields=fields))
 
     def send_status(self, experiment, participants=None):
         """Send the current lifecycle status to live-session participants."""
 
         if participants is None:
             participants = self.participants
-        experiment.websocket.send(
-            participants,
-            SESSION_STATUS_EVENT,
-            self.status_payload(),
-        )
+        experiment.websocket.send(participants, self.status_message())
 
     def send_session_end(self, experiment):
         """Send the built-in session end event to live-session participants."""
 
         experiment.websocket.send(
             self.participants,
-            SESSION_END_EVENT,
-            self.snapshot_payload(),
+            SessionEndMessage(**self.snapshot_payload()),
         )
-
-    @classmethod
-    def handle_state_request(
-        cls, experiment, participant, message: StateRequestMessage
-    ):
-        """Send the latest state snapshot to the requesting participant."""
-
-        live_session = cls.get_current_for_participant(participant, message.session_id)
-        if live_session is not None:
-            live_session.send_snapshot(
-                experiment, participants=participant, fields=message.fields
-            )
-
-    @classmethod
-    def handle_ready_event(cls, experiment, participant, message: ReadyMessage):
-        """Mark a participant ready and send the resulting snapshot."""
-
-        live_session = cls.get_current_for_participant(
-            participant, message.session_id, for_update=True
-        )
-        if live_session is None:
-            return
-        live_session.mark_ready(participant)
-        live_session.send_status(experiment)
-        db.session.commit()
 
     @classmethod
     def trigger_end_event(cls, experiment, session_id):

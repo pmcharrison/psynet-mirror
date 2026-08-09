@@ -35,17 +35,22 @@ In Python:
 
 .. code-block:: python
 
-    from psynet.websocket import WebSocketMessage, websocket_handler
+    from typing import ClassVar
+
+    from psynet.websocket import ClientWebSocketMessage, ServerWebSocketMessage
 
 
-    class ChooseMessage(WebSocketMessage):
+    class ChooseMessage(ClientWebSocketMessage):
+        event_type: ClassVar[str] = "choose"
         action: str
 
+        def handle(self, experiment, participant, receive_time):
+            participant.websocket.send(RoundResultMessage(text=self.action))
 
-    class Exp(psynet.experiment.Experiment):
-        @websocket_handler("choose", model=ChooseMessage)
-        def choose(self, participant, message: ChooseMessage):
-            participant.websocket.send("roundResult", {"text": message.action})
+
+    class RoundResultMessage(ServerWebSocketMessage):
+        event_type: ClassVar[str] = "roundResult"
+        text: str
 
 The browser includes the participant and page identity in each WebSocket frame.
 The server rejects messages from stale pages, so refreshing the page gives the
@@ -85,6 +90,18 @@ copy. ``pullState(["field_a", "field_b"])`` requests only selected public state
 fields. For frequent live updates, prefer custom ``psynet.websocket.send(...)``
 messages that include only the data needed for that update; reserve fresh state
 snapshots for synchronization and recovery.
+When a typed WebSocket message needs the current live-session row, decorate its
+``handle`` method with ``@session()``. The decorator resolves the message's
+``session_id`` for the current participant and injects the row as a ``session``
+argument. All client WebSocket messages include a nullable ``session_id`` field;
+``psynet.session`` populates it for messages sent after
+``psynet.session.init()``. Use ``@session(for_update=True)`` when the handler
+mutates session state and needs a row lock.
+Accepted WebSocket messages are saved by default, inbound and outbound. Typed
+messages are saved in tables derived from their Pydantic message classes, with
+columns for the model fields. If a live update is sent at a high rate, set
+``save=False`` on the corresponding message class to skip the default WebSocket
+message log.
 
 ``LiveSessionInitializer`` uses a short
 ``WaitPage(wait_time=0.5, save_answer=False)`` by default while the group waits
@@ -100,26 +117,54 @@ live interaction.
 
 .. code-block:: python
 
+    from typing import ClassVar
+
     from dallinger import db
-    from pydantic import Field
 
     import psynet.experiment
     from psynet.modular_page import ModularPage
     from psynet.page import InfoPage
-    from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer
+    from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer, session
     from psynet.sync import SimpleGrouper
     from psynet.timeline import Timeline, join
     from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-    from psynet.websocket import WebSocketMessage, websocket_handler
+    from psynet.websocket import ClientWebSocketMessage, ServerWebSocketMessage
 
 
     GROUP_TYPE = "live_rps"
     CHOICES = ["rock", "paper", "scissors"]
 
 
-    class ChooseMessage(WebSocketMessage):
-        session_id: int = Field(ge=1)
+    class ChooseMessage(ClientWebSocketMessage):
+        event_type: ClassVar[str] = "choose"
         action: str
+
+        @session(for_update=True)
+        def handle(
+            self,
+            experiment,
+            participant,
+            session: "RockPaperScissorsSession",
+            receive_time,
+        ):
+            result = session.record_choice(participant, self.action)
+            if result is None:
+                return
+
+            finished, choices = result
+            if finished:
+                for recipient in session.participants:
+                    experiment.websocket.send(
+                        recipient,
+                        GameFinishedMessage(choice=choices[str(recipient.id)]),
+                    )
+                session.mark_ended()
+            db.session.commit()
+
+
+    class GameFinishedMessage(ServerWebSocketMessage):
+        event_type: ClassVar[str] = "gameFinished"
+        choice: str
 
 
     class RockPaperScissorsSession(LiveSession):
@@ -193,31 +238,6 @@ live interaction.
             ),
             InfoPage("Finished.", time_estimate=5),
         )
-
-        @websocket_handler("choose", model=ChooseMessage)
-        def choose(self, participant, message: ChooseMessage):
-            live_session = RockPaperScissorsSession.get_current_for_participant(
-                participant,
-                message.session_id,
-                for_update=True,
-            )
-            if live_session is None:
-                return
-
-            result = live_session.record_choice(participant, message.action)
-            if result is None:
-                return
-
-            finished, choices = result
-            if finished:
-                for recipient in live_session.participants:
-                    self.websocket.send(
-                        recipient,
-                        "gameFinished",
-                        {"choice": choices[str(recipient.id)]},
-                    )
-                live_session.mark_ended()
-            db.session.commit()
 
 And in ``templates/rps.html``:
 

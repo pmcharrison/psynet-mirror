@@ -93,13 +93,6 @@ from .recruiters import (  # noqa: F401
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
-from .session import (
-    READY_EVENT,
-    STATE_REQUEST_EVENT,
-    LiveSession,
-    ReadyMessage,
-    StateRequestMessage,
-)
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -136,7 +129,6 @@ from .utils import (
     suppress_stdout,
     working_directory,
 )
-from .websocket import websocket_handler
 
 logger = get_logger()
 
@@ -554,9 +546,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.participant_fail_routines = []
         self.recruitment_criteria = []
         self._websocket_message_handlers = {}
-        from psynet.websocket import collect_websocket_handlers
-
-        self._native_websocket_handlers = collect_websocket_handlers(self)
 
         self.pre_deploy_routines = []
         if self.translation_checks_needed():
@@ -601,18 +590,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             frame=frame,
             receive_time=receive_time,
         )
-
-    @websocket_handler(STATE_REQUEST_EVENT, model=StateRequestMessage)
-    def _websocket_state_request(self, participant, message: StateRequestMessage):
-        """Handle a generic real-time state recovery request."""
-
-        return LiveSession.handle_state_request(self, participant, message)
-
-    @websocket_handler(READY_EVENT, model=ReadyMessage)
-    def _websocket_ready(self, participant, message: ReadyMessage):
-        """Handle a participant readiness notification."""
-
-        return LiveSession.handle_ready_event(self, participant, message)
 
     @classmethod
     def get_index_html(cls):

@@ -4,25 +4,28 @@ import math
 import random
 from copy import deepcopy
 from datetime import datetime
-from typing import List
+from typing import ClassVar, List
 
 from dallinger import db
 from dominate import tags
 from pydantic import Field
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.consent import NoConsent
-from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
-from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer
+from psynet.session import (
+    LiveSession,
+    LiveSessionControl,
+    LiveSessionInitializer,
+    session,
+)
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.websocket import WebSocketMessage, websocket_handler
+from psynet.websocket import ClientWebSocketMessage, ServerWebSocketMessage
 
 GROUP_TYPE = "shared_canvas_group"
 GROUP_SIZE = 2
@@ -84,43 +87,6 @@ def receive_time_iso(receive_time: datetime):
     return receive_time.isoformat()
 
 
-@register_table
-class CanvasPositionEvent(SQLBase, SQLMixin):
-    """Persisted high-frequency position event.
-
-    Position events are recorded for analysis and replay, but they do not mutate
-    the authoritative live session.
-    """
-
-    __tablename__ = "canvas_position_event"
-
-    session_id = Column(Integer, index=True)
-    participant_id = Column(Integer, index=True, nullable=True)
-    x = Column(Float)
-    y = Column(Float)
-    vx = Column(Float)
-    vy = Column(Float)
-    client_time = Column(Float)
-    receive_time = Column(DateTime(timezone=True), nullable=False)
-
-
-@register_table
-class CanvasCollectEvent(SQLBase, SQLMixin):
-    """Persisted coin-collection attempt."""
-
-    __tablename__ = "canvas_collect_event"
-
-    session_id = Column(Integer, index=True)
-    participant_id = Column(Integer, index=True, nullable=True)
-    coin_id = Column(String(128), index=True)
-    x = Column(Float)
-    y = Column(Float)
-    client_time = Column(Float)
-    accepted = Column(Boolean, nullable=True, index=True)
-    rejection_reason = Column(String(128), nullable=True)
-    receive_time = Column(DateTime(timezone=True), nullable=False)
-
-
 def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
     """Return the initial authoritative canvas state."""
 
@@ -155,10 +121,10 @@ def initial_canvas_state(participant_ids: list[int], world: dict) -> dict:
     }
 
 
-class PositionMessage(WebSocketMessage):
+class PositionMessage(ClientWebSocketMessage):
     """High-frequency player position payload."""
 
-    session_id: int = Field(ge=1)
+    event_type: ClassVar[str] = POSITION_EVENT
     x: float = Field(ge=0, le=CANVAS_SIZE)
     y: float = Field(ge=0, le=CANVAS_SIZE)
     vx: float
@@ -178,15 +144,92 @@ class PositionMessage(WebSocketMessage):
             "receive_time": receive_time_iso(receive_time),
         }
 
+    @session()
+    def handle(
+        self,
+        experiment,
+        participant,
+        session: SharedCanvasSession,
+        receive_time,
+    ):
+        """Broadcast this high-frequency position event."""
 
-class CollectMessage(WebSocketMessage):
+        experiment.websocket.send(
+            session.participants,
+            PositionUpdateMessage(
+                player=self.player_payload(participant, receive_time),
+            ),
+        )
+
+
+class CollectMessage(ClientWebSocketMessage):
     """Coin collection attempt payload."""
 
-    session_id: int = Field(ge=1)
+    event_type: ClassVar[str] = COLLECT_EVENT
     coin_id: str = Field(min_length=1)
     x: float = Field(ge=0, le=CANVAS_SIZE)
     y: float = Field(ge=0, le=CANVAS_SIZE)
     client_time: float
+
+    @session(for_update=True)
+    def handle(
+        self,
+        experiment,
+        participant,
+        session: SharedCanvasSession,
+        receive_time,
+    ):
+        """Apply this coin collection attempt to authoritative state."""
+
+        accepted, reason, collection = session.record_collection(
+            participant_id=participant.id,
+            coin_id=self.coin_id,
+            x=self.x,
+            y=self.y,
+            receive_time=receive_time,
+        )
+        if accepted:
+            state = session.state or {}
+            participant.current_trial.record_coin()
+            experiment.websocket.send(
+                session.participants,
+                CoinCollectedMessage(
+                    collection=collection,
+                    coins=state.get("coins", []),
+                ),
+            )
+        else:
+            experiment.websocket.send(
+                participant,
+                CollectRejectedMessage(
+                    coin_id=self.coin_id,
+                    reason=reason,
+                ),
+            )
+        db.session.commit()
+
+
+class PositionUpdateMessage(ServerWebSocketMessage):
+    """Broadcast player position update."""
+
+    event_type: ClassVar[str] = "position_update"
+    player: dict
+
+
+class CoinCollectedMessage(ServerWebSocketMessage):
+    """Broadcast an accepted coin collection."""
+
+    event_type: ClassVar[str] = "coin_collected"
+    collection: dict
+    coins: list[dict]
+
+
+class CollectRejectedMessage(ServerWebSocketMessage):
+    """Notify a participant that a collection attempt was rejected."""
+
+    event_type: ClassVar[str] = "collect_rejected"
+    coin_id: str
+    reason: str
 
 
 def instruction_page():
@@ -404,87 +447,6 @@ class Exp(psynet.experiment.Experiment):
 
     test_n_bots = 4
     test_mode = "serial"
-
-    @websocket_handler(POSITION_EVENT, model=PositionMessage)
-    def position(self, participant, message: PositionMessage, receive_time):
-        """Persist and broadcast a high-frequency position event."""
-
-        live_session = SharedCanvasSession.get_current_for_participant(
-            participant, message.session_id
-        )
-        if live_session is None:
-            return
-        target_participants = live_session.participants
-
-        logged_event = CanvasPositionEvent(
-            session_id=live_session.id,
-            participant_id=participant.id,
-            x=message.x,
-            y=message.y,
-            vx=message.vx,
-            vy=message.vy,
-            client_time=message.client_time,
-            receive_time=receive_time,
-        )
-        db.session.add(logged_event)
-        self.websocket.send(
-            target_participants,
-            "position_update",
-            {"player": message.player_payload(participant, receive_time)},
-        )
-        db.session.commit()
-
-    @websocket_handler(COLLECT_EVENT, model=CollectMessage)
-    def collect(self, participant, message: CollectMessage, receive_time):
-        """Apply a coin collection attempt to authoritative state."""
-
-        live_session = SharedCanvasSession.get_current_for_participant(
-            participant, message.session_id, for_update=True
-        )
-        if live_session is None:
-            return
-
-        accepted, reason, collection = live_session.record_collection(
-            participant_id=participant.id,
-            coin_id=message.coin_id,
-            x=message.x,
-            y=message.y,
-            receive_time=receive_time,
-        )
-        db.session.add(
-            CanvasCollectEvent(
-                session_id=message.session_id,
-                participant_id=participant.id,
-                coin_id=message.coin_id,
-                x=message.x,
-                y=message.y,
-                client_time=message.client_time,
-                accepted=accepted,
-                rejection_reason=reason,
-                receive_time=receive_time,
-            )
-        )
-        if accepted:
-            state = live_session.state or {}
-            participant.current_trial.record_coin()
-            self.websocket.send(
-                live_session.participants,
-                "coin_collected",
-                {
-                    "collection": collection,
-                    "coins": state.get("coins", []),
-                },
-            )
-        else:
-            self.websocket.send(
-                participant,
-                "collect_rejected",
-                {
-                    "coin_id": message.coin_id,
-                    "reason": reason,
-                },
-            )
-        db.session.commit()
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
         advance_past_wait_pages(bots)

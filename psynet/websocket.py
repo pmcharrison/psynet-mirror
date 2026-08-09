@@ -3,9 +3,10 @@
 The public API is intentionally small:
 
 * JavaScript sends browser events with ``psynet.websocket.send(type, message)``.
-* Experiment classes receive them with ``@websocket_handler(type)`` methods.
-* Server code sends browser events with ``participant.websocket.send(type, message)``
-  or ``experiment.websocket.send(participant_or_participants, type, message)``.
+* Python receives them with auto-registered ``ClientWebSocketMessage`` classes.
+* Server code sends browser events with typed ``ServerWebSocketMessage`` objects
+  via ``participant.websocket.send(message)`` or
+  ``experiment.websocket.send(participant_or_participants, message)``.
 
 Browser sockets are owned by the web process that accepted the connection.
 Outbound server messages are therefore fanned out through Redis so scheduled
@@ -17,112 +18,130 @@ exact browser-visible frame.
 
 from __future__ import annotations
 
-import inspect
 import json
 import threading
-from dataclasses import dataclass
+import time
 from datetime import datetime, timezone
-from typing import Callable, Optional, Type
+from types import UnionType
+from typing import ClassVar, Type, Union, get_args, get_origin
 
 from dallinger.db import redis_conn
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 
-from psynet.utils import get_logger
+from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.field import PythonDict, PythonList, PythonObject
+from psynet.utils import get_logger, model_name_to_snake_case
 
 logger = get_logger()
 
 WEBSOCKET_ROUTE = "/psynet/websocket"
 REDIS_OUTBOUND_CHANNEL = "psynet:websocket:outbound"
+REDIS_SAVE_QUEUE = "psynet:websocket:save"
+WEBSOCKET_SAVE_BATCH_SIZE = 100
+WEBSOCKET_SAVE_POLL_TIMEOUT = 1
 INTERNAL_FRAME_KEYS = {
     "type",
     "message",
     "page_uuid",
+}
+INBOUND = "inbound"
+OUTBOUND = "outbound"
+_ABSTRACT_WEBSOCKET_MESSAGE_CLASS_NAMES = {
+    "WebSocketMessage",
+    "ClientWebSocketMessage",
+    "ServerWebSocketMessage",
+}
+_CLIENT_WEBSOCKET_MESSAGE_TYPES: dict[str, Type["ClientWebSocketMessage"]] = {}
+_WEBSOCKET_MESSAGE_EVENT_MODELS: dict[Type[BaseModel], Type[SQLBase]] = {}
+_WEBSOCKET_MESSAGE_EVENT_MODELS_BY_TABLE: dict[str, Type[SQLBase]] = {}
+_WEBSOCKET_MESSAGE_METADATA_COLUMNS = {
+    "id",
+    "participant_id",
+    "event_type",
+    "page_uuid",
+    "direction",
+    "message_time",
 }
 
 
 class WebSocketMessage(BaseModel):
     """Base class for typed WebSocket message payloads."""
 
+    event_type: ClassVar[str]
+    save: ClassVar[bool] = True
     model_config = ConfigDict(extra="forbid", strict=True)
 
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if cls.__name__ in _ABSTRACT_WEBSOCKET_MESSAGE_CLASS_NAMES:
+            return
+        _validate_websocket_message_class(cls)
 
-@dataclass(frozen=True)
-class _WebSocketHandlerDeclaration:
-    event_type: str
-    model: Optional[Type[BaseModel]] = None
-
-
-@dataclass(frozen=True)
-class WebSocketHandlerSpec:
-    """Description of a direct experiment-level WebSocket handler."""
-
-    event_type: str
-    # Bound methods and accepted kwargs are cached at experiment initialization
-    # so high-frequency messages do not repeatedly inspect handler signatures.
-    method: Callable
-    model: Optional[Type[BaseModel]]
-    accepted_context_keys: tuple[str, ...]
-    accepts_var_kwargs: bool
+    @classmethod
+    def __pydantic_init_subclass__(cls, **kwargs):
+        super().__pydantic_init_subclass__(**kwargs)
+        if cls.__name__ in _ABSTRACT_WEBSOCKET_MESSAGE_CLASS_NAMES:
+            return
+        # Pydantic populates model_fields after __init_subclass__, so generated
+        # SQL tables must wait until this hook.
+        get_websocket_message_event_model(cls)
 
 
-def websocket_handler(event_type: str, *, model: Optional[Type[BaseModel]] = None):
-    """Decorate an experiment method as a native WebSocket event handler.
+class ClientWebSocketMessage(WebSocketMessage):
+    """Browser-to-server WebSocket message with class-owned handling logic."""
 
-    Parameters
-    ----------
-    event_type
-        Event type sent by the browser through ``psynet.websocket.send``.
+    session_id: int | None = Field(default=None, ge=1)
 
-    model
-        Optional Pydantic model used to validate the incoming message payload
-        before it is passed to the handler.
-    """
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if cls.__name__ in _ABSTRACT_WEBSOCKET_MESSAGE_CLASS_NAMES:
+            return
+        _register_client_websocket_message_type(cls)
 
+    def handle(self, experiment, participant, receive_time):
+        """Handle this accepted browser message."""
+
+        raise NotImplementedError
+
+
+class ServerWebSocketMessage(WebSocketMessage):
+    """Server-to-browser WebSocket message payload."""
+
+
+def _validate_websocket_message_class(message_class: Type[WebSocketMessage]):
+    event_type = getattr(message_class, "event_type", None)
     if not isinstance(event_type, str) or not event_type:
-        raise ValueError("websocket_handler event_type must be a non-empty string.")
-
-    if model is not None and not issubclass(model, BaseModel):
-        raise TypeError("websocket_handler model must be a Pydantic BaseModel class.")
-
-    def decorate(method):
-        method._psynet_websocket_handler = _WebSocketHandlerDeclaration(
-            event_type=event_type,
-            model=model,
+        raise ValueError(
+            f"{message_class.__name__}.event_type must be a non-empty string."
         )
-        return method
-
-    return decorate
-
-
-def _build_handler_spec(event_type: str, method: Callable, model):
-    signature = inspect.signature(method)
-    accepts_var_kwargs = any(
-        parameter.kind == inspect.Parameter.VAR_KEYWORD
-        for parameter in signature.parameters.values()
-    )
-    return WebSocketHandlerSpec(
-        event_type=event_type,
-        method=method,
-        model=model,
-        accepted_context_keys=tuple(signature.parameters),
-        accepts_var_kwargs=accepts_var_kwargs,
-    )
+    if not isinstance(getattr(message_class, "save", True), bool):
+        raise TypeError(f"{message_class.__name__}.save must be a boolean.")
 
 
-def collect_websocket_handlers(experiment) -> dict[str, WebSocketHandlerSpec]:
-    """Collect direct WebSocket handlers declared on an experiment instance."""
+def _register_client_websocket_message_type(
+    message_class: Type[ClientWebSocketMessage],
+):
+    if "handle" not in message_class.__dict__:
+        raise TypeError(
+            f"{message_class.__name__} must define a handle("
+            "experiment, participant, receive_time) method."
+        )
+    event_type = message_class.event_type
+    existing = _CLIENT_WEBSOCKET_MESSAGE_TYPES.get(event_type)
+    if existing is not None and existing is not message_class:
+        raise ValueError(
+            "Client WebSocket message event types must be unique; "
+            f"{message_class.__name__!r} conflicts with {existing.__name__!r} "
+            f"for event type {event_type!r}."
+        )
+    _CLIENT_WEBSOCKET_MESSAGE_TYPES[event_type] = message_class
 
-    handlers: dict[str, WebSocketHandlerSpec] = {}
-    for cls in reversed(experiment.__class__.__mro__):
-        for method_name, method in cls.__dict__.items():
-            spec = getattr(method, "_psynet_websocket_handler", None)
-            if spec is not None:
-                handlers[spec.event_type] = _build_handler_spec(
-                    spec.event_type,
-                    getattr(experiment, method_name),
-                    spec.model,
-                )
-    return handlers
+
+def get_client_websocket_message_type(event_type: str):
+    """Return the registered client message class for an inbound event type."""
+
+    return _CLIENT_WEBSOCKET_MESSAGE_TYPES.get(event_type)
 
 
 def _json_dumps(data) -> str:
@@ -135,15 +154,285 @@ def _normalize_message(message):
     return message
 
 
-def make_frame(event_type: str, message=None, **extra):
+def _strip_optional(annotation):
+    origin = get_origin(annotation)
+    if origin in (Union, UnionType):
+        args = [arg for arg in get_args(annotation) if arg is not type(None)]
+        if len(args) == 1:
+            return args[0]
+    return annotation
+
+
+def _column_for_annotation(annotation):
+    annotation = _strip_optional(annotation)
+    origin = get_origin(annotation)
+
+    if annotation is int:
+        return Column(Integer, nullable=True)
+    if annotation is float:
+        return Column(Float, nullable=True)
+    if annotation is bool:
+        return Column(Boolean, nullable=True)
+    if annotation is str:
+        return Column(String, nullable=True)
+    if annotation is datetime:
+        return Column(DateTime(timezone=True), nullable=True)
+    if annotation is list or origin is list:
+        return Column(PythonList, nullable=True)
+    if annotation is dict or origin is dict:
+        return Column(PythonDict, nullable=True)
+    return Column(PythonObject, nullable=True)
+
+
+def _websocket_message_model_columns(message_model: Type[BaseModel]):
+    conflicting_fields = set(message_model.model_fields).intersection(
+        _WEBSOCKET_MESSAGE_METADATA_COLUMNS
+    )
+    if conflicting_fields:
+        fields = ", ".join(sorted(conflicting_fields))
+        raise ValueError(
+            "WebSocket message field names cannot shadow saved-message "
+            f"metadata columns: {fields}."
+        )
+
+    return {
+        field_name: _column_for_annotation(field_info.annotation)
+        for field_name, field_info in message_model.model_fields.items()
+    }
+
+
+def _base_websocket_message_event_columns():
+    return {
+        "participant_id": Column(Integer, index=True, nullable=False),
+        "event_type": Column(String(128), index=True, nullable=False),
+        "page_uuid": Column(String(128), index=True, nullable=False),
+        "direction": Column(String(16), index=True, nullable=False),
+        "message_time": Column(DateTime(timezone=True), nullable=False),
+    }
+
+
+def get_websocket_message_event_model(message_model: Type[BaseModel]):
+    """Return the SQL model used to persist accepted messages of this type."""
+
+    if message_model in _WEBSOCKET_MESSAGE_EVENT_MODELS:
+        return _WEBSOCKET_MESSAGE_EVENT_MODELS[message_model]
+
+    table_name = model_name_to_snake_case(message_model.__name__)
+    if table_name in _WEBSOCKET_MESSAGE_EVENT_MODELS_BY_TABLE:
+        existing_model = _WEBSOCKET_MESSAGE_EVENT_MODELS_BY_TABLE[table_name]
+        existing_message_model = getattr(
+            existing_model, "__websocket_message_model__", None
+        )
+        if existing_message_model is message_model:
+            _WEBSOCKET_MESSAGE_EVENT_MODELS[message_model] = existing_model
+            return existing_model
+        raise ValueError(
+            "Saved WebSocket message table names must be unique; "
+            f"{message_model.__name__!r} maps to existing table {table_name!r}."
+        )
+
+    attrs = {
+        "__tablename__": table_name,
+        "__module__": __name__,
+        "__doc__": (
+            "Persisted record of an accepted PsyNet WebSocket message "
+            f"serialized as {message_model.__name__}."
+        ),
+        "__websocket_message_model__": message_model,
+        **_base_websocket_message_event_columns(),
+        **_websocket_message_model_columns(message_model),
+    }
+    event_model = register_table(
+        type(message_model.__name__, (SQLBase, SQLMixin), attrs)
+    )
+    _WEBSOCKET_MESSAGE_EVENT_MODELS[message_model] = event_model
+    _WEBSOCKET_MESSAGE_EVENT_MODELS_BY_TABLE[table_name] = event_model
+    return event_model
+
+
+def _websocket_message_event_model_from_table_name(table_name: str):
+    try:
+        return _WEBSOCKET_MESSAGE_EVENT_MODELS_BY_TABLE[table_name]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unknown WebSocket message event table: {table_name}"
+        ) from exc
+
+
+def _serialize_message_time(message_time):
+    if message_time is None:
+        message_time = datetime.now(timezone.utc)
+    return message_time.isoformat()
+
+
+def _deserialize_message_time(message_time):
+    return datetime.fromisoformat(message_time)
+
+
+def _make_websocket_message_event_record(
+    *,
+    participant,
+    page_uuid: str,
+    message: WebSocketMessage,
+    message_time,
+    direction: str,
+):
+    message_model = type(message)
+    event_model = get_websocket_message_event_model(message_model)
+    message_values = _normalize_message(message)
+    values = {
+        field_name: message_values[field_name]
+        for field_name in message_model.model_fields
+        if field_name in message_values
+    }
+
+    return {
+        "table_name": event_model.__tablename__,
+        "participant_id": int(participant.id),
+        "event_type": message_model.event_type,
+        "page_uuid": page_uuid,
+        "direction": direction,
+        "message_time": _serialize_message_time(message_time),
+        "values": values,
+    }
+
+
+def enqueue_websocket_message_event(record: dict):
+    """Queue an accepted WebSocket message event for batched persistence."""
+
+    enqueue_websocket_message_events([record])
+
+
+def enqueue_websocket_message_events(records):
+    """Queue accepted WebSocket message events for batched persistence."""
+
+    records = list(records)
+    if not records:
+        return
+
+    try:
+        redis_conn.rpush(
+            REDIS_SAVE_QUEUE,
+            *[_json_dumps(record) for record in records],
+        )
+    except Exception as exc:  # pragma: no cover - depends on Redis availability
+        logger.warning("Failed to queue websocket message events for saving: %s", exc)
+
+
+def queue_websocket_message_event(
+    *,
+    participant,
+    page_uuid: str,
+    message: WebSocketMessage,
+    message_time,
+    direction: str,
+):
+    """Build and queue one WebSocket message event."""
+
+    enqueue_websocket_message_event(
+        _make_websocket_message_event_record(
+            participant=participant,
+            page_uuid=page_uuid,
+            message=message,
+            message_time=message_time,
+            direction=direction,
+        )
+    )
+
+
+def _decode_websocket_message_event_payload(payload):
+    if isinstance(payload, bytes):
+        payload = payload.decode("utf-8")
+    return json.loads(payload)
+
+
+def _pop_websocket_message_event_payloads(max_batch_size, *, block: bool):
+    payloads = []
+    if block:
+        item = redis_conn.blpop([REDIS_SAVE_QUEUE], timeout=WEBSOCKET_SAVE_POLL_TIMEOUT)
+        if item is None:
+            return payloads
+        payloads.append(item[1])
+
+    while len(payloads) < max_batch_size:
+        payload = redis_conn.lpop(REDIS_SAVE_QUEUE)
+        if payload is None:
+            break
+        payloads.append(payload)
+    return payloads
+
+
+def _requeue_websocket_message_event_payloads(payloads):
+    if not payloads:
+        return
+    try:
+        redis_conn.lpush(REDIS_SAVE_QUEUE, *reversed(payloads))
+    except Exception as exc:  # pragma: no cover - depends on Redis availability
+        logger.warning(
+            "Failed to requeue websocket message events after error: %s", exc
+        )
+
+
+def _websocket_message_event_from_record(record):
+    event_model = _websocket_message_event_model_from_table_name(record["table_name"])
+    return event_model(
+        participant_id=record["participant_id"],
+        event_type=record["event_type"],
+        page_uuid=record["page_uuid"],
+        direction=record["direction"],
+        message_time=_deserialize_message_time(record["message_time"]),
+        **record.get("values", {}),
+    )
+
+
+def drain_websocket_message_event_queue_once(
+    max_batch_size=WEBSOCKET_SAVE_BATCH_SIZE,
+    *,
+    block: bool = False,
+):
+    """Persist one batch of queued WebSocket message events."""
+
+    from dallinger import db
+
+    try:
+        payloads = _pop_websocket_message_event_payloads(max_batch_size, block=block)
+    except Exception as exc:  # pragma: no cover - depends on Redis availability
+        logger.warning("Failed to read websocket message event save queue: %s", exc)
+        return 0
+
+    events = []
+    valid_payloads = []
+    for payload in payloads:
+        try:
+            record = _decode_websocket_message_event_payload(payload)
+            events.append(_websocket_message_event_from_record(record))
+            valid_payloads.append(payload)
+        except Exception as exc:
+            logger.warning("Discarded invalid websocket message event payload: %s", exc)
+
+    if not events:
+        return 0
+
+    try:
+        db.session.add_all(events)
+        db.session.commit()
+    except Exception as exc:  # pragma: no cover - depends on database availability
+        db.session.rollback()
+        _requeue_websocket_message_event_payloads(valid_payloads)
+        logger.warning("Failed to save websocket message event batch: %s", exc)
+        return 0
+
+    return len(events)
+
+
+def make_frame(message: WebSocketMessage, **extra):
     """Return the JSON-serializable WebSocket frame for an event."""
 
-    if not isinstance(event_type, str) or not event_type:
-        raise ValueError("WebSocket event type must be a non-empty string.")
+    if not isinstance(message, WebSocketMessage):
+        raise TypeError("WebSocket frames must be built from WebSocketMessage objects.")
 
-    frame = {"type": event_type, **extra}
-    if message is not None:
-        frame["message"] = _normalize_message(message)
+    frame = {"type": type(message).event_type, **extra}
+    frame["message"] = _normalize_message(message)
     return frame
 
 
@@ -171,13 +460,13 @@ def _coerce_participant_id(value):
         return None
 
 
-def _page_uuid_targets(participants):
+def _participant_targets(participants):
     if not isinstance(participants, (list, tuple, set)):
         participants = [participants]
 
     # Outbound delivery is page-scoped. Raw participant IDs would require a DB
     # lookup here, so server code passes participant objects with page UUIDs.
-    page_uuids = []
+    targets = []
     for participant in participants:
         if participant is None:
             continue
@@ -192,9 +481,13 @@ def _page_uuid_targets(participants):
             raise ValueError(
                 f"Participant {participant_id} has no page UUID for WebSocket delivery."
             )
-        page_uuids.append(participant.page_uuid)
+        targets.append((participant, participant.page_uuid))
 
-    return page_uuids
+    return targets
+
+
+def _page_uuid_targets(participants):
+    return [page_uuid for _, page_uuid in _participant_targets(participants)]
 
 
 def extract_websocket_event_type(message):
@@ -236,11 +529,10 @@ def dispatch_websocket_frame(
         )
         return None
 
-    try:
-        spec = experiment._native_websocket_handlers[event_type]
-    except KeyError:
+    message_class = get_client_websocket_message_type(event_type)
+    if message_class is None:
         logger.warning(
-            "Rejected websocket event: no handler registered "
+            "Rejected websocket event: no client message class registered "
             "(participant_id=%s, event_type=%s)",
             participant.id,
             event_type,
@@ -260,33 +552,32 @@ def dispatch_websocket_frame(
         return None
 
     message = _extract_message(frame)
-    if spec.model is not None:
-        try:
-            message = spec.model.model_validate(message)
-        except ValidationError as exc:
-            logger.warning(
-                "Rejected websocket event: validation failed "
-                "(participant_id=%s, event_type=%s, error=%s)",
-                participant.id,
-                event_type,
-                str(exc),
-            )
-            return None
+    try:
+        message = message_class.model_validate(message)
+    except ValidationError as exc:
+        logger.warning(
+            "Rejected websocket event: validation failed "
+            "(participant_id=%s, event_type=%s, error=%s)",
+            participant.id,
+            event_type,
+            str(exc),
+        )
+        return None
 
-    context = {
-        "experiment": experiment,
-        "participant": participant,
-        "message": message,
-        "event": message,
-        "receive_time": receive_time,
-    }
-    if spec.accepts_var_kwargs:
-        return spec.method(**context)
+    if message.save:
+        queue_websocket_message_event(
+            participant=participant,
+            page_uuid=page_uuid,
+            message=message,
+            message_time=receive_time,
+            direction=INBOUND,
+        )
 
-    kwargs = {
-        name: context[name] for name in spec.accepted_context_keys if name in context
-    }
-    return spec.method(**kwargs)
+    return message.handle(
+        experiment=experiment,
+        participant=participant,
+        receive_time=receive_time,
+    )
 
 
 class _Connection:
@@ -350,6 +641,8 @@ class _ConnectionManager:
 connection_manager = _ConnectionManager()
 _redis_listener_started = False
 _redis_listener_lock = threading.Lock()
+_websocket_message_event_drainer_started = False
+_websocket_message_event_drainer_lock = threading.Lock()
 
 
 def _make_outbound_envelope(page_uuids: list[str], payload: str):
@@ -400,14 +693,55 @@ def start_redis_listener():
         _redis_listener_started = True
 
 
-def publish_websocket_event(participant_ids, event_type: str, message=None):
-    """Publish an outbound event to one or more participants."""
+def _websocket_message_event_drainer_loop():  # pragma: no cover - live runtime path
+    while True:
+        drain_websocket_message_event_queue_once(block=True)
+        time.sleep(0)
 
-    page_uuids = _page_uuid_targets(participant_ids)
-    if not page_uuids:
+
+def start_websocket_message_event_drainer():
+    """Start the per-process drainer for saved WebSocket messages."""
+
+    global _websocket_message_event_drainer_started
+    with _websocket_message_event_drainer_lock:
+        if _websocket_message_event_drainer_started:
+            return
+        thread = threading.Thread(
+            target=_websocket_message_event_drainer_loop,
+            name="psynet-websocket-message-event-drainer",
+            daemon=True,
+        )
+        thread.start()
+        _websocket_message_event_drainer_started = True
+
+
+def publish_websocket_event(participants, message: ServerWebSocketMessage):
+    """Publish a typed outbound event to one or more participants."""
+
+    if not isinstance(message, ServerWebSocketMessage):
+        raise TypeError(
+            "Outbound WebSocket events must be ServerWebSocketMessage objects."
+        )
+
+    targets = _participant_targets(participants)
+    if not targets:
         return
 
-    payload = _json_dumps(make_frame(event_type, message))
+    send_time = datetime.now(timezone.utc)
+    page_uuids = [page_uuid for _, page_uuid in targets]
+    if message.save:
+        enqueue_websocket_message_events(
+            _make_websocket_message_event_record(
+                participant=participant,
+                page_uuid=page_uuid,
+                message=message,
+                message_time=send_time,
+                direction=OUTBOUND,
+            )
+            for participant, page_uuid in targets
+        )
+
+    payload = _json_dumps(make_frame(message))
     envelope = _make_outbound_envelope(page_uuids, payload)
     redis_conn.publish(REDIS_OUTBOUND_CHANNEL, _json_dumps(envelope))
 
@@ -418,10 +752,10 @@ class ParticipantWebSocket:
     def __init__(self, participant):
         self.participant = participant
 
-    def send(self, event_type: str, message=None):
+    def send(self, message: ServerWebSocketMessage):
         """Send an event to this participant's connected browser sockets."""
 
-        publish_websocket_event(self.participant, event_type, message)
+        publish_websocket_event(self.participant, message)
 
 
 class ExperimentWebSocket:
@@ -430,10 +764,10 @@ class ExperimentWebSocket:
     def __init__(self, experiment):
         self.experiment = experiment
 
-    def send(self, participants, event_type: str, message=None):
+    def send(self, participants, message: ServerWebSocketMessage):
         """Send an event to one or more participants."""
 
-        publish_websocket_event(participants, event_type, message)
+        publish_websocket_event(participants, message)
 
 
 def _participant_from_request():
@@ -476,9 +810,10 @@ def _handle_socket(ws):  # pragma: no cover - exercised in live experiments
         logger.warning("Rejected websocket connection: unknown participant.")
         return
 
-    start_redis_listener()
-    connection = connection_manager.add(participant.id, participant.page_uuid, ws)
     experiment = get_experiment()
+    start_redis_listener()
+    start_websocket_message_event_drainer()
+    connection = connection_manager.add(participant.id, participant.page_uuid, ws)
 
     try:
         while True:
