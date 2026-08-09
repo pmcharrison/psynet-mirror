@@ -7,10 +7,11 @@ can show each participant a choice page, wait at a
 :class:`~psynet.sync.GroupBarrier`, then score the round once both participants
 have submitted a response.
 
-This timeline-based approach is straightforward for experiments where participants interact sequentially. 
-However, it is not suitable for real-time
-interactions that can happen continuously and in no particular order.
-Examples include real-time movement on a shared canvas, real-time drawing, or real-time text communication.
+This timeline-based approach is straightforward for experiments where
+participants interact sequentially. However, it is not suitable for real-time
+interactions that can happen continuously and in no particular order. Examples
+include real-time movement on a shared canvas, real-time drawing, or real-time
+text communication.
 
 WebSockets
 ----------
@@ -52,77 +53,202 @@ In Python:
         event_type: ClassVar[str] = "roundResult"
         text: str
 
-The browser includes the participant and page identity in each WebSocket frame.
-The server rejects messages from stale pages, so refreshing the page gives the
-participant a fresh connection while old browser tabs stop being able to mutate
-the experiment. Browser WebSocket handlers are page-scoped; register them from
-page scripts so they are recreated for each live page.
+PsyNet attaches the participant and current page identity automatically. Most
+experiments do not need to work with these values directly. Their main effect is
+that, after a refresh or page transition, an old browser tab can no longer send
+valid messages for the participant's new page. The practical rule is simple:
+register browser WebSocket handlers from the page or template script, so PsyNet
+can recreate them whenever it renders a new live page.
 
 Live sessions
 -------------
 
-For many live experiments, WebSockets alone are not enough. The experiment also
-needs an authoritative shared state that is owned by the server. This state
-lets the experiment:
+Why sessions are needed
+~~~~~~~~~~~~~~~~~~~~~~~
 
-* recover cleanly when a participant refreshes the page;
-* ensure that clients render the same session state;
-* wait until all participants have loaded the live page;
-* reject messages that do not belong to the participant's current live session;
-* end the live interaction from the server.
+A WebSocket message is an event: a participant clicked a button, moved an
+avatar, or collected a coin. Many live experiments also need durable shared
+state: the current score, the players' positions, the remaining coins, or the
+round that is currently active. If that state only lived in browser memory, it
+would be lost when a participant refreshed the page, and different participants
+could drift out of sync.
 
 PsyNet provides :class:`~psynet.session.LiveSession` for this purpose. A live
-session is a persisted row owned by a synchronized group. It is created
-explicitly by a :class:`~psynet.session.LiveSessionInitializer`, which is a
-barrier that delegates row creation to the group leader. A
-:class:`~psynet.session.LiveSessionControl` resolves that existing row when the
-page renders, initializes ``psynet.session`` in the browser, and exposes
-``psynet.session.session_id`` and ``psynet.session.participant_id``.
-Each concrete live-session subclass defines its own SQL columns for recoverable
-public state and can initialize those columns in ``initialize(...)``.
-Browser-facing state snapshots are generated automatically from those subclass
-columns. Override ``snapshot_state(fields=None, participant=None)`` when you
-need to hide columns, rename fields, or include participant-specific recovery
-state for the participant requesting a fresh snapshot.
-The base ``LiveSession`` class can still be used directly with PsyNet's generic
-``var`` store, but explicit subclass columns are preferred for clarity and
-performance.
-This means you can construct the control in a normal ``ModularPage``
-immediately after the initializer in the timeline. Browser code registers its
-setup with ``psynet.trial.onEvent("liveSessionInit", ...)``, then sends a ready
-event. Once all live-session participants are ready, PsyNet sends a
-``sessionStart`` snapshot and runs ``psynet.session.onStarted(...)`` handlers.
-After ``LiveSessionControl`` has initialized ``psynet.session``, the browser
-automatically attaches the session ID to subsequent ``psynet.websocket.send(...)``
-calls from that page.
-Register ``psynet.session.onFreshState(...)`` to recover from initial load,
-refresh, and reconnect snapshots, and call ``psynet.session.pullState()`` when
-the browser needs a fresh copy. ``pullState(["field_a", "field_b"])`` requests
-only selected public state fields. For normal gameplay progress and frequent
-live updates, prefer custom ``psynet.websocket.send(...)`` messages that include
-only the data needed for that update.
-When a typed WebSocket message needs the current live-session row, decorate its
-``handle`` method with ``@session()``. The decorator resolves the message's
-``session_id`` for the current participant and injects the row as a ``session``
-argument. All client WebSocket messages include a nullable ``session_id`` field;
-``psynet.session`` populates it for messages sent from a live-session control.
-Use ``@session(write=True)`` when the handler mutates
-session state and should lock the row, commit on success, and roll back on
-failure.
-Accepted WebSocket messages are saved by default, inbound and outbound. Typed
-messages are saved in tables derived from their Pydantic message classes, with
-columns for the model fields. If a live update is sent at a high rate, set
-``save=False`` on the corresponding message class to skip the default WebSocket
-message log.
+session is a persisted SQL row owned by a synchronized group. It stores the
+server's authoritative version of the live interaction.
 
-Private and participant-specific state should still be stored in ordinary SQL
-columns; the snapshot override decides what each browser receives. For example:
+Declare a session by subclassing ``LiveSession`` and adding ordinary SQL columns
+for the state that should survive refreshes and reconnects:
+
+.. code-block:: python
+
+    from sqlalchemy import Column, Integer
+
+    from psynet.session import LiveSession
+
+
+    class ScoreSession(LiveSession):
+        score = Column(Integer, default=0)
+
+        def initialize(self, participant_ids, group):
+            self.score = 0
+
+The ``initialize(...)`` method runs when PsyNet creates the row. It receives the
+group's participant IDs and the synchronized group, so it can derive the initial
+state from the group, trial, node, or network.
+
+Creating a session in the timeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Live sessions are normally used with synchronized participants. First group the
+participants, then add a :class:`~psynet.session.LiveSessionInitializer` before
+the live page. The initializer is a barrier: once the group is ready, the group
+leader creates one persisted session row for everyone.
+
+.. code-block:: python
+
+    GROUP_TYPE = "live_score"
+
+    SimpleGrouper(
+        group_type=GROUP_TYPE,
+        initial_group_size=2,
+    )
+
+Inside a synchronized trial, initialize the session before rendering the live
+control:
+
+.. code-block:: python
+
+    def show_trial(self, experiment, participant):
+        return join(
+            LiveSessionInitializer(
+                id_="score_session",
+                group_type=GROUP_TYPE,
+                session_class=ScoreSession,
+            ),
+            ModularPage(
+                "score_page",
+                "Click to score.",
+                ScoreControl(participant=participant),
+                time_estimate=20,
+            ),
+        )
+
+``LiveSessionInitializer`` uses a short
+``WaitPage(wait_time=0.5, save_answer=False)`` by default while the group waits
+for the barrier to release. You can pass a custom ``waiting_logic`` when an
+experiment needs a different waiting page.
+
+Connecting a control to the session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A :class:`~psynet.session.LiveSessionControl` connects the rendered page to the
+session row that was just initialized. It resolves the session ID, initializes
+``psynet.session`` in the browser, and exposes
+``psynet.session.session_id`` and ``psynet.session.participant_id``.
+
+.. code-block:: python
+
+    class ScoreControl(LiveSessionControl):
+        external_template = "score.html"
+        macro = "score_control"
+
+        def __init__(self, participant):
+            super().__init__(
+                participant=participant,
+                session_class=ScoreSession,
+                group_type=GROUP_TYPE,
+                session_initializer_id="score_session",
+                show_next_button=False,
+            )
+
+In the browser, put live-session setup inside the page template. The
+``liveSessionInit`` event means the control has initialized ``psynet.session``.
+
+.. code-block:: html
+
+    <script>
+    psynet.trial.onEvent("liveSessionInit", function () {
+        psynet.session.onFreshState(function(snapshot) {
+            scoreEl.textContent = snapshot.state.score;
+        });
+
+        psynet.session.onStarted(function() {
+            scoreButton.disabled = false;
+        });
+
+        psynet.session.ready();
+    });
+    </script>
+
+``psynet.session.onFreshState(...)`` handles the initial snapshot and later
+refresh/reconnect snapshots. ``psynet.session.ready()`` tells the server that
+this participant has loaded the live page. Once all session participants are
+ready, PsyNet sends ``sessionStart`` and runs
+``psynet.session.onStarted(...)`` handlers.
+
+After ``LiveSessionControl`` has initialized ``psynet.session``, browser calls
+to ``psynet.websocket.send(...)`` automatically include the current
+``session_id``. Browser code can also call ``psynet.session.pullState()`` to ask
+for a fresh snapshot, or ``psynet.session.pullState(["score"])`` to request
+selected state fields.
+
+Using sessions in WebSocket handlers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a typed WebSocket message needs the current live-session row, decorate its
+``handle`` method with ``@session()``. The decorator uses the message's
+``session_id`` and the current participant to find the right session, then
+injects it as a ``session`` argument.
+
+Use ``@session()`` for handlers that only read from the row:
+
+.. code-block:: python
+
+    class ScoreRequest(ClientWebSocketMessage):
+        event_type: ClassVar[str] = "scoreRequest"
+
+        @session()
+        def handle(self, experiment, participant, session: ScoreSession, receive_time):
+            ScoreUpdate(score=session.score).send(participant)
+
+Use ``@session(write=True)`` for handlers that mutate session state. PsyNet
+locks the row, commits on success, and rolls back if the handler raises an
+exception.
+
+.. code-block:: python
+
+    class ScoreClick(ClientWebSocketMessage):
+        event_type: ClassVar[str] = "scoreClick"
+
+        @session(write=True)
+        def handle(self, experiment, participant, session: ScoreSession, receive_time):
+            session.score += 1
+            ScoreUpdate(score=session.score).send(session.participants)
+
+
+    class ScoreUpdate(ServerWebSocketMessage):
+        event_type: ClassVar[str] = "scoreUpdate"
+        score: int
+
+Snapshots and private state
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Browser-facing snapshots are generated automatically from a session subclass's
+SQL columns. The base ``LiveSession`` class can also be used directly with
+PsyNet's generic ``var`` store, but explicit subclass columns are preferred for
+clarity and performance.
+
+Override ``snapshot_state(fields=None, participant=None)`` when you need to hide
+columns, rename fields, or include participant-specific recovery state for the
+participant requesting a fresh snapshot:
 
 .. code-block:: python
 
     from sqlalchemy import Column, Integer
 
     from psynet.field import PythonDict
+
 
     class DemoSession(LiveSession):
         public_score = Column(Integer)
@@ -137,17 +263,29 @@ columns; the snapshot override decides what each browser receives. For example:
                 state = {field: state[field] for field in fields if field in state}
             return state
 
-``LiveSessionInitializer`` uses a short
-``WaitPage(wait_time=0.5, save_answer=False)`` by default while the group waits
-for the barrier to release. You can pass a custom ``waiting_logic`` when an
-experiment needs a different waiting page.
+For normal gameplay progress and frequent live updates, use custom WebSocket
+messages rather than repeatedly pulling full session snapshots. In the browser,
+send participant actions with ``psynet.websocket.send(...)``. On the server,
+reply or broadcast with typed ``ServerWebSocketMessage`` objects, for example
+``ScoreUpdate(...).send(participant)``. Use snapshots for initial rendering,
+refresh/reconnect recovery, and occasional explicit state pulls.
 
-Minimal example
----------------
+Message logs
+~~~~~~~~~~~~
 
-The following example sketches a minimal live rock-paper-scissors round. It is
-not a complete experiment, but it shows the moving parts that are specific to a
-live interaction.
+Accepted WebSocket messages are saved by default, inbound and outbound. Typed
+messages are saved in tables derived from their Pydantic message classes, with
+columns for the model fields. If a live update is sent at a high rate, set
+``save=False`` on the corresponding message class to skip the default WebSocket
+message log.
+
+Putting it together
+-------------------
+
+The following sketch puts the pieces together in a live rock-paper-scissors
+round. It is included after the smaller examples above so you can see how the
+session row, initializer, control, browser setup, and session-aware WebSocket
+handler fit together in one timeline.
 
 Server-side experiment
 ~~~~~~~~~~~~~~~~~~~~~~
