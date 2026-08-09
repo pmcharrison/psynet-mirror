@@ -117,7 +117,7 @@ class StateRequestMessage(ClientWebSocketMessage):
 
     @session()
     def handle(self, experiment, participant, session: LiveSession, receive_time):
-        session.send_snapshot(experiment, participants=participant, fields=self.fields)
+        session.send_snapshot(participants=participant, fields=self.fields)
 
 
 class ReadyMessage(ClientWebSocketMessage):
@@ -128,7 +128,7 @@ class ReadyMessage(ClientWebSocketMessage):
     @session(for_update=True)
     def handle(self, experiment, participant, session: LiveSession, receive_time):
         session.mark_ready(participant)
-        session.send_status(experiment)
+        session.send_status()
         db.session.commit()
 
 
@@ -435,11 +435,11 @@ class _LiveSessionMixin:
         self.end_time = timenow()
         return True
 
-    def end(self, experiment):
+    def end(self):
         """Mark this live session ended and emit the built-in sessionEnd event."""
 
         if self.mark_ended():
-            self.send_session_end(experiment)
+            self.send_session_end()
             return True
         return False
 
@@ -484,32 +484,27 @@ class _LiveSessionMixin:
 
         return SessionStatusMessage(**self.status_payload())
 
-    def send_snapshot(
-        self, experiment, participants=None, fields: list[str] | None = None
-    ):
+    def send_snapshot(self, participants=None, fields: list[str] | None = None):
         """Send the current snapshot to all live-session participants or a subset."""
 
         if participants is None:
             participants = self.participants
-        experiment.websocket.send(participants, self.snapshot_message(fields=fields))
+        self.snapshot_message(fields=fields).send(participants)
 
-    def send_status(self, experiment, participants=None):
+    def send_status(self, participants=None):
         """Send the current lifecycle status to live-session participants."""
 
         if participants is None:
             participants = self.participants
-        experiment.websocket.send(participants, self.status_message())
+        self.status_message().send(participants)
 
-    def send_session_end(self, experiment):
+    def send_session_end(self):
         """Send the built-in session end event to live-session participants."""
 
-        experiment.websocket.send(
-            self.participants,
-            SessionEndMessage(**self.snapshot_payload()),
-        )
+        SessionEndMessage(**self.snapshot_payload()).send(self.participants)
 
     @classmethod
-    def trigger_end_event(cls, experiment, session_id):
+    def trigger_end_event(cls, session_id):
         """Mark a live session ended and send its built-in sessionEnd event."""
 
         from psynet.db import transaction
@@ -518,7 +513,7 @@ class _LiveSessionMixin:
             live_session = cls.get(session_id, for_update=True)
             if live_session is None:
                 return False
-            return live_session.end(experiment)
+            return live_session.end()
 
 
 @register_table

@@ -116,7 +116,7 @@ class ChooseMessage(ClientWebSocketMessage):
         for participant_id, reveal in reveals:
             recipient = participants_by_id.get(int(participant_id))
             if recipient is not None:
-                experiment.websocket.send(recipient, reveal)
+                reveal.send(recipient)
 
         if bool((session.state or {}).get("finished")):
             session.mark_ended()

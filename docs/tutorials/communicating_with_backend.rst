@@ -35,7 +35,7 @@ For real-time pages, use PsyNet's native WebSocket helpers. On the browser side,
 On the Python side, define typed message classes. Browser-to-server messages
 subclass ``ClientWebSocketMessage`` and implement ``handle``; server-to-browser
 messages subclass ``ServerWebSocketMessage`` and are passed directly to
-``participant.websocket.send`` or ``experiment.websocket.send``:
+``message.send(participant_or_participants)``:
 
 .. code-block:: python
 
@@ -83,9 +83,7 @@ messages subclass ``ServerWebSocketMessage`` and are passed directly to
         def time_update():
             participants = Participant.query.filter_by(status="working").all()
             for participant in participants:
-                participant.websocket.send(
-                    ServerMessage(text=f"Hi, the time is {timenow()}"),
-                )
+                ServerMessage(text=f"Hi, the time is {timenow()}").send(participant)
 
 By default, PsyNet saves each accepted WebSocket message, inbound and outbound.
 Messages are saved only after the server has matched the inbound message class,

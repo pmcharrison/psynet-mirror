@@ -573,13 +573,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def authenticated_session(self):
         return get_authenticated_session(self.base_url)
 
-    @cached_property
-    def websocket(self):
-        """Return a helper for sending WebSocket events from this experiment."""
-        from psynet.websocket import ExperimentWebSocket
-
-        return ExperimentWebSocket(self)
-
     def receive_websocket_frame(self, participant, frame, receive_time=None):
         """Dispatch a native PsyNet WebSocket frame."""
         from psynet.websocket import dispatch_websocket_frame

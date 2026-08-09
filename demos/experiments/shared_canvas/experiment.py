@@ -154,11 +154,10 @@ class PositionMessage(ClientWebSocketMessage):
     ):
         """Broadcast this high-frequency position event."""
 
-        experiment.websocket.send(
+        PositionUpdateMessage(
+            player=self.player_payload(participant, receive_time),
+        ).send(
             session.participants,
-            PositionUpdateMessage(
-                player=self.player_payload(participant, receive_time),
-            ),
         )
 
 
@@ -191,20 +190,18 @@ class CollectMessage(ClientWebSocketMessage):
         if accepted:
             state = session.state or {}
             participant.current_trial.record_coin()
-            experiment.websocket.send(
+            CoinCollectedMessage(
+                collection=collection,
+                coins=state.get("coins", []),
+            ).send(
                 session.participants,
-                CoinCollectedMessage(
-                    collection=collection,
-                    coins=state.get("coins", []),
-                ),
             )
         else:
-            experiment.websocket.send(
+            CollectRejectedMessage(
+                coin_id=self.coin_id,
+                reason=reason,
+            ).send(
                 participant,
-                CollectRejectedMessage(
-                    coin_id=self.coin_id,
-                    reason=reason,
-                ),
             )
         db.session.commit()
 

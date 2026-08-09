@@ -50,6 +50,16 @@ def _state():
     return state
 
 
+def _capture_server_sends(monkeypatch):
+    sent = []
+
+    def send(self, participants):
+        sent.append((participants, self))
+
+    monkeypatch.setattr("psynet.websocket.ServerWebSocketMessage.send", send)
+    return sent
+
+
 def _group(*, leader_trial=True):
     participants = _participants()
     node = SimpleNamespace(id=11, network_id=12, definition={"value": "node"})
@@ -152,7 +162,8 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
     """StateRequest sends a snapshot through the experiment websocket helper."""
 
     state = _state()
-    experiment = SimpleNamespace(websocket=MagicMock())
+    sent = _capture_server_sends(monkeypatch)
+    experiment = SimpleNamespace()
     participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
@@ -161,10 +172,7 @@ def test_state_request_sends_snapshot_to_requesting_participant(monkeypatch):
         participant=participant,
         receive_time=None,
     )
-    experiment.websocket.send.assert_called_once_with(
-        participant,
-        state.snapshot_message(),
-    )
+    assert sent == [(participant, state.snapshot_message())]
 
 
 def test_state_request_can_send_partial_state(monkeypatch):
@@ -172,7 +180,8 @@ def test_state_request_can_send_partial_state(monkeypatch):
 
     state = _state()
     state.state = {"score": 3, "round": 2}
-    experiment = SimpleNamespace(websocket=MagicMock())
+    sent = _capture_server_sends(monkeypatch)
+    experiment = SimpleNamespace()
     participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
@@ -181,17 +190,15 @@ def test_state_request_can_send_partial_state(monkeypatch):
         participant=participant,
         receive_time=None,
     )
-    experiment.websocket.send.assert_called_once_with(
-        participant,
-        state.snapshot_message(fields=["round"]),
-    )
+    assert sent == [(participant, state.snapshot_message(fields=["round"]))]
 
 
 def test_state_request_rejects_non_member(monkeypatch):
     """StateRequest does not disclose snapshots to non-members."""
 
     state = _state()
-    experiment = SimpleNamespace(websocket=MagicMock())
+    sent = _capture_server_sends(monkeypatch)
+    experiment = SimpleNamespace()
     participant = SimpleNamespace(id=3)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
@@ -201,14 +208,15 @@ def test_state_request_rejects_non_member(monkeypatch):
         receive_time=None,
     )
 
-    experiment.websocket.send.assert_not_called()
+    assert sent == []
 
 
 def test_ready_event_marks_state_and_sends_status(monkeypatch):
     """ReadyEvent updates the row and sends status without a state snapshot."""
 
     state = _state()
-    experiment = SimpleNamespace(websocket=MagicMock())
+    sent = _capture_server_sends(monkeypatch)
+    experiment = SimpleNamespace()
     participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", MagicMock())
@@ -220,17 +228,15 @@ def test_ready_event_marks_state_and_sends_status(monkeypatch):
     )
 
     assert state.ready_participant_ids == [1]
-    experiment.websocket.send.assert_called_once_with(
-        state.participants,
-        state.status_message(),
-    )
+    assert sent == [(state.participants, state.status_message())]
 
 
 def test_ready_event_rejects_non_member(monkeypatch):
     """ReadyEvent does not mutate sessions for non-members."""
 
     state = _state()
-    experiment = SimpleNamespace(websocket=MagicMock())
+    sent = _capture_server_sends(monkeypatch)
+    experiment = SimpleNamespace()
     participant = SimpleNamespace(id=3)
     commit = MagicMock()
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
@@ -243,7 +249,7 @@ def test_ready_event_rejects_non_member(monkeypatch):
     )
 
     assert state.ready_participant_ids == []
-    experiment.websocket.send.assert_not_called()
+    assert sent == []
     commit.assert_not_called()
 
 
@@ -253,16 +259,13 @@ def test_live_session_end_marks_ended_and_notifies(monkeypatch):
     end_time = datetime(2026, 1, 1, 12, 5, 0)
     monkeypatch.setattr("psynet.session.timenow", lambda: end_time)
     state = _state()
-    experiment = SimpleNamespace(websocket=MagicMock())
+    sent = _capture_server_sends(monkeypatch)
 
-    assert state.end(experiment) is True
+    assert state.end() is True
     assert state.ended is True
     assert state.end_time == end_time
-    experiment.websocket.send.assert_called_once_with(
-        state.participants,
-        SessionEndMessage(**state.snapshot_payload()),
-    )
-    assert state.end(experiment) is False
+    assert sent == [(state.participants, SessionEndMessage(**state.snapshot_payload()))]
+    assert state.end() is False
 
 
 def test_create_for_group_is_leader_owned(monkeypatch):
@@ -432,21 +435,15 @@ def test_trigger_session_end_event_marks_ended_and_notifies(monkeypatch):
     """SessionEnd can be triggered from a session class and row ID."""
 
     state = _state()
-    experiment = SimpleNamespace(websocket=MagicMock())
+    sent = _capture_server_sends(monkeypatch)
 
     monkeypatch.setattr("psynet.db.transaction", lambda: MagicMock())
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
 
-    LiveSession.trigger_end_event(
-        experiment,
-        1,
-    )
+    LiveSession.trigger_end_event(1)
 
     assert state.ended is True
-    experiment.websocket.send.assert_called_once_with(
-        state.participants,
-        SessionEndMessage(**state.snapshot_payload()),
-    )
+    assert sent == [(state.participants, SessionEndMessage(**state.snapshot_payload()))]
 
 
 def test_live_session_uses_shared_polymorphic_table():

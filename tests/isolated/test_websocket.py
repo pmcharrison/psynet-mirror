@@ -17,8 +17,6 @@ from psynet.websocket import (
     OUTBOUND,
     REDIS_SAVE_QUEUE,
     ClientWebSocketMessage,
-    ExperimentWebSocket,
-    ParticipantWebSocket,
     ServerWebSocketMessage,
     _ConnectionManager,
     dispatch_websocket_frame,
@@ -85,7 +83,7 @@ class BroadcastMessage(ClientWebSocketMessage):
                     message_count=message_count,
                 )
             )
-            live_session.send_snapshot(experiment)
+            live_session.send_snapshot()
 
 
 class SessionEchoMessage(ClientWebSocketMessage):
@@ -176,8 +174,7 @@ class EchoExperiment:
 
 
 class BroadcastExperiment:
-    def __init__(self):
-        self.websocket = ExperimentWebSocket(self)
+    pass
 
 
 def _participant(page_uuid="current-page"):
@@ -621,51 +618,39 @@ def test_make_frame_serializes_server_event_models():
     assert frame == {"type": "done", "message": {}}
 
 
-def test_participant_websocket_publishes_targeted_event(fake_websocket_redis):
-    """Participant helpers publish targeted Redis fanout frames."""
+def test_server_message_can_send_itself(fake_websocket_redis):
+    """Server messages can publish themselves to participant targets."""
 
     participant = _participant()
-    ParticipantWebSocket(participant).send(DoneMessage(answer=["hello"]))
+    DoneMessage(answer=["self-send"]).send(participant)
 
     assert len(fake_websocket_redis.published) == 1
-    channel, raw_envelope = fake_websocket_redis.published[0]
+    _, raw_envelope = fake_websocket_redis.published[0]
     envelope = json.loads(raw_envelope)
-    assert channel == "psynet:websocket:outbound"
-    assert envelope == {
-        "page_uuids": ["current-page"],
-        "payload": json.dumps(
-            {"type": "done", "message": {"answer": ["hello"]}},
-            separators=(",", ":"),
-        ),
-    }
+    assert envelope["page_uuids"] == ["current-page"]
     assert json.loads(envelope["payload"]) == {
         "type": "done",
-        "message": {"answer": ["hello"]},
+        "message": {"answer": ["self-send"]},
     }
     records = _saved_websocket_event_records(fake_websocket_redis)
     assert len(records) == 1
     assert records[0]["direction"] == OUTBOUND
     assert records[0]["event_type"] == "done"
     assert records[0]["participant_id"] == 7
-    assert records[0]["values"] == {"answer": ["hello"]}
+    assert records[0]["values"] == {"answer": ["self-send"]}
 
 
-def test_experiment_websocket_send_accepts_one_or_many_participants(
+def test_server_message_send_accepts_one_or_many_participants(
     fake_websocket_redis,
 ):
-    """Experiment helpers publish to one participant or a participant list."""
+    """Server messages publish to one participant or a participant list."""
 
-    websocket = ExperimentWebSocket(SimpleNamespace())
-    websocket.send(
-        SimpleNamespace(id=7, page_uuid="page-7"),
-        DoneMessage(answer=["one"]),
-    )
-    websocket.send(
+    DoneMessage(answer=["one"]).send(SimpleNamespace(id=7, page_uuid="page-7"))
+    DoneMessage(answer=["many"]).send(
         [
             SimpleNamespace(id=8, page_uuid="page-8"),
             SimpleNamespace(id=9, page_uuid="page-9"),
-        ],
-        DoneMessage(answer=["many"]),
+        ]
     )
 
     published = [json.loads(payload) for _, payload in fake_websocket_redis.published]
@@ -692,20 +677,11 @@ def test_experiment_websocket_send_accepts_one_or_many_participants(
     assert records[2]["values"] == {"answer": ["many"]}
 
 
-def test_experiment_websocket_send_rejects_participant_ids(monkeypatch):
+def test_server_message_send_rejects_participant_ids():
     """Page-scoped delivery requires participant objects, not raw IDs."""
 
-    websocket = ExperimentWebSocket(SimpleNamespace())
-
     with pytest.raises(TypeError, match="Participant objects"):
-        websocket.send(7, DoneMessage(answer=["one"]))
-
-
-def test_outbound_send_requires_server_message():
-    """Outbound helpers require typed server message objects."""
-
-    with pytest.raises(TypeError, match="ServerWebSocketMessage"):
-        ParticipantWebSocket(_participant()).send("hello")
+        DoneMessage(answer=["one"]).send(7)
 
 
 def test_connection_manager_filters_stale_page_sockets():

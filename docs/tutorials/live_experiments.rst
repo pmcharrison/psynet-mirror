@@ -45,7 +45,7 @@ In Python:
         action: str
 
         def handle(self, experiment, participant, receive_time):
-            participant.websocket.send(RoundResultMessage(text=self.action))
+            RoundResultMessage(text=self.action).send(participant)
 
 
     class RoundResultMessage(ServerWebSocketMessage):
@@ -154,9 +154,8 @@ live interaction.
             finished, choices = result
             if finished:
                 for recipient in session.participants:
-                    experiment.websocket.send(
-                        recipient,
-                        GameFinishedMessage(choice=choices[str(recipient.id)]),
+                    GameFinishedMessage(choice=choices[str(recipient.id)]).send(
+                        recipient
                     )
                 session.mark_ended()
             db.session.commit()

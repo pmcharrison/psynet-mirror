@@ -5,8 +5,7 @@ The public API is intentionally small:
 * JavaScript sends browser events with ``psynet.websocket.send(type, message)``.
 * Python receives them with auto-registered ``ClientWebSocketMessage`` classes.
 * Server code sends browser events with typed ``ServerWebSocketMessage`` objects
-  via ``participant.websocket.send(message)`` or
-  ``experiment.websocket.send(participant_or_participants, message)``.
+  via ``message.send(participant_or_participants)``.
 
 Browser sockets are owned by the web process that accepted the connection.
 Outbound server messages are therefore fanned out through Redis so scheduled
@@ -107,6 +106,11 @@ class ClientWebSocketMessage(WebSocketMessage):
 
 class ServerWebSocketMessage(WebSocketMessage):
     """Server-to-browser WebSocket message payload."""
+
+    def send(self, participants):
+        """Send this message to one or more participant browser sockets."""
+
+        publish_websocket_event(participants, self)
 
 
 def _validate_websocket_message_class(message_class: Type[WebSocketMessage]):
@@ -744,30 +748,6 @@ def publish_websocket_event(participants, message: ServerWebSocketMessage):
     payload = _json_dumps(make_frame(message))
     envelope = _make_outbound_envelope(page_uuids, payload)
     redis_conn.publish(REDIS_OUTBOUND_CHANNEL, _json_dumps(envelope))
-
-
-class ParticipantWebSocket:
-    """Outbound WebSocket helper bound to one participant."""
-
-    def __init__(self, participant):
-        self.participant = participant
-
-    def send(self, message: ServerWebSocketMessage):
-        """Send an event to this participant's connected browser sockets."""
-
-        publish_websocket_event(self.participant, message)
-
-
-class ExperimentWebSocket:
-    """Outbound WebSocket helper bound to an experiment instance."""
-
-    def __init__(self, experiment):
-        self.experiment = experiment
-
-    def send(self, participants, message: ServerWebSocketMessage):
-        """Send an event to one or more participants."""
-
-        publish_websocket_event(participants, message)
 
 
 def _participant_from_request():

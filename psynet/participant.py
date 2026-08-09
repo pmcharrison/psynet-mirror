@@ -233,13 +233,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
 
     @property
-    def websocket(self):
-        """Return a helper for sending WebSocket events to this participant."""
-        from psynet.websocket import ParticipantWebSocket
-
-        return ParticipantWebSocket(self)
-
-    @property
     def current_trial(self):
         """
         This property is used to deal with some flakiness we've seen in the
