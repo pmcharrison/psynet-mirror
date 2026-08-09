@@ -586,12 +586,6 @@ def test_dispatch_rejects_invalid_payload():
 def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
     """Typed inbound handling plus outbound broadcast stays below 5 ms."""
 
-    class FakeRedis:
-        publish_count = 0
-
-        def publish(self, channel, payload):
-            self.publish_count += 1
-
     fake_redis = FakeRedis()
     monkeypatch.setattr("psynet.websocket.redis_conn", fake_redis)
     added_events = []
@@ -633,10 +627,11 @@ def test_websocket_message_handling_and_broadcast_stays_fast(monkeypatch):
         )
     elapsed = time.perf_counter() - start
 
+    total_messages = n_messages + 20
     assert elapsed / n_messages < 0.005
-    assert fake_redis.publish_count == n_messages + 20
-    assert live_session.message_count == n_messages + 20
-    assert len(added_events) == n_messages + 20
+    assert fake_redis.publish_count == total_messages * len(session_participants)
+    assert live_session.message_count == total_messages
+    assert len(added_events) == total_messages
     assert isinstance(added_events[-1], WebSocketBenchmarkEvent)
 
 

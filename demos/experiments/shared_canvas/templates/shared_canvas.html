@@ -42,10 +42,9 @@
   <p class="canvas-help">Use the arrow keys to move. Collect the gold coins before the session ends.</p>
 </div>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  var liveSession = {{ params.live_session_config | tojson }};
-  var cfg = Object.assign({}, liveSession, {{ params.canvas_config | tojson }});
-  var participantId = String(liveSession.participant_id);
+psynet.trial.onEvent("liveSessionInit", function () {
+  var cfg = {{ params.canvas_config | tojson }};
+  var participantId = String(psynet.session.participant_id);
   var canvas = document.getElementById("shared-canvas");
   var ctx = canvas.getContext("2d");
   var players = {};
@@ -298,10 +297,8 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   focusCanvas();
 
-  psynet.session.init(liveSession);
   psynet.session.onFreshState(applySnapshot);
   psynet.session.onStarted(startGame);
-  psynet.session.onEnd(submitFinalAnswer);
   psynet.session.ready();
 
   psynet.websocket.handle("position_update", function (msg) {

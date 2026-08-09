@@ -16,7 +16,7 @@ and live-session machinery:
   ``handle`` method receives every browser choice. Once both players have
   submitted a move for the current round it scores the round and updates the
   persisted :class:`~psynet.session.LiveSession` state.
-* :class:`RockPaperScissorsControl` is a :class:`~psynet.modular_page.Control`
+* :class:`RockPaperScissorsControl` is a :class:`~psynet.session.LiveSessionControl`
   backed by a small custom template that renders the buttons and uses
   ``psynet.websocket`` and ``psynet.session`` for real-time communication
   and refresh/reconnect recovery.
@@ -40,7 +40,7 @@ from sqlalchemy import Boolean, Column, Integer
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
-from psynet.field import PythonDict, PythonList
+from psynet.field import PythonDict
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
@@ -117,9 +117,6 @@ class ChooseMessage(ClientWebSocketMessage):
             if recipient is not None:
                 reveal.send(recipient)
 
-        if bool(session.finished):
-            session.mark_ended()
-
 
 class RevealMessage(ServerWebSocketMessage):
     """A participant-specific reveal for a completed round."""
@@ -141,7 +138,6 @@ class RockPaperScissorsSession(LiveSession):
     scores = Column(PythonDict, default=lambda: {})
     current_round_choices = Column(PythonDict, default=lambda: {})
     submitted_moves = Column(PythonDict, default=lambda: {})
-    submitted_participant_ids = Column(PythonList, default=lambda: [])
     reveal_history = Column(PythonDict, default=lambda: {})
     finished = Column(Boolean, default=False)
 
@@ -155,7 +151,6 @@ class RockPaperScissorsSession(LiveSession):
         self.scores = {participant_id: 0 for participant_id in ordered_ids}
         self.current_round_choices = {}
         self.submitted_moves = {participant_id: [] for participant_id in ordered_ids}
-        self.submitted_participant_ids = []
         self.reveal_history = {participant_id: [] for participant_id in ordered_ids}
         self.finished = False
 
@@ -163,6 +158,9 @@ class RockPaperScissorsSession(LiveSession):
         """Return reconnect state without leaking hidden participant data."""
 
         state = super().snapshot_state(fields=None, participant=participant)
+        state["submitted_participant_ids"] = sorted(
+            str(pid) for pid in (self.current_round_choices or {})
+        )
         state.pop("current_round_choices", None)
         state.pop("submitted_moves", None)
         if participant is None:
@@ -200,8 +198,6 @@ class RockPaperScissorsSession(LiveSession):
             str(pid): action for pid, action in sorted(round_moves.items())
         }
 
-        submitted = sorted(str(pid) for pid in round_moves)
-        self.submitted_participant_ids = submitted
         reveals = []
 
         if len(round_moves) >= len(expected_ids):
@@ -225,7 +221,6 @@ class RockPaperScissorsSession(LiveSession):
                 ]
             self.scores = scores
             self.finished = finished
-            self.submitted_participant_ids = []
             self.submitted_moves = submitted_moves
             self.current_round_choices = {}
             if not finished:
@@ -516,7 +511,6 @@ class Exp(psynet.experiment.Experiment):
         assert session.scores == {"1": 0, "2": 0}
         assert session.current_round_choices == {}
         assert session.submitted_moves == {"1": [], "2": []}
-        assert session.submitted_participant_ids == []
         assert session.reveal_history == {"1": [], "2": []}
         assert session.finished is False
 
@@ -532,12 +526,13 @@ class Exp(psynet.experiment.Experiment):
             "2": [{"target": "2", "result": "you lost"}],
         }
 
-        public_state = session.snapshot_state()
+        snapshot = session.snapshot_state()
         participant_state = session.snapshot_state(participant=SimpleNamespace(id=2))
 
-        assert "current_round_choices" not in public_state
-        assert "submitted_moves" not in public_state
-        assert "reveal_history" not in public_state
+        assert "current_round_choices" not in snapshot
+        assert "submitted_moves" not in snapshot
+        assert "reveal_history" not in snapshot
+        assert snapshot["submitted_participant_ids"] == ["1"]
         assert participant_state["reveal_history"] == [
             {"target": "2", "result": "you lost"}
         ]

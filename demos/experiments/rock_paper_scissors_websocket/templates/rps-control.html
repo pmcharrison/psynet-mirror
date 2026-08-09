@@ -29,10 +29,9 @@
 <script>
     // The server owns the game: this script only sends the chosen action,
     // pulls fresh state for recovery, and renders targeted reveal events.
-    document.addEventListener("DOMContentLoaded", function () {
-        var liveSession = {{ config.live_session_config | tojson }};
+    psynet.trial.onEvent("liveSessionInit", function () {
         var nRounds = {{ config.n_rounds | tojson }};
-        var participantId = String(liveSession.participant_id);
+        var participantId = String(psynet.session.participant_id);
         var round     = 1;
         var completed = false;
         var finalSubmitted = false;
@@ -75,9 +74,17 @@
             psynet.nextPage(finalAnswer);
         }
 
+        function promptForCurrentRound() {
+            statusEl.textContent = (
+                "Round " + round + " of " + nRounds + ": choose your action."
+            );
+        }
+
         function renderFreshState(freshState) {
             if (!freshState) return;
 
+            // Fresh state is for recovery after initial load/reconnect. Normal
+            // round progress is communicated by targeted roundReveal events.
             var state = freshState.state || {};
             var history = state.reveal_history || [];
             round = state.current_round || round;
@@ -86,9 +93,7 @@
 
             if (history.length === 0) {
                 scoreEl.textContent = "Score — you: 0, partner: 0";
-                statusEl.textContent = (
-                    "Round " + round + " of " + nRounds + ": choose your action."
-                );
+                promptForCurrentRound();
             }
 
             var latest = history[history.length - 1];
@@ -107,8 +112,17 @@
                 statusEl.textContent = "Waiting for your partner…";
                 setEnabled(false);
             } else {
+                promptForCurrentRound();
                 setEnabled(true);
             }
+        }
+
+        function startLiveRound() {
+            if (completed || participantHasSubmitted(psynet.session.state || {})) {
+                return;
+            }
+            promptForCurrentRound();
+            setEnabled(true);
         }
 
         function applyRoundReveal(reveal) {
@@ -121,8 +135,8 @@
             }
         }
 
-        psynet.session.init(liveSession);
         psynet.session.onFreshState(renderFreshState);
+        psynet.session.onStarted(startLiveRound);
         psynet.websocket.handle("roundReveal", applyRoundReveal);
         psynet.session.ready();
 

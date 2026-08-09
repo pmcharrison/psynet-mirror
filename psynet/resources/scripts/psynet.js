@@ -943,6 +943,7 @@
     psynet.session = (function () {
       let config = {
         session_id: null,
+        participant_id: null,
       };
       let freshStateHandlers = [];
       let startedHandlers = [];
@@ -953,6 +954,7 @@
       let unsubscribeSessionStatus = null;
       let unsubscribeSessionEnd = null;
       let unsubscribeConnect = null;
+      let initialized = false;
 
       let api = {
         snapshot: null,
@@ -1067,7 +1069,9 @@
         unsubscribeBuiltInHandlers();
         config = {
           session_id: null,
+          participant_id: null,
         };
+        initialized = false;
         freshStateHandlers = [];
         startedHandlers = [];
         endHandlers = [];
@@ -1079,6 +1083,7 @@
         config = Object.assign(config, options || {});
         if (previousSessionId !== config.session_id) {
           lifecycleToken += 1;
+          initialized = false;
           resetState();
         }
         if (config.session_id) {
@@ -1086,6 +1091,10 @@
             session_id: config.session_id,
           });
         }
+        if (initialized && previousSessionId === config.session_id) {
+          return api;
+        }
+        initialized = true;
         unsubscribeBuiltInHandlers();
         unsubscribeStateSnapshot = psynet.websocket.handle(
           "stateSnapshot",
@@ -1134,6 +1143,19 @@
           endHandlers = endHandlers.filter((x) => x !== handler);
         };
       };
+
+      Object.defineProperties(api, {
+        session_id: {
+          get: function () {
+            return config.session_id;
+          },
+        },
+        participant_id: {
+          get: function () {
+            return config.participant_id;
+          },
+        },
+      });
 
       return api;
     })();

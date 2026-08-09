@@ -50,7 +50,7 @@ class FilteredDemoLiveSession(LiveSession):
 class ParticipantAwareDemoLiveSession(LiveSession):
     """Demo live session with participant-specific snapshot overrides."""
 
-    public_value = Column(String)
+    participant_public_value = Column(String)
     participant_values = Column(PythonDict)
 
     def snapshot_state(self, fields=None, participant=None):
@@ -201,7 +201,7 @@ def test_live_session_snapshot_state_can_use_participant():
     """Snapshot overrides can tailor state to a specific participant."""
 
     state = ParticipantAwareDemoLiveSession(
-        public_value="shown",
+        participant_public_value="shown",
         participant_values={"1": "one", "2": "two"},
         participant_ids=[1],
         ready_participant_ids=[],
@@ -210,20 +210,20 @@ def test_live_session_snapshot_state_can_use_participant():
     )
     state.id = 1
 
-    assert state.snapshot_payload()["state"] == {"public_value": "shown"}
+    assert state.snapshot_payload()["state"] == {"participant_public_value": "shown"}
     assert state.snapshot_payload(participant=SimpleNamespace(id=2))["state"] == {
-        "public_value": "shown",
+        "participant_public_value": "shown",
         "participant_value": "two",
     }
 
 
-def test_live_session_status_payload_is_json_ready():
+def test_live_session_status_message_is_json_ready():
     """Status payloads expose readiness without public state."""
 
     state = _state()
     state.mark_ready(SimpleNamespace(id=1))
 
-    assert state.status_payload() == {
+    assert state.status_message().model_dump(mode="json") == {
         "session_id": 1,
         "participant_ids": ["1", "2"],
         "ready_participant_ids": ["1"],
@@ -352,7 +352,7 @@ def test_live_session_send_snapshot_renders_per_participant(monkeypatch):
 
     participants = _participants()
     state = ParticipantAwareDemoLiveSession(
-        public_value="shown",
+        participant_public_value="shown",
         participant_values={"1": "one", "2": "two"},
         participant_ids=[1, 2],
         ready_participant_ids=[],
@@ -366,8 +366,8 @@ def test_live_session_send_snapshot_renders_per_participant(monkeypatch):
 
     assert [recipient.id for recipient, _message in sent] == [1, 2]
     assert [message.state for _recipient, message in sent] == [
-        {"public_value": "shown", "participant_value": "one"},
-        {"public_value": "shown", "participant_value": "two"},
+        {"participant_public_value": "shown", "participant_value": "one"},
+        {"participant_public_value": "shown", "participant_value": "two"},
     ]
 
 
@@ -485,6 +485,11 @@ def test_live_session_control_derives_config(monkeypatch):
     control = DemoControl(participant)
     assert get_for_group_calls == []
 
+    events = {}
+    control.update_events(events)
+    assert events["liveSessionInit"]["js"] is None
+    control.page = SimpleNamespace(events=events)
+
     live_session = SimpleNamespace(
         id=5,
         sync_group_id=9,
@@ -496,10 +501,9 @@ def test_live_session_control_derives_config(monkeypatch):
 
     assert control.custom_value == 10
     assert not hasattr(control, "session")
-    assert control.live_session_config == {
-        "session_id": 5,
-        "participant_id": 1,
-    }
+    assert events["liveSessionInit"]["js"] == (
+        'psynet.session.init({"session_id": 5, "participant_id": 1});'
+    )
     assert get_for_group_calls == [
         {
             "group": group,

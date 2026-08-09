@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from functools import wraps
 from typing import ClassVar, get_type_hints
@@ -482,15 +483,10 @@ class _LiveSessionMixin:
             **self.snapshot_payload(fields=fields, participant=participant)
         )
 
-    def status_payload(self) -> dict:
-        """Return JSON-serializable live-session lifecycle status."""
-
-        return self._lifecycle_payload()
-
     def status_message(self) -> SessionStatusMessage:
         """Return the typed lifecycle status WebSocket message."""
 
-        return SessionStatusMessage(**self.status_payload())
+        return SessionStatusMessage(**self._lifecycle_payload())
 
     def send_snapshot(self, participants=None, fields: list[str] | None = None):
         """Send the current snapshot to all live-session participants or a subset."""
@@ -539,18 +535,18 @@ class LiveSession(_LiveSessionMixin, SQLBase, SQLMixin):
     __tablename__ = "live_session"
 
 
-def _create_live_session_on_release(group, participants, participant, barrier):
-    """Create the live session owned by a released group barrier."""
-
-    barrier.session_class.create_for_group(
-        group=group,
-        initializer=barrier,
-        participant=participant,
-    )
-
-
 class LiveSessionInitializer(GroupBarrier):
     """Timeline element that creates a group-owned live session."""
+
+    @staticmethod
+    def _create_live_session_on_release(group, participants, participant, barrier):
+        """Create the live session owned by a released group barrier."""
+
+        return barrier.session_class.create_for_group(
+            group=group,
+            initializer=barrier,
+            participant=participant,
+        )
 
     def __init__(
         self,
@@ -565,13 +561,14 @@ class LiveSessionInitializer(GroupBarrier):
         self.session_class = session_class
         if waiting_logic is NoArgumentProvided:
             waiting_logic = WaitPage(wait_time=0.5, save_answer=False)
+
         super().__init__(
             id_=id_,
             group_type=group_type,
             waiting_logic=waiting_logic,
             waiting_logic_expected_repetitions=waiting_logic_expected_repetitions,
             max_wait_time=max_wait_time,
-            on_release=_create_live_session_on_release,
+            on_release=LiveSessionInitializer._create_live_session_on_release,
             fix_time_credit=fix_time_credit,
         )
 
@@ -639,16 +636,25 @@ class LiveSessionControl(Control):
         self._session_id = int(live_session.id)
         return self._session_id
 
-    @property
-    def live_session_config(self):
-        """Return browser-facing live-session transport config."""
-
-        return {
-            "session_id": self._resolve_session_id(),
-            "participant_id": int(self.participant.id),
-        }
-
     def pre_render(self):
         """Resolve the live-session ID before rendering the control template."""
 
-        self._resolve_session_id()
+        session_id = self._resolve_session_id()
+        if self.page is not None:
+            config = {
+                "session_id": session_id,
+                "participant_id": int(self.participant.id),
+            }
+            init_js = f"psynet.session.init({json.dumps(config)});"
+            self.page.events["liveSessionInit"]["js"] = init_js
+
+    def update_events(self, events):
+        """Initialize the browser live-session helper via PsyNet events."""
+
+        from psynet.timeline import Event
+
+        super().update_events(events)
+        events["liveSessionInit"] = Event(
+            is_triggered_by="trialConstruct",
+            once=True,
+        )

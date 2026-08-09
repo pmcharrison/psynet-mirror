@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from dominate import tags
 from pydantic import Field
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
@@ -246,8 +246,6 @@ def instruction_page():
 class SharedCanvasSession(LiveSession):
     """Persisted live session for one shared-canvas group."""
 
-    group_id = Column(Integer)
-    params = Column(PythonDict, default=lambda: {})
     players = Column(PythonDict, default=lambda: {})
     coins = Column(PythonList, default=lambda: [])
     collected_coins = Column(PythonList, default=lambda: [])
@@ -256,14 +254,6 @@ class SharedCanvasSession(LiveSession):
         """Initialize the authoritative shared-canvas state."""
 
         world = self.node.definition["world"]
-        self.group_id = int(group.id)
-        self.params = {
-            "participant_ids": [str(p) for p in participant_ids],
-            "world": deepcopy(world),
-            "trial_seconds": TRIAL_SECONDS,
-            "send_interval_ms": SEND_INTERVAL_MS,
-            "draw_interval_ms": DRAW_INTERVAL_MS,
-        }
         self.players = initial_canvas_players(participant_ids, world["canvas_size"])
         self.coins = deepcopy(world["coins"])
         self.collected_coins = []

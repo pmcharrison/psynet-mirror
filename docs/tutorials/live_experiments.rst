@@ -76,8 +76,8 @@ session is a persisted row owned by a synchronized group. It is created
 explicitly by a :class:`~psynet.session.LiveSessionInitializer`, which is a
 barrier that delegates row creation to the group leader. A
 :class:`~psynet.session.LiveSessionControl` resolves that existing row when the
-page renders and exposes a ``live_session_config`` object to the browser,
-including ``session_id`` and the current ``participant_id``.
+page renders, initializes ``psynet.session`` in the browser, and exposes
+``psynet.session.session_id`` and ``psynet.session.participant_id``.
 Each concrete live-session subclass defines its own SQL columns for recoverable
 public state and can initialize those columns in ``initialize(...)``.
 Browser-facing state snapshots are generated automatically from those subclass
@@ -88,23 +88,23 @@ The base ``LiveSession`` class can still be used directly with PsyNet's generic
 ``var`` store, but explicit subclass columns are preferred for clarity and
 performance.
 This means you can construct the control in a normal ``ModularPage``
-immediately after the initializer in the timeline. Browser code passes this
-config to ``psynet.session.init()``, then sends a ready event once it has
-registered its handlers. After ``psynet.session.init()`` the browser
-automatically attaches the session ID to subsequent
+immediately after the initializer in the timeline. Browser code registers its
+setup with ``psynet.trial.onEvent("liveSessionInit", ...)``, then sends a ready
+event. Once ``LiveSessionControl`` has initialized ``psynet.session``, the
+browser automatically attaches the session ID to subsequent
 ``psynet.websocket.send(...)`` calls from that page.
-Register ``psynet.session.onFreshState(...)`` to render authoritative state
-copies, and call ``psynet.session.pullState()`` when the browser needs a fresh
-copy. ``pullState(["field_a", "field_b"])`` requests only selected public state
-fields. For frequent live updates, prefer custom ``psynet.websocket.send(...)``
-messages that include only the data needed for that update; reserve fresh state
-snapshots for synchronization and recovery.
+Register ``psynet.session.onFreshState(...)`` to recover from initial load,
+refresh, and reconnect snapshots, and call ``psynet.session.pullState()`` when
+the browser needs a fresh copy. ``pullState(["field_a", "field_b"])`` requests
+only selected public state fields. For normal gameplay progress and frequent
+live updates, prefer custom ``psynet.websocket.send(...)`` messages that include
+only the data needed for that update.
 When a typed WebSocket message needs the current live-session row, decorate its
 ``handle`` method with ``@session()``. The decorator resolves the message's
 ``session_id`` for the current participant and injects the row as a ``session``
 argument. All client WebSocket messages include a nullable ``session_id`` field;
-``psynet.session`` populates it for messages sent after
-``psynet.session.init()``. Use ``@session(write=True)`` when the handler mutates
+``psynet.session`` populates it for messages sent from a live-session control.
+Use ``@session(write=True)`` when the handler mutates
 session state and should lock the row, commit on success, and roll back on
 failure.
 Accepted WebSocket messages are saved by default, inbound and outbound. Typed
@@ -146,6 +146,13 @@ Minimal example
 The following example sketches a minimal live rock-paper-scissors round. It is
 not a complete experiment, but it shows the moving parts that are specific to a
 live interaction.
+
+Server-side experiment
+~~~~~~~~~~~~~~~~~~~~~~
+
+The Python code defines the persistent session row, typed WebSocket messages,
+and timeline. The server owns the authoritative game state and sends custom
+events for gameplay progress.
 
 .. code-block:: python
 
@@ -190,7 +197,8 @@ live interaction.
                     GameFinishedMessage(choice=choices[str(recipient.id)]).send(
                         recipient
                     )
-                session.mark_ended()
+
+
     class GameFinishedMessage(ServerWebSocketMessage):
         event_type: ClassVar[str] = "gameFinished"
         choice: str
@@ -266,7 +274,14 @@ live interaction.
             InfoPage("Finished.", time_estimate=5),
         )
 
-And in ``templates/rps.html``:
+Client-side template
+~~~~~~~~~~~~~~~~~~~~
+
+The template waits for ``liveSessionInit``, recovers from fresh state snapshots
+after load/reconnect, sends participant choices, and handles the server's custom
+``gameFinished`` event.
+
+In ``templates/rps.html``:
 
 .. code-block:: html
 
@@ -280,16 +295,25 @@ And in ``templates/rps.html``:
     {% endfor %}
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var liveSession = {{ config.live_session_config | tojson }};
-        var participantId = String(liveSession.participant_id);
+    psynet.trial.onEvent("liveSessionInit", function () {
+        var participantId = String(psynet.session.participant_id);
         var submitted = false;
 
-        psynet.session.init(liveSession);
+        function setButtonsEnabled(enabled) {
+            Array.prototype.forEach.call(
+                document.getElementsByClassName("choice"),
+                function(button) { button.disabled = !enabled; }
+            );
+        }
+
+        function promptForChoice() {
+            document.getElementById("status").textContent = "Choose your action.";
+            setButtonsEnabled(true);
+        }
 
         psynet.session.onFreshState(function(freshState) {
-            // Fresh state keeps reloaded clients in sync. Gameplay updates use
-            // smaller custom events below.
+            // Fresh state is for initial load/reconnect recovery. Normal
+            // gameplay progress uses custom events below.
             var state = freshState.state || {};
             var choices = state.choices || {};
             var hasChosen = Object.prototype.hasOwnProperty.call(
@@ -301,16 +325,17 @@ And in ``templates/rps.html``:
                 return;
             }
 
-            document.getElementById("status").textContent = hasChosen ?
-                "Waiting for your partner..." :
-                "Choose your action.";
+            submitted = hasChosen;
+            if (hasChosen) {
+                document.getElementById("status").textContent = "Waiting for your partner...";
+                setButtonsEnabled(false);
+            } else if (freshState.started) {
+                promptForChoice();
+            }
+        });
 
-            Array.prototype.forEach.call(
-                document.getElementsByClassName("choice"),
-                function(button) {
-                    button.disabled = !freshState.started || hasChosen;
-                }
-            );
+        psynet.session.onStarted(function() {
+            if (!submitted) promptForChoice();
         });
 
         psynet.websocket.handle("gameFinished", function(message) {
@@ -325,10 +350,11 @@ And in ``templates/rps.html``:
                 button.onclick = function () {
                     if (submitted) return;
                     submitted = true;
+                    document.getElementById("status").textContent = "Waiting for your partner...";
+                    setButtonsEnabled(false);
                     psynet.websocket.send("choose", {
                         action: button.getAttribute("data-choice")
                     });
-                    button.disabled = true;
                 };
             }
         );
