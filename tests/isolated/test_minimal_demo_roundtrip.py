@@ -351,9 +351,10 @@ def test_scaffold_missing_files_restores_preexisting_tree(tmp_path):
 
 def test_prune_include_modified_keeps_git_files_and_removes_generated(tmp_path):
     demo = Path(path_to_demo_experiment("hello_world"))
-    with working_directory(demo):
-        prune_experiment_scaffold(include_modified=True)
-        scaffold_experiment_directory()
+    # scaffold_missing_files() restores the authored-only tree even if an
+    # assertion below fails, so a failure cannot leave generated files behind in
+    # the repository for later tests to trip over.
+    with working_directory(demo), scaffold_missing_files():
         Path("constraints.txt").write_text("# leftover\n")
         Path("static").mkdir(exist_ok=True)
         assets = Path("static/assets")
