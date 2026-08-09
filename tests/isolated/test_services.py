@@ -134,6 +134,108 @@ def test_check_redis_ping_over_socket(monkeypatch):
     assert "PONG" in result.detail.upper() or "PING" in result.detail.upper()
 
 
+def test_check_redis_tolerates_fragmented_response(monkeypatch):
+    """TCP may split ``+PONG`` across reads; that is a healthy service."""
+    from psynet.services import check_redis
+
+    monkeypatch.setenv("REDIS_URL", "redis://localhost:6379")
+    fragments = iter([b"+PO", b"NG\r\n"])
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def sendall(self, _data):
+            pass
+
+        def recv(self, _size):
+            return next(fragments)
+
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+    assert check_redis().ok
+
+
+def test_check_redis_closes_socket_when_tls_wrap_fails(monkeypatch):
+    """A failed TLS handshake must not leak the underlying socket."""
+    import ssl as ssl_module
+
+    from psynet.services import check_redis
+
+    monkeypatch.setenv("REDIS_URL", "rediss://localhost:6379")
+    closed = []
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            closed.append("context-exit")
+            return False
+
+        def close(self):
+            closed.append("close")
+
+    def failing_wrap(self, sock, server_hostname=None):
+        raise ssl_module.SSLError("handshake failed")
+
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+    monkeypatch.setattr(ssl_module.SSLContext, "wrap_socket", failing_wrap)
+
+    assert not check_redis().ok
+    assert closed, "the raw socket must be released when TLS wrapping fails"
+
+
+def test_check_postgres_fallback_tolerates_fragmented_header(monkeypatch):
+    """The PostgreSQL probe must reassemble a split five-byte header."""
+    import builtins
+    import struct
+
+    from psynet.services import check_postgres
+
+    monkeypatch.setenv(
+        "DATABASE_URL", "postgresql://dallinger:dallinger@localhost/dallinger"
+    )
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "psycopg2":
+            raise ImportError("no psycopg2 in thin bootstrap")
+        return real_import(name, *args, **kwargs)
+
+    header = b"R" + struct.pack("!I", 8)
+    fragments = iter([header[:2], header[2:]])
+
+    class FakeSock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def sendall(self, _data):
+            pass
+
+        def recv(self, size):
+            return next(fragments)[:size]
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    monkeypatch.setattr("psynet.services.shutil.which", lambda _name: None)
+    monkeypatch.setattr(
+        "psynet.services.socket.create_connection",
+        lambda address, timeout: FakeSock(),
+    )
+    assert check_postgres().ok
+
+
 def test_check_redis_honors_auth_and_database(monkeypatch):
     """Redis URLs retain authentication, decoding, and database semantics."""
     from psynet.services import check_redis

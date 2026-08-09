@@ -171,10 +171,41 @@ def _postgres_connection_params(dsn: str) -> tuple[str, int, str, str, bool]:
     )
 
 
+def _recv_exact(sock, size: int) -> bytes:
+    """Read exactly ``size`` bytes, tolerating TCP splitting the response.
+
+    ``recv`` may legitimately return fewer bytes than requested even when the
+    remainder is still in flight, so a single call must never be treated as a
+    whole protocol message.
+    """
+    chunks = []
+    remaining = size
+    while remaining > 0:
+        chunk = sock.recv(remaining)
+        if not chunk:
+            raise OSError("Service closed the connection during the handshake.")
+        chunks.append(chunk)
+        remaining -= len(chunk)
+    return b"".join(chunks)
+
+
+def _recv_until(sock, terminator: bytes, limit: int = 4096) -> bytes:
+    """Read until ``terminator`` appears, returning the content before it."""
+    buffer = b""
+    while terminator not in buffer:
+        if len(buffer) >= limit:
+            raise OSError("Service sent an unexpectedly long response.")
+        chunk = sock.recv(limit)
+        if not chunk:
+            raise OSError("Service closed the connection before replying.")
+        buffer += chunk
+    return buffer.split(terminator, 1)[0]
+
+
 def _postgres_tls_socket(raw_sock, host: str):
     """Negotiate PostgreSQL TLS and return the wrapped socket."""
     raw_sock.sendall(struct.pack("!II", 8, 80877103))
-    if raw_sock.recv(1) != b"S":
+    if _recv_exact(raw_sock, 1) != b"S":
         raise OSError("PostgreSQL server refused the requested TLS connection.")
     return ssl.create_default_context().wrap_socket(raw_sock, server_hostname=host)
 
@@ -185,8 +216,8 @@ def _probe_postgres_protocol(sock, *, user: str, database: str) -> None:
         b"user\0" + user.encode() + b"\0database\0" + database.encode() + b"\0\0"
     )
     sock.sendall(struct.pack("!II", len(parameters) + 8, 196608) + parameters)
-    header = sock.recv(5)
-    if len(header) != 5 or header[:1] not in {b"R", b"E", b"S", b"K", b"Z"}:
+    header = _recv_exact(sock, 5)
+    if header[:1] not in {b"R", b"E", b"S", b"K", b"Z"}:
         raise OSError("Service did not return a PostgreSQL protocol response.")
     if struct.unpack("!I", header[1:])[0] < 4:
         raise OSError("Service returned an invalid PostgreSQL message length.")
@@ -204,23 +235,29 @@ def check_redis() -> ServiceCheck:
         if not database.isdigit():
             raise ValueError(f"Redis database must be an integer, got {database!r}.")
 
-        raw_sock = socket.create_connection((host, port), timeout=3)
-        sock = (
-            ssl.create_default_context().wrap_socket(raw_sock, server_hostname=host)
-            if parsed.scheme == "rediss"
-            else raw_sock
-        )
-        with sock:
-            username = unquote(parsed.username) if parsed.username else None
-            password = unquote(parsed.password) if parsed.password else None
-            if username and password is None:
-                raise ValueError("Redis URL username requires a password.")
-            if password is not None:
-                auth = (username, password) if username else (password,)
-                _expect_redis_response(sock, "OK", "AUTH", *auth)
-            if database != "0":
-                _expect_redis_response(sock, "OK", "SELECT", database)
-            _expect_redis_response(sock, "PONG", "PING")
+        username = unquote(parsed.username) if parsed.username else None
+        password = unquote(parsed.password) if parsed.password else None
+        if username and password is None:
+            raise ValueError("Redis URL username requires a password.")
+
+        # The raw connection is owned by its own context so that a failure while
+        # negotiating TLS cannot leak the underlying socket.
+        with socket.create_connection((host, port), timeout=3) as raw_sock:
+            if parsed.scheme == "rediss":
+                context = ssl.create_default_context()
+                sock = context.wrap_socket(raw_sock, server_hostname=host)
+            else:
+                sock = raw_sock
+            try:
+                if password is not None:
+                    auth = (username, password) if username else (password,)
+                    _expect_redis_response(sock, "OK", "AUTH", *auth)
+                if database != "0":
+                    _expect_redis_response(sock, "OK", "SELECT", database)
+                _expect_redis_response(sock, "PONG", "PING")
+            finally:
+                if sock is not raw_sock:
+                    sock.close()
     except (OSError, ValueError, ssl.SSLError) as exc:
         return ServiceCheck(
             "Redis",
@@ -237,7 +274,7 @@ def _expect_redis_response(sock, expected: str, *command: str) -> None:
         f"${len(part)}\r\n".encode() + part + b"\r\n" for part in encoded
     )
     sock.sendall(payload)
-    response = sock.recv(4096).split(b"\r\n", 1)[0]
+    response = _recv_until(sock, b"\r\n")
     expected_response = f"+{expected}".encode()
     if response != expected_response:
         detail = response.decode("utf-8", errors="replace") or repr(response)
