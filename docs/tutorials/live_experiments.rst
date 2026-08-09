@@ -90,9 +90,11 @@ performance.
 This means you can construct the control in a normal ``ModularPage``
 immediately after the initializer in the timeline. Browser code registers its
 setup with ``psynet.trial.onEvent("liveSessionInit", ...)``, then sends a ready
-event. Once ``LiveSessionControl`` has initialized ``psynet.session``, the
-browser automatically attaches the session ID to subsequent
-``psynet.websocket.send(...)`` calls from that page.
+event. Once all live-session participants are ready, PsyNet sends a
+``sessionStart`` snapshot and runs ``psynet.session.onStarted(...)`` handlers.
+After ``LiveSessionControl`` has initialized ``psynet.session``, the browser
+automatically attaches the session ID to subsequent ``psynet.websocket.send(...)``
+calls from that page.
 Register ``psynet.session.onFreshState(...)`` to recover from initial load,
 refresh, and reconnect snapshots, and call ``psynet.session.pullState()`` when
 the browser needs a fresh copy. ``pullState(["field_a", "field_b"])`` requests

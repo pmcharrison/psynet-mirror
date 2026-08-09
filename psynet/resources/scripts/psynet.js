@@ -951,7 +951,7 @@
       let endHandled = false;
       let lifecycleToken = 0;
       let unsubscribeStateSnapshot = null;
-      let unsubscribeSessionStatus = null;
+      let unsubscribeSessionStart = null;
       let unsubscribeSessionEnd = null;
       let unsubscribeConnect = null;
       let initialized = false;
@@ -987,24 +987,6 @@
         }
         if (!wasEnded && api.ended) {
           finish(snapshot);
-        }
-      }
-
-      function applyStatus(status) {
-        if (!matchesConfig(status)) return;
-        let wasStarted = api.started;
-        let wasEnded = api.ended;
-        api.status = status;
-        api.participant_ids = status.participant_ids || api.participant_ids || [];
-        api.ready_participant_ids =
-          status.ready_participant_ids || api.ready_participant_ids || [];
-        api.started = Boolean(status.started);
-        api.ended = Boolean(status.ended);
-        if (!wasStarted && api.started) {
-          startedHandlers.forEach((handler) => handler(status));
-        }
-        if (!wasEnded && api.ended) {
-          finish(api.snapshot || status);
         }
       }
 
@@ -1055,11 +1037,11 @@
 
       function unsubscribeBuiltInHandlers() {
         if (unsubscribeStateSnapshot) unsubscribeStateSnapshot();
-        if (unsubscribeSessionStatus) unsubscribeSessionStatus();
+        if (unsubscribeSessionStart) unsubscribeSessionStart();
         if (unsubscribeSessionEnd) unsubscribeSessionEnd();
         if (unsubscribeConnect) unsubscribeConnect();
         unsubscribeStateSnapshot = null;
-        unsubscribeSessionStatus = null;
+        unsubscribeSessionStart = null;
         unsubscribeSessionEnd = null;
         unsubscribeConnect = null;
       }
@@ -1100,9 +1082,9 @@
           "stateSnapshot",
           applySnapshot,
         );
-        unsubscribeSessionStatus = psynet.websocket.handle(
-          "sessionStatus",
-          applyStatus,
+        unsubscribeSessionStart = psynet.websocket.handle(
+          "sessionStart",
+          applySnapshot,
         );
         unsubscribeSessionEnd = psynet.websocket.handle("sessionEnd", applyEnd);
         unsubscribeConnect = psynet.websocket.onConnect(pullState);

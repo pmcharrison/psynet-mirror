@@ -24,7 +24,7 @@ from psynet.websocket import ClientWebSocketMessage, ServerWebSocketMessage
 STATE_REQUEST_EVENT = "stateRequest"
 STATE_SNAPSHOT_EVENT = "stateSnapshot"
 READY_EVENT = "ready"
-SESSION_STATUS_EVENT = "sessionStatus"
+SESSION_START_EVENT = "sessionStart"
 SESSION_END_EVENT = "sessionEnd"
 
 _LIVE_SESSION_METADATA_COLUMNS = {
@@ -171,14 +171,15 @@ class ReadyMessage(ClientWebSocketMessage):
 
     @session(write=True)
     def handle(self, experiment, participant, session: LiveSession, receive_time):
-        session.mark_ready(participant)
-        session.send_status()
+        if session.mark_ready(participant):
+            session.send_session_start()
 
 
 class StateSnapshotMessage(ServerWebSocketMessage):
     """Authoritative live-session state sent to browser clients."""
 
     event_type: ClassVar[str] = STATE_SNAPSHOT_EVENT
+    save: ClassVar[bool] = False
     session_id: int
     state: dict
     participant_ids: list[str]
@@ -187,15 +188,10 @@ class StateSnapshotMessage(ServerWebSocketMessage):
     ended: bool
 
 
-class SessionStatusMessage(ServerWebSocketMessage):
-    """Live-session lifecycle status sent to browser clients."""
+class SessionStartMessage(StateSnapshotMessage):
+    """Initial live-session state sent when all participants are ready."""
 
-    event_type: ClassVar[str] = SESSION_STATUS_EVENT
-    session_id: int
-    participant_ids: list[str]
-    ready_participant_ids: list[str]
-    started: bool
-    ended: bool
+    event_type: ClassVar[str] = SESSION_START_EVENT
 
 
 class SessionEndMessage(StateSnapshotMessage):
@@ -502,11 +498,6 @@ class _LiveSessionMixin:
             **self.snapshot_payload(fields=fields, participant=participant)
         )
 
-    def status_message(self) -> SessionStatusMessage:
-        """Return the typed lifecycle status WebSocket message."""
-
-        return SessionStatusMessage(**self._lifecycle_payload())
-
     def send_snapshot(self, participants=None, fields: list[str] | None = None):
         """Send the current snapshot to all live-session participants or a subset."""
 
@@ -519,12 +510,13 @@ class _LiveSessionMixin:
                 participant
             )
 
-    def send_status(self, participants=None):
-        """Send the current lifecycle status to live-session participants."""
+    def send_session_start(self):
+        """Send the built-in session start event to live-session participants."""
 
-        if participants is None:
-            participants = self.participants
-        self.status_message().send(participants)
+        for participant in self.participants:
+            SessionStartMessage(**self.snapshot_payload(participant=participant)).send(
+                participant
+            )
 
     def send_session_end(self):
         """Send the built-in session end event to live-session participants."""

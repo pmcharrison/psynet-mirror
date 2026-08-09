@@ -12,6 +12,7 @@ from psynet.session import (
     LiveSessionInitializer,
     ReadyMessage,
     SessionEndMessage,
+    SessionStartMessage,
     StateRequestMessage,
 )
 
@@ -229,17 +230,19 @@ def test_live_session_snapshot_state_can_use_participant():
     }
 
 
-def test_live_session_status_message_is_json_ready():
-    """Status payloads expose readiness without public state."""
+def test_live_session_start_message_is_json_ready():
+    """Start messages expose readiness and participant-specific state."""
 
     state = _state()
     state.mark_ready(SimpleNamespace(id=1))
+    state.mark_ready(SimpleNamespace(id=2))
 
-    assert state.status_message().model_dump(mode="json") == {
+    assert SessionStartMessage(**state.snapshot_payload()).model_dump(mode="json") == {
         "session_id": 1,
+        "state": {"score": 3},
         "participant_ids": ["1", "2"],
-        "ready_participant_ids": ["1"],
-        "started": False,
+        "ready_participant_ids": ["1", "2"],
+        "started": True,
         "ended": False,
     }
 
@@ -296,24 +299,38 @@ def test_state_request_rejects_non_member(monkeypatch):
     assert sent == []
 
 
-def test_ready_event_marks_state_and_sends_status(monkeypatch):
-    """ReadyEvent updates the row and sends status without a state snapshot."""
+def test_ready_event_sends_start_once_all_participants_are_ready(monkeypatch):
+    """ReadyEvent sends start snapshots once the session starts."""
 
     state = _state()
     sent = _capture_server_sends(monkeypatch)
     experiment = SimpleNamespace()
-    participant = SimpleNamespace(id=1)
     monkeypatch.setattr(LiveSession, "get", classmethod(lambda *args, **kwargs: state))
     monkeypatch.setattr("psynet.session.db.session.commit", MagicMock())
 
     ReadyMessage(session_id=1).handle(
         experiment=experiment,
-        participant=participant,
+        participant=SimpleNamespace(id=1),
         receive_time=None,
     )
 
     assert state.ready_participant_ids == [1]
-    assert sent == [(state.participants, state.status_message())]
+    assert sent == []
+
+    ReadyMessage(session_id=1).handle(
+        experiment=experiment,
+        participant=SimpleNamespace(id=2),
+        receive_time=None,
+    )
+
+    assert state.ready_participant_ids == [1, 2]
+    assert sent == [
+        (
+            participant,
+            SessionStartMessage(**state.snapshot_payload(participant=participant)),
+        )
+        for participant in state.participants
+    ]
 
 
 def test_ready_event_rejects_non_member(monkeypatch):
