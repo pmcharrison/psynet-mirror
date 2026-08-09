@@ -55,6 +55,42 @@ def test_default_psynet_requirement_includes_experiment_for_alpha_no_git(monkeyp
     assert req == "psynet[experiment]==13.4.0a0"
 
 
+def test_bootstrap_install_preserves_vcs_commit_provenance(monkeypatch):
+    """A VCS-installed PsyNet must be reinstalled from the same commit.
+
+    Falling back to a version pin would install different code, or fail
+    outright when the alpha version is not published to an index.
+    """
+    commit = "c" * 40
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._psynet_direct_url_info",
+        lambda: {
+            "url": "https://gitlab.com/PsyNetDev/PsyNet.git",
+            "vcs_info": {"vcs": "git", "commit_id": commit},
+        },
+    )
+    from psynet.experiment_scaffold import installed_psynet_direct_requirement
+    from psynet.experiment_setup import _same_psynet_install_args
+
+    expected = f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet.git@{commit}"
+    assert installed_psynet_direct_requirement() == expected
+    assert _same_psynet_install_args() == [expected]
+
+
+def test_bootstrap_install_ignores_vcs_metadata_for_editable_checkout(monkeypatch):
+    """Editable checkouts stay editable rather than becoming a commit pin."""
+    monkeypatch.setattr(
+        "psynet.experiment_scaffold._psynet_direct_url_info",
+        lambda: {
+            "url": "file:///home/someone/PsyNet",
+            "dir_info": {"editable": True},
+        },
+    )
+    from psynet.experiment_scaffold import installed_psynet_direct_requirement
+
+    assert installed_psynet_direct_requirement() is None
+
+
 def test_default_psynet_requirement_uses_local_file_install(tmp_path, monkeypatch):
     monkeypatch.setattr("psynet.experiment_scaffold.psynet_version", "13.4.0a0")
     monkeypatch.setattr(

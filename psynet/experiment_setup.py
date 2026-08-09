@@ -22,6 +22,7 @@ from .experiment_scaffold import (
     editable_psynet_requirement,
     get_editable_psynet_source,
     get_psynet_requirement,
+    installed_psynet_direct_requirement,
     pin_unpinned_psynet_requirement,
     scaffold_experiment_directory,
     set_psynet_requirement,
@@ -450,18 +451,19 @@ def _same_psynet_install_args():
 
     The dedicated environment must be bootstrapped with the *same* PsyNet that
     is running, so that the delegated setup generates experiment files and
-    constraints with the version the experiment will actually use.
+    constraints with the version the experiment will actually use. Direct
+    installs (editable checkout, VCS commit, or local path) are reproduced
+    exactly; only index installs fall back to a version pin.
     """
-    from .experiment_scaffold import _installed_psynet_file_path
     from .version import psynet_version
 
     editable_source = get_editable_psynet_source()
     if editable_source is not None:
         return ["-e", str(editable_source)]
 
-    local_path = _installed_psynet_file_path()
-    if local_path is not None:
-        return [f"psynet @ {local_path.as_uri()}"]
+    direct_requirement = installed_psynet_direct_requirement()
+    if direct_requirement is not None:
+        return [direct_requirement]
 
     return [f"psynet=={psynet_version}"]
 
@@ -531,7 +533,11 @@ def _delegate_setup_to_venv(venv_path, *, psynet_source):
         + os.pathsep
         + env.get("PATH", "")
     )
+    # PYTHONPATH entries precede site-packages, so an inherited one pointing at
+    # another PsyNet checkout would be imported instead of the PsyNet just
+    # installed into venv_path, silently defeating the delegation.
     env.pop("PYTHONHOME", None)
+    env.pop("PYTHONPATH", None)
 
     result = subprocess.run(command, env=env, check=False)
     if result.returncode != 0:

@@ -332,11 +332,11 @@ def _remote_contains_commit(source: Path, commit: str, remote: str = "origin") -
     return _remote_advertises_commit(source, commit, remote=remote)
 
 
-def _installed_psynet_file_path() -> Path | None:
-    """Return the local path when PsyNet was installed from a ``file://`` URL.
+def _psynet_direct_url_info() -> dict | None:
+    """Return PEP 610 ``direct_url.json`` metadata for the installed PsyNet.
 
-    Covers both editable and non-editable path installs (for example
-    ``uv pip install /path/to/PsyNet`` or ``uv pip install -e /path/to/PsyNet``).
+    Present only for direct installs (path, editable, or VCS); ``None`` when
+    PsyNet came from an index or is not installed.
     """
     try:
         direct_url = metadata.distribution("psynet").read_text("direct_url.json")
@@ -344,11 +344,49 @@ def _installed_psynet_file_path() -> Path | None:
         return None
     if direct_url is None:
         return None
-    installation = json.loads(direct_url)
+    return json.loads(direct_url)
+
+
+def _installed_psynet_file_path() -> Path | None:
+    """Return the local path when PsyNet was installed from a ``file://`` URL.
+
+    Covers both editable and non-editable path installs (for example
+    ``uv pip install /path/to/PsyNet`` or ``uv pip install -e /path/to/PsyNet``).
+    """
+    installation = _psynet_direct_url_info()
+    if installation is None:
+        return None
     parsed_url = urlparse(installation["url"])
     if parsed_url.scheme != "file":
         return None
     return Path(unquote(parsed_url.path)).resolve()
+
+
+def installed_psynet_direct_requirement() -> str | None:
+    """Return a requirement reproducing a direct (non-index) PsyNet install.
+
+    Handles VCS installs such as ``pip install git+<url>@<commit>``, whose
+    provenance pip records under ``vcs_info``, and non-editable path installs.
+    Returns ``None`` for index installs and for editable checkouts, which
+    callers represent with :func:`editable_psynet_requirement` instead.
+    """
+    installation = _psynet_direct_url_info()
+    if installation is None:
+        return None
+    if installation.get("dir_info", {}).get("editable", False):
+        return None
+
+    url = installation.get("url")
+    vcs_info = installation.get("vcs_info") or {}
+    vcs = vcs_info.get("vcs")
+    commit = vcs_info.get("commit_id")
+    if url and vcs and commit:
+        return f"psynet @ {vcs}+{url}@{commit}"
+
+    local_path = _installed_psynet_file_path()
+    if local_path is not None:
+        return f"psynet @ {local_path.as_uri()}"
+    return None
 
 
 def _default_psynet_requirement() -> str:
@@ -410,14 +448,9 @@ def _optional_commit_psynet_requirement(source: Path) -> str | None:
 
 def get_editable_psynet_source() -> Path | None:
     """Return the source path when PsyNet is installed in editable mode."""
-    try:
-        direct_url = metadata.distribution("psynet").read_text("direct_url.json")
-    except metadata.PackageNotFoundError:
+    installation = _psynet_direct_url_info()
+    if installation is None:
         return None
-    if direct_url is None:
-        return None
-
-    installation = json.loads(direct_url)
     if not installation.get("dir_info", {}).get("editable", False):
         return None
     parsed_url = urlparse(installation["url"])

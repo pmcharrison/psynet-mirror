@@ -2031,6 +2031,41 @@ def test_setup_shared_env_interactive_new_venv_suggests_editable_install(
     assert install_args[-2:] == ["-e", str(source)]
 
 
+def test_delegated_setup_does_not_inherit_pythonpath(tmp_path, monkeypatch):
+    """PYTHONPATH precedes site-packages, so it must not leak into delegation.
+
+    Otherwise the delegated run could import a different PsyNet than the one
+    installed into the experiment's environment.
+    """
+    source = tmp_path / "psynet-source"
+    source.mkdir()
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setenv("PYTHONPATH", "/somewhere/else/PsyNet")
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    _assume_git_repository(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services", lambda **kwargs: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv", lambda: True
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup.get_editable_psynet_source", lambda: source
+    )
+    _uv_calls, delegated = _stub_new_venv_delegation(monkeypatch, tmp_path)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="1\n1\n")
+
+    assert result.exit_code == 0, result.output
+    _command, env = delegated[0]
+    assert "PYTHONPATH" not in env
+    assert "PYTHONHOME" not in env
+
+
 def test_setup_delegated_run_does_not_create_another_venv(tmp_path, monkeypatch):
     """The delegated setup must never recurse into creating a second venv."""
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
