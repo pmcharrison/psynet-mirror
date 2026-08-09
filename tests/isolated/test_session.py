@@ -67,6 +67,18 @@ class ParticipantAwareDemoLiveSession(LiveSession):
         return state
 
 
+class ReusedColumnDemoLiveSessionA(LiveSession):
+    """Demo live session that declares a reusable subclass column."""
+
+    reusable_value = Column(String)
+
+
+class ReusedColumnDemoLiveSessionB(LiveSession):
+    """Demo live session that reuses an already-declared subclass column."""
+
+    reusable_value = Column(String)
+
+
 def _participants():
     return [
         SimpleNamespace(id=1, page_uuid="page-1", module_state=None),
@@ -572,6 +584,15 @@ def test_live_session_uses_shared_polymorphic_table():
     assert "session_type" in LiveSession.__table__.columns
     assert "node_id" in LiveSession.__table__.columns
     assert "network_id" in LiveSession.__table__.columns
+
+
+def test_live_session_column_reuses_existing_table_column():
+    """Reusable live-session columns tolerate experiment module re-imports."""
+
+    assert (
+        ReusedColumnDemoLiveSessionA.__table__.c.reusable_value
+        is ReusedColumnDemoLiveSessionB.__table__.c.reusable_value
+    )
 
 
 def test_base_live_session_can_snapshot_generic_var_store():

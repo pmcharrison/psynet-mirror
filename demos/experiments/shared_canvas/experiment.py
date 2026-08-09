@@ -194,6 +194,7 @@ class PositionUpdateMessage(ServerWebSocketMessage):
     """Broadcast player position update."""
 
     event_type: ClassVar[str] = "position_update"
+    save: ClassVar[bool] = False
     participant_id: str
     x: float
     y: float

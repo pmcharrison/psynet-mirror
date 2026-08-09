@@ -164,7 +164,12 @@ events for gameplay progress.
     from psynet.field import PythonDict
     from psynet.modular_page import ModularPage
     from psynet.page import InfoPage
-    from psynet.session import LiveSession, LiveSessionControl, LiveSessionInitializer, session
+    from psynet.session import (
+        LiveSession,
+        LiveSessionControl,
+        LiveSessionInitializer,
+        session,
+    )
     from psynet.sync import SimpleGrouper
     from psynet.timeline import Timeline, join
     from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker

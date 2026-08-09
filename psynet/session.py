@@ -45,6 +45,17 @@ _LIVE_SESSION_METADATA_COLUMNS = {
     "network_id",
 }
 
+
+def _reusable_live_session_column(name: str, column):
+    """Return a declared live-session column that reuses existing table columns."""
+
+    @declared_attr
+    def _column(cls):
+        return cls.__table__.c.get(name, column)
+
+    return _column
+
+
 logger = get_logger()
 
 
@@ -195,6 +206,14 @@ class SessionEndMessage(StateSnapshotMessage):
 
 class _LiveSessionMixin:
     """Shared columns and behavior for persisted live-session rows."""
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        for name, value in list(cls.__dict__.items()):
+            if name in _LIVE_SESSION_METADATA_COLUMNS:
+                continue
+            if isinstance(value, Column):
+                setattr(cls, name, _reusable_live_session_column(name, value))
 
     session_type = Column(String, index=True)
     group_type = Column(String, index=True)
