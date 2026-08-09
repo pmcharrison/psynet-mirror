@@ -37,14 +37,16 @@ function assertRegressionResult(actual, expected) {
     }
 }
 
-export async function activate({psynet}) {
+export async function activate({psynet, trial}) {
     window.__overlappingAudioStopLifecycle = {ready: false};
 
-    await psynet.media.addExtraAudioStimulus(
-        makeSilentWavBuffer(0.4),
-        "overlapping_manual_stop"
-    );
-    window.__overlappingAudioStopLifecycle.ready = true;
+    trial.onEvent("trialConstruct", async function () {
+        await psynet.media.addExtraAudioStimulus(
+            makeSilentWavBuffer(0.4),
+            "overlapping_manual_stop"
+        );
+        window.__overlappingAudioStopLifecycle.ready = true;
+    });
 
     window.__runOverlappingAudioStopRegression = async function () {
         const countActiveSounds = () =>
