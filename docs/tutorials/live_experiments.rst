@@ -231,6 +231,11 @@ exception.
         event_type: ClassVar[str] = "scoreUpdate"
         score: int
 
+If you also need an audit trail of the session state after each successful
+mutation, use ``@session(write=True, logging=True)``. PsyNet queues a full
+authoritative state record after the write commits, then saves it asynchronously
+in a structured log table for that live-session class. 
+
 Snapshots and private state
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

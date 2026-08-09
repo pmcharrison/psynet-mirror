@@ -151,7 +151,7 @@ class CollectMessage(ClientWebSocketMessage):
     y: float = Field(ge=0, le=CANVAS_SIZE)
     client_time: float
 
-    @session(write=True)
+    @session(write=True, logging=True)
     def handle(
         self,
         experiment,

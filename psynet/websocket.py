@@ -798,6 +798,7 @@ def _participant_from_request():
 
 def _handle_socket(ws):  # pragma: no cover - exercised in live experiments
     from psynet.experiment import get_experiment
+    from psynet.session import start_live_session_state_log_drainer
 
     participant = _participant_from_request()
     if participant is None:
@@ -807,6 +808,7 @@ def _handle_socket(ws):  # pragma: no cover - exercised in live experiments
     experiment = get_experiment()
     start_redis_listener()
     start_websocket_message_event_drainer()
+    start_live_session_state_log_drainer()
     connection = connection_manager.add(participant.id, participant.page_uuid, ws)
 
     try:

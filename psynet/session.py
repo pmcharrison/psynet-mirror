@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import json
+import threading
+import time
 from copy import deepcopy
 from functools import wraps
 from typing import ClassVar, get_type_hints
 
 from dallinger import db
+from dallinger.db import redis_conn
 from dallinger.models import timenow
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.field import PythonList
+from psynet.field import PythonDict, PythonList
 from psynet.modular_page import Control, NoArgumentProvided
 from psynet.page import WaitPage
 from psynet.sync import GroupBarrier
@@ -26,6 +29,9 @@ STATE_SNAPSHOT_EVENT = "stateSnapshot"
 READY_EVENT = "ready"
 SESSION_START_EVENT = "sessionStart"
 SESSION_END_EVENT = "sessionEnd"
+LIVE_SESSION_STATE_LOG_QUEUE = "psynet:live-session-state-log"
+LIVE_SESSION_STATE_LOG_BATCH_SIZE = 100
+LIVE_SESSION_STATE_LOG_POLL_TIMEOUT = 1
 
 _LIVE_SESSION_METADATA_COLUMNS = {
     "id",
@@ -44,6 +50,20 @@ _LIVE_SESSION_METADATA_COLUMNS = {
     "node_id",
     "network_id",
 }
+_LIVE_SESSION_STATE_LOG_METADATA_COLUMNS = {
+    "id",
+    "type",
+    "vars",
+    "session_id",
+    "participant_id",
+    "trigger_event_type",
+    "message_time",
+    "log_time",
+}
+_LIVE_SESSION_STATE_LOG_MODELS: dict[type, type[SQLBase]] = {}
+_LIVE_SESSION_STATE_LOG_MODELS_BY_TABLE: dict[str, type[SQLBase]] = {}
+_LIVE_SESSION_STATE_LOG_DRAINER_STARTED = False
+_LIVE_SESSION_STATE_LOG_DRAINER_LOCK = threading.Lock()
 
 
 def _reusable_live_session_column(name: str, column):
@@ -57,6 +77,289 @@ def _reusable_live_session_column(name: str, column):
 
 
 logger = get_logger()
+
+
+def _live_session_class_identity(session_class):
+    return session_class.__module__, session_class.__qualname__
+
+
+def _same_live_session_class_identity(first, second):
+    return _live_session_class_identity(first) == _live_session_class_identity(second)
+
+
+def _live_session_state_column_names(session_class):
+    return tuple(getattr(session_class, "_live_session_state_column_names", ()))
+
+
+def _live_session_state_log_table_name(session_class):
+    return f"{model_name_to_snake_case(session_class.__name__)}_state_log"
+
+
+def _live_session_state_log_model_columns(session_class):
+    if session_class is LiveSession:
+        return {"state": Column(PythonDict, nullable=True)}
+
+    state_column_names = _live_session_state_column_names(session_class)
+    conflicting_fields = set(state_column_names).intersection(
+        _LIVE_SESSION_STATE_LOG_METADATA_COLUMNS
+    )
+    if conflicting_fields:
+        fields = ", ".join(sorted(conflicting_fields))
+        raise ValueError(
+            "Live-session state log field names cannot shadow metadata columns: "
+            f"{fields}."
+        )
+
+    columns = {}
+    for name in state_column_names:
+        source_column = session_class.__table__.c[name]
+        columns[name] = Column(source_column.type, nullable=True)
+    return columns
+
+
+def get_live_session_state_log_model(session_class):
+    """Return the SQL model used to persist state logs for a live-session class."""
+
+    if session_class in _LIVE_SESSION_STATE_LOG_MODELS:
+        return _LIVE_SESSION_STATE_LOG_MODELS[session_class]
+
+    table_name = _live_session_state_log_table_name(session_class)
+    if table_name in _LIVE_SESSION_STATE_LOG_MODELS_BY_TABLE:
+        existing_model = _LIVE_SESSION_STATE_LOG_MODELS_BY_TABLE[table_name]
+        existing_session_class = getattr(existing_model, "__live_session_class__", None)
+        if existing_session_class is session_class or _same_live_session_class_identity(
+            existing_session_class,
+            session_class,
+        ):
+            _LIVE_SESSION_STATE_LOG_MODELS[session_class] = existing_model
+            return existing_model
+        raise ValueError(
+            "Saved live-session state log table names must be unique; "
+            f"{session_class.__name__!r} maps to existing table {table_name!r}."
+        )
+
+    attrs = {
+        "__tablename__": table_name,
+        "__module__": __name__,
+        "__doc__": (
+            "Persisted authoritative state log for "
+            f"{session_class.__name__} live sessions."
+        ),
+        "__live_session_class__": session_class,
+        "session_id": Column(
+            Integer,
+            ForeignKey("live_session.id"),
+            index=True,
+            nullable=False,
+        ),
+        "participant_id": Column(Integer, index=True, nullable=True),
+        "trigger_event_type": Column(String(128), index=True, nullable=True),
+        "message_time": Column(DateTime, nullable=False),
+        "log_time": Column(DateTime, nullable=False),
+        **_live_session_state_log_model_columns(session_class),
+    }
+    log_model = register_table(
+        type(f"{session_class.__name__}StateLog", (SQLBase, SQLMixin), attrs)
+    )
+    _LIVE_SESSION_STATE_LOG_MODELS[session_class] = log_model
+    _LIVE_SESSION_STATE_LOG_MODELS_BY_TABLE[table_name] = log_model
+    return log_model
+
+
+def _live_session_state_log_model_from_table_name(table_name):
+    try:
+        return _LIVE_SESSION_STATE_LOG_MODELS_BY_TABLE[table_name]
+    except KeyError as exc:
+        raise ValueError(f"Unknown live-session state log table: {table_name}") from exc
+
+
+def _live_session_state_log_values(live_session):
+    session_class = type(live_session)
+    if session_class is LiveSession:
+        return {"state": deepcopy(live_session.vars or {})}
+
+    return {
+        name: deepcopy(getattr(live_session, name))
+        for name in _live_session_state_column_names(session_class)
+    }
+
+
+def _coerce_log_time(value):
+    return timenow() if value is None else value
+
+
+def _make_live_session_state_log_record(
+    *,
+    live_session,
+    participant,
+    trigger_event_type: str | None,
+    message_time,
+):
+    log_model = get_live_session_state_log_model(type(live_session))
+    return {
+        "table_name": log_model.__tablename__,
+        "session_id": int(live_session.id),
+        "participant_id": int(participant.id) if participant is not None else None,
+        "trigger_event_type": trigger_event_type,
+        "message_time": _coerce_log_time(message_time),
+        "log_time": timenow(),
+        "values": _live_session_state_log_values(live_session),
+    }
+
+
+def _encode_live_session_state_log_payload(record):
+    from psynet.serialize import serialize
+
+    return serialize(record)
+
+
+def _decode_live_session_state_log_payload(payload):
+    from psynet.serialize import unserialize
+
+    if isinstance(payload, bytes):
+        payload = payload.decode("utf-8")
+    return unserialize(payload)
+
+
+def enqueue_live_session_state_log_record(record: dict):
+    """Queue one authoritative live-session state log for batched persistence."""
+
+    enqueue_live_session_state_log_records([record])
+
+
+def enqueue_live_session_state_log_records(records):
+    """Queue authoritative live-session state logs for batched persistence."""
+
+    records = list(records)
+    if not records:
+        return
+
+    try:
+        redis_conn.rpush(
+            LIVE_SESSION_STATE_LOG_QUEUE,
+            *[_encode_live_session_state_log_payload(record) for record in records],
+        )
+    except Exception as exc:  # pragma: no cover - depends on Redis availability
+        logger.warning("Failed to queue live-session state logs for saving: %s", exc)
+
+
+def queue_live_session_state_log(
+    *,
+    live_session,
+    participant,
+    trigger_event_type: str | None,
+    message_time=None,
+):
+    """Build and queue one authoritative live-session state log."""
+
+    enqueue_live_session_state_log_record(
+        _make_live_session_state_log_record(
+            live_session=live_session,
+            participant=participant,
+            trigger_event_type=trigger_event_type,
+            message_time=message_time,
+        )
+    )
+
+
+def _pop_live_session_state_log_payloads(max_batch_size, *, block: bool):
+    payloads = []
+    if block:
+        item = redis_conn.blpop(
+            [LIVE_SESSION_STATE_LOG_QUEUE],
+            timeout=LIVE_SESSION_STATE_LOG_POLL_TIMEOUT,
+        )
+        if item is None:
+            return payloads
+        payloads.append(item[1])
+
+    while len(payloads) < max_batch_size:
+        payload = redis_conn.lpop(LIVE_SESSION_STATE_LOG_QUEUE)
+        if payload is None:
+            break
+        payloads.append(payload)
+    return payloads
+
+
+def _requeue_live_session_state_log_payloads(payloads):
+    if not payloads:
+        return
+    try:
+        redis_conn.lpush(LIVE_SESSION_STATE_LOG_QUEUE, *reversed(payloads))
+    except Exception as exc:  # pragma: no cover - depends on Redis availability
+        logger.warning("Failed to requeue live-session state logs after error: %s", exc)
+
+
+def _live_session_state_log_from_record(record):
+    log_model = _live_session_state_log_model_from_table_name(record["table_name"])
+    return log_model(
+        session_id=record["session_id"],
+        participant_id=record.get("participant_id"),
+        trigger_event_type=record.get("trigger_event_type"),
+        message_time=record["message_time"],
+        log_time=record["log_time"],
+        **record.get("values", {}),
+    )
+
+
+def drain_live_session_state_log_queue_once(
+    max_batch_size=LIVE_SESSION_STATE_LOG_BATCH_SIZE,
+    *,
+    block: bool = False,
+):
+    """Persist one batch of queued live-session state logs."""
+
+    try:
+        payloads = _pop_live_session_state_log_payloads(max_batch_size, block=block)
+    except Exception as exc:  # pragma: no cover - depends on Redis availability
+        logger.warning("Failed to read live-session state log queue: %s", exc)
+        return 0
+
+    events = []
+    valid_payloads = []
+    for payload in payloads:
+        try:
+            record = _decode_live_session_state_log_payload(payload)
+            events.append(_live_session_state_log_from_record(record))
+            valid_payloads.append(payload)
+        except Exception as exc:
+            logger.warning("Discarded invalid live-session state log payload: %s", exc)
+
+    if not events:
+        return 0
+
+    try:
+        db.session.add_all(events)
+        db.session.commit()
+    except Exception as exc:  # pragma: no cover - depends on database availability
+        db.session.rollback()
+        _requeue_live_session_state_log_payloads(valid_payloads)
+        logger.warning("Failed to save live-session state log batch: %s", exc)
+        return 0
+
+    return len(events)
+
+
+def _live_session_state_log_drainer_loop():  # pragma: no cover - live runtime path
+    while True:
+        drain_live_session_state_log_queue_once(block=True)
+        time.sleep(0)
+
+
+def start_live_session_state_log_drainer():
+    """Start the per-process drainer for live-session state logs."""
+
+    global _LIVE_SESSION_STATE_LOG_DRAINER_STARTED
+    with _LIVE_SESSION_STATE_LOG_DRAINER_LOCK:
+        if _LIVE_SESSION_STATE_LOG_DRAINER_STARTED:
+            return
+        thread = threading.Thread(
+            target=_live_session_state_log_drainer_loop,
+            name="psynet-live-session-state-log-drainer",
+            daemon=True,
+        )
+        thread.start()
+        _LIVE_SESSION_STATE_LOG_DRAINER_STARTED = True
 
 
 def _resolve_session_argument_class(method, argument: str, explicit_session_class):
@@ -91,15 +394,27 @@ def _get_message_session(message, participant, session_class, *, lock: bool):
     )
 
 
-def session(session_class=None, *, write: bool = False, argument: str = "session"):
+def session(
+    session_class=None,
+    *,
+    write: bool = False,
+    logging: bool = False,
+    argument: str = "session",
+):
     """Inject a participant-owned live session into a WebSocket message handler.
 
     Set ``write=True`` for handlers that mutate session state. This locks the
-    row, commits on success, and rolls back if the handler raises.
+    row, commits on success, and rolls back if the handler raises. Set
+    ``logging=True`` with ``write=True`` to queue an authoritative state log
+    after a successful commit.
     """
 
     if not isinstance(write, bool):
         raise TypeError("session write must be a boolean.")
+    if not isinstance(logging, bool):
+        raise TypeError("session logging must be a boolean.")
+    if logging and not write:
+        raise TypeError("session logging requires write=True.")
     if not isinstance(argument, str) or not argument:
         raise ValueError("session argument must be a non-empty string.")
 
@@ -131,6 +446,7 @@ def session(session_class=None, *, write: bool = False, argument: str = "session
                 )
                 return None
 
+            state_log_record = None
             try:
                 result = method(
                     self,
@@ -139,13 +455,26 @@ def session(session_class=None, *, write: bool = False, argument: str = "session
                     receive_time=receive_time,
                     **{argument: live_session},
                 )
+                if logging:
+                    state_log_record = _make_live_session_state_log_record(
+                        live_session=live_session,
+                        participant=participant,
+                        trigger_event_type=type(self).event_type,
+                        message_time=receive_time,
+                    )
             except Exception:
                 if write:
                     db.session.rollback()
                 raise
 
             if write:
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+                    raise
+            if state_log_record is not None:
+                enqueue_live_session_state_log_record(state_log_record)
             return result
 
         return wrapper
@@ -205,11 +534,14 @@ class _LiveSessionMixin:
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        state_column_names = set(getattr(cls, "_live_session_state_column_names", ()))
         for name, value in list(cls.__dict__.items()):
             if name in _LIVE_SESSION_METADATA_COLUMNS:
                 continue
             if isinstance(value, Column):
+                state_column_names.add(name)
                 setattr(cls, name, _reusable_live_session_column(name, value))
+        cls._live_session_state_column_names = tuple(sorted(state_column_names))
 
     session_type = Column(String, index=True)
     group_type = Column(String, index=True)

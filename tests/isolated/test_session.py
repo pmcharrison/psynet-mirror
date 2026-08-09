@@ -7,6 +7,7 @@ from sqlalchemy import Column, Integer, String
 
 from psynet.field import PythonDict, PythonList
 from psynet.session import (
+    LIVE_SESSION_STATE_LOG_QUEUE,
     LiveSession,
     LiveSessionControl,
     LiveSessionInitializer,
@@ -14,7 +15,16 @@ from psynet.session import (
     SessionEndMessage,
     SessionStartMessage,
     StateRequestMessage,
+    _decode_live_session_state_log_payload,
+    _make_live_session_state_log_record,
+    drain_live_session_state_log_queue_once,
+    enqueue_live_session_state_log_record,
+    get_live_session_state_log_model,
 )
+from psynet.session import (
+    session as session_context,
+)
+from psynet.websocket import ClientWebSocketMessage
 
 
 class PolymorphicDemoLiveSession(LiveSession):
@@ -68,6 +78,20 @@ class ParticipantAwareDemoLiveSession(LiveSession):
         return state
 
 
+class LoggedDemoLiveSession(LiveSession):
+    """Demo live session whose state log should include private columns."""
+
+    public_value = Column(String)
+    private_value = Column(String)
+    counter = Column(Integer)
+    details = Column(PythonDict)
+
+    def snapshot_state(self, fields=None, participant=None):
+        """Expose only the public column to browser snapshots."""
+
+        return {"public_value": self.public_value}
+
+
 class ReusedColumnDemoLiveSessionA(LiveSession):
     """Demo live session that declares a reusable subclass column."""
 
@@ -110,6 +134,89 @@ def _capture_server_sends(monkeypatch):
 
     monkeypatch.setattr("psynet.websocket.ServerWebSocketMessage.send", send)
     return sent
+
+
+class FakeRedis:
+    def __init__(self):
+        self.lists = {}
+        self.on_rpush = None
+
+    def rpush(self, key, *values):
+        if self.on_rpush is not None:
+            self.on_rpush()
+        stored_values = self.lists.setdefault(key, [])
+        stored_values.extend(values)
+        return len(stored_values)
+
+    def lpush(self, key, *values):
+        stored_values = self.lists.setdefault(key, [])
+        for value in values:
+            stored_values.insert(0, value)
+        return len(stored_values)
+
+    def lpop(self, key):
+        values = self.lists.get(key, [])
+        if not values:
+            return None
+        return values.pop(0)
+
+    def blpop(self, keys, timeout=0):
+        key = keys[0] if isinstance(keys, (list, tuple)) else keys
+        value = self.lpop(key)
+        if value is None:
+            return None
+        return key, value
+
+
+@pytest.fixture
+def fake_state_log_redis(monkeypatch):
+    fake_redis = FakeRedis()
+    monkeypatch.setattr("psynet.session.redis_conn", fake_redis)
+    return fake_redis
+
+
+def _saved_state_log_records(fake_redis):
+    return [
+        _decode_live_session_state_log_payload(payload)
+        for payload in fake_redis.lists.get(LIVE_SESSION_STATE_LOG_QUEUE, [])
+    ]
+
+
+class LoggedStateMessage(ClientWebSocketMessage):
+    """Message used to exercise state logging after a write handler."""
+
+    event_type = "loggedState"
+
+    @session_context(write=True, logging=True)
+    def handle(
+        self,
+        experiment,
+        participant,
+        session: LoggedDemoLiveSession,
+        receive_time,
+    ):
+        session.counter = int(session.counter or 0) + 1
+        session.public_value = "shown"
+        session.private_value = "hidden"
+        session.details = {"counter": session.counter}
+        return session.id
+
+
+class FailingLoggedStateMessage(ClientWebSocketMessage):
+    """Message used to exercise logging rollback behavior."""
+
+    event_type = "failingLoggedState"
+
+    @session_context(write=True, logging=True)
+    def handle(
+        self,
+        experiment,
+        participant,
+        session: LoggedDemoLiveSession,
+        receive_time,
+    ):
+        session.counter = int(session.counter or 0) + 1
+        raise RuntimeError("state update failed")
 
 
 def _group(*, leader_trial=True):
@@ -398,6 +505,284 @@ def test_live_session_send_snapshot_renders_per_participant(monkeypatch):
         {"participant_public_value": "shown", "participant_value": "one"},
         {"participant_public_value": "shown", "participant_value": "two"},
     ]
+
+
+def test_live_session_state_log_model_generates_structured_table():
+    """State logs use one structured table per concrete live-session class."""
+
+    log_model = get_live_session_state_log_model(LoggedDemoLiveSession)
+    columns = set(log_model.__table__.columns.keys())
+
+    assert log_model.__tablename__ == "logged_demo_live_session_state_log"
+    assert {
+        "session_id",
+        "participant_id",
+        "trigger_event_type",
+        "message_time",
+        "log_time",
+        "public_value",
+        "private_value",
+        "counter",
+        "details",
+    }.issubset(columns)
+    assert "session_type" not in columns
+    assert "group_type" not in columns
+    assert "sync_group_id" not in columns
+    assert "node_id" not in columns
+    assert "network_id" not in columns
+
+
+def test_live_session_state_log_records_authoritative_columns():
+    """State logs record raw session columns, not browser-facing snapshots."""
+
+    message_time = datetime(2026, 1, 1, 12, 0, 0)
+    live_session = LoggedDemoLiveSession(
+        public_value="shown",
+        private_value="hidden",
+        counter=3,
+        details={"secret": True},
+    )
+    live_session.id = 123
+    participant = SimpleNamespace(id=7)
+
+    record = _make_live_session_state_log_record(
+        live_session=live_session,
+        participant=participant,
+        trigger_event_type="loggedState",
+        message_time=message_time,
+    )
+
+    assert record["session_id"] == 123
+    assert record["participant_id"] == 7
+    assert record["trigger_event_type"] == "loggedState"
+    assert record["message_time"] == message_time
+    assert record["values"] == {
+        "counter": 3,
+        "details": {"secret": True},
+        "private_value": "hidden",
+        "public_value": "shown",
+    }
+    assert live_session.snapshot_state() == {"public_value": "shown"}
+    assert "group_type" not in record
+
+
+def test_session_decorator_logging_queues_after_commit(
+    fake_state_log_redis, monkeypatch
+):
+    """State logs are queued only after the write transaction commits."""
+
+    order = []
+    message_time = datetime(2026, 1, 1, 12, 0, 0)
+    participant = SimpleNamespace(id=7)
+    live_session = LoggedDemoLiveSession(counter=2)
+    live_session.id = 123
+
+    def get_current_for_participant(cls, participant_arg, session_id, *, for_update):
+        assert participant_arg is participant
+        assert session_id == 123
+        assert for_update is True
+        return live_session
+
+    fake_state_log_redis.on_rpush = lambda: order.append("queue")
+    monkeypatch.setattr(
+        LoggedDemoLiveSession,
+        "get_current_for_participant",
+        classmethod(get_current_for_participant),
+    )
+    monkeypatch.setattr(
+        "psynet.session.db.session.commit", lambda: order.append("commit")
+    )
+
+    result = LoggedStateMessage(session_id=123).handle(
+        experiment=SimpleNamespace(),
+        participant=participant,
+        receive_time=message_time,
+    )
+
+    assert result == 123
+    assert order == ["commit", "queue"]
+    assert _saved_state_log_records(fake_state_log_redis) == [
+        {
+            "table_name": "logged_demo_live_session_state_log",
+            "session_id": 123,
+            "participant_id": 7,
+            "trigger_event_type": "loggedState",
+            "message_time": message_time,
+            "log_time": _saved_state_log_records(fake_state_log_redis)[0]["log_time"],
+            "values": {
+                "counter": 3,
+                "details": {"counter": 3},
+                "private_value": "hidden",
+                "public_value": "shown",
+            },
+        }
+    ]
+
+
+def test_session_decorator_logging_skips_missing_session(
+    fake_state_log_redis, monkeypatch
+):
+    """Invalid live-session messages do not commit or queue logs."""
+
+    commit = MagicMock()
+    monkeypatch.setattr(
+        LoggedDemoLiveSession,
+        "get_current_for_participant",
+        classmethod(lambda cls, *args, **kwargs: None),
+    )
+    monkeypatch.setattr("psynet.session.db.session.commit", commit)
+
+    result = LoggedStateMessage(session_id=123).handle(
+        experiment=SimpleNamespace(),
+        participant=SimpleNamespace(id=7),
+        receive_time=None,
+    )
+
+    assert result is None
+    commit.assert_not_called()
+    assert _saved_state_log_records(fake_state_log_redis) == []
+
+
+def test_session_decorator_logging_skips_failed_handler(
+    fake_state_log_redis, monkeypatch
+):
+    """Failed write handlers roll back and do not queue state logs."""
+
+    live_session = LoggedDemoLiveSession(counter=2)
+    live_session.id = 123
+    rollbacks = []
+    monkeypatch.setattr(
+        LoggedDemoLiveSession,
+        "get_current_for_participant",
+        classmethod(lambda cls, *args, **kwargs: live_session),
+    )
+    monkeypatch.setattr(
+        "psynet.session.db.session.rollback", lambda: rollbacks.append(True)
+    )
+
+    with pytest.raises(RuntimeError, match="state update failed"):
+        FailingLoggedStateMessage(session_id=123).handle(
+            experiment=SimpleNamespace(),
+            participant=SimpleNamespace(id=7),
+            receive_time=None,
+        )
+
+    assert rollbacks == [True]
+    assert _saved_state_log_records(fake_state_log_redis) == []
+
+
+def test_session_decorator_logging_skips_failed_commit(
+    fake_state_log_redis, monkeypatch
+):
+    """State logs are not queued when the commit itself fails."""
+
+    live_session = LoggedDemoLiveSession(counter=2)
+    live_session.id = 123
+    rollbacks = []
+    monkeypatch.setattr(
+        LoggedDemoLiveSession,
+        "get_current_for_participant",
+        classmethod(lambda cls, *args, **kwargs: live_session),
+    )
+
+    def fail_commit():
+        raise RuntimeError("commit failed")
+
+    monkeypatch.setattr("psynet.session.db.session.commit", fail_commit)
+    monkeypatch.setattr(
+        "psynet.session.db.session.rollback", lambda: rollbacks.append(True)
+    )
+
+    with pytest.raises(RuntimeError, match="commit failed"):
+        LoggedStateMessage(session_id=123).handle(
+            experiment=SimpleNamespace(),
+            participant=SimpleNamespace(id=7),
+            receive_time=None,
+        )
+
+    assert rollbacks == [True]
+    assert _saved_state_log_records(fake_state_log_redis) == []
+
+
+def test_session_logging_requires_write():
+    """State logging is only valid for write handlers."""
+
+    with pytest.raises(TypeError, match="requires write=True"):
+        session_context(logging=True)
+
+
+def test_live_session_state_log_queue_drains_to_database(
+    fake_state_log_redis, monkeypatch
+):
+    """Queued state log records are converted to ORM rows in batches."""
+
+    live_session = LoggedDemoLiveSession(
+        public_value="shown",
+        private_value="hidden",
+        counter=3,
+        details={"secret": True},
+    )
+    live_session.id = 123
+    enqueue_live_session_state_log_record(
+        _make_live_session_state_log_record(
+            live_session=live_session,
+            participant=SimpleNamespace(id=7),
+            trigger_event_type="loggedState",
+            message_time=datetime(2026, 1, 1, 12, 0, 0),
+        )
+    )
+    added_events = []
+    commits = []
+
+    monkeypatch.setattr("psynet.session.db.session.add_all", added_events.extend)
+    monkeypatch.setattr(
+        "psynet.session.db.session.commit", lambda: commits.append(True)
+    )
+    monkeypatch.setattr("psynet.session.db.session.rollback", lambda: None)
+
+    assert drain_live_session_state_log_queue_once() == 1
+    assert commits == [True]
+    assert len(added_events) == 1
+    event = added_events[0]
+    assert isinstance(event, get_live_session_state_log_model(LoggedDemoLiveSession))
+    assert event.session_id == 123
+    assert event.participant_id == 7
+    assert event.trigger_event_type == "loggedState"
+    assert event.public_value == "shown"
+    assert event.private_value == "hidden"
+    assert event.counter == 3
+    assert event.details == {"secret": True}
+
+
+def test_live_session_state_log_queue_requeues_on_database_failure(
+    fake_state_log_redis, monkeypatch
+):
+    """Valid state log payloads are requeued when batch persistence fails."""
+
+    live_session = LoggedDemoLiveSession(public_value="shown")
+    live_session.id = 123
+    enqueue_live_session_state_log_record(
+        _make_live_session_state_log_record(
+            live_session=live_session,
+            participant=SimpleNamespace(id=7),
+            trigger_event_type="loggedState",
+            message_time=None,
+        )
+    )
+    rollbacks = []
+
+    def fail_commit():
+        raise RuntimeError("database down")
+
+    monkeypatch.setattr("psynet.session.db.session.add_all", lambda events: None)
+    monkeypatch.setattr("psynet.session.db.session.commit", fail_commit)
+    monkeypatch.setattr(
+        "psynet.session.db.session.rollback", lambda: rollbacks.append(True)
+    )
+
+    assert drain_live_session_state_log_queue_once() == 0
+    assert rollbacks == [True]
+    assert len(_saved_state_log_records(fake_state_log_redis)) == 1
 
 
 def test_create_for_group_is_leader_owned(monkeypatch):
