@@ -500,10 +500,10 @@ deployment fails with an explanatory error otherwise.
     failed participants are rejected (or handled via ``prolific_enable_return_for_bonus``).
 
 ``prolific_unsuccessful_base_payment`` *float* |psynet-icon|
-    The fixed amount (in the currency of your Prolific account, e.g. ``0.25``) that Prolific
-    automatically pays participants who fail or error out of the experiment. Must be positive and
-    less than ``base_payment`` (a Prolific requirement). Defaults to ``min(0.25, 80% of
-    base_payment)``, floored to the cent.
+    The fixed amount (in the currency of your Prolific account) that Prolific automatically pays
+    participants who fail or error out of the experiment. Must be positive and less than
+    ``base_payment`` (a Prolific requirement). Defaults to ``0.25``; studies with
+    ``base_payment <= 0.25`` must set it explicitly (or disable the feature).
 
 ``prolific_unsuccessful_topup`` *bool* |psynet-icon|
     If ``True`` (default), unsuccessful participants additionally receive a bonus equal to their
