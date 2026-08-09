@@ -402,6 +402,37 @@ def make_participant_with_recruiter(config, failed=True, status="working"):
     return participant
 
 
+@pytest.mark.parametrize(
+    "payment_enabled,failed,complete,expect_fail",
+    [
+        (True, False, False, True),  # errored mid-experiment: mark failed
+        (True, True, False, False),  # already failed: leave as is
+        (True, False, True, False),  # already complete: leave as is
+        (False, False, False, False),  # feature disabled: leave as is
+    ],
+)
+def test_on_error_page_marks_participant_failed(
+    payment_enabled, failed, complete, expect_fail
+):
+    config = make_config(
+        **(
+            {"prolific_unsuccessful_base_payment": 0.20}
+            if payment_enabled
+            else {"prolific_pay_unsuccessful": False}
+        )
+    )
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock(failed=failed, complete=complete)
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        recruiter.on_error_page(participant)
+
+    if expect_fail:
+        participant.fail.assert_called_once_with("error_page")
+    else:
+        participant.fail.assert_not_called()
+
+
 def test_recruiter_exit_info_returns_unsuccessful_code_type_for_failed_participant():
     from psynet.experiment import Experiment
 

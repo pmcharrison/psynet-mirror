@@ -259,6 +259,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "actions": [
                     {
                         "action": PROLIFIC_SCREEN_OUT_ACTION,
+                        # Prolific expects subcurrency units (pence/cents),
+                        # whereas unsuccessful_base_payment is in currency
+                        # units (pounds/dollars).
                         "fixed_screen_out_reward": int(
                             round(self.unsuccessful_base_payment * 100)
                         ),
@@ -268,6 +271,23 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             }
         )
         return codes
+
+    def on_error_page(self, participant):
+        """Mark a participant who lands on the error page as failed.
+
+        Not all error paths fail the participant before redirecting to the
+        error page (e.g. errors raised while processing a response). When
+        unsuccessful participants are paid via the screen-out completion
+        code, the participant must be marked as failed so that the exit
+        completion code and the bonus top-up logic treat them consistently.
+        """
+        should_fail = (
+            self.pays_unsuccessful_participants_via_screen_out
+            and not participant.failed
+            and not participant.complete
+        )
+        if should_fail:
+            participant.fail("error_page")
 
     def pays_participant_via_screen_out(self, participant) -> bool:
         """Whether this participant will be paid via Prolific's fixed

@@ -3587,18 +3587,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     participant.assignment_id, "error-page_route"
                 )
 
-            # Not all error paths fail the participant before redirecting here
-            # (e.g. errors raised while processing a response). When Prolific
-            # pays unsuccessful participants via the screen-out completion
-            # code, mark the participant as failed so that the exit code and
-            # bonus top-up logic treat them consistently.
-            if (
-                isinstance(recruiter, PsyNetProlificRecruiterMixin)
-                and recruiter.pays_unsuccessful_participants_via_screen_out
-                and not participant.failed
-                and not participant.complete
-            ):
-                participant.fail("error_page")
+            on_error_page = getattr(recruiter, "on_error_page", None)
+            if on_error_page is not None:
+                on_error_page(participant)
 
         return cls.error_page(
             participant=participant,
