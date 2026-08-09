@@ -1237,7 +1237,7 @@ def test_setup_tells_delegated_users_to_activate_the_new_environment(
         )
 
     assert result.exit_code == 0, result.output
-    assert "following commands:" in result.output
+    assert "Activate it yourself before continuing" in result.output
     activate_index = result.output.index("source .venv/bin/activate")
     debug_index = result.output.index("psynet debug local")
     assert activate_index < debug_index

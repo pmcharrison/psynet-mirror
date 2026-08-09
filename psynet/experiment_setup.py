@@ -108,27 +108,31 @@ def _setup_was_delegated():
 
 
 def _echo_useful_commands(*, git_available, activation_required):
-    """Print what to run next, making clear that setup itself already finished."""
-    commands = []
-    if not git_available:
-        commands.append("git init")
-    if activation_required:
-        commands.append("source .venv/bin/activate")
-    commands.append("psynet debug local")
-
+    """Print required follow-up steps, then what to try once setup is done."""
     click.echo()
-    if git_available:
-        noun = "command" if len(commands) == 1 else "commands"
-        click.echo(f"You can try running the experiment with the following {noun}:")
-    else:
+    if not git_available:
         click.echo(
             "Git is not installed, so this experiment has no repository yet. "
-            "Install Git from https://git-scm.com/downloads, then you can try "
-            "running the experiment with the following commands:"
+            "Install Git from https://git-scm.com/downloads, then run:"
         )
+        click.echo()
+        click.echo("  git init")
+        click.echo()
+
+    if activation_required:
+        click.echo(
+            "Setup created this experiment's environment, but it cannot activate "
+            "that environment in your shell. Activate it yourself before "
+            "continuing:"
+        )
+        click.echo()
+        click.echo("  source .venv/bin/activate")
+        click.echo()
+        click.echo("Then you can try running the experiment with:")
+    else:
+        click.echo("You can try running the experiment with the following command:")
     click.echo()
-    for command in commands:
-        click.echo(f"  {command}")
+    click.echo("  psynet debug local")
 
 
 def _assert_directory_is_scaffoldable():
