@@ -1243,25 +1243,69 @@ def test_setup_tells_delegated_users_to_activate_the_new_environment(
     assert activate_index < debug_index
 
 
-def test_setup_leaves_existing_work_tree_alone(tmp_path, monkeypatch):
-    """An experiment nested in a repository must not get a nested repository."""
-    calls = []
-    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
-    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+def test_setup_initialises_nested_repo_when_parent_ignores_experiment(
+    tmp_path, monkeypatch
+):
+    """A parent repo that ignores the experiment would package no files.
+
+    Setup must give it a dedicated repository rather than trust the containing
+    work tree, which Dallinger's ``git ls-files`` packaging would leave empty.
+    """
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / ".gitignore").write_text("experiment/\n")
+    experiment = tmp_path / "experiment"
+    experiment.mkdir()
+    (experiment / "requirements.txt").write_text("psynet==0.0.0\n")
+    (experiment / "constraints.txt").write_text("# stale constraints\n")
+    (experiment / "experiment.py").write_text("class Exp:\n    pass\n")
     _mock_dedicated_experiment_venv(monkeypatch)
     monkeypatch.setattr(
-        "psynet.experiment_setup._run_uv",
-        lambda args, description: calls.append((args, description)),
+        "psynet.experiment_setup._run_uv", lambda args, description: None
     )
 
-    with working_directory(tmp_path):
+    with working_directory(experiment):
         result = CliRunner().invoke(
             psynet,
             ["setup", "--psynet-source", "existing"],
         )
 
     assert result.exit_code == 0, result.output
-    assert not (tmp_path / ".git").exists()
+    assert (experiment / ".git").is_dir()
+    assert "ignores this experiment directory" in result.output
+
+
+def test_useful_commands_reports_failed_git_init_distinctly(capsys):
+    """A failed git init must not be reported as Git being absent."""
+    from psynet.experiment_setup import _echo_useful_commands, _GitStatus
+
+    _echo_useful_commands(git_status=_GitStatus.INIT_FAILED, activation_required=False)
+    output = capsys.readouterr().out
+    assert "could not initialise a Git repository" in output
+    assert "not installed" not in output
+    assert "git init" in output
+
+
+def test_setup_leaves_existing_work_tree_alone(tmp_path, monkeypatch):
+    """An experiment nested in a repository must not get a nested repository."""
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    experiment = tmp_path / "experiment"
+    experiment.mkdir()
+    (experiment / "requirements.txt").write_text("psynet==0.0.0\n")
+    (experiment / "constraints.txt").write_text("# stale constraints\n")
+    (experiment / "experiment.py").write_text("class Exp:\n    pass\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv", lambda args, description: None
+    )
+
+    with working_directory(experiment):
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--psynet-source", "existing"],
+        )
+
+    assert result.exit_code == 0, result.output
+    assert not (experiment / ".git").exists()
     assert "Using the existing Git repository" in result.output
 
 

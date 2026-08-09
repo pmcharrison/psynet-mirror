@@ -142,10 +142,8 @@ Set up an experiment (``setup``)
 
 ``psynet setup`` is the main path for a **standalone** experiment. Install the
 thin PsyNet bootstrap package first (``uv pip install psynet``), then run
-setup inside the experiment's dedicated active virtual environment. Prefer initialising a Git repository first (``git init``). If Git is missing
-or the directory is not a repository yet, setup still continues and prints
-gentle next-step guidance; local debug will require a repository later. In
-order it:
+setup inside the experiment's dedicated active virtual environment. In order
+it:
 
 1. Scaffolds any missing standard experiment files and pins PsyNet. An
    existing bare ``psynet`` line in ``requirements.txt`` is pinned to
@@ -159,13 +157,17 @@ order it:
    (same freshness rule as ``psynet check-constraints``).
 3. Installs from ``constraints.txt`` with ``uv pip sync`` and verifies with
    ``uv pip check``.
-4. Softly checks local PostgreSQL/Redis (and may offer to start them with
+4. Ensures the experiment has a Git repository for deployment. An experiment
+   that already sits inside a repository uses it as-is; one that is not in a
+   repository (or that its surrounding repository ignores) gets a dedicated
+   repository via ``git init``. If Git is not installed, setup continues and
+   asks you to install Git and run ``git init`` before debugging or deploying.
+5. Softly checks local PostgreSQL/Redis (and may offer to start them with
    Docker). Missing services do not fail setup; use
    ``psynet services ensure`` if you want a hard guarantee before debugging.
 
 .. code:: bash
 
-  git init
   uv pip install psynet
   psynet setup
 

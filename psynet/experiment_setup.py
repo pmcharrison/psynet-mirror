@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import sys
+from enum import Enum
 from pathlib import Path
 
 import click
@@ -35,6 +36,14 @@ from .light_utils import (
 )
 
 
+class _GitStatus(str, Enum):
+    """Outcome of ensuring an experiment has a usable Git repository."""
+
+    READY = "ready"
+    MISSING_GIT = "missing_git"
+    INIT_FAILED = "init_failed"
+
+
 def _git_repository_root():
     """Return the work-tree root of the containing repository, if any."""
     result = subprocess.run(
@@ -48,34 +57,26 @@ def _git_repository_root():
     return result.stdout.strip() or None
 
 
-def _ensure_git_repository():
-    """Initialise a Git repository for this experiment unless one already applies.
+def _containing_worktree_ignores_experiment():
+    """Return whether the containing worktree ignores this experiment directory.
 
-    Dallinger packages an experiment by intersecting the directory tree with
-    ``git ls-files``, so a repository is what gives deployment its ignore rules.
-    Being anywhere inside a work tree is sufficient -- the experiment need not be
-    the repository root -- and initialising a nested repository would actually
-    break the containing repository's ignore rules, so an existing work tree is
-    always left alone.
-
-    Returns whether a usable repository is present afterwards.
+    Dallinger packages files via ``git ls-files``, so an experiment that its
+    surrounding repository ignores would deploy with no files at all. A concrete
+    tracked-intent file is checked when present, otherwise the directory itself.
     """
-    if git_repository_available():
-        root = _git_repository_root()
-        location = f" at {root}" if root else ""
-        click.echo(f"Using the existing Git repository{location}.")
-        return True
+    target = "experiment.py" if Path("experiment.py").exists() else "."
+    result = subprocess.run(
+        ["git", "check-ignore", "-q", target],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    # 0 => ignored, 1 => not ignored, anything else => treat as not ignored.
+    return result.returncode == 0
 
-    if not git_command_available():
-        click.echo(
-            "Warning: Git does not appear to be installed, so no repository "
-            "could be initialised here. Install Git from "
-            "https://git-scm.com/downloads and run 'git init' in this "
-            "directory before debugging or deploying.",
-            err=True,
-        )
-        return False
 
+def _init_git_repository_here():
+    """Run ``git init`` in the current directory and report the outcome."""
     result = subprocess.run(
         ["git", "init"],
         capture_output=True,
@@ -90,10 +91,49 @@ def _ensure_git_repository():
             f"'git init' manually before debugging or deploying.{suffix}",
             err=True,
         )
-        return False
-
+        return _GitStatus.INIT_FAILED
     click.echo(f"Initialised a Git repository in {Path.cwd() / '.git'}.")
-    return True
+    return _GitStatus.READY
+
+
+def _ensure_git_repository():
+    """Ensure this experiment has a Git repository suitable for deployment.
+
+    Dallinger packages an experiment by intersecting its directory tree with
+    ``git ls-files``, so a repository is what gives deployment its ignore rules.
+    Being anywhere inside a work tree is normally sufficient -- the experiment
+    need not be the repository root -- so a surrounding repository (for example
+    a monorepo of experiments, or a bundled experiment inside the PsyNet source
+    checkout) is used as-is rather than nested inside a new one.
+
+    The exception is a surrounding repository that *ignores* this experiment
+    directory: there ``git ls-files`` returns nothing, so setup initialises a
+    dedicated repository here instead of silently producing an empty deployment.
+    """
+    if git_repository_available():
+        if not _containing_worktree_ignores_experiment():
+            root = _git_repository_root()
+            location = f" at {root}" if root else ""
+            click.echo(f"Using the existing Git repository{location}.")
+            return _GitStatus.READY
+        click.echo(
+            "The surrounding Git repository ignores this experiment directory, "
+            "so setup is initialising a dedicated repository here (otherwise "
+            "deployment would package no files)."
+        )
+        return _init_git_repository_here()
+
+    if not git_command_available():
+        click.echo(
+            "Warning: Git does not appear to be installed, so no repository "
+            "could be initialised here. Install Git from "
+            "https://git-scm.com/downloads and run 'git init' in this "
+            "directory before debugging or deploying.",
+            err=True,
+        )
+        return _GitStatus.MISSING_GIT
+
+    return _init_git_repository_here()
 
 
 def _setup_was_delegated():
@@ -107,13 +147,21 @@ def _setup_was_delegated():
     return bool(os.environ.get(_DELEGATED_SETUP_ENV_VAR))
 
 
-def _echo_useful_commands(*, git_available, activation_required):
+def _echo_useful_commands(*, git_status, activation_required):
     """Print required follow-up steps, then what to try once setup is done."""
     click.echo()
-    if not git_available:
+    if git_status is _GitStatus.MISSING_GIT:
         click.echo(
             "Git is not installed, so this experiment has no repository yet. "
             "Install Git from https://git-scm.com/downloads, then run:"
+        )
+        click.echo()
+        click.echo("  git init")
+        click.echo()
+    elif git_status is _GitStatus.INIT_FAILED:
+        click.echo(
+            "Setup could not initialise a Git repository here. Create one "
+            "yourself before debugging or deploying:"
         )
         click.echo()
         click.echo("  git init")
@@ -389,10 +437,12 @@ _DELEGATED_SETUP_ENV_VAR = "PSYNET_SETUP_DELEGATED"
 
 
 def _venv_script_path(venv_path, name):
-    """Return the path of an executable inside ``venv_path``."""
-    bin_dir = "Scripts" if os.name == "nt" else "bin"
-    suffix = ".exe" if os.name == "nt" else ""
-    return venv_path / bin_dir / f"{name}{suffix}"
+    """Return the path of an executable inside ``venv_path``.
+
+    PsyNet targets POSIX shells (setup guidance uses ``source .venv/bin/...``),
+    so only the ``bin`` layout is handled.
+    """
+    return venv_path / "bin" / name
 
 
 def _same_psynet_install_args():
@@ -871,10 +921,10 @@ def setup_experiment(
         "synchronize experiment dependencies",
     )
     _run_uv(["pip", "check"], "verify experiment dependencies")
-    git_available = _ensure_git_repository()
+    git_status = _ensure_git_repository()
     click.echo("Setup complete.")
     _handle_setup_services(mode="ensure-soft")
     _echo_useful_commands(
-        git_available=git_available,
+        git_status=git_status,
         activation_required=_setup_was_delegated(),
     )
