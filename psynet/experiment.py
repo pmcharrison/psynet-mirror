@@ -1823,6 +1823,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
             "prolific_enable_return_for_bonus": True,
+            "prolific_pay_unsuccessful": True,
             "prolific_unsuccessful_topup": True,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
@@ -2146,7 +2147,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
         cls.check_base_payment(config)
-        PsyNetProlificRecruiterMixin.check_unsuccessful_base_payment(config)
+        PsyNetProlificRecruiterMixin.check_screen_out_config(config)
 
         parser = configparser.ConfigParser()
         parser.read("config.txt")
@@ -2888,6 +2889,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         def is_positive_int(value):
             assert int(value) > 0
 
+        config.register("prolific_pay_unsuccessful", bool)
         config.register(
             "prolific_unsuccessful_base_payment",
             float,
