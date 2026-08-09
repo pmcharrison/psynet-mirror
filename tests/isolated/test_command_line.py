@@ -1104,6 +1104,34 @@ def _assume_git_repository(monkeypatch):
     )
 
 
+def _stub_new_venv_delegation(monkeypatch, tmp_path):
+    """Stub uv and the delegated setup run for the dedicated-venv path.
+
+    Returns ``(uv_calls, delegated)``, where ``delegated`` records the
+    ``psynet setup`` invocations made through the new environment's entry point.
+    """
+    uv_calls = []
+    delegated = []
+    entry_point = tmp_path / ".venv" / "bin" / "psynet"
+
+    def fake_run_uv(args, description, quiet=False):
+        uv_calls.append((args, description, quiet))
+        if args and args[0] == "venv":
+            # uv would create the environment, including its entry points.
+            entry_point.parent.mkdir(parents=True, exist_ok=True)
+            entry_point.touch()
+
+    def fake_subprocess_run(command, env=None, check=False, **kwargs):
+        if len(command) > 1 and command[1] == "setup":
+            delegated.append((command, env))
+            return Mock(returncode=0)
+        return Mock(returncode=0, stdout=str(tmp_path), stderr="")
+
+    monkeypatch.setattr("psynet.experiment_setup._run_uv", fake_run_uv)
+    monkeypatch.setattr("psynet.experiment_setup.subprocess.run", fake_subprocess_run)
+    return uv_calls, delegated
+
+
 def _mock_dedicated_experiment_venv(monkeypatch):
     """Treat setup tests as using a dedicated experiment venv, not the shared one."""
     _assume_git_repository(monkeypatch)
@@ -1146,7 +1174,8 @@ def _mock_foreign_experiment_venv(monkeypatch, foreign_venv):
     monkeypatch.setattr("psynet.experiment_setup.sys.prefix", str(foreign_venv))
 
 
-def test_setup_suggests_git_init_when_repository_missing(tmp_path, monkeypatch):
+def test_setup_initialises_git_repository_when_missing(tmp_path, monkeypatch):
+    """Setup creates the repository itself and says so."""
     calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     (tmp_path / "constraints.txt").write_text("# stale constraints\n")
@@ -1171,12 +1200,36 @@ def test_setup_suggests_git_init_when_repository_missing(tmp_path, monkeypatch):
         )
 
     assert result.exit_code == 0, result.output
-    assert "Next steps:" in result.output
-    assert "PsyNet experiments require a git repository" in result.output
-    assert "git init" in result.output
+    assert (tmp_path / ".git").is_dir()
+    assert "Initialised a Git repository" in result.output
+    assert "Useful commands (setup is already complete):" in result.output
+    # Setup already did it, so it must not be listed as a command to run.
+    assert "  git init" not in result.output
     assert "does not appear to be installed" not in result.output
     assert (tmp_path / "Dockerfile").exists()
     assert calls  # setup still syncs
+
+
+def test_setup_leaves_existing_work_tree_alone(tmp_path, monkeypatch):
+    """An experiment nested in a repository must not get a nested repository."""
+    calls = []
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
+    _mock_dedicated_experiment_venv(monkeypatch)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda args, description: calls.append((args, description)),
+    )
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(
+            psynet,
+            ["setup", "--psynet-source", "existing"],
+        )
+
+    assert result.exit_code == 0, result.output
+    assert not (tmp_path / ".git").exists()
+    assert "Using the existing Git repository" in result.output
 
 
 def test_setup_suggests_installing_git_when_command_missing(tmp_path, monkeypatch):
@@ -1204,10 +1257,11 @@ def test_setup_suggests_installing_git_when_command_missing(tmp_path, monkeypatc
         )
 
     assert result.exit_code == 0, result.output
-    assert "Next steps:" in result.output
     assert "does not appear to be installed" in result.output
     assert "git-scm.com/downloads" in result.output
-    assert "git init" in result.output
+    # Git is unavailable, so the user must run git init themselves later.
+    assert "Useful commands (after installing Git):" in result.output
+    assert "  git init" in result.output
     assert calls
 
 
@@ -1761,7 +1815,9 @@ def test_setup_no_install_keeps_existing_explicit_pin(tmp_path, monkeypatch):
 
 
 def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
-    calls = []
+    """Choosing a dedicated venv installs this PsyNet there and finishes setup."""
+    source = tmp_path / "psynet-source"
+    source.mkdir()
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
@@ -1777,30 +1833,37 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     )
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
     monkeypatch.setattr(
-        "psynet.experiment_setup._run_uv",
-        lambda args, description, quiet=False: calls.append((args, description, quiet)),
+        "psynet.experiment_setup.get_editable_psynet_source",
+        lambda: source,
     )
+    calls, delegated = _stub_new_venv_delegation(monkeypatch, tmp_path)
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"], input="1\n")
 
     assert result.exit_code == 0, result.output
-    assert calls == [
-        (
-            ["venv", "--python=3.13"],
-            "create a dedicated experiment virtual environment",
-            True,
-        )
-    ]
-    assert "Create a dedicated .venv here (recommended)" in result.output
+    assert "Create a dedicated .venv here and finish setup in it" in result.output
     assert "Created ./.venv." in result.output
-    assert "Setup is paused" in result.output
-    assert "source .venv/bin/activate" in result.output
-    assert "uv pip install" in result.output
-    assert "psynet setup" in result.output
-    # This experiment directory is already a git repository, so no git step.
-    assert "git init" not in result.output
-    assert "Aborted!" not in result.output
+    assert "Installed PsyNet into ./.venv." in result.output
+
+    # The dedicated environment is created, then this PsyNet is installed there.
+    assert calls[0] == (
+        ["venv", "--python=3.13"],
+        "create a dedicated experiment virtual environment",
+        True,
+    )
+    install_args = calls[1][0]
+    assert install_args[:3] == ["pip", "install", "--python"]
+    assert install_args[-2:] == ["-e", str(source)]
+
+    # Setup is finished by the new environment's own entry point.
+    assert len(delegated) == 1
+    command, env = delegated[0]
+    assert command[0] == str(tmp_path / ".venv" / "bin" / "psynet")
+    assert command[1] == "setup"
+    assert env["VIRTUAL_ENV"] == str((tmp_path / ".venv").resolve())
+    assert env["PSYNET_SETUP_DELEGATED"] == "1"
+    # The outer process must not scaffold or repin; the inner run owns that.
     assert not (tmp_path / "Dockerfile").exists()
     assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
 
@@ -1870,27 +1933,28 @@ def test_setup_shared_env_interactive_new_venv_suggests_editable_install(
         "psynet.experiment_setup.get_editable_psynet_source",
         lambda: source,
     )
-    monkeypatch.setattr("psynet.experiment_setup._run_uv", lambda *args, **kwargs: None)
+    uv_calls, _delegated = _stub_new_venv_delegation(monkeypatch, tmp_path)
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"], input="1\n")
 
     assert result.exit_code == 0, result.output
-    assert f"uv pip install -e {source}" in result.output
+    # The editable checkout is installed into the new environment, not merely
+    # suggested to the user.
+    install_args = next(
+        args for args, _, _ in uv_calls if args[:2] == ["pip", "install"]
+    )
+    assert install_args[-2:] == ["-e", str(source)]
 
 
-def test_setup_shared_env_new_venv_lists_git_init_first_when_missing(
-    tmp_path, monkeypatch
-):
-    """Without a repo, git init leads the copy-pasteable block before activate."""
+def test_setup_delegated_run_does_not_create_another_venv(tmp_path, monkeypatch):
+    """The delegated setup must never recurse into creating a second venv."""
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setenv("PSYNET_SETUP_DELEGATED", "1")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
     )
-    monkeypatch.setattr(
-        "psynet.experiment_setup.git_repository_available", lambda: False
-    )
-    monkeypatch.setattr("psynet.experiment_setup.git_command_available", lambda: True)
+    _assume_git_repository(monkeypatch)
     monkeypatch.setattr(
         "psynet.experiment_setup._handle_setup_services", lambda **kwargs: None
     )
@@ -1898,23 +1962,21 @@ def test_setup_shared_env_new_venv_lists_git_init_first_when_missing(
         "psynet.experiment_setup._is_psynet_checkout_virtualenv", lambda: True
     )
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
-    monkeypatch.setattr("psynet.experiment_setup._run_uv", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._run_uv",
+        lambda *args, **kwargs: pytest.fail("delegated setup must not create a venv"),
+    )
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup"], input="1\n")
 
-    assert result.exit_code == 0, result.output
-    commands = [
-        line.strip()
-        for line in result.output.splitlines()
-        if line.startswith("  ") and not line.strip().startswith("#")
-    ]
-    assert commands.index("git init") < commands.index("source .venv/bin/activate")
-    assert commands.index("source .venv/bin/activate") < commands.index("psynet setup")
+    assert result.exit_code != 0
+    assert "Delegated setup tried to create another dedicated environment" in (
+        result.output
+    )
 
 
 def test_setup_shared_env_interactive_new_venv_default(tmp_path, monkeypatch):
-    calls = []
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
     monkeypatch.setattr(
         "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
@@ -1929,17 +1991,15 @@ def test_setup_shared_env_interactive_new_venv_default(tmp_path, monkeypatch):
         lambda: True,
     )
     monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
-    monkeypatch.setattr(
-        "psynet.experiment_setup._run_uv",
-        lambda args, description, quiet=False: calls.append(args),
-    )
+    uv_calls, delegated = _stub_new_venv_delegation(monkeypatch, tmp_path)
 
     with working_directory(tmp_path):
         # Accept the recommended default (new-venv).
         result = CliRunner().invoke(psynet, ["setup"], input="\n")
 
     assert result.exit_code == 0, result.output
-    assert calls == [["venv", "--python=3.13"]]
+    assert [args for args, _, _ in uv_calls][0] == ["venv", "--python=3.13"]
+    assert len(delegated) == 1
     assert "Aborted!" not in result.output
     assert not (tmp_path / "Dockerfile").exists()
 

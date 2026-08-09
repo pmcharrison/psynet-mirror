@@ -35,38 +35,84 @@ from .light_utils import (
 )
 
 
-def _git_next_step_lines():
-    """Return indented guidance lines when git or a work tree is missing."""
-    if git_repository_available():
-        return []
-    if not git_command_available():
-        return [
-            "  Git does not appear to be installed. Install it from",
-            "  https://git-scm.com/downloads, then in this directory run:",
-            "    git init",
-        ]
-    return [
-        "  PsyNet experiments require a git repository. Initialise one with:",
-        "    git init",
-    ]
+def _git_repository_root():
+    """Return the work-tree root of the containing repository, if any."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
 
 
-def _echo_git_next_steps(*, under_existing_heading=False):
-    """Print gentle next steps when git or a work tree is missing.
+def _ensure_git_repository():
+    """Initialise a Git repository for this experiment unless one already applies.
 
-    Local debug still requires a repository; setup continues either way.
+    Dallinger packages an experiment by intersecting the directory tree with
+    ``git ls-files``, so a repository is what gives deployment its ignore rules.
+    Being anywhere inside a work tree is sufficient -- the experiment need not be
+    the repository root -- and initialising a nested repository would actually
+    break the containing repository's ignore rules, so an existing work tree is
+    always left alone.
+
+    Returns whether a usable repository is present afterwards.
     """
-    lines = _git_next_step_lines()
-    if not lines:
-        return
-    if under_existing_heading:
-        for line in lines:
-            click.echo(line)
-        return
+    if git_repository_available():
+        root = _git_repository_root()
+        location = f" at {root}" if root else ""
+        click.echo(f"Using the existing Git repository{location}.")
+        return True
+
+    if not git_command_available():
+        click.echo(
+            "Warning: Git does not appear to be installed, so no repository "
+            "could be initialised here. Install Git from "
+            "https://git-scm.com/downloads and run 'git init' in this "
+            "directory before debugging or deploying.",
+            err=True,
+        )
+        return False
+
+    result = subprocess.run(
+        ["git", "init"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        suffix = f"\n{detail}" if detail else ""
+        click.echo(
+            "Warning: could not initialise a Git repository here. Run "
+            f"'git init' manually before debugging or deploying.{suffix}",
+            err=True,
+        )
+        return False
+
+    click.echo(f"Initialised a Git repository in {Path.cwd() / '.git'}.")
+    return True
+
+
+def _echo_useful_commands(*, git_available):
+    """Print post-setup commands, making clear that setup already finished."""
     click.echo()
-    click.echo("Next steps:")
-    for line in lines:
-        click.echo(line)
+    if git_available:
+        click.echo("Useful commands (setup is already complete):")
+    else:
+        click.echo("Useful commands (after installing Git):")
+    click.echo()
+    if not git_available:
+        click.echo("  # Initialise this experiment's Git repository")
+        click.echo("  git init")
+        click.echo()
+    click.echo("  # Activate this experiment's environment in a new shell")
+    click.echo("  source .venv/bin/activate")
+    click.echo()
+    click.echo("  # Launch the experiment locally")
+    click.echo("  psynet debug local")
 
 
 def _assert_directory_is_scaffoldable():
@@ -319,8 +365,53 @@ def _prompt_numeric_choice(title, options, *, default_index=0, intro=None):
     return options[choice - 1][0]
 
 
-def _create_dedicated_experiment_virtualenv():
-    """Create ``./.venv`` for a standalone experiment and print re-run steps."""
+_DELEGATED_SETUP_ENV_VAR = "PSYNET_SETUP_DELEGATED"
+
+
+def _venv_script_path(venv_path, name):
+    """Return the path of an executable inside ``venv_path``."""
+    bin_dir = "Scripts" if os.name == "nt" else "bin"
+    suffix = ".exe" if os.name == "nt" else ""
+    return venv_path / bin_dir / f"{name}{suffix}"
+
+
+def _same_psynet_install_args():
+    """Return ``uv pip install`` arguments for the PsyNet running right now.
+
+    The dedicated environment must be bootstrapped with the *same* PsyNet that
+    is running, so that the delegated setup generates experiment files and
+    constraints with the version the experiment will actually use.
+    """
+    from .experiment_scaffold import _installed_psynet_file_path
+    from .version import psynet_version
+
+    editable_source = get_editable_psynet_source()
+    if editable_source is not None:
+        return ["-e", str(editable_source)]
+
+    local_path = _installed_psynet_file_path()
+    if local_path is not None:
+        return [f"psynet @ {local_path.as_uri()}"]
+
+    return [f"psynet=={psynet_version}"]
+
+
+def _create_dedicated_experiment_virtualenv(*, psynet_source):
+    """Create ``./.venv``, install this PsyNet into it, and finish setup there.
+
+    A process cannot activate a virtualenv in its parent shell, so setup creates
+    the environment, bootstraps the same PsyNet distribution into it, and then
+    re-invokes ``psynet setup`` using that environment's own entry point. Every
+    experiment artifact is therefore produced by the PsyNet installed alongside
+    the experiment rather than by the shared checkout that happened to launch
+    setup.
+    """
+    if os.environ.get(_DELEGATED_SETUP_ENV_VAR):
+        raise click.ClickException(
+            "Delegated setup tried to create another dedicated environment. "
+            "This is a bug; re-run setup from the experiment's own .venv."
+        )
+
     venv_path = Path(".venv")
     if venv_path.exists():
         raise click.UsageError(
@@ -335,53 +426,49 @@ def _create_dedicated_experiment_virtualenv():
         quiet=True,
     )
     click.echo("Created ./.venv.")
-    click.echo()
-    click.echo(
-        "Setup is paused: this new environment must be activated in your own "
-        "shell before setup can finish. Copy and run these commands:"
+
+    venv_path = venv_path.resolve()
+    venv_python = _venv_script_path(venv_path, "python")
+    _run_uv(
+        ["pip", "install", "--python", str(venv_python), *_same_psynet_install_args()],
+        "install PsyNet into the dedicated experiment environment",
+        quiet=True,
     )
+    click.echo("Installed PsyNet into ./.venv.")
     click.echo()
-    for comment, command in _dedicated_venv_next_steps():
-        click.echo(f"  # {comment}")
-        if command is not None:
-            click.echo(f"  {command}")
+
+    _delegate_setup_to_venv(venv_path, psynet_source=psynet_source)
 
 
-def _dedicated_venv_next_steps():
-    """Return ``(comment, command)`` steps to finish dedicated-venv setup.
+def _delegate_setup_to_venv(venv_path, *, psynet_source):
+    """Run ``psynet setup`` again using ``venv_path``'s own entry point."""
+    psynet_executable = _venv_script_path(venv_path, "psynet")
+    if not psynet_executable.exists():
+        raise click.ClickException(
+            f"Expected a PsyNet entry point at {psynet_executable} after "
+            "installing into the dedicated environment, but it is missing."
+        )
 
-    Ordered as a single copy-pasteable shell block: initialise Git first (when
-    needed), then activate the environment, install PsyNet, and re-run setup. A
-    ``None`` command marks a comment-only line (for example when Git itself must
-    be installed before ``git init`` can run).
-    """
-    editable_source = get_editable_psynet_source()
-    install_command = (
-        f"uv pip install -e {editable_source}"
-        if editable_source is not None
-        else "uv pip install psynet"
+    command = [str(psynet_executable), "setup"]
+    if psynet_source is not None:
+        command += ["--psynet-source", psynet_source]
+
+    env = os.environ.copy()
+    env[_DELEGATED_SETUP_ENV_VAR] = "1"
+    env["VIRTUAL_ENV"] = str(venv_path)
+    env["PATH"] = (
+        str(_venv_script_path(venv_path, "python").parent)
+        + os.pathsep
+        + env.get("PATH", "")
     )
-    return [
-        *_git_setup_steps(),
-        (
-            "Activate this experiment's dedicated environment",
-            "source .venv/bin/activate",
-        ),
-        ("Install PsyNet into the new environment", install_command),
-        ("Finish setup: scaffold files and install dependencies", "psynet setup"),
-    ]
+    env.pop("PYTHONHOME", None)
 
-
-def _git_setup_steps():
-    """Return ``(comment, command)`` steps for initialising Git, if needed."""
-    if git_repository_available():
-        return []
-    if not git_command_available():
-        return [
-            ("Install Git first: https://git-scm.com/downloads", None),
-            ("Then start a Git repository here (required to debug/deploy)", "git init"),
-        ]
-    return [("Start a Git repository here (required to debug/deploy)", "git init")]
+    result = subprocess.run(command, env=env, check=False)
+    if result.returncode != 0:
+        raise click.ClickException(
+            "Setup failed while running inside the dedicated environment "
+            f"({psynet_executable} setup exited with code {result.returncode})."
+        )
 
 
 def _recommended_python():
@@ -416,8 +503,8 @@ def _resolve_shared_checkout_venv_action(*, no_install, force_shared_env):
     """Decide how setup should treat PsyNet's shared checkout virtualenv.
 
     Returns ``"no-install"``, ``"sync"``, ``"new-venv"``, or ``"cancel"``.
-    Raises on invalid flags. ``new-venv`` means create a dedicated environment
-    and stop so the user can install PsyNet into it and re-run setup.
+    Raises on invalid flags. ``new-venv`` means create a dedicated environment,
+    install this PsyNet into it, and finish setup there.
     """
     if no_install and force_shared_env:
         raise click.UsageError(
@@ -456,8 +543,7 @@ def _resolve_shared_checkout_venv_action(*, no_install, force_shared_env):
         [
             (
                 "new-venv",
-                "Create a dedicated .venv here (recommended), then install "
-                "PsyNet into it and re-run setup",
+                "Create a dedicated .venv here and finish setup in it (recommended)",
             ),
             ("cancel", "Cancel — leave everything as-is"),
             (
@@ -607,6 +693,7 @@ def _echo_in_repo_setup_success():
 
 def _echo_no_install_success(*, docker):
     """Print success and next steps after a files-only setup."""
+    _ensure_git_repository()
     if docker:
         click.echo(
             "Prepared experiment files for Docker "
@@ -615,7 +702,6 @@ def _echo_no_install_success(*, docker):
             "Next steps:\n"
             "  Follow the generated instructions under docker/docs."
         )
-        _echo_git_next_steps(under_existing_heading=True)
         _handle_setup_services(mode="verify")
         return
 
@@ -629,7 +715,6 @@ def _echo_no_install_success(*, docker):
         "  (omit --no-install / --docker so setup can install from "
         "constraints.txt)"
     )
-    _echo_git_next_steps(under_existing_heading=True)
     _handle_setup_services(mode="ensure-soft")
 
 
@@ -681,7 +766,7 @@ def setup_experiment(
     if action == "cancel":
         return
     if action == "new-venv":
-        _create_dedicated_experiment_virtualenv()
+        _create_dedicated_experiment_virtualenv(psynet_source=psynet_source)
         return
 
     # No-install already answered the shared-env question; don't add a second
@@ -729,6 +814,7 @@ def setup_experiment(
         "synchronize experiment dependencies",
     )
     _run_uv(["pip", "check"], "verify experiment dependencies")
+    git_available = _ensure_git_repository()
     click.echo("Setup complete.")
     _handle_setup_services(mode="ensure-soft")
-    _echo_git_next_steps()
+    _echo_useful_commands(git_available=git_available)
