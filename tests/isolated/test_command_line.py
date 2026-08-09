@@ -1794,10 +1794,12 @@ def test_setup_shared_env_interactive_new_venv(tmp_path, monkeypatch):
     ]
     assert "Create a dedicated .venv here (recommended)" in result.output
     assert "Created ./.venv." in result.output
-    assert "Next steps (setup is not finished until you run these):" in result.output
+    assert "Setup is paused" in result.output
     assert "source .venv/bin/activate" in result.output
     assert "uv pip install" in result.output
     assert "psynet setup" in result.output
+    # This experiment directory is already a git repository, so no git step.
+    assert "git init" not in result.output
     assert "Aborted!" not in result.output
     assert not (tmp_path / "Dockerfile").exists()
     assert (tmp_path / "requirements.txt").read_text() == "psynet==0.0.0\n"
@@ -1875,6 +1877,40 @@ def test_setup_shared_env_interactive_new_venv_suggests_editable_install(
 
     assert result.exit_code == 0, result.output
     assert f"uv pip install -e {source}" in result.output
+
+
+def test_setup_shared_env_new_venv_lists_git_init_first_when_missing(
+    tmp_path, monkeypatch
+):
+    """Without a repo, git init leads the copy-pasteable block before activate."""
+    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
+    monkeypatch.setattr(
+        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup.git_repository_available", lambda: False
+    )
+    monkeypatch.setattr("psynet.experiment_setup.git_command_available", lambda: True)
+    monkeypatch.setattr(
+        "psynet.experiment_setup._handle_setup_services", lambda **kwargs: None
+    )
+    monkeypatch.setattr(
+        "psynet.experiment_setup._is_psynet_checkout_virtualenv", lambda: True
+    )
+    monkeypatch.setattr("psynet.experiment_setup._is_interactive", lambda: True)
+    monkeypatch.setattr("psynet.experiment_setup._run_uv", lambda *args, **kwargs: None)
+
+    with working_directory(tmp_path):
+        result = CliRunner().invoke(psynet, ["setup"], input="1\n")
+
+    assert result.exit_code == 0, result.output
+    commands = [
+        line.strip()
+        for line in result.output.splitlines()
+        if line.startswith("  ") and not line.strip().startswith("#")
+    ]
+    assert commands.index("git init") < commands.index("source .venv/bin/activate")
+    assert commands.index("source .venv/bin/activate") < commands.index("psynet setup")
 
 
 def test_setup_shared_env_interactive_new_venv_default(tmp_path, monkeypatch):

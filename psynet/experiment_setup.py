@@ -336,15 +336,52 @@ def _create_dedicated_experiment_virtualenv():
     )
     click.echo("Created ./.venv.")
     click.echo()
-    click.echo("Next steps (setup is not finished until you run these):")
-    click.echo("  source .venv/bin/activate")
+    click.echo(
+        "Setup is paused: this new environment must be activated in your own "
+        "shell before setup can finish. Copy and run these commands:"
+    )
+    click.echo()
+    for comment, command in _dedicated_venv_next_steps():
+        click.echo(f"  # {comment}")
+        if command is not None:
+            click.echo(f"  {command}")
+
+
+def _dedicated_venv_next_steps():
+    """Return ``(comment, command)`` steps to finish dedicated-venv setup.
+
+    Ordered as a single copy-pasteable shell block: initialise Git first (when
+    needed), then activate the environment, install PsyNet, and re-run setup. A
+    ``None`` command marks a comment-only line (for example when Git itself must
+    be installed before ``git init`` can run).
+    """
     editable_source = get_editable_psynet_source()
-    if editable_source is not None:
-        click.echo(f"  uv pip install -e {editable_source}")
-    else:
-        click.echo("  uv pip install psynet")
-    click.echo("  psynet setup")
-    _echo_git_next_steps(under_existing_heading=True)
+    install_command = (
+        f"uv pip install -e {editable_source}"
+        if editable_source is not None
+        else "uv pip install psynet"
+    )
+    return [
+        *_git_setup_steps(),
+        (
+            "Activate this experiment's dedicated environment",
+            "source .venv/bin/activate",
+        ),
+        ("Install PsyNet into the new environment", install_command),
+        ("Finish setup: scaffold files and install dependencies", "psynet setup"),
+    ]
+
+
+def _git_setup_steps():
+    """Return ``(comment, command)`` steps for initialising Git, if needed."""
+    if git_repository_available():
+        return []
+    if not git_command_available():
+        return [
+            ("Install Git first: https://git-scm.com/downloads", None),
+            ("Then start a Git repository here (required to debug/deploy)", "git init"),
+        ]
+    return [("Start a Git repository here (required to debug/deploy)", "git init")]
 
 
 def _recommended_python():
