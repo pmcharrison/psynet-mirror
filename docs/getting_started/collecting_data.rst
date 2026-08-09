@@ -119,14 +119,13 @@ completion code with a fixed screen-out payment (see ``prolific_pay_unsuccessful
 ``prolific_unsuccessful_base_payment``). Unsuccessful participants submit their study
 normally, Prolific automatically pays them the fixed amount, and PsyNet tops them up to their
 accumulated reward with a bonus. This also applies to participants who encounter an error page.
-Note that this relies on a Prolific feature (custom screening with fixed rewards) that is currently
-only enabled for selected workspaces; if your workspace lacks it, PsyNet detects the rejection at
-study creation, logs a warning, and falls back to the older flow below. Deployments using this
-feature must set ``prolific_screen_out_slots``, which caps the automatic screen-out spending.
-See :doc:`../experiment_development/configuration` for details.
+Note that this relies on a Prolific feature (custom screening with fixed rewards) that Prolific
+documents as only enabled for selected workspaces; if your workspace lacks it, study creation
+fails and PsyNet logs a hint to disable the feature via ``prolific_pay_unsuccessful = false``.
+Deployments using this feature must set ``prolific_screen_out_slots``, which caps the automatic
+screen-out spending. See :doc:`../experiment_development/configuration` for details.
 
-If ``prolific_pay_unsuccessful`` is set to ``False`` (or the feature is unavailable for your
-workspace), PsyNet falls back to the older flow: if
+If ``prolific_pay_unsuccessful`` is set to ``False``, PsyNet falls back to the older flow: if
 ``prolific_enable_return_for_bonus`` is set to ``True``
 (the default), PsyNet tells the participant that they will receive a partial payment, but that they
 first need to return the submission in Prolific. When the participant declares they have done this,

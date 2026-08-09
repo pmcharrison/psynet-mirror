@@ -104,15 +104,6 @@ def default_unsuccessful_base_payment(base_payment: float) -> float:
     return min(0.25, floor(base_payment * 0.8 * 100) / 100)
 
 
-def _error_suggests_screen_out_unsupported(error: ProlificServiceException) -> bool:
-    """Best-effort detection of Prolific rejecting the screen-out completion
-    code at study creation (the exact error shape returned by non-gated
-    workspaces is not documented by Prolific).
-    """
-    text = str(error).lower().replace("-", " ").replace("_", " ")
-    return "screen out" in text
-
-
 def latest_participant_for_assignment(assignment_id):
     """Return the most recent participant with this assignment id, or ``None``.
 
@@ -203,10 +194,6 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
 class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     unsuccessful_code_type = PROLIFIC_UNSUCCESSFUL_CODE_TYPE
 
-    #: Experiment variable set when the Prolific workspace rejected the
-    #: screen-out completion code at study creation (see ``open_recruitment``).
-    SCREEN_OUT_UNAVAILABLE_VAR = "prolific_screen_out_unavailable"
-
     @property
     def unsuccessful_base_payment(self):
         """The fixed screen-out reward (in currency units) paid to unsuccessful
@@ -230,38 +217,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         """Whether unsuccessful (failed or errored) participants are paid
         automatically via a Prolific screen-out completion code.
         """
-        return (
-            self.unsuccessful_base_payment is not None
-            and not self._screen_out_unavailable_for_study()
-        )
-
-    def _screen_out_unavailable_for_study(self) -> bool:
-        """Whether screen-out payment was disabled at study creation because
-        the Prolific workspace rejected the completion code (see
-        ``open_recruitment``).
-
-        Queries the ``ExperimentConfig`` record directly (rather than going
-        through ``get_experiment()``) to avoid importing the local experiment
-        package as a side effect.
-        """
-        from .experiment import ExperimentConfig
-
-        try:
-            record = ExperimentConfig.query.get(1)
-        except Exception as error:
-            # Outside a running experiment (e.g. deploy-time config checks or
-            # unit tests) there is no database to consult; assume the feature
-            # is available.
-            logger.debug(
-                "Could not check the %s experiment variable (%s); assuming "
-                "screen-out payment is available.",
-                self.SCREEN_OUT_UNAVAILABLE_VAR,
-                error,
-            )
-            return False
-        if record is None:
-            return False
-        return bool(record.var.get(self.SCREEN_OUT_UNAVAILABLE_VAR, default=False))
+        return self.unsuccessful_base_payment is not None
 
     @property
     def screen_out_slots(self):
@@ -483,50 +439,27 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return self.approve_assignment()
 
     def open_recruitment(self, n: int = 1) -> dict:
-        """Create the Prolific study, disabling screen-out payment gracefully
-        when the workspace rejects the completion code.
+        """Create the Prolific study, adding guidance when creation fails
+        while screen-out payment is enabled.
 
-        Prolific's FIXED_SCREEN_OUT_PAYMENT action is workspace-gated, and
-        screen-out payment is enabled by default in PsyNet; without this
-        fallback, workspaces lacking the gate would fail to launch entirely.
-        Instead we log a warning, record the fallback in the
-        ``SCREEN_OUT_UNAVAILABLE_VAR`` experiment variable (which disables all
-        screen-out payment logic for this study), and create the study without
-        the UNSUCCESSFUL code.
+        Prolific's FIXED_SCREEN_OUT_PAYMENT action is documented as
+        workspace-gated, and screen-out payment is enabled by default in
+        PsyNet, so a workspace lacking the gate would fail here with an
+        otherwise cryptic Prolific error.
         """
-        if not self.pays_unsuccessful_participants_via_screen_out:
-            return super().open_recruitment(n=n)
         try:
             return super().open_recruitment(n=n)
-        except ProlificServiceException as error:
-            if not _error_suggests_screen_out_unsupported(error):
-                raise
-            logger.warning(
-                "Prolific rejected the study's %s screen-out completion code, "
-                "which usually means this workspace does not have Prolific's "
-                "%s feature enabled. Retrying study creation without it; "
-                "unsuccessful participants will NOT be paid automatically. "
-                "Set `prolific_pay_unsuccessful = false` to disable this "
-                "feature explicitly. Original error: %s",
-                self.unsuccessful_code_type,
-                PROLIFIC_SCREEN_OUT_ACTION,
-                error,
-            )
-            self._mark_screen_out_unavailable()
-            return super().open_recruitment(n=n)
-
-    def _mark_screen_out_unavailable(self):
-        """Persist that this study was created without the screen-out code."""
-        from .experiment import ExperimentConfig
-
-        record = ExperimentConfig.query.get(1)
-        if record is None:
-            # The experiment record is normally created before recruitment
-            # opens (Experiment.setup_experiment_config), but be safe.
-            record = ExperimentConfig()
-            db.session.add(record)
-        record.var.set(self.SCREEN_OUT_UNAVAILABLE_VAR, True)
-        db.session.commit()
+        except ProlificServiceException:
+            if self.pays_unsuccessful_participants_via_screen_out:
+                logger.error(
+                    "Study creation failed while screen-out payment was "
+                    "enabled (the default). If the error concerns completion "
+                    "codes or the %s action, your Prolific workspace may not "
+                    "support screen-out payments; set "
+                    "`prolific_pay_unsuccessful = false` to disable them.",
+                    PROLIFIC_SCREEN_OUT_ACTION,
+                )
+            raise
 
     def approve_hit(self, assignment_id: str):
         """Skip Prolific approval for participants paid via the screen-out code.

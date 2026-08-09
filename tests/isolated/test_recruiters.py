@@ -538,38 +538,11 @@ def test_check_screen_out_config_requires_screen_out_slots():
     PsyNetProlificRecruiterMixin.check_screen_out_config(make_config())
 
 
-def test_open_recruitment_falls_back_when_workspace_rejects_screen_out():
+def test_open_recruitment_reraises_with_hint_when_screen_out_enabled(caplog):
     config = make_config(prolific_unsuccessful_base_payment=0.20)
     recruiter = make_prolific_recruiter(config)
 
-    rejection = ProlificServiceException(
-        "Error creating study: completion code action FIXED_SCREEN_OUT_PAYMENT "
-        "(screen-out) is not available for this workspace"
-    )
-    success = {"items": ["https://example.com"], "message": "Study created"}
-
-    with patch("psynet.recruiters.get_config", return_value=config):
-        with patch.object(
-            dallinger.recruiters.ProlificRecruiter,
-            "open_recruitment",
-            side_effect=[rejection, success],
-        ) as super_open:
-            with patch.object(recruiter, "_mark_screen_out_unavailable") as mark:
-                # Call the mixin implementation directly: the ProlificRecruiter
-                # subclass adds Slack notification on top, which needs a running
-                # experiment.
-                result = PsyNetProlificRecruiterMixin.open_recruitment(recruiter, n=5)
-
-    assert result == success
-    assert super_open.call_count == 2
-    mark.assert_called_once()
-
-
-def test_open_recruitment_reraises_unrelated_errors():
-    config = make_config(prolific_unsuccessful_base_payment=0.20)
-    recruiter = make_prolific_recruiter(config)
-
-    rejection = ProlificServiceException("Error creating study: invalid filters")
+    rejection = ProlificServiceException("Error creating study: bad request")
 
     with patch("psynet.recruiters.get_config", return_value=config):
         with patch.object(
@@ -578,6 +551,28 @@ def test_open_recruitment_reraises_unrelated_errors():
             side_effect=rejection,
         ) as super_open:
             with pytest.raises(ProlificServiceException):
+                # Call the mixin implementation directly: the ProlificRecruiter
+                # subclass adds Slack notification on top, which needs a
+                # running experiment.
                 PsyNetProlificRecruiterMixin.open_recruitment(recruiter, n=5)
 
     assert super_open.call_count == 1
+    assert "prolific_pay_unsuccessful" in caplog.text
+
+
+def test_open_recruitment_no_hint_when_screen_out_disabled(caplog):
+    config = make_config(prolific_pay_unsuccessful=False)
+    recruiter = make_prolific_recruiter(config)
+
+    rejection = ProlificServiceException("Error creating study: bad request")
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch.object(
+            dallinger.recruiters.ProlificRecruiter,
+            "open_recruitment",
+            side_effect=rejection,
+        ):
+            with pytest.raises(ProlificServiceException):
+                PsyNetProlificRecruiterMixin.open_recruitment(recruiter, n=5)
+
+    assert "prolific_pay_unsuccessful" not in caplog.text
