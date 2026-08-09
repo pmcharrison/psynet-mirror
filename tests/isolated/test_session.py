@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+from dallinger import db
 from sqlalchemy import Column, Integer, String
 
 from psynet.field import PythonDict, PythonList
@@ -20,6 +21,7 @@ from psynet.session import (
     drain_live_session_state_log_queue_once,
     enqueue_live_session_state_log_record,
     get_live_session_state_log_model,
+    register_live_session_state_log_models,
 )
 from psynet.session import (
     session as session_context,
@@ -505,6 +507,32 @@ def test_live_session_send_snapshot_renders_per_participant(monkeypatch):
         {"participant_public_value": "shown", "participant_value": "one"},
         {"participant_public_value": "shown", "participant_value": "two"},
     ]
+
+
+def test_session_logging_registers_state_log_table_eagerly():
+    """Logged handlers register state-log tables before messages are handled."""
+
+    class EagerRegisteredLiveSession(LiveSession):
+        eager_registration_value = Column(String)
+
+    class EagerRegisteredMessage(ClientWebSocketMessage):
+        event_type = "eagerRegistered"
+
+        @session_context(
+            EagerRegisteredLiveSession,
+            mutate=True,
+            logging=True,
+        )
+        def handle(self, experiment, participant, session, receive_time):
+            return None
+
+    assert EagerRegisteredMessage
+    table_name = "eager_registered_live_session_state_log"
+    assert table_name not in db.Base.metadata.tables
+
+    register_live_session_state_log_models()
+
+    assert table_name in db.Base.metadata.tables
 
 
 def test_live_session_state_log_model_generates_structured_table():
