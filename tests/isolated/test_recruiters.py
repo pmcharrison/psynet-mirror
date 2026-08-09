@@ -224,14 +224,41 @@ def make_prolific_recruiter(config):
     return recruiter
 
 
-def test_completion_codes_unchanged_when_unsuccessful_payment_not_configured():
-    config = make_config()
+def test_completion_codes_unchanged_when_unsuccessful_payment_disabled():
+    config = make_config(prolific_pay_unsuccessful=False)
     recruiter = make_prolific_recruiter(config)
 
     with patch("psynet.recruiters.get_config", return_value=config):
         codes = recruiter.completion_codes_and_actions
 
     assert [code["code_type"] for code in codes] == ["DEFAULT"]
+
+
+def test_completion_codes_include_unsuccessful_code_with_default_payment():
+    # The feature is on by default, with a fixed reward of
+    # min(0.25, 80% of base_payment).
+    config = make_config()
+    recruiter = make_prolific_recruiter(config)
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        codes = recruiter.completion_codes_and_actions
+
+    assert [code["code_type"] for code in codes] == [
+        "DEFAULT",
+        PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
+    ]
+    assert codes[-1]["actions"][0]["fixed_screen_out_reward"] == 25
+
+
+def test_default_unsuccessful_base_payment_formula():
+    from psynet.recruiters import default_unsuccessful_base_payment
+
+    assert default_unsuccessful_base_payment(1.00) == 0.25
+    assert default_unsuccessful_base_payment(0.50) == 0.25
+    assert default_unsuccessful_base_payment(0.25) == 0.20
+    assert default_unsuccessful_base_payment(0.10) == 0.08
+    # Floored to the cent, so always strictly below the base payment.
+    assert default_unsuccessful_base_payment(0.26) == 0.20
 
 
 def test_completion_codes_include_unsuccessful_screen_out_code():
@@ -306,7 +333,11 @@ def test_completion_codes_reject_conflicting_screen_out_action():
 )
 def test_release_participant_branching(failed, payment_configured, expected):
     config = make_config(
-        prolific_unsuccessful_base_payment=0.50 if payment_configured else None
+        **(
+            {"prolific_unsuccessful_base_payment": 0.50}
+            if payment_configured
+            else {"prolific_pay_unsuccessful": False}
+        )
     )
     recruiter = make_prolific_recruiter(config)
     participant = MagicMock(failed=failed)
@@ -337,7 +368,11 @@ def test_approve_hit_skips_screened_out_participants(
     failed, payment_configured, expect_skipped
 ):
     config = make_config(
-        prolific_unsuccessful_base_payment=0.50 if payment_configured else None
+        **(
+            {"prolific_unsuccessful_base_payment": 0.50}
+            if payment_configured
+            else {"prolific_pay_unsuccessful": False}
+        )
     )
     recruiter = make_prolific_recruiter(config)
     participant = MagicMock(failed=failed)
@@ -393,10 +428,10 @@ def test_recruiter_exit_info_returns_none_for_successful_participant():
         assert Experiment.recruiter_exit_info(Experiment, participant) is None
 
 
-def test_recruiter_exit_info_returns_none_when_payment_not_configured():
+def test_recruiter_exit_info_returns_none_when_payment_disabled():
     from psynet.experiment import Experiment
 
-    config = make_config()
+    config = make_config(prolific_pay_unsuccessful=False)
     participant = make_participant_with_recruiter(config, failed=True)
 
     with patch("psynet.recruiters.get_config", return_value=config):
@@ -451,8 +486,8 @@ def test_bonus_subtracts_base_payment_for_successful_participant():
     assert bonus_for(participant, config) == 1.50
 
 
-def test_bonus_subtracts_base_payment_for_failed_participant_without_feature():
-    config = make_config()
+def test_bonus_subtracts_base_payment_for_failed_participant_with_feature_disabled():
+    config = make_config(prolific_pay_unsuccessful=False)
     participant = make_participant_with_recruiter(config, failed=True)
     assert bonus_for(participant, config) == 1.50
 
@@ -464,12 +499,85 @@ def test_bonus_never_negative():
     assert bonus_for(participant, config) == 0.00
 
 
-def test_check_unsuccessful_base_payment_must_be_less_than_base_payment():
-    config = make_config(prolific_unsuccessful_base_payment=1.00)
-    with pytest.raises(ValueError, match="must be less than"):
-        PsyNetProlificRecruiterMixin.check_unsuccessful_base_payment(config)
+def make_prolific_deploy_config(**overrides):
+    return make_config(recruiter="prolific", **overrides)
 
-    PsyNetProlificRecruiterMixin.check_unsuccessful_base_payment(
-        make_config(prolific_unsuccessful_base_payment=0.99)
+
+def test_check_screen_out_config_rejects_payment_at_or_above_base_payment():
+    config = make_prolific_deploy_config(
+        prolific_unsuccessful_base_payment=1.00, prolific_screen_out_slots=10
     )
-    PsyNetProlificRecruiterMixin.check_unsuccessful_base_payment(make_config())
+    with pytest.raises(ValueError, match="less than"):
+        PsyNetProlificRecruiterMixin.check_screen_out_config(config)
+
+    PsyNetProlificRecruiterMixin.check_screen_out_config(
+        make_prolific_deploy_config(
+            prolific_unsuccessful_base_payment=0.99, prolific_screen_out_slots=10
+        )
+    )
+
+
+def test_check_screen_out_config_requires_screen_out_slots():
+    with pytest.raises(ValueError, match="prolific_screen_out_slots"):
+        PsyNetProlificRecruiterMixin.check_screen_out_config(
+            make_prolific_deploy_config()
+        )
+
+    # Passes with slots set...
+    PsyNetProlificRecruiterMixin.check_screen_out_config(
+        make_prolific_deploy_config(prolific_screen_out_slots=10)
+    )
+    # ...when the feature is disabled...
+    PsyNetProlificRecruiterMixin.check_screen_out_config(
+        make_prolific_deploy_config(prolific_pay_unsuccessful=False)
+    )
+    # ...and for non-Prolific recruiters.
+    PsyNetProlificRecruiterMixin.check_screen_out_config(
+        make_config(recruiter="hotair")
+    )
+    PsyNetProlificRecruiterMixin.check_screen_out_config(make_config())
+
+
+def test_open_recruitment_falls_back_when_workspace_rejects_screen_out():
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+
+    rejection = ProlificServiceException(
+        "Error creating study: completion code action FIXED_SCREEN_OUT_PAYMENT "
+        "(screen-out) is not available for this workspace"
+    )
+    success = {"items": ["https://example.com"], "message": "Study created"}
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch.object(
+            dallinger.recruiters.ProlificRecruiter,
+            "open_recruitment",
+            side_effect=[rejection, success],
+        ) as super_open:
+            with patch.object(recruiter, "_mark_screen_out_unavailable") as mark:
+                # Call the mixin implementation directly: the ProlificRecruiter
+                # subclass adds Slack notification on top, which needs a running
+                # experiment.
+                result = PsyNetProlificRecruiterMixin.open_recruitment(recruiter, n=5)
+
+    assert result == success
+    assert super_open.call_count == 2
+    mark.assert_called_once()
+
+
+def test_open_recruitment_reraises_unrelated_errors():
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+
+    rejection = ProlificServiceException("Error creating study: invalid filters")
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch.object(
+            dallinger.recruiters.ProlificRecruiter,
+            "open_recruitment",
+            side_effect=rejection,
+        ) as super_open:
+            with pytest.raises(ProlificServiceException):
+                PsyNetProlificRecruiterMixin.open_recruitment(recruiter, n=5)
+
+    assert super_open.call_count == 1

@@ -189,11 +189,15 @@ class Exp(psynet.experiment.Experiment):
         "organization_name": "Max Planck Institute for Empirical Aesthetics",
         "show_reward": False,
         # The experiment should be tested with three configurations (three deployments):
-        # 1. prolific_unsuccessful_base_payment = 0.20 (screen-out completion code flow;
-        #    requires a workspace with Prolific's custom screening feature enabled)
-        # 2. prolific_unsuccessful_base_payment unset, prolific_enable_return_for_bonus = True
-        # 3. prolific_unsuccessful_base_payment unset, prolific_enable_return_for_bonus = False
+        # 1. prolific_unsuccessful_base_payment = 0.20 (screen-out completion code flow,
+        #    on by default; requires a workspace with Prolific's custom screening
+        #    feature enabled)
+        # 2. prolific_pay_unsuccessful = False, prolific_enable_return_for_bonus = True
+        # 3. prolific_pay_unsuccessful = False, prolific_enable_return_for_bonus = False
         "prolific_unsuccessful_base_payment": 0.20,
+        # Required for Prolific deployments: caps the number of automatic
+        # screen-out payments (worst case spend: slots x 0.20).
+        "prolific_screen_out_slots": 120,
         "prolific_enable_return_for_bonus": True,
     }
 
