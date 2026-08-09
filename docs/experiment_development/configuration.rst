@@ -514,12 +514,11 @@ deployment fails with an explanatory error otherwise.
 
 .. note::
 
-    Prolific's fixed screen-out payment feature is currently only available to selected
-    workspaces. If Prolific rejects the study's screen-out completion code at creation time,
-    PsyNet logs a warning and automatically retries without it, in which case unsuccessful
-    participants are handled by the return-for-bonus flow below. Ask Prolific support to enable
-    custom screening for your workspace, or set ``prolific_pay_unsuccessful = false`` to disable
-    the feature explicitly.
+    Prolific documents the fixed screen-out payment feature as only available to selected
+    workspaces (in our testing it was available across all workspaces of our account). If your
+    workspace lacks it, Prolific rejects study creation; in that case ask Prolific support to
+    enable custom screening for your workspace, or set ``prolific_pay_unsuccessful = false`` to
+    disable the feature and fall back to the return-for-bonus flow below.
 
 ``prolific_pay_unsuccessful`` *bool* |psynet-icon|
     If ``True`` (default), unsuccessful participants are paid automatically via the screen-out
