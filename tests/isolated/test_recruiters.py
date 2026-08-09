@@ -235,8 +235,7 @@ def test_completion_codes_unchanged_when_unsuccessful_payment_disabled():
 
 
 def test_completion_codes_include_unsuccessful_code_with_default_payment():
-    # The feature is on by default, with a fixed reward of
-    # min(0.25, 80% of base_payment).
+    # The feature is on by default, with a fixed reward of 0.25.
     config = make_config()
     recruiter = make_prolific_recruiter(config)
 
@@ -250,15 +249,13 @@ def test_completion_codes_include_unsuccessful_code_with_default_payment():
     assert codes[-1]["actions"][0]["fixed_screen_out_reward"] == 25
 
 
-def test_default_unsuccessful_base_payment_formula():
-    from psynet.recruiters import default_unsuccessful_base_payment
-
-    assert default_unsuccessful_base_payment(1.00) == 0.25
-    assert default_unsuccessful_base_payment(0.50) == 0.25
-    assert default_unsuccessful_base_payment(0.25) == 0.20
-    assert default_unsuccessful_base_payment(0.10) == 0.08
-    # Floored to the cent, so always strictly below the base payment.
-    assert default_unsuccessful_base_payment(0.26) == 0.20
+def test_default_payment_rejected_when_base_payment_too_low():
+    # The default fixed reward (0.25) must be strictly below base_payment,
+    # so cheap studies must set prolific_unsuccessful_base_payment
+    # explicitly or disable the feature.
+    config = make_config(recruiter="prolific", base_payment=0.20)
+    with pytest.raises(ValueError, match="less than"):
+        PsyNetProlificRecruiterMixin.check_screen_out_config(config)
 
 
 def test_completion_codes_include_unsuccessful_screen_out_code():

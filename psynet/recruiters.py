@@ -33,7 +33,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from math import ceil, floor
+from math import ceil
 
 import dallinger.recruiters
 import dominate
@@ -96,12 +96,11 @@ PROLIFIC_UNSUCCESSFUL_CODE_TYPE = "UNSUCCESSFUL"
 PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 
 
-def default_unsuccessful_base_payment(base_payment: float) -> float:
-    """The default fixed screen-out reward: min(0.25, 80% of the base
-    payment), floored to the cent so that it stays strictly below the base
-    payment (a Prolific requirement).
-    """
-    return min(0.25, floor(base_payment * 0.8 * 100) / 100)
+#: Default fixed screen-out reward (in currency units) paid to unsuccessful
+#: participants. Prolific requires this to be strictly less than the study's
+#: base payment, so studies with ``base_payment <= 0.25`` must set
+#: ``prolific_unsuccessful_base_payment`` explicitly (or disable the feature).
+PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
 
 
 def latest_participant_for_assignment(assignment_id):
@@ -200,9 +199,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         participants via a Prolific completion code, or ``None`` if the feature
         is disabled via ``prolific_pay_unsuccessful = false``.
 
-        Defaults to ``min(0.25, 80% of base_payment)`` (floored to the cent,
-        since Prolific requires the fixed reward to be strictly less than the
-        study reward); override with ``prolific_unsuccessful_base_payment``.
+        Defaults to ``PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT`` (0.25);
+        override with ``prolific_unsuccessful_base_payment``.
         """
         config = get_config()
         if not config.get("prolific_pay_unsuccessful", True):
@@ -210,7 +208,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         explicit = config.get("prolific_unsuccessful_base_payment", None)
         if explicit is not None:
             return explicit
-        return default_unsuccessful_base_payment(config.get("base_payment"))
+        return PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT
 
     @property
     def pays_unsuccessful_participants_via_screen_out(self):
@@ -328,7 +326,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         base_payment = config.get("base_payment")
         unsuccessful = config.get("prolific_unsuccessful_base_payment", None)
         if unsuccessful is None:
-            unsuccessful = default_unsuccessful_base_payment(base_payment)
+            unsuccessful = PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT
         if not 0 < unsuccessful < base_payment:
             raise ValueError(
                 f"`prolific_unsuccessful_base_payment` ({unsuccessful}) must be "
