@@ -47,6 +47,11 @@ class Exp(psynet.experiment.Experiment):
         "prolific_workspace": "test_workspace",
         "prolific_project": "test_project",
         "prolific_enable_return_for_bonus": False,
+        # This experiment tests the manual/returned partial-payment routes,
+        # so disable the (default-on) automatic screen-out payment, which
+        # would otherwise require `prolific_screen_out_slots` and reroute
+        # failed participants through the UNSUCCESSFUL completion code.
+        "prolific_pay_unsuccessful": False,
     }
 
     test_n_bots = 3
