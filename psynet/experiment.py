@@ -2331,25 +2331,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         total_owed = participant.calculate_reward()
         base_already_paid = self.base_payment
 
-        if participant.status in ("screened_out", "returned"):
+        recruiter = participant.recruiter
+        pays_via_screen_out = getattr(
+            recruiter, "pays_participant_via_screen_out", None
+        )
+        if pays_via_screen_out is not None and pays_via_screen_out(participant):
+            # The platform already paid the fixed screen-out reward instead of
+            # the full base payment. Checked before the screened_out/returned
+            # branch so re-entering bonus() after we relabel the participant
+            # as screened_out still uses the screen-out amount (not zero).
+            base_already_paid = recruiter.unsuccessful_base_payment
+            # Dallinger's on_recruiter_submission_complete records the full
+            # study base_payment before calling bonus()/check_bonus(); correct
+            # it here so amount_paid() and amount_spent() see the true base.
+            participant.base_pay = base_already_paid
+            participant.base_payment = base_already_paid
+            if not recruiter.tops_up_unsuccessful_participants:
+                # Time rewards are forfeited, but performance rewards
+                # are always paid.
+                total_owed = base_already_paid + (participant.performance_reward or 0.0)
+        elif participant.status in ("screened_out", "returned"):
             # Return-for-bonus flow: the platform pays no base payment, so
             # the accumulated reward is paid entirely as a bonus.
             base_already_paid = 0.0
-        else:
-            recruiter = participant.recruiter
-            pays_via_screen_out = getattr(
-                recruiter, "pays_participant_via_screen_out", None
-            )
-            if pays_via_screen_out is not None and pays_via_screen_out(participant):
-                # The platform already paid the fixed screen-out reward
-                # instead of the full base payment.
-                base_already_paid = recruiter.unsuccessful_base_payment
-                if not recruiter.tops_up_unsuccessful_participants:
-                    # Time rewards are forfeited, but performance rewards
-                    # are always paid.
-                    total_owed = base_already_paid + (
-                        participant.performance_reward or 0.0
-                    )
 
         bonus = max(0.0, total_owed - base_already_paid)
         return round(self.check_bonus(bonus, participant), 2)

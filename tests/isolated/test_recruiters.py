@@ -529,6 +529,60 @@ def test_bonus_never_negative():
     assert bonus_for(participant, config) == 0.00
 
 
+def test_bonus_corrects_base_payment_before_check_bonus():
+    """Screen-out top-ups must not be clipped by spend caps that still see the
+    full study base_payment Dallinger records before calling bonus().
+    """
+    config = make_config(
+        prolific_unsuccessful_base_payment=0.25, prolific_unsuccessful_topup=True
+    )
+    participant = make_participant_with_recruiter(config, failed=True)
+    participant.calculate_reward.return_value = 1.00
+    participant.performance_reward = 0.0
+    # Simulate Dallinger having recorded the full study base before bonus().
+    participant.base_pay = 1.00
+    participant.base_payment = 1.00
+    participant.bonus = None
+
+    observed = {}
+
+    class CapHarness(BonusHarness):
+        def check_bonus(self, reward, participant):
+            # Capture what check_bonus sees; a tight cap would clip the 0.75
+            # top-up if base_payment were still 1.00 (1.00 + 0.75 > 1.10).
+            observed["base_payment"] = participant.base_payment
+            observed["base_pay"] = participant.base_pay
+            paid = (participant.base_payment or 0.0) + (participant.bonus or 0.0)
+            cap = 1.10
+            if paid + reward > cap:
+                return round(cap - paid, 2)
+            return reward
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch("psynet.experiment.get_config", return_value=config):
+            result = CapHarness().bonus(participant)
+
+    assert observed["base_payment"] == 0.25
+    assert observed["base_pay"] == 0.25
+    assert result == 0.75
+    assert participant.base_payment == 0.25
+    assert participant.base_pay == 0.25
+
+
+def test_bonus_screen_out_path_still_works_when_status_already_screened_out():
+    """After submission we relabel failed screen-outs as screened_out; bonus
+    must still subtract the screen-out payment rather than treating them as
+    the legacy return-for-bonus (base_already_paid = 0) path.
+    """
+    config = make_config(
+        prolific_unsuccessful_base_payment=0.50, prolific_unsuccessful_topup=True
+    )
+    participant = make_participant_with_recruiter(
+        config, failed=True, status="screened_out"
+    )
+    assert bonus_for(participant, config) == 2.00
+
+
 def make_prolific_deploy_config(**overrides):
     return make_config(recruiter="prolific", **overrides)
 
