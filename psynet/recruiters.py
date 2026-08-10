@@ -141,12 +141,14 @@ class PsyNetRecruiterMixin:
         raise NotImplementedError
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
-        return self.approve_assignment()
+        return self.submit_assignment()
 
-    def approve_assignment(self) -> TimelineLogic:
-        # This calls dallinger.submitAssignment,
-        # and this will tell Dallinger to approve the assignment and pay the base payment,
-        # AND it also pays the participant a bonus, calculated from participant.bonus()
+    def submit_assignment(self) -> TimelineLogic:
+        # This calls dallinger.submitAssignment, submitting the assignment to
+        # the recruiter. What happens next depends on the recruiter and (for
+        # Prolific) the completion code in the participant's exit URL: by
+        # default Dallinger approves the assignment, pays the base payment,
+        # and pays a bonus calculated from participant.bonus().
         from .page import ExecuteFrontEndJS
 
         _p = get_translator(context=True)
@@ -450,11 +452,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             participant.failed
             and not self.pays_unsuccessful_participants_via_screen_out
         ):
-            return self.reject_assignment(participant)
-        # Unsuccessful participants covered by the screen-out completion code
-        # submit normally; Prolific then pays them the fixed screen-out reward
-        # (see exit_code_type above and Experiment.bonus).
-        return self.approve_assignment()
+            # Legacy fallback: no completion code pays this participant, so
+            # ask them to return the submission and pay them via bonus.
+            return self.request_return_for_bonus(participant)
+        # Everyone else submits normally; the completion code chosen by
+        # exit_code_type determines approval vs. screen-out payment
+        # (see also Experiment.bonus).
+        return self.submit_assignment()
 
     def open_recruitment(self, n: int = 1) -> dict:
         """Create the Prolific study, adding guidance when creation fails
@@ -497,8 +501,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 return True
         return super().approve_hit(assignment_id)
 
-    def reject_assignment(self, participant) -> TimelineLogic:
-        return PageMaker(self._reject_assignment, time_estimate=0.0)
+    def request_return_for_bonus(self, participant) -> TimelineLogic:
+        """Ask the participant to return their Prolific submission and pay
+        them via bonus (or, if returns are disabled, ask them to message the
+        experimenter). Used for failed participants who are not covered by
+        the screen-out completion code.
+        """
+        return PageMaker(self._request_return_for_bonus, time_estimate=0.0)
 
     def assignment_returned_logic(self) -> TimelineLogic:
         """Create the TimelineLogic for checking assignment return status."""
@@ -602,7 +611,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.5,
         )
 
-    def _reject_assignment(self, participant) -> TimelineLogic:
+    def _request_return_for_bonus(self, participant) -> TimelineLogic:
         enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
 
         logic_return_for_bonus = self.return_for_bonus_logic(enable_return_for_bonus)
