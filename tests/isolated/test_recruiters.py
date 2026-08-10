@@ -446,6 +446,83 @@ def test_on_error_page_marks_participant_failed(
         participant.fail.assert_not_called()
 
 
+def _identity_translator(context, message):
+    return message
+
+
+def render_error_page_html(recruiter, config, assignment_id, participant):
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch(
+            "psynet.recruiters.get_translator", return_value=_identity_translator
+        ):
+            with patch(
+                "psynet.recruiters.latest_participant_for_assignment",
+                return_value=participant,
+            ):
+                with patch.object(
+                    recruiter,
+                    "external_submission_url",
+                    return_value="https://app.prolific.com/submissions/complete?cc=UNSUCCESSFUL-CODE",
+                ) as external_url:
+                    html = recruiter.error_page_content(assignment_id=assignment_id)
+    return str(html), external_url
+
+
+def test_error_page_content_offers_submit_button_when_screen_out_enabled():
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock(id=42)
+
+    html, external_url = render_error_page_html(
+        recruiter, config, assignment_id="assignment-1", participant=participant
+    )
+
+    assert 'id="prolific-unsuccessful-submit"' in html
+    assert "Submit to Prolific" in html
+    assert "/prolific-submission-listener" in html
+    assert "assignment-1" in html
+    assert "42" in html
+    assert "https://app.prolific.com/submissions/complete?cc=UNSUCCESSFUL-CODE" in html
+    assert "send the researcher a message" not in html
+    external_url.assert_called_once_with(code_type=PROLIFIC_UNSUCCESSFUL_CODE_TYPE)
+
+
+def test_error_page_content_asks_to_message_when_screen_out_disabled():
+    config = make_config(prolific_pay_unsuccessful=False)
+    recruiter = make_prolific_recruiter(config)
+
+    html, external_url = render_error_page_html(
+        recruiter, config, assignment_id="assignment-1", participant=MagicMock(id=42)
+    )
+
+    assert "prolific-unsuccessful-submit" not in html
+    assert "send the researcher a message" in html
+    external_url.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "assignment_id,participant",
+    [
+        (None, MagicMock(id=42)),
+        ("", MagicMock(id=42)),
+        ("assignment-1", None),
+    ],
+)
+def test_error_page_content_falls_back_without_assignment_or_participant(
+    assignment_id, participant
+):
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+
+    html, external_url = render_error_page_html(
+        recruiter, config, assignment_id=assignment_id, participant=participant
+    )
+
+    assert "prolific-unsuccessful-submit" not in html
+    assert "send the researcher a message" in html
+    external_url.assert_not_called()
+
+
 def test_recruiter_exit_info_returns_unsuccessful_code_type_for_failed_participant():
     from psynet.experiment import Experiment
 
