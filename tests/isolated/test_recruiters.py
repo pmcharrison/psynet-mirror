@@ -566,6 +566,20 @@ def test_check_screen_out_config_requires_screen_out_slots():
     PsyNetProlificRecruiterMixin.check_screen_out_config(make_config())
 
 
+def test_check_config_rejects_stale_error_page_override():
+    from psynet.experiment import Experiment
+
+    class ExpWithStaleOverride(Experiment):
+        def error_page_content__prolific(self):
+            return "custom"
+
+    with pytest.raises(RuntimeError, match="no longer supported"):
+        ExpWithStaleOverride.check_stale_error_page_override()
+
+    # The base class (no override) passes.
+    Experiment.check_stale_error_page_override()
+
+
 def test_open_recruitment_reraises_with_hint_when_screen_out_enabled(caplog):
     config = make_config(prolific_unsuccessful_base_payment=0.20)
     recruiter = make_prolific_recruiter(config)
