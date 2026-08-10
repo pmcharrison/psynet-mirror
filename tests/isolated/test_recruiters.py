@@ -236,7 +236,7 @@ def test_completion_codes_unchanged_when_unsuccessful_payment_disabled():
 
 def test_completion_codes_include_unsuccessful_code_with_default_payment():
     # The feature is on by default, with a fixed reward of 0.25.
-    config = make_config()
+    config = make_config(prolific_screen_out_slots=70)
     recruiter = make_prolific_recruiter(config)
 
     with patch("psynet.recruiters.get_config", return_value=config):
@@ -259,7 +259,9 @@ def test_default_payment_rejected_when_base_payment_too_low():
 
 
 def test_completion_codes_include_unsuccessful_screen_out_code():
-    config = make_config(prolific_unsuccessful_base_payment=0.50)
+    config = make_config(
+        prolific_unsuccessful_base_payment=0.50, prolific_screen_out_slots=70
+    )
     recruiter = make_prolific_recruiter(config)
 
     with patch("psynet.recruiters.get_config", return_value=config):
@@ -275,11 +277,19 @@ def test_completion_codes_include_unsuccessful_screen_out_code():
         {
             "action": PROLIFIC_SCREEN_OUT_ACTION,
             "fixed_screen_out_reward": 50,
-            # Defaults to 10 * initial_recruitment_size
             "slots": 70,
         }
     ]
     assert unsuccessful["code"]
+
+
+def test_completion_codes_require_explicit_screen_out_slots():
+    config = make_config(prolific_unsuccessful_base_payment=0.50)
+    recruiter = make_prolific_recruiter(config)
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with pytest.raises(ValueError, match="prolific_screen_out_slots"):
+            recruiter.completion_codes_and_actions
 
 
 def test_completion_codes_respect_explicit_screen_out_slots():
@@ -297,6 +307,7 @@ def test_completion_codes_respect_explicit_screen_out_slots():
 def test_completion_codes_reject_conflicting_screen_out_action():
     config = make_config(
         prolific_unsuccessful_base_payment=0.50,
+        prolific_screen_out_slots=10,
         prolific_completion_config=json.dumps(
             {
                 "CUSTOM_SCREEN_OUT": {

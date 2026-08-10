@@ -224,11 +224,22 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def screen_out_slots(self):
         """The maximum number of screen-out payments Prolific will make before
         pausing the study (see the ``prolific_screen_out_slots`` config parameter).
+
+        Must be set explicitly: deploy-time validation
+        (``check_screen_out_config``) requires it whenever screen-out payment
+        is enabled, and there is no silent runtime default.
         """
         config = get_config()
         slots = config.get("prolific_screen_out_slots", None)
         if slots is None:
-            slots = 10 * config.get("initial_recruitment_size")
+            raise ValueError(
+                "`prolific_screen_out_slots` must be set when paying "
+                "unsuccessful Prolific participants via screen-out. "
+                "Set it explicitly (a common choice is 10x "
+                "`initial_recruitment_size`), or set "
+                "`prolific_pay_unsuccessful = false` to disable automatic "
+                "screen-out payment."
+            )
         return slots
 
     @property
