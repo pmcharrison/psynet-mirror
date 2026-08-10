@@ -319,17 +319,26 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return bool(get_config().get("prolific_unsuccessful_topup", True))
 
     def on_recruiter_submission_complete(self, participant):
-        """Correct the recorded base payment for screen-out participants.
+        """Correct recorded payment fields after a screen-out submission.
 
-        Dallinger records the full base payment when the submission completes,
-        but Prolific actually pays these participants the fixed screen-out
-        reward. Both Dallinger's ``base_pay`` and PsyNet's ``base_payment``
-        (used for spending accounting, e.g. ``Experiment.amount_spent``) are
-        corrected accordingly.
+        Dallinger's submission handler records the full study ``base_payment``
+        and, on an attention-check pass, sets ``status = "approved"``. For
+        participants paid via the screen-out completion code, Prolific actually
+        paid the fixed screen-out reward and screened them out, so we:
+
+        - Correct Dallinger's ``base_pay`` and PsyNet's ``base_payment`` (used
+          for spending accounting, e.g. ``Experiment.amount_spent``). When
+          bonus calculation ran, ``Experiment.bonus`` already applied the same
+          correction so ``check_bonus`` saw the right amounts; this covers
+          paths that return before ``bonus()`` (e.g. a failed data check).
+        - Relabel ``approved`` participants as ``screened_out`` so dashboards
+          and exports that key off ``status`` do not treat them as successes.
         """
         if self.pays_participant_via_screen_out(participant):
             participant.base_pay = self.unsuccessful_base_payment
             participant.base_payment = self.unsuccessful_base_payment
+            if participant.status == "approved":
+                participant.status = "screened_out"
 
     @staticmethod
     def check_screen_out_config(config):

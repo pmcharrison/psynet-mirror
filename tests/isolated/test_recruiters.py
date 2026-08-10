@@ -583,6 +583,54 @@ def test_bonus_screen_out_path_still_works_when_status_already_screened_out():
     assert bonus_for(participant, config) == 2.00
 
 
+def test_on_recruiter_submission_complete_relabels_approved_screen_out():
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock(
+        failed=True, status="approved", base_pay=1.00, base_payment=1.00
+    )
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        recruiter.on_recruiter_submission_complete(participant)
+
+    assert participant.base_pay == 0.25
+    assert participant.base_payment == 0.25
+    assert participant.status == "screened_out"
+
+
+@pytest.mark.parametrize(
+    "status",
+    ["bad_data", "did_not_attend", "submitted", "screened_out"],
+)
+def test_on_recruiter_submission_complete_preserves_non_approved_status(status):
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock(
+        failed=True, status=status, base_pay=1.00, base_payment=1.00
+    )
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        recruiter.on_recruiter_submission_complete(participant)
+
+    assert participant.base_payment == 0.25
+    assert participant.status == status
+
+
+def test_on_recruiter_submission_complete_noop_for_successful_participant():
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock(
+        failed=False, status="approved", base_pay=1.00, base_payment=1.00
+    )
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        recruiter.on_recruiter_submission_complete(participant)
+
+    assert participant.base_pay == 1.00
+    assert participant.base_payment == 1.00
+    assert participant.status == "approved"
+
+
 def make_prolific_deploy_config(**overrides):
     return make_config(recruiter="prolific", **overrides)
 
