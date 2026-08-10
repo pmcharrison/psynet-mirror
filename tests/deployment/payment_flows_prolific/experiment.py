@@ -29,16 +29,18 @@ The recruiter is selected via the config file rather than in this experiment fil
 How unsuccessful participants (flows 2 and 3) are paid depends on the deployment configuration
 (see Exp.config below):
 
-- With `prolific_unsuccessful_base_payment` set (e.g. £0.20): unsuccessful participants submit their
+- With screen-out payment enabled (the default; this experiment sets
+    `prolific_unsuccessful_base_payment = 0.20`): unsuccessful participants submit their
     study normally (flow 3 via the "Submit to Prolific" button on the error page). Prolific marks them
     as screened out and automatically pays the fixed £0.20, and PsyNet tops them up with a bonus to
     reach their accumulated reward: £0.30 for flow 2 (total £0.50) and £0.45 for flow 3 (total £0.65,
     including the £0.15 performance reward). Requires a workspace with Prolific's custom screening
     feature enabled.
-- Without it, the legacy flows apply: with `prolific_enable_return_for_bonus = True`, flow-2
-    participants are asked to return their submission and then receive their accumulated reward as a
-    bonus; with `False`, they are asked to return and message the experimenter. Flow-3 participants
-    are asked to message the experimenter.
+- With `prolific_pay_unsuccessful = false`, the legacy return-for-bonus flows apply: with
+    `prolific_enable_return_for_bonus = True`, flow-2 participants are asked to return their
+    submission and then receive their accumulated reward as a bonus; with `False`, they are asked
+    to return and message the experimenter. Flow-3 participants are asked to message the
+    experimenter.
 
 The experimenter should check the following in the Prolific dashboard:
 1. Recruitment: Verify that participants are correctly recruited and appear in the Prolific dashboard for the study.
@@ -47,7 +49,7 @@ The experimenter should check the following in the Prolific dashboard:
 3. Prescreening Failures: Confirm that participants (ID % 4 == 2) who fail the prescreening are handled appropriately
     (marked as returned or screened-out in both Prolific and PsyNet, depending on the configuration, and paid £0.50 in total).
 4. Errors: Confirm that participants (ID % 4 == 3) who hit the error page are handled appropriately
-    (with `prolific_unsuccessful_base_payment` set they should be screened out and paid £0.65 in total via the
+    (with screen-out payment enabled they should be screened out and paid £0.65 in total via the
     error page's "Submit to Prolific" button; the £0.15 performance reward makes this differ from flow 2).
 5. Bonus/Reward Payments: For participants (ID % 4 == 0) in the increment performance reward flow, ensure that
     the bonus payment is correctly set in both Prolific and PsyNet.

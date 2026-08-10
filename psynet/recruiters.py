@@ -15,10 +15,11 @@ Key design constraints for maintainers:
 - End-of-experiment payment flows differ per platform. For Prolific,
   successful participants are approved (receiving ``base_payment``) and topped
   up with a bonus; unsuccessful (failed/errored) participants are either paid
-  via a fixed screen-out completion code (when
-  ``prolific_unsuccessful_base_payment`` is set; see
+  via a fixed screen-out completion code (when ``prolific_pay_unsuccessful``
+  is enabled, the default; see
   ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``) or asked to
-  return their submission for a bonus (the legacy fallback).
+  return their submission for a bonus (the legacy fallback when
+  ``prolific_pay_unsuccessful = false``).
 - Payment amounts are computed in ``psynet.experiment.Experiment.bonus``,
   which consults the recruiter for platform-specific inputs (such as the
   Prolific screen-out reward in
@@ -234,9 +235,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def completion_codes_and_actions(self) -> list[dict]:
         """Extend Dallinger's Prolific completion codes with an UNSUCCESSFUL code.
 
-        When ``prolific_unsuccessful_base_payment`` is set, failed or errored
-        participants are sent back to Prolific with this code, which triggers
-        Prolific's fixed screen-out payment instead of the full base payment.
+        When ``prolific_pay_unsuccessful`` is enabled (the default), failed or
+        errored participants are sent back to Prolific with this code, which
+        triggers Prolific's fixed screen-out payment instead of the full base
+        payment.
         """
         codes = super().completion_codes_and_actions
         if not self.pays_unsuccessful_participants_via_screen_out:
@@ -249,7 +251,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         f"{PROLIFIC_SCREEN_OUT_ACTION} action per study. "
                         f"Please remove this action from the completion code "
                         f"'{code['code_type']}' in `prolific_completion_config`, "
-                        "or unset `prolific_unsuccessful_base_payment`."
+                        "or set `prolific_pay_unsuccessful = false` to disable "
+                        "automatic screen-out payment."
                     )
         codes.append(
             {
@@ -294,7 +297,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def pays_participant_via_screen_out(self, participant) -> bool:
         """Whether this participant will be paid via Prolific's fixed
         screen-out reward (rather than the full base payment) because they
-        failed or errored and ``prolific_unsuccessful_base_payment`` is set.
+        failed or errored and ``prolific_pay_unsuccessful`` is enabled.
         """
         return participant.failed and self.pays_unsuccessful_participants_via_screen_out
 
