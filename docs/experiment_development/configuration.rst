@@ -496,8 +496,8 @@ deployment fails with an explanatory error otherwise.
 
 ``prolific_pay_unsuccessful`` *bool* |psynet-icon|
     If ``True`` (default), unsuccessful participants are paid automatically via the screen-out
-    completion code described above. Set to ``False`` to restore the previous behavior:
-    failed participants are rejected (or handled via ``prolific_enable_return_for_bonus``).
+    completion code described above. Set to ``False`` to restore the previous return-for-bonus
+    behavior (see ``prolific_enable_return_for_bonus`` below).
 
 ``prolific_unsuccessful_base_payment`` *float* |psynet-icon|
     The fixed amount (in the currency of your Prolific account) that Prolific automatically pays
