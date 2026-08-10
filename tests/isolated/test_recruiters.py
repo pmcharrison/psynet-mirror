@@ -322,10 +322,10 @@ def test_completion_codes_reject_conflicting_screen_out_action():
 @pytest.mark.parametrize(
     "failed,payment_configured,expected",
     [
-        (True, True, "approve"),
-        (True, False, "reject"),
-        (False, True, "approve"),
-        (False, False, "approve"),
+        (True, True, "submit"),
+        (True, False, "return_for_bonus"),
+        (False, True, "submit"),
+        (False, False, "submit"),
     ],
 )
 def test_release_participant_branching(failed, payment_configured, expected):
@@ -340,16 +340,18 @@ def test_release_participant_branching(failed, payment_configured, expected):
     participant = MagicMock(failed=failed)
 
     with patch("psynet.recruiters.get_config", return_value=config):
-        with patch.object(recruiter, "approve_assignment") as approve:
-            with patch.object(recruiter, "reject_assignment") as reject:
+        with patch.object(recruiter, "submit_assignment") as submit:
+            with patch.object(
+                recruiter, "request_return_for_bonus"
+            ) as return_for_bonus:
                 recruiter.release_participant(MagicMock(), participant)
 
-    if expected == "approve":
-        approve.assert_called_once()
-        reject.assert_not_called()
+    if expected == "submit":
+        submit.assert_called_once()
+        return_for_bonus.assert_not_called()
     else:
-        reject.assert_called_once_with(participant)
-        approve.assert_not_called()
+        return_for_bonus.assert_called_once_with(participant)
+        submit.assert_not_called()
 
 
 @pytest.mark.parametrize(
