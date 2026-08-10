@@ -546,14 +546,6 @@ to return the submission and contact the experimenter for their bonus.
 
 .. note::
 
-    PsyNet used to provide a ``prolific_enable_screen_out`` parameter for Prolific's former
-    screen-out API route. Prolific no longer supports this route, so the parameter should no
-    longer be used. If it is set to ``True``, PsyNet will raise an error explaining that the
-    option is unsupported. The new ``prolific_unsuccessful_base_payment`` parameter uses
-    Prolific's current completion-code-based screen-out mechanism instead.
-
-.. note::
-
     Prolific will use the currency of your researcher account and convert automatically
     to the participant's currency.
 

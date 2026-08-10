@@ -2867,22 +2867,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config.register("color_mode", str, validators=[color_mode_validator])
 
-        def unsupported_prolific_screen_out_validator(value):
-            if value:
-                raise ValueError(
-                    "`prolific_enable_screen_out` is no longer supported. "
-                    "Prolific no longer supports the corresponding screen-out "
-                    "API route. Please remove this parameter from your "
-                    "configuration and use `prolific_enable_return_for_bonus` "
-                    "instead."
-                )
-
         config.register("prolific_enable_return_for_bonus", bool)
-        config.register(
-            "prolific_enable_screen_out",
-            bool,
-            validators=[unsupported_prolific_screen_out_validator],
-        )
 
         def is_positive_int(value):
             assert int(value) > 0
