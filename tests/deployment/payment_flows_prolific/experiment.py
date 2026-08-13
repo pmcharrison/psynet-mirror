@@ -109,23 +109,30 @@ _TARGET_EXIT_HTML = """
 <h1>Thank you &mdash; you're finished!</h1>
 <p id="status">Recording your completion&hellip;</p>
 <div id="done" style="display:none">
-<p><strong>Your payment is confirmed.</strong> It will arrive as a
-<strong>bonus payment</strong> within the hour, rather than as the usual study
-reward.</p>
-<p>You do not need to do anything else. Please do <strong>not</strong> return
-the submission &mdash; returning it would prevent us from paying you.</p>
-<p>You can now close this window. Thank you for helping us test our payment
-system.</p>
+<p><strong>Your completion has been recorded and your payment is
+confirmed.</strong> This study pays via a <strong>bonus payment</strong>
+instead of the usual study reward, so it will arrive separately, normally
+within the hour.</p>
+<p><strong>There is no completion code for this study, and you do not need
+one.</strong> Please simply close this window.</p>
+<ul>
+<li>Please do <strong>not</strong> return the submission.</li>
+<li>Please do <strong>not</strong> try to mark the study complete on Prolific.</li>
+</ul>
+<p>Your submission will show as timed out on Prolific. That is expected for
+this study and does <strong>not</strong> affect your payment or your standing.
+If your bonus has not arrived within a few hours, please message us.</p>
+<p>Thank you for helping us test our payment system.</p>
 </div></div>
 <script>
 const data = new URLSearchParams();
-data.append("assignmentId", {assignment_id});
-data.append("participantId", {participant_id});
-fetch("/prolific-submission-listener", {{method: "POST", body: data}})
-  .finally(() => {{
+data.append("assignmentId", __ASSIGNMENT_ID__);
+data.append("participantId", __PARTICIPANT_ID__);
+fetch("/prolific-submission-listener", {method: "POST", body: data})
+  .finally(() => {
     document.getElementById("status").style.display = "none";
     document.getElementById("done").style.display = "block";
-  }});
+  });
 </script>
 </body></html>
 """
@@ -143,12 +150,12 @@ def _exit_response(self, experiment, participant):
         "their submission times out.",
         participant.id,
     )
-    return flask.render_template_string(
-        _TARGET_EXIT_HTML.format(
-            assignment_id=json.dumps(participant.assignment_id),
-            participant_id=json.dumps(str(participant.id)),
-        )
-    )
+    # Plain string substitution rather than str.format/Jinja: the page contains
+    # literal CSS and JavaScript braces.
+    html = _TARGET_EXIT_HTML.replace(
+        "__ASSIGNMENT_ID__", json.dumps(participant.assignment_id)
+    ).replace("__PARTICIPANT_ID__", json.dumps(str(participant.id)))
+    return flask.Response(html, mimetype="text/html")
 
 
 ProlificRecruiter.exit_response = _exit_response
@@ -245,11 +252,11 @@ def get_prolific_settings():
         # advertised £30/hr, which was deemed too high for a test study).
         "prolific_estimated_completion_minutes": 2,
         "prolific_recruitment_config": qualification,
-        # TEST-ONLY (deployment branch): one target participant (odd id, whose
-        # submission times out) plus one control (even id, who submits
-        # normally). auto_recruit is off so the study cannot replace the
-        # timed-out submission and keep spending.
-        "initial_recruitment_size": 2,
+        # TEST-ONLY (deployment branch): a single target participant (id 1 is
+        # odd, so their exit page withholds the Prolific redirect and their
+        # submission times out). auto_recruit is off so the study cannot
+        # replace the timed-out submission and keep spending.
+        "initial_recruitment_size": 1,
         "auto_recruit": False,
         "currency": "£",
         "wage_per_hour": 10,
