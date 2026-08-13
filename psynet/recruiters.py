@@ -590,6 +590,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         """Pay a participant's base payment as a bonus and tell the researcher."""
         from .experiment import get_experiment
 
+        # ``base_pay`` is Dallinger's record of the study reward owed for this
+        # submission, which is precisely what Prolific failed to pay. PsyNet's
+        # ``base_payment`` holds the same value for the participants handled
+        # here: both derive from the configured base payment, and the
+        # screen-out correction that keeps the two fields in sync only applies
+        # to failed participants, who are excluded above. Since
+        # ``Experiment.amount_spent`` already counts ``base_payment``, this
+        # payment delivers spend that was recorded rather than adding new spend.
         amount = participant.base_pay
         if amount is None:
             amount = get_config().get("base_payment")

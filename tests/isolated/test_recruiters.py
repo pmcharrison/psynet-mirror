@@ -844,7 +844,7 @@ def make_finished_participant(minutes_ago=30, compensated=False):
     return participant
 
 
-def verify_status_of(recruiter, participants, experiment=None):
+def verify_status_of(recruiter, participants, experiment=None, config=None):
     with patch.object(
         ProlificRecruiter,
         "current_study_id",
@@ -857,9 +857,13 @@ def verify_status_of(recruiter, participants, experiment=None):
                 return_value=experiment or MagicMock(),
             ):
                 with patch("psynet.recruiters.session"):
-                    PsyNetProlificRecruiterMixin.verify_status_of(
-                        recruiter, participants
-                    )
+                    with patch(
+                        "psynet.recruiters.get_config",
+                        return_value=config or make_config(),
+                    ):
+                        PsyNetProlificRecruiterMixin.verify_status_of(
+                            recruiter, participants
+                        )
 
 
 def make_recruiter_with_submission(status):
@@ -935,6 +939,30 @@ def test_participants_outside_the_target_case_are_not_compensated(attribute, val
 
     recruiter.prolificservice.get_assignments_for_study.assert_not_called()
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+def test_unrecorded_base_pay_falls_back_to_the_configured_amount():
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant()
+    participant.base_pay = None
+
+    verify_status_of(recruiter, [participant], config=make_config(base_payment=0.80))
+
+    recruiter.prolificservice.pay_session_bonus.assert_called_once_with(
+        study_id="study-1", worker_id="worker-1", amount=0.80
+    )
+
+
+def test_zero_amount_bonus_is_never_sent(caplog):
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant()
+    participant.base_pay = None
+
+    verify_status_of(recruiter, [participant], config=make_config(base_payment=0))
+
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is None
+    assert "no base payment is recorded" in caplog.text
 
 
 def test_one_failed_payment_does_not_block_the_others(caplog):
