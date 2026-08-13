@@ -570,8 +570,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         payment and approved them) but never entered the completion code on
         Prolific. Their submission times out, Prolific pays them nothing for
         the study, and the two systems disagree permanently. Prolific still
-        accepts bonus payments for timed-out submissions, so we pay the base
-        payment as a bonus to make the participant whole.
+        accepts bonus payments for timed-out submissions ("Bonus payments can
+        be paid to all submission statuses",
+        https://researcher-help.prolific.com/en/articles/445233), so we pay
+        the base payment as a bonus to make the participant whole.
         """
         super().verify_status_of(participants)
 
