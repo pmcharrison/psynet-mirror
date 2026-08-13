@@ -556,8 +556,20 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
         for participant in candidates:
             submission = submissions.get(participant.assignment_id)
-            if submission is not None and submission["status"] == "TIMED-OUT":
+            if submission is None or submission.get("status") != "TIMED-OUT":
+                continue
+            try:
                 self._compensate_timed_out_participant(participant)
+            except Exception:
+                # Keep going: an error here must not prevent the remaining
+                # candidates from being paid, and must not propagate into
+                # Dallinger's status check, which would roll back the
+                # bookkeeping of participants already paid in this pass.
+                logger.exception(
+                    "Error while compensating participant %s for their "
+                    "timed-out Prolific submission.",
+                    participant.id,
+                )
 
     @staticmethod
     def _may_have_timed_out_unpaid(participant) -> bool:
@@ -578,13 +590,26 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         """Pay a participant's base payment as a bonus and tell the researcher."""
         from .experiment import get_experiment
 
-        amount = participant.base_pay or get_config().get("base_payment")
+        amount = participant.base_pay
+        if amount is None:
+            amount = get_config().get("base_payment")
+        if not amount:
+            logger.warning(
+                "Not compensating participant %s for their timed-out Prolific "
+                "submission because no base payment is recorded for them.",
+                participant.id,
+            )
+            return
         self.prolificservice.pay_session_bonus(
             study_id=self.current_study_id,
             worker_id=participant.worker_id,
             amount=amount,
         )
         participant.var.set(PROLIFIC_BASE_PAY_COMPENSATED_VAR, True)
+        # Commit before doing anything else: the money has already left our
+        # hands, so the flag that stops us paying again must survive any
+        # later failure in this pass.
+        session.commit()
         message = (
             f"Participant {participant.id} finished the experiment, but their "
             f"Prolific submission ({participant.assignment_id}) timed out "

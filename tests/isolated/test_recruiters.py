@@ -856,7 +856,10 @@ def verify_status_of(recruiter, participants, experiment=None):
                 "psynet.experiment.get_experiment",
                 return_value=experiment or MagicMock(),
             ):
-                PsyNetProlificRecruiterMixin.verify_status_of(recruiter, participants)
+                with patch("psynet.recruiters.session"):
+                    PsyNetProlificRecruiterMixin.verify_status_of(
+                        recruiter, participants
+                    )
 
 
 def make_recruiter_with_submission(status):
@@ -911,3 +914,49 @@ def test_participant_is_not_compensated_twice():
     verify_status_of(recruiter, [participant])
 
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "attribute,value",
+    [
+        # Screened-out participants are recorded as approved *and* failed, and
+        # Prolific has already paid them the fixed screen-out reward.
+        ("failed", True),
+        ("status", "working"),
+        ("end_time", None),
+    ],
+)
+def test_participants_outside_the_target_case_are_not_compensated(attribute, value):
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant()
+    setattr(participant, attribute, value)
+
+    verify_status_of(recruiter, [participant])
+
+    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+def test_one_failed_payment_does_not_block_the_others(caplog):
+    # A failure must not propagate into Dallinger's status check, which would
+    # roll back the bookkeeping of participants already paid in this pass.
+    recruiter = make_prolific_recruiter(make_config())
+    recruiter.prolificservice = MagicMock()
+    first, second = make_finished_participant(), make_finished_participant()
+    second.id = 25
+    second.assignment_id = "assignment-2"
+    recruiter.prolificservice.get_assignments_for_study.return_value = {
+        "assignment-1": {"status": "TIMED-OUT"},
+        "assignment-2": {"status": "TIMED-OUT"},
+    }
+    recruiter.prolificservice.pay_session_bonus.side_effect = [
+        ProlificServiceException("Prolific is down"),
+        None,
+    ]
+
+    verify_status_of(recruiter, [first, second])
+
+    assert recruiter.prolificservice.pay_session_bonus.call_count == 2
+    assert first.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is None
+    assert second.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is True
+    assert "Error while compensating participant 24" in caplog.text
