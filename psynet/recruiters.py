@@ -548,7 +548,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         """
         super().verify_status_of(participants)
 
-        candidates = [p for p in participants if self._may_have_timed_out_unpaid(p)]
+        candidates = [p for p in participants if self._needs_prolific_payment_check(p)]
         if not candidates:
             return
         submissions = self.prolificservice.get_assignments_for_study(
@@ -572,10 +572,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 )
 
     @staticmethod
-    def _may_have_timed_out_unpaid(participant) -> bool:
-        """Whether the participant might have finished the experiment without
-        being paid by Prolific. Deliberately a local-only check, so that the
-        Prolific API is queried only when there is something to reconcile.
+    def _needs_prolific_payment_check(participant) -> bool:
+        """Whether it is worth asking Prolific about this participant's
+        payment. Gates the API call: the participant looks like they finished
+        the experiment long enough ago that an unpaid submission would be
+        final, so nothing here consults Prolific itself.
         """
         if (
             participant.failed
