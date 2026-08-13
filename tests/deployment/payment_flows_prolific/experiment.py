@@ -65,7 +65,7 @@ import sys
 
 import psynet.experiment
 from psynet.page import InfoPage, UnsuccessfulEndPage
-from psynet.timeline import CodeBlock, Timeline, join, switch
+from psynet.timeline import CodeBlock, Timeline, join
 from psynet.utils import get_logger
 
 # The vendored consents_cococo package (copied from
@@ -80,6 +80,79 @@ from consents_cococo.consent_cultural_foundation import (  # noqa: E402
 )
 
 logger = get_logger()
+
+# --- TEST-ONLY (deployment branch): reproduce the timed-out payment gap
+# (issue #1056) with real Prolific participants.
+#
+# Dallinger's Prolific exit page POSTs to /prolific-submission-listener (which
+# approves the participant and records their base payment) and *then* redirects
+# to Prolific, taking "a small leap of faith that their redirect to the Prolific
+# submission page happens successfully". When that leap fails, the participant
+# is approved locally but their Prolific submission times out unpaid: exactly
+# the gap this merge request fixes.
+#
+# Target participants (odd id) get an exit page that fires the listener but
+# never redirects, so their submission times out and the new compensation
+# logic must pay their base payment as a bonus. Control participants (even id)
+# take the normal exit path and must never be compensated.
+import flask  # noqa: E402
+from dallinger.recruiters import ProlificRecruiter  # noqa: E402
+
+_TARGET_EXIT_HTML = """
+<!doctype html>
+<html><head><title>Study complete</title>
+<style>
+ body { font-family: sans-serif; padding: 3em; max-width: 40em; margin: auto; }
+ .box { border: 1px solid #ddd; border-radius: 8px; padding: 2em; }
+</style></head>
+<body><div class="box">
+<h1>Thank you &mdash; you're finished!</h1>
+<p id="status">Recording your completion&hellip;</p>
+<div id="done" style="display:none">
+<p><strong>Your payment is confirmed.</strong> It will arrive as a
+<strong>bonus payment</strong> within the hour, rather than as the usual study
+reward.</p>
+<p>You do not need to do anything else. Please do <strong>not</strong> return
+the submission &mdash; returning it would prevent us from paying you.</p>
+<p>You can now close this window. Thank you for helping us test our payment
+system.</p>
+</div></div>
+<script>
+const data = new URLSearchParams();
+data.append("assignmentId", {assignment_id});
+data.append("participantId", {participant_id});
+fetch("/prolific-submission-listener", {{method: "POST", body: data}})
+  .finally(() => {{
+    document.getElementById("status").style.display = "none";
+    document.getElementById("done").style.display = "block";
+  }});
+</script>
+</body></html>
+"""
+
+_original_exit_response = ProlificRecruiter.exit_response
+
+
+def _exit_response(self, experiment, participant):
+    if participant.id % 2 == 0:
+        return _original_exit_response(
+            self, experiment=experiment, participant=participant
+        )
+    logger.info(
+        "TEST-ONLY: withholding the Prolific redirect for participant %s so "
+        "their submission times out.",
+        participant.id,
+    )
+    return flask.render_template_string(
+        _TARGET_EXIT_HTML.format(
+            assignment_id=json.dumps(participant.assignment_id),
+            participant_id=json.dumps(str(participant.id)),
+        )
+    )
+
+
+ProlificRecruiter.exit_response = _exit_response
+# --- END TEST-ONLY ---
 
 
 def normal():
@@ -172,8 +245,12 @@ def get_prolific_settings():
         # advertised £30/hr, which was deemed too high for a test study).
         "prolific_estimated_completion_minutes": 2,
         "prolific_recruitment_config": qualification,
-        "initial_recruitment_size": 12,
-        "auto_recruit": True,
+        # TEST-ONLY (deployment branch): one target participant (odd id, whose
+        # submission times out) plus one control (even id, who submits
+        # normally). auto_recruit is off so the study cannot replace the
+        # timed-out submission and keep spending.
+        "initial_recruitment_size": 2,
+        "auto_recruit": False,
         "currency": "£",
         "wage_per_hour": 10,
     }
@@ -215,15 +292,11 @@ class Exp(psynet.experiment.Experiment):
             # wage_per_hour = 10.
             time_estimate=2 * 60,
         ),
-        switch(
-            "participant_flow",
-            lambda participant: participant.id % 4,
-            {
-                0: normal_plus_performance_reward(),
-                1: normal(),
-                2: failed_prescreening(),
-                3: errored(),
-            },
-        ),
+        # TEST-ONLY (deployment branch): the screen-out and error flows are
+        # irrelevant to the timed-out payment gap and would add unrelated
+        # payments, so every participant takes the normal flow. The target and
+        # control participants differ only in whether their exit page redirects
+        # to Prolific (see the exit_response override above).
+        normal(),
         debrief_page(),
     )
