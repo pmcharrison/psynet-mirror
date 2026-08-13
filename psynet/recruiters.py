@@ -107,10 +107,15 @@ PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
 # Prolific submission timed out (see ``verify_status_of``).
 PROLIFIC_BASE_PAY_COMPENSATED_VAR = "prolific_base_pay_compensated"
 
-# How long after a participant finishes we wait before concluding that their
-# timed-out submission is final. A submission can briefly read TIMED-OUT and
-# still end up APPROVED when the participant enters the completion code at the
-# last moment, and we must not pay them twice.
+# Records (as an ISO timestamp) when we first observed a participant's Prolific
+# submission in the TIMED-OUT state (see ``verify_status_of``).
+PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR = "prolific_timed_out_first_seen"
+
+# How long after first observing a TIMED-OUT submission we wait before
+# concluding that it is final and compensating the participant. A submission
+# can read TIMED-OUT and still end up APPROVED (e.g. the participant enters
+# the completion code at the last moment, or the researcher approves it
+# manually on Prolific), and we must not pay them twice.
 PROLIFIC_TIMED_OUT_GRACE_PERIOD = timedelta(minutes=10)
 
 
@@ -558,6 +563,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             submission = submissions.get(participant.assignment_id)
             if submission is None or submission.get("status") != "TIMED-OUT":
                 continue
+            if not self._timed_out_grace_period_elapsed(participant):
+                continue
             try:
                 self._compensate_timed_out_participant(participant)
             except Exception:
@@ -574,18 +581,37 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     @staticmethod
     def _needs_prolific_payment_check(participant) -> bool:
         """Whether it is worth asking Prolific about this participant's
-        payment. Gates the API call: the participant looks like they finished
-        the experiment long enough ago that an unpaid submission would be
-        final, so nothing here consults Prolific itself.
+        payment. Gates the API call: the participant finished the experiment
+        and was approved locally, and we have not compensated them yet, so
+        nothing here consults Prolific itself.
         """
-        if (
+        return not (
             participant.failed
             or participant.status != "approved"
-            or participant.end_time is None
             or participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR, False)
-        ):
+        )
+
+    @staticmethod
+    def _timed_out_grace_period_elapsed(participant) -> bool:
+        """Whether this participant's submission has been TIMED-OUT for long
+        enough that we consider the state final and safe to compensate.
+
+        The grace period is anchored to our first observation of the
+        TIMED-OUT state (not to when the participant finished): the first
+        pass that sees the state records a timestamp and declines, and only a
+        later pass compensates. This ensures a genuine waiting period even
+        when the submission times out long after the participant finished.
+        """
+        first_seen = participant.var.get(PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR, None)
+        if first_seen is None:
+            participant.var.set(
+                PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR, datetime.now().isoformat()
+            )
             return False
-        return datetime.now() - participant.end_time > PROLIFIC_TIMED_OUT_GRACE_PERIOD
+        return (
+            datetime.now() - datetime.fromisoformat(first_seen)
+            > PROLIFIC_TIMED_OUT_GRACE_PERIOD
+        )
 
     def _compensate_timed_out_participant(self, participant):
         """Pay a participant's base payment as a bonus and tell the researcher."""

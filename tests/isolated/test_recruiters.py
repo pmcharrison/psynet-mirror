@@ -10,6 +10,7 @@ from psynet.participant import Participant
 from psynet.recruiters import (
     PROLIFIC_BASE_PAY_COMPENSATED_VAR,
     PROLIFIC_SCREEN_OUT_ACTION,
+    PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
@@ -828,8 +829,13 @@ class FakeVarStore:
         self.values[name] = value
 
 
-def make_finished_participant(minutes_ago=30, compensated=False):
-    """A participant who finished the experiment and was approved locally."""
+def make_finished_participant(compensated=False, timed_out_seen_minutes_ago=30):
+    """A participant who finished the experiment and was approved locally.
+
+    By default their submission was first observed TIMED-OUT long enough ago
+    that the grace period has elapsed; pass ``timed_out_seen_minutes_ago=None``
+    for a participant whose submission has not been seen TIMED-OUT before.
+    """
     participant = MagicMock()
     participant.id = 24
     participant.failed = False
@@ -837,10 +843,14 @@ def make_finished_participant(minutes_ago=30, compensated=False):
     participant.assignment_id = "assignment-1"
     participant.worker_id = "worker-1"
     participant.base_pay = 0.50
-    participant.end_time = datetime.now() - timedelta(minutes=minutes_ago)
-    participant.var = FakeVarStore(
-        **({PROLIFIC_BASE_PAY_COMPENSATED_VAR: True} if compensated else {})
-    )
+    values = {}
+    if compensated:
+        values[PROLIFIC_BASE_PAY_COMPENSATED_VAR] = True
+    if timed_out_seen_minutes_ago is not None:
+        values[PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR] = (
+            datetime.now() - timedelta(minutes=timed_out_seen_minutes_ago)
+        ).isoformat()
+    participant.var = FakeVarStore(**values)
     return participant
 
 
@@ -899,16 +909,27 @@ def test_approved_submission_is_left_alone():
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
 
 
-def test_recently_finished_participant_is_not_compensated():
-    # A submission can briefly read TIMED-OUT and still end up APPROVED, so we
-    # wait out the grace period; until then Prolific is not even queried.
+def test_first_timed_out_observation_starts_the_grace_period_without_paying():
+    # A submission can read TIMED-OUT and still end up APPROVED (last-moment
+    # code entry, manual approval), so the first observation only records a
+    # timestamp; compensation happens on a later pass.
     recruiter = make_recruiter_with_submission("TIMED-OUT")
-    participant = make_finished_participant(minutes_ago=1)
+    participant = make_finished_participant(timed_out_seen_minutes_ago=None)
 
     verify_status_of(recruiter, [participant])
 
-    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert participant.var.get(PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR) is not None
+
+
+def test_submission_within_the_grace_period_is_not_compensated_yet():
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant(timed_out_seen_minutes_ago=1)
+
+    verify_status_of(recruiter, [participant])
+
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is None
 
 
 def test_participant_is_not_compensated_twice():
@@ -923,11 +944,12 @@ def test_participant_is_not_compensated_twice():
 @pytest.mark.parametrize(
     "attribute,value",
     [
-        # Screened-out participants are recorded as approved *and* failed, and
-        # Prolific has already paid them the fixed screen-out reward.
+        # Screened-out participants are recorded as failed (and relabelled
+        # "screened_out"), and Prolific has already paid them the fixed
+        # screen-out reward.
         ("failed", True),
         ("status", "working"),
-        ("end_time", None),
+        ("status", "screened_out"),
     ],
 )
 def test_participants_outside_the_target_case_are_not_compensated(attribute, value):
