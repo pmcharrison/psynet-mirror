@@ -103,9 +103,31 @@ PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 #: ``prolific_unsuccessful_base_payment`` explicitly (or disable the feature).
 PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
 
-# Marks participants whose base payment we replaced with a bonus after their
-# Prolific submission timed out (see ``verify_status_of``).
-PROLIFIC_BASE_PAY_COMPENSATED_VAR = "prolific_base_pay_compensated"
+# Tracks the reconciliation of a locally approved participant's payment
+# against Prolific (see ``verify_status_of``). Unset while checks are still
+# ongoing; any of the values below is final and stops further checks.
+PROLIFIC_PAYMENT_CHECK_VAR = "prolific_payment_check"
+
+#: Prolific settled the submission itself (or no payment is owed), so no
+#: compensation is needed.
+PROLIFIC_PAYMENT_NOT_NEEDED = "not_needed"
+
+#: We decided to compensate and are about to call Prolific. If this value is
+#: ever seen at the start of a pass, an earlier attempt crashed or failed
+#: without recording an outcome.
+PROLIFIC_PAYMENT_PENDING = "pending"
+
+#: The participant's base payment was successfully paid as a bonus.
+PROLIFIC_PAYMENT_COMPENSATED = "compensated"
+
+#: An earlier compensation attempt has an unknown outcome; the researcher was
+#: notified to reconcile manually and we will not retry automatically.
+PROLIFIC_PAYMENT_NEEDS_REVIEW = "needs_review"
+
+# Final Prolific submission states in which Prolific has settled the payment
+# question itself, so our timed-out compensation can never apply. Anything
+# else (e.g. ACTIVE, AWAITING REVIEW) may still turn into TIMED-OUT.
+PROLIFIC_SETTLED_SUBMISSION_STATUSES = ("APPROVED", "REJECTED", "RETURNED")
 
 # Records (as an ISO timestamp) when we first observed a participant's Prolific
 # submission in the TIMED-OUT state (see ``verify_status_of``).
@@ -561,7 +583,18 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
         for participant in candidates:
             submission = submissions.get(participant.assignment_id)
-            if submission is None or submission.get("status") != "TIMED-OUT":
+            if submission is None:
+                continue
+            status = submission.get("status")
+            if status in PROLIFIC_SETTLED_SUBMISSION_STATUSES:
+                # Prolific settled this submission itself; record that so the
+                # candidate set (and with it this extra API call) drains once
+                # all submissions reach a final state.
+                participant.var.set(
+                    PROLIFIC_PAYMENT_CHECK_VAR, PROLIFIC_PAYMENT_NOT_NEEDED
+                )
+                continue
+            if status != "TIMED-OUT":
                 continue
             if not self._timed_out_grace_period_elapsed(participant):
                 continue
@@ -582,14 +615,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def _needs_prolific_payment_check(participant) -> bool:
         """Whether it is worth asking Prolific about this participant's
         payment. Gates the API call: the participant finished the experiment
-        and was approved locally, and we have not compensated them yet, so
-        nothing here consults Prolific itself.
+        and was approved locally, and their payment check has not reached a
+        final outcome yet, so nothing here consults Prolific itself.
         """
-        return not (
-            participant.failed
-            or participant.status != "approved"
-            or participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR, False)
-        )
+        if participant.failed or participant.status != "approved":
+            return False
+        state = participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR, None)
+        return state in (None, PROLIFIC_PAYMENT_PENDING)
 
     @staticmethod
     def _timed_out_grace_period_elapsed(participant) -> bool:
@@ -629,18 +661,30 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         if amount is None:
             amount = get_config().get("base_payment")
         if not amount:
+            participant.var.set(PROLIFIC_PAYMENT_CHECK_VAR, PROLIFIC_PAYMENT_NOT_NEEDED)
             logger.warning(
                 "Not compensating participant %s for their timed-out Prolific "
                 "submission because no base payment is recorded for them.",
                 participant.id,
             )
             return
+        if (
+            participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR, None)
+            == PROLIFIC_PAYMENT_PENDING
+        ):
+            self._flag_unresolved_compensation(participant)
+            return
+        participant.var.set(PROLIFIC_PAYMENT_CHECK_VAR, PROLIFIC_PAYMENT_PENDING)
+        # Commit the intent before any money moves: if we crash or fail
+        # between paying and recording the outcome, the pending marker stops
+        # the next pass from blindly paying again.
+        session.commit()
         self.prolificservice.pay_session_bonus(
             study_id=self.current_study_id,
             worker_id=participant.worker_id,
             amount=amount,
         )
-        participant.var.set(PROLIFIC_BASE_PAY_COMPENSATED_VAR, True)
+        participant.var.set(PROLIFIC_PAYMENT_CHECK_VAR, PROLIFIC_PAYMENT_COMPENSATED)
         # Commit before doing anything else: the money has already left our
         # hands, so the flag that stops us paying again must survive any
         # later failure in this pass.
@@ -653,6 +697,34 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             f"bonus instead."
         )
         logger.info(message)
+        get_experiment().notifier.notify(message)
+
+    def _flag_unresolved_compensation(self, participant):
+        """Hand an ambiguous compensation attempt over to the researcher.
+
+        A leftover pending marker means an earlier attempt crashed or failed
+        somewhere between deciding to pay and recording the outcome, so the
+        bonus may or may not have been sent. Retrying automatically could pay
+        the participant twice, so we notify the researcher to reconcile
+        manually instead.
+        """
+        from .experiment import get_experiment
+
+        participant.var.set(PROLIFIC_PAYMENT_CHECK_VAR, PROLIFIC_PAYMENT_NEEDS_REVIEW)
+        # Commit before notifying so a notification failure cannot put us
+        # back into this branch and spam the researcher.
+        session.commit()
+        message = (
+            f"Participant {participant.id}'s Prolific submission "
+            f"({participant.assignment_id}) timed out and PsyNet started to "
+            f"pay their base payment as a bonus, but the attempt did not "
+            f"record an outcome (the payment call failed or the process "
+            f"stopped mid-way). To avoid a double payment PsyNet will not "
+            f"retry automatically: please check the study's bonus payments "
+            f"on Prolific and pay worker {participant.worker_id} manually "
+            f"if needed."
+        )
+        logger.warning(message)
         get_experiment().notifier.notify(message)
 
     def request_return_for_bonus(self, participant) -> TimelineLogic:

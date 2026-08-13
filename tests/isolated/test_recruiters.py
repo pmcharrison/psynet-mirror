@@ -8,7 +8,11 @@ from dallinger.prolific import ProlificServiceException
 
 from psynet.participant import Participant
 from psynet.recruiters import (
-    PROLIFIC_BASE_PAY_COMPENSATED_VAR,
+    PROLIFIC_PAYMENT_CHECK_VAR,
+    PROLIFIC_PAYMENT_COMPENSATED,
+    PROLIFIC_PAYMENT_NEEDS_REVIEW,
+    PROLIFIC_PAYMENT_NOT_NEEDED,
+    PROLIFIC_PAYMENT_PENDING,
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
@@ -829,7 +833,7 @@ class FakeVarStore:
         self.values[name] = value
 
 
-def make_finished_participant(compensated=False, timed_out_seen_minutes_ago=30):
+def make_finished_participant(payment_check=None, timed_out_seen_minutes_ago=30):
     """A participant who finished the experiment and was approved locally.
 
     By default their submission was first observed TIMED-OUT long enough ago
@@ -844,8 +848,8 @@ def make_finished_participant(compensated=False, timed_out_seen_minutes_ago=30):
     participant.worker_id = "worker-1"
     participant.base_pay = 0.50
     values = {}
-    if compensated:
-        values[PROLIFIC_BASE_PAY_COMPENSATED_VAR] = True
+    if payment_check is not None:
+        values[PROLIFIC_PAYMENT_CHECK_VAR] = payment_check
     if timed_out_seen_minutes_ago is not None:
         values[PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR] = (
             datetime.now() - timedelta(minutes=timed_out_seen_minutes_ago)
@@ -895,18 +899,28 @@ def test_timed_out_participant_is_paid_base_payment_as_bonus():
     recruiter.prolificservice.pay_session_bonus.assert_called_once_with(
         study_id="study-1", worker_id="worker-1", amount=0.50
     )
-    assert participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is True
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_COMPENSATED
+    )
     experiment.notifier.notify.assert_called_once()
     assert "timed out" in experiment.notifier.notify.call_args.args[0]
 
 
-def test_approved_submission_is_left_alone():
+def test_approved_submission_is_not_paid_and_stops_further_checks():
     recruiter = make_recruiter_with_submission("APPROVED")
     participant = make_finished_participant()
 
     verify_status_of(recruiter, [participant])
 
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_NOT_NEEDED
+    )
+
+    # Once the submission is settled, later passes skip the API call entirely.
+    recruiter.prolificservice.get_assignments_for_study.reset_mock()
+    verify_status_of(recruiter, [participant])
+    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
 
 
 def test_first_timed_out_observation_starts_the_grace_period_without_paying():
@@ -929,16 +943,34 @@ def test_submission_within_the_grace_period_is_not_compensated_yet():
     verify_status_of(recruiter, [participant])
 
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
-    assert participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is None
+    assert participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) is None
 
 
 def test_participant_is_not_compensated_twice():
     recruiter = make_recruiter_with_submission("TIMED-OUT")
-    participant = make_finished_participant(compensated=True)
+    participant = make_finished_participant(payment_check=PROLIFIC_PAYMENT_COMPENSATED)
 
     verify_status_of(recruiter, [participant])
 
+    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+def test_unresolved_attempt_is_not_retried_and_notifies_researcher(caplog):
+    # A leftover pending marker means an earlier attempt may or may not have
+    # paid; retrying could pay twice, so we escalate to the researcher.
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant(payment_check=PROLIFIC_PAYMENT_PENDING)
+    experiment = MagicMock()
+
+    verify_status_of(recruiter, [participant], experiment)
+
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_NEEDS_REVIEW
+    )
+    experiment.notifier.notify.assert_called_once()
+    assert "will not retry" in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -983,7 +1015,9 @@ def test_zero_amount_bonus_is_never_sent(caplog):
     verify_status_of(recruiter, [participant], config=make_config(base_payment=0))
 
     recruiter.prolificservice.pay_session_bonus.assert_not_called()
-    assert participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is None
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_NOT_NEEDED
+    )
     assert "no base payment is recorded" in caplog.text
 
 
@@ -1007,6 +1041,8 @@ def test_one_failed_payment_does_not_block_the_others(caplog):
     verify_status_of(recruiter, [first, second])
 
     assert recruiter.prolificservice.pay_session_bonus.call_count == 2
-    assert first.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is None
-    assert second.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is True
+    # The failed attempt stays pending, so the next pass escalates it to the
+    # researcher rather than retrying a payment with an unknown outcome.
+    assert first.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_PENDING
+    assert second.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_COMPENSATED
     assert "Error while compensating participant 24" in caplog.text
