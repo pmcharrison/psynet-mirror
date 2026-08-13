@@ -103,6 +103,16 @@ PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 #: ``prolific_unsuccessful_base_payment`` explicitly (or disable the feature).
 PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
 
+# Marks participants whose base payment we replaced with a bonus after their
+# Prolific submission timed out (see ``verify_status_of``).
+PROLIFIC_BASE_PAY_COMPENSATED_VAR = "prolific_base_pay_compensated"
+
+# How long after a participant finishes we wait before concluding that their
+# timed-out submission is final. A submission can briefly read TIMED-OUT and
+# still end up APPROVED when the participant enters the completion code at the
+# last moment, and we must not pay them twice.
+PROLIFIC_TIMED_OUT_GRACE_PERIOD = timedelta(minutes=10)
+
 
 def latest_participant_for_assignment(assignment_id):
     """Return the most recent participant with this assignment id, or ``None``.
@@ -523,6 +533,67 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 )
                 return True
         return super().approve_hit(assignment_id)
+
+    def verify_status_of(self, participants):
+        """Reconcile local participant status against Prolific.
+
+        Dallinger's implementation only corrects participants who are still
+        ``working``. We additionally handle the opposite mismatch: a
+        participant who finished the experiment (so PsyNet recorded their base
+        payment and approved them) but never entered the completion code on
+        Prolific. Their submission times out, Prolific pays them nothing for
+        the study, and the two systems disagree permanently. Prolific still
+        accepts bonus payments for timed-out submissions, so we pay the base
+        payment as a bonus to make the participant whole.
+        """
+        super().verify_status_of(participants)
+
+        candidates = [p for p in participants if self._may_have_timed_out_unpaid(p)]
+        if not candidates:
+            return
+        submissions = self.prolificservice.get_assignments_for_study(
+            self.current_study_id
+        )
+        for participant in candidates:
+            submission = submissions.get(participant.assignment_id)
+            if submission is not None and submission["status"] == "TIMED-OUT":
+                self._compensate_timed_out_participant(participant)
+
+    @staticmethod
+    def _may_have_timed_out_unpaid(participant) -> bool:
+        """Whether the participant might have finished the experiment without
+        being paid by Prolific. Deliberately a local-only check, so that the
+        Prolific API is queried only when there is something to reconcile.
+        """
+        if (
+            participant.failed
+            or participant.status != "approved"
+            or participant.end_time is None
+            or participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR, False)
+        ):
+            return False
+        return datetime.now() - participant.end_time > PROLIFIC_TIMED_OUT_GRACE_PERIOD
+
+    def _compensate_timed_out_participant(self, participant):
+        """Pay a participant's base payment as a bonus and tell the researcher."""
+        from .experiment import get_experiment
+
+        amount = participant.base_pay or get_config().get("base_payment")
+        self.prolificservice.pay_session_bonus(
+            study_id=self.current_study_id,
+            worker_id=participant.worker_id,
+            amount=amount,
+        )
+        participant.var.set(PROLIFIC_BASE_PAY_COMPENSATED_VAR, True)
+        message = (
+            f"Participant {participant.id} finished the experiment, but their "
+            f"Prolific submission ({participant.assignment_id}) timed out "
+            f"before they entered the completion code, so Prolific did not pay "
+            f"the study reward. PsyNet paid their base payment ({amount}) as a "
+            f"bonus instead."
+        )
+        logger.info(message)
+        get_experiment().notifier.notify(message)
 
     def request_return_for_bonus(self, participant) -> TimelineLogic:
         """Ask the participant to return their Prolific submission and pay

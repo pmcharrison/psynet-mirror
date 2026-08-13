@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import dallinger.recruiters
@@ -7,6 +8,7 @@ from dallinger.prolific import ProlificServiceException
 
 from psynet.participant import Participant
 from psynet.recruiters import (
+    PROLIFIC_BASE_PAY_COMPENSATED_VAR,
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     ProlificRecruiter,
@@ -810,3 +812,102 @@ def test_open_recruitment_no_hint_when_screen_out_disabled(caplog):
                 PsyNetProlificRecruiterMixin.open_recruitment(recruiter, n=5)
 
     assert "prolific_pay_unsuccessful" not in caplog.text
+
+
+# --- Compensating participants whose submission timed out (issue #1056) ---
+
+
+class FakeVarStore:
+    def __init__(self, **values):
+        self.values = dict(values)
+
+    def get(self, name, default=None):
+        return self.values.get(name, default)
+
+    def set(self, name, value):
+        self.values[name] = value
+
+
+def make_finished_participant(minutes_ago=30, compensated=False):
+    """A participant who finished the experiment and was approved locally."""
+    participant = MagicMock()
+    participant.id = 24
+    participant.failed = False
+    participant.status = "approved"
+    participant.assignment_id = "assignment-1"
+    participant.worker_id = "worker-1"
+    participant.base_pay = 0.50
+    participant.end_time = datetime.now() - timedelta(minutes=minutes_ago)
+    participant.var = FakeVarStore(
+        **({PROLIFIC_BASE_PAY_COMPENSATED_VAR: True} if compensated else {})
+    )
+    return participant
+
+
+def verify_status_of(recruiter, participants, experiment=None):
+    with patch.object(
+        ProlificRecruiter,
+        "current_study_id",
+        new_callable=PropertyMock,
+        return_value="study-1",
+    ):
+        with patch.object(dallinger.recruiters.ProlificRecruiter, "verify_status_of"):
+            with patch(
+                "psynet.experiment.get_experiment",
+                return_value=experiment or MagicMock(),
+            ):
+                PsyNetProlificRecruiterMixin.verify_status_of(recruiter, participants)
+
+
+def make_recruiter_with_submission(status):
+    recruiter = make_prolific_recruiter(make_config())
+    recruiter.prolificservice = MagicMock()
+    recruiter.prolificservice.get_assignments_for_study.return_value = {
+        "assignment-1": {"status": status}
+    }
+    return recruiter
+
+
+def test_timed_out_participant_is_paid_base_payment_as_bonus():
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant()
+    experiment = MagicMock()
+
+    verify_status_of(recruiter, [participant], experiment)
+
+    recruiter.prolificservice.pay_session_bonus.assert_called_once_with(
+        study_id="study-1", worker_id="worker-1", amount=0.50
+    )
+    assert participant.var.get(PROLIFIC_BASE_PAY_COMPENSATED_VAR) is True
+    experiment.notifier.notify.assert_called_once()
+    assert "timed out" in experiment.notifier.notify.call_args.args[0]
+
+
+def test_approved_submission_is_left_alone():
+    recruiter = make_recruiter_with_submission("APPROVED")
+    participant = make_finished_participant()
+
+    verify_status_of(recruiter, [participant])
+
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+def test_recently_finished_participant_is_not_compensated():
+    # A submission can briefly read TIMED-OUT and still end up APPROVED, so we
+    # wait out the grace period; until then Prolific is not even queried.
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant(minutes_ago=1)
+
+    verify_status_of(recruiter, [participant])
+
+    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+def test_participant_is_not_compensated_twice():
+    recruiter = make_recruiter_with_submission("TIMED-OUT")
+    participant = make_finished_participant(compensated=True)
+
+    verify_status_of(recruiter, [participant])
+
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()

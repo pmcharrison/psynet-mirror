@@ -1,0 +1,1 @@
+Fixed a Prolific payment gap where a participant who finished the experiment but never entered the completion code was approved locally while their submission timed out unpaid on Prolific. The scheduled status check now detects this mismatch, pays the participant's base payment as a bonus, and notifies the researcher.
