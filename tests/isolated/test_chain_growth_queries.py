@@ -82,7 +82,9 @@ def chain_trial_maker(**kwargs):
     return ChainTrialMaker(**{**args, **kwargs})
 
 
-def create_chain_network(trial_maker, experiment, *, network_class=ChainNetwork):
+def create_chain_network(
+    trial_maker, experiment, *, network_class=ChainNetwork, participant=None
+):
     start_node = trial_maker.node_class(definition={"x": 0})
     network = network_class(
         trial_maker_id=trial_maker.id,
@@ -91,6 +93,7 @@ def create_chain_network(trial_maker, experiment, *, network_class=ChainNetwork)
         chain_type=trial_maker.chain_type,
         trials_per_node=trial_maker.trials_per_node,
         target_n_nodes=trial_maker.max_nodes_per_chain,
+        participant=participant,
     )
     db.session.add(network)
     db.session.flush()
@@ -180,6 +183,40 @@ def test_ready_to_spawn_access_has_migration_error(db_session):
 
     with pytest.raises(AttributeError, match="check_ready_to_spawn"):
         network.head.check_ready_to_spawn()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_participant_fail_routine_fails_owned_networks_not_trials(
+    db_session, participant
+):
+    exp = get_experiment()
+    within_maker = chain_trial_maker(
+        id_="within_growth",
+        chain_type="within",
+        chains_per_participant=1,
+        chains_per_experiment=None,
+        recruit_mode="n_participants",
+        target_n_participants=1,
+    )
+    across_maker = chain_trial_maker()
+    owned = create_chain_network(within_maker, exp, participant=participant)
+    shared = create_chain_network(across_maker, exp)
+    completed = add_trial(GrowthQueryTrial, owned.head, participant, finalized=True)
+    owned.head.propagate_failure = True
+    db.session.commit()
+
+    participant.append_failure_tags("premature_exit")
+    within_maker.participant_fail_routine(participant, exp)
+    db.session.commit()
+
+    assert owned.failed
+    assert owned.head.failed
+    assert not completed.failed
+    assert not shared.failed
+    assert not shared.head.failed
 
 
 def graph_trial_maker():

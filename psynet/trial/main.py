@@ -1480,6 +1480,7 @@ class TrialMaker(Module):
             reason=reason,
             only_incomplete=not fail_completed,
         )
+        self.fail_participant_networks(participant, reason=reason)
 
     @property
     def check_timeout_task(self):
@@ -1821,6 +1822,42 @@ class TrialMaker(Module):
             trials_to_fail = trials_to_fail.filter(Trial.complete.is_(False))
         for trial in trials_to_fail:
             trial.fail(reason=reason)
+
+    def fail_participant_networks(self, participant, reason=None):
+        """Fail networks owned by this participant.
+
+        Participant-scoped networks, such as within-participant chains, are
+        private to that participant. Leaving them alive after the participant
+        fails would stall growth checks and dashboards. Across-participant
+        networks are left untouched. Trials are not failed here; trial
+        invalidation remains the responsibility of
+        :meth:`~psynet.trial.main.TrialMaker.fail_participant_trials`.
+        """
+        networks = (
+            TrialNetwork.query.filter_by(
+                participant_id=participant.id,
+                trial_maker_id=self.id,
+                failed=False,
+            )
+            .with_for_update(of=TrialNetwork)
+            .populate_existing()
+            .all()
+        )
+        for network in networks:
+            self._fail_network_structure(network, reason=reason)
+
+    def _fail_network_structure(self, network, reason=None):
+        """Fail a network and its nodes without cascading to trials."""
+        original_propagate_failure = []
+        for node in network.all_nodes:
+            if hasattr(node, "propagate_failure"):
+                original_propagate_failure.append((node, node.propagate_failure))
+                node.propagate_failure = False
+        try:
+            network.fail(reason=reason)
+        finally:
+            for node, value in original_propagate_failure:
+                node.propagate_failure = value
 
     def check_fail_logic(self):
         """

@@ -207,3 +207,14 @@ Experiment authors should enable propagation only where the validity of
 downstream objects genuinely depends on the failed object. Ownership alone is
 not a dependency: the fact that a participant owns several trials is not a
 reason to propagate failure between those trials.
+
+
+Participant-scoped networks
+---------------------------
+
+Within-participant chains (and other networks whose ``participant_id`` is set)
+belong only to that participant. When the participant fails, PsyNet fails those
+networks and their nodes so they do not remain alive for growth checks or
+dashboards. Across-participant networks are left untouched. This structural
+cleanup does not by itself fail trials; completed-trial invalidation still
+follows the TrialMaker settings above.
