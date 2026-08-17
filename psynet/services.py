@@ -9,7 +9,10 @@ Probes intentionally avoid requiring ``psycopg2`` or the ``redis`` package so
 the thin bootstrap CLI can keep core dependencies click-only. Redis is checked
 with a stdlib RESP ``PING``. PostgreSQL prefers an installed ``psycopg2`` when
 present (after ``psynet[experiment]``), otherwise ``pg_isready``, otherwise a
-TCP port probe.
+stdlib startup-protocol fingerprint. That fingerprint only verifies the peer
+speaks PostgreSQL (including ``ErrorResponse``); it does not authenticate or
+prove the DSN's user/database are valid. Full DSN validation happens once
+``psycopg2`` is installed.
 
 Docker experiment workflows that use ``docker/run`` manage services on the
 ``dallinger`` network separately; prefer ``psynet services check`` there
@@ -101,7 +104,12 @@ def check_postgres() -> ServiceCheck:
 
 
 def _check_postgres_without_psycopg2(dsn: str) -> ServiceCheck:
-    """Probe PostgreSQL without the ``psycopg2`` package (thin bootstrap)."""
+    """Probe PostgreSQL without the ``psycopg2`` package (thin bootstrap).
+
+    Prefers ``pg_isready`` (libpq semantics). The stdlib fallback only checks
+    that a PostgreSQL server answers the startup packet; see
+    ``_probe_postgres_protocol``.
+    """
     if shutil.which("pg_isready") is not None:
         result = subprocess.run(
             ["pg_isready", "-d", dsn, "-t", "3"],
@@ -211,7 +219,13 @@ def _postgres_tls_socket(raw_sock, host: str):
 
 
 def _probe_postgres_protocol(sock, *, user: str, database: str) -> None:
-    """Send a PostgreSQL startup packet and validate the response framing."""
+    """Send a PostgreSQL startup packet and validate the response framing.
+
+    Accepts Authentication (``R``), ErrorResponse (``E``), and other framed
+    backend messages as evidence the peer speaks PostgreSQL. Wrong credentials
+    or an unknown database can still yield ``E``, so this is not equivalent to
+    ``psycopg2.connect``.
+    """
     parameters = (
         b"user\0" + user.encode() + b"\0database\0" + database.encode() + b"\0\0"
     )

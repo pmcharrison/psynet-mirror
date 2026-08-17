@@ -38,10 +38,13 @@ classifiers = [
 # Minimal core: only what is needed to run bootstrap commands
 # (psynet setup, psynet scripts …, psynet services …, psynet generate-constraints).
 # Service probes and version checks avoid psycopg2 / redis / yaspin so core stays
-# click-only; those arrive via psynet[experiment] when the full runtime is installed.
+# free of experiment runtime packages; those arrive via psynet[experiment].
 # Experiment authors need psynet[experiment] (installed automatically by `psynet setup`).
 dependencies = [
     "click",
+    # ``psynet.dallinger_dependency`` reads pyproject.toml on source checkouts;
+    # tomllib is stdlib only from 3.11.
+    "tomli; python_version < \"3.11\"",
 ]
 
 [project.optional-dependencies]
