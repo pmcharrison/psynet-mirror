@@ -14,8 +14,9 @@ Dallinger package, so thin-bootstrap ``psynet setup`` can lock before
 
 When Dallinger is installed (editable or otherwise), its local
 ``dallinger.constraints`` script is used so generation matches the installed
-package. Otherwise the script is fetched from a pinned Dallinger release tag
-on GitHub (never ``master``).
+package. Otherwise the script is fetched from the Dallinger release tag that
+matches PsyNet's declared lower bound in ``pyproject.toml`` (never
+``master``); see :mod:`psynet.dallinger_dependency`.
 
 Callers
 -------
@@ -36,13 +37,16 @@ from pathlib import Path
 
 import click
 
-# Pinned release used when Dallinger is not installed (thin bootstrap). Keep in
-# sync with the lower end of PsyNet's supported Dallinger range in pyproject.toml.
-_DALLINGER_CONSTRAINTS_REF = "v12.2.1"
-_DALLINGER_CONSTRAINTS_URL = (
-    "https://raw.githubusercontent.com/Dallinger/Dallinger/"
-    f"{_DALLINGER_CONSTRAINTS_REF}/dallinger/constraints.py"
-)
+from psynet.dallinger_dependency import dallinger_constraints_github_ref
+
+
+def _dallinger_constraints_github_url() -> str:
+    """Return the GitHub raw URL for Dallinger's constraints script fallback."""
+    ref = dallinger_constraints_github_ref()
+    return (
+        "https://raw.githubusercontent.com/Dallinger/Dallinger/"
+        f"{ref}/dallinger/constraints.py"
+    )
 
 
 def constraints_are_up_to_date(
@@ -120,11 +124,10 @@ def _dallinger_constraints_script() -> str:
         click.echo(f"Using constraints script from installed Dallinger: {local_script}")
         return str(local_script)
 
-    click.echo(
-        "Using Dallinger constraints script from GitHub "
-        f"({_DALLINGER_CONSTRAINTS_REF}): {_DALLINGER_CONSTRAINTS_URL}"
-    )
-    return _DALLINGER_CONSTRAINTS_URL
+    ref = dallinger_constraints_github_ref()
+    url = _dallinger_constraints_github_url()
+    click.echo(f"Using Dallinger constraints script from GitHub ({ref}): {url}")
+    return url
 
 
 def _installed_dallinger_constraints_script() -> Path | None:

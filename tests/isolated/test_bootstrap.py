@@ -263,7 +263,7 @@ def test_dallinger_constraints_script_prefers_installed_package(
 def test_dallinger_constraints_script_uses_pinned_github_when_missing(
     monkeypatch, capsys
 ):
-    """Thin bootstrap (no Dallinger) uses a pinned GitHub release, not master."""
+    """Thin bootstrap (no Dallinger) uses pyproject lower-bound tag, not master."""
     from importlib.metadata import PackageNotFoundError
 
     def missing(_name):
@@ -271,16 +271,68 @@ def test_dallinger_constraints_script_uses_pinned_github_when_missing(
 
     monkeypatch.setattr("psynet.constraints_compile.distribution", missing)
     from psynet.constraints_compile import (
-        _DALLINGER_CONSTRAINTS_REF,
-        _DALLINGER_CONSTRAINTS_URL,
+        _dallinger_constraints_github_url,
         _dallinger_constraints_script,
     )
+    from psynet.dallinger_dependency import dallinger_constraints_github_ref
 
-    assert _DALLINGER_CONSTRAINTS_REF != "master"
-    assert _DALLINGER_CONSTRAINTS_REF in _DALLINGER_CONSTRAINTS_URL
-    assert "master" not in _DALLINGER_CONSTRAINTS_URL
-    assert _dallinger_constraints_script() == _DALLINGER_CONSTRAINTS_URL
-    assert _DALLINGER_CONSTRAINTS_REF in capsys.readouterr().out
+    ref = dallinger_constraints_github_ref()
+    url = _dallinger_constraints_github_url()
+    assert ref != "master"
+    assert ref.startswith("v")
+    assert ref in url
+    assert "master" not in url
+    assert _dallinger_constraints_script() == url
+    assert ref in capsys.readouterr().out
+
+
+def test_dallinger_constraints_github_ref_tracks_pyproject_lower_bound():
+    """GitHub fallback ref is derived from pyproject, not a duplicate constant."""
+    from pathlib import Path
+
+    import tomllib
+
+    from psynet.dallinger_dependency import (
+        dallinger_constraints_github_ref,
+        dallinger_lower_bound_from_pyproject,
+    )
+
+    root = Path(__file__).resolve().parents[2]
+    pyproject_version = dallinger_lower_bound_from_pyproject(root / "pyproject.toml")
+    assert dallinger_constraints_github_ref() == f"v{pyproject_version}"
+
+    pyproject = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    declared = next(
+        dep
+        for dep in pyproject["project"]["optional-dependencies"]["experiment"]
+        if dep.startswith("dallinger[")
+    )
+    assert pyproject_version in declared
+
+
+def test_bootstrap_core_depends_only_on_click():
+    """Core install stays free of experiment-runtime packages.
+
+    ``tomli`` is allowed only as a Python < 3.11 marker dependency so source
+    checkouts can parse ``pyproject.toml`` where ``tomllib`` is unavailable.
+    """
+    from pathlib import Path
+
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # pragma: no cover
+        import tomli as tomllib
+
+    pyproject = tomllib.loads(
+        (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert pyproject["project"]["dependencies"] == [
+        "click",
+        'tomli; python_version < "3.11"',
+    ]
+    assert "yaspin" in pyproject["project"]["optional-dependencies"]["experiment"]
 
 
 def test_constraints_are_up_to_date_requires_requirements_md5(tmp_path):
