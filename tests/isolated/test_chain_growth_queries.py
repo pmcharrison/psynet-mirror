@@ -189,9 +189,7 @@ def test_ready_to_spawn_access_has_migration_error(db_session):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_participant_fail_routine_does_not_fail_owned_networks(
-    db_session, participant
-):
+def test_participant_fail_routine_does_not_fail_owned_networks(db_session, participant):
     exp = get_experiment()
     within_maker = chain_trial_maker(
         id_="within_growth",
