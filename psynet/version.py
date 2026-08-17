@@ -3,7 +3,6 @@ import re
 import subprocess
 
 import click
-from yaspin import yaspin
 
 psynet_version = "13.4.0a0"
 
@@ -34,6 +33,10 @@ def check_core_dependency_versions_match_requirements():
             "SKIP_VERSION_CHECK is set so we will skip checking PsyNet versions specified vs. installed."
         )
         return
+
+    # yaspin lives in psynet[experiment]; keep this import lazy so thin
+    # bootstrap can import ``psynet_version`` without the spinner package.
+    from yaspin import yaspin
 
     skip_messages = []
     with yaspin(
