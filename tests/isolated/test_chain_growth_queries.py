@@ -204,8 +204,10 @@ def test_participant_fail_routine_fails_owned_networks_not_trials(
     across_maker = chain_trial_maker()
     owned = create_chain_network(within_maker, exp, participant=participant)
     shared = create_chain_network(across_maker, exp)
-    completed = add_trial(GrowthQueryTrial, owned.head, participant, finalized=True)
-    owned.head.propagate_failure = True
+    owned_node = owned.head
+    shared_node = shared.head
+    completed = add_trial(GrowthQueryTrial, owned_node, participant, finalized=True)
+    owned_node.propagate_failure = True
     db.session.commit()
 
     participant.append_failure_tags("premature_exit")
@@ -213,10 +215,10 @@ def test_participant_fail_routine_fails_owned_networks_not_trials(
     db.session.commit()
 
     assert owned.failed
-    assert owned.head.failed
+    assert owned_node.failed
     assert not completed.failed
     assert not shared.failed
-    assert not shared.head.failed
+    assert not shared_node.failed
 
 
 def graph_trial_maker():
