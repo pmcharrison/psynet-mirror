@@ -203,9 +203,9 @@ interactively or pass ``--force-foreign-env``.
 **Inside bundled demos / test experiments**, ``psynet setup`` always performs
 only lightweight file preparation and never installs packages or rewrites
 requirements. You do not need ``--no-install`` there; that behavior is
-automatic. PsyNet CI scaffolds missing demo boilerplate before collecting
-``test.py``, and the pytest harness removes only scaffold paths that were
-absent when the fixture started. After preparation, ``psynet setup``
+automatic. PsyNet CI scaffolds ignored demo boilerplate before collecting
+``test.py``, and the pytest harness restores the authored-only tree afterwards
+so later isolated tests are not polluted. After preparation, ``psynet setup``
 in demos only **verifies** local services (it does not offer to start Docker
 containers).
 

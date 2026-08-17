@@ -7,7 +7,8 @@ the PsyNet source checkout or on a copied standalone experiment.
 Bundled demos inside the PsyNet repository
 ------------------------------------------
 
-Bundled demos use the shared PsyNet source-checkout environment. From the PsyNet
+Bundled demos use the shared PsyNet source-checkout environment. They intentionally
+omit generated scaffold files and per-demo ``constraints.txt``. From the PsyNet
 repository root:
 
 .. code-block:: bash

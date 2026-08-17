@@ -20,9 +20,9 @@ If asked, click New Window.
 The next step depends on whether you are using the Docker mode for running PsyNet,
 or whether you are using the *virtual environment* mode.
 
-The PsyNet demo directories are a good starting point. When you copy one out of
-the PsyNet repository, treat it as a standalone experiment and run
-``psynet setup`` to ensure boilerplate and a constrained environment are present.
+The PsyNet demo directories contain authored experiment files and an unpinned
+``psynet`` entry in ``requirements.txt``. Generated boilerplate and
+``constraints.txt`` are intentionally omitted.
 
 Before you create an experiment environment, make sure these tools are
 available on your computer (once per machine):
