@@ -1,6 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
-from typing import Optional, Type
+from typing import Literal, Optional, Type
 
 from dallinger import db
 from sqlalchemy import Column, Index, String, UniqueConstraint, and_, select
@@ -391,6 +391,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         check_performance_every_trial: bool,
         recruit_mode: str,
         target_n_participants=Optional[int],
+        n_participants_completion: Literal["experiment", "trial_maker"] = "experiment",
         max_nodes_per_chain: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         fail_trials_on_premature_exit: bool = False,
@@ -421,6 +422,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             check_performance_every_trial=check_performance_every_trial,
             recruit_mode=recruit_mode,
             target_n_participants=target_n_participants,
+            n_participants_completion=n_participants_completion,
             max_nodes_per_chain=max_nodes_per_chain,
             max_trials_per_block=max_trials_per_block,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,

@@ -733,7 +733,10 @@ This Trial Maker has several features as determined by the options that have bee
 - Node selection will be balanced, meaning that Trials should accumulate evenly across Nodes;
 - PsyNet will check the participant's performance at the end of the Trial Maker, and potentially terminate
   their session if they perform too badly;
-- The Trial Maker will prompt PsyNet to keep recruiting until 50 participants have been recruited;
+- The Trial Maker will prompt PsyNet to keep recruiting until 50 participants have finished
+  the experiment (the default ``n_participants_completion="experiment"``;
+  set this to ``"trial_maker"`` to count people who finish this Trial Maker even if they
+  later leave before the experiment end page);
 - The Trial Maker will administer three Trials at the end that are repeats of three randomly selected
   Trials from earlier in the Trial Maker; the results from these Trials can be used to evaluate the
   participant's test-rest reliability.

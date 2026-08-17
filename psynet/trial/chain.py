@@ -1,5 +1,5 @@
 import random
-from typing import Iterable, List, Optional, Type, Union
+from typing import Iterable, List, Literal, Optional, Type, Union
 
 from dallinger import db
 from dallinger.models import Vector
@@ -1192,10 +1192,19 @@ class ChainTrialMaker(NetworkTrialMaker):
         and ``"n_trials"``.
 
     target_n_participants
-        Target number of participants to recruit for the experiment. All
-        participants must successfully finish the experiment to count
-        towards this quota. This target is only relevant if
-        ``recruit_mode="n_participants"``.
+        Target number of participants to recruit for the experiment.
+        This target is only relevant if ``recruit_mode="n_participants"``.
+        Which completions fill the quota is controlled by
+        ``n_participants_completion``.
+
+    n_participants_completion
+        Which kind of completion counts toward ``target_n_participants``.
+        ``"experiment"`` (default) counts participants who successfully
+        finish the whole experiment. ``"trial_maker"`` counts participants
+        who finish this TrialMaker, even if they later leave before the
+        experiment end page. In-progress participants still occupy a slot
+        in both cases so PsyNet does not immediately recruit a replacement.
+        This setting is only relevant if ``recruit_mode="n_participants"``.
 
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
@@ -1313,6 +1322,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         trials_per_node: int = 1,
         n_repeat_trials: int = 0,
         target_n_participants: Optional[int] = None,
+        n_participants_completion: Literal["experiment", "trial_maker"] = "experiment",
         balance_across_chains: bool = False,
         start_nodes: Optional[Union[callable, List[ChainNode]]] = None,
         # balance_strategy: Set[str] = {"within", "across"},
@@ -1468,6 +1478,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             assets=assets,
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
+            n_participants_completion=n_participants_completion,
         )
 
         self.check_initialization()

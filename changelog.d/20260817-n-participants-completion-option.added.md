@@ -1,0 +1,1 @@
+Added ``n_participants_completion`` to TrialMakers, which selects whether ``n_participants`` recruitment counts experiment completions or TrialMaker completions. The default ``"experiment"`` preserves the previous quota.

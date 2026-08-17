@@ -277,10 +277,15 @@ There are many other optional parameters available too. See in particular:
     another participant. The built-in criteria are ``"n_participants"``
     and ``"n_trials"`` (see below).
 - ``target_n_participants``
-    Target number of participants to recruit for the experiment. All
-    participants must successfully finish the experiment to count
-    towards this quota. This target is only relevant if
-    ``recruit_mode="n_participants"``.
+    Target number of participants to recruit for the experiment. This target
+    is only relevant if ``recruit_mode="n_participants"``.
+- ``n_participants_completion``
+    Which kind of completion counts toward ``target_n_participants``.
+    ``"experiment"`` (the default) counts participants who successfully
+    finish the whole experiment. ``"trial_maker"`` counts participants who
+    finish this trial maker, even if they later leave before the experiment
+    end page. In-progress participants still occupy a slot in both cases.
+    This setting is only relevant if ``recruit_mode="n_participants"``.
 - ``target_trials_per_node``
     Target number of trials to recruit for each node in the experiment. This target is only
     relevant if ``recruit_mode="n_trials"``.
