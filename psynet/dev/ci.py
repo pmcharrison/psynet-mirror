@@ -62,10 +62,22 @@ def update_dallinger_constraints_command(check_compile: bool = True) -> int:
 def _get_dallinger_dependency_version(pyproject_path: Path) -> str:
     """Return the Dallinger lower-bound version declared by PsyNet."""
     pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-    dependencies = pyproject["project"]["dependencies"]
-    dependency = next(
-        dependency for dependency in dependencies if dependency.startswith("dallinger[")
+    candidates = list(
+        pyproject.get("project", {})
+        .get("optional-dependencies", {})
+        .get("experiment", [])
     )
+    candidates.extend(pyproject.get("project", {}).get("dependencies", []))
+    dependency = next(
+        (
+            dependency
+            for dependency in candidates
+            if dependency.startswith("dallinger[")
+        ),
+        None,
+    )
+    if dependency is None:
+        raise ValueError("Could not find a Dallinger dependency in pyproject.toml.")
     match = re.search(r">=(\d+\.\d+\.\d+)", dependency)
     if match is None:
         raise ValueError(
@@ -138,6 +150,8 @@ def _check_docker_constraints_compile(
                 "--python-version",
                 python_version,
                 "pyproject.toml",
+                "--extra",
+                "experiment",
                 "--extra",
                 "demos",
                 "--constraint",

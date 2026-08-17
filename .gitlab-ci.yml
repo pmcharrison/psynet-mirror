@@ -65,7 +65,7 @@ changelog_check:
   image: python:3.13
   stage: test
   before_script:
-    - python -m pip install -e .
+    - python -m pip install -e '.[dev]'
   script:
     - |
       git fetch --unshallow origin || git fetch --depth=100 origin
@@ -319,6 +319,23 @@ benchmark_load_sweep:
   rules:
     - when: manual
       allow_failure: true
+
+# Build this commit's Sphinx docs without publishing. Catches install/import
+# and autodoc failures on MRs and branches; the ``pages`` job remains the
+# multi-version publish path for the default branch and release tags.
+docs:build:
+  image: python:3.13
+  stage: test
+  <<: *default_rules
+  before_script: []
+  script:
+    - python -m pip install -e '.[dev]'
+    - sphinx-build -b html docs public/docs-ci
+  artifacts:
+    when: on_failure
+    paths:
+      - public/docs-ci/
+    expire_in: 1 week
 
 # To do:
 # - Skip tests if the changes are only in the docs directory

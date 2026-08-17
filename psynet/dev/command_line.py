@@ -62,30 +62,14 @@ def update_dallinger_constraints(skip_compile_check):
 
 @dev.group("experiments")
 def experiments():
-    """Manage bundled demo and test experiments from a PsyNet source checkout."""
+    """Manage canonical experiment templates from a PsyNet source checkout."""
 
 
 @experiments.command("update")
-@click.option(
-    "--jobs",
-    "n_jobs",
-    default=8,
-    show_default=True,
-    type=int,
-    help="Number of parallel jobs to use when updating experiments.",
-)
-@click.option(
-    "--skip-constraints",
-    is_flag=True,
-    help="Update experiment files without regenerating constraints.txt files.",
-)
-def update_experiments(n_jobs, skip_constraints):
-    """Update bundled demo and test experiment files."""
+def update_experiments():
+    """Update canonical experiment templates."""
     try:
-        experiments_module.update_command(
-            n_jobs=n_jobs,
-            skip_constraints_=True if skip_constraints else None,
-        )
+        experiments_module.update_command()
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
 
