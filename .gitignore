@@ -149,7 +149,6 @@ psynet/nips/ganspace/snapshots/ganspace-code.zip
 psynet/nips/ganspace/.vscode/settings.json
 .Rproj.user
 demos/**/data
-demos/**/develop
 demos/**/snapshots
 tmp/*
 typescript
@@ -165,8 +164,7 @@ dump.rdb
 
 # Scaffold and dependency files generated inside bundled demos.
 # Patterns use ``/**/`` so nested experiment roots (e.g. create_and_rate/basic)
-# are covered. Authored package markers under known subdirs are re-included
-# below so new nested packages do not need ``git add -f``.
+# are covered.
 /demos/**/.dockerignore
 /demos/**/.gitignore
 /demos/**/.python-version
@@ -181,11 +179,6 @@ dump.rdb
 /demos/**/docker/
 /demos/**/pytest.ini
 /demos/**/test.py
-!/demos/**/synth_files/.gitignore
-!/demos/**/synth_files/__init__.py
-!/demos/**/templates/__init__.py
-!/demos/**/static/__init__.py
-!/demos/**/music/__init__.py
 
 # Scaffold and dependency files generated inside test experiments.
 # Stock config.txt is ignored like demos; already-tracked custom configs stay
@@ -205,10 +198,6 @@ dump.rdb
 /tests/experiments/**/docker/
 /tests/experiments/**/pytest.ini
 /tests/experiments/**/test.py
-!/tests/experiments/recruiters/.gitignore
-!/tests/experiments/**/synth_files/.gitignore
-!/tests/experiments/**/synth_files/__init__.py
-!/tests/experiments/**/consents_cococo/__init__.py
 /tests/playwright/experiments/**/.dockerignore
 /tests/playwright/experiments/**/.gitignore
 /tests/playwright/experiments/**/.python-version
@@ -239,8 +228,7 @@ dump.rdb
 /tests/deployment/**/docker/
 /tests/deployment/**/pytest.ini
 /tests/deployment/**/test.py
-!/tests/deployment/**/synth_files/.gitignore
-!/tests/deployment/**/synth_files/__init__.py
+# Vendored consent packages under deployment tests are real Python packages.
 !/tests/deployment/**/consents_cococo/__init__.py
 
 # ASV benchmark artifacts

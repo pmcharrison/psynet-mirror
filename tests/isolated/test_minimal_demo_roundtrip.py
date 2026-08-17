@@ -107,11 +107,6 @@ TEST_EXPERIMENT_CUSTOM_CONFIGS = {
     "tests/deployment/audio_gibbs/config.txt",
 }
 
-# Parent-level helpers that are not inside an experiment directory.
-TEST_EXPERIMENT_PARENT_AUTHORED_PATHS = {
-    "tests/experiments/recruiters/.gitignore",
-}
-
 AUTHORED_TEST_EXPERIMENT_FILENAMES = {
     "experiment.py",
     "requirements.txt",
@@ -130,8 +125,6 @@ AUTHORED_TEST_EXPERIMENT_FILENAMES = {
 def _is_authored_test_experiment_path(relative_path: str) -> bool:
     """Return whether a tracked path is an allowed authored test-experiment file."""
     if relative_path in TEST_EXPERIMENT_CUSTOM_CONFIGS:
-        return True
-    if relative_path in TEST_EXPERIMENT_PARENT_AUTHORED_PATHS:
         return True
 
     name = Path(relative_path).name
@@ -223,28 +216,17 @@ def test_test_experiment_stock_config_is_gitignored():
     assert tracked_customs == TEST_EXPERIMENT_CUSTOM_CONFIGS
 
 
-def test_authored_nested_package_markers_are_not_gitignored():
-    """Nested package ``__init__.py`` / ``.gitignore`` stay addable without ``-f``."""
+def test_vendored_consent_package_init_is_not_gitignored():
+    """Deployment consent packages stay addable despite scaffold ``__init__.py`` ignores."""
     psynet_root = get_psynet_root()
-    authored_markers = [
-        "demos/experiments/audio/static/__init__.py",
-        "demos/experiments/gibbs_audio/synth_files/__init__.py",
-        "demos/experiments/gibbs_audio/synth_files/.gitignore",
-        "demos/experiments/gibbs_image/templates/__init__.py",
-        "demos/experiments/tapping_static/music/__init__.py",
-        "tests/experiments/recruiters/.gitignore",
-        "tests/experiments/static_audio/synth_files/__init__.py",
-        "tests/deployment/audio_gibbs/consents_cococo/__init__.py",
-        "tests/deployment/audio_gibbs/synth_files/.gitignore",
-    ]
-    for relative_path in authored_markers:
-        result = subprocess.run(
-            ["git", "check-ignore", "--no-index", "-q", relative_path],
-            cwd=psynet_root,
-        )
-        assert result.returncode == 1, (
-            f"{relative_path} should not match scaffold ignore rules"
-        )
+    relative_path = "tests/deployment/audio_gibbs/consents_cococo/__init__.py"
+    result = subprocess.run(
+        ["git", "check-ignore", "--no-index", "-q", relative_path],
+        cwd=psynet_root,
+    )
+    assert result.returncode == 1, (
+        f"{relative_path} should not match scaffold ignore rules"
+    )
 
 
 def test_skipped_dependency_check_does_not_require_constraints(monkeypatch):
