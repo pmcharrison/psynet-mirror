@@ -223,6 +223,30 @@ def test_test_experiment_stock_config_is_gitignored():
     assert tracked_customs == TEST_EXPERIMENT_CUSTOM_CONFIGS
 
 
+def test_authored_nested_package_markers_are_not_gitignored():
+    """Nested package ``__init__.py`` / ``.gitignore`` stay addable without ``-f``."""
+    psynet_root = get_psynet_root()
+    authored_markers = [
+        "demos/experiments/audio/static/__init__.py",
+        "demos/experiments/gibbs_audio/synth_files/__init__.py",
+        "demos/experiments/gibbs_audio/synth_files/.gitignore",
+        "demos/experiments/gibbs_image/templates/__init__.py",
+        "demos/experiments/tapping_static/music/__init__.py",
+        "tests/experiments/recruiters/.gitignore",
+        "tests/experiments/static_audio/synth_files/__init__.py",
+        "tests/deployment/audio_gibbs/consents_cococo/__init__.py",
+        "tests/deployment/audio_gibbs/synth_files/.gitignore",
+    ]
+    for relative_path in authored_markers:
+        result = subprocess.run(
+            ["git", "check-ignore", "--no-index", "-q", relative_path],
+            cwd=psynet_root,
+        )
+        assert result.returncode == 1, (
+            f"{relative_path} should not match scaffold ignore rules"
+        )
+
+
 def test_skipped_dependency_check_does_not_require_constraints(monkeypatch):
     from psynet.experiment import Experiment
 
