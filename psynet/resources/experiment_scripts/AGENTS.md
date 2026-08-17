@@ -43,8 +43,10 @@ Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 
-- (For PsyNet): `uv pip install -e '.[dev,slack]'`
-- (For experiments): `uv pip install -r constraints.txt`
+- (For PsyNet source checkout): `uv pip install -e '.[dev,demos,slack]'`
+- (For standalone experiments): `uv pip install psynet` (bootstrap only), followed by
+  `psynet setup` to scaffold and install `psynet[experiment]` via the generated
+  `constraints.txt`.
 
 If dependency installation fails with `pg_config executable not found`, install
 PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
@@ -59,6 +61,33 @@ If a user asks for the X demo, list all child directories in `demos/experiments`
 
 ## Running experiments locally
 
+If you copied a demo into a brand new directory, initialize a Git repository first:
+
+```bash
+git init
+```
+
+Within the PsyNet source checkout, PsyNet fills in missing experiment
+boilerplate when a bundled demo is run or tested:
+
+```bash
+psynet debug local
+```
+
+Pytest scaffolds demos temporarily via the `in_experiment_directory` fixture.
+On teardown it removes only paths that were absent when the fixture started,
+so pre-existing scaffold leftovers and customized files remain untouched.
+
+For a copied standalone demo, initialize Git and create its complete environment:
+
+```bash
+git init
+uv venv --python 3.13
+source .venv/bin/activate
+uv pip install psynet      # bootstrap only (no experiment runtime yet)
+psynet setup               # scaffolds files and installs psynet[experiment]
+```
+
 To run an experiment in debug mode:
 
 ```bash
@@ -72,8 +101,6 @@ For example, to run the timeline demo:
 cd demos/experiments/timeline
 psynet debug local
 ```
-
-to see which they mean.
 
 Wait for 8 seconds for the server to start.
 

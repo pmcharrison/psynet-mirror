@@ -160,6 +160,7 @@ deployment-info_*
 source_code.zip
 .deploy
 **/static/assets
+**/deploy_logs/
 dump.rdb
 
 # ASV benchmark artifacts
