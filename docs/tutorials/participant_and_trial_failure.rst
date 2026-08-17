@@ -212,9 +212,8 @@ reason to propagate failure between those trials.
 Participant-scoped networks
 ---------------------------
 
-Within-participant chains (and other networks whose ``participant_id`` is set)
-belong only to that participant. When the participant fails, PsyNet fails those
-networks and their nodes so they do not remain alive for growth checks or
-dashboards. Across-participant networks are left untouched. This structural
-cleanup does not by itself fail trials; completed-trial invalidation still
-follows the TrialMaker settings above.
+Within-participant chains remain alive after the owning participant fails.
+``failed`` means the object's content should not be used, not that a private
+chain has been retired. Those networks are unused once their owner is gone,
+but PsyNet does not fail their nodes solely to mark them inactive. Completed
+trials on those chains still follow the TrialMaker settings above.

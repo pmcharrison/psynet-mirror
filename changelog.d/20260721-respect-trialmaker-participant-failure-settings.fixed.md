@@ -1,1 +1,1 @@
-Fixed participant failure to respect TrialMaker settings that control whether completed participant trials are failed, while always failing incomplete trials on any participant failure. Participant-scoped networks, such as within-participant chains, are now failed with their nodes so they do not remain alive after the owner fails.
+Fixed participant failure to respect TrialMaker settings that control whether completed participant trials are failed, while always failing incomplete trials on any participant failure.

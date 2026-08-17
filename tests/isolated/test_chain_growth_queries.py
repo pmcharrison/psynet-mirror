@@ -189,7 +189,7 @@ def test_ready_to_spawn_access_has_migration_error(db_session):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_participant_fail_routine_fails_owned_networks_not_trials(
+def test_participant_fail_routine_does_not_fail_owned_networks(
     db_session, participant
 ):
     exp = get_experiment()
@@ -201,24 +201,18 @@ def test_participant_fail_routine_fails_owned_networks_not_trials(
         recruit_mode="n_participants",
         target_n_participants=1,
     )
-    across_maker = chain_trial_maker()
     owned = create_chain_network(within_maker, exp, participant=participant)
-    shared = create_chain_network(across_maker, exp)
     owned_node = owned.head
-    shared_node = shared.head
     completed = add_trial(GrowthQueryTrial, owned_node, participant, finalized=True)
-    owned_node.propagate_failure = True
     db.session.commit()
 
     participant.append_failure_tags("premature_exit")
     within_maker.participant_fail_routine(participant, exp)
     db.session.commit()
 
-    assert owned.failed
-    assert owned_node.failed
+    assert not owned.failed
+    assert not owned_node.failed
     assert not completed.failed
-    assert not shared.failed
-    assert not shared_node.failed
 
 
 def graph_trial_maker():
