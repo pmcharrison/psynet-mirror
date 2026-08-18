@@ -1,9 +1,4 @@
-"""Create, update, and prune PsyNet experiment scaffold files.
-
-``deploy.toml`` is part of the scaffold. Existing copies are never overwritten.
-Launch checks create a missing policy from the PsyNet template and continue.
-Please review this module docstring if you are changing scaffold membership.
-"""
+"""Create, update, and prune PsyNet experiment scaffold files."""
 
 import json
 import re
