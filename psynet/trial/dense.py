@@ -128,10 +128,10 @@ class DenseTrialMaker(StaticTrialMaker):
         for implementing performance checks.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's completed trials are marked as failed
-        if they leave the experiment prematurely.
-        Defaults to ``True``. Incomplete trials are always failed on
-        any participant failure, regardless of this setting.
+        Deprecated. Premature exit no longer fails completed trials.
+        Incomplete trials are always failed when the participant fails or
+        exits. This argument is accepted for backwards compatibility and
+        ignored.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
@@ -204,7 +204,7 @@ class DenseTrialMaker(StaticTrialMaker):
         balance_across_nodes: bool = True,
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
-        fail_trials_on_premature_exit: bool = True,
+        fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = True,
         n_repeat_trials: int = 0,
     ):

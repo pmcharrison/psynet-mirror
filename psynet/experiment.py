@@ -2313,13 +2313,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Recruiter events such as assignment abandonment, marketplace return, and
         assignment reassignment describe the disposition of the recruitment
         assignment, not the quality of the participant's responses. We therefore
-        treat them as a premature exit: the participant is marked as failed, and
-        each TrialMaker decides whether to invalidate completed trials via
-        ``fail_trials_on_premature_exit`` (incomplete trials are always failed
-        on any participant failure).
+        treat them as a premature exit: the participant is marked as failed,
+        incomplete trials are failed, and completed trials are preserved.
         This deliberately replaces Dallinger's default behaviour of
-        unconditionally failing the participant's nodes, which bypassed
-        TrialMaker failure policy.
+        unconditionally failing the participant's nodes.
 
         If the participant has already failed or completed, only the recruiter
         cause tag is recorded. Settlement returns after an unsuccessful end

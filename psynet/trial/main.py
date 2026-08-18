@@ -1148,13 +1148,15 @@ class TrialMaker(Module):
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's completed trials are marked as failed
-        if they leave the experiment prematurely. Incomplete trials are
-        always failed on any participant failure, regardless of this setting.
+        Deprecated. Premature exit no longer fails completed trials.
+        Incomplete trials are always failed when the participant fails or
+        exits. This argument is accepted for backwards compatibility and
+        ignored.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
-        if the participant fails a performance check. Incomplete trials are
+        if the participant fails a performance check, because those
+        responses are treated as unusable. Incomplete trials are
         always failed on any participant failure, regardless of this
         setting.
 
@@ -1277,6 +1279,13 @@ class TrialMaker(Module):
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
+        if fail_trials_on_premature_exit:
+            logger.warning(
+                "fail_trials_on_premature_exit is ignored in trial maker '%s'. "
+                "Premature exit no longer fails completed trials; incomplete "
+                "trials are always failed when the participant exits or fails.",
+                id_,
+            )
         self.fail_trials_on_participant_performance_check = (
             fail_trials_on_participant_performance_check
         )
@@ -1465,16 +1474,14 @@ class TrialMaker(Module):
 
     def participant_fail_routine(self, participant, experiment):
         reason = ", ".join(participant.failure_tags) or None
-        premature = "premature_exit" in participant.failure_tags
         performance = "performance_check" in participant.failure_tags
-        fail_completed = (premature and self.fail_trials_on_premature_exit) or (
+        fail_completed = (
             performance and self.fail_trials_on_participant_performance_check
         )
-        # Incomplete trials are never usable contributions and can stall
-        # dependent logic (for example chain growth or sync barriers), so
-        # always clear them on any participant failure. The TrialMaker flags
-        # only control whether completed trials are invalidated too, and only
-        # for premature-exit / performance-check failures.
+        # Incomplete trials are not usable once the participant has exited or
+        # failed, and can stall dependent logic such as chain growth. Completed
+        # trials stay unless a performance check says this TrialMaker's data
+        # are unusable.
         self.fail_participant_trials(
             participant,
             reason=reason,
@@ -2181,13 +2188,15 @@ class NetworkTrialMaker(TrialMaker):
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's completed trials are marked as failed
-        if they leave the experiment prematurely. Incomplete trials are
-        always failed on any participant failure, regardless of this setting.
+        Deprecated. Premature exit no longer fails completed trials.
+        Incomplete trials are always failed when the participant fails or
+        exits. This argument is accepted for backwards compatibility and
+        ignored.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
-        if the participant fails a performance check. Incomplete trials are
+        if the participant fails a performance check, because those
+        responses are treated as unusable. Incomplete trials are
         always failed on any participant failure, regardless of this
         setting.
 

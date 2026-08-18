@@ -1198,11 +1198,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         ``recruit_mode="n_participants"``.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's completed trials are marked as failed
-        if they leave the experiment prematurely.
-        Defaults to ``False`` because failing completed trials can end up
-        destroying large parts of existing chains. Incomplete trials are
-        always failed on any participant failure, regardless of this setting.
+        Deprecated. Premature exit no longer fails completed trials.
+        Incomplete trials are always failed when the participant fails or
+        exits. This argument is accepted for backwards compatibility and
+        ignored.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
