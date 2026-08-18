@@ -571,6 +571,18 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def initialize(self, experiment):
         pass
 
+    @classmethod
+    def needing_payment_review(cls):
+        """Participants whose automatic bonus transfer needs manual review.
+
+        These are people for whom PsyNet already used its one platform
+        bonus POST (or was interrupted while doing so). Check the
+        recruitment platform before paying ``unpaid_bonus`` by hand.
+        """
+        return (
+            cls.query.filter_by(needs_payment_review=True).order_by(cls.id.asc()).all()
+        )
+
     @property
     def locale(self):
         return self.var.get("locale", default=None)

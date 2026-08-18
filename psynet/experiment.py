@@ -2532,9 +2532,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"Bonus transfer failed for participant {participant.id} "
             f"(assignment {participant.assignment_id}, worker "
             f"{participant.worker_id}). PsyNet will not retry automatically. "
-            f"Please review this participant in the dashboard and pay "
-            f"{bonus} manually on the recruitment platform after confirming "
-            "the bonus has not already been sent. "
+            f"Please review this participant on the Participants dashboard "
+            f"(listed under Needs payment review) and pay {bonus} manually "
+            "on the recruitment platform after confirming the bonus has "
+            "not already been sent. "
             "needs_payment_review is true; payment_settled is still false."
         )
         logger.error(message)
@@ -3332,9 +3333,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return render_template(
             "dashboard_participant.html",
-            title="Participant",
+            title="Participants",
             participant=participant,
             message=message,
+            participants_needing_review=Participant.needing_payment_review(),
+            currency=get_config().currency,
             app_base_url=get_experiment_url(),
         )
 

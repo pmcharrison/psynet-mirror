@@ -54,7 +54,47 @@
 
 {% block body %}
     <h1>{{ title }}</h1>
-    <p>This page allows you to retrieve information about a participant in the experiment, including the current status, the accumulated reward, and the link to resume the session.</p>
+    <p>Look up a participant by ID, or review bonuses that PsyNet could not transfer automatically.</p>
+
+    {% if participants_needing_review %}
+        <div class="alert alert-warning" role="alert">
+            <h2 class="h5">Needs payment review ({{ participants_needing_review | length }})</h2>
+            <p class="mb-3">
+                Automatic bonus transfer failed or was interrupted for these participants.
+                Confirm on the recruitment platform that each bonus has not already been paid,
+                then pay the unpaid amount manually if needed.
+            </p>
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Participant ID</th>
+                            <th>Worker ID</th>
+                            <th>Assignment ID</th>
+                            <th>Status</th>
+                            <th>Unpaid bonus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review_participant in participants_needing_review %}
+                            <tr {% if participant is not none and participant.id == review_participant.id %}class="table-active"{% endif %}>
+                                <td>
+                                    <a href="{{ url_for('dashboard.dashboard_participants', participant_id=review_participant.id) }}">{{ review_participant.id }}</a>
+                                </td>
+                                <td>{{ review_participant.worker_id }}</td>
+                                <td>{{ review_participant.assignment_id }}</td>
+                                <td>{{ review_participant.status }}</td>
+                                <td>{{ currency }}{{ "%.2f"|format(review_participant.unpaid_bonus or 0) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-muted">No participants currently need payment review.</p>
+    {% endif %}
+
     <div class="row" id="dashboard-participant">
         <div class="col-5">
             <table class="table" id="resume-table">

@@ -929,6 +929,7 @@ def test_pay_decided_bonus_leaves_unsettled_when_transfer_fails():
     assert participant.needs_payment_review is True
     assert participant.unpaid_bonus == 1.50
     assert harness.notify_calls
+    assert "Participants dashboard" in harness.notify_calls[0]
 
 
 def test_pay_decided_bonus_treats_none_transfer_as_success():
@@ -1238,6 +1239,45 @@ def test_on_recruiter_submission_complete_does_not_repost_after_failed_transfer(
     assert participant.needs_payment_review is True
     assert participant.payment_settled is False
     assert harness.recruit_calls == 2
+
+
+def test_needing_payment_review_filters_flagged_participants():
+    flagged = [MagicMock(id=1), MagicMock(id=3)]
+    query = MagicMock()
+    query.filter_by.return_value.order_by.return_value.all.return_value = flagged
+
+    with patch.object(Participant, "query", query):
+        assert Participant.needing_payment_review() == flagged
+
+    query.filter_by.assert_called_once_with(needs_payment_review=True)
+
+
+def test_dashboard_participants_includes_review_list():
+    from flask import Flask
+
+    from psynet.experiment import Experiment
+
+    needing = [SimpleNamespace(id=7, unpaid_bonus=1.5)]
+    app = Flask("psynet_test")
+    with app.test_request_context("/dashboard/participants"):
+        with patch(
+            "psynet.experiment.Participant.needing_payment_review",
+            return_value=needing,
+        ):
+            with patch(
+                "psynet.experiment.render_template", return_value="ok"
+            ) as render:
+                with patch(
+                    "psynet.experiment.get_experiment_url", return_value="http://exp"
+                ):
+                    with patch("psynet.experiment.get_config") as get_config:
+                        get_config.return_value.currency = "$"
+                        assert Experiment.dashboard_participants() == "ok"
+
+    kwargs = render.call_args.kwargs
+    assert kwargs["participants_needing_review"] is needing
+    assert kwargs["title"] == "Participants"
+    assert kwargs["currency"] == "$"
 
 
 def test_prolific_reward_bonus_returns_false_on_exception():
