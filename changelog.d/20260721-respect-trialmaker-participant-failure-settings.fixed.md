@@ -1,1 +1,0 @@
-Fixed participant failure so it no longer fails all alive trials. Incomplete trials are failed when the participant exits or fails. Completed trials stay unless a TrialMaker's performance-check policy treats those responses as unusable.

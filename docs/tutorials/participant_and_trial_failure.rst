@@ -8,9 +8,17 @@ related, but they describe different things:
   normally because they should not continue or count as a successful
   completion.
 * A failed **trial** is a retained trial record that should be excluded from the
-  experiment's usable dataset.
+  experiment's usable dataset. Fail a trial when something is wrong with that
+  record (timeout, analysis failure, an unfinished trial left after exit, or a
+  quality check that says the responses are unusable). Do not fail submitted
+  trials just because the person left.
 * **Failure propagation** determines whether failing one object should also
   invalidate objects that depend on it.
+
+In practice: if someone leaves or is failed, PsyNet fails their **incomplete**
+trials and keeps their **completed** trials, unless a performance check on that
+TrialMaker says the completed responses are bad. Recruitment quotas use
+``n_participants`` or ``n_trials``, not trial failure.
 
 Participant failure is not the inverse of completion. A participant who has
 not reached the end but remains able to continue is incomplete, not failed.
