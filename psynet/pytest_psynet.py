@@ -33,14 +33,18 @@ from psynet.participant import Participant
 
 from . import artifact as psynet_artifact
 from . import asset as psynet_asset
+from . import data as _psynet_data  # noqa: F401  # patches dallinger.db.init_db
 from .command_line import (
     clean_sys_modules,
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
+    stop_local_debug_process,
     working_directory,
 )
-from .data import init_db
 from .experiment import get_experiment, import_local_experiment
+from .experiment_scaffold import (
+    scaffold_missing_files,
+)
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .test_helpers.mock_s3 import (
@@ -50,7 +54,7 @@ from .test_helpers.mock_s3 import (
 from .testing.chrome_driver import create_psynet_chrome_driver
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from .utils import clear_all_caches, wait_until
+from .utils import clear_all_caches, is_in_repo_experiment, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -361,10 +365,32 @@ def in_experiment_directory(experiment_directory):
         )
     loaded_experiment_directory = experiment_directory
     redis_vars.clear()
+    cleanup_error = None
     with working_directory(experiment_directory):
-        yield experiment_directory
+        try:
+            with scaffold_missing_files():
+                # In-repo demos/tests use PsyNet's shared development .venv, so
+                # skip Dallinger's constraints regeneration. Standalone temp
+                # experiment dirs still need the env override when constraints
+                # are absent.
+                original_skip_dependency_check = os.getenv("SKIP_DEPENDENCY_CHECK")
+                if is_in_repo_experiment() or not Path("constraints.txt").exists():
+                    os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+                try:
+                    yield experiment_directory
+                finally:
+                    if original_skip_dependency_check is None:
+                        os.environ.pop("SKIP_DEPENDENCY_CHECK", None)
+                    else:
+                        os.environ["SKIP_DEPENDENCY_CHECK"] = (
+                            original_skip_dependency_check
+                        )
+        except Exception as exc:
+            cleanup_error = exc
     clean_sys_modules()
     clear_all_caches()
+    if cleanup_error is not None:
+        raise cleanup_error
 
 
 @pytest.fixture(scope="class")
@@ -434,7 +460,8 @@ def debug_experiment(
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
     print(f"Launching experiment in directory '{in_experiment_directory}'...")
-    init_db(drop_all=True)
+    # db_session already reset the database for this test class. Brief pause so
+    # any lingering teardown from the previous class can finish before launch.
     time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
@@ -471,21 +498,35 @@ def debug_experiment(
 
         yield p
     finally:
+        # Wait for the server (and orphaned workers) to fully stop before the
+        # next test class resets the database; a short Ctrl-C + log flush is
+        # not enough and can leave backends holding locks during drop_all.
         try:
-            flush_output(p, timeout=0.1)
-            p.sendcontrol("c")
-            flush_output(p, timeout=3)
-            # Why do we need to call flush_output twice? Good question.
-            # Something about calling p.sendcontrol("c") seems to disrupt the log.
-            # Better to call it both before and after.
-        except (IOError, pexpect.exceptions.EOF):
-            pass
-        kill_psynet_chrome_processes()
-        kill_chromedriver_processes()
-        clear_all_caches()
+            _stop_debug_experiment_process(p)
+        finally:
+            kill_psynet_chrome_processes()
+            kill_chromedriver_processes()
+            clear_all_caches()
 
 
 dallinger.pytest_dallinger.debug_experiment = debug_experiment
+
+
+def _stop_debug_experiment_process(process):
+    """Flush logs best-effort, then always stop the debug process and workers."""
+    try:
+        flush_output(process, timeout=0.1)
+    except (OSError, pexpect.exceptions.EOF) as err:
+        logger.warning("Error while flushing debug experiment output: %s", err)
+    except Exception:
+        logger.exception("Unexpected error while flushing debug experiment output")
+
+    try:
+        stop_local_debug_process(process)
+    except (OSError, pexpect.exceptions.EOF) as err:
+        logger.warning("Error while stopping the debug experiment process: %s", err)
+    except Exception:
+        logger.exception("Unexpected error while stopping the debug experiment process")
 
 
 @pytest.fixture(scope="class")
@@ -498,6 +539,83 @@ def debug_server_process(debug_experiment):
     return debug_experiment
 
 
+def terminate_other_postgres_connections():
+    """
+    Terminate other backends of the current role connected to the test database.
+
+    Used only as a deadlock-retry backstop: the primary mitigation is waiting
+    for the previous experiment server to fully stop in ``debug_experiment``
+    teardown. If a rare leftover session still holds locks during ``drop_all``,
+    terminating those backends clears them before the next attempt.
+
+    Only backends owned by the current database role are targeted: terminating
+    other roles' backends would require extra privileges (raising
+    ``InsufficientPrivilege`` otherwise) and could kill sessions unrelated to
+    the test run, such as a developer's ``psql`` shell.
+
+    Closes local sessions and disposes the engine's connection pool first, so
+    that this process's own idle pooled connections are not terminated out
+    from under it. Connections checked out elsewhere in the process would
+    still be terminated, so this must only run when no other component holds
+    a database connection (as is the case at the test-setup call sites).
+    """
+    from sqlalchemy import text
+    from sqlalchemy.orm.session import close_all_sessions
+
+    close_all_sessions()
+    db.engine.dispose()
+
+    with db.engine.connect() as con:
+        con.execute(
+            text(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                "WHERE datname = current_database() AND pid <> pg_backend_pid() "
+                "AND usename = current_user"
+            )
+        )
+
+
+# Postgres SQLSTATE code for "deadlock detected"; matching on the code rather
+# than the error message keeps detection independent of the server's locale.
+DEADLOCK_PGCODE = "40P01"
+
+
+def _is_deadlock_error(err):
+    """Check whether a SQLAlchemy error wraps a Postgres deadlock."""
+    return getattr(err.orig, "pgcode", None) == DEADLOCK_PGCODE
+
+
+def init_db_with_retries(max_attempts=3, wait_sec=2.0):
+    """
+    Reset the database for a test, retrying if a deadlock is detected.
+
+    The primary mitigation for between-test deadlocks is waiting for the
+    previous experiment server to fully stop in ``debug_experiment`` teardown.
+    On deadlock, terminate leftover same-role backends and retry; that
+    termination is intentionally not done on the happy path.
+
+    Calls ``dallinger.db.init_db``, which is PsyNet's patched version
+    (``psynet.data`` is imported by this module for that side effect). That
+    wrapper closes sessions before ``drop_all``.
+    """
+    import dallinger.db
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return dallinger.db.init_db(drop_all=True)
+        except sqlalchemy.exc.OperationalError as err:
+            if not _is_deadlock_error(err) or attempt == max_attempts:
+                raise
+            logger.warning(
+                "Deadlock detected while resetting the database "
+                "(attempt %d/%d); terminating leftover connections and retrying...",
+                attempt,
+                max_attempts,
+            )
+            terminate_other_postgres_connections()
+            time.sleep(wait_sec)
+
+
 @pytest.fixture(scope="class")
 def db_session(in_experiment_directory):
     import dallinger.db
@@ -505,7 +623,7 @@ def db_session(in_experiment_directory):
     # The drop_all call can hang without this; see:
     # https://stackoverflow.com/questions/13882407/sqlalchemy-blocked-on-dropping-tables
     dallinger.db.session.close()
-    session = dallinger.db.init_db(drop_all=True)
+    session = init_db_with_retries()
     yield session
     session.rollback()
     session.close()

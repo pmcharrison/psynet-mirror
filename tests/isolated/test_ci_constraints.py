@@ -13,7 +13,7 @@ def test_vendored_dallinger_constraints_match_pyproject_dependency():
     pyproject = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
     dallinger_dependency = next(
         dependency
-        for dependency in pyproject["project"]["dependencies"]
+        for dependency in pyproject["project"]["optional-dependencies"]["experiment"]
         if dependency.startswith("dallinger[")
     )
     dependency_version_match = re.search(r">=(\d+\.\d+\.\d+)", dallinger_dependency)

@@ -5,16 +5,17 @@ from contextlib import ExitStack
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import click
 import pytest
 from dallinger.deployment_plan import build_deployment_plan, parse_deployment_policy
 from dallinger.utils import ExperimentFileSource
 
-from psynet import command_line
-from psynet.command_line import update_scripts_
 from psynet.experiment import Experiment
+from psynet.experiment_scaffold import (
+    _GENERATED_DOCKERIGNORE_LINES,
+    scaffold_experiment_directory,
+)
 from psynet.timeline import PreDeployRoutine
-from psynet.utils import get_psynet_root, list_experiment_dirs, working_directory
+from psynet.utils import get_psynet_root, working_directory
 
 EXPECTED_EXCLUSIONS = (
     ".deploy",
@@ -63,19 +64,6 @@ def _template_directory():
     return get_psynet_root() / "psynet" / "resources" / "experiment_scripts"
 
 
-def _managed_experiment_directories():
-    root = get_psynet_root()
-    return [Path(path) for path in list_experiment_dirs()] + [
-        root / "tests" / "playwright" / "experiments" / "deferred_page_scripts"
-    ]
-
-
-def test_raw_config_is_not_reintroduced_by_extra_files():
-    destinations = {destination for _, destination in Experiment.extra_files()}
-
-    assert ".config.backup" not in destinations
-
-
 def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
     template_directory = _template_directory()
     policy = parse_deployment_policy(template_directory / "deploy.toml")
@@ -85,33 +73,96 @@ def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
     assert not (template_directory / ".dockerignore").exists()
 
 
-def test_managed_experiments_have_synchronized_deployment_policy_semantics():
-    directories = _managed_experiment_directories()
+def test_scaffold_creates_stock_deployment_policy(tmp_path):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
 
-    assert len(directories) == 126
-    for directory in directories:
-        policy = parse_deployment_policy(directory / "deploy.toml")
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
 
-        assert policy.version == 1, directory
-        assert policy.exclude == EXPECTED_EXCLUSIONS, directory
-    assert all(not (directory / ".dockerignore").exists() for directory in directories)
+    policy = parse_deployment_policy(tmp_path / "deploy.toml")
+    assert policy.exclude == EXPECTED_EXCLUSIONS
+    assert not (tmp_path / ".dockerignore").exists()
 
 
-def test_all_managed_policies_build_deployable_plans():
-    required = {
-        "constraints.txt",
-        "deploy.toml",
-        "experiment.py",
-        "requirements.txt",
-    }
+def test_scripts_update_replaces_generated_dockerignore(tmp_path):
+    dockerignore = tmp_path / ".dockerignore"
+    dockerignore.write_text("\n".join(_GENERATED_DOCKERIGNORE_LINES) + "\n")
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
 
-    for directory in _managed_experiment_directories():
-        plan = build_deployment_plan(directory)
+    with working_directory(tmp_path):
+        scaffold_experiment_directory(overwrite=True)
 
-        assert required <= plan.destinations, directory
-        for optional in ["Dockerfile"]:
-            if (directory / optional).exists():
-                assert optional in plan.destinations, directory
+    assert (tmp_path / "deploy.toml").read_bytes() == (
+        _template_directory() / "deploy.toml"
+    ).read_bytes()
+    assert not dockerignore.exists()
+
+
+def test_scripts_update_preserves_existing_deployment_policy(tmp_path):
+    contents = (
+        '# Experiment-specific review\nversion = 1\nexclude = ["custom-local"]\n'
+    ).encode()
+    policy = tmp_path / "deploy.toml"
+    policy.write_bytes(contents)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory(overwrite=True)
+
+    assert policy.read_bytes() == contents
+
+
+def test_scripts_update_preserves_custom_dockerignore(tmp_path, capsys):
+    dockerignore = tmp_path / ".dockerignore"
+    dockerignore.write_text("custom-local-file\n")
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory(overwrite=True)
+
+    assert dockerignore.read_text() == "custom-local-file\n"
+    assert "must be moved to deploy.toml" in capsys.readouterr().err
+
+
+def test_check_experiment_directory_creates_missing_deploy_toml(tmp_path, monkeypatch):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        Path("deploy.toml").unlink()
+        _check_experiment_directory("debug")
+
+    assert (tmp_path / "deploy.toml").read_bytes() == (
+        _template_directory() / "deploy.toml"
+    ).read_bytes()
+
+
+def test_check_experiment_directory_preserves_existing_deploy_toml(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+    contents = b'version = 1\nexclude = ["custom-local"]\n'
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    (tmp_path / "deploy.toml").write_bytes(contents)
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        _check_experiment_directory("debug")
+
+    assert (tmp_path / "deploy.toml").read_bytes() == contents
 
 
 class _TranslationPreDeployExperiment(Experiment):
@@ -160,7 +211,7 @@ def test_translation_pre_deploy_outputs_remain_deployable(
     subprocess.run(["git", "init", "-q"], cwd=experiment_root, check=True)
 
     with working_directory(experiment_root):
-        update_scripts_()
+        scaffold_experiment_directory()
     with (experiment_root / ".gitignore").open("a", encoding="utf-8") as file:
         file.write("\n.python-version\n*.mo\n")
     assert (experiment_root / ".python-version").is_file()
@@ -191,74 +242,6 @@ def test_translation_pre_deploy_outputs_remain_deployable(
     assert all((staging_root / path).is_file() for path in generated_destinations)
 
 
-def test_update_scripts_replaces_generated_dockerignore(tmp_path):
-    dockerignore = tmp_path / ".dockerignore"
-    dockerignore.write_text(
-        "\n".join(command_line._GENERATED_DOCKERIGNORE_LINES) + "\n",
-        encoding="utf-8",
-    )
-
-    with working_directory(tmp_path):
-        update_scripts_()
-
-    assert (tmp_path / "deploy.toml").read_bytes() == (
-        _template_directory() / "deploy.toml"
-    ).read_bytes()
-    assert not dockerignore.exists()
-
-
-def test_update_scripts_preserves_existing_deployment_policy(tmp_path):
-    contents = (
-        '# Experiment-specific review\nversion = 1\nexclude = ["custom-local"]\n'
-    ).encode()
-    policy = tmp_path / "deploy.toml"
-    policy.write_bytes(contents)
-
-    with working_directory(tmp_path):
-        update_scripts_()
-
-    assert policy.read_bytes() == contents
-
-
-def test_update_scripts_preserves_custom_dockerignore(tmp_path, capsys):
-    dockerignore = tmp_path / ".dockerignore"
-    dockerignore.write_text("custom-local-file\n", encoding="utf-8")
-
-    with working_directory(tmp_path):
-        update_scripts_()
-
-    assert dockerignore.read_text(encoding="utf-8") == "custom-local-file\n"
-    assert "must be moved to deploy.toml" in capsys.readouterr().err
-
-
-class _PrecheckExperiment:
-    def check_config(self):
-        pass
-
-    def check_consents(self):
-        pass
-
-    def check_python_dependencies(self):
-        pass
-
-
-def test_policy_experiment_prechecks_still_require_git(tmp_path, monkeypatch):
-    (tmp_path / "requirements.txt").write_text("", encoding="utf-8")
-    (tmp_path / "deploy.toml").write_text(
-        "version = 1\nexclude = []\n", encoding="utf-8"
-    )
-    monkeypatch.setattr(command_line, "git_repository_available", lambda: False)
-    monkeypatch.setattr(
-        "psynet.experiment.get_experiment", lambda: _PrecheckExperiment()
-    )
-
-    with (
-        working_directory(tmp_path),
-        pytest.raises(click.ClickException, match="not a git repository"),
-    ):
-        command_line.run_pre_checks(mode="debug", local_=True)
-
-
 def test_direct_docker_build_refuses_policy_experiment(tmp_path):
     (tmp_path / "deploy.toml").write_text(
         "version = 1\nexclude = []\n", encoding="utf-8"
@@ -278,26 +261,22 @@ def test_direct_docker_build_refuses_policy_experiment(tmp_path):
     assert "standard PsyNet/Dallinger commands" in result.stderr
 
 
-def test_managed_direct_docker_build_scripts_match_template():
-    template = (_template_directory() / "docker" / "build").read_bytes()
-    directories = [
-        directory
-        for directory in _managed_experiment_directories()
-        if (directory / "docker" / "build").is_file()
-    ]
-
-    assert len(directories) == 124
-    assert all(
-        (directory / "docker" / "build").read_bytes() == template
-        for directory in directories
+def test_scaffolded_debug_source_prepares_from_policy(tmp_path):
+    experiment_root = tmp_path / "hello_world"
+    shutil.copytree(
+        get_psynet_root() / "demos" / "experiments" / "hello_world",
+        experiment_root,
+        symlinks=True,
     )
+    staging_root = tmp_path / "staging"
 
+    with working_directory(experiment_root):
+        scaffold_experiment_directory()
 
-def test_representative_debug_source_prepares_from_policy(tmp_path):
-    root = get_psynet_root() / "demos" / "experiments" / "hello_world"
-    source = ExperimentFileSource(root)
-
+    source = ExperimentFileSource(experiment_root)
     assert source.deployment_plan is not None
-    source.apply_development_to(tmp_path)
-    assert (tmp_path / "deploy.toml").is_file()
-    assert (tmp_path / "experiment.py").is_file()
+    source.apply_development_to(staging_root)
+    assert (staging_root / "experiment.py").is_file()
+    assert not (staging_root / "deploy.toml").exists()
+    assert "experiment.py" in source.deployment_plan.destinations
+    assert "deploy.toml" not in source.deployment_plan.destinations

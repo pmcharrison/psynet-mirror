@@ -122,6 +122,7 @@ from .utils import (
     get_authenticated_session,
     get_logger,
     get_translator,
+    is_in_repo_experiment,
     log_time_taken,
     render_template_with_translations,
     safe,
@@ -4184,6 +4185,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.timeline.check_consents(self)
 
     def check_python_dependencies(self):
+        if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+            return
+        if is_in_repo_experiment():
+            if Path("constraints.txt").exists():
+                logger.warning(
+                    "Ignoring constraints.txt in in-repo experiment %s; in-repo "
+                    "experiments use PsyNet's shared development environment "
+                    "instead of per-demo constraint pins.",
+                    Path.cwd(),
+                )
+            return
         extra_deps = self.notifier.python_dependencies
         with open("constraints.txt", "r") as f:
             constraints = f.readlines()

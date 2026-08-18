@@ -43,8 +43,10 @@ Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 
-- (For PsyNet): `uv pip install -e '.[dev,slack]'`
-- (For experiments): `uv pip install -r constraints.txt`
+- (For PsyNet source checkout): `uv pip install -e '.[dev,demos,slack]'`
+- (For standalone experiments): `uv pip install psynet` (bootstrap only), followed by
+  `psynet setup` to scaffold and install `psynet[experiment]` via the generated
+  `constraints.txt`.
 
 If dependency installation fails with `pg_config executable not found`, install
 PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
@@ -58,6 +60,35 @@ Demos are contained in `demos/experiments` and `demos/features`.
 If a user asks for the X demo, list all child directories in `demos/experiments` and `demos/features` to see which they mean.
 
 ## Running experiments locally
+
+If you copied a demo into a brand new directory, initialize a Git repository first:
+
+```bash
+git init
+```
+
+The PsyNet demo directories include just the authored experiment files.
+Their unpinned `requirements.txt` files and omitted constraints are intentional.
+Within the PsyNet source checkout, PsyNet automatically generates ignored
+boilerplate when a bundled demo is run or tested:
+
+```bash
+psynet debug local
+```
+
+Pytest scaffolds demos temporarily via the `in_experiment_directory` fixture.
+On teardown it removes only paths that were absent when the fixture started,
+so pre-existing scaffold leftovers and customized files remain untouched.
+
+For a copied standalone demo, initialize Git and create its complete environment:
+
+```bash
+git init
+uv venv --python 3.13
+source .venv/bin/activate
+uv pip install psynet      # bootstrap only (no experiment runtime yet)
+psynet setup               # scaffolds files and installs psynet[experiment]
+```
 
 To run an experiment in debug mode:
 
@@ -73,8 +104,6 @@ cd demos/experiments/timeline
 psynet debug local
 ```
 
-to see which they mean.
-
 Wait for 8 seconds for the server to start.
 
 Inspect the logs to see relevant URLs.
@@ -82,6 +111,13 @@ Look out for an ad page URL, something like
 http://127.0.0.1:5000/ad?generate_tokens=true&recruiter=hotair.
 
 When the demo is running, offer the user to navigate the experiment automatically.
+
+## Deployment files
+
+`deploy.toml` lists literal path prefixes to exclude from debug staging and
+deployment. PsyNet creates it from the template when missing and never
+overwrites a custom copy. Inspect the current plan with
+`dallinger deployment-files list`.
 
 ## Navigating experiments
 
