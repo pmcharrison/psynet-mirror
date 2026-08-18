@@ -1031,10 +1031,10 @@ class ChainTrial(Trial):
 
     @property
     def failure_cascade(self):
+        """Fail ``node.child`` only if this finalized trial contributed to it."""
         to_fail = []
-        if self.propagate_failure:
-            if self.node.child:
-                to_fail.append(lambda: [self.node.child])
+        if self.propagate_failure and self.finalized and self.node.child:
+            to_fail.append(lambda: [self.node.child])
         return to_fail
 
     @property
@@ -1196,12 +1196,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
         ``recruit_mode="n_participants"``.
-
-    fail_trials_on_premature_exit
-        Deprecated. Premature exit no longer fails completed trials.
-        Incomplete trials are always failed when the participant fails or
-        exits. This argument is accepted for backwards compatibility and
-        ignored.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed

@@ -101,13 +101,20 @@ def create_chain_network(
 
 
 def add_trial(
-    trial_class, node, participant, *, answer=1, finalized=True, failed=False
+    trial_class,
+    node,
+    participant,
+    *,
+    answer=1,
+    finalized=True,
+    failed=False,
+    propagate_failure=False,
 ):
     trial = trial_class(
         experiment=get_experiment(),
         node=node,
         participant=participant,
-        propagate_failure=False,
+        propagate_failure=propagate_failure,
         is_repeat_trial=False,
     )
     trial.answer = answer
@@ -189,7 +196,7 @@ def test_ready_to_spawn_access_has_migration_error(db_session):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_participant_fail_routine_does_not_fail_owned_networks(db_session, participant):
+def test_assignment_returned_does_not_fail_owned_networks(db_session, participant):
     exp = get_experiment()
     within_maker = chain_trial_maker(
         id_="within_growth",
@@ -202,15 +209,52 @@ def test_participant_fail_routine_does_not_fail_owned_networks(db_session, parti
     owned = create_chain_network(within_maker, exp, participant=participant)
     owned_node = owned.head
     completed = add_trial(GrowthQueryTrial, owned_node, participant, finalized=True)
+    incomplete = add_trial(GrowthQueryTrial, owned_node, participant, finalized=False)
     db.session.commit()
 
-    participant.append_failure_tags("premature_exit")
-    within_maker.participant_fail_routine(participant, exp)
+    exp.assignment_returned(participant)
     db.session.commit()
 
+    assert participant.failed
+    assert "assignment_returned" in participant.failure_tags
+    assert "premature_exit" in participant.failure_tags
     assert not owned.failed
     assert not owned_node.failed
     assert not completed.failed
+    assert incomplete.failed
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_incomplete_trial_does_not_fail_child_node(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker()
+    network = create_chain_network(trial_maker, exp)
+    parent = network.head
+    add_trial(GrowthQueryTrial, parent, participant, finalized=True)
+    db.session.commit()
+
+    assert trial_maker.grow_network(network, exp) is True
+    child = network.head
+    assert child.id != parent.id
+
+    incomplete = add_trial(
+        GrowthQueryTrial,
+        parent,
+        participant,
+        finalized=False,
+        propagate_failure=True,
+    )
+    incomplete.fail(reason="premature_exit")
+    db.session.commit()
+
+    assert incomplete.failed
+    assert not incomplete.finalized
+    assert not parent.failed
+    assert not child.failed
+    assert not network.failed
 
 
 def graph_trial_maker():

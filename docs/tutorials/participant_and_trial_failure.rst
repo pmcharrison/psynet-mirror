@@ -101,12 +101,22 @@ The redirect timing depends on where ``fail()`` is called:
   immediate.
 * From a background process, for example a timeout, recruiter notification, or
   admin action, the redirect is queued as ``participant.pending_redirect`` and
-  applied the next time the participant submits a response. That preserves the
-  answer they are currently giving.
+  applied the next time the participant submits a response.
+
+That queued redirect is navigation only. It does not keep the current trial
+alive. Fail routines have already failed every ``complete=False`` trial,
+including the one on screen. The next POST is stored as a ``Response``, then
+``advance_page`` applies the redirect before the rest of that trial's logic, so
+``_finalize_trial`` does not run. Authors must not assume that an open page
+means the trial will complete.
 
 Incomplete trials (``complete=False``) are always failed on any participant
-failure, including premature exit. They are not usable contributions and can
-otherwise stall dependent logic such as chain growth.
+failure, including premature exit. That includes trials created with
+:meth:`~psynet.trial.main.Trial.cue` and any other trial not owned by a
+timeline TrialMaker. They are not usable contributions. Chain growth waits on
+``finalized`` rather than ``complete``, so a submitted but not-yet-finalized
+trial is kept on exit and can still block growth until async work finishes or
+times out.
 
 Completed trials stay unless a TrialMaker's performance-check policy says
 those responses are unusable. ``fail_trials_on_participant_performance_check``
@@ -115,15 +125,21 @@ data should be excluded (bots, nonsense responses, failed attention checks).
 Leave it off when the check only gates eligibility to continue, for example
 many prescreens, so that the collected trials remain valid measurements.
 
+Do not put trial invalidation back on :meth:`~psynet.participant.Participant.failure_cascade`.
+That list must stay empty so owned nodes are not failed. Override it only if
+you intend Dallinger-style ownership failure.
+
 Premature exit does not fail completed trials. Recruiter events that end a
 still-eligible participant (assignment abandonment, a marketplace return such
 as a Prolific return, or reassignment) mark the participant as failed with
 the ``premature_exit`` tag, fail incomplete trials, and leave completed
-trials in place. If the participant has already failed or completed, PsyNet
-only records the recruiter cause tag (for example ``assignment_returned``)
-and does not invent a second ``premature_exit`` or re-run trial-invalidation
-logic. That covers settlement returns after an unsuccessful end, such as
-return-for-bonus.
+trials in place. If the participant has already failed, PsyNet records the
+recruiter cause tag (for example ``assignment_returned``) and does not invent
+a second ``premature_exit`` or re-run trial-invalidation logic. That covers
+settlement returns after an unsuccessful end, such as return-for-bonus. If
+the participant has already completed the experiment successfully, the
+recruiter event is a no-op: they did not fail, so nothing is written to
+``failure_tags``.
 
 The default performance-check policies are:
 
@@ -185,11 +201,13 @@ Failure propagation
 It does not control whether participant failure should fail the trial in the
 first place.
 
-Propagation is particularly important for chain experiments. If a trial
-contributes to the construction of a later chain node, failing that trial may
-also require failing the dependent node and its descendants. This is why chain
-TrialMakers preserve participant trials by default: bulk failure combined with
-propagation could otherwise destroy a large part of a chain.
+Propagation is particularly important for chain experiments. If a
+**finalized** trial contributed to the construction of a later chain node,
+failing that trial may also require failing the dependent node
+(``node.child``) and its descendants. An incomplete trial never contributed
+to that child, so failing it does not propagate. This is why chain
+TrialMakers preserve completed participant trials by default: bulk failure
+combined with propagation could otherwise destroy a large part of a chain.
 
 Experiment authors should enable propagation only where the validity of
 downstream objects genuinely depends on the failed object. Ownership alone is

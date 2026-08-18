@@ -568,10 +568,16 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def failure_cascade(self):
-        """Prevent participant failure from implicitly failing owned trials.
+        """Do not fail objects just because this participant owns them.
 
-        TrialMakers independently decide whether participant failure should
-        invalidate their trials.
+        Dallinger's default cascade fails the participant's nodes (and
+        questions). That would mark within-chain nodes and networks failed when
+        the owner leaves, which is not what ``failed`` means here. Incomplete
+        trials are failed in :meth:`~psynet.participant.Participant.fail`.
+        TrialMakers decide whether completed trials are unusable via
+        ``participant_fail_routine``. Do not restore
+        ``super().failure_cascade`` or put ``self.nodes`` / all trials back in
+        this list.
         """
         return []
 
@@ -739,13 +745,17 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         """
         Mark this participant as failed and take them off the main timeline.
 
-        Registered participant-failure routines run first. Incomplete trials are
-        failed; completed trials are left in place unless a TrialMaker
-        performance-check policy says those responses are unusable. The
-        participant is then redirected to the timeline's ``unsuccessful_end``
-        branch. If ``fail()`` is called during page advance the redirect is
-        immediate; otherwise it is queued as ``pending_redirect`` until the
-        next submit.
+        Incomplete trials (``complete=False``) are failed here, including
+        trials with no timeline TrialMaker such as :meth:`~psynet.trial.main.Trial.cue`
+        and the trial currently on screen. Completed trials stay unless a
+        TrialMaker performance-check policy says those responses are unusable.
+
+        The participant is then redirected to the timeline's
+        ``unsuccessful_end`` branch. If ``fail()`` is called during page
+        advance the redirect is immediate; otherwise it is queued as
+        ``pending_redirect`` until the next submit. That queued redirect is
+        navigation only: it does not keep the live trial valid or cause
+        ``_finalize_trial`` to run.
 
         If the participant is already failed, or has already completed the
         experiment, this is a no-op. See
@@ -778,6 +788,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         exp = get_experiment()
 
+        self._fail_incomplete_trials(reason)
+
         for i, routine in enumerate(exp.participant_fail_routines):
             logger.info(
                 "Executing fail routine %i/%i ('%s')...",
@@ -800,7 +812,28 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         self._redirect_to_unsuccessful_end(exp)
 
+    def _fail_incomplete_trials(self, reason):
+        """Fail this participant's unfinished trials.
+
+        Includes the trial currently on screen and trials not owned by a
+        timeline TrialMaker. Completed trials are left to TrialMaker
+        performance-check policy.
+        """
+        from psynet.trial.main import Trial
+
+        trials = (
+            Trial.query.filter_by(participant_id=self.id, failed=False)
+            .filter(Trial.complete.is_(False))
+            .with_for_update(of=Trial)
+            .populate_existing()
+            .all()
+        )
+        for trial in trials:
+            trial.fail(reason=reason)
+
     def _redirect_to_unsuccessful_end(self, experiment):
+        # Queued redirect is navigation only. Incomplete trials, including the
+        # one on screen, have already been failed.
         if experiment.timeline.participant_is_in_end_logic(self):
             return
 

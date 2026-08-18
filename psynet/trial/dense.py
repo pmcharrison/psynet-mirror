@@ -127,12 +127,6 @@ class DenseTrialMaker(StaticTrialMaker):
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
 
-    fail_trials_on_premature_exit
-        Deprecated. Premature exit no longer fails completed trials.
-        Incomplete trials are always failed when the participant fails or
-        exits. This argument is accepted for backwards compatibility and
-        ignored.
-
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
         if the participant fails a performance check.

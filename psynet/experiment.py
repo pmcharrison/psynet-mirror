@@ -2318,12 +2318,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This deliberately replaces Dallinger's default behaviour of
         unconditionally failing the participant's nodes.
 
-        If the participant has already failed or completed, only the recruiter
+        If the participant has already completed the experiment, this is a
+        no-op: they did not fail, so recruiter cause tags are not written to
+        ``failure_tags``. If they have already failed, only the recruiter
         cause tag is recorded. Settlement returns after an unsuccessful end
         therefore do not invent a second ``premature_exit`` or re-run
         trial-invalidation logic.
         """
-        if participant.failed or participant.complete:
+        if participant.complete:
+            return
+
+        if participant.failed:
             participant.append_failure_tags(cause_tag)
             return
 

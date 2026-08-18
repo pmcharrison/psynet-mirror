@@ -1975,7 +1975,9 @@ class Timeline:
         an ``Elt.consume`` method).  For redirects originating outside the
         page-advance loop (e.g. background tasks), set
         ``participant.pending_redirect`` instead so that the redirect is
-        applied on the next page transition.
+        applied on the next page transition. That queued redirect does not
+        keep an in-progress trial valid; ``participant.fail()`` has already
+        failed incomplete trials.
         """
         if branch_name not in self.elts:
             raise ValueError(f"Unknown timeline branch: {branch_name!r}")
@@ -2132,6 +2134,9 @@ class Timeline:
         participant._in_advance_page = True
         try:
             if participant.pending_redirect:
+                # Apply a queued fail() redirect before further timeline
+                # logic, so ``_finalize_trial`` does not run for the page
+                # that was open when the participant was failed.
                 branch = participant.pending_redirect
                 participant.pending_redirect = None
                 self.redirect_to_branch(experiment, participant, branch)

@@ -2,7 +2,10 @@
 
 import datetime
 import random
+import warnings
+from inspect import stack as call_stack
 from math import isnan
+from pathlib import Path
 from typing import List, Optional, Union
 
 import dallinger.experiment
@@ -71,6 +74,27 @@ from ..utils import (
 )
 
 logger = get_logger()
+
+
+def _warn_ignored_fail_trials_on_premature_exit(trial_maker_id):
+    """Warn at the first frame outside the ``psynet`` package."""
+    package_root = Path(__file__).resolve().parent.parent
+    stacklevel = 1
+    for frame in call_stack()[1:]:
+        stacklevel += 1
+        try:
+            frame_path = Path(frame.filename).resolve()
+        except OSError:
+            continue
+        if package_root not in frame_path.parents:
+            break
+    warnings.warn(
+        f"fail_trials_on_premature_exit is ignored in trial maker {trial_maker_id!r}. "
+        "Premature exit no longer fails completed trials; incomplete "
+        "trials are always failed when the participant exits or fails.",
+        DeprecationWarning,
+        stacklevel=stacklevel,
+    )
 
 
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
@@ -976,6 +1000,14 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             logger.info("Calling _finalize_trial.")
 
             trial = participant.current_trial
+            if trial.failed:
+                logger.info(
+                    "Not completing trial %s; it was already failed "
+                    "(for example participant.fail() while this page was open).",
+                    trial.id,
+                )
+                return
+
             answer = participant.answer
 
             trial.answer = trial.format_answer(answer)
@@ -1151,7 +1183,7 @@ class TrialMaker(Module):
         Deprecated. Premature exit no longer fails completed trials.
         Incomplete trials are always failed when the participant fails or
         exits. This argument is accepted for backwards compatibility and
-        ignored.
+        ignored. It is not stored on the trial maker.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed
@@ -1278,14 +1310,8 @@ class TrialMaker(Module):
         self.expected_trials_per_participant = expected_trials_per_participant
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
-        self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
         if fail_trials_on_premature_exit:
-            logger.warning(
-                "fail_trials_on_premature_exit is ignored in trial maker '%s'. "
-                "Premature exit no longer fails completed trials; incomplete "
-                "trials are always failed when the participant exits or fails.",
-                id_,
-            )
+            _warn_ignored_fail_trials_on_premature_exit(id_)
         self.fail_trials_on_participant_performance_check = (
             fail_trials_on_participant_performance_check
         )
@@ -1473,20 +1499,12 @@ class TrialMaker(Module):
     end_performance_check_waits = True
 
     def participant_fail_routine(self, participant, experiment):
+        if "performance_check" not in participant.failure_tags:
+            return
+        if not self.fail_trials_on_participant_performance_check:
+            return
         reason = ", ".join(participant.failure_tags) or None
-        performance = "performance_check" in participant.failure_tags
-        fail_completed = (
-            performance and self.fail_trials_on_participant_performance_check
-        )
-        # Incomplete trials are not usable once the participant has exited or
-        # failed, and can stall dependent logic such as chain growth. Completed
-        # trials stay unless a performance check says this TrialMaker's data
-        # are unusable.
-        self.fail_participant_trials(
-            participant,
-            reason=reason,
-            only_incomplete=not fail_completed,
-        )
+        self.fail_participant_trials(participant, reason=reason)
 
     @property
     def check_timeout_task(self):
@@ -1814,8 +1832,10 @@ class TrialMaker(Module):
             Optional failure reason stored on each trial.
         only_incomplete
             If ``True``, only fail trials that have not yet been completed.
-            Incomplete trials are never usable contributions, so participant
-            fail routines use this when preserving completed trials.
+            Incomplete trials are failed by :meth:`~psynet.participant.Participant.fail`
+            itself. TrialMaker fail routines use the default (fail remaining
+            non-failed trials) when a performance check treats completed
+            responses as unusable.
         """
         trials_to_fail = (
             Trial.query.filter_by(participant_id=participant.id, failed=False)
@@ -2186,12 +2206,6 @@ class NetworkTrialMaker(TrialMaker):
     check_performance_every_trial
         If ``True``, the participant's performance
         is evaluated after each trial.
-
-    fail_trials_on_premature_exit
-        Deprecated. Premature exit no longer fails completed trials.
-        Incomplete trials are always failed when the participant fails or
-        exits. This argument is accepted for backwards compatibility and
-        ignored.
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's completed trials are marked as failed

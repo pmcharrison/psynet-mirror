@@ -616,8 +616,8 @@ The redirect works differently depending on context:
   :class:`~psynet.timeline.CodeBlock`, the redirect happens immediately.
 * From a background process, for example a timeout or admin action, the redirect
   is queued via ``participant.pending_redirect`` and applied the next time the
-  participant submits a response. This preserves the participant's response to
-  the page they are currently viewing.
+  participant submits a response. That queued redirect is navigation only; the
+  unfinished trial on screen has already been failed.
 
 The redirect is skipped if the participant is already in an end branch or has
 already completed the experiment. Unfinished trials are failed; completed
