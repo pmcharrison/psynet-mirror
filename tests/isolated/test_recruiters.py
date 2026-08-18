@@ -607,6 +607,37 @@ def prepare_payout_participant(participant):
     return participant
 
 
+def test_default_recruiter_decide_payment_uses_full_study_base():
+    from psynet.recruiters import HotAirRecruiter
+
+    recruiter = object.__new__(HotAirRecruiter)
+    participant = MagicMock(failed=False, status="submitted")
+    participant.calculate_reward.return_value = 2.50
+
+    decision = recruiter.decide_payment(participant, experiment=PaymentHarness())
+
+    assert decision == PaymentDecision(
+        status="approved",
+        platform_base=1.00,
+        total_owed=2.50,
+        bonus=1.50,
+    )
+
+
+def test_default_recruiter_treats_failed_participant_as_approved():
+    from psynet.recruiters import HotAirRecruiter
+
+    recruiter = object.__new__(HotAirRecruiter)
+    participant = MagicMock(failed=True, status="submitted")
+    participant.calculate_reward.return_value = 2.50
+
+    decision = recruiter.decide_payment(participant, experiment=PaymentHarness())
+
+    assert decision.status == "approved"
+    assert decision.platform_base == 1.00
+    assert decision.bonus == 1.50
+
+
 def test_decide_payment_is_pure():
     config = make_config(prolific_unsuccessful_base_payment=0.50)
     participant = make_participant_with_recruiter(
