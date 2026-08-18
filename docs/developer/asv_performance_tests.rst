@@ -10,13 +10,22 @@ performance over time. The benchmark configuration lives in ``asv.conf.json``,
 benchmark code lives in ``benchmarks/``, and CI stores generated result files on
 the ``benchmark-results`` branch.
 
+.. note::
+
+    This page describes how PsyNet benchmarks *its own* performance across
+    commits. If instead you want to load-test *your experiment* to check how it
+    will cope with real participants, see the
+    :ref:`testing experiment performance tutorial <performance_testing>`. The
+    slow ASV tier below drives that same ``psynet performance-test`` command
+    under the hood.
+
 Benchmark tiers
 ===============
 
 Benchmarks are split by directory:
 
-- ``benchmarks/fast/`` contains quick hot-path benchmarks. Merge requests run
-  these as the ASV regression gate.
+- ``benchmarks/fast/`` contains benchmarks selected for the merge-request
+  regression gate, including quick hot paths and focused end-to-end checks.
 - ``benchmarks/slow/`` contains end-to-end experiment performance benchmarks.
   These are intentionally excluded from the merge-request gate, but they do run
   on ``master``. The slow ASV history focuses on median request latency and

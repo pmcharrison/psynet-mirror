@@ -11,6 +11,7 @@ Tutorials
    assets
    specifying_dependencies
    tests
+   performance_testing
    synchronization
    chatroom
    ad_page
