@@ -548,7 +548,19 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         self._post_zero_bonus_outcome(experiment, participant)
 
     def _post_zero_bonus_outcome(self, experiment, participant):
-        """Notify Lab Recruiter of a zero-bonus outcome exactly once."""
+        """Notify Lab Recruiter of a zero-bonus outcome exactly once.
+
+        Dallinger only calls ``reward_bonus`` once the bonus reaches one cent,
+        and skips it altogether for participants who fail the data check. That
+        POST also carries ``basePayment`` and is what moves the task out of its
+        ``started`` state, so those participants would otherwise go unreported.
+        ``participant.bonus`` doubles as the already-posted marker, mirroring
+        Dallinger's own guard against paying a bonus twice.
+
+        Dallinger/Dallinger#9682 proposes an upstream outcome hook that would
+        make this unnecessary for the submission paths, though not for
+        rejected consent.
+        """
         if participant.bonus is not None:
             return
         if self.reward_bonus(participant, 0, experiment.bonus_reason()):
