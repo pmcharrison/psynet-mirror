@@ -284,6 +284,19 @@ class TestParticipantFailure:
         assert trial.failed
         assert not trial.complete
 
+    def test_finalize_trial_skips_when_failed_without_current_trial(
+        self, launched_experiment, participant
+    ):
+        participant.current_trial = None
+        participant.fail("premature_exit")
+        db.session.commit()
+
+        Trial._finalize_trial().function(
+            participant=participant, experiment=launched_experiment
+        )
+
+        assert participant.failed
+
     def test_response_timeout_submit_still_records_answer(self, launched_experiment):
         bot = BotDriver()
         assert bot.current_page_label == "animal_trial"

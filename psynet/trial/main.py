@@ -996,7 +996,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
                 logger.info(
                     "Not completing trial %s; the participant was already failed "
                     "(for example participant.fail() while this page was open).",
-                    trial.id,
+                    getattr(trial, "id", None),
                 )
                 return
 
@@ -1262,6 +1262,7 @@ class TrialMaker(Module):
 
     def __init__(
         self,
+        *,
         id_: str,
         trial_class,
         expected_trials_per_participant: Union[int, float],
@@ -2283,6 +2284,7 @@ class NetworkTrialMaker(TrialMaker):
 
     def __init__(
         self,
+        *,
         id_,
         trial_class,
         network_class,

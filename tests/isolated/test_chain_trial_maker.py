@@ -56,6 +56,45 @@ def test_failure_policy_constructor_defaults():
     assert not hasattr(trial_maker, "fail_trials_on_premature_exit")
 
 
+def test_trial_maker_constructors_are_keyword_only():
+    for cls in (TrialMaker, NetworkTrialMaker):
+        params = inspect.signature(cls.__init__).parameters
+        kinds = [p.kind for name, p in params.items() if name != "self"]
+        assert kinds
+        assert all(kind is inspect.Parameter.KEYWORD_ONLY for kind in kinds)
+
+    with pytest.raises(TypeError):
+        TrialMaker(
+            "id",
+            object,
+            1,
+            False,
+            False,
+            False,
+            True,
+            "n_trials",
+            None,
+            0,
+            None,
+        )
+
+    with pytest.raises(TypeError):
+        NetworkTrialMaker(
+            "id",
+            object,
+            object,
+            1,
+            False,
+            False,
+            False,
+            True,
+            "n_trials",
+            None,
+            0,
+            False,
+        )
+
+
 def test_fail_trials_on_premature_exit_true_emits_deprecation_warning():
     with pytest.warns(
         DeprecationWarning, match="fail_trials_on_premature_exit"
