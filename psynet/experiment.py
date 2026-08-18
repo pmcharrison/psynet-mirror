@@ -1619,6 +1619,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
+            # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+            # holding detached ORM instances for later networks.
             for network_id in [network.id for network in networks]:
                 network = db.session.get(TrialNetwork, network_id)
                 if network is None:
