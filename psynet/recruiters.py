@@ -28,12 +28,14 @@ Key design constraints for maintainers:
   ``Experiment.on_recruiter_submission_complete`` owns this sequence,
   always re-recording status and platform base, and uses
   ``participant.payment_settled`` and ``participant.needs_payment_review``
-  to skip a repeat transfer. PsyNet posts a bonus at most once per
-  participant. A failed transfer still continues recruitment, records
-  the amount on ``unpaid_bonus``, sets ``needs_payment_review``, and
-  asks the experimenter to pay manually after checking the platform.
-  ``reward_bonus`` returns ``False`` if the platform rejected the
-  transfer. PsyNet does not call Dallinger's unused
+  to skip a repeat transfer. PsyNet posts a bonus automatically at most
+  once per participant. A failed transfer still continues recruitment,
+  records the amount on ``unpaid_bonus``, and sets
+  ``needs_payment_review``. The Participants dashboard can poll the
+  platform's apparent bonus (Prolific ``bonus_payments``, which may lag)
+  and the experimenter can post again from there if the platform still
+  shows unpaid. ``reward_bonus`` returns ``False`` if the platform
+  rejected the transfer. PsyNet does not call Dallinger's unused
   ``data_check`` / ``attention_check`` hooks.
 """
 
@@ -113,6 +115,13 @@ PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 #: base payment, so studies with ``base_payment <= 0.25`` must set
 #: ``prolific_unsuccessful_base_payment`` explicitly (or disable the feature).
 PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
+
+
+def _bonus_payments_total(bonus_payments) -> float:
+    """Convert Prolific ``bonus_payments`` (pence/cents) to currency units."""
+    if not bonus_payments:
+        return 0.0
+    return round(sum(bonus_payments) / 100.0, 2)
 
 
 @dataclass(frozen=True)
@@ -252,6 +261,20 @@ class PsyNetRecruiterMixin:
         """
         result = super().reward_bonus(participant, amount, reason)
         return False if result is False else True
+
+    def can_report_apparent_bonus(self) -> bool:
+        """Whether this recruiter can poll the platform for bonuses already paid."""
+        return False
+
+    def apparent_bonus_paid(self, participant) -> float | None:
+        """Bonus the platform currently reports as paid, or ``None`` if unknown.
+
+        A return of ``0.0`` means the platform reports no bonus yet. ``None``
+        means this recruiter cannot tell, or the lookup failed. Prolific pay
+        is asynchronous, so a successful POST can still look unpaid for a
+        while.
+        """
+        return None
 
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
@@ -627,6 +650,37 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             handle_recruitment_error(ex)
             return False
         return True
+
+    def can_report_apparent_bonus(self) -> bool:
+        """Prolific submissions expose ``bonus_payments`` on GET."""
+        return True
+
+    def apparent_bonus_paid(self, participant) -> float | None:
+        """Sum Prolific ``bonus_payments`` (pence/cents) as currency units.
+
+        Uses the raw submission GET because Dallinger's translator drops
+        ``bonus_payments``. Pay is asynchronous, so this can lag a POST.
+        """
+        assignment_id = getattr(participant, "assignment_id", None)
+        if not assignment_id:
+            return None
+        try:
+            response = self.prolificservice._req(
+                method="GET",
+                endpoint=f"/submissions/{assignment_id}/",
+            )
+        except Exception:
+            logger.warning(
+                "Could not read Prolific bonus status for participant %s "
+                "(assignment %s).",
+                getattr(participant, "id", None),
+                assignment_id,
+                exc_info=True,
+            )
+            return None
+        if not response:
+            return None
+        return _bonus_payments_total(response.get("bonus_payments"))
 
     def request_return_for_bonus(self, participant) -> TimelineLogic:
         """Ask the participant to return their Prolific submission and pay

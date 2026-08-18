@@ -39,6 +39,9 @@
         colgroup col.title {
           font-weight: bold;
         }
+        .btn-group-vertical form + form {
+            margin-top: 0.25rem;
+        }
     </style>
 {% endblock %}
 
@@ -85,8 +88,8 @@
             <h2 class="h5">Needs payment review ({{ participants_needing_review | length }})</h2>
             <p class="mb-3">
                 Automatic bonus transfer failed or was interrupted for these participants.
-                Confirm on the recruitment platform that each bonus has not already been paid,
-                then pay the unpaid amount manually if needed.
+                Check the platform bonus (Prolific can lag a recent POST), then
+                pay from this page if it still looks unpaid.
             </p>
             <div class="table-responsive">
                 <table class="table table-striped mb-0">
@@ -97,6 +100,7 @@
                             <th class="d-none d-md-table-cell">Assignment ID</th>
                             <th>Status</th>
                             <th>Unpaid bonus</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,6 +113,7 @@
                                 <td class="d-none d-md-table-cell">{{ review_participant.assignment_id }}</td>
                                 <td>{{ review_participant.status }}</td>
                                 <td>{{ currency }}{{ "%.2f"|format(review_participant.unpaid_bonus or 0) }}</td>
+                                <td>{{ review_bonus_actions(review_participant) }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -176,9 +181,13 @@
     {% if participant.needs_payment_review %}
         <div class="alert alert-warning" role="alert">
             Automatic bonus transfer failed or was interrupted.
-            Confirm on the recruitment platform that this bonus has not already been paid,
-            then pay <strong>{{ participant.unpaid_bonus }}</strong> manually if needed.
+            Check the platform bonus below, then pay from this page if it still looks unpaid.
+            {% if participant.apparent_bonus is not none %}
+                Prolific currently reports <strong>{{ currency }}{{ "%.2f"|format(participant.apparent_bonus) }}</strong>
+                (this can lag a recent POST).
+            {% endif %}
         </div>
+        {{ review_bonus_actions(participant) }}
     {% endif %}
     <div class="table-responsive">
     <table class="table" id="participant-detail-table">
@@ -223,6 +232,16 @@
             <td>{{ participant.unpaid_bonus }}</td>
         </tr>
         <tr>
+            <td>Platform bonus</td>
+            <td>
+                {% if participant.apparent_bonus is none %}
+                    Unknown or not available
+                {% else %}
+                    {{ currency }}{{ "%.2f"|format(participant.apparent_bonus) }}
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
             <td>Issued completion code</td>
             <td>{{ participant.issued_completion_code_type }}</td>
         </tr>
@@ -246,6 +265,19 @@
             </td>
         </tr>
     </table>
+    </div>
+{% endmacro %}
+
+{% macro review_bonus_actions(review_participant) %}
+    <div class="btn-group-vertical btn-group-sm" role="group">
+        <form method="post" action="{{ url_for('dashboard.dashboard_check_bonus') }}">
+            <input type="hidden" name="participant_id" value="{{ review_participant.id }}">
+            <button type="submit" class="btn btn-secondary btn-sm btn-block">Check platform</button>
+        </form>
+        <form method="post" action="{{ url_for('dashboard.dashboard_pay_bonus') }}" onsubmit="return confirm('Post this bonus to the recruitment platform? Only continue if the platform does not already show it.');">
+            <input type="hidden" name="participant_id" value="{{ review_participant.id }}">
+            <button type="submit" class="btn btn-primary btn-sm btn-block">Pay bonus</button>
+        </form>
     </div>
 {% endmacro %}
 

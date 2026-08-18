@@ -53,8 +53,8 @@ from dallinger.utils import classproperty
 from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
+from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask import g as flask_app_globals
-from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import with_polymorphic
@@ -2451,7 +2451,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         before the recruiter call, so a later replay will not pay again.
         A failed transfer leaves ``payment_settled`` false, stores the
         amount on ``unpaid_bonus``, and asks the experimenter to review
-        and pay manually after checking the platform.
+        on the Participants dashboard (poll the platform, then pay from
+        there if it still looks unpaid).
 
         Does not re-apply caps or send emails when already settled.
         """
@@ -2521,11 +2522,80 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self._notify_bonus_transfer_failed(participant, bonus)
             return False
 
-        participant.bonus = bonus
+        self._record_bonus_transfer_success(participant, bonus)
+        return True
+
+    def _record_bonus_transfer_success(self, participant, amount: float) -> None:
+        """Record that this bonus is paid and no longer needs review."""
+        participant.bonus = amount
         participant.unpaid_bonus = 0.0
         participant.needs_payment_review = False
         participant.payment_settled = True
-        return True
+
+    def check_review_bonus(self, participant) -> tuple[str, str]:
+        """Poll the platform and record the bonus if it already looks paid.
+
+        Returns a Flask flash ``(category, message)``. Does not POST.
+        Prolific ``bonus_payments`` can lag a successful transfer.
+        """
+        return self._review_bonus(participant, pay=False)
+
+    def pay_review_bonus(self, participant) -> tuple[str, str]:
+        """Poll the platform, then POST the unpaid bonus if it still looks unpaid.
+
+        If the platform already reports at least ``unpaid_bonus``, record that
+        amount and skip the POST. Automatic submission-complete still posts at
+        most once; this is the human-gated extra attempt.
+        """
+        return self._review_bonus(participant, pay=True)
+
+    def _review_bonus(self, participant, *, pay: bool) -> tuple[str, str]:
+        if not participant.needs_payment_review:
+            return (
+                "warning",
+                f"Participant {participant.id} is not flagged for payment review.",
+            )
+        unpaid = round(float(participant.unpaid_bonus or 0.0), 2)
+        recruiter = participant.recruiter
+        apparent = recruiter.apparent_bonus_paid(participant)
+        if recruiter.can_report_apparent_bonus() and apparent is None:
+            return (
+                "warning",
+                f"Could not read the platform bonus for participant "
+                f"{participant.id}. Try again in a moment.",
+            )
+        if apparent is not None and apparent + 1e-9 >= unpaid:
+            self._record_bonus_transfer_success(participant, apparent)
+            return (
+                "success",
+                f"Platform already reports {apparent:.2f} paid for "
+                f"participant {participant.id}; recorded without posting.",
+            )
+        if not pay:
+            shown = "unknown" if apparent is None else f"{apparent:.2f}"
+            return (
+                "warning",
+                f"Platform currently reports {shown} paid for participant "
+                f"{participant.id}; unpaid bonus is still {unpaid:.2f} "
+                "(this can lag a recent POST).",
+            )
+        logger.info(
+            "Dashboard retry: paying bonus of %s to participant %s",
+            unpaid,
+            participant.id,
+        )
+        transferred = recruiter.reward_bonus(participant, unpaid, self.bonus_reason())
+        if transferred is False:
+            return (
+                "danger",
+                f"Bonus POST failed for participant {participant.id}. "
+                "Check the platform, then try again if it still looks unpaid.",
+            )
+        self._record_bonus_transfer_success(participant, unpaid)
+        return (
+            "success",
+            f"Posted bonus of {unpaid:.2f} for participant {participant.id}.",
+        )
 
     def _notify_bonus_transfer_failed(self, participant, bonus: float) -> None:
         message = (
@@ -2533,9 +2603,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"(assignment {participant.assignment_id}, worker "
             f"{participant.worker_id}). PsyNet will not retry automatically. "
             f"Please review this participant on the Participants dashboard "
-            f"(listed under Needs payment review) and pay {bonus} manually "
-            "on the recruitment platform after confirming the bonus has "
-            "not already been sent. "
+            f"(listed under Needs payment review). Check the platform bonus "
+            f"status there, then pay {bonus} from the dashboard if it still "
+            "looks unpaid. "
             "needs_payment_review is true; payment_settled is still false."
         )
         logger.error(message)
@@ -2577,7 +2647,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         is restored). ``payment_settled`` and ``needs_payment_review``
         skip a repeat money transfer: PsyNet posts a bonus at most once.
         Recruitment still runs if the bonus transfer fails; the
-        participant is left unsettled for manual review.
+        participant is left unsettled for dashboard review. The
+        experimenter can poll the platform and post again from there.
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
         """
@@ -3331,6 +3402,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except sqlalchemy.orm.exc.MultipleResultsFound:
             message = "Found multiple participants matching those specifications."
 
+        if participant is not None:
+            participant.apparent_bonus = cls._apparent_bonus_for_dashboard(participant)
+
         return render_template(
             "dashboard_participant.html",
             title="Participants",
@@ -3339,6 +3413,56 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participants_needing_review=Participant.needing_payment_review(),
             currency=get_config().currency,
             app_base_url=get_experiment_url(),
+        )
+
+    @staticmethod
+    def _apparent_bonus_for_dashboard(participant):
+        recruiter = getattr(participant, "recruiter", None)
+        if recruiter is None or not recruiter.can_report_apparent_bonus():
+            return None
+        try:
+            return recruiter.apparent_bonus_paid(participant)
+        except Exception:
+            logger.exception(
+                "Could not poll platform bonus for participant %s.",
+                getattr(participant, "id", None),
+            )
+            return None
+
+    @dashboard.route("/participants/check-bonus", methods=["POST"])
+    @login_required
+    @with_transaction
+    def dashboard_check_bonus():  # noqa F811
+        return Experiment._handle_dashboard_review_bonus(pay=False)
+
+    @dashboard.route("/participants/pay-bonus", methods=["POST"])
+    @login_required
+    @with_transaction
+    def dashboard_pay_bonus():  # noqa F811
+        return Experiment._handle_dashboard_review_bonus(pay=True)
+
+    @classmethod
+    def _handle_dashboard_review_bonus(cls, *, pay: bool):
+        participant_id = request.form.get("participant_id")
+        try:
+            participant = cls.get_participant_from_participant_id(
+                int(participant_id), for_update=True
+            )
+        except (TypeError, ValueError):
+            flash("Invalid participant ID.", "danger")
+            return redirect(url_for("dashboard.dashboard_participants"))
+        except sqlalchemy.orm.exc.NoResultFound:
+            flash("Failed to find that participant.", "danger")
+            return redirect(url_for("dashboard.dashboard_participants"))
+        exp = get_experiment()
+        action = exp.pay_review_bonus if pay else exp.check_review_bonus
+        category, message = action(participant)
+        flash(message, category)
+        return redirect(
+            url_for(
+                "dashboard.dashboard_participants",
+                participant_id=participant.id,
+            )
         )
 
     @classmethod

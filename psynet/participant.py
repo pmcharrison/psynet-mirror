@@ -213,8 +213,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     unpaid_bonus = Column(Float)
     payment_settled = Column(Boolean, default=False)
     # True after PsyNet has used its one automatic bonus POST. If the
-    # transfer failed, unpaid_bonus holds the amount to pay manually
-    # after checking the recruitment platform.
+    # transfer failed, unpaid_bonus holds the amount; the Participants
+    # dashboard can poll the platform and post again.
     needs_payment_review = Column(Boolean, default=False)
     issued_completion_code_type = Column(String)
     total_wait_page_time = Column(Float)
@@ -575,9 +575,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def needing_payment_review(cls):
         """Participants whose automatic bonus transfer needs manual review.
 
-        These are people for whom PsyNet already used its one platform
-        bonus POST (or was interrupted while doing so). Check the
-        recruitment platform before paying ``unpaid_bonus`` by hand.
+        These are people for whom PsyNet already used its one automatic
+        platform bonus POST (or was interrupted while doing so). Check the
+        recruitment platform's apparent bonus, then pay from the
+        Participants dashboard if it still looks unpaid.
         """
         return (
             cls.query.filter_by(needs_payment_review=True).order_by(cls.id.asc()).all()
