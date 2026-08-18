@@ -69,6 +69,7 @@ from ..utils import (
     get_logger,
     is_method_overridden,
     log_time_taken,
+    psynet_warning_skip_file_prefixes,
 )
 
 logger = get_logger()
@@ -80,7 +81,7 @@ def _warn_ignored_fail_trials_on_premature_exit(trial_maker_id):
         "Premature exit no longer fails completed trials; incomplete "
         "trials are always failed when the participant exits or fails.",
         DeprecationWarning,
-        stacklevel=2,
+        skip_file_prefixes=psynet_warning_skip_file_prefixes(),
     )
 
 

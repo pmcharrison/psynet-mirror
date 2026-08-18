@@ -1,4 +1,5 @@
 import inspect
+from pathlib import Path
 
 import pytest
 
@@ -56,7 +57,9 @@ def test_failure_policy_constructor_defaults():
 
 
 def test_fail_trials_on_premature_exit_true_emits_deprecation_warning():
-    with pytest.warns(DeprecationWarning, match="fail_trials_on_premature_exit"):
+    with pytest.warns(
+        DeprecationWarning, match="fail_trials_on_premature_exit"
+    ) as record:
         StaticTrialMaker(
             id_="deprecated_flag",
             trial_class=CustomStaticTrial,
@@ -67,6 +70,9 @@ def test_fail_trials_on_premature_exit_true_emits_deprecation_warning():
             target_trials_per_node=1,
             fail_trials_on_premature_exit=True,
         )
+
+    warning = record[0]
+    assert Path(warning.filename).resolve() == Path(__file__).resolve()
 
 
 def test_chain_trial_maker_rejects_mismatched_start_nodes():

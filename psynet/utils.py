@@ -38,6 +38,22 @@ from psynet.translation.utils import load_po
 package_root = os.path.dirname(os.path.abspath(__file__))
 
 
+def psynet_warning_skip_file_prefixes():
+    """Return filename prefixes that ``warnings.warn`` should skip.
+
+    Pass the result as ``skip_file_prefixes`` so a warning issued behind
+    PsyNet wrappers refers to the first caller outside this package.
+    The prefix is the ``psynet`` package directory, not the repository
+    root, so demos and tests still count as caller code.
+
+    Returns
+    -------
+    tuple of str
+        A one-element tuple suitable for ``warnings.warn``.
+    """
+    return (package_root + os.sep,)
+
+
 def get_logger(name="psynet"):
     return logging.getLogger(name)
 

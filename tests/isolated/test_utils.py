@@ -36,9 +36,20 @@ from psynet.utils import (
     merge_dicts,
     organize_by_key,
     pretty_format_seconds,
+    psynet_warning_skip_file_prefixes,
     safe,
     working_directory,
 )
+
+
+def test_psynet_warning_skip_file_prefixes_is_package_directory():
+    (prefix,) = psynet_warning_skip_file_prefixes()
+    package_dir = Path(prefix)
+
+    assert prefix.endswith(os.sep)
+    assert package_dir.name == "psynet"
+    assert (package_dir / "utils.py").is_file()
+    assert not (package_dir / "demos").exists()
 
 
 def test_make_dirs():
