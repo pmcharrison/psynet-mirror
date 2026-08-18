@@ -1,6 +1,5 @@
 import hashlib
 import json
-import os
 import re
 from collections import Counter
 from dataclasses import dataclass
@@ -436,10 +435,10 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
 
     The external submission URL (where completion/failure outcomes are posted)
     can be overridden via the experiment config key ``lab_recruiter_external_submission_url``.
-    Completion posts authenticate with ``lab_recruiter_auth_token`` from
-    config (typically ``~/.dallingerconfig``), falling back to the
-    ``LAB_RECRUITER_AUTH_TOKEN`` environment variable. Non-debug launches
-    require one of these to be set.
+    Completion posts authenticate with ``lab_recruiter_auth_token``, normally
+    set in ``~/.dallingerconfig``. Non-debug launches require it. Deployment
+    copies the resolved config into the container environment, so the token
+    reaches the deployed app under that same key.
     """
 
     post_timeout_seconds = 30
@@ -476,16 +475,9 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
             # We preserve this commit just in case Dallinger removes the external commit in the future
             session.commit()
 
-    def _configured_auth_token(self):
-        """Return the raw token from config, else ``LAB_RECRUITER_AUTH_TOKEN``."""
-        token = (self.config.get("lab_recruiter_auth_token", "") or "").strip()
-        if token:
-            return token
-        return (os.environ.get("LAB_RECRUITER_AUTH_TOKEN") or "").strip()
-
     def _authorization_header(self):
-        """Return a DRF Token header from config or the env-var fallback."""
-        token = self._configured_auth_token()
+        """Return a DRF Token header built from the configured auth token."""
+        token = (self.config.get("lab_recruiter_auth_token", "") or "").strip()
         if not token:
             return None
         if token.lower() == "token":
@@ -502,7 +494,6 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         if not self._authorization_header():
             raise ValueError(
                 "lab_recruiter_auth_token must be set in ~/.dallingerconfig "
-                "(or LAB_RECRUITER_AUTH_TOKEN in the environment) "
                 "before deploying with the lab recruiter. Store the raw key "
                 "from drf_create_token (not the 'Token ' prefix)."
             )
@@ -526,8 +517,7 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         if not authorization:
             logger.error(
                 "Skipping lab-recruiter completion POST: "
-                "lab_recruiter_auth_token is not set "
-                "(and LAB_RECRUITER_AUTH_TOKEN is unset)."
+                "lab_recruiter_auth_token is not set."
             )
             return
 

@@ -233,8 +233,7 @@ def test_lab_recruiter_reward_bonus_posts_outcome(failed, url_suffix, failed_rea
     assert posted is True
 
 
-def test_lab_recruiter_reward_bonus_skips_post_when_token_missing(caplog, monkeypatch):
-    monkeypatch.delenv("LAB_RECRUITER_AUTH_TOKEN", raising=False)
+def test_lab_recruiter_reward_bonus_skips_post_when_token_missing(caplog):
     recruiter = make_lab_recruiter(token="")
     participant = make_lab_participant()
 
@@ -249,38 +248,14 @@ def test_lab_recruiter_reward_bonus_skips_post_when_token_missing(caplog, monkey
     assert not posted
 
 
-def test_lab_recruiter_reward_bonus_falls_back_to_env_token(monkeypatch):
-    monkeypatch.setenv("LAB_RECRUITER_AUTH_TOKEN", "env-secret")
-    recruiter = make_lab_recruiter(token="")
-    participant = make_lab_participant()
-
-    with patch("psynet.recruiters.requests.post") as post:
-        posted = recruiter.reward_bonus(participant, amount=0.25, reason="completed")
-
-    assert posted is True
-    assert post.call_args.kwargs["headers"] == {"Authorization": "Token env-secret"}
-
-
-def test_lab_recruiter_config_token_overrides_env(monkeypatch):
-    monkeypatch.setenv("LAB_RECRUITER_AUTH_TOKEN", "env-secret")
-    recruiter = make_lab_recruiter(token="config-secret")
+def test_lab_recruiter_token_prefix_is_normalized():
+    recruiter = make_lab_recruiter(token="Token config-secret")
     participant = make_lab_participant()
 
     with patch("psynet.recruiters.requests.post") as post:
         recruiter.reward_bonus(participant, amount=0.25, reason="completed")
 
     assert post.call_args.kwargs["headers"] == {"Authorization": "Token config-secret"}
-
-
-def test_lab_recruiter_env_token_prefix_is_normalized(monkeypatch):
-    monkeypatch.setenv("LAB_RECRUITER_AUTH_TOKEN", "Token env-secret")
-    recruiter = make_lab_recruiter(token="")
-    participant = make_lab_participant()
-
-    with patch("psynet.recruiters.requests.post") as post:
-        recruiter.reward_bonus(participant, amount=0.25, reason="completed")
-
-    assert post.call_args.kwargs["headers"] == {"Authorization": "Token env-secret"}
 
 
 def test_lab_recruiter_reward_bonus_logs_http_error(caplog):
@@ -301,8 +276,7 @@ def test_lab_recruiter_reward_bonus_logs_http_error(caplog):
     assert participant.bonus is None
 
 
-def test_lab_recruiter_check_launch_config_requires_token_outside_debug(monkeypatch):
-    monkeypatch.delenv("LAB_RECRUITER_AUTH_TOKEN", raising=False)
+def test_lab_recruiter_check_launch_config_requires_token_outside_debug():
     make_lab_recruiter(token="abc123").check_launch_config("live")
     with pytest.raises(ValueError, match="lab_recruiter_auth_token must be set"):
         make_lab_recruiter(token="").check_launch_config("live")
