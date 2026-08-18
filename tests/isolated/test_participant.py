@@ -1,8 +1,11 @@
 import pytest
 from dallinger import db
 
-from psynet.bot import Bot
+from psynet.bot import Bot, BotDriver
+from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.sync import GroupBarrier, SimpleSyncGroup
+from psynet.trial.main import GenericTrialNode, Trial
 
 
 def _add_incomplete_trial(
@@ -71,12 +74,23 @@ class TestParticipantFailure:
         assert not trial.failed
         assert incomplete.failed
 
-    def test_incomplete_trials_fail_without_trial_maker_routines(
-        self, participant, trial_class, node, launched_experiment
+    def test_incomplete_cue_trial_fails_without_trial_maker(
+        self, participant, trial_class, launched_experiment
     ):
-        incomplete = _add_incomplete_trial(
-            trial_class, launched_experiment, node, participant
+        node = GenericTrialNode("cue_module", launched_experiment)
+        db.session.add(node)
+        incomplete = trial_class(
+            experiment=launched_experiment,
+            node=node,
+            participant=participant,
+            propagate_failure=False,
+            is_repeat_trial=False,
+            definition={"animal": "cats"},
         )
+        db.session.add(incomplete)
+        db.session.commit()
+        assert incomplete.trial_maker_id is None
+
         original_routines = launched_experiment.participant_fail_routines
         launched_experiment.participant_fail_routines = []
         try:
@@ -84,7 +98,6 @@ class TestParticipantFailure:
         finally:
             launched_experiment.participant_fail_routines = original_routines
 
-        assert participant.failed
         assert incomplete.failed
 
     def test_default_static_policy_fails_completed_and_incomplete(
@@ -189,3 +202,88 @@ class TestParticipantFailure:
         assert not trial.failed
         assert not incomplete.failed
         assert participant.pending_redirect is None
+
+    def test_experiment_fail_participant_uses_psynet_contract(
+        self, launched_experiment, participant, trial, trial_class, node
+    ):
+        trial.complete = True
+        db.session.commit()
+        incomplete = _add_incomplete_trial(
+            trial_class, launched_experiment, node, participant
+        )
+
+        launched_experiment.fail_participant(participant)
+
+        assert participant.failed
+        assert participant.pending_redirect == "unsuccessful_end"
+        assert not trial.failed
+        assert incomplete.failed
+        assert not node.failed
+
+    def test_response_timeout_submit_still_records_answer(self, launched_experiment):
+        bot = BotDriver()
+        assert bot.current_page_label == "animal_trial"
+
+        trial = Trial.query.filter_by(participant_id=bot.id, complete=False).one()
+        trial.fail(reason="response_timeout")
+        db.session.commit()
+
+        bot.take_page()
+        bot._fetch_status()
+        db.session.refresh(trial)
+        participant = Participant.query.get(bot.id)
+
+        assert trial.failed
+        assert trial.complete
+        assert trial.answer == "Very much"
+        assert not participant.failed
+        assert bot.is_working
+
+    def test_participant_fail_while_trial_open_does_not_complete_on_submit(
+        self, launched_experiment
+    ):
+        bot = BotDriver()
+        trial = Trial.query.filter_by(participant_id=bot.id, complete=False).one()
+        participant = Participant.query.get(bot.id)
+        participant.fail("premature_exit")
+        db.session.commit()
+
+        bot.take_page()
+        db.session.refresh(trial)
+        db.session.refresh(participant)
+
+        assert trial.failed
+        assert not trial.complete
+        assert participant.failed
+
+    def test_assignment_returned_can_fail_sync_group_partners(
+        self, launched_experiment, participant
+    ):
+        partner = Bot()
+        group = SimpleSyncGroup(
+            group_type="main",
+            initial_group_size=2,
+            max_group_size=2,
+            min_group_size=2,
+            n_active_participants=2,
+            accepts_top_ups=False,
+        )
+        db.session.add(group)
+        group.participants.append(participant)
+        group.participants.append(partner)
+        group.leader = participant
+        db.session.commit()
+
+        launched_experiment.assignment_returned(participant)
+        db.session.commit()
+
+        assert participant.failed
+        assert not partner.failed
+        assert group.n_active_participants == 1
+
+        GroupBarrier(id_="sync_min_size", group_type="main").choose_who_to_release(
+            [partner]
+        )
+
+        assert partner.failed
+        assert "sync group below minimum size" in partner.failure_tags

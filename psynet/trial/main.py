@@ -80,7 +80,7 @@ def _warn_ignored_fail_trials_on_premature_exit(trial_maker_id):
     """Warn at the first frame outside the ``psynet`` package."""
     package_root = Path(__file__).resolve().parent.parent
     stacklevel = 1
-    for frame in call_stack()[1:]:
+    for frame in call_stack(0)[1:]:
         stacklevel += 1
         try:
             frame_path = Path(frame.filename).resolve()
@@ -1000,9 +1000,9 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             logger.info("Calling _finalize_trial.")
 
             trial = participant.current_trial
-            if trial.failed:
+            if participant.failed:
                 logger.info(
-                    "Not completing trial %s; it was already failed "
+                    "Not completing trial %s; the participant was already failed "
                     "(for example participant.fail() while this page was open).",
                     trial.id,
                 )
@@ -1186,11 +1186,11 @@ class TrialMaker(Module):
         ignored. It is not stored on the trial maker.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's completed trials are marked as failed
-        if the participant fails a performance check, because those
-        responses are treated as unusable. Incomplete trials are
-        always failed on any participant failure, regardless of this
-        setting.
+        If ``True``, a participant's completed trials for this TrialMaker are
+        marked as failed when the participant fails a performance check,
+        because those responses are treated as unusable. Incomplete trials are
+        always failed on any participant failure, regardless of this setting.
+        Subclasses document their own defaults.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
@@ -1819,9 +1819,7 @@ class TrialMaker(Module):
     def with_namespace(self, x=None):
         return with_trial_maker_namespace(self.id, x=x)
 
-    def fail_participant_trials(
-        self, participant, reason=None, *, only_incomplete=False
-    ):
+    def fail_participant_trials(self, participant, reason=None):
         """Fail this TrialMaker's non-failed trials for a participant.
 
         Parameters
@@ -1830,12 +1828,6 @@ class TrialMaker(Module):
             The participant whose trials should be failed.
         reason
             Optional failure reason stored on each trial.
-        only_incomplete
-            If ``True``, only fail trials that have not yet been completed.
-            Incomplete trials are failed by :meth:`~psynet.participant.Participant.fail`
-            itself. TrialMaker fail routines use the default (fail remaining
-            non-failed trials) when a performance check treats completed
-            responses as unusable.
         """
         trials_to_fail = (
             Trial.query.filter_by(participant_id=participant.id, failed=False)
@@ -1844,8 +1836,6 @@ class TrialMaker(Module):
             .join(TrialNetwork)
             .filter_by(trial_maker_id=self.id)
         )
-        if only_incomplete:
-            trials_to_fail = trials_to_fail.filter(Trial.complete.is_(False))
         for trial in trials_to_fail:
             trial.fail(reason=reason)
 
@@ -2208,11 +2198,7 @@ class NetworkTrialMaker(TrialMaker):
         is evaluated after each trial.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's completed trials are marked as failed
-        if the participant fails a performance check, because those
-        responses are treated as unusable. Incomplete trials are
-        always failed on any participant failure, regardless of this
-        setting.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other

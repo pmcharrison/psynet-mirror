@@ -568,17 +568,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def failure_cascade(self):
-        """Do not fail objects just because this participant owns them.
-
-        Dallinger's default cascade fails the participant's nodes (and
-        questions). That would mark within-chain nodes and networks failed when
-        the owner leaves, which is not what ``failed`` means here. Incomplete
-        trials are failed in :meth:`~psynet.participant.Participant.fail`.
-        TrialMakers decide whether completed trials are unusable via
-        ``participant_fail_routine``. Do not restore
-        ``super().failure_cascade`` or put ``self.nodes`` / all trials back in
-        this list.
-        """
+        """Return no owned objects. ``failed`` is not an ownership marker."""
         return []
 
     @property
@@ -823,7 +813,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         trials = (
             Trial.query.filter_by(participant_id=self.id, failed=False)
-            .filter(Trial.complete.is_(False))
+            .filter(Trial.complete.is_not(True))
             .with_for_update(of=Trial)
             .populate_existing()
             .all()

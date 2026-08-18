@@ -128,10 +128,7 @@ class DenseTrialMaker(StaticTrialMaker):
         for implementing performance checks.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's completed trials are marked as failed
-        if the participant fails a performance check.
-        Defaults to ``True``. Incomplete trials are always failed on
-        any participant failure, regardless of this setting.
+        See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``True``.
 
     n_repeat_trials
         Number of repeat trials to present to the participant. These trials

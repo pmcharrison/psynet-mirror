@@ -1,5 +1,4 @@
 import inspect
-import warnings
 
 import pytest
 
@@ -34,23 +33,21 @@ def make_trial_maker(**kwargs):
     return ChainTrialMaker(**{**args, **kwargs})
 
 
-def test_chain_trial_maker_preserves_trials_on_participant_failure_by_default():
-    trial_maker = make_trial_maker()
-
-    premature_exit = inspect.signature(ChainTrialMaker.__init__).parameters[
-        "fail_trials_on_premature_exit"
-    ]
-    assert premature_exit.default is False
-    assert not trial_maker.fail_trials_on_participant_performance_check
-
-
-def test_static_and_dense_failure_policy_defaults():
+def test_failure_policy_constructor_defaults():
+    chain = inspect.signature(ChainTrialMaker.__init__).parameters
     static = inspect.signature(StaticTrialMaker.__init__).parameters
     dense = inspect.signature(DenseTrialMaker.__init__).parameters
+
+    assert chain["fail_trials_on_premature_exit"].default is False
+    assert chain["fail_trials_on_participant_performance_check"].default is False
     assert static["fail_trials_on_premature_exit"].default is False
     assert static["fail_trials_on_participant_performance_check"].default is True
     assert dense["fail_trials_on_premature_exit"].default is False
     assert dense["fail_trials_on_participant_performance_check"].default is True
+
+    trial_maker = make_trial_maker()
+    assert not trial_maker.fail_trials_on_participant_performance_check
+    assert not hasattr(trial_maker, "fail_trials_on_premature_exit")
 
 
 def test_fail_trials_on_premature_exit_true_emits_deprecation_warning():
@@ -65,27 +62,6 @@ def test_fail_trials_on_premature_exit_true_emits_deprecation_warning():
             target_trials_per_node=1,
             fail_trials_on_premature_exit=True,
         )
-
-
-def test_fail_trials_on_premature_exit_false_does_not_warn():
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always", DeprecationWarning)
-        StaticTrialMaker(
-            id_="default_flag",
-            trial_class=CustomStaticTrial,
-            nodes=[StaticNode(definition={"x": 1})],
-            expected_trials_per_participant=1,
-            max_trials_per_participant=1,
-            recruit_mode="n_trials",
-            target_trials_per_node=1,
-            fail_trials_on_premature_exit=False,
-        )
-    assert not [
-        w
-        for w in caught
-        if issubclass(w.category, DeprecationWarning)
-        and "fail_trials_on_premature_exit" in str(w.message)
-    ]
 
 
 def test_chain_trial_maker_rejects_mismatched_start_nodes():

@@ -147,7 +147,9 @@ Premature exit never fails completed trials, so prescreens do not need a
 special premature-exit setting. If the performance check only decides
 whether the participant may continue, set
 ``fail_trials_on_participant_performance_check=False`` so the collected
-trials remain valid measurements of ineligibility.
+trials remain valid measurements of ineligibility. Built-in prescreens keep
+the static default (``True``) except ``FreeTappingRecordTest``, which sets
+this to ``False``.
 
 The :meth:`trial` method returns a :class:`~psynet.trial.static.StaticTrial` which implements :meth:`~psynet.trial.main.show_trial` that in turn returns a :class:`~psynet.modular_page.ModularPage` e.g.:
 

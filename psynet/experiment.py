@@ -2308,22 +2308,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._handle_premature_exit(participant, "assignment_reassigned")
 
     def _handle_premature_exit(self, participant, cause_tag):
-        """Handle a recruiter event that ends a still-working participant early.
+        """Fail a still-working participant after a recruiter exit event.
 
-        Recruiter events such as assignment abandonment, marketplace return, and
-        assignment reassignment describe the disposition of the recruitment
-        assignment, not the quality of the participant's responses. We therefore
-        treat them as a premature exit: the participant is marked as failed,
-        incomplete trials are failed, and completed trials are preserved.
-        This deliberately replaces Dallinger's default behaviour of
-        unconditionally failing the participant's nodes.
-
-        If the participant has already completed the experiment, this is a
-        no-op: they did not fail, so recruiter cause tags are not written to
-        ``failure_tags``. If they have already failed, only the recruiter
-        cause tag is recorded. Settlement returns after an unsuccessful end
-        therefore do not invent a second ``premature_exit`` or re-run
-        trial-invalidation logic.
+        Recruiter abandonment, return, and reassignment are premature exits.
+        See :doc:`/tutorials/participant_and_trial_failure`.
         """
         if participant.complete:
             return
@@ -2333,6 +2321,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return
 
         participant.append_failure_tags(cause_tag, "premature_exit")
+        participant.fail()
+
+    def fail_participant(self, participant):
+        """Fail a participant using PsyNet's participant-failure contract.
+
+        Dallinger's implementation fails the participant's nodes instead of the
+        participant. PsyNet treats ``failed`` as "this record is unusable", so
+        node ownership is not a reason to fail those nodes. This is the entry
+        point used by Dallinger's ``data_check_failed`` and
+        ``attention_check_failed``.
+        """
         participant.fail()
 
     def bonus(self, participant: Participant) -> float:

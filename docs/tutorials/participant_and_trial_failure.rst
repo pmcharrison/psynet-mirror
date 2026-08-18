@@ -104,11 +104,16 @@ The redirect timing depends on where ``fail()`` is called:
   applied the next time the participant submits a response.
 
 That queued redirect is navigation only. It does not keep the current trial
-alive. Fail routines have already failed every ``complete=False`` trial,
-including the one on screen. The next POST is stored as a ``Response``, then
-``advance_page`` applies the redirect before the rest of that trial's logic, so
-``_finalize_trial`` does not run. Authors must not assume that an open page
-means the trial will complete.
+alive. :meth:`~psynet.participant.Participant.fail` has already failed every
+``complete=False`` trial, including the one on screen, before fail routines
+run. The next POST is stored as a ``Response``, then ``advance_page`` applies
+the redirect before the rest of that trial's logic, so ``_finalize_trial``
+does not run. Authors must not assume that an open page means the trial will
+complete.
+
+A response timeout fails only that trial. If the participant later submits,
+PsyNet still records the answer and marks the trial complete. The trial stays
+failed, and the participant is not failed.
 
 Incomplete trials (``complete=False``) are always failed on any participant
 failure, including premature exit. That includes trials created with
@@ -125,9 +130,9 @@ data should be excluded (bots, nonsense responses, failed attention checks).
 Leave it off when the check only gates eligibility to continue, for example
 many prescreens, so that the collected trials remain valid measurements.
 
-Do not put trial invalidation back on :meth:`~psynet.participant.Participant.failure_cascade`.
-That list must stay empty so owned nodes are not failed. Override it only if
-you intend Dallinger-style ownership failure.
+:attr:`~psynet.participant.Participant.failure_cascade` stays empty so owned
+nodes are not failed. Override it only if you intend Dallinger-style ownership
+failure.
 
 Premature exit does not fail completed trials. Recruiter events that end a
 still-eligible participant (assignment abandonment, a marketplace return such
@@ -139,7 +144,10 @@ a second ``premature_exit`` or re-run trial-invalidation logic. That covers
 settlement returns after an unsuccessful end, such as return-for-bonus. If
 the participant has already completed the experiment successfully, the
 recruiter event is a no-op: they did not fail, so nothing is written to
-``failure_tags``.
+``failure_tags``. Completion is recorded only when they submit the successful
+end page. Closing the browser on that debrief page without clicking Finish
+leaves them incomplete, so a later recruiter abandonment or return fails them
+and any unfinished trials, while submitted trials stay.
 
 The default performance-check policies are:
 

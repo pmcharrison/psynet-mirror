@@ -1198,12 +1198,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         ``recruit_mode="n_participants"``.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's completed trials are marked as failed
-        if the participant fails a performance check.
-        Defaults to ``False`` because failing completed trials can end up
-        destroying large parts of existing chains. Incomplete trials are
-        always failed on any participant failure, regardless of this
-        setting.
+        See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``False``
+        because failing completed trials can invalidate large amounts of
+        downstream chain data.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
