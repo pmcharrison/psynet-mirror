@@ -2126,6 +2126,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         cls.check_base_payment(config)
         cls.check_stale_error_page_override()
         cls.check_unused_dallinger_quality_checks()
+        cls.check_stale_bonus_override()
         PsyNetProlificRecruiterMixin.check_screen_out_config(config)
 
         parser = configparser.ConfigParser()
@@ -2191,6 +2192,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "the timeline instead, for example with `fail()` or "
                 "`UnsuccessfulEndPage`."
             )
+
+    @classmethod
+    def check_stale_bonus_override(cls):
+        """Fail fast when an experiment overrides the removed ``bonus`` method.
+
+        Payment amounts are decided by the recruiter's ``decide_payment``
+        method; an ``Experiment.bonus`` override would be silently ignored.
+        """
+        for klass in cls.__mro__:
+            if klass is Experiment:
+                break
+            if "bonus" in klass.__dict__:
+                raise RuntimeError(
+                    "Overriding `Experiment.bonus` is no longer supported: "
+                    "PsyNet does not call this method when paying participants. "
+                    "Customize payment amounts on the recruiter instead "
+                    "(see `decide_payment`, `platform_base_for`, and "
+                    "`total_owed`)."
+                )
 
     @classmethod
     def check_base_payment(cls, config):
@@ -2346,26 +2366,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
         super().assignment_reassigned(participant)
 
-    def bonus(self, participant: Participant) -> float:
-        """Return the bonus implied by the recruiter's payment decision.
-
-        This does not write participant fields or transfer money. The
-        submission-complete path records the decision first, then clips
-        this amount with :meth:`check_bonus` before paying.
-
-        Parameters
-        ----------
-        participant : Participant
-            The participant to calculate the bonus for.
-
-        Returns
-        -------
-        float
-            The decided bonus, rounded to 2 decimal places.
-        """
-        decision = participant.recruiter.decide_payment(participant, experiment=self)
-        return decision.bonus
-
     def decide_and_record_payment(self, participant) -> PaymentDecision:
         """Decide how the participant should be paid and write it to the ledger."""
         recruiter = participant.recruiter
@@ -2373,13 +2373,49 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         recruiter.record_payment(participant, decision)
         return decision
 
+    def apply_payment_caps(self, participant, bonus: float) -> float:
+        """Return the bonus that may actually be transferred after spend caps.
+
+        If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
+        bonus is withheld, recorded on ``participant.unpaid_bonus``, and the
+        experimenter is emailed once. If it would exceed
+        ``max_participant_payment``, the bonus is reduced to the remaining
+        room under that cap.
+
+        Soft experiment spend limits are enforced when recruiting
+        (``need_more_participants``), not here.
+        """
+        if bonus <= 0:
+            return 0.0
+
+        projected_spend = self.amount_spent() + self.outstanding_base_payments() + bonus
+        if projected_spend > self.var.hard_max_experiment_payment:
+            participant.unpaid_bonus = bonus
+            self.ensure_hard_max_experiment_payment_email_sent()
+            logger.warning(
+                "Withholding bonus of %s for participant %s: experiment "
+                "spend would exceed hard_max_experiment_payment (%s).",
+                bonus,
+                participant.id,
+                self.var.hard_max_experiment_payment,
+            )
+            return 0.0
+
+        already_paid = participant.amount_paid()
+        max_payment = self.var.max_participant_payment
+        if already_paid + bonus > max_payment:
+            reduced = round(max(0.0, max_payment - already_paid), 2)
+            participant.send_email_max_payment_reached(self, bonus, reduced)
+            return reduced
+        return bonus
+
     def pay_decided_bonus(self, participant, decision, *, reason=None):
         """Transfer ``decision.bonus`` after spend-cap checks, then record it.
 
         Does not pay if a bonus was already recorded or the clipped amount is
         below one cent.
         """
-        bonus = round(self.check_bonus(decision.bonus, participant), 2)
+        bonus = round(self.apply_payment_caps(participant, decision.bonus), 2)
         min_real_bonus = 0.01
         if participant.bonus is not None:
             logger.info(
@@ -2444,42 +2480,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.pay_decided_bonus(participant, decision)
         self.submission_successful(participant=participant)
         self.recruit()
-
-    def check_bonus(self, reward, participant):
-        """
-        Ensures that a participant receives no more than a reward of max_participant_payment.
-        Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
-        been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
-
-        :param reward: float
-            The bonus decided for the participant, before spend-cap clipping.
-        :type participant:
-            :attr: `~psynet.participant.Participant`
-        :returns:
-            The possibly reduced reward as a ``float``.
-        """
-
-        # check hard_max_experiment_payment
-        if (
-            self.var.hard_max_experiment_payment_email_sent
-            or self.amount_spent() + self.outstanding_base_payments() + reward
-            > self.var.hard_max_experiment_payment
-        ):
-            participant.var.set("unpaid_bonus", reward)
-            self.ensure_hard_max_experiment_payment_email_sent()
-
-        # check soft_max_experiment_payment
-        if self.amount_spent() + reward >= self.var.soft_max_experiment_payment:
-            self.ensure_soft_max_experiment_payment_email_sent()
-
-        # check max_participant_payment
-        if participant.amount_paid() + reward > self.var.max_participant_payment:
-            reduced_reward = round(
-                self.var.max_participant_payment - participant.amount_paid(), 2
-            )
-            participant.send_email_max_payment_reached(self, reward, reduced_reward)
-            return reduced_reward
-        return reward
 
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment

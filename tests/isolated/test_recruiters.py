@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import dallinger.experiment
@@ -562,7 +563,6 @@ class PaymentHarness:
     from psynet.experiment import Experiment as _Experiment
 
     base_payment = 1.00
-    bonus = _Experiment.bonus
     decide_and_record_payment = _Experiment.decide_and_record_payment
     pay_decided_bonus = _Experiment.pay_decided_bonus
     on_recruiter_submission_complete = _Experiment.on_recruiter_submission_complete
@@ -571,8 +571,8 @@ class PaymentHarness:
         self.recruit_calls = 0
         self.submission_successful_calls = []
 
-    def check_bonus(self, reward, participant):
-        return reward
+    def apply_payment_caps(self, participant, bonus):
+        return bonus
 
     def bonus_reason(self):
         return "thanks"
@@ -591,9 +591,8 @@ def decide_for(participant, config):
         )
 
 
-def bonus_for(participant, config):
-    with patch("psynet.recruiters.get_config", return_value=config):
-        return PaymentHarness().bonus(participant)
+def decided_bonus(participant, config):
+    return decide_for(participant, config).bonus
 
 
 def prepare_payout_participant(participant):
@@ -680,7 +679,7 @@ def test_bonus_tops_up_unsuccessful_participant():
         prolific_unsuccessful_base_payment=0.50, prolific_unsuccessful_topup=True
     )
     participant = make_participant_with_recruiter(config, failed=True)
-    assert bonus_for(participant, config) == 2.00
+    assert decided_bonus(participant, config) == 2.00
 
 
 def test_bonus_topup_never_negative():
@@ -689,7 +688,7 @@ def test_bonus_topup_never_negative():
     )
     participant = make_participant_with_recruiter(config, failed=True)
     participant.calculate_reward.return_value = 0.20
-    assert bonus_for(participant, config) == 0.00
+    assert decided_bonus(participant, config) == 0.00
 
 
 def test_bonus_without_topup_pays_only_performance_reward():
@@ -697,26 +696,26 @@ def test_bonus_without_topup_pays_only_performance_reward():
         prolific_unsuccessful_base_payment=0.50, prolific_unsuccessful_topup=False
     )
     participant = make_participant_with_recruiter(config, failed=True)
-    assert bonus_for(participant, config) == 0.30
+    assert decided_bonus(participant, config) == 0.30
 
 
 def test_bonus_subtracts_base_payment_for_successful_participant():
     config = make_config(prolific_unsuccessful_base_payment=0.50)
     participant = make_participant_with_recruiter(config, failed=False)
-    assert bonus_for(participant, config) == 1.50
+    assert decided_bonus(participant, config) == 1.50
 
 
 def test_bonus_subtracts_base_payment_for_failed_participant_with_feature_disabled():
     config = make_config(prolific_pay_unsuccessful=False)
     participant = make_participant_with_recruiter(config, failed=True)
-    assert bonus_for(participant, config) == 1.50
+    assert decided_bonus(participant, config) == 1.50
 
 
 def test_bonus_never_negative():
     config = make_config()
     participant = make_participant_with_recruiter(config, failed=False)
     participant.calculate_reward.return_value = 0.20
-    assert bonus_for(participant, config) == 0.00
+    assert decided_bonus(participant, config) == 0.00
 
 
 def test_bonus_uses_screen_out_base_when_status_already_screened_out():
@@ -726,7 +725,7 @@ def test_bonus_uses_screen_out_base_when_status_already_screened_out():
     participant = make_participant_with_recruiter(
         config, failed=True, status="screened_out"
     )
-    assert bonus_for(participant, config) == 2.00
+    assert decided_bonus(participant, config) == 2.00
 
 
 def test_bonus_pays_full_reward_when_status_is_returned():
@@ -734,7 +733,7 @@ def test_bonus_pays_full_reward_when_status_is_returned():
     participant = make_participant_with_recruiter(
         config, failed=True, status="returned"
     )
-    assert bonus_for(participant, config) == 2.50
+    assert decided_bonus(participant, config) == 2.50
 
 
 def test_on_recruiter_submission_complete_records_and_pays_screen_out():
@@ -766,7 +765,7 @@ def test_on_recruiter_submission_complete_records_and_pays_screen_out():
     assert harness.submission_successful_calls == [participant]
 
 
-def test_on_recruiter_submission_complete_records_platform_base_before_check_bonus():
+def test_on_recruiter_submission_complete_records_platform_base_before_caps():
     config = make_config(
         prolific_unsuccessful_base_payment=0.25, prolific_unsuccessful_topup=True
     )
@@ -781,14 +780,14 @@ def test_on_recruiter_submission_complete_records_platform_base_before_check_bon
     observed = {}
 
     class CapHarness(PaymentHarness):
-        def check_bonus(self, reward, participant):
+        def apply_payment_caps(self, participant, bonus):
             observed["base_payment"] = participant.base_payment
             observed["base_pay"] = participant.base_pay
             paid = (participant.base_payment or 0.0) + (participant.bonus or 0.0)
             cap = 1.10
-            if paid + reward > cap:
+            if paid + bonus > cap:
                 return round(cap - paid, 2)
-            return reward
+            return bonus
 
     with patch("psynet.recruiters.get_config", return_value=config):
         CapHarness().on_recruiter_submission_complete(participant, event=None)
@@ -920,6 +919,83 @@ def test_check_unused_dallinger_quality_checks_rejects_overrides():
         ExpWithDataCheck.check_unused_dallinger_quality_checks()
 
     Experiment.check_unused_dallinger_quality_checks()
+
+
+def test_check_stale_bonus_override_rejects_experiment_bonus():
+    from psynet.experiment import Experiment
+
+    class ExpWithBonus(Experiment):
+        def bonus(self, participant):
+            return 1.0
+
+    with pytest.raises(RuntimeError, match="decide_payment"):
+        ExpWithBonus.check_stale_bonus_override()
+
+    Experiment.check_stale_bonus_override()
+
+
+class PaymentCapHarness:
+    from psynet.experiment import Experiment as _Experiment
+
+    apply_payment_caps = _Experiment.apply_payment_caps
+
+    def __init__(
+        self, *, spent=0.0, outstanding=0.0, hard_max=1100.0, max_participant=25.0
+    ):
+        self.spent = spent
+        self.outstanding = outstanding
+        self.var = SimpleNamespace(
+            hard_max_experiment_payment=hard_max,
+            max_participant_payment=max_participant,
+            hard_max_experiment_payment_email_sent=False,
+        )
+        self.hard_max_emails = 0
+
+    def amount_spent(self):
+        return self.spent
+
+    def outstanding_base_payments(self):
+        return self.outstanding
+
+    def ensure_hard_max_experiment_payment_email_sent(self):
+        self.hard_max_emails += 1
+        self.var.hard_max_experiment_payment_email_sent = True
+
+
+def test_apply_payment_caps_withholds_bonus_at_hard_max():
+    harness = PaymentCapHarness(spent=9.50, outstanding=0.0, hard_max=10.0)
+    participant = MagicMock(id=1, unpaid_bonus=0.0)
+
+    result = harness.apply_payment_caps(participant, 1.00)
+
+    assert result == 0.0
+    assert participant.unpaid_bonus == 1.00
+    assert harness.hard_max_emails == 1
+    participant.send_email_max_payment_reached.assert_not_called()
+
+
+def test_apply_payment_caps_does_not_withhold_once_under_hard_max():
+    harness = PaymentCapHarness(spent=8.00, outstanding=0.0, hard_max=10.0)
+    participant = MagicMock(id=1)
+    participant.amount_paid.return_value = 1.00
+
+    result = harness.apply_payment_caps(participant, 1.00)
+
+    assert result == 1.00
+    assert harness.hard_max_emails == 0
+
+
+def test_apply_payment_caps_clips_to_max_participant_payment():
+    harness = PaymentCapHarness(max_participant=5.00)
+    participant = MagicMock(id=1)
+    participant.amount_paid.return_value = 4.50
+
+    result = harness.apply_payment_caps(participant, 1.00)
+
+    assert result == 0.50
+    participant.send_email_max_payment_reached.assert_called_once_with(
+        harness, 1.00, 0.50
+    )
 
 
 def test_open_recruitment_reraises_with_hint_when_screen_out_enabled(caplog):

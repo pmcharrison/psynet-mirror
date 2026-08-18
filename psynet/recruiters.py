@@ -111,7 +111,7 @@ class PaymentDecision:
     """How a participant should be paid for this exit, before money moves.
 
     ``bonus`` is ``max(0, total_owed - platform_base)`` and has not yet been
-    clipped by experiment spend caps (``Experiment.check_bonus``).
+    clipped by experiment spend caps (``Experiment.apply_payment_caps``).
     """
 
     status: str
