@@ -1,6 +1,7 @@
 import json
 from unittest.mock import MagicMock, PropertyMock, patch
 
+import dallinger.experiment
 import dallinger.recruiters
 import pytest
 from dallinger.prolific import ProlificServiceException
@@ -9,6 +10,7 @@ from psynet.participant import Participant
 from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
+    PaymentDecision,
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
 )
@@ -556,20 +558,90 @@ def test_recruiter_exit_info_returns_none_when_payment_disabled():
         assert Experiment.recruiter_exit_info(Experiment, participant) is None
 
 
-class BonusHarness:
+class PaymentHarness:
     from psynet.experiment import Experiment as _Experiment
 
     base_payment = 1.00
     bonus = _Experiment.bonus
+    decide_and_record_payment = _Experiment.decide_and_record_payment
+    pay_decided_bonus = _Experiment.pay_decided_bonus
+    on_recruiter_submission_complete = _Experiment.on_recruiter_submission_complete
+
+    def __init__(self):
+        self.recruit_calls = 0
+        self.submission_successful_calls = []
 
     def check_bonus(self, reward, participant):
         return reward
 
+    def bonus_reason(self):
+        return "thanks"
+
+    def submission_successful(self, participant):
+        self.submission_successful_calls.append(participant)
+
+    def recruit(self):
+        self.recruit_calls += 1
+
+
+def decide_for(participant, config):
+    with patch("psynet.recruiters.get_config", return_value=config):
+        return participant.recruiter.decide_payment(
+            participant, experiment=PaymentHarness()
+        )
+
 
 def bonus_for(participant, config):
     with patch("psynet.recruiters.get_config", return_value=config):
-        with patch("psynet.experiment.get_config", return_value=config):
-            return BonusHarness().bonus(participant)
+        return PaymentHarness().bonus(participant)
+
+
+def prepare_payout_participant(participant):
+    participant.id = 7
+    participant.bonus = None
+    participant.end_time = None
+    participant.assignment_id = "assignment-1"
+    participant.recruiter.nickname = "prolific"
+    participant.recruiter.approve_hit = MagicMock(return_value=True)
+    participant.recruiter.reward_bonus = MagicMock()
+    return participant
+
+
+def test_decide_payment_is_pure():
+    config = make_config(prolific_unsuccessful_base_payment=0.50)
+    participant = make_participant_with_recruiter(
+        config, failed=True, status="submitted"
+    )
+    participant.base_pay = 1.00
+    participant.base_payment = 1.00
+
+    decision = decide_for(participant, config)
+
+    assert decision == PaymentDecision(
+        status="screened_out",
+        platform_base=0.50,
+        total_owed=2.50,
+        bonus=2.00,
+    )
+    assert participant.status == "submitted"
+    assert participant.base_payment == 1.00
+    assert participant.base_pay == 1.00
+
+
+def test_record_payment_writes_status_and_platform_base():
+    config = make_config(prolific_unsuccessful_base_payment=0.50)
+    participant = make_participant_with_recruiter(
+        config, failed=True, status="submitted"
+    )
+    participant.bonus = None
+    decision = decide_for(participant, config)
+
+    participant.recruiter.record_payment(participant, decision)
+
+    assert participant.status == "screened_out"
+    assert participant.base_pay == 0.50
+    assert participant.base_payment == 0.50
+    assert participant.bonus is None
 
 
 def test_bonus_tops_up_unsuccessful_participant():
@@ -577,7 +649,6 @@ def test_bonus_tops_up_unsuccessful_participant():
         prolific_unsuccessful_base_payment=0.50, prolific_unsuccessful_topup=True
     )
     participant = make_participant_with_recruiter(config, failed=True)
-    # Accumulated reward 2.50 minus the 0.50 screen-out payment
     assert bonus_for(participant, config) == 2.00
 
 
@@ -617,51 +688,7 @@ def test_bonus_never_negative():
     assert bonus_for(participant, config) == 0.00
 
 
-def test_bonus_corrects_base_payment_before_check_bonus():
-    """Screen-out top-ups must not be clipped by spend caps that still see the
-    full study base_payment Dallinger records before calling bonus().
-    """
-    config = make_config(
-        prolific_unsuccessful_base_payment=0.25, prolific_unsuccessful_topup=True
-    )
-    participant = make_participant_with_recruiter(config, failed=True)
-    participant.calculate_reward.return_value = 1.00
-    participant.performance_reward = 0.0
-    # Simulate Dallinger having recorded the full study base before bonus().
-    participant.base_pay = 1.00
-    participant.base_payment = 1.00
-    participant.bonus = None
-
-    observed = {}
-
-    class CapHarness(BonusHarness):
-        def check_bonus(self, reward, participant):
-            # Capture what check_bonus sees; a tight cap would clip the 0.75
-            # top-up if base_payment were still 1.00 (1.00 + 0.75 > 1.10).
-            observed["base_payment"] = participant.base_payment
-            observed["base_pay"] = participant.base_pay
-            paid = (participant.base_payment or 0.0) + (participant.bonus or 0.0)
-            cap = 1.10
-            if paid + reward > cap:
-                return round(cap - paid, 2)
-            return reward
-
-    with patch("psynet.recruiters.get_config", return_value=config):
-        with patch("psynet.experiment.get_config", return_value=config):
-            result = CapHarness().bonus(participant)
-
-    assert observed["base_payment"] == 0.25
-    assert observed["base_pay"] == 0.25
-    assert result == 0.75
-    assert participant.base_payment == 0.25
-    assert participant.base_pay == 0.25
-
-
-def test_bonus_screen_out_path_still_works_when_status_already_screened_out():
-    """After submission we relabel failed screen-outs as screened_out; bonus
-    must still subtract the screen-out payment rather than treating them as
-    the legacy return-for-bonus (base_already_paid = 0) path.
-    """
+def test_bonus_uses_screen_out_base_when_status_already_screened_out():
     config = make_config(
         prolific_unsuccessful_base_payment=0.50, prolific_unsuccessful_topup=True
     )
@@ -671,52 +698,128 @@ def test_bonus_screen_out_path_still_works_when_status_already_screened_out():
     assert bonus_for(participant, config) == 2.00
 
 
-def test_on_recruiter_submission_complete_relabels_approved_screen_out():
-    config = make_config(prolific_unsuccessful_base_payment=0.25)
-    recruiter = make_prolific_recruiter(config)
-    participant = MagicMock(
-        failed=True, status="approved", base_pay=1.00, base_payment=1.00
+def test_bonus_pays_full_reward_when_status_is_returned():
+    config = make_config(prolific_pay_unsuccessful=False)
+    participant = make_participant_with_recruiter(
+        config, failed=True, status="returned"
     )
+    assert bonus_for(participant, config) == 2.50
+
+
+def test_on_recruiter_submission_complete_records_and_pays_screen_out():
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=True, status="submitted")
+    )
+    harness = PaymentHarness()
 
     with patch("psynet.recruiters.get_config", return_value=config):
-        recruiter.on_recruiter_submission_complete(participant)
+        with patch.object(dallinger.experiment.Experiment, "data_check") as data_check:
+            with patch.object(
+                dallinger.experiment.Experiment, "on_recruiter_submission_complete"
+            ) as dallinger_handler:
+                harness.on_recruiter_submission_complete(
+                    participant, {"timestamp": "2026-01-01"}
+                )
 
-    assert participant.base_pay == 0.25
+    data_check.assert_not_called()
+    dallinger_handler.assert_not_called()
+    assert participant.status == "screened_out"
     assert participant.base_payment == 0.25
+    assert participant.base_pay == 0.25
+    assert participant.end_time == "2026-01-01"
+    assert participant.bonus == 2.25
+    participant.recruiter.approve_hit.assert_called_once_with("assignment-1")
+    participant.recruiter.reward_bonus.assert_called_once()
+    assert harness.recruit_calls == 1
+    assert harness.submission_successful_calls == [participant]
+
+
+def test_on_recruiter_submission_complete_records_platform_base_before_check_bonus():
+    config = make_config(
+        prolific_unsuccessful_base_payment=0.25, prolific_unsuccessful_topup=True
+    )
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=True, status="submitted")
+    )
+    participant.calculate_reward.return_value = 1.00
+    participant.performance_reward = 0.0
+    participant.base_pay = 1.00
+    participant.base_payment = 1.00
+
+    observed = {}
+
+    class CapHarness(PaymentHarness):
+        def check_bonus(self, reward, participant):
+            observed["base_payment"] = participant.base_payment
+            observed["base_pay"] = participant.base_pay
+            paid = (participant.base_payment or 0.0) + (participant.bonus or 0.0)
+            cap = 1.10
+            if paid + reward > cap:
+                return round(cap - paid, 2)
+            return reward
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        CapHarness().on_recruiter_submission_complete(participant, event=None)
+
+    assert observed["base_payment"] == 0.25
+    assert observed["base_pay"] == 0.25
+    assert participant.bonus == 0.75
     assert participant.status == "screened_out"
 
 
-@pytest.mark.parametrize(
-    "status",
-    ["bad_data", "did_not_attend", "submitted", "screened_out"],
-)
-def test_on_recruiter_submission_complete_preserves_non_approved_status(status):
+def test_on_recruiter_submission_complete_pays_successful_participant():
     config = make_config(prolific_unsuccessful_base_payment=0.25)
-    recruiter = make_prolific_recruiter(config)
-    participant = MagicMock(
-        failed=True, status=status, base_pay=1.00, base_payment=1.00
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="submitted")
     )
+    harness = PaymentHarness()
 
     with patch("psynet.recruiters.get_config", return_value=config):
-        recruiter.on_recruiter_submission_complete(participant)
+        harness.on_recruiter_submission_complete(participant, event=None)
 
-    assert participant.base_payment == 0.25
-    assert participant.status == status
-
-
-def test_on_recruiter_submission_complete_noop_for_successful_participant():
-    config = make_config(prolific_unsuccessful_base_payment=0.25)
-    recruiter = make_prolific_recruiter(config)
-    participant = MagicMock(
-        failed=False, status="approved", base_pay=1.00, base_payment=1.00
-    )
-
-    with patch("psynet.recruiters.get_config", return_value=config):
-        recruiter.on_recruiter_submission_complete(participant)
-
-    assert participant.base_pay == 1.00
-    assert participant.base_payment == 1.00
     assert participant.status == "approved"
+    assert participant.base_payment == 1.00
+    assert participant.bonus == 1.50
+    participant.recruiter.reward_bonus.assert_called_once()
+
+
+def test_on_recruiter_submission_complete_skips_unexpected_status():
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=True, status="working")
+    )
+    participant.base_payment = 1.00
+    harness = PaymentHarness()
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        harness.on_recruiter_submission_complete(participant, event=None)
+
+    assert participant.status == "working"
+    assert participant.base_payment == 1.00
+    assert participant.bonus is None
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert harness.recruit_calls == 0
+
+
+def test_reward_and_set_bonus_uses_payment_decision():
+    config = make_config(prolific_pay_unsuccessful=False)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=True, status="returned")
+    )
+    harness = PaymentHarness()
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch("psynet.experiment.get_experiment", return_value=harness):
+            PsyNetProlificRecruiterMixin.reward_and_set_bonus(participant)
+
+    assert participant.status == "returned"
+    assert participant.base_payment == 0.0
+    assert participant.bonus == 2.50
+    participant.recruiter.reward_bonus.assert_called_once()
+    assert participant.recruiter.reward_bonus.call_args.args[2] == (
+        "Partial payment for incomplete participation"
+    )
 
 
 def make_prolific_deploy_config(**overrides):
@@ -770,6 +873,22 @@ def test_check_config_rejects_stale_error_page_override():
 
     # The base class (no override) passes.
     Experiment.check_stale_error_page_override()
+
+
+def test_check_unused_dallinger_quality_checks_rejects_overrides():
+    from psynet.experiment import Experiment
+
+    class ExpWithDataCheck(Experiment):
+        def data_check(self, participant):
+            return True
+
+        def attention_check(self, participant):
+            return True
+
+    with pytest.raises(RuntimeError, match="data_check"):
+        ExpWithDataCheck.check_unused_dallinger_quality_checks()
+
+    Experiment.check_unused_dallinger_quality_checks()
 
 
 def test_open_recruitment_reraises_with_hint_when_screen_out_enabled(caplog):

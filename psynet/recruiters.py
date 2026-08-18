@@ -20,11 +20,13 @@ Key design constraints for maintainers:
   ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``) or asked to
   return their submission for a bonus (the legacy fallback when
   ``prolific_pay_unsuccessful = false``).
-- Payment amounts are computed in ``psynet.experiment.Experiment.bonus``,
-  which consults the recruiter for platform-specific inputs (such as the
-  Prolific screen-out reward in
-  ``PsyNetProlificRecruiterMixin.unsuccessful_base_payment``); recruiters
-  are otherwise only responsible for transferring the money.
+- Payment is split into decide / record / transfer. ``decide_payment``
+  returns a ``PaymentDecision`` (status, platform base, total owed, bonus)
+  from the participant's outcome and recruiter policy; ``record_payment``
+  writes those fields onto the participant; ``reward_bonus`` transfers
+  money. ``Experiment.on_recruiter_submission_complete`` owns this
+  sequence and does not call Dallinger's unused ``data_check`` /
+  ``attention_check`` hooks.
 """
 
 import hashlib
@@ -104,6 +106,20 @@ PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
 
 
+@dataclass(frozen=True)
+class PaymentDecision:
+    """How a participant should be paid for this exit, before money moves.
+
+    ``bonus`` is ``max(0, total_owed - platform_base)`` and has not yet been
+    clipped by experiment spend caps (``Experiment.check_bonus``).
+    """
+
+    status: str
+    platform_base: float
+    total_owed: float
+    bonus: float
+
+
 def latest_participant_for_assignment(assignment_id):
     """Return the most recent participant with this assignment id, or ``None``.
 
@@ -147,9 +163,9 @@ class PsyNetRecruiterMixin:
     def submit_assignment(self) -> TimelineLogic:
         # This calls dallinger.submitAssignment, submitting the assignment to
         # the recruiter. What happens next depends on the recruiter and (for
-        # Prolific) the completion code in the participant's exit URL: by
-        # default Dallinger approves the assignment, pays the base payment,
-        # and pays a bonus calculated from participant.bonus().
+        # Prolific) the completion code in the participant's exit URL.
+        # ``Experiment.on_recruiter_submission_complete`` then records the
+        # payment decision and transfers any bonus.
         from .page import ExecuteFrontEndJS
 
         _p = get_translator(context=True)
@@ -179,6 +195,47 @@ class PsyNetRecruiterMixin:
                 "to your timeline, or a custom subclass of psynet.consent.Consent, "
                 "or psynet.consent.NoConsent to skip this check entirely."
             )
+
+    def completion_status(self, participant) -> str:
+        """Return the payment-path status for this participant.
+
+        ``returned`` and ``screened_out`` are trusted once recorded. Otherwise
+        the default is ``approved`` (the platform pays the full study base).
+        """
+        if participant.status in ("returned", "screened_out"):
+            return participant.status
+        return "approved"
+
+    def platform_base_for(self, status: str, experiment) -> float:
+        """Base amount the recruitment platform pays for this payment status."""
+        if status == "approved":
+            return experiment.base_payment
+        if status in ("returned", "screened_out"):
+            return 0.0
+        raise ValueError(f"Unknown payment status {status!r}")
+
+    def total_owed(self, participant, status: str, platform_base: float) -> float:
+        """Total compensation PsyNet intends the participant to receive."""
+        return participant.calculate_reward()
+
+    def decide_payment(self, participant, *, experiment) -> PaymentDecision:
+        """Decide status, platform base, and bonus without writing or paying."""
+        status = self.completion_status(participant)
+        platform_base = self.platform_base_for(status, experiment)
+        total_owed = self.total_owed(participant, status, platform_base)
+        bonus = max(0.0, round(total_owed - platform_base, 2))
+        return PaymentDecision(
+            status=status,
+            platform_base=platform_base,
+            total_owed=total_owed,
+            bonus=bonus,
+        )
+
+    def record_payment(self, participant, decision: PaymentDecision) -> None:
+        """Write the payment decision onto the participant (no money transfer)."""
+        participant.status = decision.status
+        participant.base_pay = decision.platform_base
+        participant.base_payment = decision.platform_base
 
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
@@ -219,6 +276,42 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         automatically via a Prolific screen-out completion code.
         """
         return self.unsuccessful_base_payment is not None
+
+    def completion_status(self, participant) -> str:
+        """Return the payment-path status for this Prolific participant.
+
+        ``returned`` is trusted once the return-for-bonus flow has recorded it.
+        Failed participants are ``screened_out`` when screen-out payment is
+        enabled, even if their current status is still ``submitted`` or
+        (incorrectly) ``approved``.
+        """
+        if participant.status == "returned":
+            return "returned"
+        if participant.failed and self.pays_unsuccessful_participants_via_screen_out:
+            return "screened_out"
+        return super().completion_status(participant)
+
+    def platform_base_for(self, status: str, experiment) -> float:
+        """Base amount Prolific pays for this payment status."""
+        if status == "screened_out":
+            payment = self.unsuccessful_base_payment
+            if payment is None:
+                raise RuntimeError(
+                    "Cannot record a screened_out payment while "
+                    "`prolific_pay_unsuccessful` is disabled."
+                )
+            return payment
+        return super().platform_base_for(status, experiment)
+
+    def total_owed(self, participant, status: str, platform_base: float) -> float:
+        """Total compensation for this Prolific participant.
+
+        When screen-out top-up is disabled, time rewards are forfeited and
+        only the fixed screen-out amount plus any performance reward is owed.
+        """
+        if status == "screened_out" and not self.tops_up_unsuccessful_participants:
+            return round(platform_base + (participant.performance_reward or 0.0), 2)
+        return super().total_owed(participant, status, platform_base)
 
     @property
     def screen_out_slots(self):
@@ -305,13 +398,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         if should_fail:
             participant.fail("error_page")
 
-    def pays_participant_via_screen_out(self, participant) -> bool:
-        """Whether this participant will be paid via Prolific's fixed
-        screen-out reward (rather than the full base payment) because they
-        failed or errored and ``prolific_pay_unsuccessful`` is enabled.
-        """
-        return participant.failed and self.pays_unsuccessful_participants_via_screen_out
-
     def exit_code_type(self, participant):
         """Return the completion-code type for the participant's exit URL.
 
@@ -319,7 +405,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         Prolific's fixed screen-out payment. ``None`` selects the recruiter's
         default (auto-approving) code.
         """
-        if self.pays_participant_via_screen_out(participant):
+        if self.completion_status(participant) == "screened_out":
             return self.unsuccessful_code_type
         return None
 
@@ -331,28 +417,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         only performance rewards are paid on top of the fixed payment.
         """
         return bool(get_config().get("prolific_unsuccessful_topup", True))
-
-    def on_recruiter_submission_complete(self, participant):
-        """Correct recorded payment fields after a screen-out submission.
-
-        Dallinger's submission handler records the full study ``base_payment``
-        and, on an attention-check pass, sets ``status = "approved"``. For
-        participants paid via the screen-out completion code, Prolific actually
-        paid the fixed screen-out reward and screened them out, so we:
-
-        - Correct Dallinger's ``base_pay`` and PsyNet's ``base_payment`` (used
-          for spending accounting, e.g. ``Experiment.amount_spent``). When
-          bonus calculation ran, ``Experiment.bonus`` already applied the same
-          correction so ``check_bonus`` saw the right amounts; this covers
-          paths that return before ``bonus()`` (e.g. a failed data check).
-        - Relabel ``approved`` participants as ``screened_out`` so dashboards
-          and exports that key off ``status`` do not treat them as successes.
-        """
-        if self.pays_participant_via_screen_out(participant):
-            participant.base_pay = self.unsuccessful_base_payment
-            participant.base_payment = self.unsuccessful_base_payment
-            if participant.status == "approved":
-                participant.status = "screened_out"
 
     @staticmethod
     def check_screen_out_config(config):
@@ -479,8 +543,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             # ask them to return the submission and pay them via bonus.
             return self.request_return_for_bonus(participant)
         # Everyone else submits normally; the completion code chosen by
-        # exit_code_type determines approval vs. screen-out payment
-        # (see also Experiment.bonus).
+        # exit_code_type determines approval vs. screen-out payment.
         return self.submit_assignment()
 
     def open_recruitment(self, n: int = 1) -> dict:
@@ -696,18 +759,16 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     @staticmethod
     def reward_and_set_bonus(participant):
+        """Pay a returned participant from the same decision/record/pay path."""
         from psynet.experiment import get_experiment
 
         experiment = get_experiment()
-        recruiter = experiment.recruiter
-
-        bonus = participant.calculate_reward()
-        recruiter.reward_bonus(
+        decision = experiment.decide_and_record_payment(participant)
+        experiment.pay_decided_bonus(
             participant,
-            bonus,
-            "Partial payment for incomplete participation",
+            decision,
+            reason="Partial payment for incomplete participation",
         )
-        participant.bonus = bonus
 
     def check_for_returned_assignment(self, participant) -> bool:
         """Check if the participant has returned the assignment."""

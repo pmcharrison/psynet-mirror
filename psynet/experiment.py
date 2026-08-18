@@ -88,6 +88,7 @@ from .recruiters import (  # noqa: F401
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
+    PaymentDecision,
     PsyNetProlificRecruiterMixin,
     StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
@@ -2124,6 +2125,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         cls.check_base_payment(config)
         cls.check_stale_error_page_override()
+        cls.check_unused_dallinger_quality_checks()
         PsyNetProlificRecruiterMixin.check_screen_out_config(config)
 
         parser = configparser.ConfigParser()
@@ -2155,6 +2157,39 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "To customize the error page, override "
                 "`Experiment.error_page_content` instead, or override "
                 "`error_page_content` on a custom Prolific recruiter class."
+            )
+
+    _UNUSED_DALLINGER_QUALITY_CHECKS = (
+        "data_check",
+        "attention_check",
+        "data_check_failed",
+        "attention_check_failed",
+    )
+
+    @classmethod
+    def check_unused_dallinger_quality_checks(cls):
+        """Reject experiment overrides of unused Dallinger quality-check hooks.
+
+        PsyNet fails participants during the timeline (``fail()``,
+        ``UnsuccessfulEndPage``) and does not call Dallinger's
+        ``data_check`` / ``attention_check`` path, which would otherwise
+        set ``bad_data`` / ``did_not_attend``.
+        """
+        overridden = []
+        for klass in cls.__mro__:
+            if klass is Experiment:
+                break
+            for name in cls._UNUSED_DALLINGER_QUALITY_CHECKS:
+                if name in klass.__dict__ and name not in overridden:
+                    overridden.append(name)
+        if overridden:
+            names = ", ".join(f"`{name}`" for name in overridden)
+            raise RuntimeError(
+                "PsyNet no longer uses Dallinger's "
+                f"{names} hooks (they would set participant status to "
+                "`bad_data` or `did_not_attend`). Fail participants during "
+                "the timeline instead, for example with `fail()` or "
+                "`UnsuccessfulEndPage`."
             )
 
     @classmethod
@@ -2312,11 +2347,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         super().assignment_reassigned(participant)
 
     def bonus(self, participant: Participant) -> float:
-        """Calculate the bonus the participant gets when completing the experiment.
+        """Return the bonus implied by the recruiter's payment decision.
 
-        The bonus makes up the difference between the total reward owed to
-        the participant and the base payment the recruitment platform has
-        already paid them, and is never negative.
+        This does not write participant fields or transfer money. The
+        submission-complete path records the decision first, then clips
+        this amount with :meth:`check_bonus` before paying.
 
         Parameters
         ----------
@@ -2326,37 +2361,50 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Returns
         -------
         float
-            The calculated bonus, rounded to 2 decimal places.
+            The decided bonus, rounded to 2 decimal places.
         """
-        total_owed = participant.calculate_reward()
-        base_already_paid = self.base_payment
+        decision = participant.recruiter.decide_payment(participant, experiment=self)
+        return decision.bonus
 
+    def decide_and_record_payment(self, participant) -> PaymentDecision:
+        """Decide how the participant should be paid and write it to the ledger."""
         recruiter = participant.recruiter
-        pays_via_screen_out = getattr(
-            recruiter, "pays_participant_via_screen_out", None
-        )
-        if pays_via_screen_out is not None and pays_via_screen_out(participant):
-            # The platform already paid the fixed screen-out reward instead of
-            # the full base payment. Checked before the screened_out/returned
-            # branch so re-entering bonus() after we relabel the participant
-            # as screened_out still uses the screen-out amount (not zero).
-            base_already_paid = recruiter.unsuccessful_base_payment
-            # Dallinger's on_recruiter_submission_complete records the full
-            # study base_payment before calling bonus()/check_bonus(); correct
-            # it here so amount_paid() and amount_spent() see the true base.
-            participant.base_pay = base_already_paid
-            participant.base_payment = base_already_paid
-            if not recruiter.tops_up_unsuccessful_participants:
-                # Time rewards are forfeited, but performance rewards
-                # are always paid.
-                total_owed = base_already_paid + (participant.performance_reward or 0.0)
-        elif participant.status in ("screened_out", "returned"):
-            # Return-for-bonus flow: the platform pays no base payment, so
-            # the accumulated reward is paid entirely as a bonus.
-            base_already_paid = 0.0
+        decision = recruiter.decide_payment(participant, experiment=self)
+        recruiter.record_payment(participant, decision)
+        return decision
 
-        bonus = max(0.0, total_owed - base_already_paid)
-        return round(self.check_bonus(bonus, participant), 2)
+    def pay_decided_bonus(self, participant, decision, *, reason=None):
+        """Transfer ``decision.bonus`` after spend-cap checks, then record it.
+
+        Does not pay if a bonus was already recorded or the clipped amount is
+        below one cent.
+        """
+        bonus = round(self.check_bonus(decision.bonus, participant), 2)
+        min_real_bonus = 0.01
+        if participant.bonus is not None:
+            logger.info(
+                "Bonus of %s will NOT be paid, since participant %s "
+                "has already received a bonus of %s",
+                bonus,
+                participant.id,
+                participant.bonus,
+            )
+            return
+        if bonus < min_real_bonus:
+            logger.info(
+                "Bonus of %s will NOT be paid to participant %s as it is less than %s.",
+                bonus,
+                participant.id,
+                min_real_bonus,
+            )
+            return
+        logger.info("Paying bonus of %s to %s", bonus, participant.id)
+        participant.recruiter.reward_bonus(
+            participant,
+            bonus,
+            self.bonus_reason() if reason is None else reason,
+        )
+        participant.bonus = bonus
 
     def recruiter_exit_info(self, participant):
         """Ask the recruiter which completion-code type to use for this
@@ -2369,12 +2417,33 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return exit_code_type(participant)
 
     def on_recruiter_submission_complete(self, participant, event):
-        super().on_recruiter_submission_complete(participant, event)
-        recruiter_hook = getattr(
-            participant.recruiter, "on_recruiter_submission_complete", None
-        )
-        if recruiter_hook is not None:
-            recruiter_hook(participant)
+        """Record payment fields, approve, pay the bonus, and recruit.
+
+        PsyNet owns this handler rather than calling Dallinger's
+        implementation: it decides payment status before computing the
+        bonus, and it does not run Dallinger's unused ``data_check`` /
+        ``attention_check`` hooks.
+        """
+        if participant.status != "submitted":
+            logger.warning(
+                "Called with unexpected participant status! "
+                "participant ID: %s, status: %s, recruiter: %s",
+                participant.id,
+                participant.status,
+                participant.recruiter.nickname,
+            )
+            return
+
+        if participant.end_time is None:
+            timestamp = None if event is None else event.get("timestamp")
+            if timestamp is not None:
+                participant.end_time = timestamp
+
+        decision = self.decide_and_record_payment(participant)
+        participant.recruiter.approve_hit(participant.assignment_id)
+        self.pay_decided_bonus(participant, decision)
+        self.submission_successful(participant=participant)
+        self.recruit()
 
     def check_bonus(self, reward, participant):
         """
@@ -2383,7 +2452,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
 
         :param reward: float
-            The reward calculated in :func:`~psynet.experiment.Experiment.bonus()`.
+            The bonus decided for the participant, before spend-cap clipping.
         :type participant:
             :attr: `~psynet.participant.Participant`
         :returns:
