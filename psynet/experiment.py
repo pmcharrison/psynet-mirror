@@ -2157,17 +2157,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Please choose just one location."
                 )
 
-    def check_recruiter_config(self, mode):
-        """Run the recruiter's own config validation before a real launch.
-
-        Dallinger runs ``validate_config`` too, but only once the Docker image
-        has been built and pushed, so running it here fails fast. Debug is
-        exempt because Dallinger never validates that mode.
-        """
-        if mode == "debug":
-            return
-        self.recruiter.validate_config(mode=mode)
-
     @classmethod
     def check_base_payment(cls, config):
         if config.get("base_payment") > cls.max_allowed_base_payment:
