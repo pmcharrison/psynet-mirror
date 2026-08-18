@@ -832,9 +832,11 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
         Failures are isolated per trial (same idea as network growth): one
         bad ``on_finalized`` must not leave the whole candidate set retrying
-        forever. ``handle_error`` rolls back the current session, so earlier
-        successes in the same batch are undone and retried on the next poll;
-        the failing trial is marked failed so it is not selected again.
+        forever. ``handle_error`` rolls back the current session, so
+        uncommitted successes since the last commit are undone and retried
+        on the next poll. The failing trial is marked failed and committed
+        immediately so a later ``handle_error`` in the same batch cannot
+        undo that fail.
         """
         from psynet.experiment import get_experiment
 
@@ -857,12 +859,15 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             except Exception as err:
                 if not isinstance(err, exp.HandledError):
                     exp.handle_error(err, trial=trial)
-                # Rollback undid earlier successes in this batch; they will be
-                # picked up again on the next poll.
+                # Rollback undid uncommitted successes since the last commit;
+                # they will be picked up again on the next poll.
                 finalized_count = 0
                 failed_trial = db.session.get(cls, trial_id)
                 if failed_trial is not None and not failed_trial.failed:
                     failed_trial.fail(reason="finalize_backstop_error")
+                    # Persist before the next handle_error can roll this back
+                    # (same mid-batch commit pattern as ErrorRecord logging).
+                    db.session.commit()
 
         if finalized_count:
             logger.info(

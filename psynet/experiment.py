@@ -108,7 +108,7 @@ from .timeline import (
 from .translation.check import check_translations
 from .translation.translate import create_pot
 from .translation.utils import compile_mo, load_po
-from .trial.main import Trial, TrialMaker
+from .trial.main import Trial, TrialMaker, TrialNetwork
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
@@ -1619,7 +1619,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
-            for network in networks:
+            for network_id in [network.id for network in networks]:
+                network = db.session.get(TrialNetwork, network_id)
+                if network is None:
+                    continue
                 try:
                     network.trial_maker.call_grow_network(
                         network, check_readiness=False
@@ -1630,11 +1633,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                             err,
                             network=network,
                         )
-                    if network.head.degree > 0:
+                    # Re-fetch after handle_error rollback; commit the fail so a
+                    # later error in this batch cannot undo it.
+                    network = db.session.get(TrialNetwork, network_id)
+                    if network is None:
+                        continue
+                    if network.head is not None and network.head.degree > 0:
                         network.head.fail()
-                    elif network.head.degree == 0:
+                    elif network.head is not None and network.head.degree == 0:
                         for trial in network.head.all_trials:
                             trial.fail()
+                    db.session.commit()
 
             logger.info("Finished growing networks.")
 

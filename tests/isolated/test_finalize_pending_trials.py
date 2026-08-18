@@ -181,9 +181,63 @@ def test_finalize_pending_trials_isolates_per_trial_errors(
     db.session.refresh(bad_trial)
     assert bad_trial.failed is True
     assert "finalize_backstop_error" in (bad_trial.failed_reason or "")
-    # handle_error rolls back the batch, so the good trial is retried next poll.
+    # handle_error rolls back uncommitted successes, so the good trial is
+    # retried next poll.
     assert good_trial.finalized is False
     assert Trial.finalize_pending_trials() == 1
     db.session.commit()
     db.session.refresh(good_trial)
     assert good_trial.finalized is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_finalize_pending_trials_commits_each_failed_trial(
+    db_session, participant, monkeypatch
+):
+    """Two bad trials in one poll must both stay failed (not O(k) retries)."""
+    monkeypatch.setattr(
+        type(get_experiment()),
+        "log_to_notifier",
+        classmethod(lambda cls, *args, **kwargs: None),
+    )
+
+    exp = get_experiment()
+    trial_maker = _chain_trial_maker()
+    first_network = _create_network(trial_maker, exp)
+    second_network = _create_network(trial_maker, exp)
+
+    first_bad = ExplodingFinalizeTrial(
+        experiment=exp,
+        node=first_network.head,
+        participant=participant,
+        propagate_failure=False,
+        is_repeat_trial=False,
+    )
+    first_bad.answer = 1
+    first_bad.complete = True
+    first_bad.finalized = False
+    second_bad = ExplodingFinalizeTrial(
+        experiment=exp,
+        node=second_network.head,
+        participant=participant,
+        propagate_failure=False,
+        is_repeat_trial=False,
+    )
+    second_bad.answer = 1
+    second_bad.complete = True
+    second_bad.finalized = False
+    db.session.add_all([first_bad, second_bad])
+    db.session.commit()
+
+    Trial.finalize_pending_trials()
+    db.session.commit()
+
+    db.session.refresh(first_bad)
+    db.session.refresh(second_bad)
+    assert first_bad.failed is True
+    assert second_bad.failed is True
+    assert Trial.get_trials_ready_to_finalize() == []
+    assert Trial.finalize_pending_trials() == 0
