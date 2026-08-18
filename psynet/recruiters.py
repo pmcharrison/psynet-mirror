@@ -21,12 +21,13 @@ Key design constraints for maintainers:
   return their submission for a bonus (the legacy fallback when
   ``prolific_pay_unsuccessful = false``).
 - Payment is split into decide / record / transfer. ``decide_payment``
-  returns a ``PaymentDecision`` (status, platform base, total owed, bonus)
+  returns a ``PaymentDecision`` (status, platform base, bonus)
   from the participant's outcome and recruiter policy; ``record_payment``
   writes those fields onto the participant; ``reward_bonus`` transfers
-  money. ``Experiment.on_recruiter_submission_complete`` owns this
-  sequence and does not call Dallinger's unused ``data_check`` /
-  ``attention_check`` hooks.
+  money and returns ``False`` if the platform rejected the transfer.
+  ``Experiment.on_recruiter_submission_complete`` owns this sequence,
+  keyed off ``participant.payment_settled`` rather than status, and does
+  not call Dallinger's unused ``data_check`` / ``attention_check`` hooks.
 """
 
 import hashlib
@@ -55,6 +56,7 @@ from dallinger.recruiters import (
     RecruitmentStatus,
     RedisStore,
     alphanumeric_code,
+    handle_recruitment_error,
 )
 from dallinger.utils import get_base_url
 from dominate import tags
@@ -116,7 +118,6 @@ class PaymentDecision:
 
     status: str
     platform_base: float
-    total_owed: float
     bonus: float
 
 
@@ -227,7 +228,6 @@ class PsyNetRecruiterMixin:
         return PaymentDecision(
             status=status,
             platform_base=platform_base,
-            total_owed=total_owed,
             bonus=bonus,
         )
 
@@ -587,6 +587,19 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 return True
         return super().approve_hit(assignment_id)
 
+    def reward_bonus(self, participant, amount, reason):
+        """Pay a Prolific bonus. Return False if Prolific rejected the transfer."""
+        try:
+            self.prolificservice.pay_session_bonus(
+                study_id=self.current_study_id,
+                worker_id=participant.worker_id,
+                amount=amount,
+            )
+        except ProlificServiceException as ex:
+            handle_recruitment_error(ex)
+            return False
+        return True
+
     def request_return_for_bonus(self, participant) -> TimelineLogic:
         """Ask the participant to return their Prolific submission and pay
         them via bonus (or, if returns are disabled, ask them to message the
@@ -865,7 +878,16 @@ class MockProlificRecruiter(
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
-    pass
+    def reward_bonus(self, participant, amount, reason):
+        """Pay an MTurk bonus. Return False if MTurk rejected the transfer."""
+        from dallinger.mturk import MTurkServiceException
+
+        try:
+            self.mturkservice.grant_bonus(participant.assignment_id, amount, reason)
+        except MTurkServiceException as ex:
+            handle_recruitment_error(ex)
+            return False
+        return True
 
 
 # Lab Recruiter

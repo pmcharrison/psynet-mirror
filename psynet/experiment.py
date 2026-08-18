@@ -342,7 +342,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
         Bonuses are not paid from the point this value is reached and a record of the amount
-        of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
+        of unpaid bonus is kept in the participant's `unpaid_bonus` field. Default: `1100.0`.
 
     big_base_payment : `bool`
         Set this to `True` if you REALLY want to set `base_payment` to a value > 20.
@@ -2276,7 +2276,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             This is an automated email from PsyNet. You are receiving this email because
             the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
             Working participants' bonuses will not be paid out. Instead, the amount of unpaid
-            bonus is saved in the participant's `unpaid_bonus` variable.
+            bonus is saved in the participant's `unpaid_bonus` field.
 
             The application id is: {app_id}
 
@@ -2366,6 +2366,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
         super().assignment_reassigned(participant)
 
+    def bonus(self, participant):
+        raise NotImplementedError(
+            "Experiment.bonus is no longer used. Payment amounts are decided "
+            "by the recruiter's decide_payment method."
+        )
+
     def decide_and_record_payment(self, participant) -> PaymentDecision:
         """Decide how the participant should be paid and write it to the ledger."""
         recruiter = participant.recruiter
@@ -2383,12 +2389,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         room under that cap.
 
         Soft experiment spend limits are enforced when recruiting
-        (``need_more_participants``), not here.
+        (``need_more_participants``), not here. Working participants' bases
+        are already included in ``amount_spent()``.
         """
         if bonus <= 0:
             return 0.0
 
-        projected_spend = self.amount_spent() + self.outstanding_base_payments() + bonus
+        projected_spend = self.amount_spent() + bonus
         if projected_spend > self.var.hard_max_experiment_payment:
             participant.unpaid_bonus = bonus
             self.ensure_hard_max_experiment_payment_email_sent()
@@ -2409,23 +2416,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return reduced
         return bonus
 
-    def pay_decided_bonus(self, participant, decision, *, reason=None):
+    def _mark_payment_settled(self, participant) -> None:
+        participant.payment_settled = True
+
+    def pay_decided_bonus(self, participant, decision, *, reason=None) -> bool:
         """Transfer ``decision.bonus`` after spend-cap checks, then record it.
 
-        Does not pay if a bonus was already recorded or the clipped amount is
-        below one cent.
+        Returns True if payout for this participant is finished (paid,
+        withheld, skipped as too small, or already settled). Returns False
+        if the platform rejected the transfer; ``payment_settled`` stays
+        False so a retry can pay later.
+
+        Does not re-apply caps or send emails when already settled.
         """
-        bonus = round(self.apply_payment_caps(participant, decision.bonus), 2)
-        min_real_bonus = 0.01
-        if participant.bonus is not None:
+        if participant.payment_settled or participant.bonus is not None:
             logger.info(
-                "Bonus of %s will NOT be paid, since participant %s "
-                "has already received a bonus of %s",
-                bonus,
+                "Bonus will NOT be paid, since participant %s has already "
+                "had payment settled (bonus=%s).",
                 participant.id,
                 participant.bonus,
             )
-            return
+            participant.payment_settled = True
+            return True
+        if (participant.unpaid_bonus or 0.0) > 0:
+            logger.info(
+                "Bonus will NOT be paid, since participant %s already has "
+                "an unpaid_bonus of %s.",
+                participant.id,
+                participant.unpaid_bonus,
+            )
+            self._mark_payment_settled(participant)
+            return True
+
+        bonus = round(self.apply_payment_caps(participant, decision.bonus), 2)
+        min_real_bonus = 0.01
         if bonus < min_real_bonus:
             logger.info(
                 "Bonus of %s will NOT be paid to participant %s as it is less than %s.",
@@ -2433,14 +2457,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.id,
                 min_real_bonus,
             )
-            return
+            self._mark_payment_settled(participant)
+            return True
+
         logger.info("Paying bonus of %s to %s", bonus, participant.id)
-        participant.recruiter.reward_bonus(
+        transferred = participant.recruiter.reward_bonus(
             participant,
             bonus,
             self.bonus_reason() if reason is None else reason,
         )
+        if transferred is False:
+            logger.error(
+                "Bonus transfer failed for participant %s; leaving "
+                "payment unsettled so it can be retried.",
+                participant.id,
+            )
+            return False
+
         participant.bonus = bonus
+        self._mark_payment_settled(participant)
+        return True
 
     def recruiter_exit_info(self, participant):
         """Ask the recruiter which completion-code type to use for this
@@ -2456,11 +2492,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Record payment fields, approve, pay the bonus, and recruit.
 
         PsyNet owns this handler rather than calling Dallinger's
-        implementation: it decides payment status before computing the
-        bonus, and it does not run Dallinger's unused ``data_check`` /
-        ``attention_check`` hooks.
+        implementation. Payout is keyed off ``participant.payment_settled``
+        so a retry can finish paying after status has already been recorded.
+        Dallinger's unused ``data_check`` / ``attention_check`` hooks are
+        not run.
         """
-        if participant.status != "submitted":
+        if participant.payment_settled:
+            logger.info(
+                "Skipping submission-complete for participant %s: payment "
+                "is already settled.",
+                participant.id,
+            )
+            return
+        if participant.status not in (
+            "submitted",
+            "approved",
+            "screened_out",
+            "returned",
+        ):
             logger.warning(
                 "Called with unexpected participant status! "
                 "participant ID: %s, status: %s, recruiter: %s",
@@ -2477,7 +2526,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         decision = self.decide_and_record_payment(participant)
         participant.recruiter.approve_hit(participant.assignment_id)
-        self.pay_decided_bonus(participant, decision)
+        if not self.pay_decided_bonus(participant, decision):
+            return
         self.submission_successful(participant=participant)
         self.recruit()
 
