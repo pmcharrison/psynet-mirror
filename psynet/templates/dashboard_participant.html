@@ -3,14 +3,38 @@
 {% block stylesheets %}
     <style>
         #dashboard-participant {
-            margin-top: 20px
+            margin-top: 20px;
         }
-        #resume-table {
+        /* Flex items default to min-width:auto, which lets wide tables overflow
+           and sit on top of the neighbouring column on small screens. */
+        #dashboard-participant > [class*="col-"] {
+            min-width: 0;
+        }
+        #lookup-table,
+        #participant-detail-table {
             border-collapse: collapse;
             border: none;
         }
+        #participant-detail-table td {
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        @media (max-width: 991.98px) {
+            #participant-detail {
+                margin-bottom: 1.5rem;
+                padding-bottom: 1rem;
+                border-bottom: 1px solid #dee2e6;
+            }
+        }
         #btn-copy-url {
-            margin-left: 20px
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+        @media (min-width: 992px) {
+            #btn-copy-url {
+                margin-top: 0;
+                margin-left: 20px;
+            }
         }
         colgroup col.title {
           font-weight: bold;
@@ -70,7 +94,7 @@
                         <tr>
                             <th>Participant ID</th>
                             <th>Worker ID</th>
-                            <th>Assignment ID</th>
+                            <th class="d-none d-md-table-cell">Assignment ID</th>
                             <th>Status</th>
                             <th>Unpaid bonus</th>
                         </tr>
@@ -82,7 +106,7 @@
                                     <a href="{{ url_for('dashboard.dashboard_participants', participant_id=review_participant.id) }}">{{ review_participant.id }}</a>
                                 </td>
                                 <td>{{ review_participant.worker_id }}</td>
-                                <td>{{ review_participant.assignment_id }}</td>
+                                <td class="d-none d-md-table-cell">{{ review_participant.assignment_id }}</td>
                                 <td>{{ review_participant.status }}</td>
                                 <td>{{ currency }}{{ "%.2f"|format(review_participant.unpaid_bonus or 0) }}</td>
                             </tr>
@@ -96,36 +120,54 @@
     {% endif %}
 
     <div class="row" id="dashboard-participant">
-        <div class="col-5">
-            <table class="table" id="resume-table">
-                <colgroup>
-                    <col class="title"></col>
-                    <col></col>
-                </colgroup>
-
-                <tr>
-                    <td>Participant ID</td>
-                    <td><input id="input-participant-id" class="form-control response" type="text" value=""/></td>
-                    <td><button type="button" class="btn btn-primary" onclick="selectParticipantByParticipantId()">Go</button></td>
-                </tr>
-                <tr>
-                    <td>Assignment ID</td>
-                    <td><input id="input-assignment-id" class="form-control response" type="text" value=""/></td>
-                    <td><button type="button" class="btn btn-primary" onclick="selectParticipantByAssignmentId()">Go</button></td>
-                </tr>
-                <tr>
-                    <td>Worker ID</td>
-                    <td><input id="input-worker-id" class="form-control response" type="text" value=""/></td>
-                    <td><button type="button" class="btn btn-primary" onclick="selectParticipantByWorkerId()">Go</button></td>
-                </tr>
-            </table>
-        </div>
-        <div class="col-7">
-            {{ message }}
-
-            {% if participant is not none %}
+        {% if participant is not none %}
+            <div class="col-12 col-lg-7 order-1 order-lg-2" id="participant-detail">
                 {{ summarize_participant(participant) }}
-            {% endif %}
+            </div>
+        {% endif %}
+        <div class="col-12 {% if participant is not none %}col-lg-5 order-2 order-lg-1{% else %}col-lg-5{% endif %}" id="participant-lookup">
+            {{ message }}
+            <div class="table-responsive">
+                <table class="table" id="lookup-table">
+                    <colgroup>
+                        <col class="title"></col>
+                        <col></col>
+                    </colgroup>
+                    <tr>
+                        <th scope="row">Participant ID</th>
+                        <td>
+                            <div class="input-group">
+                                <input id="input-participant-id" class="form-control response" type="text" value=""/>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-primary" onclick="selectParticipantByParticipantId()">Go</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Assignment ID</th>
+                        <td>
+                            <div class="input-group">
+                                <input id="input-assignment-id" class="form-control response" type="text" value=""/>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-primary" onclick="selectParticipantByAssignmentId()">Go</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Worker ID</th>
+                        <td>
+                            <div class="input-group">
+                                <input id="input-worker-id" class="form-control response" type="text" value=""/>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-primary" onclick="selectParticipantByWorkerId()">Go</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -138,7 +180,8 @@
             then pay <strong>{{ participant.unpaid_bonus }}</strong> manually if needed.
         </div>
     {% endif %}
-    <table class="table" id="resume-table">
+    <div class="table-responsive">
+    <table class="table" id="participant-detail-table">
         <tr>
             <td>Participant ID</td>
             <td>{{ participant.id }}</td>
@@ -203,6 +246,7 @@
             </td>
         </tr>
     </table>
+    </div>
 {% endmacro %}
 
 {% macro get_timeline_url(p) %}{{ app_base_url }}/timeline?unique_id={{ p.unique_id }}{% endmacro %}
