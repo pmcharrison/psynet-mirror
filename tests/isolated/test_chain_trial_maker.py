@@ -4,6 +4,7 @@ import pytest
 
 from psynet.trial.chain import ChainNode, ChainTrial, ChainTrialMaker
 from psynet.trial.dense import DenseTrialMaker
+from psynet.trial.main import NetworkTrialMaker, TrialMaker
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 
@@ -37,6 +38,8 @@ def test_failure_policy_constructor_defaults():
     chain = inspect.signature(ChainTrialMaker.__init__).parameters
     static = inspect.signature(StaticTrialMaker.__init__).parameters
     dense = inspect.signature(DenseTrialMaker.__init__).parameters
+    base = inspect.signature(TrialMaker.__init__).parameters
+    network = inspect.signature(NetworkTrialMaker.__init__).parameters
 
     assert chain["fail_trials_on_premature_exit"].default is False
     assert chain["fail_trials_on_participant_performance_check"].default is False
@@ -44,6 +47,8 @@ def test_failure_policy_constructor_defaults():
     assert static["fail_trials_on_participant_performance_check"].default is True
     assert dense["fail_trials_on_premature_exit"].default is False
     assert dense["fail_trials_on_participant_performance_check"].default is True
+    assert base["fail_trials_on_premature_exit"].default is False
+    assert network["fail_trials_on_premature_exit"].default is False
 
     trial_maker = make_trial_maker()
     assert not trial_maker.fail_trials_on_participant_performance_check

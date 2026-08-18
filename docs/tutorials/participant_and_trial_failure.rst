@@ -163,6 +163,12 @@ participant or their nodes. Use :meth:`~psynet.trial.main.TrialMaker.performance
 during the timeline, or call :meth:`~psynet.participant.Participant.fail`
 if you need to fail someone after they have finished.
 
+Do not override :meth:`~psynet.experiment.Experiment.fail_participant`.
+That Dallinger hook is a thin wrapper around
+:meth:`~psynet.participant.Participant.fail`, and PsyNet rejects subclasses
+that replace it. Register a :class:`~psynet.timeline.ParticipantFailRoutine`
+if you need extra work when a participant is failed.
+
 The default performance-check policies are:
 
 .. list-table::

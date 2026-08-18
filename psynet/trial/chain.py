@@ -1197,6 +1197,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         towards this quota. This target is only relevant if
         ``recruit_mode="n_participants"``.
 
+    fail_trials_on_premature_exit
+        See :class:`~psynet.trial.main.TrialMaker`.
+
     fail_trials_on_participant_performance_check
         See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``False``
         because failing completed trials can invalidate large amounts of

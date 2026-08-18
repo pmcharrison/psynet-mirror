@@ -171,6 +171,9 @@ class StaticTrialMaker(ChainTrialMaker):
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
 
+    fail_trials_on_premature_exit
+        See :class:`~psynet.trial.main.TrialMaker`.
+
     fail_trials_on_participant_performance_check
         See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``True``.
 

@@ -733,26 +733,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def fail(self, reason=None):
         """
-        Mark this participant as failed and take them off the main timeline.
+        Mark this participant as failed.
 
-        Incomplete trials (``complete=False``) are failed here, including
-        trials with no timeline TrialMaker such as :meth:`~psynet.trial.main.Trial.cue`
-        and the trial currently on screen. Completed trials stay unless a
-        TrialMaker performance-check policy says those responses are unusable.
+        Incomplete trials are failed here. Completed trials stay unless a
+        TrialMaker performance-check policy treats them as unusable. A
+        completed participant can still be failed; they are not redirected
+        off the successful-end page. Already-failed calls are a no-op.
 
-        A participant who has already completed can still be failed. In that
-        case they are not redirected off the successful-end page. Recruiter
-        premature-exit events remain a no-op for successful completions; that
-        guard lives on the recruiter handler, not here.
-
-        If the participant is still on the main timeline, they are redirected
-        to the ``unsuccessful_end`` branch. If ``fail()`` is called during page
-        advance the redirect is immediate; otherwise it is queued as
-        ``pending_redirect`` until the next submit. That queued redirect is
-        navigation only: it does not keep the live trial valid or cause
-        ``_finalize_trial`` to run.
-
-        If the participant is already failed, this is a no-op. See
+        If they are still on the main timeline, they are redirected to
+        ``unsuccessful_end``. See
         :doc:`/tutorials/participant_and_trial_failure`.
 
         Parameters
@@ -814,6 +803,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         trials = (
             Trial.query.filter_by(participant_id=self.id, failed=False)
             .filter(Trial.complete.is_not(True))
+            .order_by(Trial.id)
             .with_for_update(of=Trial)
             .populate_existing()
             .all()

@@ -161,6 +161,31 @@ def json_serial(obj):
     raise TypeError("Type not serializable")
 
 
+def _reject_overridden_fail_participant(cls):
+    """Reject PsyNet Experiment subclasses that replace fail_participant."""
+    if cls.__name__ == "Experiment" and cls.__module__ == "psynet.experiment":
+        return
+
+    psy_experiment = None
+    for base in cls.__mro__:
+        if (
+            base.__name__ == "Experiment"
+            and getattr(base, "__module__", "") == "psynet.experiment"
+        ):
+            psy_experiment = base
+            break
+    if (
+        psy_experiment is not None
+        and cls.fail_participant is not psy_experiment.fail_participant
+    ):
+        raise RuntimeError(
+            "Do not override Experiment.fail_participant. "
+            "That Dallinger hook is not part of PsyNet's failure contract "
+            "and used to fail owned nodes. Call Participant.fail() "
+            "or register a ParticipantFailRoutine instead."
+        )
+
+
 class ExperimentMeta(type):
     def __init__(cls, name, bases, dct):
         cls.assets = AssetRegistry(storage=cls.asset_storage)
@@ -204,6 +229,8 @@ def __init__(self, session=None):
     self.initial_recruitment_size = 1
             """
             )
+
+        _reject_overridden_fail_participant(cls)
 
 
 @register_table
@@ -2331,10 +2358,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_participant(self, participant):
         """Fail a participant using PsyNet's participant-failure contract.
 
-        This calls :meth:`~psynet.participant.Participant.fail` and does not
-        fail owned nodes. Recruiter premature-exit handling stays on
-        :meth:`_handle_premature_exit` so a successful completion is not failed
-        by a later return webhook.
+        This Dallinger compatibility shim calls
+        :meth:`~psynet.participant.Participant.fail` and does not fail owned
+        nodes. Do not override it; PsyNet rejects subclasses that do.
+        Recruiter premature-exit handling stays on
+        :meth:`_handle_premature_exit`.
         """
         participant.fail()
 

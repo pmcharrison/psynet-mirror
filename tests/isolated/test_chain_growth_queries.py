@@ -257,6 +257,37 @@ def test_incomplete_trial_does_not_fail_child_node(db_session, participant):
     assert not network.failed
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_finalized_trial_fails_child_node(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker()
+    network = create_chain_network(trial_maker, exp)
+    parent = network.head
+    finalized = add_trial(
+        GrowthQueryTrial,
+        parent,
+        participant,
+        finalized=True,
+        propagate_failure=True,
+    )
+    db.session.commit()
+
+    assert trial_maker.grow_network(network, exp) is True
+    child = network.head
+    assert child.id != parent.id
+
+    finalized.fail(reason="performance_check")
+    db.session.commit()
+
+    assert finalized.failed
+    assert child.failed
+    assert not parent.failed
+    assert not network.failed
+
+
 def graph_trial_maker():
     return make_graph_trial_maker(
         {

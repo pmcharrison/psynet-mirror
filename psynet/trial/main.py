@@ -3,9 +3,7 @@
 import datetime
 import random
 import warnings
-from inspect import stack as call_stack
 from math import isnan
-from pathlib import Path
 from typing import List, Optional, Union
 
 import dallinger.experiment
@@ -77,23 +75,12 @@ logger = get_logger()
 
 
 def _warn_ignored_fail_trials_on_premature_exit(trial_maker_id):
-    """Warn at the first frame outside the ``psynet`` package."""
-    package_root = Path(__file__).resolve().parent.parent
-    stacklevel = 1
-    for frame in call_stack(0)[1:]:
-        stacklevel += 1
-        try:
-            frame_path = Path(frame.filename).resolve()
-        except OSError:
-            continue
-        if package_root not in frame_path.parents:
-            break
     warnings.warn(
         f"fail_trials_on_premature_exit is ignored in trial maker {trial_maker_id!r}. "
         "Premature exit no longer fails completed trials; incomplete "
         "trials are always failed when the participant exits or fails.",
         DeprecationWarning,
-        stacklevel=stacklevel,
+        stacklevel=2,
     )
 
 
@@ -1279,13 +1266,13 @@ class TrialMaker(Module):
         expected_trials_per_participant: Union[int, float],
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
-        fail_trials_on_premature_exit: bool,
         fail_trials_on_participant_performance_check: bool,
         propagate_failure: bool,
         recruit_mode: str,
         target_n_participants: Optional[int],
         n_repeat_trials: int,
         assets: List,
+        fail_trials_on_premature_exit: bool = False,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
     ):
@@ -1507,7 +1494,7 @@ class TrialMaker(Module):
             return
         if not self.fail_trials_on_participant_performance_check:
             return
-        reason = ", ".join(participant.failure_tags) or None
+        reason = ", ".join(participant.failure_tags)
         self.fail_participant_trials(participant, reason=reason)
 
     @property
@@ -1679,6 +1666,7 @@ class TrialMaker(Module):
         trials_to_fail = (
             self.trial_class.query.filter_by(complete=False, failed=False)
             .filter(self.trial_class.creation_time < time_threshold)
+            .order_by(self.trial_class.id)
             .with_for_update(of=self.trial_class)
             .populate_existing()
             .all()
@@ -1835,10 +1823,11 @@ class TrialMaker(Module):
         """
         trials_to_fail = (
             Trial.query.filter_by(participant_id=participant.id, failed=False)
-            .with_for_update(of=Trial)
-            .populate_existing()
             .join(TrialNetwork)
             .filter_by(trial_maker_id=self.id)
+            .order_by(Trial.id)
+            .with_for_update(of=Trial)
+            .populate_existing()
         )
         for trial in trials_to_fail:
             trial.fail(reason=reason)
@@ -2201,6 +2190,9 @@ class NetworkTrialMaker(TrialMaker):
         If ``True``, the participant's performance
         is evaluated after each trial.
 
+    fail_trials_on_premature_exit
+        See :class:`~psynet.trial.main.TrialMaker`.
+
     fail_trials_on_participant_performance_check
         See :class:`~psynet.trial.main.TrialMaker`.
 
@@ -2296,7 +2288,6 @@ class NetworkTrialMaker(TrialMaker):
         expected_trials_per_participant,
         check_performance_at_end,
         check_performance_every_trial,
-        fail_trials_on_premature_exit,
         fail_trials_on_participant_performance_check,
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
@@ -2304,6 +2295,7 @@ class NetworkTrialMaker(TrialMaker):
         target_n_participants,
         n_repeat_trials: int,
         wait_for_networks: bool,
+        fail_trials_on_premature_exit: bool = False,
         assets=None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
