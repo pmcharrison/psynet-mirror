@@ -277,6 +277,6 @@ def test_scaffolded_debug_source_prepares_from_policy(tmp_path):
     assert source.deployment_plan is not None
     source.apply_development_to(staging_root)
     assert (staging_root / "experiment.py").is_file()
-    assert not (staging_root / "deploy.toml").exists()
+    assert (staging_root / "deploy.toml").is_file()
     assert "experiment.py" in source.deployment_plan.destinations
-    assert "deploy.toml" not in source.deployment_plan.destinations
+    assert "deploy.toml" in source.deployment_plan.destinations
