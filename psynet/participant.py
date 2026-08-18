@@ -731,7 +731,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
 
-    def fail(self, reason=None, *, even_if_complete=False):
+    def fail(self, reason=None):
         """
         Mark this participant as failed and take them off the main timeline.
 
@@ -740,33 +740,28 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         and the trial currently on screen. Completed trials stay unless a
         TrialMaker performance-check policy says those responses are unusable.
 
-        The participant is then redirected to the timeline's
-        ``unsuccessful_end`` branch. If ``fail()`` is called during page
+        A participant who has already completed can still be failed. In that
+        case they are not redirected off the successful-end page. Recruiter
+        premature-exit events remain a no-op for successful completions; that
+        guard lives on the recruiter handler, not here.
+
+        If the participant is still on the main timeline, they are redirected
+        to the ``unsuccessful_end`` branch. If ``fail()`` is called during page
         advance the redirect is immediate; otherwise it is queued as
         ``pending_redirect`` until the next submit. That queued redirect is
         navigation only: it does not keep the live trial valid or cause
         ``_finalize_trial`` to run.
 
-        If the participant is already failed, this is a no-op. If they have
-        already completed the experiment, this is a no-op unless
-        ``even_if_complete`` is true (used by Dallinger data/attention checks
-        that run after submission). See
+        If the participant is already failed, this is a no-op. See
         :doc:`/tutorials/participant_and_trial_failure`.
 
         Parameters
         ----------
         reason : str, optional
             Failure tag to append, for example ``"premature_exit"``.
-        even_if_complete : bool, optional
-            If ``True``, fail a participant who has already completed the
-            experiment. Defaults to ``False``.
         """
         if self.failed:
             logger.info("Participant %i already failed, not failing again.", self.id)
-            return
-
-        if self.complete and not even_if_complete:
-            logger.info("Participant %i already completed, not failing.", self.id)
             return
 
         if reason is not None:
@@ -829,7 +824,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def _redirect_to_unsuccessful_end(self, experiment):
         # Queued redirect is navigation only. Incomplete trials, including the
         # one on screen, have already been failed.
-        if experiment.timeline.participant_is_in_end_logic(self):
+        if self.complete or experiment.timeline.participant_is_in_end_logic(self):
             return
 
         if self._in_advance_page:

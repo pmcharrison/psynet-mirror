@@ -88,11 +88,19 @@ Calling :meth:`~psynet.participant.Participant.fail` marks the participant as
 failed and runs the experiment's registered participant-failure routines. It
 does not inherently fail the participant's completed trials.
 
-It also takes them off the main timeline. PsyNet redirects the participant to
-the ``unsuccessful_end`` branch, so they see an early-end page instead of
-continuing through later experiment pages. The redirect is skipped if they are
-already in an end branch or have already completed the experiment. You can
-customise that branch; see :doc:`Timelines <../getting_started/timelines>`.
+A completed participant can still be failed. ``complete`` and ``failed`` are
+independent, just as they are for trials. Failing someone after they have
+finished does not redirect them off the successful-end page. Recruiter
+abandonment, return, and reassignment remain a no-op if they have already
+completed successfully; that guard lives on the recruiter handler, not on
+``fail()``.
+
+It also takes them off the main timeline if they are still on it. PsyNet
+redirects the participant to the ``unsuccessful_end`` branch, so they see an
+early-end page instead of continuing through later experiment pages. The
+redirect is skipped if they are already in an end branch or have already
+completed the experiment. You can customise that branch; see
+:doc:`Timelines <../getting_started/timelines>`.
 
 The redirect timing depends on where ``fail()`` is called:
 
@@ -148,6 +156,12 @@ recruiter event is a no-op: they did not fail, so nothing is written to
 end page. Closing the browser on that debrief page without clicking Finish
 leaves them incomplete, so a later recruiter abandonment or return fails them
 and any unfinished trials, while submitted trials stay.
+
+Dallinger's ``data_check`` and ``attention_check`` run after submission.
+PsyNet does not use those hooks: they log a warning and do not fail the
+participant or their nodes. Use :meth:`~psynet.trial.main.TrialMaker.performance_check`
+during the timeline, or call :meth:`~psynet.participant.Participant.fail`
+if you need to fail someone after they have finished.
 
 The default performance-check policies are:
 

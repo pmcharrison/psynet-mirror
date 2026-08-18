@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from dallinger import db
 
@@ -207,6 +209,20 @@ class TestParticipantFailure:
         assert not incomplete.failed
         assert participant.pending_redirect is None
 
+    def test_fail_can_fail_completed_participant(
+        self, launched_experiment, participant, trial
+    ):
+        trial.complete = True
+        participant.complete = True
+        db.session.commit()
+
+        participant.fail("post_hoc")
+
+        assert participant.failed
+        assert participant.complete
+        assert not trial.failed
+        assert participant.pending_redirect is None
+
     def test_experiment_fail_participant_uses_psynet_contract(
         self, launched_experiment, participant, trial, trial_class, node
     ):
@@ -224,17 +240,21 @@ class TestParticipantFailure:
         assert incomplete.failed
         assert not node.failed
 
-    def test_experiment_fail_participant_can_fail_completed_participant(
-        self, launched_experiment, participant, trial
+    @pytest.mark.parametrize("hook", ["data_check_failed", "attention_check_failed"])
+    def test_dallinger_submission_check_hooks_warn_and_do_not_fail(
+        self, launched_experiment, participant, trial, caplog, hook
     ):
         trial.complete = True
-        participant.complete = True
         db.session.commit()
 
-        launched_experiment.fail_participant(participant)
+        with caplog.at_level(logging.WARNING):
+            getattr(launched_experiment, hook)(participant)
 
-        assert participant.failed
+        assert not participant.failed
         assert not trial.failed
+        assert not trial.node.failed
+        assert "performance_check" in caplog.text
+        assert hook.replace("_failed", "") in caplog.text
 
     def test_finalize_trial_skips_when_participant_already_failed(
         self, launched_experiment, participant, trial

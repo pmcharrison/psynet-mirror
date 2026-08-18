@@ -2331,14 +2331,44 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_participant(self, participant):
         """Fail a participant using PsyNet's participant-failure contract.
 
-        Dallinger calls this from ``data_check_failed`` and
-        ``attention_check_failed`` after the participant has already submitted.
-        Those checks should still mark the participant as failed, so this path
-        uses ``even_if_complete=True``. Owned nodes are not failed. Recruiter
-        premature-exit handling stays on :meth:`_handle_premature_exit` so a
-        successful completion is not failed by a later return webhook.
+        This calls :meth:`~psynet.participant.Participant.fail` and does not
+        fail owned nodes. Recruiter premature-exit handling stays on
+        :meth:`_handle_premature_exit` so a successful completion is not failed
+        by a later return webhook.
         """
-        participant.fail(even_if_complete=True)
+        participant.fail()
+
+    def data_check_failed(self, participant):
+        """Ignore Dallinger's post-submission data check.
+
+        PsyNet quality screening happens during the timeline via
+        :meth:`~psynet.trial.main.TrialMaker.performance_check`. Dallinger's
+        ``data_check`` runs after the participant has already submitted.
+        To fail a participant after they have finished, call
+        :meth:`~psynet.participant.Participant.fail`.
+        """
+        self._warn_unsupported_dallinger_submission_check("data_check", participant)
+
+    def attention_check_failed(self, participant):
+        """Ignore Dallinger's post-submission attention check.
+
+        See :meth:`data_check_failed`.
+        """
+        self._warn_unsupported_dallinger_submission_check(
+            "attention_check", participant
+        )
+
+    def _warn_unsupported_dallinger_submission_check(self, hook_name, participant):
+        logger.warning(
+            "PsyNet does not use Dallinger's %s hook for participant %i. "
+            "That check runs after the participant has already submitted. "
+            "Use TrialMaker.performance_check for in-experiment quality "
+            "screening, or Participant.fail() to fail someone after they "
+            "have finished. This method does not fail the participant or "
+            "their nodes.",
+            hook_name,
+            participant.id,
+        )
 
     def bonus(self, participant: Participant) -> float:
         """Calculate the reward the participant gets when completing the experiment.
