@@ -307,3 +307,41 @@ def test_lab_recruiter_check_launch_config_requires_token_outside_debug(monkeypa
     with pytest.raises(ValueError, match="lab_recruiter_auth_token must be set"):
         make_lab_recruiter(token="").check_launch_config("live")
     make_lab_recruiter(token="").check_launch_config("debug")
+
+
+def test_lab_recruiter_after_submission_complete_posts_zero_bonus_once():
+    recruiter = make_lab_recruiter()
+    participant = make_lab_participant()
+    participant.status = "approved"
+    experiment = MagicMock()
+    experiment.bonus_reason.return_value = "Thank you"
+
+    with patch.object(recruiter, "reward_bonus", return_value=True) as reward_bonus:
+        recruiter.after_submission_complete(experiment, participant)
+        reward_bonus.assert_called_once_with(participant, 0, "Thank you")
+        assert participant.bonus == 0
+
+        recruiter.after_submission_complete(experiment, participant)
+        reward_bonus.assert_called_once()
+
+
+def test_experiment_submission_complete_dispatches_recruiter_hook(monkeypatch):
+    from dallinger.experiment import Experiment as DallingerExperiment
+
+    from psynet.experiment import Experiment
+
+    recruiter = make_lab_recruiter()
+    recruiter.after_submission_complete = MagicMock()
+    participant = MagicMock()
+    participant.recruiter = recruiter
+    parent_hook = MagicMock()
+    monkeypatch.setattr(
+        DallingerExperiment, "on_recruiter_submission_complete", parent_hook
+    )
+
+    experiment = Experiment.__new__(Experiment)
+    event = {"timestamp": "2026-08-18T00:00:00Z"}
+    experiment.on_recruiter_submission_complete(participant, event)
+
+    parent_hook.assert_called_once_with(participant, event)
+    recruiter.after_submission_complete.assert_called_once_with(experiment, participant)

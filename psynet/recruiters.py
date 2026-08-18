@@ -74,6 +74,9 @@ def _prolific_error_status(error: ProlificServiceException):
 class PsyNetRecruiterMixin:
     show_termination_button = False
 
+    def after_submission_complete(self, experiment, participant):
+        """Hook run after Dallinger finishes ``on_recruiter_submission_complete``."""
+
     def check_launch_config(self, mode):
         """Validate recruiter-specific config at launch. Default: no extra checks."""
 
@@ -551,6 +554,19 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
             )
             return
         return True
+
+    def after_submission_complete(self, experiment, participant):
+        """Post complete/fail when Dallinger skipped ``reward_bonus`` for a $0 bonus."""
+        if participant.status not in {"approved", "bad_data", "did_not_attend"}:
+            return
+        self._post_zero_bonus_outcome(experiment, participant)
+
+    def _post_zero_bonus_outcome(self, experiment, participant):
+        """Notify Lab Recruiter of a zero-bonus outcome exactly once."""
+        if participant.bonus is not None:
+            return
+        if self.reward_bonus(participant, 0, experiment.bonus_reason()):
+            participant.bonus = 0
 
     def get_status(self) -> LabRecruitmentStatus:
         """Return the status of the recruiter as a RecruitmentStatus."""

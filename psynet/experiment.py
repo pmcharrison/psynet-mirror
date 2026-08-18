@@ -2303,6 +2303,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def is_complete(self):
         return (not self.need_more_participants) and self.num_working_participants == 0
 
+    def on_recruiter_submission_complete(self, participant, event):
+        """Finish Dallinger submission, then let the recruiter run follow-up work."""
+        super().on_recruiter_submission_complete(participant, event)
+        participant.recruiter.after_submission_complete(self, participant)
+
     def assignment_abandoned(self, participant):
         participant.append_failure_tags("assignment_abandoned", "premature_exit")
         super().assignment_abandoned(participant)
