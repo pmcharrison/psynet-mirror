@@ -77,6 +77,9 @@ class PsyNetRecruiterMixin:
     def after_submission_complete(self, experiment, participant):
         """Hook run after Dallinger finishes ``on_recruiter_submission_complete``."""
 
+    def after_rejected_consent(self, experiment, participant):
+        """Hook run when the participant rejects consent and never reaches submission."""
+
     def check_launch_config(self, mode):
         """Validate recruiter-specific config at launch. Default: no extra checks."""
 
@@ -559,6 +562,10 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         """Post complete/fail when Dallinger skipped ``reward_bonus`` for a $0 bonus."""
         if participant.status not in {"approved", "bad_data", "did_not_attend"}:
             return
+        self._post_zero_bonus_outcome(experiment, participant)
+
+    def after_rejected_consent(self, experiment, participant):
+        """Post fail when the participant rejects consent and never reaches submission."""
         self._post_zero_bonus_outcome(experiment, participant)
 
     def _post_zero_bonus_outcome(self, experiment, participant):

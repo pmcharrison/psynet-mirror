@@ -345,3 +345,19 @@ def test_experiment_submission_complete_dispatches_recruiter_hook(monkeypatch):
 
     parent_hook.assert_called_once_with(participant, event)
     recruiter.after_submission_complete.assert_called_once_with(experiment, participant)
+
+
+def test_rejected_consent_dispatches_recruiter_hook():
+    from psynet.end import RejectedConsentLogic
+
+    recruiter = make_lab_recruiter()
+    recruiter.after_rejected_consent = MagicMock()
+    experiment = MagicMock()
+    experiment.recruiter = recruiter
+    experiment.with_lucid_recruitment.return_value = False
+    participant = MagicMock()
+
+    RejectedConsentLogic().before_debrief(experiment, participant)
+
+    participant.fail.assert_called_once_with()
+    recruiter.after_rejected_consent.assert_called_once_with(experiment, participant)
