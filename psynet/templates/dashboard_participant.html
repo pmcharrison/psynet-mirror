@@ -270,10 +270,12 @@
 
 {% macro review_bonus_actions(review_participant) %}
     <div class="btn-group-vertical btn-group-sm" role="group">
+        {% if review_participant.recruiter.can_report_apparent_bonus() %}
         <form method="post" action="{{ url_for('dashboard.dashboard_check_bonus') }}">
             <input type="hidden" name="participant_id" value="{{ review_participant.id }}">
             <button type="submit" class="btn btn-secondary btn-sm btn-block">Check platform</button>
         </form>
+        {% endif %}
         <form method="post" action="{{ url_for('dashboard.dashboard_pay_bonus') }}" onsubmit="return confirm('Post this bonus to the recruitment platform? Only continue if the platform does not already show it.');">
             <input type="hidden" name="participant_id" value="{{ review_participant.id }}">
             <button type="submit" class="btn btn-primary btn-sm btn-block">Pay bonus</button>

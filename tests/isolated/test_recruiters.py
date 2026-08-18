@@ -1415,6 +1415,20 @@ def test_check_review_bonus_when_lookup_fails():
     assert participant.payment_settled is False
 
 
+def test_check_review_bonus_when_recruiter_cannot_report():
+    participant = _review_participant(apparent=None)
+    participant.recruiter.can_report_apparent_bonus = MagicMock(return_value=False)
+    participant.recruiter.nickname = "hotair"
+    harness = PaymentHarness()
+
+    category, message = harness.check_review_bonus(participant)
+
+    assert category == "warning"
+    assert "cannot report" in message.lower()
+    assert participant.needs_payment_review is True
+    participant.recruiter.apparent_bonus_paid.assert_not_called()
+
+
 def test_pay_review_bonus_refuses_when_lookup_fails():
     participant = _review_participant(apparent=None)
     harness = PaymentHarness()

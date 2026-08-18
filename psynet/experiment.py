@@ -2557,8 +2557,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         unpaid = round(float(participant.unpaid_bonus or 0.0), 2)
         recruiter = participant.recruiter
-        apparent = recruiter.apparent_bonus_paid(participant)
-        if recruiter.can_report_apparent_bonus() and apparent is None:
+        can_report = recruiter.can_report_apparent_bonus()
+        apparent = recruiter.apparent_bonus_paid(participant) if can_report else None
+        if can_report and apparent is None:
             return (
                 "warning",
                 f"Could not read the platform bonus for participant "
@@ -2572,12 +2573,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"participant {participant.id}; recorded without posting.",
             )
         if not pay:
-            shown = "unknown" if apparent is None else f"{apparent:.2f}"
+            if not can_report:
+                return (
+                    "warning",
+                    f"Recruiter {getattr(recruiter, 'nickname', recruiter)} "
+                    f"cannot report platform bonus status for participant "
+                    f"{participant.id}. You can still pay the unpaid bonus "
+                    "from this page.",
+                )
             return (
                 "warning",
-                f"Platform currently reports {shown} paid for participant "
-                f"{participant.id}; unpaid bonus is still {unpaid:.2f} "
-                "(this can lag a recent POST).",
+                f"Platform currently reports {apparent:.2f} paid for "
+                f"participant {participant.id}; unpaid bonus is still "
+                f"{unpaid:.2f} (this can lag a recent POST).",
             )
         logger.info(
             "Dashboard retry: paying bonus of %s to participant %s",
