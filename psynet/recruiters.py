@@ -79,9 +79,6 @@ class PsyNetRecruiterMixin:
     def after_rejected_consent(self, experiment, participant):
         """Hook run when the participant rejects consent and never reaches submission."""
 
-    def check_launch_config(self, mode):
-        """Validate recruiter-specific config at launch. Default: no extra checks."""
-
     def terminate_participant(
         self, participant=None, assignment_id=None, reason=None, details=None
     ):
@@ -489,9 +486,10 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
                 return None
         return f"Token {token}"
 
-    def check_launch_config(self, mode):
+    def validate_config(self, **kwargs):
         """Require a Lab Recruiter auth token for non-debug launches."""
-        if mode == "debug":
+        super().validate_config(**kwargs)
+        if kwargs.get("mode") == "debug":
             return
         if not self._authorization_header():
             raise ValueError(
@@ -499,11 +497,6 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
                 "before deploying with the lab recruiter. Store the raw key "
                 "from drf_create_token (not the 'Token ' prefix)."
             )
-
-    def validate_config(self, **kwargs):
-        """Require a Lab Recruiter auth token for non-debug launches."""
-        super().validate_config(**kwargs)
-        self.check_launch_config(kwargs.get("mode"))
 
     def reward_bonus(self, participant, amount, reason):
         """

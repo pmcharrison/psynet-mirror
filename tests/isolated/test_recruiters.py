@@ -276,11 +276,11 @@ def test_lab_recruiter_reward_bonus_logs_http_error(caplog):
     assert participant.bonus is None
 
 
-def test_lab_recruiter_check_launch_config_requires_token_outside_debug():
-    make_lab_recruiter(token="abc123").check_launch_config("live")
+def test_lab_recruiter_validate_config_requires_token_outside_debug():
+    make_lab_recruiter(token="abc123").validate_config(mode="live")
     with pytest.raises(ValueError, match="lab_recruiter_auth_token must be set"):
-        make_lab_recruiter(token="").check_launch_config("live")
-    make_lab_recruiter(token="").check_launch_config("debug")
+        make_lab_recruiter(token="").validate_config(mode="live")
+    make_lab_recruiter(token="").validate_config(mode="debug")
 
 
 def test_lab_recruiter_after_submission_complete_posts_zero_bonus_once():

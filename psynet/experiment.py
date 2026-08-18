@@ -2158,8 +2158,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
 
     def check_recruiter_config(self, mode):
-        """Run recruiter-specific checks that apply at experiment launch."""
-        self.recruiter.check_launch_config(mode)
+        """Run the recruiter's own config validation before a real launch.
+
+        Dallinger runs ``validate_config`` too, but only once the Docker image
+        has been built and pushed, so running it here fails fast. Debug is
+        exempt because Dallinger never validates that mode.
+        """
+        if mode == "debug":
+            return
+        self.recruiter.validate_config(mode=mode)
 
     @classmethod
     def check_base_payment(cls, config):
