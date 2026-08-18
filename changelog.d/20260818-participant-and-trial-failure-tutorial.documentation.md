@@ -1,1 +1,1 @@
-Added a tutorial on participant and trial failure, and documented that leaving an experiment fails unfinished trials without failing submitted ones.
+Added a tutorial on participant and trial failure, including that ``Participant.fail()`` redirects the participant to the ``unsuccessful_end`` timeline branch, and documented that leaving an experiment fails unfinished trials without failing submitted ones.

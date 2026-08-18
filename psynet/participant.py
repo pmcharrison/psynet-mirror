@@ -736,6 +736,26 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
     def fail(self, reason=None):
+        """
+        Mark this participant as failed and take them off the main timeline.
+
+        Registered participant-failure routines run first. Incomplete trials are
+        failed; completed trials are left in place unless a TrialMaker
+        performance-check policy says those responses are unusable. The
+        participant is then redirected to the timeline's ``unsuccessful_end``
+        branch. If ``fail()`` is called during page advance the redirect is
+        immediate; otherwise it is queued as ``pending_redirect`` until the
+        next submit.
+
+        If the participant is already failed, or has already completed the
+        experiment, this is a no-op. See
+        :doc:`/tutorials/participant_and_trial_failure`.
+
+        Parameters
+        ----------
+        reason : str, optional
+            Failure tag to append, for example ``"premature_exit"``.
+        """
         if self.failed:
             logger.info("Participant %i already failed, not failing again.", self.id)
             return

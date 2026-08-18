@@ -88,6 +88,22 @@ Calling :meth:`~psynet.participant.Participant.fail` marks the participant as
 failed and runs the experiment's registered participant-failure routines. It
 does not inherently fail the participant's completed trials.
 
+It also takes them off the main timeline. PsyNet redirects the participant to
+the ``unsuccessful_end`` branch, so they see an early-end page instead of
+continuing through later experiment pages. The redirect is skipped if they are
+already in an end branch or have already completed the experiment. You can
+customise that branch; see :doc:`Timelines <../getting_started/timelines>`.
+
+The redirect timing depends on where ``fail()`` is called:
+
+* From within the page-advance loop, for example from a
+  :class:`~psynet.timeline.CodeBlock`, the jump to ``unsuccessful_end`` is
+  immediate.
+* From a background process, for example a timeout, recruiter notification, or
+  admin action, the redirect is queued as ``participant.pending_redirect`` and
+  applied the next time the participant submits a response. That preserves the
+  answer they are currently giving.
+
 Incomplete trials (``complete=False``) are always failed on any participant
 failure, including premature exit. They are not usable contributions and can
 otherwise stall dependent logic such as chain growth.

@@ -608,9 +608,7 @@ You can customise the end branches by passing keyword arguments to
 When :meth:`~psynet.participant.Participant.fail` is called on a participant,
 PsyNet automatically redirects them to the ``unsuccessful_end`` branch. This
 ensures that failed participants always see an appropriate end page, regardless
-of where they are in the timeline. Unfinished trials are failed; completed
-trials stay unless a performance check treats them as unusable. See
-:doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`.
+of where they are in the timeline.
 
 The redirect works differently depending on context:
 
@@ -621,11 +619,10 @@ The redirect works differently depending on context:
   participant submits a response. This preserves the participant's response to
   the page they are currently viewing.
 
-For more information, see
-:doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`.
-
 The redirect is skipped if the participant is already in an end branch or has
-already completed the experiment.
+already completed the experiment. Unfinished trials are failed; completed
+trials stay unless a performance check treats them as unusable. See
+:doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`.
 
 
 Time estimates
