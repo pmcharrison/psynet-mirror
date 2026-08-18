@@ -489,20 +489,16 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
                 return None
         return f"Token {token}"
 
-    def ensure_auth_token_configured(self):
-        """Raise if the Lab Recruiter auth token is missing."""
+    def check_launch_config(self, mode):
+        """Require a Lab Recruiter auth token for non-debug launches."""
+        if mode == "debug":
+            return
         if not self._authorization_header():
             raise ValueError(
                 "lab_recruiter_auth_token must be set in ~/.dallingerconfig "
                 "before deploying with the lab recruiter. Store the raw key "
                 "from drf_create_token (not the 'Token ' prefix)."
             )
-
-    def check_launch_config(self, mode):
-        """Require a Lab Recruiter auth token for non-debug launches."""
-        if mode == "debug":
-            return
-        self.ensure_auth_token_configured()
 
     def validate_config(self, **kwargs):
         """Require a Lab Recruiter auth token for non-debug launches."""
