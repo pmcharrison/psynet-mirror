@@ -760,19 +760,30 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     def check_if_can_mark_as_finalized(self):
         """Finalize the trial when complete and no blockers remain.
 
-        Expected intermediate states (pending assets, pending async work, or
-        failure) are silent; callers and the finalize backstop poller re-check
-        as preconditions clear.
+        Intermediate waiting states log at debug; callers and the finalize
+        backstop poller re-check as preconditions clear.
         """
         if not self.complete:
             return
         if self.finalized:
             return
         if self.failed:
+            logger.debug(
+                "Cannot mark trial %s as finalized because it is failed.",
+                self.id,
+            )
             return
         if self.asset_deposit_pending:
+            logger.debug(
+                "Cannot mark trial %s as finalized yet; awaiting asset deposit.",
+                self.id,
+            )
             return
         if self.async_post_trial_requested and not self.async_post_trial_complete:
+            logger.debug(
+                "Cannot mark trial %s as finalized yet; awaiting async_post_trial.",
+                self.id,
+            )
             return
         self.finalized = True
         self.on_finalized()
@@ -857,17 +868,19 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
                 if trial.finalized:
                     finalized_count += 1
             except Exception as err:
-                if not isinstance(err, exp.HandledError):
-                    exp.handle_error(err, trial=trial)
                 # Rollback undid uncommitted successes since the last commit;
                 # they will be picked up again on the next poll.
                 finalized_count = 0
-                failed_trial = db.session.get(cls, trial_id)
-                if failed_trial is not None and not failed_trial.failed:
-                    failed_trial.fail(reason="finalize_backstop_error")
-                    # Persist before the next handle_error can roll this back
-                    # (same mid-batch commit pattern as ErrorRecord logging).
-                    db.session.commit()
+                exp.isolate_batch_item_failure(
+                    err,
+                    refetch=lambda: db.session.get(cls, trial_id),
+                    fail=lambda t: (
+                        t.fail(reason="finalize_backstop_error")
+                        if not t.failed
+                        else None
+                    ),
+                    trial=trial,
+                )
 
         if finalized_count:
             logger.info(
@@ -877,18 +890,24 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         return finalized_count
 
     def check_if_can_run_async_post_trial(self):
+        msg = f"Checking if we should run async_post_trial for trial {self.id}... "
         if self.async_post_trial_requested:
+            logger.debug("%sno need, async_post_trial has already been requested.", msg)
             return
 
         if self.run_async_post_trial is not None and not self.run_async_post_trial:
+            logger.debug("%sno need, as run_async_post_trial is False.", msg)
             return
 
         if not is_method_overridden(self, Trial, "async_post_trial"):
+            logger.debug("%sno need, as no async_post_trial method is defined.", msg)
             return
 
         if self.asset_deposit_pending:
+            logger.debug("%sawaiting an asset deposit, so we have to wait.", msg)
             return
 
+        logger.debug("%sconditions satisfied, queueing async_post_trial.", msg)
         self.queue_async_post_trial()
 
     def queue_async_post_trial(self):

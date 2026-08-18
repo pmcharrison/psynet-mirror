@@ -1630,22 +1630,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         network, check_readiness=False
                     )
                 except Exception as err:
-                    if not isinstance(err, exp.HandledError):
-                        exp.handle_error(
-                            err,
-                            network=network,
-                        )
                     # Re-fetch after handle_error rollback; commit the fail so a
                     # later error in this batch cannot undo it.
-                    network = db.session.get(TrialNetwork, network_id)
-                    if network is None:
-                        continue
-                    if network.head is not None and network.head.degree > 0:
-                        network.head.fail()
-                    elif network.head is not None and network.head.degree == 0:
-                        for trial in network.head.all_trials:
-                            trial.fail()
-                    db.session.commit()
+                    def _fail_grown_network(network):
+                        if network.head is not None and network.head.degree > 0:
+                            network.head.fail()
+                        elif network.head is not None and network.head.degree == 0:
+                            for trial in network.head.all_trials:
+                                trial.fail()
+
+                    exp.isolate_batch_item_failure(
+                        err,
+                        refetch=lambda: db.session.get(TrialNetwork, network_id),
+                        fail=_fail_grown_network,
+                        network=network,
+                    )
 
             logger.info("Finished growing networks.")
 
@@ -3937,6 +3936,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
+
+    @classmethod
+    def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
+        """
+        Report a per-item batch failure, mark the item failed, and commit.
+
+        Used by pollers that process many candidates in one transaction
+        (network growth, finalize backstop). ``handle_error`` rolls back the
+        session, so ``refetch`` must return a fresh ORM instance (or ``None``).
+        ``fail`` receives that instance and marks it failed. The fail is
+        committed immediately so a later ``handle_error`` in the same batch
+        cannot undo it (same mid-batch commit pattern as ErrorRecord logging).
+        """
+        if not isinstance(error, cls.HandledError):
+            cls.handle_error(error, **error_parents)
+        entity = refetch()
+        if entity is None:
+            return None
+        fail(entity)
+        db.session.commit()
+        return entity
 
     @classmethod
     def handle_error(cls, error, **kwargs):
