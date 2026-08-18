@@ -476,7 +476,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
-    max_bonus_transfer_attempts = 3
 
     timeline = Timeline(InfoPage("Placeholder timeline", time_estimate=5))
 
@@ -1573,14 +1572,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
 
-    @scheduled_task("interval", minutes=1, max_instances=1)
-    @staticmethod
-    @with_transaction
-    def _retry_unsettled_payments():
-        if not is_experiment_launched():
-            return
-        get_experiment().retry_unsettled_payments()
-
     @scheduled_task("interval", seconds=2, max_instances=1)
     @log_time_taken
     @staticmethod
@@ -1744,8 +1735,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         After payment is recorded, ``base_payment`` may be rewritten to the
         platform amount actually used (for example a Prolific screen-out
         reward, or ``0`` for a returned submission). ``bonus`` stays ``None``
-        until a transfer succeeds. Withheld amounts on ``unpaid_bonus`` are
-        not included.
+        until a transfer succeeds. Amounts on ``unpaid_bonus`` (hard-cap
+        withholds or failed transfers awaiting manual review) are not
+        included.
         """
         base_sum, bonus_sum = db.session.query(
             func.coalesce(func.sum(Participant.base_payment), 0.0),
@@ -2453,8 +2445,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         Returns True if payout for this participant is finished (paid,
         withheld, skipped as too small, or already settled). Returns False
-        if the platform rejected the transfer; ``payment_settled`` stays
-        False so a later retry can pay.
+        if the platform rejected the transfer or a previous attempt already
+        failed. PsyNet posts a bonus to the platform at most once per
+        participant: the attempt is claimed on ``needs_payment_review``
+        before the recruiter call, so a later replay will not pay again.
+        A failed transfer leaves ``payment_settled`` false, stores the
+        amount on ``unpaid_bonus``, and asks the experimenter to review
+        and pay manually after checking the platform.
 
         Does not re-apply caps or send emails when already settled.
         """
@@ -2466,6 +2463,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.bonus,
             )
             return True
+        if participant.needs_payment_review:
+            logger.warning(
+                "Bonus will NOT be paid automatically, since participant %s "
+                "already needs payment review (unpaid_bonus=%s).",
+                participant.id,
+                participant.unpaid_bonus,
+            )
+            return False
         if participant.bonus is not None:
             logger.info(
                 "Bonus will NOT be paid, since participant %s already has "
@@ -2497,17 +2502,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.payment_settled = True
             return True
 
-        attempts = participant.bonus_transfer_attempts or 0
-        if attempts >= self.max_bonus_transfer_attempts:
-            logger.error(
-                "Bonus transfer for participant %s already failed %s times; "
-                "not retrying.",
-                participant.id,
-                attempts,
-            )
-            return False
-
-        participant.bonus_transfer_attempts = attempts + 1
+        # Claim the single automatic platform POST before calling the
+        # recruiter, so a crash or listener replay cannot pay twice.
+        participant.needs_payment_review = True
+        participant.unpaid_bonus = bonus
         logger.info("Paying bonus of %s to %s", bonus, participant.id)
         transferred = participant.recruiter.reward_bonus(
             participant,
@@ -2516,59 +2514,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         if transferred is False:
             logger.error(
-                "Bonus transfer failed for participant %s (attempt %s/%s); "
-                "leaving payment unsettled so it can be retried.",
+                "Bonus transfer failed for participant %s; leaving payment "
+                "unsettled for manual review.",
                 participant.id,
-                participant.bonus_transfer_attempts,
-                self.max_bonus_transfer_attempts,
             )
-            if participant.bonus_transfer_attempts >= self.max_bonus_transfer_attempts:
-                self._notify_bonus_transfer_exhausted(participant)
+            self._notify_bonus_transfer_failed(participant, bonus)
             return False
 
         participant.bonus = bonus
+        participant.unpaid_bonus = 0.0
+        participant.needs_payment_review = False
         participant.payment_settled = True
         return True
 
-    def _notify_bonus_transfer_exhausted(self, participant) -> None:
+    def _notify_bonus_transfer_failed(self, participant, bonus: float) -> None:
         message = (
-            f"Bonus transfer failed after {self.max_bonus_transfer_attempts} "
-            f"attempts for participant {participant.id} "
-            f"(assignment {participant.assignment_id}). "
-            "payment_settled is still false."
+            f"Bonus transfer failed for participant {participant.id} "
+            f"(assignment {participant.assignment_id}, worker "
+            f"{participant.worker_id}). PsyNet will not retry automatically. "
+            f"Please review this participant in the dashboard and pay "
+            f"{bonus} manually on the recruitment platform after confirming "
+            "the bonus has not already been sent. "
+            "needs_payment_review is true; payment_settled is still false."
         )
         logger.error(message)
         try:
             self.notifier.notify(message)
         except Exception:
             logger.exception(
-                "Failed to notify experimenter about exhausted bonus retries "
-                "for participant %s.",
+                "Failed to notify experimenter about a bonus transfer "
+                "failure for participant %s.",
                 participant.id,
             )
-
-    def retry_unsettled_payments(self) -> None:
-        """Retry bonus transfers for participants whose payout is unfinished.
-
-        Selects recorded-but-unsettled participants
-        (``approved`` / ``screened_out`` / ``returned``) and calls
-        ``pay_decided_bonus`` again, up to ``max_bonus_transfer_attempts``.
-        Does not recruit replacements.
-        """
-        participants = (
-            Participant.query.filter_by(payment_settled=False)
-            .filter(Participant.status.in_(("approved", "screened_out", "returned")))
-            .all()
-        )
-        if not participants:
-            return
-        logger.info(
-            "Retrying unsettled bonus transfers for %s participant(s).",
-            len(participants),
-        )
-        for participant in participants:
-            decision = self.decide_and_record_payment(participant)
-            self.pay_decided_bonus(participant, decision)
 
     def recruiter_exit_info(self, participant):
         """Ask the recruiter which completion-code type to use for this
@@ -2596,9 +2573,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         PsyNet owns this handler rather than calling Dallinger's
         implementation. Status and platform base are always re-recorded
         (so a Prolific listener replay that reset status to ``submitted``
-        is restored). ``payment_settled`` only skips the money transfer.
-        Recruitment still runs if the bonus transfer fails; unsettled
-        payouts are retried by ``retry_unsettled_payments``.
+        is restored). ``payment_settled`` and ``needs_payment_review``
+        skip a repeat money transfer: PsyNet posts a bonus at most once.
+        Recruitment still runs if the bonus transfer fails; the
+        participant is left unsettled for manual review.
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
         """
@@ -2627,7 +2605,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not self.pay_decided_bonus(participant, decision):
             logger.error(
                 "Bonus transfer failed for participant %s; continuing "
-                "recruitment and leaving payment unsettled.",
+                "recruitment and leaving payment for manual review.",
                 participant.id,
             )
         self.submission_successful(participant=participant)

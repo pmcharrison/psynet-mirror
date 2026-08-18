@@ -212,8 +212,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     performance_reward = Column(Float)
     unpaid_bonus = Column(Float)
     payment_settled = Column(Boolean, default=False)
+    # True after PsyNet has used its one automatic bonus POST. If the
+    # transfer failed, unpaid_bonus holds the amount to pay manually
+    # after checking the recruitment platform.
+    needs_payment_review = Column(Boolean, default=False)
     issued_completion_code_type = Column(String)
-    bonus_transfer_attempts = Column(Integer, default=0)
     total_wait_page_time = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
@@ -551,8 +554,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.performance_reward = 0.0
         self.unpaid_bonus = 0.0
         self.payment_settled = False
+        self.needs_payment_review = False
         self.issued_completion_code_type = None
-        self.bonus_transfer_attempts = 0
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
         self.branch_log = []

@@ -27,10 +27,13 @@ Key design constraints for maintainers:
   money and returns ``False`` if the platform rejected the transfer.
   ``Experiment.on_recruiter_submission_complete`` owns this sequence,
   always re-recording status and platform base, and uses
-  ``participant.payment_settled`` only to skip a repeat transfer. A
-  failed transfer still continues recruitment; ``retry_unsettled_payments``
-  retries remaining payouts. ``reward_bonus`` returns ``False`` if the
-  platform rejected the transfer. PsyNet does not call Dallinger's unused
+  ``participant.payment_settled`` and ``participant.needs_payment_review``
+  to skip a repeat transfer. PsyNet posts a bonus at most once per
+  participant. A failed transfer still continues recruitment, records
+  the amount on ``unpaid_bonus``, sets ``needs_payment_review``, and
+  asks the experimenter to pay manually after checking the platform.
+  ``reward_bonus`` returns ``False`` if the platform rejected the
+  transfer. PsyNet does not call Dallinger's unused
   ``data_check`` / ``attention_check`` hooks.
 """
 
