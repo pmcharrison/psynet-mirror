@@ -1357,3 +1357,15 @@ def test_open_recruitment_no_hint_when_screen_out_disabled(caplog):
                 PsyNetProlificRecruiterMixin.open_recruitment(recruiter, n=5)
 
     assert "prolific_pay_unsuccessful" not in caplog.text
+
+
+def test_calculate_reward_treats_missing_time_fields_as_zero():
+    class RewardParticipant:
+        time_credit = None
+        performance_reward = None
+        time_reward = Participant.time_reward
+        calculate_reward = Participant.calculate_reward
+
+    with patch("psynet.participant.get_config") as get_config:
+        get_config.return_value.get.return_value = 9.0
+        assert RewardParticipant().calculate_reward() == 0.0

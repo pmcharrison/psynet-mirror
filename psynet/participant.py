@@ -602,7 +602,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     def time_reward(self):
         wage_per_hour = get_config().get("wage_per_hour")
-        seconds = self.time_credit
+        seconds = self.time_credit or 0.0
         hours = seconds / 3600
         return hours * wage_per_hour
 
@@ -614,7 +614,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             The reward as a ``float``.
         """
         return round(
-            self.time_reward + self.performance_reward,
+            self.time_reward + (self.performance_reward or 0.0),
             ndigits=2,
         )
 
