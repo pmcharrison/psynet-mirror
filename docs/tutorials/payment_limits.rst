@@ -12,6 +12,8 @@ To increase robustness regarding payments, e.g. in the case of coding errors, tw
 
 * :attr:`~psynet.experiment.Experiment.var.hard_max_experiment_payment` which sets a hard, absolute limit on the amount spent in an experiment. Bonuses are not paid from the point the value is reached and the amount of unpaid bonus is saved in the participant's `unpaid_bonus` field. Additionally, the experimenter is notified about the issue. Default: `1100.0`.
 
+These experiment-level limits use :meth:`~psynet.experiment.Experiment.amount_spent`, which already includes the study base payment reserved for participants who have started but not yet finished.
+
 All limits are implemented as `class attributes` and can be overridden in the definition of the ``Experiment`` class of an experiment by assigning some ``float`` value, e.g.:
 
 ::

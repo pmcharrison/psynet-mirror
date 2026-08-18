@@ -1022,11 +1022,8 @@ class PaymentCapHarness:
     pay_decided_bonus = _Experiment.pay_decided_bonus
     _mark_payment_settled = _Experiment._mark_payment_settled
 
-    def __init__(
-        self, *, spent=0.0, outstanding=0.0, hard_max=1100.0, max_participant=25.0
-    ):
+    def __init__(self, *, spent=0.0, hard_max=1100.0, max_participant=25.0):
         self.spent = spent
-        self.outstanding = outstanding
         self.var = SimpleNamespace(
             hard_max_experiment_payment=hard_max,
             max_participant_payment=max_participant,
@@ -1037,16 +1034,13 @@ class PaymentCapHarness:
     def amount_spent(self):
         return self.spent
 
-    def outstanding_base_payments(self):
-        return self.outstanding
-
     def ensure_hard_max_experiment_payment_email_sent(self):
         self.hard_max_emails += 1
         self.var.hard_max_experiment_payment_email_sent = True
 
 
 def test_apply_payment_caps_withholds_bonus_at_hard_max():
-    harness = PaymentCapHarness(spent=9.50, outstanding=0.0, hard_max=10.0)
+    harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
     participant = MagicMock(id=1, unpaid_bonus=0.0)
 
     result = harness.apply_payment_caps(participant, 1.00)
@@ -1058,7 +1052,7 @@ def test_apply_payment_caps_withholds_bonus_at_hard_max():
 
 
 def test_apply_payment_caps_does_not_withhold_once_under_hard_max():
-    harness = PaymentCapHarness(spent=8.00, outstanding=0.0, hard_max=10.0)
+    harness = PaymentCapHarness(spent=8.00, hard_max=10.0)
     participant = MagicMock(id=1)
     participant.amount_paid.return_value = 1.00
 
@@ -1081,15 +1075,16 @@ def test_apply_payment_caps_clips_to_max_participant_payment():
     )
 
 
-def test_apply_payment_caps_does_not_add_outstanding_bases():
-    harness = PaymentCapHarness(spent=9.50, outstanding=5.0, hard_max=10.0)
-    participant = MagicMock(id=1)
-    participant.amount_paid.return_value = 1.00
+def test_amount_spent_includes_in_progress_participants():
+    from psynet.experiment import Experiment
 
-    result = harness.apply_payment_caps(participant, 0.40)
+    in_progress = SimpleNamespace(base_payment=1.00, bonus=None)
+    finished = SimpleNamespace(base_payment=1.00, bonus=0.50)
+    withheld = SimpleNamespace(base_payment=1.00, bonus=None, unpaid_bonus=2.00)
 
-    assert result == 0.40
-    assert harness.hard_max_emails == 0
+    with patch("psynet.experiment.Participant") as participant_cls:
+        participant_cls.query.all.return_value = [in_progress, finished, withheld]
+        assert Experiment.amount_spent() == 3.50
 
 
 def test_pay_decided_bonus_withholds_at_hard_max_and_settles():

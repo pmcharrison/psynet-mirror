@@ -336,8 +336,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The maximum payment in US dollars a participant is allowed to get. Default: `25.0`.
 
     soft_max_experiment_payment : `float`
-        The recruiting process stops if the amount of accumulated payments
-        (incl. time and performance rewards) in US dollars exceedes this value. Default: `1000.0`.
+        The recruiting process stops if ``amount_spent()`` (recorded
+        ``base_payment`` + ``bonus`` for every participant, including those
+        still in progress) exceeds this value. Default: `1000.0`.
 
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
@@ -1721,6 +1722,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def amount_spent(cls):
+        """Return recorded spend across all participants.
+
+        This is the sum of each participant's ``base_payment`` and ``bonus``,
+        including people who have started the study but not finished. A
+        participant is assigned ``base_payment = experiment.base_payment``
+        when they start, so their full study base is already reserved here
+        while they are still in progress. Do not add a separate outstanding-
+        base term on top of this figure (for example when applying spend
+        caps).
+
+        After payment is recorded, ``base_payment`` may be rewritten to the
+        platform amount actually used (for example a Prolific screen-out
+        reward, or ``0`` for a returned submission). ``bonus`` stays ``None``
+        until a transfer succeeds. Withheld amounts on ``unpaid_bonus`` are
+        not included.
+        """
         return sum(
             [
                 (0.0 if p.base_payment is None else p.base_payment)
@@ -2389,8 +2406,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         room under that cap.
 
         Soft experiment spend limits are enforced when recruiting
-        (``need_more_participants``), not here. Working participants' bases
-        are already included in ``amount_spent()``.
+        (``need_more_participants``), not here. In-progress participants
+        already reserve their study base inside ``amount_spent()``; see that
+        method rather than adding a separate outstanding-base term here.
         """
         if bonus <= 0:
             return 0.0
@@ -2530,9 +2548,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return
         self.submission_successful(participant=participant)
         self.recruit()
-
-    def outstanding_base_payments(self):
-        return self.num_working_participants * self.base_payment
 
     def with_lucid_recruitment(self):
         return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
