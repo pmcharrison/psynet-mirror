@@ -2157,6 +2157,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Please choose just one location."
                 )
 
+    def check_recruiter_config(self, mode):
+        """Run recruiter-specific checks that apply at experiment launch."""
+        self.recruiter.check_launch_config(mode)
+
     @classmethod
     def check_base_payment(cls, config):
         if config.get("base_payment") > cls.max_allowed_base_payment:

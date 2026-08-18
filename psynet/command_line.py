@@ -56,7 +56,10 @@ from .experiment_scaffold import (
 )
 from .log import bold
 from .lucid import get_lucid_service
-from .recruiters import BaseLucidRecruiter, HotAirRecruiter
+from .recruiters import (
+    BaseLucidRecruiter,
+    HotAirRecruiter,
+)
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
@@ -1436,6 +1439,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
     exp = get_experiment()
     exp.check_config()
+    exp.check_recruiter_config(mode)
     exp.check_size()
     exp.check_consents()
     exp.check_python_dependencies()

@@ -408,6 +408,13 @@ Lab Recruiter
 
 ``lab_recruiter_auth_token`` *str* |psynet-icon| |sensitive-icon|
     Authentication token for communication with the API of the Lab Recruiter web application.
+    Store the raw key from ``drf_create_token`` (not the ``Token `` prefix) in
+    ``~/.dallingerconfig``. PsyNet sends it as ``Authorization: Token <value>``
+    when posting completion or failure. If this key is empty, PsyNet falls
+    back to the ``LAB_RECRUITER_AUTH_TOKEN`` environment variable.
+    Deploying with the lab recruiter fails if neither is set.
+    Local debug still starts without it. Do not put this key in ``config.txt``;
+    it is marked sensitive and would fail the experiment config check.
 
 ``lab_recruiter_external_submission_url`` *str* |psynet-icon|
     Override the default external submission URL (where completion/failure outcomes are posted).
@@ -417,6 +424,9 @@ Lab Recruiter
     * ``lab-recruiter``: ``https://recruiter.cococo-lab.cornell.edu/tasks``
     * ``staging-lab-recruiter``: ``https://recruiter-staging.cococo-lab.cornell.edu/tasks``
     * ``dev-lab-recruiter``: ``http://localhost:8000/tasks``
+
+    ``psynet debug local`` uses ``dev-lab-recruiter`` when
+    ``debug_recruiter = dev-lab-recruiter``.
 
 Lucid
 -----
