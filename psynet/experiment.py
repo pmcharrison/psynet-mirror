@@ -2314,6 +2314,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         See :doc:`/tutorials/participant_and_trial_failure`.
         """
         if participant.complete:
+            logger.info(
+                "Ignoring recruiter event %s for participant %i; they already completed.",
+                cause_tag,
+                participant.id,
+            )
             return
 
         if participant.failed:
@@ -2326,13 +2331,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def fail_participant(self, participant):
         """Fail a participant using PsyNet's participant-failure contract.
 
-        Dallinger's implementation fails the participant's nodes instead of the
-        participant. PsyNet treats ``failed`` as "this record is unusable", so
-        node ownership is not a reason to fail those nodes. This is the entry
-        point used by Dallinger's ``data_check_failed`` and
-        ``attention_check_failed``.
+        Dallinger calls this from ``data_check_failed`` and
+        ``attention_check_failed`` after the participant has already submitted.
+        Those checks should still mark the participant as failed, so this path
+        uses ``even_if_complete=True``. Owned nodes are not failed. Recruiter
+        premature-exit handling stays on :meth:`_handle_premature_exit` so a
+        successful completion is not failed by a later return webhook.
         """
-        participant.fail()
+        participant.fail(even_if_complete=True)
 
     def bonus(self, participant: Participant) -> float:
         """Calculate the reward the participant gets when completing the experiment.

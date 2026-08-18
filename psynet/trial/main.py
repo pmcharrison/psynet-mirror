@@ -1001,6 +1001,10 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
             trial = participant.current_trial
             if participant.failed:
+                # Race guard: a background fail() can land after
+                # pending_redirect was already consumed at the start of
+                # advance_page. The normal fail() path redirects before this
+                # CodeBlock runs.
                 logger.info(
                     "Not completing trial %s; the participant was already failed "
                     "(for example participant.fail() while this page was open).",

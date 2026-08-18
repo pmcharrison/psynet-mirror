@@ -731,7 +731,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
         }
 
-    def fail(self, reason=None):
+    def fail(self, reason=None, *, even_if_complete=False):
         """
         Mark this participant as failed and take them off the main timeline.
 
@@ -747,20 +747,25 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         navigation only: it does not keep the live trial valid or cause
         ``_finalize_trial`` to run.
 
-        If the participant is already failed, or has already completed the
-        experiment, this is a no-op. See
+        If the participant is already failed, this is a no-op. If they have
+        already completed the experiment, this is a no-op unless
+        ``even_if_complete`` is true (used by Dallinger data/attention checks
+        that run after submission). See
         :doc:`/tutorials/participant_and_trial_failure`.
 
         Parameters
         ----------
         reason : str, optional
             Failure tag to append, for example ``"premature_exit"``.
+        even_if_complete : bool, optional
+            If ``True``, fail a participant who has already completed the
+            experiment. Defaults to ``False``.
         """
         if self.failed:
             logger.info("Participant %i already failed, not failing again.", self.id)
             return
 
-        if self.complete:
+        if self.complete and not even_if_complete:
             logger.info("Participant %i already completed, not failing.", self.id)
             return
 

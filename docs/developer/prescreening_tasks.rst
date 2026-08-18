@@ -140,6 +140,7 @@ The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` 
             phase="some_prescreening_phase",
             stimulus_set=self.get_stimulus_set(),
             check_performance_at_end=True,
+            # Most shipped prescreens keep the static default (True).
             fail_trials_on_participant_performance_check=False,
         )
 

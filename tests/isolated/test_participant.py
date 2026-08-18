@@ -133,8 +133,12 @@ class TestParticipantFailure:
         assert not trial.failed
         assert incomplete.failed
 
-    def test_returned_assignment_fails_incomplete_and_preserves_completed(
-        self, launched_experiment, participant, trial, trial_class, node
+    @pytest.mark.parametrize(
+        "event",
+        ["assignment_returned", "assignment_abandoned", "assignment_reassigned"],
+    )
+    def test_recruiter_exit_fails_incomplete_and_preserves_completed(
+        self, launched_experiment, participant, trial, trial_class, node, event
     ):
         trial.complete = True
         db.session.commit()
@@ -142,11 +146,11 @@ class TestParticipantFailure:
             trial_class, launched_experiment, node, participant
         )
 
-        launched_experiment.assignment_returned(participant)
+        getattr(launched_experiment, event)(participant)
 
         assert participant.failed
         assert "premature_exit" in participant.failure_tags
-        assert "assignment_returned" in participant.failure_tags
+        assert event in participant.failure_tags
         assert not trial.failed
         assert incomplete.failed
 
@@ -219,6 +223,33 @@ class TestParticipantFailure:
         assert not trial.failed
         assert incomplete.failed
         assert not node.failed
+
+    def test_experiment_fail_participant_can_fail_completed_participant(
+        self, launched_experiment, participant, trial
+    ):
+        trial.complete = True
+        participant.complete = True
+        db.session.commit()
+
+        launched_experiment.fail_participant(participant)
+
+        assert participant.failed
+        assert not trial.failed
+
+    def test_finalize_trial_skips_when_participant_already_failed(
+        self, launched_experiment, participant, trial
+    ):
+        participant.current_trial = trial
+        participant.answer = "Very much"
+        participant.fail("premature_exit")
+        db.session.commit()
+
+        Trial._finalize_trial().function(
+            participant=participant, experiment=launched_experiment
+        )
+
+        assert trial.failed
+        assert not trial.complete
 
     def test_response_timeout_submit_still_records_answer(self, launched_experiment):
         bot = BotDriver()

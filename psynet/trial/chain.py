@@ -1031,7 +1031,7 @@ class ChainTrial(Trial):
 
     @property
     def failure_cascade(self):
-        """Fail ``node.child`` only if this finalized trial contributed to it."""
+        """Fail ``node.child`` when this trial is finalized and already has one."""
         to_fail = []
         if self.propagate_failure and self.finalized and self.node.child:
             to_fail.append(lambda: [self.node.child])
