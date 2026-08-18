@@ -36,14 +36,14 @@ from psynet.utils import (
     merge_dicts,
     organize_by_key,
     pretty_format_seconds,
-    psynet_warning_skip_file_prefixes,
+    psynet_source_prefixes,
     safe,
     working_directory,
 )
 
 
-def test_psynet_warning_skip_file_prefixes_is_package_directory():
-    (prefix,) = psynet_warning_skip_file_prefixes()
+def test_psynet_source_prefixes_is_package_directory():
+    (prefix,) = psynet_source_prefixes()
     package_dir = Path(prefix)
 
     assert prefix.endswith(os.sep)
