@@ -308,27 +308,16 @@ def test_dallinger_constraints_github_ref_tracks_pyproject_declaration():
 
 
 def test_bootstrap_core_depends_only_on_click():
-    """Core install stays free of experiment-runtime packages.
-
-    ``tomli`` is allowed only as a Python < 3.11 marker dependency so source
-    checkouts can parse ``pyproject.toml`` where ``tomllib`` is unavailable.
-    """
+    """Core install stays free of experiment-runtime packages."""
+    import tomllib
     from pathlib import Path
-
-    try:
-        import tomllib
-    except ModuleNotFoundError:  # pragma: no cover
-        import tomli as tomllib
 
     pyproject = tomllib.loads(
         (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text(
             encoding="utf-8"
         )
     )
-    assert pyproject["project"]["dependencies"] == [
-        "click",
-        'tomli; python_version < "3.11"',
-    ]
+    assert pyproject["project"]["dependencies"] == ["click"]
     assert "yaspin" in pyproject["project"]["optional-dependencies"]["experiment"]
 
 

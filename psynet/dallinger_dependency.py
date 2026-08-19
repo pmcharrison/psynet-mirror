@@ -19,13 +19,9 @@ Resolution order:
 from __future__ import annotations
 
 import re
+import tomllib
 from importlib.metadata import PackageNotFoundError, requires
 from pathlib import Path
-
-try:
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover
-    import tomli as tomllib
 
 _LOWER_BOUND_PATTERN = re.compile(r">=\s*(\d+\.\d+\.\d+)")
 _GIT_SHA_PIN_PATTERN = re.compile(
@@ -51,22 +47,23 @@ def supported_dallinger_lower_bound() -> str:
     )
 
 
-def dallinger_constraints_github_ref() -> str:
-    """Return the GitHub ref for the constraints-script fallback.
+def dallinger_constraints_github_ref(pyproject_path: Path | None = None) -> str:
+    """Return the GitHub ref for constraints-script and CI snapshot fetches.
 
     Version pins become ``v<lower-bound>``. Direct git pins use the SHA.
     """
-    pyproject_path = _default_pyproject_path()
-    if pyproject_path.is_file():
-        requirement = _dallinger_requirement_from_pyproject(pyproject_path)
-        sha = _git_sha_from_requirement(requirement)
-        if sha is not None:
-            return sha
-        version = _lower_bound_from_requirement_strings(
-            [requirement], source=str(pyproject_path)
-        )
-        return f"v{version}"
-    return f"v{supported_dallinger_lower_bound()}"
+    if pyproject_path is None:
+        pyproject_path = _default_pyproject_path()
+        if not pyproject_path.is_file():
+            return f"v{supported_dallinger_lower_bound()}"
+    requirement = _dallinger_requirement_from_pyproject(pyproject_path)
+    sha = _git_sha_from_requirement(requirement)
+    if sha is not None:
+        return sha
+    version = _lower_bound_from_requirement_strings(
+        [requirement], source=str(pyproject_path)
+    )
+    return f"v{version}"
 
 
 def dallinger_lower_bound_from_pyproject(pyproject_path: Path) -> str:

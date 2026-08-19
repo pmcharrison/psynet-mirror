@@ -54,6 +54,7 @@ experiment = ["dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.gi
         dallinger_dependency, "_default_pyproject_path", lambda: pyproject
     )
     assert dallinger_constraints_github_ref() == sha
+    assert dallinger_constraints_github_ref(pyproject) == sha
     with pytest.raises(ValueError, match="lower-bound version"):
         dallinger_lower_bound_from_pyproject(pyproject)
 

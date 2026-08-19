@@ -1,14 +1,14 @@
 These files are used in CI builds.
 
 `dallinger-dev-requirements.txt` is a vendored snapshot of Dallinger's
-`dev-requirements.txt` for the Dallinger version used by PsyNet's Docker
-constraints build. When upgrading Dallinger in `pyproject.toml`, refresh this
-file by running:
+`dev-requirements.txt` for the Dallinger git ref used by PsyNet's Docker
+constraints build (a release tag such as `v12.2.0`, or a commit SHA). When
+upgrading Dallinger in `pyproject.toml`, refresh this file by running:
 
 ```bash
 psynet dev ci update-dallinger-constraints
 ```
 
-The command downloads the matching Dallinger release snapshot, updates the file
+The command downloads the matching Dallinger snapshot, updates the file
 header, and verifies Docker's constraints compile command. CI checks that this
 header matches PsyNet's Dallinger dependency.

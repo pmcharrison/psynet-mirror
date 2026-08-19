@@ -48,6 +48,7 @@ from . import deployment_info
 from .bootstrap_commands import register_bootstrap_commands
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    _remove_obsolete_generated_dockerignore,
     dockertag_contents,
     ensure_deployment_policy,
     get_psynet_requirement,
@@ -1398,8 +1399,10 @@ def _check_experiment_directory(mode):
     PsyNet template and never overwritten. These checks must run before
     ``redis_vars.clear()`` so users without Redis still see actionable guidance.
     """
-    _prepare_in_repo_experiment()
+    prepared = _prepare_in_repo_experiment()
     ensure_deployment_policy()
+    if not prepared:
+        _remove_obsolete_generated_dockerignore()
 
     missing_boilerplate = missing_scaffold_paths_required_for_local_run()
     if missing_boilerplate:

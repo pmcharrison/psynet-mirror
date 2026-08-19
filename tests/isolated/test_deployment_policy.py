@@ -165,6 +165,47 @@ def test_check_experiment_directory_preserves_existing_deploy_toml(
     assert (tmp_path / "deploy.toml").read_bytes() == contents
 
 
+def test_check_experiment_directory_removes_generated_dockerignore(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    dockerignore = tmp_path / ".dockerignore"
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        dockerignore.write_text("\n".join(_GENERATED_DOCKERIGNORE_LINES) + "\n")
+        _check_experiment_directory("debug")
+
+    assert (tmp_path / "deploy.toml").exists()
+    assert not dockerignore.exists()
+
+
+def test_check_experiment_directory_warns_on_custom_dockerignore(
+    tmp_path, monkeypatch, capsys
+):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    dockerignore = tmp_path / ".dockerignore"
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        dockerignore.write_text("custom-local-file\n")
+        capsys.readouterr()
+        _check_experiment_directory("debug")
+
+    assert dockerignore.read_text() == "custom-local-file\n"
+    assert "must be moved to deploy.toml" in capsys.readouterr().err
+
+
 class _TranslationPreDeployExperiment(Experiment):
     """Run the real translation pre-deploy routine without database side effects."""
 
