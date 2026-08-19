@@ -21,10 +21,15 @@ from psynet.audit.artifacts import (
 )
 from psynet.audit.html import (
     pygments_css,
+    render_analysis_notebook,
     render_completeness,
     render_evidence_section,
     render_json_block,
     render_markdown_block,
+    render_monitor_snapshot,
+    render_participant_video,
+    render_performance_result,
+    render_screenshot_gallery,
     render_visible_artifacts,
     safe_section_html,
 )
@@ -65,7 +70,14 @@ DOCUMENTED_EXTERNAL_EXTENSION_IDS: frozenset[str] = frozenset(
 SECTION_REQUIRED_FIELDS = {"id", "title", "kind"}
 SECTION_KINDS = {
     "markdown",
+    # ``evidence`` renders every evidence subsection in one panel. Newer packets
+    # elevate those subsections to their own top-level sections instead.
     "evidence",
+    "screenshots",
+    "participant_video",
+    "monitor",
+    "performance",
+    "analysis",
     "files",
     "timeline",
     "json",
@@ -381,11 +393,27 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
         "sections": [
             starter_section("prompt", "Prompt", "markdown", path="PROMPT.md"),
             starter_section("plan", "Plan", "markdown", path="PLAN.md"),
-            starter_section("timeline", "Timeline", "timeline", path="TIMELINE.md"),
-            starter_section("report", "Report", "markdown", path="REPORT.md"),
-            starter_section("blockers", "Blockers", "blockers"),
-            starter_section("evidence", "Evidence", "evidence"),
+            starter_section(
+                "timeline",
+                "Implementation timeline",
+                "timeline",
+                path="TIMELINE.md",
+            ),
+            starter_section(
+                "report",
+                "Implementation notes",
+                "markdown",
+                path="REPORT.md",
+            ),
+            starter_section("screenshots", "Screenshots", "screenshots"),
+            starter_section(
+                "participant_video", "Participant video", "participant_video"
+            ),
+            starter_section("monitor", "Monitor snapshot", "monitor"),
+            starter_section("performance", "Performance test", "performance"),
+            starter_section("analysis", "Analysis", "analysis"),
             starter_section("files", "Additional files", "files"),
+            starter_section("blockers", "Blockers", "blockers"),
             starter_section("checks", "Checks", "checks"),
         ],
         "artifacts": [
@@ -1251,6 +1279,16 @@ def render_audit_section(
                 include_completeness=False,
                 section_id=None,
             )
+        if kind == "screenshots":
+            return render_screenshot_gallery(evidence, standalone=True)
+        if kind == "participant_video":
+            return render_participant_video(evidence)
+        if kind == "monitor":
+            return render_monitor_snapshot(evidence)
+        if kind == "performance":
+            return render_performance_result(evidence, standalone=True)
+        if kind == "analysis":
+            return render_analysis_notebook(evidence, standalone=True)
         if kind == "files":
             return render_visible_artifacts(
                 evidence, exclude_paths=section_paths(manifest)
@@ -1302,9 +1340,13 @@ def render_check_list(manifest: dict[str, Any]) -> str:
 def render_blockers(manifest: dict[str, Any]) -> str:
     """Render blockers from the manifest."""
 
+    explanation = (
+        '<p class="artifact-note">Blockers record required evidence that is not '
+        "ready yet, with the next step for resolving each one.</p>"
+    )
     blockers = manifest.get("blockers", [])
     if not isinstance(blockers, list) or not blockers:
-        return "<p>No blockers recorded.</p>"
+        return f"{explanation}<p>No blockers recorded.</p>"
 
     items: list[str] = []
     for blocker in blockers:
@@ -1315,10 +1357,11 @@ def render_blockers(manifest: dict[str, Any]) -> str:
         severity = html.escape(str(blocker.get("severity") or "warning"))
         artifact_id = html.escape(str(blocker.get("artifact_id") or ""))
         items.append(
-            f"<li><strong>{severity}</strong> <code>{artifact_id}</code>: "
-            f"{reason}<br>Next step: {next_step}</li>"
+            f"<li><code>{artifact_id}</code>: {reason} "
+            f'<span class="blocker-severity">{severity}</span>'
+            f"<br>Next step: {next_step}</li>"
         )
-    return f"<ul>{''.join(items)}</ul>"
+    return f'{explanation}<ul class="blocker-list">{"".join(items)}</ul>'
 
 
 def mark_artifact_present(
@@ -1389,9 +1432,7 @@ def mark_artifact_present(
 def section_open_by_default(section: dict[str, Any]) -> bool:
     """Return whether a section panel should start expanded."""
 
-    section_id = str(section.get("id") or "")
-    kind = str(section.get("kind") or "")
-    return section_id in {"report", "blockers"} or kind == "blockers"
+    return str(section.get("id") or "") == "report"
 
 
 def readiness_score_card(manifest: dict[str, Any]) -> str:

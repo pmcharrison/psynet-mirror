@@ -8,6 +8,7 @@ from psynet.audit.cli import (
     init_audit,
     render_audit_section,
     render_audit_site,
+    starter_audit_manifest,
     validate_audit,
 )
 from psynet.command_line import psynet
@@ -484,7 +485,7 @@ def test_render_audit_site_orders_performance_before_analysis(tmp_path: Path) ->
     site_dir = render_audit_site(audit_dir)
     index = (site_dir / "index.html").read_text(encoding="utf-8")
 
-    assert index.index('class="performance-result"') < index.index(
+    assert index.index('class="performance-result') < index.index(
         'id="analysis-notebook"'
     )
 
@@ -521,6 +522,101 @@ def test_render_audit_site_publishes_screenshots_from_manifest(tmp_path: Path) -
     assert "Intro screen" in index
     assert "Trial screen" in index
     assert "data-screenshot-counter>1 / 2</span>" in index
+
+
+def test_starter_sections_rename_implementation_narrative() -> None:
+    manifest = starter_audit_manifest(".")
+    titles = {section["id"]: section["title"] for section in manifest["sections"]}
+
+    assert titles["timeline"] == "Implementation timeline"
+    assert titles["report"] == "Implementation notes"
+    assert "evidence" not in titles
+
+
+def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    for artifact in manifest["artifacts"]:
+        artifact["status"] = "present"
+    manifest["blockers"] = []
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write_bytes(audit_dir / "artifacts/participant.mp4", b"video bytes")
+    write_bytes(audit_dir / "artifacts/screenshots/01-intro.png", b"png bytes")
+    write(
+        audit_dir / "artifacts/screenshots/manifest.json",
+        json.dumps({"captions": {"screenshots/01-intro.png": "Intro screen"}}),
+    )
+    write(
+        audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>"
+    )
+    write_bytes(audit_dir / "artifacts/simulated_data.zip", b"zip bytes")
+    write(
+        audit_dir / "artifacts/performance.json",
+        json.dumps({"results": [{"n_bots": 2, "bots_succeeded": 2}]}),
+    )
+    write(
+        audit_dir / "analyses/analysis.ipynb",
+        json.dumps(
+            {
+                "nbformat": 4,
+                "nbformat_minor": 5,
+                "metadata": {},
+                "cells": [
+                    {
+                        "cell_type": "markdown",
+                        "metadata": {},
+                        "source": ["Analysis body"],
+                    }
+                ],
+            }
+        ),
+    )
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert "<h2>Evidence</h2>" not in index
+    assert '<details id="evidence"' not in index
+    for section_id in ("screenshots", "participant_video", "monitor", "performance"):
+        assert f'<details id="{section_id}"' in index
+    assert index.index('id="screenshots"') < index.index('id="participant_video"')
+    assert index.index('id="participant_video"') < index.index('id="performance"')
+    assert index.index('id="performance"') < index.index('id="analysis"')
+    # Panel titles already name each section, so inner duplicates are dropped.
+    assert 'id="screenshot-gallery-heading"' not in index
+    assert "<h3>Analysis notebook</h3>" not in index
+    assert "Intro screen" in index
+    assert "Open monitor snapshot" in index
+    assert "Raw JSON" in index
+
+
+def test_render_audit_site_keeps_blockers_collapsed_and_explained(
+    tmp_path: Path,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert '<details id="blockers" class="attempt-panel">' in index
+    assert "required evidence" in index
+    assert index.index('id="files"') < index.index('id="blockers"')
+
+
+def test_render_audit_site_reports_missing_elevated_evidence(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert "No screenshots were found." in index
+    assert "No participant recording was found." in index
+    assert "No performance test result was found." in index
+    assert "No analysis notebook was found." in index
+    assert "No monitor snapshot was found." in index
 
 
 def test_render_audit_section_isolates_render_failures(
@@ -731,9 +827,13 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
         "plan",
         "timeline",
         "report",
-        "blockers",
-        "evidence",
+        "screenshots",
+        "participant_video",
+        "monitor",
+        "performance",
+        "analysis",
         "files",
+        "blockers",
         "checks",
     ]
     assert manifest["artifacts"][0]["id"] == "participant_video"

@@ -103,6 +103,10 @@ Use `record-participant-video` for screenshot and video production. Keep videos
 at most 3 minutes and 1280×720. Keep rendered notebooks small enough for typical
 review tooling (normally under about 100 KB).
 
+Rendering gives screenshots, participant video, monitor snapshot, performance
+test, and analysis their own top-level sections, so each of those artifacts is
+reviewed on its own rather than inside one combined evidence panel.
+
 ### Monitor snapshot
 
 `artifacts/monitor.html` is a **static HTML snapshot of the experimenter

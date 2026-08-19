@@ -392,12 +392,17 @@ def render_participant_video(
 def render_screenshot_gallery(
     evidence: AuditEvidenceView,
     *,
+    standalone: bool = False,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render screenshot evidence."""
+    """Render screenshot evidence.
+
+    Set ``standalone`` when the gallery is its own top-level audit section; the
+    enclosing panel then provides the heading.
+    """
 
     if not evidence.screenshots:
-        return ""
+        return "<p>No screenshots were found.</p>" if standalone else ""
     figures: list[str] = []
     for index, screenshot in enumerate(evidence.screenshots):
         caption = screenshot_caption(screenshot, evidence.screenshot_captions)
@@ -412,12 +417,23 @@ def render_screenshot_gallery(
             "</a>"
             "</figure>"
         )
-    return (
-        '<section class="screenshot-gallery" aria-labelledby="screenshot-gallery-heading">'
+    gallery_class = (
+        "screenshot-gallery section-standalone" if standalone else "screenshot-gallery"
+    )
+    header = (
         '<div class="screenshot-gallery-header">'
+        '<p class="artifact-note">Targeted participant-facing states captured '
+        "with Playwright.</p></div>"
+        if standalone
+        else '<div class="screenshot-gallery-header">'
         '<h3 id="screenshot-gallery-heading">Screenshot walkthrough</h3>'
-        '<p class="artifact-note">Targeted participant-facing states captured with Playwright.</p>'
-        "</div>"
+        '<p class="artifact-note">Targeted participant-facing states captured '
+        "with Playwright.</p></div>"
+    )
+    labelled_by = "" if standalone else ' aria-labelledby="screenshot-gallery-heading"'
+    return (
+        f'<section class="{gallery_class}"{labelled_by}>'
+        f"{header}"
         '<div class="screenshot-frame">'
         '<div class="screenshot-carousel" data-screenshot-gallery tabindex="0">'
         + "\n".join(figures)
@@ -439,6 +455,27 @@ def first_analysis_file(evidence: AuditEvidenceView) -> AuditFile | None:
     """Return the first available analysis artifact."""
 
     return evidence.analysis_files[0] if evidence.analysis_files else None
+
+
+def render_monitor_snapshot(
+    evidence: AuditEvidenceView,
+    *,
+    url_transform: UrlTransform = identity_url,
+) -> str:
+    """Render a link to the static experimenter dashboard snapshot."""
+
+    monitor = evidence.monitor_file
+    if monitor is None:
+        return "<p>No monitor snapshot was found.</p>"
+    if not monitor.url:
+        note = monitor.publication_note or "artifact file is not published"
+        return f'<p class="missing-artifact">Monitor snapshot {html.escape(note)}.</p>'
+    return (
+        '<p><a href="' + escape_url(monitor.url, url_transform) + '">'
+        "Open monitor snapshot</a></p>"
+        f'<p class="artifact-note"><code>{html.escape(monitor.path)}</code> '
+        "&middot; static snapshot of the experimenter dashboard.</p>"
+    )
 
 
 def render_evidence_actions(
@@ -521,14 +558,18 @@ def analysis_action_item(
 def render_analysis_notebook(
     evidence: AuditEvidenceView,
     *,
+    standalone: bool = False,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render a small safe preview of an analysis notebook."""
+    """Render a small safe preview of an analysis notebook.
+
+    Set ``standalone`` when the notebook is its own top-level audit section.
+    """
 
     notebook_file = evidence.analysis_notebook_file
     notebook = evidence.analysis_notebook
     if notebook_file is None or not notebook:
-        return ""
+        return "<p>No analysis notebook was found.</p>" if standalone else ""
 
     cells = notebook.get("cells")
     if not isinstance(cells, list):
@@ -536,10 +577,14 @@ def render_analysis_notebook(
     rendered_cells = [
         render_notebook_cell(cell) for cell in cells if isinstance(cell, dict)
     ]
+    section_class = "analysis-notebook-panel evidence-subsection"
+    if standalone:
+        section_class += " section-standalone"
+    heading = "" if standalone else "<h3>Analysis notebook</h3>"
     return (
-        '<section id="analysis-notebook" class="analysis-notebook-panel evidence-subsection">'
+        f'<section id="analysis-notebook" class="{section_class}">'
         '<div class="section-heading">'
-        "<h3>Analysis notebook</h3>"
+        f"{heading}"
         f'<a href="{escape_url(notebook_file.url, url_transform)}">Open raw notebook</a>'
         "</div>"
         f'<p class="artifact-note">Rendered from <code>{html.escape(notebook_file.path)}</code>.</p>'
@@ -658,18 +703,25 @@ def render_notebook_output(output: dict[str, object]) -> str:
 def render_performance_result(
     evidence: AuditEvidenceView,
     *,
+    standalone: bool = False,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render performance results when available."""
+    """Render performance results when available.
+
+    Set ``standalone`` when the result is its own top-level audit section.
+    """
 
     if evidence.performance_file is None:
-        return ""
+        return "<p>No performance test result was found.</p>" if standalone else ""
 
+    section_class = (
+        "performance-result section-standalone" if standalone else "performance-result"
+    )
     options = render_performance_options(evidence.performance_data.get("options"))
     if not evidence.performance_results:
         return (
-            '<section class="performance-result">'
-            f"{render_performance_header(evidence.performance_file, url_transform)}"
+            f'<section class="{section_class}">'
+            f"{render_performance_header(evidence.performance_file, url_transform, standalone=standalone)}"
             f"{options}"
             '<p class="artifact-note">This performance artifact does not contain '
             "tabular result rows.</p></section>"
@@ -691,8 +743,8 @@ def render_performance_result(
             "</tr>"
         )
     return (
-        '<section class="performance-result">'
-        f"{render_performance_header(evidence.performance_file, url_transform)}"
+        f'<section class="{section_class}">'
+        f"{render_performance_header(evidence.performance_file, url_transform, standalone=standalone)}"
         f"{options}"
         '<div class="performance-table-wrap">'
         '<table class="performance-table"><thead><tr>'
@@ -711,17 +763,32 @@ def render_performance_result(
 def render_performance_header(
     performance_file: AuditFile,
     url_transform: UrlTransform,
+    *,
+    standalone: bool = False,
 ) -> str:
     """Render the performance section header."""
 
-    return (
-        '<header class="performance-result-header"><div><h3>'
-        '<span class="header-popover" tabindex="0">Performance test result'
+    explanation = (
         '<span class="info-popover-content" role="tooltip">'
         "A performance test starts a local PsyNet server, repeatedly launches automated bot participants, "
         "and records how many complete the experiment, how many requests they make, and how quickly key "
         "pages respond under load."
-        "</span></span></h3></div>"
+        "</span>"
+    )
+    if standalone:
+        label = (
+            '<div><p class="artifact-note">'
+            '<span class="header-popover" tabindex="0">What this measures'
+            f"{explanation}</span></p></div>"
+        )
+    else:
+        label = (
+            "<div><h3>"
+            '<span class="header-popover" tabindex="0">Performance test result'
+            f"{explanation}</span></h3></div>"
+        )
+    return (
+        f'<header class="performance-result-header">{label}'
         f'<a href="{escape_url(performance_file.url, url_transform)}">Raw JSON</a></header>'
     )
 

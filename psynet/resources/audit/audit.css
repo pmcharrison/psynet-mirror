@@ -398,6 +398,23 @@ a {
   margin-top: 0;
 }
 
+/* Top-level evidence panels already carry their own heading and border. */
+.section-standalone {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.blocker-list {
+  margin-bottom: 0;
+}
+
+.blocker-severity {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
 .performance-result-header {
   align-items: start;
   display: flex;
@@ -665,10 +682,11 @@ table td {
 }
 
 .timeline-entry {
+  align-items: baseline;
   border-radius: 0.35rem;
   display: grid;
   gap: 0.25rem 0.75rem;
-  grid-template-columns: minmax(5.5rem, auto) minmax(6rem, auto) 1fr;
+  grid-template-columns: minmax(11rem, auto) minmax(6rem, auto) 1fr;
   margin: 0;
   padding: 0.45rem 0.65rem;
 }
@@ -677,6 +695,7 @@ table td {
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.85rem;
+  line-height: inherit;
 }
 
 .timeline-actor {
