@@ -7,6 +7,39 @@ from psynet.audit.artifacts import (
 )
 
 
+def test_write_hashed_artifact_redacts_py_credentials(tmp_path: Path) -> None:
+    source = tmp_path / "helper.py"
+    source.write_text(
+        "AWS_SECRET_ACCESS_KEY=secret\nPROLIFIC_API_TOKEN=token\n",
+        encoding="utf-8",
+    )
+    target_root = tmp_path / HASHED_ARTIFACTS_DIR
+
+    url = write_hashed_artifact(source, target_root, HASHED_ARTIFACTS_DIR)
+
+    prefix = f"{HASHED_ARTIFACTS_DIR}/"
+    exported = target_root / url.removeprefix(prefix)
+    assert exported.exists()
+    assert exported.read_text(encoding="utf-8") == (
+        "AWS_SECRET_ACCESS_KEY=[REDACTED]\nPROLIFIC_API_TOKEN=[REDACTED]\n"
+    )
+
+
+def test_monitor_static_href_prefix_matches_blob_layout() -> None:
+    from psynet.audit.artifacts import monitor_static_href_prefix
+
+    assert monitor_static_href_prefix() == "../../../../monitor-static/"
+
+
+def test_sanitize_html_artifact_ignores_binary_content(tmp_path: Path) -> None:
+    source = tmp_path / "monitor.html"
+    source.write_bytes(b"\xff\xfe not utf-8")
+
+    sanitize_html_artifact(source)
+
+    assert source.read_bytes() == b"\xff\xfe not utf-8"
+
+
 def test_write_hashed_artifact_redacts_text_and_normalizes_legacy_prefix(
     tmp_path: Path,
 ) -> None:

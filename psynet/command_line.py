@@ -3420,13 +3420,10 @@ def resolve_performance_json_output(json_output=None, audit=None):
         return None
     from psynet.audit.cli import resolve_audit_dir
 
-    audit_root = resolve_audit_dir(audit)
-    if not (audit_root / "audit.json").is_file():
-        click.echo(
-            f"Warning: {audit_root / 'audit.json'} not found; "
-            f"writing {AUDIT_PERFORMANCE_JSON} under {audit_root} anyway.",
-            err=True,
-        )
+    try:
+        audit_root = resolve_audit_dir(audit, require_manifest=True)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
     output_path = audit_root / AUDIT_PERFORMANCE_JSON
     output_path.parent.mkdir(parents=True, exist_ok=True)
     return str(output_path)
@@ -4022,7 +4019,13 @@ def audit_validate(audit_dir):
         validate_success_message,
     )
 
-    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
+    try:
+        resolved = resolve_audit_dir(
+            Path(audit_dir) if audit_dir is not None else None,
+            require_manifest=True,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     problems = validate_audit(resolved)
     if problems:
         for problem in problems:
@@ -4060,7 +4063,13 @@ def audit_render(audit_dir, output, allow_invalid):
         resolve_audit_dir,
     )
 
-    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
+    try:
+        resolved = resolve_audit_dir(
+            Path(audit_dir) if audit_dir is not None else None,
+            require_manifest=True,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     try:
         site_dir = render_audit_site(
             resolved,
@@ -4121,7 +4130,13 @@ def audit_serve(audit_dir, host, port, render, allow_invalid):
     if allow_invalid and not render:
         raise click.UsageError("--allow-invalid is only valid together with --render.")
 
-    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
+    try:
+        resolved = resolve_audit_dir(
+            Path(audit_dir) if audit_dir is not None else None,
+            require_manifest=True,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     try:
         if render:
             site_dir = render_audit_site(
@@ -4160,7 +4175,13 @@ def audit_mark_present(artifact_id, audit_dir, path):
 
     from psynet.audit.cli import mark_artifact_present, resolve_audit_dir
 
-    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
+    try:
+        resolved = resolve_audit_dir(
+            Path(audit_dir) if audit_dir is not None else None,
+            require_manifest=True,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     try:
         mark_artifact_present(resolved, artifact_id, path)
     except (OSError, ValueError) as exc:

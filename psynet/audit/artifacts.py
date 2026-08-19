@@ -10,6 +10,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from psynet.audit.model import TEXT_AUDIT_EXTENSIONS
+
 HASHED_ARTIFACTS_DIR = "artifacts/blobs/sha256"
 MONITOR_STATIC_ARTIFACTS_DIR = "artifacts/monitor-static"
 ARTIFACT_URL_PREFIX_ENV = "PSYNET_AUDIT_ARTIFACT_URL_PREFIX"
@@ -31,19 +33,6 @@ CREDENTIAL_REDACTIONS = (
     (re.compile(r"(?i)(PROLIFIC_API_TOKEN\s*=\s*)[^\s\"']+"), r"\1[REDACTED]"),
     (re.compile(r"(?i)(PROLIFIC_API_KEY\s*=\s*)[^\s\"']+"), r"\1[REDACTED]"),
 )
-TEXT_ARTIFACT_EXTENSIONS = {
-    ".html",
-    ".ipynb",
-    ".log",
-    ".md",
-    ".txt",
-    ".json",
-    ".csv",
-    ".yaml",
-    ".yml",
-}
-
-
 @dataclass(frozen=True)
 class ArtifactPublication:
     """Publication metadata for an experiment audit artifact."""
@@ -120,10 +109,21 @@ def redact_known_credentials(text: str) -> str:
     return text
 
 
+def monitor_static_href_prefix() -> str:
+    """Return the relative URL prefix from a hashed HTML blob to monitor-static."""
+
+    blob_dir = Path(HASHED_ARTIFACTS_DIR) / "00" / ("0" * 64)
+    monitor_dir = Path(MONITOR_STATIC_ARTIFACTS_DIR)
+    prefix = Path(os.path.relpath(monitor_dir, blob_dir)).as_posix()
+    if not prefix.endswith("/"):
+        prefix += "/"
+    return prefix
+
+
 def sanitize_text_artifact(path: Path) -> None:
     """Redact known credential values from copied text evidence."""
 
-    if path.suffix.lower() not in TEXT_ARTIFACT_EXTENSIONS:
+    if path.suffix.lower() not in TEXT_AUDIT_EXTENSIONS:
         return
     try:
         text = path.read_text(encoding="utf-8")
@@ -135,7 +135,10 @@ def sanitize_text_artifact(path: Path) -> None:
 def sanitize_html_artifact(path: Path) -> None:
     """Make copied HTML evidence safer to view from static previews."""
 
-    html = redact_known_credentials(path.read_text(encoding="utf-8"))
+    try:
+        html = redact_known_credentials(path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError:
+        return
     static_refs = sorted(set(STATIC_REF_RE.findall(html)))
     if "<head>" in html and "<base " not in html:
         html = html.replace("<head>", '<head>\n        <base href="./">', 1)
@@ -144,14 +147,15 @@ def sanitize_html_artifact(path: Path) -> None:
     html = html.replace('href="/static/', 'href="./static/')
     html = html.replace('src="/static/', 'src="./static/')
     html = re.sub(r"<script([^>]*)\s*/></script>", r"<script\1></script>", html)
+    monitor_prefix = monitor_static_href_prefix()
     for ref in CENTRAL_MONITOR_STATIC_REFS:
         html = html.replace(
             f'src="./static/{ref}"',
-            f'src="../../../../monitor-static/{ref}"',
+            f'src="{monitor_prefix}{ref}"',
         )
         html = html.replace(
             f'href="./static/{ref}"',
-            f'href="../../../../monitor-static/{ref}"',
+            f'href="{monitor_prefix}{ref}"',
         )
     html = html.replace(
         "</head>",

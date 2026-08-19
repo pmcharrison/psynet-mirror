@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -12,8 +13,22 @@ MAX_EVIDENCE_VIDEO_WIDTH = 1280
 MAX_EVIDENCE_VIDEO_HEIGHT = 720
 
 
+@dataclass(frozen=True)
+class VideoProbeResult:
+    """Result of probing a video file with ffprobe."""
+
+    metadata: dict[str, Any] | None
+    error: str | None = None
+
+
 def video_metadata(video_file: Path) -> dict[str, Any] | None:
     """Return ffprobe metadata for a video file."""
+
+    return probe_video_metadata(video_file).metadata
+
+
+def probe_video_metadata(video_file: Path) -> VideoProbeResult:
+    """Return ffprobe metadata and a coarse error classification."""
 
     try:
         result = subprocess.run(
@@ -31,13 +46,16 @@ def video_metadata(video_file: Path) -> dict[str, Any] | None:
             capture_output=True,
             text=True,
         )
+    except FileNotFoundError:
+        return VideoProbeResult(None, "unavailable")
     except (OSError, subprocess.CalledProcessError):
-        return None
+        return VideoProbeResult(None, "invalid")
 
     try:
-        return json.loads(result.stdout)
+        metadata = json.loads(result.stdout)
     except json.JSONDecodeError:
-        return None
+        return VideoProbeResult(None, "invalid")
+    return VideoProbeResult(metadata, None)
 
 
 def is_git_lfs_pointer(path: Path) -> bool:
@@ -57,13 +75,20 @@ def validate_evidence_video(video_file: Path) -> list[str]:
     if is_git_lfs_pointer(video_file):
         return problems
 
-    metadata = video_metadata(video_file)
-    if metadata is None:
-        # Lightweight checkouts can leave LFS placeholders that ffprobe cannot
-        # decode. Enforce limits when media is present, but do not fail solely
-        # because LFS content is absent.
+    probe = probe_video_metadata(video_file)
+    if probe.error == "unavailable":
+        problems.append(
+            f"{video_file}: ffprobe is required to validate evidence videos",
+        )
+        return problems
+    if probe.error == "invalid" or probe.metadata is None:
+        problems.append(
+            f"{video_file}: unable to read video metadata; "
+            "ensure file is a valid MP4",
+        )
         return problems
 
+    metadata = probe.metadata
     video_stream = next(
         (
             stream
@@ -72,6 +97,13 @@ def validate_evidence_video(video_file: Path) -> list[str]:
         ),
         {},
     )
+    if not video_stream:
+        problems.append(
+            f"{video_file}: unable to read video metadata; "
+            "ensure file is a valid MP4",
+        )
+        return problems
+
     duration = float(
         metadata.get("format", {}).get("duration")
         or video_stream.get("duration")

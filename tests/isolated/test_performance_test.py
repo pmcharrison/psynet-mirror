@@ -307,17 +307,18 @@ def test_resolve_performance_json_output_prefers_explicit_path(tmp_path):
         resolve_performance_json_output("results.json", audit=audit_dir)
 
 
-def test_resolve_performance_json_output_warns_without_manifest(tmp_path, capsys):
+def test_resolve_performance_json_output_requires_manifest(tmp_path):
     from pathlib import Path
+
+    import click
+    import pytest
 
     from psynet.command_line import resolve_performance_json_output
 
     audit_dir = tmp_path / "attempt"
     audit_dir.mkdir()
-    resolved = resolve_performance_json_output(audit=audit_dir)
-    assert Path(resolved) == audit_dir / "artifacts" / "performance.json"
-    err = capsys.readouterr().err
-    assert "audit.json" in err
+    with pytest.raises(click.UsageError, match="No audit packet found"):
+        resolve_performance_json_output(audit=audit_dir)
 
 
 def test_resolve_performance_json_output_autodetects_nested_audit(

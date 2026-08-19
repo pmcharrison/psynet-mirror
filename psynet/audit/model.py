@@ -113,6 +113,8 @@ class AuditEvidenceView:
         return self.analysis_notebook_file is not None and bool(self.analysis_notebook)
 
 
+MAX_AUDIT_TEXT_BYTES = 100_000
+
 SCREENSHOT_EXTENSIONS = {"gif", "jpeg", "jpg", "png", "webp"}
 TEXT_AUDIT_EXTENSIONS = {
     ".csv",
