@@ -9,7 +9,7 @@ from psynet.audit.html import (
     render_timeline_section,
     safe_section_html,
 )
-from psynet.audit.model import CompletenessItem, AuditFile, classify_audit_evidence
+from psynet.audit.model import AuditFile, CompletenessItem, classify_audit_evidence
 from psynet.audit.timeline import TimelineEntry
 
 
@@ -59,7 +59,9 @@ def test_render_evidence_section_uses_shared_dashboard_markup() -> None:
             file("screenshots/01-intro.png", None),
             file(
                 "screenshots/manifest.json",
-                json.dumps({"captions": {"screenshots/01-intro.png": "Intro <screen>"}}),
+                json.dumps(
+                    {"captions": {"screenshots/01-intro.png": "Intro <screen>"}}
+                ),
             ),
             file(
                 "performance.json",
@@ -93,7 +95,10 @@ def test_render_evidence_section_uses_shared_dashboard_markup() -> None:
                 json.dumps(
                     {
                         "cells": [
-                            {"cell_type": "markdown", "source": ["# Analysis\n\nReady."]},
+                            {
+                                "cell_type": "markdown",
+                                "source": ["# Analysis\n\nReady."],
+                            },
                             {
                                 "cell_type": "code",
                                 "source": ["print('ok')"],
@@ -114,7 +119,7 @@ def test_render_evidence_section_uses_shared_dashboard_markup() -> None:
         url_transform=lambda url: f"/{url}",
     )
 
-    assert '<section>' in html
+    assert "<section>" in html
     assert 'src="/artifacts/participant.mp4"' in html
     assert "data-screenshot-gallery" in html
     assert "Intro &lt;screen&gt;" in html
@@ -126,7 +131,9 @@ def test_render_evidence_section_uses_shared_dashboard_markup() -> None:
     assert "PLAN.md <span>present</span>" in html
 
 
-def test_render_evidence_section_marks_unpublished_actions_without_empty_links() -> None:
+def test_render_evidence_section_marks_unpublished_actions_without_empty_links() -> (
+    None
+):
     view = classify_audit_evidence(
         [
             unpublished_file("simulated_data.zip"),
@@ -172,7 +179,11 @@ def test_shared_section_renderers_cover_files_timeline_and_json() -> None:
     timeline_html = render_timeline_section(
         [
             TimelineEntry("T+00:00:00", "agent-start", "Started **work**.", []),
-            {"timestamp": "T+00:01:00", "actor": "agent-stop", "description": "Stopped."},
+            {
+                "timestamp": "T+00:01:00",
+                "actor": "agent-stop",
+                "description": "Stopped.",
+            },
         ],
     )
     json_html = render_json_block('{"model": "test"}')
@@ -207,7 +218,7 @@ def test_render_evidence_section_renders_safe_notebook_rich_outputs() -> None:
                                         "data": {
                                             "text/html": (
                                                 "<table><tr><th>n</th></tr>"
-                                                "<tr><td onclick=\"bad()\">4</td></tr></table>"
+                                                '<tr><td onclick="bad()">4</td></tr></table>'
                                                 "<script>bad()</script>"
                                             ),
                                         },
@@ -254,9 +265,7 @@ def test_render_evidence_section_renders_safe_notebook_rich_outputs() -> None:
     assert "plain result" in html
 
 
-PNG_B64 = (
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-)
+PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 
 
 def test_render_notebook_output_renders_valid_png() -> None:

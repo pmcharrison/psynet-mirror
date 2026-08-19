@@ -3855,10 +3855,9 @@ def performance_test__docker_ssh(
     ``psynet performance-test local --json-output`` or ``--audit`` instead.
     """
     if json_output or audit is not None:
-        print(
-            "Warning: --json-output/--audit are not yet implemented for SSH "
-            "mode. Use 'psynet performance-test local' with those options instead.",
-            file=sys.stderr,
+        raise click.UsageError(
+            "--json-output and --audit are not yet implemented for SSH mode. "
+            "Use 'psynet performance-test local' with those options instead.",
         )
 
     from dallinger.command_line.docker_ssh import Executor
@@ -4082,6 +4081,8 @@ def audit_render(audit_dir, output, allow_invalid):
         raise click.ClickException(
             "Render blocked by validation errors; fix them or pass --allow-invalid."
         ) from exc
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     click.echo(f"Rendered experiment audit site: {site_dir / 'index.html'}")
 
 

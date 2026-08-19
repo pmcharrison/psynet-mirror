@@ -18,8 +18,10 @@ you can pass ``.`` or omit the path and PsyNet will use ``./audit/`` when that
 is where ``audit.json`` lives (or the current directory when it already contains
 ``audit.json``).
 
-Audit support is part of core PsyNet (no optional extra). Use a PsyNet revision
-that includes ``psynet audit``, then:
+Audit support ships with PsyNet but requires the full experiment runtime
+(``psynet[experiment]``), including Dallinger and the audit HTML render
+dependencies. Participant video validation also requires ``ffprobe`` from
+`ffmpeg`. Use a PsyNet revision that includes ``psynet audit``, then:
 
 .. code-block:: bash
 
@@ -45,6 +47,9 @@ that includes ``psynet audit``, then:
   broken manifest.
 * ``serve`` hosts that static site over HTTP (default ``http://127.0.0.1:8765/``).
   Pass ``--render`` to rebuild first. It does not create a public tunnel.
+  Binding to a non-localhost host (for example ``--host 0.0.0.0``) exposes the
+  rendered audit, including any data exports, to the network without
+  authentication.
 
 Status conventions
 ------------------

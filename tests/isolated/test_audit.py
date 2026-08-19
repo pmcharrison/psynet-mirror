@@ -528,6 +528,33 @@ def test_render_audit_site_publishes_screenshots_from_manifest(tmp_path: Path) -
     assert "data-screenshot-counter>1 / 2</span>" in index
 
 
+def test_render_audit_site_publishes_gif_screenshots_from_manifest(
+    tmp_path: Path,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    screenshots = next(
+        artifact
+        for artifact in manifest["artifacts"]
+        if artifact["id"] == "screenshots"
+    )
+    screenshots["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write_bytes(audit_dir / "artifacts/screenshots/01-intro.gif", b"gif bytes")
+    write(
+        audit_dir / "artifacts/screenshots/manifest.json",
+        json.dumps({"captions": {"screenshots/01-intro.gif": "Animated intro"}}),
+    )
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert "Animated intro" in index
+    gif_blob = next(site_dir.rglob("*.gif"), None)
+    assert gif_blob is not None
+
+
 def test_starter_sections_rename_implementation_narrative() -> None:
     manifest = starter_audit_manifest(".")
     titles = {section["id"]: section["title"] for section in manifest["sections"]}
@@ -821,6 +848,89 @@ def test_read_audit_artifact_content_marks_truncation(tmp_path: Path) -> None:
     assert truncated is True
     assert content is not None
     assert len(content) == 100_000
+
+
+def test_read_audit_artifact_content_truncates_multibyte_utf8(tmp_path: Path) -> None:
+    from psynet.audit.cli import read_audit_artifact_content
+
+    source = tmp_path / "long.log"
+    source.write_bytes(b"x" * 99_999 + "é".encode() + b"y" * 100)
+
+    content, truncated = read_audit_artifact_content(source, max_bytes=100_000)
+
+    assert truncated is True
+    assert content is not None
+    assert len(content) <= 100_000
+
+
+def test_validate_audit_reports_null_artifacts_instead_of_crashing(
+    tmp_path: Path,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    write(audit_dir / "audit.json", json.dumps(audit_manifest() | {"artifacts": None}) + "\n")
+    write_core_section_files(audit_dir)
+
+    problems = validate_audit(audit_dir)
+
+    assert any("artifacts must be a list" in problem for problem in problems)
+
+
+def test_render_audit_site_allow_invalid_reports_malformed_json(
+    tmp_path: Path,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    audit_dir.mkdir()
+    write(audit_dir / "audit.json", "{not json")
+
+    with pytest.raises(ValueError, match="invalid JSON"):
+        render_audit_site(audit_dir, allow_invalid=True)
+
+
+def test_starter_audit_manifest_matches_schema_section_kinds() -> None:
+    from psynet.audit.cli import audit_css_path, starter_audit_manifest
+
+    schema_path = audit_css_path().parent / "audit.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    allowed = set(schema["$defs"]["section"]["properties"]["kind"]["enum"])
+    manifest = starter_audit_manifest(".")
+    for section in manifest["sections"]:
+        assert section["kind"] in allowed
+
+
+def test_collect_audit_warnings_when_ffprobe_unavailable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from psynet.audit.cli import collect_audit_warnings
+    from psynet.audit.video import VideoProbeResult
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    write_bytes(audit_dir / "artifacts/participant.mp4", b"video bytes")
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    for artifact in manifest["artifacts"]:
+        if artifact["id"] == "participant_video":
+            artifact["status"] = "present"
+    manifest["blockers"] = [
+        blocker
+        for blocker in manifest["blockers"]
+        if blocker["artifact_id"] != "participant_video"
+    ]
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    monkeypatch.setattr(
+        "psynet.audit.cli.probe_video_metadata",
+        lambda _path: VideoProbeResult(None, "unavailable"),
+    )
+    monkeypatch.setattr(
+        "psynet.audit.video.probe_video_metadata",
+        lambda _path: VideoProbeResult(None, "unavailable"),
+    )
+
+    warnings = collect_audit_warnings(audit_dir)
+
+    assert any("ffprobe is not available" in warning for warning in warnings)
+    assert validate_audit(audit_dir) == []
 
 
 def test_resolve_audit_dir_requires_manifest(tmp_path: Path) -> None:

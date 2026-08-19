@@ -33,6 +33,13 @@ CREDENTIAL_REDACTIONS = (
     (re.compile(r"(?i)(PROLIFIC_API_TOKEN\s*=\s*)[^\s\"']+"), r"\1[REDACTED]"),
     (re.compile(r"(?i)(PROLIFIC_API_KEY\s*=\s*)[^\s\"']+"), r"\1[REDACTED]"),
 )
+SOURCE_CODE_CREDENTIAL_REDACTIONS = tuple(
+    pattern
+    for pattern in CREDENTIAL_REDACTIONS
+    if "Username" not in pattern[0].pattern and "Password" not in pattern[0].pattern
+)
+
+
 @dataclass(frozen=True)
 class ArtifactPublication:
     """Publication metadata for an experiment audit artifact."""
@@ -101,12 +108,21 @@ def hashed_artifact_url(relative_path: str, base_url: str | None = None) -> str:
     return f"{prefix}/{relative_path}"
 
 
-def redact_known_credentials(text: str) -> str:
+def redact_known_credentials(text: str, *, for_source_code: bool = False) -> str:
     """Redact credential values that should never appear in public artifacts."""
 
-    for pattern, replacement in CREDENTIAL_REDACTIONS:
+    patterns = (
+        SOURCE_CODE_CREDENTIAL_REDACTIONS if for_source_code else CREDENTIAL_REDACTIONS
+    )
+    for pattern, replacement in patterns:
         text = pattern.sub(replacement, text)
     return text
+
+
+def published_blob_path(site_dir: Path, published_url: str) -> Path:
+    """Return the on-disk path for a published artifact URL."""
+
+    return site_dir / "static" / published_url
 
 
 def monitor_static_href_prefix() -> str:
@@ -129,7 +145,10 @@ def sanitize_text_artifact(path: Path) -> None:
         text = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         return
-    path.write_text(redact_known_credentials(text), encoding="utf-8")
+    path.write_text(
+        redact_known_credentials(text, for_source_code=path.suffix.lower() == ".py"),
+        encoding="utf-8",
+    )
 
 
 def sanitize_html_artifact(path: Path) -> None:

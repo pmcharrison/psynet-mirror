@@ -195,6 +195,11 @@
           "enum": [
             "markdown",
             "evidence",
+            "screenshots",
+            "participant_video",
+            "monitor",
+            "performance",
+            "analysis",
             "files",
             "timeline",
             "json",

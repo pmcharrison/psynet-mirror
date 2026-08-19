@@ -308,7 +308,6 @@ def test_resolve_performance_json_output_prefers_explicit_path(tmp_path):
 
 
 def test_resolve_performance_json_output_requires_manifest(tmp_path):
-    from pathlib import Path
 
     import click
     import pytest

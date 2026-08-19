@@ -10,7 +10,9 @@ from psynet.audit.artifacts import (
 def test_write_hashed_artifact_redacts_py_credentials(tmp_path: Path) -> None:
     source = tmp_path / "helper.py"
     source.write_text(
-        "AWS_SECRET_ACCESS_KEY=secret\nPROLIFIC_API_TOKEN=token\n",
+        "AWS_SECRET_ACCESS_KEY=secret\n"
+        "PROLIFIC_API_TOKEN=token\n"
+        'Username = "participant"\n',
         encoding="utf-8",
     )
     target_root = tmp_path / HASHED_ARTIFACTS_DIR
@@ -21,7 +23,9 @@ def test_write_hashed_artifact_redacts_py_credentials(tmp_path: Path) -> None:
     exported = target_root / url.removeprefix(prefix)
     assert exported.exists()
     assert exported.read_text(encoding="utf-8") == (
-        "AWS_SECRET_ACCESS_KEY=[REDACTED]\nPROLIFIC_API_TOKEN=[REDACTED]\n"
+        "AWS_SECRET_ACCESS_KEY=[REDACTED]\n"
+        "PROLIFIC_API_TOKEN=[REDACTED]\n"
+        'Username = "participant"\n'
     )
 
 

@@ -15,6 +15,7 @@ from typing import Any
 from psynet.audit.artifacts import (
     HASHED_ARTIFACTS_DIR,
     MONITOR_STATIC_ARTIFACTS_DIR,
+    published_blob_path,
     redact_known_credentials,
     write_hashed_artifact,
     write_shared_monitor_static_assets,
@@ -38,13 +39,18 @@ from psynet.audit.html import (
 )
 from psynet.audit.model import (
     MAX_AUDIT_TEXT_BYTES,
+    SCREENSHOT_FILE_SUFFIXES,
     TEXT_AUDIT_EXTENSIONS,
     AuditFile,
     classify_audit_evidence,
     file_kind,
 )
 from psynet.audit.timeline import parse_timeline_entries
-from psynet.audit.video import validate_evidence_video
+from psynet.audit.video import (
+    is_git_lfs_pointer,
+    probe_video_metadata,
+    validate_evidence_video,
+)
 
 AUDIT_TOP_LEVEL_REQUIRED = {
     "schema_version",
@@ -576,14 +582,25 @@ def relative_audit_path(
     return resolved_path, []
 
 
-def validate_present_artifact_file(artifact_path: Path) -> list[str]:
+def validate_present_artifact_file(
+    artifact_path: Path,
+    *,
+    artifact_kind: str | None = None,
+    require_video_probe: bool = True,
+) -> list[str]:
     """Validate a present artifact file before marking or accepting it."""
 
     problems: list[str] = []
     suffix = artifact_path.suffix.lower()
-    if suffix == ".mp4":
-        problems.extend(validate_evidence_video(artifact_path))
-    if suffix == ".ipynb":
+    is_video = suffix == ".mp4" or artifact_kind == "video"
+    if is_video:
+        problems.extend(
+            validate_evidence_video(
+                artifact_path,
+                require_probe=require_video_probe,
+            ),
+        )
+    if suffix == ".ipynb" or artifact_kind == "notebook":
         problems.extend(validate_audit_notebook(artifact_path))
     return problems
 
@@ -618,13 +635,16 @@ def validate_audit_blockers(
     if not isinstance(blockers, list):
         return set(), [f"{audit_dir / 'audit.json'}: blockers must be a list"]
 
-    artifact_ids = {
-        artifact.get("id")
-        for artifact in manifest.get("artifacts", [])
-        if isinstance(artifact, dict)
-        and isinstance(artifact.get("id"), str)
-        and ARTIFACT_ID_RE.fullmatch(artifact.get("id"))
-    }
+    artifact_ids: set[str] = set()
+    artifacts = manifest.get("artifacts")
+    if isinstance(artifacts, list):
+        artifact_ids = {
+            artifact.get("id")
+            for artifact in artifacts
+            if isinstance(artifact, dict)
+            and isinstance(artifact.get("id"), str)
+            and ARTIFACT_ID_RE.fullmatch(artifact.get("id"))
+        }
 
     blocker_ids: set[str] = set()
     problems: list[str] = []
@@ -817,7 +837,17 @@ def validate_audit_artifacts(
                     f"{artifact_path}",
                 )
                 continue
-            problems.extend(validate_present_artifact_file(artifact_path))
+            problems.extend(
+                validate_present_artifact_file(
+                    artifact_path,
+                    artifact_kind=(
+                        str(artifact.get("kind"))
+                        if isinstance(artifact.get("kind"), str)
+                        else None
+                    ),
+                    require_video_probe=False,
+                ),
+            )
 
         if artifact.get("required") is True and status != "present":
             if artifact_id is None or artifact_id not in blocker_ids:
@@ -857,6 +887,43 @@ def validate_audit_profile_and_extensions(
     return problems
 
 
+def collect_media_validation_warnings(
+    audit_dir: Path,
+    manifest: dict[str, Any],
+) -> list[str]:
+    """Return warnings when present video artifacts could not be probed."""
+
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        return []
+
+    warnings: list[str] = []
+    for artifact in artifacts:
+        if not isinstance(artifact, dict) or artifact.get("status") != "present":
+            continue
+        artifact_path, path_problems = relative_audit_path(
+            audit_dir,
+            artifact.get("path"),
+            f"artifact {artifact.get('id')!r}",
+        )
+        if path_problems or artifact_path is None or not artifact_path.is_file():
+            continue
+        artifact_kind = (
+            str(artifact.get("kind")) if isinstance(artifact.get("kind"), str) else None
+        )
+        is_video = artifact_path.suffix.lower() == ".mp4" or artifact_kind == "video"
+        if not is_video or is_git_lfs_pointer(artifact_path):
+            continue
+        probe = probe_video_metadata(artifact_path)
+        if probe.error == "unavailable":
+            warnings.append(
+                f"{artifact_path}: ffprobe is not available; "
+                "video limits were not checked",
+            )
+            break
+    return warnings
+
+
 def collect_audit_warnings(
     audit_dir: Path,
     manifest: dict[str, Any] | None = None,
@@ -883,6 +950,7 @@ def collect_audit_warnings(
                     f"{manifest_path}: no plan section; recommended for "
                     "agent-led implementation audits (optional for retrospective audits)",
                 )
+    warnings.extend(collect_media_validation_warnings(audit_dir, manifest))
     extensions = manifest.get("extensions", [])
     if not isinstance(extensions, list):
         return warnings
@@ -1007,20 +1075,24 @@ def publish_audit_artifacts(
         )
         if path_problems or source_file is None or not source_file.is_file():
             continue
-        artifact_url = artifact_output_url(
-            write_hashed_artifact(
-                source_file,
-                target_root,
-                HASHED_ARTIFACTS_DIR,
-            ),
+        published_url = write_hashed_artifact(
+            source_file,
+            target_root,
+            HASHED_ARTIFACTS_DIR,
         )
+        artifact_url = artifact_output_url(published_url)
+        published_path = published_blob_path(site_dir, published_url)
         content, truncated = read_audit_artifact_content(source_file)
         rendered.append(
             AuditFile(
                 path=relative_path,
                 url=artifact_url,
                 content=content,
-                size_bytes=source_file.stat().st_size,
+                size_bytes=(
+                    published_path.stat().st_size
+                    if published_path.is_file()
+                    else source_file.stat().st_size
+                ),
                 kind=file_kind(relative_path),
                 truncated=truncated,
             )
@@ -1074,22 +1146,26 @@ def publish_screenshot_manifest_files(
             problems
             or source_file is None
             or not source_file.is_file()
-            or source_file.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}
+            or source_file.suffix.lower() not in SCREENSHOT_FILE_SUFFIXES
         ):
             continue
-        artifact_url = artifact_output_url(
-            write_hashed_artifact(
-                source_file,
-                target_root,
-                HASHED_ARTIFACTS_DIR,
-            )
+        published_url = write_hashed_artifact(
+            source_file,
+            target_root,
+            HASHED_ARTIFACTS_DIR,
         )
+        artifact_url = artifact_output_url(published_url)
+        published_path = target_root.parent.parent / published_url
         rendered.append(
             AuditFile(
                 path=relative_path,
                 url=artifact_url,
                 content=None,
-                size_bytes=source_file.stat().st_size,
+                size_bytes=(
+                    published_path.stat().st_size
+                    if published_path.is_file()
+                    else source_file.stat().st_size
+                ),
                 kind=file_kind(relative_path),
             )
         )
@@ -1112,10 +1188,16 @@ def read_audit_artifact_content(
     truncated = len(data) > max_bytes
     if truncated:
         data = data[:max_bytes]
-    try:
-        return redact_known_credentials(data.decode("utf-8")), truncated
-    except UnicodeDecodeError:
-        return None, False
+    text = data.decode("utf-8", errors="ignore")
+    if not text:
+        return None, truncated
+    return (
+        redact_known_credentials(
+            text,
+            for_source_code=source_file.suffix.lower() == ".py",
+        ),
+        truncated,
+    )
 
 
 def render_metadata_grid(items: list[tuple[str, str]]) -> str:
@@ -1420,7 +1502,13 @@ def mark_artifact_present(
             f"{resolved}: file missing; create it before marking present"
         )
 
-    problems = validate_present_artifact_file(resolved)
+    problems = validate_present_artifact_file(
+        resolved,
+        artifact_kind=(
+            str(target.get("kind")) if isinstance(target.get("kind"), str) else None
+        ),
+        require_video_probe=True,
+    )
     if problems:
         raise ValueError("; ".join(problems))
 
@@ -1534,7 +1622,12 @@ def render_audit_site(
         if problems:
             raise AuditValidationError(problems)
 
-    manifest = read_audit_manifest(audit_dir)
+    try:
+        manifest = read_audit_manifest(audit_dir)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"{audit_dir / 'audit.json'}: invalid JSON: {exc}",
+        ) from exc
     if site_dir is None:
         configured_site = manifest.get("render", {})
         if isinstance(configured_site, dict) and configured_site.get("site_path"):

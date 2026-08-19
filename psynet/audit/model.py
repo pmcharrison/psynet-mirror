@@ -116,6 +116,7 @@ class AuditEvidenceView:
 MAX_AUDIT_TEXT_BYTES = 100_000
 
 SCREENSHOT_EXTENSIONS = {"gif", "jpeg", "jpg", "png", "webp"}
+SCREENSHOT_FILE_SUFFIXES = {f".{extension}" for extension in SCREENSHOT_EXTENSIONS}
 TEXT_AUDIT_EXTENSIONS = {
     ".csv",
     ".html",
@@ -262,10 +263,9 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
     )
     analyses = analysis_files(audit_files)
     notebook_files = [file for file in analyses if file.kind == "ipynb"]
-    analysis_notebook_file = (
-        first_file_by_evidence_path(audit_files, "analyses/analysis.ipynb")
-        or (notebook_files[0] if notebook_files else None)
-    )
+    analysis_notebook_file = first_file_by_evidence_path(
+        audit_files, "analyses/analysis.ipynb"
+    ) or (notebook_files[0] if notebook_files else None)
     analysis_notebook = parse_json_content(analysis_notebook_file)
 
     visible_files = [

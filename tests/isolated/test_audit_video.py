@@ -7,6 +7,11 @@ from psynet.audit.video import (
     validate_evidence_video,
 )
 
+VALID_METADATA = {
+    "format": {"duration": "10", "format_name": "mp4"},
+    "streams": [{"codec_type": "video", "width": 640, "height": 480}],
+}
+
 
 def test_validate_evidence_video_skips_git_lfs_pointer(tmp_path: Path) -> None:
     video = tmp_path / "participant.mp4"
@@ -43,12 +48,42 @@ def test_validate_evidence_video_fails_when_ffprobe_missing(tmp_path: Path) -> N
     assert any("ffprobe is required" in problem for problem in problems)
 
 
+def test_validate_evidence_video_warns_only_when_probe_optional(
+    tmp_path: Path,
+) -> None:
+    video = tmp_path / "participant.mp4"
+    video.write_bytes(b"video bytes")
+
+    with patch(
+        "psynet.audit.video.probe_video_metadata",
+        return_value=VideoProbeResult(None, "unavailable"),
+    ):
+        assert validate_evidence_video(video, require_probe=False) == []
+
+
+def test_validate_evidence_video_rejects_non_mp4_container(tmp_path: Path) -> None:
+    video = tmp_path / "participant.mp4"
+    video.write_bytes(b"video")
+
+    metadata = {
+        "format": {"duration": "10", "format_name": "h264"},
+        "streams": [{"codec_type": "video", "width": 640, "height": 480}],
+    }
+    with patch(
+        "psynet.audit.video.probe_video_metadata",
+        return_value=VideoProbeResult(metadata, None),
+    ):
+        problems = validate_evidence_video(video)
+
+    assert any("MP4-compatible container" in problem for problem in problems)
+
+
 def test_validate_evidence_video_enforces_duration_limit(tmp_path: Path) -> None:
     video = tmp_path / "participant.mp4"
     video.write_bytes(b"video")
 
     metadata = {
-        "format": {"duration": "200"},
+        "format": {"duration": "200", "format_name": "mp4"},
         "streams": [{"codec_type": "video", "width": 640, "height": 480}],
     }
     with patch(
