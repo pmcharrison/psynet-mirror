@@ -136,6 +136,71 @@ def test_finalize_pending_trials_skips_blocked_trials(db_session, participant):
     assert trial.finalized is False
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_failed_async_blocks_finalization_even_if_not_pending(db_session, participant):
+    """Failed async is not 'pending' but must still block finalize."""
+    exp = get_experiment()
+    trial_maker = _chain_trial_maker()
+    network = _create_network(trial_maker, exp)
+    trial = _add_complete_unfinalized_trial(
+        network.head,
+        participant,
+        async_post_trial_requested=True,
+        async_post_trial_complete=False,
+        async_post_trial_failed=True,
+    )
+    db.session.commit()
+
+    assert trial.async_post_trial_pending is False
+    assert trial.async_post_trial_blocks_finalization is True
+    assert Trial.get_trials_ready_to_finalize() == []
+    trial.check_if_can_mark_as_finalized()
+    assert trial.finalized is False
+
+
+class FailingAsyncTrial(FinalizeBackstopTrial):
+    run_async_post_trial = True
+
+    def async_post_trial(self):
+        raise RuntimeError("intentional async_post_trial failure")
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_call_async_post_trial_failure_fails_trial(db_session, participant):
+    exp = get_experiment()
+    trial_maker = _chain_trial_maker()
+    network = _create_network(trial_maker, exp)
+    trial = FailingAsyncTrial(
+        experiment=exp,
+        node=network.head,
+        participant=participant,
+        propagate_failure=False,
+        is_repeat_trial=False,
+    )
+    trial.answer = 1
+    trial.complete = True
+    trial.finalized = False
+    trial.async_post_trial_requested = True
+    db.session.add(trial)
+    db.session.commit()
+
+    with pytest.raises(RuntimeError, match="intentional async_post_trial failure"):
+        trial.call_async_post_trial()
+
+    db.session.refresh(trial)
+    assert trial.async_post_trial_failed is True
+    assert trial.failed is True
+    assert "async_post_trial_failed" in (trial.failed_reason or "")
+    assert trial.finalized is False
+    assert Trial.get_trials_ready_to_finalize() == []
+
+
 class ExplodingFinalizeTrial(FinalizeBackstopTrial):
     def on_finalized(self):
         raise RuntimeError("intentional finalize backstop failure")

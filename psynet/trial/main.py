@@ -334,6 +334,13 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     @hybrid_property
     def async_post_trial_pending(self):
+        """Whether async post-trial work is still in flight.
+
+        Used for feedback / wait loops. This is *not* the finalize gate:
+        finalize requires async success when requested (see
+        :attr:`async_post_trial_blocks_finalization`), so a failed async
+        does not count as pending here but still blocks finalization.
+        """
         return self.async_post_trial_requested and not (
             self.async_post_trial_complete or self.async_post_trial_failed
         )
@@ -348,6 +355,24 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
                     cls.async_post_trial_failed,
                 )
             ),
+        )
+
+    @hybrid_property
+    def async_post_trial_blocks_finalization(self):
+        """Whether async post-trial prevents finalization.
+
+        Stricter than :attr:`async_post_trial_pending`: if async was
+        requested, it must have *succeeded* (``async_post_trial_complete``)
+        before the trial may finalize. Failed async therefore blocks
+        finalization even though it is no longer "pending".
+        """
+        return self.async_post_trial_requested and not self.async_post_trial_complete
+
+    @async_post_trial_blocks_finalization.expression
+    def async_post_trial_blocks_finalization(cls):
+        return and_(
+            cls.async_post_trial_requested.is_(True),
+            cls.async_post_trial_complete.is_(False),
         )
 
     node = relationship(
@@ -733,8 +758,11 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             # that we don't want to persist. We roll these back so that we revert to the state
             # before the method was called. However, we do need to record that the method failed,
             # so we set the async_post_trial_failed flag to True.
+            # Also fail the trial here so it cannot sit complete-but-unfinalizable if the
+            # surrounding process failure cascade is skipped (finalize requires async success).
             db.session.rollback()
             self.async_post_trial_failed = True
+            self.fail(reason="async_post_trial_failed")
             db.session.commit()
             raise
         self.async_post_trial_complete = True
@@ -762,6 +790,10 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
         Intermediate waiting states log at debug; callers and the finalize
         backstop poller re-check as preconditions clear.
+
+        Async post-trial is a success gate, not merely a pending check: if
+        async was requested, it must have completed successfully before
+        finalization (failed async must not finalize).
         """
         if not self.complete:
             return
@@ -779,27 +811,34 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
                 self.id,
             )
             return
-        if self.async_post_trial_requested and not self.async_post_trial_complete:
-            logger.debug(
-                "Cannot mark trial %s as finalized yet; awaiting async_post_trial.",
-                self.id,
-            )
+        if self.async_post_trial_blocks_finalization:
+            if self.async_post_trial_failed:
+                logger.debug(
+                    "Cannot mark trial %s as finalized; async_post_trial failed.",
+                    self.id,
+                )
+            else:
+                logger.debug(
+                    "Cannot mark trial %s as finalized yet; awaiting async_post_trial.",
+                    self.id,
+                )
             return
         self.finalized = True
         self.on_finalized()
 
     @classmethod
     def _ready_to_finalize_condition(cls):
-        """SQL condition for trials that appear ready to finalize."""
+        """SQL condition for trials that appear ready to finalize.
+
+        Uses :attr:`async_post_trial_blocks_finalization` (async must have
+        succeeded if requested), not :attr:`async_post_trial_pending`.
+        """
         return and_(
             cls.complete.is_(True),
             cls.finalized.is_(False),
             cls.failed.is_(False),
             ~cls.asset_deposit_pending,
-            ~and_(
-                cls.async_post_trial_requested.is_(True),
-                cls.async_post_trial_complete.is_(False),
-            ),
+            ~cls.async_post_trial_blocks_finalization,
         )
 
     @classmethod
