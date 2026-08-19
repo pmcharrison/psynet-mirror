@@ -844,7 +844,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     @classmethod
     def ready_to_finalize_id_select(cls):
         """Select IDs of trials that appear ready to finalize."""
-        return select(cls.id).where(cls._ready_to_finalize_condition())
+        return select(cls.id).where(cls._ready_to_finalize_condition()).order_by(cls.id)
 
     @classmethod
     def get_trials_ready_to_finalize(cls):
@@ -869,7 +869,12 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         trial_ids = [row[0] for row in id_rows]
         if not trial_ids:
             return []
-        return cls.query.filter(cls.id.in_(trial_ids)).populate_existing().all()
+        return (
+            cls.query.filter(cls.id.in_(trial_ids))
+            .order_by(cls.id)
+            .populate_existing()
+            .all()
+        )
 
     @classmethod
     def finalize_pending_trials(cls):
@@ -903,8 +908,9 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             if trial is None:
                 continue
             try:
+                was_finalized = trial.finalized
                 trial.check_if_can_mark_as_finalized()
-                if trial.finalized:
+                if trial.finalized and not was_finalized:
                     finalized_count += 1
             except Exception as err:
                 # Rollback undid uncommitted successes since the last commit;

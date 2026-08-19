@@ -140,6 +140,39 @@ def test_finalize_pending_trials_skips_blocked_trials(db_session, participant):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
+def test_finalize_pending_trials_skips_asset_deposit_pending(
+    db_session, participant, tmp_path
+):
+    from psynet.asset import ExperimentAsset
+
+    exp = get_experiment()
+    trial_maker = _chain_trial_maker()
+    network = _create_network(trial_maker, exp)
+    trial = _add_complete_unfinalized_trial(network.head, participant)
+
+    asset_path = tmp_path / "pending.txt"
+    asset_path.write_text("pending")
+    asset = ExperimentAsset(
+        local_key="pending",
+        input_path=str(asset_path),
+        parent=trial,
+    )
+    db.session.add(asset)
+    trial.assets["pending"] = asset
+    db.session.commit()
+
+    assert asset.trial_id == trial.id
+    assert asset.deposited is False
+    assert trial.asset_deposit_pending is True
+    assert Trial.get_trials_ready_to_finalize() == []
+    assert Trial.finalize_pending_trials() == 0
+    assert trial.finalized is False
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_failed_async_blocks_finalization_even_if_not_pending(db_session, participant):
     """Failed async is not 'pending' but must still block finalize."""
     exp = get_experiment()

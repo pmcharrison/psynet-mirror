@@ -1601,6 +1601,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.grow_networks()
 
     @staticmethod
+    def _fail_grown_network(network):
+        """Mark a network's head (or degree-0 trials) failed after a grow error."""
+        if network.head is not None and network.head.degree > 0:
+            network.head.fail()
+        elif network.head is not None and network.head.degree == 0:
+            for trial in network.head.all_trials:
+                trial.fail()
+
+    @staticmethod
     def grow_networks():
         from psynet.trial.chain import ChainTrialMaker
 
@@ -1632,17 +1641,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 except Exception as err:
                     # Re-fetch after handle_error rollback; commit the fail so a
                     # later error in this batch cannot undo it.
-                    def _fail_grown_network(network):
-                        if network.head is not None and network.head.degree > 0:
-                            network.head.fail()
-                        elif network.head is not None and network.head.degree == 0:
-                            for trial in network.head.all_trials:
-                                trial.fail()
-
                     exp.isolate_batch_item_failure(
                         err,
                         refetch=lambda: db.session.get(TrialNetwork, network_id),
-                        fail=_fail_grown_network,
+                        fail=Experiment._fail_grown_network,
                         network=network,
                     )
 
@@ -1655,8 +1657,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _finalize_pending_trials():
         if not is_experiment_launched():
             return
-        from psynet.trial.main import Trial
-
         # Event-driven finalize checks remain the fast path. This poller only
         # recovers trials that became ready without those callbacks running.
         Trial.finalize_pending_trials()
