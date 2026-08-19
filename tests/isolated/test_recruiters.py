@@ -7,7 +7,7 @@ import dallinger.recruiters
 import pytest
 from dallinger.prolific import ProlificServiceException
 
-from psynet.participant import Participant
+from psynet.participant import Participant, display_bonus_status
 from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
@@ -1104,6 +1104,7 @@ def test_apply_payment_caps_withholds_bonus_at_hard_max():
 
     assert result == 0.0
     assert participant.unpaid_bonus == 1.00
+    assert participant.bonus_status == "capped"
     assert harness.hard_max_emails == 1
     participant.send_email_max_payment_reached.assert_not_called()
 
@@ -1153,6 +1154,7 @@ def test_pay_decided_bonus_withholds_at_hard_max_and_settles():
     assert participant.bonus is None
     assert participant.payment_settled is True
     assert participant.needs_payment_review is False
+    assert participant.bonus_status == "capped"
 
 
 def test_pay_decided_bonus_skips_when_unpaid_bonus_already_set():
@@ -1403,6 +1405,7 @@ def test_pay_review_bonus_posts_when_platform_shows_zero():
     assert participant.needs_payment_review is False
     assert participant.bonus == 1.50
     assert participant.unpaid_bonus == 0.0
+    assert participant.bonus_status == "success"
 
 
 def test_pay_review_bonus_does_not_post_when_platform_already_paid():
@@ -1481,8 +1484,75 @@ def test_dismiss_review_bonus_clears_review_without_posting():
     assert participant.payment_settled is True
     assert participant.bonus is None
     assert participant.unpaid_bonus == 1.50
+    assert participant.bonus_status == "dismissed"
     participant.recruiter.reward_bonus.assert_not_called()
     assert "without posting" in message.lower()
+
+
+@pytest.mark.parametrize(
+    "attrs, label",
+    [
+        (
+            {
+                "needs_payment_review": True,
+                "bonus_status": None,
+                "payment_settled": False,
+            },
+            "Unconfirmed",
+        ),
+        (
+            {
+                "needs_payment_review": False,
+                "bonus_status": "success",
+                "payment_settled": True,
+            },
+            "Success",
+        ),
+        (
+            {
+                "needs_payment_review": False,
+                "bonus_status": "dismissed",
+                "payment_settled": True,
+            },
+            "Dismissed",
+        ),
+        (
+            {
+                "needs_payment_review": False,
+                "bonus_status": "capped",
+                "payment_settled": True,
+            },
+            "Capped",
+        ),
+        (
+            {
+                "needs_payment_review": False,
+                "bonus_status": None,
+                "payment_settled": False,
+            },
+            "Not due yet",
+        ),
+        (
+            {
+                "needs_payment_review": False,
+                "bonus_status": None,
+                "payment_settled": True,
+            },
+            "Success",
+        ),
+        (
+            {
+                "needs_payment_review": False,
+                "bonus_status": None,
+                "payment_settled": True,
+                "unpaid_bonus": 1.5,
+            },
+            "Capped",
+        ),
+    ],
+)
+def test_display_bonus_status(attrs, label):
+    assert display_bonus_status(SimpleNamespace(**attrs)) == label
 
 
 def test_dismiss_review_bonus_refuses_when_not_in_review():

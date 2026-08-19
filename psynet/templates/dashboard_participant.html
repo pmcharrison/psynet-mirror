@@ -107,14 +107,13 @@
 
 {% block body %}
     <h1>{{ title }}</h1>
-    <p>Look up a participant by ID, or review bonuses that PsyNet could not transfer automatically.</p>
+    <p>Look up a participant by ID, or review bonuses PsyNet could not confirm.</p>
 
     {% if participants_needing_review %}
         <div class="alert alert-warning" role="alert">
             <h2 class="h5">Needs payment review ({{ participants_needing_review | length }})</h2>
             <p class="mb-3">
-                Automatic bonus transfer failed or was interrupted.
-                Open a participant, then pay or dismiss without paying.
+                PsyNet could not confirm these bonuses. Prolific may already have paid them.
             </p>
             <div class="table-responsive">
                 <table class="table table-striped mb-0" id="payment-review-table">
@@ -253,16 +252,8 @@
             <th colspan="2">Payment</th>
         </tr>
         <tr {% if participant.needs_payment_review %}class="table-warning"{% endif %}>
-            <td>Payment decided</td>
-            <td>
-                {% if participant.needs_payment_review %}
-                    Needs review
-                {% elif participant.payment_settled %}
-                    Yes
-                {% else %}
-                    Not yet
-                {% endif %}
-            </td>
+            <td>Bonus status</td>
+            <td>{{ participant.bonus_status_label }}</td>
         </tr>
         <tr>
             <td>Base payment</td>

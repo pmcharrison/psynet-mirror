@@ -81,7 +81,12 @@ from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
-from .participant import Participant
+from .participant import (
+    BONUS_STATUS_CAPPED,
+    BONUS_STATUS_DISMISSED,
+    BONUS_STATUS_SUCCESS,
+    Participant,
+)
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
     CapRecruiter,  # noqa: F401; Backward compatibility alias
@@ -2422,6 +2427,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         projected_spend = self.amount_spent() + bonus
         if projected_spend > self.var.hard_max_experiment_payment:
             participant.unpaid_bonus = bonus
+            participant.bonus_status = BONUS_STATUS_CAPPED
             self.ensure_hard_max_experiment_payment_email_sent()
             logger.warning(
                 "Withholding bonus of %s for participant %s: experiment "
@@ -2480,6 +2486,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.bonus,
             )
             participant.payment_settled = True
+            participant.bonus_status = BONUS_STATUS_SUCCESS
             return True
         if (participant.unpaid_bonus or 0.0) > 0:
             logger.info(
@@ -2530,6 +2537,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.bonus = amount
         participant.unpaid_bonus = 0.0
         participant.needs_payment_review = False
+        participant.bonus_status = BONUS_STATUS_SUCCESS
         participant.payment_settled = True
 
     def pay_review_bonus(self, participant) -> tuple[str, str]:
@@ -2591,6 +2599,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Participant {participant.id} is not flagged for payment review.",
             )
         participant.needs_payment_review = False
+        participant.bonus_status = BONUS_STATUS_DISMISSED
         participant.payment_settled = True
         logger.info(
             "Dismissed payment review for participant %s without posting "

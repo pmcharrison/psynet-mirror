@@ -46,6 +46,37 @@ from .utils import (
 
 logger = get_logger()
 
+BONUS_STATUS_SUCCESS = "success"
+BONUS_STATUS_DISMISSED = "dismissed"
+BONUS_STATUS_CAPPED = "capped"
+
+_BONUS_STATUS_LABELS = {
+    BONUS_STATUS_SUCCESS: "Success",
+    BONUS_STATUS_DISMISSED: "Dismissed",
+    BONUS_STATUS_CAPPED: "Capped",
+}
+
+
+def display_bonus_status(participant) -> str:
+    """Experimenter-facing bonus outcome.
+
+    ``Unconfirmed`` means PsyNet meant to pay and cannot tell if the
+    bonus arrived. ``Success`` is what PsyNet recorded, not a Prolific
+    receipt. ``Dismissed`` and ``Capped`` mean we will not post again.
+    """
+    if getattr(participant, "needs_payment_review", False):
+        return "Unconfirmed"
+    stored = getattr(participant, "bonus_status", None)
+    if stored in _BONUS_STATUS_LABELS:
+        return _BONUS_STATUS_LABELS[stored]
+    if getattr(participant, "payment_settled", False):
+        unpaid = float(getattr(participant, "unpaid_bonus", 0) or 0)
+        if unpaid > 0:
+            return "Capped"
+        return "Success"
+    return "Not due yet"
+
+
 if TYPE_CHECKING:
     from .sync import SyncGroup
     from .timeline import Module
@@ -216,6 +247,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # transfer failed, unpaid_bonus holds the amount; open the participant
     # on the dashboard to poll the platform, pay, or dismiss.
     needs_payment_review = Column(Boolean, default=False)
+    # Terminal bonus outcome once payment is settled: success, dismissed,
+    # or capped. Unconfirmed review is ``needs_payment_review`` instead.
+    bonus_status = Column(String)
     issued_completion_code_type = Column(String)
     total_wait_page_time = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
@@ -555,6 +589,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.unpaid_bonus = 0.0
         self.payment_settled = False
         self.needs_payment_review = False
+        self.bonus_status = None
         self.issued_completion_code_type = None
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
@@ -570,6 +605,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def initialize(self, experiment):
         pass
+
+    @property
+    def bonus_status_label(self):
+        """Experimenter-facing bonus outcome. See ``display_bonus_status``."""
+        return display_bonus_status(self)
 
     @classmethod
     def needing_payment_review(cls):
