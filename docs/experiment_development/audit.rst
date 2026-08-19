@@ -36,9 +36,10 @@ that includes ``psynet audit``, then:
 * ``validate`` checks the manifest structure, required artifact files, blocker
   coverage, video limits, and notebook JSON readiness. It reports how many
   blockers are still recorded and that readiness may still be incomplete.
-* ``mark-present`` sets an artifact to ``present``, verifies the file exists,
-  removes matching blockers, and updates ``updated_at``. Use this after you
-  add a real file instead of hand-editing status fields.
+* ``mark-present`` sets an artifact to ``present``, verifies the file exists and
+  passes the same video/notebook checks as ``validate``, removes matching
+  blockers, and updates ``updated_at``. Use this after you add a real file
+  instead of hand-editing status fields.
 * ``render`` validates first, then builds a self-contained static site under
   ``audit/site/``. Pass ``--allow-invalid`` only when you need to preview a
   broken manifest.
@@ -105,9 +106,10 @@ Manifests may declare:
    }
 
 * ``profile`` defaults to ``psynet.core`` when omitted.
-* The default core profile requires a displayed markdown section with id
-  ``plan`` pointing at ``PLAN.md`` (unless the section supplies inline
-  ``content``).
+* The starter packet includes a ``plan`` section pointing at ``PLAN.md``. That
+  section is **recommended** for agent-led implementation audits but **optional**
+  for retrospective audits created after the experiment is already built. Remove
+  the section, hide it with ``"display": false``, or leave the starter placeholder.
 * ``extensions`` is a list of opaque extension ids (for example
   ``psynetskills.challenge``). Extensions add more ``sections`` rows that still
   use **core** section kinds (``markdown``, ``files``, ``json``, and so on).

@@ -1,1 +1,1 @@
-Added audit profile/extensions hooks and require a displayed PLAN.md section for the default psynet.core profile.
+Added audit profile/extensions hooks. The starter packet includes an optional plan section for agent-led audits.

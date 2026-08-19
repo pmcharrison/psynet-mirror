@@ -52,12 +52,49 @@ onward, write outputs into the audit layout even when they are interim:
   off (including smoke runs used for infrastructure testing).
 - Update `audit.json` as files land (`psynet audit mark-present ...`).
 
+## Workflow pathways
+
+Choose the pathway that matches how the experiment was built:
+
+### Agent-led implementation
+
+Use when an agent (or team) implements the experiment and collects evidence as
+work proceeds.
+
+1. From the experiment directory, run `psynet audit init` **before** meaningful
+   implementation runs.
+2. Fill `PLAN.md` as the implementation plan takes shape.
+3. Produce evidence during implementation/validation into `audit/` paths as you
+   go (see below). Prefer overwriting interim canonical files rather than
+   regenerating later.
+4. Close the packet with `mark-present`, `validate`, and `render`.
+
+### Retrospective audit
+
+Use when a human (or team) implemented the experiment first and is creating the
+audit packet afterward to document and hand off what was built.
+
+1. From the experiment directory, run `psynet audit init` once you are ready to
+   package evidence.
+2. `PLAN.md` is optional. You may:
+   - leave the starter placeholder,
+   - write a short retrospective plan,
+   - remove the `plan` section from `audit.json`, or
+   - hide it with `"display": false`.
+3. Focus on `REPORT.md`, `TIMELINE.md`, evidence artifacts, and honest
+   blockers for anything still missing.
+4. Close the packet with `mark-present`, `validate`, and `render`.
+
+`psynet audit validate` warns (non-fatal) when the core profile has no plan
+section. That warning is expected for retrospective audits.
+
 ## Workflow
 
 1. Initialize the packet before collecting evidence: from the experiment
    directory, run `psynet audit init`.
 2. Fill the core section files:
-   - `PLAN.md`: implementation plan;
+   - `PLAN.md`: implementation plan (**recommended** for agent-led audits;
+     optional for retrospective audits — see **Workflow pathways** above);
    - `REPORT.md`: implementation, validation, analysis, and limitations;
    - `TIMELINE.md`: notable implementation and evidence events;
    - `PROMPT.md`: original prompt or brief when useful.

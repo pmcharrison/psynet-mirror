@@ -13,6 +13,10 @@ from psynet.audit.cli import (
 )
 from psynet.command_line import psynet
 
+LFS_VIDEO_POINTER = (
+    b"version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 1\n"
+)
+
 
 def run_audit_cli(*args: str):
     """Invoke ``psynet audit`` via Click (the supported CLI)."""
@@ -310,7 +314,7 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     write(
         audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>"
     )
-    write_bytes(audit_dir / "artifacts/participant.mp4", b"video bytes")
+    write_bytes(audit_dir / "artifacts/participant.mp4", LFS_VIDEO_POINTER)
     write_bytes(audit_dir / "artifacts/screenshots/01-intro.png", b"png bytes")
     write_bytes(audit_dir / "artifacts/screenshots/02-trial.png", b"png bytes 2")
     write(
@@ -541,7 +545,7 @@ def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None
         artifact["status"] = "present"
     manifest["blockers"] = []
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
-    write_bytes(audit_dir / "artifacts/participant.mp4", b"video bytes")
+    write_bytes(audit_dir / "artifacts/participant.mp4", LFS_VIDEO_POINTER)
     write_bytes(audit_dir / "artifacts/screenshots/01-intro.png", b"png bytes")
     write(
         audit_dir / "artifacts/screenshots/manifest.json",
@@ -721,7 +725,7 @@ def test_validate_audit_fails_when_markdown_section_path_is_missing(
     assert any("section file is missing" in problem for problem in problems)
 
 
-def test_validate_audit_requires_plan_section_for_core_profile(tmp_path: Path) -> None:
+def test_validate_audit_accepts_missing_plan_section(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     write_valid_review(audit_dir)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
@@ -730,11 +734,101 @@ def test_validate_audit_requires_plan_section_for_core_profile(tmp_path: Path) -
     ]
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
 
+    assert validate_audit(audit_dir) == []
+
+
+def test_collect_audit_warnings_when_plan_section_missing(tmp_path: Path) -> None:
+    from psynet.audit.cli import collect_audit_warnings
+
+    audit_dir = tmp_path / "audit"
+    write_valid_review(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["sections"] = [
+        section for section in manifest["sections"] if section["id"] != "plan"
+    ]
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    warnings = collect_audit_warnings(audit_dir)
+
+    assert any("no plan section" in warning for warning in warnings)
+
+
+def test_validate_audit_rejects_orphan_blocker(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    write_valid_review(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["blockers"].append(
+        {
+            "artifact_id": "missing_artifact",
+            "severity": "error",
+            "reason": "Not declared.",
+            "next_step": "Remove blocker.",
+        },
+    )
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
     problems = validate_audit(audit_dir)
 
-    assert any(
-        "requires a displayed markdown section" in problem for problem in problems
+    assert any("not declared in artifacts" in problem for problem in problems)
+
+
+def test_validate_audit_rejects_large_section_file(tmp_path: Path) -> None:
+    from psynet.audit.cli import MAX_AUDIT_SECTION_BYTES
+
+    audit_dir = tmp_path / "audit"
+    write_valid_review(audit_dir)
+    write(audit_dir / "REPORT.md", "x" * (MAX_AUDIT_SECTION_BYTES + 1))
+
+    problems = validate_audit(audit_dir)
+
+    assert any("section file exceeds" in problem for problem in problems)
+
+
+def test_relative_audit_path_rejects_escape(tmp_path: Path) -> None:
+    from psynet.audit.cli import relative_audit_path
+
+    audit_dir = tmp_path / "audit"
+    audit_dir.mkdir()
+    _, problems = relative_audit_path(
+        audit_dir,
+        "../../etc/passwd",
+        "artifact participant_video",
     )
+
+    assert problems
+    assert any("stay inside" in problem for problem in problems)
+
+
+def test_mark_artifact_present_rejects_invalid_notebook(tmp_path: Path) -> None:
+    from psynet.audit.cli import mark_artifact_present
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    write(audit_dir / "analyses/analysis.ipynb", "{not json")
+
+    with pytest.raises(ValueError, match="invalid notebook JSON"):
+        mark_artifact_present(audit_dir, "analysis_notebook")
+
+
+def test_read_audit_artifact_content_marks_truncation(tmp_path: Path) -> None:
+    from psynet.audit.cli import read_audit_artifact_content
+
+    source = tmp_path / "long.log"
+    source.write_text("x" * 120_000, encoding="utf-8")
+
+    content, truncated = read_audit_artifact_content(source, max_bytes=100_000)
+
+    assert truncated is True
+    assert content is not None
+    assert len(content) == 100_000
+
+
+def test_resolve_audit_dir_requires_manifest(tmp_path: Path) -> None:
+    from psynet.audit.cli import resolve_audit_dir
+
+    missing = tmp_path / "nowhere"
+    with pytest.raises(ValueError, match="No audit packet found"):
+        resolve_audit_dir(missing, require_manifest=True)
 
 
 def test_validate_audit_accepts_unknown_extension_ids_with_warning(

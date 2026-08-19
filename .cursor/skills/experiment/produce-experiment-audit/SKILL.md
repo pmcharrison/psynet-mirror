@@ -29,6 +29,15 @@ the CLI from the experiment root so `experiment.source_path` stays `.`.
 
 ## Workflow
 
+Two common pathways:
+
+- **Agent-led implementation:** run `psynet audit init` early, keep `PLAN.md`
+  current as work proceeds, and collect evidence during implementation.
+- **Retrospective audit:** run `psynet audit init` after the experiment exists;
+  `PLAN.md` is optional (remove or hide the plan section if not needed).
+
+See `references/populating-an-audit.md` for the full pathway guidance.
+
 1. From the experiment directory, run `psynet audit init`.
 2. Produce evidence during implementation/validation into `audit/` paths as you
    go (see `references/populating-an-audit.md`). Prefer overwriting interim

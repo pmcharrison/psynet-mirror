@@ -37,6 +37,7 @@ from psynet.audit.html import (
     render_timeline_section as render_shared_timeline_section,
 )
 from psynet.audit.model import (
+    MAX_AUDIT_TEXT_BYTES,
     TEXT_AUDIT_EXTENSIONS,
     AuditFile,
     classify_audit_evidence,
@@ -115,7 +116,8 @@ ARTIFACT_STATUSES = {"present", "missing", "blocked", "not_applicable"}
 ARTIFACT_CREATORS = {"agent", "cli", "manual", "unknown"}
 BLOCKER_SEVERITIES = {"warning", "error"}
 CHECK_STATUSES = {"pass", "fail", "warning", "not_run"}
-MAX_AUDIT_NOTEBOOK_BYTES = 100_000
+MAX_AUDIT_NOTEBOOK_BYTES = MAX_AUDIT_TEXT_BYTES
+MAX_AUDIT_SECTION_BYTES = MAX_AUDIT_TEXT_BYTES
 CLI_NAME = "psynet audit"
 AUDIT_CSS_OUTPUT = "css/audit.css"
 AUDIT_DIR_HELP = (
@@ -162,6 +164,7 @@ def resolve_audit_dir(
     path: Path | str | None = None,
     *,
     for_init: bool = False,
+    require_manifest: bool = False,
 ) -> Path:
     """Resolve an audit packet directory from a CLI path argument.
 
@@ -175,6 +178,9 @@ def resolve_audit_dir(
     that nested packet. This lets ``psynet audit validate .`` work from an
     experiment root that holds ``./audit/``. Explicit ``init`` paths are never
     redirected: ``init .`` still creates a flat packet in the current directory.
+
+    When ``require_manifest`` is true, raise ``ValueError`` if no packet is
+    found.
     """
 
     if path is None:
@@ -183,17 +189,27 @@ def resolve_audit_dir(
             return cwd / "audit"
         if _has_audit_manifest(cwd):
             return cwd
-        return cwd / "audit"
+        resolved = cwd / "audit"
+    else:
+        requested = Path(path)
+        if for_init:
+            return requested
+        if _has_audit_manifest(requested):
+            resolved = requested
+        else:
+            nested = requested / "audit"
+            if _has_audit_manifest(nested):
+                resolved = nested
+            else:
+                resolved = requested
 
-    requested = Path(path)
-    if for_init:
-        return requested
-    if _has_audit_manifest(requested):
-        return requested
-    nested = requested / "audit"
-    if _has_audit_manifest(nested):
-        return nested
-    return requested
+    if require_manifest and not _has_audit_manifest(resolved):
+        display = Path(path) if path is not None else Path(".")
+        raise ValueError(
+            f"No audit packet found at {display}; "
+            "expected audit.json or audit/audit.json",
+        )
+    return resolved
 
 
 def count_blockers(manifest: dict[str, Any]) -> int:
@@ -560,6 +576,18 @@ def relative_audit_path(
     return resolved_path, []
 
 
+def validate_present_artifact_file(artifact_path: Path) -> list[str]:
+    """Validate a present artifact file before marking or accepting it."""
+
+    problems: list[str] = []
+    suffix = artifact_path.suffix.lower()
+    if suffix == ".mp4":
+        problems.extend(validate_evidence_video(artifact_path))
+    if suffix == ".ipynb":
+        problems.extend(validate_audit_notebook(artifact_path))
+    return problems
+
+
 def validate_audit_notebook(notebook_file: Path) -> list[str]:
     """Validate that an audit notebook is parseable and small enough to render."""
 
@@ -590,6 +618,14 @@ def validate_audit_blockers(
     if not isinstance(blockers, list):
         return set(), [f"{audit_dir / 'audit.json'}: blockers must be a list"]
 
+    artifact_ids = {
+        artifact.get("id")
+        for artifact in manifest.get("artifacts", [])
+        if isinstance(artifact, dict)
+        and isinstance(artifact.get("id"), str)
+        and ARTIFACT_ID_RE.fullmatch(artifact.get("id"))
+    }
+
     blocker_ids: set[str] = set()
     problems: list[str] = []
     for index, blocker in enumerate(blockers):
@@ -605,6 +641,10 @@ def validate_audit_blockers(
             artifact_id
         ):
             problems.append(f"{label}: artifact_id must be a valid artifact ID")
+        elif artifact_id not in artifact_ids:
+            problems.append(
+                f"{label}: artifact_id {artifact_id!r} is not declared in artifacts",
+            )
         else:
             blocker_ids.add(artifact_id)
         if blocker.get("severity") not in BLOCKER_SEVERITIES:
@@ -689,6 +729,11 @@ def validate_audit_sections(audit_dir: Path, manifest: dict[str, Any]) -> list[s
             if section_path is not None and section.get("display") is not False:
                 if not section_path.is_file():
                     problems.append(f"{label}: section file is missing: {section_path}")
+                elif section_path.stat().st_size > MAX_AUDIT_SECTION_BYTES:
+                    problems.append(
+                        f"{label}: section file exceeds "
+                        f"{MAX_AUDIT_SECTION_BYTES} bytes: {section_path}",
+                    )
         elif "path" in section:
             _, path_problems = relative_audit_path(
                 audit_dir,
@@ -772,10 +817,7 @@ def validate_audit_artifacts(
                     f"{artifact_path}",
                 )
                 continue
-            if artifact_path.suffix.lower() == ".mp4":
-                problems.extend(validate_evidence_video(artifact_path))
-            if artifact_path.suffix.lower() == ".ipynb":
-                problems.extend(validate_audit_notebook(artifact_path))
+            problems.extend(validate_present_artifact_file(artifact_path))
 
         if artifact.get("required") is True and status != "present":
             if artifact_id is None or artifact_id not in blocker_ids:
@@ -815,54 +857,6 @@ def validate_audit_profile_and_extensions(
     return problems
 
 
-def validate_core_plan_section(
-    audit_dir: Path,
-    manifest: dict[str, Any],
-) -> list[str]:
-    """Require a displayed plan markdown section for the default core profile."""
-
-    if audit_profile(manifest) != DEFAULT_AUDIT_PROFILE:
-        return []
-
-    manifest_path = audit_dir / "audit.json"
-    sections = manifest.get("sections")
-    if not isinstance(sections, list):
-        return []
-
-    plan_sections = [
-        section
-        for section in sections
-        if isinstance(section, dict) and section.get("id") == PLAN_SECTION_ID
-    ]
-    if not plan_sections:
-        return [
-            f"{manifest_path}: profile {DEFAULT_AUDIT_PROFILE!r} requires a "
-            f"displayed markdown section with id {PLAN_SECTION_ID!r} "
-            f"pointing at {PLAN_SECTION_PATH}",
-        ]
-
-    problems: list[str] = []
-    plan = plan_sections[0]
-    if plan.get("kind") != "markdown":
-        problems.append(
-            f"{manifest_path}: section id {PLAN_SECTION_ID!r} must have kind 'markdown'",
-        )
-    if plan.get("display") is False:
-        problems.append(
-            f"{manifest_path}: profile {DEFAULT_AUDIT_PROFILE!r} requires the "
-            f"{PLAN_SECTION_ID!r} section to be displayed",
-        )
-    path = plan.get("path")
-    if path != PLAN_SECTION_PATH and not (
-        isinstance(plan.get("content"), str) and plan.get("content")
-    ):
-        problems.append(
-            f"{manifest_path}: section id {PLAN_SECTION_ID!r} must use path "
-            f"{PLAN_SECTION_PATH!r} (or inline content)",
-        )
-    return problems
-
-
 def collect_audit_warnings(
     audit_dir: Path,
     manifest: dict[str, Any] | None = None,
@@ -877,6 +871,18 @@ def collect_audit_warnings(
 
     warnings: list[str] = []
     manifest_path = audit_dir / "audit.json"
+    if audit_profile(manifest) == DEFAULT_AUDIT_PROFILE:
+        sections = manifest.get("sections")
+        if isinstance(sections, list):
+            has_plan = any(
+                isinstance(section, dict) and section.get("id") == PLAN_SECTION_ID
+                for section in sections
+            )
+            if not has_plan:
+                warnings.append(
+                    f"{manifest_path}: no plan section; recommended for "
+                    "agent-led implementation audits (optional for retrospective audits)",
+                )
     extensions = manifest.get("extensions", [])
     if not isinstance(extensions, list):
         return warnings
@@ -933,7 +939,6 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
                 f"{manifest_path}: implementation.summary must be a non-empty string",
             )
     problems.extend(validate_audit_profile_and_extensions(audit_dir, manifest))
-    problems.extend(validate_core_plan_section(audit_dir, manifest))
     blocker_ids, blocker_problems = validate_audit_blockers(audit_dir, manifest)
     problems.extend(blocker_problems)
     problems.extend(validate_audit_sections(audit_dir, manifest))
@@ -1009,13 +1014,15 @@ def publish_audit_artifacts(
                 HASHED_ARTIFACTS_DIR,
             ),
         )
+        content, truncated = read_audit_artifact_content(source_file)
         rendered.append(
             AuditFile(
                 path=relative_path,
                 url=artifact_url,
-                content=read_audit_artifact_content(source_file),
+                content=content,
                 size_bytes=source_file.stat().st_size,
                 kind=file_kind(relative_path),
+                truncated=truncated,
             )
         )
         published_paths.add(relative_path)
@@ -1091,22 +1098,24 @@ def publish_screenshot_manifest_files(
 
 
 def read_audit_artifact_content(
-    source_file: Path, max_bytes: int = 100_000
-) -> str | None:
+    source_file: Path,
+    max_bytes: int = MAX_AUDIT_TEXT_BYTES,
+) -> tuple[str | None, bool]:
     """Read text artifact content for audit classification."""
 
     if source_file.suffix.lower() not in TEXT_AUDIT_EXTENSIONS:
-        return None
+        return None, False
     try:
         data = source_file.read_bytes()
     except OSError:
-        return None
-    if len(data) > max_bytes:
+        return None, False
+    truncated = len(data) > max_bytes
+    if truncated:
         data = data[:max_bytes]
     try:
-        return redact_known_credentials(data.decode("utf-8"))
+        return redact_known_credentials(data.decode("utf-8")), truncated
     except UnicodeDecodeError:
-        return None
+        return None, False
 
 
 def render_metadata_grid(items: list[tuple[str, str]]) -> str:
@@ -1410,6 +1419,10 @@ def mark_artifact_present(
         raise FileNotFoundError(
             f"{resolved}: file missing; create it before marking present"
         )
+
+    problems = validate_present_artifact_file(resolved)
+    if problems:
+        raise ValueError("; ".join(problems))
 
     target["status"] = "present"
     blockers = manifest.get("blockers")
