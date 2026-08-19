@@ -283,10 +283,11 @@ def test_lab_recruiter_validate_config_requires_token_outside_debug():
     make_lab_recruiter(token="").validate_config(mode="debug")
 
 
-def test_lab_recruiter_after_submission_complete_posts_zero_bonus_once():
+@pytest.mark.parametrize("status", ["approved", "bad_data", "did_not_attend"])
+def test_lab_recruiter_after_submission_complete_posts_zero_bonus_once(status):
     recruiter = make_lab_recruiter()
     participant = make_lab_participant()
-    participant.status = "approved"
+    participant.status = status
     experiment = MagicMock()
     experiment.bonus_reason.return_value = "Thank you"
 
@@ -297,6 +298,18 @@ def test_lab_recruiter_after_submission_complete_posts_zero_bonus_once():
 
         recruiter.after_submission_complete(experiment, participant)
         reward_bonus.assert_called_once()
+
+
+def test_lab_recruiter_after_submission_complete_ignores_other_statuses():
+    recruiter = make_lab_recruiter()
+    participant = make_lab_participant()
+    participant.status = "working"
+
+    with patch.object(recruiter, "reward_bonus") as reward_bonus:
+        recruiter.after_submission_complete(MagicMock(), participant)
+
+    reward_bonus.assert_not_called()
+    assert participant.bonus is None
 
 
 def test_experiment_submission_complete_dispatches_recruiter_hook(monkeypatch):

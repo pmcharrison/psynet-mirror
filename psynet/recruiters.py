@@ -482,8 +482,6 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         prefix, separator, value = token.partition(" ")
         if separator and prefix.lower() == "token":
             token = value.strip()
-            if not token:
-                return None
         return f"Token {token}"
 
     def validate_config(self, **kwargs):
