@@ -1262,6 +1262,8 @@ def test_on_recruiter_submission_complete_does_not_repost_after_failed_transfer(
 
 def test_needing_payment_review_filters_flagged_participants():
     flagged = [MagicMock(id=1), MagicMock(id=3)]
+    for participant in flagged:
+        participant.recruiter.has_external_bonus_payment.return_value = True
     query = MagicMock()
     query.filter_by.return_value.order_by.return_value.all.return_value = flagged
 
@@ -1269,6 +1271,21 @@ def test_needing_payment_review_filters_flagged_participants():
         assert Participant.needing_payment_review() == flagged
 
     query.filter_by.assert_called_once_with(bonus_status=BONUS_STATUS_UNCONFIRMED)
+
+
+def test_needing_payment_review_skips_hotair_participants():
+    hotair = MagicMock(id=1)
+    hotair.recruiter.has_external_bonus_payment.return_value = False
+    prolific = MagicMock(id=2)
+    prolific.recruiter.has_external_bonus_payment.return_value = True
+    query = MagicMock()
+    query.filter_by.return_value.order_by.return_value.all.return_value = [
+        hotair,
+        prolific,
+    ]
+
+    with patch.object(Participant, "query", query):
+        assert Participant.needing_payment_review() == [prolific]
 
 
 def test_dashboard_participants_includes_review_list():
@@ -1389,6 +1406,7 @@ def test_hotair_apparent_bonus_paid_is_unknown():
 
     recruiter = object.__new__(HotAirRecruiter)
     assert recruiter.can_report_apparent_bonus() is False
+    assert recruiter.has_external_bonus_payment() is False
     assert recruiter.platform_payment_view(MagicMock()).supported is False
     assert recruiter.apparent_bonus_paid(MagicMock()) is None
 
@@ -1519,6 +1537,12 @@ def test_bonus_status_helpers():
     unconfirmed = SimpleNamespace(bonus_status=BONUS_STATUS_UNCONFIRMED)
     assert bonus_needs_review(unconfirmed)
     assert not bonus_is_settled(unconfirmed)
+    assert not bonus_needs_review(
+        SimpleNamespace(
+            bonus_status=BONUS_STATUS_UNCONFIRMED,
+            recruiter=SimpleNamespace(has_external_bonus_payment=lambda: False),
+        )
+    )
     assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_SUCCESS))
     assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_DISMISSED))
     assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_CAPPED))

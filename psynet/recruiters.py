@@ -329,6 +329,14 @@ class PsyNetRecruiterMixin:
         """Whether this recruiter can poll the platform for bonuses already paid."""
         return False
 
+    def has_external_bonus_payment(self) -> bool:
+        """Whether bonuses are paid through an external recruitment platform.
+
+        Local debug recruiters such as HotAir have no platform, so payment
+        review and platform status are hidden for them.
+        """
+        return True
+
     def platform_payment_view(self, participant) -> PlatformPaymentView:
         """Return the platform's current bonus and submission status, if any."""
         return PlatformPaymentView(supported=False)
@@ -348,6 +356,10 @@ class PsyNetRecruiterMixin:
 
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
+    def has_external_bonus_payment(self) -> bool:
+        """HotAir does not pay through an external recruitment platform."""
+        return False
+
     def get_status(self) -> RecruitmentStatus:
         from .experiment import get_experiment
 

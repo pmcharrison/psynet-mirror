@@ -277,17 +277,13 @@
             <td>Bonus status</td>
             <td>{{ participant.bonus_status_label }}</td>
         </tr>
+        {% if participant.platform_payment_supported %}
         <tr class="section-head">
             <th colspan="2">
                 Platform
                 <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('dashboard.dashboard_participants', participant_id=participant.id) }}">Refresh</a>
             </th>
         </tr>
-        {% if not participant.platform_payment_supported %}
-            <tr>
-                <td colspan="2">This recruiter cannot report platform payment status.</td>
-            </tr>
-        {% else %}
             <tr>
                 <td>Submission status</td>
                 <td>{{ participant.platform_submission_status or "Could not read" }}</td>

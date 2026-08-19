@@ -86,8 +86,13 @@ def bonus_is_settled(participant) -> bool:
 
 
 def bonus_needs_review(participant) -> bool:
-    """True when the automatic bonus POST is unconfirmed."""
-    return getattr(participant, "bonus_status", None) == BONUS_STATUS_UNCONFIRMED
+    """True when the automatic bonus POST is unconfirmed on an external recruiter."""
+    if getattr(participant, "bonus_status", None) != BONUS_STATUS_UNCONFIRMED:
+        return False
+    recruiter = getattr(participant, "recruiter", None)
+    if recruiter is None:
+        return True
+    return recruiter.has_external_bonus_payment()
 
 
 if TYPE_CHECKING:
@@ -620,7 +625,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def bonus_needs_review(self):
-        """True when the automatic bonus POST is unconfirmed."""
+        """True when the automatic bonus POST is unconfirmed on an external recruiter."""
         return bonus_needs_review(self)
 
     @classmethod
@@ -628,15 +633,20 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         """Participants whose automatic bonus transfer is unconfirmed.
 
         PsyNet already used its one automatic platform bonus POST (or was
-        interrupted while doing so). Open the participant on the
-        Participants dashboard to compare with the platform, then pay or
-        dismiss.
+        interrupted while doing so). Local recruiters such as HotAir are
+        omitted: they have no external platform to review. Open the
+        participant on the Participants dashboard to compare with the
+        platform, then pay or dismiss.
         """
-        return (
-            cls.query.filter_by(bonus_status=BONUS_STATUS_UNCONFIRMED)
+        return [
+            participant
+            for participant in cls.query.filter_by(
+                bonus_status=BONUS_STATUS_UNCONFIRMED
+            )
             .order_by(cls.id.asc())
             .all()
-        )
+            if participant.recruiter.has_external_bonus_payment()
+        ]
 
     @property
     def locale(self):
