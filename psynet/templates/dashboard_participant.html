@@ -53,12 +53,18 @@
         #payment-review-table tbody a {
             color: inherit;
         }
-        #psynet-vs-platform h3 {
-            font-size: 1.1rem;
-            margin-top: 1rem;
+        #participant-detail-table .section-head th {
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.95rem;
+            padding-top: 0.85rem;
         }
-        #psynet-vs-platform h3 .btn {
+        #participant-detail-table tr:first-child.section-head th {
+            border-top: none;
+        }
+        #participant-detail-table .section-head .btn {
             font-size: 0.8rem;
+            font-weight: normal;
             margin-left: 0.5rem;
             vertical-align: middle;
         }
@@ -108,8 +114,8 @@
             <h2 class="h5">Needs payment review ({{ participants_needing_review | length }})</h2>
             <p class="mb-3">
                 Automatic bonus transfer failed or was interrupted.
-                Open a participant to compare PsyNet with the platform, then
-                pay the missing bonus or dismiss without paying.
+                Open a participant, then pay the missing bonus or dismiss
+                without paying.
             </p>
             <div class="table-responsive">
                 <table class="table table-striped mb-0" id="payment-review-table">
@@ -196,99 +202,63 @@
     </div>
 {% endblock %}
 
-{% macro psynet_vs_platform(participant) %}
-    <div id="psynet-vs-platform">
-        <h3>PsyNet</h3>
-        <div class="table-responsive">
-            <table class="table table-sm">
-                <tr><td>Recruiter</td><td>{{ participant.recruiter_id }}</td></tr>
-                <tr><td>Status</td><td>{{ participant.status }}</td></tr>
-                <tr><td>Payment settled</td><td>{{ participant.payment_settled }}</td></tr>
-                <tr><td>Needs payment review</td><td>{{ participant.needs_payment_review }}</td></tr>
-                <tr><td>Recorded bonus</td><td>{{ participant.bonus }}</td></tr>
-                <tr><td>Missing bonus</td><td>{{ currency }}{{ "%.2f"|format(participant.unpaid_bonus or 0) }}</td></tr>
-            </table>
-        </div>
-        <h3>
-            Platform
-            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('dashboard.dashboard_participants', participant_id=participant.id) }}">Refresh</a>
-        </h3>
-        <div class="table-responsive">
-            <table class="table table-sm">
-                {% if not participant.platform_payment_supported %}
-                    <tr>
-                        <td colspan="2">This recruiter cannot report platform payment status.</td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td>Submission status</td>
-                        <td>{{ participant.platform_submission_status or "Could not read" }}</td>
-                    </tr>
-                    <tr>
-                        <td>Bonus reported</td>
-                        <td>
-                            {% if participant.platform_bonus is none %}
-                                Could not read
-                            {% else %}
-                                {{ currency }}{{ "%.2f"|format(participant.platform_bonus) }}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" class="text-muted">Polled on this page load. Prolific pay is asynchronous, so a recent POST may not show yet.</td>
-                    </tr>
-                {% endif %}
-            </table>
-        </div>
-    </div>
-{% endmacro %}
-
 {% macro summarize_participant(participant) %}
     {% if participant.needs_payment_review %}
         <div class="alert alert-warning" role="alert">
             Automatic bonus transfer failed or was interrupted.
-            Compare PsyNet with the platform below. Pay the missing bonus, or
-            dismiss without paying if you have decided not to pay.
-        </div>
-    {% endif %}
-    {{ psynet_vs_platform(participant) }}
-    {% if participant.needs_payment_review %}
-        <div id="payment-review-actions">
-            <form method="post" action="{{ url_for('dashboard.dashboard_pay_bonus') }}" onsubmit="return confirm('Post this bonus to the recruitment platform? Only continue if the platform does not already show it.');">
-                <input type="hidden" name="participant_id" value="{{ participant.id }}">
-                <button type="submit" class="btn btn-primary">Pay bonus</button>
-            </form>
-            <form method="post" action="{{ url_for('dashboard.dashboard_dismiss_bonus') }}" onsubmit="return confirm('Dismiss without paying? PsyNet will not post this bonus, and will not try again automatically.');">
-                <input type="hidden" name="participant_id" value="{{ participant.id }}">
-                <button type="submit" class="btn btn-outline-secondary">Dismiss without paying</button>
-            </form>
+            Check payment and platform below, then pay the missing bonus
+            or dismiss without paying.
         </div>
     {% endif %}
     <div class="table-responsive">
     <table class="table" id="participant-detail-table">
+        <tr class="section-head">
+            <th colspan="2">Identity</th>
+        </tr>
         <tr>
             <td>Participant ID</td>
             <td>{{ participant.id }}</td>
-        </tr>
-        <tr>
-            <td>Recruiter</td>
-            <td>{{ participant.recruiter_id }}</td>
-        </tr>
-        <tr>
-            <td>Unique ID</td>
-            <td>{{ participant.unique_id }}</td>
         </tr>
         <tr>
             <td>Worker ID</td>
             <td>{{ participant.worker_id }}</td>
         </tr>
         <tr>
+            <td>Recruiter</td>
+            <td>{{ participant.recruiter_id }}</td>
+        </tr>
+        <tr>
             <td>Assignment ID</td>
             <td>{{ participant.assignment_id }}</td>
         </tr>
         <tr>
+            <td>Unique ID</td>
+            <td>{{ participant.unique_id }}</td>
+        </tr>
+        <tr class="section-head">
+            <th colspan="2">Progress</th>
+        </tr>
+        <tr>
             <td>Status</td>
             <td>{{ participant.status }}</td>
+        </tr>
+        <tr>
+            <td>Failed</td>
+            <td>{{ participant.failed }}</td>
+        </tr>
+        <tr>
+            <td>Current module</td>
+            <td>{{ participant.module_id }}</td>
+        </tr>
+        <tr>
+            <td>Link for resuming session</td>
+            <td>
+                <a href="{{ get_timeline_url(participant) }}" target="_blank">{{ get_timeline_url(participant) }}</a>
+                <button type="button" class="btn btn-secondary" id="btn-copy-url" onclick="copyURLForResumingSession()">Copy</button>
+            </td>
+        </tr>
+        <tr class="section-head">
+            <th colspan="2">Payment</th>
         </tr>
         <tr>
             <td>Payment settled</td>
@@ -307,34 +277,60 @@
             <td>{{ participant.bonus }}</td>
         </tr>
         <tr>
-            <td>Unpaid bonus</td>
-            <td>{{ participant.unpaid_bonus }}</td>
+            <td>Missing bonus</td>
+            <td>{{ currency }}{{ "%.2f"|format(participant.unpaid_bonus or 0) }}</td>
         </tr>
         <tr>
             <td>Issued completion code</td>
             <td>{{ participant.issued_completion_code_type }}</td>
         </tr>
         <tr>
-            <td>Failed</td>
-            <td>{{ participant.failed }}</td>
-        </tr>
-        <tr>
-            <td>Current module</td>
-            <td>{{ participant.module_id }}</td>
-        </tr>
-        <tr>
             <td>Current reward</td>
             <td>{{ participant.calculate_reward() }}</td>
         </tr>
-        <tr>
-            <td>Link for resuming session</td>
-            <td>
-                <a href="{{ get_timeline_url(participant) }}" target="_blank">{{ get_timeline_url(participant) }}</a>
-                <button type="button" class="btn btn-secondary" id="btn-copy-url" onclick="copyURLForResumingSession()">Copy</button>
-            </td>
+        <tr class="section-head">
+            <th colspan="2">
+                Platform
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('dashboard.dashboard_participants', participant_id=participant.id) }}">Refresh</a>
+            </th>
         </tr>
+        {% if not participant.platform_payment_supported %}
+            <tr>
+                <td colspan="2">This recruiter cannot report platform payment status.</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td>Submission status</td>
+                <td>{{ participant.platform_submission_status or "Could not read" }}</td>
+            </tr>
+            <tr>
+                <td>Bonus reported</td>
+                <td>
+                    {% if participant.platform_bonus is none %}
+                        Could not read
+                    {% else %}
+                        {{ currency }}{{ "%.2f"|format(participant.platform_bonus) }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="text-muted">Polled on this page load. Prolific pay is asynchronous, so a recent POST may not show yet.</td>
+            </tr>
+        {% endif %}
     </table>
     </div>
+    {% if participant.needs_payment_review %}
+        <div id="payment-review-actions">
+            <form method="post" action="{{ url_for('dashboard.dashboard_pay_bonus') }}" onsubmit="return confirm('Post this bonus to the recruitment platform? Only continue if the platform does not already show it.');">
+                <input type="hidden" name="participant_id" value="{{ participant.id }}">
+                <button type="submit" class="btn btn-primary">Pay bonus</button>
+            </form>
+            <form method="post" action="{{ url_for('dashboard.dashboard_dismiss_bonus') }}" onsubmit="return confirm('Dismiss without paying? PsyNet will not post this bonus, and will not try again automatically.');">
+                <input type="hidden" name="participant_id" value="{{ participant.id }}">
+                <button type="submit" class="btn btn-outline-secondary">Dismiss without paying</button>
+            </form>
+        </div>
+    {% endif %}
 {% endmacro %}
 
 {% macro get_timeline_url(p) %}{{ app_base_url }}/timeline?unique_id={{ p.unique_id }}{% endmacro %}

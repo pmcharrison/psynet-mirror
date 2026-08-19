@@ -2654,7 +2654,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         skip a repeat money transfer: PsyNet posts a bonus at most once.
         Recruitment still runs if the bonus transfer fails; the
         participant is left unsettled for dashboard review. Opening that
-        person polls the platform and offers Pay bonus or Dismiss.
+        person polls the platform into the participant table and offers
+        Pay bonus or Dismiss.
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
         """

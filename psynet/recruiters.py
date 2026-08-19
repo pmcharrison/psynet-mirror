@@ -34,7 +34,8 @@ Key design constraints for maintainers:
   ``needs_payment_review``. The Participants dashboard lists everyone
   who needs that review. Opening a participant polls the platform
   (Prolific ``bonus_payments`` and submission status, which may lag a
-  POST) and offers Pay bonus or Dismiss. ``reward_bonus`` returns
+  POST) and shows those facts in the participant table, with Pay bonus
+  or Dismiss when review is needed. ``reward_bonus`` returns
   ``False`` if the platform rejected the transfer. PsyNet does not call
   Dallinger's unused
   ``data_check`` / ``attention_check`` hooks.
