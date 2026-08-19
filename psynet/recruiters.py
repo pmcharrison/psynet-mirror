@@ -125,6 +125,54 @@ def _bonus_payments_total(bonus_payments) -> float:
     return round(sum(bonus_payments) / 100.0, 2)
 
 
+def _fetch_prolific_submission(prolificservice, assignment_id: str) -> dict | None:
+    """GET a Prolific submission without treating HTTP errors as recruitment failures.
+
+    Dashboard polling is expected to miss (for example 404) when an assignment
+    id is unknown or still propagating. Dallinger's ``ProlificService._req``
+    would log those as recruitment errors.
+    """
+    try:
+        headers = {
+            "Authorization": f"Token {prolificservice.api_token}",
+            "Referer": getattr(prolificservice, "referer_header", "") or "",
+        }
+        url = f"{prolificservice.api_root}/submissions/{assignment_id}/"
+        response = requests.get(url, headers=headers, timeout=15)
+    except requests.RequestException:
+        logger.warning(
+            "Could not reach Prolific for submission %s.",
+            assignment_id,
+            exc_info=True,
+        )
+        return None
+    if response.status_code == 404:
+        logger.info("Prolific submission %s was not found.", assignment_id)
+        return None
+    if not response.ok:
+        logger.warning(
+            "Prolific submission %s returned HTTP %s.",
+            assignment_id,
+            response.status_code,
+        )
+        return None
+    try:
+        parsed = response.json()
+    except ValueError:
+        logger.warning(
+            "Prolific submission %s returned a non-JSON body.",
+            assignment_id,
+        )
+        return None
+    if isinstance(parsed, dict) and "error" in parsed:
+        logger.info(
+            "Prolific submission %s returned an error payload.",
+            assignment_id,
+        )
+        return None
+    return parsed
+
+
 @dataclass(frozen=True)
 class PlatformPaymentView:
     """What the recruitment platform currently reports for a participant.
@@ -680,26 +728,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def platform_payment_view(self, participant) -> PlatformPaymentView:
         """Read Prolific submission status and ``bonus_payments``.
 
-        Uses the raw submission GET because Dallinger's translator drops
-        ``bonus_payments``. Pay is asynchronous, so bonus can lag a POST.
+        Uses a quiet submission GET because Dallinger's translator drops
+        ``bonus_payments``, and ``ProlificService._req`` treats HTTP errors
+        as recruitment failures. Pay is asynchronous, so bonus can lag a POST.
         """
         assignment_id = getattr(participant, "assignment_id", None)
         if not assignment_id:
             return PlatformPaymentView(supported=True)
-        try:
-            response = self.prolificservice._req(
-                method="GET",
-                endpoint=f"/submissions/{assignment_id}/",
-            )
-        except Exception:
-            logger.warning(
-                "Could not read Prolific payment status for participant %s "
-                "(assignment %s).",
-                getattr(participant, "id", None),
-                assignment_id,
-                exc_info=True,
-            )
-            return PlatformPaymentView(supported=True)
+        response = _fetch_prolific_submission(self.prolificservice, assignment_id)
         if not response:
             return PlatformPaymentView(supported=True)
         return PlatformPaymentView(
