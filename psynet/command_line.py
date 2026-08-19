@@ -4076,6 +4076,72 @@ def audit_render(audit_dir, output, allow_invalid):
     click.echo(f"Rendered experiment audit site: {site_dir / 'index.html'}")
 
 
+@audit.command("serve")
+@click.argument("audit_dir", required=False, default=None, type=click.Path())
+@click.option(
+    "--host",
+    default="127.0.0.1",
+    show_default=True,
+    help="Host interface to bind.",
+)
+@click.option(
+    "--port",
+    default=8765,
+    show_default=True,
+    type=int,
+    help="TCP port to listen on.",
+)
+@click.option(
+    "--render/--no-render",
+    default=False,
+    help="Render the static site before serving.",
+)
+@click.option(
+    "--allow-invalid",
+    is_flag=True,
+    help="With --render, allow rendering even when validate would fail.",
+)
+def audit_serve(audit_dir, host, port, render, allow_invalid):
+    """Serve the rendered experiment audit site over HTTP.
+
+    AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
+    ./audit.json or ./audit/audit.json. Does not create a public tunnel; use a
+    separate tunnel helper when remote review is needed.
+    """
+    from pathlib import Path
+
+    from psynet.audit.cli import (
+        AuditValidationError,
+        render_audit_site,
+        resolve_audit_dir,
+        resolve_audit_site_dir,
+        serve_audit_site,
+    )
+
+    if allow_invalid and not render:
+        raise click.UsageError("--allow-invalid is only valid together with --render.")
+
+    resolved = resolve_audit_dir(Path(audit_dir) if audit_dir is not None else None)
+    try:
+        if render:
+            site_dir = render_audit_site(
+                resolved,
+                allow_invalid=allow_invalid,
+            )
+            click.echo(f"Rendered experiment audit site: {site_dir / 'index.html'}")
+        else:
+            site_dir = resolve_audit_site_dir(resolved)
+        serve_audit_site(site_dir, host=host, port=port)
+    except AuditValidationError as exc:
+        for problem in exc.problems:
+            click.echo(problem, err=True)
+        raise click.ClickException(
+            "Render blocked by validation errors; fix them or pass --allow-invalid."
+        ) from exc
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
 @audit.command("mark-present")
 @click.argument("artifact_id")
 @click.argument("audit_dir", required=False, default=None, type=click.Path())

@@ -831,3 +831,91 @@ def test_render_refuses_escaping_site_path_even_with_allow_invalid(
     with pytest.raises(ValueError, match="render.site_path|must stay inside"):
         render_audit_site(audit_dir, allow_invalid=True)
     assert not (tmp_path / "outside-site").exists()
+
+
+def test_make_audit_site_server_serves_index(tmp_path: Path) -> None:
+    import threading
+    import urllib.request
+
+    from psynet.audit.cli import make_audit_site_server
+
+    site_dir = tmp_path / "site"
+    write(site_dir / "index.html", "<!doctype html><title>audit</title>hello-audit")
+
+    server = make_audit_site_server(site_dir, host="127.0.0.1", port=0)
+    port = server.server_address[1]
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5) as response:
+            assert response.status == 200
+            body = response.read()
+        assert b"hello-audit" in body
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def test_make_audit_site_server_requires_index(tmp_path: Path) -> None:
+    from psynet.audit.cli import make_audit_site_server
+
+    site_dir = tmp_path / "site"
+    site_dir.mkdir()
+
+    with pytest.raises(FileNotFoundError, match="psynet audit render"):
+        make_audit_site_server(site_dir, host="127.0.0.1", port=0)
+
+
+def test_audit_serve_cli_errors_when_site_missing(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+
+    result = CliRunner().invoke(psynet, ["audit", "serve", str(audit_dir), "--port", "0"])
+
+    assert result.exit_code != 0
+    combined = f"{result.output}{result.stderr}"
+    assert "No rendered audit site" in combined
+    assert "psynet audit render" in combined
+
+
+def test_audit_serve_cli_allow_invalid_requires_render() -> None:
+    result = CliRunner().invoke(psynet, ["audit", "serve", "--allow-invalid"])
+
+    assert result.exit_code != 0
+    combined = f"{result.output}{result.stderr}"
+    assert "--allow-invalid is only valid together with --render" in combined
+
+
+def test_audit_serve_cli_render_then_serve(tmp_path: Path, monkeypatch) -> None:
+    from psynet.audit import cli as audit_cli
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    # Provide enough present artifacts for validate/render if needed via allow_invalid
+    calls = []
+
+    def fake_serve(site_dir, *, host="127.0.0.1", port=8765):
+        calls.append((Path(site_dir), host, port))
+        assert (Path(site_dir) / "index.html").is_file()
+
+    monkeypatch.setattr(audit_cli, "serve_audit_site", fake_serve)
+
+    result = CliRunner().invoke(
+        psynet,
+        [
+            "audit",
+            "serve",
+            str(audit_dir),
+            "--render",
+            "--allow-invalid",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "9123",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Rendered experiment audit site" in result.output
+    assert calls == [(audit_dir / "site", "127.0.0.1", 9123)]

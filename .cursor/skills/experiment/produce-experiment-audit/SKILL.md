@@ -40,7 +40,9 @@ the CLI from the experiment root so `experiment.source_path` stays `.`.
    ready. Do not re-run expensive checks that already produced review-ready
    files.
 5. Run `psynet audit render`.
-6. Share the rendered audit for review.
+6. Preview locally with `psynet audit serve` (optional `--render` to rebuild
+   first). Use a separate tunnel helper when remote review is needed.
+7. Share the rendered audit for review.
 
 ## Standalone layout
 

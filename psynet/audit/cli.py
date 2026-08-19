@@ -1509,3 +1509,68 @@ def render_audit_site(
 """
     (site_dir / "index.html").write_text(html_text, encoding="utf-8")
     return site_dir
+
+
+def resolve_audit_site_dir(audit_dir: Path) -> Path:
+    """Return the configured rendered-site directory for an audit packet."""
+
+    try:
+        manifest = read_audit_manifest(audit_dir)
+    except (OSError, ValueError, json.JSONDecodeError):
+        return audit_dir / "site"
+
+    configured = manifest.get("render", {})
+    if isinstance(configured, dict) and configured.get("site_path"):
+        resolved_site, site_problems = relative_audit_path(
+            audit_dir,
+            configured.get("site_path"),
+            f"{audit_dir / 'audit.json'}: render.site_path",
+        )
+        if site_problems or resolved_site is None:
+            raise ValueError("; ".join(site_problems) or "invalid render.site_path")
+        return resolved_site
+    return audit_dir / "site"
+
+
+def make_audit_site_server(
+    site_dir: Path,
+    *,
+    host: str = "127.0.0.1",
+    port: int = 8765,
+):
+    """Create an HTTP server that serves a rendered audit site directory."""
+
+    import http.server
+    from functools import partial
+
+    site_dir = site_dir.resolve()
+    if not (site_dir / "index.html").is_file():
+        raise FileNotFoundError(
+            f"No rendered audit site at {site_dir / 'index.html'}. "
+            "Run `psynet audit render` first, or pass `--render`."
+        )
+
+    handler = partial(http.server.SimpleHTTPRequestHandler, directory=str(site_dir))
+    return http.server.ThreadingHTTPServer((host, port), handler)
+
+
+def serve_audit_site(
+    site_dir: Path,
+    *,
+    host: str = "127.0.0.1",
+    port: int = 8765,
+) -> None:
+    """Serve a rendered audit site until interrupted."""
+
+    server = make_audit_site_server(site_dir, host=host, port=port)
+    bound_host, bound_port = server.server_address[:2]
+    display_host = "127.0.0.1" if bound_host in {"0.0.0.0", "::"} else bound_host
+    print(f"Serving experiment audit site at http://{display_host}:{bound_port}/")
+    print(f"Root: {site_dir.resolve()}")
+    print("Press Ctrl+C to stop.")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
+    finally:
+        server.server_close()

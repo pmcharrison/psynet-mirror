@@ -28,6 +28,7 @@ that includes ``psynet audit``, then:
    psynet audit validate .
    psynet audit mark-present <artifact_id>
    psynet audit render
+   psynet audit serve
 
 * ``init`` creates a starter ``audit/`` directory whose required-but-missing
   artifacts are covered by starter blockers. Validate can pass on this sparse
@@ -41,6 +42,8 @@ that includes ``psynet audit``, then:
 * ``render`` validates first, then builds a self-contained static site under
   ``audit/site/``. Pass ``--allow-invalid`` only when you need to preview a
   broken manifest.
+* ``serve`` hosts that static site over HTTP (default ``http://127.0.0.1:8765/``).
+  Pass ``--render`` to rebuild first. It does not create a public tunnel.
 
 Status conventions
 ------------------
