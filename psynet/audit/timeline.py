@@ -10,6 +10,10 @@ TIMELINE_ENTRY_RE = re.compile(
     r"\[(?P<actor>agent-start|agent|agent-stop|manual|system)\] "
     r"(?P<details>.+)$"
 )
+ISO_TIMELINE_ENTRY_RE = re.compile(
+    r"^-?\s*(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)\s+"
+    r"(?P<details>.+)$"
+)
 TIMELINE_TAG_RE = re.compile(r"^\[(?P<tag>[a-z][a-z0-9-]*)\]\s+")
 
 
@@ -28,6 +32,11 @@ def parse_timeline_entries(markdown: str) -> list[TimelineEntry]:
     entries: list[TimelineEntry] = []
     for line in markdown.splitlines():
         match = TIMELINE_ENTRY_RE.fullmatch(line)
+        actor = "agent"
+        if match is None:
+            match = ISO_TIMELINE_ENTRY_RE.fullmatch(line)
+        else:
+            actor = match.group("actor")
         if match is None:
             continue
         details = match.group("details")
@@ -38,7 +47,7 @@ def parse_timeline_entries(markdown: str) -> list[TimelineEntry]:
         entries.append(
             TimelineEntry(
                 timestamp=match.group("timestamp"),
-                actor=match.group("actor"),
+                actor=actor,
                 description=details,
                 tags=tags,
             )

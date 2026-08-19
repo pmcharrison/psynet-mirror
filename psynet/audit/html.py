@@ -16,9 +16,9 @@ from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
 
 from psynet.audit.model import (
-    CompletenessItem,
     AuditEvidenceView,
     AuditFile,
+    CompletenessItem,
     screenshot_caption,
 )
 
@@ -238,8 +238,7 @@ def render_file_grid(
     if not file_list:
         return f"<p>{html.escape(empty_message)}</p>"
     cards = "\n".join(
-        render_artifact_card(file, url_transform=url_transform)
-        for file in file_list
+        render_artifact_card(file, url_transform=url_transform) for file in file_list
     )
     return f'<div class="{html.escape(grid_class, quote=True)}">{cards}</div>'
 
@@ -263,9 +262,7 @@ def render_artifact_card(
     return (
         '<details class="attempt-file">'
         '<summary class="file-header">'
-        f"<h3><code>{path}</code></h3>"
-        + "".join(badges)
-        + "</summary>"
+        f"<h3><code>{path}</code></h3>" + "".join(badges) + "</summary>"
         f"{render_file_preview(artifact, url_transform=url_transform)}"
         "</details>"
     )
@@ -294,7 +291,10 @@ def render_file_preview(
         return f'<pre class="file-preview"><code>{html.escape(artifact.content)}</code></pre>'
 
     if not artifact.published:
-        note = artifact.publication_note or "This artifact is retained in the bundle but not published."
+        note = (
+            artifact.publication_note
+            or "This artifact is retained in the bundle but not published."
+        )
         return f'<p class="file-preview binary-preview">{html.escape(note)}</p>'
 
     if artifact.url:
@@ -357,7 +357,9 @@ def render_timeline_section(
     if entry_list:
         return render_timeline_list(entry_list)
     if fallback_markdown:
-        return render_markdown_block(fallback_markdown, "attempt-markdown timeline-markdown")
+        return render_markdown_block(
+            fallback_markdown, "attempt-markdown timeline-markdown"
+        )
     return f"<p>{html.escape(empty_message)}</p>"
 
 
@@ -448,14 +450,21 @@ def render_evidence_actions(
 
     analysis_file = first_analysis_file(evidence)
     items = [
-        evidence_action_item("Monitor snapshot", evidence.monitor_file, "Open monitor snapshot", url_transform),
+        evidence_action_item(
+            "Monitor snapshot",
+            evidence.monitor_file,
+            "Open monitor snapshot",
+            url_transform,
+        ),
         evidence_action_item(
             "Performance result",
             evidence.performance_file,
             "View performance test result",
             url_transform,
         ),
-        evidence_action_item("Data export", evidence.data_file, "Download data export", url_transform),
+        evidence_action_item(
+            "Data export", evidence.data_file, "Download data export", url_transform
+        ),
         evidence_action_item(
             "Simulated data export",
             evidence.simulated_data_file,
@@ -525,9 +534,7 @@ def render_analysis_notebook(
     if not isinstance(cells, list):
         cells = []
     rendered_cells = [
-        render_notebook_cell(cell)
-        for cell in cells
-        if isinstance(cell, dict)
+        render_notebook_cell(cell) for cell in cells if isinstance(cell, dict)
     ]
     return (
         '<section id="analysis-notebook" class="analysis-notebook-panel evidence-subsection">'
@@ -616,7 +623,11 @@ def render_notebook_output(output: dict[str, object]) -> str:
     output_type = output.get("output_type")
     if output_type == "error":
         traceback = notebook_text(output.get("traceback"))
-        return f'<pre class="notebook-error"><code>{html.escape(traceback)}</code></pre>' if traceback else ""
+        return (
+            f'<pre class="notebook-error"><code>{html.escape(traceback)}</code></pre>'
+            if traceback
+            else ""
+        )
 
     text = notebook_text(output.get("text"))
     if text:
@@ -693,9 +704,7 @@ def render_performance_result(
         f"{performance_heading('Resp P95 (s)', '95th percentile HTTP response time, in seconds, for key participant endpoints; higher values show slower tail latency.')}"
         f"{performance_heading('Q P95 all (s)', '95th percentile async-process queue delay across trial makers, when queue metrics are available.')}"
         f"{performance_heading('Errors', 'Request errors plus bot errors recorded during the run.')}"
-        "</tr></thead><tbody>"
-        + "\n".join(body)
-        + "</tbody></table></div></section>"
+        "</tr></thead><tbody>" + "\n".join(body) + "</tbody></table></div></section>"
     )
 
 
@@ -723,7 +732,9 @@ def render_performance_options(options: object) -> str:
     if not isinstance(options, dict):
         return ""
     n_bots = options.get("n_bots_sweep")
-    n_bots_text = ", ".join(str(value) for value in n_bots) if isinstance(n_bots, list) else ""
+    n_bots_text = (
+        ", ".join(str(value) for value in n_bots) if isinstance(n_bots, list) else ""
+    )
     rows = [
         ("Target concurrent bots", n_bots_text),
         ("Duration", format_minutes(options.get("duration_minutes"))),
@@ -745,7 +756,7 @@ def performance_heading(label: str, tooltip: str) -> str:
     """Render a performance table heading with a tooltip."""
 
     return (
-        "<th><span class=\"header-popover\" tabindex=\"0\">"
+        '<th><span class="header-popover" tabindex="0">'
         f"{html.escape(label)}"
         f'<span class="info-popover-content" role="tooltip">{html.escape(tooltip)}</span>'
         "</span></th>"
@@ -781,7 +792,7 @@ def render_completeness(
     *,
     extra_items: Iterable[CompletenessItem] = (),
 ) -> str:
-    """Render artifact completeness rows."""
+    """Render audit completeness rows."""
 
     items = [
         f'<li class="{"present" if item.present else "missing"}">'
@@ -790,10 +801,8 @@ def render_completeness(
     ]
     return (
         '<section class="evidence-subsection">'
-        "<h3>Artifact completeness</h3>"
-        '<ul class="artifact-checklist">'
-        + "\n".join(items)
-        + "</ul></section>"
+        "<h2>Audit completeness</h2>"
+        '<ul class="artifact-checklist">' + "\n".join(items) + "</ul></section>"
     )
 
 
@@ -806,7 +815,9 @@ def render_visible_artifacts(
     """Render remaining evidence files."""
 
     excluded = exclude_paths or set()
-    visible_files = [file for file in evidence.visible_files if file.path not in excluded]
+    visible_files = [
+        file for file in evidence.visible_files if file.path not in excluded
+    ]
     return render_file_grid(
         visible_files,
         empty_message="No additional evidence files were found.",
@@ -819,21 +830,24 @@ def render_evidence_section(
     *,
     extra_completeness: Iterable[CompletenessItem] = (),
     include_heading: bool = True,
+    include_completeness: bool = True,
     section_id: str | None = "evidence",
     url_transform: UrlTransform = identity_url,
 ) -> str:
     """Render the main evidence section."""
 
     heading = "<h2>Evidence</h2>" if include_heading else ""
-    section_attributes = f' id="{html.escape(section_id, quote=True)}"' if section_id else ""
+    section_attributes = (
+        f' id="{html.escape(section_id, quote=True)}"' if section_id else ""
+    )
     return (
         f"<section{section_attributes}>"
         f"{heading}"
         f"{render_participant_video(evidence, url_transform=url_transform)}"
         f"{render_screenshot_gallery(evidence, url_transform=url_transform)}"
         f"{render_evidence_actions(evidence, url_transform=url_transform)}"
-        f"{render_analysis_notebook(evidence, url_transform=url_transform)}"
         f"{render_performance_result(evidence, url_transform=url_transform)}"
-        f"{render_completeness(evidence, extra_items=extra_completeness)}"
+        f"{render_analysis_notebook(evidence, url_transform=url_transform)}"
+        f"{render_completeness(evidence, extra_items=extra_completeness) if include_completeness else ''}"
         "</section>"
     )

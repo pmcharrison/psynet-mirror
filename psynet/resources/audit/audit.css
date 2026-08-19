@@ -98,6 +98,23 @@ a {
   padding: 1rem;
 }
 
+.audit-completeness {
+  background: var(--code-background);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.audit-completeness > .evidence-subsection,
+.audit-completeness h2 {
+  margin-top: 0;
+}
+
+.audit-completeness > .evidence-subsection {
+  margin-bottom: 0;
+}
+
 .attempt-layout {
   align-items: start;
   display: grid;

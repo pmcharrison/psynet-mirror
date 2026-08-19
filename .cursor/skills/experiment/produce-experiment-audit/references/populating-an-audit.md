@@ -191,8 +191,9 @@ Every required non-present artifact needs a matching blocker. A useful blocker
 states what was attempted, what prevented completion, and the next concrete
 step. Never turn a skipped or failed check into passing evidence.
 
-Each screenshot intended for display must be declared as an artifact; a caption
-manifest alone does not publish the images.
+Declare screenshots either as individual artifacts or in the `captions` map of
+the present `screenshots` manifest artifact. Rendering publishes safe image
+paths referenced by that manifest and builds the screenshot carousel.
 
 ## Analysis and reporting
 

@@ -169,13 +169,13 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert "Pitch Discrimination Demo" in index
     assert "Experiment readiness audit" in index
     assert "Readiness" in index
-    assert "<h1>Report</h1>" in index
+    assert "<h1>Report</h1>" not in index
     assert "Experiment <strong>behaves</strong> as expected." in index
     assert "<li>Functional check passed</li>" in index
     assert "<script>bad()</script>" not in index
     assert '<details id="plan" class="attempt-panel plan-panel">' in index
     assert '<details id="report" class="attempt-panel report-panel" open>' in index
-    assert "<h1>Plan</h1>" in index
+    assert "<h1>Plan</h1>" not in index
     assert "Use a chain trial maker." in index
     assert "psynet test local" in index
     assert "No simulated export has been produced yet." in index
@@ -415,6 +415,112 @@ def test_render_audit_site_renders_timeline_and_json_sections(tmp_path: Path) ->
     assert "Finished with <strong>evidence</strong>." in index
     assert '<details id="agent_metadata" class="attempt-panel">' in index
     assert "{&quot;model&quot;: &quot;test-model&quot;}" in index
+
+
+def test_render_audit_site_polishes_core_section_layout(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["sections"][2]["kind"] = "markdown"  # Legacy packets used this kind.
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir / "PLAN.md", "# Plan\n\nBuild a small experiment.\n")
+    write(audit_dir / "REPORT.md", "# Report\n\nThe experiment works.\n")
+    write(
+        audit_dir / "TIMELINE.md",
+        "# Timeline\n\n"
+        "2026-08-19T12:53:36Z psynet test local passed\n"
+        "2026-08-19T12:54:00Z performance-test smoke --audit\n",
+    )
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert "<h1>Plan</h1>" not in index
+    assert "<h1>Report</h1>" not in index
+    assert '<details id="timeline"' in index
+    assert 'class="timeline-list"' in index
+    assert "<h1>Timeline</h1>" not in index
+    assert "Audit completeness" in index
+    assert index.index("Audit completeness") < index.index("Source path")
+    assert 'href="#checks"' not in index
+    assert '<details id="checks"' not in index
+
+
+def test_render_audit_site_orders_performance_before_analysis(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    for artifact in manifest["artifacts"]:
+        if artifact["id"] in {"performance_result", "analysis_notebook"}:
+            artifact["status"] = "present"
+    manifest["blockers"] = [
+        blocker
+        for blocker in manifest["blockers"]
+        if blocker["artifact_id"] not in {"performance_result", "analysis_notebook"}
+    ]
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(
+        audit_dir / "artifacts/performance.json",
+        json.dumps({"results": [{"n_bots": 1, "bots_succeeded": 1}]}),
+    )
+    write(
+        audit_dir / "analyses/analysis.ipynb",
+        json.dumps(
+            {
+                "nbformat": 4,
+                "nbformat_minor": 5,
+                "metadata": {},
+                "cells": [
+                    {
+                        "cell_type": "markdown",
+                        "metadata": {},
+                        "source": ["Analysis body"],
+                    }
+                ],
+            }
+        ),
+    )
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert index.index('class="performance-result"') < index.index(
+        'id="analysis-notebook"'
+    )
+
+
+def test_render_audit_site_publishes_screenshots_from_manifest(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    screenshots = next(
+        artifact
+        for artifact in manifest["artifacts"]
+        if artifact["id"] == "screenshots"
+    )
+    screenshots["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write_bytes(audit_dir / "artifacts/screenshots/01-intro.png", b"png bytes")
+    write_bytes(audit_dir / "artifacts/screenshots/02-trial.png", b"png bytes 2")
+    write(
+        audit_dir / "artifacts/screenshots/manifest.json",
+        json.dumps(
+            {
+                "captions": {
+                    "screenshots/01-intro.png": "Intro screen",
+                    "screenshots/02-trial.png": "Trial screen",
+                }
+            }
+        ),
+    )
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert "Screenshot walkthrough" in index
+    assert "Intro screen" in index
+    assert "Trial screen" in index
+    assert "data-screenshot-counter>1 / 2</span>" in index
 
 
 def test_render_audit_section_isolates_render_failures(
@@ -871,7 +977,9 @@ def test_audit_serve_cli_errors_when_site_missing(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
 
-    result = CliRunner().invoke(psynet, ["audit", "serve", str(audit_dir), "--port", "0"])
+    result = CliRunner().invoke(
+        psynet, ["audit", "serve", str(audit_dir), "--port", "0"]
+    )
 
     assert result.exit_code != 0
     combined = f"{result.output}{result.stderr}"

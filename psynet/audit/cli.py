@@ -21,6 +21,7 @@ from psynet.audit.artifacts import (
 )
 from psynet.audit.html import (
     pygments_css,
+    render_completeness,
     render_evidence_section,
     render_json_block,
     render_markdown_block,
@@ -243,6 +244,10 @@ STARTER_TIMELINE = """# Timeline
 
 Record notable implementation and evidence-collection events, or remove this
 section from `audit.json`.
+
+Use entries such as:
+
+`- T+00:00:00 [agent-start] Started implementation.`
 """
 STARTER_REPORT = """# Experiment audit report
 
@@ -376,7 +381,7 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
         "sections": [
             starter_section("prompt", "Prompt", "markdown", path="PROMPT.md"),
             starter_section("plan", "Plan", "markdown", path="PLAN.md"),
-            starter_section("timeline", "Timeline", "markdown", path="TIMELINE.md"),
+            starter_section("timeline", "Timeline", "timeline", path="TIMELINE.md"),
             starter_section("report", "Report", "markdown", path="REPORT.md"),
             starter_section("blockers", "Blockers", "blockers"),
             starter_section("evidence", "Evidence", "evidence"),
@@ -954,6 +959,7 @@ def publish_audit_artifacts(
     write_shared_monitor_static_assets(shared_static_root)
 
     rendered: list[AuditFile] = []
+    published_paths: set[str] = set()
     for artifact in manifest.get("artifacts", []):
         if not isinstance(artifact, dict):
             continue
@@ -984,6 +990,75 @@ def publish_audit_artifacts(
                 kind=file_kind(relative_path),
             )
         )
+        published_paths.add(relative_path)
+        if relative_path.endswith("screenshots/manifest.json"):
+            rendered.extend(
+                publish_screenshot_manifest_files(
+                    audit_dir,
+                    target_root,
+                    source_file,
+                    published_paths,
+                )
+            )
+    return rendered
+
+
+def publish_screenshot_manifest_files(
+    audit_dir: Path,
+    target_root: Path,
+    manifest_file: Path,
+    published_paths: set[str],
+) -> list[AuditFile]:
+    """Publish screenshot files referenced by a screenshot caption manifest."""
+
+    try:
+        data = json.loads(manifest_file.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return []
+    captions = data.get("captions") if isinstance(data, dict) else None
+    if not isinstance(captions, dict):
+        return []
+
+    rendered: list[AuditFile] = []
+    for caption_path in captions:
+        if not isinstance(caption_path, str):
+            continue
+        relative_path = (
+            caption_path
+            if caption_path.startswith("artifacts/")
+            else f"artifacts/{caption_path}"
+        )
+        if relative_path in published_paths:
+            continue
+        source_file, problems = relative_audit_path(
+            audit_dir,
+            relative_path,
+            f"screenshot manifest path {caption_path!r}",
+        )
+        if (
+            problems
+            or source_file is None
+            or not source_file.is_file()
+            or source_file.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}
+        ):
+            continue
+        artifact_url = artifact_output_url(
+            write_hashed_artifact(
+                source_file,
+                target_root,
+                HASHED_ARTIFACTS_DIR,
+            )
+        )
+        rendered.append(
+            AuditFile(
+                path=relative_path,
+                url=artifact_url,
+                content=None,
+                size_bytes=source_file.stat().st_size,
+                kind=file_kind(relative_path),
+            )
+        )
+        published_paths.add(relative_path)
     return rendered
 
 
@@ -1047,10 +1122,16 @@ def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     sections = manifest.get("sections")
     if not isinstance(sections, list):
         return []
+    checks = manifest.get("checks")
     return [
         section
         for section in sections
-        if isinstance(section, dict) and section.get("display") is not False
+        if isinstance(section, dict)
+        and section.get("display") is not False
+        and not (
+            section.get("kind") == "checks"
+            and (not isinstance(checks, list) or not checks)
+        )
     ]
 
 
@@ -1073,7 +1154,7 @@ def render_markdown_section(audit_dir: Path, section: dict[str, Any]) -> str:
 
     content = section.get("content")
     if isinstance(content, str):
-        return render_markdown_block(content)
+        return render_markdown_block(strip_redundant_section_heading(content, section))
     section_path, problems = relative_audit_path(
         audit_dir,
         section.get("path"),
@@ -1083,7 +1164,18 @@ def render_markdown_section(audit_dir: Path, section: dict[str, Any]) -> str:
         return '<p class="missing">Section path is invalid.</p>'
     if not section_path.is_file():
         return '<p class="missing">Section file missing.</p>'
-    return render_markdown_block(section_path.read_text(encoding="utf-8"))
+    content = section_path.read_text(encoding="utf-8")
+    return render_markdown_block(strip_redundant_section_heading(content, section))
+
+
+def strip_redundant_section_heading(
+    markdown: str,
+    _section: dict[str, Any],
+) -> str:
+    """Remove a leading H1 because the enclosing panel already provides one."""
+
+    pattern = re.compile(r"\A\s*#\s+.+?\s*(?:\n+|\Z)")
+    return pattern.sub("", markdown, count=1)
 
 
 def section_text(audit_dir: Path, section: dict[str, Any]) -> str | None:
@@ -1109,7 +1201,10 @@ def render_timeline_section(audit_dir: Path, section: dict[str, Any]) -> str:
     if text is None:
         return '<p class="missing">Timeline section file missing.</p>'
     entries = parse_timeline_entries(text)
-    return render_shared_timeline_section(entries, fallback_markdown=text)
+    return render_shared_timeline_section(
+        entries,
+        fallback_markdown=strip_redundant_section_heading(text, section),
+    )
 
 
 def render_json_section(audit_dir: Path, section: dict[str, Any]) -> str:
@@ -1145,18 +1240,21 @@ def render_audit_section(
     kind = section.get("kind")
 
     def render_body() -> str:
+        if section_id_raw == "timeline" or kind == "timeline":
+            return render_timeline_section(audit_dir, section)
         if kind == "markdown":
             return render_markdown_section(audit_dir, section)
         if kind == "evidence":
             return render_evidence_section(
-                evidence, include_heading=False, section_id=None
+                evidence,
+                include_heading=False,
+                include_completeness=False,
+                section_id=None,
             )
         if kind == "files":
             return render_visible_artifacts(
                 evidence, exclude_paths=section_paths(manifest)
             )
-        if kind == "timeline":
-            return render_timeline_section(audit_dir, section)
         if kind == "json":
             return render_json_section(audit_dir, section)
         if kind == "checks":
@@ -1465,6 +1563,9 @@ def render_audit_site(
       </div>
       {readiness_score_card(manifest)}
     </header>
+    <section class="audit-completeness">
+      {render_completeness(evidence)}
+    </section>
     {metadata}
     <div class="attempt-layout">
       <aside class="attempt-sidebar" aria-label="Experiment audit sections">
