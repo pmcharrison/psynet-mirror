@@ -28,6 +28,7 @@ _LEGACY_LOCAL_RUN_SCAFFOLD_PATHS = frozenset(
         ".python-version",
         "Dockerfile",
         "config.txt",
+        "deploy.toml",
         "test.py",
         "docker",
     }
