@@ -8,10 +8,11 @@ If the root contains a file called `experiment.py`, assume that we are working o
 Otherwise assume we are working on the PsyNet source code.
 
 PsyNet experiment skills are installed under `.cursor/skills/psynet/` by
-`psynet update-scripts`. Treat that directory as PsyNet-managed: update the
-canonical skills in the PsyNet source repository rather than editing generated
-copies in an experiment. Skills elsewhere under `.cursor/skills/` belong to the
-experiment and are preserved by `psynet update-scripts`.
+`psynet scripts update` (and created when missing by `psynet scripts scaffold`).
+Treat that directory as PsyNet-managed: update the canonical skills in the
+PsyNet source repository rather than editing generated copies in an experiment.
+Skills elsewhere under `.cursor/skills/` belong to the experiment and are
+preserved by `psynet scripts update`.
 
 ## Initial setup
 
@@ -49,8 +50,10 @@ Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 
-- (For PsyNet): `uv pip install -e '.[dev,slack]'`
-- (For experiments): `uv pip install -r constraints.txt`
+- (For PsyNet source checkout): `uv pip install -e '.[dev,demos,slack]'`
+- (For standalone experiments): `uv pip install psynet` (bootstrap only), followed by
+  `psynet setup` to scaffold and install `psynet[experiment]` via the generated
+  `constraints.txt`.
 
 If dependency installation fails with `pg_config executable not found`, install
 PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
@@ -65,6 +68,35 @@ If a user asks for the X demo, list all child directories in `demos/experiments`
 
 ## Running experiments locally
 
+If you copied a demo into a brand new directory, initialize a Git repository first:
+
+```bash
+git init
+```
+
+The PsyNet demo directories include just the authored experiment files.
+Their unpinned `requirements.txt` files and omitted constraints are intentional.
+Within the PsyNet source checkout, PsyNet automatically generates ignored
+boilerplate when a bundled demo is run or tested:
+
+```bash
+psynet debug local
+```
+
+Pytest scaffolds demos temporarily via the `in_experiment_directory` fixture.
+On teardown it removes only paths that were absent when the fixture started,
+so pre-existing scaffold leftovers and customized files remain untouched.
+
+For a copied standalone demo, initialize Git and create its complete environment:
+
+```bash
+git init
+uv venv --python 3.13
+source .venv/bin/activate
+uv pip install psynet      # bootstrap only (no experiment runtime yet)
+psynet setup               # scaffolds files and installs psynet[experiment]
+```
+
 To run an experiment in debug mode:
 
 ```bash
@@ -78,8 +110,6 @@ For example, to run the timeline demo:
 cd demos/experiments/timeline
 psynet debug local
 ```
-
-to see which they mean.
 
 Wait for 8 seconds for the server to start.
 

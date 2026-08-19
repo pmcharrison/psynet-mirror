@@ -76,8 +76,9 @@ briefly in `audit/PLAN.md` or `audit/TIMELINE.md` and continue.
 #### Setup
 
 - Use a relevant PsyNet demo as a starting point. Prefer copying a full demo
-  directory (or run `psynet update-scripts`) so scaffolding such as `test.py`,
-  `pytest.ini`, and `.gitignore` is present—not only `experiment.py`.
+  directory (or run `psynet scripts update` / `psynet scripts scaffold`) so
+  scaffolding such as `test.py`, `pytest.ini`, and `.gitignore` is present—not
+  only `experiment.py`.
 - In `requirements.txt`, pin PsyNet to the local checkout commit used for the
   implementation, for example:
   `psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit>#egg=psynet`.

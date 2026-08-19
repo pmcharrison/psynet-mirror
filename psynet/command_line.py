@@ -12,8 +12,6 @@ import tempfile
 import threading
 import zipfile
 from contextlib import contextmanager
-from hashlib import md5
-from importlib import resources
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -40,14 +38,22 @@ from yaspin import yaspin
 
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
+from psynet.runtime_init import ensure_runtime
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
-    recommended_python_major_minor,
 )
 
 from . import deployment_info
+from .bootstrap_commands import register_bootstrap_commands
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
+from .experiment_scaffold import (
+    dockertag_contents,
+    get_psynet_requirement,
+    is_unambiguous_psynet_requirement,
+    missing_scaffold_paths_required_for_local_run,
+    scaffold_experiment_directory,
+)
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
@@ -60,16 +66,18 @@ from .utils import (
     get_package_name,
     git_repository_available,
     in_python_package,
+    is_in_repo_experiment,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
-    md5_directory,
     pretty_format_seconds,
     require_exp_directory,
     require_requirements_txt,
     run_subprocess_with_live_output,
     working_directory,
 )
+
+ensure_runtime()
 
 logger = get_logger()
 
@@ -116,9 +124,7 @@ def clean_sys_modules():
 
 
 def update_docker_tag():
-    with open("Dockertag", "w") as file:
-        file.write(os.path.basename(os.getcwd()))
-        file.write("\n")
+    Path("Dockertag").write_text(dockertag_contents())
 
 
 @click.group()
@@ -1075,6 +1081,18 @@ def _pre_launch(
 ):
     from .experiment import get_experiment
 
+    # Scaffold/git checks before Redis so missing-boilerplate guidance is visible
+    # even when Redis is not running.
+    _check_experiment_directory(mode)
+
+    from .services import ensure_local_services
+
+    # All launch paths (local, SSH, Heroku, Docker) run ``prepare`` / Redis
+    # helpers on this machine before any remote packaging, so local Postgres
+    # and Redis are required here even when the experiment ultimately runs
+    # elsewhere.
+    ensure_local_services(assume_yes=False, strict=True)
+
     redis_vars.clear()
     deployment_info.init(
         redeploying_from_archive=archive is not None,
@@ -1103,10 +1121,14 @@ def _pre_launch(
     # Always use the Dallinger version in requirements.txt, not the local editable one
     os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-    if docker:
-        if Path("Dockerfile").exists():
-            # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
-            os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+    if is_in_repo_experiment():
+        # In-repo demos/tests use PsyNet's shared development .venv; do not let
+        # Dallinger invent a per-demo constraints.txt from PyPI.
+        os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+    elif docker and Path("Dockerfile").exists():
+        # Tell Dallinger not to rebuild constraints.txt, because we'll manage
+        # this within the Docker image.
+        os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     experiment = get_experiment()
     experiment.update_deployment_id()
@@ -1327,11 +1349,90 @@ def check_prolific_payment(experiment, config):
     )
 
 
+def _missing_boilerplate_fix(*, mode=None, missing_paths=None):
+    """Return actionable guidance when experiment boilerplate is missing."""
+    if is_in_repo_experiment():
+        command = "psynet scripts scaffold"
+        context = (
+            "This looks like a PsyNet bundled demo or test experiment, so only "
+            "template files are needed."
+        )
+    else:
+        command = "psynet setup"
+        context = (
+            "For a standalone experiment this prepares files, pins PsyNet, "
+            "writes constraints.txt, and installs packages into your active "
+            "virtual environment. If you only need template files, run "
+            "'psynet scripts scaffold' instead."
+        )
+
+    mode_clause = ""
+    if mode is not None:
+        mode_clause = f" before running 'psynet {mode} ...'"
+
+    message = f"{context} Run '{command}' to generate the missing files{mode_clause}."
+    if missing_paths and "config.txt" in missing_paths:
+        message += (
+            " If you are upgrading an experiment that already sets options in "
+            "Experiment.config, create an empty config.txt with 'touch config.txt' "
+            "instead of scaffolding a full template."
+        )
+    return message
+
+
+def _prepare_in_repo_experiment():
+    """Generate ignored boilerplate when running an in-repo experiment."""
+    if not is_in_repo_experiment():
+        return False
+    scaffold_experiment_directory()
+    return True
+
+
+def _check_experiment_directory(mode):
+    """
+    Fail fast on missing scaffold or git before Redis or other heavy I/O.
+
+    In-repo experiments are auto-scaffolded first so their missing-boilerplate
+    check does not falsely fail. These checks must run before ``redis_vars.clear()``
+    so users without Redis still see actionable guidance.
+    """
+    _prepare_in_repo_experiment()
+
+    missing_boilerplate = missing_scaffold_paths_required_for_local_run()
+    if missing_boilerplate:
+        missing_paths = ", ".join(missing_boilerplate)
+        raise click.ClickException(
+            "Experiment directory is missing required PsyNet boilerplate files "
+            f"({missing_paths}). "
+            f"{_missing_boilerplate_fix(mode=mode, missing_paths=missing_boilerplate)}"
+        )
+
+    # We need an active git repository for Dallinger to recognize .gitignore properly
+    if not git_repository_available():
+        from .light_utils import git_command_available
+
+        if not git_command_available():
+            raise click.ClickException(
+                "Git does not appear to be installed. Install it from "
+                "https://git-scm.com/downloads, then create a repository by "
+                "running 'git init'. If you copied a demo into a new directory, "
+                "run 'git init' before 'psynet debug local' or 'psynet test local'."
+            )
+        raise click.ClickException(
+            "This directory is not a git repository. Create one by running "
+            "'git init'. If you copied a demo into a new directory, run "
+            "'git init' before 'psynet debug local' or 'psynet test local'."
+        )
+
+
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
     from .experiment import get_experiment
     from .utils import check_todos_before_deployment
+
+    # Directory readiness is checked earlier in ``_pre_launch`` (before Redis)
+    # and directly from ``psynet test local``. Avoid duplicating that work here.
 
     exp = get_experiment()
     exp.check_config()
@@ -1353,13 +1454,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 )
     except FileNotFoundError:
         raise click.ClickException(
-            f".gitignore is missing from your experiment directory ({os.getcwd()})."
-        )
-
-    # We need an active git repository for Dallinger to recognize .gitignore properly
-    if not git_repository_available():
-        raise click.ClickException(
-            "This directory is not a git repository, or git is not installed. Please ensure git is installed and create a repository by running 'git init' if needed."
+            f".gitignore is missing from your experiment directory ({os.getcwd()}). "
+            + _missing_boilerplate_fix()
         )
 
     try:
@@ -1621,25 +1717,11 @@ def install_autocomplete():
         )
 
 
-##########
-# update #
-##########
-@psynet.command()
-@click.option(
-    "--dallinger-version",
-    default="latest",
-    help="The git branch, commit or tag of the Dallinger version to install.",
-)
-@click.option(
-    "--psynet-version",
-    default="latest",
-    help="The git branch, commit or tag of the psynet version to install.",
-)
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-def update(dallinger_version, psynet_version, verbose):
-    """
-    Update the locally installed `Dallinger` and `PsyNet` versions.
-    """
+#######################
+# installation update #
+#######################
+def _run_installation_update(dallinger_version, psynet_version, verbose):
+    """Update the locally installed Dallinger and PsyNet packages."""
 
     def _git_checkout(version, cwd, capture_output):
         with yaspin(text=f"Checking out {version}...", color="green") as spinner:
@@ -1766,6 +1848,62 @@ def update(dallinger_version, psynet_version, verbose):
     log(f"Updated PsyNet to version {get_version('psynet')}")
 
 
+_installation_update_options = [
+    click.option(
+        "--dallinger-version",
+        default="latest",
+        help="The git branch, commit or tag of the Dallinger version to install.",
+    ),
+    click.option(
+        "--psynet-version",
+        default="latest",
+        help="The git branch, commit or tag of the psynet version to install.",
+    ),
+    click.option("--verbose", is_flag=True, help="Verbose mode"),
+]
+
+
+def _add_installation_update_options(command):
+    """Attach shared options to installation-update entry points."""
+    for option in reversed(_installation_update_options):
+        command = option(command)
+    return command
+
+
+@psynet.group("installation")
+def installation():
+    """
+    Manage the local PsyNet and Dallinger installation.
+    """
+    pass
+
+
+@installation.command("update")
+@_add_installation_update_options
+def installation_update(dallinger_version, psynet_version, verbose):
+    """
+    Update the locally installed Dallinger and PsyNet packages.
+
+    This upgrades (or pin-selects) the PsyNet/Dallinger *installation* in your
+    environment. It does not refresh experiment boilerplate files; for that,
+    use ``psynet scripts update``.
+    """
+    _run_installation_update(dallinger_version, psynet_version, verbose)
+
+
+@psynet.command("update")
+@_add_installation_update_options
+def update(dallinger_version, psynet_version, verbose):
+    """
+    Deprecated alias for ``psynet installation update``.
+    """
+    click.echo(
+        "psynet update is deprecated; use 'psynet installation update' instead.",
+        err=True,
+    )
+    _run_installation_update(dallinger_version, psynet_version, verbose)
+
+
 def dallinger_dir():
     import dallinger as _
 
@@ -1849,29 +1987,6 @@ def setup_experiment_variables(experiment_class):
     return experiment
 
 
-########################
-# generate-constraints #
-########################
-@psynet.command()
-@click.pass_context
-@require_requirements_txt
-def generate_constraints(ctx):
-    """
-    Generate the constraints.txt file from requirements.txt.
-    """
-    from dallinger.command_line import (
-        generate_constraints as dallinger_generate_constraints,
-    )
-
-    try:
-        # We have removed check_psynet_requirement_is_unambiguous here because it caused problems for Docker users.
-        # Instead, we just run this in the sandbox/deploy prechecks.
-        # check_psynet_requirement_is_unambiguous()
-        ctx.invoke(dallinger_generate_constraints)
-    finally:
-        reset_console()
-
-
 @psynet.command()
 @require_requirements_txt
 def check_constraints():
@@ -1909,11 +2024,14 @@ def check_dockerfile():
 
     update_scripts_recommendation = (
         "To fix this issue, run:\n"
-        "  psynet update-scripts\n\n"
+        "  psynet scripts scaffold\n\n"
+        "This creates any missing standard boilerplate files without overwriting existing ones.\n\n"
+        "If you instead want to overwrite existing boilerplate with the latest templates, run:\n"
+        "  psynet scripts update\n\n"
         "Note: This command will also update other experiment files including .gitignore, "
         "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
         "IMPORTANT: Before running this command, commit any pending changes to git so you can "
-        "review the automatic changes that psynet update-scripts makes."
+        "review the automatic changes that psynet scripts update makes."
     )
 
     dockerfile_path = Path("Dockerfile")
@@ -1949,8 +2067,7 @@ def check_dockerfile():
 def _check_constraints(spinner=None):
     directory = os.getcwd()
 
-    # This code comes from dallinger.utils.ensure_constraints_file_presence.
-    # Ideally this Dallinger function would be refactored into exportable components.
+    # Freshness uses the same MD5-in-lockfile rule as ``psynet setup``.
     requirements_path = Path(directory) / "requirements.txt"
     constraints_path = Path(directory) / "constraints.txt"
 
@@ -1964,9 +2081,9 @@ def _check_constraints(spinner=None):
         # raise click.Abort()
 
     generate_constraints_cmd = (
-        "    psynet generate-constraints\n"
-        "or, if you are using Docker:\n"
-        "    bash docker/generate-constraints"
+        "    psynet setup\n"
+        "or only refresh the lockfile with:\n"
+        "    psynet generate-constraints"
     )
 
     if not constraints_path.exists():
@@ -1974,19 +2091,23 @@ def _check_constraints(spinner=None):
             spinner.fail("✘")
         raise click.ClickException(
             "Error: Experiment directory is missing a constraints.txt file. "
-            "This file pins all of your experiment's Python package dependencies, both explicit and implicit. "
-            "Please check that your requirements.txt file is up-to-date, then generate the constraints.txt file "
-            "by running the following command:\n" + generate_constraints_cmd
+            "Standalone experiments need this lockfile so installs are "
+            "reproducible. Please check that your requirements.txt file is "
+            "up-to-date, then create constraints.txt by running:\n"
+            + generate_constraints_cmd
         )
 
-    requirements_path_hash = md5(requirements_path.read_bytes()).hexdigest()
-    if requirements_path_hash not in constraints_path.read_text():
+    from .constraints_compile import constraints_are_up_to_date
+
+    if not constraints_are_up_to_date(
+        requirements_path=requirements_path,
+        constraints_path=constraints_path,
+    ):
         if spinner:
             spinner.fail("✘")
         raise click.ClickException(
             "The constraints.txt file is not up-to-date with the requirements.txt file. "
-            "Please generate a new constraints.txt file by running the following command:\n"
-            + generate_constraints_cmd
+            "Please regenerate constraints.txt by running:\n" + generate_constraints_cmd
         )
 
 
@@ -1995,10 +2116,8 @@ def check_psynet_requirement_is_unambiguous():
     Validate that ``requirements.txt`` pins PsyNet unambiguously.
 
     The check requires a deterministic PsyNet specification so deployments are
-    reproducible. Accepted formats are:
-    - ``psynet==<version>``
-    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v<version>#egg=psynet``
-    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit-hash>#egg=psynet``
+    reproducible. Accepted formats are documented on
+    :func:`psynet.experiment_scaffold.is_unambiguous_psynet_requirement`.
 
     Raises
     ------
@@ -2016,33 +2135,10 @@ def check_psynet_requirement_is_unambiguous():
         text="Verifying PsyNet version in requirements.txt...",
         color="green",
     ) as spinner:
-        valid = False
-        with open("requirements.txt", "r") as file:
-            regexes = [
-                "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
-            ]
-            file_content = file.read()
-            for regex in regexes:
-                match = re.search(
-                    r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
-                    + regex
-                    + "(#egg=psynet)?$",
-                    file_content,
-                    re.MULTILINE,
-                )
-                if match is not None:
-                    valid = True
-                    break
-
-                match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?$",
-                    file_content,
-                    re.MULTILINE,
-                )
-                if match is not None:
-                    valid = True
-                    break
+        requirement = get_psynet_requirement()
+        valid = requirement is not None and is_unambiguous_psynet_requirement(
+            requirement
+        )
 
         if valid:
             spinner.ok("✔")
@@ -2050,27 +2146,52 @@ def check_psynet_requirement_is_unambiguous():
             spinner.color = "red"
             spinner.fail("✗")
 
-        branch_note = (
-            "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
-            "or a commit hash."
-        )
-
-        examples = [
-            "* psynet==10.1.1",
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
-        ]
-
         if not valid:
-            raise ValueError(
-                "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
-                + branch_note
-                + "\n\nExamples:\n"
-                + "\n".join(examples)
-                + "\nYou can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
-                "in your terminal."
+            raise ValueError(_ambiguous_psynet_requirement_message(requirement))
+
+
+def _is_local_psynet_requirement(requirement: str) -> bool:
+    """Return whether a PsyNet requirement points at a local filesystem path."""
+    compact = requirement.lower().replace(" ", "")
+    return compact.startswith("-e") or "file://" in compact
+
+
+def _ambiguous_psynet_requirement_message(requirement: str | None) -> str:
+    """Build the deploy-time error for a missing or ambiguous PsyNet pin."""
+    branch_note = (
+        "This means you can't just give a branch name, e.g. master; you have to "
+        "specify a particular version or a commit hash."
+    )
+    examples = [
+        "* psynet==10.1.1",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+        "* psynet@git+https://gitlab.com/alice/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
+    ]
+
+    parts = [
+        "When deploying an experiment, you need to specify PsyNet in an "
+        "unambiguous way. " + branch_note,
+    ]
+    if requirement:
+        parts.append(f"\n\nYour current requirements.txt entry is:\n  {requirement}")
+        if _is_local_psynet_requirement(requirement):
+            parts.append(
+                "\n\nLocal path and editable installs cannot be resolved on a "
+                "remote deploy server. If you developed against a local PsyNet "
+                "checkout, re-run:\n"
+                "  psynet setup --psynet-source commit\n"
+                "to pin a pushed Git commit before deploying."
             )
+    parts.append(
+        "\n\nExamples:\n"
+        + "\n".join(examples)
+        + "\nYou can skip this check by writing "
+        "`export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+        "in your terminal."
+    )
+    return "".join(parts)
 
 
 ##########
@@ -2826,118 +2947,20 @@ def generate_config(ctx):
             file.write(f"{key} = {value}\n")
 
 
-@psynet.command()
+register_bootstrap_commands(psynet)
+
+
+@psynet.command("update-scripts")
 @require_exp_directory
 def update_scripts():
     """
-    Update template scripts, help files, and PsyNet-managed Agent Skills.
-
-    Run this in an experiment directory. User-owned skills outside
-    ``.cursor/skills/psynet`` are preserved.
+    Deprecated alias for ``psynet scripts update``.
     """
-    update_scripts_()
-
-
-def update_scripts_():
-    """
-    To be run in an experiment directory; updates a collection of template scripts and help files to their
-    latest PsyNet versions.
-    """
-    # TODO - refactor to avoid hardcoding the list of files/directories to copy
-    click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
-
-    Path(".vscode").mkdir(exist_ok=True)
-    Path(".github/workflows").mkdir(parents=True, exist_ok=True)
-
-    files_to_copy = [
-        ".gitignore",
-        ".dockerignore",
-        "Dockerfile",
-        "README.md",
-        "__init__.py",
-        "pytest.ini",
-        "test.py",
-        ".github/workflows/test.yml",
-        ".vscode/launch.json",
-        "AGENTS.md",
-    ]
-    for file in files_to_copy:
-        click.echo(f"...updating {file}.")
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{file}"
-        ) as path:
-            shutil.copyfile(
-                path,
-                file,
-            )
-
-    # We keep Dockertag for now, but once we remove the docker directory,
-    # we should remove this too.
-    click.echo("...updating Dockertag.")
-    with open("Dockertag", "w") as file:
-        file.write(os.path.basename(os.getcwd()))
-        file.write("\n")
-
-    click.echo("...updating .python-version")
-    with open(".python-version", "w") as file:
-        file.write(recommended_python_major_minor)
-        file.write("\n")
-
-    directories_to_copy = ["docker"]
-    for dir in directories_to_copy:
-        click.echo(f"...updating {dir} directory.")
-        if Path(dir).exists():
-            shutil.rmtree(dir, ignore_errors=True)
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
-        ) as path:
-            shutil.copytree(
-                path,
-                dir,
-                dirs_exist_ok=True,
-            )
-
-    _update_experiment_skills()
-    os.system("chmod +x docker/*")
-
-    # We remove no-longer-wanted directories only if we can be confident that the
-    # user hasn't edited them
-    directories_to_remove = [("docs", "abfc54bbbc3ef9d5948957841727a18b")]
-    for directory, hash in directories_to_remove:
-        if Path(directory).exists():
-            if md5_directory(directory) == hash:
-                # The directory is unchanged, we can remove it
-                shutil.rmtree(directory)
-
-
-def _update_experiment_skills():
-    """Install PsyNet-managed Agent Skills without touching user skills."""
-
-    target = Path(".cursor/skills/psynet")
-    click.echo(f"...updating {target} directory.")
-
-    if target.exists():
-        shutil.rmtree(target)
-    target.parent.mkdir(parents=True, exist_ok=True)
-
-    # Editable PsyNet checkouts keep the canonical skills at the repository
-    # root, where IDEs discover them for PsyNet development. Built wheels
-    # force-include the same tree as a package resource for installed PsyNet.
-    checkout_source = Path(__file__).resolve().parents[1] / ".cursor/skills/experiment"
-    if checkout_source.is_dir():
-        shutil.copytree(checkout_source, target)
-        return
-
-    packaged_source = (
-        resources.files("psynet")
-        / "resources"
-        / "experiment_scripts"
-        / ".cursor"
-        / "skills"
-        / "psynet"
+    click.echo(
+        "psynet update-scripts is deprecated; use 'psynet scripts update' instead.",
+        err=True,
     )
-    with resources.as_file(packaged_source) as path:
-        shutil.copytree(path, target)
+    scaffold_experiment_directory(overwrite=True)
 
 
 @psynet.group("destroy")
@@ -3202,6 +3225,17 @@ def test__local(
     Test the experiment locally.
     """
     assert not (parallel and serial)
+
+    # --existing talks to a live server; skip local scaffold/git readiness.
+    # Non-existing runs share debug's directory checks (incl. bundled-demo prepare).
+    if not existing:
+        _check_experiment_directory("test")
+
+    # Same local Postgres/Redis requirement as ``psynet debug local`` /
+    # ``psynet deploy local`` (virtualenv mode).
+    from .services import ensure_local_services
+
+    ensure_local_services(assume_yes=False, strict=True)
 
     from psynet.experiment import get_experiment
 
