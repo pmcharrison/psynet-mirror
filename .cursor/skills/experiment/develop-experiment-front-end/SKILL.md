@@ -1,6 +1,6 @@
 ---
 name: develop-experiment-front-end
-description: Develop and test PsyNet experiment front-end interfaces.
+description: Develop and test PsyNet experiment front-end interfaces with ModularPage, Native Graphics, and Playwright checks. Use when building or validating participant-facing pages, controls, custom prompts, or UI evidence screenshots.
 ---
 
 # Develop experiment front end

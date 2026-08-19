@@ -14,7 +14,18 @@ PsyNet source repository rather than editing generated copies in an experiment.
 Skills elsewhere under `.cursor/skills/` belong to the experiment and are
 preserved by `psynet scripts update`.
 
-## Initial setup
+## Agent Skills authoring
+
+The canonical skill format spec is `.cursor/skills/create-skill/SKILL.md` in the
+PsyNet source repository. Experiment skills live under
+`.cursor/skills/experiment/`; repo meta skills live under `.cursor/skills/`.
+After editing skills, run `python scripts/validate_agent_skills.py` and refresh
+experiment copies with `psynet scripts update`.
+
+The PsyNetSkills workshop repository adds a thin `create-skill` addendum for
+challenge/attempt workflows and `psynetsk-validate`.
+
+## Initial setup
 
 - Install Python 3.13 (use same version specified in `Dockerfile`)
 - Install uv (`pip3 install uv`)

@@ -4,6 +4,7 @@ description: Use this skill when a PsyNet experiment has two participants intera
 ---
 
 # Process dyadic experiment data
+
 The default clean layout is one row per experimental batch, dyad, round or node,
 and player.
 

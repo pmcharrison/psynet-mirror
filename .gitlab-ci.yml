@@ -61,6 +61,14 @@ pre_commit:
   script:
     - pre-commit run --all-files
 
+validate_agent_skills:
+  image: python:3.13
+  <<: *default_rules
+  before_script:
+    - pip install pyyaml skills-ref
+  script:
+    - python scripts/validate_agent_skills.py
+
 changelog_check:
   image: python:3.13
   stage: test

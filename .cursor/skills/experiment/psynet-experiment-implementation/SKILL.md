@@ -183,6 +183,7 @@ uv pip install matplotlib jupyter nbconvert nbformat ipykernel
 # nbconvert uses the notebook directory as cwd; resolve data paths from the
 # experiment root (for example Path(__file__) is unavailable in notebooks—
 # walk parents until experiment.py is found, or pass an absolute data path).
+
 jupyter nbconvert --to notebook --execute --inplace audit/analyses/analysis.ipynb
 ```
 
