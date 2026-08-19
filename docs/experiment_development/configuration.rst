@@ -209,8 +209,9 @@ Payment
 
 ``hard_max_experiment_payment`` *float* |psynet-icon|
     Guarantees that in an experiment no more is spent than the value assigned.
-    Bonuses are not paid from the point this value is reached and a record of the amount
-    of unpaid bonus is kept in the participant's ``unpaid_bonus`` field. Default: ``1100.0``.
+    Bonuses are not paid from the point this value is reached and the
+    withheld amount is stored as ``assigned_bonus`` with
+    ``bonus_status = capped``. Default: ``1100.0``.
 
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.

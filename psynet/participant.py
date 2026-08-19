@@ -46,11 +46,23 @@ from .utils import (
 
 logger = get_logger()
 
+BONUS_STATUS_NOT_DUE_YET = "not_due_yet"
+BONUS_STATUS_UNCONFIRMED = "unconfirmed"
 BONUS_STATUS_SUCCESS = "success"
 BONUS_STATUS_DISMISSED = "dismissed"
 BONUS_STATUS_CAPPED = "capped"
 
+SETTLED_BONUS_STATUSES = frozenset(
+    {
+        BONUS_STATUS_SUCCESS,
+        BONUS_STATUS_DISMISSED,
+        BONUS_STATUS_CAPPED,
+    }
+)
+
 _BONUS_STATUS_LABELS = {
+    BONUS_STATUS_NOT_DUE_YET: "Not due yet",
+    BONUS_STATUS_UNCONFIRMED: "Unconfirmed",
     BONUS_STATUS_SUCCESS: "Success",
     BONUS_STATUS_DISMISSED: "Dismissed",
     BONUS_STATUS_CAPPED: "Capped",
@@ -64,17 +76,18 @@ def display_bonus_status(participant) -> str:
     bonus arrived. ``Success`` is what PsyNet recorded, not a Prolific
     receipt. ``Dismissed`` and ``Capped`` mean we will not post again.
     """
-    if getattr(participant, "needs_payment_review", False):
-        return "Unconfirmed"
     stored = getattr(participant, "bonus_status", None)
-    if stored in _BONUS_STATUS_LABELS:
-        return _BONUS_STATUS_LABELS[stored]
-    if getattr(participant, "payment_settled", False):
-        unpaid = float(getattr(participant, "unpaid_bonus", 0) or 0)
-        if unpaid > 0:
-            return "Capped"
-        return "Success"
-    return "Not due yet"
+    return _BONUS_STATUS_LABELS.get(stored, "Not due yet")
+
+
+def bonus_is_settled(participant) -> bool:
+    """True when PsyNet will not automatically post a bonus for this person."""
+    return getattr(participant, "bonus_status", None) in SETTLED_BONUS_STATUSES
+
+
+def bonus_needs_review(participant) -> bool:
+    """True when the automatic bonus POST is unconfirmed."""
+    return getattr(participant, "bonus_status", None) == BONUS_STATUS_UNCONFIRMED
 
 
 if TYPE_CHECKING:
@@ -241,14 +254,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
-    unpaid_bonus = Column(Float)
-    payment_settled = Column(Boolean, default=False)
-    # True after PsyNet has used its one automatic bonus POST. If the
-    # transfer failed, unpaid_bonus holds the amount; open the participant
-    # on the dashboard to poll the platform, pay, or dismiss.
-    needs_payment_review = Column(Boolean, default=False)
-    # Terminal bonus outcome once payment is settled: success, dismissed,
-    # or capped. Unconfirmed review is ``needs_payment_review`` instead.
+    # Decided Prolific top-up from ``decide_payment`` (after per-participant
+    # clip; if capped, the amount that was not sent).
+    assigned_bonus = Column(Float)
+    # not_due_yet | unconfirmed | success | dismissed | capped
     bonus_status = Column(String)
     issued_completion_code_type = Column(String)
     total_wait_page_time = Column(Float)
@@ -586,10 +595,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.sequences = []
         self.complete = False
         self.performance_reward = 0.0
-        self.unpaid_bonus = 0.0
-        self.payment_settled = False
-        self.needs_payment_review = False
-        self.bonus_status = None
+        self.assigned_bonus = 0.0
+        self.bonus_status = BONUS_STATUS_NOT_DUE_YET
         self.issued_completion_code_type = None
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
@@ -611,17 +618,24 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         """Experimenter-facing bonus outcome. See ``display_bonus_status``."""
         return display_bonus_status(self)
 
+    @property
+    def bonus_needs_review(self):
+        """True when the automatic bonus POST is unconfirmed."""
+        return bonus_needs_review(self)
+
     @classmethod
     def needing_payment_review(cls):
-        """Participants whose automatic bonus transfer needs manual review.
+        """Participants whose automatic bonus transfer is unconfirmed.
 
-        These are people for whom PsyNet already used its one automatic
-        platform bonus POST (or was interrupted while doing so). Open the
-        participant on the Participants dashboard to compare PsyNet with
-        the platform, then pay or dismiss.
+        PsyNet already used its one automatic platform bonus POST (or was
+        interrupted while doing so). Open the participant on the
+        Participants dashboard to compare with the platform, then pay or
+        dismiss.
         """
         return (
-            cls.query.filter_by(needs_payment_review=True).order_by(cls.id.asc()).all()
+            cls.query.filter_by(bonus_status=BONUS_STATUS_UNCONFIRMED)
+            .order_by(cls.id.asc())
+            .all()
         )
 
     @property

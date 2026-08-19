@@ -85,7 +85,10 @@ from .participant import (
     BONUS_STATUS_CAPPED,
     BONUS_STATUS_DISMISSED,
     BONUS_STATUS_SUCCESS,
+    BONUS_STATUS_UNCONFIRMED,
     Participant,
+    bonus_is_settled,
+    bonus_needs_review,
 )
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -347,8 +350,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
-        Bonuses are not paid from the point this value is reached and a record of the amount
-        of unpaid bonus is kept in the participant's `unpaid_bonus` field. Default: `1100.0`.
+        Bonuses are not paid from the point this value is reached and the
+        withheld amount is kept on ``assigned_bonus`` with
+        ``bonus_status = capped``. Default: `1100.0`.
 
     big_base_payment : `bool`
         Set this to `True` if you REALLY want to set `base_payment` to a value > 20.
@@ -1740,9 +1744,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         After payment is recorded, ``base_payment`` may be rewritten to the
         platform amount actually used (for example a Prolific screen-out
         reward, or ``0`` for a returned submission). ``bonus`` stays ``None``
-        until a transfer succeeds. Amounts on ``unpaid_bonus`` (hard-cap
-        withholds or failed transfers awaiting manual review) are not
-        included.
+        until a transfer succeeds. Assigned bonuses that were capped,
+        dismissed, or left unconfirmed are not included.
         """
         base_sum, bonus_sum = db.session.query(
             func.coalesce(func.sum(Participant.base_payment), 0.0),
@@ -2301,8 +2304,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
-            Working participants' bonuses will not be paid out. Instead, the amount of unpaid
-            bonus is saved in the participant's `unpaid_bonus` field.
+            Working participants' bonuses will not be paid out. Instead, the
+            withheld amount is stored as ``assigned_bonus`` with bonus status
+            ``capped``.
 
             The application id is: {app_id}
 
@@ -2409,10 +2413,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Return the bonus that may actually be transferred after spend caps.
 
         If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
-        bonus is withheld, recorded on ``participant.unpaid_bonus``, and the
-        experimenter is emailed once. If it would exceed
-        ``max_participant_payment``, the bonus is reduced to the remaining
-        room under that cap.
+        bonus is withheld, stored as ``assigned_bonus`` with
+        ``bonus_status = capped``, and the experimenter is emailed once. If it
+        would exceed ``max_participant_payment``, the bonus is reduced to the
+        remaining room under that cap.
 
         The hard cap is evaluated per payout against current
         ``amount_spent()``; it is not latched after the first withhold.
@@ -2426,7 +2430,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         projected_spend = self.amount_spent() + bonus
         if projected_spend > self.var.hard_max_experiment_payment:
-            participant.unpaid_bonus = bonus
+            participant.assigned_bonus = bonus
             participant.bonus_status = BONUS_STATUS_CAPPED
             self.ensure_hard_max_experiment_payment_email_sent()
             logger.warning(
@@ -2453,29 +2457,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         withheld, skipped as too small, or already settled). Returns False
         if the platform rejected the transfer or a previous attempt already
         failed. PsyNet posts a bonus to the platform at most once per
-        participant: the attempt is claimed on ``needs_payment_review``
-        before the recruiter call, so a later replay will not pay again.
-        A failed transfer leaves ``payment_settled`` false, stores the
-        amount on ``unpaid_bonus``, and asks the experimenter to review
-        on the Participants dashboard (poll the platform, then pay from
-        there if it still looks unpaid).
+        participant: the attempt is claimed by setting
+        ``bonus_status = unconfirmed`` and ``assigned_bonus`` before the
+        recruiter call, so a later replay will not pay again. A failed
+        transfer stays unconfirmed and asks the experimenter to review on
+        the Participants dashboard.
 
         Does not re-apply caps or send emails when already settled.
         """
-        if participant.payment_settled:
+        if bonus_is_settled(participant):
             logger.info(
-                "Bonus will NOT be paid, since participant %s has already "
-                "had payment settled (bonus=%s).",
+                "Bonus will NOT be paid, since participant %s already has "
+                "bonus_status=%s (bonus=%s).",
                 participant.id,
+                participant.bonus_status,
                 participant.bonus,
             )
             return True
-        if participant.needs_payment_review:
+        if bonus_needs_review(participant):
             logger.warning(
                 "Bonus will NOT be paid automatically, since participant %s "
-                "already needs payment review (unpaid_bonus=%s).",
+                "already has an unconfirmed bonus (assigned_bonus=%s).",
                 participant.id,
-                participant.unpaid_bonus,
+                participant.assigned_bonus,
             )
             return False
         if participant.bonus is not None:
@@ -2485,17 +2489,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.id,
                 participant.bonus,
             )
-            participant.payment_settled = True
             participant.bonus_status = BONUS_STATUS_SUCCESS
-            return True
-        if (participant.unpaid_bonus or 0.0) > 0:
-            logger.info(
-                "Bonus will NOT be paid, since participant %s already has "
-                "an unpaid_bonus of %s.",
-                participant.id,
-                participant.unpaid_bonus,
-            )
-            participant.payment_settled = True
+            if not (participant.assigned_bonus or 0.0):
+                participant.assigned_bonus = participant.bonus
             return True
 
         bonus = round(self.apply_payment_caps(participant, decision.bonus), 2)
@@ -2507,13 +2503,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.id,
                 min_real_bonus,
             )
-            participant.payment_settled = True
+            if not bonus_is_settled(participant):
+                participant.assigned_bonus = 0.0
+                participant.bonus_status = BONUS_STATUS_SUCCESS
             return True
 
         # Claim the single automatic platform POST before calling the
         # recruiter, so a crash or listener replay cannot pay twice.
-        participant.needs_payment_review = True
-        participant.unpaid_bonus = bonus
+        participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+        participant.assigned_bonus = bonus
         logger.info("Paying bonus of %s to %s", bonus, participant.id)
         transferred = participant.recruiter.reward_bonus(
             participant,
@@ -2523,7 +2521,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if transferred is False:
             logger.error(
                 "Bonus transfer failed for participant %s; leaving payment "
-                "unsettled for manual review.",
+                "unconfirmed for manual review.",
                 participant.id,
             )
             self._notify_bonus_transfer_failed(participant, bonus)
@@ -2535,24 +2533,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _record_bonus_transfer_success(self, participant, amount: float) -> None:
         """Record that this bonus is paid and no longer needs review."""
         participant.bonus = amount
-        participant.unpaid_bonus = 0.0
-        participant.needs_payment_review = False
+        if not (participant.assigned_bonus or 0.0):
+            participant.assigned_bonus = amount
         participant.bonus_status = BONUS_STATUS_SUCCESS
-        participant.payment_settled = True
 
     def pay_review_bonus(self, participant) -> tuple[str, str]:
-        """Poll the platform, then POST the unpaid bonus if it still looks unpaid.
+        """Poll the platform, then POST the assigned bonus if it still looks unpaid.
 
-        If the platform already reports at least ``unpaid_bonus``, record that
-        amount and skip the POST. Automatic submission-complete still posts at
-        most once; this is the human-gated extra attempt.
+        If the platform already reports at least ``assigned_bonus``, record
+        that amount and skip the POST. Automatic submission-complete still
+        posts at most once; this is the human-gated extra attempt.
         """
-        if not participant.needs_payment_review:
+        if not bonus_needs_review(participant):
             return (
                 "warning",
                 f"Participant {participant.id} is not flagged for payment review.",
             )
-        unpaid = round(float(participant.unpaid_bonus or 0.0), 2)
+        assigned = round(float(participant.assigned_bonus or 0.0), 2)
         recruiter = participant.recruiter
         can_report = recruiter.can_report_apparent_bonus()
         apparent = recruiter.apparent_bonus_paid(participant) if can_report else None
@@ -2562,7 +2559,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Could not read the platform bonus for participant "
                 f"{participant.id}. Try again in a moment.",
             )
-        if apparent is not None and apparent + 1e-9 >= unpaid:
+        if apparent is not None and apparent + 1e-9 >= assigned:
             self._record_bonus_transfer_success(participant, apparent)
             return (
                 "success",
@@ -2571,41 +2568,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         logger.info(
             "Dashboard retry: paying bonus of %s to participant %s",
-            unpaid,
+            assigned,
             participant.id,
         )
-        transferred = recruiter.reward_bonus(participant, unpaid, self.bonus_reason())
+        transferred = recruiter.reward_bonus(participant, assigned, self.bonus_reason())
         if transferred is False:
             return (
                 "danger",
                 f"Bonus POST failed for participant {participant.id}. "
                 "Check the platform, then try again if it still looks unpaid.",
             )
-        self._record_bonus_transfer_success(participant, unpaid)
+        self._record_bonus_transfer_success(participant, assigned)
         return (
             "success",
-            f"Posted bonus of {unpaid:.2f} for participant {participant.id}.",
+            f"Posted bonus of {assigned:.2f} for participant {participant.id}.",
         )
 
     def dismiss_review_bonus(self, participant) -> tuple[str, str]:
         """Clear payment review without posting a bonus.
 
-        Marks the payout settled so a later submission-complete replay will
-        not POST. ``unpaid_bonus`` is kept as a record of the skipped amount.
+        Marks bonus status dismissed so a later submission-complete replay
+        will not POST. ``assigned_bonus`` is kept as a record of the
+        skipped amount.
         """
-        if not participant.needs_payment_review:
+        if not bonus_needs_review(participant):
             return (
                 "warning",
                 f"Participant {participant.id} is not flagged for payment review.",
             )
-        participant.needs_payment_review = False
         participant.bonus_status = BONUS_STATUS_DISMISSED
-        participant.payment_settled = True
         logger.info(
             "Dismissed payment review for participant %s without posting "
-            "(unpaid_bonus=%s).",
+            "(assigned_bonus=%s).",
             participant.id,
-            participant.unpaid_bonus,
+            participant.assigned_bonus,
         )
         return (
             "success",
@@ -2621,7 +2617,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"Please open this participant on the Participants dashboard "
             f"(listed under Needs payment review). Compare PsyNet and "
             f"platform status there, then pay {bonus} or dismiss. "
-            "needs_payment_review is true; payment_settled is still false."
+            "bonus_status is unconfirmed."
         )
         logger.error(message)
         try:
@@ -2659,12 +2655,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         PsyNet owns this handler rather than calling Dallinger's
         implementation. Status and platform base are always re-recorded
         (so a Prolific listener replay that reset status to ``submitted``
-        is restored). ``payment_settled`` and ``needs_payment_review``
-        skip a repeat money transfer: PsyNet posts a bonus at most once.
-        Recruitment still runs if the bonus transfer fails; the
-        participant is left unsettled for dashboard review. Opening that
-        person polls the platform into the participant table and offers
-        Pay bonus or Dismiss.
+        is restored). ``bonus_status`` skips a repeat money transfer:
+        PsyNet posts a bonus at most once. Recruitment still runs if the
+        bonus transfer fails; the participant is left unconfirmed for
+        dashboard review. Opening that person polls the platform into
+        the participant table and offers Pay bonus or Dismiss.
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
         """

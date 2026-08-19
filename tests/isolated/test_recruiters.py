@@ -7,7 +7,17 @@ import dallinger.recruiters
 import pytest
 from dallinger.prolific import ProlificServiceException
 
-from psynet.participant import Participant, display_bonus_status
+from psynet.participant import (
+    BONUS_STATUS_CAPPED,
+    BONUS_STATUS_DISMISSED,
+    BONUS_STATUS_NOT_DUE_YET,
+    BONUS_STATUS_SUCCESS,
+    BONUS_STATUS_UNCONFIRMED,
+    Participant,
+    bonus_is_settled,
+    bonus_needs_review,
+    display_bonus_status,
+)
 from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
@@ -407,9 +417,8 @@ def make_participant_with_recruiter(config, failed=True, status="working"):
     participant.calculate_reward.return_value = 2.50
     participant.performance_reward = 0.30
     participant.issued_completion_code_type = None
-    participant.needs_payment_review = False
-    participant.payment_settled = False
-    participant.unpaid_bonus = 0.0
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.assigned_bonus = 0.0
     participant.bonus = None
     return participant
 
@@ -606,9 +615,8 @@ def prepare_payout_participant(participant):
     participant.bonus = None
     participant.end_time = None
     participant.assignment_id = "assignment-1"
-    participant.payment_settled = False
-    participant.unpaid_bonus = 0.0
-    participant.needs_payment_review = False
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.assigned_bonus = 0.0
     participant.worker_id = "worker-1"
     participant.recruiter.nickname = "prolific"
     participant.recruiter.approve_hit = MagicMock(return_value=True)
@@ -767,7 +775,8 @@ def test_on_recruiter_submission_complete_records_and_pays_screen_out():
     assert participant.base_pay == 0.25
     assert participant.end_time == "2026-01-01"
     assert participant.bonus == 2.25
-    assert participant.payment_settled is True
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.assigned_bonus == 2.25
     participant.recruiter.approve_hit.assert_called_once_with("assignment-1")
     participant.recruiter.reward_bonus.assert_called_once()
     assert harness.recruit_calls == 1
@@ -820,9 +829,8 @@ def test_on_recruiter_submission_complete_pays_successful_participant():
     assert participant.status == "approved"
     assert participant.base_payment == 1.00
     assert participant.bonus == 1.50
-    assert participant.payment_settled is True
-    assert participant.needs_payment_review is False
-    assert participant.unpaid_bonus == 0.0
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.assigned_bonus == 1.50
     participant.recruiter.reward_bonus.assert_called_once()
 
 
@@ -840,7 +848,7 @@ def test_on_recruiter_submission_complete_skips_unexpected_status():
     assert participant.status == "working"
     assert participant.base_payment == 1.00
     assert participant.bonus is None
-    assert participant.payment_settled is False
+    assert participant.bonus_status == BONUS_STATUS_NOT_DUE_YET
     participant.recruiter.reward_bonus.assert_not_called()
     assert harness.recruit_calls == 0
 
@@ -856,7 +864,8 @@ def test_on_recruiter_submission_complete_retries_when_not_settled():
         harness.on_recruiter_submission_complete(participant, event=None)
 
     assert participant.bonus == 2.25
-    assert participant.payment_settled is True
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.assigned_bonus == 2.25
     participant.recruiter.reward_bonus.assert_called_once()
     assert harness.recruit_calls == 1
 
@@ -866,7 +875,8 @@ def test_on_recruiter_submission_complete_replays_record_without_paying():
     participant = prepare_payout_participant(
         make_participant_with_recruiter(config, failed=True, status="submitted")
     )
-    participant.payment_settled = True
+    participant.bonus_status = BONUS_STATUS_SUCCESS
+    participant.assigned_bonus = 2.25
     participant.bonus = 2.25
     harness = PaymentHarness()
 
@@ -890,11 +900,10 @@ def test_on_recruiter_submission_complete_continues_recruiting_when_transfer_fai
     with patch("psynet.recruiters.get_config", return_value=config):
         harness.on_recruiter_submission_complete(participant, event=None)
 
-    assert participant.payment_settled is False
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.bonus is None
     assert participant.status == "approved"
-    assert participant.needs_payment_review is True
-    assert participant.unpaid_bonus == 1.50
+    assert participant.assigned_bonus == 1.50
     assert harness.recruit_calls == 1
     assert harness.submission_successful_calls == [participant]
     assert harness.notify_calls
@@ -905,7 +914,8 @@ def test_pay_decided_bonus_skips_caps_when_already_settled():
     participant = prepare_payout_participant(
         make_participant_with_recruiter(config, failed=False, status="approved")
     )
-    participant.payment_settled = True
+    participant.bonus_status = BONUS_STATUS_SUCCESS
+    participant.assigned_bonus = 1.50
     participant.bonus = 1.50
     harness = PaymentHarness()
     cap_calls = []
@@ -928,9 +938,8 @@ def test_pay_decided_bonus_leaves_unsettled_when_transfer_fails():
 
     assert harness.pay_decided_bonus(participant, decision) is False
     assert participant.bonus is None
-    assert participant.payment_settled is False
-    assert participant.needs_payment_review is True
-    assert participant.unpaid_bonus == 1.50
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.assigned_bonus == 1.50
     assert harness.notify_calls
     assert "Participants dashboard" in harness.notify_calls[0]
 
@@ -946,9 +955,8 @@ def test_pay_decided_bonus_treats_none_transfer_as_success():
 
     assert harness.pay_decided_bonus(participant, decision) is True
     assert participant.bonus == 1.50
-    assert participant.payment_settled is True
-    assert participant.needs_payment_review is False
-    assert participant.unpaid_bonus == 0.0
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.assigned_bonus == 1.50
 
 
 def test_reward_and_set_bonus_uses_payment_decision():
@@ -984,9 +992,8 @@ def test_reward_and_set_bonus_leaves_unsettled_when_transfer_fails():
             PsyNetProlificRecruiterMixin.reward_and_set_bonus(participant)
 
     assert participant.bonus is None
-    assert participant.payment_settled is False
-    assert participant.needs_payment_review is True
-    assert participant.unpaid_bonus == 2.50
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.assigned_bonus == 2.50
     assert PsyNetProlificRecruiterMixin._return_for_bonus_credited(participant) is False
 
 
@@ -1098,13 +1105,15 @@ class PaymentCapHarness:
 
 def test_apply_payment_caps_withholds_bonus_at_hard_max():
     harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
-    participant = MagicMock(id=1, unpaid_bonus=0.0)
+    participant = MagicMock(
+        id=1, assigned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET
+    )
 
     result = harness.apply_payment_caps(participant, 1.00)
 
     assert result == 0.0
-    assert participant.unpaid_bonus == 1.00
-    assert participant.bonus_status == "capped"
+    assert participant.assigned_bonus == 1.00
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
     assert harness.hard_max_emails == 1
     participant.send_email_max_payment_reached.assert_not_called()
 
@@ -1143,40 +1152,46 @@ def test_amount_spent_sums_recorded_base_and_bonus():
 
 def test_pay_decided_bonus_withholds_at_hard_max_and_settles():
     harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
-    participant = MagicMock(id=1, payment_settled=False, unpaid_bonus=0.0, bonus=None)
-    participant.needs_payment_review = False
+    participant = MagicMock(
+        id=1,
+        bonus_status=BONUS_STATUS_NOT_DUE_YET,
+        assigned_bonus=0.0,
+        bonus=None,
+    )
     participant.recruiter.reward_bonus = MagicMock()
     decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.00)
 
     assert harness.pay_decided_bonus(participant, decision) is True
     participant.recruiter.reward_bonus.assert_not_called()
-    assert participant.unpaid_bonus == 1.00
+    assert participant.assigned_bonus == 1.00
     assert participant.bonus is None
-    assert participant.payment_settled is True
-    assert participant.needs_payment_review is False
-    assert participant.bonus_status == "capped"
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
 
 
-def test_pay_decided_bonus_skips_when_unpaid_bonus_already_set():
+def test_pay_decided_bonus_skips_when_already_capped():
     config = make_config()
     participant = prepare_payout_participant(
         make_participant_with_recruiter(config, failed=False, status="approved")
     )
-    participant.unpaid_bonus = 1.00
+    participant.assigned_bonus = 1.00
+    participant.bonus_status = BONUS_STATUS_CAPPED
     harness = PaymentHarness()
     decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.00)
 
     assert harness.pay_decided_bonus(participant, decision) is True
     participant.recruiter.reward_bonus.assert_not_called()
-    assert participant.payment_settled is True
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert participant.assigned_bonus == 1.00
 
 
 def test_apply_payment_caps_is_not_latched_after_a_withhold():
     harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
-    withheld = MagicMock(id=1, unpaid_bonus=0.0)
+    withheld = MagicMock(
+        id=1, assigned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET
+    )
     assert harness.apply_payment_caps(withheld, 1.00) == 0.0
 
-    later = MagicMock(id=2, unpaid_bonus=0.0)
+    later = MagicMock(id=2, assigned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET)
     later.amount_paid.return_value = 1.00
     assert harness.apply_payment_caps(later, 0.40) == 0.40
 
@@ -1217,13 +1232,13 @@ def test_pay_decided_bonus_does_not_repost_when_review_is_needed():
     decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.50)
 
     assert harness.pay_decided_bonus(participant, decision) is False
-    assert participant.needs_payment_review is True
-    assert participant.unpaid_bonus == 1.50
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.assigned_bonus == 1.50
     assert harness.notify_calls
 
     assert harness.pay_decided_bonus(participant, decision) is False
     participant.recruiter.reward_bonus.assert_called_once()
-    assert participant.payment_settled is False
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.bonus is None
 
 
@@ -1242,8 +1257,8 @@ def test_on_recruiter_submission_complete_does_not_repost_after_failed_transfer(
 
     participant.recruiter.reward_bonus.assert_called_once()
     assert participant.status == "approved"
-    assert participant.needs_payment_review is True
-    assert participant.payment_settled is False
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.assigned_bonus == 1.50
     assert harness.recruit_calls == 2
 
 
@@ -1255,7 +1270,7 @@ def test_needing_payment_review_filters_flagged_participants():
     with patch.object(Participant, "query", query):
         assert Participant.needing_payment_review() == flagged
 
-    query.filter_by.assert_called_once_with(needs_payment_review=True)
+    query.filter_by.assert_called_once_with(bonus_status=BONUS_STATUS_UNCONFIRMED)
 
 
 def test_dashboard_participants_includes_review_list():
@@ -1263,7 +1278,7 @@ def test_dashboard_participants_includes_review_list():
 
     from psynet.experiment import Experiment
 
-    needing = [SimpleNamespace(id=7, unpaid_bonus=1.5)]
+    needing = [SimpleNamespace(id=7, assigned_bonus=1.5)]
     app = Flask("psynet_test")
     with app.test_request_context("/dashboard/participants"):
         with patch(
@@ -1380,12 +1395,12 @@ def test_hotair_apparent_bonus_paid_is_unknown():
     assert recruiter.apparent_bonus_paid(MagicMock()) is None
 
 
-def _review_participant(apparent=0.0, unpaid=1.50):
+def _review_participant(apparent=0.0, assigned=1.50):
     participant = prepare_payout_participant(
         make_participant_with_recruiter(make_config(), failed=False, status="approved")
     )
-    participant.needs_payment_review = True
-    participant.unpaid_bonus = unpaid
+    participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+    participant.assigned_bonus = assigned
     participant.recruiter.can_report_apparent_bonus = MagicMock(return_value=True)
     participant.recruiter.apparent_bonus_paid = MagicMock(return_value=apparent)
     return participant
@@ -1401,11 +1416,9 @@ def test_pay_review_bonus_posts_when_platform_shows_zero():
     assert category == "success"
     participant.recruiter.reward_bonus.assert_called_once()
     assert participant.recruiter.reward_bonus.call_args.args[1] == 1.50
-    assert participant.payment_settled is True
-    assert participant.needs_payment_review is False
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.bonus == 1.50
-    assert participant.unpaid_bonus == 0.0
-    assert participant.bonus_status == "success"
+    assert participant.assigned_bonus == 1.50
 
 
 def test_pay_review_bonus_does_not_post_when_platform_already_paid():
@@ -1417,15 +1430,15 @@ def test_pay_review_bonus_does_not_post_when_platform_already_paid():
 
     assert category == "success"
     participant.recruiter.reward_bonus.assert_not_called()
-    assert participant.payment_settled is True
-    assert participant.needs_payment_review is False
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.bonus == 1.50
+    assert participant.assigned_bonus == 1.50
 
 
 def test_pay_review_bonus_refuses_when_not_in_review():
     participant = _review_participant()
-    participant.needs_payment_review = False
-    participant.unpaid_bonus = 0.0
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.assigned_bonus = 0.0
     harness = PaymentHarness()
 
     category, message = harness.pay_review_bonus(participant)
@@ -1455,7 +1468,9 @@ def test_pay_review_bonus_posts_when_recruiter_cannot_report():
 
     assert category == "success"
     participant.recruiter.reward_bonus.assert_called_once()
-    assert participant.payment_settled is True
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.assigned_bonus == 1.50
+    assert participant.bonus == 1.50
 
 
 def test_pay_review_bonus_leaves_review_when_post_fails():
@@ -1466,10 +1481,9 @@ def test_pay_review_bonus_leaves_review_when_post_fails():
     category, message = harness.pay_review_bonus(participant)
 
     assert category == "danger"
-    assert participant.needs_payment_review is True
-    assert participant.payment_settled is False
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.bonus is None
-    assert participant.unpaid_bonus == 1.50
+    assert participant.assigned_bonus == 1.50
 
 
 def test_dismiss_review_bonus_clears_review_without_posting():
@@ -1480,84 +1494,42 @@ def test_dismiss_review_bonus_clears_review_without_posting():
     category, message = harness.dismiss_review_bonus(participant)
 
     assert category == "success"
-    assert participant.needs_payment_review is False
-    assert participant.payment_settled is True
+    assert participant.bonus_status == BONUS_STATUS_DISMISSED
     assert participant.bonus is None
-    assert participant.unpaid_bonus == 1.50
-    assert participant.bonus_status == "dismissed"
+    assert participant.assigned_bonus == 1.50
     participant.recruiter.reward_bonus.assert_not_called()
     assert "without posting" in message.lower()
 
 
 @pytest.mark.parametrize(
-    "attrs, label",
+    "status, label",
     [
-        (
-            {
-                "needs_payment_review": True,
-                "bonus_status": None,
-                "payment_settled": False,
-            },
-            "Unconfirmed",
-        ),
-        (
-            {
-                "needs_payment_review": False,
-                "bonus_status": "success",
-                "payment_settled": True,
-            },
-            "Success",
-        ),
-        (
-            {
-                "needs_payment_review": False,
-                "bonus_status": "dismissed",
-                "payment_settled": True,
-            },
-            "Dismissed",
-        ),
-        (
-            {
-                "needs_payment_review": False,
-                "bonus_status": "capped",
-                "payment_settled": True,
-            },
-            "Capped",
-        ),
-        (
-            {
-                "needs_payment_review": False,
-                "bonus_status": None,
-                "payment_settled": False,
-            },
-            "Not due yet",
-        ),
-        (
-            {
-                "needs_payment_review": False,
-                "bonus_status": None,
-                "payment_settled": True,
-            },
-            "Success",
-        ),
-        (
-            {
-                "needs_payment_review": False,
-                "bonus_status": None,
-                "payment_settled": True,
-                "unpaid_bonus": 1.5,
-            },
-            "Capped",
-        ),
+        (BONUS_STATUS_UNCONFIRMED, "Unconfirmed"),
+        (BONUS_STATUS_SUCCESS, "Success"),
+        (BONUS_STATUS_DISMISSED, "Dismissed"),
+        (BONUS_STATUS_CAPPED, "Capped"),
+        (BONUS_STATUS_NOT_DUE_YET, "Not due yet"),
+        (None, "Not due yet"),
+        ("unknown", "Not due yet"),
     ],
 )
-def test_display_bonus_status(attrs, label):
-    assert display_bonus_status(SimpleNamespace(**attrs)) == label
+def test_display_bonus_status(status, label):
+    assert display_bonus_status(SimpleNamespace(bonus_status=status)) == label
+
+
+def test_bonus_status_helpers():
+    unconfirmed = SimpleNamespace(bonus_status=BONUS_STATUS_UNCONFIRMED)
+    assert bonus_needs_review(unconfirmed)
+    assert not bonus_is_settled(unconfirmed)
+    assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_SUCCESS))
+    assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_DISMISSED))
+    assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_CAPPED))
+    assert not bonus_needs_review(SimpleNamespace(bonus_status=BONUS_STATUS_SUCCESS))
 
 
 def test_dismiss_review_bonus_refuses_when_not_in_review():
     participant = _review_participant()
-    participant.needs_payment_review = False
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
     harness = PaymentHarness()
 
     category, message = harness.dismiss_review_bonus(participant)

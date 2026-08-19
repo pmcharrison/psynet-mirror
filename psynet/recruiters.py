@@ -27,11 +27,10 @@ Key design constraints for maintainers:
   money and returns ``False`` if the platform rejected the transfer.
   ``Experiment.on_recruiter_submission_complete`` owns this sequence,
   always re-recording status and platform base, and uses
-  ``participant.payment_settled`` and ``participant.needs_payment_review``
   to skip a repeat transfer. PsyNet posts a bonus automatically at most
   once per participant. A failed transfer still continues recruitment,
-  records the amount on ``unpaid_bonus``, and sets
-  ``needs_payment_review``. The Participants dashboard lists everyone
+  stores the amount on ``assigned_bonus``, and sets
+  ``bonus_status`` to unconfirmed. The Participants dashboard lists everyone
   who needs that review. Opening a participant polls the platform
   (Prolific ``bonus_payments`` and submission status, which may lag a
   POST) and shows those facts in the participant table, with Pay bonus
@@ -80,7 +79,7 @@ from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService, get_lucid_service
 from .page import InfoPage
-from .participant import Participant
+from .participant import BONUS_STATUS_SUCCESS, Participant
 from .timeline import (
     AsyncCodeBlock,
     CodeBlock,
@@ -932,9 +931,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     @staticmethod
     def _return_for_bonus_credited(participant) -> bool:
         """True when the return-for-bonus transfer finished without withholding."""
-        return bool(participant.payment_settled) and not (
-            (participant.unpaid_bonus or 0.0) > 0
-        )
+        return participant.bonus_status == BONUS_STATUS_SUCCESS
 
     @staticmethod
     def reward_and_set_bonus(participant):

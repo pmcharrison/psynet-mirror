@@ -121,7 +121,7 @@
                         <tr>
                             <th>Participant ID</th>
                             <th>Worker ID</th>
-                            <th>Missing bonus</th>
+                            <th>Assigned bonus</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -135,7 +135,7 @@
                                     <a href="{{ review_url }}">{{ review_participant.worker_id }}</a>
                                 </td>
                                 <td>
-                                    <a href="{{ review_url }}">{{ currency }}{{ "%.2f"|format(review_participant.unpaid_bonus or 0) }}</a>
+                                    <a href="{{ review_url }}">{{ currency }}{{ "%.2f"|format(review_participant.assigned_bonus or 0) }}</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -251,29 +251,21 @@
         <tr class="section-head">
             <th colspan="2">Payment</th>
         </tr>
-        <tr {% if participant.needs_payment_review %}class="table-warning"{% endif %}>
+        <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
             <td>Bonus status</td>
             <td>{{ participant.bonus_status_label }}</td>
+        </tr>
+        <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
+            <td>Assigned bonus</td>
+            <td>{{ currency }}{{ "%.2f"|format(participant.assigned_bonus or 0) }}</td>
         </tr>
         <tr>
             <td>Base payment</td>
             <td>{{ participant.base_payment }}</td>
         </tr>
         <tr>
-            <td>Bonus</td>
-            <td>{{ participant.bonus }}</td>
-        </tr>
-        <tr {% if participant.needs_payment_review %}class="table-warning"{% endif %}>
-            <td>Missing bonus</td>
-            <td>{{ currency }}{{ "%.2f"|format(participant.unpaid_bonus or 0) }}</td>
-        </tr>
-        <tr>
             <td>Issued completion code</td>
             <td>{{ participant.issued_completion_code_type }}</td>
-        </tr>
-        <tr>
-            <td>Current reward</td>
-            <td>{{ participant.calculate_reward() }}</td>
         </tr>
         <tr class="section-head">
             <th colspan="2">
@@ -306,7 +298,7 @@
         {% endif %}
     </table>
     </div>
-    {% if participant.needs_payment_review %}
+    {% if participant.bonus_needs_review %}
         <div id="payment-review-actions">
             <form method="post" action="{{ url_for('dashboard.dashboard_pay_bonus') }}" onsubmit="return confirm('Post this bonus to the recruitment platform? Only continue if the platform does not already show it.');">
                 <input type="hidden" name="participant_id" value="{{ participant.id }}">
