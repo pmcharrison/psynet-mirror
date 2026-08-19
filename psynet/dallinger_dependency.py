@@ -1,9 +1,12 @@
-"""Resolve PsyNet's declared Dallinger version lower bound.
+"""Resolve PsyNet's declared Dallinger dependency for bootstrap and CI.
 
-Thin-bootstrap paths need a Dallinger release tag when the package is not
-installed (for example fetching ``dallinger.constraints`` from GitHub). That
-tag must track the same lower bound declared in ``pyproject.toml`` under
-``psynet[experiment]``, not a hand-maintained duplicate constant.
+Thin-bootstrap paths need a GitHub ref when Dallinger is not installed (for
+example fetching ``dallinger.constraints``). That ref must track the same
+declaration in ``pyproject.toml`` under ``psynet[experiment]``, not a
+hand-maintained duplicate constant.
+
+Version pins become ``v<lower-bound>``. Direct git pins to
+``github.com/Dallinger/Dallinger`` use the declared commit SHA.
 
 Resolution order:
 
@@ -25,6 +28,10 @@ except ModuleNotFoundError:  # pragma: no cover
     import tomli as tomllib
 
 _LOWER_BOUND_PATTERN = re.compile(r">=\s*(\d+\.\d+\.\d+)")
+_GIT_SHA_PIN_PATTERN = re.compile(
+    r"git\+https://github\.com/Dallinger/Dallinger\.git@([0-9a-f]{40})",
+    re.IGNORECASE,
+)
 _DALLINGER_REQUIREMENT_PATTERN = re.compile(
     r"^\s*dallinger(?:\[[^\]]+\])?\s*(?:\(|[<>=!~;@\s]|$)", re.IGNORECASE
 )
@@ -45,20 +52,29 @@ def supported_dallinger_lower_bound() -> str:
 
 
 def dallinger_constraints_github_ref() -> str:
-    """Return the GitHub ref for the constraints-script fallback (e.g. ``v12.2.0``)."""
+    """Return the GitHub ref for the constraints-script fallback.
+
+    Version pins become ``v<lower-bound>``. Direct git pins use the SHA.
+    """
+    pyproject_path = _default_pyproject_path()
+    if pyproject_path.is_file():
+        requirement = _dallinger_requirement_from_pyproject(pyproject_path)
+        sha = _git_sha_from_requirement(requirement)
+        if sha is not None:
+            return sha
+        version = _lower_bound_from_requirement_strings(
+            [requirement], source=str(pyproject_path)
+        )
+        return f"v{version}"
     return f"v{supported_dallinger_lower_bound()}"
 
 
 def dallinger_lower_bound_from_pyproject(pyproject_path: Path) -> str:
     """Return the Dallinger lower bound declared in ``pyproject_path``."""
-    pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-    candidates = list(
-        pyproject.get("project", {})
-        .get("optional-dependencies", {})
-        .get("experiment", [])
+    requirement = _dallinger_requirement_from_pyproject(pyproject_path)
+    return _lower_bound_from_requirement_strings(
+        [requirement], source=str(pyproject_path)
     )
-    candidates.extend(pyproject.get("project", {}).get("dependencies", []))
-    return _lower_bound_from_requirement_strings(candidates, source=str(pyproject_path))
 
 
 def _lower_bound_from_installed_metadata() -> str | None:
@@ -75,10 +91,20 @@ def _lower_bound_from_installed_metadata() -> str | None:
         return None
 
 
-def _lower_bound_from_requirement_strings(
-    requirements: list[str], *, source: str
-) -> str:
-    """Extract ``>=X.Y.Z`` from a Dallinger requirement string."""
+def _dallinger_requirement_from_pyproject(pyproject_path: Path) -> str:
+    """Return the Dallinger requirement string declared in ``pyproject_path``."""
+    pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+    candidates = list(
+        pyproject.get("project", {})
+        .get("optional-dependencies", {})
+        .get("experiment", [])
+    )
+    candidates.extend(pyproject.get("project", {}).get("dependencies", []))
+    return _dallinger_requirement_from_strings(candidates, source=str(pyproject_path))
+
+
+def _dallinger_requirement_from_strings(requirements: list[str], *, source: str) -> str:
+    """Return the first Dallinger requirement string from ``requirements``."""
     dependency = next(
         (
             requirement
@@ -89,6 +115,20 @@ def _lower_bound_from_requirement_strings(
     )
     if dependency is None:
         raise ValueError(f"Could not find a Dallinger dependency in {source}.")
+    return dependency
+
+
+def _git_sha_from_requirement(requirement: str) -> str | None:
+    """Return a Dallinger git SHA pin, or ``None`` for version-style pins."""
+    match = _GIT_SHA_PIN_PATTERN.search(requirement)
+    return match.group(1) if match else None
+
+
+def _lower_bound_from_requirement_strings(
+    requirements: list[str], *, source: str
+) -> str:
+    """Extract ``>=X.Y.Z`` from a Dallinger requirement string."""
+    dependency = _dallinger_requirement_from_strings(requirements, source=source)
     match = _LOWER_BOUND_PATTERN.search(dependency)
     if match is None:
         raise ValueError(

@@ -20,8 +20,8 @@ def test_vendored_dallinger_constraints_match_pyproject_dependency():
     if dependency_version_match is None:
         assert (
             dallinger_dependency == "dallinger[docker] @ "
-            "git+https://github.com/pmcharrison/Dallinger.git"
-            "@6b8092bdbe9dc5e2ca70c7fd2323b2ed7fbc98d4"
+            "git+https://github.com/Dallinger/Dallinger.git"
+            "@1103deb1bc2ebb17ba148a070b762d02ce911bae"
         )
         constraints = DALLINGER_CONSTRAINTS.read_text(encoding="utf-8")
         assert (

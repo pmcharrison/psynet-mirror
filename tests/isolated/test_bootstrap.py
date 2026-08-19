@@ -10,6 +10,7 @@ Covers:
 
 from __future__ import annotations
 
+import re
 import sys
 from hashlib import md5
 from unittest.mock import MagicMock
@@ -279,34 +280,31 @@ def test_dallinger_constraints_script_uses_pinned_github_when_missing(
     ref = dallinger_constraints_github_ref()
     url = _dallinger_constraints_github_url()
     assert ref != "master"
-    assert ref.startswith("v")
+    assert re.fullmatch(r"(v\d+\.\d+\.\d+|[0-9a-f]{40})", ref)
     assert ref in url
     assert "master" not in url
     assert _dallinger_constraints_script() == url
     assert ref in capsys.readouterr().out
 
 
-def test_dallinger_constraints_github_ref_tracks_pyproject_lower_bound():
+def test_dallinger_constraints_github_ref_tracks_pyproject_declaration():
     """GitHub fallback ref is derived from pyproject, not a duplicate constant."""
     import tomllib
     from pathlib import Path
 
-    from psynet.dallinger_dependency import (
-        dallinger_constraints_github_ref,
-        dallinger_lower_bound_from_pyproject,
-    )
+    from psynet.dallinger_dependency import dallinger_constraints_github_ref
 
     root = Path(__file__).resolve().parents[2]
-    pyproject_version = dallinger_lower_bound_from_pyproject(root / "pyproject.toml")
-    assert dallinger_constraints_github_ref() == f"v{pyproject_version}"
-
     pyproject = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     declared = next(
         dep
         for dep in pyproject["project"]["optional-dependencies"]["experiment"]
         if dep.startswith("dallinger[")
     )
-    assert pyproject_version in declared
+    ref = dallinger_constraints_github_ref()
+    assert ref != "master"
+    assert re.fullmatch(r"(v\d+\.\d+\.\d+|[0-9a-f]{40})", ref)
+    assert ref.lstrip("v") in declared or ref in declared
 
 
 def test_bootstrap_core_depends_only_on_click():

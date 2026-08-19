@@ -1,5 +1,6 @@
 """Tests for Dallinger lower-bound resolution from pyproject / metadata."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -13,11 +14,48 @@ from psynet.dallinger_dependency import (
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_lower_bound_from_pyproject_matches_experiment_extra():
+def test_github_ref_tracks_declared_dallinger_dependency():
+    import tomllib
+
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    declared = next(
+        dep
+        for dep in pyproject["project"]["optional-dependencies"]["experiment"]
+        if dep.startswith("dallinger[")
+    )
+    ref = dallinger_constraints_github_ref()
+    sha = re.search(r"Dallinger\.git@([0-9a-f]{40})", declared)
+    if sha:
+        assert ref == sha.group(1)
+        with pytest.raises(ValueError, match="lower-bound version"):
+            dallinger_lower_bound_from_pyproject(ROOT / "pyproject.toml")
+        return
     version = dallinger_lower_bound_from_pyproject(ROOT / "pyproject.toml")
-    assert version == "12.2.0"
-    assert dallinger_constraints_github_ref() == "v12.2.0"
+    assert ref == f"v{version}"
+    assert version in declared
     assert supported_dallinger_lower_bound() == version
+
+
+def test_github_ref_uses_git_sha_pin(tmp_path, monkeypatch):
+    from psynet import dallinger_dependency
+
+    sha = "0123456789abcdef0123456789abcdef01234567"
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        f"""
+[project]
+dependencies = []
+[project.optional-dependencies]
+experiment = ["dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@{sha}"]
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        dallinger_dependency, "_default_pyproject_path", lambda: pyproject
+    )
+    assert dallinger_constraints_github_ref() == sha
+    with pytest.raises(ValueError, match="lower-bound version"):
+        dallinger_lower_bound_from_pyproject(pyproject)
 
 
 def test_lower_bound_from_pyproject_rejects_missing_dallinger(tmp_path):
