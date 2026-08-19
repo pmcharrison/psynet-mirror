@@ -17,11 +17,17 @@ Ensure you have a source code repository available at `~/PsyNet`
 Useful starting points:
 
 - `~/PsyNet/psynet/` for the PsyNet source code.
-- `~/PsyNet/demos/experiments/` for complete experiments.
+- `~/PsyNet/demos/experiments/` for complete experiments (authored files only).
 - `~/PsyNet/demos/features/` for focused feature examples.
 - `~/PsyNet/docs/` for user-facing documentation.
+- `~/PsyNet/docs/tutorials/creating_a_new_experiment.rst` for creating a new
+  experiment directory (prefer `psynet setup`).
 - `~/PsyNet/psynet/resources/experiment_scripts/AGENTS.md` for setup and command
   guidance.
+
+When starting a new experiment, copy the closest demo's authored files into a
+new directory, then prefer `psynet setup` over hand-written boilerplate. Details
+live in `psynet-experiment-implementation/SKILL.md` (Setup).
 
 ## Useful demos
 

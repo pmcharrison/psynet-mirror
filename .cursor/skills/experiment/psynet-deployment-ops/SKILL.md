@@ -43,8 +43,8 @@ Check that the experiment folder has:
 ## Dependency checks
 
 - Install from `constraints.txt`, not directly from `requirements.txt`.
-- Regenerate constraints only when dependencies intentionally changed or
-  `constraints.txt` is missing.
+- Prefer `psynet setup` to regenerate constraints and refresh the environment
+  when dependencies intentionally change or `constraints.txt` is missing.
 - If local and deployed behavior differ, check for stale constraints, Docker
   context problems, missing assets, and hardcoded local paths.
 

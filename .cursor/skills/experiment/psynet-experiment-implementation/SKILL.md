@@ -75,18 +75,63 @@ briefly in `audit/PLAN.md` or `audit/TIMELINE.md` and continue.
 
 #### Setup
 
-- Use a relevant PsyNet demo as a starting point. Prefer copying a full demo
-  directory (or run `psynet scripts update` / `psynet scripts scaffold`) so
-  scaffolding such as `test.py`, `pytest.ini`, and `.gitignore` is present—not
-  only `experiment.py`.
-- In `requirements.txt`, pin PsyNet to the local checkout commit used for the
-  implementation, for example:
-  `psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit>#egg=psynet`.
-- Generate `constraints.txt` using `dallinger constraints generate` for future
-  deploy. While developing against an editable `~/PsyNet` install, do **not**
-  `uv pip install -r constraints.txt` (that replaces the editable install with a
-  git-pinned wheel). Keep PsyNet installed editable from the local checkout;
-  re-install editable after any constraints install if needed.
+Prefer **`psynet setup`** as the general-purpose route for creating and
+refreshing experiment files and the constrained environment. Do not hand-write
+boilerplate (`Dockerfile`, `test.py`, `.gitignore`, `docker/`, managed skills)
+when setup/scaffold can produce it.
+
+Canonical human docs: `~/PsyNet/docs/tutorials/creating_a_new_experiment.rst`
+and `~/PsyNet/psynet/resources/experiment_scripts/AGENTS.md`.
+
+**1. Choose a starting point**
+
+- Prefer copying an authored PsyNet demo (or a prior experiment) into a new
+  directory **outside** the PsyNet package tree (for example
+  `~/psynet-experiments/<name>/` or a challenge `code/<experiment_slug>/`).
+  Bundled demos ship authored files only (`experiment.py`, `requirements.txt`,
+  assets); boilerplate and `constraints.txt` are intentionally omitted.
+- Or start from an empty directory with a valid Python package name (not
+  `code`, not names that cannot be imported).
+- Use `explore-psynet-repository` to pick the closest demo before copying.
+
+**2. Bootstrap, then run setup**
+
+From the experiment directory:
+
+```bash
+git init   # if the folder is not already a Git repo (required for local debug)
+uv venv --python 3.13
+source .venv/bin/activate
+uv pip install psynet          # thin bootstrap only
+psynet setup                   # scaffolds files, pins, constraints, install
+```
+
+`psynet setup` is the default path: it creates missing boilerplate (including
+`.cursor/skills/psynet/` when absent), pins PsyNet, ensures `constraints.txt`,
+installs the experiment runtime (`psynet[experiment]`), and initializes Git when
+needed. Use `psynet setup --docker` when the experiment will run in Docker mode
+(file prep without local package sync; follow `docker/docs`).
+
+**3. Editable local PsyNet (agents / contributors)**
+
+When developing against an editable `~/PsyNet` checkout, keep a **dedicated**
+experiment `.venv` (do not sync into `~/PsyNet/.venv`):
+
+```bash
+uv pip install -e ~/PsyNet
+psynet setup --psynet-source editable
+```
+
+If setup already ran and you only need missing files later,
+`psynet scripts scaffold` is enough. Use `psynet scripts update` only when you
+intentionally want to refresh managed templates/skills from the installed
+PsyNet. Do not treat `scripts update` as a substitute for first-time setup.
+
+**4. After setup**
+
+- Confirm `psynet --version`, then `psynet services ensure` (or let
+  `psynet debug` / `psynet test local` ensure services).
+- Launch with `psynet debug local` or validate with `psynet test local`.
 
 #### Coding
 
