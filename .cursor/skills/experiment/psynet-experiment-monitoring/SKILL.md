@@ -1,18 +1,11 @@
 ---
 name: psynet-experiment-monitoring
 description: Monitor active or recently deployed PsyNet experiments for participant flow, data integrity, deployment health, export readiness, and safe handoff decisions.
-authors: [williambotticelli-wells]
 ---
 
 # PsyNet experiment monitoring
 
-Use this skill when a PsyNet experiment is running, being live-reviewed, recently
-deployed, or being checked for participant-flow health, data integrity, export
-readiness, or stop/continue decisions. This skill starts after implementation or
-deployment readiness work; use `psynet-deployment-ops/SKILL.md` for provisioning,
-deployment commands, export commands, app destruction, and EC2 teardown.
-
-## Required reads
+## Prerequisites
 
 - Read `psynet-deployment-ops/SKILL.md` before recommending export, destroy, or
   teardown commands.

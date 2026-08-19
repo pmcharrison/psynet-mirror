@@ -1,16 +1,11 @@
 ---
 name: verify-ai-model-usability
 description: Verify AI/LLM provider access, model availability, fallback options, and AI-call reliability for PsyNet experiments or user requests.
-authors: [haoyu-hu]
 ---
 
 # Verify AI model usability
 
-Use this skill when a PsyNet experiment, task specification, or user request
-mentions an LLM, AI model, AI provider, model ID, or asks whether one or more AI
-models are usable.
-
-## Required reads
+## Prerequisites
 
 - Read the target experiment files or user request that names the model.
 - Read `references/provider-verification.md` for provider-specific endpoints,
@@ -78,15 +73,11 @@ models are usable.
 
 ## Helper usage
 
-Use this skill's `scripts/check_model.py` (relative to the active skill
-directory). Locate the skill directory from the active skills tree, for example:
+Run `scripts/check_model.py` from this skill directory (PsyNet source:
+`.cursor/skills/experiment/verify-ai-model-usability`; experiment bundle:
+`.cursor/skills/psynet/verify-ai-model-usability`):
 
-- PsyNet source: `.cursor/skills/experiment/verify-ai-model-usability`
-- Experiment skill bundle: `.cursor/skills/psynet/verify-ai-model-usability`
-
-Then run (replace `<skill-dir>` accordingly):
-
-`uv run python <skill-dir>/scripts/check_model.py --model <model-id>`
+`uv run python .cursor/skills/experiment/verify-ai-model-usability/scripts/check_model.py --model <model-id>`
 
 Useful options:
 

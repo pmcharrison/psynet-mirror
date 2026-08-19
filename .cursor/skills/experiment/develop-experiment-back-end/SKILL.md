@@ -1,13 +1,9 @@
 ---
 name: develop-experiment-back-end
 description: Develop PsyNet experiment back-end logic.
-authors: [pmcharrison]
 ---
 
 # Develop experiment back end
-
-Use this skill when developing the back end for a PsyNet experiment
-(e.g. timeline logic).
 
 ## Approach
 
@@ -35,6 +31,7 @@ Test throughout the implementation process.
 Use `psynet test local` as the main workhorse; this runs a participant through
 the experiment end to end. Override `Experiment` methods like `test_check_bot`
 to assert that behavior is as expected.
+For participant screenshots or video evidence, use `record-participant-video/SKILL.md`.
 Use video review sparingly as it is time-consuming.
 
 ## Fidelity

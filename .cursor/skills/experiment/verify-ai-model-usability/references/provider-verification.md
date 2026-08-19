@@ -10,8 +10,7 @@ official documentation over stale model lists.
 - Do not search secret files or environment dumps for key names.
 - Safe examples:
   - `uv run python -c "import os; print('OPENAI_API_KEY present:', bool(os.getenv('OPENAI_API_KEY')))"`
-  - `uv run python <skill-dir>/scripts/check_model.py --providers openai --model gpt-4o`
-    (locate `<skill-dir>` as described in `verify-ai-model-usability/SKILL.md`)
+  - `uv run python .cursor/skills/experiment/verify-ai-model-usability/scripts/check_model.py --providers openai --model gpt-4o`
 - Unsafe examples:
   - `echo $OPENAI_API_KEY`
   - `env | grep KEY`

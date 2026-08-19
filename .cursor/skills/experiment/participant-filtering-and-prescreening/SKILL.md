@@ -1,16 +1,11 @@
 ---
 name: participant-filtering-and-prescreening
 description: Design, implement, and validate task-specific pre-screening for PsyNet experiments, including recruiter/platform alignment and pass/fail handling.
-authors: [lucasgautheron]
 ---
 
 # Implement task-specific pre-screening
 
-Use this skill when a PsyNet experiment needs participant eligibility checks,
-capability checks, device/environment checks, task comprehension checks, or
-platform qualifications before the main task.
-
-## Required reads
+## Prerequisites
 
 - Inspect PsyNet's current prescreening docs and demos before custom code:
   `~/PsyNet/docs/tutorials/prescreening_tasks.rst`,

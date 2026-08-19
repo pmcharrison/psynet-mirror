@@ -1,21 +1,16 @@
 ---
 name: public-tunnel
 description: Start an ephemeral public HTTPS tunnel to a local HTTP service for live review from a browser.
-authors: [pmcharrison]
 ---
 
 # Public tunnel
 
-Use this skill when a user asks to expose an already-running local HTTP service from Cursor Cloud through a temporary public HTTPS URL.
-Note that the URL is temporary and dies when the tunnel process or VM stops.
-
 ## Helper script
 
-Use this skill's `scripts/public_tunnel.py` (relative to the active skill
-directory). Locate the skill directory from the active skills tree, for example:
+Run `scripts/public_tunnel.py` from this skill directory. Paths:
 
 - PsyNet source: `.cursor/skills/experiment/public-tunnel`
-- Experiment skill bundle: `.cursor/skills/psynet/public-tunnel`
+- Experiment bundle: `.cursor/skills/psynet/public-tunnel`
 
 The helper:
 
@@ -29,9 +24,9 @@ The helper:
 
 1. Confirm the local service is already running:
    `curl -I --max-time 10 http://127.0.0.1:<port>/`
-2. Start `scripts/public_tunnel.py` in its own tmux session (replace
-   `<skill-dir>` with the located skill directory above):
-   `tmux -f /exec-daemon/tmux.portal.conf new-session -d -s <name>-public-tunnel -- uv run python <skill-dir>/scripts/public_tunnel.py --port <port>`
+2. Start `scripts/public_tunnel.py` in its own tmux session:
+   `tmux -f /exec-daemon/tmux.portal.conf new-session -d -s <name>-public-tunnel -- uv run python .cursor/skills/experiment/public-tunnel/scripts/public_tunnel.py --port <port>`
+   (Use the experiment-bundle path when the skill was installed with `psynet scripts update`.)
 3. Watch that session for `Public tunnel ready`.
 4. Verify the public URL:
    `curl -I --max-time 20 <public-url>`

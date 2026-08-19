@@ -1,16 +1,11 @@
 ---
 name: psynet-simulated-participants
 description: Design, implement, and validate simulated participants for PsyNet experiments.
-authors: [williambotticelli-wells]
 ---
 
 # PsyNet simulated participants
 
-Use this skill when a PsyNet experiment needs local simulated participants for
-workflow testing, export validation, telemetry validation, analysis prototyping,
-performance checks, or pre-recruitment sanity checks.
-
-## Required reads
+## Prerequisites
 
 - Read `psynet-experiment-implementation/SKILL.md` for the general experiment
   workflow and required simulation/export/report artifacts.

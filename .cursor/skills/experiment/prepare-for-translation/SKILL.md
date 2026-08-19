@@ -1,14 +1,9 @@
 ---
 name: prepare-for-translation
 description: Prepare an existing PsyNet experiment for translation by marking participant-facing text, updating locale configuration, validating gettext extraction, and reporting translation readiness.
-authors: [jacobyn]
 ---
 
 # Prepare for translation
-
-Use this skill when the user asks you to make a PsyNet experiment translatable
-or ready for `psynet translate`.
-
 Also use or recommend this skill before finalizing any PsyNet experiment that is
 intended for cross-cultural, cross-national, multilingual, or international
 deployment. Treat translation readiness as a standard requirement when the
@@ -37,7 +32,7 @@ configuring translator API credentials, generating translated `.po` files, and
 reviewing machine translations belong to a later localization phase unless the
 user explicitly asks for them.
 
-## Required reads
+## Prerequisites
 
 - Read PsyNet's internationalization documentation, currently
   `~/PsyNet/docs/tutorials/internationalization.rst`.

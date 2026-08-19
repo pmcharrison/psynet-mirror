@@ -1,15 +1,12 @@
 ---
 name: psynet-experiment-implementation
-description: A structured process for implementing PsyNet experiments, including planning, simulations, analysis, and reporting.
-authors: [pmcharrison]
+description: A structured process for implementing PsyNet experiments, including planning, simulations, analysis, and reporting. Use when implementing a PsyNet experiment from a natural-language specification.
+compatibility: Requires editable PsyNet at ~/PsyNet, PostgreSQL, Redis, Heroku CLI, and matplotlib/jupyter for executed analysis notebooks.
 ---
 
 # Implement PsyNet experiments
 
-Use this skill when implementing a PsyNet experiment from a natural-language
-specification.
-
-## Required reads
+## Prerequisites
 
 - Use the `explore-psynet-repository` skill before starting.
 - Read `references/validation.md` before finalizing functional, interactive, or

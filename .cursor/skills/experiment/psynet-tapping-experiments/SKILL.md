@@ -1,18 +1,11 @@
 ---
 name: psynet-tapping-experiments
 description: Implement PsyNet tapping, rhythm, beat perception, and sensorimotor synchronization experiments with audio recording, calibration, export checks, and conservative interpretation.
-authors: [williambotticelli-wells]
 ---
 
 # PsyNet tapping experiments
 
-Use this skill when a PsyNet experiment asks participants to tap along to audio,
-rhythms, metronomes, clicks, or music clips. The skill owns timing-sensitive
-tapping flow, recording calibration, tap-onset export checks, and interpretation
-boundaries. It does not own ordinary audio rating tasks unless participants
-produce timed tapping responses.
-
-## Required reads
+## Prerequisites
 
 - Read `psynet-experiment-implementation/SKILL.md` for the general planning,
   implementation, simulation, export, analysis, and report workflow.

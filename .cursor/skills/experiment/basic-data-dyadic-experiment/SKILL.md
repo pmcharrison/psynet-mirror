@@ -1,15 +1,13 @@
 ---
 name: basic-data-dyadic-experiment
 description: Use this skill when a PsyNet experiment has two participants interacting across rounds and the user needs exported or simulated data converted into a clean analysis dataset.
-authors: [eandrade-lotero]
 ---
 
 # Process dyadic experiment data
-
 The default clean layout is one row per experimental batch, dyad, round or node,
 and player.
 
-## Required reads
+## Prerequisites
 
 - Read `psynet-experiment-implementation/SKILL.md` for simulation, exported data,
   analysis-script, and report expectations.

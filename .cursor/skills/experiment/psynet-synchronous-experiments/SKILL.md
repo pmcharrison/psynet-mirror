@@ -1,19 +1,14 @@
 ---
 name: psynet-synchronous-experiments
 description: Design and implement PsyNet synchronous experiments using cohort, grouping, barrier, waiting-room, and recruiter coordination patterns without assuming websocket interaction.
-authors: [lucasgautheron]
 ---
 
 # Implement synchronous PsyNet experiments
 
-Use this skill when a PsyNet experiment needs participants to be present,
-grouped, sequenced, or released together, but does not necessarily need
-continuous websocket interaction inside a trial.
-
 If participants exchange live actions or messages within a trial, also read
 `psynet-realtime-synchronous-experiments/SKILL.md`.
 
-## Required reads
+## Prerequisites
 
 - Read `psynet-experiment-implementation/SKILL.md` for the general PsyNet
   implementation workflow and validation expectations.
@@ -47,9 +42,8 @@ If participants exchange live actions or messages within a trial, also read
 
 ## PsyNet implementation hints
 
-- Prefer `TrialMaker`s for organizing rounds of the experiment.
-  `StaticTrialMaker` is appropriate for non-adaptive designs,
-  whereas `ChainTrialMaker` is appropriate for experiments whose state evolves over time.
+- Prefer `TrialMaker`s for organizing rounds. For choosing `StaticTrialMaker`
+  vs chain-based makers, read `develop-experiment-back-end/SKILL.md`.
 - Use `SimpleGrouper(group_type=..., initial_group_size=...)` to create cohorts
   and `GroupBarrier(id_=..., group_type=...)` to release group members together.
 - Use `GroupBarrier(on_release=...)` for atomic shared updates such as role

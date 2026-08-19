@@ -1,18 +1,15 @@
 ---
 name: produce-experiment-audit
 description: Produce a standalone PsyNet experiment audit with audit.json, REPORT.md, evidence artifacts, validation, rendering, and honest blockers. Use when asked to prepare a portable experiment audit under the experiment's audit/ directory.
-authors: [pmcharrison]
+compatibility: Requires PsyNet with `psynet audit` CLI; ffprobe recommended for video artifact validation.
 ---
 
 # Produce an experiment audit
 
-Use this skill when the user asks you to create, complete, validate, or hand off
-a standalone PsyNet experiment audit.
-
 A standalone audit is an `audit/` folder inside the experiment directory. Run
 the CLI from the experiment root so `experiment.source_path` stays `.`.
 
-## Required reads
+## Prerequisites
 
 - Read `references/populating-an-audit.md`; it is the shared operational source
   of truth for audit contents, statuses, blockers, validation, and rendering.

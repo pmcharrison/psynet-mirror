@@ -1,27 +1,18 @@
 ---
 name: make-experiment-adaptive
 description: Convert an existing PsyNet experiment into an adaptive experiment with model-based trial or network selection.
-authors: [lucasgautheron]
 ---
 
 # Make a PsyNet experiment adaptive
 
-Use this skill when asked to make an existing PsyNet experiment adaptive,
-including Bayesian adaptive design, active inference, Thompson sampling, or
-another policy that selects future trials from data already collected.
-
-## Required reads
+## Prerequisites
 
 - Read `psynet-experiment-implementation/SKILL.md` for the general experiment
   workflow and validation expectations.
-- Use `StaticTrialMaker` when rounds remain independent. Use a chain-based trial
-  maker when adaptive selection makes later rounds depend on data from completed
-  earlier rounds. Inspect the closest PsyNet demo before changing architecture.
+- Read `develop-experiment-back-end/SKILL.md` for trial-maker selection
+  (`StaticTrialMaker` vs chain-based makers) before changing architecture.
 - Read `psynet-deployment-ops/SKILL.md` when persistence, deployment,
   recruitment, or exported data safety matters.
-- Inspect the closest existing experiment and the current PsyNet trial-maker
-  implementation before coding. In PsyNet, prefer selection hooks such as
-  `prioritize_networks`; do not override `prepare_trial`.
 
 ## Specification gate
 

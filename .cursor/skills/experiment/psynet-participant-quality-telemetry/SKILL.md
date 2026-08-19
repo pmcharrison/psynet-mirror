@@ -1,18 +1,11 @@
 ---
 name: psynet-participant-quality-telemetry
 description: Implement PsyNet-native participant quality and AI-assistance telemetry for text-heavy or response-quality-sensitive experiments.
-authors: [williambotticelli-wells]
 ---
 
 # PsyNet participant quality telemetry
 
-Use this skill when a PsyNet experiment needs in-study signals to support
-manual review of participant attention, response quality, or possible AI
-assistance. This is especially relevant for text-heavy studies, open-ended
-responses, comprehension-sensitive tasks, and studies where automated browser
-agents could complete the participant flow.
-
-## Required reads
+## Prerequisites
 
 - Read `psynet-experiment-implementation/SKILL.md` for the general PsyNet
   implementation workflow, local setup, and validation expectations.

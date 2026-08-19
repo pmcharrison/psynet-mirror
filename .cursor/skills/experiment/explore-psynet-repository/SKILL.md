@@ -1,12 +1,9 @@
 ---
 name: explore-psynet-repository
 description: Explore the local PsyNet source, demos, feature examples, documentation, and setup guidance.
-authors: [pmcharrison]
 ---
 
 # Explore PsyNet repository
-
-Use this skill to explore the PsyNet repository for concrete information on working with PsyNet.
 
 ## PsyNet source code
 

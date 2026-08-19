@@ -258,6 +258,17 @@ more appropriate. It should:
 Do not claim an experiment is fully validated unless every required artifact
 and check supports that claim.
 
+## Local preview
+
+From the experiment root, preview the rendered audit locally:
+
+```bash
+psynet audit serve
+```
+
+Use `--render` to rebuild `audit/site/` first. The server binds locally for
+reviewer preview. Use `public-tunnel` when a remote URL is needed.
+
 ## Safety
 
 Use only safe local credentials and redact secrets from logs and artifacts.

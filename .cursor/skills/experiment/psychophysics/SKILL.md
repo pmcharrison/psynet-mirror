@@ -1,7 +1,6 @@
 ---
 name: psychophysics
 description: Implement psychophysics experiments with PsyNet, focusing on precise visual displays, timing, response collection, and conservative interpretation of reference figures.
-authors: [raja-marjieh, jacobyn]
 ---
 
 # Implement PsyNet psychophysics experiment
@@ -80,7 +79,7 @@ Follow the general workflow in `psynet-experiment-implementation/SKILL.md`.
 
 ## Reaction time from the native event log
 
-You should not measure reaction time, unless explicityly instructed to do so.
+You should not measure reaction time, unless explicitly instructed to do so.
 All instructions below applies only if you explicitly required to provide reaction times.
 
 Reaction time can usually be recorded without any bespoke timing JavaScript. Drive

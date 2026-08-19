@@ -1,15 +1,11 @@
 ---
 name: psynet-realtime-synchronous-experiments
 description: Design and implement PsyNet websocket experiments with live synchronous interactions between multiple participants in the same trial.
-authors: [lucasgautheron]
 ---
 
 # Implement real-time synchronous PsyNet experiments
 
-Use this skill when a PsyNet experiment needs websocket or other live
-interactions between multiple participants within the same trial.
-
-## Required reads
+## Prerequisites
 
 - Read `psynet-experiment-implementation/SKILL.md` for the general PsyNet
   implementation workflow, setup reminders, and validation expectations.

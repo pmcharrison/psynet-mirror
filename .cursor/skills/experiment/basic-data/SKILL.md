@@ -1,11 +1,9 @@
 ---
 name: basic-data
 description: Implement basic data export functionality. Use when implementing an experiment to create clean export csv files that are helpful for future analysis.
-authors: [pmcharrison]
 ---
 
 # Overview
-
 By default, the data export of a PsyNet experient involves dumping the database to a collection
 of csv files. These csv files are comprehensive but often messy.
 
