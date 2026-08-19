@@ -254,9 +254,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
-    # Decided Prolific top-up from ``decide_payment`` (after per-participant
+    # Planned Prolific top-up from ``decide_payment`` (after per-participant
     # clip; if capped, the amount that was not sent).
-    assigned_bonus = Column(Float)
+    planned_bonus = Column(Float)
     # not_due_yet | unconfirmed | success | dismissed | capped
     bonus_status = Column(String)
     issued_completion_code_type = Column(String)
@@ -595,7 +595,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.sequences = []
         self.complete = False
         self.performance_reward = 0.0
-        self.assigned_bonus = 0.0
+        self.planned_bonus = 0.0
         self.bonus_status = BONUS_STATUS_NOT_DUE_YET
         self.issued_completion_code_type = None
         self.base_payment = experiment.base_payment

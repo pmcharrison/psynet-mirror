@@ -121,7 +121,7 @@
                         <tr>
                             <th>Participant ID</th>
                             <th>Worker ID</th>
-                            <th>Assigned bonus</th>
+                            <th>Planned bonus</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -135,7 +135,7 @@
                                     <a href="{{ review_url }}">{{ review_participant.worker_id }}</a>
                                 </td>
                                 <td>
-                                    <a href="{{ review_url }}">{{ currency }}{{ "%.2f"|format(review_participant.assigned_bonus or 0) }}</a>
+                                    <a href="{{ review_url }}">{{ currency }}{{ "%.2f"|format(review_participant.planned_bonus or 0) }}</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -260,8 +260,18 @@
             <td>{{ participant.base_payment }}</td>
         </tr>
         <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
-            <td>Assigned bonus</td>
-            <td>{{ currency }}{{ "%.2f"|format(participant.assigned_bonus or 0) }}</td>
+            <td>Planned bonus</td>
+            <td>{{ currency }}{{ "%.2f"|format(participant.planned_bonus or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Delivered bonus</td>
+            <td>
+                {% if participant.bonus is none %}
+                    —
+                {% else %}
+                    {{ currency }}{{ "%.2f"|format(participant.bonus) }}
+                {% endif %}
+            </td>
         </tr>
         <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
             <td>Bonus status</td>

@@ -29,7 +29,7 @@ Key design constraints for maintainers:
   always re-recording status and platform base, and uses
   to skip a repeat transfer. PsyNet posts a bonus automatically at most
   once per participant. A failed transfer still continues recruitment,
-  stores the amount on ``assigned_bonus``, and sets
+  stores the amount on ``planned_bonus``, and sets
   ``bonus_status`` to unconfirmed. The Participants dashboard lists everyone
   who needs that review. Opening a participant polls the platform
   (Prolific ``bonus_payments`` and submission status, which may lag a
