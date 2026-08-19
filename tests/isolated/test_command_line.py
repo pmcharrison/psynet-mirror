@@ -1,7 +1,6 @@
 import hashlib
 import io
 import json
-import stat
 import subprocess
 import tempfile
 import zipfile
@@ -1525,44 +1524,15 @@ def test_setup_no_install_skips_sync_outside_shared_env(tmp_path, monkeypatch):
     assert "Next steps" in result.output
 
 
-def test_setup_docker_skips_install_and_points_to_docker_docs(tmp_path, monkeypatch):
+def test_setup_rejects_removed_docker_flag(tmp_path):
     (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
-    (tmp_path / "constraints.txt").write_text("# stale constraints\n")
-    _mock_dedicated_experiment_venv(monkeypatch)
-    monkeypatch.setattr(
-        "psynet.experiment_setup.get_editable_psynet_source",
-        lambda: None,
-    )
-    monkeypatch.setattr(
-        "psynet.experiment_setup._run_uv",
-        lambda *args: pytest.fail("docker setup must not install"),
-    )
 
     with working_directory(tmp_path):
         result = CliRunner().invoke(psynet, ["setup", "--docker"])
 
-    assert result.exit_code == 0, result.output
-    assert (tmp_path / "Dockerfile").exists()
-    assert (tmp_path / "constraints.txt").read_text() == "# generated constraints\n"
-    assert "Prepared experiment files for Docker" in result.output
-    assert "docker/docs" in result.output
-
-
-def test_setup_rejects_docker_with_force_shared_env(tmp_path, monkeypatch):
-    (tmp_path / "requirements.txt").write_text("psynet==0.0.0\n")
-    monkeypatch.setattr(
-        "psynet.experiment_setup._ensure_active_virtualenv", lambda: None
-    )
-    _assume_git_repository(monkeypatch)
-
-    with working_directory(tmp_path):
-        result = CliRunner().invoke(
-            psynet,
-            ["setup", "--docker", "--force-shared-env"],
-        )
-
     assert result.exit_code != 0
-    assert "cannot be used together" in result.output
+    assert "No such option" in result.output
+    assert "--docker" in result.output
 
 
 def test_setup_rejects_force_shared_env_outside_shared_venv(tmp_path, monkeypatch):
@@ -2245,7 +2215,6 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
             "Dockerfile",
             "config.txt",
             "deploy.toml",
-            "docker",
             "test.py",
         ]
 
@@ -2255,18 +2224,12 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
         (tmp_path / "deploy.toml").write_text("version = 1\nexclude = []\n")
         assert missing_scaffold_paths_required_for_local_run() == [
             "Dockerfile",
-            "docker",
             "test.py",
         ]
 
         (tmp_path / "Dockerfile").write_text("FROM python:3.13\n")
         (tmp_path / "test.py").write_text("def test_dummy():\n    assert True\n")
-        (tmp_path / "docker").mkdir()
         assert missing_scaffold_paths_required_for_local_run() == []
-
-        (tmp_path / "docker").rmdir()
-        (tmp_path / "docker").write_text("not a directory\n")
-        assert missing_scaffold_paths_required_for_local_run() == ["docker"]
 
 
 def test_prepare_in_repo_experiment_satisfies_scaffold_boilerplate(
@@ -2300,7 +2263,6 @@ def test_check_experiment_directory_reports_missing_boilerplate(tmp_path):
         "config.txt",
         "Dockerfile",
         "test.py",
-        "docker",
     ):
         assert required_path in message
 
@@ -2345,7 +2307,6 @@ def test_check_experiment_directory_reports_partial_boilerplate(tmp_path, monkey
     missing_section = str(exc.value).split("(")[1].split(")")[0]
     assert "Dockerfile" in missing_section
     assert "test.py" in missing_section
-    assert "docker" in missing_section
     assert ".gitignore" not in missing_section
     assert "config.txt" not in missing_section
     assert "touch config.txt" not in str(exc.value)
@@ -2411,7 +2372,6 @@ def test_test_local_reports_missing_scaffold_like_debug(tmp_path, monkeypatch):
         "config.txt",
         "Dockerfile",
         "test.py",
-        "docker",
     ):
         assert required_path in message
 
@@ -2597,7 +2557,7 @@ def test_scaffold_creates_missing_files_without_overwriting_readme():
             assert "title = Demo experiment" in Path("config.txt").read_text()
             assert Path("Dockerfile").exists()
             assert Path("test.py").exists()
-            assert Path("docker/psynet").exists()
+            assert not Path("docker").exists()
             assert Path(".gitignore").exists()
             assert Path(".python-version").exists()
             assert Path("deploy.toml").exists()
@@ -2679,13 +2639,6 @@ def test_scripts_update_reports_only_actual_changes(tmp_path):
         assert "updated: 1 boilerplate file" in changed.output
         assert "FROM outdated" not in Path("Dockerfile").read_text()
 
-        expected_run_script = Path("docker/run").read_text()
-        Path("docker/run").write_text("# Outdated\n")
-        changed_directory = runner.invoke(psynet, ["scripts", "update"])
-        assert changed_directory.exit_code == 0, changed_directory.output
-        assert "updated: 1 boilerplate file" in changed_directory.output
-        assert Path("docker/run").read_text() == expected_run_script
-
 
 def test_scripts_prune_removes_boilerplate_and_preserves_divergent_readme():
     runner = CliRunner()
@@ -2760,18 +2713,15 @@ def test_scripts_prune_warns_before_forcing_unrecognized_boilerplate(tmp_path):
         Path("requirements.txt").write_text("psynet==0.0.0\n")
         scaffold_experiment_directory(overwrite=True)
         Path("test.py").write_text("# Custom test\n")
-        Path("docker/psynet").write_text("# Custom helper\n")
 
         result = CliRunner().invoke(psynet, ["scripts", "prune"])
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "test.py").read_text() == "# Custom test\n"
-    assert (tmp_path / "docker/psynet").read_text() == "# Custom helper\n"
     assert (
         "Preserved scaffold paths that differ from current PsyNet templates:"
         in result.output
     )
-    assert "  - docker" in result.output
     assert "  - test.py" in result.output
     assert "may be customized or generated by another PsyNet version" in result.output
     assert (
@@ -2786,7 +2736,6 @@ def test_scripts_prune_include_modified_removes_divergent_boilerplate(tmp_path):
         Path("requirements.txt").write_text("psynet==0.0.0\n")
         scaffold_experiment_directory(overwrite=True)
         Path("test.py").write_text("# Custom test\n")
-        Path("docker/psynet").write_text("# Custom helper\n")
         Path("config.txt").write_text("[Config]\ntitle = Custom experiment\n")
         Path("README.md").write_text("# Custom README\n")
 
@@ -2830,12 +2779,13 @@ def test_scripts_prune_keeps_git_tracked_readme_by_default(tmp_path):
     assert not (tmp_path / "test.py").exists()
 
 
-def test_scripts_prune_keeps_tracked_files_under_docker_by_default(tmp_path):
+def test_scripts_prune_removes_obsolete_docker_helpers_even_if_tracked(tmp_path):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         Path("requirements.txt").write_text("psynet==0.0.0\n")
         Path("docker").mkdir()
-        Path("docker/psynet").write_text("# Tracked custom helper\n")
+        Path("docker/psynet").write_text("# Tracked helper\n")
+        Path("docker/custom").write_text("# Tracked custom helper\n")
         subprocess.run(["git", "init", "-q"], check=True)
         subprocess.run(["git", "add", "-A"], check=True)
         subprocess.run(
@@ -2852,12 +2802,12 @@ def test_scripts_prune_keeps_tracked_files_under_docker_by_default(tmp_path):
             check=True,
         )
         scaffold_experiment_directory(overwrite=True)
-        Path("docker/psynet").write_text("# Tracked custom helper\n")
 
         result = CliRunner().invoke(psynet, ["scripts", "prune", "--include-modified"])
 
     assert result.exit_code == 0, result.output
-    assert (tmp_path / "docker/psynet").read_text() == "# Tracked custom helper\n"
+    assert not (tmp_path / "docker" / "psynet").exists()
+    assert (tmp_path / "docker" / "custom").read_text() == "# Tracked custom helper\n"
     assert not (tmp_path / "Dockerfile").exists()
 
 
@@ -2973,9 +2923,29 @@ def test_scripts_prune_help_is_shared_across_cli_surfaces():
         assert "static/assets" in result.output
         assert "include-modified" in result.output
         assert "Remove scaffold-managed boilerplate" in result.output
+        assert "Generated docker/ helper scripts are always deleted" in " ".join(
+            result.output.split()
+        )
 
 
-def test_scaffold_fills_partial_directories_without_overwriting_existing_files():
+def test_scripts_update_removes_obsolete_docker_helpers():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("docker").mkdir()
+            Path("docker/run").write_text("#!/bin/bash\n")
+            Path("docker/psynet").write_text("#!/bin/bash\n")
+
+            result = runner.invoke(psynet, ["scripts", "update"])
+
+            assert result.exit_code == 0, result.output
+            assert not Path("docker").exists()
+            assert "Removed obsolete generated docker/" in result.output
+
+
+def test_scaffold_removes_obsolete_docker_helpers_and_keeps_custom_files():
     runner = CliRunner()
 
     with tempfile.TemporaryDirectory() as dir:
@@ -2983,20 +2953,23 @@ def test_scaffold_fills_partial_directories_without_overwriting_existing_files()
             Path("experiment.py").write_text("class Exp:\n    pass\n")
             Path("docker").mkdir()
             Path("docker/psynet").write_text("# Custom helper\n")
+            Path("docker/custom").write_text("# keep me\n")
 
             result = runner.invoke(psynet, ["scripts", "scaffold"])
 
             assert result.exit_code == 0
-            assert Path("docker/psynet").read_text() == "# Custom helper\n"
-            assert Path("docker/run").exists()
+            assert not Path("docker/psynet").exists()
+            assert Path("docker/custom").read_text() == "# keep me\n"
+            assert not Path("docker/run").exists()
 
 
-def test_scaffold_rejects_symlinked_managed_directory(tmp_path):
+def test_scaffold_preserves_symlinked_docker_directory(tmp_path, capsys):
     runner = CliRunner()
     experiment_directory = tmp_path / "experiment"
     outside_directory = tmp_path / "outside"
     experiment_directory.mkdir()
     outside_directory.mkdir()
+    (outside_directory / "psynet").write_text("# outside helper\n")
     (experiment_directory / "docker").symlink_to(
         outside_directory, target_is_directory=True
     )
@@ -3004,23 +2977,10 @@ def test_scaffold_rejects_symlinked_managed_directory(tmp_path):
     with working_directory(experiment_directory):
         result = runner.invoke(psynet, ["scripts", "scaffold"])
 
-    assert result.exit_code != 0
-    assert "symlink" in result.output
-    assert list(outside_directory.iterdir()) == []
-
-
-def test_scaffold_makes_docker_entries_executable():
-    runner = CliRunner()
-
-    with tempfile.TemporaryDirectory() as dir:
-        with working_directory(dir):
-            Path("experiment.py").write_text("class Exp:\n    pass\n")
-
-            result = runner.invoke(psynet, ["scripts", "scaffold"])
-
-            assert result.exit_code == 0
-            for path in Path("docker").iterdir():
-                assert path.stat().st_mode & stat.S_IXUSR
+    assert result.exit_code == 0, result.output
+    assert "Preserving docker/ because it is a symlink" in result.output + result.stderr
+    assert (outside_directory / "psynet").read_text() == "# outside helper\n"
+    assert list(outside_directory.iterdir()) == [outside_directory / "psynet"]
 
 
 def test_prune_experiment_scaffold_preserves_divergent_config_by_default():
@@ -3046,27 +3006,26 @@ def test_prune_experiment_scaffold_preserves_divergent_config_by_default():
             assert prune_result["removed_constraints"] is True
             assert "Dockerfile" in prune_result["removed"]
             assert "test.py" in prune_result["removed"]
-            assert "docker" in prune_result["removed"]
             assert "config.txt" not in prune_result["removed"]
 
 
-def test_prune_experiment_scaffold_propagates_directory_deletion_errors(
+def test_prune_experiment_scaffold_propagates_file_deletion_errors(
     tmp_path, monkeypatch
 ):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         scaffold_experiment_directory(overwrite=True)
 
-        def fail_unless_errors_are_ignored(path, *, ignore_errors=False):
-            if not ignore_errors:
-                raise PermissionError(path)
+        original_unlink = Path.unlink
 
-        monkeypatch.setattr(
-            "psynet.experiment_scaffold.shutil.rmtree",
-            fail_unless_errors_are_ignored,
-        )
+        def fail_on_dockerfile(self, *args, **kwargs):
+            if self.name == "Dockerfile":
+                raise PermissionError(self)
+            return original_unlink(self, *args, **kwargs)
 
-        with pytest.raises(PermissionError, match="docker"):
+        monkeypatch.setattr(Path, "unlink", fail_on_dockerfile)
+
+        with pytest.raises(PermissionError, match="Dockerfile"):
             prune_experiment_scaffold()
 
 

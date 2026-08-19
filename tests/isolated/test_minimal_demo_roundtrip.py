@@ -343,7 +343,7 @@ def test_scaffold_missing_files_restores_preexisting_tree(tmp_path):
     with working_directory(tmp_path):
         with scaffold_missing_files():
             assert Path("test.py").exists()
-            assert Path("docker/run").exists()
+            assert Path("docker/custom").exists()
             Path("static/assets").mkdir(parents=True)
 
     assert (tmp_path / "config.txt").read_text() == "[Custom]\nvalue = true\n"
@@ -400,14 +400,15 @@ def test_prune_include_modified_deletes_untracked_readme(tmp_path):
         assert Path("experiment.py").exists()
 
 
-def test_prune_keeps_tracked_docker_directory_by_default(tmp_path):
+def test_prune_keeps_custom_docker_files_and_removes_helpers(tmp_path):
     experiment_dir = tmp_path / "standalone"
     experiment_dir.mkdir()
     with working_directory(experiment_dir):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         Path("requirements.txt").write_text("psynet\n")
         Path("docker").mkdir()
-        Path("docker/psynet").write_text("# Tracked\n")
+        Path("docker/psynet").write_text("# Tracked helper\n")
+        Path("docker/custom").write_text("# Tracked custom\n")
         subprocess.run(["git", "init", "-q"], check=True)
         subprocess.run(["git", "add", "-A"], check=True)
         subprocess.run(
@@ -424,12 +425,12 @@ def test_prune_keeps_tracked_docker_directory_by_default(tmp_path):
             check=True,
         )
         scaffold_experiment_directory()
-        Path("docker/psynet").write_text("# Tracked\n")
 
         result = prune_experiment_scaffold(include_modified=True)
 
-    assert "docker" in result["preserved_tracked"]
-    assert (experiment_dir / "docker/psynet").read_text() == "# Tracked\n"
+    assert "docker" not in result["preserved_tracked"]
+    assert not (experiment_dir / "docker" / "psynet").exists()
+    assert (experiment_dir / "docker" / "custom").read_text() == "# Tracked custom\n"
     assert not (experiment_dir / "Dockerfile").exists()
 
 
@@ -632,7 +633,6 @@ def test_minimal_demo_prompts_for_scaffold_before_debug(tmp_path):
         "config.txt",
         "Dockerfile",
         "test.py",
-        "docker",
     ):
         assert required_path in combined_output
 

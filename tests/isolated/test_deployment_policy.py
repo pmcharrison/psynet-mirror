@@ -73,6 +73,21 @@ def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
     assert not (template_directory / ".dockerignore").exists()
 
 
+def test_stock_policy_excludes_dallinger_starter_paths():
+    """Fail when Dallinger adds a generic starter exclude that PsyNet omitted."""
+    from dallinger.command_line.deployment_files import _STARTER_EXCLUSIONS
+
+    policy = parse_deployment_policy(_template_directory() / "deploy.toml")
+    stock_excludes = set(policy.exclude)
+    missing = tuple(path for path in _STARTER_EXCLUSIONS if path not in stock_excludes)
+    assert missing == (), (
+        "PsyNet's stock deploy.toml is missing Dallinger starter excludes: "
+        + ", ".join(missing)
+        + ". Review whether to add them to "
+        "psynet/resources/experiment_scripts/deploy.toml."
+    )
+
+
 def test_scaffold_creates_stock_deployment_policy(tmp_path):
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")
@@ -206,6 +221,72 @@ def test_check_experiment_directory_warns_on_custom_dockerignore(
     assert "must be moved to deploy.toml" in capsys.readouterr().err
 
 
+def test_check_experiment_directory_removes_obsolete_docker_helpers(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        _write_obsolete_docker_helpers(tmp_path)
+        _check_experiment_directory("debug")
+
+    assert not (tmp_path / "docker").exists()
+
+
+def _write_obsolete_docker_helpers(root):
+    docker = root / "docker"
+    docker.mkdir()
+    (docker / "run").write_text("#!/bin/bash\n. docker/build\n")
+    (docker / "psynet").write_text('#!/bin/bash\n./docker/run psynet "$@"\n')
+    docs = docker / "docs"
+    docs.mkdir()
+    (docs / "RUN.md").write_text("# Running instructions\n")
+
+
+def test_scaffold_does_not_create_docker_helpers(tmp_path):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+
+    assert not (tmp_path / "docker").exists()
+    assert (tmp_path / "Dockerfile").exists()
+    assert not (_template_directory() / "docker").exists()
+
+
+def test_scaffold_overwrite_removes_obsolete_docker_helpers(tmp_path):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    _write_obsolete_docker_helpers(tmp_path)
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory(overwrite=True)
+
+    assert not (tmp_path / "docker").exists()
+
+
+def test_scripts_update_preserves_custom_docker_files(tmp_path, capsys):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    _write_obsolete_docker_helpers(tmp_path)
+    (tmp_path / "docker" / "custom").write_text("# keep me\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory(overwrite=True)
+
+    assert (tmp_path / "docker" / "custom").read_text() == "# keep me\n"
+    assert not (tmp_path / "docker" / "run").exists()
+    assert not (tmp_path / "docker" / "docs").exists()
+    assert "Preserving custom files in docker/" in capsys.readouterr().err
+
+
 class _TranslationPreDeployExperiment(Experiment):
     """Run the real translation pre-deploy routine without database side effects."""
 
@@ -281,25 +362,6 @@ def test_translation_pre_deploy_outputs_remain_deployable(
     assert generated_destinations <= source.deployment_plan.destinations
     source.apply_to(staging_root)
     assert all((staging_root / path).is_file() for path in generated_destinations)
-
-
-def test_direct_docker_build_refuses_policy_experiment(tmp_path):
-    (tmp_path / "deploy.toml").write_text(
-        "version = 1\nexclude = []\n", encoding="utf-8"
-    )
-    script = _template_directory() / "docker" / "build"
-
-    result = subprocess.run(
-        ["bash", script],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    assert result.returncode == 1
-    assert "does not honor deploy.toml" in result.stderr
-    assert "standard PsyNet/Dallinger commands" in result.stderr
 
 
 def test_scaffolded_debug_source_prepares_from_policy(tmp_path):

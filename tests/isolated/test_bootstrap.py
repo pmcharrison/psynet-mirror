@@ -478,6 +478,7 @@ def test_bootstrap_and_full_cli_share_setup_scripts_services_commands():
         assert result.exit_code == 0, result.output
         assert "--force-foreign-env" in result.output
         assert "--force-shared-env" in result.output
+        assert "--docker" not in result.output
 
 
 def test_bootstrap_cli_reports_missing_experiment_extra(monkeypatch, capsys):

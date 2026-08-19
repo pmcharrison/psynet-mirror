@@ -35,8 +35,6 @@ _PRESERVE_EXISTING_TEMPLATE_FILES = frozenset(
     {"config.txt", "README.md", "deploy.toml"}
 )
 
-_TEMPLATE_DIRECTORIES = ("docker",)
-
 # Minimal scaffold subset needed to run locally (debug/test). Omits IDE/CI-only
 # templates such as ``.vscode/`` and ``.github/workflows/``.
 _TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
@@ -54,6 +52,24 @@ _GENERATED_DOCKERIGNORE_LINES = (
     ".env",
 )
 
+# Previously scaffolded experiment-local Docker CLI helpers. These called
+# ``docker build`` directly and cannot honor ``deploy.toml``.
+_OBSOLETE_DOCKER_SCRIPT_PATHS = (
+    "docker/build",
+    "docker/check-dev-installations",
+    "docker/docs/INSTALL.md",
+    "docker/docs/RUN.md",
+    "docker/docs/UPDATE.md",
+    "docker/local-ssh",
+    "docker/params",
+    "docker/psynet",
+    "docker/psynet-dev",
+    "docker/README.md",
+    "docker/run",
+    "docker/run-dev",
+    "docker/services",
+)
+
 _GENERATED_FILES = {
     "Dockertag": lambda: dockertag_contents(),
     ".python-version": lambda: f"{_current_python_major_minor()}\n",
@@ -62,8 +78,6 @@ _GENERATED_FILES = {
 _REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
 
 _EMPTY_RESOURCE_DIRECTORIES = ("static", "templates")
-
-_EXECUTABLE_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
 _BOOTSTRAP_FILES = ("experiment.py", "requirements.txt")
 
@@ -114,7 +128,6 @@ def scaffold_managed_paths() -> frozenset[str]:
         Relative paths to scaffold-managed files and directories.
     """
     paths = set(_TEMPLATE_FILES)
-    paths.update(_TEMPLATE_DIRECTORIES)
     paths.update(_GENERATED_FILES)
     return frozenset(paths)
 
@@ -123,10 +136,9 @@ def scaffold_paths_required_for_local_run() -> frozenset[str]:
     """Return scaffold paths required before running an experiment locally.
 
     This is a deliberate subset of :func:`scaffold_managed_paths`, covering the
-    files and directories needed for local runs rather than optional IDE/CI
-    templates.
+    files needed for local runs rather than optional IDE/CI templates.
     """
-    required = set(_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN) | set(_TEMPLATE_DIRECTORIES)
+    required = set(_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN)
     managed = scaffold_managed_paths()
     unexpected = required - managed
     if unexpected:
@@ -140,21 +152,11 @@ def scaffold_paths_required_for_local_run() -> frozenset[str]:
 def missing_scaffold_paths_required_for_local_run(
     root: Path | str | None = None,
 ) -> list[str]:
-    """Return required local-run scaffold paths missing from ``root``.
-
-    Directory members of the required set must exist as directories; other members
-    must exist as filesystem paths.
-    """
+    """Return required local-run scaffold paths missing from ``root``."""
     base = Path(".") if root is None else Path(root)
-    directory_names = set(_TEMPLATE_DIRECTORIES)
     missing = []
     for relative_path in sorted(scaffold_paths_required_for_local_run()):
-        path = base / relative_path
-        if relative_path in directory_names:
-            present = path.is_dir()
-        else:
-            present = path.exists()
-        if not present:
+        if not (base / relative_path).exists():
             missing.append(relative_path)
     return missing
 
@@ -768,6 +770,54 @@ def _remove_obsolete_generated_dockerignore() -> bool:
     return False
 
 
+def _remove_obsolete_generated_docker_scripts() -> bool:
+    """Remove generated experiment-local Docker helper scripts.
+
+    Known helper paths are deleted even if their contents were customized,
+    because those scripts cannot honor ``deploy.toml``. Other files under
+    ``docker/`` are preserved with a warning. A ``docker/`` symlink is left
+    untouched.
+
+    Returns
+    -------
+    bool
+        True when at least one generated helper path was removed.
+    """
+    docker_dir = Path("docker")
+    if docker_dir.is_symlink():
+        click.echo(
+            "WARNING: Preserving docker/ because it is a symlink. "
+            "Generated Docker helper scripts are no longer used; "
+            "use 'psynet debug local' or 'psynet debug local --docker'.",
+            err=True,
+        )
+        return False
+    if not docker_dir.exists():
+        return False
+
+    removed_any = False
+    for relative_path in _OBSOLETE_DOCKER_SCRIPT_PATHS:
+        path = Path(relative_path)
+        if path.is_file() or path.is_symlink():
+            path.unlink()
+            removed_any = True
+
+    for directory in (Path("docker/docs"), docker_dir):
+        if directory.is_dir() and not any(directory.iterdir()):
+            directory.rmdir()
+
+    if docker_dir.is_dir():
+        click.echo(
+            "WARNING: Preserving custom files in docker/. "
+            "Generated Docker helper scripts have been removed; "
+            "use 'psynet debug local' or 'psynet debug local --docker'.",
+            err=True,
+        )
+    elif removed_any:
+        click.echo("Removed obsolete generated docker/ helper scripts.")
+    return removed_any
+
+
 def _assert_managed_path_is_safe(relative_path):
     """Reject managed paths containing symlink components."""
     path = Path(relative_path)
@@ -792,18 +842,6 @@ def _assert_scaffold_paths_are_safe(paths):
     for relative_path in paths:
         _assert_managed_path_is_safe(relative_path)
 
-    for relative_path in _TEMPLATE_DIRECTORIES:
-        if relative_path not in paths:
-            continue
-        directory = Path(relative_path)
-        if directory.is_dir():
-            for path in directory.rglob("*"):
-                if path.is_symlink():
-                    raise click.UsageError(
-                        f"Refusing to manage '{relative_path}' because '{path}' "
-                        "is a symlink."
-                    )
-
 
 def _template_file_matches(relative_path):
     """Return whether an existing file matches its scaffold template."""
@@ -824,23 +862,12 @@ def _generated_file_matches(relative_path):
     )
 
 
-def _template_directory_matches(relative_path):
-    """Return whether an existing directory matches its scaffold template."""
-    destination = Path(relative_path)
-    if not destination.is_dir():
-        return False
-    with resources.as_file(_experiment_script_resource(relative_path)) as template:
-        return md5_directory(destination) == md5_directory(template)
-
-
 def _managed_path_matches_scaffold(relative_path):
     """Return whether a managed path still has its generated contents."""
     if relative_path in _TEMPLATE_FILES:
         return _template_file_matches(relative_path)
     if relative_path in _GENERATED_FILES:
         return _generated_file_matches(relative_path)
-    if relative_path in _TEMPLATE_DIRECTORIES:
-        return _template_directory_matches(relative_path)
     raise ValueError(f"Unknown scaffold-managed path: {relative_path}")
 
 
@@ -856,20 +883,6 @@ def _write_generated_file(relative_path, contents, overwrite):
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(contents)
     return True
-
-
-def _copy_missing_directory_entries(source, destination):
-    """Copy missing entries from a template directory without overwriting files."""
-    copied = False
-    for source_path in source.rglob("*"):
-        destination_path = destination / source_path.relative_to(source)
-        if source_path.is_dir():
-            destination_path.mkdir(parents=True, exist_ok=True)
-        elif not destination_path.exists():
-            destination_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_path, destination_path)
-            copied = True
-    return copied
 
 
 def _remove_empty_parent_dirs(path):
@@ -909,22 +922,6 @@ def _remove_empty_resource_directories():
         path.rmdir()
 
 
-def _make_docker_entries_executable():
-    """Add executable bits to immediate entries in the generated Docker directory."""
-    docker_directory = Path("docker")
-    if not docker_directory.is_dir():
-        return False
-
-    changed = False
-    for path in docker_directory.iterdir():
-        current_mode = path.stat().st_mode
-        updated_mode = current_mode | _EXECUTABLE_BITS
-        if updated_mode != current_mode:
-            path.chmod(updated_mode)
-            changed = True
-    return changed
-
-
 def scaffold_experiment_directory(
     *,
     overwrite=False,
@@ -940,6 +937,7 @@ def scaffold_experiment_directory(
         (scaffold_managed_paths() | set(_BOOTSTRAP_FILES)) - skip_files
     )
     _remove_obsolete_generated_dockerignore()
+    _remove_obsolete_generated_docker_scripts()
 
     written = []
     skipped = []
@@ -970,39 +968,6 @@ def scaffold_experiment_directory(
             written.append(relative_path)
         else:
             skipped.append(relative_path)
-
-    for relative_path in _TEMPLATE_DIRECTORIES:
-        if relative_path in skip_files:
-            skipped.append(relative_path)
-            continue
-
-        destination = Path(relative_path)
-        with resources.as_file(_experiment_script_resource(relative_path)) as path:
-            if destination.exists() and not overwrite:
-                if _copy_missing_directory_entries(path, destination):
-                    written.append(relative_path)
-                else:
-                    skipped.append(relative_path)
-                continue
-
-            if overwrite and _template_directory_matches(relative_path):
-                skipped.append(relative_path)
-                continue
-
-            if overwrite and destination.exists():
-                shutil.rmtree(destination)
-            shutil.copytree(
-                path,
-                destination,
-                dirs_exist_ok=True,
-            )
-        written.append(relative_path)
-
-    if "docker" not in skip_files and _make_docker_entries_executable():
-        if "docker" in skipped:
-            skipped.remove("docker")
-        if "docker" not in written:
-            written.append("docker")
 
     if overwrite:
         # Remove obsolete directories only when they still match the old template.
@@ -1102,15 +1067,15 @@ PRUNE_INCLUDE_MODIFIED_OPTION_HELP = (
     "Also delete scaffold paths that differ from current PsyNet templates."
 )
 PRUNE_INCLUDE_TRACKED_OPTION_HELP = (
-    "Also delete git-tracked managed paths. By default, tracked paths are kept "
-    "(a managed directory such as docker/ is kept if any nested path is tracked)."
+    "Also delete git-tracked managed paths. By default, tracked paths are kept."
 )
 PRUNE_COMMAND_HELP = (
     "Remove scaffold-managed boilerplate and generated leftovers "
     "(static/assets, untracked constraints.txt).\n\n"
     "By default only unmodified, untracked scaffold paths are removed. "
     "--include-modified also removes divergent untracked scaffold paths. "
-    "--include-tracked also removes git-tracked managed paths."
+    "--include-tracked also removes git-tracked managed paths. "
+    "Generated docker/ helper scripts are always deleted."
 )
 
 
@@ -1128,8 +1093,7 @@ def prune_experiment_scaffold(
         When false, divergent paths are preserved and reported.
     include_tracked :
         When true, also delete git-tracked managed paths. When false (default),
-        tracked paths are preserved (a managed directory is preserved if any
-        tracked path lives under it). Raises ``click.UsageError`` if this
+        tracked paths are preserved. Raises ``click.UsageError`` if this
         directory is a git work tree but tracked paths cannot be listed.
     """
     root = Path(".")
@@ -1150,10 +1114,9 @@ def prune_experiment_scaffold(
     )
     preserved_unrecognized = []
     removed = []
+    _remove_obsolete_generated_docker_scripts()
 
-    for relative_path in sorted(
-        managed_paths - set(_TEMPLATE_DIRECTORIES) - preserve_files
-    ):
+    for relative_path in sorted(managed_paths - preserve_files):
         path = Path(relative_path)
         if path.exists():
             matches_scaffold = _managed_path_matches_scaffold(relative_path)
@@ -1163,19 +1126,6 @@ def prune_experiment_scaffold(
             path.unlink()
             removed.append(relative_path)
             _remove_empty_parent_dirs(path.parent)
-
-    for relative_path in _TEMPLATE_DIRECTORIES:
-        if _path_is_tracked_or_has_tracked_contents(relative_path, preserve_files):
-            continue
-        path = Path(relative_path)
-        if path.exists():
-            if not include_modified and not _managed_path_matches_scaffold(
-                relative_path
-            ):
-                preserved_unrecognized.append(relative_path)
-                continue
-            shutil.rmtree(path)
-            removed.append(relative_path)
 
     preserved_tracked = sorted(
         relative_path

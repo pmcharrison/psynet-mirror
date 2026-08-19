@@ -39,11 +39,11 @@ same reviewed file plan; ``.gitignore`` only controls Git. PsyNet creates
 `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_
 for the file format and ``dallinger deployment-files list``.
 
-The deprecated scripts in an experiment's ``docker`` directory call
-``docker build`` directly. Docker does not read ``deploy.toml``, and PsyNet no
-longer generates a ``.dockerignore`` because backend-specific ignore files are
-incompatible with the shared deployment plan. The generated ``docker/build``
-script therefore refuses to run when ``deploy.toml`` is present. Use the
-standard PsyNet or Dallinger commands so the reviewed plan controls the Docker
-context. Older direct scripts, or direct builds without a policy, can send local
-files such as ``.env`` and ``.venv`` to the Docker daemon.
+Use ``psynet debug local --docker`` or a Docker deploy command so that reviewed
+plan controls the image context. Direct ``docker build`` in the experiment
+directory does not read ``deploy.toml`` and can send local files such as
+``.env`` and ``.venv`` to the Docker daemon.
+
+Install `Docker Desktop <https://www.docker.com/products/docker-desktop/>`_
+when you need those Docker commands locally. On Apple Silicon, enable Rosetta
+for x86/amd64 emulation in Docker Desktop preferences.

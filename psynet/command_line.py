@@ -48,6 +48,7 @@ from . import deployment_info
 from .bootstrap_commands import register_bootstrap_commands
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    _remove_obsolete_generated_docker_scripts,
     _remove_obsolete_generated_dockerignore,
     dockertag_contents,
     ensure_deployment_policy,
@@ -1396,13 +1397,16 @@ def _check_experiment_directory(mode):
 
     In-repo experiments are auto-scaffolded first so their missing-boilerplate
     check does not falsely fail. A missing ``deploy.toml`` is created from the
-    PsyNet template and never overwritten. These checks must run before
+    PsyNet template and never overwritten. Leftover generated ``.dockerignore``
+    files and ``docker/`` helper scripts are removed (custom copies are
+    preserved with a warning). These checks must run before
     ``redis_vars.clear()`` so users without Redis still see actionable guidance.
     """
     prepared = _prepare_in_repo_experiment()
     ensure_deployment_policy()
     if not prepared:
         _remove_obsolete_generated_dockerignore()
+        _remove_obsolete_generated_docker_scripts()
 
     missing_boilerplate = missing_scaffold_paths_required_for_local_run()
     if missing_boilerplate:

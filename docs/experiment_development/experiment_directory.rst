@@ -31,8 +31,6 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``.python-version`` records the Python major and minor version used when the
     experiment was scaffolded. PsyNet generates it from the active interpreter.
 
--   ``docker`` contains various scripts for a deprecated Docker API. We are considering this in a future version of PsyNet.
-
 -   ``static`` can be used as a storage place for files that the front-end browser can access directly via HTTP.
     Put public, immutable resources such as scripts, images, audio, and video here,
     and then access them via ``https://your-experiment-url/static/your-file.png``.
@@ -95,9 +93,9 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     automatically (do not edit it by hand). Create or refresh it with
     ``psynet setup`` or ``psynet generate-constraints`` (Dallinger's lock
     policy via ``uv run``). Bundled demos omit it because they use the PsyNet
-    repository's development environment. For Docker mode, ``psynet setup
-    --docker`` still writes a local ``constraints.txt`` so the experiment
-    directory is complete.
+    repository's development environment. ``psynet setup --no-install`` still
+    writes a local ``constraints.txt`` without installing into the virtual
+    environment.
 
 -   ``experiment.py`` is a Python file that defines the primary experiment logic.
 
@@ -129,7 +127,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``synth.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
 -   ``test.py`` is a boilerplate PsyNet file that defines generic tests for the experiment.
-    You can run these tests in Docker by running ``docker/run pytest test.py``.
+    You can run these tests with ``psynet test local``.
     If you want to customize these tests you should normally override specific methods in the Experiment class,
     for example ``Experiment.test_experiment`` and ``Experiment.test_check_bots``.
     If this file is missing, you can regenerate it with ``psynet scripts scaffold``.

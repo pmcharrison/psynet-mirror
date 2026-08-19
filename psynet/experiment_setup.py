@@ -803,20 +803,9 @@ def _echo_in_repo_setup_success():
     _handle_setup_services(mode="verify")
 
 
-def _echo_no_install_success(*, docker):
+def _echo_no_install_success():
     """Print success and next steps after a files-only setup."""
     _ensure_git_repository()
-    if docker:
-        click.echo(
-            "Prepared experiment files for Docker "
-            "(scaffolded boilerplate and constraints; did not install packages "
-            "into the local virtual environment).\n\n"
-            "Next steps:\n"
-            "  Follow the generated instructions under docker/docs."
-        )
-        _handle_setup_services(mode="verify")
-        return
-
     click.echo(
         "Prepared experiment files without installing packages "
         "(scaffolded boilerplate and constraints).\n\n"
@@ -824,8 +813,7 @@ def _echo_no_install_success(*, docker):
         "  Make sure this directory's dedicated .venv is active and PsyNet is "
         "installed in it, then run:\n"
         "  psynet setup\n"
-        "  (omit --no-install / --docker so setup can install from "
-        "constraints.txt)"
+        "  (omit --no-install so setup can install from constraints.txt)"
     )
     _handle_setup_services(mode="ensure-soft")
 
@@ -836,7 +824,7 @@ def _handle_setup_services(*, mode):
     Parameters
     ----------
     mode :
-        ``"verify"`` checks only (in-repo / Docker). ``"ensure-soft"`` may
+        ``"verify"`` checks only (in-repo). ``"ensure-soft"`` may
         offer to start Docker services but never fails setup.
     """
     from .services import ensure_local_services, verify_local_services
@@ -858,7 +846,6 @@ def setup_experiment(
     no_install,
     force_shared_env,
     force_foreign_env=False,
-    docker=False,
 ):
     """Scaffold and synchronize an experiment's dedicated virtual environment."""
     if is_in_repo_experiment():
@@ -908,7 +895,7 @@ def setup_experiment(
         _ensure_constraints_up_to_date(ctx)
 
     if action == "no-install":
-        _echo_no_install_success(docker=docker)
+        _echo_no_install_success()
         return
 
     if (
