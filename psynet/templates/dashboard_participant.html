@@ -257,13 +257,13 @@
         </tr>
         <tr>
             <td>Base payment</td>
-            <td>{{ participant.base_payment }}</td>
+            <td>{{ currency }}{{ "%.2f"|format(participant.base_payment or 0) }}</td>
         </tr>
         <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
             <td>Planned bonus</td>
             <td>{{ currency }}{{ "%.2f"|format(participant.planned_bonus or 0) }}</td>
         </tr>
-        <tr>
+        <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
             <td>Delivered bonus</td>
             <td>
                 {% if participant.bonus is none %}
