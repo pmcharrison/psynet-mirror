@@ -31,11 +31,12 @@ Key design constraints for maintainers:
   to skip a repeat transfer. PsyNet posts a bonus automatically at most
   once per participant. A failed transfer still continues recruitment,
   records the amount on ``unpaid_bonus``, and sets
-  ``needs_payment_review``. The Participants dashboard can poll the
-  platform's apparent bonus (Prolific ``bonus_payments``, which may lag)
-  and the experimenter can post again from there if the platform still
-  shows unpaid. ``reward_bonus`` returns ``False`` if the platform
-  rejected the transfer. PsyNet does not call Dallinger's unused
+  ``needs_payment_review``. The Participants dashboard lists everyone
+  who needs that review. Opening a participant polls the platform
+  (Prolific ``bonus_payments`` and submission status, which may lag a
+  POST) and offers Pay bonus or Dismiss. ``reward_bonus`` returns
+  ``False`` if the platform rejected the transfer. PsyNet does not call
+  Dallinger's unused
   ``data_check`` / ``attention_check`` hooks.
 """
 
@@ -122,6 +123,20 @@ def _bonus_payments_total(bonus_payments) -> float:
     if not bonus_payments:
         return 0.0
     return round(sum(bonus_payments) / 100.0, 2)
+
+
+@dataclass(frozen=True)
+class PlatformPaymentView:
+    """What the recruitment platform currently reports for a participant.
+
+    ``supported`` is False when this recruiter cannot poll. ``bonus`` is
+    ``None`` when a supported lookup failed. Prolific pay is asynchronous,
+    so ``bonus`` can lag a successful POST.
+    """
+
+    supported: bool
+    bonus: float | None = None
+    submission_status: str | None = None
 
 
 @dataclass(frozen=True)
@@ -266,6 +281,10 @@ class PsyNetRecruiterMixin:
         """Whether this recruiter can poll the platform for bonuses already paid."""
         return False
 
+    def platform_payment_view(self, participant) -> PlatformPaymentView:
+        """Return the platform's current bonus and submission status, if any."""
+        return PlatformPaymentView(supported=False)
+
     def apparent_bonus_paid(self, participant) -> float | None:
         """Bonus the platform currently reports as paid, or ``None`` if unknown.
 
@@ -274,7 +293,10 @@ class PsyNetRecruiterMixin:
         is asynchronous, so a successful POST can still look unpaid for a
         while.
         """
-        return None
+        view = self.platform_payment_view(participant)
+        if not view.supported:
+            return None
+        return view.bonus
 
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
@@ -655,15 +677,15 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         """Prolific submissions expose ``bonus_payments`` on GET."""
         return True
 
-    def apparent_bonus_paid(self, participant) -> float | None:
-        """Sum Prolific ``bonus_payments`` (pence/cents) as currency units.
+    def platform_payment_view(self, participant) -> PlatformPaymentView:
+        """Read Prolific submission status and ``bonus_payments``.
 
         Uses the raw submission GET because Dallinger's translator drops
-        ``bonus_payments``. Pay is asynchronous, so this can lag a POST.
+        ``bonus_payments``. Pay is asynchronous, so bonus can lag a POST.
         """
         assignment_id = getattr(participant, "assignment_id", None)
         if not assignment_id:
-            return None
+            return PlatformPaymentView(supported=True)
         try:
             response = self.prolificservice._req(
                 method="GET",
@@ -671,16 +693,20 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
         except Exception:
             logger.warning(
-                "Could not read Prolific bonus status for participant %s "
+                "Could not read Prolific payment status for participant %s "
                 "(assignment %s).",
                 getattr(participant, "id", None),
                 assignment_id,
                 exc_info=True,
             )
-            return None
+            return PlatformPaymentView(supported=True)
         if not response:
-            return None
-        return _bonus_payments_total(response.get("bonus_payments"))
+            return PlatformPaymentView(supported=True)
+        return PlatformPaymentView(
+            supported=True,
+            bonus=_bonus_payments_total(response.get("bonus_payments")),
+            submission_status=response.get("status"),
+        )
 
     def request_return_for_bonus(self, participant) -> TimelineLogic:
         """Ask the participant to return their Prolific submission and pay

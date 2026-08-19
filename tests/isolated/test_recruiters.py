@@ -565,10 +565,9 @@ class PaymentHarness:
     base_payment = 1.00
     decide_and_record_payment = _Experiment.decide_and_record_payment
     pay_decided_bonus = _Experiment.pay_decided_bonus
-    check_review_bonus = _Experiment.check_review_bonus
     pay_review_bonus = _Experiment.pay_review_bonus
+    dismiss_review_bonus = _Experiment.dismiss_review_bonus
     _record_bonus_transfer_success = _Experiment._record_bonus_transfer_success
-    _review_bonus = _Experiment._review_bonus
     _notify_bonus_transfer_failed = _Experiment._notify_bonus_transfer_failed
     on_recruiter_submission_complete = _Experiment.on_recruiter_submission_complete
 
@@ -1296,10 +1295,16 @@ def test_bonus_payments_total_converts_pence_to_currency():
 def test_prolific_apparent_bonus_paid_sums_submission_bonus_payments():
     recruiter = make_prolific_recruiter(make_config())
     recruiter.prolificservice = MagicMock()
-    recruiter.prolificservice._req.return_value = {"bonus_payments": [150, 25]}
+    recruiter.prolificservice._req.return_value = {
+        "bonus_payments": [150, 25],
+        "status": "APPROVED",
+    }
     participant = MagicMock(assignment_id="submission-1")
 
-    assert recruiter.apparent_bonus_paid(participant) == 1.75
+    view = recruiter.platform_payment_view(participant)
+    assert view.supported is True
+    assert view.bonus == 1.75
+    assert view.submission_status == "APPROVED"
     recruiter.prolificservice._req.assert_called_once_with(
         method="GET", endpoint="/submissions/submission-1/"
     )
@@ -1319,6 +1324,7 @@ def test_hotair_apparent_bonus_paid_is_unknown():
 
     recruiter = object.__new__(HotAirRecruiter)
     assert recruiter.can_report_apparent_bonus() is False
+    assert recruiter.platform_payment_view(MagicMock()).supported is False
     assert recruiter.apparent_bonus_paid(MagicMock()) is None
 
 
@@ -1331,34 +1337,6 @@ def _review_participant(apparent=0.0, unpaid=1.50):
     participant.recruiter.can_report_apparent_bonus = MagicMock(return_value=True)
     participant.recruiter.apparent_bonus_paid = MagicMock(return_value=apparent)
     return participant
-
-
-def test_check_review_bonus_records_when_platform_already_paid():
-    participant = _review_participant(apparent=1.50)
-    participant.recruiter.reward_bonus = MagicMock()
-    harness = PaymentHarness()
-
-    category, message = harness.check_review_bonus(participant)
-
-    assert category == "success"
-    assert participant.payment_settled is True
-    assert participant.needs_payment_review is False
-    assert participant.bonus == 1.50
-    assert participant.unpaid_bonus == 0.0
-    participant.recruiter.reward_bonus.assert_not_called()
-    assert "already" in message.lower()
-
-
-def test_check_review_bonus_leaves_review_when_platform_shows_zero():
-    participant = _review_participant(apparent=0.0)
-    harness = PaymentHarness()
-
-    category, message = harness.check_review_bonus(participant)
-
-    assert category == "warning"
-    assert participant.needs_payment_review is True
-    assert participant.payment_settled is False
-    assert "0.00" in message
 
 
 def test_pay_review_bonus_posts_when_platform_shows_zero():
@@ -1404,31 +1382,6 @@ def test_pay_review_bonus_refuses_when_not_in_review():
     assert "not" in message.lower()
 
 
-def test_check_review_bonus_when_lookup_fails():
-    participant = _review_participant(apparent=None)
-    harness = PaymentHarness()
-
-    category, message = harness.check_review_bonus(participant)
-
-    assert category == "warning"
-    assert participant.needs_payment_review is True
-    assert participant.payment_settled is False
-
-
-def test_check_review_bonus_when_recruiter_cannot_report():
-    participant = _review_participant(apparent=None)
-    participant.recruiter.can_report_apparent_bonus = MagicMock(return_value=False)
-    participant.recruiter.nickname = "hotair"
-    harness = PaymentHarness()
-
-    category, message = harness.check_review_bonus(participant)
-
-    assert category == "warning"
-    assert "cannot report" in message.lower()
-    assert participant.needs_payment_review is True
-    participant.recruiter.apparent_bonus_paid.assert_not_called()
-
-
 def test_pay_review_bonus_refuses_when_lookup_fails():
     participant = _review_participant(apparent=None)
     harness = PaymentHarness()
@@ -1464,6 +1417,33 @@ def test_pay_review_bonus_leaves_review_when_post_fails():
     assert participant.payment_settled is False
     assert participant.bonus is None
     assert participant.unpaid_bonus == 1.50
+
+
+def test_dismiss_review_bonus_clears_review_without_posting():
+    participant = _review_participant(apparent=0.0)
+    participant.recruiter.reward_bonus = MagicMock()
+    harness = PaymentHarness()
+
+    category, message = harness.dismiss_review_bonus(participant)
+
+    assert category == "success"
+    assert participant.needs_payment_review is False
+    assert participant.payment_settled is True
+    assert participant.bonus is None
+    assert participant.unpaid_bonus == 1.50
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert "without posting" in message.lower()
+
+
+def test_dismiss_review_bonus_refuses_when_not_in_review():
+    participant = _review_participant()
+    participant.needs_payment_review = False
+    harness = PaymentHarness()
+
+    category, message = harness.dismiss_review_bonus(participant)
+
+    assert category == "warning"
+    participant.recruiter.reward_bonus.assert_not_called()
 
 
 def test_prolific_reward_bonus_returns_false_on_exception():

@@ -2532,14 +2532,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.needs_payment_review = False
         participant.payment_settled = True
 
-    def check_review_bonus(self, participant) -> tuple[str, str]:
-        """Poll the platform and record the bonus if it already looks paid.
-
-        Returns a Flask flash ``(category, message)``. Does not POST.
-        Prolific ``bonus_payments`` can lag a successful transfer.
-        """
-        return self._review_bonus(participant, pay=False)
-
     def pay_review_bonus(self, participant) -> tuple[str, str]:
         """Poll the platform, then POST the unpaid bonus if it still looks unpaid.
 
@@ -2547,9 +2539,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         amount and skip the POST. Automatic submission-complete still posts at
         most once; this is the human-gated extra attempt.
         """
-        return self._review_bonus(participant, pay=True)
-
-    def _review_bonus(self, participant, *, pay: bool) -> tuple[str, str]:
         if not participant.needs_payment_review:
             return (
                 "warning",
@@ -2572,21 +2561,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Platform already reports {apparent:.2f} paid for "
                 f"participant {participant.id}; recorded without posting.",
             )
-        if not pay:
-            if not can_report:
-                return (
-                    "warning",
-                    f"Recruiter {getattr(recruiter, 'nickname', recruiter)} "
-                    f"cannot report platform bonus status for participant "
-                    f"{participant.id}. You can still pay the unpaid bonus "
-                    "from this page.",
-                )
-            return (
-                "warning",
-                f"Platform currently reports {apparent:.2f} paid for "
-                f"participant {participant.id}; unpaid bonus is still "
-                f"{unpaid:.2f} (this can lag a recent POST).",
-            )
         logger.info(
             "Dashboard retry: paying bonus of %s to participant %s",
             unpaid,
@@ -2605,15 +2579,39 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"Posted bonus of {unpaid:.2f} for participant {participant.id}.",
         )
 
+    def dismiss_review_bonus(self, participant) -> tuple[str, str]:
+        """Clear payment review without posting a bonus.
+
+        Marks the payout settled so a later submission-complete replay will
+        not POST. ``unpaid_bonus`` is kept as a record of the skipped amount.
+        """
+        if not participant.needs_payment_review:
+            return (
+                "warning",
+                f"Participant {participant.id} is not flagged for payment review.",
+            )
+        participant.needs_payment_review = False
+        participant.payment_settled = True
+        logger.info(
+            "Dismissed payment review for participant %s without posting "
+            "(unpaid_bonus=%s).",
+            participant.id,
+            participant.unpaid_bonus,
+        )
+        return (
+            "success",
+            f"Dismissed payment review for participant {participant.id} "
+            "without posting a bonus.",
+        )
+
     def _notify_bonus_transfer_failed(self, participant, bonus: float) -> None:
         message = (
             f"Bonus transfer failed for participant {participant.id} "
             f"(assignment {participant.assignment_id}, worker "
             f"{participant.worker_id}). PsyNet will not retry automatically. "
-            f"Please review this participant on the Participants dashboard "
-            f"(listed under Needs payment review). Check the platform bonus "
-            f"status there, then pay {bonus} from the dashboard if it still "
-            "looks unpaid. "
+            f"Please open this participant on the Participants dashboard "
+            f"(listed under Needs payment review). Compare PsyNet and "
+            f"platform status there, then pay {bonus} or dismiss. "
             "needs_payment_review is true; payment_settled is still false."
         )
         logger.error(message)
@@ -2655,8 +2653,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         is restored). ``payment_settled`` and ``needs_payment_review``
         skip a repeat money transfer: PsyNet posts a bonus at most once.
         Recruitment still runs if the bonus transfer fails; the
-        participant is left unsettled for dashboard review. The
-        experimenter can poll the platform and post again from there.
+        participant is left unsettled for dashboard review. Opening that
+        person polls the platform and offers Pay bonus or Dismiss.
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
         """
@@ -3411,7 +3409,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             message = "Found multiple participants matching those specifications."
 
         if participant is not None:
-            participant.apparent_bonus = cls._apparent_bonus_for_dashboard(participant)
+            cls._attach_platform_payment_view(participant)
 
         return render_template(
             "dashboard_participant.html",
@@ -3424,33 +3422,44 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @staticmethod
-    def _apparent_bonus_for_dashboard(participant):
+    def _attach_platform_payment_view(participant):
         recruiter = getattr(participant, "recruiter", None)
-        if recruiter is None or not recruiter.can_report_apparent_bonus():
-            return None
+        if recruiter is None:
+            participant.platform_payment_supported = False
+            participant.platform_bonus = None
+            participant.platform_submission_status = None
+            return
         try:
-            return recruiter.apparent_bonus_paid(participant)
+            view = recruiter.platform_payment_view(participant)
         except Exception:
             logger.exception(
-                "Could not poll platform bonus for participant %s.",
+                "Could not poll platform payment status for participant %s.",
                 getattr(participant, "id", None),
             )
-            return None
-
-    @dashboard.route("/participants/check-bonus", methods=["POST"])
-    @login_required
-    @with_transaction
-    def dashboard_check_bonus():  # noqa F811
-        return Experiment._handle_dashboard_review_bonus(pay=False)
+            participant.platform_payment_supported = bool(
+                recruiter.can_report_apparent_bonus()
+            )
+            participant.platform_bonus = None
+            participant.platform_submission_status = None
+            return
+        participant.platform_payment_supported = view.supported
+        participant.platform_bonus = view.bonus
+        participant.platform_submission_status = view.submission_status
 
     @dashboard.route("/participants/pay-bonus", methods=["POST"])
     @login_required
     @with_transaction
     def dashboard_pay_bonus():  # noqa F811
-        return Experiment._handle_dashboard_review_bonus(pay=True)
+        return Experiment._handle_dashboard_review_bonus(action="pay")
+
+    @dashboard.route("/participants/dismiss-bonus", methods=["POST"])
+    @login_required
+    @with_transaction
+    def dashboard_dismiss_bonus():  # noqa F811
+        return Experiment._handle_dashboard_review_bonus(action="dismiss")
 
     @classmethod
-    def _handle_dashboard_review_bonus(cls, *, pay: bool):
+    def _handle_dashboard_review_bonus(cls, *, action: str):
         participant_id = request.form.get("participant_id")
         try:
             participant = cls.get_participant_from_participant_id(
@@ -3463,8 +3472,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             flash("Failed to find that participant.", "danger")
             return redirect(url_for("dashboard.dashboard_participants"))
         exp = get_experiment()
-        action = exp.pay_review_bonus if pay else exp.check_review_bonus
-        category, message = action(participant)
+        if action == "dismiss":
+            category, message = exp.dismiss_review_bonus(participant)
+        else:
+            category, message = exp.pay_review_bonus(participant)
         flash(message, category)
         return redirect(
             url_for(
