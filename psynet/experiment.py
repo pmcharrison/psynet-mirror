@@ -108,7 +108,7 @@ from .timeline import (
 from .translation.check import check_translations
 from .translation.translate import create_pot
 from .translation.utils import compile_mo, load_po
-from .trial.main import Trial, TrialMaker
+from .trial.main import Trial, TrialMaker, TrialNetwork
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
@@ -1602,6 +1602,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.grow_networks()
 
     @staticmethod
+    def _fail_grown_network(network):
+        """Mark a network's head (or degree-0 trials) failed after a grow error."""
+        if network.head is not None and network.head.degree > 0:
+            network.head.fail()
+        elif network.head is not None and network.head.degree == 0:
+            for trial in network.head.all_trials:
+                trial.fail()
+
+    @staticmethod
     def grow_networks():
         from psynet.trial.chain import ChainTrialMaker
 
@@ -1620,24 +1629,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
-            for network in networks:
+            # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+            # holding detached ORM instances for later networks.
+            for network_id in [network.id for network in networks]:
+                network = db.session.get(TrialNetwork, network_id)
+                if network is None:
+                    continue
                 try:
                     network.trial_maker.call_grow_network(
                         network, check_readiness=False
                     )
                 except Exception as err:
-                    if not isinstance(err, exp.HandledError):
-                        exp.handle_error(
-                            err,
-                            network=network,
-                        )
-                    if network.head.degree > 0:
-                        network.head.fail()
-                    elif network.head.degree == 0:
-                        for trial in network.head.all_trials:
-                            trial.fail()
+                    # Re-fetch after handle_error rollback; commit the fail so a
+                    # later error in this batch cannot undo it.
+                    exp.isolate_batch_item_failure(
+                        err,
+                        refetch=lambda: db.session.get(TrialNetwork, network_id),
+                        fail=Experiment._fail_grown_network,
+                        network=network,
+                    )
 
             logger.info("Finished growing networks.")
+
+    @scheduled_task("interval", seconds=5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _finalize_pending_trials():
+        if not is_experiment_launched():
+            return
+        # Event-driven finalize checks remain the fast path. This poller only
+        # recovers trials that became ready without those callbacks running.
+        Trial.finalize_pending_trials()
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
@@ -3914,6 +3937,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
+
+    @classmethod
+    def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
+        """
+        Report a per-item batch failure, mark the item failed, and commit.
+
+        Used by pollers that process many candidates in one transaction
+        (network growth, finalize backstop). ``handle_error`` rolls back the
+        session, so ``refetch`` must return a fresh ORM instance (or ``None``).
+        ``fail`` receives that instance and marks it failed. The fail is
+        committed immediately so a later ``handle_error`` in the same batch
+        cannot undo it (same mid-batch commit pattern as ErrorRecord logging).
+        """
+        if not isinstance(error, cls.HandledError):
+            cls.handle_error(error, **error_parents)
+        entity = refetch()
+        if entity is None:
+            return None
+        fail(entity)
+        db.session.commit()
+        return entity
 
     @classmethod
     def handle_error(cls, error, **kwargs):
