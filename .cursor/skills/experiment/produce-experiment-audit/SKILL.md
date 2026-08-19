@@ -18,6 +18,10 @@ the CLI from the experiment root so `experiment.source_path` stays `.`.
   of truth for audit contents, statuses, blockers, validation, and rendering.
 - If participant screenshots or video are needed, use
   `record-participant-video`.
+- For `artifacts/monitor.html`, follow the Monitor snapshot section in
+  `references/populating-an-audit.md` (authenticated dashboard HTML from a
+  running local or deployed server; mark `not_applicable` only when no server
+  ever ran).
 - If the experiment needs implementation changes, use
   `psynet-experiment-implementation`.
 - For a live handoff, use `prepare-experiment-tunnel` (and `public-tunnel`) when

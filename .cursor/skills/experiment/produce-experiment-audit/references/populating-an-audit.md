@@ -103,6 +103,42 @@ Use `record-participant-video` for screenshot and video production. Keep videos
 at most 3 minutes and 1280×720. Keep rendered notebooks small enough for typical
 review tooling (normally under about 100 KB).
 
+### Monitor snapshot
+
+`artifacts/monitor.html` is a **static HTML snapshot of the experimenter
+dashboard** from a running experiment (local debug or deployed), not the
+participant flow.
+
+Capture it while the server is up and at least one participant (or bot) has
+progressed far enough that the dashboard shows useful state:
+
+1. Start or reuse `psynet debug local` (or a deployed app).
+2. Read dashboard credentials from the launch info PsyNet writes under
+   `~/psynet-data/launch-data/<deployment_id>/launch-info.json` (or the
+   equivalent printed at launch). Do not invent credentials.
+3. Open an authenticated dashboard page that shows monitoring/basic data. Prefer
+   `/dashboard/data` (Basic data / monitor context). Older docs mention
+   `/dashboard/monitor`; that route may 404 on current PsyNet—fall back to
+   `/dashboard/data`, `/dashboard/develop`, or the Networks/monitoring tab that
+   loads.
+4. Save the page HTML to `audit/artifacts/monitor.html` (for example
+   Playwright `page.content()` after HTTP basic auth). Prefer capturing via the
+   same participant-flow script that already talks to the running server.
+5. Mark present: `psynet audit mark-present monitor_snapshot`.
+
+`psynet audit render` rewrites `/static/...` links and copies Dallinger frontend
+assets so the snapshot is viewable offline. You do not need to vendor those
+assets by hand.
+
+Mark `monitor_snapshot` **`not_applicable`** only when the work never had a
+running PsyNet server/dashboard to snapshot (for example pure docs or
+offline-only packaging). Local debug without a paid deployment is still a valid
+source—do not mark N/A just because the app was not deployed remotely.
+
+There is no dedicated `psynet audit` subcommand for N/A yet; set
+`status: not_applicable` on the artifact in `audit.json`, remove its required
+blocker (or replace it with an N/A note in `REPORT.md`), then re-validate.
+
 ### Simulation export packaging
 
 `psynet simulate` writes `data/simulated_data/` (a directory). It does **not**

@@ -45,6 +45,11 @@ Do not invent credentials or access. If dashboard, SSH, database, AWS, or
 recruiter access is unavailable, write the specific blocker and continue with
 local or exported evidence only.
 
+When a reviewable static dashboard snapshot is needed for an experiment audit,
+save authenticated dashboard HTML to `audit/artifacts/monitor.html` and follow
+`produce-experiment-audit/references/populating-an-audit.md` (Monitor snapshot).
+Do not confuse that file with live monitoring of an ongoing recruitment.
+
 ## Health checks
 
 Check participant flow:
