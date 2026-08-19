@@ -13,6 +13,7 @@ from psynet.participant import (
     BONUS_STATUS_NOT_DUE_YET,
     BONUS_STATUS_SUCCESS,
     BONUS_STATUS_UNCONFIRMED,
+    NO_BONUS_ATTEMPT_RESULT,
     Participant,
     bonus_is_settled,
     bonus_needs_review,
@@ -420,6 +421,7 @@ def make_participant_with_recruiter(config, failed=True, status="working"):
     participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
     participant.planned_bonus = 0.0
     participant.bonus = None
+    participant.bonus_attempt_detail = None
     return participant
 
 
@@ -617,6 +619,7 @@ def prepare_payout_participant(participant):
     participant.assignment_id = "assignment-1"
     participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
     participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = None
     participant.worker_id = "worker-1"
     participant.recruiter.nickname = "prolific"
     participant.recruiter.approve_hit = MagicMock(return_value=True)
@@ -777,6 +780,7 @@ def test_on_recruiter_submission_complete_records_and_pays_screen_out():
     assert participant.bonus == 2.25
     assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.planned_bonus == 2.25
+    assert participant.bonus_attempt_detail is None
     participant.recruiter.approve_hit.assert_called_once_with("assignment-1")
     participant.recruiter.reward_bonus.assert_called_once()
     assert harness.recruit_calls == 1
@@ -904,6 +908,7 @@ def test_on_recruiter_submission_complete_continues_recruiting_when_transfer_fai
     assert participant.bonus is None
     assert participant.status == "approved"
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
     assert harness.recruit_calls == 1
     assert harness.submission_successful_calls == [participant]
     assert harness.notify_calls
@@ -940,6 +945,7 @@ def test_pay_decided_bonus_leaves_unsettled_when_transfer_fails():
     assert participant.bonus is None
     assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
     assert harness.notify_calls
     assert "Participants dashboard" in harness.notify_calls[0]
 
@@ -957,6 +963,7 @@ def test_pay_decided_bonus_treats_none_transfer_as_success():
     assert participant.bonus == 1.50
     assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail is None
 
 
 def test_reward_and_set_bonus_uses_payment_decision():
@@ -1232,12 +1239,14 @@ def test_pay_decided_bonus_does_not_repost_when_review_is_needed():
     assert harness.pay_decided_bonus(participant, decision) is False
     assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
     assert harness.notify_calls
 
     assert harness.pay_decided_bonus(participant, decision) is False
     participant.recruiter.reward_bonus.assert_called_once()
     assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.bonus is None
+    assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
 
 
 def test_on_recruiter_submission_complete_does_not_repost_after_failed_transfer():
@@ -1257,6 +1266,7 @@ def test_on_recruiter_submission_complete_does_not_repost_after_failed_transfer(
     assert participant.status == "approved"
     assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
     assert harness.recruit_calls == 2
 
 
@@ -1435,6 +1445,7 @@ def test_pay_review_bonus_posts_when_platform_shows_zero():
     assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.bonus == 1.50
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail is None
 
 
 def test_pay_review_bonus_does_not_post_when_platform_already_paid():
@@ -1449,6 +1460,7 @@ def test_pay_review_bonus_does_not_post_when_platform_already_paid():
     assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.bonus == 1.50
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail is None
 
 
 def test_pay_review_bonus_refuses_when_not_in_review():
@@ -1487,6 +1499,7 @@ def test_pay_review_bonus_posts_when_recruiter_cannot_report():
     assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.planned_bonus == 1.50
     assert participant.bonus == 1.50
+    assert participant.bonus_attempt_detail is None
 
 
 def test_pay_review_bonus_leaves_review_when_post_fails():
@@ -1500,10 +1513,12 @@ def test_pay_review_bonus_leaves_review_when_post_fails():
     assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.bonus is None
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
 
 
 def test_dismiss_review_bonus_clears_review_without_posting():
     participant = _review_participant(apparent=0.0)
+    participant.bonus_attempt_detail = "timeout"
     participant.recruiter.reward_bonus = MagicMock()
     harness = PaymentHarness()
 
@@ -1513,6 +1528,7 @@ def test_dismiss_review_bonus_clears_review_without_posting():
     assert participant.bonus_status == BONUS_STATUS_DISMISSED
     assert participant.bonus is None
     assert participant.planned_bonus == 1.50
+    assert participant.bonus_attempt_detail == "timeout"
     participant.recruiter.reward_bonus.assert_not_called()
     assert "without posting" in message.lower()
 
@@ -1566,12 +1582,14 @@ def test_prolific_reward_bonus_returns_false_on_exception():
     recruiter.prolificservice.pay_session_bonus.side_effect = ProlificServiceException(
         "no"
     )
+    participant = MagicMock(worker_id="w")
     with patch.object(
         type(recruiter), "current_study_id", PropertyMock(return_value="study-1")
     ):
         with patch("psynet.recruiters.handle_recruitment_error") as handle:
-            assert recruiter.reward_bonus(MagicMock(worker_id="w"), 1.0, "r") is False
+            assert recruiter.reward_bonus(participant, 1.0, "r") is False
             handle.assert_called_once()
+            assert participant.bonus_attempt_detail == "no"
 
 
 def test_mturk_reward_bonus_returns_false_when_grant_bonus_returns_false():
@@ -1580,9 +1598,11 @@ def test_mturk_reward_bonus_returns_false_when_grant_bonus_returns_false():
     recruiter = object.__new__(MTurkRecruiter)
     recruiter.mturkservice = MagicMock()
     recruiter.mturkservice.grant_bonus.return_value = False
+    participant = MagicMock(assignment_id="a")
     with patch("psynet.recruiters.handle_recruitment_error") as handle:
-        assert recruiter.reward_bonus(MagicMock(assignment_id="a"), 1.0, "r") is False
+        assert recruiter.reward_bonus(participant, 1.0, "r") is False
         handle.assert_called_once()
+        assert "assignment a" in participant.bonus_attempt_detail
 
 
 def test_hotair_reward_bonus_returns_true():

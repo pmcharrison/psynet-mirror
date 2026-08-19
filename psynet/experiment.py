@@ -86,9 +86,11 @@ from .participant import (
     BONUS_STATUS_DISMISSED,
     BONUS_STATUS_SUCCESS,
     BONUS_STATUS_UNCONFIRMED,
+    NO_BONUS_ATTEMPT_RESULT,
     Participant,
     bonus_is_settled,
     bonus_needs_review,
+    record_bonus_attempt_detail,
 )
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -2458,10 +2460,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if the platform rejected the transfer or a previous attempt already
         failed. PsyNet posts a bonus to the platform at most once per
         participant: the attempt is claimed by setting
-        ``bonus_status = unconfirmed`` and ``planned_bonus`` before the
-        recruiter call, so a later replay will not pay again. A failed
-        transfer stays unconfirmed and asks the experimenter to review on
-        the Participants dashboard.
+        ``bonus_status = unconfirmed``, ``planned_bonus``, and a last-attempt
+        placeholder before the recruiter call, so a later replay will not
+        pay again. A failed transfer stays unconfirmed and asks the
+        experimenter to review on the Participants dashboard.
 
         Does not re-apply caps or send emails when already settled.
         """
@@ -2512,6 +2514,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # recruiter, so a crash or listener replay cannot pay twice.
         participant.bonus_status = BONUS_STATUS_UNCONFIRMED
         participant.planned_bonus = bonus
+        record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
         logger.info("Paying bonus of %s to %s", bonus, participant.id)
         transferred = participant.recruiter.reward_bonus(
             participant,
@@ -2536,6 +2539,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not (participant.planned_bonus or 0.0):
             participant.planned_bonus = amount
         participant.bonus_status = BONUS_STATUS_SUCCESS
+        participant.bonus_attempt_detail = None
 
     def pay_review_bonus(self, participant) -> tuple[str, str]:
         """Poll the platform, then POST the planned bonus if it still looks unpaid.
@@ -2571,6 +2575,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             planned,
             participant.id,
         )
+        record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
         transferred = recruiter.reward_bonus(participant, planned, self.bonus_reason())
         if transferred is False:
             return (
@@ -2588,8 +2593,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Clear payment review without posting a bonus.
 
         Marks bonus status dismissed so a later submission-complete replay
-        will not POST. ``planned_bonus`` is kept as a record of the
-        skipped amount.
+        will not POST. ``planned_bonus`` and ``bonus_attempt_detail`` are
+        kept as a record of the skipped amount and last pay attempt.
         """
         if not bonus_needs_review(participant):
             return (

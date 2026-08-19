@@ -22,6 +22,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     desc,
 )
@@ -93,6 +94,18 @@ def bonus_needs_review(participant) -> bool:
     if recruiter is None:
         return True
     return recruiter.has_external_bonus_payment()
+
+
+NO_BONUS_ATTEMPT_RESULT = "No result recorded from the pay request."
+
+
+def record_bonus_attempt_detail(participant, detail: str) -> None:
+    """Store a diagnostic about the last bonus pay attempt.
+
+    This is not a payment status. Unconfirmed still means we do not know
+    whether money moved.
+    """
+    participant.bonus_attempt_detail = detail
 
 
 if TYPE_CHECKING:
@@ -264,6 +277,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     planned_bonus = Column(Float)
     # not_due_yet | unconfirmed | success | dismissed | capped
     bonus_status = Column(String)
+    # Diagnostic from the last bonus pay attempt; not a payment status.
+    bonus_attempt_detail = Column(Text)
     issued_completion_code_type = Column(String)
     total_wait_page_time = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
@@ -602,6 +617,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.performance_reward = 0.0
         self.planned_bonus = 0.0
         self.bonus_status = BONUS_STATUS_NOT_DUE_YET
+        self.bonus_attempt_detail = None
         self.issued_completion_code_type = None
         self.base_payment = experiment.base_payment
         self.client_ip_address = None

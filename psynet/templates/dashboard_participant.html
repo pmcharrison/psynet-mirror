@@ -277,6 +277,12 @@
             <td>Bonus status</td>
             <td>{{ participant.bonus_status_label }}</td>
         </tr>
+        {% if participant.bonus_attempt_detail %}
+        <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
+            <td>Last attempt</td>
+            <td>{{ participant.bonus_attempt_detail }}</td>
+        </tr>
+        {% endif %}
         {% if participant.platform_payment_supported %}
         <tr class="section-head">
             <th colspan="2">

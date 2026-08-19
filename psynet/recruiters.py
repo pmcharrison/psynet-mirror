@@ -26,17 +26,17 @@ Key design constraints for maintainers:
   writes those fields onto the participant; ``reward_bonus`` transfers
   money and returns ``False`` if the platform rejected the transfer.
   ``Experiment.on_recruiter_submission_complete`` owns this sequence,
-  always re-recording status and platform base, and uses
+  always re-recording status and platform base, and uses ``bonus_status``
   to skip a repeat transfer. PsyNet posts a bonus automatically at most
   once per participant. A failed transfer still continues recruitment,
-  stores the amount on ``planned_bonus``, and sets
-  ``bonus_status`` to unconfirmed. The Participants dashboard lists everyone
-  who needs that review. Opening a participant polls the platform
-  (Prolific ``bonus_payments`` and submission status, which may lag a
-  POST) and shows those facts in the participant table, with Pay bonus
-  or Dismiss when review is needed. ``reward_bonus`` returns
-  ``False`` if the platform rejected the transfer. PsyNet does not call
-  Dallinger's unused
+  stores the amount on ``planned_bonus``, sets ``bonus_status`` to
+  unconfirmed, and records ``bonus_attempt_detail`` from the last pay
+  attempt. The Participants dashboard lists everyone who needs that
+  review. Opening a participant polls the platform (Prolific
+  ``bonus_payments`` and submission status, which may lag a POST) and
+  shows those facts in the participant table, with Pay bonus or Dismiss
+  when review is needed. ``reward_bonus`` returns ``False`` if the
+  platform rejected the transfer. PsyNet does not call Dallinger's unused
   ``data_check`` / ``attention_check`` hooks.
 """
 
@@ -79,7 +79,11 @@ from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService, get_lucid_service
 from .page import InfoPage
-from .participant import BONUS_STATUS_SUCCESS, Participant
+from .participant import (
+    BONUS_STATUS_SUCCESS,
+    Participant,
+    record_bonus_attempt_detail,
+)
 from .timeline import (
     AsyncCodeBlock,
     CodeBlock,
@@ -323,6 +327,10 @@ class PsyNetRecruiterMixin:
         value other than ``False`` is treated as success.
         """
         result = super().reward_bonus(participant, amount, reason)
+        if result is False:
+            record_bonus_attempt_detail(
+                participant, "The platform pay request did not succeed."
+            )
         return False if result is False else True
 
     def can_report_apparent_bonus(self) -> bool:
@@ -730,6 +738,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
         except ProlificServiceException as ex:
             handle_recruitment_error(ex)
+            record_bonus_attempt_detail(participant, str(ex))
             return False
         return True
 
@@ -1063,6 +1072,7 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
             )
         except MTurkServiceException as ex:
             handle_recruitment_error(ex)
+            record_bonus_attempt_detail(participant, str(ex))
             return False
         if granted is False:
             handle_recruitment_error(
@@ -1070,6 +1080,11 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
                     f"MTurk grant_bonus returned unsuccessful for assignment "
                     f"{participant.assignment_id}."
                 )
+            )
+            record_bonus_attempt_detail(
+                participant,
+                f"MTurk grant_bonus returned unsuccessful for assignment "
+                f"{participant.assignment_id}.",
             )
             return False
         return True
@@ -1147,12 +1162,17 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
                 participant.assignment_id,
                 ex,
             )
+            record_bonus_attempt_detail(participant, str(ex))
             return False
         if not response.ok:
             logger.error(
                 "Lab recruiter bonus POST for assignment %s returned HTTP %s.",
                 participant.assignment_id,
                 response.status_code,
+            )
+            record_bonus_attempt_detail(
+                participant,
+                f"Lab recruiter bonus POST returned HTTP {response.status_code}.",
             )
             return False
         return True
@@ -1904,11 +1924,12 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 else:
                     reason = "participant-did-not-complete"
                 self.terminate_participant(participant=participant, reason=reason)
-        except Exception:
+        except Exception as ex:
             logger.exception(
                 "Lucid reward_bonus failed for participant %s.",
                 getattr(participant, "id", None),
             )
+            record_bonus_attempt_detail(participant, str(ex))
             return False
         return True
 
