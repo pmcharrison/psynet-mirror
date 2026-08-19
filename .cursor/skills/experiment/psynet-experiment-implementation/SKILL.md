@@ -122,6 +122,10 @@ uv pip install -e ~/PsyNet
 psynet setup --psynet-source editable
 ```
 
+The initial editable install may be thin bootstrap only (`click`); `psynet setup`
+rewrites `requirements.txt` to `-e file://...#egg=psynet[experiment]` and syncs
+`constraints.txt` so the experiment runtime lands in the dedicated venv.
+
 If setup already ran and you only need missing files later,
 `psynet scripts scaffold` is enough. Use `psynet scripts update` only when you
 intentionally want to refresh managed templates/skills from the installed
@@ -179,6 +183,9 @@ headlessly so its outputs are embedded for review:
 
 ```bash
 uv pip install matplotlib jupyter nbconvert nbformat ipykernel
+# nbconvert uses the notebook directory as cwd; resolve data paths from the
+# experiment root (for example Path(__file__) is unavailable in notebooks—
+# walk parents until experiment.py is found, or pass an absolute data path).
 jupyter nbconvert --to notebook --execute --inplace audit/analyses/analysis.ipynb
 ```
 
