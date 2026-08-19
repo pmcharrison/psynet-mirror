@@ -8,6 +8,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from trigger_evals import validate_trigger_eval_file
+
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SKILL_REFERENCE_RE = re.compile(
     r"(?<![\w./-])((?:(?P<skill>[a-z0-9-]+)/)?references/[A-Za-z0-9_.-]+\.(?:md|ya?ml|py))"
@@ -147,6 +153,10 @@ def run_skills_ref(skill_dir: Path) -> list[str]:
     return [f"{skill_dir}: skills-ref validate failed: {output or 'non-zero exit'}"]
 
 
+def collect_skill_names(skills_root: Path) -> set[str]:
+    return {path.parent.name for path in skills_root.rglob("SKILL.md")}
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     skills_root = root / ".cursor" / "skills"
@@ -162,6 +172,16 @@ def main() -> int:
         problems.extend(skill_problems)
         warnings.extend(skill_warnings)
         problems.extend(run_skills_ref(skill_dir))
+
+    trigger_eval_file = skills_root / "create-skill" / "references" / "trigger-evals.yaml"
+    if trigger_eval_file.exists():
+        eval_problems, eval_warnings = validate_trigger_eval_file(
+            trigger_eval_file,
+            skills_dir=skills_root,
+            skill_names=collect_skill_names(skills_root),
+        )
+        problems.extend(eval_problems)
+        warnings.extend(eval_warnings)
 
     for warning in warnings:
         print(f"Warning: {warning}", file=sys.stderr)
