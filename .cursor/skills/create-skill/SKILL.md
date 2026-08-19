@@ -147,11 +147,7 @@ skills-ref validate .cursor/skills/create-skill   # example; repeat per skill or
 
 Install `skills-ref` (`uv pip install skills-ref`) when the CLI is not already
 available. The repository script checks reference citations, line-count warnings,
-`references/trigger-evals.yaml` fixture overlap, and optional `skills-ref`
-conformance for every skill under `.cursor/skills/`.
+and optional `skills-ref` conformance for every skill under `.cursor/skills/`.
 
 After changing experiment skills, run `psynet scripts update` in affected
 experiment checkouts so `.cursor/skills/psynet/` picks up the revision.
-
-See also: `references/trigger-evals.yaml` for description trigger examples used
-in dogfooding.
