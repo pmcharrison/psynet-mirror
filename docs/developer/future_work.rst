@@ -6,9 +6,9 @@ Future work
 This page records **unconfirmed** ideas for PsyNet maintainers. It is not a
 roadmap, not a commitment, and not a substitute for GitLab issues.
 
-Each entry should state the problem, the idea, why it is not being done now,
-and the date it was written. Delete the entry when it ships or is rejected.
-If it becomes a GitLab issue, link the issue and shorten the write-up.
+Each entry should state the problem, the idea, and the date it was
+written. Delete the entry when it ships or is rejected. If it becomes a
+GitLab issue, link the issue and shorten the write-up.
 
 Payment event ledger
 --------------------
@@ -31,9 +31,3 @@ Pay clicked, dismissed, and platform poll. Commit "POST started" before
 the HTTP call so a crash still leaves a row. That is also enough to show
 that a pay request was started, without a separate in-progress
 ``bonus_status``.
-
-**Why not now.** The decide / record / transfer work is already a large
-change. Unconfirmed status plus last-attempt detail answers "what should
-I do now?" A table that is not written from every payment path will rot.
-Revisit once that pipeline has settled, if we want payment to be
-reconstructable after a messy deployment.
