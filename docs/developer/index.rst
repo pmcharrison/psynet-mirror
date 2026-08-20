@@ -9,6 +9,7 @@ Contributing to PsyNet
    contributing_a_feature_or_bugfix
    prescreening_tasks
    updating_documentation
+   future_work
    ../tutorials/internationalization
    running_tests
    asv_performance_tests

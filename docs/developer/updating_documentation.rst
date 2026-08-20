@@ -53,3 +53,5 @@ Before submitting larger documentation changes, it is useful to treat Sphinx war
 The generated HTML is written to ``docs/_build/html/index.html``.
 
 On completion of updating the documentation commit the corresponding `rst` files only. The compiled `html` files in the ``_build`` directory should be left ignored by Git.
+
+Unconfirmed ideas for later (not a roadmap) live in :doc:`future_work`.
