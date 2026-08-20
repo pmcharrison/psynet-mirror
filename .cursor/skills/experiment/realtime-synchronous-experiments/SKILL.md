@@ -7,7 +7,7 @@ description: Design and implement PsyNet websocket experiments with live synchro
 
 ## Prerequisites
 
-- Read `experiment-implementation/SKILL.md` for the general PsyNet
+- Read `implement-experiment/SKILL.md` for the general PsyNet
   implementation workflow, setup reminders, and validation expectations.
 - Inspect the closest PsyNet demos and framework APIs for groups, trials,
   nodes, events, websocket handling, and participant routing before designing

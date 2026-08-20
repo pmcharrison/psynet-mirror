@@ -24,7 +24,7 @@ Useful starting points:
 
 When starting a new experiment, copy the closest demo's authored files into a
 new directory, then prefer `psynet setup` over hand-written boilerplate. Details
-live in `experiment-implementation/SKILL.md` (Setup).
+live in `implement-experiment/SKILL.md` (Setup).
 
 ## Useful demos
 

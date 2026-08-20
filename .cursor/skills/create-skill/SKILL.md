@@ -40,9 +40,10 @@ Skills do **not** carry `authors` metadata. Skill history is tracked in git.
 
 Folder name **is** the skill `name`. Use kebab-case ASCII (`a-z`, `0-9`, hyphens).
 
-- Prefer **verb-object** for workflows: `prepare-for-cint`, `record-participant-video`,
-  `develop-experiment-front-end`.
-- Topic skills may use a noun phrase: `psychophysics`, `basic-data`.
+- Prefer **verb-object** for workflows: `implement-experiment`, `deploy-experiment`,
+  `prepare-for-cint`, `record-participant-video`.
+- Topic skills may use a noun phrase: `psychophysics`, `basic-data`,
+  `tapping-experiments`.
 - **Do not** prefix experiment skills with `psynet-`. They already live under
   `.cursor/skills/experiment/` (copied to `.cursor/skills/psynet/` in experiments).
   Keep `psynet` in a name only when it is part of the object

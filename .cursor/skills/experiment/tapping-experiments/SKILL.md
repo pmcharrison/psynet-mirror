@@ -7,17 +7,17 @@ description: Implement PsyNet tapping, rhythm, beat perception, and sensorimotor
 
 ## Prerequisites
 
-- Read `experiment-implementation/SKILL.md` for the general planning,
+- Read `implement-experiment/SKILL.md` for the general planning,
   implementation, simulation, export, analysis, and report workflow.
-- Read `participant-filtering-and-prescreening/SKILL.md` before adding device,
+- Read `filter-participants/SKILL.md` before adding device,
   audio, microphone, recording, or tapping capability gates.
 - Read `psychophysics/SKILL.md` when visual timing, reaction time, or exact
   stimulus display matters alongside tapping.
 - Read `record-participant-video/SKILL.md` for audio-sensitive participant-flow
   evidence.
-- Read `simulated-participants/SKILL.md` for bot or scripted tapping
+- Read `simulate-participants/SKILL.md` for bot or scripted tapping
   profiles.
-- Read `deployment-ops/SKILL.md` if the work involves deployment,
+- Read `deploy-experiment/SKILL.md` if the work involves deployment,
   exports, recruiter setup, or teardown.
 
 ## Participant flow

@@ -1,5 +1,5 @@
 ---
-name: simulated-participants
+name: simulate-participants
 description: Design, implement, and validate simulated participants for PsyNet experiments.
 ---
 
@@ -7,9 +7,9 @@ description: Design, implement, and validate simulated participants for PsyNet e
 
 ## Prerequisites
 
-- Read `experiment-implementation/SKILL.md` for the general experiment
+- Read `implement-experiment/SKILL.md` for the general experiment
   workflow and required simulation/export/report artifacts.
-- Read `experiment-implementation/references/validation.md` for command
+- Read `implement-experiment/references/validation.md` for command
   details, `run_bot` pitfalls, and performance-test expectations.
 - Read `participant-quality-telemetry/SKILL.md` when profiles exercise
   attention, paste, disclosure, or AI-assistance review signals.

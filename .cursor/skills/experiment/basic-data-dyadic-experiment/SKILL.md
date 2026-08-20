@@ -10,7 +10,7 @@ and player.
 
 ## Prerequisites
 
-- Read `experiment-implementation/SKILL.md` for simulation, exported data,
+- Read `implement-experiment/SKILL.md` for simulation, exported data,
   analysis-script, and report expectations.
 - For grouped, barrier-based, or live two-player experiments, read
   `synchronous-experiments/SKILL.md`.

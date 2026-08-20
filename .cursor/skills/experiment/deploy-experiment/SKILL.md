@@ -1,5 +1,5 @@
 ---
-name: deployment-ops
+name: deploy-experiment
 description: Audit PsyNet experiment folders for deployment readiness, deployment records, export safety, app/server naming, EC2 teardown, and common local or SSH deployment blockers. Use when preparing PsyNet deployments, reconstructing deployment state, generating safe commands, or diagnosing deployment failures.
 ---
 
@@ -29,7 +29,7 @@ Check that the experiment folder has:
   `deploy_logs/`, source archives, and generated logs
 - recruiter/qualification JSON files when a recruiter requires them
 - qualification files and recruiter settings that match any in-experiment
-  prescreeners; use `participant-filtering-and-prescreening/SKILL.md` when the
+  prescreeners; use `filter-participants/SKILL.md` when the
   mapping is unclear
 - local assets or manifests present and deployable
 - no broken symlinks to local user paths

@@ -7,13 +7,13 @@ description: Implement PsyNet-native participant quality and AI-assistance telem
 
 ## Prerequisites
 
-- Read `experiment-implementation/SKILL.md` for the general PsyNet
+- Read `implement-experiment/SKILL.md` for the general PsyNet
   implementation workflow, local setup, and validation expectations.
 - Read `psychophysics/SKILL.md` as needed when timing, reaction time, or
   modality-specific prescreeners are central to the study.
 - Read `turn-pure-experiment-to-ai-hybrid/SKILL.md` only when the experiment is
   intentionally mixing human and AI participants.
-- Read `simulated-participants/SKILL.md` when simulated profiles are
+- Read `simulate-participants/SKILL.md` when simulated profiles are
   broader than telemetry QA or need export/analysis validation.
 
 ## Threat model

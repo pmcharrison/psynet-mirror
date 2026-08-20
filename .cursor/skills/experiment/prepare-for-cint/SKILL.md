@@ -9,7 +9,7 @@ compatibility: Requires target experiment checkout; do not use production Cint/L
 This skill owns Cint/Lucid recruiter parameters and qualification files. For
 translation marking or POT extraction, use `prepare-for-translation`. For server
 provisioning, SSH deployment, export, app destruction, or EC2 teardown, use
-`deployment-ops`.
+`deploy-experiment`.
 
 ## Prerequisites
 

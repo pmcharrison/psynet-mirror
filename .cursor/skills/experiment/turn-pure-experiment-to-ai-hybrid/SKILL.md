@@ -8,7 +8,7 @@ description: Convert a pure-human PsyNet experiment into an AI or hybrid human-A
 ## Workflow
 
 - For local mock or stochastic participant profiles before live hybrid launch,
-  read `simulated-participants/SKILL.md`.
+  read `simulate-participants/SKILL.md`.
 - Start from the pure-human experiment and identify the participant-facing task,
   stimuli, instructions, response format, trial maker, recruitment target, and
   trial capacity.

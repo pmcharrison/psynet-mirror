@@ -1,5 +1,5 @@
 ---
-name: experiment-monitoring
+name: monitor-experiment
 description: Monitor active or recently deployed PsyNet experiments for participant flow, data integrity, deployment health, export readiness, and safe handoff decisions.
 ---
 
@@ -7,16 +7,16 @@ description: Monitor active or recently deployed PsyNet experiments for particip
 
 ## Prerequisites
 
-- Read `deployment-ops/SKILL.md` before recommending export, destroy, or
+- Read `deploy-experiment/SKILL.md` before recommending export, destroy, or
   teardown commands.
 - Read `record-participant-video/SKILL.md` when monitoring depends on
   participant-facing evidence, audio playback, timing-sensitive UI, or live
   human review.
 - Read `participant-quality-telemetry/SKILL.md` when monitoring
   attention, paste behavior, AI-assistance disclosures, or quality flags.
-- Read `simulated-participants/SKILL.md` when comparing live behavior
+- Read `simulate-participants/SKILL.md` when comparing live behavior
   against simulated profiles or using bots as a dry-run baseline.
-- Read `participant-filtering-and-prescreening/SKILL.md` when failures involve
+- Read `filter-participants/SKILL.md` when failures involve
   prescreening, recruiter routing, failed participants, or platform
   qualifications.
 

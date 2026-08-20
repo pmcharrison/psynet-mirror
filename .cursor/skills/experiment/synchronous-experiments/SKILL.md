@@ -10,7 +10,7 @@ If participants exchange live actions or messages within a trial, also read
 
 ## Prerequisites
 
-- Read `experiment-implementation/SKILL.md` for the general PsyNet
+- Read `implement-experiment/SKILL.md` for the general PsyNet
   implementation workflow and validation expectations.
 - Read `references/source-notes.md` for the source map, platform notes, and
   practical caveats behind this skill.
