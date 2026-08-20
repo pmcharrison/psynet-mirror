@@ -317,7 +317,7 @@
     </div>
     {% if participant.bonus_needs_review %}
         <div id="payment-review-actions">
-            <form method="post" action="{{ url_for('dashboard.dashboard_pay_bonus') }}" onsubmit="return confirm('Post this bonus to the recruitment platform? Only continue if the platform does not already show it.');">
+            <form method="post" action="{{ url_for('dashboard.dashboard_pay_bonus') }}" onsubmit="return confirm('Post remaining bonus after spend caps? PsyNet will not send more than planned minus what the platform already reports. Only continue if that still looks unpaid.');">
                 <input type="hidden" name="participant_id" value="{{ participant.id }}">
                 <button type="submit" class="btn btn-primary">Pay bonus</button>
             </form>

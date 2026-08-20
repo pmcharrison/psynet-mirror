@@ -952,12 +952,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     @staticmethod
     def _return_for_bonus_credited(participant) -> bool:
-        """True when some return-for-bonus amount was recorded as delivered."""
-        if participant.bonus_status == BONUS_STATUS_SUCCESS:
-            return True
-        return (
-            participant.bonus_status == BONUS_STATUS_CAPPED
-            and participant.bonus is not None
+        """True when the return-for-bonus path finished paying or capping."""
+        return participant.bonus_status in (
+            BONUS_STATUS_SUCCESS,
+            BONUS_STATUS_CAPPED,
         )
 
     @staticmethod

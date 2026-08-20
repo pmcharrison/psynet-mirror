@@ -541,10 +541,11 @@ def test_recruiter_exit_info_returns_unsuccessful_code_type_for_failed_participa
     participant = make_participant_with_recruiter(config, failed=True)
 
     with patch("psynet.recruiters.get_config", return_value=config):
-        assert (
-            Experiment.recruiter_exit_info(Experiment, participant)
-            == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
-        )
+        with patch.object(Experiment, "commit_payment_state"):
+            assert (
+                Experiment.recruiter_exit_info(Experiment, participant)
+                == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+            )
     assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
 
 
@@ -555,7 +556,8 @@ def test_recruiter_exit_info_returns_none_for_successful_participant():
     participant = make_participant_with_recruiter(config, failed=False)
 
     with patch("psynet.recruiters.get_config", return_value=config):
-        assert Experiment.recruiter_exit_info(Experiment, participant) is None
+        with patch.object(Experiment, "commit_payment_state"):
+            assert Experiment.recruiter_exit_info(Experiment, participant) is None
     assert participant.issued_completion_code_type == "DEFAULT"
 
 
@@ -566,8 +568,23 @@ def test_recruiter_exit_info_returns_none_when_payment_disabled():
     participant = make_participant_with_recruiter(config, failed=True)
 
     with patch("psynet.recruiters.get_config", return_value=config):
-        assert Experiment.recruiter_exit_info(Experiment, participant) is None
+        with patch.object(Experiment, "commit_payment_state"):
+            assert Experiment.recruiter_exit_info(Experiment, participant) is None
     assert participant.issued_completion_code_type == "DEFAULT"
+
+
+def test_recruiter_exit_info_commits_issued_completion_code():
+    from psynet.experiment import Experiment
+
+    config = make_config(prolific_unsuccessful_base_payment=0.50)
+    participant = make_participant_with_recruiter(config, failed=True)
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch.object(Experiment, "commit_payment_state") as commit:
+            Experiment.recruiter_exit_info(Experiment, participant)
+
+    commit.assert_called_once()
+    assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
 
 
 class PaymentHarness:
@@ -586,10 +603,21 @@ class PaymentHarness:
         self.recruit_calls = 0
         self.submission_successful_calls = []
         self.notify_calls = []
+        self.payment_commits = 0
+        self.commit_before_post = []
         self.notifier = SimpleNamespace(notify=self.notify_calls.append)
 
     def apply_payment_caps(self, participant, bonus):
         return bonus
+
+    def clip_bonus_for_spend_caps(self, participant, bonus, *, record=True):
+        payable = round(float(self.apply_payment_caps(participant, bonus)), 2)
+        hard_capped = participant.bonus_status == BONUS_STATUS_CAPPED
+        return payable, hard_capped
+
+    def commit_payment_state(self):
+        self.payment_commits += 1
+        self.commit_before_post.append("commit")
 
     def bonus_reason(self):
         return "thanks"
@@ -890,7 +918,8 @@ def test_on_recruiter_submission_complete_replays_record_without_paying():
     participant.recruiter.reward_bonus.assert_not_called()
     assert participant.status == "screened_out"
     assert participant.base_payment == 0.25
-    assert harness.recruit_calls == 1
+    assert harness.recruit_calls == 0
+    assert harness.submission_successful_calls == []
 
 
 def test_on_recruiter_submission_complete_continues_recruiting_when_transfer_fails():
@@ -1009,9 +1038,9 @@ def test_return_for_bonus_credited_when_hard_cap_paid_a_remainder():
     assert PsyNetProlificRecruiterMixin._return_for_bonus_credited(participant) is True
 
 
-def test_return_for_bonus_not_credited_when_hard_cap_paid_nothing():
+def test_return_for_bonus_credited_when_hard_cap_paid_nothing():
     participant = SimpleNamespace(bonus_status=BONUS_STATUS_CAPPED, bonus=None)
-    assert PsyNetProlificRecruiterMixin._return_for_bonus_credited(participant) is False
+    assert PsyNetProlificRecruiterMixin._return_for_bonus_credited(participant) is True
 
 
 def make_prolific_deploy_config(**overrides):
@@ -1096,11 +1125,24 @@ def test_check_stale_bonus_override_rejects_experiment_bonus():
     Experiment.check_stale_bonus_override()
 
 
+def test_check_stale_bonus_override_rejects_check_bonus():
+    from psynet.experiment import Experiment
+
+    class ExpWithCheckBonus(Experiment):
+        def check_bonus(self, participant):
+            return 1.0
+
+    with pytest.raises(RuntimeError, match="check_bonus"):
+        ExpWithCheckBonus.check_stale_bonus_override()
+
+
 class PaymentCapHarness:
     from psynet.experiment import Experiment as _Experiment
 
     apply_payment_caps = _Experiment.apply_payment_caps
+    clip_bonus_for_spend_caps = _Experiment.clip_bonus_for_spend_caps
     pay_decided_bonus = _Experiment.pay_decided_bonus
+    pay_review_bonus = _Experiment.pay_review_bonus
     _record_bonus_transfer_success = _Experiment._record_bonus_transfer_success
 
     def __init__(self, *, spent=0.0, hard_max=1100.0, max_participant=25.0):
@@ -1111,12 +1153,16 @@ class PaymentCapHarness:
             hard_max_experiment_payment_email_sent=False,
         )
         self.hard_max_emails = 0
+        self.payment_commits = 0
 
     def amount_spent(self):
         return self.spent
 
     def bonus_reason(self):
         return "thanks"
+
+    def commit_payment_state(self):
+        self.payment_commits += 1
 
     def ensure_hard_max_experiment_payment_email_sent(self):
         self.hard_max_emails += 1
@@ -1320,6 +1366,25 @@ def test_pay_decided_bonus_does_not_repost_when_review_is_needed():
     assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
 
 
+def test_pay_decided_bonus_commits_unconfirmed_before_post():
+    config = make_config()
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="approved")
+    )
+    harness = PaymentHarness()
+    decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.50)
+
+    def post(_participant, amount, _reason):
+        harness.commit_before_post.append(("post", amount))
+        return True
+
+    participant.recruiter.reward_bonus.side_effect = post
+    assert harness.pay_decided_bonus(participant, decision) is True
+    assert harness.commit_before_post[0] == "commit"
+    assert harness.commit_before_post[1] == ("post", 1.50)
+    assert harness.payment_commits == 1
+
+
 def test_on_recruiter_submission_complete_does_not_repost_after_failed_transfer():
     config = make_config()
     participant = prepare_payout_participant(
@@ -1338,7 +1403,7 @@ def test_on_recruiter_submission_complete_does_not_repost_after_failed_transfer(
     assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.planned_bonus == 1.50
     assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
-    assert harness.recruit_calls == 2
+    assert harness.recruit_calls == 1
 
 
 def test_needing_payment_review_filters_flagged_participants():
@@ -1585,6 +1650,57 @@ def test_pay_review_bonus_leaves_review_when_post_fails():
     assert participant.bonus is None
     assert participant.planned_bonus == 1.50
     assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
+
+
+def test_pay_review_bonus_posts_remainder_after_hard_cap_clip():
+    participant = _review_participant(apparent=0.0, planned=1.00)
+    participant.amount_paid.return_value = 1.00
+    participant.recruiter.reward_bonus.return_value = True
+    harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
+
+    category, message = harness.pay_review_bonus(participant)
+
+    assert category == "success"
+    participant.recruiter.reward_bonus.assert_called_once_with(
+        participant, 0.50, "thanks"
+    )
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert participant.bonus == 0.50
+    assert participant.planned_bonus == 1.00
+    assert harness.payment_commits == 1
+    assert "0.50" in message
+
+
+def test_pay_review_bonus_records_partial_platform_amount_without_overpaying():
+    participant = _review_participant(apparent=0.50, planned=1.00)
+    participant.amount_paid.return_value = 1.00
+    participant.recruiter.reward_bonus = MagicMock()
+    harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
+
+    category, message = harness.pay_review_bonus(participant)
+
+    assert category == "success"
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert participant.bonus == 0.50
+    assert participant.planned_bonus == 1.00
+
+
+def test_clip_bonus_for_spend_caps_record_false_does_not_settle():
+    harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
+    participant = MagicMock(
+        id=1, planned_bonus=1.00, bonus_status=BONUS_STATUS_UNCONFIRMED
+    )
+    participant.amount_paid.return_value = 1.00
+
+    payable, hard_capped = harness.clip_bonus_for_spend_caps(
+        participant, 1.00, record=False
+    )
+
+    assert payable == 0.50
+    assert hard_capped is True
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert harness.hard_max_emails == 0
 
 
 def test_dismiss_review_bonus_clears_review_without_posting():

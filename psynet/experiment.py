@@ -2254,15 +2254,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def check_stale_bonus_override(cls):
-        """Fail fast when an experiment overrides the removed ``bonus`` method.
+        """Fail fast when an experiment overrides removed payment methods.
 
         Payment amounts are decided by the recruiter's ``decide_payment``
-        method; an ``Experiment.bonus`` override would be silently ignored.
+        method; an ``Experiment.bonus`` or ``check_bonus`` override would be
+        silently ignored.
         """
-        if cls._subclass_overridden_names("bonus"):
+        overridden = cls._subclass_overridden_names("bonus", "check_bonus")
+        if overridden:
+            names = " and ".join(f"`{name}`" for name in overridden)
             raise RuntimeError(
-                "Overriding `Experiment.bonus` is no longer supported: "
-                "PsyNet does not call this method when paying participants. "
+                f"Overriding Experiment.{names} is no longer supported: "
+                "PsyNet does not call these methods when paying participants. "
                 "Customize payment amounts on the recruiter instead "
                 "(see `decide_payment`, `platform_base_for`, and "
                 "`total_owed`)."
@@ -2436,16 +2439,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         recruiter.record_payment(participant, decision)
         return decision
 
-    def apply_payment_caps(self, participant, bonus: float) -> float:
-        """Return the bonus that may actually be transferred after spend caps.
+    def commit_payment_state(self):
+        """Persist claimed payment fields so a crash cannot replay a POST."""
+        db.session.commit()
 
-        If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
-        payout is clipped to remaining room (or ``0`` if none).
-        ``planned_bonus`` stays the decided amount, ``bonus_status`` is set
-        to ``capped``, and the experimenter is emailed once. If it would
-        exceed ``max_participant_payment``, the bonus is reduced to the
-        remaining room under that cap without using ``capped`` unless the
-        hard cap already reduced it.
+    def clip_bonus_for_spend_caps(
+        self, participant, bonus: float, *, record: bool = True
+    ) -> tuple[float, bool]:
+        """Return ``(payable, hard_capped)`` after experiment spend caps.
+
+        ``hard_capped`` is True when ``hard_max_experiment_payment`` reduced
+        the payout. This method does not use ``bonus_status`` as the clip
+        signal; ``record=True`` still writes ``planned_bonus``, may set
+        ``capped``, and sends cap emails. ``record=False`` is for dashboard
+        Pay, which must not settle the participant before the POST.
 
         The hard cap is evaluated per payout against current
         ``amount_spent()``; it is not latched after the first clip.
@@ -2457,34 +2464,54 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         outstanding-base term here.
         """
         if bonus <= 0:
-            return 0.0
+            return 0.0, False
 
         decided = bonus
+        hard_capped = False
         room = round(self.var.hard_max_experiment_payment - self.amount_spent(), 2)
         if decided > room:
-            participant.planned_bonus = decided
-            participant.bonus_status = BONUS_STATUS_CAPPED
-            self.ensure_hard_max_experiment_payment_email_sent()
+            hard_capped = True
             clipped = round(max(0.0, room), 2)
-            logger.warning(
-                "Clipping bonus of %s to %s for participant %s: experiment "
-                "spend would exceed hard_max_experiment_payment (%s).",
-                decided,
-                clipped,
-                participant.id,
-                self.var.hard_max_experiment_payment,
-            )
+            if record:
+                participant.planned_bonus = decided
+                participant.bonus_status = BONUS_STATUS_CAPPED
+                self.ensure_hard_max_experiment_payment_email_sent()
+                logger.warning(
+                    "Clipping bonus of %s to %s for participant %s: experiment "
+                    "spend would exceed hard_max_experiment_payment (%s).",
+                    decided,
+                    clipped,
+                    participant.id,
+                    self.var.hard_max_experiment_payment,
+                )
             bonus = clipped
             if bonus <= 0:
-                return 0.0
+                return 0.0, True
 
         already_paid = participant.amount_paid()
         max_payment = self.var.max_participant_payment
         if already_paid + bonus > max_payment:
             reduced = round(max(0.0, max_payment - already_paid), 2)
-            participant.send_email_max_payment_reached(self, decided, reduced)
-            return reduced
-        return bonus
+            if record:
+                participant.send_email_max_payment_reached(self, decided, reduced)
+            return reduced, hard_capped
+        return bonus, hard_capped
+
+    def apply_payment_caps(self, participant, bonus: float) -> float:
+        """Return the bonus that may actually be transferred after spend caps.
+
+        If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
+        payout is clipped to remaining room (or ``0`` if none).
+        ``planned_bonus`` stays the decided amount, ``bonus_status`` is set
+        to ``capped``, and the experimenter is emailed once. If it would
+        exceed ``max_participant_payment``, the bonus is reduced to the
+        remaining room under that cap without using ``capped`` unless the
+        hard cap already reduced it.
+        """
+        payable, _hard_capped = self.clip_bonus_for_spend_caps(
+            participant, bonus, record=True
+        )
+        return payable
 
     def pay_decided_bonus(self, participant, decision, *, reason=None) -> bool:
         """Transfer ``decision.bonus`` after spend-cap checks, then record it.
@@ -2532,8 +2559,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.planned_bonus = participant.bonus
             return True
 
-        bonus = round(self.apply_payment_caps(participant, decision.bonus), 2)
-        hard_capped = participant.bonus_status == BONUS_STATUS_CAPPED
+        bonus, hard_capped = self.clip_bonus_for_spend_caps(
+            participant, decision.bonus, record=True
+        )
+        bonus = round(bonus, 2)
         planned = participant.planned_bonus if hard_capped else bonus
         min_real_bonus = 0.01
         if bonus < min_real_bonus:
@@ -2550,11 +2579,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.bonus_status = BONUS_STATUS_SUCCESS
             return True
 
-        # Claim the single automatic platform POST before calling the
-        # recruiter, so a crash or listener replay cannot pay twice.
+        # Claim the single automatic platform POST and commit it before
+        # calling the recruiter, so a crash after a successful POST cannot
+        # look like not_due_yet and pay twice.
         participant.bonus_status = BONUS_STATUS_UNCONFIRMED
         participant.planned_bonus = planned
         record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
+        self.commit_payment_state()
         logger.info("Paying bonus of %s to %s", bonus, participant.id)
         transferred = participant.recruiter.reward_bonus(
             participant,
@@ -2588,10 +2619,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.bonus_attempt_detail = None
 
     def pay_review_bonus(self, participant) -> tuple[str, str]:
-        """Poll the platform, then POST the planned bonus if it still looks unpaid.
+        """Poll the platform, then POST remaining capped bonus if unpaid.
 
-        If the platform already reports at least ``planned_bonus``, record
-        that amount and skip the POST. Automatic submission-complete still
+        Re-applies spend caps to ``planned_bonus`` (the decided amount).
+        If the platform already reports at least that payable remainder,
+        record it and skip the POST. Otherwise POST ``payable - apparent``,
+        not the full decided amount. Automatic submission-complete still
         posts at most once; this is the human-gated extra attempt.
         """
         if not bonus_needs_review(participant):
@@ -2600,6 +2633,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Participant {participant.id} is not flagged for payment review.",
             )
         planned = round(float(participant.planned_bonus or 0.0), 2)
+        payable, hard_capped = self.clip_bonus_for_spend_caps(
+            participant, planned, record=False
+        )
+        payable = round(payable, 2)
+        settled_status = BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS
         recruiter = participant.recruiter
         can_report = recruiter.can_report_apparent_bonus()
         apparent = recruiter.apparent_bonus_paid(participant) if can_report else None
@@ -2609,30 +2647,47 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Could not read the platform bonus for participant "
                 f"{participant.id}. Try again in a moment.",
             )
-        if apparent is not None and apparent + 1e-9 >= planned:
-            self._record_bonus_transfer_success(participant, apparent)
+        already = 0.0 if apparent is None else round(float(apparent), 2)
+        if already + 1e-9 >= payable:
+            self._record_bonus_transfer_success(
+                participant, already, bonus_status=settled_status
+            )
             return (
                 "success",
-                f"Platform already reports {apparent:.2f} paid for "
+                f"Platform already reports {already:.2f} paid for "
                 f"participant {participant.id}; recorded without posting.",
+            )
+        to_post = round(max(0.0, payable - already), 2)
+        min_real_bonus = 0.01
+        if to_post < min_real_bonus:
+            self._record_bonus_transfer_success(
+                participant, already, bonus_status=settled_status
+            )
+            return (
+                "success",
+                f"No remaining bonus to post for participant {participant.id}.",
             )
         logger.info(
             "Dashboard retry: paying bonus of %s to participant %s",
-            planned,
+            to_post,
             participant.id,
         )
         record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
-        transferred = recruiter.reward_bonus(participant, planned, self.bonus_reason())
+        self.commit_payment_state()
+        transferred = recruiter.reward_bonus(participant, to_post, self.bonus_reason())
         if transferred is False:
             return (
                 "danger",
                 f"Bonus POST failed for participant {participant.id}. "
                 "Check the platform, then try again if it still looks unpaid.",
             )
-        self._record_bonus_transfer_success(participant, planned)
+        delivered = round(already + to_post, 2)
+        self._record_bonus_transfer_success(
+            participant, delivered, bonus_status=settled_status
+        )
         return (
             "success",
-            f"Posted bonus of {planned:.2f} for participant {participant.id}.",
+            f"Posted bonus of {to_post:.2f} for participant {participant.id}.",
         )
 
     def dismiss_review_bonus(self, participant) -> tuple[str, str]:
@@ -2698,6 +2753,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if issued is None:
             issued = getattr(participant.recruiter, "default_code_type", None)
         participant.issued_completion_code_type = issued
+        self.commit_payment_state()
         return code_type
 
     def on_recruiter_submission_complete(self, participant, event):
@@ -2708,8 +2764,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         (so a Prolific listener replay that reset status to ``submitted``
         is restored). ``bonus_status`` skips a repeat money transfer:
         PsyNet posts a bonus at most once. Recruitment still runs if the
-        bonus transfer fails; the participant is left unconfirmed for
-        dashboard review. Opening that person polls the platform into
+        first bonus transfer fails; a later replay does not recruit again.
+        Opening an unconfirmed person polls the platform into
         the participant table and offers Pay bonus or Dismiss.
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
@@ -2734,14 +2790,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if timestamp is not None:
                 participant.end_time = timestamp
 
+        already_handled = bonus_is_settled(participant) or (
+            participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+        )
         decision = self.decide_and_record_payment(participant)
         participant.recruiter.approve_hit(participant.assignment_id)
         if not self.pay_decided_bonus(participant, decision):
-            logger.error(
-                "Bonus transfer failed for participant %s; continuing "
-                "recruitment and leaving payment for manual review.",
-                participant.id,
-            )
+            if already_handled:
+                logger.error(
+                    "Bonus transfer remains unconfirmed for participant %s; "
+                    "skipping a second recruitment pass.",
+                    participant.id,
+                )
+            else:
+                logger.error(
+                    "Bonus transfer failed for participant %s; continuing "
+                    "recruitment and leaving payment for manual review.",
+                    participant.id,
+                )
+        if already_handled:
+            return
         self.submission_successful(participant=participant)
         self.recruit()
 
