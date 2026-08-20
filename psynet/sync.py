@@ -78,9 +78,9 @@ from psynet.db import transaction
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.serialize import SerializedCallable, serialize_callable
+from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.utils import call_function_with_context, get_logger
+from psynet.utils import get_logger
 
 logger = get_logger()
 
@@ -195,11 +195,7 @@ class Barrier(EltCollection):
         return elts
 
     def handle_max_wait_timeout(self, participant: Participant):
-        """Run timeout cleanup before letting a participant leave the barrier."""
-        on_timeout = getattr(self, "on_max_wait_timeout", None)
-        if on_timeout is not None:
-            call_function_with_context(on_timeout, participant=participant)
-
+        """Release the participant's active barrier link after a max-wait timeout."""
         if self.id in participant.active_barriers:
             self.release(participant)
 
@@ -409,17 +405,20 @@ class GroupBarrier(Barrier):
         self.group_type = group_type
         self.on_release = on_release
         self.timeout_between_barriers_time = timeout_between_barriers_time
-        if max_wait_action == "kick":
-            self.on_max_wait_timeout = SerializedCallable(
-                function=GroupBarrier._kick_participant_after_max_wait,
-                arguments={"group_type": group_type},
-            )
         if timeout_between_barriers_action not in ("kick", "fail"):
             raise ValueError(
                 "timeout_between_barriers_action must be 'kick' or 'fail', "
                 f"got {timeout_between_barriers_action!r}"
             )
         self.timeout_between_barriers_action = timeout_between_barriers_action
+
+    def handle_max_wait_timeout(self, participant: Participant):
+        """Kick from the sync group when requested, then release the barrier link."""
+        if self.max_wait_action == "kick":
+            self._kick_participant_after_max_wait(
+                participant=participant, group_type=self.group_type
+            )
+        super().handle_max_wait_timeout(participant)
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
         waiting_participant_ids = {p.id for p in waiting_participants}
