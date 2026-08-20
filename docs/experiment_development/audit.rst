@@ -7,7 +7,8 @@ and blockers for human inspection, then renders a static HTML site.
 
 The audit CLI does **not** run tests or collect evidence for you. Agents or
 experimenters gather artifacts with the usual PsyNet commands
-(``psynet test local``, ``psynet simulate``, performance tests, exports, and so
+(``psynet test local``, ``psynet simulate --audit``,
+``psynet performance-test local --audit``, exports, and so
 on), then record the outcomes in ``audit/audit.json``.
 
 **Default layout:** run the CLI from the experiment directory so the audit lives

@@ -3377,21 +3377,67 @@ _test_options["performance_json_output"] = click.option(
     Do not combine with --audit.""",
 )
 
-_test_options["performance_audit"] = click.option(
-    "--audit",
-    "audit",
-    type=click.Path(file_okay=False, path_type=Path),
-    is_flag=False,
-    flag_value=Path("."),
-    default=None,
-    help="""
+
+def _audit_packet_option(help_text: str):
+    """Return a ``--audit`` option that auto-detects the packet from ``.``."""
+    return click.option(
+        "--audit",
+        "audit",
+        type=click.Path(file_okay=False, path_type=Path),
+        is_flag=False,
+        flag_value=Path("."),
+        default=None,
+        help=help_text,
+    )
+
+
+_test_options["performance_audit"] = _audit_packet_option(
+    """
     Write performance results to <audit>/artifacts/performance.json.
     Pass a packet path, or --audit alone to auto-detect from the current
     directory (./audit.json or ./audit/audit.json). Creates artifacts/ if
-    needed. Do not combine with --json-output.""",
+    needed. Do not combine with --json-output."""
+)
+
+_test_options["simulate_audit"] = _audit_packet_option(
+    """
+    After exporting data/simulated_data/, also zip it to
+    <audit>/artifacts/simulated_data.zip. Pass a packet path, or --audit
+    alone to auto-detect from the current directory (./audit.json or
+    ./audit/audit.json). Creates artifacts/ if needed. Does not mark the
+    artifact present."""
 )
 
 AUDIT_PERFORMANCE_JSON = Path("artifacts") / "performance.json"
+AUDIT_SIMULATED_DATA_ZIP = Path("artifacts") / "simulated_data.zip"
+SIMULATED_DATA_EXPORT_PATH = Path("data") / "simulated_data"
+
+
+def resolve_audit_artifact_path(audit, relative_path: Path) -> Path:
+    """Resolve ``<audit>/<relative_path>``, creating parent directories.
+
+    Parameters
+    ----------
+    audit :
+        Audit packet path or experiment root from ``--audit``. Bare
+        ``--audit`` passes ``.`` and auto-detects the packet.
+    relative_path :
+        Path relative to the resolved audit root.
+
+    Returns
+    -------
+    pathlib.Path
+        Destination path under the audit packet.
+    """
+    from psynet.audit.cli import resolve_audit_dir
+
+    try:
+        audit_root = resolve_audit_dir(audit, require_manifest=True)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+    output_path = audit_root / relative_path
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    return output_path
 
 
 def resolve_performance_json_output(json_output=None, audit=None):
@@ -3418,15 +3464,69 @@ def resolve_performance_json_output(json_output=None, audit=None):
         return str(json_output)
     if audit is None:
         return None
-    from psynet.audit.cli import resolve_audit_dir
+    return str(resolve_audit_artifact_path(audit, AUDIT_PERFORMANCE_JSON))
 
+
+def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
+    """Zip ``source_dir`` so members keep their path relative to the cwd.
+
+    Matches ``zip -r dest.zip data/simulated_data`` from the experiment root:
+    archive members are ``data/simulated_data/...``.
+    """
+    source_dir = Path(source_dir)
+    if not source_dir.is_dir():
+        raise click.UsageError(
+            f"Cannot write audit zip: {source_dir} is not a directory."
+        )
+
+    zip_path = Path(zip_path)
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    cwd = Path.cwd().resolve()
+    resolved_source = source_dir.resolve()
     try:
-        audit_root = resolve_audit_dir(audit, require_manifest=True)
-    except ValueError as exc:
-        raise click.UsageError(str(exc)) from exc
-    output_path = audit_root / AUDIT_PERFORMANCE_JSON
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    return str(output_path)
+        resolved_source.relative_to(cwd)
+        archive_root = cwd
+    except ValueError:
+        archive_root = resolved_source.parent
+
+    partial = zip_path.with_name(zip_path.name + ".partial")
+    if partial.exists():
+        partial.unlink()
+    try:
+        with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for path in sorted(resolved_source.rglob("*")):
+                if path.is_file():
+                    archive.write(path, path.relative_to(archive_root).as_posix())
+        partial.replace(zip_path)
+    except Exception:
+        if partial.exists():
+            partial.unlink()
+        raise
+
+
+def package_simulated_data_for_audit(
+    audit, export_path: Path = SIMULATED_DATA_EXPORT_PATH
+) -> Path:
+    """Zip a simulate export into the audit packet's simulated-data artifact."""
+    zip_path = resolve_audit_artifact_path(audit, AUDIT_SIMULATED_DATA_ZIP)
+    write_directory_zip(export_path, zip_path)
+    return zip_path
+
+
+def _run_simulate(ctx, audit=None):
+    """Run the experiment test, export simulated data, and optionally zip it."""
+    ctx.invoke(test__local)
+    ctx.invoke(
+        export__local,
+        # TODO - maybe legacy is not the best name for this parameter...
+        legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
+        no_source=True,
+        path=str(SIMULATED_DATA_EXPORT_PATH),
+    )
+    if audit is None:
+        return
+    zip_path = package_simulated_data_for_audit(audit)
+    click.echo(f"Simulated data (audit zip): {zip_path}")
 
 
 @psynet.group("performance-test")
@@ -3896,24 +3996,20 @@ def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minut
 
 
 @psynet.command()
+@_test_options["simulate_audit"]
 @click.pass_context
 @require_exp_directory
-def simulate(ctx):
+def simulate(ctx, audit=None):
     """
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
+
+    Writes ``data/simulated_data/``. Pass ``--audit`` to also zip that directory
+    to ``<audit>/artifacts/simulated_data.zip``.
     """
     # No need to catch the exit code here, because test__local now uses sys.exit()
     # if an error occurs.
-    ctx.invoke(test__local)
-
-    ctx.invoke(
-        export__local,
-        # TODO - maybe legacy is not the best name for this parameter...
-        legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
-        no_source=True,
-        path="data/simulated_data",
-    )
+    _run_simulate(ctx, audit=audit)
 
 
 @psynet.command(name="list-experiment-dirs")

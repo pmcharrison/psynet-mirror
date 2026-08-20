@@ -514,8 +514,7 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
             starter_blocker(
                 "simulation_export",
                 "Simulation export has not been produced yet.",
-                "Run psynet simulate, then zip data/simulated_data/ to "
-                "artifacts/simulated_data.zip (simulate does not write the audit path).",
+                "Run psynet simulate --audit (or --audit <packet>).",
             ),
             starter_blocker(
                 "analysis_notebook",

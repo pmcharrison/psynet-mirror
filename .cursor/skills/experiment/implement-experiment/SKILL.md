@@ -154,15 +154,18 @@ PsyNet. Do not treat `scripts update` as a substitute for first-time setup.
 Use `psynet simulate` to simulate participants and produce an example dataset.
 This dataset should contain a decent number of participants representative of a real study;
 adjust `Exp.test_n_bots` to ensure this. `psynet simulate` writes
-`data/simulated_data/` (a directory). Zip it into the audit packet from the
-experiment root:
+`data/simulated_data/` (a directory). Prefer `--audit` so PsyNet also zips that
+tree to the canonical audit path. From the experiment root:
 
 ```bash
-zip -r audit/artifacts/simulated_data.zip data/simulated_data
+psynet simulate --audit
 ```
 
-Write into those audit paths from the first useful simulation onward; overwrite
-interim exports rather than regenerating later for packaging.
+`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`
+and still leaves `data/simulated_data/` in place for analysis. It does not mark
+the artifact present. Overwrite the same zip when a later simulation supersedes
+an interim run.
+
 For profile design, data-path parity, mock-LLM patterns, and simulation
 limitations, follow `simulate-participants/SKILL.md`.
 

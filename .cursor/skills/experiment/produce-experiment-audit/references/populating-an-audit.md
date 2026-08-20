@@ -182,15 +182,18 @@ blocker (or replace it with an N/A note in `REPORT.md`), then re-validate.
 
 ### Simulation export packaging
 
-`psynet simulate` writes `data/simulated_data/` (a directory). It does **not**
-write the audit zip. After a useful simulation, from the experiment root:
+`psynet simulate` writes `data/simulated_data/` (a directory). Prefer `--audit`
+so PsyNet also zips that tree to the canonical audit path. From the experiment
+root:
 
 ```bash
-zip -r audit/artifacts/simulated_data.zip data/simulated_data
+psynet simulate --audit
 psynet audit mark-present simulation_export
 ```
 
-Overwrite the same zip when a later simulation supersedes an interim run.
+`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`.
+It does not mark the artifact present. Overwrite the same zip when a later
+simulation supersedes an interim run.
 
 ### Performance evidence
 
