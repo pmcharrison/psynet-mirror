@@ -235,8 +235,9 @@ Payment
 
 ``hard_max_experiment_payment`` *float* |psynet-icon|
     Guarantees that in an experiment no more is spent than the value assigned.
-    Bonuses are not paid from the point this value is reached and the
-    withheld amount is stored as ``planned_bonus`` with
+    A bonus that would exceed this value is clipped to remaining room (or not
+    paid if that remainder is below $0.01). ``planned_bonus`` stays the
+    decided amount, delivered ``bonus`` is what was sent, and
     ``bonus_status = capped``. Default: ``1100.0``.
 
 ``max_participant_payment`` *float* |psynet-icon|

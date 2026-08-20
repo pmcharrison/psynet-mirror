@@ -23,7 +23,7 @@ Problem
 
 Participant payment fields are a latest snapshot (``status``,
 ``base_payment``, ``planned_bonus``, ``bonus``, ``bonus_status``,
-last-attempt detail). They overwrite. After a cap withhold, a failed
+last-attempt detail). They overwrite. After a cap clip, a failed
 bonus POST, a submission-complete replay, or a dashboard Pay / Dismiss,
 it is hard to reconstruct what PsyNet decided versus what it transferred
 versus what a human did.

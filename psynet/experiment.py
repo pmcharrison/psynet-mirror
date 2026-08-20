@@ -353,8 +353,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
-        Bonuses are not paid from the point this value is reached and the
-        withheld amount is kept on ``planned_bonus`` with
+        A bonus that would exceed this value is clipped to remaining room
+        (or not paid if that remainder is below $0.01). ``planned_bonus``
+        stays the decided amount, delivered ``bonus`` is what was sent, and
         ``bonus_status = capped``. Default: `1100.0`.
 
     big_base_payment : `bool`
@@ -2330,9 +2331,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
-            Working participants' bonuses will not be paid out. Instead, the
-            withheld amount is stored as ``planned_bonus`` with bonus status
-            ``capped``.
+            Further bonuses are clipped to remaining room under that cap (or
+            not paid if the remainder is below $0.01). The decided amount is
+            stored as ``planned_bonus`` with bonus status ``capped``.
 
             The application id is: {app_id}
 
@@ -2439,40 +2440,49 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Return the bonus that may actually be transferred after spend caps.
 
         If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
-        bonus is withheld, stored as ``planned_bonus`` with
-        ``bonus_status = capped``, and the experimenter is emailed once. If it
-        would exceed ``max_participant_payment``, the bonus is reduced to the
-        remaining room under that cap.
+        payout is clipped to remaining room (or ``0`` if none).
+        ``planned_bonus`` stays the decided amount, ``bonus_status`` is set
+        to ``capped``, and the experimenter is emailed once. If it would
+        exceed ``max_participant_payment``, the bonus is reduced to the
+        remaining room under that cap without using ``capped`` unless the
+        hard cap already reduced it.
 
         The hard cap is evaluated per payout against current
-        ``amount_spent()``; it is not latched after the first withhold.
-        Soft experiment spend limits are enforced when recruiting
-        (``need_more_participants``), not here. In-progress participants
-        already reserve their study base inside ``amount_spent()``; see that
-        method rather than adding a separate outstanding-base term here.
+        ``amount_spent()``; it is not latched after the first clip.
+        Concurrent payouts can each see the same remainder and together
+        spend past the cap. Soft experiment spend limits are enforced
+        when recruiting (``need_more_participants``), not here.
+        In-progress participants already reserve their study base inside
+        ``amount_spent()``; see that method rather than adding a separate
+        outstanding-base term here.
         """
         if bonus <= 0:
             return 0.0
 
-        projected_spend = self.amount_spent() + bonus
-        if projected_spend > self.var.hard_max_experiment_payment:
-            participant.planned_bonus = bonus
+        decided = bonus
+        room = round(self.var.hard_max_experiment_payment - self.amount_spent(), 2)
+        if decided > room:
+            participant.planned_bonus = decided
             participant.bonus_status = BONUS_STATUS_CAPPED
             self.ensure_hard_max_experiment_payment_email_sent()
+            clipped = round(max(0.0, room), 2)
             logger.warning(
-                "Withholding bonus of %s for participant %s: experiment "
+                "Clipping bonus of %s to %s for participant %s: experiment "
                 "spend would exceed hard_max_experiment_payment (%s).",
-                bonus,
+                decided,
+                clipped,
                 participant.id,
                 self.var.hard_max_experiment_payment,
             )
-            return 0.0
+            bonus = clipped
+            if bonus <= 0:
+                return 0.0
 
         already_paid = participant.amount_paid()
         max_payment = self.var.max_participant_payment
         if already_paid + bonus > max_payment:
             reduced = round(max(0.0, max_payment - already_paid), 2)
-            participant.send_email_max_payment_reached(self, bonus, reduced)
+            participant.send_email_max_payment_reached(self, decided, reduced)
             return reduced
         return bonus
 
@@ -2480,14 +2490,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Transfer ``decision.bonus`` after spend-cap checks, then record it.
 
         Returns True if payout for this participant is finished (paid,
-        withheld, skipped as too small, or already settled). Returns False
-        if the platform rejected the transfer or a previous attempt already
-        failed. PsyNet posts a bonus to the platform at most once per
-        participant: the attempt is claimed by setting
-        ``bonus_status = unconfirmed``, ``planned_bonus``, and a last-attempt
-        placeholder before the recruiter call, so a later replay will not
-        pay again. A failed transfer stays unconfirmed and asks the
-        experimenter to review on the Participants dashboard.
+        clipped or skipped by a spend cap, skipped as too small, or already
+        settled). Returns False if the platform rejected the transfer or a
+        previous attempt already failed. PsyNet posts a bonus to the
+        platform at most once per participant: the attempt is claimed by
+        setting ``bonus_status = unconfirmed``, ``planned_bonus``, and a
+        last-attempt placeholder before the recruiter call, so a later
+        replay will not pay again. A failed transfer stays unconfirmed and
+        asks the experimenter to review on the Participants dashboard.
+        A hard-cap clip keeps ``planned_bonus`` as the decided amount and
+        finishes as ``capped`` even when a remainder was sent.
 
         Does not re-apply caps or send emails when already settled.
         """
@@ -2521,6 +2533,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return True
 
         bonus = round(self.apply_payment_caps(participant, decision.bonus), 2)
+        hard_capped = participant.bonus_status == BONUS_STATUS_CAPPED
+        planned = participant.planned_bonus if hard_capped else bonus
         min_real_bonus = 0.01
         if bonus < min_real_bonus:
             logger.info(
@@ -2529,6 +2543,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.id,
                 min_real_bonus,
             )
+            if hard_capped:
+                return True
             if not bonus_is_settled(participant):
                 participant.planned_bonus = 0.0
                 participant.bonus_status = BONUS_STATUS_SUCCESS
@@ -2537,7 +2553,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # Claim the single automatic platform POST before calling the
         # recruiter, so a crash or listener replay cannot pay twice.
         participant.bonus_status = BONUS_STATUS_UNCONFIRMED
-        participant.planned_bonus = bonus
+        participant.planned_bonus = planned
         record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
         logger.info("Paying bonus of %s to %s", bonus, participant.id)
         transferred = participant.recruiter.reward_bonus(
@@ -2554,15 +2570,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self._notify_bonus_transfer_failed(participant, bonus)
             return False
 
-        self._record_bonus_transfer_success(participant, bonus)
+        self._record_bonus_transfer_success(
+            participant,
+            bonus,
+            bonus_status=BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS,
+        )
         return True
 
-    def _record_bonus_transfer_success(self, participant, amount: float) -> None:
-        """Record that this bonus is paid and no longer needs review."""
+    def _record_bonus_transfer_success(
+        self, participant, amount: float, *, bonus_status=BONUS_STATUS_SUCCESS
+    ) -> None:
+        """Record that this bonus was transferred and no longer needs review."""
         participant.bonus = amount
         if not (participant.planned_bonus or 0.0):
             participant.planned_bonus = amount
-        participant.bonus_status = BONUS_STATUS_SUCCESS
+        participant.bonus_status = bonus_status
         participant.bonus_attempt_detail = None
 
     def pay_review_bonus(self, participant) -> tuple[str, str]:

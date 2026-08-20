@@ -80,6 +80,7 @@ from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService, get_lucid_service
 from .page import InfoPage
 from .participant import (
+    BONUS_STATUS_CAPPED,
     BONUS_STATUS_SUCCESS,
     Participant,
     record_bonus_attempt_detail,
@@ -951,8 +952,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     @staticmethod
     def _return_for_bonus_credited(participant) -> bool:
-        """True when the return-for-bonus transfer finished without withholding."""
-        return participant.bonus_status == BONUS_STATUS_SUCCESS
+        """True when some return-for-bonus amount was recorded as delivered."""
+        if participant.bonus_status == BONUS_STATUS_SUCCESS:
+            return True
+        return (
+            participant.bonus_status == BONUS_STATUS_CAPPED
+            and participant.bonus is not None
+        )
 
     @staticmethod
     def reward_and_set_bonus(participant):

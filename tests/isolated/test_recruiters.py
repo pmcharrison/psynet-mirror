@@ -1004,6 +1004,16 @@ def test_reward_and_set_bonus_leaves_unsettled_when_transfer_fails():
     assert PsyNetProlificRecruiterMixin._return_for_bonus_credited(participant) is False
 
 
+def test_return_for_bonus_credited_when_hard_cap_paid_a_remainder():
+    participant = SimpleNamespace(bonus_status=BONUS_STATUS_CAPPED, bonus=0.50)
+    assert PsyNetProlificRecruiterMixin._return_for_bonus_credited(participant) is True
+
+
+def test_return_for_bonus_not_credited_when_hard_cap_paid_nothing():
+    participant = SimpleNamespace(bonus_status=BONUS_STATUS_CAPPED, bonus=None)
+    assert PsyNetProlificRecruiterMixin._return_for_bonus_credited(participant) is False
+
+
 def make_prolific_deploy_config(**overrides):
     return make_config(recruiter="prolific", **overrides)
 
@@ -1105,13 +1115,32 @@ class PaymentCapHarness:
     def amount_spent(self):
         return self.spent
 
+    def bonus_reason(self):
+        return "thanks"
+
     def ensure_hard_max_experiment_payment_email_sent(self):
         self.hard_max_emails += 1
         self.var.hard_max_experiment_payment_email_sent = True
 
 
-def test_apply_payment_caps_withholds_bonus_at_hard_max():
+def test_apply_payment_caps_clips_bonus_to_remaining_hard_max():
     harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
+    participant = MagicMock(
+        id=1, planned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET
+    )
+    participant.amount_paid.return_value = 1.00
+
+    result = harness.apply_payment_caps(participant, 1.00)
+
+    assert result == 0.50
+    assert participant.planned_bonus == 1.00
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert harness.hard_max_emails == 1
+    participant.send_email_max_payment_reached.assert_not_called()
+
+
+def test_apply_payment_caps_pays_nothing_when_hard_max_has_no_room():
+    harness = PaymentCapHarness(spent=10.0, hard_max=10.0)
     participant = MagicMock(
         id=1, planned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET
     )
@@ -1122,30 +1151,50 @@ def test_apply_payment_caps_withholds_bonus_at_hard_max():
     assert participant.planned_bonus == 1.00
     assert participant.bonus_status == BONUS_STATUS_CAPPED
     assert harness.hard_max_emails == 1
+    participant.amount_paid.assert_not_called()
     participant.send_email_max_payment_reached.assert_not_called()
 
 
-def test_apply_payment_caps_does_not_withhold_once_under_hard_max():
+def test_apply_payment_caps_does_not_clip_when_bonus_fits_hard_max():
     harness = PaymentCapHarness(spent=8.00, hard_max=10.0)
-    participant = MagicMock(id=1)
+    participant = MagicMock(id=1, bonus_status=BONUS_STATUS_NOT_DUE_YET)
     participant.amount_paid.return_value = 1.00
 
     result = harness.apply_payment_caps(participant, 1.00)
 
     assert result == 1.00
+    assert participant.bonus_status == BONUS_STATUS_NOT_DUE_YET
     assert harness.hard_max_emails == 0
 
 
 def test_apply_payment_caps_clips_to_max_participant_payment():
     harness = PaymentCapHarness(max_participant=5.00)
-    participant = MagicMock(id=1)
+    participant = MagicMock(id=1, bonus_status=BONUS_STATUS_NOT_DUE_YET)
     participant.amount_paid.return_value = 4.50
 
     result = harness.apply_payment_caps(participant, 1.00)
 
     assert result == 0.50
+    assert participant.bonus_status == BONUS_STATUS_NOT_DUE_YET
     participant.send_email_max_payment_reached.assert_called_once_with(
         harness, 1.00, 0.50
+    )
+
+
+def test_apply_payment_caps_applies_both_hard_max_and_participant_cap():
+    harness = PaymentCapHarness(spent=9.50, hard_max=10.0, max_participant=5.20)
+    participant = MagicMock(
+        id=1, planned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET
+    )
+    participant.amount_paid.return_value = 5.00
+
+    result = harness.apply_payment_caps(participant, 1.00)
+
+    assert result == 0.20
+    assert participant.planned_bonus == 1.00
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    participant.send_email_max_payment_reached.assert_called_once_with(
+        harness, 1.00, 0.20
     )
 
 
@@ -1157,8 +1206,29 @@ def test_amount_spent_sums_recorded_base_and_bonus():
         assert Experiment.amount_spent() == 2.50
 
 
-def test_pay_decided_bonus_withholds_at_hard_max_and_settles():
+def test_pay_decided_bonus_pays_remaining_hard_max_as_capped():
     harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
+    participant = MagicMock(
+        id=1,
+        bonus_status=BONUS_STATUS_NOT_DUE_YET,
+        planned_bonus=0.0,
+        bonus=None,
+    )
+    participant.amount_paid.return_value = 1.00
+    participant.recruiter.reward_bonus = MagicMock(return_value=True)
+    decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.00)
+
+    assert harness.pay_decided_bonus(participant, decision) is True
+    participant.recruiter.reward_bonus.assert_called_once_with(
+        participant, 0.50, "thanks"
+    )
+    assert participant.planned_bonus == 1.00
+    assert participant.bonus == 0.50
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
+
+
+def test_pay_decided_bonus_pays_nothing_when_hard_max_has_no_room():
+    harness = PaymentCapHarness(spent=10.0, hard_max=10.0)
     participant = MagicMock(
         id=1,
         bonus_status=BONUS_STATUS_NOT_DUE_YET,
@@ -1191,10 +1261,11 @@ def test_pay_decided_bonus_skips_when_already_capped():
     assert participant.planned_bonus == 1.00
 
 
-def test_apply_payment_caps_is_not_latched_after_a_withhold():
+def test_apply_payment_caps_is_not_latched_after_a_clip():
     harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
-    withheld = MagicMock(id=1, planned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET)
-    assert harness.apply_payment_caps(withheld, 1.00) == 0.0
+    clipped = MagicMock(id=1, planned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET)
+    clipped.amount_paid.return_value = 1.00
+    assert harness.apply_payment_caps(clipped, 1.00) == 0.50
 
     later = MagicMock(id=2, planned_bonus=0.0, bonus_status=BONUS_STATUS_NOT_DUE_YET)
     later.amount_paid.return_value = 1.00

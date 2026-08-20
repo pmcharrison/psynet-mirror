@@ -273,7 +273,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     base_payment = Column(Float)
     performance_reward = Column(Float)
     # Planned Prolific top-up from ``decide_payment`` (after per-participant
-    # clip; if capped, the amount that was not sent).
+    # clip). If hard-capped, this stays the decided amount so the cut is
+    # visible against delivered ``bonus``.
     planned_bonus = Column(Float)
     # not_due_yet | unconfirmed | success | dismissed | capped
     bonus_status = Column(String)

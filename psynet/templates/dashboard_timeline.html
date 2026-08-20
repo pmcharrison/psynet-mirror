@@ -54,9 +54,11 @@
         <b>Hard maximum spending limit</b>
         <br>
         Guarantees that in an experiment no more is spent than the value assigned.
-        Bonuses are not paid from the point this value is reached and the
-        withheld amount is stored as <span style="font-family: monospace;">planned_bonus</span>
-        with bonus status <span style="font-family: monospace;">capped</span>.
+        A bonus that would exceed this value is clipped to remaining room
+        (or not paid if that remainder is below $0.01).
+        <span style="font-family: monospace;">planned_bonus</span> stays the
+        decided amount, with bonus status
+        <span style="font-family: monospace;">capped</span>.
       </div>
       <div id="soft-max-experiment-payment-tooltip" class="spending-limits-tooltip" style="z-index: 10; display: none; float: right;">
         <b>Soft maximum spending limit</b>

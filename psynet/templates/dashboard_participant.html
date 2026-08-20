@@ -277,6 +277,11 @@
             <td>Bonus status</td>
             <td>{{ participant.bonus_status_label }}</td>
         </tr>
+        {% if participant.bonus_status == "capped" %}
+        <tr>
+            <td colspan="2" class="text-muted">The hard experiment payment cap reduced this bonus. Planned is the decided amount; delivered is what was sent.</td>
+        </tr>
+        {% endif %}
         {% if participant.bonus_attempt_detail %}
         <tr {% if participant.bonus_needs_review %}class="table-warning"{% endif %}>
             <td>Last attempt</td>
