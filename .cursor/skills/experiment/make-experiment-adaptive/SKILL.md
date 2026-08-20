@@ -7,11 +7,11 @@ description: Convert an existing PsyNet experiment into an adaptive experiment w
 
 ## Prerequisites
 
-- Read `psynet-experiment-implementation/SKILL.md` for the general experiment
+- Read `experiment-implementation/SKILL.md` for the general experiment
   workflow and validation expectations.
 - Read `develop-experiment-back-end/SKILL.md` for trial-maker selection
   (`StaticTrialMaker` vs chain-based makers) before changing architecture.
-- Read `psynet-deployment-ops/SKILL.md` when persistence, deployment,
+- Read `deployment-ops/SKILL.md` when persistence, deployment,
   recruitment, or exported data safety matters.
 
 ## Specification gate

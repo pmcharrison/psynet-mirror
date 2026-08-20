@@ -1,16 +1,16 @@
 ---
-name: psynet-synchronous-experiments
+name: synchronous-experiments
 description: Design and implement PsyNet synchronous experiments using cohort, grouping, barrier, waiting-room, and recruiter coordination patterns without assuming websocket interaction.
 ---
 
 # Implement synchronous PsyNet experiments
 
 If participants exchange live actions or messages within a trial, also read
-`psynet-realtime-synchronous-experiments/SKILL.md`.
+`realtime-synchronous-experiments/SKILL.md`.
 
 ## Prerequisites
 
-- Read `psynet-experiment-implementation/SKILL.md` for the general PsyNet
+- Read `experiment-implementation/SKILL.md` for the general PsyNet
   implementation workflow and validation expectations.
 - Read `references/source-notes.md` for the source map, platform notes, and
   practical caveats behind this skill.

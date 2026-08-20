@@ -1,5 +1,5 @@
 ---
-name: psynet-experiment-implementation
+name: experiment-implementation
 description: A structured process for implementing PsyNet experiments, including planning, simulations, analysis, and reporting. Use when implementing a PsyNet experiment from a natural-language specification.
 compatibility: Requires editable PsyNet at ~/PsyNet, PostgreSQL, Redis, Heroku CLI, and matplotlib/jupyter for executed analysis notebooks.
 ---
@@ -11,7 +11,7 @@ compatibility: Requires editable PsyNet at ~/PsyNet, PostgreSQL, Redis, Heroku C
 - Use the `explore-psynet-repository` skill before starting.
 - Read `references/validation.md` before finalizing functional, interactive, or
   performance checks.
-- Read `psynet-simulated-participants/SKILL.md` before designing multi-profile,
+- Read `simulated-participants/SKILL.md` before designing multi-profile,
   stochastic, mock-LLM, or export-validation simulations.
 - Read `produce-experiment-audit/references/populating-an-audit.md` for the
   audit population contract. Standalone experiments use nested `audit/` via
@@ -146,7 +146,7 @@ PsyNet. Do not treat `scripts update` as a substitute for first-time setup.
   keep it small, isolated, and justified by a requirement that PsyNet cannot
   express natively.
 - For websocket or other live multi-participant interactions within one trial,
-  use the `psynet-realtime-synchronous-experiments` skill alongside this general
+  use the `realtime-synchronous-experiments` skill alongside this general
   implementation workflow.
 
 ### Run simulations
@@ -164,7 +164,7 @@ zip -r audit/artifacts/simulated_data.zip data/simulated_data
 Write into those audit paths from the first useful simulation onward; overwrite
 interim exports rather than regenerating later for packaging.
 For profile design, data-path parity, mock-LLM patterns, and simulation
-limitations, follow `psynet-simulated-participants/SKILL.md`.
+limitations, follow `simulated-participants/SKILL.md`.
 
 ### Develop analysis scripts
 

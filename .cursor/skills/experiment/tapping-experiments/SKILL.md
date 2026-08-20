@@ -1,5 +1,5 @@
 ---
-name: psynet-tapping-experiments
+name: tapping-experiments
 description: Implement PsyNet tapping, rhythm, beat perception, and sensorimotor synchronization experiments with audio recording, calibration, export checks, and conservative interpretation.
 ---
 
@@ -7,7 +7,7 @@ description: Implement PsyNet tapping, rhythm, beat perception, and sensorimotor
 
 ## Prerequisites
 
-- Read `psynet-experiment-implementation/SKILL.md` for the general planning,
+- Read `experiment-implementation/SKILL.md` for the general planning,
   implementation, simulation, export, analysis, and report workflow.
 - Read `participant-filtering-and-prescreening/SKILL.md` before adding device,
   audio, microphone, recording, or tapping capability gates.
@@ -15,9 +15,9 @@ description: Implement PsyNet tapping, rhythm, beat perception, and sensorimotor
   stimulus display matters alongside tapping.
 - Read `record-participant-video/SKILL.md` for audio-sensitive participant-flow
   evidence.
-- Read `psynet-simulated-participants/SKILL.md` for bot or scripted tapping
+- Read `simulated-participants/SKILL.md` for bot or scripted tapping
   profiles.
-- Read `psynet-deployment-ops/SKILL.md` if the work involves deployment,
+- Read `deployment-ops/SKILL.md` if the work involves deployment,
   exports, recruiter setup, or teardown.
 
 ## Participant flow

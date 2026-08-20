@@ -83,7 +83,7 @@ description: Design, implement, and validate task-specific pre-screening for Psy
   terminations by the PsyNet Lucid recruiter.
 - For lab recruiter or other custom recruiters, make sure `failure_tags` and
   `failed_reason` are meaningful enough for the external system and later audit.
-- For deployment readiness, read `psynet-deployment-ops/SKILL.md` and verify that
+- For deployment readiness, read `deployment-ops/SKILL.md` and verify that
   qualification files, recruiter config, app description, estimated duration, and
   compensation match the prescreening flow.
 

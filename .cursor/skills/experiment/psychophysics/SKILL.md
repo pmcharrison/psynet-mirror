@@ -7,7 +7,7 @@ description: Implement psychophysics experiments with PsyNet, focusing on precis
 
 ## General guidelines
 
-Follow the general workflow in `psynet-experiment-implementation/SKILL.md`.
+Follow the general workflow in `experiment-implementation/SKILL.md`.
 
 - Prioritize correct display of all visual elements, correct timing, and no
   additional lingering display items such as fixation crosses or unrelated

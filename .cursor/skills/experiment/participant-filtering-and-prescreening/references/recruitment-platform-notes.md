@@ -72,7 +72,7 @@ policies change.
   Make these tags meaningful and stable, for example `headphone_check`,
   `language_vocabulary`, or `task_comprehension`.
 - Deployment folders should include any recruiter/qualification JSON files the
-  experiment references. See `psynet-deployment-ops/SKILL.md` for deployment
+  experiment references. See `deployment-ops/SKILL.md` for deployment
   readiness checks.
 
 ## Patterns observed in lab experiments

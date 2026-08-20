@@ -1,7 +1,7 @@
 # Source notes for synchronous PsyNet experiments
 
 These notes summarize the source review behind
-`psynet-synchronous-experiments/SKILL.md`. Refresh them against current PsyNet
+`synchronous-experiments/SKILL.md`. Refresh them against current PsyNet
 and platform docs when a study is near deployment.
 
 ## PsyNet package and docs

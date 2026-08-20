@@ -1,5 +1,5 @@
 ---
-name: psynet-deployment-ops
+name: deployment-ops
 description: Audit PsyNet experiment folders for deployment readiness, deployment records, export safety, app/server naming, EC2 teardown, and common local or SSH deployment blockers. Use when preparing PsyNet deployments, reconstructing deployment state, generating safe commands, or diagnosing deployment failures.
 ---
 

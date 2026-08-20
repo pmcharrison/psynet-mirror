@@ -36,6 +36,24 @@ compatibility: Requires editable PsyNet at ~/PsyNet, PostgreSQL, Redis, and ffpr
 
 Skills do **not** carry `authors` metadata. Skill history is tracked in git.
 
+## Folder and `name` conventions
+
+Folder name **is** the skill `name`. Use kebab-case ASCII (`a-z`, `0-9`, hyphens).
+
+- Prefer **verb-object** for workflows: `prepare-for-cint`, `record-participant-video`,
+  `develop-experiment-front-end`.
+- Topic skills may use a noun phrase: `psychophysics`, `basic-data`.
+- **Do not** prefix experiment skills with `psynet-`. They already live under
+  `.cursor/skills/experiment/` (copied to `.cursor/skills/psynet/` in experiments).
+  Keep `psynet` in a name only when it is part of the object
+  (`explore-psynet-repository`).
+- Workshop skills in PsyNetSkills live under `.agents/skills/` and follow the
+  same kebab-case / verb-object rules.
+
+The PsyNetSkills workshop repository owns `.agents/skills/` (with compatibility
+symlinks at `.claude/skills`, `.cursor/skills`, and `.github/skills`). Do not
+copy experiment skills into PsyNetSkills.
+
 ## Progressive disclosure
 
 Skills have four layers. **Do not collapse them into one long `SKILL.md`.**
@@ -108,7 +126,7 @@ Experiment checkouts receive copies under `.cursor/skills/psynet/` via
 `psynet scripts update`. Edit the PsyNet source tree, not generated experiment
 copies.
 
-The PsyNetSkills workshop repository owns its own `.cursor/skills/` and adds a
+The PsyNetSkills workshop repository owns `.agents/skills/` and adds a
 workshop-specific addendum at `create-skill/SKILL.md` there. Do not copy
 experiment skills into PsyNetSkills.
 

@@ -10,12 +10,12 @@ and player.
 
 ## Prerequisites
 
-- Read `psynet-experiment-implementation/SKILL.md` for simulation, exported data,
+- Read `experiment-implementation/SKILL.md` for simulation, exported data,
   analysis-script, and report expectations.
 - For grouped, barrier-based, or live two-player experiments, read
-  `psynet-synchronous-experiments/SKILL.md`.
+  `synchronous-experiments/SKILL.md`.
 - For websocket or continuous live interaction, read
-  `psynet-realtime-synchronous-experiments/SKILL.md`; it owns the distinction
+  `realtime-synchronous-experiments/SKILL.md`; it owns the distinction
   between raw events, reconstructed state, and participant-specific deliveries.
 
 ## Workflow

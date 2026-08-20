@@ -20,7 +20,7 @@ the CLI from the experiment root so `experiment.source_path` stays `.`.
   running local or deployed server; mark `not_applicable` only when no server
   ever ran).
 - If the experiment needs implementation changes, use
-  `psynet-experiment-implementation`.
+  `experiment-implementation`.
 - For a live handoff, use `prepare-experiment-tunnel` (and `public-tunnel`) when
   a temporary public preview is needed.
 

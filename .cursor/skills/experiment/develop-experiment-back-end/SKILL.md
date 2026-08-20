@@ -68,5 +68,5 @@ If something seems very hard to achieve, stop and ask the user rather than devia
   Avoid interpolating participant- or user-provided data into `Markup`.
 - For repeated tasks, use `StaticTrialMaker` when rounds are independent and a
   chain-based trial maker when later rounds depend on completed earlier rounds.
-  Read `psynet-synchronous-experiments/SKILL.md` as well when participant
+  Read `synchronous-experiments/SKILL.md` as well when participant
   grouping, barriers, cohorts, or waiting rooms are involved.

@@ -34,7 +34,9 @@ def read_frontmatter(skill_file: Path) -> tuple[dict[str, str], list[str]]:
     return frontmatter, []
 
 
-def resolve_reference_path(reference: Path, skill_name: str | None, skills_root: Path, skill_dir: Path) -> Path:
+def resolve_reference_path(
+    reference: Path, skill_name: str | None, skills_root: Path, skill_dir: Path
+) -> Path:
     if skill_name:
         candidates = (
             skills_root / "experiment" / reference,
@@ -56,7 +58,9 @@ def referenced_paths(text: str, *, skill_dir: Path, skills_root: Path) -> set[Pa
     return paths
 
 
-def validate_skill_dir(skill_dir: Path, skills_root: Path) -> tuple[list[str], list[str]]:
+def validate_skill_dir(
+    skill_dir: Path, skills_root: Path
+) -> tuple[list[str], list[str]]:
     problems: list[str] = []
     warnings: list[str] = []
     skill_file = skill_dir / "SKILL.md"
@@ -75,7 +79,19 @@ def validate_skill_dir(skill_dir: Path, skills_root: Path) -> tuple[list[str], l
     elif not SKILL_NAME_RE.fullmatch(name):
         problems.append(f"{skill_file}: invalid skill name {name!r}")
     elif len(name) > SKILL_NAME_MAX_LENGTH:
-        problems.append(f"{skill_file}: name exceeds {SKILL_NAME_MAX_LENGTH} characters")
+        problems.append(
+            f"{skill_file}: name exceeds {SKILL_NAME_MAX_LENGTH} characters"
+        )
+    else:
+        try:
+            relative_parts = skill_dir.relative_to(skills_root).parts
+        except ValueError:
+            relative_parts = ()
+        if relative_parts[:1] == ("experiment",) and name.startswith("psynet-"):
+            problems.append(
+                f"{skill_file}: experiment skills must not use a redundant "
+                "'psynet-' prefix; the experiment/ tree already namespaces them"
+            )
 
     if not isinstance(description, str) or not description.strip():
         problems.append(f"{skill_file}: missing description")
@@ -102,18 +118,24 @@ def validate_skill_dir(skill_dir: Path, skills_root: Path) -> tuple[list[str], l
         )
 
     references_dir = skill_dir / "references"
-    reference_files = sorted(
-        path
-        for path in references_dir.iterdir()
-        if path.is_file() and path.suffix in {".md", ".yaml", ".yml", ".py"}
-    ) if references_dir.exists() else []
+    reference_files = (
+        sorted(
+            path
+            for path in references_dir.iterdir()
+            if path.is_file() and path.suffix in {".md", ".yaml", ".yml", ".py"}
+        )
+        if references_dir.exists()
+        else []
+    )
     known_references = set(reference_files)
     reachable = {skill_file}
     queue = [skill_file]
     while queue:
         current = queue.pop(0)
         text = current.read_text(encoding="utf-8")
-        for cited in sorted(referenced_paths(text, skill_dir=skill_dir, skills_root=skills_root)):
+        for cited in sorted(
+            referenced_paths(text, skill_dir=skill_dir, skills_root=skills_root)
+        ):
             if not cited.exists():
                 problems.append(f"{current}: cited reference does not exist: {cited}")
             elif cited.parent == references_dir and cited in known_references:

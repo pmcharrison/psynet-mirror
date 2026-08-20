@@ -873,7 +873,7 @@ def test_scripts_update_installs_managed_skills_and_preserves_user_skills():
             assert custom_skill.read_text(encoding="utf-8") == "# Custom skill\n"
             assert not stale_skill.exists()
             assert Path(
-                ".cursor/skills/psynet/psynet-experiment-implementation/SKILL.md"
+                ".cursor/skills/psynet/experiment-implementation/SKILL.md"
             ).is_file()
             assert Path(
                 ".cursor/skills/psynet/record-participant-video/SKILL.md"
@@ -3107,6 +3107,7 @@ def test_remove_empty_parent_dirs_stops_at_workspace_root(tmp_path, monkeypatch)
         _remove_empty_parent_dirs(Path(".github/workflows"))
 
     assert not (tmp_path / ".github").exists()
+
 
 def test_abort_if_app_exists():
     from psynet.command_line import _abort_if_app_exists
