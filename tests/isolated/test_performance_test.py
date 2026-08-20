@@ -1,4 +1,7 @@
+from unittest.mock import Mock, patch
+
 from psynet.perf_test import (
+    PerformanceTester,
     colorize_success_rate,
     format_performance_summary,
     format_test_results,
@@ -42,6 +45,17 @@ def _base_result(**overrides):
 
 def _join(lines):
     return "\n".join(lines)
+
+
+def test_random_stagger_is_bounded_relative_to_configured_interval():
+    tester = PerformanceTester(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        stagger_interval_s=0.1,
+    )
+
+    with patch("psynet.perf_test.random.gammavariate", side_effect=[0.6, 0.4]):
+        assert tester._bounded_random_stagger() == 0.4
 
 
 # --- colorize_success_rate ---

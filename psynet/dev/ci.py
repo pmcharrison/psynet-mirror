@@ -27,11 +27,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-try:
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover
-    import tomli as tomllib
-
+from psynet.dallinger_dependency import dallinger_lower_bound_from_pyproject
 
 PYPROJECT_PATH = Path("pyproject.toml")
 DOCKERFILE_PATH = Path("Dockerfile")
@@ -61,17 +57,7 @@ def update_dallinger_constraints_command(check_compile: bool = True) -> int:
 
 def _get_dallinger_dependency_version(pyproject_path: Path) -> str:
     """Return the Dallinger lower-bound version declared by PsyNet."""
-    pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-    dependencies = pyproject["project"]["dependencies"]
-    dependency = next(
-        dependency for dependency in dependencies if dependency.startswith("dallinger[")
-    )
-    match = re.search(r">=(\d+\.\d+\.\d+)", dependency)
-    if match is None:
-        raise ValueError(
-            "Could not find a Dallinger lower-bound version in pyproject.toml."
-        )
-    return match.group(1)
+    return dallinger_lower_bound_from_pyproject(pyproject_path)
 
 
 def _download_text(url: str) -> str:
@@ -138,6 +124,8 @@ def _check_docker_constraints_compile(
                 "--python-version",
                 python_version,
                 "pyproject.toml",
+                "--extra",
+                "experiment",
                 "--extra",
                 "demos",
                 "--constraint",
