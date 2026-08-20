@@ -287,6 +287,29 @@ def test_scripts_update_preserves_custom_docker_files(tmp_path, capsys):
     assert "Preserving custom files in docker/" in capsys.readouterr().err
 
 
+def test_scaffold_preserves_symlinked_docker_docs_directory(tmp_path, capsys):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    docker = tmp_path / "docker"
+    docker.mkdir()
+    (docker / "run").write_text("#!/bin/bash\n")
+    outside = tmp_path / "outside-docs"
+    outside.mkdir()
+    (outside / "INSTALL.md").write_text("# keep me\n")
+    (docker / "docs").symlink_to(outside, target_is_directory=True)
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+
+    assert (outside / "INSTALL.md").read_text() == "# keep me\n"
+    assert (docker / "docs").is_symlink()
+    assert not (docker / "run").exists()
+    captured = capsys.readouterr()
+    assert (
+        "Preserving docker/docs/ because it is a symlink" in captured.out + captured.err
+    )
+
+
 class _TranslationPreDeployExperiment(Experiment):
     """Run the real translation pre-deploy routine without database side effects."""
 

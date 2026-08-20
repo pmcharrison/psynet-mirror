@@ -12,3 +12,8 @@ psynet dev ci update-dallinger-constraints
 The command downloads the matching Dallinger snapshot, updates the file
 header, and verifies Docker's constraints compile command. CI checks that this
 header matches PsyNet's Dallinger dependency.
+
+`ensure-dallinger-docker-network.sh` starts Redis and Postgres on the
+Dallinger Docker network used by local Docker-in-Docker test runners. Source
+it; do not confuse it with ``psynet services ensure``, which publishes those
+services on localhost.

@@ -13,7 +13,8 @@ Resolution order:
 1. The repository ``pyproject.toml`` next to the ``psynet`` package (editable /
    source checkouts and CI helpers).
 2. Installed package metadata (``Requires-Dist`` for the ``experiment`` extra)
-   for wheels, which do not contain the repository ``pyproject.toml``.
+   for wheels, which do not contain the repository ``pyproject.toml``. Both
+   version bounds and direct git SHA pins are read from that metadata.
 """
 
 from __future__ import annotations
@@ -52,18 +53,43 @@ def dallinger_constraints_github_ref(pyproject_path: Path | None = None) -> str:
 
     Version pins become ``v<lower-bound>``. Direct git pins use the SHA.
     """
-    if pyproject_path is None:
-        pyproject_path = _default_pyproject_path()
-        if not pyproject_path.is_file():
-            return f"v{supported_dallinger_lower_bound()}"
-    requirement = _dallinger_requirement_from_pyproject(pyproject_path)
+    requirement, source = _dallinger_requirement(pyproject_path)
     sha = _git_sha_from_requirement(requirement)
     if sha is not None:
         return sha
-    version = _lower_bound_from_requirement_strings(
-        [requirement], source=str(pyproject_path)
-    )
+    version = _lower_bound_from_requirement_strings([requirement], source=source)
     return f"v{version}"
+
+
+def _dallinger_requirement(
+    pyproject_path: Path | None,
+) -> tuple[str, str]:
+    """Return the Dallinger requirement string and a source label."""
+    if pyproject_path is None:
+        pyproject_path = _default_pyproject_path()
+        if not pyproject_path.is_file():
+            return (
+                _dallinger_requirement_from_installed_metadata(),
+                "psynet metadata",
+            )
+    return (
+        _dallinger_requirement_from_pyproject(pyproject_path),
+        str(pyproject_path),
+    )
+
+
+def _dallinger_requirement_from_installed_metadata() -> str:
+    """Return the Dallinger requirement from installed ``psynet`` metadata."""
+    try:
+        reqs = requires("psynet")
+    except PackageNotFoundError:
+        reqs = None
+    if not reqs:
+        raise ValueError(
+            "Could not determine PsyNet's Dallinger dependency from "
+            "pyproject.toml or installed package metadata."
+        )
+    return _dallinger_requirement_from_strings(reqs, source="psynet metadata")
 
 
 def dallinger_lower_bound_from_pyproject(pyproject_path: Path) -> str:
@@ -77,13 +103,10 @@ def dallinger_lower_bound_from_pyproject(pyproject_path: Path) -> str:
 def _lower_bound_from_installed_metadata() -> str | None:
     """Return the Dallinger lower bound from installed ``psynet`` metadata."""
     try:
-        reqs = requires("psynet")
-    except PackageNotFoundError:
-        return None
-    if not reqs:
-        return None
-    try:
-        return _lower_bound_from_requirement_strings(reqs, source="psynet metadata")
+        requirement = _dallinger_requirement_from_installed_metadata()
+        return _lower_bound_from_requirement_strings(
+            [requirement], source="psynet metadata"
+        )
     except ValueError:
         return None
 

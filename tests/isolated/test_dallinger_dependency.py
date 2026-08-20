@@ -59,6 +59,49 @@ experiment = ["dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.gi
         dallinger_lower_bound_from_pyproject(pyproject)
 
 
+def test_github_ref_uses_git_sha_from_installed_metadata(tmp_path, monkeypatch):
+    """Wheels have no pyproject.toml; SHA pins must still come from Requires-Dist."""
+    from psynet import dallinger_dependency
+
+    sha = "0123456789abcdef0123456789abcdef01234567"
+    monkeypatch.setattr(
+        dallinger_dependency,
+        "_default_pyproject_path",
+        lambda: tmp_path / "missing.toml",
+    )
+    monkeypatch.setattr(
+        dallinger_dependency,
+        "requires",
+        lambda name: [
+            "click",
+            (
+                "dallinger[docker] @ "
+                f"git+https://github.com/Dallinger/Dallinger.git@{sha} "
+                "; extra == 'experiment'"
+            ),
+        ],
+    )
+    assert dallinger_constraints_github_ref() == sha
+
+
+def test_github_ref_uses_version_bound_from_installed_metadata(tmp_path, monkeypatch):
+    from psynet import dallinger_dependency
+
+    monkeypatch.setattr(
+        dallinger_dependency,
+        "_default_pyproject_path",
+        lambda: tmp_path / "missing.toml",
+    )
+    monkeypatch.setattr(
+        dallinger_dependency,
+        "requires",
+        lambda name: [
+            'dallinger[docker] (>=12.2.0,<13) ; extra == "experiment"',
+        ],
+    )
+    assert dallinger_constraints_github_ref() == "v12.2.0"
+
+
 def test_lower_bound_from_pyproject_rejects_missing_dallinger(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(

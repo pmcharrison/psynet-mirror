@@ -775,8 +775,8 @@ def _remove_obsolete_generated_docker_scripts() -> bool:
 
     Known helper paths are deleted even if their contents were customized,
     because those scripts cannot honor ``deploy.toml``. Other files under
-    ``docker/`` are preserved with a warning. A ``docker/`` symlink is left
-    untouched.
+    ``docker/`` are preserved with a warning. A ``docker/`` symlink, or any
+    helper path whose parent is a symlink, is left untouched.
 
     Returns
     -------
@@ -785,24 +785,28 @@ def _remove_obsolete_generated_docker_scripts() -> bool:
     """
     docker_dir = Path("docker")
     if docker_dir.is_symlink():
-        click.echo(
-            "WARNING: Preserving docker/ because it is a symlink. "
-            "Generated Docker helper scripts are no longer used; "
-            "use 'psynet debug local' or 'psynet debug local --docker'.",
-            err=True,
-        )
+        _warn_preserved_docker_symlink(docker_dir)
         return False
     if not docker_dir.exists():
         return False
 
     removed_any = False
+    warned_symlinks: set[Path] = set()
     for relative_path in _OBSOLETE_DOCKER_SCRIPT_PATHS:
         path = Path(relative_path)
+        symlink_parent = _first_symlink_parent(path)
+        if symlink_parent is not None:
+            if symlink_parent not in warned_symlinks:
+                _warn_preserved_docker_symlink(symlink_parent)
+                warned_symlinks.add(symlink_parent)
+            continue
         if path.is_file() or path.is_symlink():
             path.unlink()
             removed_any = True
 
     for directory in (Path("docker/docs"), docker_dir):
+        if directory.is_symlink():
+            continue
         if directory.is_dir() and not any(directory.iterdir()):
             directory.rmdir()
 
@@ -816,6 +820,29 @@ def _remove_obsolete_generated_docker_scripts() -> bool:
     elif removed_any:
         click.echo("Removed obsolete generated docker/ helper scripts.")
     return removed_any
+
+
+def _first_symlink_parent(relative_path: Path) -> Path | None:
+    """Return the first symlink among parent components of ``relative_path``."""
+    current = Path()
+    for part in Path(relative_path).parts[:-1]:
+        current /= part
+        if current.is_symlink():
+            return current
+    return None
+
+
+def _warn_preserved_docker_symlink(path: Path) -> None:
+    """Warn that a docker/ path was left untouched because it is a symlink."""
+    display = path.as_posix()
+    if not display.endswith("/"):
+        display = f"{display}/"
+    click.echo(
+        f"WARNING: Preserving {display} because it is a symlink. "
+        "Generated Docker helper scripts are no longer used; "
+        "use 'psynet debug local' or 'psynet debug local --docker'.",
+        err=True,
+    )
 
 
 def _assert_managed_path_is_safe(relative_path):
