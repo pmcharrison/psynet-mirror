@@ -867,7 +867,10 @@ def test_validate_audit_reports_null_artifacts_instead_of_crashing(
     tmp_path: Path,
 ) -> None:
     audit_dir = tmp_path / "audit"
-    write(audit_dir / "audit.json", json.dumps(audit_manifest() | {"artifacts": None}) + "\n")
+    write(
+        audit_dir / "audit.json",
+        json.dumps(audit_manifest() | {"artifacts": None}) + "\n",
+    )
     write_core_section_files(audit_dir)
 
     problems = validate_audit(audit_dir)

@@ -35,6 +35,12 @@ _PRESERVE_EXISTING_TEMPLATE_FILES = frozenset({"config.txt", "README.md"})
 
 _TEMPLATE_DIRECTORIES = ("docker",)
 
+# Copied into experiments by ``psynet scripts update``; not a packaged template
+# directory (canonical source is ``.cursor/skills/experiment/`` in the PsyNet
+# checkout).
+_EXPERIMENT_SKILLS_DIRECTORY = ".cursor/skills/psynet"
+_MANAGED_DIRECTORIES = (*_TEMPLATE_DIRECTORIES, _EXPERIMENT_SKILLS_DIRECTORY)
+
 # Minimal scaffold subset needed to run locally (debug/test). Omits IDE/CI-only
 # templates such as ``.vscode/`` and ``.github/workflows/``.
 _TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
@@ -105,7 +111,7 @@ def scaffold_managed_paths() -> frozenset[str]:
         Relative paths to scaffold-managed files and directories.
     """
     paths = set(_TEMPLATE_FILES)
-    paths.update(_TEMPLATE_DIRECTORIES)
+    paths.update(_MANAGED_DIRECTORIES)
     paths.update(_GENERATED_FILES)
     return frozenset(paths)
 
@@ -736,7 +742,7 @@ def _assert_scaffold_paths_are_safe(paths):
     for relative_path in paths:
         _assert_managed_path_is_safe(relative_path)
 
-    for relative_path in _TEMPLATE_DIRECTORIES:
+    for relative_path in _MANAGED_DIRECTORIES:
         if relative_path not in paths:
             continue
         directory = Path(relative_path)
@@ -785,6 +791,8 @@ def _managed_path_matches_scaffold(relative_path):
         return _generated_file_matches(relative_path)
     if relative_path in _TEMPLATE_DIRECTORIES:
         return _template_directory_matches(relative_path)
+    if relative_path == _EXPERIMENT_SKILLS_DIRECTORY:
+        return _experiment_skills_directory_matches()
     raise ValueError(f"Unknown scaffold-managed path: {relative_path}")
 
 
@@ -954,7 +962,7 @@ def scaffold_experiment_directory(
                 shutil.rmtree(directory)
                 written.append(directory)
 
-    skills_relative = ".cursor/skills/psynet"
+    skills_relative = _EXPERIMENT_SKILLS_DIRECTORY
     if skills_relative not in skip_files:
         if _update_experiment_skills(overwrite=overwrite):
             written.append(skills_relative)
@@ -972,7 +980,7 @@ def _update_experiment_skills(*, overwrite: bool = False) -> bool:
     The managed tree lives at ``.cursor/skills/psynet``. Other skill directories
     under ``.cursor/skills/`` are experiment-owned and are never modified.
     """
-    target = Path(".cursor/skills/psynet")
+    target = Path(_EXPERIMENT_SKILLS_DIRECTORY)
     if target.exists() and not overwrite:
         return False
 
@@ -1022,6 +1030,18 @@ def _experiment_skills_source():
     if packaged_source.is_dir():
         return packaged_source
     return None
+
+
+def _experiment_skills_directory_matches() -> bool:
+    """Return whether the copied experiment skills match the PsyNet source tree."""
+    destination = Path(_EXPERIMENT_SKILLS_DIRECTORY)
+    source = _experiment_skills_source()
+    if not destination.is_dir() or source is None:
+        return False
+    if isinstance(source, Path):
+        return md5_directory(destination) == md5_directory(source)
+    with resources.as_file(source) as path:
+        return md5_directory(destination) == md5_directory(Path(path))
 
 
 def _scaffold_context_paths():
@@ -1160,7 +1180,7 @@ def prune_experiment_scaffold(
     removed = []
 
     for relative_path in sorted(
-        managed_paths - set(_TEMPLATE_DIRECTORIES) - preserve_files
+        managed_paths - set(_MANAGED_DIRECTORIES) - preserve_files
     ):
         path = Path(relative_path)
         if path.exists():
@@ -1172,7 +1192,7 @@ def prune_experiment_scaffold(
             removed.append(relative_path)
             _remove_empty_parent_dirs(path.parent)
 
-    for relative_path in _TEMPLATE_DIRECTORIES:
+    for relative_path in _MANAGED_DIRECTORIES:
         if _path_is_tracked_or_has_tracked_contents(relative_path, preserve_files):
             continue
         path = Path(relative_path)
@@ -1184,6 +1204,8 @@ def prune_experiment_scaffold(
                 continue
             shutil.rmtree(path)
             removed.append(relative_path)
+            if relative_path == _EXPERIMENT_SKILLS_DIRECTORY:
+                _remove_empty_parent_dirs(path.parent)
 
     preserved_tracked = sorted(
         relative_path

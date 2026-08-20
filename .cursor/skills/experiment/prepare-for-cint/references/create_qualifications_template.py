@@ -149,6 +149,7 @@ def generate_real_configs(output_dir):
             qualifications_dict=qualifications_dict,
         )
 
+
 output_dir = Path("qualifications/lucid")
 output_dir.mkdir(parents=True, exist_ok=True)
 

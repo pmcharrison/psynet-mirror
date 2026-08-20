@@ -66,8 +66,7 @@ def test_write_hashed_artifact_redacts_text_and_normalizes_legacy_prefix(
     exported = target_root / url.removeprefix(prefix)
     assert exported.exists()
     assert exported.read_text(encoding="utf-8") == (
-        "Dashboard user: admin password: [REDACTED]\n"
-        "AWS_SECRET_ACCESS_KEY=[REDACTED]\n"
+        "Dashboard user: admin password: [REDACTED]\nAWS_SECRET_ACCESS_KEY=[REDACTED]\n"
     )
 
 
@@ -113,7 +112,9 @@ def test_copy_monitor_static_assets_skips_traversal(tmp_path: Path) -> None:
     html_dir = tmp_path / "blob"
     html_dir.mkdir()
     # Traversal refs must not create files outside html_dir/static
-    copy_monitor_static_assets(html_dir, ["../outside.js", "scripts/network-monitor.js"])
+    copy_monitor_static_assets(
+        html_dir, ["../outside.js", "scripts/network-monitor.js"]
+    )
     assert not (tmp_path / "outside.js").exists()
     assert (html_dir / "static/scripts/network-monitor.js").is_file()
 
@@ -121,7 +122,7 @@ def test_copy_monitor_static_assets_skips_traversal(tmp_path: Path) -> None:
 def test_sanitize_html_ignores_traversing_static_ref(tmp_path: Path) -> None:
     source = tmp_path / "monitor.html"
     source.write_text(
-        '<!doctype html><html><head></head><body>'
+        "<!doctype html><html><head></head><body>"
         '<script src="/static/../secrets.txt"></script>'
         '<script src="/static/scripts/network-monitor.js"></script>'
         "</body></html>",

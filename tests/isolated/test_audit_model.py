@@ -71,7 +71,9 @@ def test_classify_audit_evidence_accepts_standalone_artifact_paths() -> None:
                     }
                 ),
             ),
-            file("artifacts/performance.json", json.dumps({"results": [{"n_bots": 4}]})),
+            file(
+                "artifacts/performance.json", json.dumps({"results": [{"n_bots": 4}]})
+            ),
             file("artifacts/monitor.html", "<html></html>"),
             file("artifacts/data.zip", None),
             file("artifacts/simulated_data.zip", None),
