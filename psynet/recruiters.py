@@ -1192,8 +1192,12 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
             )
 
     def reward_bonus(self, participant, amount, reason):
-        """Backward-compatible alias for the Lab Recruiter outcome callback."""
-        return self.report_submission_outcome(participant, amount, reason)
+        """Lab Recruiter does not transfer bonuses through ``reward_bonus``."""
+        raise RuntimeError(
+            "Lab Recruiter reports terminal outcomes via "
+            "report_submission_outcome, including a zero bonus. "
+            "Do not call reward_bonus."
+        )
 
     def report_submission_outcome(self, participant, amount, reason):
         """Report a terminal Lab Recruiter outcome, including a zero bonus."""

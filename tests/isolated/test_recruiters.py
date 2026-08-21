@@ -1893,12 +1893,16 @@ def make_lab_participant(failed=False):
         (True, "/fail", ["too_slow"]),
     ],
 )
-def test_lab_recruiter_reward_bonus_posts_outcome(failed, url_suffix, failed_reason):
+def test_lab_recruiter_report_submission_outcome_posts(
+    failed, url_suffix, failed_reason
+):
     recruiter = make_lab_recruiter(token="secret-key")
     participant = make_lab_participant(failed=failed)
 
     with patch("psynet.recruiters.requests.post") as post:
-        posted = recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+        posted = recruiter.report_submission_outcome(
+            participant, amount=0.25, reason="completed"
+        )
 
     args, kwargs = post.call_args
     assert args[0] == f"https://recruiter.example.edu/tasks{url_suffix}"
@@ -1914,7 +1918,7 @@ def test_lab_recruiter_reward_bonus_posts_outcome(failed, url_suffix, failed_rea
     assert posted is True
 
 
-def test_lab_recruiter_reward_bonus_skips_post_when_token_missing(caplog):
+def test_lab_recruiter_report_submission_outcome_skips_post_when_token_missing(caplog):
     recruiter = make_lab_recruiter(token="")
     participant = make_lab_participant()
 
@@ -1922,7 +1926,9 @@ def test_lab_recruiter_reward_bonus_skips_post_when_token_missing(caplog):
         patch("psynet.recruiters.requests.post") as post,
         caplog.at_level("ERROR", logger="psynet"),
     ):
-        posted = recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+        posted = recruiter.report_submission_outcome(
+            participant, amount=0.25, reason="completed"
+        )
 
     post.assert_not_called()
     assert "lab_recruiter_auth_token is not set" in caplog.text
@@ -1934,12 +1940,14 @@ def test_lab_recruiter_token_prefix_is_normalized():
     participant = make_lab_participant()
 
     with patch("psynet.recruiters.requests.post") as post:
-        recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+        recruiter.report_submission_outcome(
+            participant, amount=0.25, reason="completed"
+        )
 
     assert post.call_args.kwargs["headers"] == {"Authorization": "Token config-secret"}
 
 
-def test_lab_recruiter_reward_bonus_logs_http_error(caplog):
+def test_lab_recruiter_report_submission_outcome_logs_http_error(caplog):
     from requests import HTTPError
 
     recruiter = make_lab_recruiter()
@@ -1950,11 +1958,21 @@ def test_lab_recruiter_reward_bonus_logs_http_error(caplog):
         caplog.at_level("ERROR", logger="psynet"),
     ):
         post.return_value.raise_for_status.side_effect = HTTPError("bad response")
-        posted = recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+        posted = recruiter.report_submission_outcome(
+            participant, amount=0.25, reason="completed"
+        )
 
     assert not posted
     assert "Lab Recruiter completion POST" in caplog.text
     assert participant.bonus is None
+
+
+def test_lab_recruiter_reward_bonus_raises():
+    recruiter = make_lab_recruiter()
+    participant = make_lab_participant()
+
+    with pytest.raises(RuntimeError, match="report_submission_outcome"):
+        recruiter.reward_bonus(participant, 0.25, "completed")
 
 
 def test_lab_recruiter_validate_config_requires_token_outside_debug():
