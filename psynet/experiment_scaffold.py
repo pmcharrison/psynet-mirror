@@ -395,6 +395,14 @@ def installed_psynet_direct_requirement() -> str | None:
     return None
 
 
+def _with_experiment_extra(requirement: str) -> str:
+    """Ensure a PsyNet requirement includes the ``[experiment]`` extra."""
+    text = requirement.strip()
+    if re.match(r"(?i)^psynet\[experiment\]\b", text):
+        return text
+    return re.sub(r"(?i)^psynet\b", "psynet[experiment]", text, count=1)
+
+
 def _default_psynet_requirement() -> str:
     """Return a resolvable PsyNet requirement for a new experiment.
 
@@ -405,7 +413,9 @@ def _default_psynet_requirement() -> str:
 
     1. Editable checkout → commit pin (alphas, when the commit is servable) or
        editable path.
-    2. Non-editable local path install → ``psynet[experiment] @ file://...``.
+    2. Non-editable VCS or local-path install → the same source, with the
+       ``[experiment]`` extra. A git checkout of an unpublished alpha must not
+       become ``psynet[experiment]==<version>``, which is unsatisfiable on PyPI.
     3. Otherwise → version pin ``psynet[experiment]==<version>``.
     """
     editable_source = get_editable_psynet_source()
@@ -415,6 +425,10 @@ def _default_psynet_requirement() -> str:
             if commit_requirement is not None:
                 return commit_requirement
         return editable_psynet_requirement(editable_source)
+
+    direct = installed_psynet_direct_requirement()
+    if direct is not None:
+        return _with_experiment_extra(direct)
 
     local_path = _installed_psynet_file_path()
     if local_path is not None:
