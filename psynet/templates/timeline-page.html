@@ -270,10 +270,18 @@
 
         <script>
             (async function () {
-                await psynet.activateManagedPageJavascript();
-                psynet.initLucidTermination();
-                await psynet.initPage();
-                await psynet.finalizePageReady();
+                try {
+                    psynet.registerErrorHandler();
+                    await psynet.activateManagedPageJavascript();
+                    psynet.initLucidTermination();
+                    await psynet.initPage();
+                    await psynet.finalizePageReady();
+                } catch (error) {
+                    await psynet.handleTimelineTransitionFailure(
+                        error,
+                        "This page could not be loaded. Please refresh the page and try again.",
+                    );
+                }
             })();
         </script>
     {% endif %}

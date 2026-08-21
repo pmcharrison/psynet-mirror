@@ -955,7 +955,7 @@
       }
     };
 
-    psynet.handleTimelineTransitionFailure = async function (error) {
+    psynet.handleTimelineTransitionFailure = async function (error, message) {
       psynet.setPageReady(false);
       psynet.nextPagePending = false;
       psynet.setTimelineTransitionBusy(false);
@@ -963,7 +963,8 @@
       psynet.submit.disable();
       psynet.log.error(error.stack || String(error));
       await psynet.alert(
-        "The next timeline page could not be loaded. Please refresh the page and try again.",
+        message ||
+          "The next timeline page could not be loaded. Please refresh the page and try again.",
       );
     };
 
@@ -2573,11 +2574,19 @@
     };
 
     psynet.registerErrorHandler = function () {
+      if (psynet._errorHandlerRegistered) {
+        return;
+      }
+      psynet._errorHandlerRegistered = true;
       window.onerror = function (msg, url, line, col, error) {
         if (error) {
           psynet.log.error(error.stack);
         }
       };
+      window.addEventListener("unhandledrejection", function (event) {
+        let reason = event.reason;
+        psynet.log.error((reason && reason.stack) || String(reason));
+      });
     };
 
     psynet.nextPagePending = false;

@@ -99,6 +99,59 @@ def _normalize_js_page_code(code, argument_name="js_page_code"):
     return normalized
 
 
+# Common Window names that legacy ``window.<js_vars key>`` access would
+# silently read instead of the page value. Not exhaustive; authors should
+# still prefer ``psynet.var``.
+_JS_VAR_WINDOW_COLLISION_KEYS = frozenset(
+    {
+        "alert",
+        "closed",
+        "confirm",
+        "console",
+        "crypto",
+        "document",
+        "event",
+        "fetch",
+        "frames",
+        "history",
+        "length",
+        "localStorage",
+        "location",
+        "name",
+        "navigator",
+        "opener",
+        "origin",
+        "parent",
+        "performance",
+        "prompt",
+        "screen",
+        "self",
+        "sessionStorage",
+        "status",
+        "top",
+        "window",
+    }
+)
+
+
+def _warn_js_var_window_collisions(js_vars):
+    """Warn when js_vars keys would not get a legacy window accessor."""
+    if not js_vars:
+        return
+    collisions = sorted(key for key in js_vars if key in _JS_VAR_WINDOW_COLLISION_KEYS)
+    if not collisions:
+        return
+    names = ", ".join(repr(key) for key in collisions)
+    warnings.warn(
+        "js_vars keys collide with existing window properties "
+        f"({names}). Legacy window.<key> reads will not see the page "
+        "value; use psynet.var instead. Common collisions include "
+        "name, status, event, and history.",
+        UserWarning,
+        stacklevel=3,
+    )
+
+
 class Event(dict):
     """
     Defines an event that occurs on the front-end for a given page.
@@ -1272,6 +1325,7 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
+        _warn_js_var_window_collisions(js_vars)
         self.legacy_js_links = legacy_js_links
         self.legacy_scripts = legacy_scripts
         self.js_dependencies = _normalize_javascript_urls(

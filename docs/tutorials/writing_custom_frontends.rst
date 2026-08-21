@@ -551,7 +551,11 @@ does not update ``psynet.var``.
 The compatibility accessors are installed only for keys on the active page,
 and PsyNet removes them on the next page. PsyNet never replaces a
 pre-existing ``window`` property; when a name is already in use, the page value
-remains available through ``psynet.var`` and PsyNet logs a warning. If another
+remains available through ``psynet.var`` and PsyNet logs a warning. Common
+colliding names include ``name``, ``status``, ``event``, and ``history`` —
+legacy ``window.status`` is the browser status bar string, not your page
+variable. Page construction also warns for these well-known collisions.
+If another
 script replaces and locks a compatibility accessor, PsyNet leaves that property
 alone and continues the page transition rather than allowing deprecated
 compatibility behavior to interrupt the canonical ``psynet.var`` update.

@@ -223,7 +223,23 @@ def test_requires_full_page_reload_skips_spa_contract_error():
     page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
-def test_legacy_js_args_still_surface_spa_error_codes():
+def test_js_vars_window_collisions_warn_at_construction():
+    with pytest.warns(UserWarning, match=r"js_vars keys collide.*'status'"):
+        page = Page(
+            template_fragment_str="<p>ok</p>",
+            js_vars={"status": "in-progress", "color": "blue"},
+        )
+
+    assert page.js_vars["status"] == "in-progress"
+
+
+def test_js_vars_without_window_collisions_do_not_warn():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        Page(
+            template_fragment_str="<p>ok</p>",
+            js_vars={"color": "blue", "trial_index": 1},
+        )
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FutureWarning)
         page = Page(

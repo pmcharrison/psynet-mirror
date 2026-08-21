@@ -165,8 +165,12 @@ General
     Controls deprecated access to page ``js_vars`` through matching ``window``
     properties. ``warn`` preserves access and reports each key once in the
     browser console, ``error`` raises an informative ``ReferenceError``, and
-    ``off`` installs no compatibility properties. New code should read
-    ``psynet.var`` directly. Default: ``warn``.
+    ``off`` installs no compatibility properties. Accessors are never
+    installed for names that already exist on ``window`` (for example
+    ``name``, ``status``, ``event``, ``history``); those page values remain
+    available on ``psynet.var``, and page construction warns for common
+    collisions. New code should read ``psynet.var`` directly. Default:
+    ``warn``.
 
 ``lock_table_when_creating_participant`` *bool* |dlgr-icon|
     Prevents possible deadlocks on the `Participant` table.

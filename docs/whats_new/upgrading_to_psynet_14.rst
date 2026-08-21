@@ -86,7 +86,14 @@ examples and cleanup guidance.
 ------------------------------------------
 
 Replace legacy ``window`` reads of ``js_vars`` keys with ``psynet.var``.
-Optionally set ``legacy_js_var_globals = error`` while testing. See
+Optionally set ``legacy_js_var_globals = error`` while testing.
+
+PsyNet does **not** install a legacy ``window.<key>`` accessor when that
+name already exists on ``window``. In the default ``warn`` mode a colliding
+key (for example ``name``, ``status``, ``event``, ``history``) silently
+keeps the browser's value; the page data is still available on
+``psynet.var``. Page construction warns for these common collisions so they
+show up in ``psynet test local`` / ``psynet debug local``. See
 :doc:`/tutorials/writing_custom_frontends` and
 :doc:`/experiment_development/configuration`.
 
