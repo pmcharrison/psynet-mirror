@@ -1,5 +1,7 @@
 # Agent instructions
 
+PsyNet does not support Windows. Develop on macOS or Linux.
+
 Start by following `psynet/resources/experiment_scripts/AGENTS.md`.
 
 Then act on the following PsyNet developer instructions:

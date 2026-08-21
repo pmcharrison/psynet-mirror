@@ -47,9 +47,11 @@ See `references/populating-an-audit.md` for the full pathway guidance.
    ready. Do not re-run expensive checks that already produced review-ready
    files.
 5. Run `psynet audit render`.
-6. Preview locally with `psynet audit serve` (optional `--render` to rebuild
-   first). Use a separate tunnel helper when remote review is needed.
-7. Share the rendered audit for review.
+6. Offer to open the audit for the human with `psynet audit serve --render`.
+   If they agree, start the server, share the local URL, and leave it running.
+   Do not ask them to remember or type that command. Use a separate tunnel
+   helper when remote review is needed.
+7. Hand over the rendered audit for review.
 
 ## Standalone layout
 

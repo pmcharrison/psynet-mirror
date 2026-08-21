@@ -5,6 +5,7 @@ Experiment development
    :maxdepth: 1
 
    experiment_directory
+   agentic_programming
    development_workflow
    configuration
    dependencies

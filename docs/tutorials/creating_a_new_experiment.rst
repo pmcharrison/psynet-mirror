@@ -2,11 +2,10 @@
 Creating a new experiment
 =========================
 
-When you decide it's time to implement your own experiment,
-we generally recommend that you start your implementation by copying
-and pasting a pre-existing experiment.
-This can either be a demo from PsyNet's demos directory,
-or a code repository for a fully-fledged experiment.
+If you are using a coding agent, start with
+:doc:`/experiment_development/agentic_programming`. This page covers creating
+an experiment yourself by copying an existing demo, either from PsyNet's
+demos directory or from a fully-fledged experiment repository.
 
 Suppose we've copied the PsyNet demo ``demos/experiments/audio``,
 pasted it to a new location on our computer,

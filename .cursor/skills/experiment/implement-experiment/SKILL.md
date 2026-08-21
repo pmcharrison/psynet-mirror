@@ -77,7 +77,7 @@ refreshing experiment files and the constrained environment. Do not hand-write
 boilerplate (`Dockerfile`, `test.py`, `.gitignore`, `docker/`, managed skills)
 when setup/scaffold can produce it.
 
-Canonical human docs: `~/PsyNet/docs/tutorials/creating_a_new_experiment.rst`
+Canonical human docs: `~/PsyNet/docs/experiment_development/agentic_programming.rst`
 and `~/PsyNet/psynet/resources/experiment_scripts/AGENTS.md`.
 
 **1. Choose a starting point**
@@ -96,7 +96,6 @@ and `~/PsyNet/psynet/resources/experiment_scripts/AGENTS.md`.
 From the experiment directory:
 
 ```bash
-git init   # if the folder is not already a Git repo (required for local debug)
 uv venv --python 3.13
 source .venv/bin/activate
 uv pip install psynet          # thin bootstrap only
@@ -217,6 +216,9 @@ blocker for each missing artifact is recorded honestly:
   `psynet audit mark-present <artifact_id>`) and record blockers in the audit
   packet. Validate and render with `psynet audit validate` / `psynet audit render`
   (auto-detects `./audit/`). See `produce-experiment-audit`.
+- Offer to open the rendered audit for the human: run
+  `psynet audit serve --render`, share the local URL, and leave the server
+  running. Do not ask the human to remember or type that command.
 
 Closing the audit packet is inventory and bookkeeping, not a second evidence
 campaign. Do not re-run performance tests, simulations, or other expensive

@@ -1,5 +1,7 @@
 # Agent instructions
 
+PsyNet does not support Windows. Develop on macOS or Linux.
+
 PsyNet is a framework for designing and deploying online psychological experiments.
 The agent is there to help both with the development of the PsyNet source code,
 and with the development of individual PsyNet experiments.
@@ -80,12 +82,6 @@ If a user asks for the X demo, list all child directories in `demos/experiments`
 
 ## Running experiments locally
 
-If you copied a demo into a brand new directory, initialize a Git repository first:
-
-```bash
-git init
-```
-
 The PsyNet demo directories include just the authored experiment files.
 Their unpinned `requirements.txt` files and omitted constraints are intentional.
 Within the PsyNet source checkout, PsyNet automatically generates ignored
@@ -99,14 +95,13 @@ Pytest scaffolds demos temporarily via the `in_experiment_directory` fixture.
 On teardown it removes only paths that were absent when the fixture started,
 so pre-existing scaffold leftovers and customized files remain untouched.
 
-For a copied standalone demo, initialize Git and create its complete environment:
+For a copied standalone demo, create its complete environment:
 
 ```bash
-git init
 uv venv --python 3.13
 source .venv/bin/activate
 uv pip install psynet      # bootstrap only (no experiment runtime yet)
-psynet setup               # scaffolds files and installs psynet[experiment]
+psynet setup               # scaffolds files, initializes Git, installs psynet[experiment]
 ```
 
 To run an experiment in debug mode:

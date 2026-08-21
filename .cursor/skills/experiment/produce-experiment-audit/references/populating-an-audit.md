@@ -275,14 +275,15 @@ and check supports that claim.
 
 ## Local preview
 
-From the experiment root, preview the rendered audit locally:
+When handing the audit to a human for review, offer to open it in a browser.
+If they agree, from the experiment root run:
 
 ```bash
-psynet audit serve
+psynet audit serve --render
 ```
 
-Use `--render` to rebuild `audit/site/` first. The server binds locally for
-reviewer preview. Use `public-tunnel` when a remote URL is needed.
+Share the local URL and leave the server running. Do not ask the human to
+remember or type that command. Use `public-tunnel` when a remote URL is needed.
 
 ## Safety
 
