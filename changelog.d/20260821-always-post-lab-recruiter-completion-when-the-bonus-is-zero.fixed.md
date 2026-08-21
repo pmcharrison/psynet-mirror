@@ -1,0 +1,1 @@
+Lab Recruiter now posts a complete or fail outcome when Dallinger skips ``reward_bonus`` because the bonus is below one cent or the data check failed. Local debug without an auth token skips the POST instead of treating it as an error.

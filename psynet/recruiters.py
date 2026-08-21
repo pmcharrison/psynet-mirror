@@ -1,6 +1,5 @@
 import hashlib
 import json
-import os
 import re
 from collections import Counter
 from dataclasses import dataclass
@@ -64,6 +63,12 @@ def screen_out_participant(participant):
 
 class PsyNetRecruiterMixin:
     show_termination_button = False
+
+    def after_submission_complete(self, experiment, participant):
+        """Hook run after Dallinger finishes ``on_recruiter_submission_complete``."""
+
+    def after_rejected_consent(self, experiment, participant):
+        """Hook run when the participant rejects consent and never reaches submission."""
 
     def terminate_participant(
         self, participant=None, assignment_id=None, reason=None, details=None
@@ -440,7 +445,13 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
 
     The external submission URL (where completion/failure outcomes are posted)
     can be overridden via the experiment config key ``lab_recruiter_external_submission_url``.
+    Completion posts authenticate with ``lab_recruiter_auth_token``, normally
+    set in ``~/.dallingerconfig``. Non-debug launches require it. Deployment
+    copies the resolved config into the container environment, so the token
+    reaches the deployed app under that same key.
     """
+
+    post_timeout_seconds = 30
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -474,10 +485,48 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
             # We preserve this commit just in case Dallinger removes the external commit in the future
             session.commit()
 
+    def _authorization_header(self):
+        """Return a DRF Token header built from the configured auth token."""
+        token = (self.config.get("lab_recruiter_auth_token", "") or "").strip()
+        if not token:
+            return None
+        if token.lower() == "token":
+            return None
+        prefix, separator, value = token.partition(" ")
+        if separator and prefix.lower() == "token":
+            token = value.strip()
+        return f"Token {token}"
+
+    def validate_config(self, **kwargs):
+        """Require a Lab Recruiter auth token for non-debug launches."""
+        super().validate_config(**kwargs)
+        if kwargs.get("mode") == "debug":
+            return
+        if not self._authorization_header():
+            raise ValueError(
+                "lab_recruiter_auth_token must be set in ~/.dallingerconfig "
+                "before deploying with the lab recruiter. Store the raw key "
+                "from drf_create_token (not the 'Token ' prefix)."
+            )
+
     def reward_bonus(self, participant, amount, reason):
         """
         Return values for `basePay` and `bonus` to lab-recruiter application.
         """
+        authorization = self._authorization_header()
+        if not authorization:
+            if (self.config.get("mode") or "") == "debug":
+                logger.info(
+                    "Skipping lab-recruiter completion POST in debug: "
+                    "lab_recruiter_auth_token is not set."
+                )
+                return True
+            logger.error(
+                "Skipping lab-recruiter completion POST: "
+                "lab_recruiter_auth_token is not set."
+            )
+            return
+
         data = {
             "assignmentId": participant.assignment_id,
             "basePayment": self.config.get("base_payment"),
@@ -487,12 +536,48 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         url = self.external_submission_url
         url += "/fail" if participant.failed else "/complete"
 
-        requests.post(
-            url,
-            json=data,
-            headers={"Authorization": os.environ.get("LAB_RECRUITER_AUTH_TOKEN")},
-            verify=False,  # Temporary fix because of SSLCertVerificationError
-        )
+        try:
+            response = requests.post(
+                url,
+                json=data,
+                headers={"Authorization": authorization},
+                timeout=self.post_timeout_seconds,
+            )
+            response.raise_for_status()
+        except requests.RequestException:
+            logger.error(
+                "Lab Recruiter completion POST to %s failed for assignment %s.",
+                url,
+                participant.assignment_id,
+                exc_info=True,
+            )
+            return
+        return True
+
+    def after_submission_complete(self, experiment, participant):
+        """Post complete/fail when Dallinger skipped ``reward_bonus`` for a $0 bonus."""
+        if participant.status not in {"approved", "bad_data", "did_not_attend"}:
+            return
+        self._post_zero_bonus_outcome(experiment, participant)
+
+    def after_rejected_consent(self, experiment, participant):
+        """Post fail when the participant rejects consent and never reaches submission."""
+        self._post_zero_bonus_outcome(experiment, participant)
+
+    def _post_zero_bonus_outcome(self, experiment, participant):
+        """Notify Lab Recruiter of a zero-bonus outcome exactly once.
+
+        Dallinger only calls ``reward_bonus`` once the bonus reaches one cent,
+        and skips it altogether for participants who fail the data check. That
+        POST also carries ``basePayment`` and is what moves the task out of its
+        ``started`` state, so those participants would otherwise go unreported.
+        ``participant.bonus`` doubles as the already-posted marker, mirroring
+        Dallinger's own guard against paying a bonus twice.
+        """
+        if participant.bonus is not None:
+            return
+        if self.reward_bonus(participant, 0, experiment.bonus_reason()):
+            participant.bonus = 0
 
     def get_status(self) -> LabRecruitmentStatus:
         """Return the status of the recruiter as a RecruitmentStatus."""
