@@ -1,6 +1,6 @@
 # Agent instructions
 
-PsyNet does not support Windows. Develop on macOS or Linux.
+On Windows, develop in WSL (Ubuntu) using Linux commands. Native Windows is not supported.
 
 Start by following `psynet/resources/experiment_scripts/AGENTS.md`.
 

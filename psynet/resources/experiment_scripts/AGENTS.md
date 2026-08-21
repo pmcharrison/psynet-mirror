@@ -1,6 +1,6 @@
 # Agent instructions
 
-PsyNet does not support Windows. Develop on macOS or Linux.
+On Windows, develop in WSL (Ubuntu) using Linux commands. Native Windows is not supported.
 
 PsyNet is a framework for designing and deploying online psychological experiments.
 The agent is there to help both with the development of the PsyNet source code,

@@ -89,7 +89,10 @@ the full experiment environment, and adds the PsyNet Agent Skills.
 This assumes PsyNet's system prerequisites are already available (Python 3.13,
 Git, uv, PostgreSQL, Redis, Chrome). See the
 :doc:`/installation/index` documentation if you are setting up a machine for
-the first time. PsyNet does not support Windows; develop on macOS or Linux.
+the first time. On Windows, use WSL (Ubuntu) and paste these same commands in
+the Ubuntu terminal; see
+:doc:`/installation/virtual_environment_installation/windows`. Native Windows
+is not supported.
 
 3. Describe the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
