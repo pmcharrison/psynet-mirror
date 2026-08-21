@@ -26,7 +26,8 @@ Check that the experiment folder has:
 - `constraints.txt`
 - `Dockerfile` and/or `Dockertag` when the template expects them
 - `.gitignore` excluding `.venv/`, `.deploy/`, `.pytest_cache/`, `exports/`,
-  `deploy_logs/`, source archives, and generated logs
+  `deploy_logs/`, source archives, generated logs, and the managed
+  `.cursor/skills/psynet/` bundle
 - recruiter/qualification JSON files when a recruiter requires them
 - qualification files and recruiter settings that match any in-experiment
   prescreeners; use `filter-participants/SKILL.md` when the

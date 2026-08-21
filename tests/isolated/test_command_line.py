@@ -899,6 +899,10 @@ def test_scripts_scaffold_bootstraps_empty_directory():
             assert Path("Dockerfile").exists()
             assert Path("config.txt").exists()
             assert Path("constraints.txt").read_text() == "# generated constraints\n"
+            gitignore = Path(".gitignore").read_text(encoding="utf-8")
+            assert ".cursor/skills/psynet/" in gitignore
+            dockerignore = Path(".dockerignore").read_text(encoding="utf-8")
+            assert ".cursor/skills/psynet/" in dockerignore
 
 
 def test_scripts_scaffold_uses_running_python_version(tmp_path, monkeypatch):

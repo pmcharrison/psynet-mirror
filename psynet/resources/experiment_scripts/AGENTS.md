@@ -11,8 +11,9 @@ PsyNet experiment skills are installed under `.cursor/skills/psynet/` by
 `psynet scripts update` (and created when missing by `psynet scripts scaffold`).
 Treat that directory as PsyNet-managed: update the canonical skills in the
 PsyNet source repository rather than editing generated copies in an experiment.
-Skills elsewhere under `.cursor/skills/` belong to the experiment and are
-preserved by `psynet scripts update`.
+It is gitignored in experiment repositories. Skills elsewhere under
+`.cursor/skills/` belong to the experiment and are preserved by
+`psynet scripts update`.
 
 ## Agent Skills authoring
 
