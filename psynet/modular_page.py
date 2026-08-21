@@ -1974,10 +1974,17 @@ class ModularPage(Page):
         components = list(self._iter_layout_components())
         assets = self._collect_component_assets(components, kwargs)
 
+        active_roles = {role: component for role, component in components}
         modular_page_components = {
-            "prompt": self.prompt.macro,
-            "control": self.control.macro,
-            "chatroom": self.chatroom.macro if chatroom is not None else None,
+            "prompt": (
+                active_roles["prompt"].macro if "prompt" in active_roles else None
+            ),
+            "control": (
+                active_roles["control"].macro if "control" in active_roles else None
+            ),
+            "chatroom": (
+                active_roles["chatroom"].macro if "chatroom" in active_roles else None
+            ),
         }
         js_var_sources = [
             (
@@ -2018,8 +2025,10 @@ class ModularPage(Page):
 
     def _iter_layout_components(self):
         """Yield layout-active components that contribute page assets."""
-        yield "prompt", self.prompt
-        yield "control", self.control
+        if "prompt" in self.layout:
+            yield "prompt", self.prompt
+        if "control" in self.layout:
+            yield "control", self.control
         if self.chatroom is not None and "chatroom" in self.layout:
             yield "chatroom", self.chatroom
 
@@ -2059,7 +2068,8 @@ class ModularPage(Page):
 
     def _collect_spa_incompatibility_codes(self):
         codes = super()._collect_spa_incompatibility_codes()
-        codes.extend(self.prompt._collect_spa_markup_contract_codes())
+        if "prompt" in self.layout:
+            codes.extend(self.prompt._collect_spa_markup_contract_codes())
         codes.extend(self._collect_external_template_contract_codes())
         return list(dict.fromkeys(codes))
 
@@ -2124,8 +2134,10 @@ class ModularPage(Page):
 
     def prepare_default_events(self):
         events = super().prepare_default_events()
-        self.prompt.update_events(events)
-        self.control.update_events(events)
+        if "prompt" in self.layout:
+            self.prompt.update_events(events)
+        if "control" in self.layout:
+            self.control.update_events(events)
         return events
 
     @property

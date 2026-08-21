@@ -101,6 +101,7 @@ TEST_EXPERIMENT_TREE_PREFIXES = (
 TEST_EXPERIMENT_CUSTOM_CONFIGS = {
     "tests/experiments/async_processes/config.txt",
     "tests/playwright/experiments/adversarial_lifecycle/config.txt",
+    "tests/playwright/experiments/broken_page_dependency/config.txt",
     "tests/playwright/experiments/broken_page_module/config.txt",
     "tests/playwright/experiments/deferred_page_scripts/config.txt",
     "tests/playwright/experiments/js_var_globals/config.txt",

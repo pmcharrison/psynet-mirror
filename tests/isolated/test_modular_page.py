@@ -358,6 +358,29 @@ def test_omitted_chatroom_does_not_contribute_managed_resources():
     )
 
 
+def test_omitted_prompt_does_not_contribute_managed_resources():
+    page = ModularPage(
+        "test",
+        MusicNotationPrompt("C D E F"),
+        layout=["control", "buttons"],
+    )
+
+    assert page.js_dependencies == []
+    assert page.js_page_modules == []
+    assert "music_notation_prompt" not in page.js_vars
+    assert page.js_vars["modular_page_components"]["prompt"] is None
+
+
+def test_omitted_prompt_skips_prompt_spa_markup_codes():
+    page = ModularPage(
+        "test",
+        Prompt(Markup("<style>.hidden { color: red; }</style>")),
+        layout=["control", "buttons"],
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
 def test_music_notation_prompt_uses_managed_javascript():
     page = ModularPage(
         "test",

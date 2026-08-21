@@ -553,8 +553,10 @@
           script.remove();
           resolve();
         };
-        script.onerror = () =>
+        script.onerror = () => {
+          script.remove();
           reject(new Error("Could not load script " + normalizedSrc + "."));
+        };
         document.head.appendChild(script);
       });
     };
