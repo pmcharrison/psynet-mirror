@@ -1,3 +1,5 @@
+.. _sqlalchemy_profiling:
+
 SQLAlchemy profiling
 ====================
 

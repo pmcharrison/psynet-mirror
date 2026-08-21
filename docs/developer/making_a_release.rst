@@ -41,8 +41,6 @@ Overview
      (for example ``docs/whats_new/psynet_14.rst``) so authors get a short,
      readable summary and a clear upgrade pointer. Skip this only for
      patch-only releases with nothing meaningful to say there.
-   * Regenerate the bundled demo and test experiments with
-     ``psynet dev experiments update``.
 
 3. Publish: tag ``vX.Y.Z`` on the release branch, wait for CI, build and
    upload to PyPI, create the GitLab release, and announce on Slack with
@@ -76,9 +74,6 @@ manager explicitly decides to release directly.
 .. attention::
 
     If the release upgrades the Dallinger dependency, also update
-    ``recommended_dallinger_major_minor`` in ``psynet/version.py``, refresh
+    ``recommended_dallinger_major_minor`` in ``psynet/version.py`` and refresh
     the vendored Dallinger CI constraints snapshot with
-    ``psynet dev ci update-dallinger-constraints``, and make sure the
-    matching Dallinger version is installed before running
-    ``psynet dev experiments update``, as the command uses it to resolve
-    constraint versions.
+    ``psynet dev ci update-dallinger-constraints``.

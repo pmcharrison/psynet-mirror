@@ -91,7 +91,7 @@ def new_command(category: str, description: str) -> int:
             "the day) or rename the existing fragment."
         )
 
-    path.write_text(f"{description.strip()} (author: [Your Name])\n", encoding="utf-8")
+    path.write_text(f"{description.strip()}\n", encoding="utf-8")
     print(path)
     return 0
 

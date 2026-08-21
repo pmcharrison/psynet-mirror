@@ -37,7 +37,13 @@ Global variables should be set via the `.dallingerconfig` file in your home dire
 Experiment-specific variables
 +++++++++++++++++++++++++++++
 
-Experiment-specific variables can be set in two ways – firstly via a `config.txt` file in the experiment's root directory which follows the same syntactic rules as the one for global variables above. For example:
+Every experiment directory must include a ``config.txt`` file. The file may be
+empty. PsyNet still requires it to be present before local debug/test and
+deployment.
+
+Experiment-specific variables can be set in two ways – firstly via that
+``config.txt`` file, which follows the same syntactic rules as the one for
+global variables above. For example:
 
 .. code-block:: text
 
@@ -56,9 +62,29 @@ Secondly, they can also be set by creating a config dictionary in the ``Experime
             "show_abort_button": True,
         }
 
+Do not set the same key in both places. If a variable appears in both
+``config.txt`` and ``Experiment.config``, PsyNet raises an error and asks you
+to keep just one location.
+
 .. note::
 
     When setting variables via `config.txt` or `.dallingerconfig` boolean values can be assigned be either using ``true``, ``True``, ``false``, or ``False``.
+
+.. note::
+
+    **Upgrading an older experiment.** Older PsyNet versions sometimes ran
+    without a real ``config.txt`` (for example when all settings lived in
+    ``Experiment.config``). If you upgrade such an experiment and PsyNet
+    complains that ``config.txt`` is missing, create an empty file in the
+    experiment directory::
+
+        touch config.txt
+
+    Prefer that over ``psynet scripts scaffold`` / ``psynet setup`` if you
+    already manage settings in Python: scaffolding writes a demo template with
+    active keys (title, recruiter, and so on), which will conflict with any
+    overlapping keys in ``Experiment.config``. An existing ``config.txt`` —
+    including an empty one — is never overwritten by scaffold or update.
 
 
 Available config variables
