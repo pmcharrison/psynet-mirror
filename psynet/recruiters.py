@@ -23,8 +23,11 @@ Key design constraints for maintainers:
 - Payment is split into decide / record / transfer. ``decide_payment``
   returns a ``PaymentDecision`` (status, platform base, bonus)
   from the participant's outcome and recruiter policy; ``record_payment``
-  writes those fields onto the participant; ``reward_bonus`` transfers
-  money and returns ``False`` if the platform rejected the transfer.
+  writes those fields onto the participant; ``report_submission_outcome``
+  reports the terminal outcome and delegates real bonus transfers to
+  ``reward_bonus`` by default. Recruiters with a combined outcome/payment
+  callback can report zero bonuses too. ``False`` means the platform rejected
+  the report or transfer.
   ``Experiment.on_recruiter_submission_complete`` owns this sequence,
   always re-recording status and platform base, and uses ``bonus_status``
   to skip a repeat transfer. PsyNet posts a bonus automatically at most
@@ -42,7 +45,6 @@ Key design constraints for maintainers:
 
 import hashlib
 import json
-import os
 import re
 from collections import Counter
 from dataclasses import dataclass
@@ -82,7 +84,11 @@ from .page import InfoPage
 from .participant import (
     BONUS_STATUS_CAPPED,
     BONUS_STATUS_SUCCESS,
+    BONUS_STATUS_UNCONFIRMED,
+    NO_BONUS_ATTEMPT_RESULT,
     Participant,
+    bonus_is_settled,
+    bonus_needs_review,
     record_bonus_attempt_detail,
 )
 from .timeline import (
@@ -236,6 +242,21 @@ def _prolific_error_status(error: ProlificServiceException):
 
 class PsyNetRecruiterMixin:
     show_termination_button = False
+
+    def report_submission_outcome(self, participant, amount, reason):
+        """Report the terminal outcome, transferring a real bonus if needed.
+
+        Most recruiters have no separate outcome callback, so sub-cent
+        amounts are a no-op and real bonuses use ``reward_bonus``. Recruiters
+        whose bonus endpoint is also their terminal outcome callback can
+        override this method to report every amount, including zero.
+        """
+        if amount < 0.01:
+            return True
+        return self.reward_bonus(participant, amount, reason)
+
+    def after_rejected_consent(self, experiment, participant):
+        """Hook run when the participant rejects consent and never reaches submission."""
 
     def terminate_participant(
         self, participant=None, assignment_id=None, reason=None, details=None
@@ -1106,7 +1127,13 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
 
     The external submission URL (where completion/failure outcomes are posted)
     can be overridden via the experiment config key ``lab_recruiter_external_submission_url``.
+    Completion posts authenticate with ``lab_recruiter_auth_token``, normally
+    set in ``~/.dallingerconfig``. Non-debug launches require it. Deployment
+    copies the resolved config into the container environment, so the token
+    reaches the deployed app under that same key.
     """
+
+    post_timeout_seconds = 30
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -1140,10 +1167,44 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
             # We preserve this commit just in case Dallinger removes the external commit in the future
             session.commit()
 
+    def _authorization_header(self):
+        """Return a DRF Token header built from the configured auth token."""
+        token = (self.config.get("lab_recruiter_auth_token", "") or "").strip()
+        if not token:
+            return None
+        if token.lower() == "token":
+            return None
+        prefix, separator, value = token.partition(" ")
+        if separator and prefix.lower() == "token":
+            token = value.strip()
+        return f"Token {token}"
+
+    def validate_config(self, **kwargs):
+        """Require a Lab Recruiter auth token for non-debug launches."""
+        super().validate_config(**kwargs)
+        if kwargs.get("mode") == "debug":
+            return
+        if not self._authorization_header():
+            raise ValueError(
+                "lab_recruiter_auth_token must be set in ~/.dallingerconfig "
+                "before deploying with the lab recruiter. Store the raw key "
+                "from drf_create_token (not the 'Token ' prefix)."
+            )
+
     def reward_bonus(self, participant, amount, reason):
-        """
-        Return values for `basePay` and `bonus` to lab-recruiter application.
-        """
+        """Backward-compatible alias for the Lab Recruiter outcome callback."""
+        return self.report_submission_outcome(participant, amount, reason)
+
+    def report_submission_outcome(self, participant, amount, reason):
+        """Report a terminal Lab Recruiter outcome, including a zero bonus."""
+        authorization = self._authorization_header()
+        if not authorization:
+            logger.error(
+                "Skipping lab-recruiter completion POST: "
+                "lab_recruiter_auth_token is not set."
+            )
+            return False
+
         data = {
             "assignmentId": participant.assignment_id,
             "basePayment": self.config.get("base_payment"),
@@ -1157,29 +1218,32 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
             response = requests.post(
                 url,
                 json=data,
-                headers={"Authorization": os.environ.get("LAB_RECRUITER_AUTH_TOKEN")},
-                verify=False,  # Temporary fix because of SSLCertVerificationError
+                headers={"Authorization": authorization},
+                timeout=self.post_timeout_seconds,
             )
+            response.raise_for_status()
         except requests.RequestException as ex:
             logger.error(
-                "Lab recruiter bonus POST failed for assignment %s: %s",
+                "Lab Recruiter completion POST to %s failed for assignment %s.",
+                url,
                 participant.assignment_id,
-                ex,
+                exc_info=True,
             )
             record_bonus_attempt_detail(participant, str(ex))
             return False
-        if not response.ok:
-            logger.error(
-                "Lab recruiter bonus POST for assignment %s returned HTTP %s.",
-                participant.assignment_id,
-                response.status_code,
-            )
-            record_bonus_attempt_detail(
-                participant,
-                f"Lab recruiter bonus POST returned HTTP {response.status_code}.",
-            )
-            return False
         return True
+
+    def after_rejected_consent(self, experiment, participant):
+        """Post fail when the participant rejects consent and never reaches submission."""
+        if bonus_is_settled(participant) or bonus_needs_review(participant):
+            return
+        participant.planned_bonus = 0.0
+        participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+        record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
+        experiment.commit_payment_state()
+        if self.report_submission_outcome(participant, 0.0, experiment.bonus_reason()):
+            participant.bonus_status = BONUS_STATUS_SUCCESS
+            participant.bonus_attempt_detail = None
 
     def get_status(self) -> LabRecruitmentStatus:
         """Return the status of the recruiter as a RecruitmentStatus."""
@@ -1234,6 +1298,9 @@ class DevLabRecruiter(DevRecruiter, BaseLabRecruiter):
     """
     The development lab-recruiter.
 
+    Used by ``psynet debug local`` when ``debug_recruiter = dev-lab-recruiter``.
+    Posts completion/failure to ``http://localhost:8000/tasks`` unless
+    ``lab_recruiter_external_submission_url`` overrides it.
     """
 
     nickname = "dev-lab-recruiter"

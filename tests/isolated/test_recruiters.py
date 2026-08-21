@@ -22,9 +22,11 @@ from psynet.participant import (
 from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
+    BaseLabRecruiter,
     PaymentDecision,
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
+    PsyNetRecruiterMixin,
 )
 
 
@@ -595,8 +597,8 @@ class PaymentHarness:
     pay_decided_bonus = _Experiment.pay_decided_bonus
     pay_review_bonus = _Experiment.pay_review_bonus
     dismiss_review_bonus = _Experiment.dismiss_review_bonus
-    _record_bonus_transfer_success = _Experiment._record_bonus_transfer_success
-    _notify_bonus_transfer_failed = _Experiment._notify_bonus_transfer_failed
+    _record_payment_outcome_success = _Experiment._record_payment_outcome_success
+    _notify_payment_outcome_failed = _Experiment._notify_payment_outcome_failed
     on_recruiter_submission_complete = _Experiment.on_recruiter_submission_complete
 
     def __init__(self):
@@ -652,6 +654,11 @@ def prepare_payout_participant(participant):
     participant.recruiter.nickname = "prolific"
     participant.recruiter.approve_hit = MagicMock(return_value=True)
     participant.recruiter.reward_bonus = MagicMock()
+    participant.recruiter.report_submission_outcome = MagicMock(
+        side_effect=lambda participant, amount, reason: (
+            participant.recruiter.reward_bonus(participant, amount, reason)
+        )
+    )
     return participant
 
 
@@ -1143,7 +1150,7 @@ class PaymentCapHarness:
     clip_bonus_for_spend_caps = _Experiment.clip_bonus_for_spend_caps
     pay_decided_bonus = _Experiment.pay_decided_bonus
     pay_review_bonus = _Experiment.pay_review_bonus
-    _record_bonus_transfer_success = _Experiment._record_bonus_transfer_success
+    _record_payment_outcome_success = _Experiment._record_payment_outcome_success
 
     def __init__(self, *, spent=0.0, hard_max=1100.0, max_participant=25.0):
         self.spent = spent
@@ -1261,11 +1268,11 @@ def test_pay_decided_bonus_pays_remaining_hard_max_as_capped():
         bonus=None,
     )
     participant.amount_paid.return_value = 1.00
-    participant.recruiter.reward_bonus = MagicMock(return_value=True)
+    participant.recruiter.report_submission_outcome = MagicMock(return_value=True)
     decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.00)
 
     assert harness.pay_decided_bonus(participant, decision) is True
-    participant.recruiter.reward_bonus.assert_called_once_with(
+    participant.recruiter.report_submission_outcome.assert_called_once_with(
         participant, 0.50, "thanks"
     )
     assert participant.planned_bonus == 1.00
@@ -1281,11 +1288,13 @@ def test_pay_decided_bonus_pays_nothing_when_hard_max_has_no_room():
         planned_bonus=0.0,
         bonus=None,
     )
-    participant.recruiter.reward_bonus = MagicMock()
+    participant.recruiter.report_submission_outcome = MagicMock(return_value=True)
     decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.00)
 
     assert harness.pay_decided_bonus(participant, decision) is True
-    participant.recruiter.reward_bonus.assert_not_called()
+    participant.recruiter.report_submission_outcome.assert_called_once_with(
+        participant, 0.0, "thanks"
+    )
     assert participant.planned_bonus == 1.00
     assert participant.bonus is None
     assert participant.bonus_status == BONUS_STATUS_CAPPED
@@ -1856,3 +1865,201 @@ def test_calculate_reward_treats_missing_time_fields_as_zero():
     with patch("psynet.participant.get_config") as get_config:
         get_config.return_value.get.return_value = 9.0
         assert RewardParticipant().calculate_reward() == 0.0
+
+
+def make_lab_recruiter(token="abc123", base_payment=1.5):
+    recruiter = BaseLabRecruiter.__new__(BaseLabRecruiter)
+    recruiter.config = {
+        "lab_recruiter_auth_token": token,
+        "base_payment": base_payment,
+    }
+    recruiter.external_submission_url = "https://recruiter.example.edu/tasks"
+    return recruiter
+
+
+def make_lab_participant(failed=False):
+    participant = MagicMock()
+    participant.assignment_id = "assignment-1"
+    participant.failed = failed
+    participant.failure_tags = ["too_slow"] if failed else []
+    participant.bonus = None
+    return participant
+
+
+@pytest.mark.parametrize(
+    "failed, url_suffix, failed_reason",
+    [
+        (False, "/complete", []),
+        (True, "/fail", ["too_slow"]),
+    ],
+)
+def test_lab_recruiter_reward_bonus_posts_outcome(failed, url_suffix, failed_reason):
+    recruiter = make_lab_recruiter(token="secret-key")
+    participant = make_lab_participant(failed=failed)
+
+    with patch("psynet.recruiters.requests.post") as post:
+        posted = recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+
+    args, kwargs = post.call_args
+    assert args[0] == f"https://recruiter.example.edu/tasks{url_suffix}"
+    assert kwargs["headers"] == {"Authorization": "Token secret-key"}
+    assert kwargs["json"] == {
+        "assignmentId": "assignment-1",
+        "basePayment": 1.5,
+        "bonus": 0.25,
+        "failed_reason": failed_reason,
+    }
+    assert kwargs.get("verify", True) is True
+    assert kwargs["timeout"] == BaseLabRecruiter.post_timeout_seconds
+    assert posted is True
+
+
+def test_lab_recruiter_reward_bonus_skips_post_when_token_missing(caplog):
+    recruiter = make_lab_recruiter(token="")
+    participant = make_lab_participant()
+
+    with (
+        patch("psynet.recruiters.requests.post") as post,
+        caplog.at_level("ERROR", logger="psynet"),
+    ):
+        posted = recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+
+    post.assert_not_called()
+    assert "lab_recruiter_auth_token is not set" in caplog.text
+    assert not posted
+
+
+def test_lab_recruiter_token_prefix_is_normalized():
+    recruiter = make_lab_recruiter(token="Token config-secret")
+    participant = make_lab_participant()
+
+    with patch("psynet.recruiters.requests.post") as post:
+        recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+
+    assert post.call_args.kwargs["headers"] == {"Authorization": "Token config-secret"}
+
+
+def test_lab_recruiter_reward_bonus_logs_http_error(caplog):
+    from requests import HTTPError
+
+    recruiter = make_lab_recruiter()
+    participant = make_lab_participant()
+
+    with (
+        patch("psynet.recruiters.requests.post") as post,
+        caplog.at_level("ERROR", logger="psynet"),
+    ):
+        post.return_value.raise_for_status.side_effect = HTTPError("bad response")
+        posted = recruiter.reward_bonus(participant, amount=0.25, reason="completed")
+
+    assert not posted
+    assert "Lab Recruiter completion POST" in caplog.text
+    assert participant.bonus is None
+
+
+def test_lab_recruiter_validate_config_requires_token_outside_debug():
+    make_lab_recruiter(token="abc123").validate_config(mode="live")
+    with pytest.raises(ValueError, match="lab_recruiter_auth_token must be set"):
+        make_lab_recruiter(token="").validate_config(mode="live")
+    make_lab_recruiter(token="").validate_config(mode="debug")
+
+
+@pytest.mark.parametrize(
+    "amount, delivered",
+    [
+        (0.0, None),
+        (0.25, 0.25),
+    ],
+)
+def test_payment_pipeline_reports_lab_outcome_once(amount, delivered):
+    participant = make_lab_participant()
+    participant.id = 9
+    participant.recruiter = make_lab_recruiter()
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = None
+    harness = PaymentHarness()
+    decision = PaymentDecision(status="approved", platform_base=1.50, bonus=amount)
+
+    with patch("psynet.recruiters.requests.post") as post:
+        assert harness.pay_decided_bonus(participant, decision)
+        assert harness.pay_decided_bonus(participant, decision)
+
+    post.assert_called_once()
+    assert post.call_args.kwargs["json"]["bonus"] == amount
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.bonus == delivered
+    assert harness.payment_commits == 1
+
+
+def test_zero_lab_outcome_failure_stays_unconfirmed():
+    from requests import HTTPError
+
+    participant = make_lab_participant()
+    participant.id = 9
+    participant.recruiter = make_lab_recruiter()
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = None
+    harness = PaymentHarness()
+    decision = PaymentDecision(status="approved", platform_base=1.50, bonus=0.0)
+
+    with patch("psynet.recruiters.requests.post") as post:
+        post.return_value.raise_for_status.side_effect = HTTPError("bad response")
+        assert not harness.pay_decided_bonus(participant, decision)
+
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.bonus is None
+    assert harness.payment_commits == 1
+
+
+def test_default_outcome_report_skips_zero_and_transfers_real_bonus():
+    recruiter = MagicMock()
+    recruiter.reward_bonus.return_value = True
+
+    assert PsyNetRecruiterMixin.report_submission_outcome(
+        recruiter, MagicMock(), 0.0, "Thanks"
+    )
+    recruiter.reward_bonus.assert_not_called()
+
+    participant = MagicMock()
+    assert PsyNetRecruiterMixin.report_submission_outcome(
+        recruiter, participant, 0.25, "Thanks"
+    )
+    recruiter.reward_bonus.assert_called_once_with(participant, 0.25, "Thanks")
+
+
+def test_lab_recruiter_consent_rejection_reports_zero_outcome_once():
+    recruiter = make_lab_recruiter()
+    participant = make_lab_participant(failed=True)
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = None
+    experiment = PaymentHarness()
+
+    with patch.object(
+        recruiter, "report_submission_outcome", return_value=True
+    ) as report:
+        recruiter.after_rejected_consent(experiment, participant)
+        recruiter.after_rejected_consent(experiment, participant)
+
+    report.assert_called_once_with(participant, 0.0, "thanks")
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert experiment.payment_commits == 1
+
+
+def test_rejected_consent_dispatches_recruiter_hook():
+    from psynet.end import RejectedConsentLogic
+
+    recruiter = make_lab_recruiter()
+    recruiter.after_rejected_consent = MagicMock()
+    experiment = MagicMock()
+    experiment.recruiter = recruiter
+    experiment.with_lucid_recruitment.return_value = False
+    participant = MagicMock()
+    participant.recruiter = recruiter
+
+    RejectedConsentLogic().before_debrief(experiment, participant)
+
+    participant.fail.assert_called_once_with()
+    recruiter.after_rejected_consent.assert_called_once_with(experiment, participant)

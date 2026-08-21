@@ -2514,17 +2514,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return payable
 
     def pay_decided_bonus(self, participant, decision, *, reason=None) -> bool:
-        """Transfer ``decision.bonus`` after spend-cap checks, then record it.
+        """Report the outcome and transfer any bonus after spend-cap checks.
 
-        Returns True if payout for this participant is finished (paid,
-        clipped or skipped by a spend cap, skipped as too small, or already
-        settled). Returns False if the platform rejected the transfer or a
-        previous attempt already failed. PsyNet posts a bonus to the
-        platform at most once per participant: the attempt is claimed by
-        setting ``bonus_status = unconfirmed``, ``planned_bonus``, and a
-        last-attempt placeholder before the recruiter call, so a later
-        replay will not pay again. A failed transfer stays unconfirmed and
-        asks the experimenter to review on the Participants dashboard.
+        Returns True if the outcome for this participant is finished
+        (reported, paid, capped, or already settled). Returns False if the
+        platform rejected the report/transfer or a previous attempt already
+        failed. PsyNet calls ``report_submission_outcome`` at most once
+        automatically. Its default skips sub-cent bonuses and delegates real
+        transfers to ``reward_bonus``; recruiters with a combined terminal
+        callback can report every amount. The attempt is claimed by setting
+        ``bonus_status = unconfirmed``, ``planned_bonus``, and a last-attempt
+        placeholder before the recruiter call, so a later replay will not
+        report or pay again. A failed call stays unconfirmed and asks the
+        experimenter to review on the Participants dashboard.
         A hard-cap clip keeps ``planned_bonus`` as the decided amount and
         finishes as ``capped`` even when a remainder was sent.
 
@@ -2564,62 +2566,55 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         bonus = round(bonus, 2)
         planned = participant.planned_bonus if hard_capped else bonus
-        min_real_bonus = 0.01
-        if bonus < min_real_bonus:
-            logger.info(
-                "Bonus of %s will NOT be paid to participant %s as it is less than %s.",
-                bonus,
-                participant.id,
-                min_real_bonus,
-            )
-            if hard_capped:
-                return True
-            if not bonus_is_settled(participant):
-                participant.planned_bonus = 0.0
-                participant.bonus_status = BONUS_STATUS_SUCCESS
-            return True
 
-        # Claim the single automatic platform POST and commit it before
-        # calling the recruiter, so a crash after a successful POST cannot
-        # look like not_due_yet and pay twice.
+        # Claim the single automatic platform outcome report and commit it
+        # before calling the recruiter, so a crash after a successful POST
+        # cannot look like not_due_yet and report or pay twice.
         participant.bonus_status = BONUS_STATUS_UNCONFIRMED
         participant.planned_bonus = planned
         record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
         self.commit_payment_state()
-        logger.info("Paying bonus of %s to %s", bonus, participant.id)
-        transferred = participant.recruiter.reward_bonus(
+        logger.info("Reporting outcome with bonus %s for %s", bonus, participant.id)
+        transferred = participant.recruiter.report_submission_outcome(
             participant,
             bonus,
             self.bonus_reason() if reason is None else reason,
         )
         if transferred is False:
             logger.error(
-                "Bonus transfer failed for participant %s; leaving payment "
+                "Payment outcome report failed for participant %s; leaving payment "
                 "unconfirmed for manual review.",
                 participant.id,
             )
-            self._notify_bonus_transfer_failed(participant, bonus)
+            self._notify_payment_outcome_failed(participant, bonus)
             return False
 
-        self._record_bonus_transfer_success(
+        self._record_payment_outcome_success(
             participant,
             bonus,
             bonus_status=BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS,
+            record_delivered=bonus >= 0.01,
         )
         return True
 
-    def _record_bonus_transfer_success(
-        self, participant, amount: float, *, bonus_status=BONUS_STATUS_SUCCESS
+    def _record_payment_outcome_success(
+        self,
+        participant,
+        amount: float,
+        *,
+        bonus_status=BONUS_STATUS_SUCCESS,
+        record_delivered=True,
     ) -> None:
-        """Record that this bonus was transferred and no longer needs review."""
-        participant.bonus = amount
+        """Record a successful outcome report and any delivered bonus."""
+        if record_delivered:
+            participant.bonus = amount
         if not (participant.planned_bonus or 0.0):
             participant.planned_bonus = amount
         participant.bonus_status = bonus_status
         participant.bonus_attempt_detail = None
 
     def pay_review_bonus(self, participant) -> tuple[str, str]:
-        """Poll the platform, then POST remaining capped bonus if unpaid.
+        """Poll the platform, then retry the remaining payment outcome.
 
         Re-applies spend caps to ``planned_bonus`` (the decided amount).
         If the platform already reports at least that payable remainder,
@@ -2648,8 +2643,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"{participant.id}. Try again in a moment.",
             )
         already = 0.0 if apparent is None else round(float(apparent), 2)
-        if already + 1e-9 >= payable:
-            self._record_bonus_transfer_success(
+        if can_report and already + 1e-9 >= payable:
+            self._record_payment_outcome_success(
                 participant, already, bonus_status=settled_status
             )
             return (
@@ -2658,32 +2653,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"participant {participant.id}; recorded without posting.",
             )
         to_post = round(max(0.0, payable - already), 2)
-        min_real_bonus = 0.01
-        if to_post < min_real_bonus:
-            self._record_bonus_transfer_success(
-                participant, already, bonus_status=settled_status
-            )
-            return (
-                "success",
-                f"No remaining bonus to post for participant {participant.id}.",
-            )
         logger.info(
-            "Dashboard retry: paying bonus of %s to participant %s",
+            "Dashboard retry: reporting outcome with bonus %s for participant %s",
             to_post,
             participant.id,
         )
         record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
         self.commit_payment_state()
-        transferred = recruiter.reward_bonus(participant, to_post, self.bonus_reason())
+        transferred = recruiter.report_submission_outcome(
+            participant, to_post, self.bonus_reason()
+        )
         if transferred is False:
             return (
                 "danger",
-                f"Bonus POST failed for participant {participant.id}. "
+                f"Payment outcome POST failed for participant {participant.id}. "
                 "Check the platform, then try again if it still looks unpaid.",
             )
         delivered = round(already + to_post, 2)
-        self._record_bonus_transfer_success(
-            participant, delivered, bonus_status=settled_status
+        self._record_payment_outcome_success(
+            participant,
+            delivered,
+            bonus_status=settled_status,
+            record_delivered=delivered >= 0.01,
         )
         return (
             "success",
@@ -2715,9 +2706,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "without posting a bonus.",
         )
 
-    def _notify_bonus_transfer_failed(self, participant, bonus: float) -> None:
+    def _notify_payment_outcome_failed(self, participant, bonus: float) -> None:
         message = (
-            f"Bonus transfer failed for participant {participant.id} "
+            f"Payment outcome report failed for participant {participant.id} "
             f"(assignment {participant.assignment_id}, worker "
             f"{participant.worker_id}). PsyNet will not retry automatically. "
             f"Please open this participant on the Participants dashboard "
@@ -2804,7 +2795,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             else:
                 logger.error(
-                    "Bonus transfer failed for participant %s; continuing "
+                    "Payment outcome report failed for participant %s; continuing "
                     "recruitment and leaving payment for manual review.",
                     participant.id,
                 )

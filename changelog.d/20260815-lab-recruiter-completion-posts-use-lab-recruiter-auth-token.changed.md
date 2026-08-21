@@ -1,0 +1,1 @@
+Lab Recruiter completion and failure posts now send ``Authorization: Token <value>`` from the ``lab_recruiter_auth_token`` config key. Deploying with the lab recruiter now requires this key to be set. These posts now verify TLS certificates, time out after 30 seconds, and log failures without aborting participant submission.

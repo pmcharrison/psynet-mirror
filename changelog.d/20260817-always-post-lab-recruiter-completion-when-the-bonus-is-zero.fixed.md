@@ -1,0 +1,1 @@
+Submission outcomes now pass through a recruiter hook after payment is decided and capped. The default transfers real bonuses, while Lab Recruiter reports every terminal outcome through its combined completion/payment endpoint, including a zero bonus.
