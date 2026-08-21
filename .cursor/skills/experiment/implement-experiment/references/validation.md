@@ -18,8 +18,7 @@ psynet simulate --audit
 ```
 
 `psynet simulate --audit` still writes `data/simulated_data/` and also zips it
-to `audit/artifacts/simulated_data.zip`. Mark `simulation_export` present after
-a run you intend to hand off.
+to `audit/artifacts/simulated_data.zip`, then marks `simulation_export` present.
 
 ## Performance evidence
 
@@ -36,18 +35,19 @@ psynet performance-test local \
   --audit
 ```
 
-That writes `audit/artifacts/performance.json`. Use `--json-output` only for a
-custom non-audit path. Prefer an absolute `--audit` path when PsyNet may run
-from a temporary deployment directory.
+That writes `audit/artifacts/performance.json` and marks `performance_result`
+present. Use `--json-output` only for a custom non-audit path. Prefer an
+absolute `--audit` path when PsyNet may run from a temporary deployment
+directory.
 If the experiment customizes `run_bot`, preserve `bot=None` support and delegate
 to `super().run_bot(...)` for framework-created bots; `psynet performance-test`
 calls `exp.run_bot(time_factor=...)` without passing a bot object.
 
-Short smoke runs are fine while iterating or infrastructure-testing; write them
-with `--audit` when you want the JSON in the packet. Prefer a sustained run
-when claiming production-like performance evidence. Skip an expensive re-run
-when a suitable `audit/artifacts/performance.json` already exists for the
-current implementation.
+Short smoke runs are fine while iterating or infrastructure-testing; omit
+`--audit` (or use `--json-output`) so they do not become the packet's evidence.
+Prefer a sustained run when claiming production-like performance evidence. Skip
+an expensive re-run when a suitable `audit/artifacts/performance.json` already
+exists for the current implementation.
 
 ## Interactive evidence
 

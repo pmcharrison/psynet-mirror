@@ -1,3 +1,4 @@
 Added ``psynet simulate --audit``, which zips ``data/simulated_data/`` to
-``<audit>/artifacts/simulated_data.zip`` after the usual simulate export. Bare
-``--audit`` auto-detects the packet; it does not mark the artifact present.
+``<audit>/artifacts/simulated_data.zip`` after the usual simulate export and
+marks ``simulation_export`` present. Bare ``--audit`` auto-detects the packet.
+Use ``--no-mark-present`` to write the zip without updating ``audit.json``.

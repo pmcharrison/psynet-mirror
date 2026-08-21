@@ -3393,24 +3393,38 @@ def _audit_packet_option(help_text: str):
 
 _test_options["performance_audit"] = _audit_packet_option(
     """
-    Write performance results to <audit>/artifacts/performance.json.
-    Pass a packet path, or --audit alone to auto-detect from the current
-    directory (./audit.json or ./audit/audit.json). Creates artifacts/ if
-    needed. Do not combine with --json-output."""
+    Write performance results to <audit>/artifacts/performance.json and mark
+    performance_result present. Pass a packet path, or --audit alone to
+    auto-detect from the current directory (./audit.json or
+    ./audit/audit.json). Creates artifacts/ if needed. Do not combine with
+    --json-output. Use --no-mark-present to write the file without updating
+    audit.json."""
 )
 
 _test_options["simulate_audit"] = _audit_packet_option(
     """
-    After exporting data/simulated_data/, also zip it to
-    <audit>/artifacts/simulated_data.zip. Pass a packet path, or --audit
-    alone to auto-detect from the current directory (./audit.json or
-    ./audit/audit.json). Creates artifacts/ if needed. Does not mark the
-    artifact present."""
+    After exporting data/simulated_data/, zip it to
+    <audit>/artifacts/simulated_data.zip and mark simulation_export present.
+    Pass a packet path, or --audit alone to auto-detect from the current
+    directory (./audit.json or ./audit/audit.json). Creates artifacts/ if
+    needed. Use --no-mark-present to write the zip without updating
+    audit.json."""
+)
+
+_test_options["audit_no_mark_present"] = click.option(
+    "--no-mark-present",
+    is_flag=True,
+    default=False,
+    help="With --audit, write the artifact file but do not update audit.json.",
 )
 
 AUDIT_PERFORMANCE_JSON = Path("artifacts") / "performance.json"
 AUDIT_SIMULATED_DATA_ZIP = Path("artifacts") / "simulated_data.zip"
 SIMULATED_DATA_EXPORT_PATH = Path("data") / "simulated_data"
+AUDIT_ARTIFACT_IDS = {
+    AUDIT_PERFORMANCE_JSON: "performance_result",
+    AUDIT_SIMULATED_DATA_ZIP: "simulation_export",
+}
 
 
 def resolve_audit_artifact_path(audit, relative_path: Path) -> Path:
@@ -3438,6 +3452,39 @@ def resolve_audit_artifact_path(audit, relative_path: Path) -> Path:
     output_path = audit_root / relative_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
     return output_path
+
+
+def require_audit_when_skipping_mark_present(audit, no_mark_present: bool) -> None:
+    """Reject ``--no-mark-present`` unless ``--audit`` selected the packet."""
+    if no_mark_present and audit is None:
+        raise click.UsageError("--no-mark-present requires --audit.")
+
+
+def mark_audit_artifact_present(audit, relative_path: Path) -> Path:
+    """Mark the canonical artifact for ``relative_path`` present in the packet."""
+    from psynet.audit.cli import mark_artifact_present, resolve_audit_dir
+
+    artifact_id = AUDIT_ARTIFACT_IDS.get(Path(relative_path))
+    if artifact_id is None:
+        raise click.UsageError(
+            f"No audit artifact id is registered for {relative_path}."
+        )
+    try:
+        audit_root = resolve_audit_dir(audit, require_manifest=True)
+        mark_artifact_present(audit_root, artifact_id)
+    except (ValueError, FileNotFoundError) as exc:
+        raise click.UsageError(str(exc)) from exc
+    click.echo(f"Marked {artifact_id} present in {audit_root / 'audit.json'}")
+    return audit_root
+
+
+def maybe_mark_audit_artifact_present(
+    audit, relative_path: Path, *, mark_present: bool
+) -> None:
+    """Mark the written ``--audit`` artifact present unless the caller opted out."""
+    if audit is None or not mark_present:
+        return
+    mark_audit_artifact_present(audit, relative_path)
 
 
 def resolve_performance_json_output(json_output=None, audit=None):
@@ -3513,7 +3560,7 @@ def package_simulated_data_for_audit(
     return zip_path
 
 
-def _run_simulate(ctx, audit=None):
+def _run_simulate(ctx, audit=None, mark_present=True):
     """Run the experiment test, export simulated data, and optionally zip it."""
     ctx.invoke(test__local)
     ctx.invoke(
@@ -3527,6 +3574,9 @@ def _run_simulate(ctx, audit=None):
         return
     zip_path = package_simulated_data_for_audit(audit)
     click.echo(f"Simulated data (audit zip): {zip_path}")
+    maybe_mark_audit_artifact_present(
+        audit, AUDIT_SIMULATED_DATA_ZIP, mark_present=mark_present
+    )
 
 
 @psynet.group("performance-test")
@@ -3547,6 +3597,7 @@ def performance_test(ctx):
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
 @_test_options["performance_audit"]
+@_test_options["audit_no_mark_present"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 def performance_test__local(
     existing=False,
@@ -3556,6 +3607,7 @@ def performance_test__local(
     duration_minutes=None,
     json_output=None,
     audit=None,
+    no_mark_present=False,
     debug=False,
 ):
     """
@@ -3568,6 +3620,7 @@ def performance_test__local(
     By default, this command starts a new experiment server automatically.
     Use --existing to connect to an already-running server instead.
     """
+    require_audit_when_skipping_mark_present(audit, no_mark_present)
     json_output = resolve_performance_json_output(json_output, audit)
     if existing:
         _run_performance_test_with_existing_server(
@@ -3577,6 +3630,9 @@ def performance_test__local(
         _run_performance_test_with_new_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
+    maybe_mark_audit_artifact_present(
+        audit, AUDIT_PERFORMANCE_JSON, mark_present=not no_mark_present
+    )
 
 
 def _collect_run_metadata(experiment_label):
@@ -3997,19 +4053,22 @@ def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minut
 
 @psynet.command()
 @_test_options["simulate_audit"]
+@_test_options["audit_no_mark_present"]
 @click.pass_context
 @require_exp_directory
-def simulate(ctx, audit=None):
+def simulate(ctx, audit=None, no_mark_present=False):
     """
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
 
     Writes ``data/simulated_data/``. Pass ``--audit`` to also zip that directory
-    to ``<audit>/artifacts/simulated_data.zip``.
+    to ``<audit>/artifacts/simulated_data.zip`` and mark ``simulation_export``
+    present.
     """
     # No need to catch the exit code here, because test__local now uses sys.exit()
     # if an error occurs.
-    _run_simulate(ctx, audit=audit)
+    require_audit_when_skipping_mark_present(audit, no_mark_present)
+    _run_simulate(ctx, audit=audit, mark_present=not no_mark_present)
 
 
 @psynet.command(name="list-experiment-dirs")

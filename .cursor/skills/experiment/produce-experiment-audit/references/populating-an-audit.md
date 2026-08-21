@@ -188,12 +188,12 @@ root:
 
 ```bash
 psynet simulate --audit
-psynet audit mark-present simulation_export
 ```
 
-`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`.
-It does not mark the artifact present. Overwrite the same zip when a later
-simulation supersedes an interim run.
+`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`
+and marks `simulation_export` present. Use `--no-mark-present` to write the zip
+without updating `audit.json`. Overwrite the same zip when a later simulation
+supersedes an interim run.
 
 ### Performance evidence
 
@@ -209,14 +209,16 @@ psynet performance-test local \
   --audit
 ```
 
-`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/performance.json`.
-Use `--json-output` only for a non-audit path. Prefer an absolute `--audit`
-path when PsyNet may execute from a temporary deployment directory.
+`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/performance.json`
+and marks `performance_result` present. Use `--json-output` only for a non-audit
+path, and `--no-mark-present` only when you want the JSON in the packet without
+updating `audit.json`. Prefer an absolute `--audit` path when PsyNet may execute
+from a temporary deployment directory.
 
-Shorter smoke runs are fine while iterating or infrastructure-testing; write
-them with `--audit` and mark present when the file is the evidence you intend
-to hand off. Skip an expensive re-run when a suitable
-`artifacts/performance.json` already exists for the current implementation.
+Shorter smoke runs are fine while iterating or infrastructure-testing; omit
+`--audit` (or use `--json-output`) so they do not become the packet's evidence.
+Skip an expensive re-run when a suitable `artifacts/performance.json` already
+exists for the current implementation.
 
 ## Manifest rules
 

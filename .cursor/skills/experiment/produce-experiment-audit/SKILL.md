@@ -40,8 +40,9 @@ See `references/populating-an-audit.md` for the full pathway guidance.
    go (see `references/populating-an-audit.md`). Prefer overwriting interim
    canonical files rather than regenerating later.
 3. Keep evidence-generation scripts with the experiment source.
-4. Close the packet: mark present artifacts, record blockers, then run
-   `psynet audit validate` from the experiment root (auto-detects `./audit/`).
+4. Close the packet: `--audit` already marks `simulation_export` and
+   `performance_result` present; mark remaining artifacts, record blockers, then
+   run `psynet audit validate` from the experiment root (auto-detects `./audit/`).
    A pass with blockers means the packet is coherent, not that the experiment is
    ready. Do not re-run expensive checks that already produced review-ready
    files.

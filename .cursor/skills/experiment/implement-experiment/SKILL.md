@@ -162,9 +162,10 @@ psynet simulate --audit
 ```
 
 `--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`
-and still leaves `data/simulated_data/` in place for analysis. It does not mark
-the artifact present. Overwrite the same zip when a later simulation supersedes
-an interim run.
+and still leaves `data/simulated_data/` in place for analysis. It also marks
+`simulation_export` present. Use `--no-mark-present` only when you want the zip
+in the packet without updating `audit.json`. Overwrite the same zip when a later
+simulation supersedes an interim run.
 
 For profile design, data-path parity, mock-LLM patterns, and simulation
 limitations, follow `simulate-participants/SKILL.md`.

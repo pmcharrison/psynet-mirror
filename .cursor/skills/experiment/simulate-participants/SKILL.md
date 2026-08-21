@@ -98,7 +98,7 @@ participants whenever possible.
   `artifacts/simulated_data.zip`. Verify trial answers, trial data,
   participant vars, profile metadata, telemetry fields, and analysis inputs are
   present and typed as expected.
-- Run `psynet performance-test local` when profile logic changes timing,
+- Run `psynet performance-test local --audit` when profile logic changes timing,
   grouping, concurrency, AI calls, or trial generation load.
 - Compare at least one bot/profile run with a real browser participant path when
   browser-only code or participant-facing UI matters.

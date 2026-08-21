@@ -358,9 +358,10 @@ and exporting the resulting data to ``data/simulated_data/``.
   psynet simulate --audit
 
 ``--audit`` also zips that directory to ``<audit>/artifacts/simulated_data.zip``
-(auto-detect ``./audit`` or pass a packet path). It does not mark the artifact
-present; run ``psynet audit mark-present simulation_export`` after a run you
-intend to hand off.
+(auto-detect ``./audit`` or pass a packet path) and marks ``simulation_export``
+present. Use ``--no-mark-present`` to write the zip without updating
+``audit.json``. Iterate without ``--audit`` when you do not want the packet's
+evidence updated.
 
 
 .. _install:

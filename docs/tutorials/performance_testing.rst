@@ -187,7 +187,9 @@ used), to a JSON file:
 
 When the experiment is being packaged as a PsyNet audit, prefer ``--audit``
 instead. It writes the canonical audit path
-``<audit>/artifacts/performance.json`` (creating ``artifacts/`` if needed):
+``<audit>/artifacts/performance.json`` (creating ``artifacts/`` if needed) and
+marks ``performance_result`` present. Use ``--no-mark-present`` to write the
+file without updating ``audit.json``:
 
 .. code-block:: bash
 
