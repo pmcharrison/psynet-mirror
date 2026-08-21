@@ -193,7 +193,9 @@ psynet simulate --audit
 `--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`
 and marks `simulation_export` present. Use `--no-mark-present` to write the zip
 without updating `audit.json`. Overwrite the same zip when a later simulation
-supersedes an interim run.
+supersedes an interim run. When the packet is a parent of the experiment
+directory (challenge attempts: experiment at `code/<slug>/`, packet at the
+attempt root), pass `--audit ../..` instead of bare `--audit`.
 
 ### Performance evidence
 

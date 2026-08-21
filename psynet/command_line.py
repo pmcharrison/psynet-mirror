@@ -3427,6 +3427,16 @@ AUDIT_ARTIFACT_IDS = {
 }
 
 
+def resolve_audit_root(audit) -> Path:
+    """Resolve the audit packet root for an ``--audit`` value."""
+    from psynet.audit.cli import resolve_audit_dir
+
+    try:
+        return resolve_audit_dir(audit, require_manifest=True)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+
+
 def resolve_audit_artifact_path(audit, relative_path: Path) -> Path:
     """Resolve ``<audit>/<relative_path>``, creating parent directories.
 
@@ -3443,13 +3453,7 @@ def resolve_audit_artifact_path(audit, relative_path: Path) -> Path:
     pathlib.Path
         Destination path under the audit packet.
     """
-    from psynet.audit.cli import resolve_audit_dir
-
-    try:
-        audit_root = resolve_audit_dir(audit, require_manifest=True)
-    except ValueError as exc:
-        raise click.UsageError(str(exc)) from exc
-    output_path = audit_root / relative_path
+    output_path = resolve_audit_root(audit) / relative_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
     return output_path
 
@@ -3461,19 +3465,23 @@ def require_audit_when_skipping_mark_present(audit, no_mark_present: bool) -> No
 
 
 def mark_audit_artifact_present(audit, relative_path: Path) -> Path:
-    """Mark the canonical artifact for ``relative_path`` present in the packet."""
-    from psynet.audit.cli import mark_artifact_present, resolve_audit_dir
+    """Mark the canonical artifact for ``relative_path`` present in the packet.
+
+    Updates the artifact's declared path to ``relative_path`` so a custom
+    manifest cannot be marked present against a different file.
+    """
+    from psynet.audit.cli import mark_artifact_present
 
     artifact_id = AUDIT_ARTIFACT_IDS.get(Path(relative_path))
     if artifact_id is None:
-        raise click.UsageError(
-            f"No audit artifact id is registered for {relative_path}."
-        )
+        raise RuntimeError(f"No audit artifact id is registered for {relative_path}.")
+    audit_root = resolve_audit_root(audit)
     try:
-        audit_root = resolve_audit_dir(audit, require_manifest=True)
-        mark_artifact_present(audit_root, artifact_id)
-    except (ValueError, FileNotFoundError) as exc:
-        raise click.UsageError(str(exc)) from exc
+        mark_artifact_present(
+            audit_root, artifact_id, path=Path(relative_path).as_posix()
+        )
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
     click.echo(f"Marked {artifact_id} present in {audit_root / 'audit.json'}")
     return audit_root
 
@@ -3485,6 +3493,36 @@ def maybe_mark_audit_artifact_present(
     if audit is None or not mark_present:
         return
     mark_audit_artifact_present(audit, relative_path)
+
+
+def performance_results_have_successful_bots(all_results) -> bool:
+    """Return True when any performance result completed at least one bot."""
+    for result in all_results or []:
+        if not isinstance(result, dict):
+            continue
+        try:
+            succeeded = int(result.get("bots_succeeded") or 0)
+        except (TypeError, ValueError):
+            continue
+        if succeeded > 0:
+            return True
+    return False
+
+
+def maybe_mark_performance_result_present(
+    audit, all_results, *, mark_present: bool
+) -> None:
+    """Mark ``performance_result`` present after a successful ``--audit`` run."""
+    if audit is None or not mark_present:
+        return
+    if not performance_results_have_successful_bots(all_results):
+        click.echo(
+            "Skipping performance_result mark-present: no bots succeeded. "
+            "The JSON was still written; re-run a successful test or mark present later.",
+            err=True,
+        )
+        return
+    mark_audit_artifact_present(audit, AUDIT_PERFORMANCE_JSON)
 
 
 def resolve_performance_json_output(json_output=None, audit=None):
@@ -3515,10 +3553,11 @@ def resolve_performance_json_output(json_output=None, audit=None):
 
 
 def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
-    """Zip ``source_dir`` so members keep their path relative to the cwd.
+    """Zip files under ``source_dir``.
 
-    Matches ``zip -r dest.zip data/simulated_data`` from the experiment root:
-    archive members are ``data/simulated_data/...``.
+    When ``source_dir`` is under the current working directory, archive members
+    keep that relative prefix (for example ``data/simulated_data/...``).
+    Directory entries are omitted; empty trees are rejected.
     """
     source_dir = Path(source_dir)
     if not source_dir.is_dir():
@@ -3539,11 +3578,19 @@ def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
     partial = zip_path.with_name(zip_path.name + ".partial")
     if partial.exists():
         partial.unlink()
+    partial_resolved = partial.resolve()
     try:
         with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for path in sorted(resolved_source.rglob("*")):
-                if path.is_file():
-                    archive.write(path, path.relative_to(archive_root).as_posix())
+                if not path.is_file():
+                    continue
+                if path.resolve() == partial_resolved:
+                    continue
+                archive.write(path, path.relative_to(archive_root).as_posix())
+            if not archive.namelist():
+                raise click.UsageError(
+                    f"Cannot write audit zip: {source_dir} contains no files."
+                )
         partial.replace(zip_path)
     except Exception:
         if partial.exists():
@@ -3562,13 +3609,15 @@ def package_simulated_data_for_audit(
 
 def _run_simulate(ctx, audit=None, mark_present=True):
     """Run the experiment test, export simulated data, and optionally zip it."""
+    if audit is not None:
+        resolve_audit_root(audit)
     ctx.invoke(test__local)
     ctx.invoke(
         export__local,
         # TODO - maybe legacy is not the best name for this parameter...
         legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
         no_source=True,
-        path=str(SIMULATED_DATA_EXPORT_PATH),
+        path=SIMULATED_DATA_EXPORT_PATH.as_posix(),
     )
     if audit is None:
         return
@@ -3623,15 +3672,15 @@ def performance_test__local(
     require_audit_when_skipping_mark_present(audit, no_mark_present)
     json_output = resolve_performance_json_output(json_output, audit)
     if existing:
-        _run_performance_test_with_existing_server(
+        all_results = _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
     else:
-        _run_performance_test_with_new_server(
+        all_results = _run_performance_test_with_new_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
-    maybe_mark_audit_artifact_present(
-        audit, AUDIT_PERFORMANCE_JSON, mark_present=not no_mark_present
+    maybe_mark_performance_result_present(
+        audit, all_results, mark_present=not no_mark_present
     )
 
 
@@ -3755,6 +3804,7 @@ def _run_performance_test_with_existing_server(
             all_results=all_results,
         )
         print(f"Performance results (JSON): {json_output}")
+    return all_results
 
 
 class _OutputTee:
@@ -3965,10 +4015,11 @@ def _run_performance_test_with_new_server(
 
     try:
         _load_runtime_server_config()
-        _run_performance_test_with_existing_server(
+        all_results = _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
         print("✓ Performance test completed")
+        return all_results
 
     finally:
         _stop_server(server_info)
@@ -3983,6 +4034,7 @@ def _run_performance_test_with_new_server(
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
 @_test_options["performance_audit"]
+@_test_options["audit_no_mark_present"]
 @click.pass_context
 def performance_test__docker_ssh(
     ctx,
@@ -3994,6 +4046,7 @@ def performance_test__docker_ssh(
     duration_minutes=None,
     json_output=None,
     audit=None,
+    no_mark_present=False,
 ):
     """
     Runs performance tests on the remote server. Assumes that the app has
@@ -4006,13 +4059,15 @@ def performance_test__docker_ssh(
     If the app is in use during the performance test, results may not be
     reliable.
 
-    Note: The --json-output and --audit options are not yet supported for
-    remote SSH execution. For JSON output, run
+    Note: The --json-output, --audit, and --no-mark-present options are not yet
+    supported for remote SSH execution. For JSON output, run
     ``psynet performance-test local --json-output`` or ``--audit`` instead.
     """
+    require_audit_when_skipping_mark_present(audit, no_mark_present)
     if json_output or audit is not None:
         raise click.UsageError(
-            "--json-output and --audit are not yet implemented for SSH mode. "
+            "--json-output, --audit, and --no-mark-present are not yet "
+            "implemented for SSH mode. "
             "Use 'psynet performance-test local' with those options instead.",
         )
 
