@@ -415,7 +415,9 @@ Lab Recruiter
     Store the raw key from ``drf_create_token`` (not the ``Token `` prefix) in
     ``~/.dallingerconfig``. PsyNet sends it as ``Authorization: Token <value>``
     when posting completion or failure. Deploying with the lab recruiter fails
-    if it is unset; local debug still starts without it. Do not put this key in
+    if it is unset; local debug still starts without it. In debug without a
+    token, completion posts are skipped and treated as successful so
+    participants are not left in payment review. Do not put this key in
     ``config.txt``; it is marked sensitive and would fail the experiment config
     check. As with any config key, an environment variable of the same name
     (``lab_recruiter_auth_token``) overrides ``~/.dallingerconfig``.

@@ -25,9 +25,9 @@ Key design constraints for maintainers:
   from the participant's outcome and recruiter policy; ``record_payment``
   writes those fields onto the participant; ``report_submission_outcome``
   reports the terminal outcome and delegates real bonus transfers to
-  ``reward_bonus`` by default. Recruiters with a combined outcome/payment
-  callback can report zero bonuses too. ``False`` means the platform rejected
-  the report or transfer.
+  ``reward_bonus`` by default. Recruiters with ``reports_zero_outcomes``
+  (Lab Recruiter) also report zero bonuses through that hook. ``False``
+  means the platform rejected the report or transfer.
   ``Experiment.on_recruiter_submission_complete`` owns this sequence,
   always re-recording status and platform base, and uses ``bonus_status``
   to skip a repeat transfer. PsyNet posts a bonus automatically at most
@@ -242,6 +242,7 @@ def _prolific_error_status(error: ProlificServiceException):
 
 class PsyNetRecruiterMixin:
     show_termination_button = False
+    reports_zero_outcomes = False
 
     def report_submission_outcome(self, participant, amount, reason):
         """Report the terminal outcome, transferring a real bonus if needed.
@@ -1134,6 +1135,7 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
 
     post_timeout_seconds = 30
+    reports_zero_outcomes = True
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -1203,9 +1205,18 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         """Report a terminal Lab Recruiter outcome, including a zero bonus."""
         authorization = self._authorization_header()
         if not authorization:
+            if (self.config.get("mode") or "") == "debug":
+                logger.info(
+                    "Skipping lab-recruiter completion POST in debug: "
+                    "lab_recruiter_auth_token is not set."
+                )
+                return True
             logger.error(
                 "Skipping lab-recruiter completion POST: "
                 "lab_recruiter_auth_token is not set."
+            )
+            record_bonus_attempt_detail(
+                participant, "lab_recruiter_auth_token is not set."
             )
             return False
 
@@ -1245,9 +1256,14 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         participant.bonus_status = BONUS_STATUS_UNCONFIRMED
         record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
         experiment.commit_payment_state()
-        if self.report_submission_outcome(participant, 0.0, experiment.bonus_reason()):
-            participant.bonus_status = BONUS_STATUS_SUCCESS
-            participant.bonus_attempt_detail = None
+        if not self.report_submission_outcome(
+            participant, 0.0, experiment.bonus_reason()
+        ):
+            return
+        experiment._record_payment_outcome_success(
+            participant, 0.0, record_delivered=False
+        )
+        experiment.commit_payment_state()
 
     def get_status(self) -> LabRecruitmentStatus:
         """Return the status of the recruiter as a RecruitmentStatus."""

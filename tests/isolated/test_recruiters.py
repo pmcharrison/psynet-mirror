@@ -656,7 +656,9 @@ def prepare_payout_participant(participant):
     participant.recruiter.reward_bonus = MagicMock()
     participant.recruiter.report_submission_outcome = MagicMock(
         side_effect=lambda participant, amount, reason: (
-            participant.recruiter.reward_bonus(participant, amount, reason)
+            True
+            if amount < 0.01
+            else participant.recruiter.reward_bonus(participant, amount, reason)
         )
     )
     return participant
@@ -1292,12 +1294,28 @@ def test_pay_decided_bonus_pays_nothing_when_hard_max_has_no_room():
     decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.00)
 
     assert harness.pay_decided_bonus(participant, decision) is True
-    participant.recruiter.report_submission_outcome.assert_called_once_with(
-        participant, 0.0, "thanks"
-    )
+    participant.recruiter.report_submission_outcome.assert_not_called()
     assert participant.planned_bonus == 1.00
     assert participant.bonus is None
     assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert harness.payment_commits == 0
+
+
+def test_pay_decided_bonus_settles_subcent_without_claim_for_default_recruiter():
+    config = make_config()
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="approved")
+    )
+    harness = PaymentHarness()
+    decision = PaymentDecision(status="approved", platform_base=1.00, bonus=0.0)
+
+    assert harness.pay_decided_bonus(participant, decision) is True
+    participant.recruiter.report_submission_outcome.assert_not_called()
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.bonus is None
+    assert participant.planned_bonus == 0.0
+    assert harness.payment_commits == 0
 
 
 def test_pay_decided_bonus_skips_when_already_capped():
@@ -1867,12 +1885,14 @@ def test_calculate_reward_treats_missing_time_fields_as_zero():
         assert RewardParticipant().calculate_reward() == 0.0
 
 
-def make_lab_recruiter(token="abc123", base_payment=1.5):
+def make_lab_recruiter(token="abc123", base_payment=1.5, mode=None):
     recruiter = BaseLabRecruiter.__new__(BaseLabRecruiter)
     recruiter.config = {
         "lab_recruiter_auth_token": token,
         "base_payment": base_payment,
     }
+    if mode is not None:
+        recruiter.config["mode"] = mode
     recruiter.external_submission_url = "https://recruiter.example.edu/tasks"
     return recruiter
 
@@ -1883,6 +1903,7 @@ def make_lab_participant(failed=False):
     participant.failed = failed
     participant.failure_tags = ["too_slow"] if failed else []
     participant.bonus = None
+    participant.bonus_attempt_detail = None
     return participant
 
 
@@ -1933,6 +1954,25 @@ def test_lab_recruiter_report_submission_outcome_skips_post_when_token_missing(c
     post.assert_not_called()
     assert "lab_recruiter_auth_token is not set" in caplog.text
     assert not posted
+    assert participant.bonus_attempt_detail == "lab_recruiter_auth_token is not set."
+
+
+def test_lab_recruiter_debug_without_token_skips_post_as_success(caplog):
+    recruiter = make_lab_recruiter(token="", mode="debug")
+    participant = make_lab_participant()
+
+    with (
+        patch("psynet.recruiters.requests.post") as post,
+        caplog.at_level("INFO", logger="psynet"),
+    ):
+        posted = recruiter.report_submission_outcome(
+            participant, amount=0.0, reason="completed"
+        )
+
+    post.assert_not_called()
+    assert posted is True
+    assert "Skipping lab-recruiter completion POST in debug" in caplog.text
+    assert participant.bonus_attempt_detail is None
 
 
 def test_lab_recruiter_token_prefix_is_normalized():
@@ -2010,6 +2050,63 @@ def test_payment_pipeline_reports_lab_outcome_once(amount, delivered):
     assert harness.payment_commits == 1
 
 
+def test_pay_decided_bonus_debug_lab_without_token_settles():
+    participant = make_lab_participant()
+    participant.id = 9
+    participant.recruiter = make_lab_recruiter(token="", mode="debug")
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = None
+    harness = PaymentHarness()
+    decision = PaymentDecision(status="approved", platform_base=1.50, bonus=0.0)
+
+    with patch("psynet.recruiters.requests.post") as post:
+        assert harness.pay_decided_bonus(participant, decision) is True
+
+    post.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.bonus is None
+    assert not harness.notify_calls
+
+
+def test_pay_decided_bonus_live_lab_without_token_needs_review():
+    participant = make_lab_participant()
+    participant.id = 9
+    participant.recruiter = make_lab_recruiter(token="", mode="live")
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = None
+    harness = PaymentHarness()
+    decision = PaymentDecision(status="approved", platform_base=1.50, bonus=0.0)
+
+    with patch("psynet.recruiters.requests.post") as post:
+        assert harness.pay_decided_bonus(participant, decision) is False
+
+    post.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.bonus_attempt_detail == "lab_recruiter_auth_token is not set."
+    assert harness.notify_calls
+
+
+def test_pay_review_bonus_posts_zero_lab_outcome():
+    participant = make_lab_participant()
+    participant.id = 9
+    participant.recruiter = make_lab_recruiter()
+    participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+    participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = NO_BONUS_ATTEMPT_RESULT
+    harness = PaymentHarness()
+
+    with patch("psynet.recruiters.requests.post") as post:
+        category, message = harness.pay_review_bonus(participant)
+
+    assert category == "success"
+    post.assert_called_once()
+    assert post.call_args.kwargs["json"]["bonus"] == 0.0
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert participant.bonus is None
+
+
 def test_zero_lab_outcome_failure_stays_unconfirmed():
     from requests import HTTPError
 
@@ -2063,7 +2160,28 @@ def test_lab_recruiter_consent_rejection_reports_zero_outcome_once():
 
     report.assert_called_once_with(participant, 0.0, "thanks")
     assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert experiment.payment_commits == 2
+    assert not experiment.notify_calls
+
+
+def test_lab_recruiter_consent_rejection_failure_stays_unconfirmed():
+    recruiter = make_lab_recruiter()
+    participant = make_lab_participant(failed=True)
+    participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
+    participant.planned_bonus = 0.0
+    participant.bonus_attempt_detail = None
+    experiment = PaymentHarness()
+
+    with patch.object(
+        recruiter, "report_submission_outcome", return_value=False
+    ) as report:
+        recruiter.after_rejected_consent(experiment, participant)
+        recruiter.after_rejected_consent(experiment, participant)
+
+    report.assert_called_once_with(participant, 0.0, "thanks")
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert experiment.payment_commits == 1
+    assert not experiment.notify_calls
 
 
 def test_rejected_consent_dispatches_recruiter_hook():

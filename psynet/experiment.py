@@ -2522,7 +2522,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         failed. PsyNet calls ``report_submission_outcome`` at most once
         automatically. Its default skips sub-cent bonuses and delegates real
         transfers to ``reward_bonus``; recruiters with a combined terminal
-        callback can report every amount. The attempt is claimed by setting
+        callback (``reports_zero_outcomes``) can report every amount.
+        Sub-cent bonuses for other recruiters settle locally without claiming
+        ``unconfirmed``. Otherwise the attempt is claimed by setting
         ``bonus_status = unconfirmed``, ``planned_bonus``, and a last-attempt
         placeholder before the recruiter call, so a later replay will not
         report or pay again. A failed call stays unconfirmed and asks the
@@ -2566,6 +2568,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         bonus = round(bonus, 2)
         planned = participant.planned_bonus if hard_capped else bonus
+        reports_zero = getattr(
+            type(participant.recruiter), "reports_zero_outcomes", False
+        )
+        if bonus < 0.01 and not reports_zero:
+            participant.planned_bonus = planned
+            self._record_payment_outcome_success(
+                participant,
+                bonus,
+                bonus_status=(
+                    BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS
+                ),
+                record_delivered=False,
+            )
+            return True
 
         # Claim the single automatic platform outcome report and commit it
         # before calling the recruiter, so a crash after a successful POST
