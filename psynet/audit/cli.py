@@ -45,7 +45,11 @@ from psynet.audit.model import (
     classify_audit_evidence,
     file_kind,
 )
-from psynet.audit.timeline import parse_timeline_entries
+from psynet.audit.timeline import (
+    ALLOWED_TIMELINE_ACTORS,
+    parse_timeline_entries,
+    unparsed_timeline_entry_lines,
+)
 from psynet.audit.video import (
     is_git_lfs_pointer,
     probe_video_metadata,
@@ -274,14 +278,18 @@ STARTER_PLAN = """# Plan
 
 Summarize the implementation plan for this experiment audit.
 """
+PLACEHOLDER_IMPLEMENTATION_SUMMARY = "TODO: Summarize the experiment implementation."
+
 STARTER_TIMELINE = """# Timeline
 
 Record notable implementation and evidence-collection events, or remove this
 section from `audit.json`.
 
-Use entries such as:
+Use one list item per event. The actor tag must be one of `agent-start`,
+`agent`, `agent-stop`, `manual`, or `system`:
 
 `- T+00:00:00 [agent-start] Started implementation.`
+`- T+00:05:12 [agent] Ran psynet simulate --audit.`
 """
 STARTER_REPORT = """# Experiment audit report
 
@@ -318,6 +326,28 @@ def audit_display_title(audit_dir: Path, manifest: dict[str, Any]) -> str:
         if isinstance(title, str) and title.strip():
             return title
     return display_title_from_path(audit_dir)
+
+
+def is_placeholder_implementation_summary(summary: str) -> bool:
+    """Return True when ``summary`` is still the starter TODO placeholder."""
+    text = summary.strip()
+    return text == PLACEHOLDER_IMPLEMENTATION_SUMMARY or text.upper().startswith(
+        "TODO:"
+    )
+
+
+def display_implementation_summary(manifest: dict[str, Any]) -> str:
+    """Return the hero subtitle, or empty when it is still a TODO placeholder."""
+    implementation = manifest.get("implementation")
+    if not isinstance(implementation, dict):
+        return ""
+    summary = implementation.get("summary")
+    if not isinstance(summary, str):
+        return ""
+    text = summary.strip()
+    if not text or is_placeholder_implementation_summary(text):
+        return ""
+    return text
 
 
 def utc_timestamp() -> str:
@@ -406,7 +436,7 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
             "source_path": source_path,
         },
         "implementation": {
-            "summary": "TODO: Summarize the experiment implementation.",
+            "summary": PLACEHOLDER_IMPLEMENTATION_SUMMARY,
         },
         "environment": {
             "os": platform.system().lower(),
@@ -923,6 +953,36 @@ def collect_media_validation_warnings(
     return warnings
 
 
+def collect_unparsed_timeline_warnings(
+    audit_dir: Path, manifest: dict[str, Any]
+) -> list[str]:
+    """Warn when TIMELINE.md lines look like entries but were ignored."""
+    warnings: list[str] = []
+    sections = manifest.get("sections")
+    if not isinstance(sections, list):
+        return warnings
+    allowed = ", ".join(ALLOWED_TIMELINE_ACTORS)
+    for section in sections:
+        if not isinstance(section, dict):
+            continue
+        kind = section.get("kind")
+        section_id = section.get("id")
+        if kind != "timeline" and section_id != "timeline":
+            continue
+        text = section_text(audit_dir, section)
+        if text is None:
+            continue
+        path_label = section.get("path") or "TIMELINE.md"
+        for line_number, line in unparsed_timeline_entry_lines(text):
+            warnings.append(
+                f"{audit_dir / path_label}: line {line_number} looks like a "
+                "timeline entry but was ignored; use "
+                f"'- T+HH:MM:SS [{allowed}] description' "
+                f"(got {line!r})",
+            )
+    return warnings
+
+
 def collect_audit_warnings(
     audit_dir: Path,
     manifest: dict[str, Any] | None = None,
@@ -950,6 +1010,16 @@ def collect_audit_warnings(
                     "agent-led implementation audits (optional for retrospective audits)",
                 )
     warnings.extend(collect_media_validation_warnings(audit_dir, manifest))
+    implementation = manifest.get("implementation")
+    if isinstance(implementation, dict):
+        summary = implementation.get("summary")
+        if isinstance(summary, str) and is_placeholder_implementation_summary(summary):
+            warnings.append(
+                f"{manifest_path}: implementation.summary is still a TODO "
+                "placeholder; rewrite it before review (it is omitted from the "
+                "rendered page until then)",
+            )
+    warnings.extend(collect_unparsed_timeline_warnings(audit_dir, manifest))
     extensions = manifest.get("extensions", [])
     if not isinstance(extensions, list):
         return warnings
@@ -1644,13 +1714,8 @@ def render_audit_site(
     site_dir.mkdir(parents=True, exist_ok=True)
     rendered_artifacts = publish_audit_artifacts(audit_dir, site_dir, manifest)
 
-    implementation = manifest.get("implementation", {})
     title = audit_display_title(audit_dir, manifest)
-    summary = (
-        str(implementation.get("summary"))
-        if isinstance(implementation, dict) and implementation.get("summary")
-        else ""
-    )
+    summary = display_implementation_summary(manifest)
     from dataclasses import replace
 
     evidence = classify_audit_evidence(rendered_artifacts)
@@ -1691,6 +1756,7 @@ def render_audit_site(
         for section in sections
     )
 
+    summary_html = f"<p>{html.escape(summary)}</p>" if summary else ""
     html_text = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -1705,7 +1771,7 @@ def render_audit_site(
       <div>
         <p class="eyebrow">Experiment readiness audit</p>
         <h1>{html.escape(title)}</h1>
-        <p>{html.escape(summary)}</p>
+        {summary_html}
       </div>
       {readiness_score_card(manifest)}
     </header>

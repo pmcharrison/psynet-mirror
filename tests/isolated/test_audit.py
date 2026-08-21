@@ -780,6 +780,92 @@ def test_collect_audit_warnings_when_plan_section_missing(tmp_path: Path) -> Non
     assert any("no plan section" in warning for warning in warnings)
 
 
+def test_unparsed_timeline_entry_lines_skips_headings_and_examples() -> None:
+    from psynet.audit.cli import STARTER_TIMELINE
+    from psynet.audit.timeline import (
+        parse_timeline_entries,
+        unparsed_timeline_entry_lines,
+    )
+
+    markdown = (
+        "# Timeline\n\n"
+        "- T+00:00:00 [agent-start] Started.\n"
+        "- T+00:00:22 [evidence] This actor is not allowed.\n"
+        "- T+00:01:00 [agent] [evidence] Ran simulate.\n"
+        "`- T+00:00:00 [agent-start] Started implementation.`\n"
+    )
+    entries = parse_timeline_entries(markdown)
+    skipped = unparsed_timeline_entry_lines(markdown)
+
+    assert [entry.description for entry in entries] == [
+        "Started.",
+        "Ran simulate.",
+    ]
+    assert skipped == [
+        (4, "- T+00:00:22 [evidence] This actor is not allowed."),
+    ]
+    assert unparsed_timeline_entry_lines(STARTER_TIMELINE) == []
+
+
+def test_collect_audit_warnings_for_unparsed_timeline_lines(tmp_path: Path) -> None:
+    from psynet.audit.cli import collect_audit_warnings
+
+    audit_dir = tmp_path / "audit"
+    write_valid_review(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["sections"].insert(
+        1,
+        {
+            "id": "timeline",
+            "title": "Implementation timeline",
+            "kind": "timeline",
+            "path": "TIMELINE.md",
+        },
+    )
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(
+        audit_dir / "TIMELINE.md",
+        "# Timeline\n\n"
+        "- T+00:00:00 [agent-start] Started.\n"
+        "- T+00:00:22 [evidence] Dropped.\n",
+    )
+
+    warnings = collect_audit_warnings(audit_dir)
+
+    assert any(
+        "line 4 looks like a timeline entry but was ignored" in warning
+        for warning in warnings
+    )
+
+
+def test_init_audit_warns_about_placeholder_summary(tmp_path: Path) -> None:
+    from psynet.audit.cli import (
+        PLACEHOLDER_IMPLEMENTATION_SUMMARY,
+        collect_audit_warnings,
+        init_audit,
+    )
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+
+    warnings = collect_audit_warnings(audit_dir)
+    assert any("TODO placeholder" in warning for warning in warnings)
+    assert validate_audit(audit_dir) == []
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+    assert PLACEHOLDER_IMPLEMENTATION_SUMMARY not in index
+    assert "TODO:" not in index
+
+
+def test_render_audit_site_includes_rewritten_summary(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "pitch-discrimination-demo" / "audit"
+    write_valid_review(audit_dir)
+
+    index = (render_audit_site(audit_dir) / "index.html").read_text(encoding="utf-8")
+    assert "Compare two tones and report which one is higher." in index
+
+
 def test_validate_audit_rejects_orphan_blocker(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     write_valid_review(audit_dir)

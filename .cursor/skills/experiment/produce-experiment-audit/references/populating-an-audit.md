@@ -96,8 +96,16 @@ section. That warning is expected for retrospective audits.
    - `PLAN.md`: implementation plan (**recommended** for agent-led audits;
      optional for retrospective audits — see **Workflow pathways** above);
    - `REPORT.md`: implementation, validation, analysis, and limitations;
-   - `TIMELINE.md`: notable implementation and evidence events;
+   - `TIMELINE.md`: notable implementation and evidence events. Use list items
+     of the form `- T+HH:MM:SS [actor] description`. The actor must be one of
+     `agent-start`, `agent`, `agent-stop`, `manual`, or `system`. Extra tags
+     such as `[evidence]` go *after* the actor (`- T+00:05:12 [agent]
+     [evidence] Ran simulate.`). `psynet audit validate` warns on lines that
+     look like entries but were ignored.
    - `PROMPT.md`: original prompt or brief when useful.
+   - `audit.json` `implementation.summary`: one-sentence subtitle for the
+     rendered page. Leave the starter TODO only until you have a real summary;
+     validate warns, and the page omits it until rewritten.
 3. Collect reviewable outputs under:
    - `artifacts/` for participant flow, exports, monitor snapshots, performance
      results, and other primary evidence;

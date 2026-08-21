@@ -39,6 +39,11 @@ dependencies. Participant video validation also requires ``ffprobe`` from
 * ``validate`` checks the manifest structure, required artifact files, blocker
   coverage, video limits, and notebook JSON readiness. It reports how many
   blockers are still recorded and that readiness may still be incomplete.
+  Warnings (non-fatal) include a still-placeholder ``implementation.summary``
+  and ``TIMELINE.md`` lines that look like entries but were ignored because the
+  actor tag was not one of ``agent-start``, ``agent``, ``agent-stop``,
+  ``manual``, or ``system``. The starter TODO summary is omitted from the
+  rendered page title until rewritten.
 * ``mark-present`` sets an artifact to ``present``, verifies the file exists and
   passes the same video/notebook checks as ``validate``, removes matching
   blockers, and updates ``updated_at``. Use this after you add a real file
