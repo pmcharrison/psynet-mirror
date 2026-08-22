@@ -7,9 +7,12 @@ description: Review branch changes against `master` using a diff-to-master workf
 
 Use this skill when reviewing a feature branch against `master`.
 
-This skill only reviews. It does not merge, rewrite, or push. If the
-branch is behind `master` or still has a merge commit, stop and tell
-the user to run `/update-onto-master` first.
+This skill only reviews. It does not merge, rewrite, or push.
+
+Order: `/update-onto-master` (merge and resolve conflicts), then this
+review of that tree, then `/linearize-onto-master` (soft-reset) once
+the tree is accepted. A merge commit is expected between those first
+two steps.
 
 ## Prerequisites
 
@@ -18,18 +21,18 @@ the user to run `/update-onto-master` first.
    - If the result is `master`, ask the user which branch to review.
 2. Refresh the base branch:
    - `git fetch origin master`
-3. Confirm the branch is a linear descendant of current `master`:
+3. Confirm `origin/master` is an ancestor of `HEAD`:
 
    ```bash
    git merge-base --is-ancestor origin/master HEAD
-   git rev-list --min-parents=2 --count origin/master..HEAD
    ```
 
-   If the first command fails, or the second prints a number other than
-   `0`, do not review. Tell the user to run `/update-onto-master` (merge
-   current master, resolve conflicts, then `git reset --soft
-   origin/master` and recommit). Resume this review after that command
-   finishes.
+   If that fails, do not review. Tell the user to run
+   `/update-onto-master` first (merge current master and resolve
+   conflicts). Resume this review after that command finishes.
+
+   A merge commit is fine. Do not require a linear history here;
+   `/linearize-onto-master` comes after the review.
 
 ## 1) Scope the change
 
@@ -97,3 +100,7 @@ Use this structure:
 4. Residual risks / assumptions
 
 Keep summaries brief and make the primary feedback actionable.
+
+If the review is acceptable and
+`git rev-list --min-parents=2 --count origin/master..HEAD` is not `0`,
+tell the user to run `/linearize-onto-master` next.
