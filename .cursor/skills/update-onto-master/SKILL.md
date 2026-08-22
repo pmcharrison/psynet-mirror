@@ -18,7 +18,17 @@ so running it without this merge first drops master's new work.
 
 1. Confirm you are on a feature branch, not `master`:
    `git rev-parse --abbrev-ref HEAD`
-2. `git fetch origin master`
+2. Refresh remote and local `master` without checking it out:
+
+   ```bash
+   git fetch origin master:master
+   ```
+
+   That updates `origin/master` and fast-forwards local `master`. Stay
+   on the feature branch. If the fetch fails because local `master`
+   has diverged, run `git fetch origin master` only, leave local
+   `master` alone, merge `origin/master` into this branch, and tell
+   the user local `master` was not moved.
 3. Stop if there are uncommitted changes to tracked files. Untracked
    files may stay in the worktree.
 

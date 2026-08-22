@@ -21,7 +21,10 @@ master's new files.
 
 1. Confirm you are on a feature branch, not `master`:
    `git rev-parse --abbrev-ref HEAD`
-2. `git fetch origin master`
+2. Refresh remote and local `master` without checking it out:
+   `git fetch origin master:master`. If that fails because local
+   `master` has diverged, `git fetch origin master` only and leave
+   local `master` alone.
 3. Stop if there are uncommitted changes to tracked files.
 4. Confirm `git merge-base --is-ancestor origin/master HEAD`.
    If that fails, run `/update-onto-master` first.
