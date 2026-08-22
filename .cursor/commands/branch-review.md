@@ -2,7 +2,6 @@
 
 Use the shared project skill at `.cursor/skills/branch-review/SKILL.md` to review the current branch against `master`.
 
-Apply that skill's workflow and report format in full. The first step is
-to update the branch onto current `origin/master` (merge and resolve
-conflicts, then `git reset --soft origin/master` to keep a linear
-history) before reviewing `origin/master...HEAD`.
+Apply that skill's workflow and report format in full. If the branch is
+behind `master` or still has a merge commit, stop and tell the user to
+run `/update-onto-master` first.
