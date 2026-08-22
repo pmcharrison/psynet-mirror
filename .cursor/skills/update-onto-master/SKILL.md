@@ -10,9 +10,9 @@ conflict. This is a write, not a review, and it does **not** rewrite
 history.
 
 The tree after this command is what will land. Review it with
-`/branch-review` before linearizing. Soft-reset is `/linearize-onto-master`
-and comes last: it does not fetch or merge, so running it without this
-merge first drops master's new work.
+`/branch-review` before reorganizing commits. Soft-reset is
+`/reorganize-onto-master` and comes last: it does not fetch or merge,
+so running it without this merge first drops master's new work.
 
 ## Prerequisites
 
@@ -24,8 +24,8 @@ merge first drops master's new work.
 
 If `git merge-base --is-ancestor origin/master HEAD` already succeeds,
 say so and stop. The branch already contains current `master`. If it
-still has a merge commit, the next step after review is
-`/linearize-onto-master`, not another merge.
+still has a merge commit or a messy commit list, the next step after
+review is `/reorganize-onto-master`, not another merge.
 
 ## Merge current master
 
@@ -42,4 +42,4 @@ Push the merge with a regular `git push` (not force). Never force-push
 `master`.
 
 Typical next step is `/branch-review`. After that review, run
-`/linearize-onto-master` if the history still has a merge commit.
+`/reorganize-onto-master` to rebuild the tree as logical commits.

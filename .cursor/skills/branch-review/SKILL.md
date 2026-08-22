@@ -10,9 +10,9 @@ Use this skill when reviewing a feature branch against `master`.
 This skill only reviews. It does not merge, rewrite, or push.
 
 Order: `/update-onto-master` (merge and resolve conflicts), then this
-review of that tree, then `/linearize-onto-master` (soft-reset) once
-the tree is accepted. A merge commit is expected between those first
-two steps.
+review of that tree, then `/reorganize-onto-master` (soft-reset into
+logical commits) once the tree is accepted. A merge commit is expected
+between those first two steps.
 
 ## Prerequisites
 
@@ -31,8 +31,8 @@ two steps.
    `/update-onto-master` first (merge current master and resolve
    conflicts). Resume this review after that command finishes.
 
-   A merge commit is fine. Do not require a linear history here;
-   `/linearize-onto-master` comes after the review.
+   A merge commit is fine. Do not reorganize commits here;
+   `/reorganize-onto-master` comes after the review.
 
 ## 1) Scope the change
 
@@ -101,6 +101,6 @@ Use this structure:
 
 Keep summaries brief and make the primary feedback actionable.
 
-If the review is acceptable and
-`git rev-list --min-parents=2 --count origin/master..HEAD` is not `0`,
-tell the user to run `/linearize-onto-master` next.
+If the review is acceptable, tell the user to run
+`/reorganize-onto-master` next so the accepted tree is recommitted in
+logical units.

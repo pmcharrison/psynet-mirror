@@ -6,5 +6,5 @@ Merge current `origin/master` and resolve every conflict so the branch
 tree is the real merge result. Push with a regular `git push`.
 
 Do not soft-reset and do not review here. Next is `/branch-review`.
-After the review, `/linearize-onto-master` rewrites the merge into a
-linear history.
+After the review, `/reorganize-onto-master` rebuilds the tree as
+logical commits on current `master`.
