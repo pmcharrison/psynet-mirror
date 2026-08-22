@@ -1,6 +1,6 @@
 ---
 name: update-onto-master
-description: Merge current origin/master into the feature branch and resolve every conflict so the working tree is the real merge result. Use when the user asks to update onto master, sync with master, run /update-onto-master, or when /branch-review refuses because the branch is behind master.
+description: Merge current origin/master into the feature branch and resolve every conflict so the working tree is the real merge result. Use when the user asks to update onto master, sync with master, or run /update-onto-master, and as the first step of /branch-review.
 ---
 
 # Update Onto Master
@@ -9,8 +9,8 @@ Merge current `origin/master` into the feature branch and resolve every
 conflict. This is a write, not a review, and it does **not** rewrite
 history.
 
-The tree after this command is what will land. Review it with
-`/branch-review` before reorganizing commits. Soft-reset is
+The tree after this command is what will land. `/branch-review` runs
+this skill first, then reviews that tree. Soft-reset is
 `/reorganize-onto-master` and comes last: it does not fetch or merge,
 so running it without this merge first drops master's new work.
 
@@ -41,5 +41,7 @@ stop and ask the user; do not leave the merge half-finished.
 Push the merge with a regular `git push` (not force). Never force-push
 `master`.
 
-Typical next step is `/branch-review`. After that review, run
-`/reorganize-onto-master` to rebuild the tree as logical commits.
+If this skill was invoked on its own, typical next step is
+`/branch-review` (which will no-op the merge if `master` is already
+an ancestor). After that review, run `/reorganize-onto-master` to
+rebuild the tree as logical commits.

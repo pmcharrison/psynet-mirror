@@ -7,32 +7,26 @@ description: Review branch changes against `master` using a diff-to-master workf
 
 Use this skill when reviewing a feature branch against `master`.
 
-This skill only reviews. It does not merge, rewrite, or push.
+Start by following `.cursor/skills/update-onto-master/SKILL.md` so the
+reviewed tree is the real merge with current `master`. Then review.
+Do not reorganize commits here; after an accepted review, tell the
+user to run `/reorganize-onto-master`.
 
-Order: `/update-onto-master` (merge and resolve conflicts), then this
-review of that tree, then `/reorganize-onto-master` (soft-reset into
-logical commits) once the tree is accepted. A merge commit is expected
-between those first two steps.
+`/update-onto-master` remains a standalone command for when you need
+the merge without a review.
 
 ## Prerequisites
 
 1. Verify you are not already on `master`:
    - `git rev-parse --abbrev-ref HEAD`
    - If the result is `master`, ask the user which branch to review.
-2. Refresh the base branch:
-   - `git fetch origin master`
-3. Confirm `origin/master` is an ancestor of `HEAD`:
-
-   ```bash
-   git merge-base --is-ancestor origin/master HEAD
-   ```
-
-   If that fails, do not review. Tell the user to run
-   `/update-onto-master` first (merge current master and resolve
-   conflicts). Resume this review after that command finishes.
-
-   A merge commit is fine. Do not reorganize commits here;
-   `/reorganize-onto-master` comes after the review.
+2. Run `/update-onto-master`: read and follow
+   `.cursor/skills/update-onto-master/SKILL.md` in full (fetch, merge
+   `origin/master`, resolve every conflict, regular push). If that
+   skill says the branch already contains current `master`, continue.
+   If it stops on a product-level conflict, stop this review too.
+3. Confirm `origin/master` is now an ancestor of `HEAD` before
+   scoping the diff.
 
 ## 1) Scope the change
 

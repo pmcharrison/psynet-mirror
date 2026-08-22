@@ -2,7 +2,8 @@
 
 Use the shared project skill at `.cursor/skills/branch-review/SKILL.md` to review the current branch against `master`.
 
-Apply that skill's workflow and report format in full. If the branch is
-behind `master`, stop and tell the user to run `/update-onto-master`
-first. After an acceptable review, tell them to run
-`/reorganize-onto-master` to rebuild the tree as logical commits.
+Start by running `/update-onto-master` (follow that skill) so the
+review is of the real merge with current `master`. Then apply the
+review workflow and report format in full. After an acceptable
+review, tell the user to run `/reorganize-onto-master` to rebuild
+the tree as logical commits.
