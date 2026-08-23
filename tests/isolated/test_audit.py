@@ -561,7 +561,38 @@ def test_starter_sections_rename_implementation_narrative() -> None:
 
     assert titles["timeline"] == "Implementation timeline"
     assert titles["report"] == "Implementation notes"
+    assert titles["source"] == "Experiment code"
     assert "evidence" not in titles
+
+
+@pytest.mark.parametrize(
+    ("audit_relative", "source_path"),
+    [
+        ("experiment/audit", "."),
+        ("attempt", "code/primary_color_rating"),
+    ],
+)
+def test_render_audit_site_inlines_experiment_entry_point(
+    tmp_path: Path,
+    audit_relative: str,
+    source_path: str,
+) -> None:
+    audit_dir = tmp_path / audit_relative
+    init_audit(audit_dir, source_path=source_path)
+    packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
+    write(
+        packet_root / source_path / "experiment.py",
+        'LABEL = "safe-source-value"\n\nclass Exp:\n    pass\n',
+    )
+
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert '<details id="source"' in index
+    assert "<h2>Experiment code</h2>" in index
+    assert "<code>experiment.py</code>" in index
+    assert "safe-source-value" in index
+    assert "Exp" in index
 
 
 def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None:
@@ -1120,6 +1151,7 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
         "plan",
         "timeline",
         "report",
+        "source",
         "screenshots",
         "participant_video",
         "monitor",

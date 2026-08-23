@@ -93,13 +93,17 @@ Rendered sections
 -----------------
 
 Starter packets render audit completeness first, then Prompt, Plan,
-Implementation timeline, Implementation notes, Screenshots, Participant video,
-Monitor snapshot, Performance test, Analysis, Additional files, Blockers, and
-Checks. Each evidence kind is its own top-level section, so a section kind maps
-to one panel:
+Implementation timeline, Implementation notes, Experiment code, Screenshots,
+Participant video, Monitor snapshot, Performance test, Analysis, Additional
+files, Blockers, and Checks. The Experiment code panel reads ``experiment.py``
+(or ``experiment.entry_point`` when configured) from
+``experiment.source_path`` and displays it as Python source. Each evidence kind
+is its own top-level section, so a section kind maps to one panel:
 
 * ``screenshots``, ``participant_video``, ``monitor``, ``performance``, and
   ``analysis`` each render one evidence artifact;
+* ``source`` renders the experiment entry point directly from the implementation
+  directory;
 * ``evidence`` renders every evidence subsection in a single panel and remains
   supported for older packets;
 * ``checks`` panels are omitted when no checks are recorded.

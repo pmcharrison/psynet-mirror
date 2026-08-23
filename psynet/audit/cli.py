@@ -25,6 +25,7 @@ from psynet.audit.html import (
     render_analysis_notebook,
     render_completeness,
     render_evidence_section,
+    render_file_grid,
     render_json_block,
     render_markdown_block,
     render_monitor_snapshot,
@@ -89,6 +90,7 @@ SECTION_KINDS = {
     "monitor",
     "performance",
     "analysis",
+    "source",
     "files",
     "timeline",
     "json",
@@ -457,6 +459,7 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
                 "markdown",
                 path="REPORT.md",
             ),
+            starter_section("source", "Experiment code", "source"),
             starter_section("screenshots", "Screenshots", "screenshots"),
             starter_section(
                 "participant_video", "Participant video", "participant_video"
@@ -1404,6 +1407,61 @@ def render_json_section(audit_dir: Path, section: dict[str, Any]) -> str:
     return render_json_block(text)
 
 
+def experiment_entry_point(
+    audit_dir: Path,
+    manifest: dict[str, Any],
+) -> tuple[Path | None, str]:
+    """Resolve the experiment entry point declared by an audit packet."""
+
+    experiment = manifest.get("experiment")
+    if not isinstance(experiment, dict):
+        return None, "experiment.py"
+    source_path = experiment.get("source_path", ".")
+    entry_point = experiment.get("entry_point", "experiment.py")
+    if not isinstance(source_path, str) or not isinstance(entry_point, str):
+        return None, "experiment.py"
+
+    entry_relative = Path(entry_point)
+    if entry_relative.is_absolute():
+        return None, entry_point
+    packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
+    source_root = (packet_root / source_path).resolve()
+    source_file = (source_root / entry_relative).resolve()
+    if not source_file.is_relative_to(source_root):
+        return None, entry_point
+    return source_file, entry_point
+
+
+def render_source_section(audit_dir: Path, manifest: dict[str, Any]) -> str:
+    """Render the experiment entry point from ``experiment.source_path``."""
+
+    source_file, entry_point = experiment_entry_point(audit_dir, manifest)
+    if source_file is None or not source_file.is_file():
+        return (
+            '<p class="missing">Experiment entry point missing: '
+            f"<code>{html.escape(entry_point)}</code>.</p>"
+        )
+    content, truncated = read_audit_artifact_content(source_file)
+    if content is None:
+        return (
+            '<p class="missing">Experiment entry point could not be read: '
+            f"<code>{html.escape(entry_point)}</code>.</p>"
+        )
+    return render_file_grid(
+        [
+            AuditFile(
+                path=entry_point,
+                url="",
+                content=content,
+                size_bytes=source_file.stat().st_size,
+                kind=file_kind(entry_point),
+                truncated=truncated,
+            )
+        ],
+        empty_message="Experiment entry point was not found.",
+    )
+
+
 def section_paths(manifest: dict[str, Any]) -> set[str]:
     """Return paths rendered by markdown sections."""
 
@@ -1449,6 +1507,8 @@ def render_audit_section(
             return render_performance_result(evidence, standalone=True)
         if kind == "analysis":
             return render_analysis_notebook(evidence, standalone=True)
+        if kind == "source":
+            return render_source_section(audit_dir, manifest)
         if kind == "files":
             return render_visible_artifacts(
                 evidence, exclude_paths=section_paths(manifest)
