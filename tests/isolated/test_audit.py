@@ -583,6 +583,10 @@ def test_render_audit_site_inlines_experiment_entry_point(
     manifest["sections"] = [
         section for section in manifest["sections"] if section["id"] != "source"
     ]
+    if audit_relative == "attempt":
+        next(
+            section for section in manifest["sections"] if section["id"] == "report"
+        )["display"] = False
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
     packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
     write(
@@ -598,6 +602,7 @@ def test_render_audit_site_inlines_experiment_entry_point(
     assert "<code>experiment.py</code>" in index
     assert "safe-source-value" in index
     assert "Exp" in index
+    assert index.index('<details id="source"') < index.index('<details id="blockers"')
 
 
 def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None:

@@ -1314,16 +1314,18 @@ def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     if not isinstance(sections, list):
         return []
     checks = manifest.get("checks")
-    displayable = [
-        section
-        for section in sections
-        if isinstance(section, dict)
-        and section.get("display") is not False
-        and not (
-            section.get("kind") == "checks"
-            and (not isinstance(checks, list) or not checks)
+
+    def is_displayable(section: object) -> bool:
+        return (
+            isinstance(section, dict)
+            and section.get("display") is not False
+            and not (
+                section.get("kind") == "checks"
+                and (not isinstance(checks, list) or not checks)
+            )
         )
-    ]
+
+    displayable = [section for section in sections if is_displayable(section)]
     has_source = any(
         isinstance(section, dict)
         and (section.get("id") == "source" or section.get("kind") == "source")
@@ -1331,15 +1333,21 @@ def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     )
     if not has_source:
         source_section = starter_section("source", "Experiment code", "source")
-        report_index = next(
+        report_position = next(
             (
                 index
-                for index, section in enumerate(displayable)
+                for index, section in enumerate(sections)
+                if isinstance(section, dict)
                 if section.get("id") == "report"
             ),
-            len(displayable) - 1,
+            None,
         )
-        displayable.insert(report_index + 1, source_section)
+        insert_at = (
+            sum(is_displayable(section) for section in sections[: report_position + 1])
+            if report_position is not None
+            else len(displayable)
+        )
+        displayable.insert(insert_at, source_section)
     return displayable
 
 
