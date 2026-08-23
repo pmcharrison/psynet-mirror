@@ -1308,13 +1308,13 @@ def write_audit_static_assets(site_dir: Path) -> str:
 
 
 def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return displayable section records in manifest order."""
+    """Return displayable section records, adding source for older packets."""
 
     sections = manifest.get("sections")
     if not isinstance(sections, list):
         return []
     checks = manifest.get("checks")
-    return [
+    displayable = [
         section
         for section in sections
         if isinstance(section, dict)
@@ -1324,6 +1324,23 @@ def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             and (not isinstance(checks, list) or not checks)
         )
     ]
+    has_source = any(
+        isinstance(section, dict)
+        and (section.get("id") == "source" or section.get("kind") == "source")
+        for section in sections
+    )
+    if not has_source:
+        source_section = starter_section("source", "Experiment code", "source")
+        report_index = next(
+            (
+                index
+                for index, section in enumerate(displayable)
+                if section.get("id") == "report"
+            ),
+            len(displayable) - 1,
+        )
+        displayable.insert(report_index + 1, source_section)
+    return displayable
 
 
 def section_panel_class(section: dict[str, Any]) -> str:

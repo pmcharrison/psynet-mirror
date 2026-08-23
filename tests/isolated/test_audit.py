@@ -579,6 +579,11 @@ def test_render_audit_site_inlines_experiment_entry_point(
 ) -> None:
     audit_dir = tmp_path / audit_relative
     init_audit(audit_dir, source_path=source_path)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["sections"] = [
+        section for section in manifest["sections"] if section["id"] != "source"
+    ]
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
     packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
     write(
         packet_root / source_path / "experiment.py",
