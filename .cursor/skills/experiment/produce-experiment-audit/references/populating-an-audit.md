@@ -18,13 +18,6 @@ from implementation, mark it present and move on. Re-run an expensive check only
 when the existing file is missing, invalid, or no longer represents the final
 implementation.
 
-## PsyNet revision
-
-`psynet audit` is part of core PsyNet (Click group on the `psynet` CLI). Use a
-PsyNet checkout that includes the audit commands. Do not assume older
-revisions have the command until that work is available in the checkout you
-are using.
-
 ## Path cheat-sheet
 
 `psynet audit` auto-detects the packet from the current directory:
@@ -154,22 +147,19 @@ reviewed on its own rather than inside one combined evidence panel.
 
 ### Monitor snapshot
 
-`artifacts/monitor.html` is a **static HTML snapshot of the experimenter
-dashboard** from a running experiment (local debug or deployed), not the
-participant flow.
+`artifacts/monitor.html` is a **static HTML snapshot of `/dashboard/monitoring`**
+from a running experiment (local debug or deployed). In the dashboard nav this
+is the **Monitor** tab (it opens on the Networks visualization). Capture that
+page. Do not substitute **Basic data** (`/dashboard/data`).
 
 Capture it while the server is up and at least one participant (or bot) has
-progressed far enough that the dashboard shows useful state:
+progressed far enough that the network graph shows useful state:
 
 1. Start or reuse `psynet debug local` (or a deployed app).
 2. Read dashboard credentials from the launch info PsyNet writes under
    `~/psynet-data/launch-data/<deployment_id>/launch-info.json` (or the
    equivalent printed at launch). Do not invent credentials.
-3. Open an authenticated dashboard page that shows monitoring/basic data. Prefer
-   `/dashboard/data` (Basic data / monitor context). Older docs mention
-   `/dashboard/monitor`; that route may 404 on current PsyNet—fall back to
-   `/dashboard/data`, `/dashboard/develop`, or the Networks/monitoring tab that
-   loads.
+3. Open the authenticated Monitor page at `/dashboard/monitoring`.
 4. Save the page HTML to `audit/artifacts/monitor.html` (for example
    Playwright `page.content()` after HTTP basic auth). Prefer capturing via the
    same participant-flow script that already talks to the running server.

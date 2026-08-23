@@ -16,9 +16,9 @@ the CLI from the experiment root so `experiment.source_path` stays `.`.
 - If participant screenshots or video are needed, use
   `record-participant-video`.
 - For `artifacts/monitor.html`, follow the Monitor snapshot section in
-  `references/populating-an-audit.md` (authenticated dashboard HTML from a
-  running local or deployed server; mark `not_applicable` only when no server
-  ever ran).
+  `references/populating-an-audit.md` (authenticated `/dashboard/monitoring`
+  HTML from a running local or deployed server; mark `not_applicable` only when
+  no server ever ran).
 - If the experiment needs implementation changes, use
   `implement-experiment`.
 - For a live handoff, use `prepare-experiment-tunnel` (and `public-tunnel`) when
