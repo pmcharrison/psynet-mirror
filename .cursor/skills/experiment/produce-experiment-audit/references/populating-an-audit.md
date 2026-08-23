@@ -248,7 +248,9 @@ more appropriate. It should:
 
 - read exported data directly;
 - show data loading and cleaning;
-- display useful summary tables or plots;
+- display useful summary tables or plots (prefer inline SVG; call
+  `plt.show()` or equivalent so figures are stored in the executed notebook);
+- distinguish technical validation from scientific conclusions.
 - distinguish technical validation from scientific conclusions.
 
 `REPORT.md` should state:

@@ -191,9 +191,20 @@ uv pip install matplotlib jupyter nbconvert nbformat ipykernel
 jupyter nbconvert --to notebook --execute --inplace audit/analyses/analysis.ipynb
 ```
 
+Prefer inline SVG outputs for plots. Configure the notebook’s plotting backend
+accordingly, and use `plt.show()` or an equivalent display call so the plots
+actually appear in the executed notebook. For matplotlib in Jupyter:
+
+```python
+%config InlineBackend.figure_formats = ["svg"]
+import matplotlib.pyplot as plt
+# ... plot ...
+plt.show()
+```
+
 Keep the executed notebook small (many review tools truncate large inline file
-content above ~100KB, which breaks notebook rendering): prefer low-DPI inline
-figures (e.g. `plt.rcParams["figure.dpi"] = 50`) or link out large figures.
+content above ~100KB, which breaks notebook rendering). SVG plots stay sharp
+without large raster payloads; link out figures that would still bloat the file.
 
 ### Review
 
