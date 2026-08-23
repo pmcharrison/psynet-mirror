@@ -6,7 +6,6 @@ from psynet.timeline import Timeline
 
 class Exp(psynet.experiment.Experiment):
     label = "SurveyJS demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         ModularPage(

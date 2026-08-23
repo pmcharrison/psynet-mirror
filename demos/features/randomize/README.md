@@ -1,9 +1,10 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+`randomize` shuffles a list of timeline elts once per participant. This demo
+randomizes InfoPages for the numbers 0–99; the bot test checks that every number
+still appears exactly once.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

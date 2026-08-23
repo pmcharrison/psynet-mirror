@@ -153,7 +153,6 @@ branches = {demo_name: get_trial_maker(demo_name) for demo_name in available_dem
 
 class Exp(psynet.experiment.Experiment):
     label = "Basic Create and Rate Experiment"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         ModularPage(

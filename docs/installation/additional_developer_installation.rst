@@ -28,6 +28,18 @@ Copy the SSH key to the clipboard by running this command:
 
    pbcopy < ~/.ssh/id_rsa.pub
 
+On Linux you can print the key and copy it manually:
+
+.. code-block:: bash
+
+   cat ~/.ssh/id_rsa.pub
+
+On WSL you can also copy it directly to the Windows clipboard:
+
+.. code-block:: bash
+
+   cat ~/.ssh/id_rsa.pub | clip.exe
+
 Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
 click 'Add new key', paste the key in the 'Key' box,
 remove the Expiration date if you think it's helpful, then click 'Add key'.
@@ -89,16 +101,12 @@ If you haven't already done so, download PsyNet from GitLab:
     cd
     git clone https://gitlab.com/PsyNetDev/PsyNet
 
-Open PsyNet as a PyCharm project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Open PsyNet in your IDE
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are using PyCharm, you can open the PsyNet project by selecting 'Open' from the PyCharm welcome screen,
-then navigating to the ``psynet`` directory and selecting it.
-Follow the PyCharm prompts to create a virtual environment for PsyNet.
-When prompted to choose which requirements to install from,
-select ``demos/timeline/constraints.txt``.
-This ensures that the right versions of all the PsyNet dependencies are installed
-(if you just ran ``pip install psynet`` you would get the latest, potentially incompatible versions of the dependencies).
+Open the PsyNet folder (the folder you downloaded from GitLab) in your IDE.
+Use your IDE to create a virtual environment for PsyNet, using the Python version specified
+in ``pyproject.toml``.
 
 Install PsyNet and Dallinger in editable mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,15 +122,6 @@ Within the virtual environment you just created, install PsyNet and Dallinger in
 
 Editable mode means that any changes you make to the
 Dallinger/PsyNet source code will be automatically reflected in your virtual environment.
-
-.. note::
-
-    If you are developing using Docker, you can use these editable versions of Dallinger and PsyNet
-    by using the ``psynet-dev`` Docker command variants, for example:
-
-    .. code-block:: bash
-
-       bash docker/psynet-dev debug local
 
 You can then check your installation by running
 
@@ -155,13 +154,13 @@ With the virtual environment still activated:
    pip3 install pre-commit
    pre-commit install
 
-This will install the pre-commit hooks defined in ``.pre-commit-config.yaml`` to check for `flake8` violations,
-sort and group ``import`` statements using `isort`, and enforce a standard Python source code format via `black`.
-You can run the black code formatter and flake8 checks manually at any time by running:
+This will install the pre-commit hooks defined in ``.pre-commit-config.yaml`` to lint, sort imports,
+and format Python code using `ruff <https://docs.astral.sh/ruff/>`__.
+You can run the Ruff checks manually at any time by running:
 
 .. code-block:: bash
 
    pre-commit run --all-files
 
-You may also want to install a black plugin for your own code editor, though this is not strictly necessary,
-since the pre-commit hook will run black for you on commit.
+You may also want to install Ruff support for your own code editor, though this is not strictly necessary,
+since the pre-commit hook will run Ruff for you on commit.

@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+`AudioSliderControl` maps slider positions to discrete audio files in a batch.
+This demo explores rhythm stimuli with options such as snapping, random wrap,
+and circular input — a pattern useful for continuous judgment along a discrete
+audio continuum.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

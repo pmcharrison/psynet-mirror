@@ -9,7 +9,6 @@ from psynet.timeline import AsyncCodeBlock, CodeBlock, Timeline
 
 class Exp(psynet.experiment.Experiment):
     label = "Demo demonstrating asynchronous CodeBlock execution"
-    initial_recruitment_size = 1
 
     def set_participant_var1(participant):
         time.sleep(1)

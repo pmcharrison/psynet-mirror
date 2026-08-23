@@ -1,9 +1,12 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+`AudioForcedChoiceTest` builds a scoring screener from a CSV of stimuli and
+answer options. Use it when you need participants to classify or quality-check
+audio before the main task. The demo runs a simple animal-sound categorization,
+then a customized subclass that grades spoken-sentence recordings against error
+categories.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

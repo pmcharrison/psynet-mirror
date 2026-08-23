@@ -50,10 +50,14 @@ class EndLogic(EltCollection):
     ) -> TimelineLogic:
         from .modular_page import ModularPage, PushButtonControl
 
+        _ = get_translator()
+
         # Todo - Once automatic translation is updated, revisit the logic in RejectedConsentPage,
         # and ask the participant to return the HIT if appropriate.
         if show_finish_button:
-            control = PushButtonControl(["Finish"])
+            # The choice key "Finish" stays untranslated so that recorded answers
+            # are locale-independent; only the visible label is translated.
+            control = PushButtonControl(["Finish"], labels=[_("Finish")])
         else:
             control = NullControl()
 
@@ -187,9 +191,16 @@ class UnsuccessfulEndLogic(EndLogic):
 
 
 class RejectedConsentLogic(UnsuccessfulEndLogic):
-    def after_debrief(self, experiment, participant):
-        super().after_debrief(experiment, participant)
-        participant.fail()
+    def before_debrief(self, experiment, participant) -> None:
+        super().before_debrief(experiment, participant)
+
+        # For Lucid recruitment, terminate the participant on Lucid's side
+        # before showing the page, since the auto-redirect bypasses the normal
+        # release_participant flow (user won't click Finish)
+        if experiment.with_lucid_recruitment():
+            experiment.recruiter.terminate_participant(
+                participant=participant, reason="consent-rejected"
+            )
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         _ = get_translator()
@@ -200,6 +211,18 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
         with html:
             tags.span(_p("final_page_rejected_consent", "Consent was rejected."))
             tags.span(_p("final_page_rejected_consent", "End of experiment."))
+
+            # For Lucid recruitment, auto-redirect back to Lucid
+            if experiment.with_lucid_recruitment():
+                tags.span(_("You will be redirected."))
+                external_submit_url = experiment.recruiter.external_submit_url(
+                    participant=participant
+                )
+                tags.script(
+                    dominate.util.raw(
+                        f'setTimeout(() => {{ window.location = "{external_submit_url}"; }}, 2000)'
+                    )
+                )
 
         return self.debrief_page(
             html, experiment, participant, show_finish_button=False

@@ -428,6 +428,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Якщо так, будь ласка, опишіть проблему кількома словами."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Завершити"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -911,7 +916,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Дивіться інформацію нижче для деталей вашої компенсації."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Перервати експеримент"
@@ -936,7 +942,7 @@ msgid ""
 " task."
 msgstr ""
 "Будь ласка, натисніть кнопку \"Прийняти HIT\" на сайті Amazon вище, щоб "
-"почати завдання."
+"розпочати завдання."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -977,12 +983,7 @@ msgstr ""
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "Почати експеримент"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Скасувати експеримент"
+msgstr "Розпочати експеримент"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

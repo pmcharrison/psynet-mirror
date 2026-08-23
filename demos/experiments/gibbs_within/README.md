@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Same color–word GSP task as `gibbs`, but with within-participant chains so one
+person advances their own trajectory. Prefer this when each participant should
+iterate repeatedly on the same chain rather than contributing a single step to a
+shared across-chain design.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

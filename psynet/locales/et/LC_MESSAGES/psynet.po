@@ -429,6 +429,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Kui jah, siis palun kirjeldage probleemi mõne sõnaga."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Lõpeta"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -904,10 +909,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Vaadake allolevat teavet oma kompensatsiooni üksikasjade kohta."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Katkesta katse"
+msgstr "Katkesta eksperiment"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -941,7 +947,7 @@ msgstr "Täname, et võtsite selle ülesande vastu."
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "Täname teid huvi eest selle eksperimendi vastu."
+msgstr "Täname, et tunnete huvi selle eksperimendi vastu."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -973,13 +979,8 @@ msgstr "Alusta eksperimenti"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Katkesta eksperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "Klõpsake ülaltoodud nuppu, et vea korral kompensatsiooni saada."
+msgstr "Klõpsake ülaltoodud nupul, et vea korral kompensatsiooni saada."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3058,7 +3059,7 @@ msgid ""
 msgstr ""
 "Pärast katkestamist ei ole vaja meiega ühendust võtta, et saada "
 "kompensatsiooni; see peaks teile automaatselt MTurki kaudu mõne minuti "
-"pärast määratud olema."
+"pärast määratud saama."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

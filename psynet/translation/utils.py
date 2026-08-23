@@ -1,5 +1,6 @@
 import os
 import re
+import shlex
 import sys
 import tempfile
 import time
@@ -10,6 +11,16 @@ import polib
 from yaspin import yaspin
 
 from psynet.log import bold
+
+# Keep this as the single source of truth for Jinja extraction keyword rules.
+# - gettext:1 means "extract the first argument as the message"
+# - pgettext:1c,2 means "first argument is context, second is the message"
+# - _:1 means "extract the first argument from _(...)"
+# - _p:1c,2 covers the PsyNet context-aware alias for pgettext
+_BABEL_JINJA_CONFIG = """[jinja2: **.html]
+encoding = utf-8
+keywords = _:1 _p:1c,2 pgettext:1c,2 gettext:1
+"""
 
 
 def new_pot(fpath):
@@ -51,20 +62,29 @@ def get_pot_from_command(cmd, tmp_pot_file, sp):
         return []
 
 
+def _build_pybabel_extract_command(cfg_file, pot_file, input_path):
+    """Build the pybabel extract command using shell-safe quoted paths.
+
+    Keywords are passed explicitly to keep behavior stable across Babel versions.
+    """
+    return (
+        "pybabel extract "
+        "-k gettext:1 -k pgettext:1c,2 -k _:1 -k _p:1c,2 "
+        f"-F {shlex.quote(cfg_file)} "
+        f"-o {shlex.quote(pot_file)} "
+        f"{shlex.quote(input_path)}"
+    )
+
+
 def create_translation_template_with_pybabel(input, sp):
     """Extract translations from a file or multiple files using pybabel."""
-    cfg = """
-            [jinja2: **.html]
-            encoding = utf-8
-            keywords = _:1,2 pgettext:1c,2 gettext:1,2
-            """
     with tempfile.TemporaryDirectory() as tempdir:
         tmp_cfg_file = os.path.join(tempdir, "babel.cfg")
         tmp_pot_file = os.path.join(tempdir, "babel.pot")
         with open(tmp_cfg_file, "w") as f:
-            f.write(cfg)
+            f.write(_BABEL_JINJA_CONFIG)
         return get_pot_from_command(
-            f"pybabel extract -F {tmp_cfg_file} -o {tmp_pot_file} {input}",
+            _build_pybabel_extract_command(tmp_cfg_file, tmp_pot_file, input),
             tmp_pot_file,
             sp,
         )
@@ -75,7 +95,10 @@ def create_translation_template_with_xgettext(input_file, sp):
     with tempfile.TemporaryDirectory() as tempdir:
         tmp_pot_file = os.path.join(tempdir, "xgettext.pot")
         return get_pot_from_command(
-            f'xgettext -o {tmp_pot_file} {input_file} -L Python --keyword="_p:1c,2"',
+            "xgettext "
+            f"-o {shlex.quote(tmp_pot_file)} "
+            f"{shlex.quote(input_file)} "
+            '-L Python --keyword="_p:1c,2"',
             tmp_pot_file,
             sp,
         )
@@ -252,19 +275,6 @@ def remove_line_numbers(po):
     return po
 
 
-def remove_unused_translations_po(pot_entries, po):
-    """Remove translations which don't occur in the pot file."""
-    po_entries = po_to_dict(po)
-    entries = []
-    for key, pot_entry in pot_entries.items():
-        po_entry = po_entries[key]
-        po_entry.comment = pot_entry.comment
-        entries.append(po_entry)
-    po.clear()
-    po.extend(entries)
-    return po
-
-
 def po_to_dict(po):
     """Convert a po file to a dictionary. Keys are (msgid, msgctxt) tuples. Makes sure there are no duplicates."""
     entries_dict = OrderedDict()
@@ -289,7 +299,5 @@ def compile_mo(po_path):
     po = load_po(po_path)
     mo_path = po_path.replace(".po", ".mo")
     for entry in po:
-        entry.flags = (
-            []
-        )  # Make sure fuzzy entries are excluded, this will lead to the translation not being recognized
+        entry.flags = []  # Make sure fuzzy entries are excluded, this will lead to the translation not being recognized
     po.save_as_mofile(mo_path)

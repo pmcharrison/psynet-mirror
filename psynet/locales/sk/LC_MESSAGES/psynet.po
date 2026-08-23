@@ -429,6 +429,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Ak áno, prosím, uveďte niekoľko slov na opísanie problému."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Dokončiť"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -564,7 +569,7 @@ msgstr "Musíte vybrať odpoveď!"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Musíte poskytnúť číslo!"
+msgstr "Musíte zadať číslo!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -904,10 +909,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Pozrite si informácie nižšie pre podrobnosti o vašej kompenzácii."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Prerušiť experiment"
+msgstr "Zrušiť experiment"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -970,11 +976,6 @@ msgstr "Pred pokračovaním prosím vypnite blokovanie vyskakovacích okien."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Začať experiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Zrušiť experiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

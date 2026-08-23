@@ -731,7 +731,7 @@ class HouseholdIncomePerYear(ModularPage):
 
         control = RadioButtonControl(
             [
-                "ĺess_than_10000",
+                "less_than_10000",
                 "10000_to_19999",
                 "20000_to_29999",
                 "30000_to_39999",

@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+`MediaSliderControl` generalizes the idea to audio or video batches: each slider
+position can play a different clip. Examples cover both modalities with
+autoplay, snap values, and timing constraints for when the response may be
+submitted.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

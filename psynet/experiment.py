@@ -13,20 +13,19 @@ import uuid
 import zipfile
 from collections import Counter, OrderedDict
 from datetime import datetime, timedelta
-from functools import cached_property
+from functools import cache, cached_property
 from importlib import resources
 from os.path import abspath, dirname, exists
 from os.path import join as join_path
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
-from statistics import mean, median
+from statistics import median
 from typing import List, Optional, Type, Union
 
 import dallinger.experiment
 import dallinger.models
 import flask
-import pexpect
 import psutil
 import rpdb
 import sqlalchemy.orm.exc
@@ -58,10 +57,11 @@ from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import joinedload, with_polymorphic
+from sqlalchemy.orm import with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
+from psynet.perf_test import run_parallel_test
 from psynet.utils import (
     format_bytes,
     get_config,
@@ -82,18 +82,19 @@ from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
 from .participant import Participant
-from .recruiters import CapRecruiter  # noqa: F401; Backward compatibility alias
-from .recruiters import StagingCapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
+    CapRecruiter,  # noqa: F401; Backward compatibility alias
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
+    StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .timeline import (
+    WEBSOCKET_CHANNEL,
     DatabaseCheck,
     FailedValidation,
     ModuleState,
@@ -102,24 +103,26 @@ from .timeline import (
     RecruitmentCriterion,
     Response,
     Timeline,
+    WebSocketElt,
 )
 from .translation.check import check_translations
 from .translation.translate import create_pot
 from .translation.utils import compile_mo, load_po
-from .trial.main import Trial, TrialMaker
+from .trial.main import Trial, TrialMaker, TrialNetwork
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
 from .utils import (
     NoArgumentProvided,
-    cache,
     call_function,
     call_function_with_context,
     disable_logger,
+    ensure_experiment_directory_name_does_not_conflict,
     get_arg_from_dict,
     get_authenticated_session,
     get_logger,
     get_translator,
+    is_in_repo_experiment,
     log_time_taken,
     render_template_with_translations,
     safe,
@@ -129,6 +132,7 @@ from .utils import (
 )
 
 logger = get_logger()
+
 
 database_template_path = ".deploy/database_template.zip"
 
@@ -219,6 +223,7 @@ class Request(SQLBase, SQLMixin):
     method = Column(String)
     endpoint = Column(String)
     params = Column(PythonDict, default={})
+    status_code = Column(Integer)
 
     def to_dict(self):
         return {
@@ -460,6 +465,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     session:
         The experiment's connection to the database.
     """
+
     # Introduced this as a hotfix for a compatibility problem with macOS 10.13:
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
@@ -517,7 +523,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert not (
             initial_recruitment_size_config_changed
             and initial_recruitment_size_experiment_changed
-        ), "You have set the initial recruitment size in both the config file and in your experiment class."
+        ), (
+            "You have set the initial recruitment size in both the config file and in your experiment class."
+        )
 
         if initial_recruitment_size_config_changed:
             self.initial_recruitment_size = config_initial_recruitment_size
@@ -538,6 +546,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self._websocket_message_handlers = {}
 
         self.pre_deploy_routines = []
         if self.translation_checks_needed():
@@ -748,9 +757,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
-            assert self.supported_locales == [
-                "en"
-            ], "No translations are needed, so the supported locales should be ['en']"
+            assert self.supported_locales == ["en"], (
+                "No translations are needed, so the supported locales should be ['en']"
+            )
 
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(
@@ -803,6 +812,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
+
+        if self._websocket_message_handlers:
+            from dallinger.experiment_server import sockets
+
+            for channel_name in self._websocket_message_handlers:
+                sockets.chat_backend.subscribe(self, channel_name)
+
         db.session.commit()
         redis_vars.set("launch_finished", True)
         self.notifier.on_launch()
@@ -868,6 +884,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 method=request.method,
                 endpoint=request.path,
                 params=params,
+                status_code=response.status_code,
             )
             db.session.add(request_obj)
             db.session.commit()
@@ -1122,9 +1139,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "label": cls.label,
             "initial_recruitment_size": cls.initial_recruitment_size,
             "auto_recruit": config.get("auto_recruit", None),
-            "creation_time": cls.creation_time.astimezone().isoformat(
-                timespec="minutes"
-            ),
+            "launch_time": cls.creation_time.astimezone().isoformat(timespec="minutes"),
             "now": datetime.now().astimezone().isoformat(timespec="minutes"),
             "experimenter_name": config.get("experimenter_name", None),
             "currency": config.get("currency", None),
@@ -1195,6 +1210,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def status_and_backups():
         # TODO: consider placing these in separate scheduled tasks
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         safe(exp.record_experiment_status)()
         if exp.automatic_backups:
@@ -1235,9 +1252,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         Returns
         -------
-        dict
+        dict | None
             A dictionary of data to be returned to the client. The keys of the dictionary should be strings, and the
-            values can be any JSON-serializable object.
+            values can be any JSON-serializable object. Return ``None`` if no basic data is provided.
 
         Raises
         ------
@@ -1246,12 +1263,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         See `artifact_storage` for an example.
         """
-        return []
+        return None
 
     @classmethod
     def backup_basic_data(cls):
         data = cls.get_basic_data(context="backup")
-        if len(data) > 0:
+        if data is not None:
             cls.artifact_storage.write_basic_data(data)
 
     @staticmethod
@@ -1275,6 +1292,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return error_response(error_text="Invalid credentials", simple=True)
 
             data = exp.get_basic_data(context="route", **request.args)
+            if data is None:
+                return []
 
             return data
         except ValueError as e:
@@ -1328,7 +1347,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
         elif self.test_mode == "parallel":
-            self._test_experiment_parallel()
+            run_parallel_test(
+                n_bots=self.test_n_bots,
+                time_factor=self.test_time_factor,
+                stagger_interval_s=self.test_parallel_stagger_interval_s,
+                check_bots=self.test_check_bots,
+            )
         else:
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
@@ -1337,66 +1361,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
 
-    def _test_experiment_parallel(self):
-        # Start N subprocesses, and in each one call `psynet run-bot`
-        logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
-
-        config = get_config()
-        dashboard_user = config.get("dashboard_user")
-        dashboard_password = config.get("dashboard_password")
-
-        n_processes = self.test_n_bots
-
-        processes = []
-        process_ids = list(range(n_processes))
-        bot_ids = [process_id + 1 for process_id in process_ids]
-
-        cmd = f"psynet run-bot --dashboard-user {dashboard_user} --dashboard-password {dashboard_password}"
-        cmd += f" --time-factor {self.test_time_factor}"
-
-        for bot_id in bot_ids:
-            if bot_id > 0:
-                time.sleep(self.test_parallel_stagger_interval_s)
-
-            logger.info(f"Creating and running bot {bot_id}...")
-            p = pexpect.spawn(cmd, timeout=None, cwd=None)
-            processes.append(p)
-
-        waiting_for_processes = True
-        finished_processes = set()
-
-        testing_stats = self.TestingStats(self.testing_stat_definitions)
-
-        while waiting_for_processes:
-            for process, process_id, bot_id in zip(processes, process_ids, bot_ids):
-                try:
-                    while True:
-                        output = (
-                            process.read_nonblocking(size=100000, timeout=0)
-                            .decode()
-                            .strip()
-                            .split("\n")
-                        )
-                        for line in output:
-                            line.replace("INFO:root:", "")
-                            logger.info(f"(Bot {bot_id}) " + line)
-
-                            testing_stats.update_from_line(bot_id, line)
-
-                        time.sleep(0.01)
-                except pexpect.TIMEOUT:
-                    pass
-                except pexpect.EOF:
-                    assert process.exitstatus == 0
-                    finished_processes.add(process_id)
-
-            if len(finished_processes) == n_processes:
-                waiting_for_processes = False
-
-        bots = Bot.query.all()
-        self.test_check_bots(bots)
-
-        testing_stats.report()
+    test_duration_minutes = 1
 
     def _report_request_statistics(self) -> Optional[float]:
         response = self.authenticated_session.get(self.base_url + "/request_statistics")
@@ -1414,84 +1379,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def request_statistics(cls):
         # Note that we restrict consideration to the key participant-facing requests.
+        key_endpoints = ["/timeline", "/response"]
+
         mean_duration = (
             db.session.query(func.avg(Request.duration))
-            .filter(
-                Request.endpoint.in_(["/timeline", "/response"]),
-            )
+            .filter(Request.endpoint.in_(key_endpoints))
             .scalar()
         )
+
+        total_requests = (db.session.query(func.count(Request.id)).scalar()) or 0
+
         return {
             "mean_duration": mean_duration,
+            "total_requests": total_requests,
         }
-
-    class TestingStats:
-        def __init__(self, stat_definitions):
-            self.stat_definitions = stat_definitions
-            self.data = {
-                stat_definition.key: {} for stat_definition in stat_definitions
-            }
-
-        def update_from_line(self, bot_id, line):
-            for stat_definition in self.stat_definitions:
-                stat = stat_definition.extract_stat(line)
-                if stat is not None:
-                    self.update_from_stat(stat_definition.key, bot_id, stat)
-
-        def update_from_stat(self, stat_key, bot_id, value):
-            self.data[stat_key][bot_id] = value
-
-        def report(self):
-            logger.info("BOT TESTING STATISTICS:")
-            for stat_definition in self.stat_definitions:
-                values = self.data[stat_definition.key].values()
-                stat_definition.report(values)
-
-    class TestingStatDefinition:
-        def __init__(self, key, label, regex, suffix, decimal_places=3):
-            self.key = key
-            self.label = label
-            self.regex = regex
-            self.suffix = suffix
-            self.decimal_places = decimal_places
-
-        def extract_stat(self, line):
-            match = re.search(self.regex, line)
-            if match:
-                return float(match.group(1))
-
-        def report(self, values):
-            values_not_none = [value for value in values if value is not None]
-
-            if len(values_not_none) > 0:
-                _mean = mean(values_not_none)
-                template = f"Mean %s = %.{self.decimal_places}f%s"
-                logger.info(template % (self.label, _mean, self.suffix))
-            else:
-                logger.info(f"Didn't find any values for {self.label} to report.")
-
-    testing_stat_definitions = [
-        TestingStatDefinition(
-            "progress",
-            label="progress through experiment",
-            regex="progress = ([0-9]*)%",
-            suffix="%",
-            decimal_places=0,
-        ),
-        TestingStatDefinition(
-            "total_wait_page_time",
-            label="total wait page time per bot",
-            regex="total WaitPage time = ([0-9]*\\.[0-9]*) seconds",
-            suffix=" seconds",
-            decimal_places=2,
-        ),
-        TestingStatDefinition(
-            "total_experiment_time",
-            label="time taken to complete experiment",
-            regex="total experiment time = ([0-9]*\\.[0-9]*) seconds",
-            suffix=" seconds",
-        ),
-    ]
 
     def _test_experiment_serial(self):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
@@ -1637,10 +1538,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     _p("mturk_error", "Please also quote the following information:")
                 )
                 tags.ul(
-                    tags.li(f'{_("Error type")}: {error_type}'),
-                    tags.li(f'{_("HIT ID")}: {hit_id}'),
-                    tags.li(f'{_("Assignment ID")}: {assignment_id}'),
-                    tags.li(f'{_("Worker ID")}: {worker_id}'),
+                    tags.li(f"{_('Error type')}: {error_type}"),
+                    tags.li(f"{_('HIT ID')}: {hit_id}"),
+                    tags.li(f"{_('Assignment ID')}: {assignment_id}"),
+                    tags.li(f"{_('Worker ID')}: {worker_id}"),
                 )
 
             return html
@@ -1701,49 +1602,69 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.grow_networks()
 
     @staticmethod
-    def grow_networks():
-        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
-        # cover other types of networks in the future.
-        from psynet.trial.chain import ChainNetwork
+    def _fail_grown_network(network):
+        """Mark a network's head (or degree-0 trials) failed after a grow error."""
+        if network.head is not None and network.head.degree > 0:
+            network.head.fail()
+        elif network.head is not None and network.head.degree == 0:
+            for trial in network.head.all_trials:
+                trial.fail()
 
-        # This query could be further optimized by identifying which network classes are present in the table
-        # and making queries specific to these. This would allow subclass-specific attributes to be loaded
-        # in the initial query rather than being lazily loaded.
-        networks = (
-            ChainNetwork.query.filter(
-                ChainNetwork.ready_to_spawn,
-                ChainNetwork.chain_type
-                != "within",  # participants are responsible for growing within-networks
-            )
-            .with_for_update()
-            .populate_existing()
-            .options(joinedload(ChainNetwork.head, innerjoin=True))
-            .all()
-        )
+    @staticmethod
+    def grow_networks():
+        from psynet.trial.chain import ChainTrialMaker
+
+        # The poller is the authoritative growth backstop for both across- and
+        # within-chain networks. Within-chain trial finalization still attempts
+        # immediate growth to reduce participant latency, but correctness does
+        # not depend on that callback running. The readiness helpers use
+        # ``skip_locked=True`` so maintenance can grow other networks rather
+        # than waiting behind rows locked by participant requests or manual
+        # grow calls.
+        networks = []
+        exp = get_experiment()
+        for trial_maker in exp.timeline.trial_makers.values():
+            if isinstance(trial_maker, ChainTrialMaker):
+                networks.extend(trial_maker.get_networks_ready_to_grow())
+
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
-            exp = get_experiment()
-            for network in networks:
+            # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+            # holding detached ORM instances for later networks.
+            for network_id in [network.id for network in networks]:
+                network = db.session.get(TrialNetwork, network_id)
+                if network is None:
+                    continue
                 try:
-                    network.grow(experiment=exp)
+                    network.trial_maker.call_grow_network(
+                        network, check_readiness=False
+                    )
                 except Exception as err:
-                    if not isinstance(err, exp.HandledError):
-                        exp.handle_error(
-                            err,
-                            network=network,
-                        )
-                    if network.head.degree > 0:
-                        network.head.fail()
-                    elif network.head.degree == 0:
-                        for trial in network.head.all_trials:
-                            trial.fail()
+                    # Re-fetch after handle_error rollback; commit the fail so a
+                    # later error in this batch cannot undo it.
+                    exp.isolate_batch_item_failure(
+                        err,
+                        refetch=lambda: db.session.get(TrialNetwork, network_id),
+                        fail=Experiment._fail_grown_network,
+                        network=network,
+                    )
 
             logger.info("Finished growing networks.")
+
+    @scheduled_task("interval", seconds=5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _finalize_pending_trials():
+        if not is_experiment_launched():
+            return
+        # Event-driven finalize checks remain the fast path. This poller only
+        # recovers trials that became ready without those callbacks running.
+        Trial.finalize_pending_trials()
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
     @staticmethod
-    @with_transaction
     def _check_barriers():
         if not is_experiment_launched():
             return
@@ -1752,33 +1673,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def check_barriers():
-        from .sync import ParticipantLinkBarrier
+        from .sync import check_barriers as sync_check_barriers
 
-        barrier_links = (
-            ParticipantLinkBarrier.query.join(Participant)
-            .filter(
-                ~ParticipantLinkBarrier.released,
-                ~Participant.failed,
-                Participant.status == "working",
-            )
-            # We need to lock Participant rows to prevent race conditions with participants
-            # who are currently being processed in other tasks
-            # (e.g. advancing through the timeline).
-            .with_for_update(of=[ParticipantLinkBarrier, Participant])
-            .populate_existing()
-            .all()
-        )
-
-        # Before we used a DISTINCT clause --
-        # .distinct(ParticipantLinkBarrier.barrier_id)
-        # but DISTINCT is incompatible with FOR UPDATE in Postgres.
-        # We therefore do this filtering in Python instead.
-        processed_barriers = set()
-        for link in barrier_links:
-            if link.barrier_id not in processed_barriers:
-                barrier = link.get_barrier()
-                barrier.process_potential_releases()
-                processed_barriers.add(link.barrier_id)
+        sync_check_barriers()
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken
@@ -1946,12 +1843,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
             "prolific_enable_return_for_bonus": True,
-            "prolific_enable_screen_out": False,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
+            "inplace_timeline_transitions": False,
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -2054,7 +1951,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
                 <br>
                 you should receive a reward of approximately
-                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_reward_in_dollars)}</span> depending on the
+                <span style="font-weight: bold;">${"{:.2f}".format(self.estimated_reward_in_dollars)}</span> depending on the
                 amount of work done.
                 <br>
                 In some cases, the experiment may finish early: this is not an error, and there is no need to write to us.
@@ -2101,7 +1998,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     #     db.session.commit()
 
     def process_timeline(self):
-        for elt in self.timeline.elts:
+        for elt in self.timeline.all_elts:
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)
             if isinstance(elt, ParticipantFailRoutine):
@@ -2113,6 +2010,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.assets.stage(elt)
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)
+            if isinstance(elt, WebSocketElt) and elt.channel is not None:
+                if not self._websocket_message_handlers:
+                    # First WebSocketElt found: set the global channel so Dallinger
+                    # automatically subscribes to dallinger_control on launch.
+                    self.channel = WEBSOCKET_CHANNEL
+                self._websocket_message_handlers.setdefault(elt.channel, []).append(
+                    elt.handle_message
+                )
+
+    def receive_message(
+        self, message, channel_name=None, participant=None, node=None, receive_time=None
+    ):
+        """Dispatch incoming WebSocket messages to the ``WebSocketElt`` handlers
+        for the given channel.
+
+        This override is activated automatically when any ``WebSocketElt``
+        instances are present in the timeline. Handlers are keyed by channel
+        name, so each Elt only receives messages from its own channel.
+        """
+        for handler in self._websocket_message_handlers.get(channel_name, []):
+            handler(
+                message,
+                channel_name=channel_name,
+                participant=participant,
+                node=node,
+                receive_time=receive_time,
+                experiment=self,
+            )
 
     def pre_deploy(self, redeploying_from_archive=False):
         self.update_deployment_id()
@@ -2568,7 +2493,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def response_approved(self, participant):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
-        return success_response(submission="approved", page=page.__json__(participant))
+        payload = {
+            "submission": "approved",
+            "page": page.__json__(participant),
+        }
+        config = get_config()
+        # In inplace mode, the same /response round-trip both advances the
+        # participant state and returns the next timeline fragment.
+        if config.get("inplace_timeline_transitions"):
+            payload["timeline_fragment"] = self.render_partial_timeline_payload(
+                page, self, participant
+            )
+        return success_response(**payload)
 
     def response_rejected(self, message):
         logger.warning(
@@ -2660,6 +2596,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     resources.files("psynet")
                     / "resources/scripts/d3-visualizations.js",
                     "/static/scripts/d3-visualizations.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/scripts/psynet.js",
+                    "/static/scripts/psynet.js",
                 ),
                 (
                     resources.files("psynet")
@@ -2815,6 +2755,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def extra_parameters(cls):
+        """
+        Register PsyNet-specific configuration parameters.
+        """
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
@@ -2841,6 +2784,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
+        config.register("inplace_timeline_transitions", bool)
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
@@ -2855,9 +2799,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             for locale in json.loads(value):
                 if locale == "en":
                     continue
-                assert (
-                    locale in psynet_supported_locales
-                ), f"Locale {locale} not available in PsyNet."
+                assert locale in psynet_supported_locales, (
+                    f"Locale {locale} not available in PsyNet."
+                )
 
         config.register(
             "supported_locales", str, validators=[is_valid_json, is_valid_locale]
@@ -2903,8 +2847,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config.register("color_mode", str, validators=[color_mode_validator])
 
+        def unsupported_prolific_screen_out_validator(value):
+            if value:
+                raise ValueError(
+                    "`prolific_enable_screen_out` is no longer supported. "
+                    "Prolific no longer supports the corresponding screen-out "
+                    "API route. Please remove this parameter from your "
+                    "configuration and use `prolific_enable_return_for_bonus` "
+                    "instead."
+                )
+
         config.register("prolific_enable_return_for_bonus", bool)
-        config.register("prolific_enable_screen_out", bool)
+        config.register(
+            "prolific_enable_screen_out",
+            bool,
+            validators=[unsupported_prolific_screen_out_validator],
+        )
 
     @dashboard_tab("Export")
     @classmethod
@@ -3074,16 +3032,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def dashboard_errors(cls):
         error_summary = {}
-        for error in cls.get_all_error_records():
+        for err in cls.get_all_error_records():
             _error = {
-                "token": error.token,
-                "creation_time": error.creation_time.strftime("%Y-%m-%d %H:%M:%S"),
-                "traceback": error.traceback,
-                "log_line_number": error.log_line_number,
-                "ids": error.ids,
+                "token": err.token,
+                "creation_time": err.creation_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "traceback": err.traceback,
+                "log_line_number": err.log_line_number,
+                "ids": err.ids,
             }
 
-            kind, msg = error.kind, error.message
+            kind, msg = err.kind, err.message
             if kind not in error_summary:
                 error_summary[kind] = {}
             if msg not in error_summary[kind]:
@@ -3759,9 +3717,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def terminate_participant(cls):
         recruiter = get_experiment().recruiter
         participant = recruiter.get_participant(request)
-        external_submit_url = recruiter.terminate_participant(
-            participant=participant, reason=request.values.get("reason")
-        )
+
+        # Don't terminate participants who have already completed the experiment.
+        # This can happen due to race conditions when the page redirects to Lucid
+        # after completion, triggering the beforeunload event.
+        if participant is not None and participant.progress == 1:
+            logger.info(
+                f"Skipping termination for participant {participant.id} who has already completed (progress=1)."
+            )
+            external_submit_url = recruiter.external_submit_url(participant=participant)
+            return render_template_with_translations(
+                "exit_recruiter_lucid.html",
+                external_submit_url=external_submit_url,
+            )
+
+        # If participant lookup failed, we still need to terminate on Lucid's side
+        # using the assignment_id from the request
+        if participant is None:
+            assignment_id = request.values.get("assignmentId") or request.values.get(
+                "RID"
+            )
+            unique_id = request.values.get("unique_id")
+            if assignment_id is None and unique_id is not None:
+                assignment_id = unique_id.split(":")[1]
+
+            external_submit_url = recruiter.terminate_participant(
+                assignment_id=assignment_id, reason=request.values.get("reason")
+            )
+        else:
+            external_submit_url = recruiter.terminate_participant(
+                participant=participant, reason=request.values.get("reason")
+            )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
@@ -3918,7 +3904,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if not isinstance(participant, Bot):
                 participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
-            return cls.serialize_page(page, experiment, participant, mode)
+            if mode == "json":
+                return jsonify(page.__json__(participant))
+            if mode is not None:
+                raise ValueError(
+                    f"Unsupported /timeline mode '{mode}'. "
+                    "Only mode=json remains supported on this route."
+                )
+            # Full timeline renders still happen here for initial page loads and
+            # for the legacy reload-based mode. Inplace fragment rendering is an
+            # internal helper reached from /response instead.
+            return page.render(experiment, participant)
         except cls.HandledError as err:
             return err.error_page()
         except Exception as err:
@@ -3941,6 +3937,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
+
+    @classmethod
+    def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
+        """
+        Report a per-item batch failure, mark the item failed, and commit.
+
+        Used by pollers that process many candidates in one transaction
+        (network growth, finalize backstop). ``handle_error`` rolls back the
+        session, so ``refetch`` must return a fresh ORM instance (or ``None``).
+        ``fail`` receives that instance and marks it failed. The fail is
+        committed immediately so a later ``handle_error`` in the same batch
+        cannot undo it (same mid-batch commit pattern as ErrorRecord logging).
+        """
+        if not isinstance(error, cls.HandledError):
+            cls.handle_error(error, **error_parents)
+        entity = refetch()
+        if entity is None:
+            return None
+        fail(entity)
+        db.session.commit()
+        return entity
 
     @classmethod
     def handle_error(cls, error, **kwargs):
@@ -4117,7 +4134,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @log_time_taken
     def get_current_page(cls, experiment, participant):
-        if participant.elt_id == [-1]:
+        if participant.elt_id[1:] == [-1]:
             experiment.timeline.advance_page(experiment, participant)
 
         page = experiment.timeline.get_current_elt(experiment, participant)
@@ -4125,12 +4142,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return page
 
-    @classmethod
-    def serialize_page(cls, page, experiment, participant, mode):
-        if mode == "json":
-            return jsonify(page.__json__(participant))
-        else:
-            return page.render(experiment, participant)
+    @staticmethod
+    def render_partial_timeline_payload(page, experiment, participant):
+        """
+        Render the current timeline page as the internal inplace fragment payload.
+
+        This helper is the shared render authority for inplace fragment output
+        returned directly from /response.
+        """
+        return {
+            "html": page.render(experiment, participant, partial_mode=True),
+            "page_uuid": participant.page_uuid,
+        }
 
     @classmethod
     def check_unique_id(cls, participant, unique_id):
@@ -4271,6 +4294,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.timeline.check_consents(self)
 
     def check_python_dependencies(self):
+        if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+            return
+        if is_in_repo_experiment():
+            if Path("constraints.txt").exists():
+                logger.warning(
+                    "Ignoring constraints.txt in in-repo experiment %s; in-repo "
+                    "experiments use PsyNet's shared development environment "
+                    "instead of per-demo constraint pins.",
+                    Path.cwd(),
+                )
+            return
         extra_deps = self.notifier.python_dependencies
         with open("constraints.txt", "r") as f:
             constraints = f.readlines()
@@ -4345,6 +4379,7 @@ def import_local_experiment():
     # import pdb; pdb.set_trace()
     #
     # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
+    ensure_experiment_directory_name_does_not_conflict()
     dallinger_get_config()
 
     import dallinger.experiment
@@ -4460,9 +4495,9 @@ def pre_deploy_constant(key, func: callable):
     # You could place this in your experiment.py file to list the files in the ``data`` directory.
     >>> data_files = pre_deploy_constant("data_files", sorted(os.listdir("data")))
     """
-    assert callable(
-        func
-    ), "The func argument must be a callable (e.g. lambda: os.listdir('data'))."
+    assert callable(func), (
+        "The func argument must be a callable (e.g. lambda: os.listdir('data'))."
+    )
     key = serialize(key)
 
     try:

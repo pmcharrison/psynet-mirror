@@ -1,9 +1,10 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Bundles REPP tapping calibration and recording-quality screens (free tapping and
+marker-based tests). Drop these modules into other tapping experiments as
+technical prescreens before the main task.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

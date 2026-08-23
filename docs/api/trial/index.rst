@@ -11,7 +11,7 @@ Trial
    chain
    dense
    gibbs
-   gibbs_audio
+   audio_gibbs
    graph
    imitation_chain
    main

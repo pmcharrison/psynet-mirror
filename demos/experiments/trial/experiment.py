@@ -50,7 +50,6 @@ word_ratings = Module(
 
 class Exp(psynet.experiment.Experiment):
     label = "Simple trial demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         word_ratings,

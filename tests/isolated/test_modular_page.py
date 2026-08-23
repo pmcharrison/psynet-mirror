@@ -53,6 +53,35 @@ def test_modular_page_text():
     assert page.plain_text == "Do you want to continue?\n- Yes\n- No"
 
 
+def test_modular_page_metadata():
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        PushButtonControl(
+            choices=["Yes", "No"],
+        ),
+    )
+    metadata = page.metadata()
+    assert metadata["prompt"] == page.prompt.metadata
+    assert metadata["control"] == page.control.metadata
+
+
+def test_modular_page_accepts_page_css_list():
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        css=[
+            "#first-marker { color: rgb(1, 2, 3); }",
+            "#second-marker { color: rgb(4, 5, 6); }",
+        ],
+    )
+
+    assert page.css == [
+        "#first-marker { color: rgb(1, 2, 3); }",
+        "#second-marker { color: rgb(4, 5, 6); }",
+    ]
+
+
 def test_get_values_and_labels():
     # int input
     values, labels = RatingScale.get_values_and_labels(5)
@@ -73,6 +102,11 @@ def test_get_values_and_labels():
     values, labels = RatingScale.get_values_and_labels({"bad": 1, "good": 2})
     assert list(values) == [1, 2]
     assert list(labels) == ["bad", "good"]
+
+
+def test_prompt_metadata_excludes_text():
+    prompt = Prompt("Hi!")
+    assert "text" not in prompt.metadata
 
 
 # The following tests have been disabled because they rely on the iterated singing demo,

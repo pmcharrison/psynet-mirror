@@ -169,7 +169,7 @@
             experiment.secret = experiment.secret.replaceAll("-", "");
 
             experiment.isCurrentExperiment = secret === experiment.secret
-            experiment.creation_time = new Date(experiment.creation_time);
+            experiment.launch_time = new Date(experiment.launch_time);
             experiment.now = new Date(experiment.now);
             experiment.sinceUpdate = new Date().getTime() - experiment.now;
             if (!experiment.isOffline) {
@@ -532,16 +532,18 @@
         }
 
         function generateRuntimeColumn(experiment, now) {
-            let runningSince = now - experiment.creation_time;
+            let runningSince = now - experiment.launch_time;
             let createdSince = formatDuration(runningSince) + " ago";
-            let runtime = formatDuration(experiment.now - experiment.creation_time);
+            let runtime = formatDuration(
+                experiment.now - experiment.launch_time
+            );
             let runtimeStr = formatInformation(runtime, 'created ' + createdSince)
             let runtimePopOverContents = {
                 'Status': experiment.isOffline ? classPill('Offline', 'text-bg-danger') : classPill('Online', 'text-bg-success'),
                 'Created': createdSince,
                 'Runtime': runtime,
                 'Last update': formatDuration(experiment.sinceUpdate) + " ago",
-                'Creation time': experiment.creation_time,
+                'Creation time': experiment.launch_time,
             }
             return makePopOverTd('runtime', runtimeStr, 'Runtime information', makePopOverContents(runtimePopOverContents))
         }
@@ -1069,7 +1071,7 @@
                     continue;
                 }
 
-                experimentList.sort((a, b) => b.creation_time - a.creation_time);
+                experimentList.sort((a, b) => b.launch_time - a.launch_time);
 
                 printRecruiterTable(recruiter);
 
@@ -1095,7 +1097,7 @@
                     <td>${escapeHTML(experiment.title || '')}</td>
                     <td>${formatPill(experiment.recruitment_study_status || 'Unknown')}</td>
                     <td>${escapeHTML(experiment.experimenter_name || '')}</td>
-                    <td>${formatDuration(experiment.now - experiment.creation_time)}</td>
+                    <td>${formatDuration(experiment.now - experiment.launch_time)}</td>
                     <td>${convertCurrencyToSymbol(experiment.recruitment_currency || experiment.currency || '')}${experiment.recruitment_study_cost || ''}</td>
                     <td>${(experiment.participant_statuses && experiment.participant_statuses.approved) || 0}</td>
                     <td>

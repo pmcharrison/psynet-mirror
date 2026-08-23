@@ -1,9 +1,10 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Image GSP over an RGB square: adjust the slider so the color looks as "positive"
+or "energetic" as possible, with continuous visual updates. Use it as the visual
+counterpart to audio Gibbs when stimuli are static images.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

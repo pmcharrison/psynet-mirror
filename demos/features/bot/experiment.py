@@ -26,8 +26,6 @@ class CustomTextControl(TextControl):
 class Exp(psynet.experiment.Experiment):
     label = "Bots demo"
 
-    initial_recruitment_size = 1
-
     timeline = Timeline(
         CodeBlock(
             lambda participant: participant.var.set(

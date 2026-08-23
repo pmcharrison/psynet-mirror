@@ -1,10 +1,19 @@
-import pytest
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
-from psynet.page import InfoPage
+import pytest
+from markupsafe import Markup
+
+from psynet.end import UnsuccessfulEndLogic
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import (
+    AsyncCodeBlock,
     CodeBlock,
     CreditEstimate,
+    Elt,
     MediaSpec,
+    Page,
+    PageMaker,
     Timeline,
     join,
     switch,
@@ -51,6 +60,238 @@ def test_merge_media_spec():
             }
         ).data
     )
+
+
+def test_partial_script_deferral_replaces_existing_type_attribute():
+    html = """
+    <div id="psynet-timeline-fragment">
+      <script type="module" data-example="1">window.example = true;</script>
+      <script type="application/json">{"example": true}</script>
+      <script type="text/html"><div>template</div></script>
+      <script type="text/psynet-script">window.deferred = true;</script>
+    </div>
+    """
+    deferred = Page._defer_executable_scripts(html)
+
+    assert deferred.count('type="text/psynet-script"') == 2
+    assert 'type="module"' not in deferred
+    assert 'data-example="1"' in deferred
+    assert 'type="application/json"' in deferred
+    assert 'type="text/html"' in deferred
+    assert deferred.count("type=") == 4
+
+
+def test_partial_body_extraction_uses_named_fragment_wrapper():
+    html = """
+    <html>
+      <head>
+        <style>.global-template-style { color: rgb(1, 2, 3); }</style>
+        <style data-psynet-fragment-style="true">.page-api-style { color: rgb(4, 5, 6); }</style>
+        <link rel="stylesheet" href="/static/global-template.css">
+        <link rel="stylesheet" href="/static/page-api.css" data-psynet-fragment-stylesheet="true">
+      </head>
+      <body>
+        <template><div>outside fragment</div></template>
+        <div id="psynet-timeline-fragment">
+          <div id="timeline-header"></div>
+          <div id="main-body">
+            <template><div>inside fragment</div></template>
+            <div id="psynet-fragment-assets">
+              <div id="psynet-page-css-links">
+                <link rel="stylesheet" href="/static/page-api.css">
+              </div>
+              <div id="psynet-page-css">
+                <style>.page-api-style { color: rgb(4, 5, 6); }</style>
+              </div>
+            </div>
+          </div>
+          <nav id="footer"></nav>
+          <script id="psynet-template-data" type="application/json">{}</script>
+        </div>
+        <div id="spinner"></div>
+      </body>
+    </html>
+    """
+
+    fragment = Page._extract_partial_body(html)
+
+    assert "timeline-header" in fragment
+    assert "inside fragment" in fragment
+    assert "psynet-template-data" in fragment
+    assert ".page-api-style" in fragment
+    assert "/static/page-api.css" in fragment
+    assert fragment.count(".page-api-style") == 1
+    assert fragment.count("/static/page-api.css") == 1
+    assert ".global-template-style" not in fragment
+    assert "/static/global-template.css" not in fragment
+    assert "outside fragment" not in fragment
+    assert "spinner" not in fragment
+
+
+def test_partial_body_extraction_requires_named_fragment_wrapper():
+    with pytest.raises(ValueError, match="could not find fragment root"):
+        Page._extract_partial_body("<div id='main-body'></div>")
+
+
+def test_template_fragment_input_wraps_main_body_content():
+    page = Page(template_fragment_str="<p id='fragment-only'>Fragment content</p>")
+
+    assert page.template_kind == "fragment"
+    assert '{% extends "timeline-page.html" %}' in page.template_str
+    assert "{% block main_body %}" in page.template_str
+    assert "fragment-only" in page.template_str
+
+
+def test_inplace_transitions_reject_complete_custom_templates():
+    page = Page(template_str='{% extends "timeline-page.html" %}')
+
+    with pytest.raises(ValueError, match="template_fragment_path"):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_transitions_warn_on_complete_custom_templates():
+    page = Page(template_str='{% extends "timeline-page.html" %}')
+
+    with pytest.warns(UserWarning, match="template_fragment_path"):
+        page._check_spa_template_contract(inplace_timeline_transitions=False)
+
+
+def test_inplace_transitions_allow_framework_owned_complete_templates():
+    page = Page(
+        template_str='{% extends "timeline-page.html" %}',
+        framework_owned_template=True,
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_inplace_transitions_reject_dom_content_loaded_in_custom_templates():
+    page = Page(
+        template_fragment_str="""
+        <div
+            data-script="
+                document.addEventListener('DOMContentLoaded', function () {});
+            "
+        ></div>
+        """
+    )
+
+    with pytest.raises(ValueError, match="DOMContentLoaded"):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates():
+    page = Page(template_fragment_str='<div data-hook="DOMContentLoaded"></div>')
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+@pytest.mark.parametrize(
+    "template_fragment, match",
+    [
+        (
+            "<script>psynet.trial.onEvent('trialConstruct', function () {});</script>",
+            "raw <script>",
+        ),
+        ('<script src="/static/example.js"></script>', "js_links"),
+        ("<style>.example { color: red; }</style>", "Page css argument"),
+        ('<link rel="stylesheet" href="/static/example.css">', "css_links"),
+        (
+            "<script>window.addEventListener('resize', function () {});</script>",
+            "window event listener",
+        ),
+    ],
+)
+def test_inplace_transitions_reject_forbidden_custom_template_content(
+    template_fragment, match
+):
+    page = Page(template_fragment_str=template_fragment)
+
+    with pytest.raises(ValueError, match=match):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_transitions_warn_on_forbidden_custom_template_content():
+    page = Page(template_fragment_str="<style>.example { color: red; }</style>")
+
+    with pytest.warns(UserWarning, match="Page css argument"):
+        page._check_spa_template_contract(inplace_timeline_transitions=False)
+
+
+def test_window_event_listener_with_cleanup_evidence_is_allowed():
+    page = Page(
+        template_fragment_str="""
+        <div
+            data-script="
+                window.addEventListener('resize', onResize);
+                psynet.addPageCleanupCallback(function () {});
+            "
+        ></div>
+        """
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_page_asset_arguments_are_not_forbidden_template_content():
+    page = Page(
+        template_fragment_str="<p>Page content</p>",
+        css=[".example { color: red; }"],
+        css_links=["/static/example.css"],
+        scripts=["psynet.trial.onEvent('trialConstruct', function () {});"],
+        js_links=["/static/example.js"],
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+@pytest.mark.parametrize(
+    "content, match",
+    [
+        (
+            "<p>Page content</p><style>.example { color: red; }</style>",
+            "Page css argument",
+        ),
+        (
+            '<p>Page content</p><link rel="stylesheet" href="/static/example.css">',
+            "Page css_links argument",
+        ),
+    ],
+)
+def test_inplace_transitions_reject_prompt_markup_stylesheets(content, match):
+    page = InfoPage(Markup(content))
+
+    with pytest.raises(ValueError, match=match):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_transitions_warn_on_prompt_markup_stylesheets():
+    page = InfoPage(
+        Markup("<p>Page content</p><style>.example { color: red; }</style>")
+    )
+
+    with pytest.warns(UserWarning, match="Page css argument"):
+        page._check_spa_template_contract(inplace_timeline_transitions=False)
+
+
+def test_inplace_transitions_allow_safe_prompt_markup():
+    page = InfoPage(
+        Markup('<p><span style="font-weight: bold;">Page content</span></p>')
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_framework_owned_templates_skip_forbidden_content_validation():
+    page = Page(
+        template_str="""
+        {% extends "timeline-page.html" %}
+        <script>document.addEventListener("DOMContentLoaded", function () {});</script>
+        """,
+        framework_owned_template=True,
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 class CustomTrial(ChainTrial):
@@ -191,6 +432,19 @@ def test_join_1():
     assert x[0] == page
 
 
+def test_join_accepts_list_input_with_collections():
+    def background_task(participant):
+        return None
+
+    page = InfoPage("Test")
+    async_block = AsyncCodeBlock(background_task, wait=False)
+    joined = join([page, async_block, background_task, None])
+    assert isinstance(joined, list)
+    assert all(isinstance(elt, Elt) for elt in joined)
+    assert not any(isinstance(elt, AsyncCodeBlock) for elt in joined)
+    assert any(isinstance(elt, CodeBlock) for elt in joined)
+
+
 def test_lambda_compiles_as_code_block_in_timeline():
     def my_function(participant):
         participant.var.apples = 3
@@ -199,9 +453,297 @@ def test_lambda_compiles_as_code_block_in_timeline():
         my_function,
     )
     found_lambda = None
-    for elt in timeline.elts:
+    for elt in timeline.all_elts:
         if isinstance(elt, CodeBlock):
             found_lambda = elt
             break
     assert found_lambda is not None
     assert found_lambda.function == my_function
+
+
+# ---------------------------------------------------------------------------
+# Timeline branch tests
+# ---------------------------------------------------------------------------
+
+
+def _make_mock_participant(elt_id=None):
+    p = SimpleNamespace(
+        elt_id=elt_id if elt_id is not None else ["main", -1],
+        elt_id_max=[],
+        _in_advance_page=False,
+    )
+    return p
+
+
+class TestTimelineBranches:
+    def test_default_branches_exist(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        assert "main" in t.elts
+        assert "successful_end" in t.elts
+        assert "unsuccessful_end" in t.elts
+        assert "rejected_consent" in t.elts
+
+    def test_main_branch_ends_with_successful_end_page(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        assert isinstance(t.elts["main"][-1], SuccessfulEndPage)
+
+    def test_successful_end_branch_has_four_elements(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        assert len(t.elts["successful_end"]) == 4
+
+    def test_unsuccessful_end_branch_has_four_elements(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        assert len(t.elts["unsuccessful_end"]) == 4
+
+    def test_successful_end_branch_structure(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        branch = t.elts["successful_end"]
+        assert isinstance(branch[0], CodeBlock)
+        assert isinstance(branch[1], PageMaker)
+        assert isinstance(branch[2], CodeBlock)
+        assert isinstance(branch[3], PageMaker)
+
+    def test_custom_branch_override(self):
+        custom = UnsuccessfulEndLogic()
+        t = Timeline(
+            InfoPage("hello", time_estimate=5),
+            unsuccessful_end=custom,
+        )
+        assert "unsuccessful_end" in t.elts
+
+    def test_get_participant_branch_initial(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["main", -1])
+        assert t.get_participant_branch(p) == "main"
+
+    def test_get_participant_branch_main(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["main", 0])
+        assert t.get_participant_branch(p) == "main"
+
+    def test_get_participant_branch_successful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["successful_end", 0])
+        assert t.get_participant_branch(p) == "successful_end"
+
+    def test_get_participant_branch_unsuccessful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["unsuccessful_end", 0])
+        assert t.get_participant_branch(p) == "unsuccessful_end"
+
+    def test_participant_is_in_end_logic_false_for_main(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["main", 0])
+        assert not t.participant_is_in_end_logic(p)
+
+    def test_participant_is_in_end_logic_false_for_initial(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["main", -1])
+        assert not t.participant_is_in_end_logic(p)
+
+    def test_participant_is_in_end_logic_true_for_successful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["successful_end", 0])
+        assert t.participant_is_in_end_logic(p)
+
+    def test_participant_is_in_end_logic_true_for_unsuccessful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["unsuccessful_end", 0])
+        assert t.participant_is_in_end_logic(p)
+
+    def test_redirect_to_branch_sets_elt_id(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["main", 0])
+        t.redirect_to_branch(None, p, "unsuccessful_end")
+        assert p.elt_id == ["unsuccessful_end", -1]
+
+    def test_redirect_to_unknown_branch_raises(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["main", 0])
+        with pytest.raises(ValueError, match="Unknown timeline branch"):
+            t.redirect_to_branch(None, p, "nonexistent")
+
+    def test_pending_redirect_sets_branch(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=["main", 0])
+        p.pending_redirect = "unsuccessful_end"
+        # Simulate the pending redirect check at the top of advance_page
+        # (full advance_page requires a real experiment context).
+        pending = p.pending_redirect
+        p.pending_redirect = None
+        t.redirect_to_branch(None, p, pending)
+        assert p.pending_redirect is None
+        assert p.elt_id == ["unsuccessful_end", -1]
+
+    def test_getitem_by_branch_name(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        assert t["main"] is t.elts["main"]
+        assert t["successful_end"] is t.elts["successful_end"]
+
+    def test_elt_ids_include_branch_name(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        first_main = t.elts["main"][0]
+        assert first_main.id == ["main", 0]
+        first_end = t.elts["successful_end"][0]
+        assert first_end.id == ["successful_end", 0]
+
+
+def _async_target(participant):
+    return None
+
+
+def _other_async_target(participant):
+    return None
+
+
+def _make_participant(stale_process=None):
+    participant = MagicMock()
+    participant.id = 42
+    participant.awaited_async_code_block_process = stale_process
+    return participant
+
+
+def test_async_code_block_initiate__no_stale_process():
+    block = AsyncCodeBlock(_async_target, wait=False)
+    code_block = MagicMock(id=["main", 3])
+    participant = _make_participant(stale_process=None)
+    new_process = MagicMock(name="new_process")
+
+    with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
+        block.initiate(participant, code_block=code_block)
+
+    ctor.assert_called_once()
+    assert ctor.call_args.kwargs["arguments"]["code_block_id"] == ["main", 3]
+    assert participant.awaited_async_code_block_process is new_process
+
+
+def test_async_code_block_initiate__stores_generated_code_block_id_from_timeline():
+    timeline = Timeline(AsyncCodeBlock(_async_target, wait=False))
+    code_block = timeline.elts["main"][0]
+    participant = _make_participant(stale_process=None)
+    new_process = MagicMock(name="new_process")
+
+    assert isinstance(code_block, CodeBlock)
+    assert code_block.id == ["main", 0]
+
+    with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
+        code_block.consume(MagicMock(), participant)
+
+    ctor.assert_called_once()
+    assert ctor.call_args.kwargs["arguments"]["code_block_id"] == code_block.id
+    assert participant.awaited_async_code_block_process is new_process
+
+
+def test_async_code_block_initiate__raises_when_previous_process_still_pending():
+    block = AsyncCodeBlock(_async_target, wait=False)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process")
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with pytest.raises(RuntimeError, match="already has an async code block"):
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+
+
+def test_async_code_block_initiate__waits_for_pending_process_when_waiting(caplog):
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process")
+    stale.id = 99
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {
+        "function": _async_target,
+        "code_block_id": ["main", 3],
+    }
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with caplog.at_level("WARNING"):
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+    assert any(
+        "waiting for the existing process" in record.message
+        for record in caplog.records
+    ), (
+        f"Expected a duplicate-process warning, got: {[r.message for r in caplog.records]}"
+    )
+
+
+def test_async_code_block_initiate__raises_for_different_pending_waited_process():
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process")
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {
+        "function": _other_async_target,
+        "code_block_id": ["main", 3],
+    }
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with pytest.raises(RuntimeError, match="already has an async code block"):
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+
+
+def test_async_code_block_initiate__raises_for_same_function_different_waited_process():
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process")
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {
+        "function": _async_target,
+        "code_block_id": ["main", 4],
+    }
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with pytest.raises(RuntimeError, match="already has an async code block"):
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+
+
+@pytest.mark.parametrize(
+    "stale_state",
+    [
+        {"pending": False, "finished": True, "failed": False},
+        {"pending": False, "finished": False, "failed": True},
+    ],
+    ids=["finished", "failed"],
+)
+def test_async_code_block_initiate__clears_stale_finished_or_failed_process(
+    stale_state, caplog
+):
+    block = AsyncCodeBlock(_async_target, wait=False)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process", id=99, **stale_state)
+    participant = _make_participant(stale_process=stale)
+    new_process = MagicMock(name="new_process")
+
+    with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
+        with caplog.at_level("WARNING"):
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_called_once()
+    assert participant.awaited_async_code_block_process is new_process
+    assert any("stale reference" in record.message for record in caplog.records), (
+        f"Expected a stale-reference warning, got: {[r.message for r in caplog.records]}"
+    )

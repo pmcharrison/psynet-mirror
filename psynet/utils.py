@@ -1,25 +1,21 @@
-import base64
 import contextlib
-import functools
 import gettext
 import glob
 import hashlib
 import importlib
-import importlib.util
 import inspect
-import json
 import logging
 import os
 import re
 import sys
 import time
+from _hashlib import HASH as Hash
 from datetime import datetime
-from functools import lru_cache, reduce, wraps
+from functools import reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
 from typing import List, OrderedDict, Type, Union
-from urllib.parse import ParseResult, urlparse
 
 import click
 import html2text
@@ -27,7 +23,6 @@ import jsonpickle
 import pexpect
 import requests
 import tomlkit
-from _hashlib import HASH as Hash
 from babel.support import Translations
 from bs4 import BeautifulSoup
 from dallinger.config import experiment_available
@@ -38,6 +33,18 @@ from flask.globals import current_app
 from flask.templating import Environment, _render
 from sqlalchemy import or_
 
+from psynet.light_utils import (  # noqa: F401 – re-exported for backwards compat
+    _IN_REPO_EXPERIMENT_ROOTS,
+    ExperimentDirectoryNameError,
+    _md5_update_from_dir,
+    _md5_update_from_file,
+    ensure_experiment_directory_name_does_not_conflict,
+    get_psynet_root,
+    git_command_available,
+    git_repository_available,
+    is_in_repo_experiment,
+    md5_directory,
+)
 from psynet.translation.utils import load_po
 
 package_root = os.path.dirname(os.path.abspath(__file__))
@@ -62,7 +69,7 @@ class NoArgumentProvided:
 
 def deep_copy(x):
     try:
-        return jsonpickle.decode(jsonpickle.encode(x))
+        return jsonpickle.decode(jsonpickle.encode(x, keys=True), keys=True)
     except Exception:
         logger.error(f"Failed to copy the following object: {x}")
         raise
@@ -81,11 +88,6 @@ def sql_sample_one(x):
     from sqlalchemy.sql import func
 
     return x.order_by(func.random()).first()
-
-
-def dict_to_js_vars(x):
-    y = [f"var {key} = JSON.parse('{json.dumps(value)}'); " for key, value in x.items()]
-    return reduce(lambda a, b: a + b, y)
 
 
 def call_function(function, *args, **kwargs):
@@ -280,6 +282,8 @@ def linspace(lower, upper, length: int):
     length : int
         The length of the resulting list.
     """
+    if length == 1:
+        return [lower]
     return [lower + x * (upper - lower) / (length - 1) for x in range(length)]
 
 
@@ -345,97 +349,31 @@ def corr(x: list, y: list, method="pearson"):
     return float(df.corr(method=method).at["x", "y"])
 
 
-class DisableLogger:
-    def __enter__(self):
-        logging.disable(logging.CRITICAL)
-
-    def __exit__(self, a, b, c):
-        logging.disable(logging.NOTSET)
-
-
-def query_yes_no(question, default="yes"):
-    """
-    Ask a yes/no question via input() and return their answer.
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
-    """
-    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        sys.stdout.write(question + prompt)
-        choice = input().lower()
-        if default is not None and choice == "":
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
-
-
 def md5_object(x):
-    string = jsonpickle.encode(x).encode("utf-8")
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
     hashed = hashlib.md5(string)
     return str(hashed.hexdigest())
-
-
-hash_object = md5_object
 
 
 # MD5 hashing code:
 # https://stackoverflow.com/a/54477583/8454486
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
-    if not Path(filename).is_file():
-        raise FileNotFoundError(f"File not found: {filename}")
-    with open(str(filename), "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash.update(chunk)
+    """Update *hash* with the contents of *filename* and return it."""
+    _md5_update_from_file(filename, hash)
     return hash
 
 
 def md5_file(filename: Union[str, Path]) -> str:
-    return str(md5_update_from_file(filename, hashlib.md5()).hexdigest())
+    """Return the MD5 hex digest of a single file."""
+    h = hashlib.md5()
+    _md5_update_from_file(filename, h)
+    return h.hexdigest()
 
 
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
-    assert Path(directory).is_dir()
-    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
-        # Skip hidden files and directories (those starting with '.')
-        if path.name.startswith("."):
-            continue
-        hash.update(path.name.encode())
-        if path.is_file():
-            hash = md5_update_from_file(path, hash)
-        elif path.is_dir():
-            hash = md5_update_from_dir(path, hash)
+    """Recursively update *hash* with all non-hidden files under *directory*."""
+    _md5_update_from_dir(directory, hash)
     return hash
-
-
-def md5_directory(directory: Union[str, Path]) -> str:
-    return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
-
-
-def format_hash(hashed, digits=32):
-    return base64.urlsafe_b64encode(hashed.digest())[:digits].decode("utf-8")
-
-
-def import_module(name, source):
-    spec = importlib.util.spec_from_file_location(name, source)
-    foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo)
 
 
 def serialise_datetime(x):
@@ -542,18 +480,6 @@ def wait_while(condition, **kwargs):
     wait_until(lambda: not condition(), **kwargs)
 
 
-def strip_url_parameters(url):
-    parse_result = urlparse(url)
-    return ParseResult(
-        scheme=parse_result.scheme,
-        netloc=parse_result.netloc,
-        path=parse_result.path,
-        params=None,
-        query=None,
-        fragment=None,
-    ).geturl()
-
-
 def is_valid_html5_id(str):
     if not str or " " in str:
         return False
@@ -561,20 +487,12 @@ def is_valid_html5_id(str):
 
 
 def pretty_format_seconds(seconds):
-    minutes_and_seconds = divmod(seconds, 60)
-    seconds_remainder = round(minutes_and_seconds[1])
-    formatted_time = f"{round(minutes_and_seconds[0])} min"
+    total_seconds = int(round(seconds))
+    minutes, seconds_remainder = divmod(total_seconds, 60)
+    formatted_time = f"{minutes} min"
     if seconds_remainder > 0:
         formatted_time += f" {seconds_remainder} sec"
     return formatted_time
-
-
-def pretty_log_dict(dict, spaces_for_indentation=0):
-    return "\n".join(
-        " " * spaces_for_indentation
-        + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
-        for key, value in dict.items()
-    )
 
 
 def require_exp_directory(f):
@@ -585,22 +503,17 @@ def require_exp_directory(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
+            ensure_experiment_directory_name_does_not_conflict()
             if not experiment_available():
                 raise click.UsageError(error_one)
+        except ExperimentDirectoryNameError as e:
+            raise click.UsageError(str(e))
         except ValueError:
             raise click.UsageError(error_two)
-
-        ensure_config_txt_exists()
 
         return f(*args, **kwargs)
 
     return wrapper
-
-
-def ensure_config_txt_exists():
-    config_txt_path = Path("config.txt")
-    if not config_txt_path.exists():
-        config_txt_path.touch()
 
 
 def require_requirements_txt(f):
@@ -628,9 +541,9 @@ def _render_with_translations(
 
     all_template_args["config"] = dict(get_config().as_dict().items())
 
-    assert [template_name, template_string].count(
-        None
-    ) == 1, "Only one of template_name or template_string should be provided."
+    assert [template_name, template_string].count(None) == 1, (
+        "Only one of template_name or template_string should be provided."
+    )
 
     if locale is None:
         locale = get_locale()
@@ -691,9 +604,9 @@ def get_descendent_class_by_name(parent_class, name):
             if should_overwrite:
                 by_name[id_] = cls
     klass = by_name.get(name)
-    assert (
-        klass is not None
-    ), f"Could not find class {name} in subclasses of {parent_class}"
+    assert klass is not None, (
+        f"Could not find class {name} in subclasses of {parent_class}"
+    )
     return klass
 
 
@@ -812,8 +725,12 @@ def get_translator(
 
     if namespace is None:
         frame = inspect.currentframe().f_back
-        package_name = frame.f_globals["__package__"]
-        package_name = package_name.split(".")[0]  # Remove any subpackage names.
+        package_name = frame.f_globals.get("__package__")
+
+        if package_name is None:
+            namespace = "experiment"
+        else:
+            package_name = package_name.split(".")[0]  # Remove any subpackage names.
 
         if package_name == "dallinger_experiment":
             namespace = "experiment"
@@ -821,7 +738,7 @@ def get_translator(
             raise ValueError(
                 "_get_translator could not work out what namespace to use. Try providing the namespace explicitly."
             )
-        else:
+        elif namespace is None:
             namespace = package_name
 
     def _get_translators(locales_dir, locale, namespace):
@@ -896,11 +813,12 @@ def get_locales_dir(namespace: str):
 
 
 def get_locales_dir_from_path(path="."):
+    path = Path(path)
 
-    if in_python_package():
-        return Path(get_package_source_directory(path)) / "locales"
-    elif experiment_available():
-        path = Path(path)
+    if is_a_package(path):
+        source_dir = get_package_source_directory(path)
+        return path / source_dir / "locales"
+    elif (path / "experiment.py").exists():
         return path / "locales"
     else:
         raise ValueError("Could not determine the locales directory.")
@@ -987,12 +905,6 @@ def get_extension(path):
         return extension
     else:
         return ""
-
-
-# Backported from Python 3.9
-def cache(user_function, /):
-    'Simple lightweight unbounded cache.  Sometimes called "memoize".'
-    return lru_cache(maxsize=None)(user_function)
 
 
 def organize_by_key(lst, key, sort_key=None):
@@ -1243,38 +1155,47 @@ def log_level(logger: logging.Logger, level):
     logger.setLevel(original_level)
 
 
-def get_psynet_root():
-    import psynet
+# Path substrings / suffixes excluded from CI demo runs via ``for_ci_tests``.
+# Playwright experiments have dedicated CI jobs; recruiter demos and gibbs_video
+# are not meaningful (or lack deps) in the shared CI runner.
+_CI_EXCLUDED_EXPERIMENT_PATH_MARKERS = (
+    "recruiters",
+    "/tests/deployment/",
+    "playwright",
+)
+_CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES = ("/gibbs_video",)
 
-    return Path(psynet.__file__).parent.parent
+
+def _excluded_from_ci_experiment_dirs(dir_path: str) -> bool:
+    """Return whether an experiment directory should be skipped in CI demo runs."""
+    return any(
+        marker in dir_path for marker in _CI_EXCLUDED_EXPERIMENT_PATH_MARKERS
+    ) or any(
+        dir_path.endswith(suffix) for suffix in _CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES
+    )
 
 
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
-    demo_root = get_psynet_root() / "demos"
-    test_experiments_root = get_psynet_root() / "tests/experiments"
+    """List in-repo experiment directories under :data:`_IN_REPO_EXPERIMENT_ROOTS`.
 
-    dirs = sorted(
-        [
-            dir_
-            for root in [demo_root, test_experiments_root]
-            for dir_, sub_dirs, files in os.walk(root)
-            if (
-                "experiment.py" in files
-                and not dir_.endswith("/develop")
-                and (
-                    not for_ci_tests
-                    or not (
-                        # Skip the recruiter demos because they're not meaningful to run here
-                        "recruiters" in dir_
-                        or "manual_recruiter_testing" in dir_
-                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
-                        # in the CI environment
-                        or dir_.endswith("/gibbs_video")
-                    )
-                )
-            )
-        ]
-    )
+    Skips hidden directories while walking so leftover virtualenvs under a demo
+    (e.g. ``.venv``) are not mistaken for experiments when they contain an
+    ``experiment.py`` inside ``site-packages``.
+    """
+    psynet_root = get_psynet_root()
+    dirs = []
+    for relative in _IN_REPO_EXPERIMENT_ROOTS:
+        for dir_, sub_dirs, files in os.walk(psynet_root / relative):
+            # Prune in place so os.walk does not descend into .venv, .git, etc.
+            sub_dirs[:] = [name for name in sub_dirs if not name.startswith(".")]
+            if "experiment.py" not in files:
+                continue
+            if dir_.endswith("/develop"):
+                continue
+            if for_ci_tests and _excluded_from_ci_experiment_dirs(dir_):
+                continue
+            dirs.append(dir_)
+    dirs = sorted(dirs)
 
     if ci_node_total is not None and ci_node_index is not None:
         dirs = with_parallel_ci(dirs, ci_node_total, ci_node_index)
@@ -1293,6 +1214,7 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
     isolated_tests_demos = isolated_tests_root / "demos"
     isolated_tests_experiments = isolated_tests_root / "experiments"
     isolated_tests_features = isolated_tests_root / "features"
+    isolated_tests_translation = isolated_tests_root / "translation"
 
     tests = []
     for directory in [
@@ -1300,6 +1222,7 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         isolated_tests_demos,
         isolated_tests_experiments,
         isolated_tests_features,
+        isolated_tests_translation,
     ]:
         tests.extend(glob.glob(str(directory / "*.py")))
 
@@ -1319,13 +1242,23 @@ class PatternDir:
         return {"pattern": self.pattern, "glob_dir": self.glob_dir}
 
 
+def _should_skip_todo_path(path: Path) -> bool:
+    skip_dirs = {"venv", ".venv", ".tox", "node_modules", "__pycache__"}
+    return any(part in skip_dirs for part in path.parts)
+
+
 def _check_todos(pattern, glob_dir):
     from glob import iglob
 
     todo_count = {}
     for path in list(iglob(glob_dir, recursive=True)):
+        path_obj = Path(path)
+        if _should_skip_todo_path(path_obj):
+            continue
+        if not path_obj.is_file():
+            continue
         key = (path, pattern)
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
             line_has_todo = [line.strip().startswith(pattern) for line in f.readlines()]
             if any(line_has_todo):
                 todo_count[key] = sum(line_has_todo)
@@ -1406,14 +1339,28 @@ def is_a_package(path):
 
 def get_package_name(path="."):
     """
-    Finds the name of the package by introspecting the current working directory.
-    Assumes that either setup.py or pyproject.toml is present.
+    Find the package name by inspecting a directory.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the directory containing ``pyproject.toml`` or ``setup.py``.
+
+    Returns
+    -------
+    str
+        The package name from the configuration file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If neither ``pyproject.toml`` nor ``setup.py`` is present in ``path``.
     """
     path = Path(path)
     if (path / "pyproject.toml").exists():
-        return get_package_name_from_pyproject()
+        return get_package_name_from_pyproject(path)
     elif (path / "setup.py").exists():
-        name = get_package_name_from_setup()
+        name = get_package_name_from_setup(path)
         if name is not None:
             return name
     raise FileNotFoundError(
@@ -1421,23 +1368,34 @@ def get_package_name(path="."):
     )
 
 
-def get_package_name_from_pyproject():
+def get_package_name_from_pyproject(path="."):
     """
     Get package name from pyproject.toml file.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the directory containing pyproject.toml.
 
     Returns
     -------
     str
         The package name from pyproject.toml.
     """
-    with open("pyproject.toml", "r") as f:
+    path = Path(path)
+    with open(path / "pyproject.toml", "r") as f:
         pyproject = tomlkit.parse(f.read())
         return pyproject["project"]["name"]
 
 
-def get_package_name_from_setup():
+def get_package_name_from_setup(path="."):
     """
     Get package name from setup.py file.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the directory containing setup.py.
 
     Returns
     -------
@@ -1446,7 +1404,8 @@ def get_package_name_from_setup():
     """
     import ast
 
-    with open("setup.py") as f:
+    path = Path(path)
+    with open(path / "setup.py") as f:
         setup_contents = f.read()
     setup_ast = ast.parse(setup_contents)
     for node in ast.walk(setup_ast):
@@ -1478,11 +1437,20 @@ def get_installed_package_source_directory(package_name: str) -> Path:
         If the package root directory cannot be found.
     """
     package = importlib.import_module(package_name)
-    return Path(package.__file__).parent
+    if getattr(package, "__file__", None) is not None:
+        return Path(package.__file__).parent
 
+    # Namespace packages (no ``__init__.py``) expose their location via
+    # ``__path__``. Deployment copies of in-repo demos often omit scaffolded
+    # ``__init__.py`` files because they are gitignored, so Dallinger loads
+    # them as namespace packages.
+    paths = getattr(package, "__path__", None)
+    if paths:
+        return Path(next(iter(paths))).resolve()
 
-def get_package_locales_directory(package_name: str) -> Path:
-    return get_package_source_directory(package_name) / "locales"
+    raise FileNotFoundError(
+        f"Could not determine the source directory for package {package_name!r}."
+    )
 
 
 def get_package_source_directory(path="."):
@@ -1522,8 +1490,13 @@ def get_package_source_directory(path="."):
                 .get("find", {})
                 .get("where")
             )
+            if isinstance(packages_dir, (list, tuple)):
+                packages_dir = packages_dir[0] if packages_dir else None
             if packages_dir:
-                return packages_dir
+                packages_dir = Path(packages_dir)
+                if not packages_dir.is_absolute():
+                    packages_dir = path / packages_dir
+                return str(packages_dir)
 
         # Check for packages-dir in [tool.poetry]
         if "tool" in pyproject and "poetry" in pyproject["tool"]:
@@ -1531,7 +1504,10 @@ def get_package_source_directory(path="."):
                 pyproject["tool"]["poetry"].get("packages", [{}])[0].get("from")
             )
             if packages_dir:
-                return packages_dir
+                packages_dir = Path(packages_dir)
+                if not packages_dir.is_absolute():
+                    packages_dir = path / packages_dir
+                return str(packages_dir)
 
     # Then try setup.py
     if setup_path.exists():
@@ -1548,10 +1524,15 @@ def get_package_source_directory(path="."):
                         if isinstance(keyword.value, ast.Dict):
                             for i, key in enumerate(keyword.value.keys):
                                 if ast.literal_eval(key) == "":
-                                    return ast.literal_eval(keyword.value.values[i])
+                                    packages_dir = Path(
+                                        ast.literal_eval(keyword.value.values[i])
+                                    )
+                                    if not packages_dir.is_absolute():
+                                        packages_dir = path / packages_dir
+                                    return str(packages_dir)
 
     # Fall back to default locations
-    package_name = get_package_name()
+    package_name = get_package_name(path)
     possible_locations = [
         package_name,
         os.path.join("src", package_name),
@@ -1559,8 +1540,9 @@ def get_package_source_directory(path="."):
     ]
 
     for location in possible_locations:
-        if os.path.isdir(location):
-            return location
+        candidate = path / location
+        if candidate.is_dir():
+            return str(candidate)
 
     raise FileNotFoundError(
         f"Could not find package source directory for '{package_name}' "
@@ -1578,6 +1560,7 @@ def get_fitting_font_size(
 
     font_size = min_font_size  # Start with the smallest font size
     draw = ImageDraw.Draw(Image.new("RGB", (max_width, max_height)))
+    last_fitting_size = None
 
     # Increase font size until it exceeds the boundaries
     while True:
@@ -1586,7 +1569,10 @@ def get_fitting_font_size(
             2:
         ]  # Get width & height
         if text_width > max_width or text_height > max_height:
-            return font_size
+            if last_fitting_size is None:
+                return min_font_size
+            return last_fitting_size
+        last_fitting_size = font_size
         if font_size >= max_font_size:
             return max_font_size
         font_size += 1
@@ -1621,6 +1607,13 @@ def format_timedelta(timedelta_obj):
     Source: https://stackoverflow.com/questions/538666/format-timedelta-to-string
     """
     seconds = int(timedelta_obj.total_seconds())
+    if seconds == 0:
+        return "0 seconds"
+
+    sign = ""
+    if seconds < 0:
+        sign = "-"
+        seconds = abs(seconds)
     periods = [
         ("year", 60 * 60 * 24 * 365),
         ("month", 60 * 60 * 24 * 30),
@@ -1632,12 +1625,12 @@ def format_timedelta(timedelta_obj):
 
     strings = []
     for period_name, period_seconds in periods:
-        if seconds > period_seconds:
+        if seconds >= period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
             has_s = "s" if period_value > 1 else ""
             strings.append("%s %s%s" % (period_value, period_name, has_s))
 
-    return ", ".join(strings)
+    return f"{sign}{', '.join(strings)}"
 
 
 def get_experiment_url(app=None, server=None):
@@ -1657,29 +1650,7 @@ def get_experiment_url(app=None, server=None):
 
 def generate_text_file(path, text="Lorem ipsum"):
     with open(path, "w") as file:
-        file.write("Lorem ipsum")
-
-
-def git_repository_available():
-    """
-    Check if the current directory is inside a git repository and git is installed.
-
-    Returns
-    -------
-    bool
-        True if inside a git repository and git is available, False otherwise.
-    """
-    import subprocess
-
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--is-inside-work-tree"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
+        file.write(text)
 
 
 def patch_yaspin_jupyter_detection():
@@ -1728,7 +1699,7 @@ def safe(func):
         The wrapped function.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)

@@ -59,7 +59,7 @@ class Translator:
                     )
                     if len(translated_texts) != len(texts):
                         raise InvalidTranslationError(
-                            "Number of translated texts does not match number of input texts"
+                            f"Number of translated texts for '{target_lang}' does not match number of input texts: {len(translated_texts)} != {len(texts)}."
                         )
                 except Exception as e:
                     if i == n_retries - 1:
@@ -316,13 +316,13 @@ class ChatGptTranslator(Translator):
         from openai import OpenAI
 
         language_dict = get_language_dict("en")
-        assert (
-            source_lang in language_dict
-        ), f"Source language {source_lang} not found in known languages"
+        assert source_lang in language_dict, (
+            f"Source language {source_lang} not found in known languages"
+        )
         source_language = language_dict[source_lang]
-        assert (
-            target_lang in language_dict
-        ), f"Target language {target_lang} not found in known languages"
+        assert target_lang in language_dict, (
+            f"Target language {target_lang} not found in known languages"
+        )
         target_language = language_dict[target_lang]
 
         config = get_config()

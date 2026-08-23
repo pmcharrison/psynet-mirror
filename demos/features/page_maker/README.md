@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+`PageMaker` builds pages (or lists of elts) dynamically from participant state.
+Here the participant picks how many counting pages to see; later makers mix
+pages with `CodeBlock`s and even wrap a `while_loop`. Use page makers whenever
+the next UI depends on earlier answers.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

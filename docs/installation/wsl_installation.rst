@@ -1,5 +1,15 @@
 
-Here is a simple tutorial for installing WSL 2 and Ubuntu on Windows:
+Quick start (Windows 11)
+------------------------
+1. Press Win + R, type ``cmd``, and press Enter.
+2. Run ``wsl --install`` (this installs WSL 2 and the default Ubuntu distro).
+   If you already have WSL installed but no Ubuntu distro, run ``wsl --install -d Ubuntu``.
+3. Restart your computer if prompted.
+4. Launch Ubuntu from the Start menu, or run ``wsl -d Ubuntu``.
+5. Create a username and password when prompted.
+6. Verify or set Ubuntu as the default distro (see commands below).
+
+For a more detailed walkthrough, see:
 https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-11-with-gui-support#1-overview.
 Note: it is WSL 2 we want, not just WSL. Bear this in mind when looking for online tutorials.
 

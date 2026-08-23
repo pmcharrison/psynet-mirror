@@ -1,14 +1,9 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
-
 import psynet.experiment
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
 
 nodes = [
     StaticNode(
@@ -55,7 +50,6 @@ trial_maker = StaticTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Static experiment demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         trial_maker,

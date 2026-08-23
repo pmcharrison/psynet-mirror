@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Introduces `StaticTrialMaker`: a fixed stimulus set (animals × blocks),
+keyboard-friendly ratings, repeat trials, and simple performance scoring. Start
+here when trials are independent and the stimulus inventory does not evolve with
+responses.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

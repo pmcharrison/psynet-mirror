@@ -172,7 +172,6 @@ def is_group_joinable(group: SyncGroup, participant: Participant):
 
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs within sync demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         InfoPage("Welcome to the experiment!", time_estimate=5),
@@ -268,9 +267,9 @@ class Exp(psynet.experiment.Experiment):
         for remaining_nodes in range(2):
             for bot in bots:
                 page = bot.get_current_page()
-                assert isinstance(
-                    page, InfoPage
-                ), f"Bot {bot.id} unexpectedly saw {page} instead of an InfoPage, on remaining_nodes = {remaining_nodes}."
+                assert isinstance(page, InfoPage), (
+                    f"Bot {bot.id} unexpectedly saw {page} instead of an InfoPage, on remaining_nodes = {remaining_nodes}."
+                )
                 bot.take_page()
 
                 page = bot.get_current_page()

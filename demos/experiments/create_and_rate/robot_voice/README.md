@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Ports audio Gibbs Sampling with People into Create and Rate: creators sculpt a
+voice to match a robot character; raters score or select the best match. Shows
+how richer creator trials (`AudioGibbsTrial`) plug into the Create and Rate
+machinery.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

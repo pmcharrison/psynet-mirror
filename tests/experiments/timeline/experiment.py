@@ -29,7 +29,6 @@ from psynet.utils import as_plain_text
 
 class Exp(psynet.experiment.Experiment):
     label = "Timeline experiment"
-    initial_recruitment_size = 1
 
     variables = {
         "new_variable": "some-value",
@@ -225,8 +224,10 @@ class Exp(psynet.experiment.Experiment):
     @classmethod
     def run_bot(cls, bot, **kwargs):
         bot.run_until(
-            lambda bot: bot.current_page_label == "SuccessfulEndLogic"
-            and "the end of the experiment!" in bot.current_page_text,
+            lambda bot: (
+                bot.current_page_label == "SuccessfulEndLogic"
+                and "the end of the experiment!" in bot.current_page_text
+            ),
             render_pages=True,
         )
         page = bot.get_current_page()

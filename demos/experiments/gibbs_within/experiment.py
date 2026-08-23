@@ -175,7 +175,6 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         trial_maker,

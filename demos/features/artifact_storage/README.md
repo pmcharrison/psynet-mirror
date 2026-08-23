@@ -1,9 +1,12 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Experiments can back up selected data to remote artifact storage (here S3) for
+later analysis or dashboard use. This demo wires `S3ArtifactStorage`, enables
+`automatic_backups` even in debug mode, and defines `get_basic_data` so trials
+and participants are included in those snapshots. The timeline itself is a short
+consent-plus-headphone-test stub so the focus stays on the storage setup.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

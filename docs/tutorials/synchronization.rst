@@ -39,8 +39,33 @@ code as follows:
 
 If the participant is a member of multiple active SyncGroups, then they can be accessed
 via ``participant.active_sync_groups``, which takes the form of a dictionary keyed by ``group_type``.
+Alternatively, within a trial one can use ``self.sync_group``
+(:attr:`Trial.sync_group <psynet.trial.main.Trial.sync_group>`), 
+which resolves to the group matching that trial maker's ``sync_group_type``.
+
 The full list of participants within the SyncGroup can then be accessed (and modified)
 via ``sync_group.participants``, which is a list.
+The order of ``sync_group.participants`` is not guaranteed. If you need a stable ordering
+(for example, to assign deterministic roles), sort by participant ID. A convenient pattern is to
+assign roles at a ``GroupBarrier`` so all group members are present:
+
+::
+
+    import random
+
+    def assign_roles(group, participants):
+        roles = ["speaker", "listener", "observer"]
+        random.shuffle(roles)
+        assert len(roles) == len(participants)
+        for participant, role in zip(participants, roles):
+            participant.var.role = role
+
+    GroupBarrier(
+        id_="assign_roles",
+        group_type="rock_paper_scissors",
+        on_release=assign_roles,
+    )
+
 
 It is possible to put multiple ``Grouper`` constructs in a timeline.
 If they have different ``group_type`` parameters then they will be used to create different grouping namespaces.

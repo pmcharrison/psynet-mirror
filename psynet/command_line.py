@@ -1,22 +1,24 @@
+import datetime
+import functools
 import importlib
 import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import zipfile
 from contextlib import contextmanager
-from hashlib import md5
-from importlib import resources
 from pathlib import Path
-from shutil import rmtree, which
 from urllib.parse import urlencode
 
 import click
 import click.shell_completion
 import dallinger.command_line.utils
+import pexpect
 import psutil
 import psycopg2
 import requests
@@ -34,16 +36,24 @@ from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
-from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.dev.command_line import dev as _dev_command_group
+from psynet.runtime_init import ensure_runtime
 from psynet.version import (
-    check_dallinger_version,
-    check_versions,
-    python_recommended_version,
+    check_core_dependency_versions_match_requirements,
+    check_installed_dallinger_version_is_recommended,
 )
 
 from . import deployment_info
+from .bootstrap_commands import register_bootstrap_commands
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
+from .experiment_scaffold import (
+    dockertag_contents,
+    get_psynet_requirement,
+    is_unambiguous_psynet_requirement,
+    missing_scaffold_paths_required_for_local_run,
+    scaffold_experiment_directory,
+)
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
@@ -56,16 +66,18 @@ from .utils import (
     get_package_name,
     git_repository_available,
     in_python_package,
+    is_in_repo_experiment,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
-    md5_directory,
     pretty_format_seconds,
     require_exp_directory,
     require_requirements_txt,
     run_subprocess_with_live_output,
     working_directory,
 )
+
+ensure_runtime()
 
 logger = get_logger()
 
@@ -112,9 +124,7 @@ def clean_sys_modules():
 
 
 def update_docker_tag():
-    with open("Dockertag", "w") as file:
-        file.write(os.path.basename(os.getcwd()))
-        file.write("\n")
+    Path("Dockertag").write_text(dockertag_contents())
 
 
 @click.group()
@@ -126,6 +136,9 @@ def update_docker_tag():
 )
 def psynet():
     pass
+
+
+psynet.add_command(_dev_command_group)
 
 
 def reset_console():
@@ -198,6 +211,7 @@ def _prepare(archive=None):
 
 
 def _experiment_variables(connection, echo=False):
+    cursor = None
     try:
         cursor = connection.cursor()
         cursor.execute("SELECT vars FROM experiment")
@@ -220,7 +234,8 @@ def _experiment_variables(connection, echo=False):
             "launched yet, or it could mean that the experiment is using an incompatible version of PsyNet."
         )
     finally:
-        cursor.close()
+        if cursor is not None:
+            cursor.close()
 
 
 # Experiment variables ####
@@ -384,18 +399,290 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
         _cleanup_exp_directory()
 
 
+def _enable_sql_profile(sql_profile_options, sql_profile_dir):
+    """
+    Enable SQL profiling for CLI commands and configure output location.
+
+    Parameters
+    ----------
+    sql_profile_options : str or None
+        Options string for ``PSYNET_SQL_PROFILE`` (e.g. ``min_ms=5,top_n=50``).
+    sql_profile_dir : str or None
+        Parent directory for SQL profile outputs. When provided, a unique run
+        subdirectory is created inside it. When ``None``, a temporary directory
+        is created.
+
+    Returns
+    -------
+    profile_dir : str
+        Directory where SQL profile JSON files will be written.
+    keep_profile_dir : bool
+        ``True`` when the directory was explicitly provided, otherwise ``False``.
+    """
+    if sql_profile_options:
+        os.environ["PSYNET_SQL_PROFILE"] = sql_profile_options
+    elif not os.getenv("PSYNET_SQL_PROFILE"):
+        os.environ["PSYNET_SQL_PROFILE"] = "1"
+
+    os.environ["PSYNET_SQL_PROFILE_SILENT"] = "1"
+
+    profile_dir, keep_profile_dir = _create_sql_profile_run_dir(sql_profile_dir)
+    os.makedirs(profile_dir, exist_ok=True)
+    os.environ["PSYNET_SQL_PROFILE_DIR"] = profile_dir
+    return profile_dir, keep_profile_dir
+
+
+def _create_sql_profile_run_dir(sql_profile_dir):
+    """Create the SQL profiling output directory for a single command run."""
+    if sql_profile_dir:
+        os.makedirs(sql_profile_dir, exist_ok=True)
+        return tempfile.mkdtemp(prefix="run-", dir=sql_profile_dir), True
+    return tempfile.mkdtemp(prefix="psynet-sql-profile-"), False
+
+
+def _is_ubuntu() -> bool:
+    """Return True if the current OS is Ubuntu (or an Ubuntu derivative)."""
+    try:
+        with open("/etc/os-release") as f:
+            return "ubuntu" in f.read().lower()
+    except Exception:
+        return False
+
+
+def _open_in_browser(url: str) -> None:
+    """Open *url* in a browser, preferring Google Chrome on Ubuntu for local files.
+
+    Snap-confined browsers (e.g. Chromium on Ubuntu) cannot read ``file://``
+    URLs outside their sandbox, so on Ubuntu we try non-snap Google Chrome
+    first.  Falls back to ``click.launch()`` and finally prints the URL for
+    the user to open manually.
+    """
+    if _is_ubuntu():
+        # On Ubuntu the default browser is often snap-confined Chromium which
+        # silently fails to read file:// URLs (ERR_FILE_NOT_FOUND).  Use
+        # non-snap Google Chrome instead.
+        for name in ("google-chrome", "google-chrome-stable"):
+            path = shutil.which(name)
+            if path:
+                try:
+                    subprocess.Popen(
+                        [path, url],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    return
+                except Exception:
+                    continue
+    else:
+        try:
+            click.launch(url)
+            return
+        except Exception:
+            pass
+
+    click.echo(
+        "Could not open the SQL profile report automatically. "
+        "Please open the file URL shown above in your browser."
+    )
+
+
+def _print_sql_profile_aggregation(profile_dir, *, formats, open_html, show_dir):
+    """
+    Print aggregated SQL profiling output for all processes.
+
+    Parameters
+    ----------
+    profile_dir : str
+        Directory containing per-process SQL profile JSON files.
+    formats : set[str]
+        Output formats to generate (e.g. ``{"html", "text"}``).
+    open_html : bool
+        Whether to attempt opening the HTML report in a browser.
+    show_dir : bool
+        Whether to print the location of the raw profile files.
+    """
+    from psynet.sqlalchemy_profiling import (
+        aggregate_sqlalchemy_profiles,
+        format_aggregated_html,
+        format_aggregated_profile,
+        parse_env_settings,
+    )
+
+    settings = parse_env_settings(os.getenv("PSYNET_SQL_PROFILE"))
+    options = settings.get("options", {})
+    top_n = int(options.get("top_n", 20))
+    commit_top_n = int(options.get("commit_top_n", top_n))
+    aggregated = aggregate_sqlalchemy_profiles(profile_dir)
+    if "text" in formats:
+        click.echo("")
+        click.echo("Aggregated SQLAlchemy profile (all processes):")
+        click.echo(
+            format_aggregated_profile(
+                aggregated, top_n=top_n, commit_top_n=commit_top_n
+            )
+        )
+    if "json" in formats:
+        json_path = os.path.join(profile_dir, "sql-profile-aggregated.json")
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump(aggregated, handle, indent=2, sort_keys=True)
+        click.echo(f"SQL profile JSON: {json_path}")
+    if "html" in formats:
+        html_path = os.path.join(profile_dir, "sql-profile-report.html")
+        with open(html_path, "w", encoding="utf-8") as handle:
+            handle.write(
+                format_aggregated_html(
+                    aggregated, top_n=top_n, commit_top_n=commit_top_n
+                )
+            )
+        click.echo(f"SQL profile report: {html_path}")
+        if open_html:
+            _open_in_browser(f"file://{html_path}")
+    if show_dir:
+        click.echo(f"Raw SQL profile files saved to: {profile_dir}")
+
+
+_sql_profile_options = [
+    click.option(
+        "--sql-profile",
+        is_flag=True,
+        help="Enable SQL profiling and aggregate results across processes.",
+    ),
+    click.option(
+        "--sql-profile-options",
+        default=None,
+        help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
+    ),
+    click.option(
+        "--sql-profile-dir",
+        default=None,
+        help="Parent directory for SQL profile outputs (creates a unique run subdirectory).",
+    ),
+    click.option(
+        "--sql-profile-no-open",
+        is_flag=True,
+        help="Do not auto-open the SQL profile report in a browser.",
+    ),
+    click.option(
+        "--sql-profile-format",
+        default="html",
+        help=("Comma-separated outputs: html,text,json,none (default: html)."),
+    ),
+]
+
+
+def _add_sql_profile_options(func):
+    for option in reversed(_sql_profile_options):
+        func = option(func)
+    return func
+
+
+def _parse_sql_profile_formats(value: str):
+    parts = {part.strip().lower() for part in (value or "").split(",") if part}
+    if not parts:
+        parts = {"html"}
+    if "all" in parts:
+        parts = {"html", "text", "json"}
+    if "none" in parts:
+        return set()
+    unknown = parts - {"html", "text", "json"}
+    if unknown:
+        raise click.UsageError(
+            "Unknown --sql-profile-format values: " + ", ".join(sorted(unknown))
+        )
+    return parts
+
+
+def _should_open_sql_profile(no_open: bool) -> bool:
+    if no_open:
+        return False
+    if os.getenv("CI"):
+        return False
+    return sys.stdout.isatty()
+
+
+def sql_profiled_command(func):
+    """
+    Wrap a Click command to enable aggregated SQL profiling.
+
+    Parameters
+    ----------
+    func : callable
+        Command function with ``sql_profile`` keyword arguments.
+
+    Returns
+    -------
+    callable
+        Wrapped command that enables profiling and prints aggregation.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        profile_dir = None
+        keep_profile_dir = False
+        show_dir = False
+        formats = set()
+        open_html = False
+        try:
+            if kwargs.get("sql_profile"):
+                formats = _parse_sql_profile_formats(kwargs.get("sql_profile_format"))
+                profile_dir, keep_profile_dir = _enable_sql_profile(
+                    kwargs.get("sql_profile_options"), kwargs.get("sql_profile_dir")
+                )
+                show_dir = kwargs.get("sql_profile_dir") is not None
+                open_html = _should_open_sql_profile(
+                    kwargs.get("sql_profile_no_open", False)
+                )
+                if "html" not in formats:
+                    open_html = False
+                if formats.intersection({"html", "json"}):
+                    keep_profile_dir = True
+            return func(*args, **kwargs)
+        finally:
+            if profile_dir:
+                if formats:
+                    _print_sql_profile_aggregation(
+                        profile_dir,
+                        formats=formats,
+                        open_html=open_html,
+                        show_dir=show_dir,
+                    )
+                if not keep_profile_dir:
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+
+    return wrapper
+
+
 @debug.command("local")
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+@_add_sql_profile_options
 @click.pass_context
-def debug__local(ctx, docker, archive, legacy, no_browsers):
+@sql_profiled_command
+def debug__local(
+    ctx,
+    docker,
+    archive,
+    legacy,
+    no_browsers,
+    sql_profile,
+    sql_profile_options,
+    sql_profile_dir,
+    sql_profile_format,
+    sql_profile_no_open,
+):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
     _run_local(
-        ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug
+        ctx,
+        docker,
+        archive,
+        legacy,
+        no_browsers,
+        mode="debug",
+        context_group=debug,
     )
 
 
@@ -536,6 +823,31 @@ def _debug_auto_reload(ctx, archive, no_browsers):
     finally:
         db.session.commit()
         reset_console()
+
+
+def _load_runtime_server_config(config=None, deployment_id=None):
+    config = config or get_config()
+    if not config.ready:
+        config.load()
+
+    # The debug server runs from Dallinger's generated development directory,
+    # whose config.txt includes runtime values such as dashboard credentials.
+    server_working_directory = redis_vars.get("server_working_directory", None)
+    if server_working_directory:
+        config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+        return config
+
+    if deployment_id:
+        launch_info_path = (
+            Path("~/psynet-data/launch-data").expanduser()
+            / deployment_id
+            / "launch-info.json"
+        )
+        if launch_info_path.exists():
+            with open(launch_info_path, encoding="utf-8") as f:
+                config.extend(json.load(f))
+
+    return config
 
 
 def patch_dallinger_develop():
@@ -706,8 +1018,8 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
-    verify_psynet_requirement()
-    check_versions()
+    check_psynet_requirement_is_unambiguous()
+    check_core_dependency_versions_match_requirements()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -730,6 +1042,26 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
+def _abort_if_app_exists(server, app):
+    if not app:
+        return
+
+    from dallinger.command_line.docker_ssh import get_apps
+
+    apps = get_apps(server)
+    existing_apps = {entry.name for entry in apps}
+    if app in existing_apps:
+        click.echo(
+            "\n".join(
+                [
+                    f"App with name {app} already exists: found on server. Aborting.",
+                    "Use a different name or destroy the current app.",
+                ]
+            )
+        )
+        raise click.Abort
+
+
 ##########
 # deploy #
 ##########
@@ -749,6 +1081,18 @@ def _pre_launch(
 ):
     from .experiment import get_experiment
 
+    # Scaffold/git checks before Redis so missing-boilerplate guidance is visible
+    # even when Redis is not running.
+    _check_experiment_directory(mode)
+
+    from .services import ensure_local_services
+
+    # All launch paths (local, SSH, Heroku, Docker) run ``prepare`` / Redis
+    # helpers on this machine before any remote packaging, so local Postgres
+    # and Redis are required here even when the experiment ultimately runs
+    # elsewhere.
+    ensure_local_services(assume_yes=False, strict=True)
+
     redis_vars.clear()
     deployment_info.init(
         redeploying_from_archive=archive is not None,
@@ -767,15 +1111,24 @@ def _pre_launch(
 
         deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
+        from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
+
+        ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+        _abort_if_app_exists(server, app)
+
     run_pre_checks(mode, local_, heroku, docker, app)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
     os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-    if docker:
-        if Path("Dockerfile").exists():
-            # Tell Dallinger not to rebuild constraints.txt, because we'll manage this within the Docker image
-            os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+    if is_in_repo_experiment():
+        # In-repo demos/tests use PsyNet's shared development .venv; do not let
+        # Dallinger invent a per-demo constraints.txt from PyPI.
+        os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
+    elif docker and Path("Dockerfile").exists():
+        # Tell Dallinger not to rebuild constraints.txt, because we'll manage
+        # this within the Docker image.
+        os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     experiment = get_experiment()
     experiment.update_deployment_id()
@@ -784,7 +1137,7 @@ def _pre_launch(
     deployment_info.write(locale=config.get("locale", "en"))
 
     if config.get("check_dallinger_version"):
-        check_dallinger_version()
+        check_installed_dallinger_version_is_recommended()
 
     ctx.invoke(prepare, archive=archive)
 
@@ -980,43 +1333,6 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
         )
 
 
-########
-# docs #
-########
-@psynet.command()
-@click.option(
-    "--force-rebuild",
-    "-f",
-    is_flag=True,
-    help="Force complete rebuild by deleting the '_build' directory",
-)
-def docs(force_rebuild):
-    """
-    Build the documentation.
-    """
-    docs_dir = os.path.join(psynet_path[0], "..", "docs")
-    docs_build_dir = os.path.join(docs_dir, "_build")
-    try:
-        os.chdir(docs_dir)
-    except FileNotFoundError as e:
-        log(
-            "There was an error building the documentation. Be sure to have activated your 'psynet' virtual environment."
-        )
-        raise SystemExit(e)
-    if os.path.exists(docs_build_dir) and force_rebuild:
-        rmtree(docs_build_dir)
-    os.chdir(docs_dir)
-    subprocess.run(["make", "html"])
-    if which("xdg-open") is not None:
-        open_command = "xdg-open"
-    else:
-        open_command = "open"
-    subprocess.run(
-        [open_command, os.path.join(docs_build_dir, "html/index.html")],
-        stdout=subprocess.DEVNULL,
-    )
-
-
 ##############
 # pre sandbox #
 ##############
@@ -1028,9 +1344,85 @@ def check_prolific_payment(experiment, config):
     base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
     wage_per_hour = get_config().get("wage_per_hour")
-    assert (
-        wage_per_hour * minutes / 60 == base_payment
-    ), "Wage per hour does not match Prolific reward"
+    assert wage_per_hour * minutes / 60 == base_payment, (
+        "Wage per hour does not match Prolific reward"
+    )
+
+
+def _missing_boilerplate_fix(*, mode=None, missing_paths=None):
+    """Return actionable guidance when experiment boilerplate is missing."""
+    if is_in_repo_experiment():
+        command = "psynet scripts scaffold"
+        context = (
+            "This looks like a PsyNet bundled demo or test experiment, so only "
+            "template files are needed."
+        )
+    else:
+        command = "psynet setup"
+        context = (
+            "For a standalone experiment this prepares files, pins PsyNet, "
+            "writes constraints.txt, and installs packages into your active "
+            "virtual environment. If you only need template files, run "
+            "'psynet scripts scaffold' instead."
+        )
+
+    mode_clause = ""
+    if mode is not None:
+        mode_clause = f" before running 'psynet {mode} ...'"
+
+    message = f"{context} Run '{command}' to generate the missing files{mode_clause}."
+    if missing_paths and "config.txt" in missing_paths:
+        message += (
+            " If you are upgrading an experiment that already sets options in "
+            "Experiment.config, create an empty config.txt with 'touch config.txt' "
+            "instead of scaffolding a full template."
+        )
+    return message
+
+
+def _prepare_in_repo_experiment():
+    """Generate ignored boilerplate when running an in-repo experiment."""
+    if not is_in_repo_experiment():
+        return False
+    scaffold_experiment_directory()
+    return True
+
+
+def _check_experiment_directory(mode):
+    """
+    Fail fast on missing scaffold or git before Redis or other heavy I/O.
+
+    In-repo experiments are auto-scaffolded first so their missing-boilerplate
+    check does not falsely fail. These checks must run before ``redis_vars.clear()``
+    so users without Redis still see actionable guidance.
+    """
+    _prepare_in_repo_experiment()
+
+    missing_boilerplate = missing_scaffold_paths_required_for_local_run()
+    if missing_boilerplate:
+        missing_paths = ", ".join(missing_boilerplate)
+        raise click.ClickException(
+            "Experiment directory is missing required PsyNet boilerplate files "
+            f"({missing_paths}). "
+            f"{_missing_boilerplate_fix(mode=mode, missing_paths=missing_boilerplate)}"
+        )
+
+    # We need an active git repository for Dallinger to recognize .gitignore properly
+    if not git_repository_available():
+        from .light_utils import git_command_available
+
+        if not git_command_available():
+            raise click.ClickException(
+                "Git does not appear to be installed. Install it from "
+                "https://git-scm.com/downloads, then create a repository by "
+                "running 'git init'. If you copied a demo into a new directory, "
+                "run 'git init' before 'psynet debug local' or 'psynet test local'."
+            )
+        raise click.ClickException(
+            "This directory is not a git repository. Create one by running "
+            "'git init'. If you copied a demo into a new directory, run "
+            "'git init' before 'psynet debug local' or 'psynet test local'."
+        )
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
@@ -1038,6 +1430,9 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
     from .experiment import get_experiment
     from .utils import check_todos_before_deployment
+
+    # Directory readiness is checked earlier in ``_pre_launch`` (before Redis)
+    # and directly from ``psynet test local``. Avoid duplicating that work here.
 
     exp = get_experiment()
     exp.check_config()
@@ -1059,22 +1454,20 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 )
     except FileNotFoundError:
         raise click.ClickException(
-            f".gitignore is missing from your experiment directory ({os.getcwd()})."
-        )
-
-    # We need an active git repository for Dallinger to recognize .gitignore properly
-    if not git_repository_available():
-        raise click.ClickException(
-            "This directory is not a git repository, or git is not installed. Please ensure git is installed and create a repository by running 'git init' if needed."
+            f".gitignore is missing from your experiment directory ({os.getcwd()}). "
+            + _missing_boilerplate_fix()
         )
 
     try:
         with open("requirements.txt", "r") as f:
             for line in f.readlines():
-                if "computational-audition-lab/psynet" in line.lower() and not user_confirms(
-                    "It looks like you're using an old version of PsyNet in requirements.txt "
-                    "(computational-audition-lab/psynet); "
-                    "the up-to-date version is located at PsyNetDev/PsyNet. Are you sure you want to continue?"
+                if (
+                    "computational-audition-lab/psynet" in line.lower()
+                    and not user_confirms(
+                        "It looks like you're using an old version of PsyNet in requirements.txt "
+                        "(computational-audition-lab/psynet); "
+                        "the up-to-date version is located at PsyNetDev/PsyNet. Are you sure you want to continue?"
+                    )
                 ):
                     raise click.Abort
     except FileNotFoundError:
@@ -1103,12 +1496,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             pass
 
     if docker:
-        if not Path("Dockerfile").exists():
-            raise click.UsageError(
-                "If using PsyNet with Docker, it is mandatory to include a Dockerfile in the experiment directory. "
-                "To add a generic Dockerfile to your experiment directory, run the following command:\n"
-                "psynet update-scripts"
-            )
+        check_dockerfile()
 
     if not local_:
         init_db(drop_all=True)
@@ -1168,8 +1556,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
-    verify_psynet_requirement()
-    check_versions()
+    check_psynet_requirement_is_unambiguous()
+    check_core_dependency_versions_match_requirements()
 
     us_only = config.get("us_only")
 
@@ -1329,25 +1717,11 @@ def install_autocomplete():
         )
 
 
-##########
-# update #
-##########
-@psynet.command()
-@click.option(
-    "--dallinger-version",
-    default="latest",
-    help="The git branch, commit or tag of the Dallinger version to install.",
-)
-@click.option(
-    "--psynet-version",
-    default="latest",
-    help="The git branch, commit or tag of the psynet version to install.",
-)
-@click.option("--verbose", is_flag=True, help="Verbose mode")
-def update(dallinger_version, psynet_version, verbose):
-    """
-    Update the locally installed `Dallinger` and `PsyNet` versions.
-    """
+#######################
+# installation update #
+#######################
+def _run_installation_update(dallinger_version, psynet_version, verbose):
+    """Update the locally installed Dallinger and PsyNet packages."""
 
     def _git_checkout(version, cwd, capture_output):
         with yaspin(text=f"Checking out {version}...", color="green") as spinner:
@@ -1471,7 +1845,63 @@ def update(dallinger_version, psynet_version, verbose):
         )
         spinner.ok("✔")
 
-    log(f'Updated PsyNet to version {get_version("psynet")}')
+    log(f"Updated PsyNet to version {get_version('psynet')}")
+
+
+_installation_update_options = [
+    click.option(
+        "--dallinger-version",
+        default="latest",
+        help="The git branch, commit or tag of the Dallinger version to install.",
+    ),
+    click.option(
+        "--psynet-version",
+        default="latest",
+        help="The git branch, commit or tag of the psynet version to install.",
+    ),
+    click.option("--verbose", is_flag=True, help="Verbose mode"),
+]
+
+
+def _add_installation_update_options(command):
+    """Attach shared options to installation-update entry points."""
+    for option in reversed(_installation_update_options):
+        command = option(command)
+    return command
+
+
+@psynet.group("installation")
+def installation():
+    """
+    Manage the local PsyNet and Dallinger installation.
+    """
+    pass
+
+
+@installation.command("update")
+@_add_installation_update_options
+def installation_update(dallinger_version, psynet_version, verbose):
+    """
+    Update the locally installed Dallinger and PsyNet packages.
+
+    This upgrades (or pin-selects) the PsyNet/Dallinger *installation* in your
+    environment. It does not refresh experiment boilerplate files; for that,
+    use ``psynet scripts update``.
+    """
+    _run_installation_update(dallinger_version, psynet_version, verbose)
+
+
+@psynet.command("update")
+@_add_installation_update_options
+def update(dallinger_version, psynet_version, verbose):
+    """
+    Deprecated alias for ``psynet installation update``.
+    """
+    click.echo(
+        "psynet update is deprecated; use 'psynet installation update' instead.",
+        err=True,
+    )
+    _run_installation_update(dallinger_version, psynet_version, verbose)
 
 
 def dallinger_dir():
@@ -1557,29 +1987,6 @@ def setup_experiment_variables(experiment_class):
     return experiment
 
 
-########################
-# generate-constraints #
-########################
-@psynet.command()
-@click.pass_context
-@require_requirements_txt
-def generate_constraints(ctx):
-    """
-    Generate the constraints.txt file from requirements.txt.
-    """
-    from dallinger.command_line import (
-        generate_constraints as dallinger_generate_constraints,
-    )
-
-    try:
-        # We have removed verify_psynet_requirement here because it caused problems for Docker users.
-        # Instead, we just run this in the sandbox/deploy prechecks.
-        # verify_psynet_requirement()
-        ctx.invoke(dallinger_generate_constraints)
-    finally:
-        reset_console()
-
-
 @psynet.command()
 @require_requirements_txt
 def check_constraints():
@@ -1595,14 +2002,72 @@ def check_constraints():
         _check_constraints(spinner)
         spinner.ok("✔")
 
-    verify_psynet_requirement()
+    check_psynet_requirement_is_unambiguous()
+
+
+def check_dockerfile():
+    """
+    Check that a Dockerfile exists and uses the correct format.
+
+    This function performs two checks:
+
+    1. Ensures a Dockerfile exists in the experiment directory
+    2. Ensures the Dockerfile uses the new format (Python base image)
+       rather than the outdated PsyNet base image format
+
+    Raises
+    ------
+    click.UsageError
+        If Dockerfile is missing or uses outdated format
+    """
+    from psynet.version import psynet_version
+
+    update_scripts_recommendation = (
+        "To fix this issue, run:\n"
+        "  psynet scripts scaffold\n\n"
+        "This creates any missing standard boilerplate files without overwriting existing ones.\n\n"
+        "If you instead want to overwrite existing boilerplate with the latest templates, run:\n"
+        "  psynet scripts update\n\n"
+        "Note: This command will also update other experiment files including .gitignore, "
+        "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
+        "IMPORTANT: Before running this command, commit any pending changes to git so you can "
+        "review the automatic changes that psynet scripts update makes."
+    )
+
+    dockerfile_path = Path("Dockerfile")
+
+    # Check 1: Dockerfile must exist
+    if not dockerfile_path.exists():
+        raise click.UsageError(
+            "Docker deployments require a Dockerfile in the experiment directory.\n\n"
+            + update_scripts_recommendation
+        )
+
+    # Check 2: Dockerfile must use new format (Python base image, not PsyNet base image)
+    dockerfile_content = dockerfile_path.read_text()
+
+    uses_psynet_base_image = bool(
+        re.search(
+            r"FROM\s+registry\.gitlab\.com/psynetdev/psynet:",
+            dockerfile_content,
+            re.IGNORECASE,
+        )
+    )
+
+    if uses_psynet_base_image:
+        raise click.UsageError(
+            "Your Dockerfile appears to be using an outdated format that references a PsyNet base image:\n"
+            f"  FROM registry.gitlab.com/psynetdev/psynet:...\n\n"
+            f"This format is no longer supported in PsyNet v{psynet_version}. "
+            "The Dockerfile should now build directly from a Python base image.\n\n"
+            + update_scripts_recommendation
+        )
 
 
 def _check_constraints(spinner=None):
     directory = os.getcwd()
 
-    # This code comes from dallinger.utils.ensure_constraints_file_presence.
-    # Ideally this Dallinger function would be refactored into exportable components.
+    # Freshness uses the same MD5-in-lockfile rule as ``psynet setup``.
     requirements_path = Path(directory) / "requirements.txt"
     constraints_path = Path(directory) / "constraints.txt"
 
@@ -1616,9 +2081,9 @@ def _check_constraints(spinner=None):
         # raise click.Abort()
 
     generate_constraints_cmd = (
-        "    psynet generate-constraints\n"
-        "or, if you are using Docker:\n"
-        "    bash docker/generate-constraints"
+        "    psynet setup\n"
+        "or only refresh the lockfile with:\n"
+        "    psynet generate-constraints"
     )
 
     if not constraints_path.exists():
@@ -1626,23 +2091,39 @@ def _check_constraints(spinner=None):
             spinner.fail("✘")
         raise click.ClickException(
             "Error: Experiment directory is missing a constraints.txt file. "
-            "This file pins all of your experiment's Python package dependencies, both explicit and implicit. "
-            "Please check that your requirements.txt file is up-to-date, then generate the constraints.txt file "
-            "by running the following command:\n" + generate_constraints_cmd
+            "Standalone experiments need this lockfile so installs are "
+            "reproducible. Please check that your requirements.txt file is "
+            "up-to-date, then create constraints.txt by running:\n"
+            + generate_constraints_cmd
         )
 
-    requirements_path_hash = md5(requirements_path.read_bytes()).hexdigest()
-    if requirements_path_hash not in constraints_path.read_text():
+    from .constraints_compile import constraints_are_up_to_date
+
+    if not constraints_are_up_to_date(
+        requirements_path=requirements_path,
+        constraints_path=constraints_path,
+    ):
         if spinner:
             spinner.fail("✘")
         raise click.ClickException(
             "The constraints.txt file is not up-to-date with the requirements.txt file. "
-            "Please generate a new constraints.txt file by running the following command:\n"
-            + generate_constraints_cmd
+            "Please regenerate constraints.txt by running:\n" + generate_constraints_cmd
         )
 
 
-def verify_psynet_requirement():
+def check_psynet_requirement_is_unambiguous():
+    """
+    Validate that ``requirements.txt`` pins PsyNet unambiguously.
+
+    The check requires a deterministic PsyNet specification so deployments are
+    reproducible. Accepted formats are documented on
+    :func:`psynet.experiment_scaffold.is_unambiguous_psynet_requirement`.
+
+    Raises
+    ------
+    ValueError
+        If the PsyNet requirement is missing or ambiguous.
+    """
     environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
     if os.environ.get(environment_variable, None):
         print(
@@ -1654,34 +2135,10 @@ def verify_psynet_requirement():
         text="Verifying PsyNet version in requirements.txt...",
         color="green",
     ) as spinner:
-        valid = False
-        with open("requirements.txt", "r") as file:
-            regexes = [
-                "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
-                "master",
-            ]
-            file_content = file.read()
-            for regex in regexes:
-                match = re.search(
-                    r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
-                    + regex
-                    + "(#egg=psynet)?$",
-                    file_content,
-                    re.MULTILINE,
-                )
-                if match is not None:
-                    valid = True
-                    break
-
-                match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?$",
-                    file_content,
-                    re.MULTILINE,
-                )
-                if match is not None:
-                    valid = True
-                    break
+        requirement = get_psynet_requirement()
+        valid = requirement is not None and is_unambiguous_psynet_requirement(
+            requirement
+        )
 
         if valid:
             spinner.ok("✔")
@@ -1689,20 +2146,52 @@ def verify_psynet_requirement():
             spinner.color = "red"
             spinner.fail("✗")
 
-        assert valid, (
-            "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
-            "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
-            "or a commit hash.\n"
-            "\n"
-            "\nExamples:\n"
-            "* psynet==10.1.1\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"  # Only master branch is allowed
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
-            "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
-            "in your terminal."
-        )
+        if not valid:
+            raise ValueError(_ambiguous_psynet_requirement_message(requirement))
+
+
+def _is_local_psynet_requirement(requirement: str) -> bool:
+    """Return whether a PsyNet requirement points at a local filesystem path."""
+    compact = requirement.lower().replace(" ", "")
+    return compact.startswith("-e") or "file://" in compact
+
+
+def _ambiguous_psynet_requirement_message(requirement: str | None) -> str:
+    """Build the deploy-time error for a missing or ambiguous PsyNet pin."""
+    branch_note = (
+        "This means you can't just give a branch name, e.g. master; you have to "
+        "specify a particular version or a commit hash."
+    )
+    examples = [
+        "* psynet==10.1.1",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+        "* psynet@git+https://gitlab.com/alice/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+        "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
+    ]
+
+    parts = [
+        "When deploying an experiment, you need to specify PsyNet in an "
+        "unambiguous way. " + branch_note,
+    ]
+    if requirement:
+        parts.append(f"\n\nYour current requirements.txt entry is:\n  {requirement}")
+        if _is_local_psynet_requirement(requirement):
+            parts.append(
+                "\n\nLocal path and editable installs cannot be resolved on a "
+                "remote deploy server. If you developed against a local PsyNet "
+                "checkout, re-run:\n"
+                "  psynet setup --psynet-source commit\n"
+                "to pin a pushed Git commit before deploying."
+            )
+    parts.append(
+        "\n\nExamples:\n"
+        + "\n".join(examples)
+        + "\nYou can skip this check by writing "
+        "`export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+        "in your terminal."
+    )
+    return "".join(parts)
 
 
 ##########
@@ -1717,6 +2206,29 @@ def app_argument(func):
         required=False,
         help="App id",
     )(func)
+
+
+def _resolve_ssh_app(ctx, app, server):
+    if app:
+        return app
+
+    from dallinger.command_line.docker_ssh import select_running_app
+
+    try:
+        resolved_app = select_running_app(server)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+
+    log(f"No --app provided; using running app on the server: {resolved_app}")
+    return resolved_app
+
+
+def _get_local_export_url(config):
+    try:
+        port = config.get("base_port")
+    except KeyError:
+        port = 5000
+    return f"http://127.0.0.1:{port}"
 
 
 def export_arguments(func):
@@ -1740,7 +2252,7 @@ def export_arguments(func):
         ),
         click.option(
             "--no-source",
-            flag_value="no_source",
+            is_flag=True,
             default=False,
             help="Skip exporting the experiment's source code",
         ),
@@ -1799,8 +2311,10 @@ def export__heroku(ctx, app, **kwargs):
 @export.command("ssh")
 @click.option(
     "--app",
-    required=True,
-    help="Name of the app to export",
+    default=None,
+    required=False,
+    callback=verify_id,
+    help=("Name of the app to export (optional if only one running app is available)"),
 )
 @option_server
 @export_arguments
@@ -1809,6 +2323,7 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     """
     Export the experiment from a remote server via Docker and SSH.
     """
+    app = _resolve_ssh_app(ctx, app, server)
     exp_variables = ctx.invoke(
         experiment_variables, location="ssh", app=app, server=server
     )
@@ -1852,10 +2367,12 @@ def export_(
         ├── source_code.zip
         ├── regular/
         │   ├── database.zip
+        │   ├── basic_data.json OR basic_data/
         │   ├── data/
         │   └── assets/
         └── anonymous/
             ├── database.zip
+            ├── basic_data.json OR basic_data/
             ├── data/
             └── assets/
 
@@ -1866,11 +2383,15 @@ def export_(
     regular/:
         Contains non-anonymized data:
             - the database.zip file generated by the default Dallinger export command
+            - basic_data.json for the experiment (if provided)
+            - basic_data/ if basic data was returned as DataFrames
             - experiment data in CSV format
             - assets
     anonymous/:
         Contains anonymized data:
             - the database.zip file generated by the default Dallinger export command
+            - basic_data.json for the experiment (if provided)
+            - basic_data/ if basic data was returned as DataFrames
             - experiment data in CSV format
             - assets
     """
@@ -1895,6 +2416,8 @@ def export_(
     config = get_config()
     if not config.ready:
         config.load()
+    if local:
+        _load_runtime_server_config(config, deployment_id=deployment_id)
 
     if path is None:
         path = experiment_class.export_path(deployment_id)
@@ -1922,7 +2445,12 @@ def export_(
 
     source_code_exported = False
     if not legacy:
-        experiment_url = get_experiment_url(app, server)
+        try:
+            experiment_url = get_experiment_url(app, server)
+        except KeyError:
+            if not local:
+                raise
+            experiment_url = _get_local_export_url(config)
         params = {
             "type": "psynet",
             "anonymize": anonymize,
@@ -1945,6 +2473,17 @@ def export_(
             # unzip the file
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 zip_ref.extractall(path)
+            # Download source code unless --no-source was passed
+            if not no_source:
+                _export_source_code(
+                    app,
+                    local,
+                    server,
+                    path,
+                    username,
+                    password,
+                    experiment_url=experiment_url,
+                )
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -1962,7 +2501,7 @@ def export_(
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
-            _export_source_code = not (source_code_exported or no_source)
+            should_export_source_code = not (source_code_exported or no_source)
             _export_(
                 ctx,
                 app,
@@ -1970,7 +2509,7 @@ def export_(
                 path,
                 assets,
                 _anonymize,
-                _export_source_code,
+                should_export_source_code,
                 n_parallel,
                 docker_ssh,
                 server,
@@ -1978,7 +2517,7 @@ def export_(
                 username,
                 password,
             )
-            if _export_source_code:
+            if should_export_source_code:
                 source_code_exported = True
 
 
@@ -2056,7 +2595,9 @@ def export_logs(app, server, export_path):
         log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
 
 
-def _export_source_code(app, local, server, export_path, username, password):
+def _export_source_code(
+    app, local, server, export_path, username, password, experiment_url=None
+):
     import requests
 
     config = get_config()
@@ -2085,7 +2626,9 @@ def _export_source_code(app, local, server, export_path, username, password):
     log(
         "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
     )
-    if local:
+    if experiment_url:
+        url = experiment_url.rstrip("/")
+    elif local:
         url = "http://localhost:5000"
     else:
         if server:
@@ -2110,7 +2653,7 @@ def _export_source_code(app, local, server, export_path, username, password):
             with open(source_code_zip_path, "wb") as f:
                 f.write(response.content)
             spinner.ok("✔")
-            log(f"Experiment source code saved to {source_code_zip_path}.")
+            log(f"Experiment source code saved to {source_code_zip_path}")
             break
         elif response.status_code == 401:
             try_again = click.confirm(
@@ -2212,9 +2755,98 @@ def export_data(local, anonymize, database_zip_path, export_path):
         populate_db_from_zip_file(database_zip_path)
 
     dump_db_to_disk(data_path, scrub_pii=anonymize)
+    export_basic_data(export_path, anonymize)
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
+
+
+def export_basic_data(export_path, anonymize):
+    from .experiment import get_experiment
+
+    exp = get_experiment()
+    data = exp.get_basic_data(context="export", anonymize=anonymize)
+    if data is None:
+        return
+
+    subdir = "anonymous" if anonymize else "regular"
+    basic_data_path = os.path.join(export_path, subdir)
+    serializer = _select_basic_data_serializer(data)
+    serializer(basic_data_path, data)
+
+
+def _select_basic_data_serializer(data):
+    if _is_dataframe_dict(data):
+        return _write_basic_dataframes
+    return _write_basic_data_json
+
+
+def _write_basic_dataframes(export_subdir_path, data):
+    basic_data_dir = os.path.join(export_subdir_path, "basic_data")
+    os.makedirs(basic_data_dir, exist_ok=True)
+    filename_counts = {}
+    used_filenames = set()
+    for key, dataframe in data.items():
+        filename = _make_basic_data_filename(key, filename_counts, used_filenames)
+        csv_path = os.path.join(basic_data_dir, f"{filename}.csv")
+        dataframe.to_csv(csv_path, index=False)
+
+
+def _write_basic_data_json(export_subdir_path, data):
+    basic_data_path = os.path.join(export_subdir_path, "basic_data.json")
+    with open(make_parents(basic_data_path), "w") as file:
+        json.dump(data, file, indent=2)
+
+
+def _make_basic_data_filename(key, counts, used_filenames):
+    """
+    Allocate a unique CSV-safe filename stem for one basic-data key.
+
+    Parameters
+    ----------
+    key : Any
+        Original basic-data key from the export payload.
+    counts : dict[str, int]
+        Per-sanitized-key counters used to generate numeric suffixes.
+    used_filenames : set[str]
+        Case-folded filename stems already reserved in this export run.
+
+    Returns
+    -------
+    str
+        A unique filename stem (without extension).
+    """
+    sanitized = _sanitize_basic_data_key(key)
+    counts[sanitized] = counts.get(sanitized, 0)
+
+    while True:
+        counts[sanitized] += 1
+        count = counts[sanitized]
+        filename = sanitized if count == 1 else f"{sanitized}_{count}"
+        # Reserve names case-insensitively to avoid collisions on
+        # case-insensitive filesystems (e.g., default macOS/Windows).
+        reserved_name = filename.casefold()
+        if reserved_name not in used_filenames:
+            used_filenames.add(reserved_name)
+            return filename
+
+
+def _sanitize_basic_data_key(key):
+    filename = str(key).strip()
+    filename = re.sub(r"[\\/]+", "_", filename)
+    filename = re.sub(r"[^A-Za-z0-9._-]+", "_", filename)
+    filename = filename.strip("._")
+    return filename or "data"
+
+
+def _is_dataframe_dict(data):
+    if not isinstance(data, dict) or not data:
+        return False
+    try:
+        import pandas as pd
+    except ImportError:
+        return False
+    return all(isinstance(value, pd.DataFrame) for value in data.values())
 
 
 def populate_db_from_zip_file(zip_path):
@@ -2315,84 +2947,20 @@ def generate_config(ctx):
             file.write(f"{key} = {value}\n")
 
 
-@psynet.command()
+register_bootstrap_commands(psynet)
+
+
+@psynet.command("update-scripts")
 @require_exp_directory
 def update_scripts():
     """
-    To be run in an experiment directory; updates a collection of template scripts and help files to their
-    latest PsyNet versions.
+    Deprecated alias for ``psynet scripts update``.
     """
-    update_scripts_()
-
-
-def update_scripts_():
-    """
-    To be run in an experiment directory; updates a collection of template scripts and help files to their
-    latest PsyNet versions.
-    """
-    # TODO - refactor to avoid hardcoding the list of files/directories to copy
-    click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
-
-    Path(".vscode").mkdir(exist_ok=True)
-    Path(".github/workflows").mkdir(parents=True, exist_ok=True)
-
-    files_to_copy = [
-        ".gitignore",
-        ".dockerignore",
-        "Dockerfile",
-        "README.md",
-        "__init__.py",
-        "pytest.ini",
-        "test.py",
-        ".github/workflows/test.yml",
-        ".vscode/launch.json",
-        "AGENTS.md",
-    ]
-    for file in files_to_copy:
-        click.echo(f"...updating {file}.")
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{file}"
-        ) as path:
-            shutil.copyfile(
-                path,
-                file,
-            )
-
-    # We keep Dockertag for now, but once we remove the docker directory,
-    # we should remove this too.
-    click.echo("...updating Dockertag.")
-    with open("Dockertag", "w") as file:
-        file.write(os.path.basename(os.getcwd()))
-        file.write("\n")
-
-    click.echo("...updating .python-version")
-    with open(".python-version", "w") as file:
-        file.write(python_recommended_version)
-        file.write("\n")
-
-    directories_to_copy = ["docker"]
-    for dir in directories_to_copy:
-        click.echo(f"...updating {dir} directory.")
-        if Path(dir).exists():
-            shutil.rmtree(dir, ignore_errors=True)
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
-        ) as path:
-            shutil.copytree(
-                path,
-                dir,
-                dirs_exist_ok=True,
-            )
-    os.system("chmod +x docker/*")
-
-    # We remove no-longer-wanted directories only if we can be confident that the
-    # user hasn't edited them
-    directories_to_remove = [("docs", "abfc54bbbc3ef9d5948957841727a18b")]
-    for directory, hash in directories_to_remove:
-        if Path(directory).exists():
-            if md5_directory(directory) == hash:
-                # The directory is unchanged, we can remove it
-                shutil.rmtree(directory)
+    click.echo(
+        "psynet update-scripts is deprecated; use 'psynet scripts update' instead.",
+        err=True,
+    )
+    scaffold_experiment_directory(overwrite=True)
 
 
 @psynet.group("destroy")
@@ -2618,7 +3186,9 @@ _test_options["serial"] = click.option(
 
 _test_options["stagger"] = click.option(
     "--stagger",
-    help="Time interval to wait (in seconds) between instantiating each parallel bot.",
+    help="""
+    Time interval to wait (in seconds) between instantiating each parallel bot.
+    If not specified, will default to Experiment.test_parallel_stagger_interval_s (0.1 s)""",
 )
 
 _test_options["time_factor"] = click.option(
@@ -2636,6 +3206,8 @@ _test_options["time_factor"] = click.option(
 @_test_options["serial"]
 @_test_options["stagger"]
 @_test_options["time_factor"]
+@_add_sql_profile_options
+@sql_profiled_command
 def test__local(
     existing=False,
     n_bots=None,
@@ -2643,11 +3215,27 @@ def test__local(
     serial=None,
     stagger=None,
     time_factor=None,
+    sql_profile=False,
+    sql_profile_options=None,
+    sql_profile_dir=None,
+    sql_profile_format=None,
+    sql_profile_no_open=False,
 ):
     """
     Test the experiment locally.
     """
     assert not (parallel and serial)
+
+    # --existing talks to a live server; skip local scaffold/git readiness.
+    # Non-existing runs share debug's directory checks (incl. bundled-demo prepare).
+    if not existing:
+        _check_experiment_directory("test")
+
+    # Same local Postgres/Redis requirement as ``psynet debug local`` /
+    # ``psynet deploy local`` (virtualenv mode).
+    from .services import ensure_local_services
+
+    ensure_local_services(assume_yes=False, strict=True)
 
     from psynet.experiment import get_experiment
 
@@ -2670,14 +3258,15 @@ def test__local(
 
     if existing:
         exp.test_experiment()
-    else:
-        import pytest
+        return
 
-        exit_code = pytest.main(["test.py"])
-        if exit_code != 0:
-            # Use sys.exit() to ensure that the exit code is propagated to the shell.
-            # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
-            sys.exit(exit_code)
+    import pytest
+
+    exit_code = pytest.main(["test.py"])
+    if exit_code != 0:
+        # Use sys.exit() to ensure that the exit code is propagated to the shell.
+        # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
+        sys.exit(exit_code)
 
 
 @test.command("ssh")
@@ -2722,7 +3311,7 @@ def test__docker_ssh(
         cmd += " --serial"
 
     if stagger:
-        cmd += " --stagger"
+        cmd += f" --stagger {stagger}"
 
     if time_factor:
         cmd += f" --time-factor {time_factor}"
@@ -2732,6 +3321,521 @@ def test__docker_ssh(
     ssh_user = server_info.get("user")
     executor = Executor(ssh_host, user=ssh_user)
     executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
+
+
+_test_options["performance_n_bots"] = click.option(
+    "--n-bots",
+    help="""
+    The --n-bots parameter can accept a comma-separated list of integers
+    to run sequential tests with different maximum concurrency levels.
+    Example: --n-bots "5,10,20" will run three separate tests.
+    If not specified, will default to Experiment.test_n_bots""",
+)
+
+_test_options["performance_time_factor"] = click.option(
+    "--time-factor",
+    type=float,
+    default=None,
+    help="""
+    Multiply the timings in time_estimate by a random amount around this factor.
+    Actual multiplier will vary randomly using a lognormal distribution with an upper
+    bound of 3x this factor. When equal to zero, the bot will run through the
+    experiment as fast as possible. If not specified, defaults to 1.0""",
+)
+
+_test_options["performance_stagger"] = click.option(
+    "--stagger",
+    help="""
+    Average time interval to wait (in seconds) between starting each bot.
+    Start times will vary randomly using a gamma distribution with an upper bound of 5x this value.
+    If not specified, will default to Experiment.test_parallel_stagger_interval_s (0.1 s)""",
+)
+
+_test_options["duration_minutes"] = click.option(
+    "--duration-minutes",
+    type=float,
+    default=None,
+    help="""
+    Total performance-test measurement window in minutes. This includes
+    first-bot initialization and ramp-up towards 'n-bots', so the test may spend
+    less than 'duration-minutes' at the target concurrency.
+    If not specified, defaults to Experiment.test_duration_minutes (1 minute)""",
+)
+
+_test_options["performance_json_output"] = click.option(
+    "--json-output",
+    type=click.Path(dir_okay=False, writable=True),
+    default=None,
+    help="""
+    If provided, write performance test results to this path as JSON.
+    The file will contain a top-level object with: schema_version, psynet_version,
+    dallinger_version, python_version, platform, experiment_label,
+    started_at / finished_at (ISO timestamps), options (n_bots_sweep,
+    duration_minutes, stagger_interval_s, time_factor), and results
+    (one entry per bot count tested, with all metrics).
+    Useful for downstream consumption (e.g. benchmarking tools like asv).""",
+)
+
+
+@psynet.group("performance-test")
+@click.pass_context
+@require_exp_directory
+def performance_test(ctx):
+    """
+    Performance test the experiment.
+    """
+    pass
+
+
+@performance_test.command("local")
+@_test_options["existing"]
+@_test_options["performance_n_bots"]
+@_test_options["performance_stagger"]
+@_test_options["performance_time_factor"]
+@_test_options["duration_minutes"]
+@_test_options["performance_json_output"]
+@click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
+def performance_test__local(
+    existing=False,
+    n_bots=None,
+    stagger=None,
+    time_factor=None,
+    duration_minutes=None,
+    json_output=None,
+    debug=False,
+):
+    """
+    Run a performance test of the experiment locally.
+
+    The --n-bots parameter can accept a comma-separated list of integers
+    to run sequential tests with different concurrency levels.
+    Example: --n-bots "5,10,20" will run three separate tests.
+
+    By default, this command starts a new experiment server automatically.
+    Use --existing to connect to an already-running server instead.
+    """
+    if existing:
+        _run_performance_test_with_existing_server(
+            n_bots, stagger, time_factor, duration_minutes, debug, json_output
+        )
+    else:
+        _run_performance_test_with_new_server(
+            n_bots, stagger, time_factor, duration_minutes, debug, json_output
+        )
+
+
+def _collect_run_metadata(experiment_label):
+    """Capture environment metadata that makes a results file self-describing."""
+    import platform as _platform
+
+    import dallinger.version
+
+    import psynet
+
+    return {
+        "psynet_version": psynet.__version__,
+        "dallinger_version": dallinger.version.__version__,
+        "python_version": _platform.python_version(),
+        "platform": _platform.platform(),
+        "experiment_label": experiment_label,
+    }
+
+
+def _write_json_results(json_output, *, metadata, options, all_results):
+    """Write performance test results plus the metadata that produced them to JSON."""
+    from psynet.perf_test import _to_json_safe
+
+    payload = {
+        "schema_version": 1,
+        **metadata,
+        "options": _to_json_safe(options),
+        "results": [_to_json_safe(r) for r in all_results],
+    }
+    with open(json_output, "w") as f:
+        json.dump(payload, f, indent=2, allow_nan=False)
+
+
+def _run_performance_test_with_existing_server(
+    n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
+):
+    """Run performance test connecting to an already-running server."""
+    import logging
+    import sys
+
+    from psynet.experiment import get_experiment
+
+    # Configure logging to output to console
+    root_logger = logging.getLogger()
+    log_level = logging.DEBUG if debug else logging.INFO
+    root_logger.setLevel(log_level)
+
+    # Remove any existing handlers
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+
+    # Add console handler with clean format (no prefixes)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(log_level)
+    formatter = logging.Formatter("%(message)s")
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+
+    bot_log_file = tempfile.NamedTemporaryFile(
+        delete=False, prefix="psynet_bots_", suffix=".log"
+    )
+    print(f"Bot output log: {bot_log_file.name}")
+
+    try:
+        exp = get_experiment()
+    except Exception as e:
+        print(f"ERROR: Failed to get experiment: {e}", file=sys.stderr)
+        print(
+            "Make sure the experiment server is running first (psynet debug local)",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    from psynet.perf_test import PerformanceTester
+
+    os.environ["PASSTHROUGH_ERRORS"] = "True"
+
+    # Parse n_bots - can be comma-separated list
+    if n_bots:
+        bot_counts = [int(x.strip()) for x in n_bots.split(",")]
+    else:
+        bot_counts = [exp.test_n_bots]
+
+    tester = PerformanceTester(
+        authenticated_session=exp.authenticated_session,
+        base_url=exp.base_url,
+        n_bots=exp.test_n_bots,
+        duration_minutes=(
+            exp.test_duration_minutes if duration_minutes is None else duration_minutes
+        ),
+        stagger_interval_s=(
+            exp.test_parallel_stagger_interval_s if stagger is None else float(stagger)
+        ),
+        # Documented CLI default is 1.0 (realistic pacing). Do not fall back to
+        # Experiment.test_time_factor, which defaults to 0.0 for correctness tests.
+        time_factor=(1.0 if time_factor is None else time_factor),
+    )
+    started_at = datetime.datetime.now().isoformat(timespec="seconds")
+    all_results = tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    finished_at = datetime.datetime.now().isoformat(timespec="seconds")
+    bot_log_file.close()
+    print(f"Bot output log: {bot_log_file.name}")
+
+    if json_output:
+        metadata = {
+            **_collect_run_metadata(exp.label),
+            "started_at": started_at,
+            "finished_at": finished_at,
+        }
+        options = {
+            "n_bots_sweep": bot_counts,
+            "duration_minutes": tester.duration_minutes,
+            "stagger_interval_s": tester.stagger_interval_s,
+            "time_factor": tester.time_factor,
+        }
+        _write_json_results(
+            json_output,
+            metadata=metadata,
+            options=options,
+            all_results=all_results,
+        )
+        print(f"Performance results (JSON): {json_output}")
+
+
+class _OutputTee:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for stream in self.streams:
+            stream.write(data)
+            stream.flush()
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
+
+
+def _drain_pexpect_output(process):
+    """Continuously read from pexpect process so logfile receives output.
+
+    If we don't do this, the server log will record very little of what actually
+    transpires, which makes debugging very difficult.
+    """
+    while process.isalive():
+        try:
+            process.read_nonblocking(size=4096, timeout=1)
+        except pexpect.TIMEOUT:
+            pass
+        except (pexpect.EOF, Exception):
+            break
+
+
+def _start_local_server_and_wait_for_ready(
+    command_args,
+    *,
+    debug=False,
+    max_wait=60,
+    ready_phrase="Experiment launch complete!",
+):
+    """Spawn ``psynet <command_args>`` and wait for launch completion.
+
+    Parameters
+    ----------
+    command_args : list[str]
+        Arguments passed to the ``psynet`` executable, for example
+        ``["debug", "local", "--legacy", "--no-browsers"]`` or
+        ``["debug", "local"]``.
+    """
+    print("▶ Starting experiment server...")
+
+    tmp_log = tempfile.NamedTemporaryFile(
+        delete=False, prefix="psynet_server_", suffix=".log"
+    )
+    tmp_log_path = tmp_log.name
+    tmp_log.close()
+    print(f"Server log: {tmp_log_path}")
+
+    log_file = open(tmp_log_path, "a", encoding="utf-8")
+    logfile = _OutputTee(sys.stdout, log_file) if debug else log_file
+    env = os.environ.copy()
+    env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
+    env.setdefault("BROWSER", "true")
+
+    try:
+        process = pexpect.spawn(
+            "psynet",
+            command_args,
+            env=env,
+            encoding="utf-8",
+            timeout=max_wait,
+        )
+    except Exception:
+        log_file.close()
+        raise click.ClickException("Failed to start experiment server process.")
+
+    process.logfile = logfile
+    print("⏳ Waiting for server to be ready...", end="", flush=True)
+
+    try:
+        process.expect_exact(ready_phrase, timeout=max_wait)
+        print(" Ready!")
+        print()
+        drain_thread = threading.Thread(
+            target=_drain_pexpect_output,
+            args=(process,),
+            daemon=True,
+        )
+        drain_thread.start()
+        return {
+            "process": process,
+            "tmp_log_path": tmp_log_path,
+            "log_file": log_file,
+        }
+    except (pexpect.TIMEOUT, pexpect.EOF) as exc:
+        recent_output = (process.before or "").splitlines()[-50:]
+        stop_local_debug_process(process)
+
+        if isinstance(exc, pexpect.EOF):
+            failure_message = "Server process exited before becoming ready"
+        else:
+            failure_message = f"Server failed to start within {max_wait} seconds"
+        print(
+            f"\n❌ {failure_message}",
+            file=sys.stderr,
+        )
+        if recent_output:
+            print("Last server output:", file=sys.stderr)
+            for line in recent_output:
+                print(line, file=sys.stderr)
+        log_file.close()
+        raise click.ClickException("Failed to start experiment server.")
+
+
+def _terminate_server_process(process):
+    def _signal_process_or_group(pid, sig):
+        try:
+            os.killpg(os.getpgid(pid), sig)
+            return
+        except Exception:
+            pass
+        os.kill(pid, sig)
+
+    if not process.isalive():
+        process.close(force=True)
+        return
+
+    finished = False
+
+    try:
+        process.sendcontrol("c")
+        process.expect_exact(pexpect.EOF, timeout=15)
+        finished = True
+    except (OSError, pexpect.TIMEOUT, pexpect.EOF):
+        # OSError is common when the PTY is already gone; still escalate below.
+        pass
+
+    if not finished:
+        pid = getattr(process, "pid", None)
+        if pid is not None:
+            for sig, timeout in ((signal.SIGTERM, 5), (signal.SIGKILL, None)):
+                try:
+                    _signal_process_or_group(pid, sig)
+                except ProcessLookupError:
+                    break
+                except Exception:
+                    continue
+
+                if timeout is None:
+                    break
+
+                try:
+                    process.expect_exact(pexpect.EOF, timeout=timeout)
+                    finished = True
+                    break
+                except (ProcessLookupError, pexpect.TIMEOUT, pexpect.EOF):
+                    pass
+                except Exception:
+                    pass
+
+    process.close(force=True)
+
+
+def stop_local_debug_process(process):
+    """
+    Stop a local ``psynet debug`` pexpect process and reap leftover workers.
+
+    Waits for the process to exit after Ctrl-C (escalating to SIGTERM/SIGKILL
+    if needed), then terminates any orphaned ``dallinger_heroku_*`` worker
+    processes so they cannot keep database connections open.
+    """
+    try:
+        _terminate_server_process(process)
+    finally:
+        kill_psynet_worker_processes()
+
+
+def _stop_server(server_info):
+    """Stop ``psynet debug local`` and clean up resources."""
+
+    process = server_info["process"]
+    tmp_log_path = server_info["tmp_log_path"]
+    log_file = server_info["log_file"]
+    try:
+        stop_local_debug_process(process)
+    finally:
+        try:
+            process.logfile = None
+        except Exception:
+            pass
+
+        try:
+            log_file.close()
+        except Exception:
+            pass
+
+    print(f"✓ Server stopped (log: {tmp_log_path})")
+
+
+def _run_performance_test_with_new_server(
+    n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
+):
+    """Run performance test after starting a new experiment server"""
+    # Prefer legacy debug: it more closely matches a real deployed server than
+    # the auto-reload develop path used by normal ``psynet debug local``.
+    server_info = _start_local_server_and_wait_for_ready(
+        ["debug", "local", "--legacy", "--no-browsers"],
+        debug=debug,
+    )
+
+    try:
+        _load_runtime_server_config()
+        _run_performance_test_with_existing_server(
+            n_bots, stagger, time_factor, duration_minutes, debug, json_output
+        )
+        print("✓ Performance test completed")
+
+    finally:
+        _stop_server(server_info)
+
+
+@performance_test.command("ssh")
+@click.option("--app", required=True, help="Name of the experiment app.")
+@option_server
+@_test_options["performance_n_bots"]
+@_test_options["performance_stagger"]
+@_test_options["performance_time_factor"]
+@_test_options["duration_minutes"]
+@_test_options["performance_json_output"]
+@click.pass_context
+def performance_test__docker_ssh(
+    ctx,
+    app,
+    server,
+    n_bots=None,
+    stagger=None,
+    time_factor=None,
+    duration_minutes=None,
+    json_output=None,
+):
+    """
+    Runs performance tests on the remote server. Assumes that the app has
+    already been launched on the remote server using ``psynet debug ssh``.
+
+    Running this command will not reset the database to a vanilla state, but
+    will instead just use the state that exists already. Be sure the app has is
+    configured to allow a large quantity of bots.
+
+    If the app is in use during the performance test, results may not be
+    reliable.
+
+    Note: The --json-output option is not yet supported for remote SSH execution.
+    For JSON output, run ``psynet performance-test local --json-output`` instead.
+    """
+    if json_output:
+        print(
+            "Warning: --json-output is not yet implemented for SSH mode. "
+            "Use 'psynet performance-test local --json-output' instead.",
+            file=sys.stderr,
+        )
+
+    from dallinger.command_line.docker_ssh import Executor
+
+    cmd = _build_ssh_performance_test_cmd(
+        n_bots=n_bots,
+        stagger=stagger,
+        time_factor=time_factor,
+        duration_minutes=duration_minutes,
+    )
+
+    server_info = CONFIGURED_HOSTS[server]
+    ssh_host = server_info["host"]
+    ssh_user = server_info.get("user")
+    executor = Executor(ssh_host, user=ssh_user)
+    executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
+
+
+def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minutes):
+    """Build the remote performance-test command, preserving explicit zeros."""
+    cmd = "psynet performance-test local --existing"
+
+    if n_bots is not None:
+        cmd += f" --n-bots {n_bots}"
+
+    if stagger is not None:
+        cmd += f" --stagger {stagger}"
+
+    if time_factor is not None:
+        cmd += f" --time-factor {time_factor}"
+
+    if duration_minutes is not None:
+        cmd += f" --duration-minutes {duration_minutes}"
+
+    return cmd
 
 
 @psynet.command()
@@ -2910,9 +4014,9 @@ def lucid__status(ctx, survey_number, status):
     Change the status of a Lucid survey.
     """
     available_statuses = ["live", "paused", "completed", "archived", "pending"]
-    assert (
-        status in available_statuses
-    ), f"Invalid status: {status}, pick from: {available_statuses}"
+    assert status in available_statuses, (
+        f"Invalid status: {status}, pick from: {available_statuses}"
+    )
     if status == "completed":
         status = "complete"
     get_lucid_service().change_status(survey_number, status)
@@ -3025,6 +4129,42 @@ class ListOfStrings(click.ParamType):
         if value is None:
             return []
         return value.replace(",", " ").split()
+
+
+@psynet.command("locales")
+@click.option(
+    "--codes-only",
+    is_flag=True,
+    help="Output locale codes only, on a single line.",
+)
+def locales(codes_only):
+    """
+    List supported translation locales.
+
+    Example
+    -------
+
+    psynet locales
+        List all supported locales with their names.
+
+    psynet locales --codes-only
+        Output locale codes on a single line (useful for scripting).
+    """
+    from psynet.translation.languages import psynet_supported_locales
+
+    if codes_only:
+        click.echo(" ".join(sorted(psynet_supported_locales)))
+    else:
+        from psynet.utils import get_language_dict
+
+        language_dict = get_language_dict("en")
+        click.echo(bold("Supported locales:"))
+        click.echo()
+        for locale in sorted(psynet_supported_locales):
+            name = language_dict.get(locale, "Unknown")
+            click.echo(f"  {locale:6} {name}")
+        click.echo()
+        click.echo(f"Total: {len(psynet_supported_locales)} locales")
 
 
 @psynet.command("translate")

@@ -427,6 +427,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "إذا كان الأمر كذلك، يرجى تقديم بضع كلمات تصف المشكلة."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "إنهاء"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -892,10 +897,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "انظر المعلومات أدناه للحصول على تفاصيل تعويضك."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "إيقاف التجربة"
+msgstr "إلغاء التجربة"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -927,7 +933,7 @@ msgstr "شكرًا لقبولك هذا HIT."
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "شكرًا لاهتمامك بهذا التجربة."
+msgstr "شكرًا لاهتمامك بهذه التجربة."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -956,11 +962,6 @@ msgstr "يرجى تعطيل حاصرات النوافذ المنبثقة قبل 
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "بدء التجربة"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "إلغاء التجربة"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -2991,7 +2992,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"إذا لم يكن هذا هو الحال، يرجى الاتصال بنا على %(EMAIL)s مع ذكر المعلومات "
+"إذا لم يكن الأمر كذلك، يرجى الاتصال بنا على %(EMAIL)s مع ذكر المعلومات "
 "التالية:"
 
 #: psynet/templates/psynet_error.html

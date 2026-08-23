@@ -32,3 +32,14 @@ def test_secrets(in_experiment_directory):
         config.set(secret, "my-secret")
         assert config.get(secret) is not None
         assert secret not in config.as_dict()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_prolific_screen_out_is_no_longer_supported(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    with pytest.raises(ValueError, match="Prolific no longer supports"):
+        config.set("prolific_enable_screen_out", True)

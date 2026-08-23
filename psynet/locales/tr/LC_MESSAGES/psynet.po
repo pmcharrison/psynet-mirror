@@ -429,6 +429,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Eğer öyleyse, lütfen sorunu birkaç kelimeyle açıklayın."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Bitir"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -904,10 +909,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Tazminatınızın detayları için aşağıdaki bilgilere bakın."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Deneyi sonlandır"
+msgstr "Deneyi iptal et"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -919,7 +925,7 @@ msgstr "Katılımcı çağrısı"
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "Katılmak için gereklilikler aşağıdaki gibidir"
+msgstr "Katılmak için gereksinimler aşağıdaki gibidir"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -951,7 +957,8 @@ msgid ""
 "including complete instructions and an informed consent agreement."
 msgstr ""
 "Aşağıdaki URL bağlantısına tıklayarak, deneyin tam talimatları ve "
-"bilgilendirilmiş onam anlaşması dahil olduğu sayfaya yönlendirileceksiniz."
+"bilgilendirilmiş onam anlaşması dahil olmak üzere deneyin yapılacağı sayfaya"
+" yönlendirileceksiniz."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -972,11 +979,6 @@ msgstr ""
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Deneye Başla"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Deneyi İptal Et"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3070,8 +3072,8 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "İptal edildikten sonra, tazminat almak için bizimle iletişime geçmenize "
-"gerek yoktur; bu, birkaç dakika sonra MTurk aracılığıyla otomatik olarak "
-"size verilecektir."
+"gerek yoktur; bu, birkaç dakika sonra MTurk üzerinden otomatik olarak size "
+"verilecektir."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3079,8 +3081,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Durum böyle değilse, lütfen aşağıdaki bilgileri belirterek %(EMAIL)s "
-"adresinden bizimle iletişime geçin:"
+"Durum böyle değilse, lütfen aşağıdaki bilgileri belirterek bizimle %(EMAIL)s"
+" adresinden iletişime geçin:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

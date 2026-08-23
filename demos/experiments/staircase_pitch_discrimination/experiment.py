@@ -287,9 +287,9 @@ class Exp(psynet.experiment.Experiment):
         chains.sort(key=lambda c: c.head.id)
 
         for trial in chains[1].all_trials:
-            assert trial.id > max(
-                [t.id for t in chains[0].all_trials]
-            ), "chains 0 and 1 were unexpectedly mixed"
+            assert trial.id > max([t.id for t in chains[0].all_trials]), (
+                "chains 0 and 1 were unexpectedly mixed"
+            )
 
         for chain in chains:
             # Copied out for now because the demo doesn't use the max_reversals logic

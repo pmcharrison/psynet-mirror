@@ -1,9 +1,12 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Custom tables can carry polymorphic domain logic, not just rows. Here a `Pet`
+base class and `Dog`/`Cat` subclasses live in one SQLAlchemy table; choosing a
+pet type creates the right subclass and runs type-specific purchase pages
+defined as class methods. Prefer this pattern when timeline branches and
+persisted fields naturally belong on your domain objects.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

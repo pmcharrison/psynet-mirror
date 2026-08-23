@@ -8,58 +8,100 @@ and pasting a pre-existing experiment.
 This can either be a demo from PsyNet's demos directory,
 or a code repository for a fully-fledged experiment.
 
-Suppose we've copied the PsyNet demo ``demos/audio``,
+Suppose we've copied the PsyNet demo ``demos/experiments/audio``,
 pasted it to a new location on our computer,
 and named this new directory ``my-audio``.
 It's best if you put this somewhere outside your PsyNet package installation directory;
 for example, you could put in a new folder called ``~/psynet-experiments``.
-The first step is then to open this directory in PyCharm
-(click File, Open, then select your project, then click Open).
+The first step is then to open this directory in your IDE.
+Click File > Open in your IDE, then select your project folder.
 If asked, click New Window.
 
-You should then see a dialog box titled ``Creating virtual environment``.
 The next step depends on whether you are using the Docker mode for running PsyNet,
 or whether you are using the *virtual environment* mode.
+
+The PsyNet demo directories contain authored experiment files and an unpinned
+``psynet`` entry in ``requirements.txt``. Generated boilerplate and
+``constraints.txt`` are intentionally omitted.
+
+Before you create an experiment environment, make sure these tools are
+available on your computer (once per machine):
+
+* **Git** — required so the experiment folder can be a repository
+  (``git init``). If you need to install it, follow the instructions on the
+  `Git downloads page <https://git-scm.com/downloads>`_. A GUI client is fine;
+  PsyNet only needs the ``git`` command to be available in your terminal.
+* **uv** — used to create the virtual environment and install packages.
+  The usual install is::
+
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  See the `uv installation docs <https://docs.astral.sh/uv/getting-started/installation/>`_
+  for other options (Homebrew, pip, …).
+
+Then initialize Git and install the thin PsyNet bootstrap package before
+choosing either setup mode (``psynet setup`` then installs the full
+``psynet[experiment]`` runtime):
+
+.. code-block:: bash
+
+    git init
+    uv venv --python 3.13
+    source .venv/bin/activate
+    uv pip install psynet
 
 
 Docker mode
 -----------
 
-If you are using the Docker mode, click ``Cancel`` and then follow the instructions in ``INSTALL.md``
-to set up your project. You can then follow the instructions in ``RUN.md`` to run the experiment.
+Both Docker and virtualenv mode need standard experiment files. Docker does not
+need PsyNet to install packages into your local ``.venv``, so use the Docker
+setup flag (same file preparation as ``--no-install``, with Docker next steps):
+
+.. code-block:: bash
+
+    psynet setup --docker
+
+Then follow the generated instructions under ``docker/docs``.
 
 Virtual environment mode
 ------------------------
 
-If you are using the *virtual environment* mode, you will want to use this dialog box to create a virtual environment
-for your project. The default name of this virtual environment will be the name of your folder,
-that normally works well. The dialog box will have selected a particular version of Python to use for this
-virtual environment (e.g. Python 3.11); have a look at this and make sure it's what you were expecting
-(we don't want really old versions of Python here because they would be incompatible with PsyNet).
-By default, the dialog box will probably have specified ``requirements.txt`` as the source for your
-dependencies. Instead, you should replace ``requirements.txt`` with ``constraints.txt``, which
-provides a fuller list of the precise packages that your experiment depends on.
-When you've finished configuring these elements, press OK.
-Assuming you have internet access, PyCharm should then automatically download and install
-the experiment dependencies. This might take a few minutes.
+For virtual environment mode, let ``psynet setup`` pin the active PsyNet
+version, generate constraints, scaffold the experiment, install the
+constrained dependencies with ``uv``, and verify the environment:
 
-When the process is done, you should see ``Python 3.xx (<your-project-name>)`` in the bottom
-right corner of your screen.
-If you then open a new terminal window in PyCharm, you should see ``(<your-project-name)``
+.. code-block:: bash
+
+    psynet setup
+
+The install step removes packages that are not required by the experiment,
+so use a dedicated experiment virtual environment.
+
+.. note::
+
+    Your IDE will typically detect the virtual environment automatically when you open the project.
+    If it doesn't, you may need to manually select the virtual environment's Python interpreter in your IDE's settings.
+    In most IDEs, you can do this by looking for an interpreter or Python environment selector (often in the bottom-right corner
+    or in settings/preferences), and selecting the Python executable from the ``.venv`` folder you just created.
+
+When the process is done, if you open a new terminal window in your IDE, you should see ``(<your-project-name)``
 prefixed to the terminal prompt. This indicates that you are in the desired virtual environment.
 You should be able to run ``psynet --version`` in this terminal to confirm that you have
 successfully installed PsyNet.
 You should then be able to run ``psynet debug local`` to launch a local version of your experiment.
 
-If you decide at some point you want to make a fresh virtual environment for a pre-existing project,
-you can do this by clicking on the Interpreter button in the bottom right corner of your screen
-(which might currently say something like ``Python 3.xx (<your-project-name>)``),
-click ``Add New Interpreter``, then click ``Add Local Interpreter``.
-Select the ``virtualenv`` option, then press OK.
-This will create the new environment, but it won't install any dependencies.
-To install the dependencies, you should open a new terminal, verify you are in the correct virtual environment
-(by confirming that you see ``(<your-project-name)`` prefixed to the terminal prompt)
-then run ``pip3 install -r constraints.txt``.
+If you decide at some point you want to make a fresh virtual environment for a
+pre-existing project, create a new virtual environment using the commands above,
+select it in your IDE's interpreter settings, then run the same bootstrap as
+first-time setup. When ``constraints.txt`` is already present and up to date
+with ``requirements.txt``, ``psynet setup`` reuses it and only synchronizes the
+environment:
+
+.. code-block:: bash
+
+    uv pip install psynet
+    psynet setup
 
 Updating PsyNet
 ---------------
@@ -85,10 +127,18 @@ so for example from 10.3.1 to 11.0.0.
 If both version tags begin with the same number, then you should probably be fine,
 and you can just go ahead and increase the PsyNet version number in ``requirements.txt``.
 
-If you have indeed increased the PsyNet version number, you need to update ``constraints.txt``.
+If you have indeed increased the PsyNet version number, refresh
+``constraints.txt`` and your environment with:
 
 .. code:: bash
 
-    psynet generate-constraints
+    psynet setup
+
 
 Once it is complete, you should be able to run ``psynet debug local`` as before.
+
+You can regenerate any missing standard boilerplate files at any time with:
+
+.. code:: bash
+
+    psynet scripts scaffold

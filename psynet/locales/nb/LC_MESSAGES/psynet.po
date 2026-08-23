@@ -419,6 +419,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Hvis ja, vennligst gi en kort beskrivelse av problemet."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Fullfør"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -738,11 +743,6 @@ msgstr "Vennligst deaktiver popup-blokkeringer før du fortsetter."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Start eksperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Avbryt eksperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

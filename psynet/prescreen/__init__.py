@@ -32,9 +32,8 @@ from psynet.timeline import (
     conditional,
     join,
 )
-from psynet.trial import Node
 from psynet.trial.audio import AudioRecordTrial
-from psynet.trial.static import StaticTrial, StaticTrialMaker
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger, get_translator
 
 from .vocabtest import BibleVocab, WikiVocab  # noqa: F401
@@ -86,7 +85,7 @@ class REPPVolumeCalibration(Module):
                       <br><br>
                       <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
                       <hr>
-                      <img style="width:70%" src="{assets['rules_image'].url}" alt="rules_image">
+                      <img style="width:70%" src="{assets["rules_image"].url}" alt="rules_image">
                       """
                 ),
             ),
@@ -301,7 +300,7 @@ class REPPTappingCalibration(Module):
                 <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
                 <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
             </ul>
-            <img style="width:70%" src="{assets['tapping_instructions_image'].url}"  alt="image_rules">
+            <img style="width:70%" src="{assets["tapping_instructions_image"].url}"  alt="image_rules">
             """
         )
 
@@ -324,7 +323,7 @@ class NumpySerializer(json.JSONEncoder):
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.bool_):
-            return super().encode(bool(obj))
+            return bool(obj)
         else:
             return super().default(obj)
 
@@ -528,9 +527,9 @@ class FreeTappingRecordTest(StaticTrialMaker):
                 ),
             ),
             wait_while(
-                lambda participant: not participant.assets[
-                    "free_record_example"
-                ].deposited,
+                lambda participant: (
+                    not participant.assets["free_record_example"].deposited
+                ),
                 expected_wait=5,
                 log_message="Waiting for free_record_example to be deposited",
             ),
@@ -572,7 +571,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
 
     def get_nodes(self, duration_rec_sec: float, min_num_detected_taps: int):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
@@ -765,7 +764,7 @@ class REPPMarkersTest(StaticTrialMaker):
             Now we will test the recording quality of your laptop. In {self.n_trials} trials, you will be
             asked to remain silent while we play and record a sound.
             <br><br>
-            <img style="width:50%" src="{assets['rules_image'].url}"  alt="rules_image">
+            <img style="width:50%" src="{assets["rules_image"].url}"  alt="rules_image">
             <br><br>
             When ready, click <b>next</b> for the recording test and please wait in silence.
             <hr>
@@ -777,7 +776,7 @@ class REPPMarkersTest(StaticTrialMaker):
 
     def get_nodes(self):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "stim_name": f"audio{i + 1}.wav",
                     "markers_onsets": [
@@ -936,7 +935,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str, language_code: str, words: list):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "word": word,
                 },
@@ -1064,7 +1063,7 @@ class LexTaleTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "label": label,
                     "correct_answer": correct_answer,
@@ -1157,7 +1156,7 @@ class AttentionTest(Module):
         <br><br>
         {prompt_1_main}"""
         self.prompt_1_text = (
-            f'{prompt_1_explanation}{prompt_1_next_page if self.pages == 2 else ""}'
+            f"{prompt_1_explanation}{prompt_1_next_page if self.pages == 2 else ''}"
         )
         self.prompt_2 = prompt_2
         self.elts = join(
@@ -1344,7 +1343,7 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1482,7 +1481,7 @@ class ColorVocabularyTest(StaticTrialMaker):
                 "choices": choices,
                 "correct_answer": correct_answer,
             }
-            stimuli.append(Node(definition=definition))
+            stimuli.append(StaticNode(definition=definition))
         return stimuli
 
 
@@ -1650,7 +1649,7 @@ class GeneralHeadphoneTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1974,7 +1973,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             stimuli = [stimuli[i] for i in specific_stimuli]
 
         return [
-            Node(
+            StaticNode(
                 definition=stimulus,
                 assets={
                     "stimulus": ExternalAsset(

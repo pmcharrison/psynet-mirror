@@ -137,8 +137,6 @@ class CustomNode(CameraImitationChainNode):
 class Exp(psynet.experiment.Experiment):
     label = "Video imitation chain demo"
 
-    initial_recruitment_size = 1
-
     timeline = Timeline(
         ModularPage(
             "record_calibrate",

@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Audio GSP: participants slide through a multi-dimensional voice-parameter space
+to make a word sound as "dominant" or "trustworthy" as possible. A practical
+template for synthesizing and sampling continuous auditory feature vectors with
+`AudioGibbsTrialMaker`.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

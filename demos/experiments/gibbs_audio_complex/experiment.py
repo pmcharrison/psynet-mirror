@@ -131,7 +131,6 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Complex audio Gibbs sampling demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         LabRecruiterStandardConsent(),

@@ -30,6 +30,11 @@ def data_dir(data_root_dir):
 
 
 @pytest.fixture
+def basic_data_dir(data_root_dir):
+    return os.path.join(data_root_dir, "regular", "basic_data")
+
+
+@pytest.fixture
 def database_zip_file(data_root_dir):
     return os.path.join(data_root_dir, "regular", "database.zip")
 
@@ -166,6 +171,24 @@ class TestExport:
             # "Transmission.csv",  # We don't expect any transmissions to be created
             "WorkerAsyncProcess.csv",
         ]
+
+    def test_basic_data_export(self, basic_data_dir):
+        assert os.path.isdir(basic_data_dir)
+        assert sorted(os.listdir(basic_data_dir)) == ["participant.csv", "trial.csv"]
+        participants = pandas.read_csv(os.path.join(basic_data_dir, "participant.csv"))
+        trials = pandas.read_csv(os.path.join(basic_data_dir, "trial.csv"))
+        assert not participants.empty
+        assert not trials.empty
+        assert {"id", "status", "bonus"}.issubset(participants.columns)
+        assert participants["id"].is_unique
+        assert (participants["id"] > 0).all()
+        assert not participants["status"].isna().any()
+        assert not participants["bonus"].isna().any()
+        assert {"id", "participant_id", "target", "answer"}.issubset(trials.columns)
+        assert not trials["target"].isna().any()
+        assert set(trials["target"]).issubset({"tree", "rock", "carrot", "banana"})
+        assert set(trials["participant_id"]).issubset(set(participants["id"]))
+        assert not trials["answer"].isna().all()
 
     # test_psynet_exports(data_dir)
 

@@ -32,14 +32,14 @@ and typing the following:
    cd # Navigates to your home directory
    git clone git@gitlab.com:PsyNetDev/psynet
 
-Open the resulting folder (``~/PsyNet``) in your IDE (we normally recommend PyCharm).
+Open the resulting folder (``~/PsyNet``) in your IDE (we recommend VSCode or Cursor).
 You can then navigate to the ``demos`` folder to see all the demos contained in PsyNet.
-In your PyCharm terminal, you can navigate to a particular demo you want to run like this:
+In your IDE's terminal, you can navigate to a particular demo you want to run like this:
 
 .. code-block:: bash
 
    # The precise path will depend on where you downloaded PsyNet.
-   cd ~/PsyNet/demos/timeline
+   cd ~/PsyNet/demos/experiments/timeline
 
 Then you can run the demo using the standard PsyNet debug command:
 

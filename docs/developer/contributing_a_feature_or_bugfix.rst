@@ -125,7 +125,7 @@ It turns out that ``TrialNetwork.source`` isn't defined yet either. Let's define
 
 We commit our changes as usual using git commit.
 
-Something to note here is that PsyNet contains pre-commit hooks that run various automated processes including *flake8* and *black*. These pre-commit hooks run every time we make a commit in Git. They are designed to check the code for certain errors and enforce standardized formatting. If a given commit fails then this is usually due to one of the pre-commit routines. Often simply restaging the files and retrying the commit will work, because the restaging will now include the standardized formatting enforced by *black*. In other cases (e.g. *flake8* errors) simple retrying will not work. In this case the next step is to run the ``git commit`` command in the terminal (instead of a Git GUI) and study the error message that comes out.
+Something to note here is that PsyNet contains pre-commit hooks that run various automated processes including `ruff <https://docs.astral.sh/ruff/>`__. These pre-commit hooks run every time we make a commit in Git. They are designed to check the code for certain errors, sort imports, and enforce standardized formatting. If a given commit fails then this is usually due to one of the pre-commit routines. Often simply restaging the files and retrying the commit will work, because the restaging will now include the standardized formatting enforced by *ruff format*. In other cases (e.g. lint errors) simple retrying will not work. In this case the next step is to run the ``git commit`` command in the terminal (instead of a Git GUI) and study the error message that comes out.
 
 Step 4: Adding documentation
 ++++++++++++++++++++++++++++
@@ -417,8 +417,8 @@ If the reviewer is satisfied with the response, they should click the 'Resolve t
 If the reviewer is not satisfied with the response, they are welcome to discuss it further with the contributor to achieve a consensus. If this proves impossible, then they are encouraged to raise the issue to a core PsyNet developer (tagging the developer in that conversation should be sufficient).
 Eventually the conversation between the contributor and the first reviewer will come to an end, usually with all conversations resolved. If there is a second reviewer listed on the reviewer list, this is the point when the merge request should be passed onto that second reviewer. This is achieved similarly to how the first reviewer was selected, but this time we begin by deselecting the first reviewer and only then selecting the second reviewer. This second reviewer will then be sent an email notification and the review process will repeat with this new reviewer.
 
-Step 11: Merging to dev
-+++++++++++++++++++++++
+Step 11: Merging
+++++++++++++++++
 
 The final reviewer has the job of signing off on the merge request. This is done by clicking the 'Approve' button in the GitLab interface (which removes the 'Draft:' prefix from the merge request's title) and then clicking 'Merge' (or 'Merge when pipeline success' in the case when the automated tests are still running).
 

@@ -1,2 +1,0 @@
-# Concatenate changes in CHANGELOG.md to avoid merge conflicts
-CHANGELOG.md merge=union

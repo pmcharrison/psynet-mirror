@@ -28,7 +28,6 @@ from psynet.timeline import (
 
 class Exp(psynet.experiment.Experiment):
     label = "Timeline demo"
-    initial_recruitment_size = 1
 
     variables = {
         "new_variable": "some-value",

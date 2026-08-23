@@ -18,3 +18,28 @@ BIOS", you need to restart your computer into BIOS and change some settings to e
 of steps will depend on your computer. The first step though is to restart your computer, and press a certain key to
 launch into BIOS -- ordinarily that key will be printed on the screen at some point during the startup sequence.
 Hint -- you might find that the option you need to select is called 'SVM mode'...
+
+Audio or microphone not available in WSL
+----------------------------------------
+
+On Windows 11 with WSLg, audio and microphone support should work out of the box.
+If you still cannot access audio devices from WSL, you can try a legacy PulseAudio bridge:
+
+1. Download ``pulseaudio-windows`` from http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip and unzip it.
+2. In ``etc/pulse/default.pa``, uncomment or add the following line:
+
+   .. code-block:: text
+
+      load-module module-native-protocol-tcp auth-anonymous=1
+
+3. In ``etc/pulse/daemon.conf``, set ``exit-idle-time = -1``.
+4. Start ``pulseaudio.exe`` from the unzipped folder on Windows.
+5. In your Ubuntu (WSL) terminal, run:
+
+   .. code-block:: bash
+
+      sudo apt install -y libasound2-plugins pulseaudio
+
+.. note::
+
+   The PulseAudio bridge enables anonymous local connections. Use it only on trusted machines.

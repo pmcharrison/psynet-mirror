@@ -112,6 +112,18 @@ By default this will translate your experiment to the locale specified in your `
     for example ``supported_locales = ["de", "nl"]``.
     Alternatively, you can specify the locales on the command line, e.g. ``psynet translate de nl``.
 
+To see all supported locales, run:
+
+.. code-block:: console
+
+    psynet locales
+
+This displays locales with their names. For a compact single-line output (useful for scripting), use:
+
+.. code-block:: console
+
+    psynet locales --codes-only
+
 Each locale's translation will be stored in a file of the form ``locales/<iso_code>/LC_MESSAGES/experiment.po``.
 
 PsyNet currently supports two translators:

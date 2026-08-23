@@ -428,6 +428,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Agar aail, to kripya kuch sabd me samasya ke varnan karen."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "ᱪᱟᱹᱵᱟ"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -549,19 +554,19 @@ msgstr "ᱯᱞᱮ"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "ᱵᱟᱨᱮᱠᱟ ᱨᱮᱭᱟᱜ ᱟᱢ ᱠᱟᱱᱟ ᱠᱟᱱ ᱟᱢ ᱠᱟᱱᱟ!"
+msgstr "ᱵᱟᱨᱮ ᱠᱷᱚᱱ ᱟᱢ ᱠᱷᱚᱱ ᱨᱮᱠᱟᱜᱼᱟ ᱟᱢ ᱠᱷᱚᱱ ᱨᱮᱠᱟᱜᱼᱟ!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "ᱵᱟᱨᱮᱠᱟ ᱨᱮᱭᱟᱜ ᱟᱢ ᱠᱟᱱᱟ!"
+msgstr "ᱵᱟᱨᱮ ᱠᱷᱚᱱ ᱨᱮᱠᱟᱜᱼᱟ!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "ᱵᱟᱨᱮᱠᱟ ᱨᱮᱭᱟᱜ ᱟᱢ ᱠᱟᱱᱟ!"
+msgstr "ᱵᱟᱨᱮ ᱠᱷᱚᱱ ᱨᱮᱠᱟᱜᱼᱟ ᱟᱢ ᱠᱷᱚᱱ ᱨᱮᱠᱟᱜᱼᱟ!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -957,11 +962,6 @@ msgstr "ᱞᱟᱦᱟ ᱪᱟᱞᱟᱣ ᱞᱟᱦᱟᱨᱮ ᱫᱟᱭᱟ ᱠᱟᱛ�
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱮᱦᱚᱵ ᱢᱮ"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱵᱚᱱᱫᱚ ᱢᱮ"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

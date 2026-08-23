@@ -4,11 +4,12 @@ import shutil
 import struct
 import tempfile
 import wave
+from functools import cache
 
 import boto3
 from dallinger.config import get_config
 
-from .utils import cache, get_logger
+from .utils import get_logger
 
 logger = get_logger()
 
@@ -69,29 +70,42 @@ def get_aws_credentials(capitalize=False):
         "aws_secret_access_key": config.get("aws_secret_access_key"),
         "region_name": config.get("aws_region"),
     }
+    cred = {key: value for key, value in cred.items() if value}
     if capitalize:
         cred = {key.upper(): value for key, value in cred.items()}
     return cred
 
 
-def new_s3_client():
+def get_s3_client():
+    from psynet.test_helpers.mock_s3 import get_configured_mock_s3_client
+
+    mock_client = get_configured_mock_s3_client()
+    if mock_client is not None:
+        return mock_client
+
     return boto3.client("s3", **get_aws_credentials())
 
 
-def new_s3_resource():
+def get_s3_resource():
+    from psynet.test_helpers.mock_s3 import get_configured_mock_s3_resource
+
+    mock_resource = get_configured_mock_s3_resource()
+    if mock_resource is not None:
+        return mock_resource
+
     return boto3.resource("s3", **get_aws_credentials())
 
 
 def get_s3_bucket(bucket_name: str):
     # pylint: disable=no-member
-    resource = new_s3_resource()
+    resource = get_s3_resource()
     return resource.Bucket(bucket_name)
 
 
 def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
     logger.info("Setting bucket CORSRules and policies...")
 
-    s3_resource = new_s3_resource()
+    s3_resource = get_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
 
     cors = bucket.Cors()
@@ -135,7 +149,7 @@ def make_bucket_public(bucket_name):
         bucket_name,
     )
 
-    s3_resource = new_s3_resource()
+    s3_resource = get_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
     bucket.Acl().put(ACL="public-read")
 

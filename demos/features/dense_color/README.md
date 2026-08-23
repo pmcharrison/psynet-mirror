@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+`DenseTrialMaker` samples continuously along one or more `Dimension`s (here hue,
+saturation, and lightness) rather than from a fixed stimulus list. Participants
+rate how well each sampled color matches adjectives like "angry" or "happy",
+illustrating adaptive coverage of a continuous stimulus space.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

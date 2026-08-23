@@ -1,9 +1,10 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+A static-trial audio imitation task: hear a spoken word, record a repetition,
+then listen back. Good template for recording + playback around a fixed set of
+synthesized prosody stimuli.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

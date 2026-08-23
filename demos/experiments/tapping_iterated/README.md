@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Iterated tapping adapted from Jacoby & McDermott (2017): participants tap along
+with a rhythm, and the recorded pattern seeds the next generation in an audio
+imitation chain. Use when you want cultural-transmission dynamics over rhythmic
+patterns rather than a fixed stimulus set.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

@@ -1,9 +1,10 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Memory variant of iterated tapping (also after Jacoby & McDermott, 2017): listen
+to a rhythm, then reproduce it from memory by tapping after the prompt ends.
+Differs from `tapping_iterated` by separating listening and production in time.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

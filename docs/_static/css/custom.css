@@ -17,3 +17,25 @@ h3 {
 h4 {
   font-size: 1.1rem;
 }
+
+/* Keep top-nav dropdowns usable on short viewports. */
+.navbar .dropdown-menu {
+  max-height: calc(100vh - 5rem);
+  overflow-y: auto;
+}
+
+/* Keep short nav section labels (e.g., "Getting started") on one line. */
+.navbar .dropdown-item,
+.bd-sidenav .nav-link,
+.toctree-wrapper p.caption {
+  white-space: nowrap;
+}
+
+/* Keep the inline title logo visually transparent in all themes. */
+h1 img[alt="PsyNet logo"] {
+  background: transparent !important;
+  box-shadow: none !important;
+  vertical-align: middle;
+  margin: 0;
+}
+

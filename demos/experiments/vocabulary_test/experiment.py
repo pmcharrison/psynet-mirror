@@ -19,7 +19,6 @@ _ = get_translator()
 
 class Exp(psynet.experiment.Experiment):
     label = "Vocabulary test demo"
-    initial_recruitment_size = 1
     test_n_bots = 2
 
     timeline = Timeline(

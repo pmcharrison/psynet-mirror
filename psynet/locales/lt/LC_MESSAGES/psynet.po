@@ -430,6 +430,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Jei taip, prašome pateikti keletą žodžių, apibūdinančių problemą."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Baigti"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -858,7 +863,7 @@ msgstr "Žemiau pateikta informacija apie jūsų šiuo metu sukauptą atlygį."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Užduoties ID"
+msgstr "Priskyrimo ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -908,7 +913,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Žemiau pateikta informacija apie jūsų kompensaciją."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Nutraukti eksperimentą"
@@ -932,7 +938,7 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Prašome spustelėti „Priimti HIT“ mygtuką Amazon svetainėje aukščiau, kad "
+"Prašome spustelėti mygtuką \"Priimti HIT\" Amazon svetainėje aukščiau, kad "
 "pradėtumėte užduotį."
 
 #: psynet/templates/ad.html
@@ -967,18 +973,13 @@ msgstr "Įspėjimas"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Prašome išjungti iššokančių langų blokatorius prieš tęsdami."
+msgstr "Prašome išjungti iššokančių langų blokatorius prieš tęsiant."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Pradėti eksperimentą"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Nutraukti eksperimentą"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

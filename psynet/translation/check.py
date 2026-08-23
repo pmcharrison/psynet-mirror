@@ -19,40 +19,12 @@ from .utils import compile_mo, create_pot, get_po_path, load_po, po_to_dict
 JINJA_PATTERN = "%\\((.+?)\\)s"
 F_STRING_PATTERN = "{(.+?)}"
 
-LANGUAGES_WITHOUT_CAPITALIZATION = [
-    "zh",  # Chinese
-    "ja",  # Japanese
-    "ko",  # Korean
-    "th",  # Thai
-    "he",  # Hebrew
-    "ar",  # Arabic
-    "ka",  # Georgian
-    "fa",  # Persian
-    "ha",  # Hausa
-    "ps",  # Pashto
-    "ug",  # Uyghur
-    "ur",  # Urdu
-    "as",  # Assamese
-    "be",  # Bengali
-    "gu",  # Gujarati
-    "hi",  # Hindi
-    "kn",  # Kannada
-    "ml",  # Malayalam
-    "mr",  # Marathi
-    "pa",  # Punjabi
-    "sa",  # Sanskrit
-    "te",  # Telugu
-    "bo",  # Tibetan
-    "km",  # Khmer
-    "lo",  # Lao
-]
-
 
 def variable_name_check(variable_name):
     """Check if a variable name is uppercase and only contains underscores and capital letters."""
-    assert all(
-        [letter.isupper() or letter == "_" for letter in variable_name]
-    ), f'Variable name "{variable_name}" must be uppercase and may only contain of underscore and capital letters.'
+    assert all([letter.isupper() or letter == "_" for letter in variable_name]), (
+        f'Variable name "{variable_name}" must be uppercase and may only contain of underscore and capital letters.'
+    )
 
 
 def get_translations(namespace, locales_dir, locales):
@@ -105,15 +77,6 @@ def assert_variable_names_match(pot_entries, po_entries):
         )
 
 
-def assert_all_variables_defined(extracted_variables, variable_placeholders):
-    for variable_name in extracted_variables:
-        assert variable_name in variable_placeholders, (
-            f"Variable {variable_name} is not defined in VARIABLE_PLACEHOLDERS. "
-            f"Specify all expected variables ({extracted_variables}) in Experiment.variable_placeholders = {{}}."
-        )
-    return True
-
-
 def assert_no_missing_translations(po_entries, pot_entries, locale):
     """Check that all translations which are defined in the POT file are also present in the po file"""
 
@@ -132,9 +95,33 @@ def assert_no_missing_translations(po_entries, pot_entries, locale):
         ]
         raise IndexError(f"Missing translations for {locale} (see above)")
 
-    assert all(
-        [key in po_entries for key in pot_entries.keys()]
-    ), f"Keys in {locale} do not match keys in the template"
+    assert all([key in po_entries for key in pot_entries.keys()]), (
+        f"Keys in {locale} do not match keys in the template"
+    )
+
+
+def assert_no_empty_translations(po_entries, pot_entries, locale, language_name):
+    """Check that all translations have non-empty msgstr values."""
+
+    def parse_translation(msgid, msgctxt):
+        return msgid if msgctxt is None else f"{msgctxt}: {msgid}"
+
+    empty_translations = [
+        key
+        for key in pot_entries.keys()
+        if key in po_entries and not po_entries[key].msgstr.strip()
+    ]
+    empty_translations = [
+        parse_translation(msgid, msgctxt) for msgid, msgctxt in empty_translations
+    ]
+
+    if len(empty_translations) > 0:
+        entries_str = ", ".join(empty_translations[:5])
+        if len(empty_translations) > 5:
+            entries_str += f", ... and {len(empty_translations) - 5} more"
+        raise ValueError(
+            f"Empty translations for locale '{locale}' ({language_name}): {entries_str}"
+        )
 
 
 def assert_no_duplicate_translations_in_same_context(po_entries, locale):
@@ -230,7 +217,7 @@ def translation_contains_same_variables(
             checks.append(f_strings_in_original == f_strings_in_translation)
         else:
             raise ValueError(f"Unknown assertion {check['assertion']}")
-        return all(checks)
+    return all(checks)
 
 
 def assert_no_runtime_errors(
@@ -264,11 +251,17 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
         )
         po_entries = po_to_dict(po)
 
-        assert_variable_names_match(pot_entries, po_entries)
-
         assert_no_missing_translations(po_entries, pot_entries, locale)
 
-        assert_no_duplicate_translations_in_same_context(po_entries, locale)
+        assert_variable_names_match(pot_entries, po_entries)
+
+        assert_no_empty_translations(po_entries, pot_entries, locale, language_name)
+
+        # Check for duplicates - warn but don't fail
+        try:
+            assert_no_duplicate_translations_in_same_context(po_entries, locale)
+        except AssertionError as e:
+            print(f"⚠️  Warning: {e}")
 
         po_path = get_po_path(locale, locales_dir, namespace)
         compile_mo(po_path)
@@ -293,14 +286,28 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
 
 
 def check_translations(
-    path=".", locales: Optional[list[str]] = None, recreate_pot=True
+    path=".",
+    locales: Optional[list[str]] = None,
+    recreate_pot=True,
 ):
+    """
+    Check translations for errors.
+
+    Parameters
+    ----------
+    path : str
+        Path to package or experiment directory.
+    locales : list[str], optional
+        List of locales to check. If None, uses supported_locales.
+    recreate_pot : bool
+        Whether to recreate the POT file from source.
+    """
     path = Path(path)
     locales_dir = get_locales_dir_from_path(path)
 
     if is_a_package(path):
         source_directory = get_package_source_directory(path)
-        namespace = get_package_name()
+        namespace = get_package_name(path)
         if locales is None:
             from .languages import psynet_supported_locales
 

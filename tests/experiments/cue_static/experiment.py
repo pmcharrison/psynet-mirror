@@ -1,15 +1,9 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
-
 import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import Timeline, for_loop
 from psynet.trial.static import StaticTrial
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
-
 
 # This test is here to catch a historic bug where, if Trial.cue was called outside a PageMaker,
 # the experiment would fail with a sqlalchemy.orm.exc.DetachedInstanceError.

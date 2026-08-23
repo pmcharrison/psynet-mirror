@@ -7,148 +7,68 @@ Making a release
 
 PsyNet releases are made periodically by the core developers. There is no real rule about how often these releases are made; it comes down to a balance between making new features available early and avoiding spamming PsyNet users with too many updates to keep track of.
 
-1. Decide on a version number for the new release following `semantic versioning guidelines <https://semver.org/>`_. The upgrade type can be one of the following:
+The step-by-step release process is maintained as a Cursor skill at
+``.cursor/skills/release/SKILL.md``. It currently covers patch and minor releases,
+and can be invoked in Cursor via the ``/release`` slash command (skills are
+auto-discovered and exposed as slash commands under their skill name).
+Pass the release type as an argument to select the corresponding path in
+the skill, e.g. ``/release minor`` or ``/release patch``.
+The Slack announcement step is documented in a separate Cursor skill at
+``.cursor/skills/announce-release/SKILL.md`` (``/announce-release``).
 
-    X. **Major** (new version includes breaking changes)
+The release skill is written to be followed by a human working with
+an AI agent, but it works equally well as a plain checklist read directly.
 
-    Y. **Minor** (new version includes only new features and/or bugfixes)
+Overview
+--------
 
-    Z. **Patch** (new version includes only bugfixes)
+1. Decide on a version number following `semantic versioning guidelines
+   <https://semver.org/>`_:
 
-2. Create a release branch from the ``master`` branch on your local machine:
+   * **Major** (breaking changes)
+   * **Minor** (backwards-compatible features and/or bugfixes) — released
+     from ``master`` via a new ``release-MAJOR.MINOR`` branch.
+   * **Patch** (bugfixes only) — released from the existing
+     ``release-MAJOR.MINOR`` branch.
 
-.. code-block:: console
+2. Prepare the release commits on the release branch:
 
-    git checkout -b release-X.Y
+   * Fold the changelog fragments into a release section with
+     ``psynet dev changelog release X.Y.Z YYYY-MM-DD``.
+   * Bump the version in ``psynet/version.py`` and ``pyproject.toml``.
 
-.. note::
-    Before making a final release, you should consider first publishing a release candidate and  request PsyNet users to test the release candidate, e.g. by making deployments and exporting data. 
+3. Publish: tag ``vX.Y.Z`` on the release branch, wait for CI, build and
+   upload to PyPI, create the GitLab release, and announce on Slack with
+   ``psynet dev release announce X.Y.Z --summary-file highlights.md``
+   (preview first with ``--dry-run``). The summary file contains the
+   release manager's experimenter-facing highlights in Slack mrkdwn; see the
+   release skill for writing guidance. Posting to Slack requires
+   ``SLACK_BOT_TOKEN`` in the process environment;
+   see ``.cursor/skills/announce-release/SKILL.md`` for setup, token-loading,
+   and test-channel instructions. For a one-off test-channel preview, either
+   pass the token inline:
+   ``SLACK_BOT_TOKEN=<slack-bot-token> psynet dev release announce X.Y.Z --summary-file highlights.md --channel psynet-release-test --dry-run``.
+   Or export it first:
+   ``export SLACK_BOT_TOKEN=<slack-bot-token>`` followed by
+   ``psynet dev release announce X.Y.Z --summary-file highlights.md --channel psynet-release-test --dry-run``.
 
-Release candidate versions use the suffix `rc0`, `rc1`, etc.
-To bump the PsyNet version from a development alpha version with the `a0` suffix use the command
+4. For minor releases, merge the release branch back into ``master`` (merge
+   commit, no squash) and bump ``master`` to the next alpha version.
 
-.. code-block:: console
+Externally visible or irreversible steps (pushing tags, PyPI uploads, GitLab
+releases, Slack posts) require explicit approval from the human release
+manager; the skill marks each of these with a **Human checkpoint** callout.
 
-    bump-my-version bump pre_l
-
-To update the release candidate version (e.g., from `rc0` to `rc1`) use the command
-
-.. code-block:: console
-
-    bump-my-version bump pre_n
-
-
-After all changes to be released have been merged into the ``master`` branch follow these steps:
-
-
-3. Update the CHANGELOG:
-
-    #. Using the GitLab interface identify the merge requests that contributed to the current ``master`` branch since the last release. The last release can easily be identified by its release tag, e.g. ``v10.1.0``. Check that each merged merge request contains a populated CHANGELOG entry in its description. If any CHANGELOG entries are missing, notify the relevant contributors.
-
-    #. Combine the new CHANGELOG entries into PsyNet’s CHANGELOG.md file, updating any formatting as necessary. Use the following section order:
-
-        1. **Breaking changes** — Highest impact, users must see first
-        2. **Security** — Critical fixes (if applicable)
-        3. **Added** — New features
-        4. **Changed** — Modifications to existing functionality
-        5. **Deprecated** — Features marked for future removal
-        6. **Removed** — Features that have been removed
-        7. **Fixed** — Bug fixes
-        8. **Updated** — Dependency updates (PsyNet-specific)
-        9. **Documentation** — Docs-only changes (lowest impact)
-
-    #. Go through all the merge requests and close their associated issues with a comment linking them to the merge request: ‘Implemented in !ABC’ where ‘ABC’ is the merge request ID.
-
-    #. Write the new version number as the title of the new CHANGELOG entry.
-
-    #. Commit the changes with
-
-    .. code-block:: console
-
-        git commit -m "Update CHANGELOG for version X.Y.Z"
-
-4. Update PsyNet’s version number in following files:
-
-    * `pyproject.toml`
-    * `psynet/version.py`
-
-    .. attention::
-
-        In case you are upgrading Dallinger in this release via `pyproject.toml`, make sure to also update the Dallinger version in both `psynet/version.py` and `PsyNet/Dockerfile` accordingly.
-
-Commit the changes with
-
-.. code-block:: console
-
-  git commit -m "Bump version to X.Y.Z"
-
-5. Update the demos' `constraints.txt` files by executing
-
-.. code-block:: console
-
-    python3 demos/update_demos.py
-
-from inside PsyNet's root directory. This could take a while depending on the processing power of your system.
+Minor releases go through a release-candidate flow (``X.Y.Zrc1``,
+``rc2``, …) by default before the final tag: RCs are tagged, uploaded to
+PyPI as pre-releases, and announced on Slack, but get no GitLab release
+entry (GitLab has no pre-release flag, so an RC entry would displace the
+"latest release" permalink). Skip the RC stage only when the release
+manager explicitly decides to release directly.
 
 .. attention::
 
-    Before running the update script make sure to have checked out the version tag of Dallinger's latest release inside your Dallinger directory as otherwise the generated constraints.txt files will be incorrect!
-
-Commit the changes with
-
-.. code-block:: console
-
-    git commit -m "Update demo and test experiments for version X.Y.Z"
-
-6. Push the changes to the release branch.
-7. Create a merge request using GitLab's interface to merge the release branch into ``master`` and name it 'Release version X.Y.Z'. You might want to inspect for a last time the code changes for the release using the 'Changes' tab of the merge request.
-8. Merge the release branch to ``master`` via the GitLab interface by choosing a simple merge commit (do not squash merge!).
-9. On your local computer checkout the ``master`` branch and pull the changes:
-
-.. code-block:: console
-
-    git checkout master
-    git pull
-
-10. Create a new tag corresponding to the new version number:
-
-.. code-block:: console
-
-    git tag vX.Y.Z
-
-11. Push the tag with
-
-.. code-block:: console
-
-    git push --tags
-
-12. Create a new PsyNet release using GitLab's interface under *Deploy > Releases*.
-13. Publish the new release on PyPi
-
-.. note::
-
-    Install/Upgrade the `twine` and `pkginfo` packages with
-
-.. code-block:: console
-
-    ``python -m pip install --upgrade twine pkginfo``
-
-.. code-block:: console
-
-    python3 -m build
-    python3 -m twine upload --repository pypi dist/psynet-X.Y.Z*
-
-The new PsyNet release should now be published on PyPi at https://pypi.org/project/psynet/.
-
-14. Next, still inside the master branch, bump PsyNet to a new minor alpha version with the `a0` suffix:
-
-.. code-block:: console
-
-    bump-my-version bump minor
-
-15. Commit and push the changes with
-
-.. code-block:: console
-
-    git commit -m "Bump to alpha version X.Y.Z-a0"
-    git push
+    If the release upgrades the Dallinger dependency, also update
+    ``recommended_dallinger_major_minor`` in ``psynet/version.py`` and refresh
+    the vendored Dallinger CI constraints snapshot with
+    ``psynet dev ci update-dallinger-constraints``.

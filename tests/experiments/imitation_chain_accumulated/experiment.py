@@ -107,7 +107,6 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 
 class Exp(psynet.experiment.Experiment):
     label = "Imitation chain (accumulated) demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         InfoPage(

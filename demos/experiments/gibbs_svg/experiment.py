@@ -85,7 +85,6 @@ trial_maker = HtmlGibbsTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "SVG Gibbs sampling demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         trial_maker,

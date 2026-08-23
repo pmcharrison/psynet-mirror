@@ -57,7 +57,6 @@ class CustomTrial(SingleStimulusTrial):
 
 class Exp(psynet.experiment.Experiment):
     label = "Dense color demo"
-    initial_recruitment_size = 1
     trials_per_participant = 6
 
     timeline = Timeline(

@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+A richer audio GSP setup that manipulates several prosodic dimensions (duration,
+tremolo, pitch shift/range/jitter, and so on) over emotion targets such as sad,
+happy, and angry. Extend this when a single simple vector is not enough for your
+synthesis model.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

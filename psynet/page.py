@@ -12,6 +12,7 @@ from .asset import CachedAsset, ExternalAsset
 from .modular_page import AudioPrompt, ModularPage
 from .timeline import (
     CodeBlock,
+    Elt,
     Event,
     Module,
     Page,
@@ -73,7 +74,7 @@ class UnityPage(Page):
     """
     This is the main page when conducting Unity experiments. Its attributes ``contents`` and ``attributes`` can be accessed through the JavaScript variable ``psynet.page`` inside the page template.
 
-    Ín order to conclude this page call the ``psynet.nextPage`` function which has following parameters:
+    In order to conclude this page call the ``psynet.nextPage`` function which has following parameters:
 
     * ``rawAnswer``: The main answer that the page returns.
 
@@ -149,6 +150,7 @@ class UnityPage(Page):
             contents=self.contents,
             time_estimate=time_estimate,
             template_str=get_template(template),
+            framework_owned_template=True,
             template_arg={
                 "title": self.title,
                 "resources": "" if self.resources is None else self.resources,
@@ -200,6 +202,7 @@ class WaitPage(Page):
             label="wait",
             time_estimate=wait_time,
             template_str=get_template("wait-page.html"),
+            framework_owned_template=True,
             template_arg={"content": self.content, "wait_time": self.wait_time},
             **kwargs,
         )
@@ -295,32 +298,48 @@ def wait_while(
     )
 
 
-# At some point we might make deprecation warnings for these classes
-class SuccessfulEndPage(PageMaker):
-    def __init__(self):
-        super().__init__(
-            lambda experiment: experiment.SuccessfulEndLogic(), time_estimate=0.0
-        )
+class EndPageRedirect(Elt):
+    """Base class for end pages that redirect to a named timeline branch.
 
+    Parameters
+    ----------
+    failure_tags
+        Optional failure tags to append before redirecting.
+    """
 
-class UnsuccessfulEndPage(PageMaker):
+    time_estimate = 0.0
+    branch_name = None
+
     def __init__(self, failure_tags: Optional[List] = None, **kwargs):
-        super().__init__(
-            lambda experiment: experiment.UnsuccessfulEndLogic(
-                failure_tags=failure_tags, **kwargs
-            ),
-            time_estimate=0.0,
+        super().__init__()
+        if failure_tags is None:
+            failure_tags = []
+        self.failure_tags = failure_tags
+
+    def consume(self, experiment, participant):
+        if self.failure_tags:
+            participant.append_failure_tags(*self.failure_tags)
+        experiment.timeline.redirect_to_branch(
+            experiment, participant, self.branch_name
         )
 
 
-class RejectedConsentPage(PageMaker):
-    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
-        super().__init__(
-            lambda experiment: experiment.RejectedConsentLogic(
-                failure_tags=failure_tags, **kwargs
-            ),
-            time_estimate=0.0,
-        )
+class SuccessfulEndPage(EndPageRedirect):
+    """Redirects the participant to the successful end branch."""
+
+    branch_name = "successful_end"
+
+
+class UnsuccessfulEndPage(EndPageRedirect):
+    """Redirects the participant to the unsuccessful end branch."""
+
+    branch_name = "unsuccessful_end"
+
+
+class RejectedConsentPage(EndPageRedirect):
+    """Redirects the participant to the rejected consent branch."""
+
+    branch_name = "rejected_consent"
 
 
 class DebugResponsePage(PageMaker):
@@ -387,6 +406,9 @@ class VolumeCalibration(Module):
                 id_,
                 AudioPrompt(assets["volume_calibration_audio"], self.text(), loop=True),
                 events={
+                    # TODO: This is page-level gating expressed as a trial event.
+                    # Prefer a page-scoped timer API once the frontend lifecycle
+                    # distinguishes page timers from prompt/trial-cycle timers.
                     "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
                 },
             ),
@@ -458,11 +480,15 @@ class JsPsychPage(Page):
             js_vars=js_vars,
             js_links=js_links,
             css_links=css_links,
+            framework_owned_template=True,
             **kwargs,
         )
 
 
 class ExecuteFrontEndJS(InfoPage):
+    # Skip beforeunload detection since this page is expected to navigate away
+    skip_beforeunload = True
+
     def __init__(self, js: str, message: str = ""):
         super().__init__(
             content=message,

@@ -37,7 +37,13 @@ Global variables should be set via the `.dallingerconfig` file in your home dire
 Experiment-specific variables
 +++++++++++++++++++++++++++++
 
-Experiment-specific variables can be set in two ways – firstly via a `config.txt` file in the experiment's root directory which follows the same syntactic rules as the one for global variables above. For example:
+Every experiment directory must include a ``config.txt`` file. The file may be
+empty. PsyNet still requires it to be present before local debug/test and
+deployment.
+
+Experiment-specific variables can be set in two ways – firstly via that
+``config.txt`` file, which follows the same syntactic rules as the one for
+global variables above. For example:
 
 .. code-block:: text
 
@@ -56,9 +62,29 @@ Secondly, they can also be set by creating a config dictionary in the ``Experime
             "show_abort_button": True,
         }
 
+Do not set the same key in both places. If a variable appears in both
+``config.txt`` and ``Experiment.config``, PsyNet raises an error and asks you
+to keep just one location.
+
 .. note::
 
     When setting variables via `config.txt` or `.dallingerconfig` boolean values can be assigned be either using ``true``, ``True``, ``false``, or ``False``.
+
+.. note::
+
+    **Upgrading an older experiment.** Older PsyNet versions sometimes ran
+    without a real ``config.txt`` (for example when all settings lived in
+    ``Experiment.config``). If you upgrade such an experiment and PsyNet
+    complains that ``config.txt`` is missing, create an empty file in the
+    experiment directory::
+
+        touch config.txt
+
+    Prefer that over ``psynet scripts scaffold`` / ``psynet setup`` if you
+    already manage settings in Python: scaffolding writes a demo template with
+    active keys (title, recruiter, and so on), which will conflict with any
+    overlapping keys in ``Experiment.config``. An existing ``config.txt`` —
+    including an empty one — is never overwritten by scaffold or update.
 
 
 Available config variables
@@ -471,29 +497,29 @@ Prolific
 Partial payment
 ...............
 
-The following two variables concern the situation in Prolific experiments where participants do not
-accumulate enough reward to cover the base payment (e.g. because they fail a pre-screening test).
+The following variable concerns the situation in Prolific experiments where participants cannot
+proceed to a successful completion, for example because they fail a pre-screening test. This setting
+does not apply to participants who reach a successful end page; successful participants are approved
+and receive the base payment even if their accumulated reward is lower than the base payment.
 
-In this situation, PsyNet will first check if ``prolific_enable_screen_out`` is ``True``.
-If so, PsyNet will start trying to pay the participant via the 'screen out' API route in Prolific.
-This route marks the participant as 'screened out' and pays them the specified amount. At the
-time of writing (summer 2025) Prolific has unfortunately discontinued this route for new accounts,
-so by default this parameter is set to ``False``.
-
-If screening out is not possible, PsyNet will check if ``prolific_enable_return_for_bonus`` is ``True``
-(default). If so, the participant will be asked to return the submission in order to receive their payment.
+PsyNet will check if ``prolific_enable_return_for_bonus`` is ``True`` (default). If so, the
+participant will be asked to return the submission in order to receive their payment.
 PsyNet will wait for the submission return to be registered and only then make the payment.
 Note: The experiment server has to be online still for the payment to be made.
 If ``prolific_enable_return_for_bonus`` is ``False``, then PsyNet will instead ask the participant
 to return the submission and contact the experimenter for their bonus.
 
-``prolific_enable_screen_out`` *bool* |psynet-icon|
-    If ``True``, participants who fail prescreening will be marked as 'screened out' in Prolific (if supported by your workflow). Default: ``False``.
-
 ``prolific_enable_return_for_bonus`` *bool* |psynet-icon|
     If ``True``, participants are eligible for a bonus and are asked to return their submission for bonus payment.
     If ``False``, they are asked to return the submission and message the experimenter for their payment.
     Default: ``True``.
+
+.. note::
+
+    PsyNet used to provide a ``prolific_enable_screen_out`` parameter for Prolific's former
+    screen-out API route. Prolific no longer supports this route, so the parameter should no
+    longer be used. If it is set to ``True``, PsyNet will raise an error explaining that the
+    option is unsupported.
 
 .. note::
 

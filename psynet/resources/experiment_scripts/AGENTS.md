@@ -7,21 +7,50 @@ and with the development of individual PsyNet experiments.
 If the root contains a file called `experiment.py`, assume that we are working on an experiment.
 Otherwise assume we are working on the PsyNet source code.
 
+## Initial setup
+
+- Install Python 3.13 (use same version specified in `Dockerfile`)
+- Install uv (`pip3 install uv`)
+
 ## Before running commands
 
-The project uses a Python virtual environment located at `.venv/`. Activate it before running any commands:
+### System dependencies
 
-```bash
-source .venv/bin/activate
-```
+Cloud agents will need to install the following dependencies.
+Local agents should check for their availability and install if necessary.
 
-If this virtual environment does not exist, ask the user if they want to either
-(a) create one at .venv or (b) specify the path to another existing .venv to use.
+- **Python 3.13.x**: Install a 3.13 release and verify `python3 --version`.
+  Check the repository Dockerfile for the exact patch version we target
+  (e.g., `psynet/resources/experiment_scripts/Dockerfile` or the root `Dockerfile`).
+- **uv**: Install via `pip`.
+- **PostgreSQL**: Install the server and client, ensure the service is running,
+  and create the `dallinger` user/database if they do not exist. When prompted by
+  `createuser -P`, set the password to `dallinger` (per the installation docs).
+  Verify with `psql -h localhost -U dallinger -d dallinger`.
+- **Redis**: Install the Redis server, ensure it is running, and verify with
+  `redis-cli ping` (expect `PONG`).
+- **Heroku CLI**: Install the CLI so `heroku` commands are available and verify
+  with `heroku --version`.
+- **Chromedriver**: Leave uninstalled by default; only install it if you need
+  browser automation.
+
+### Python dependencies
+
+By default, assume a Python virtual environment located at `.venv/`.
+Activate it before running Python commands.
+Cloud agents should create this environment automatically via `uv`.
+Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 
-- (For PsyNet): `uv pip install -e '.[dev,slack]'`
-- (For experiments): `uv pip install -r constraints.txt`
+- (For PsyNet source checkout): `uv pip install -e '.[dev,demos,slack]'`
+- (For standalone experiments): `uv pip install psynet` (bootstrap only), followed by
+  `psynet setup` to scaffold and install `psynet[experiment]` via the generated
+  `constraints.txt`.
+
+If dependency installation fails with `pg_config executable not found`, install
+PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
+`postgresql-devel` on Fedora, `brew install postgresql` on macOS) and retry.
 
 Cursor: disable sandboxing when running PsyNet commands by setting `required_permissions: ["all"]`.
 
@@ -31,6 +60,35 @@ Demos are contained in `demos/experiments` and `demos/features`.
 If a user asks for the X demo, list all child directories in `demos/experiments` and `demos/features` to see which they mean.
 
 ## Running experiments locally
+
+If you copied a demo into a brand new directory, initialize a Git repository first:
+
+```bash
+git init
+```
+
+The PsyNet demo directories include just the authored experiment files.
+Their unpinned `requirements.txt` files and omitted constraints are intentional.
+Within the PsyNet source checkout, PsyNet automatically generates ignored
+boilerplate when a bundled demo is run or tested:
+
+```bash
+psynet debug local
+```
+
+Pytest scaffolds demos temporarily via the `in_experiment_directory` fixture.
+On teardown it removes only paths that were absent when the fixture started,
+so pre-existing scaffold leftovers and customized files remain untouched.
+
+For a copied standalone demo, initialize Git and create its complete environment:
+
+```bash
+git init
+uv venv --python 3.13
+source .venv/bin/activate
+uv pip install psynet      # bootstrap only (no experiment runtime yet)
+psynet setup               # scaffolds files and installs psynet[experiment]
+```
 
 To run an experiment in debug mode:
 
@@ -45,8 +103,6 @@ For example, to run the timeline demo:
 cd demos/experiments/timeline
 psynet debug local
 ```
-
-to see which they mean.
 
 Wait for 8 seconds for the server to start.
 

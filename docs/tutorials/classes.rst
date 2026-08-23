@@ -65,7 +65,7 @@ If some of these concepts are new to you, we recommend doing a few relevant onli
 PsyNet classes in experiment.py
 -------------------------------
 
-If you open a given PsyNet experiment (e.g. ``demos/mcmcp/experiment.py``) you will typically see a variety of
+If you open a given PsyNet experiment (e.g. ``demos/experiments/mcmcp/experiment.py``) you will typically see a variety of
 PsyNet classes. These will be imported from particular PsyNet modules, for example:
 
 .. code-block:: python
@@ -426,13 +426,7 @@ participant variables in this way (which sets variables that are 'global' to the
 
     participant.var.custom_variable = 3
 
-and instead sets participant variables this way:
-
-.. code-block:: python
-
-    participant.locals.custom_variable = 3
-
-or equivalently:
+and instead sets participant variables on the current module state:
 
 .. code-block:: python
 

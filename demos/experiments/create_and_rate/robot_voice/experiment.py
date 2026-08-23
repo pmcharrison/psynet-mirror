@@ -235,7 +235,6 @@ def make_trial_maker(rate_mode):
 
 class Exp(psynet.experiment.Experiment):
     label = "Robot Voice demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         make_trial_maker(RATE_MODE),

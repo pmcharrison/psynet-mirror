@@ -429,6 +429,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Если да, пожалуйста, опишите проблему в нескольких словах."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Завершить"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -547,7 +552,7 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "Воспроизвести"
+msgstr "Play"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -565,7 +570,7 @@ msgstr "Вам нужно выбрать ответ!"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Вам нужно указать число!"
+msgstr "Вам нужно ввести число!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -916,7 +921,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "См. информацию ниже для получения деталей вашей компенсации."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Прервать эксперимент"
@@ -925,7 +931,7 @@ msgstr "Прервать эксперимент"
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Призыв к участникам"
+msgstr "Призыв к участию"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -983,11 +989,6 @@ msgstr ""
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Начать эксперимент"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Прервать эксперимент"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

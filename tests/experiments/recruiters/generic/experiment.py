@@ -10,7 +10,6 @@ from psynet.timeline import Timeline
 
 class Exp(psynet.experiment.Experiment):
     label = "Generic recruiter demo"
-    initial_recruitment_size = 5
 
     timeline = Timeline(
         InfoPage("Welcome to the experiment!", time_estimate=5),

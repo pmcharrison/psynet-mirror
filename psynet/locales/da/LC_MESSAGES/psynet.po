@@ -429,6 +429,11 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Hvis ja, angiv venligst et par ord, der beskriver problemet."
 
 #: psynet/end.py
+#, fuzzy
+msgid "Finish"
+msgstr "Afslut"
+
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
@@ -859,7 +864,7 @@ msgstr "Se nedenstående information om din aktuelt akkumulerede belønning."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Tildelings-ID"
+msgstr "Tildelings ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -908,7 +913,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Se oplysningerne nedenfor for detaljer om din kompensation."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Afbryd eksperiment"
@@ -932,14 +938,14 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Klik venligst på \"Accepter HIT\"-knappen på Amazon-siden ovenfor for at "
+"Klik venligst på \"Acceptér HIT\"-knappen på Amazon-siden ovenfor for at "
 "begynde opgaven."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "Tak for at acceptere denne HIT."
+msgstr "Tak fordi du accepterede denne HIT."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -974,11 +980,6 @@ msgstr "Deaktiver venligst pop-up-blokkere, før du fortsætter."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Begynd eksperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Afbryd eksperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3092,7 +3093,7 @@ msgid ""
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
 "Du kan muligvis afbryde eksperimentet ved at bruge <strong>Afbryd "
-"eksperiment</strong>-knappen <strong>på MTurk-annoncesiden</strong>."
+"eksperiment</strong> knappen <strong>på MTurk annonce siden</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3112,7 +3113,7 @@ msgid ""
 "following information:"
 msgstr ""
 "Hvis dette ikke er tilfældet, bedes du kontakte os på %(EMAIL)s med følgende"
-" oplysninger:"
+" information:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3122,7 +3123,7 @@ msgstr "Fejltype"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Arbejder-ID"
+msgstr "Arbejder ID"
 
 #: psynet/templates/start.html
 #, fuzzy

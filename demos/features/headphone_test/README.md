@@ -1,9 +1,11 @@
 # README
 
-This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+Headphone screeners verify that participants can hear phase/dichotic cues that
+fail on speakers. After volume calibration, this demo runs both
+`HugginsHeadphoneTest` and `AntiphaseHeadphoneTest`; failing the first stops a
+"bad" bot before the second.
 
-For installation instructions, see docs/INSTALL.md.
+## Usage
 
-For a list of run commands, see docs/RUN.md.
-
-For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
+For instructions on how to run PsyNet experiments like this one, visit the
+[PsyNet documentation](https://psynetdev.gitlab.io/PsyNet/).

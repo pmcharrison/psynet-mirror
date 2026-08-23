@@ -8,7 +8,7 @@ import urllib.parse
 import urllib.request
 import uuid
 import warnings
-from functools import cached_property
+from functools import cache, cached_property
 from os import environ, makedirs, remove, symlink, unlink, walk
 from pathlib import Path
 from typing import Callable, Optional, Union
@@ -18,7 +18,8 @@ import paramiko
 import requests
 from dallinger import db
 from dallinger.utils import classproperty
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, inspect
+from sqlalchemy.exc import NoInspectionAvailable
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import deferred, relationship
@@ -29,11 +30,15 @@ from psynet.timeline import NullElt
 from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject  # , register_extra_var
-from .media import get_aws_credentials
+from .media import (
+    get_aws_credentials,
+    get_s3_bucket,
+    get_s3_client,
+    get_s3_resource,
+)
 from .process import LocalAsyncProcess
 from .serialize import prepare_function_for_serialization
 from .utils import (
-    cache,
     get_args,
     get_extension,
     get_file_size_mb,
@@ -134,9 +139,6 @@ class InheritedAssets(AssetCollection):
         raise NotImplementedError(
             "This code needs revisiting, the implementation has not been updated yet"
         )
-        super().__init__(key, local_key=None, description=None)
-
-        self.path = path
 
     def prepare_for_deployment(self, registry):
         self.ingest_specification_to_db()
@@ -380,6 +382,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def trial(self):
         from .trial.main import Trial
 
+        self._raise_if_detached()
         if isinstance(self.parent, Trial):
             return self.parent
 
@@ -387,6 +390,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def node(self):
         from .trial.main import Trial, TrialNode
 
+        self._raise_if_detached()
         if isinstance(self.parent, Trial):
             return self.parent.node
         elif isinstance(self.parent, TrialNode):
@@ -396,6 +400,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def network(self):
         from .trial.main import Trial, TrialNetwork, TrialNode
 
+        self._raise_if_detached()
         if isinstance(self.parent, (Trial, TrialNode)):
             return self.parent.network
         elif isinstance(self.parent, TrialNetwork):
@@ -405,12 +410,86 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def participant(self):
         from .participant import Participant
 
+        self._raise_if_detached()
         if self.parent is None:
             return None
         elif isinstance(self.parent, Participant):
             return self.parent
         else:
             return self.parent.participant
+
+    def _raise_if_detached(self):
+        try:
+            state = inspect(self)
+        except NoInspectionAvailable:
+            return
+        if getattr(state, "detached", False):
+            raise ValueError(
+                "Cannot access an Asset attribute because this Asset instance is detached. "
+                "Create the asset inside the per-participant timeline function that uses it "
+                "(for example, show_trial or a for_loop/PageMaker function that calls Trial.cue), "
+                "rather than reusing an Asset instance defined at module import time."
+            )
+
+    def update_metadata(
+        self,
+        parent,
+        local_key: str,
+        definition: Optional[dict] = None,
+        module_id: Optional[str] = None,
+    ):
+        """
+        Update parent-related metadata when linking an asset.
+
+        Parent-related metadata includes the asset's parent object, its link key
+        (``local_key``), the parent ``module_id`` used for key generation, and
+        any trial/node definition used to parameterize on-demand assets.
+
+        For undeposited assets, this overwrites parent/key/module/definition metadata
+        so the asset is bound to the current owner. Deposited assets retain existing
+        metadata to preserve their storage identity, but missing parent/link fields
+        are filled in so exported paths remain unique.
+
+        Parameters
+        ----------
+        parent : object
+            The parent object to which the asset is linked.
+        local_key : str
+            The key under which the asset is linked.
+        definition : dict, optional
+            Trial or node definition used to populate on-demand asset arguments.
+        module_id : str, optional
+            Module identifier to set when missing.
+
+        Returns
+        -------
+        Asset
+            The updated asset instance.
+        """
+        self._raise_if_detached()
+
+        if not self.deposited:
+            self.parent = parent
+            self.local_key = local_key
+            if module_id is not None:
+                self.module_id = module_id
+            else:
+                self.module_id = getattr(parent, "module_id", None)
+            if definition is not None:
+                self.receive_node_definition(definition)
+            return self
+
+        if self.parent is None:
+            self.parent = parent
+        if not self.local_key:
+            self.local_key = local_key
+        if self.module_id is None:
+            if module_id is not None:
+                self.module_id = module_id
+            else:
+                self.module_id = getattr(parent, "module_id", None)
+
+        return self
 
     @property
     def trial_maker(self):
@@ -463,8 +542,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         self.parent = parent
 
         from psynet.participant import Participant
-        from psynet.trial import Trial
-        from psynet.trial.main import TrialNetwork, TrialNode
+        from psynet.trial.main import Trial, TrialNetwork, TrialNode
 
         if isinstance(parent, Participant):
             self.participant_id = parent.id
@@ -500,7 +578,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             "participant": self.participant.id if self.participant else None,
         }
 
-    def set_keys(self):
+    def ensure_keys_and_paths(self):
+        """
+        Fill in missing key fields and derived paths for the asset.
+
+        For deposited assets, this method preserves existing ``host_path``/``url`` values
+        (and only fills them if missing) so the storage identity does not change.
+        """
         if self.key_within_module is None:
             self.key_within_module = self.generate_key_within_module()
 
@@ -510,9 +594,32 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if not self.local_key and self.key_within_module:
             self.local_key = self.key_within_module
 
-        self.host_path = self.generate_host_path()
-        self.export_path = self.generate_export_path()
-        self.url = self.get_url()
+        if not self.deposited:
+            self.host_path = self.generate_host_path()
+            self.export_path = self.generate_export_path()
+            self.url = self.get_url()
+            return
+
+        host_path_was_missing = self.host_path is None
+        if host_path_was_missing:
+            self.host_path = self.generate_host_path()
+
+        if self.export_path is None:
+            self.export_path = self.generate_export_path()
+
+        if self.url is None or host_path_was_missing:
+            self.url = self.get_url()
+
+    def set_keys(self):
+        """
+        Deprecated. Use :meth:`ensure_keys_and_paths` instead.
+        """
+        warnings.warn(
+            "Asset.set_keys is deprecated; use Asset.ensure_keys_and_paths instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.ensure_keys_and_paths()
 
     def generate_key_within_experiment(self):
         if self.module_id is None:
@@ -563,7 +670,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def consume(self, experiment, participant):
         if not self.module_id:
             self.module_id = participant.module_id
-        self.set_keys()
+        self.ensure_keys_and_paths()
         if self.deposit_on_the_fly:
             self.deposit()
 
@@ -613,7 +720,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.deployment_id = self.registry.deployment_id
             self.content_id = self.get_content_id()
 
-            self.set_keys()
+            self.ensure_keys_and_paths()
             db.session.add(self)
 
             if self.parent:
@@ -1022,7 +1129,7 @@ class ManagedAsset(Asset):
                 "in your experiment class."
             )
 
-        self.set_keys()
+        # ensure_keys_and_paths() is called by deposit() before _deposit().
         self.storage.update_asset_metadata(self)
 
         if self._needs_depositing():
@@ -2867,48 +2974,6 @@ class DebugStorage(LocalStorage):
         super().__init__(*args, **kwargs)
 
 
-# def create_bucket_if_necessary(fun):
-#     @wraps(fun)
-#     def wrapper(self, *args, **kwargs):
-#         try:
-#             return fun(self, *args, **kwargs)
-#         except botocore.exceptions.ClientError as ex:
-#             if ex.response["Error"]["Code"] == "NoSuchBucket":
-#                 create_bucket(self.s3_bucket)
-#                 return fun(self, *args, **kwargs)
-#             else:
-#                 raise
-#
-#     return wrapper
-
-
-@cache
-def get_boto3_s3_session():
-    # It seems silly to filter deprecation warnings here, but there is something odd going on with
-    # the order of warning filters that causes the deprecation warnings to be shown unless we defer
-    # the filtering.
-    filter_botocore_deprecation_warnings()
-    return boto3.Session(**get_aws_credentials())
-
-
-@cache
-def get_boto3_s3_client():
-    filter_botocore_deprecation_warnings()
-    return boto3.client("s3", **get_aws_credentials())
-
-
-@cache
-def get_boto3_s3_resource():
-    filter_botocore_deprecation_warnings()
-    return get_boto3_s3_session().resource("s3")
-
-
-@cache
-def get_boto3_s3_bucket(name):
-    filter_botocore_deprecation_warnings()
-    return get_boto3_s3_resource().Bucket(name)
-
-
 def list_files_in_s3_bucket(
     bucket_name: str,
     prefix: str = "",
@@ -2951,7 +3016,7 @@ def list_files_in_s3_bucket(
     if not recursive:
         params["Delimiter"] = "/"
 
-    paginator = get_boto3_s3_client().get_paginator("list_objects")
+    paginator = get_s3_client().get_paginator("list_objects")
 
     contents = [
         content
@@ -2999,7 +3064,7 @@ class S3TransferBackend:
 
 class S3Boto3TransferBackend(S3TransferBackend):
     def upload(self, path, s3_key, recursive):
-        client = get_boto3_s3_client()
+        client = get_s3_client()
         self.check_recursive(recursive, path)
         if os.path.isfile(path):
             client.upload_file(path, self.s3_bucket, s3_key)
@@ -3026,9 +3091,9 @@ class S3Boto3TransferBackend(S3TransferBackend):
         return True
 
     def download(self, s3_key, target_path, recursive):
-        client = get_boto3_s3_client()
+        client = get_s3_client()
         if recursive:
-            bucket = get_boto3_s3_bucket(self.s3_bucket)
+            bucket = get_s3_bucket(self.s3_bucket)
             for obj in bucket.objects.filter(Prefix=s3_key + "/"):
                 server_path = obj.key
                 relative_path = server_path.replace(s3_key + "/", "")
@@ -3040,7 +3105,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
             return self._download(client, s3_key, target_path)
 
     def delete(self, s3_key, recursive):
-        bucket = get_boto3_s3_bucket(self.s3_bucket)
+        bucket = get_s3_bucket(self.s3_bucket)
         if recursive:
             bucket.objects.filter(Prefix=s3_key + "/").delete()
         else:
@@ -3049,7 +3114,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
     def move_file(self, source_s3_key, target_s3_key):
         import botocore
 
-        client = get_boto3_s3_client()
+        client = get_s3_client()
         copy_source = {
             "Bucket": self.s3_bucket,
             "Key": source_s3_key,
@@ -3064,7 +3129,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
         client.delete_object(Bucket=self.s3_bucket, Key=source_s3_key)
 
     def move_folder(self, source_s3_key, target_s3_key):
-        bucket = get_boto3_s3_bucket(self.s3_bucket)
+        bucket = get_s3_bucket(self.s3_bucket)
         for obj in bucket.objects.filter(Prefix=source_s3_key + "/"):
             source_key = obj.key
             relative_key = source_key.replace(source_s3_key + "/", "")
@@ -3114,6 +3179,9 @@ class S3AwscliTransferBackend(S3TransferBackend):
         self.run_command(cmd)
 
     def run_command(self, cmd, verbose=True):
+        """
+        Run an AWS CLI command for S3 operations.
+        """
         if verbose:
             logger.info(f"Running AWS CLI command: {cmd}")
         try:
@@ -3197,7 +3265,7 @@ class S3Storage(AssetStorage):
     def bucket_exists(bucket_name):
         import botocore
 
-        resource = get_boto3_s3_resource()
+        resource = get_s3_resource()
         try:
             resource.meta.client.head_bucket(Bucket=bucket_name)
         except botocore.exceptions.ClientError as e:
@@ -3319,7 +3387,7 @@ class S3Storage(AssetStorage):
 
     @staticmethod
     def create_bucket(s3_bucket):
-        client = get_boto3_s3_client()
+        client = get_s3_client()
         client.create_bucket(Bucket=s3_bucket)
 
     def delete_file(self, s3_key):
@@ -3333,7 +3401,7 @@ class S3Storage(AssetStorage):
         :param new_s3_key: The new path where the file should be moved.
         """
         copy_source = {"Bucket": self.s3_bucket, "Key": s3_key}
-        client = get_boto3_s3_client()
+        client = get_s3_client()
         client.copy(copy_source, self.s3_bucket, new_s3_key)
         self.delete_file(s3_key)
 
@@ -3350,19 +3418,27 @@ class S3Storage(AssetStorage):
         top: int = None,
         extension: str = None,
     ):
-        return list_files_in_s3_bucket(
+        keys = list_files_in_s3_bucket(
             self.s3_bucket,
             prefix=os.path.join(self.root, folder_path) + "/",
             sort_by_date=sort_by_date,
         )
+        if extension:
+            normalized_extension = (
+                extension if extension.startswith(".") else f".{extension}"
+            )
+            keys = [key for key in keys if key.endswith(normalized_extension)]
+        if top is not None:
+            keys = keys[:top]
+        return keys
 
     def read_file(self, file_path: str) -> str:
-        client = get_boto3_s3_client()
+        client = get_s3_client()
         obj = client.get_object(Bucket=self.s3_bucket, Key=file_path)
         return obj["Body"].read().decode("utf-8")
 
     def write_file(self, file_path: str, content: str):
-        client = get_boto3_s3_client()
+        client = get_s3_client()
         client.put_object(
             Bucket=self.s3_bucket, Key=file_path, Body=content.encode("utf-8")
         )

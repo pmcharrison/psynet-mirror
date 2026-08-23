@@ -1,8 +1,8 @@
 import json
 import uuid
+from functools import cached_property
 from typing import List, Optional
 
-from cached_property import cached_property
 from dallinger import db
 
 from psynet.db import transaction
@@ -60,7 +60,7 @@ class Bot(Participant):
         return BotDriver(id_=self.id)
 
     def _advance_to_first_page(self):
-        assert self.elt_id == [-1]
+        assert self.elt_id == ["main", -1]
         self.experiment.timeline.advance_page(self.experiment, self)
 
     def initialize(self, experiment):
