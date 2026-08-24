@@ -180,7 +180,7 @@ playwright_e2e_legacy:
       -e inplace_timeline_transitions=false
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright test tests/playwright/demos --reporter=line,junit,html"
+      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && node tests/playwright/check-mode-tags.js && npx playwright test --grep '@both|@legacy-only' --reporter=line,junit,html"
   artifacts:
     when: always
     paths:
@@ -190,7 +190,7 @@ playwright_e2e_legacy:
     reports:
       junit: public/playwright-junit-legacy.xml
 
-playwright_e2e_inplace:
+playwright_e2e_default:
   stage: test
   <<: *default_rules
   script:
@@ -202,12 +202,11 @@ playwright_e2e_inplace:
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      -e PLAYWRIGHT_JUNIT_OUTPUT_NAME=public/playwright-junit-inplace.xml
+      -e PLAYWRIGHT_JUNIT_OUTPUT_NAME=public/playwright-junit-default.xml
       -e PSYNET_WORKSPACE
-      -e inplace_timeline_transitions=true
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright test tests/playwright/demos tests/playwright/inplace_timeline_transitions.spec.js tests/playwright/same_session_page_update.spec.js tests/playwright/adversarial_lifecycle.spec.js --reporter=line,junit,html"
+      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && node tests/playwright/check-mode-tags.js && npx playwright test --grep '@both|@inplace-only' --reporter=line,junit,html"
   artifacts:
     when: always
     paths:
@@ -215,7 +214,7 @@ playwright_e2e_inplace:
       - test-results/
       - playwright-report/
     reports:
-      junit: public/playwright-junit-inplace.xml
+      junit: public/playwright-junit-default.xml
 
 merge_test_results:
   image: python:3.13-alpine
@@ -230,7 +229,7 @@ merge_test_results:
     - job: "compatibility_tests"
       optional: true
     - "playwright_e2e_legacy"
-    - "playwright_e2e_inplace"
+    - "playwright_e2e_default"
   when: always
   before_script:
     - pip install -q junitparser

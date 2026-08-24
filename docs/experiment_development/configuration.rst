@@ -145,12 +145,32 @@ General
 
         This concerns a Dallinger feature not currently used by PsyNet.
 
+``inplace_timeline_transitions`` *bool* |psynet-icon|
+    When ``True`` (default), PsyNet keeps the browser document open and swaps
+    timeline page content in place. Custom pages must use fragment templates
+    and managed asset arguments; see :doc:`/whats_new/upgrading_to_psynet_14`
+    and :doc:`/tutorials/writing_custom_frontends`. Prefer opting out for a
+    single page with ``requires_full_page_reload=True`` on that page's
+    constructor. Set this config to ``False`` only as a temporary
+    experiment-wide opt-out while migrating. Default: ``True``.
+
 ``label`` *str* |psynet-icon|
     This variable is used internally for data export.
 
     .. note::
 
         This feature may be revised in the future.
+
+``legacy_js_var_globals`` *str* |psynet-icon|
+    Controls deprecated access to page ``js_vars`` through matching ``window``
+    properties. ``warn`` preserves access and reports each key once in the
+    browser console, ``error`` raises an informative ``ReferenceError``, and
+    ``off`` installs no compatibility properties. Accessors are never
+    installed for names that already exist on ``window`` (for example
+    ``name``, ``status``, ``event``, ``history``); those page values remain
+    available on ``psynet.var``, and page construction warns for common
+    collisions. New code should read ``psynet.var`` directly. Default:
+    ``warn``.
 
 ``lock_table_when_creating_participant`` *bool* |dlgr-icon|
     Prevents possible deadlocks on the `Participant` table.
