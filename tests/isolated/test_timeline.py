@@ -1,4 +1,5 @@
 import warnings
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -79,6 +80,16 @@ def test_partial_render_makes_embedded_scripts_inert():
     assert 'data-example="1"' in inert_html
     assert 'type="application/json"' in inert_html
     assert 'type="text/html"' in inert_html
+
+
+def test_timeline_template_emits_js_dependencies_as_blocking_head_scripts():
+    from psynet import __file__ as psynet_file
+
+    template = (
+        Path(psynet_file).parent / "templates" / "timeline-page.html"
+    ).read_text()
+    assert "{% for src in js_dependencies %}" in template
+    assert "data-psynet-load-failed" in template
 
 
 def test_automatic_trial_waits_for_page_ready():

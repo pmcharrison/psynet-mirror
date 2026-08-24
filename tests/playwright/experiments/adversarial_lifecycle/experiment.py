@@ -78,6 +78,23 @@ class AudioFadeOutPage(Page):
         return None
 
 
+class OverlappingAudioStopPage(Page):
+    def __init__(self):
+        super().__init__(
+            label="overlapping_audio_stop",
+            time_estimate=1,
+            template_fragment_str="""
+                <p id="overlapping-audio-stop-page">
+                    Overlapping audio stop page
+                </p>
+            """,
+            js_page_modules=["/static/overlapping-audio-stop-page.js"],
+        )
+
+    def get_bot_response(self, experiment, bot):
+        return None
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Adversarial lifecycle test"
 
@@ -87,6 +104,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("Timer cleanup checkpoint", time_estimate=1),
         AudioFadeOutPage(),
         InfoPage("Audio fade-out checkpoint", time_estimate=1),
+        OverlappingAudioStopPage(),
         ListenerPage("first"),
         InfoPage("Listener cleanup checkpoint", time_estimate=1),
         ListenerPage("second"),
