@@ -1,8 +1,10 @@
 """Tests for Dallinger lower-bound resolution from pyproject / metadata."""
 
+import re
 from pathlib import Path
 
 import pytest
+import tomllib
 
 from psynet.dallinger_dependency import (
     dallinger_constraints_github_ref,
@@ -14,9 +16,17 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_lower_bound_from_pyproject_matches_experiment_extra():
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    declared = next(
+        dep
+        for dep in pyproject["project"]["optional-dependencies"]["experiment"]
+        if dep.startswith("dallinger[")
+    )
+    expected = re.search(r">=(\d+\.\d+\.\d+)", declared).group(1)
+
     version = dallinger_lower_bound_from_pyproject(ROOT / "pyproject.toml")
-    assert version == "12.2.0"
-    assert dallinger_constraints_github_ref() == "v12.2.0"
+    assert version == expected
+    assert dallinger_constraints_github_ref() == f"v{expected}"
     assert supported_dallinger_lower_bound() == version
 
 

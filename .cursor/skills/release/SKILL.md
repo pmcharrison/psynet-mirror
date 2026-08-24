@@ -30,6 +30,9 @@ announcement. Throughout, `X.Y.Z` stands for the version being released.
   been merged into `master`, and `master` CI is green.
 - For a **patch** release: all bug-fix commits intended for the release have
   been cherry-picked or committed to the release branch.
+- The Dallinger dependency in `pyproject.toml` is pinned to a released
+  version, not a Git reference — see
+  [Dallinger version considerations](#dallinger-version-considerations).
 
 ### Pre-existing local changes
 
@@ -777,6 +780,28 @@ Once the latest RC has been validated and no further changes are needed:
 
 ## Dallinger version considerations
 
+**Pre-release check: no Git-reference Dallinger dependency.** Before
+cutting any release (including release candidates), check the
+`dallinger[docker]` entry in `pyproject.toml`. If it points at a Git
+reference (e.g.
+`dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@master`),
+`master` was temporarily tracking an unreleased Dallinger and must be
+re-pinned before releasing:
+
+1. Wait for (or request) the Dallinger release containing the needed
+   changes, then restore a versioned specifier in `pyproject.toml`
+   (e.g. `dallinger[docker]>=12.4.0,<13`).
+2. Refresh the vendored constraints snapshot:
+   `psynet dev ci update-dallinger-constraints`.
+3. Remove any temporary test skips or tooling workarounds that were added
+   to accommodate the Git reference.
+4. Update `recommended_dallinger_major_minor` in `psynet/version.py` if
+   the MAJOR.MINOR series changed.
+
+Do not publish a PsyNet release to PyPI while the dependency points at a
+Git reference: PyPI rejects direct URL dependencies, and even if vendored
+differently, a moving branch makes installs non-reproducible.
+
 If this release upgrades the Dallinger dependency:
 
 - Update the Dallinger version specifier in `pyproject.toml`
@@ -784,6 +809,9 @@ If this release upgrades the Dallinger dependency:
 - Update `recommended_dallinger_major_minor` in `psynet/version.py`.
 - Refresh the vendored Dallinger CI constraints snapshot with
   `psynet dev ci update-dallinger-constraints`.
+- Make sure the correct Dallinger version is installed in your environment
+  before running `psynet dev experiments update`, as the command uses it to
+  resolve constraint versions.
 
 ## Version files reference
 

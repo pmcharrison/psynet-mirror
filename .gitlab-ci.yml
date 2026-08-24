@@ -33,6 +33,7 @@ variables:
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
   DOCKER_LOCAL_TAG: psynet-build
+  PYTHON_VERSION: "3.13"
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
@@ -42,7 +43,7 @@ before_script:
   - export REDIS_IP=$(getent ahostsv4 redis | awk '{ print $1 }' | tail -n 1)
   - echo $POSTGRES_IP
   - echo $REDIS_IP
-  - docker build --tag $DOCKER_LOCAL_TAG .
+  - docker build --build-arg PYTHON_VERSION=$PYTHON_VERSION --tag $DOCKER_LOCAL_TAG .
 
 .default_rules: &default_rules
   rules:
@@ -83,10 +84,28 @@ changelog_check:
       when: always
     - when: never
 
-tests:
+.release_branch_only: &release_branch_only
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
+      when: always
+    - when: never
+
+# Shared definition of a PsyNet test-suite job, parameterized by PYTHON_VERSION
+# and TEST_SCOPE.
+#
+# run-ci-tests.sh splits tests by CI_NODE_INDEX/CI_NODE_TOTAL, but GitLab owns
+# those variables: for `parallel:matrix` jobs it numbers them across all
+# permutations rather than within one, so a matrix job cannot set them directly.
+# Shard coordinates therefore travel as SHARD_INDEX/SHARD_TOTAL and are mapped
+# on to CI_NODE_* below, falling back to GitLab's own numbering when unset. That
+# keeps plain `parallel: N` jobs working unchanged while letting matrix jobs
+# declare a shard dimension of their own.
+.test_suite:
   parallel: 10
   stage: test
   <<: *default_rules
+  variables:
+    TEST_SCOPE: full
   script:
     - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
     - docker run
@@ -94,8 +113,12 @@ tests:
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      -e CI -e CI_NODE_TOTAL -e CI_NODE_INDEX
+      -e CI
+      -e CI_NODE_TOTAL="${SHARD_TOTAL:-$CI_NODE_TOTAL}"
+      -e CI_NODE_INDEX="${SHARD_INDEX:-$CI_NODE_INDEX}"
       -e CI_COMMIT_REF_NAME
+      -e SKIP_PYTHON_VERSION_CHECK
+      -e PYTHON_VERSION -e TEST_SCOPE
       -e PSYNET_WORKSPACE
       -v "$PWD:$PSYNET_WORKSPACE"
       -v "$PWD/public:/public"
@@ -104,6 +127,41 @@ tests:
   artifacts:
     paths:
       - public/
+
+tests_python_3_13:
+  extends: .test_suite
+  # Stated explicitly rather than inherited from the global default, so this
+  # job keeps testing 3.13 even if the default Python version changes.
+  variables:
+    PYTHON_VERSION: "3.13"
+
+# To reduce CI cost, non-recommended Python versions (3.11, 3.12, 3.14) are
+# only verified on release branches: day-to-day MRs rarely affect version
+# compatibility. Note that regular pipelines validate dependency resolution
+# only for the default Python version (via the Docker build's `uv pip
+# compile`); all supported versions are resolution-checked when maintainers
+# run `psynet dev ci update-dallinger-constraints`, and fully tested on
+# release-branch pipelines.
+tests_python_3_14:
+  extends: .test_suite
+  <<: *release_branch_only
+  variables:
+    PYTHON_VERSION: "3.14"
+    SKIP_PYTHON_VERSION_CHECK: "1"
+
+# GitLab does not allow combining `parallel: N` with a matrix, so the shard is
+# added as its own matrix dimension; see the SHARD_* note on `.test_suite`.
+compatibility_tests:
+  extends: .test_suite
+  <<: *release_branch_only
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ["3.11", "3.12"]
+        SHARD_INDEX: ["1", "2", "3", "4", "5"]
+        SHARD_TOTAL: "5"
+  variables:
+    SKIP_PYTHON_VERSION_CHECK: "1"
+    TEST_SCOPE: isolated
 
 playwright_e2e_legacy:
   stage: test
@@ -162,8 +220,16 @@ merge_test_results:
   image: python:3.13-alpine
   stage: test
   <<: *default_rules
-  needs: ["tests", "playwright_e2e_legacy", "playwright_e2e_default"]
-  dependencies: ["tests", "playwright_e2e_legacy", "playwright_e2e_default"]
+  needs:
+    - "tests_python_3_13"
+    # tests_python_3_14 and compatibility_tests only exist on
+    # release-branch pipelines.
+    - job: "tests_python_3_14"
+      optional: true
+    - job: "compatibility_tests"
+      optional: true
+    - "playwright_e2e_legacy"
+    - "playwright_e2e_default"
   when: always
   before_script:
     - pip install -q junitparser
