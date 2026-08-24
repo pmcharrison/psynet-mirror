@@ -13,6 +13,10 @@ description: Convert an existing PsyNet experiment into an adaptive experiment w
   (`StaticTrialMaker` vs chain-based makers) before changing architecture.
 - Read `deploy-experiment/SKILL.md` when persistence, deployment,
   recruitment, or exported data safety matters.
+- Read `participant-response-models/SKILL.md` when implementing synthetic
+  participant responses for bots or simulations.
+- Read `power-analysis/SKILL.md` when choosing an adaptive budget or comparing
+  the estimator precision and cost of adaptive and static designs.
 
 ## Specification gate
 
@@ -24,8 +28,12 @@ missing, list the decisions they must make and wait for their answer.
 - `z`: the mapping from participant or context data to model covariates. You can use human-readable names in your implementation.
 - Adaptive unit: what the policy selects, such as a network, node, condition,
   stimulus, item, block, or trial family.
-- Generative model: likelihood, latent parameters, priors, and how `y`, `z`,
-  and the adaptive unit enter the model. You can use human-readable names in your implementation.
+- Learner model: the likelihood, latent parameters, priors, and relationships
+  that the adaptive procedure assumes when learning from `y`, `z`, and the
+  adaptive unit.
+- Simulation response model: how synthetic participants produce `y` in bots
+  and standalone simulations. It may match the learner model or deliberately
+  differ from it to test robustness to model misspecification.
 - Posterior strategy: how posterior beliefs are fit or sampled.
 - Optimization policy: objective and decision rule, such as EIG, expected free
   energy, Thompson sampling, greedy utility, or an early-stopping rule.
@@ -35,6 +43,11 @@ missing, list the decisions they must make and wait for their answer.
 
 If the user asks for suggestions, make the smallest coherent proposal and label
 which choices are assumptions.
+
+The learner model is part of the deployed experiment. The simulation response
+model is only a testing assumption: in a real experiment, participants supply
+the responses, so there is no controllable or known "actual response model" in
+the experiment code.
 
 ## Implementation constraints
 
@@ -58,14 +71,16 @@ which choices are assumptions.
   that requires simplification, caching, or a different posterior strategy.
 - Add timing logs around data loading, posterior fitting/sampling, and objective
   scoring.
-- If `bot_response` logic is not already supplied, override the default with
-  answers drawn from the generative model itself.
-- Lower-level computational logic (such as Bayesian computations) should be located in
-a separate file (`adaptive_logic.py`) imported from `experiment.py` and any other script
-that needs these procedures. Avoid duplicating the core model specification.
+- Put the simulation response model in the top-level `response_model/` package
+  and use it for scientific bots as well as standalone simulations.
+- Put posterior inference and selection policy in `adaptive_logic.py`, imported
+  from `experiment.py` and standalone simulations. It may import shared
+  likelihood components from `response_model/`; do not duplicate them.
 - Implementations should include a concise standalone simulation script (`simulate_procedure.py`) that:
-   - Simulates the adaptive setup against a static baseline outside psynet,
-   on a reasonable number of participants.
+   - Draws responses from `response_model/` and simulates the full adaptive loop
+   against a static baseline outside PsyNet.
+   - Can draw responses from the learner model or from a deliberately different
+   simulation response model to test robustness to misspecification.
    - If an approximate inference scheme is used, check the accuracy of posterior estimates
    in these simulations, using less approximate inference strategies such as HMC as gold-standard.
    - Runs performance checks (average posterior reconstruction time and average design selection time),

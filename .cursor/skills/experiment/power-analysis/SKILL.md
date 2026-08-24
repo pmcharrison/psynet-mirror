@@ -9,7 +9,11 @@ It is good practice to conduct power analyses prior to conducting an experiment.
 
 There are many ways to conduct power analysis. Today's agents are familiar with most standard paradigms and can straightforwardly implement them for a given experiment. This document outlines PsyNet's expectations for how the power analysis code is structured, and provides some general methodological recommendations.
 
-Most PsyNet experiments pay participants for the time they spend on the experiment. Some experiments additionally deliver bonuses for good performance. These financial considerations should form part of the power analysis.
+In the absence of overruling instructions, PsyNet recommends a default precision-estimation approach to power analysis.
+This is detailed in the `precision-estimation` skill.
+
+Most PsyNet experiments pay participants for the time they spend on the experiment. Some experiments additionally deliver bonuses for good performance. These financial considerations should form part of the power analysis;
+see `references/psynet-costing.md` for information.
 
 ## Terminology
 
@@ -27,14 +31,9 @@ Read [references/terminology.md](references/terminology.md) for fuller definitio
 ## Response models
 
 Power-analysis methods that simulate participant responses need a data-generating
-response model. Follow `participant-response-models/SKILL.md` and place the model
-in the experiment's top-level `response_model/` package, separate from `power/`.
-Use the same scientific response model for PsyNet bots and the power analysis;
-`power/core.py` should import it rather than reimplement participant behaviour.
-
+response model. Follow `participant-response-models/SKILL.md` for this.
 Record the response-model parameter values or named parameter set in
 `power/config.toml`, and record a code hash or version in `power/run.json`.
-Methods that do not generate participant responses do not need a response model.
 
 ## Required files
 
@@ -168,8 +167,5 @@ the notebook with its review-relevant tables and interactive figures embedded (p
 
 ## Related reading
 
-- `precision-estimation/SKILL.md` explains the default power-analysis method.
-- [references/psynet-costing.md](references/psynet-costing.md) explains how to
-  compute participant costs.
 - `make-experiment-adaptive/SKILL.md` explains the implementation of adaptive
   experiments.

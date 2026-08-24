@@ -50,6 +50,13 @@ It should describe the experiment, including:
 
 Format in academic prose.
 
+#### Power analysis
+
+Follow `power-analysis/SKILL.md`. Keep sample size and other design quantities
+provisional until its human-review and power-analysis workflow is complete, then
+incorporate the selected design and supporting evidence into `audit/PLAN.md`
+(potentially rerunning the simulations if required).
+
 #### Implementation
 
 This section focuses on the software implementation of the experiment, including:
