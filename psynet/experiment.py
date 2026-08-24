@@ -93,6 +93,7 @@ from .recruiters import (  # noqa: F401
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
+from .static_resources import get_static_package_extra_files
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -1343,6 +1344,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
+        self._check_static_spa_contracts()
 
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
@@ -1357,6 +1359,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
         self._report_request_statistics()
+
+    def _check_static_spa_contracts(self):
+        """Fail fast on static timeline pages that are not SPA-compatible.
+
+        PageMakers are skipped here because their pages do not exist until
+        runtime; bots still surface those via richer HTTP 500 details.
+        """
+        from .timeline import Page
+        from .utils import get_config
+
+        config = get_config()
+        inplace = config.get("inplace_timeline_transitions")
+        for elt in self.timeline.all_elts:
+            if not isinstance(elt, Page):
+                continue
+            elt._check_spa_template_contract(inplace_timeline_transitions=inplace)
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
@@ -1848,7 +1866,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
-            "inplace_timeline_transitions": False,
+            "inplace_timeline_transitions": True,
+            "legacy_js_var_globals": "warn",
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -2410,6 +2429,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page_uuid,
         client_ip_address,
         answer=NoArgumentProvided,
+        include_timeline_fragment=True,
     ):
         _p = get_translator(context=True)
         logger.info(
@@ -2468,7 +2488,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
-            return self.response_approved(participant)
+            return self.response_approved(participant, include_timeline_fragment)
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -2490,7 +2510,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             return error_response(participant=participant)
 
-    def response_approved(self, participant):
+    def response_approved(self, participant, include_timeline_fragment=True):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
         payload = {
@@ -2499,8 +2519,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
         config = get_config()
         # In inplace mode, the same /response round-trip both advances the
-        # participant state and returns the next timeline fragment.
-        if config.get("inplace_timeline_transitions"):
+        # participant state and returns the next timeline fragment. Skip the
+        # fragment when the next page forces a full reload; the client will
+        # navigate via /timeline instead.
+        if (
+            include_timeline_fragment
+            and config.get("inplace_timeline_transitions")
+            and not page.requires_full_page_reload
+        ):
             payload["timeline_fragment"] = self.render_partial_timeline_payload(
                 page, self, participant
             )
@@ -2552,6 +2578,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = []
         for trialmaker in cls.timeline.trial_makers.values():
             files.extend(trialmaker.extra_files())
+        files.extend(get_static_package_extra_files())
 
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
@@ -2600,6 +2627,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/scripts/psynet.js",
                     "/static/scripts/psynet.js",
+                ),
+                (
+                    resources.files("psynet") / "static/scripts/chatroom-widget.js",
+                    "/static/scripts/chatroom-widget.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/execute-front-end-js.js",
+                    "/static/scripts/execute-front-end-js.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/scripts/jspsych-page.js",
+                    "/static/scripts/jspsych-page.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "static/scripts/music-notation-prompt.js",
+                    "/static/scripts/music-notation-prompt.js",
                 ),
                 (
                     resources.files("psynet")
@@ -2685,7 +2730,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/survey-jquery",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/abc-js",
+                    resources.files("psynet") / "static/libraries/abc-js",
                     "/static/scripts/abc-js",
                 ),
                 (
@@ -2759,6 +2804,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Register PsyNet-specific configuration parameters.
         """
         config = dallinger_get_config()
+
+        def legacy_js_var_globals_validator(value):
+            """Validate the legacy JavaScript variable global access mode."""
+            if value not in {"warn", "error", "off"}:
+                raise ValueError(
+                    '`legacy_js_var_globals` must be one of: "warn", "error", or "off".'
+                )
+
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
         config.register("lab_recruiter_external_submission_url", str)
@@ -2785,6 +2838,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
         config.register("inplace_timeline_transitions", bool)
+        config.register(
+            "legacy_js_var_globals",
+            str,
+            validators=[legacy_js_var_globals_validator],
+        )
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
@@ -4150,6 +4208,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This helper is the shared render authority for inplace fragment output
         returned directly from /response.
         """
+        # Mirror the full-page /timeline path (see get_current_page), which
+        # calls pre_render() before rendering. Without this, pages advanced via
+        # an inplace transition would skip pre_render() hooks (e.g. prompt/control
+        # setup such as S3 presigned URL preparation).
+        page.pre_render()
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,
@@ -4206,6 +4269,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
+        include_timeline_fragment = get_arg_from_dict(
+            json_data, "include_timeline_fragment", use_default=True, default=True
+        )
         client_ip_address = cls.get_client_ip_address()
 
         res = exp.process_response(
@@ -4216,6 +4282,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
             answer,
+            include_timeline_fragment,
         )
 
         return res

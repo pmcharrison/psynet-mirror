@@ -17,6 +17,37 @@ def test_config(in_experiment_directory):
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
+def test_inplace_timeline_transitions_default(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    assert config.get("inplace_timeline_transitions") is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_legacy_js_var_globals_default(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    assert config.get("legacy_js_var_globals") == "warn"
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_legacy_js_var_globals_rejects_invalid_mode(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    with pytest.raises(ValueError, match="legacy_js_var_globals"):
+        config.set("legacy_js_var_globals", "invalid")
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_secrets(in_experiment_directory):
     get_experiment()
     config = get_config()

@@ -118,6 +118,9 @@ demos = [
     "statsmodels",
 ]
 
+[project.entry-points."psynet.static"]
+psynet = "psynet.static_resources:psynet_static_root"
+
 [project.entry-points.pytest11]
 pytest_psynet = "psynet.pytest_psynet"
 
