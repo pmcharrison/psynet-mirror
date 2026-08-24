@@ -18,6 +18,8 @@ description: Design, implement, and validate simulated participants for PsyNet e
   simulated data.
 - Read `verify-ai-model-usability/SKILL.md` before any real LLM-in-the-loop
   simulation.
+- Read `participant-response-models/SKILL.md` when simulated answers represent a
+  scientific hypothesis about participant behavior.
 
 ## Choose the simulation type
 
@@ -63,9 +65,11 @@ participants whenever possible.
 
 ## Implement and connect data
 
-1. Implement bot/profile responses near the experiment code that owns the trial
-   response format. For custom pages, follow `develop-experiment-front-end` so
-   `get_bot_response` and `format_answer` stay aligned.
+1. For scientific profiles, import the top-level `response_model/` package from a
+   thin adapter near the experiment code that owns the trial response format.
+   Engineering profiles may remain local. For custom pages, follow
+   `develop-experiment-front-end` so `get_bot_response` and `format_answer` stay
+   aligned.
 2. Pass profile id, group, seed or run id, and scenario labels through participant
    vars or trial data so exports can distinguish simulated groups.
 3. Save profile-relevant telemetry beside the response it qualifies. Keep export
