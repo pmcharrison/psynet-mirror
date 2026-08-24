@@ -73,8 +73,7 @@ def parse_timeline_entries(markdown: str) -> list[TimelineEntry]:
 def looks_like_timeline_entry_line(line: str) -> bool:
     """Return True when a line looks like a timeline entry, even if invalid."""
     return bool(
-        LOOKS_LIKE_RELATIVE_ENTRY_RE.match(line)
-        or LOOKS_LIKE_ISO_ENTRY_RE.match(line)
+        LOOKS_LIKE_RELATIVE_ENTRY_RE.match(line) or LOOKS_LIKE_ISO_ENTRY_RE.match(line)
     )
 
 
