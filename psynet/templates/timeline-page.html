@@ -246,6 +246,12 @@
     <script src="/static/scripts/jquery-3.7.1.min.js"></script>
     <script src="/static/scripts/JSZip/jszip.min.js"></script>
 
+    {% for src in js_dependencies %}
+        {# Blocking tags preserve first-page script order. Failed loads are marked
+           so the guarded loader can still reject missing js_dependencies. #}
+        <script src="{{ src }}" onerror="this.setAttribute('data-psynet-load-failed','')"></script>
+    {% endfor %}
+
     {% if not partial_mode %}
         {{ template_data_script() }}
     {% endif %}

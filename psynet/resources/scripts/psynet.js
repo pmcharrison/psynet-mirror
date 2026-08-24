@@ -529,7 +529,9 @@
 
     psynet.rememberLoadedDocumentScripts = function () {
       document
-        .querySelectorAll('script[src]:not([type="text/psynet-script"])')
+        .querySelectorAll(
+          'script[src]:not([type="text/psynet-script"]):not([data-psynet-load-failed])',
+        )
         .forEach((script) => {
           psynet.loadedDocumentScripts.add(
             new URL(script.src, window.location.href).href,
@@ -668,8 +670,12 @@
       }
     };
 
+    // Shared by full-page and in-place activation. The guarded loader skips
+    // js_dependencies already present as blocking head scripts, then replays
+    // inert embedded scripts (in-place pages) before page code and modules.
     psynet.activateManagedPageJavascript = async function () {
       await psynet.loadJSDependencies();
+      await psynet.executeScriptSequence(psynet.getEmbeddedScripts());
       await psynet.activatePageJavascript();
     };
 
@@ -707,8 +713,8 @@
     };
 
     // Framework templates and supported page markup may still contain internal
-    // scripts. Partial rendering makes them inert; replay them in DOM order
-    // after the fragment swap while avoiding duplicate linked libraries.
+    // scripts. In-place rendering makes them inert; replay them in DOM order
+    // after js_dependencies load, skipping duplicate linked libraries.
     psynet.getEmbeddedScripts = function () {
       let mainBody = document.getElementById("main-body");
       if (!mainBody) {
@@ -914,9 +920,7 @@
       // lifecycle explicitly before we can mark the new page as ready.
       psynet.refreshTemplateData();
       await psynet.rebuildTrial();
-      await psynet.loadJSDependencies();
-      await psynet.executeScriptSequence(psynet.getEmbeddedScripts());
-      await psynet.activatePageJavascript();
+      await psynet.activateManagedPageJavascript();
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
       await psynet.initPage();
@@ -2150,6 +2154,10 @@
               if (completed) {
                 return Promise.resolve();
               }
+              if (stopPromise !== null) {
+                sound.manuallyStopped = sound.manuallyStopped || options.manual;
+                return stopPromise;
+              }
 
               clearSoundTimers();
 
@@ -2174,10 +2182,19 @@
                 );
               }
 
-              stopCompletionTimer = soundTrial.setTimer(() => {
+              const finishStop = () => {
                 stopCompletionTimer = null;
                 stopSource();
-              }, options.fadeOut * 1000);
+              };
+
+              if (options.fadeOut <= 0) {
+                queueMicrotask(finishStop);
+              } else {
+                stopCompletionTimer = soundTrial.setTimer(
+                  finishStop,
+                  options.fadeOut * 1000,
+                );
+              }
               return stopPromise;
             };
 
@@ -2190,12 +2207,11 @@
           };
 
           out.stop = function (options) {
-            psynet.media.sounds.forEach(function (s) {
-              if (s.stimulusId == stimulusId) {
-                s.stop(options);
-              }
-            });
-            return this;
+            return Promise.all(
+              psynet.media.sounds
+                .filter((s) => s.stimulusId == stimulusId)
+                .map((s) => s.stop(options)),
+            );
           };
 
           out.loaded = true;
