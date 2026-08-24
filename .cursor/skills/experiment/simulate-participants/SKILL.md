@@ -66,7 +66,7 @@ participants whenever possible.
 ## Implement and connect data
 
 1. For scientific profiles, import the top-level `response_model/` package from a
-   thin adapter near the experiment code that owns the trial response format.
+   thin adapter near the experiment code that defines the trial response format.
    Engineering profiles may remain local. For custom pages, follow
    `develop-experiment-front-end` so `get_bot_response` and `format_answer` stay
    aligned.

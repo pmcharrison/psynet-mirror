@@ -20,9 +20,9 @@ response_model/
 └── core.py
 ```
 
-`core.py` owns parameter definitions, expected responses when useful, and the
-canonical `sample_responses(...)` function. Re-export the public interface from
-`__init__.py`.
+Put parameter definitions, expected responses when useful, and the canonical
+`sample_responses(...)` function in `core.py`. Re-export the public interface
+from `__init__.py`.
 
 Keep this package at the experiment's top level, separate from `experiment.py`
 and `power/`. Import the same package from scientific bots, power analyses, and
@@ -110,3 +110,10 @@ In adaptive simulations, the response model may match the learner model or
 deliberately differ from it to test robustness to misspecification. In a real
 experiment, participants supply the responses; the code does not specify their
 "actual response model."
+
+## Validation
+
+Test that a fixed seed reproduces the same responses, vectorized inputs produce
+the expected output shape, and broadcasting behaves as intended. Check at least
+one response through both the standalone simulation interface and the PsyNet bot
+adapter, including answer formatting, rounding, and clipping where applicable.

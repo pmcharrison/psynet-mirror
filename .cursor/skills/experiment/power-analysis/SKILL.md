@@ -30,7 +30,7 @@ Read [references/terminology.md](references/terminology.md) for fuller definitio
 
 ## Response models
 
-Power-analysis methods that simulate participant responses need a data-generating
+Power-analysis methods that simulate participant responses need a simulation
 response model. Follow `participant-response-models/SKILL.md` for this.
 Record the response-model parameter values or named parameter set in
 `power/config.toml`, and record a code hash or version in `power/run.json`.
@@ -39,7 +39,7 @@ Record the response-model parameter values or named parameter set in
 
 Every power analysis should use the following layout in the experiment root:
 
-```te
+```text
 power/
 ├── config.toml
 ├── core.py
@@ -61,6 +61,7 @@ method = "precision-estimation"
 
 [decision]
 metric = "standardized_margin_of_error"
+confidence_level = 0.95
 threshold = 0.20
 
 [design]
@@ -70,10 +71,11 @@ trials_per_participant = [30, 60]
 [assumptions]
 trial_noise_sd = [0.8, 1.0, 1.2]
 
-[execution]
+[simulation]
 replicates = 1000
-seed = 20260824
+base_seed = 20260824
 keep_replicates = false
+n_jobs = -2
 ```
 
 ### `core.py`
@@ -138,16 +140,25 @@ by the following columns:
   set of assumptions.
 - `analysis_id` - Identifies the analysis target evaluated within that scenario.
 - `parameter_id` - Optionally identifies a parameter or component when one
-  analysis target produces several result rows.
+  analysis target produces several result rows. Omit it when each target produces
+  exactly one row.
 
-Each `result_id` would normally correspond to a unique combination of `scenario_id`, `analysis_id`, and `parameter_id`.
+Each `result_id` should be derived from `scenario_id` and `analysis_id`, plus
+`parameter_id` when present.
 
-In addition to these identifier columns, it is helpful to contain additional columns such as:
+Suggested common columns are:
 
-- method
-- decision metric and value
-- threshold
-- participant costs
+- `method` - Identifies the power-analysis method.
+- `decision_metric` - Names the quantity used to evaluate the design.
+- `decision_value` - Gives that metric's value for this row.
+- `decision_threshold` - Gives the threshold used to judge adequacy.
+- `meets_requirement` - Records whether the row meets the criterion.
+- `participant_payment` - Gives the estimated total participant payment for the
+  design.
+- `currency` - Identifies the currency used for participant payment.
+
+Methods should add their own descriptive and diagnostic columns. Use the same
+column names across runs so that notebooks can compare results directly.
 
 ### `run.json`
 

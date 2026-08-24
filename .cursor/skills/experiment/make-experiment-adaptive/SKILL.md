@@ -24,8 +24,11 @@ Do not implement an adaptive experiment until the user supplies the specificatio
 below, unless they explicitly ask you to propose a design. If anything is
 missing, list the decisions they must make and wait for their answer.
 
-- `y`: the mapping from raw trial answers to model observations. You can use human-readable names in your implementation.
-- `z`: the mapping from participant or context data to model covariates. You can use human-readable names in your implementation.
+- `y`: the mapping from raw trial answers to model observations. Treat `y` as
+  mathematical notation; use clear domain-specific names in the implementation.
+- `z`: the mapping from participant or context data to model covariates. Treat
+  `z` as mathematical notation; use clear domain-specific names in the
+  implementation.
 - Adaptive unit: what the policy selects, such as a network, node, condition,
   stimulus, item, block, or trial family.
 - Learner model: the likelihood, latent parameters, priors, and relationships
@@ -51,12 +54,15 @@ the experiment code.
 
 ## Implementation constraints
 
-- Use `y` for trial-level observations and `z` for participant or context
-  covariates throughout adaptive code, logs, and exports.
-- Ask for or implement explicit mapping logic from raw answers to observations `y`, and covariates `z`.
-- Prefer SQLAlchemy columns for storing variables (e.g. `y`, `z`). Note that PsyNet's `PythonObject` column
+- Document which implementation fields correspond to observations `y` and
+  covariates `z`, and use those domain-specific names consistently in code, logs,
+  and exports.
+- Ask for or implement explicit mapping logic from raw answers to observations
+  and covariates.
+- Prefer SQLAlchemy columns for storing these variables. Note that PsyNet's `PythonObject` column
   can be used for complex objects if needed.
-- Keep raw answer data available for audit; do not replace it with only `y`.
+- Keep raw answer data available for audit; do not replace it with only the
+  transformed model observation.
 - Log each adaptive decision: candidate IDs, chosen ID, objective components,
   posterior version or snapshot, data cutoff, and optimizer version.
 - When already computed at no extra approximation cost, store the posterior
@@ -81,12 +87,15 @@ the experiment code.
    against a static baseline outside PsyNet.
    - Can draw responses from the learner model or from a deliberately different
    simulation response model to test robustness to misspecification.
-   - If an approximate inference scheme is used, check the accuracy of posterior estimates
-   in these simulations, using less approximate inference strategies such as HMC as gold-standard.
+   - If an approximate inference scheme is used, check the accuracy of posterior
+   estimates in these simulations against a trusted reference appropriate to the
+   model. This may be HMC when its assumptions and computational cost are suitable.
    - Runs performance checks (average posterior reconstruction time and average design selection time),
    to detect and isolate performance issues owing to the computations themselves.
-   - Produces accuracy diagnostic plots, in particular posterior predictive checks,
-   to confirm that Bayesian computations are reliable.
+   - Produces diagnostics for inference reliability, such as convergence checks,
+   simulation-based calibration, or comparison with a trusted reference. Use
+   posterior predictive checks separately to assess the model's implications and
+   fit to simulated data.
 - If performance is insufficient, consider using more approximate sampling methods,
 or lowering the number of learning-steps, but always make sure the accuracy does not degrade too much.
 - If simulations within psynet are sufficiently slower than simulations outside of psynet, make sure that
@@ -133,9 +142,9 @@ Choose one of these strategies explicitly:
 
 - Run bot tests or simulations that exercise the adaptive selection path, not
   just the static participant flow.
-- Export or query trial data and verify that `y`, `z`, selected adaptive units,
-  posterior references, objective components, and any free posterior predictive
-  summaries are present.
+- Export or query trial data and verify that the documented observation and
+  covariate fields, selected adaptive units, posterior references, objective
+  components, and any free posterior predictive summaries are present.
 - Check that repeated runs with a fixed seed reproduce the same decisions when
   the policy is intended to be deterministic.
 - Stress the concurrent case with multiple bots when participants may overlap.

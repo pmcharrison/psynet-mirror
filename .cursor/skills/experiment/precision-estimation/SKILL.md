@@ -55,9 +55,10 @@ base_seed = 20260823
 keep_replicates = false
 n_jobs = -2
 
-[precision]
+[decision]
+metric = "standardized_margin_of_error"
 confidence_level = 0.95
-max_margin_of_error_trial_noise_sd = 0.20
+threshold = 0.20
 
 [design]
 n_participants = [40, 60, 80, 100, 120]
@@ -136,20 +137,32 @@ response generation and simple estimators across replicates where this preserves
 the planned analysis. Do not change the estimator merely to make the simulation
 fast.
 
-Use Joblib's process-based `loky` backend for the full run. Parallelize
-independent design-scenario jobs, letting Joblib batch them automatically. The
-suggested `n_jobs = -2` uses every available CPU except one; use `n_jobs = 1` for
-the smoke run and debugging. Limit numerical libraries to one thread inside each
-worker to avoid nested parallelism.
+Use Joblib's process-based `loky` backend for the full run. The default unit of
+parallel work is one scenario: simulate its replicate datasets once and evaluate
+all analysis targets from those shared datasets. This preserves a coherent
+simulated world across targets and avoids repeating response generation. Let
+Joblib batch these scenario jobs automatically. The suggested `n_jobs = -2` uses
+every available CPU except one; use `n_jobs = 1` for the smoke run and debugging.
+Limit numerical libraries to one thread inside each worker to avoid nested
+parallelism.
 
 Build the jobs and their random seeds deterministically before dispatch. Results
 should not depend on the worker count or the order in which jobs finish:
 
 ```python
+import hashlib
+
+import numpy as np
 from joblib import Parallel, delayed, parallel_config
 
-jobs = build_jobs(config)
-seeds = np.random.SeedSequence(base_seed).spawn(len(jobs))
+
+def seed_for_scenario(base_seed, scenario_id):
+    digest = hashlib.sha256(scenario_id.encode("utf-8")).digest()
+    scenario_entropy = int.from_bytes(digest[:8], "big")
+    return np.random.SeedSequence([base_seed, scenario_entropy])
+
+
+jobs = sorted(build_scenario_jobs(config), key=lambda job: job.scenario_id)
 
 with parallel_config(
     backend="loky",
@@ -157,10 +170,18 @@ with parallel_config(
     inner_max_num_threads=1,
 ):
     results = Parallel()(
-        delayed(run_job)(job, seed)
-        for job, seed in zip(jobs, seeds, strict=True)
+        delayed(run_scenario)(
+            job,
+            seed_for_scenario(base_seed, job.scenario_id),
+        )
+        for job in jobs
     )
 ```
+
+Deriving seeds from stable scenario identifiers means that adding or reordering
+other scenarios does not change an existing scenario's random stream. Within a
+scenario, derive replicate streams from its scenario seed before parallel work
+begins.
 
 For an adaptive design, simulate the complete selection, response, and update
 loop. The response model may match the adaptive learner or deliberately differ
@@ -229,8 +250,12 @@ margin_of_error_mcse = margin_of_error / np.sqrt(2 * (replicates - 1))
 ```
 
 Report this uncertainty, or use a bootstrap over replicate estimates when the
-sampling distribution is appreciably non-normal. Increase the common replicate
-count when Monte Carlo uncertainty could change the selected design.
+sampling distribution is appreciably non-normal. Also use a bootstrap for a
+nonlinear decision summary such as the maximum pointwise margin of error: resample
+complete replicate vectors and recompute the maximum on every bootstrap draw.
+The fixed-point formula above does not account for uncertainty about which point
+attains the maximum. Increase the common replicate count when Monte Carlo
+uncertainty could change the selected design.
 
 ## Save and report the results
 
@@ -239,6 +264,11 @@ the estimand, number of evaluated replicates, bias, sampling standard error,
 margin of error, standardized margin of error, Monte Carlo uncertainty,
 fit-failure count, and precision decision in `power/results.csv`. Confirm that
 every primary estimand is represented.
+
+For the default criterion, set `decision_metric` to
+`standardized_margin_of_error`, copy that row's standardized margin into
+`decision_value`, copy `decision.threshold` into `decision_threshold`, and put
+the comparison result in `meets_requirement`.
 
 Record the random seed, replicate count, worker count, response parameters,
 response-model hash or version, and any retained replicate data in
