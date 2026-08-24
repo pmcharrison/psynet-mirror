@@ -14,8 +14,11 @@ Full-page navigation
 ~~~~~~~~~~~~~~~~~~~~
 
 The browser requests ``/timeline`` and receives a complete HTML document.
-The browser naturally parses the document, loads its dependencies, executes
-embedded scripts, and initializes the page.
+Classic ``js_dependencies`` are emitted as blocking ``<script src>`` tags in
+the head so they finish loading before ``#main-body`` scripts run. After the
+document loads, PsyNet still runs the guarded loader, which skips files already
+present and fails loudly if a declared dependency did not load. It then
+activates page code and modules.
 
 This path is used for the first timeline page, explicit legacy reload mode, and
 page types that require a document reload.
@@ -47,6 +50,10 @@ Before extracting a partial fragment, PsyNet:
 * makes executable embedded scripts inert;
 * copies managed page CSS from the rendered head into the fragment;
 * includes a fresh ``#psynet-template-data`` JSON payload.
+
+Full-page renders apply the same contract check. They also emit
+``js_dependencies`` as blocking head scripts so first-page body markup can use
+those libraries before managed page JavaScript activates.
 
 The fragment must contain the elements the persistent document replaces:
 
@@ -173,10 +180,11 @@ Embedded HTML scripts
 Framework templates and supported page content can contain classic ``<script>``
 elements colocated with their markup.
 
-On a full load, the browser executes them naturally. For an in-place
-transition, PsyNet makes them inert during rendering and replays them in DOM
-order after insertion. Adjacent inline scripts are grouped in a page-local
-function, while linked classic scripts are loaded once per document.
+On a full load, the browser executes them naturally, after blocking head
+``js_dependencies``. For an in-place transition, PsyNet makes them inert during
+rendering and replays them in DOM order after the guarded loader has fetched
+any new ``js_dependencies``. Adjacent inline scripts are grouped in a
+page-local function, while linked classic scripts are loaded once per document.
 
 This mechanism is useful for short behavior tightly coupled to PsyNet-owned
 Jinja macros. New Prompt and Control contributions should prefer
