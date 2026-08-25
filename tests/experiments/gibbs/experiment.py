@@ -69,7 +69,7 @@ class ColorSliderPage(ModularPage):
                     "hidden_inputs": hidden_inputs,
                 },
                 continuous_updates=False,
-                bot_response=lambda: random.randint(0, 255),
+                bot_response=lambda trial: trial.id % 256,
             ),
             time_estimate=time_estimate,
             css_links=["/static/color-slider.css"],
@@ -298,6 +298,9 @@ class Exp(psynet.experiment.Experiment):
         assert len([b for b in bots if b.var.participant_group == "B"]) == 3
 
         for b in bots:
+            repeat_trials = [t for t in b.all_trials if t.is_repeat_trial]
+            assert len({t.answer for t in repeat_trials}) == 3
+            assert len({t.parent_trial.answer for t in repeat_trials}) == 3
             assert len(b.alive_trials) == 7  # 4 normal trials + 3 repeat trials
             assert all([t.finalized for t in b.alive_trials])
 
