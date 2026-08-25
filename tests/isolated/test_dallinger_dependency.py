@@ -30,6 +30,23 @@ def test_lower_bound_from_pyproject_matches_experiment_extra():
     assert supported_dallinger_lower_bound() == version
 
 
+def test_lower_bound_from_pyproject_rejects_git_url(tmp_path):
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        """
+[project]
+dependencies = []
+[project.optional-dependencies]
+experiment = ["dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@some-branch"]
+""",
+        encoding="utf-8",
+    )
+    with pytest.raises(
+        ValueError, match="Could not find a Dallinger lower-bound version"
+    ):
+        dallinger_lower_bound_from_pyproject(pyproject)
+
+
 def test_lower_bound_from_pyproject_rejects_missing_dallinger(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
