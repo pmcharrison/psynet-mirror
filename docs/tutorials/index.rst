@@ -10,6 +10,7 @@ Tutorials
    assets
    specifying_dependencies
    tests
+   performance_testing
    synchronization
    chatroom
    ad_page
@@ -31,4 +32,3 @@ Tutorials
    sqlalchemy_profiling
    version_control_with_git
    setting_up_slack
-   upgrading_to_psynet_10

@@ -23,6 +23,8 @@ while placing minimal constraints on the complexity of the experiment design.
    dependencies/index
    installation/index
    experiment_development/index
+   whats_new/index
    deploy/index
    developer/index
    dashboards/translation
+   Benchmarks <https://psynetdev.gitlab.io/PsyNet/benchmarks/>
