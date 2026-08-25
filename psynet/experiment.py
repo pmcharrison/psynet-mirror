@@ -1304,10 +1304,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         if not config.ready:
             config.load()
+        # as_dict() resolves each key by source priority, matching what
+        # config.get() would return; merging config.data layers manually
+        # would resolve by load order instead. as_dict() only excludes
+        # keys registered as sensitive, so also apply is_sensitive(),
+        # which additionally matches sensitive-looking key names.
         self.var.deployment_config = {
             key: value
-            for section in reversed(config.data)
-            for key, value in section.items()
+            for key, value in config.as_dict().items()
             if not config.is_sensitive(key)
         }
 
@@ -1879,9 +1883,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "resource_danger_pct": 0.95,
             "minimal_disk_space_warning_gb": 5,
             "minimal_disk_space_danger_gb": 2,
-            **cls.config,
         }
 
+        return cls._normalize_config_types(config)
+
+    @classmethod
+    def config_settings(cls):
+        """
+        Values set in the experiment's ``config`` dictionary.
+
+        These are the experimenter's explicit decisions: they override the
+        user's ``~/.dallingerconfig``. The experiment's ``config.txt``
+        formally takes precedence over them (though PsyNet forbids setting
+        the same key in both places), followed by environment variables and
+        runtime writes.
+        """
+        return cls._normalize_config_types(
+            {
+                **super().config_settings(),
+                **cls.config,
+            }
+        )
+
+    @classmethod
+    def _normalize_config_types(cls, config):
+        """Cast config values to the types Dallinger expects."""
         config_types = dallinger_get_config().types
 
         for key, value in config.items():
@@ -2198,6 +2224,48 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Config variable {key} was registered both in config.txt and experiment.py. "
                     f"Please choose just one location."
                 )
+
+        cls._warn_about_overridden_experiment_config(config)
+
+    @classmethod
+    def _warn_about_overridden_experiment_config(cls, config):
+        """
+        Warn when values set in ``Experiment.config`` lose out to
+        higher-priority configuration sources.
+
+        Values set in experiment.py override ``~/.dallingerconfig``, but
+        environment variables and runtime writes still take precedence over
+        them. This is easy to miss and can lead to confusing behavior (e.g. a
+        ``dashboard_user`` set in experiment.py being silently replaced by a
+        stale environment variable), so we warn about it loudly at deployment
+        time.
+        """
+        if not cls.config:
+            return
+
+        experiment_values = {
+            key: value
+            for key, value in cls.config_settings().items()
+            if key in cls.config
+        }
+
+        for key, experiment_value in experiment_values.items():
+            resolved_value = config.get(key, None)
+            if resolved_value == experiment_value:
+                continue
+            source = _identify_config_override_source(key)
+            if config.is_sensitive(key):
+                details = ""
+            else:
+                details = (
+                    f" (experiment.py sets {experiment_value!r}, "
+                    f"but the resolved value is {resolved_value!r})"
+                )
+            logger.warning(
+                f"Config variable '{key}' is set in experiment.py but overridden by "
+                f"{source}{details}. Values set in experiment.py have lower priority than "
+                "environment variables and runtime configuration writes."
+            )
 
     @classmethod
     def check_base_payment(cls, config):
@@ -2871,7 +2939,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("notifier", str)
         config.register("experimenter_name", str)
         config.register("slack_channel_name", str)
-        config.register("slack_bot_token", str)
+        config.register("slack_bot_token", str, sensitive=True)
         config.register("needs_internet_access", bool)
 
         def is_positive_float(value):
@@ -4499,6 +4567,14 @@ def assert_config_txt_does_not_contain_sensitive_values():
 
 def in_deployment_package():
     return os.path.exists("DEPLOYMENT_PACKAGE")
+
+
+def _identify_config_override_source(key):
+    """Identify which configuration source overrides an experiment.py value."""
+    if key in os.environ:
+        return "an environment variable"
+
+    return "another configuration source"
 
 
 def authenticate(auth, config):
