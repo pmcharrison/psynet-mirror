@@ -8,7 +8,7 @@ from markupsafe import Markup
 
 from psynet.end import UnsuccessfulEndLogic
 from psynet.experiment import Experiment
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
 from psynet.timeline import (
     AsyncCodeBlock,
     CodeBlock,
@@ -616,6 +616,26 @@ def test_estimate_credit__while_loop__switch__bound_reward_false():
         expected_repetitions=5,
     )
     assert CreditEstimate(e).get_max("time") == 50
+
+
+def test_while_loop_on_timeout_runs_before_failure():
+    def on_timeout(participant):
+        participant.var.timeout_callback_ran = True
+
+    e = while_loop(
+        "loop_with_timeout_callback",
+        lambda: True,
+        InfoPage("", time_estimate=1),
+        expected_repetitions=1,
+        max_loop_time=1,
+        fail_on_timeout=True,
+        on_timeout=on_timeout,
+    )
+
+    assert any(
+        isinstance(elt, CodeBlock) and isinstance(next_elt, UnsuccessfulEndPage)
+        for elt, next_elt in zip(e, e[1:])
+    )
 
 
 def test_switch_with_trial_maker():
