@@ -93,6 +93,7 @@ from .recruiters import (  # noqa: F401
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
+from .static_resources import get_static_package_extra_files
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -108,7 +109,7 @@ from .timeline import (
 from .translation.check import check_translations
 from .translation.translate import create_pot
 from .translation.utils import compile_mo, load_po
-from .trial.main import Trial, TrialMaker
+from .trial.main import Trial, TrialMaker, TrialNetwork
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
@@ -122,6 +123,7 @@ from .utils import (
     get_authenticated_session,
     get_logger,
     get_translator,
+    is_in_repo_experiment,
     log_time_taken,
     render_template_with_translations,
     safe,
@@ -1303,10 +1305,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         if not config.ready:
             config.load()
+        # as_dict() resolves each key by source priority, matching what
+        # config.get() would return; merging config.data layers manually
+        # would resolve by load order instead. as_dict() only excludes
+        # keys registered as sensitive, so also apply is_sensitive(),
+        # which additionally matches sensitive-looking key names.
         self.var.deployment_config = {
             key: value
-            for section in reversed(config.data)
-            for key, value in section.items()
+            for key, value in config.as_dict().items()
             if not config.is_sensitive(key)
         }
 
@@ -1343,6 +1349,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
+        self._check_static_spa_contracts()
 
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
@@ -1357,6 +1364,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
         self._report_request_statistics()
+
+    def _check_static_spa_contracts(self):
+        """Fail fast on static timeline pages that are not SPA-compatible.
+
+        PageMakers are skipped here because their pages do not exist until
+        runtime; bots still surface those via richer HTTP 500 details.
+        """
+        from .timeline import Page
+        from .utils import get_config
+
+        config = get_config()
+        inplace = config.get("inplace_timeline_transitions")
+        for elt in self.timeline.all_elts:
+            if not isinstance(elt, Page):
+                continue
+            elt._check_spa_template_contract(inplace_timeline_transitions=inplace)
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
@@ -1602,6 +1625,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.grow_networks()
 
     @staticmethod
+    def _fail_grown_network(network):
+        """Mark a network's head (or degree-0 trials) failed after a grow error."""
+        if network.head is not None and network.head.degree > 0:
+            network.head.fail()
+        elif network.head is not None and network.head.degree == 0:
+            for trial in network.head.all_trials:
+                trial.fail()
+
+    @staticmethod
     def grow_networks():
         from psynet.trial.chain import ChainTrialMaker
 
@@ -1620,24 +1652,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
-            for network in networks:
+            # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+            # holding detached ORM instances for later networks.
+            for network_id in [network.id for network in networks]:
+                network = db.session.get(TrialNetwork, network_id)
+                if network is None:
+                    continue
                 try:
                     network.trial_maker.call_grow_network(
                         network, check_readiness=False
                     )
                 except Exception as err:
-                    if not isinstance(err, exp.HandledError):
-                        exp.handle_error(
-                            err,
-                            network=network,
-                        )
-                    if network.head.degree > 0:
-                        network.head.fail()
-                    elif network.head.degree == 0:
-                        for trial in network.head.all_trials:
-                            trial.fail()
+                    # Re-fetch after handle_error rollback; commit the fail so a
+                    # later error in this batch cannot undo it.
+                    exp.isolate_batch_item_failure(
+                        err,
+                        refetch=lambda: db.session.get(TrialNetwork, network_id),
+                        fail=Experiment._fail_grown_network,
+                        network=network,
+                    )
 
             logger.info("Finished growing networks.")
+
+    @scheduled_task("interval", seconds=5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _finalize_pending_trials():
+        if not is_experiment_launched():
+            return
+        # Event-driven finalize checks remain the fast path. This poller only
+        # recovers trials that became ready without those callbacks running.
+        Trial.finalize_pending_trials()
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
@@ -1820,7 +1866,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
-            "inplace_timeline_transitions": False,
+            "inplace_timeline_transitions": True,
+            "legacy_js_var_globals": "warn",
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -1832,9 +1879,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "resource_danger_pct": 0.95,
             "minimal_disk_space_warning_gb": 5,
             "minimal_disk_space_danger_gb": 2,
-            **cls.config,
         }
 
+        return cls._normalize_config_types(config)
+
+    @classmethod
+    def config_settings(cls):
+        """
+        Values set in the experiment's ``config`` dictionary.
+
+        These are the experimenter's explicit decisions: they override the
+        user's ``~/.dallingerconfig``. The experiment's ``config.txt``
+        formally takes precedence over them (though PsyNet forbids setting
+        the same key in both places), followed by environment variables and
+        runtime writes.
+        """
+        return cls._normalize_config_types(
+            {
+                **super().config_settings(),
+                **cls.config,
+            }
+        )
+
+    @classmethod
+    def _normalize_config_types(cls, config):
+        """Cast config values to the types Dallinger expects."""
         config_types = dallinger_get_config().types
 
         for key, value in config.items():
@@ -2152,6 +2221,48 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Please choose just one location."
                 )
 
+        cls._warn_about_overridden_experiment_config(config)
+
+    @classmethod
+    def _warn_about_overridden_experiment_config(cls, config):
+        """
+        Warn when values set in ``Experiment.config`` lose out to
+        higher-priority configuration sources.
+
+        Values set in experiment.py override ``~/.dallingerconfig``, but
+        environment variables and runtime writes still take precedence over
+        them. This is easy to miss and can lead to confusing behavior (e.g. a
+        ``dashboard_user`` set in experiment.py being silently replaced by a
+        stale environment variable), so we warn about it loudly at deployment
+        time.
+        """
+        if not cls.config:
+            return
+
+        experiment_values = {
+            key: value
+            for key, value in cls.config_settings().items()
+            if key in cls.config
+        }
+
+        for key, experiment_value in experiment_values.items():
+            resolved_value = config.get(key, None)
+            if resolved_value == experiment_value:
+                continue
+            source = _identify_config_override_source(key)
+            if config.is_sensitive(key):
+                details = ""
+            else:
+                details = (
+                    f" (experiment.py sets {experiment_value!r}, "
+                    f"but the resolved value is {resolved_value!r})"
+                )
+            logger.warning(
+                f"Config variable '{key}' is set in experiment.py but overridden by "
+                f"{source}{details}. Values set in experiment.py have lower priority than "
+                "environment variables and runtime configuration writes."
+            )
+
     @classmethod
     def check_base_payment(cls, config):
         if config.get("base_payment") > cls.max_allowed_base_payment:
@@ -2382,6 +2493,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page_uuid,
         client_ip_address,
         answer=NoArgumentProvided,
+        include_timeline_fragment=True,
     ):
         _p = get_translator(context=True)
         logger.info(
@@ -2440,7 +2552,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
-            return self.response_approved(participant)
+            return self.response_approved(participant, include_timeline_fragment)
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -2462,7 +2574,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             return error_response(participant=participant)
 
-    def response_approved(self, participant):
+    def response_approved(self, participant, include_timeline_fragment=True):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
         payload = {
@@ -2471,8 +2583,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
         config = get_config()
         # In inplace mode, the same /response round-trip both advances the
-        # participant state and returns the next timeline fragment.
-        if config.get("inplace_timeline_transitions"):
+        # participant state and returns the next timeline fragment. Skip the
+        # fragment when the next page forces a full reload; the client will
+        # navigate via /timeline instead.
+        if (
+            include_timeline_fragment
+            and config.get("inplace_timeline_transitions")
+            and not page.requires_full_page_reload
+        ):
             payload["timeline_fragment"] = self.render_partial_timeline_payload(
                 page, self, participant
             )
@@ -2524,6 +2642,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = []
         for trialmaker in cls.timeline.trial_makers.values():
             files.extend(trialmaker.extra_files())
+        files.extend(get_static_package_extra_files())
 
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
@@ -2572,6 +2691,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/scripts/psynet.js",
                     "/static/scripts/psynet.js",
+                ),
+                (
+                    resources.files("psynet") / "static/scripts/chatroom-widget.js",
+                    "/static/scripts/chatroom-widget.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/execute-front-end-js.js",
+                    "/static/scripts/execute-front-end-js.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/scripts/jspsych-page.js",
+                    "/static/scripts/jspsych-page.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "static/scripts/music-notation-prompt.js",
+                    "/static/scripts/music-notation-prompt.js",
                 ),
                 (
                     resources.files("psynet")
@@ -2657,7 +2794,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/survey-jquery",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/abc-js",
+                    resources.files("psynet") / "static/libraries/abc-js",
                     "/static/scripts/abc-js",
                 ),
                 (
@@ -2731,6 +2868,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Register PsyNet-specific configuration parameters.
         """
         config = dallinger_get_config()
+
+        def legacy_js_var_globals_validator(value):
+            """Validate the legacy JavaScript variable global access mode."""
+            if value not in {"warn", "error", "off"}:
+                raise ValueError(
+                    '`legacy_js_var_globals` must be one of: "warn", "error", or "off".'
+                )
+
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
         config.register("lab_recruiter_external_submission_url", str)
@@ -2757,6 +2902,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
         config.register("inplace_timeline_transitions", bool)
+        config.register(
+            "legacy_js_var_globals",
+            str,
+            validators=[legacy_js_var_globals_validator],
+        )
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
@@ -2785,7 +2935,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("notifier", str)
         config.register("experimenter_name", str)
         config.register("slack_channel_name", str)
-        config.register("slack_bot_token", str)
+        config.register("slack_bot_token", str, sensitive=True)
         config.register("needs_internet_access", bool)
 
         def is_positive_float(value):
@@ -3946,6 +4096,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return handled_error.error_page()
 
     @classmethod
+    def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
+        """
+        Report a per-item batch failure, mark the item failed, and commit.
+
+        Used by pollers that process many candidates in one transaction
+        (network growth, finalize backstop). ``handle_error`` rolls back the
+        session, so ``refetch`` must return a fresh ORM instance (or ``None``).
+        ``fail`` receives that instance and marks it failed. The fail is
+        committed immediately so a later ``handle_error`` in the same batch
+        cannot undo it (same mid-batch commit pattern as ErrorRecord logging).
+        """
+        if not isinstance(error, cls.HandledError):
+            cls.handle_error(error, **error_parents)
+        entity = refetch()
+        if entity is None:
+            return None
+        fail(entity)
+        db.session.commit()
+        return entity
+
+    @classmethod
     def handle_error(cls, error, **kwargs):
         parents = cls._compile_error_parents(**kwargs)
         db.session.rollback()
@@ -4136,6 +4307,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This helper is the shared render authority for inplace fragment output
         returned directly from /response.
         """
+        # Mirror the full-page /timeline path (see get_current_page), which
+        # calls pre_render() before rendering. Without this, pages advanced via
+        # an inplace transition would skip pre_render() hooks (e.g. prompt/control
+        # setup such as S3 presigned URL preparation).
+        page.pre_render()
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,
@@ -4192,6 +4368,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
+        include_timeline_fragment = get_arg_from_dict(
+            json_data, "include_timeline_fragment", use_default=True, default=True
+        )
         client_ip_address = cls.get_client_ip_address()
 
         res = exp.process_response(
@@ -4202,6 +4381,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
             answer,
+            include_timeline_fragment,
         )
 
         return res
@@ -4280,6 +4460,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.timeline.check_consents(self)
 
     def check_python_dependencies(self):
+        if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+            return
+        if is_in_repo_experiment():
+            if Path("constraints.txt").exists():
+                logger.warning(
+                    "Ignoring constraints.txt in in-repo experiment %s; in-repo "
+                    "experiments use PsyNet's shared development environment "
+                    "instead of per-demo constraint pins.",
+                    Path.cwd(),
+                )
+            return
         extra_deps = self.notifier.python_dependencies
         with open("constraints.txt", "r") as f:
             constraints = f.readlines()
@@ -4407,6 +4598,14 @@ def assert_config_txt_does_not_contain_sensitive_values():
 
 def in_deployment_package():
     return os.path.exists("DEPLOYMENT_PACKAGE")
+
+
+def _identify_config_override_source(key):
+    """Identify which configuration source overrides an experiment.py value."""
+    if key in os.environ:
+        return "an environment variable"
+
+    return "another configuration source"
 
 
 def authenticate(auth, config):
