@@ -1,1 +1,1 @@
-Added synchronous group timeout controls, including `GroupBarrier.max_wait_action="kick"` and between-barrier timeout settings, so experiments can kick or fail group members who wait too long at a barrier or fall behind after the group passed a previous barrier.
+Added synchronous group timeout controls to `GroupBarrier` and synchronized trial makers, allowing experiments to kick or fail group members who wait too long at a barrier or fall behind after their group passed a previous barrier.

@@ -1,7 +1,10 @@
+from types import SimpleNamespace
+
 import pytest
 
 from psynet.sync import GroupBarrier
 from psynet.trial.chain import ChainNode, ChainTrial, ChainTrialMaker
+from psynet.trial.main import Trial
 from psynet.trial.static import StaticTrial, StaticTrialMaker
 
 
@@ -99,6 +102,15 @@ def test_sync_trial_maker_requires_active_group_for_synced_participant():
         start_switch.get_target(experiment=None, participant=participant)
 
     assert participant.branch_log == []
+
+
+def test_trial_sync_group_returns_none_after_kick():
+    trial = SimpleNamespace(
+        trial_maker=SimpleNamespace(sync_group_type="main"),
+        participant=DummyParticipant(),
+    )
+
+    assert Trial.sync_group.fget(trial) is None
 
 
 def test_sync_trial_maker_prepare_barrier_kick_exits_cleanly(monkeypatch):

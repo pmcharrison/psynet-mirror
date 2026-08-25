@@ -3218,6 +3218,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/fail",
         methods=["POST"],
     )
+    @login_required
     @with_transaction
     def manual_fail_sync_group_participant(sync_group_id, participant_id):  # noqa F811
         from .dashboard.sync_groups import manual_fail_sync_group_participant
@@ -3232,6 +3233,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/kick",
         methods=["POST"],
     )
+    @login_required
     @with_transaction
     def manual_kick_sync_group_participant(sync_group_id, participant_id):  # noqa F811
         from .dashboard.sync_groups import manual_kick_sync_group_participant
