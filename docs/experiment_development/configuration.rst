@@ -87,6 +87,41 @@ to keep just one location.
     including an empty one — is never overwritten by scaffold or update.
 
 
+Load order and precedence
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Config variables can be set via several sources. When the same variable is set
+in more than one source, the value from the higher-priority source wins.
+The sources are, from highest to lowest priority:
+
+1. **Runtime writes** — values set from code through ``config.set()``,
+   ``config.extend()``, or ``config.override()``.
+2. **Environment variables** — variables named after config keys
+   (e.g. ``dashboard_user``).
+3. **config.txt** — the experiment-specific config file in the experiment's
+   root directory.
+4. **The ``Experiment.config`` dictionary** in ``experiment.py``. Although
+   ``config.txt`` formally takes precedence, PsyNet raises an error at
+   deployment time if the same variable is set in both places.
+5. **~/.dallingerconfig** — the global, per-user config file in your home
+   directory.
+6. **PsyNet experiment defaults** — values from
+   ``Experiment.config_defaults()``.
+7. **Dallinger package defaults** — values from
+   ``local_config_defaults.txt`` and ``global_config_defaults.txt``.
+
+Note in particular that values set in the ``Experiment.config`` dictionary
+override values set in ``~/.dallingerconfig``: they are the experiment's
+explicit decisions, not defaults. Only environment variables (and runtime
+configuration writes) take precedence over them; PsyNet logs a warning at
+deployment time if that happens.
+
+After the experiment package has been initialized, web, worker, and clock
+processes continue loading its experiment-specific layers after changing into
+a non-experiment directory. Environment variables and runtime writes may still
+differ between processes.
+
+
 Available config variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
