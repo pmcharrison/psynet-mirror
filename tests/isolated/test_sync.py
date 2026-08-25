@@ -115,7 +115,7 @@ def test_group_barrier_resolved_timeout_uses_overridden_handler():
         for elt, next_elt in zip(elts, elts[1:])
         if isinstance(elt, CodeBlock) and isinstance(next_elt, GoTo)
     ]
-    participant = SimpleNamespace(timeout_callback_ran=False)
+    participant = SimpleNamespace(timeout_callback_ran=False, module_state=None)
 
     assert len(timeout_callbacks) == 1
     timeout_callbacks[0].consume(experiment=None, participant=participant)
