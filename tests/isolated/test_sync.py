@@ -27,6 +27,7 @@ from psynet.sync import (
     SimpleSyncGroup,
     check_barriers,
 )
+from psynet.timeline import CodeBlock, GoTo
 
 
 def get_random_id():
@@ -57,6 +58,11 @@ class ExplodingBarrier(Barrier):
 class RecordingBarrier(Barrier):
     def check(self):
         processed_barriers.append(self.id)
+
+
+class RecordingTimeoutGroupBarrier(GroupBarrier):
+    def handle_max_wait_timeout(self, participant):
+        participant.timeout_callback_ran = True
 
 
 class DummyModel(SQLBase):
@@ -95,6 +101,25 @@ def test_max_wait_action_kick_requires_group_barrier():
         max_wait_action="kick",
     )
     assert barrier.max_wait_action == "kick"
+
+
+def test_group_barrier_resolved_timeout_uses_overridden_handler():
+    barrier = RecordingTimeoutGroupBarrier(
+        id_="group_barrier",
+        group_type="main",
+        max_wait_action="kick",
+    )
+    elts = barrier.resolve()
+    timeout_callbacks = [
+        elt
+        for elt, next_elt in zip(elts, elts[1:])
+        if isinstance(elt, CodeBlock) and isinstance(next_elt, GoTo)
+    ]
+    participant = SimpleNamespace(timeout_callback_ran=False, module_state=None)
+
+    assert len(timeout_callbacks) == 1
+    timeout_callbacks[0].consume(experiment=None, participant=participant)
+    assert participant.timeout_callback_ran
 
 
 @pytest.mark.parametrize(
@@ -144,6 +169,10 @@ def test_group_allocator(in_experiment_directory, db_session):
 
     group = participants[0].sync_group
     assert isinstance(group.leader, Participant)
+
+    with pytest.raises(TypeError, match=r"group\.add_participant"):
+        group.participants.append(participants[3])
+    assert participants[3] not in group.participants
 
     with pytest.raises(
         RuntimeError,

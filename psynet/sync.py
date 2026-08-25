@@ -85,6 +85,21 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
+class _ReadOnlyParticipantList(list):
+    """A participant list whose membership must be changed through its group."""
+
+    def _raise_mutation_error(self, *args, **kwargs):
+        raise TypeError(
+            "SyncGroup.participants is read-only; use group.add_participant() "
+            "or group.remove_participant() instead."
+        )
+
+    append = clear = extend = insert = pop = remove = reverse = sort = (
+        _raise_mutation_error
+    )
+    __delitem__ = __iadd__ = __imul__ = __setitem__ = _raise_mutation_error
+
+
 class Barrier(EltCollection):
     """
     A barrier is a timeline construct that holds participants in a waiting area until certain conditions
@@ -885,7 +900,7 @@ class SyncGroup(SQLBase, SQLMixin):
         The leader of the SyncGroup. This can be reassigned by logic such as ``group.leader = participant``.
 
     participants : List[Participant]
-        Participants currently in the group (links with ``active=True``). Use
+        Read-only list of participants currently in the group (links with ``active=True``). Use
         ``group.add_participant(participant)`` to add a participant.
     """
 
@@ -907,11 +922,11 @@ class SyncGroup(SQLBase, SQLMixin):
     @property
     def participants(self) -> List[Participant]:
         """Participants currently in the group (links with active=True)."""
-        return [
+        return _ReadOnlyParticipantList(
             link.participant
             for link in self.participant_links
             if getattr(link, "active", True)
-        ]
+        )
 
     def add_participant(self, participant: Participant):
         """Add a participant to the group (creates an active link)."""

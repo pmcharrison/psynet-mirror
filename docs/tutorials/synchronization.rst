@@ -28,6 +28,8 @@ It may be included in the timeline as follows:
 This ``SimpleGrouper`` organizes participants into groups of 2. By default it will create a new
 group of 2 each time 2 participants are ready and waiting, but an optional ``batch_size``
 parameter can be used to delay group formation until more participants are waiting.
+Set ``fail_participants_below_min_size=False`` to release the remaining members without failing
+them if a group that cannot accept top-ups drops below its minimum size.
 
 The groups created by ``Groupers`` are represented by ``SyncGroup`` objects.
 If a participant is a member of just one active SyncGroup, then it can be accessed with
@@ -43,7 +45,7 @@ Alternatively, within a trial one can use ``self.sync_group``
 (:attr:`Trial.sync_group <psynet.trial.main.Trial.sync_group>`),
 which resolves to the group matching that trial maker's ``sync_group_type``.
 
-The full list of active participants within the SyncGroup can then be accessed
+The read-only list of active participants within the SyncGroup can then be accessed
 via ``sync_group.participants``. To update membership, use
 ``sync_group.add_participant(participant)`` or
 ``sync_group.remove_participant(participant)``.
@@ -164,7 +166,9 @@ number of seconds, PsyNet measures from the time the group collectively passed t
 member who has not reached the current barrier within that interval is handled according to
 ``timeout_between_barriers_action``, which can be ``"fail"`` (default) or ``"kick"``.
 
-Trial makers with ``sync_group_type`` expose the same behavior with the prefixed parameters
+Trial makers with ``sync_group_type`` expose the same behavior with prefixed parameters.
+Their barrier wait controls are ``sync_group_max_wait_time`` (default: 45 seconds) and
+``sync_group_max_wait_action``; their between-barrier controls are
 ``sync_group_timeout_between_barriers_time`` and ``sync_group_timeout_between_barriers_action``.
 
 

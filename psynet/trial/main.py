@@ -573,7 +573,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         sync_group_type = self.trial_maker.sync_group_type
         if sync_group_type is None:
             return None
-        return self.participant.active_sync_groups[sync_group_type]
+        return self.participant.active_sync_groups.get(sync_group_type)
 
     def _allocate_performance_reward(self):
         reward = self.compute_performance_reward(score=self.score)
