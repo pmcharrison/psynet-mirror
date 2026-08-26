@@ -784,7 +784,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         off the successful-end page. Already-failed calls are a no-op.
 
         If they are still on the main timeline, they are redirected to
-        ``unsuccessful_end``. See
+        ``unsuccessful_end``. They are also removed from active sync groups.
+        If that drops a ``SimpleSyncGroup`` below its minimum size, remaining
+        members are failed immediately when
+        ``fail_participants_below_min_size`` is True. See
         :doc:`/tutorials/participant_and_trial_failure`.
 
         Parameters
@@ -826,11 +829,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
 
         super().fail(reason=reason)
-        for group in self.active_sync_groups.values():
-            from .sync import SimpleSyncGroup
 
-            if isinstance(group, SimpleSyncGroup):
-                group.check_numbers()
+        for group in list(self.active_sync_groups.values()):
+            group.remove_participant(self)
 
         self._redirect_to_unsuccessful_end(exp)
 

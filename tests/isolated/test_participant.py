@@ -6,7 +6,7 @@ from dallinger import db
 from psynet.bot import Bot, BotDriver
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sync import GroupBarrier, SimpleSyncGroup
+from psynet.sync import SimpleSyncGroup
 from psynet.trial.main import GenericTrialNode, Trial
 
 
@@ -355,12 +355,7 @@ class TestParticipantFailure:
         db.session.commit()
 
         assert participant.failed
-        assert not partner.failed
-        assert group.n_active_participants == 1
-
-        GroupBarrier(id_="sync_min_size", group_type="main").choose_who_to_release(
-            [partner]
-        )
-
         assert partner.failed
         assert "sync group below minimum size" in partner.failure_tags
+        assert group.n_active_participants == 0
+        assert partner not in group.active_participants

@@ -146,7 +146,10 @@ Premature exit does not fail completed trials. Recruiter events that end a
 still-eligible participant (assignment abandonment, a marketplace return such
 as a Prolific return, or reassignment) mark the participant as failed with
 the ``premature_exit`` tag, fail incomplete trials, and leave completed
-trials in place. If the participant has already failed, PsyNet records the
+trials in place. That participant is removed from their sync groups. If a
+:class:`~psynet.sync.SimpleSyncGroup` then falls below its minimum size and
+does not accept top-ups, remaining members are failed immediately when
+``fail_participants_below_min_size`` is True. If the participant has already failed, PsyNet records the
 recruiter cause tag (for example ``assignment_returned``) and does not invent
 a second ``premature_exit`` or re-run trial-invalidation logic. That covers
 settlement returns after an unsuccessful end, such as return-for-bonus. If
