@@ -1,4 +1,5 @@
 import inspect
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -136,7 +137,8 @@ def test_fail_trials_on_premature_exit_true_emits_deprecation_warning():
         )
 
     warning = record[0]
-    assert Path(warning.filename).resolve() == Path(__file__).resolve()
+    if sys.version_info >= (3, 12):
+        assert Path(warning.filename).resolve() == Path(__file__).resolve()
 
 
 def test_chain_trial_maker_rejects_mismatched_start_nodes():

@@ -2,6 +2,7 @@
 
 import datetime
 import random
+import sys
 import warnings
 from math import isnan
 from typing import List, Literal, Optional, Union
@@ -78,13 +79,19 @@ logger = get_logger()
 
 
 def _warn_ignored_fail_trials_on_premature_exit(trial_maker_id):
-    warnings.warn(
+    message = (
         f"fail_trials_on_premature_exit is ignored in trial maker {trial_maker_id!r}. "
         "Premature exit no longer fails completed trials; incomplete "
-        "trials are always failed when the participant exits or fails.",
-        DeprecationWarning,
-        skip_file_prefixes=psynet_source_prefixes(),
+        "trials are always failed when the participant exits or fails."
     )
+    if sys.version_info >= (3, 12):
+        warnings.warn(
+            message,
+            DeprecationWarning,
+            skip_file_prefixes=psynet_source_prefixes(),
+        )
+        return
+    warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
