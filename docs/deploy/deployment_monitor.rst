@@ -1,6 +1,34 @@
 Deployment monitor
 ==================
 
+.. _experiment_dashboard:
+
+The experiment dashboard
+=========================
+
+Every deployed or debugged experiment has its own dashboard. This is
+your main tool for tracking and managing a single study while it is
+running. The URL is printed in the terminal after the deploy or debug
+command (see :ref:`Deploying experiments via SSH <ssh_server>`).
+
+Key features:
+
+- **Monitoring tab:** View networks, nodes, parameters, and participant
+  answers. Click shapes for details.
+- **Timeline tab:** Track participant counts, completions, and
+  failures. See all the modules in your experiment and their completion
+  percentages.
+- **Database tab:** View or export data via the Export tab. See
+  :doc:`Data </deploy/data>` for the full export reference.
+- **Logger:** A live stream of log output; see :doc:`Error logging
+  </deploy/errors>`.
+
+This single-experiment dashboard is different from the deployment
+monitor described below, which shows *all* of your deployments at once.
+
+The deployment monitor
+=========================
+
 PsyNet allows you to monitor not only the progress of your own experiments, but also the status of other experiments.
 
 To share the status of an experiment across multiple deployments, all relevant experiments must use the same ``artifact_storage``.

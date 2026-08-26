@@ -140,3 +140,95 @@ you tried to launch the experiment.
 Note: A common problem is that you are using a different version (e.g. branch or commit) of PsyNet locally than on the remote server. 
 This can lead to unexpected errors. You should check your ``requirements.txt`` before deploying and verify that it 
 gives the same branch/commit that you have selected locally.
+
+If the launch appears stuck at "Launching experiment" for more than a
+few minutes, a common cause is that ``nip.io`` has hit a quota limit and
+is refusing to provide an HTTPS address. Other common causes include an
+invalid server name or incorrect recruiter parameters. If the terminal
+does not show a clear error, the Dozzle logs (see above) usually contain
+a more useful message.
+
+I cannot access my server anymore
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Try re-adding your PEM key to your SSH agent by running:
+
+.. code:: bash
+
+   ssh-add -K ~/.ssh/<your-key-name>.pem
+
+Replace ``<your-key-name>`` with the name of your PEM file (e.g., the
+file configured in your ``~/.dallingerconfig``).
+
+Docker connection errors when running debug or deploy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you see this error after running ``psynet debug ssh`` or
+``psynet deploy ssh``:
+
+.. code:: text
+
+   docker.errors.DockerException: Error while fetching server API version:
+   ('Connection aborted.', ConnectionRefusedError(61, 'Connection refused'))
+
+Make sure Docker Desktop is running.
+
+If you instead see:
+
+.. code:: text
+
+   docker.errors.DockerException: Error while fetching server API
+   version: ('Connection aborted.', PermissionError(13, 'Permission denied'))
+
+Changing permissions to the Docker socket has resolved this issue in the
+past.
+
+Port 5000 is already in use
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Disable AirDrop receiver on macOS. Alternatively, stop any other
+experiment running in another terminal or IDE window. To kill all
+running Python processes you can run:
+
+.. code:: bash
+
+   killall python
+
+or
+
+.. code:: bash
+
+   killall Python
+
+My server restarted and my experiment is no longer running
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+All experiments are stored under ``~/dallinger``. SSH into the server,
+navigate to the experiment directory, and run ``docker compose up`` to
+restart the experiment containers.
+
+I am unable to connect to my AWS EC2 instance via SSH
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A timeout often indicates a networking or internal system issue that can
+be resolved with a reboot. Steps:
+
+1. Install the AWS CLI.
+
+2. Configure it with your credentials:
+
+   .. code:: bash
+
+      aws configure
+
+3. Find the instance ID:
+
+   .. code:: bash
+
+      dallinger ec2 list instances
+
+4. Reboot the instance:
+
+   .. code:: bash
+
+      aws ec2 reboot-instances --instance-ids <INSTANCE_ID>

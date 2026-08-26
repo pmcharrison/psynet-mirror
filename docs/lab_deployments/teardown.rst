@@ -1,63 +1,35 @@
 Teardown
 ========
 
-The teardown steps depend on the server type you used. Follow the
-section that matches your setup. For the canonical cleanup workflow, see
-:doc:`Running PsyNet remotely <../getting_started/running_remotely>` and
-:ref:`SSH servers <ssh_server>`.
+The teardown steps depend on the server type you used. For the full
+command reference (EC2 teardown, destroying an app without tearing down
+the server, and internal/physical server cleanup), see
+:ref:`Terminating an instance <aws_automatic_teardown>` in the
+deployment reference.
 
-EC2 Server
-----------
+Before you tear anything down, make sure:
 
-If you provisioned an EC2 server, terminate it after you have finished
-exporting your data. EC2 servers incur charges while running, so
-terminating promptly avoids unnecessary costs:
+-  You have exported all data. **Once an EC2 server is terminated, any
+   data that was not exported is permanently lost.**
 
-.. code:: bash
+-  The experiment is stopped on the recruiter (for example, in Prolific
+   the experiment should be stopped and no longer active).
 
-   dallinger ec2 teardown --name <server_name> --region <region> --dns-host <your-subdomain>.<your-domain>
-
-**You must export all data before teardown. Once the server is
-terminated, any data that was not exported is permanently lost.**
-
-If you need to delete the app without tearing down the server (for
-example, when redeploying from archive on the same server), use
-``psynet destroy ssh``:
-
-.. code:: bash
-
-   psynet destroy ssh --app <app_name> --server <your-subdomain>.<your-domain>
-
-.. note::
-
-   **Destroy the app** when you have exported the data and will need to
-   reuse the same server, for example when redeploying from archive
-   (e.g., when assets are stored on the server).
-
-.. note::
-
-   **Teardown the server directly** when you have exported all the data
-   and will not need the server anymore.
-
-.. warning::
-
-   Every time you destroy an app you also need to stop the related
-   Prolific experiment. Each redeploy creates a new Prolific experiment,
-   and you can exclude participants from earlier deploys via the Prolific
+-  Every time you destroy an app, you also stop the related Prolific
+   experiment. Each redeploy creates a new Prolific experiment, and you
+   can exclude participants from earlier deploys via the Prolific
    platform.
 
-For multi-day deployments, you can **stop the EC2 instance overnight**
-to reduce costs. You will still incur minimal charges for storage, but
-the running charges stop. Do not forget to terminate the instance when
-you are fully done. See the stop/start commands in
-:doc:`Provisioning <provisioning>`.
-
-Internal or Physical Server
-----------------------------
-
-If you used an internal or physical server, delete the app once your
-experiment is done and you have exported all data:
+Quick reference:
 
 .. code:: bash
 
-   psynet destroy ssh --app <app_name> --server <your-server-hostname>
+   # Terminate an EC2 server entirely
+   dallinger ec2 teardown --name <server_name> --region <region> --dns-host <your-subdomain>.<your-domain>
+
+   # Delete an app without tearing down the server (e.g. before redeploying from archive)
+   psynet destroy ssh --app <app_name> --server <your-subdomain>.<your-domain>
+
+For multi-day deployments, you can stop the EC2 instance overnight
+instead of tearing it down; see the stop/start commands in
+:doc:`Provisioning <provisioning>`.

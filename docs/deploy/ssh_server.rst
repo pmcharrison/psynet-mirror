@@ -182,11 +182,34 @@ That's it! You should be all set up now.
 Deploying experiments via SSH
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You deploy experiments using the ``psynet deploy command``:
+You deploy experiments using the ``psynet deploy`` command:
 
 .. code:: bash
 
-    psynet deploy ssh --app your-app-name
+    psynet deploy ssh --app your-app-name --dns-host your-server.ac.uk --server your-server.ac.uk
+
+.. note::
+
+    Do not use an underscore character (``_``) in ``your-app-name``. This can cause an
+    error during deployment. The app name will be visible to participants, since it's
+    used in the experiment URL, so make it meaningful without revealing too much about
+    the experiment to participants.
+
+When the experiment is successfully deployed, the terminal prints the dashboard URL
+and login credentials, similar to this:
+
+.. code:: text
+
+    You can now log in to the console at
+    https://admin:XXX@your-app-name.your-server.ac.uk/dashboard
+    (user = admin, password = XXX)
+
+    ✔ Saving a snapshot of the code to
+    /Users/your-user/psynet-data/launch-data/your-app-name__mode=live__launch=<timestamp>/code…
+
+Save the dashboard link so that you can monitor the experiment while it collects data.
+See :doc:`Deployment monitor </deploy/deployment_monitor>` for details on what the
+dashboard shows and how to interpret it.
 
 By default, this will deploy your app to a hostname that looks like this:
 

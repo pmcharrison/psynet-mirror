@@ -1,4 +1,4 @@
-Prerequisites (One-time Setup)
+Prerequisites (one-time setup)
 ==============================
 
 This page describes the one-time setup required to run experiments using

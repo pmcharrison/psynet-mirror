@@ -6,6 +6,11 @@ and then use Prolific to recruit participants.
 Prolific is a paid service for sourcing online participants for psychology experiments.
 For a general introduction to Prolific, visit the `Prolific website <https://prolific.co/>`_.
 
+This page gives a Prolific-oriented walkthrough. If you are running a
+study as part of a lab workflow and want a broader checklist covering
+setup, recruiter choice, piloting, monitoring, exports, and teardown,
+see the :doc:`Lab research workflow </lab_deployments/index>`.
+
 .. To do - document alternative deployment methods here
 
 Setting up your Prolific account

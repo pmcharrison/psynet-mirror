@@ -11,7 +11,14 @@ Deploying experiments
 ---------------------
 
 Deploying an experiment to a remote web server requires some additional setup.
-See :doc:`running_remotely` for details, as well as the :doc:`/deploy/index` documentation.
+See :doc:`running_remotely` for an introduction to remote servers and
+:doc:`/deploy/index` for the deployment reference.
+
+If you are preparing to collect real data in a research lab, also read
+the :doc:`Lab research workflow </lab_deployments/index>`. It collects
+the operational steps that sit around the deployment command: checking
+credentials, choosing a recruiter, piloting the experiment, monitoring
+participants, exporting data, and cleaning up.
 
 Customizing your own experiment
 -------------------------------
