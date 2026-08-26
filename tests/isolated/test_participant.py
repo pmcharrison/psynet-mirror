@@ -346,8 +346,8 @@ class TestParticipantFailure:
             accepts_top_ups=False,
         )
         db.session.add(group)
-        group.participants.append(participant)
-        group.participants.append(partner)
+        group.add_participant(participant)
+        group.add_participant(partner)
         group.leader = participant
         db.session.commit()
 
