@@ -3,9 +3,17 @@ import uuid
 import pytest
 from dallinger import db
 
-from psynet.experiment import get_experiment, get_trial_maker
+from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
+
+
+class DummyTrial(StaticTrial):
+    time_estimate = 1
+
+    def show_trial(self, experiment, participant):
+        pass
 
 
 def _worker_id():
@@ -31,15 +39,21 @@ def _make_participant(experiment, *, complete=False, failed=False, status="worki
 
 @pytest.mark.parametrize(
     "experiment_directory",
-    [path_to_test_experiment("static")],
+    [path_to_test_experiment("timeline")],
     indirect=True,
 )
 @pytest.mark.usefixtures("in_experiment_directory")
 class TestNParticipantsCompletionModes:
     def test_n_participants_completion_modes(self, db_session):
         experiment = get_experiment()
-        trial_maker = get_trial_maker("animals")
-        trial_maker.target_n_participants = 1
+        trial_maker = StaticTrialMaker(
+            id_="quota",
+            trial_class=DummyTrial,
+            nodes=[StaticNode(definition={"x": 1})],
+            expected_trials_per_participant=1,
+            target_n_participants=1,
+            recruit_mode="n_participants",
+        )
 
         finished_still_in_experiment = _make_participant(experiment)
         trial_maker.start(finished_still_in_experiment)
