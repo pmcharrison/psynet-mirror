@@ -6,10 +6,13 @@ if TYPE_CHECKING:
     from psynet.asset import Asset
     from psynet.trial.main import TrialNode
 
+import copy
 import inspect
 import json
 import random
+import re
 import time
+import warnings
 from collections import Counter
 from datetime import datetime
 from functools import cached_property
@@ -18,8 +21,10 @@ from statistics import median
 from types import FunctionType
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
+from bs4 import BeautifulSoup
 from dallinger import db
 from dominate import tags
+from jsonpickle.util import importable_name
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -30,7 +35,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject
-from .serialize import is_lambda_function
+from .serialize import is_lambda_function, prepare_function_for_serialization
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -52,6 +57,99 @@ if TYPE_CHECKING:
     from .participant import Participant
 
 logger = get_logger()
+
+
+def _normalize_javascript_urls(urls, argument_name):
+    """Validate and normalize a list of JavaScript resource URLs."""
+    if urls is None:
+        return []
+    if not isinstance(urls, (list, tuple)):
+        raise TypeError(f"{argument_name} must be a list or tuple.")
+
+    normalized = []
+    seen = set()
+    for url in urls:
+        if not isinstance(url, str):
+            raise TypeError(f"{argument_name} entries must be strings.")
+        if not url.strip():
+            raise ValueError(f"{argument_name} entries must be non-empty.")
+        url = url.strip()
+        if url not in seen:
+            normalized.append(url)
+            seen.add(url)
+    return normalized
+
+
+def _normalize_js_page_code(code, argument_name="js_page_code"):
+    """Validate and normalize inline page activation code."""
+    if code is None:
+        return []
+    if isinstance(code, str):
+        code = [code]
+    elif not isinstance(code, (list, tuple)):
+        raise TypeError(f"{argument_name} must be a string, list, or tuple.")
+
+    normalized = []
+    for item in code:
+        if not isinstance(item, str):
+            raise TypeError(f"{argument_name} entries must be strings.")
+        if not item.strip():
+            raise ValueError(f"{argument_name} entries must be non-empty.")
+        normalized.append(item)
+    return normalized
+
+
+# Common Window names that legacy ``window.<js_vars key>`` access would
+# silently read instead of the page value. Not exhaustive; authors should
+# still prefer ``psynet.var``.
+_JS_VAR_WINDOW_COLLISION_KEYS = frozenset(
+    {
+        "alert",
+        "closed",
+        "confirm",
+        "console",
+        "crypto",
+        "document",
+        "event",
+        "fetch",
+        "frames",
+        "history",
+        "length",
+        "localStorage",
+        "location",
+        "name",
+        "navigator",
+        "opener",
+        "origin",
+        "parent",
+        "performance",
+        "prompt",
+        "screen",
+        "self",
+        "sessionStorage",
+        "status",
+        "top",
+        "window",
+    }
+)
+
+
+def _warn_js_var_window_collisions(js_vars):
+    """Warn when js_vars keys would not get a legacy window accessor."""
+    if not js_vars:
+        return
+    collisions = sorted(key for key in js_vars if key in _JS_VAR_WINDOW_COLLISION_KEYS)
+    if not collisions:
+        return
+    names = ", ".join(repr(key) for key in collisions)
+    warnings.warn(
+        "js_vars keys collide with existing window properties "
+        f"({names}). Legacy window.<key> reads will not see the page "
+        "value; use psynet.var instead. Common collisions include "
+        "name, status, event, and history.",
+        UserWarning,
+        stacklevel=3,
+    )
 
 
 class Event(dict):
@@ -323,6 +421,7 @@ class CodeBlock(Elt):
         call_function_with_context(
             self.function,
             self=self,
+            code_block=self,
             experiment=experiment,
             participant=participant,
         )
@@ -384,12 +483,22 @@ class AsyncCodeBlock(EltCollection):
             CodeBlock(self.wrap_up),
         )
 
-    def initiate(self, participant):
+    def initiate(self, participant, code_block):
         from psynet.process import WorkerAsyncProcess
 
+        code_block_id = code_block.id
         stale = participant.awaited_async_code_block_process
         if stale is not None:
             if stale.pending and not stale.failed:
+                if self.wait and self.matches_pending_process(stale, code_block_id):
+                    logger.warning(
+                        "Participant %s already has an async code block process "
+                        "(id=%s) pending; waiting for the existing process instead "
+                        "of starting a duplicate.",
+                        participant.id,
+                        stale.id,
+                    )
+                    return
                 raise RuntimeError(
                     "Participant already has an async code block process pending, this shouldn't happen."
                 )
@@ -413,8 +522,28 @@ class AsyncCodeBlock(EltCollection):
             call_function_with_context,
             label="AsyncCodeBlock",
             participant=participant,
-            arguments=dict(function=self.function, participant=participant),
+            arguments=dict(
+                function=self.function,
+                participant=participant,
+                code_block_id=code_block_id,
+            ),
         )
+
+    def matches_pending_process(self, process, code_block_id):
+        try:
+            pending_function = process.arguments["function"]
+            pending_code_block_id = process.arguments["code_block_id"]
+        except (KeyError, TypeError):
+            return False
+
+        return pending_code_block_id == code_block_id and self.function_key(
+            pending_function
+        ) == self.function_key(self.function)
+
+    @staticmethod
+    def function_key(function):
+        function, _ = prepare_function_for_serialization(function, {})
+        return importable_name(function)
 
     def wait_logic(self):
         from .page import wait_while
@@ -838,6 +967,58 @@ class ProgressDisplay(dict):
                     )
 
 
+_SPA_UPGRADE_DOCS_URL = (
+    "https://psynetdev.gitlab.io/PsyNet/whats_new/upgrading_to_psynet_14.html"
+)
+
+# Stable footer for author-facing SPA errors; HTTP extractors match on this.
+_SPA_INCOMPATIBILITY_MARKER = "[psynet-spa-incompatibility]"
+
+
+def _format_spa_incompatibility_message(page_label, codes):
+    """Build the author-facing SPA incompatibility message.
+
+    Keep this short: plain-language reload consequence, stable error codes,
+    and migrate-first vs per-page / experiment-wide opt-out.
+    """
+    unique_codes = list(dict.fromkeys(codes))
+    codes_text = ", ".join(unique_codes)
+    tips = []
+    if "window_listener_no_cleanup" in unique_codes:
+        tips.append(
+            "For window_listener_no_cleanup, register cleanup PsyNet can see: "
+            "return () => { ... } or return function cleanup() { ... } from "
+            "js_page_code / activate(), or use psynet.addPageCleanupCallback(...) "
+            "/ psynet.addPageEventListener(...). Returning another function "
+            "reference (for example return teardown) is not detected."
+        )
+    tip_text = ("\n\n" + "\n".join(tips)) if tips else ""
+    return (
+        f"Page '{page_label}' uses HTML/JS that needs a full browser reload "
+        f"between pages (error codes: {codes_text}).\n\n"
+        "Ideally, PsyNet pages are designed to support in-place loading, "
+        "which creates a smoother user experience. However, this is not "
+        "compulsory.\n\n"
+        "What would you like to do?\n"
+        "1. Update this page to support in-place loading:\n"
+        f"   {_SPA_UPGRADE_DOCS_URL}\n"
+        "   (or in Cursor, run /upgrade-to-psynet-14)\n"
+        "2. Leave the HTML/JS as is, and allow full reloads for this page by "
+        "passing requires_full_page_reload=True to the Page or ModularPage "
+        "constructor (or set inplace_timeline_transitions = false in "
+        "config.txt for a temporary experiment-wide opt-out)"
+        f"{tip_text}\n"
+        f"{_SPA_INCOMPATIBILITY_MARKER}"
+    )
+
+
+# Accept only zero-arg arrow cleanups or an explicitly named cleanup function.
+# Broader patterns like ``return (x) =>`` are ordinary returns, not SPA cleanup.
+_SPA_CLEANUP_RETURN_RE = re.compile(
+    r"\breturn\s+(?:async\s+)?(?:function\s+cleanup\b|\(\s*\)\s*=>)"
+)
+
+
 class Page(Elt):
     """
     The base class for pages, customised by passing values to the ``__init__``
@@ -859,6 +1040,26 @@ class Page(Elt):
     template_str:
         Alternative way of specifying the jinja2 template as a string.
 
+    template_fragment_path:
+        Path to a jinja2 template containing only the contents of the timeline
+        page's ``main_body`` block. This is the recommended custom-template
+        style for pages used with ``inplace_timeline_transitions``.
+
+    template_fragment_str:
+        Alternative way of specifying a main-body template fragment as a string.
+
+    framework_owned_template:
+        Internal marker for PsyNet-owned templates. Framework pages may still
+        use complete templates in SPA mode because PsyNet controls their page
+        shell and lifecycle; experiment-authored complete templates should use
+        ``template_fragment_path`` or ``template_fragment_str`` for SPA.
+
+    requires_full_page_reload:
+        If ``True``, this page always uses a full browser reload rather than an
+        in-place transition. Use this as a per-page opt-out while migrating
+        older custom frontends. Deprecated ``js_links`` / ``scripts`` also set
+        this automatically. Default: ``False``.
+
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
 
@@ -866,19 +1067,35 @@ class Page(Elt):
         Internal label to give the page, used for example in results saving.
 
     js_vars:
-        Dictionary of arguments to instantiate as global Javascript variables.
+        Dictionary of page-scoped values exposed to JavaScript through
+        ``psynet.var``. Legacy access through matching ``window`` properties is
+        deprecated and controlled by ``legacy_js_var_globals``.
 
     js_links:
-        Optional list of paths to JavaScript scripts to include in the page.
+        Deprecated list of classic JavaScript files executed as linked classic
+        scripts. Using this argument forces a full page reload. Prefer
+        ``js_dependencies`` or ``js_page_modules``.
+
+    js_dependencies:
+        Optional list of JavaScript file URLs to load once per browser document.
+
+    js_page_modules:
+        Optional JavaScript files activated for each page. Each file must export
+        an ``activate(context)`` function and may return a cleanup function.
+
+    js_page_code:
+        Optional inline JavaScript activation code, supplied as a string, list,
+        or tuple. Code receives the same ``root``, ``trial``, ``vars``, ``page``,
+        and ``psynet`` values as a page module and may return cleanup.
 
     media: :class:`psynet.timeline.MediaSpec`
         Optional specification of media assets to preload
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
 
     scripts:
-        Optional list of scripts to include in the page.
-        Each script should be represented as a string, which will be passed
-        verbatim to the page's HTML.
+        Deprecated classic inline JavaScript executed with global script
+        semantics. Using this argument forces a full page reload. Prefer
+        ``js_page_code``.
 
     css:
         Optional list of CSS specification to include in the page.
@@ -925,6 +1142,7 @@ class Page(Elt):
         For example, if I want to define an event that occurs 3 seconds after the trial starts,
         I would write ``events={"myEvent": Event(is_triggered_by="trialStart", delay=3.0)}``.
         Useful standard events to know are
+        ``pageReady`` (the page is initialized and navigation is valid),
         ``trialStart`` (start of the trial),
         ``promptStart`` (start of the prompt),
         ``promptEnd`` (end of the prompt),
@@ -995,6 +1213,7 @@ class Page(Elt):
     returns_time_credit = True
     dynamically_update_progress_bar_and_reward = False
     is_unity_page = False
+    requires_full_page_reload = False
     skip_beforeunload = False
 
     def __init__(
@@ -1003,12 +1222,17 @@ class Page(Elt):
         time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None,
+        template_fragment_path: Optional[str] = None,
+        template_fragment_str: Optional[str] = None,
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
-        js_links: Optional[List] = None,
+        js_links: Optional[Sequence[str]] = None,
+        js_dependencies: Optional[Sequence[str]] = None,
+        js_page_modules: Optional[Sequence[str]] = None,
+        js_page_code: Optional[Union[str, Sequence[str]]] = None,
         media: Optional[MediaSpec] = None,
-        scripts: Optional[List] = None,
+        scripts: Optional[Sequence[str]] = None,
         css: Optional[List] = None,
         css_links: Optional[List] = None,
         contents: Optional[Dict] = None,
@@ -1021,28 +1245,72 @@ class Page(Elt):
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
+        framework_owned_template: bool = False,
+        requires_full_page_reload: bool = False,
     ):
         super().__init__()
+
+        legacy_js_links = _normalize_javascript_urls(js_links, "js_links")
+        legacy_scripts = _normalize_js_page_code(scripts, "scripts")
+        if legacy_js_links:
+            warnings.warn(
+                "js_links is deprecated; migrate to js_dependencies or "
+                "js_page_modules.",
+                FutureWarning,
+                stacklevel=3,
+            )
+        if legacy_scripts:
+            warnings.warn(
+                "scripts is deprecated; migrate to js_page_code.",
+                FutureWarning,
+                stacklevel=3,
+            )
 
         if template_arg is None:
             template_arg = {}
         if js_vars is None:
             js_vars = {}
-        if js_links is None:
-            js_links = []
         if contents is None:
             contents = {}
         if css_links is None:
             css_links = []
 
-        if template_path is None and template_str is None:
-            raise ValueError("Must provide either template_path or template_str.")
+        complete_template_provided = (
+            template_path is not None or template_str is not None
+        )
+        fragment_template_provided = (
+            template_fragment_path is not None or template_fragment_str is not None
+        )
+
+        if not complete_template_provided and not fragment_template_provided:
+            raise ValueError(
+                "Must provide either template_path/template_str or "
+                "template_fragment_path/template_fragment_str."
+            )
         if template_path is not None and template_str is not None:
             raise ValueError("Cannot provide both template_path and template_str.")
+        if template_fragment_path is not None and template_fragment_str is not None:
+            raise ValueError(
+                "Cannot provide both template_fragment_path and template_fragment_str."
+            )
+        if complete_template_provided and fragment_template_provided:
+            raise ValueError(
+                "Cannot provide both a complete template and a template fragment."
+            )
 
         if template_path is not None:
             with open(template_path, "r") as file:
                 template_str = file.read()
+
+        template_kind = "complete"
+        template_contract_source = template_str
+        if fragment_template_provided:
+            template_kind = "fragment"
+            if template_fragment_path is not None:
+                with open(template_fragment_path, "r") as file:
+                    template_fragment_str = file.read()
+            template_contract_source = template_fragment_str
+            template_str = self._wrap_template_fragment(template_fragment_str)
 
         assert len(label) <= 250
         assert isinstance(template_arg, dict)
@@ -1050,18 +1318,52 @@ class Page(Elt):
 
         self.time_estimate = time_estimate
         self.template_str = template_str
+        self.template_kind = template_kind
+        self.template_contract_source = template_contract_source
+        self.framework_owned_template = framework_owned_template
+        self._spa_template_contract_warning_shown = False
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
-        self.js_links = js_links
+        _warn_js_var_window_collisions(js_vars)
+        self.legacy_js_links = legacy_js_links
+        self.legacy_scripts = legacy_scripts
+        self.js_dependencies = _normalize_javascript_urls(
+            js_dependencies, "js_dependencies"
+        )
+        self.js_page_modules = _normalize_javascript_urls(
+            js_page_modules, "js_page_modules"
+        )
+        self.js_page_code = _normalize_js_page_code(js_page_code)
+        # Framework classes (e.g. JsPsychPage) and explicit constructor opt-out
+        # skip the SPA migration error. Deprecated js_links/scripts still force
+        # a reload but continue to surface legacy_* error codes until migrated
+        # or opted out explicitly.
+        class_requires_reload = type(self).requires_full_page_reload
+        self._spa_contract_opt_out = bool(
+            requires_full_page_reload or class_requires_reload
+        )
+        if (
+            requires_full_page_reload
+            or legacy_js_links
+            or legacy_scripts
+            or class_requires_reload
+        ):
+            # Classic script semantics (global ``var``, non-module scope) are not
+            # emulated across in-place transitions; force a clean document instead.
+            # Authors may also opt in explicitly via requires_full_page_reload=True.
+            self.requires_full_page_reload = True
+        overlapping_javascript = set(self.js_dependencies) & set(self.js_page_modules)
+        if overlapping_javascript:
+            raise ValueError(
+                "The same URL cannot be used in both js_dependencies and "
+                f"js_page_modules: {sorted(overlapping_javascript)}"
+            )
 
         self.expected_repetitions = 1
 
         self.media = MediaSpec() if media is None else media
         self.media.check()
-
-        self.scripts = [] if scripts is None else [Markup(x) for x in scripts]
-        assert isinstance(self.scripts, list)
 
         self.css = [] if css is None else [Markup(x) for x in css]
         assert isinstance(self.css, list)
@@ -1088,6 +1390,15 @@ class Page(Elt):
 
         self._bot_response = bot_response
         self._validate_function = validate
+
+    @staticmethod
+    def _wrap_template_fragment(template_fragment_str):
+        return (
+            '{% extends "timeline-page.html" %}\n\n'
+            "{% block main_body %}\n"
+            f"{template_fragment_str}\n"
+            "{% endblock %}"
+        )
 
     def call__get_bot_response(self, experiment, bot, response=NoArgumentProvided):
         """
@@ -1135,6 +1446,7 @@ class Page(Elt):
     def prepare_default_events(self):
         return {
             "trialConstruct": Event(is_triggered_by=None, once=True),
+            "pageReady": Event(is_triggered_by=None, once=True),
             "trialManualRequest": Event(
                 is_triggered_by=["trialConstruct", "buttonStart"],
                 once=True,
@@ -1142,9 +1454,9 @@ class Page(Elt):
             ),
             "trialPrepare": Event(
                 is_triggered_by=(
-                    "trialConstruct"
+                    "pageReady"
                     if self.start_trial_automatically
-                    else "trialManualRequest"
+                    else ["trialManualRequest", "pageReady"]
                 ),
                 once=True,
             ),
@@ -1177,6 +1489,7 @@ class Page(Elt):
             "unique_id": participant.unique_id,
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
+            "requires_full_page_reload": self.requires_full_page_reload,
         }
 
     @property
@@ -1429,9 +1742,13 @@ class Page(Elt):
         """
         pass
 
-    def render(self, experiment, participant):
+    def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
 
+        # Architecture: docs/developer/page_lifecycle.rst
+        # `partial_mode` is an internal render shape used for inplace
+        # transitions. The public timeline route now serves full pages (plus
+        # mode=json), while /response embeds this fragment payload directly.
         internal_js_vars = {
             "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,
@@ -1440,7 +1757,13 @@ class Page(Elt):
         locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
+        # The SPA template contract applies to author-provided template source,
+        # not to PsyNet's generated timeline shell or supported page assets.
+        self._check_spa_template_contract(
+            inplace_timeline_transitions=config.get("inplace_timeline_transitions"),
+        )
         js_vars = {**self.js_vars, **internal_js_vars}
+        inplace_timeline_transitions = config.get("inplace_timeline_transitions")
 
         all_template_args = {
             **self.template_arg,
@@ -1458,8 +1781,11 @@ class Page(Elt):
             "participant": participant,
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
-            "scripts": self.scripts,
-            "js_links": self.js_links,
+            "legacy_js_links": self.legacy_js_links,
+            "legacy_scripts": self.legacy_scripts,
+            "js_dependencies": self.js_dependencies,
+            "js_page_code": self.js_page_code,
+            "js_page_modules": self.js_page_modules,
             "css": self.css + experiment.css,
             "css_links": self.css_links + experiment.css_links,
             "events": self.events,
@@ -1470,13 +1796,227 @@ class Page(Elt):
                 iso: language_dict[iso] for iso in experiment.supported_locales
             },
             "locale": locale,
+            "partial_mode": partial_mode,
+            "inplace_timeline_transitions": inplace_timeline_transitions,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
-        return render_string_with_translations(
+        rendered = render_string_with_translations(
             template_string=self.template_str, **all_template_args
         )
+        if partial_mode:
+            rendered = self._extract_partial_render(rendered)
+        else:
+            self._check_embedded_script_contract(rendered)
+        return rendered
+
+    def _check_spa_template_contract(self, inplace_timeline_transitions):
+        # Explicit / framework reload opt-out skips the migration error.
+        # Legacy js_links/scripts still force reload but keep raising so authors
+        # see legacy_* codes unless they also pass requires_full_page_reload=True.
+        if getattr(self, "_spa_contract_opt_out", False):
+            return
+
+        codes = self._collect_spa_incompatibility_codes()
+        if not codes:
+            return
+
+        message = _format_spa_incompatibility_message(self.label, codes)
+        if inplace_timeline_transitions:
+            raise ValueError(message)
+
+        if not self._spa_template_contract_warning_shown:
+            warnings.warn(message, UserWarning, stacklevel=2)
+            self._spa_template_contract_warning_shown = True
+
+    def _collect_spa_incompatibility_codes(self):
+        """Return stable SPA error codes for this page."""
+        codes = []
+
+        if not self.framework_owned_template:
+            if self.template_kind == "complete":
+                codes.append("complete_template")
+            codes.extend(
+                self._collect_spa_markup_contract_codes(self.template_contract_source)
+            )
+
+        if getattr(self, "legacy_js_links", None):
+            codes.append("legacy_js_links")
+        if getattr(self, "legacy_scripts", None):
+            codes.append("legacy_scripts")
+            codes.extend(
+                self._collect_spa_javascript_contract_codes(
+                    "\n".join(self.legacy_scripts)
+                )
+            )
+
+        js_page_code = getattr(self, "js_page_code", None) or []
+        if js_page_code:
+            codes.extend(
+                self._collect_spa_javascript_contract_codes("\n".join(js_page_code))
+            )
+
+        return list(dict.fromkeys(codes))
+
+    @staticmethod
+    def _collect_spa_javascript_contract_codes(javascript_source):
+        """SPA checks for plain JavaScript (js_page_code / legacy scripts).
+
+        Do not parse JS with BeautifulSoup: HTML-tag heuristics false-positive on
+        ordinary script text (for example strings containing ``<script``).
+        """
+        codes = []
+        javascript_source = javascript_source or ""
+
+        if re.search(
+            r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
+            r"['\"]DOMContentLoaded['\"]",
+            javascript_source,
+        ):
+            codes.append("dom_content_loaded")
+
+        has_window_event_listener = re.search(
+            r"\bwindow\s*\.\s*addEventListener\s*\(",
+            javascript_source,
+        )
+        has_page_cleanup = (
+            "psynet.addPageEventListener" in javascript_source
+            or "psynet.addPageCleanupCallback" in javascript_source
+            or _SPA_CLEANUP_RETURN_RE.search(javascript_source) is not None
+        )
+        if has_window_event_listener and not has_page_cleanup:
+            codes.append("window_listener_no_cleanup")
+
+        return codes
+
+    @staticmethod
+    def _collect_spa_markup_contract_codes(markup_source, allow_scripts=False):
+        # These checks intentionally cover common authoring mistakes rather
+        # than trying to prove that arbitrary HTML/JS is SPA-safe.
+        #
+        # `allow_scripts` is set for page content/prompt markup, where embedded
+        # <script> tags are a supported pattern: PsyNet defers and replays them
+        # across in-place transitions (see Page._make_embedded_scripts_inert). The
+        # prohibition still applies to author-provided page/prompt/control
+        # templates, which should route page JavaScript through
+        # js_dependencies, js_page_code, and js_page_modules.
+        codes = []
+        markup_source = markup_source or ""
+        soup = BeautifulSoup(markup_source, "html.parser")
+
+        if not allow_scripts and soup.find_all("script"):
+            codes.append("embedded_script")
+
+        if soup.find_all("style"):
+            codes.append("style_tag")
+
+        if soup.find_all("link", rel=lambda value: value and "stylesheet" in value):
+            codes.append("stylesheet_link")
+
+        codes.extend(Page._collect_spa_javascript_contract_codes(markup_source))
+
+        return codes
+
+    @staticmethod
+    def _extract_partial_render(rendered_html):
+        soup = BeautifulSoup(rendered_html, "html.parser")
+        Page._check_embedded_script_contract(soup)
+        Page._make_embedded_scripts_inert(soup)
+        return Page._extract_partial_body(soup)
+
+    @staticmethod
+    def _check_embedded_script_contract(html):
+        """Reject embedded modules in favor of managed page modules."""
+        soup = (
+            html
+            if isinstance(html, BeautifulSoup)
+            else BeautifulSoup(html, "html.parser")
+        )
+        for script in soup.find_all("script"):
+            script_type = (script.get("type") or "").strip().lower()
+            if script_type == "module":
+                raise ValueError(
+                    'Embedded <script type="module"> tags are not supported '
+                    "(error codes: embedded_module).\n\n"
+                    "Migrate following "
+                    f"{_SPA_UPGRADE_DOCS_URL}"
+                    " — or, in Cursor, run /upgrade-to-psynet-14"
+                )
+
+    @staticmethod
+    def _make_embedded_scripts_inert(soup):
+        """Make rendered HTML scripts inert until the fragment is activated."""
+        parsed_from_string = isinstance(soup, str)
+        if parsed_from_string:
+            soup = BeautifulSoup(soup, "html.parser")
+
+        executable_script_types = {
+            "",
+            "application/ecmascript",
+            "application/javascript",
+            "text/ecmascript",
+            "text/javascript",
+        }
+        for script in soup.find_all("script"):
+            script_type = (script.get("type") or "").strip().lower()
+            if script_type not in executable_script_types:
+                continue
+            script["type"] = "text/psynet-script"
+        if parsed_from_string:
+            return str(soup)
+        return soup
+
+    @staticmethod
+    def _extract_partial_body(soup):
+        if isinstance(soup, str):
+            soup = BeautifulSoup(soup, "html.parser")
+
+        fragment = soup.find(id="psynet-timeline-fragment")
+        if fragment is None:
+            raise ValueError(
+                "Failed to extract partial timeline body: could not find fragment root."
+            )
+        Page._copy_head_stylesheet_assets_to_fragment(soup, fragment)
+        return fragment.decode_contents()
+
+    @staticmethod
+    def _copy_head_stylesheet_assets_to_fragment(soup, fragment):
+        head = soup.find("head")
+        if head is None:
+            return
+
+        css_container = fragment.find(id="psynet-page-css")
+        if css_container is not None:
+            existing_styles = {
+                style.get_text() for style in css_container.find_all("style")
+            }
+            for style in head.find_all(
+                "style", attrs={"data-psynet-fragment-style": True}, recursive=False
+            ):
+                style_text = style.get_text()
+                if style_text not in existing_styles:
+                    css_container.append(copy.copy(style))
+                    existing_styles.add(style_text)
+
+        css_link_container = fragment.find(id="psynet-page-css-links")
+        if css_link_container is not None:
+            existing_hrefs = {
+                link.get("href")
+                for link in css_link_container.find_all(
+                    "link", rel=lambda value: value and "stylesheet" in value
+                )
+            }
+            for link in head.find_all(
+                "link",
+                attrs={"data-psynet-fragment-stylesheet": True},
+                rel=lambda value: value and "stylesheet" in value,
+                recursive=False,
+            ):
+                href = link.get("href")
+                if href not in existing_hrefs:
+                    css_link_container.append(copy.copy(link))
+                    existing_hrefs.add(href)
 
     @property
     def plain_text(self):
@@ -2111,6 +2651,7 @@ def while_loop(
     max_loop_time: float = None,
     fix_time_credit=True,
     fail_on_timeout=True,
+    on_timeout: Optional[Callable] = None,
 ):
     """
     Loops a series of elts while a given criterion is satisfied.
@@ -2148,6 +2689,10 @@ def while_loop(
         Whether the participants should be failed when the ``max_loop_time`` is reached.
         Setting this to ``False`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
         but allow them to proceed to the next page.
+
+    on_timeout:
+        Optional callable invoked when ``max_loop_time`` is exceeded.
+        Called with ``participant=...``.
 
     Returns
     -------
@@ -2193,12 +2738,25 @@ def while_loop(
 
     from .page import UnsuccessfulEndPage
 
+    timeout_callback = (
+        CodeBlock(
+            lambda participant: call_function_with_context(
+                on_timeout, participant=participant
+            )
+        )
+        if on_timeout is not None
+        else None
+    )
+
     if fail_on_timeout is True:
-        after_timeout_logic = UnsuccessfulEndPage(
-            failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+        after_timeout_logic = join(
+            timeout_callback,
+            UnsuccessfulEndPage(
+                failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+            ),
         )
     else:
-        after_timeout_logic = GoTo(end_while)
+        after_timeout_logic = join(timeout_callback, GoTo(end_while))
 
     time_estimate = CreditEstimate(logic).get_max("time")
 

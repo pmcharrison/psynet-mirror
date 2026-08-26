@@ -34,7 +34,6 @@ from .media import (
     get_aws_credentials,
     get_s3_bucket,
     get_s3_client,
-    get_s3_endpoint_url,
     get_s3_resource,
 )
 from .process import LocalAsyncProcess
@@ -543,8 +542,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         self.parent = parent
 
         from psynet.participant import Participant
-        from psynet.trial import Trial
-        from psynet.trial.main import TrialNetwork, TrialNode
+        from psynet.trial.main import Trial, TrialNetwork, TrialNode
 
         if isinstance(parent, Participant):
             self.participant_id = parent.id
@@ -3183,15 +3181,7 @@ class S3AwscliTransferBackend(S3TransferBackend):
     def run_command(self, cmd, verbose=True):
         """
         Run an AWS CLI command for S3 operations.
-
-        If `PSYNET_S3_ENDPOINT_URL` is set, the command is amended with
-        `--endpoint-url` so the AWS CLI talks to a custom S3-compatible
-        endpoint (for example Moto, LocalStack, or MinIO). This is useful
-        in CI or local testing where access to real AWS should be avoided.
         """
-        endpoint_url = get_s3_endpoint_url()
-        if endpoint_url:
-            cmd = ["aws", "--endpoint-url", endpoint_url, *cmd[1:]]
         if verbose:
             logger.info(f"Running AWS CLI command: {cmd}")
         try:

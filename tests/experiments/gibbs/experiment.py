@@ -69,9 +69,11 @@ class ColorSliderPage(ModularPage):
                     "hidden_inputs": hidden_inputs,
                 },
                 continuous_updates=False,
-                bot_response=lambda: random.randint(0, 255),
+                bot_response=lambda trial: trial.id % 256,
             ),
             time_estimate=time_estimate,
+            css_links=["/static/color-slider.css"],
+            js_page_modules=["/static/color-slider.js"],
         )
 
     def metadata(self, **kwargs):

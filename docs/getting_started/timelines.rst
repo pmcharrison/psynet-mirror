@@ -64,6 +64,16 @@ Pages define the web page that is shown to the participant at a given
 point in time, and have fixed content that is the same for all participants.
 We covered them in detail in the previous chapter, :doc:`pages`.
 
+.. note::
+
+   PsyNet uses *in-place timeline transitions* by default: when the participant
+   advances to the next page, PsyNet swaps the page content inside the existing
+   browser document instead of reloading the whole page. This does not affect
+   how you write ordinary timelines, but it does constrain custom page
+   templates and custom front-end components. See
+   :doc:`../tutorials/writing_custom_frontends` for the fragment-template
+   contract they must follow.
+
 Page makers
 ~~~~~~~~~~~
 
