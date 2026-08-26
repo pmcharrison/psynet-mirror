@@ -50,7 +50,7 @@ def _initialize_runtime() -> None:
     import warnings
 
     import dominate
-    from dallinger.config import Configuration, experiment_available
+    from dallinger.config import ConfigSource, Configuration, experiment_available
 
     import psynet.recruiters  # noqa: F401
     from psynet.utils import patch_yaspin_jupyter_detection
@@ -79,7 +79,11 @@ def _initialize_runtime() -> None:
                     pass
                 else:
                     raise
-            self.extend(Experiment.config_defaults(), strict=strict)
+            self.extend(
+                Experiment.config_defaults(),
+                strict=strict,
+                source=ConfigSource.EXPERIMENT_DEFAULTS,
+            )
 
         old_load(self, strict=strict)
 

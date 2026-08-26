@@ -3,6 +3,7 @@
 import io
 import json
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -45,6 +46,48 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+def _extract_server_error_details(response_text):
+    """Pull a useful exception message out of an HTTP error response body."""
+    if not response_text:
+        return None
+
+    from .timeline import _SPA_INCOMPATIBILITY_MARKER
+
+    spa_match = re.search(
+        r"Page '[^']+' uses HTML/JS that needs a full browser reload.*?"
+        + re.escape(_SPA_INCOMPATIBILITY_MARKER),
+        response_text,
+        flags=re.DOTALL,
+    )
+    if spa_match:
+        return re.sub(r"[ \t]+\n", "\n", spa_match.group(0)).strip()
+
+    value_error_match = re.search(
+        r"ValueError:\s*(.+?)(?:\n\s*File \"|\n\s*</|\Z)",
+        response_text,
+        flags=re.DOTALL,
+    )
+    if value_error_match:
+        return "ValueError: " + value_error_match.group(1).strip()
+
+    return None
+
+
+def _raise_for_status_with_server_details(response):
+    """Like ``Response.raise_for_status``, but include useful server details."""
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        details = _extract_server_error_details(response.text)
+        if details:
+            raise requests.HTTPError(
+                f"{exc}\n\nServer error details:\n{details}",
+                response=response,
+            ) from None
+        raise
+
 
 if TYPE_CHECKING:
     from .sync import SyncGroup
@@ -1050,7 +1093,7 @@ class ParticipantDriver:
             f"{self.experiment.base_url}/timeline",
             params={"unique_id": self.participant_unique_id},
         )
-        response.raise_for_status()
+        _raise_for_status_with_server_details(response)
 
     def _simulate_page_time(self, time_factor):
         """
@@ -1109,6 +1152,8 @@ class ParticipantDriver:
             "participant_id": self.id,
             "page_uuid": status["page_uuid"],
             **bot_response,
+            # Drivers fetch status separately and do not consume SPA fragments.
+            "include_timeline_fragment": False,
         }
 
         if "time_taken" not in submission_data["metadata"]:
@@ -1124,7 +1169,7 @@ class ParticipantDriver:
                 data={"json": json.dumps(submission_data)},
                 files=files,
             )
-        response.raise_for_status()
+        _raise_for_status_with_server_details(response)
         resp_json = response.json()
         if resp_json.get("submission") != "approved":
             raise RuntimeError(
