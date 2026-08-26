@@ -30,6 +30,9 @@ announcement. Throughout, `X.Y.Z` stands for the version being released.
   been merged into `master`, and `master` CI is green.
 - For a **patch** release: all bug-fix commits intended for the release have
   been cherry-picked or committed to the release branch.
+- The Dallinger dependency in `pyproject.toml` is pinned to a released
+  version, not a Git reference — see
+  [Dallinger version considerations](#dallinger-version-considerations).
 
 ### Pre-existing local changes
 
@@ -116,6 +119,22 @@ Change all occurrences from the old version to the new version. Then commit:
 git add psynet/version.py pyproject.toml
 git commit -m "Bump version to X.Y.Z"
 ```
+
+### Update What's new
+
+Visit `docs/whats_new/` whenever the release includes experimenter-facing
+highlights or breaking changes. Add or revise the matching version page
+(for example `docs/whats_new/psynet_14.rst`) and link it from
+`docs/whats_new/index.rst`.
+
+Write these pages for experiment authors: lead with what is exciting or
+useful, then point clearly at any upgrade path (docs and/or
+`/upgrade-to-psynet-*` skill). Do not turn them into full technical
+migration manuals.
+
+Skip this step only for patch-only releases with nothing meaningful to say
+there. When you do change What's new pages, commit them with the other
+release-prep commits (or as their own commit on the release branch).
 
 ### Update experiment templates (no longer required)
 
@@ -388,6 +407,8 @@ Perform the shared steps, in this order:
 1. [Update the CHANGELOG](#update-the-changelog)
 2. [Bump the version](#bump-the-version) (from the alpha version, e.g.
    `13.2.0a0` → `13.2.0`)
+3. [Update What's new](#update-whats-new) when the release has
+   experimenter-facing highlights or breaking changes
 
 ### 3. Push the release branch
 
@@ -553,6 +574,8 @@ Perform the shared steps, in this order:
    patch release section. Add fragments manually for any fix that is
    missing one.
 2. [Bump the version](#bump-the-version) (e.g. `13.1.0` → `13.1.1`)
+3. [Update What's new](#update-whats-new) only if the patch has something
+   experimenter-facing worth calling out
 
 ### 3. Push the release branch
 
@@ -637,7 +660,9 @@ using the shared steps with the RC version:
    changes land before the next RC or final release, record them as new
    fragments in `changelog.d/`.
 2. [Bump the version](#bump-the-version) from `13.2.0a0` to `13.2.0rc1`.
-3. Push the release branch and tag the RC. RC tags are pushed directly from
+3. [Update What's new](#update-whats-new) for experimenter-facing highlights
+   or breaking changes (usually on the first RC of a minor/major).
+4. Push the release branch and tag the RC. RC tags are pushed directly from
    the release branch — there is **no MR** and **no merge to `master`** at
    this stage:
 
@@ -648,19 +673,19 @@ using the shared steps with the RC version:
    ```
 
    Wait for the tag pipeline to pass on GitLab.
-5. [Build and upload to PyPI](#build-and-upload-to-pypi) using the RC
+6. [Build and upload to PyPI](#build-and-upload-to-pypi) using the RC
    version. Since the pre-build `rm -rf` guarantees a clean `dist/`, the
    broader glob `dist/psynet-13.2.0rc1*` is safe here. RCs are not marked
    as the latest release on PyPI, so users must opt in with
    `pip install psynet==13.2.0rc1`.
-6. [Verify the documentation deployment](#verify-the-documentation-deployment):
+7. [Verify the documentation deployment](#verify-the-documentation-deployment):
    confirm that `https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc1/` loads
    and that the RC appears in the version dropdown at
    <https://psynetdev.gitlab.io/PsyNet/>.
-7. **Skip the GitLab release entry.** RCs are tag-only on GitLab (see
+8. **Skip the GitLab release entry.** RCs are tag-only on GitLab (see
    above); the [Create the GitLab release](#create-the-gitlab-release)
    step applies to final releases only.
-8. [Announce the release on Slack](#announce-the-release-on-slack) with the
+9. [Announce the release on Slack](#announce-the-release-on-slack) with the
    RC version, writing the highlights file from the RC's CHANGELOG
    section as described there. `psynet dev release announce 13.2.0rc1
    --summary-file ...` auto-detects the `rc` segment and generates an
@@ -755,6 +780,28 @@ Once the latest RC has been validated and no further changes are needed:
 
 ## Dallinger version considerations
 
+**Pre-release check: no Git-reference Dallinger dependency.** Before
+cutting any release (including release candidates), check the
+`dallinger[docker]` entry in `pyproject.toml`. If it points at a Git
+reference (e.g.
+`dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@master`),
+`master` was temporarily tracking an unreleased Dallinger and must be
+re-pinned before releasing:
+
+1. Wait for (or request) the Dallinger release containing the needed
+   changes, then restore a versioned specifier in `pyproject.toml`
+   (e.g. `dallinger[docker]>=12.4.0,<13`).
+2. Refresh the vendored constraints snapshot:
+   `psynet dev ci update-dallinger-constraints`.
+3. Remove any temporary test skips or tooling workarounds that were added
+   to accommodate the Git reference.
+4. Update `recommended_dallinger_major_minor` in `psynet/version.py` if
+   the MAJOR.MINOR series changed.
+
+Do not publish a PsyNet release to PyPI while the dependency points at a
+Git reference: PyPI rejects direct URL dependencies, and even if vendored
+differently, a moving branch makes installs non-reproducible.
+
 If this release upgrades the Dallinger dependency:
 
 - Update the Dallinger version specifier in `pyproject.toml`
@@ -762,6 +809,9 @@ If this release upgrades the Dallinger dependency:
 - Update `recommended_dallinger_major_minor` in `psynet/version.py`.
 - Refresh the vendored Dallinger CI constraints snapshot with
   `psynet dev ci update-dallinger-constraints`.
+- Make sure the correct Dallinger version is installed in your environment
+  before running `psynet dev experiments update`, as the command uses it to
+  resolve constraint versions.
 
 ## Version files reference
 

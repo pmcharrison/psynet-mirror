@@ -59,6 +59,8 @@ class ColorSliderPage(ModularPage):
                 bot_response=lambda: random.randint(0, 255),
             ),
             time_estimate=time_estimate,
+            css_links=["/static/color-slider.css"],
+            js_page_modules=["/static/color-slider.js"],
         )
 
     def metadata(self, **kwargs):
