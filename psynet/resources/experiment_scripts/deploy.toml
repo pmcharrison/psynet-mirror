@@ -1,23 +1,30 @@
-# Deployment selection is independent of Git. Paths are literal,
-# root-relative prefixes; globs and negation are not supported.
+# Deployment selection is independent of Git.
+# exclude entries are literal, root-relative prefixes.
+# exclude_anywhere entries are literal basenames or *.suffix patterns
+# matched in every directory. Other Git globs and negation are not supported.
 version = 1
 
 exclude = [
     ".deploy",
-    ".env",
-    ".pytest_cache",
-    ".venv",
-    ".python-version",
-    "__pycache__",
     "data",
     "deploy",
     "deploy_logs",
     "develop",
     "local_only",
+    "snapshots",
+    "static/assets",
+]
+
+exclude_anywhere = [
+    "*.db",
+    "*.dmg",
+    ".env",
+    ".pytest_cache",
+    ".python-version",
+    ".venv",
+    "__pycache__",
     "logs.jsonl",
     "node_modules",
     "server.log",
-    "snapshots",
     "source_code.zip",
-    "static/assets",
 ]

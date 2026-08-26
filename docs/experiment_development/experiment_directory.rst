@@ -55,8 +55,10 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     therefore the debug staging directory, Docker build context, or remote
     deployment package. PsyNet creates this file from its template when it is
     missing and never overwrites an existing copy; ``psynet scripts scaffold``
-    and ``psynet scripts update`` do the same. Format, auto-omitted paths, and
-    inspection commands are documented in Dallinger's
+    and ``psynet scripts update`` do the same. ``exclude`` is root-relative
+    prefixes; ``exclude_anywhere`` is basenames or ``*.suffix`` patterns.
+    Format, auto-omitted paths, and inspection commands are documented in
+    Dallinger's
     `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_.
     Inspect the current plan with ``dallinger deployment-files list``.
     Source ``.dockerignore`` files are ignored by the plan; move any custom

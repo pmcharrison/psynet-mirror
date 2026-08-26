@@ -114,8 +114,9 @@ When the demo is running, offer the user to navigate the experiment automaticall
 
 ## Deployment files
 
-`deploy.toml` lists literal path prefixes to exclude from debug staging and
-deployment. PsyNet creates it from the template when missing and never
+`deploy.toml` lists `exclude` prefixes (root-relative) and
+`exclude_anywhere` basenames or `*.suffix` patterns to omit from debug
+staging and deployment. PsyNet creates it from the template when missing and never
 overwrites a custom copy. Inspect the current plan with
 `dallinger deployment-files list`.
 

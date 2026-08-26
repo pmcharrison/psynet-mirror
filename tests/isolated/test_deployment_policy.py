@@ -19,22 +19,27 @@ from psynet.utils import get_psynet_root, working_directory
 
 EXPECTED_EXCLUSIONS = (
     ".deploy",
-    ".env",
-    ".pytest_cache",
-    ".python-version",
-    ".venv",
-    "__pycache__",
     "data",
     "deploy",
     "deploy_logs",
     "develop",
     "local_only",
+    "snapshots",
+    "static/assets",
+)
+
+EXPECTED_EXCLUDE_ANYWHERE = (
+    "*.db",
+    "*.dmg",
+    ".env",
+    ".pytest_cache",
+    ".python-version",
+    ".venv",
+    "__pycache__",
     "logs.jsonl",
     "node_modules",
     "server.log",
-    "snapshots",
     "source_code.zip",
-    "static/assets",
 )
 
 
@@ -70,19 +75,35 @@ def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
 
     assert policy.version == 1
     assert policy.exclude == EXPECTED_EXCLUSIONS
+    assert policy.exclude_anywhere == EXPECTED_EXCLUDE_ANYWHERE
     assert not (template_directory / ".dockerignore").exists()
 
 
-def test_stock_policy_excludes_dallinger_starter_paths():
-    """Fail when Dallinger adds a generic starter exclude that PsyNet omitted."""
-    from dallinger.command_line.deployment_files import _STARTER_EXCLUSIONS
+def test_stock_policy_covers_dallinger_starter_paths():
+    """Fail when Dallinger adds a generic starter path that PsyNet omitted."""
+    from dallinger.command_line.deployment_files import (
+        _STARTER_EXCLUDE_ANYWHERE,
+        _STARTER_EXCLUSIONS,
+    )
 
     policy = parse_deployment_policy(_template_directory() / "deploy.toml")
-    stock_excludes = set(policy.exclude)
-    missing = tuple(path for path in _STARTER_EXCLUSIONS if path not in stock_excludes)
-    assert missing == (), (
-        "PsyNet's stock deploy.toml is missing Dallinger starter excludes: "
-        + ", ".join(missing)
+    missing_exclude = tuple(
+        path for path in _STARTER_EXCLUSIONS if path not in policy.exclude
+    )
+    missing_anywhere = tuple(
+        path
+        for path in _STARTER_EXCLUDE_ANYWHERE
+        if path not in policy.exclude_anywhere
+    )
+    assert missing_exclude == (), (
+        "PsyNet's stock deploy.toml is missing Dallinger starter exclude "
+        "prefixes: " + ", ".join(missing_exclude) + ". Review whether to add them to "
+        "psynet/resources/experiment_scripts/deploy.toml."
+    )
+    assert missing_anywhere == (), (
+        "PsyNet's stock deploy.toml is missing Dallinger starter "
+        "exclude_anywhere names: "
+        + ", ".join(missing_anywhere)
         + ". Review whether to add them to "
         "psynet/resources/experiment_scripts/deploy.toml."
     )
@@ -97,6 +118,7 @@ def test_scaffold_creates_stock_deployment_policy(tmp_path):
 
     policy = parse_deployment_policy(tmp_path / "deploy.toml")
     assert policy.exclude == EXPECTED_EXCLUSIONS
+    assert policy.exclude_anywhere == EXPECTED_EXCLUDE_ANYWHERE
     assert not (tmp_path / ".dockerignore").exists()
 
 
