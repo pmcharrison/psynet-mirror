@@ -284,7 +284,8 @@ There are many other optional parameters available too. See in particular:
     ``"experiment"`` (the default) counts participants who successfully
     finish the whole experiment. ``"trial_maker"`` counts participants who
     finish this trial maker, even if they later leave before the experiment
-    end page. In-progress participants still occupy a slot in both cases.
+    end page. In-progress participants still occupy a slot in both cases,
+    including people who have not yet reached this trial maker.
     This setting is only relevant if ``recruit_mode="n_participants"``.
 - ``target_trials_per_node``
     Target number of trials to recruit for each node in the experiment. This target is only

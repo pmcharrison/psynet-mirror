@@ -93,6 +93,16 @@ class DenseTrialMaker(StaticTrialMaker):
         Which completions fill the quota is controlled by
         ``n_participants_completion``.
 
+    n_participants_completion
+        Which kind of completion counts toward ``target_n_participants``.
+        ``"experiment"`` (default) counts participants who successfully
+        finish the whole experiment. ``"trial_maker"`` counts participants
+        who finish this TrialMaker, even if they later leave before the
+        experiment end page. In-progress participants still occupy a slot
+        in both cases, including people who have not yet reached this
+        TrialMaker, so PsyNet does not immediately recruit a replacement.
+        This setting is only relevant if ``recruit_mode="n_participants"``.
+
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
         including failed trials. Note that this number does not include repeat trials.

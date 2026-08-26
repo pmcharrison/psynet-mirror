@@ -1350,7 +1350,8 @@ class TrialMaker(Module):
         finish the whole experiment. ``"trial_maker"`` counts participants
         who finish this TrialMaker, even if they later leave before the
         experiment end page. In-progress participants still occupy a slot
-        in both cases so PsyNet does not immediately recruit a replacement.
+        in both cases, including people who have not yet reached this
+        TrialMaker, so PsyNet does not immediately recruit a replacement.
         This setting is only relevant if ``recruit_mode="n_participants"``.
 
     n_repeat_trials
@@ -1640,19 +1641,21 @@ class TrialMaker(Module):
 
     @property
     def _n_trial_maker_working_participants(self):
-        """Count working non-failed participants currently inside this TrialMaker."""
-        return (
-            Participant.query.filter_by(status="working", failed=False)
-            .join(ModuleState, ModuleState.participant_id == Participant.id)
-            .filter(
-                ModuleState.module_id == self.id,
-                ModuleState.started.is_(True),
-                ModuleState.finished.is_(False),
-                ModuleState.aborted.is_(False),
-            )
-            .distinct()
-            .count()
+        """Count working non-failed participants who have not finished this TrialMaker."""
+        finished_participant_ids = db.session.query(ModuleState.participant_id).filter(
+            ModuleState.module_id == self.id,
+            ModuleState.finished.is_(True),
         )
+        n = (
+            db.session.query(func.count(distinct(Participant.id)))
+            .filter(
+                Participant.status == "working",
+                Participant.failed.is_(False),
+                ~Participant.id.in_(finished_participant_ids),
+            )
+            .scalar()
+        )
+        return n or 0
 
     @property
     def n_viable_participants(self):
@@ -2465,7 +2468,8 @@ class NetworkTrialMaker(TrialMaker):
         finish the whole experiment. ``"trial_maker"`` counts participants
         who finish this TrialMaker, even if they later leave before the
         experiment end page. In-progress participants still occupy a slot
-        in both cases so PsyNet does not immediately recruit a replacement.
+        in both cases, including people who have not yet reached this
+        TrialMaker, so PsyNet does not immediately recruit a replacement.
         This setting is only relevant if ``recruit_mode="n_participants"``.
 
     n_repeat_trials

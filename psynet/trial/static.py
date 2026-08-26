@@ -142,7 +142,8 @@ class StaticTrialMaker(ChainTrialMaker):
         finish the whole experiment. ``"trial_maker"`` counts participants
         who finish this TrialMaker, even if they later leave before the
         experiment end page. In-progress participants still occupy a slot
-        in both cases so PsyNet does not immediately recruit a replacement.
+        in both cases, including people who have not yet reached this
+        TrialMaker, so PsyNet does not immediately recruit a replacement.
         This setting is only relevant if ``recruit_mode="n_participants"``.
 
     target_trials_per_node
