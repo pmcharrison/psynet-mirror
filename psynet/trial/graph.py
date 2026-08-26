@@ -390,7 +390,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
         recruit_mode: str,
-        target_n_participants=Optional[int],
+        target_n_participants: Optional[int] = None,
         n_participants_completion: Literal["experiment", "trial_maker"] = "experiment",
         max_nodes_per_chain: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
