@@ -73,13 +73,18 @@ class TestNParticipantsCompletionModes:
         trial_maker.start(failed_after_finish)
         trial_maker.end(failed_after_finish)
 
+        aborted_inside = _make_participant(experiment)
+        trial_maker.start(aborted_inside)
+        aborted_inside.aborted = True
+        aborted_inside.module_state.abort()
+
         not_yet_started = _make_participant(experiment)
         assert "quota" not in not_yet_started.module_states
         db.session.commit()
 
         trial_maker.n_participants_completion = "experiment"
         assert trial_maker.n_complete_participants == 0
-        assert trial_maker.n_working_participants == 3
+        assert trial_maker.n_working_participants == 4
         assert not trial_maker.n_participants_criterion(experiment)
 
         trial_maker.n_participants_completion = "trial_maker"

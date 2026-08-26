@@ -22,6 +22,7 @@ from sqlalchemy import (
     String,
     and_,
     distinct,
+    exists,
     func,
     inspect,
     not_,
@@ -1642,7 +1643,8 @@ class TrialMaker(Module):
     @property
     def _n_trial_maker_working_participants(self):
         """Count working non-failed participants who have not finished this TrialMaker."""
-        finished_participant_ids = db.session.query(ModuleState.participant_id).filter(
+        finished_this_module = exists().where(
+            ModuleState.participant_id == Participant.id,
             ModuleState.module_id == self.id,
             ModuleState.finished.is_(True),
         )
@@ -1651,7 +1653,8 @@ class TrialMaker(Module):
             .filter(
                 Participant.status == "working",
                 Participant.failed.is_(False),
-                ~Participant.id.in_(finished_participant_ids),
+                Participant.aborted.is_(False),
+                ~finished_this_module,
             )
             .scalar()
         )
