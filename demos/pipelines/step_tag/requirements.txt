@@ -5,4 +5,4 @@ psynet
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet
 
-psynet-step==0.1.0
+psynet-step @ git+https://github.com/pmcharrison/STEP.git@f9adc72

@@ -110,7 +110,7 @@ demos = [
     "music21",
     "numpy",
     "praat-parselmouth",
-    "psynet-step==0.1.0",
+    "psynet-step @ git+https://github.com/pmcharrison/STEP.git@f9adc72",
     "repp-tapping",
     "scipy",
     "sing4me",
