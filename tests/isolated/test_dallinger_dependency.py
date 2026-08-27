@@ -1,6 +1,7 @@
 """Tests for Dallinger lower-bound resolution from pyproject / metadata."""
 
 import re
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -15,8 +16,6 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_github_ref_tracks_declared_dallinger_dependency():
-    import tomllib
-
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     declared = next(
         dep
@@ -100,6 +99,23 @@ def test_github_ref_uses_version_bound_from_installed_metadata(tmp_path, monkeyp
         ],
     )
     assert dallinger_constraints_github_ref() == "v12.2.0"
+
+
+def test_lower_bound_from_pyproject_rejects_git_url(tmp_path):
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        """
+[project]
+dependencies = []
+[project.optional-dependencies]
+experiment = ["dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@some-branch"]
+""",
+        encoding="utf-8",
+    )
+    with pytest.raises(
+        ValueError, match="Could not find a Dallinger lower-bound version"
+    ):
+        dallinger_lower_bound_from_pyproject(pyproject)
 
 
 def test_lower_bound_from_pyproject_rejects_missing_dallinger(tmp_path):

@@ -3,7 +3,7 @@
 import datetime
 import random
 from math import isnan
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -17,6 +17,7 @@ from sqlalchemy import (
     Column,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     and_,
@@ -25,6 +26,7 @@ from sqlalchemy import (
     not_,
     or_,
     select,
+    text,
 )
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -332,6 +334,13 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     @hybrid_property
     def async_post_trial_pending(self):
+        """Whether async post-trial work is still in flight.
+
+        Used for feedback / wait loops. This is *not* the finalize gate:
+        finalize requires async success when requested (see
+        :attr:`async_post_trial_blocks_finalization`), so a failed async
+        does not count as pending here but still blocks finalization.
+        """
         return self.async_post_trial_requested and not (
             self.async_post_trial_complete or self.async_post_trial_failed
         )
@@ -346,6 +355,24 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
                     cls.async_post_trial_failed,
                 )
             ),
+        )
+
+    @hybrid_property
+    def async_post_trial_blocks_finalization(self):
+        """Whether async post-trial prevents finalization.
+
+        Stricter than :attr:`async_post_trial_pending`: if async was
+        requested, it must have *succeeded* (``async_post_trial_complete``)
+        before the trial may finalize. Failed async therefore blocks
+        finalization even though it is no longer "pending".
+        """
+        return self.async_post_trial_requested and not self.async_post_trial_complete
+
+    @async_post_trial_blocks_finalization.expression
+    def async_post_trial_blocks_finalization(cls):
+        return and_(
+            cls.async_post_trial_requested.is_(True),
+            cls.async_post_trial_complete.is_(False),
         )
 
     node = relationship(
@@ -546,7 +573,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         sync_group_type = self.trial_maker.sync_group_type
         if sync_group_type is None:
             return None
-        return self.participant.active_sync_groups[sync_group_type]
+        return self.participant.active_sync_groups.get(sync_group_type)
 
     def _allocate_performance_reward(self):
         reward = self.compute_performance_reward(score=self.score)
@@ -731,8 +758,11 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             # that we don't want to persist. We roll these back so that we revert to the state
             # before the method was called. However, we do need to record that the method failed,
             # so we set the async_post_trial_failed flag to True.
+            # Also fail the trial here so it cannot sit complete-but-unfinalizable if the
+            # surrounding process failure cascade is skipped (finalize requires async success).
             db.session.rollback()
             self.async_post_trial_failed = True
+            self.fail(reason="async_post_trial_failed")
             db.session.commit()
             raise
         self.async_post_trial_complete = True
@@ -756,47 +786,174 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
+        """Finalize the trial when complete and no blockers remain.
+
+        Intermediate waiting states log at debug; callers and the finalize
+        backstop poller re-check as preconditions clear.
+
+        Async post-trial is a success gate, not merely a pending check: if
+        async was requested, it must have completed successfully before
+        finalization (failed async must not finalize).
+        """
         if not self.complete:
             return
         if self.finalized:
             return
         if self.failed:
-            logger.info("Cannot mark as finalized because the trial is failed.")
-        elif self.asset_deposit_pending:
-            logger.info(
-                "Cannot mark as finalized yet because the trial is awaiting an asset deposit."
+            logger.debug(
+                "Cannot mark trial %s as finalized because it is failed.",
+                self.id,
             )
-        elif self.async_post_trial_requested and not self.async_post_trial_complete:
-            logger.info(
-                "Cannot mark as finalized yet because the trial is awaiting async_post_trial."
+            return
+        if self.asset_deposit_pending:
+            logger.debug(
+                "Cannot mark trial %s as finalized yet; awaiting asset deposit.",
+                self.id,
             )
-        else:
-            self.finalized = True
-            self.on_finalized()
+            return
+        if self.async_post_trial_blocks_finalization:
+            if self.async_post_trial_failed:
+                logger.debug(
+                    "Cannot mark trial %s as finalized; async_post_trial failed.",
+                    self.id,
+                )
+            else:
+                logger.debug(
+                    "Cannot mark trial %s as finalized yet; awaiting async_post_trial.",
+                    self.id,
+                )
+            return
+        self.finalized = True
+        self.on_finalized()
+
+    @classmethod
+    def _ready_to_finalize_condition(cls):
+        """SQL condition for trials that appear ready to finalize.
+
+        Uses :attr:`async_post_trial_blocks_finalization` (async must have
+        succeeded if requested), not :attr:`async_post_trial_pending`.
+        """
+        return and_(
+            cls.complete.is_(True),
+            cls.finalized.is_(False),
+            cls.failed.is_(False),
+            ~cls.asset_deposit_pending,
+            ~cls.async_post_trial_blocks_finalization,
+        )
+
+    @classmethod
+    def ready_to_finalize_id_select(cls):
+        """Select IDs of trials that appear ready to finalize."""
+        return select(cls.id).where(cls._ready_to_finalize_condition()).order_by(cls.id)
+
+    @classmethod
+    def get_trials_ready_to_finalize(cls):
+        """
+        Return trials that appear ready to finalize, locking them for update.
+
+        Known blockers (undeposited assets, pending async post-trial) are
+        excluded in SQL so the steady-state result is empty.
+
+        We use a two-step query on purpose: lock candidate IDs first with
+        ``FOR UPDATE SKIP LOCKED``, then load full polymorphic ``Trial``
+        objects by those IDs. Loading polymorphic rows in the locked query
+        can introduce ``DISTINCT``, which PostgreSQL rejects with
+        ``FOR UPDATE``. ``skip_locked`` keeps the poller non-blocking when
+        participant requests or async workers already hold a row lock.
+        """
+        # Lock IDs first; polymorphic Trial loads may add DISTINCT, which
+        # PostgreSQL does not allow with FOR UPDATE.
+        id_rows = db.session.execute(
+            cls.ready_to_finalize_id_select().with_for_update(of=cls, skip_locked=True)
+        ).all()
+        trial_ids = [row[0] for row in id_rows]
+        if not trial_ids:
+            return []
+        return (
+            cls.query.filter(cls.id.in_(trial_ids))
+            .order_by(cls.id)
+            .populate_existing()
+            .all()
+        )
+
+    @classmethod
+    def finalize_pending_trials(cls):
+        """
+        Backstop for missed event-driven finalize checks.
+
+        The participant response path, asset deposit callbacks, and async
+        post-trial completion remain the fast path. This method recovers
+        trials that became ready without those callbacks running.
+
+        Failures are isolated per trial (same idea as network growth): one
+        bad ``on_finalized`` must not leave the whole candidate set retrying
+        forever. ``handle_error`` rolls back the current session, so
+        uncommitted successes since the last commit are undone and retried
+        on the next poll. The failing trial is marked failed and committed
+        immediately so a later ``handle_error`` in the same batch cannot
+        undo that fail.
+        """
+        from psynet.experiment import get_experiment
+
+        trials = cls.get_trials_ready_to_finalize()
+        if not trials:
+            return 0
+
+        exp = get_experiment()
+        finalized_count = 0
+        # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+        # holding detached ORM instances for later trials.
+        for trial_id in [trial.id for trial in trials]:
+            trial = db.session.get(cls, trial_id)
+            if trial is None:
+                continue
+            try:
+                was_finalized = trial.finalized
+                trial.check_if_can_mark_as_finalized()
+                if trial.finalized and not was_finalized:
+                    finalized_count += 1
+            except Exception as err:
+                # Rollback undid uncommitted successes since the last commit;
+                # they will be picked up again on the next poll.
+                finalized_count = 0
+                exp.isolate_batch_item_failure(
+                    err,
+                    refetch=lambda: db.session.get(cls, trial_id),
+                    fail=lambda t: (
+                        t.fail(reason="finalize_backstop_error")
+                        if not t.failed
+                        else None
+                    ),
+                    trial=trial,
+                )
+
+        if finalized_count:
+            logger.info(
+                "Finalize backstop marked %i trial(s) as finalized.",
+                finalized_count,
+            )
+        return finalized_count
 
     def check_if_can_run_async_post_trial(self):
-        msg = "Checking if we should run async_post_trial... "
-        answer = False
-
+        msg = f"Checking if we should run async_post_trial for trial {self.id}... "
         if self.async_post_trial_requested:
-            msg += "no need, async_post_trial has already been requested."
+            logger.debug("%sno need, async_post_trial has already been requested.", msg)
+            return
 
-        elif self.run_async_post_trial is not None and not self.run_async_post_trial:
-            msg += "no need, as run_async_post_trial is False."
+        if self.run_async_post_trial is not None and not self.run_async_post_trial:
+            logger.debug("%sno need, as run_async_post_trial is False.", msg)
+            return
 
-        elif not is_method_overridden(self, Trial, "async_post_trial"):
-            msg += "no need, as no async_post_trial method is defined."
+        if not is_method_overridden(self, Trial, "async_post_trial"):
+            logger.debug("%sno need, as no async_post_trial method is defined.", msg)
+            return
 
-        elif self.asset_deposit_pending:
-            msg += "the trial is awaiting an asset deposit, so we have to wait."
+        if self.asset_deposit_pending:
+            logger.debug("%sawaiting an asset deposit, so we have to wait.", msg)
+            return
 
-        else:
-            msg = "All conditions seem to be satisfied, calling call_async_post_trial if it hasn't been called already."
-            answer = True
-
-        logger.info(msg)
-        if answer:
-            self.queue_async_post_trial()
+        logger.debug("%sconditions satisfied, queueing async_post_trial.", msg)
+        self.queue_async_post_trial()
 
     def queue_async_post_trial(self):
         self.async_post_trial_requested = True
@@ -1044,6 +1201,18 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         )
 
 
+# Keeps the finalize backstop poller cheap: a compact list of row IDs still
+# in the complete-but-not-finalized window (predicate columns are constant
+# inside that window, so we index id rather than complete/finalized/failed).
+Index(
+    "ix_info_pending_finalization",
+    Trial.id,
+    postgresql_where=text(
+        "complete IS true AND finalized IS false AND failed IS false"
+    ),
+)
+
+
 class TrialMakerState(ModuleState):
     participant_group = Column(String)
     in_repeat_phase = Column(Boolean)
@@ -1225,8 +1394,20 @@ class TrialMaker(Module):
 
     sync_group_max_wait_time
         The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
-        If this time is exceeded then the participant will be failed and the experiment will
-        terminate early. Defaults to 45.0 seconds.
+        If this time is exceeded, the participant is either failed or kicked (see ``sync_group_max_wait_action``).
+        Defaults to 45.0 seconds.
+
+    sync_group_max_wait_action
+        When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
+        of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
+
+    sync_group_timeout_between_barriers_time
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
+
+    sync_group_timeout_between_barriers_action
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
     """
 
     state_class = TrialMakerState
@@ -1247,6 +1428,9 @@ class TrialMaker(Module):
         assets: List,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
+        sync_group_timeout_between_barriers_time: Optional[float] = None,
+        sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1283,6 +1467,13 @@ class TrialMaker(Module):
         self.n_repeat_trials = n_repeat_trials
         self.sync_group_type = sync_group_type
         self.sync_group_max_wait_time = sync_group_max_wait_time
+        self.sync_group_max_wait_action = sync_group_max_wait_action
+        self.sync_group_timeout_between_barriers_time = (
+            sync_group_timeout_between_barriers_time
+        )
+        self.sync_group_timeout_between_barriers_action = (
+            sync_group_timeout_between_barriers_action
+        )
 
         elts = self.compile_elts()
 
@@ -1346,19 +1537,32 @@ class TrialMaker(Module):
             # If the participant is in a sync group and the leader has not been initialized,
             # then we put a GroupBarrier to ensure that the leader can be initialized first.
             # Otherwise we go ahead and initialize the participant.
-            lambda participant: (
-                self.sync_group_type is not None
-                and not self._leader_is_initialized(participant)
-            ),
+            self._requires_sync_group_initialization_barrier,
             logic_if_true=GroupBarrier(
                 "init_participant",
                 group_type=self.sync_group_type,
                 max_wait_time=self.sync_group_max_wait_time,
+                max_wait_action=self.sync_group_max_wait_action,
                 on_release=self._init_participants_in_sync_group,
+                timeout_between_barriers_time=self.sync_group_timeout_between_barriers_time,
+                timeout_between_barriers_action=self.sync_group_timeout_between_barriers_action,
             ),
             logic_if_false=CodeBlock(self.init_participant),
             time_estimate=0.0 if self.sync_group_type is None else 3.0,
         )
+
+    def _requires_sync_group_initialization_barrier(self, participant):
+        """Return whether the participant should wait for sync-group initialization."""
+        if self.sync_group_type is None:
+            return False
+        if self.sync_group_type not in participant.active_sync_groups:
+            participant_id = getattr(participant, "id", "<unknown>")
+            raise RuntimeError(
+                f"Trial maker '{self.id}' expected participant {participant_id} "
+                f"to have an active sync group of type '{self.sync_group_type}' "
+                "during initialization."
+            )
+        return not self._leader_is_initialized(participant)
 
     def _leader_is_initialized(self, participant):
         group = participant.active_sync_groups[self.sync_group_type]
@@ -1374,7 +1578,7 @@ class TrialMaker(Module):
 
     def _init_participants_in_sync_group(self, group: SyncGroup, experiment):
         self.init_participant(experiment, group.leader)
-        for participant in group.participants:
+        for participant in group.active_participants:
             if participant != group.leader and not self._is_initialized(participant):
                 self.init_participant(experiment, participant)
 
@@ -1386,9 +1590,7 @@ class TrialMaker(Module):
 
     @property
     def _wrapup_core(self):
-        return join(
-            CodeBlock(self.on_complete),
-        )
+        return join(CodeBlock(self.on_complete))
 
     @property
     def n_complete_participants(self):
@@ -1893,6 +2095,13 @@ class TrialMaker(Module):
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):
+        # In synchronous trial makers, we only make sure that the participant is still in the sync group (and not e.g. kicked out) before delivering the next trial.
+        if (
+            self.sync_group_type is not None
+            and self.sync_group_type not in participant.active_sync_groups
+        ):
+            return None, "exit"
+
         if not participant.module_state.in_repeat_phase:
             if leader is None:
                 trial, trial_status = self.prepare_trial(
@@ -1991,18 +2200,27 @@ class TrialMaker(Module):
 
     def _wait_for_trial(self):
         def try_to_prepare_trial():
-            if self.sync_group_type:
-                return join(
+            if not self.sync_group_type:
+                return CodeBlock(self._try_to_prepare_trial_solo)
+            return conditional(
+                "prepare_trial",
+                lambda participant: (
+                    self.sync_group_type in participant.active_sync_groups
+                ),
+                join(
                     GroupBarrier(
                         id_="prepare_trial",
                         group_type=self.sync_group_type,
                         on_release=self._try_to_prepare_trial_group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
+                        max_wait_action=self.sync_group_max_wait_action,
+                        timeout_between_barriers_time=self.sync_group_timeout_between_barriers_time,
+                        timeout_between_barriers_action=self.sync_group_timeout_between_barriers_action,
                     )
-                )
-            else:
-                return CodeBlock(self._try_to_prepare_trial_solo)
+                ),
+                CodeBlock(self._try_to_prepare_trial_solo),
+            )
 
         return join(
             try_to_prepare_trial(),
@@ -2197,9 +2415,20 @@ class NetworkTrialMaker(TrialMaker):
 
     sync_group_max_wait_time
         The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
-        If this time is exceeded then the participant will be failed and the experiment will
-        terminate early. Defaults to 45.0 seconds.
+        If this time is exceeded, the participant is either failed or kicked (see ``sync_group_max_wait_action``).
+        Defaults to 45.0 seconds.
 
+    sync_group_max_wait_action
+        When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
+        of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
+
+    sync_group_timeout_between_barriers_time
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
+
+    sync_group_timeout_between_barriers_action
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
     ----------
@@ -2265,6 +2494,9 @@ class NetworkTrialMaker(TrialMaker):
         assets=None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
+        sync_group_timeout_between_barriers_time: Optional[float] = None,
+        sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
         performance_check_is_enabled = (
             check_performance_at_end or check_performance_every_trial
@@ -2303,6 +2535,9 @@ class NetworkTrialMaker(TrialMaker):
             assets=assets,
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
+            sync_group_max_wait_action=sync_group_max_wait_action,
+            sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
+            sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks

@@ -25,6 +25,7 @@ readme = "README.md"
 requires-python = ">=3.11"  # recommended Python version: 3.13
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.11",
@@ -54,6 +55,8 @@ experiment = [
     "babel",
     # TODO(deployment-plan prototype): Pin this to the immutable Dallinger
     # commit of the deployment-plan branch until that work is merged upstream.
+    # The pinned commit is a descendant of v12.3.0, so it satisfies the
+    # >=12.3.0,<13 bound that master declares.
     "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@d27715b8b308e329565dcdda015cbb1e04d97fe9",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
@@ -115,6 +118,9 @@ demos = [
     "soundfile",
     "statsmodels",
 ]
+
+[project.entry-points."psynet.static"]
+psynet = "psynet.static_resources:psynet_static_root"
 
 [project.entry-points.pytest11]
 pytest_psynet = "psynet.pytest_psynet"

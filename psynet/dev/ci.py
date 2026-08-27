@@ -28,6 +28,7 @@ import urllib.request
 from pathlib import Path
 
 from psynet.dallinger_dependency import dallinger_constraints_github_ref
+from psynet.version import supported_python_major_minor_versions
 
 PYPROJECT_PATH = Path("pyproject.toml")
 DOCKERFILE_PATH = Path("Dockerfile")
@@ -97,37 +98,46 @@ def _strip_psynet_snapshot_header(content: str) -> str:
 
 
 def _check_docker_constraints_compile(
-    pyproject_path: Path, dallinger_constraints_path: Path, dockerfile_path: Path
+    pyproject_path: Path,
+    dallinger_constraints_path: Path,
+    dockerfile_path: Path,
+    python_versions=supported_python_major_minor_versions,
 ) -> None:
-    """Validate the vendored constraints with Docker's compile command shape."""
-    python_version = _get_docker_python_version(dockerfile_path)
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-        (tmp_path / "pyproject.toml").write_text(
-            pyproject_path.read_text(encoding="utf-8"),
-            encoding="utf-8",
+    """Validate the vendored constraints for every supported Python version."""
+    default_python_version = _get_docker_python_version(dockerfile_path)
+    if default_python_version not in python_versions:
+        raise ValueError(
+            f"Docker's default Python {default_python_version} is not supported."
         )
-        (tmp_path / "dallinger-dev-requirements.txt").write_text(
-            dallinger_constraints_path.read_text(encoding="utf-8"),
-            encoding="utf-8",
-        )
-        subprocess.run(
-            [
-                "uv",
-                "pip",
-                "compile",
-                "--python-version",
-                python_version,
-                "pyproject.toml",
-                "--extra",
-                "experiment",
-                "--extra",
-                "demos",
-                "--constraint",
-                "dallinger-dev-requirements.txt",
-                "--output-file",
-                "constraints.txt",
-            ],
-            cwd=tmp_path,
-            check=True,
-        )
+
+    for python_version in python_versions:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            (tmp_path / "pyproject.toml").write_text(
+                pyproject_path.read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            (tmp_path / "dallinger-dev-requirements.txt").write_text(
+                dallinger_constraints_path.read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            subprocess.run(
+                [
+                    "uv",
+                    "pip",
+                    "compile",
+                    "--python-version",
+                    python_version,
+                    "pyproject.toml",
+                    "--extra",
+                    "experiment",
+                    "--extra",
+                    "demos",
+                    "--constraint",
+                    "dallinger-dev-requirements.txt",
+                    "--output-file",
+                    "constraints.txt",
+                ],
+                cwd=tmp_path,
+                check=True,
+            )
