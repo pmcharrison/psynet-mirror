@@ -196,7 +196,9 @@ def test_ready_to_spawn_access_has_migration_error(db_session):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_assignment_returned_does_not_fail_owned_networks(db_session, participant):
+def test_assignment_returned_does_not_fail_within_chain_start_node(
+    db_session, participant
+):
     exp = get_experiment()
     within_maker = chain_trial_maker(
         id_="within_growth",
@@ -206,10 +208,15 @@ def test_assignment_returned_does_not_fail_owned_networks(db_session, participan
         recruit_mode="n_participants",
         target_n_participants=1,
     )
-    owned = create_chain_network(within_maker, exp, participant=participant)
-    owned_node = owned.head
-    completed = add_trial(GrowthQueryTrial, owned_node, participant, finalized=True)
-    incomplete = add_trial(GrowthQueryTrial, owned_node, participant, finalized=False)
+    network = within_maker.create_network(
+        exp, participant=participant, id_within_participant=0
+    )
+    start_node = network.head
+    assert start_node.degree == 0
+    assert start_node.participant_id == participant.id
+
+    completed = add_trial(GrowthQueryTrial, start_node, participant, finalized=True)
+    incomplete = add_trial(GrowthQueryTrial, start_node, participant, finalized=False)
     db.session.commit()
 
     exp.assignment_returned(participant)
@@ -218,8 +225,8 @@ def test_assignment_returned_does_not_fail_owned_networks(db_session, participan
     assert participant.failed
     assert "assignment_returned" in participant.failure_tags
     assert "premature_exit" in participant.failure_tags
-    assert not owned.failed
-    assert not owned_node.failed
+    assert not network.failed
+    assert not start_node.failed
     assert not completed.failed
     assert incomplete.failed
 

@@ -142,6 +142,15 @@ many prescreens, so that the collected trials remain valid measurements.
 nodes are not failed. Override it only if you intend Dallinger-style ownership
 failure.
 
+.. note::
+
+   Recruiter return, abandonment, and reassignment used to call Dallinger's
+   ``fail_participant``, which failed every node owned by that participant.
+   In a within-participant chain the start node belongs to that person, and
+   failing a degree-0 start node fails the whole network. PsyNet now fails
+   the participant and their incomplete trials instead, and leaves the chain
+   nodes and network unfailed.
+
 Premature exit does not fail completed trials. Recruiter events that end a
 still-eligible participant (assignment abandonment, a marketplace return such
 as a Prolific return, or reassignment) mark the participant as failed with

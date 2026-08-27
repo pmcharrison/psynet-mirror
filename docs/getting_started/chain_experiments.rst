@@ -65,6 +65,13 @@ completed), excluding failed trials (e.g. trials where an error occurred, or tha
 invalidated for some other reason).
 If a participant leaves, unfinished trials are failed and completed trials are
 kept by default, so chain growth can continue from the submitted work.
+
+.. note::
+
+   Leaving no longer fails that participant's within-chain start node or
+   network. Older Dallinger behaviour could fail the whole chain, because the
+   start node is owned by the participant.
+
 For more about trial invalidation and failure propagation, see
 :doc:`Participant and trial failure <../tutorials/participant_and_trial_failure>`.
 
