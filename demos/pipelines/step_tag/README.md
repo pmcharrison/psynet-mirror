@@ -8,6 +8,10 @@ from others until items freeze. Similar logic could be used for captioning
 images, naming categories, or any task where creation and rating are interleaved
 across a shared stimulus pool.
 
+This demo currently sets ``inplace_timeline_transitions = False`` because the
+external StepTag control still uses a complete template. Remove that opt-out
+once ``psynet-step`` follows the fragment-template contract.
+
 ## Usage
 
 For instructions on how to run PsyNet experiments like this one, visit the
