@@ -54,7 +54,7 @@ experiment = [
     "babel",
     # TODO(deployment-plan prototype): Pin this to the immutable Dallinger
     # commit of the deployment-plan branch until that work is merged upstream.
-    "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@1103deb1bc2ebb17ba148a070b762d02ce911bae",
+    "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@d27715b8b308e329565dcdda015cbb1e04d97fe9",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf

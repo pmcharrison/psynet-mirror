@@ -738,7 +738,7 @@ def ensure_deployment_policy() -> bool:
     if created:
         click.echo(
             "Created deploy.toml from the PsyNet template. "
-            "Review exclude paths before deploying."
+            "Review [exclude] paths, names, and suffixes before deploying."
         )
     return created
 
