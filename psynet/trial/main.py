@@ -2,6 +2,8 @@
 
 import datetime
 import random
+import sys
+import warnings
 from math import isnan
 from typing import List, Literal, Optional, Union
 
@@ -70,9 +72,26 @@ from ..utils import (
     get_logger,
     is_method_overridden,
     log_time_taken,
+    psynet_source_prefixes,
 )
 
 logger = get_logger()
+
+
+def _warn_ignored_fail_trials_on_premature_exit(trial_maker_id):
+    message = (
+        f"fail_trials_on_premature_exit is ignored in trial maker {trial_maker_id!r}. "
+        "Premature exit no longer fails completed trials; incomplete "
+        "trials are always failed when the participant exits or fails."
+    )
+    if sys.version_info >= (3, 12):
+        warnings.warn(
+            message,
+            DeprecationWarning,
+            skip_file_prefixes=psynet_source_prefixes(),
+        )
+        return
+    warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
@@ -1133,6 +1152,18 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             logger.info("Calling _finalize_trial.")
 
             trial = participant.current_trial
+            if participant.failed:
+                # Race guard: a background fail() can land after
+                # pending_redirect was already consumed at the start of
+                # advance_page. The normal fail() path redirects before this
+                # CodeBlock runs.
+                logger.info(
+                    "Not completing trial %s; the participant was already failed "
+                    "(for example participant.fail() while this page was open).",
+                    getattr(trial, "id", None),
+                )
+                return
+
             answer = participant.answer
 
             trial.answer = trial.format_answer(answer)
@@ -1317,12 +1348,17 @@ class TrialMaker(Module):
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
+        Deprecated. Premature exit no longer fails completed trials.
+        Incomplete trials are always failed when the participant fails or
+        exits. This argument is accepted for backwards compatibility and
+        ignored. It is not stored on the trial maker.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
+        If ``True``, a participant's completed trials for this TrialMaker are
+        marked as failed when the participant fails a performance check,
+        because those responses are treated as unusable. Incomplete trials are
+        always failed on any participant failure, regardless of this setting.
+        Subclasses document their own defaults.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
@@ -1414,18 +1450,19 @@ class TrialMaker(Module):
 
     def __init__(
         self,
+        *,
         id_: str,
         trial_class,
         expected_trials_per_participant: Union[int, float],
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
-        fail_trials_on_premature_exit: bool,
         fail_trials_on_participant_performance_check: bool,
         propagate_failure: bool,
         recruit_mode: str,
         target_n_participants: Optional[int],
         n_repeat_trials: int,
         assets: List,
+        fail_trials_on_premature_exit: bool = False,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
@@ -1457,7 +1494,8 @@ class TrialMaker(Module):
         self.expected_trials_per_participant = expected_trials_per_participant
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
-        self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
+        if fail_trials_on_premature_exit:
+            _warn_ignored_fail_trials_on_premature_exit(id_)
         self.fail_trials_on_participant_performance_check = (
             fail_trials_on_participant_performance_check
         )
@@ -1663,16 +1701,12 @@ class TrialMaker(Module):
     end_performance_check_waits = True
 
     def participant_fail_routine(self, participant, experiment):
-        if (
-            self.fail_trials_on_participant_performance_check
-            and "performance_check" in participant.failure_tags
-        ) or (
-            self.fail_trials_on_premature_exit
-            and "premature_exit" in participant.failure_tags
-        ):
-            self.fail_participant_trials(
-                participant, reason=", ".join(participant.failure_tags)
-            )
+        if "performance_check" not in participant.failure_tags:
+            return
+        if not self.fail_trials_on_participant_performance_check:
+            return
+        reason = ", ".join(participant.failure_tags)
+        self.fail_participant_trials(participant, reason=reason)
 
     @property
     def check_timeout_task(self):
@@ -1843,6 +1877,7 @@ class TrialMaker(Module):
         trials_to_fail = (
             self.trial_class.query.filter_by(complete=False, failed=False)
             .filter(self.trial_class.creation_time < time_threshold)
+            .order_by(self.trial_class.id)
             .with_for_update(of=self.trial_class)
             .populate_existing()
             .all()
@@ -1988,12 +2023,22 @@ class TrialMaker(Module):
         return with_trial_maker_namespace(self.id, x=x)
 
     def fail_participant_trials(self, participant, reason=None):
+        """Fail this TrialMaker's non-failed trials for a participant.
+
+        Parameters
+        ----------
+        participant
+            The participant whose trials should be failed.
+        reason
+            Optional failure reason stored on each trial.
+        """
         trials_to_fail = (
             Trial.query.filter_by(participant_id=participant.id, failed=False)
-            .with_for_update(of=Trial)
-            .populate_existing()
             .join(TrialNetwork)
             .filter_by(trial_maker_id=self.id)
+            .order_by(Trial.id)
+            .with_for_update(of=Trial)
+            .populate_existing()
         )
         for trial in trials_to_fail:
             trial.fail(reason=reason)
@@ -2373,12 +2418,10 @@ class NetworkTrialMaker(TrialMaker):
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
@@ -2477,13 +2520,13 @@ class NetworkTrialMaker(TrialMaker):
 
     def __init__(
         self,
+        *,
         id_,
         trial_class,
         network_class,
         expected_trials_per_participant,
         check_performance_at_end,
         check_performance_every_trial,
-        fail_trials_on_premature_exit,
         fail_trials_on_participant_performance_check,
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
@@ -2491,6 +2534,7 @@ class NetworkTrialMaker(TrialMaker):
         target_n_participants,
         n_repeat_trials: int,
         wait_for_networks: bool,
+        fail_trials_on_premature_exit: bool = False,
         assets=None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
