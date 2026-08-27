@@ -339,7 +339,8 @@ def test_deploy_local_restores_selected_snapshot_and_saves_shutdown(
         return final
 
     monkeypatch.setattr("psynet.command_line.local_deployment_lock", unlocked)
-    monkeypatch.setattr("psynet.services.ensure_local_services", lambda **_kwargs: True)
+    ensure_services = Mock(return_value=True)
+    monkeypatch.setattr("psynet.services.ensure_local_services", ensure_services)
     monkeypatch.setattr(
         "psynet.command_line.protect_existing_database", lambda *_args, **_kwargs: None
     )
@@ -368,6 +369,8 @@ def test_deploy_local_restores_selected_snapshot_and_saves_shutdown(
     assert calls["run"][0][2] == str(archive)
     assert calls["run"][1]["local_id"] == "gibbs"
     assert calls["run"][1]["resumed_from"] == 4
+    assert calls["run"][1]["services_ready"] is True
+    ensure_services.assert_called_once_with(assume_yes=False, strict=True)
     assert calls["snapshot"][1]["reason"] == "shutdown"
     assert calls["snapshot"][1]["resumed_from"] == 4
     assert [args[1] for args, _kwargs in events] == [

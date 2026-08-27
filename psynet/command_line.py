@@ -406,6 +406,7 @@ def _run_local(
     context_group,
     local_id=None,
     resumed_from=None,
+    services_ready=False,
 ):
     with local_database_lock(Path.cwd(), local_id):
         return _run_local_unlocked(
@@ -418,6 +419,7 @@ def _run_local(
             context_group,
             local_id,
             resumed_from,
+            services_ready,
         )
 
 
@@ -431,6 +433,7 @@ def _run_local_unlocked(
     context_group,
     local_id=None,
     resumed_from=None,
+    services_ready=False,
 ):
     """
     Debug the experiment locally (this should normally be your first choice).
@@ -454,6 +457,7 @@ def _run_local_unlocked(
         app=None,
         local_id=local_id,
         resumed_from=resumed_from,
+        services_ready=services_ready,
     )
     _cleanup_before_debug()
 
@@ -1163,6 +1167,7 @@ def _pre_launch(
     app=None,
     local_id=None,
     resumed_from=None,
+    services_ready=False,
 ):
     from .experiment import get_experiment
 
@@ -1176,7 +1181,8 @@ def _pre_launch(
     # helpers on this machine before any remote packaging, so local Postgres
     # and Redis are required here even when the experiment ultimately runs
     # elsewhere.
-    ensure_local_services(assume_yes=False, strict=True)
+    if not services_ready:
+        ensure_local_services(assume_yes=False, strict=True)
 
     redis_vars.clear()
     deployment_info.init(
@@ -1370,6 +1376,7 @@ def deploy__local(
                         if selected_snapshot is not None
                         else None
                     ),
+                    services_ready=True,
                 )
             except SystemExit as error:
                 if error.code != 0:
