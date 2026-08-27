@@ -12,4 +12,6 @@ wrong-paradigm hook is overridden. ``CreateAndRateTrialMakerMixin`` no longer
 provides ``get_non_failed_creations``; classify nodes with
 ``get_creation_phases`` and load finalized creations with
 ``get_finished_creations``. Heads that still have unfinalized creator
-trials wait or exit instead of raising.
+trials wait or exit instead of raising. ``Trial.position`` is now a stored,
+zero-based creation sequence shared across all trial classes in a participant's
+trial maker, rather than a live index within each concrete trial class.

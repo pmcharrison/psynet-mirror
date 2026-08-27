@@ -137,8 +137,14 @@ Search custom trial makers for ``find_networks``, ``find_node``,
   class without calling ``get_trial_class`` again.
 * Create-and-rate role filters should keep ``WAITING_FOR_CREATORS`` chains
   (see :meth:`~psynet.trial.create_and_rate.CreateAndRateTrialMakerMixin.filter_chains_by_role`)
-  so the mixin can wait. A selected head that is still waiting for
-  creators waits or exits instead of raising.
+  so the mixin can wait. Do not override ``get_trial_class`` from participant
+  role alone; that skips the mixin's final phase check. A selected head that is
+  still waiting for creators waits or exits instead of raising.
+* :attr:`~psynet.trial.main.Trial.position` is now stored when the trial is
+  created and counts across all concrete trial classes in a participant's trial
+  maker. Previously it was calculated within each concrete trial class. Trials
+  constructed outside a trial-maker state may have ``position=None``; code that
+  performs arithmetic with ``position`` should handle that case explicitly.
 
 PsyNet raises an actionable ``TypeError`` when a removed or wrong-paradigm
 hook is still overridden.

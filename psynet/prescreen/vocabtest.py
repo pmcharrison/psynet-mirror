@@ -689,19 +689,21 @@ class VocabTest(StaticTrialMaker):
                 assets[hash_] = asset
         return assets
 
-    def prepare_trial(self, experiment, participant):
-        previous_trials = VocabTrial.query.filter_by(
-            trial_maker_id=self.id, participant_id=participant.id
-        ).all()
-        trial, trial_status = super().prepare_trial(experiment, participant)
-
-        if trial:
-            stimuli = trial.node.seed
-            selected_hashes = self.choose_hashes(stimuli, previous_trials)
-            trial.definition["hashes"] = selected_hashes
-            assets = self.get_assets(stimuli, selected_hashes)
-            trial.assets = assets
-        return trial, trial_status
+    def _prepare_trial_for_created_hook(self, trial, experiment, participant):
+        """Add vocabulary-test state before ``on_trial_created`` runs."""
+        super()._prepare_trial_for_created_hook(trial, experiment, participant)
+        previous_trials = [
+            previous
+            for previous in VocabTrial.query.filter_by(
+                trial_maker_id=self.id,
+                participant_id=participant.id,
+            ).all()
+            if previous is not trial
+        ]
+        stimuli = trial.node.seed
+        selected_hashes = self.choose_hashes(stimuli, previous_trials)
+        trial.definition["hashes"] = selected_hashes
+        trial.assets = self.get_assets(stimuli, selected_hashes)
 
     @staticmethod
     def score_consistency(items, repeat_items):

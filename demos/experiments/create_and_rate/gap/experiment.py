@@ -313,11 +313,6 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
             return []
         return self.filter_chains_by_role(chains, want_rating=participant.var.is_rater)
 
-    def get_trial_class(self, node, participant, experiment):
-        if participant.var.is_rater:
-            return self.rater_class
-        return self.creator_class
-
 
 def is_rater(participant):
     counts = {"create": 0, "rate": 0}

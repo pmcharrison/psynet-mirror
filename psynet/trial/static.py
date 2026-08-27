@@ -1,3 +1,11 @@
+"""Static trial assignment built on one-node networks.
+
+Static trial makers expose nodes as their public assignment candidates while
+reusing chain-network availability and capacity checks internally. Experiment
+authors customize node eligibility with ``custom_node_filter`` and ranking with
+``select_node``; network adaptation remains an implementation detail.
+"""
+
 from typing import List, Literal, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
@@ -405,30 +413,29 @@ class StaticTrialMaker(ChainTrialMaker):
 
     def find_nodes(self, participant, experiment):
         """Return eligible static nodes, or ``"wait"`` / ``"exit"``."""
-        chains = self._find_eligible_chains(
-            participant=participant,
-            experiment=experiment,
-            candidate_type="node",
-        )
-        if isinstance(chains, str):
-            return chains
-        return [chain.head for chain in chains]
+        return self._find_eligible_candidates(participant, experiment)
 
-    def _filter_eligible_networks(self, chains, participant, experiment):
+    _candidate_label = "node"
+
+    def _filter_eligible_candidates(self, chains, participant, experiment):
         """Apply node eligibility before wait/exit checks."""
         headless_chain_ids = [chain.id for chain in chains if chain.head is None]
         if headless_chain_ids:
-            raise RuntimeError(
-                "Every StaticNetwork must have a head node; headless network IDs: "
-                f"{headless_chain_ids}."
+            logger.warning(
+                "Ignoring StaticNetwork objects without head nodes: %s.",
+                headless_chain_ids,
             )
-        nodes = [chain.head for chain in chains]
-        eligible_nodes = self._validate_selection_subset(
+        nodes = [chain.head for chain in chains if chain.head is not None]
+        return self._validate_selection_subset(
             self.custom_node_filter(nodes, participant, experiment),
             allowed_values=nodes,
             method_name="custom_node_filter",
         )
-        return [node.network for node in eligible_nodes]
+
+    @staticmethod
+    def _candidate_network(candidate):
+        """Return the one-node network backing a static candidate."""
+        return candidate.network
 
     def custom_node_filter(self, nodes, participant, experiment):
         """Filter eligible static nodes before selection.
@@ -440,10 +447,10 @@ class StaticTrialMaker(ChainTrialMaker):
         """
         if is_method_overridden(self, ChainTrialMaker, "custom_network_filter"):
             networks = [node.network for node in nodes]
-            eligible_networks = self._validate_selection_subset(
-                self.custom_network_filter(networks, participant),
-                allowed_values=networks,
-                method_name="custom_network_filter",
+            eligible_networks = self._apply_deprecated_network_filter(
+                networks,
+                participant,
+                replacement_method="custom_node_filter",
             )
             return [network.head for network in eligible_networks]
         return nodes
@@ -461,29 +468,21 @@ class StaticTrialMaker(ChainTrialMaker):
 
         :meta private:
         """
-        raise TypeError(
-            "StaticTrialMaker uses find_nodes(participant, experiment), not find_chains"
-        )
+        self._raise_unsupported_selection_hook("find_chains")
 
     def select_chain(self, chains, participant, experiment):
         """Wrong-paradigm selection hook.
 
         :meta private:
         """
-        raise TypeError(
-            "StaticTrialMaker uses select_node(nodes, participant, experiment), "
-            "not select_chain"
-        )
+        self._raise_unsupported_selection_hook("select_chain")
 
     def custom_chain_filter(self, chains, participant, experiment):
         """Wrong-paradigm selection hook.
 
         :meta private:
         """
-        raise TypeError(
-            "StaticTrialMaker uses custom_node_filter(nodes, participant, experiment), "
-            "not custom_chain_filter"
-        )
+        self._raise_unsupported_selection_hook("custom_chain_filter")
 
     def _select_trial_node(self, participant, experiment):
         selection = self._select_from_discovered(

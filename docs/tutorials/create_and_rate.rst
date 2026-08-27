@@ -121,14 +121,10 @@ The TrialMaker class just needs to inherit from `CreateAndRateTrialMakerMixin` a
        pass
 
 It is also possible to customize the behaviour. For example, say we want to separate raters and creators into two
-different groups which is set in ``participant.var.is_rater``. We can then implement the following:
+different groups which is set in ``participant.var.is_rater``. Filter by role and let the mixin choose the trial class
+from the head's creation phase (including wait/exit when creators are still finalizing):
 
 ::
-
-    def get_trial_class(self, node, participant, experiment):
-        if participant.var.is_rater:
-            return self.rater_class
-        return self.creator_class
 
     def custom_chain_filter(self, chains, participant, experiment):
         return self.filter_chains_by_role(

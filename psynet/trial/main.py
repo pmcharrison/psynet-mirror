@@ -1696,41 +1696,6 @@ class TrialMaker(Module):
         """
         raise NotImplementedError
 
-    def on_trial_created(
-        self,
-        trial,
-        experiment,
-        participant,
-        selection_context=None,
-    ):
-        """Run after a selected trial has been created, before it is shown.
-
-        Override this hook to create records that must correspond to the exact
-        trial assignment, such as an adaptive-selection decision. The trial and
-        any related records are committed in the same transaction; its database
-        ID may therefore remain unset until the session is flushed. This hook
-        runs for primary trials created through the managed network-selection
-        pipeline, not for repeat trials or synchronized follower copies.
-
-        Parameters
-        ----------
-
-        trial
-            The newly created :class:`~psynet.trial.main.Trial`.
-
-        experiment
-            The current :class:`~psynet.experiment.Experiment`.
-
-        participant
-            The participant to whom the trial was assigned.
-
-        selection_context
-            Request-local information returned with a
-            :class:`~psynet.trial.main.Selection`, or ``None`` when the
-            selection hook returned its value directly.
-        """
-        pass
-
     def on_first_launch(self, experiment):
         """
         Defines a routine to run when the experiment is launched for the first time.
@@ -2645,6 +2610,35 @@ class NetworkTrialMaker(TrialMaker):
             ),
         ]
 
+    def _raise_unsupported_selection_hook(self, method_name):
+        """Raise the configured error for an unsupported selection hook."""
+        for _, configured_name, instruction in self._selection_hook_overrides():
+            if configured_name == method_name:
+                raise TypeError(
+                    f"{self.__class__.__name__} called {method_name}, which is "
+                    f"not supported by this trial maker. {instruction}"
+                )
+        raise TypeError(
+            f"{self.__class__.__name__} called unsupported hook {method_name}."
+        )
+
+    def _apply_deprecated_network_filter(
+        self,
+        candidates,
+        participant,
+        *,
+        replacement_method,
+    ):
+        """Apply and validate the deprecated network eligibility filter."""
+        return self._validate_selection_subset(
+            self.custom_network_filter(
+                candidates=candidates,
+                participant=participant,
+            ),
+            allowed_values=candidates,
+            method_name=(f"custom_network_filter (replace with {replacement_method})"),
+        )
+
     def check_initialization(self):
         """Validate trial-maker hooks after construction."""
         for ancestor, method_name, instruction in self._selection_hook_overrides():
@@ -2701,8 +2695,17 @@ class NetworkTrialMaker(TrialMaker):
             participant.id,
         )
         trial = self._create_trial(
-            node=node, participant=participant, experiment=experiment
+            node=node,
+            participant=participant,
+            experiment=experiment,
+            finalize=False,
         )
+        self._prepare_trial_for_created_hook(
+            trial=trial,
+            experiment=experiment,
+            participant=participant,
+        )
+        self._finalize_created_trial(trial)
         self.on_trial_created(
             trial=trial,
             experiment=experiment,
@@ -2710,6 +2713,44 @@ class NetworkTrialMaker(TrialMaker):
             selection_context=selection.context,
         )
         return trial, "available"
+
+    def _prepare_trial_for_created_hook(self, trial, experiment, participant):
+        """Finish subclass-specific trial setup before ``on_trial_created``."""
+
+    def on_trial_created(
+        self,
+        trial,
+        experiment,
+        participant,
+        selection_context=None,
+    ):
+        """Run after a selected network trial is fully prepared.
+
+        Override this hook to create records that must correspond to the exact
+        trial assignment, such as an adaptive-selection decision. The trial and
+        any related records are committed in the same transaction; its database
+        ID may therefore remain unset until the session is flushed. This hook
+        runs for primary trials created through the managed network-selection
+        pipeline, not for repeat trials or synchronized follower copies.
+
+        Subclasses that add trial state after construction should do so in
+        :meth:`_prepare_trial_for_created_hook`. Assets added there are
+        finalized and snapshotted before this hook runs.
+
+        Parameters
+        ----------
+        trial
+            The newly created :class:`~psynet.trial.main.Trial`.
+        experiment
+            The current :class:`~psynet.experiment.Experiment`.
+        participant
+            The participant to whom the trial was assigned.
+        selection_context
+            Request-local information returned with a
+            :class:`~psynet.trial.main.Selection`, or ``None`` when the
+            selection hook returned its value directly.
+        """
+        pass
 
     def prepare_follower_trial(
         self, experiment, participant: Participant, leader: Participant
@@ -2784,20 +2825,14 @@ class NetworkTrialMaker(TrialMaker):
 
         :meta private:
         """
-        raise TypeError(
-            f"{self.__class__.__name__} called find_networks, which is no longer used. "
-            "Use the selection hooks documented by the concrete trial maker."
-        )
+        self._raise_unsupported_selection_hook("find_networks")
 
     def find_node(self, network, participant, experiment):
         """Removed selection hook.
 
         :meta private:
         """
-        raise TypeError(
-            f"{self.__class__.__name__} called find_node, which is no longer used. "
-            "The concrete trial maker now resolves its selected value to a node."
-        )
+        self._raise_unsupported_selection_hook("find_node")
 
     def grow_network(self, network, experiment):
         """
@@ -2828,7 +2863,15 @@ class NetworkTrialMaker(TrialMaker):
         return self.trial_class
 
     @log_time_taken
-    def _create_trial(self, node, participant, experiment, trial_class=None):
+    def _create_trial(
+        self,
+        node,
+        participant,
+        experiment,
+        trial_class=None,
+        *,
+        finalize=True,
+    ):
         if trial_class is None:
             trial_class = self.get_trial_class(node, participant, experiment)
         if trial_class is None:
@@ -2844,10 +2887,16 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=self.propagate_failure,
             is_repeat_trial=False,
         )
-        trial.finalize_assets()
-        trial._initial_assets = dict(trial.assets)
+        if finalize:
+            self._finalize_created_trial(trial)
         db.session.add(trial)
         return trial
+
+    @staticmethod
+    def _finalize_created_trial(trial):
+        """Finalize assets and snapshot them for later repeat trials."""
+        trial.finalize_assets()
+        trial._initial_assets = dict(trial.assets)
 
     def call_grow_network(self, network):
         # pylint: disable=no-member

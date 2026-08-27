@@ -320,7 +320,7 @@ def test_static_selection_carries_context_to_on_trial_created(monkeypatch):
     participant.module_state = DummyModuleState()
     network = SimpleNamespace(id=3, block="default")
     node = SimpleNamespace(id=2, network=network, block="default")
-    trial = SimpleNamespace()
+    trial = SimpleNamespace(assets={}, finalize_assets=lambda: None)
     calls = []
 
     monkeypatch.setattr(
@@ -339,6 +339,100 @@ def test_static_selection_carries_context_to_on_trial_created(monkeypatch):
 
     assert result == (trial, "available")
     assert calls[0]["selection_context"] == context
+
+
+def test_trial_is_prepared_before_on_trial_created(monkeypatch):
+    class PreparingStaticTrialMaker(StaticTrialMaker):
+        def _prepare_trial_for_created_hook(self, trial, experiment, participant):
+            trial.definition = {"prepared": True}
+
+        def on_trial_created(
+            self,
+            trial,
+            experiment,
+            participant,
+            selection_context=None,
+        ):
+            assert trial.definition == {"prepared": True}
+
+    trial_maker = make_static_trial_maker(PreparingStaticTrialMaker)
+    participant = DummyParticipant()
+    participant.module_state = DummyModuleState()
+    network = SimpleNamespace(id=3, block="default")
+    node = SimpleNamespace(id=2, network=network, block="default")
+    trial = SimpleNamespace(assets={}, finalize_assets=lambda: None)
+
+    monkeypatch.setattr(
+        trial_maker,
+        "find_nodes",
+        lambda participant, experiment: [node],
+    )
+    monkeypatch.setattr(trial_maker, "_create_trial", lambda **kwargs: trial)
+
+    assert trial_maker.prepare_trial(SimpleNamespace(), participant) == (
+        trial,
+        "available",
+    )
+
+
+def test_prepare_hook_assets_are_finalized_before_on_trial_created(monkeypatch):
+    extra = object()
+    finalized = []
+
+    class AssetAddingMaker(StaticTrialMaker):
+        def _prepare_trial_for_created_hook(self, trial, experiment, participant):
+            trial.assets["extra"] = extra
+
+        def on_trial_created(
+            self,
+            trial,
+            experiment,
+            participant,
+            selection_context=None,
+        ):
+            assert trial._initial_assets["extra"] is extra
+            assert finalized == ["extra"]
+
+    trial = SimpleNamespace(assets={})
+
+    def finalize_assets():
+        finalized.extend(trial.assets)
+
+    trial.finalize_assets = finalize_assets
+    trial_maker = make_static_trial_maker(AssetAddingMaker)
+    participant = DummyParticipant()
+    participant.module_state = DummyModuleState()
+    network = SimpleNamespace(id=3, block="default")
+    node = SimpleNamespace(id=2, network=network, block="default")
+
+    monkeypatch.setattr(
+        trial_maker,
+        "find_nodes",
+        lambda participant, experiment: [node],
+    )
+    monkeypatch.setattr(trial_maker, "_create_trial", lambda **kwargs: trial)
+
+    assert trial_maker.prepare_trial(SimpleNamespace(), participant) == (
+        trial,
+        "available",
+    )
+
+
+def test_deprecated_network_filter_accepts_keyword_only_override():
+    class KeywordOnlyLegacyMaker(ChainTrialMaker):
+        def custom_network_filter(self, *, candidates, participant):
+            return [chain for chain in candidates if chain.id != 1]
+
+    with pytest.warns(DeprecationWarning, match="custom_chain_filter"):
+        trial_maker = make_trial_maker(KeywordOnlyLegacyMaker)
+    kept = SimpleNamespace(id=0)
+    dropped = SimpleNamespace(id=1)
+
+    assert trial_maker._filter_eligible_candidates(
+        [kept, dropped],
+        participant=SimpleNamespace(),
+        experiment=SimpleNamespace(),
+    ) == [kept]
 
 
 def test_select_chain_defaults_to_the_first_eligible_chain():
@@ -676,11 +770,11 @@ def test_custom_node_filter_drops_nodes():
     trial_maker = make_static_trial_maker(SelectiveStaticMaker)
     kept, dropped = _headed_chains(2)
 
-    assert trial_maker._filter_eligible_networks(
+    assert trial_maker._filter_eligible_candidates(
         [kept, dropped],
         participant=SimpleNamespace(),
         experiment=SimpleNamespace(),
-    ) == [kept]
+    ) == [kept.head]
 
 
 def test_custom_node_filter_rejects_noncandidate_node():
@@ -696,7 +790,7 @@ def test_custom_node_filter_rejects_noncandidate_node():
     chain.head = node
 
     with pytest.raises(ValueError, match="supplied eligible values"):
-        trial_maker._filter_eligible_networks(
+        trial_maker._filter_eligible_candidates(
             [chain],
             participant=SimpleNamespace(),
             experiment=SimpleNamespace(),
@@ -714,22 +808,23 @@ def test_custom_node_filter_rejects_duplicate_node():
     chain.head = node
 
     with pytest.raises(ValueError, match="duplicate values"):
-        trial_maker._filter_eligible_networks(
+        trial_maker._filter_eligible_candidates(
             [chain],
             participant=SimpleNamespace(),
             experiment=SimpleNamespace(),
         )
 
 
-def test_static_node_filter_rejects_headless_network():
+def test_static_node_filter_ignores_headless_network(caplog):
     trial_maker = make_static_trial_maker()
+    (headed,) = _headed_chains(1)
 
-    with pytest.raises(RuntimeError, match="must have a head node"):
-        trial_maker._filter_eligible_networks(
-            [SimpleNamespace(id=1, head=None)],
-            participant=SimpleNamespace(),
-            experiment=SimpleNamespace(),
-        )
+    assert trial_maker._filter_eligible_candidates(
+        [SimpleNamespace(id=99, head=None), headed],
+        participant=SimpleNamespace(),
+        experiment=SimpleNamespace(),
+    ) == [headed.head]
+    assert "Ignoring StaticNetwork objects without head nodes" in caplog.text
 
 
 def test_custom_chain_filter_drops_chains():
@@ -741,7 +836,7 @@ def test_custom_chain_filter_drops_chains():
     kept = SimpleNamespace(id=0)
     dropped = SimpleNamespace(id=1)
 
-    assert trial_maker._filter_eligible_networks(
+    assert trial_maker._filter_eligible_candidates(
         [kept, dropped],
         participant=SimpleNamespace(),
         experiment=SimpleNamespace(),
@@ -760,7 +855,7 @@ def test_deprecated_network_filter_still_filters_chains():
     kept = SimpleNamespace(id=0)
     dropped = SimpleNamespace(id=1)
 
-    assert trial_maker._filter_eligible_networks(
+    assert trial_maker._filter_eligible_candidates(
         [kept, dropped],
         participant=SimpleNamespace(),
         experiment=SimpleNamespace(),
@@ -776,11 +871,11 @@ def test_deprecated_network_filter_still_filters_static_networks():
         trial_maker = make_static_trial_maker(LegacyStaticMaker)
     kept, dropped = _headed_chains(2)
 
-    assert trial_maker._filter_eligible_networks(
+    assert trial_maker._filter_eligible_candidates(
         [kept, dropped],
         participant=SimpleNamespace(),
         experiment=SimpleNamespace(),
-    ) == [kept]
+    ) == [kept.head]
 
 
 def test_custom_chain_filter_takes_precedence_over_deprecated_network_filter():
@@ -796,7 +891,7 @@ def test_custom_chain_filter_takes_precedence_over_deprecated_network_filter():
     first = SimpleNamespace(id=1)
     second = SimpleNamespace(id=2)
 
-    assert trial_maker._filter_eligible_networks(
+    assert trial_maker._filter_eligible_candidates(
         [first, second],
         participant=SimpleNamespace(),
         experiment=SimpleNamespace(),
@@ -815,11 +910,11 @@ def test_custom_node_filter_takes_precedence_over_deprecated_network_filter():
         trial_maker = make_static_trial_maker(BothFilters)
     kept, dropped = _headed_chains(2)
 
-    assert trial_maker._filter_eligible_networks(
+    assert trial_maker._filter_eligible_candidates(
         [kept, dropped],
         participant=SimpleNamespace(),
         experiment=SimpleNamespace(),
-    ) == [kept]
+    ) == [kept.head]
 
 
 def test_create_trial_rejects_none_trial_class():

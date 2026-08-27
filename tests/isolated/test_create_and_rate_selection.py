@@ -81,6 +81,22 @@ def test_create_and_rate_prepare_trial_maps_pending_assignment_to_wait():
     assert Harness().prepare_trial(None, None) == (None, "wait")
 
 
+def test_role_filter_then_mixin_trial_class_waits_on_phase_flip():
+    pending = chain(1)
+    participant = SimpleNamespace(var=SimpleNamespace(is_rater=True))
+    maker = CreateAndRateSelectionHarness(
+        candidates=[pending],
+        phases={pending.head.id: CreateAndRateTrialMakerMixin.READY_FOR_RATERS},
+        wait_for_networks=True,
+    )
+    maker._candidates = maker.filter_chains_by_role(maker._candidates, want_rating=True)
+    assert maker.find_chains(participant=participant, experiment=None) == [pending]
+    maker._phases[pending.head.id] = CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS
+    with pytest.raises(CreateAndRateAssignmentPending) as exc_info:
+        maker.get_trial_class(pending.head, participant, None)
+    assert exc_info.value.outcome == "wait"
+
+
 def test_create_and_rate_phase_flip_after_selection_defers_assignment():
     node = SimpleNamespace(id=1)
     maker = CreateAndRateSelectionHarness(
