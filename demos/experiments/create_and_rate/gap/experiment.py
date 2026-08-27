@@ -311,13 +311,7 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
     def custom_chain_filter(self, chains, participant, experiment):
         if self.has_enough_trials(participant):
             return []
-        phases = self.get_creation_phases([chain.head for chain in chains])
-        want_rating = participant.var.is_rater
-        return [
-            chain
-            for chain in chains
-            if (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
-        ]
+        return self.filter_chains_by_role(chains, want_rating=participant.var.is_rater)
 
     def get_trial_class(self, node, participant, experiment):
         if participant.var.is_rater:

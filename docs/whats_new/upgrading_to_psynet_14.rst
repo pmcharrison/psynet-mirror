@@ -129,11 +129,16 @@ Search custom trial makers for ``find_networks``, ``find_node``,
   trial makers or ``custom_node_filter`` on static trial makers.
 * Selection hooks may return their selected value directly or wrap it in
   :class:`~psynet.trial.main.Selection` to pass request-local context to
-  ``on_trial_created``.
+  ``on_trial_created``. Returning ``None`` from ``select_chain`` or
+  ``select_node`` raises ``TypeError``.
 * ``get_trial_class`` must return a concrete trial class. Remove unavailable
   chains or nodes in the corresponding custom filter instead of returning
   ``None``. Synchronized follower trials reuse the leader's concrete trial
   class without calling ``get_trial_class`` again.
+* Create-and-rate role filters should keep ``WAITING_FOR_CREATORS`` chains
+  (see :meth:`~psynet.trial.create_and_rate.CreateAndRateTrialMakerMixin.filter_chains_by_role`)
+  so the mixin can wait. A selected head that is still waiting for
+  creators waits or exits instead of raising.
 
 PsyNet raises an actionable ``TypeError`` when a removed or wrong-paradigm
 hook is still overridden.

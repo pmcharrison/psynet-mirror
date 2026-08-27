@@ -2628,6 +2628,23 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
+    def _generic_removed_selection_hooks(
+        self, find_networks_instruction, find_node_instruction
+    ):
+        """Return TypeError hooks shared by chain and static trial makers."""
+        return [
+            (
+                NetworkTrialMaker,
+                "find_networks",
+                find_networks_instruction,
+            ),
+            (
+                NetworkTrialMaker,
+                "find_node",
+                find_node_instruction,
+            ),
+        ]
+
     def check_initialization(self):
         """Validate trial-maker hooks after construction."""
         for ancestor, method_name, instruction in self._selection_hook_overrides():
@@ -2720,11 +2737,28 @@ class NetworkTrialMaker(TrialMaker):
         """Return ``Selection(node)``, ``"wait"``, or ``"exit"``."""
         raise NotImplementedError
 
+    def _select_from_discovered(
+        self, discovered, participant, experiment, select_hook, method_name
+    ):
+        """Select from a discovered list, or pass through ``wait`` / ``exit``."""
+        if isinstance(discovered, str):
+            return discovered
+        if not discovered:
+            return "exit"
+        return self._coerce_selection(
+            select_hook(discovered, participant, experiment),
+            allowed_values=discovered,
+            method_name=method_name,
+        )
+
     @staticmethod
     def _coerce_selection(selection, allowed_values, method_name):
         """Normalize and validate a public selection-hook result."""
         if selection is None:
-            return None
+            raise TypeError(
+                f"{method_name} must return one of the supplied eligible values "
+                "or Selection(value, context); it must not return None"
+            )
         if not isinstance(selection, Selection):
             selection = Selection(value=selection)
         if not any(selection.value is value for value in allowed_values):

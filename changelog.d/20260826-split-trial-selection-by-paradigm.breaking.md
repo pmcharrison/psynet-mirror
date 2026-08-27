@@ -3,8 +3,13 @@ Replaced trial assignment hooks ``find_networks``, ``find_node``, and
 ``find_chains``, ``select_chain``, and ``custom_chain_filter``; static trial
 makers use ``find_nodes``, ``select_node``, and ``custom_node_filter``.
 Selection hooks receive a nonempty eligible list and may return the selected
-value or ``Selection(value, context)``. ``get_trial_class`` must return a trial
-class for every eligible selection; synchronized followers reuse their
-leader's concrete trial class without calling this hook again. PsyNet
-raises an actionable ``TypeError`` at construction when a removed or
-wrong-paradigm hook is overridden.
+value or ``Selection(value, context)``. Returning ``None`` from
+``select_chain`` or ``select_node`` raises ``TypeError``. ``get_trial_class``
+must return a trial class for every eligible selection; synchronized followers
+reuse their leader's concrete trial class without calling this hook again.
+PsyNet raises an actionable ``TypeError`` at construction when a removed or
+wrong-paradigm hook is overridden. ``CreateAndRateTrialMakerMixin`` no longer
+provides ``get_non_failed_creations``; classify nodes with
+``get_creation_phases`` and load finalized creations with
+``get_finished_creations``. Heads that still have unfinalized creator
+trials wait or exit instead of raising.

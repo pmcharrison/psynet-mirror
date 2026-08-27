@@ -2,7 +2,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from psynet.trial.create_and_rate import CreateAndRateTrialMakerMixin
+from psynet.trial.create_and_rate import (
+    CreateAndRateAssignmentPending,
+    CreateAndRateTrialMakerMixin,
+)
 
 
 class _Parent:
@@ -44,11 +47,80 @@ def test_create_and_rate_pending_creations_are_not_assignable():
     maker = CreateAndRateSelectionHarness(
         candidates=[chain(1)],
         phases={node.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS},
+        wait_for_networks=True,
     )
 
-    with pytest.raises(RuntimeError, match="creator trials to finalize"):
+    with pytest.raises(CreateAndRateAssignmentPending) as exc_info:
         maker.get_trial_class(node, None, None)
+    assert exc_info.value.outcome == "wait"
     assert maker.phase_batch_calls == 1
+
+
+def test_create_and_rate_pending_assignment_exits_when_wait_is_disabled():
+    node = SimpleNamespace(id=1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[chain(1)],
+        phases={node.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS},
+        wait_for_networks=False,
+    )
+
+    with pytest.raises(CreateAndRateAssignmentPending) as exc_info:
+        maker.get_trial_class(node, None, None)
+    assert exc_info.value.outcome == "exit"
+
+
+def test_create_and_rate_prepare_trial_maps_pending_assignment_to_wait():
+    class Parent:
+        def prepare_trial(self, experiment, participant):
+            raise CreateAndRateAssignmentPending("wait")
+
+    class Harness(CreateAndRateTrialMakerMixin, Parent):
+        def __init__(self):
+            self.wait_for_networks = True
+
+    assert Harness().prepare_trial(None, None) == (None, "wait")
+
+
+def test_create_and_rate_phase_flip_after_selection_defers_assignment():
+    node = SimpleNamespace(id=1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[chain(1)],
+        phases={node.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS},
+        wait_for_networks=True,
+    )
+    assert maker.find_chains(participant=None, experiment=None)[0].head.id == 1
+    maker._phases[node.id] = CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS
+    with pytest.raises(CreateAndRateAssignmentPending) as exc_info:
+        maker.get_trial_class(node, None, None)
+    assert exc_info.value.outcome == "wait"
+
+
+def test_filter_chains_by_role_keeps_waiting_chains_for_raters():
+    pending = chain(1)
+    ready = chain(2)
+    needs = chain(3)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[pending, ready, needs],
+        phases={
+            pending.head.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS,
+            ready.head.id: CreateAndRateTrialMakerMixin.READY_FOR_RATERS,
+            needs.head.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS,
+        },
+        wait_for_networks=True,
+    )
+    filtered = maker.filter_chains_by_role([pending, ready, needs], want_rating=True)
+    assert filtered == [pending, ready]
+
+
+def test_rater_role_filter_then_mixin_waits_when_only_pending_remain():
+    pending = chain(1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[pending],
+        phases={pending.head.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS},
+        wait_for_networks=True,
+    )
+    maker._candidates = maker.filter_chains_by_role(maker._candidates, want_rating=True)
+    assert maker.find_chains(participant=None, experiment=None) == "wait"
 
 
 def test_create_and_rate_waits_when_only_pending_chains_remain():

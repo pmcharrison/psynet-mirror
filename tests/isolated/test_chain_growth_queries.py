@@ -8,7 +8,10 @@ from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.sqlalchemy_profiling import assert_query_count
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
-from psynet.trial.create_and_rate import CreateAndRateTrialMakerMixin
+from psynet.trial.create_and_rate import (
+    CreateAndRateAssignmentPending,
+    CreateAndRateTrialMakerMixin,
+)
 from psynet.trial.graph import (
     GraphChainEdge,
     GraphChainNetwork,
@@ -175,6 +178,7 @@ def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
     create_and_rate.creator_class = GrowthQueryTrial
     create_and_rate.rater_class = object()
     create_and_rate.n_creators = 2
+    create_and_rate.wait_for_networks = False
 
     with assert_query_count(min_queries=2, max_queries=2):
         phases = create_and_rate.get_creation_phases(
@@ -185,7 +189,7 @@ def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
     assert phases[networks[1].head.id] == create_and_rate.READY_FOR_RATERS
     assert phases[networks[2].head.id] == create_and_rate.NEEDS_CREATORS
 
-    with pytest.raises(RuntimeError, match="creator trials to finalize"):
+    with pytest.raises(CreateAndRateAssignmentPending, match="exit"):
         create_and_rate.get_trial_class(networks[0].head, participant, exp)
     assert (
         create_and_rate.get_trial_class(networks[1].head, participant, exp)

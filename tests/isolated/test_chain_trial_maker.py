@@ -459,6 +459,92 @@ def test_follower_uses_leader_trial_class(monkeypatch):
     assert status == "available"
 
 
+def test_follower_does_not_call_on_trial_created(monkeypatch):
+    class LeaderTrial:
+        def __init__(
+            self,
+            experiment,
+            node,
+            participant,
+            propagate_failure,
+            is_repeat_trial,
+        ):
+            self.assets = {}
+
+        def finalize_assets(self):
+            pass
+
+    trial_maker = make_trial_maker()
+    participant = DummyParticipant()
+    leader = DummyParticipant()
+    leader.id = 2
+    leader.trial_status = "available"
+    leader.current_trial = object.__new__(LeaderTrial)
+    leader.current_trial.node = SimpleNamespace(id=1)
+    calls = []
+
+    monkeypatch.setattr(
+        trial_maker,
+        "on_trial_created",
+        lambda **kwargs: calls.append(kwargs),
+    )
+    monkeypatch.setattr(db.session, "add", lambda trial: None)
+
+    trial_maker.prepare_follower_trial(
+        SimpleNamespace(),
+        participant,
+        leader,
+    )
+
+    assert calls == []
+
+
+def test_select_chain_rejects_none():
+    trial_maker = make_trial_maker()
+    chain = SimpleNamespace(id=1)
+
+    with pytest.raises(TypeError, match="must not return None"):
+        trial_maker._coerce_selection(
+            None,
+            allowed_values=[chain],
+            method_name="select_chain",
+        )
+
+
+def test_select_chain_none_does_not_exit(monkeypatch):
+    class NoneChainMaker(ChainTrialMaker):
+        def select_chain(self, chains, participant, experiment):
+            return None
+
+    trial_maker = make_trial_maker(NoneChainMaker)
+    chain = SimpleNamespace(id=1, head=SimpleNamespace(id=2), block="default")
+    monkeypatch.setattr(
+        trial_maker,
+        "find_chains",
+        lambda participant, experiment: [chain],
+    )
+
+    with pytest.raises(TypeError, match="must not return None"):
+        trial_maker._select_trial_node(DummyParticipant(), SimpleNamespace())
+
+
+def test_select_node_rejects_none(monkeypatch):
+    class NoneStaticMaker(StaticTrialMaker):
+        def select_node(self, nodes, participant, experiment):
+            return None
+
+    trial_maker = make_static_trial_maker(NoneStaticMaker)
+    headed = _headed_chains(1)
+    monkeypatch.setattr(
+        trial_maker,
+        "find_nodes",
+        lambda participant, experiment: [headed[0].head],
+    )
+
+    with pytest.raises(TypeError, match="must not return None"):
+        trial_maker._select_trial_node(DummyParticipant(), SimpleNamespace())
+
+
 def test_bare_value_is_coerced_to_selection():
     trial_maker = make_trial_maker()
     first = SimpleNamespace(id=1)

@@ -3,7 +3,7 @@ from typing import List, Literal, Optional, Union
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 from ..utils import get_logger, is_method_overridden
-from .main import NetworkTrialMaker, Trial
+from .main import Selection, Trial
 
 logger = get_logger()
 
@@ -368,14 +368,8 @@ class StaticTrialMaker(ChainTrialMaker):
 
     def _selection_hook_overrides(self):
         return [
-            (
-                NetworkTrialMaker,
-                "find_networks",
+            *self._generic_removed_selection_hooks(
                 "Override find_nodes(participant, experiment) instead.",
-            ),
-            (
-                NetworkTrialMaker,
-                "find_node",
                 "Static trial makers select nodes directly with select_node().",
             ),
             (
@@ -420,23 +414,15 @@ class StaticTrialMaker(ChainTrialMaker):
             return chains
         return [chain.head for chain in chains]
 
-    def _filter_eligible_networks(self, networks, participant, experiment):
+    def _filter_eligible_networks(self, chains, participant, experiment):
         """Apply node eligibility before wait/exit checks."""
-        headless_chain_ids = [chain.id for chain in networks if chain.head is None]
+        headless_chain_ids = [chain.id for chain in chains if chain.head is None]
         if headless_chain_ids:
             raise RuntimeError(
                 "Every StaticNetwork must have a head node; headless network IDs: "
                 f"{headless_chain_ids}."
             )
-        nodes = [chain.head for chain in networks]
-        if not is_method_overridden(
-            self, StaticTrialMaker, "custom_node_filter"
-        ) and is_method_overridden(self, ChainTrialMaker, "custom_network_filter"):
-            return self._validate_selection_subset(
-                self.custom_network_filter(networks, participant),
-                allowed_values=networks,
-                method_name="custom_network_filter",
-            )
+        nodes = [chain.head for chain in chains]
         eligible_nodes = self._validate_selection_subset(
             self.custom_node_filter(nodes, participant, experiment),
             allowed_values=nodes,
@@ -448,13 +434,26 @@ class StaticTrialMaker(ChainTrialMaker):
         """Filter eligible static nodes before selection.
 
         Override this to remove nodes the participant must not receive.
-        The default returns the original list. Ranking among eligible nodes
-        belongs in ``select_node``.
+        The default returns the original list, or applies a deprecated
+        ``custom_network_filter`` override when that is the only filter present.
+        Ranking among eligible nodes belongs in ``select_node``.
         """
+        if is_method_overridden(self, ChainTrialMaker, "custom_network_filter"):
+            networks = [node.network for node in nodes]
+            eligible_networks = self._validate_selection_subset(
+                self.custom_network_filter(networks, participant),
+                allowed_values=networks,
+                method_name="custom_network_filter",
+            )
+            return [network.head for network in eligible_networks]
         return nodes
 
     def select_node(self, nodes, participant, experiment):
-        """Select from a nonempty list of eligible nodes."""
+        """Select from a nonempty list of eligible nodes.
+
+        Return a node from ``nodes`` or ``Selection(value, context)``.
+        Returning ``None`` raises ``TypeError``.
+        """
         return nodes[0]
 
     def find_chains(self, participant, experiment):
@@ -487,19 +486,15 @@ class StaticTrialMaker(ChainTrialMaker):
         )
 
     def _select_trial_node(self, participant, experiment):
-        nodes = self.find_nodes(participant, experiment)
-        if isinstance(nodes, str):
-            return nodes
-        if not nodes:
-            return "exit"
-
-        selection = self._coerce_selection(
-            self.select_node(nodes, participant, experiment),
-            allowed_values=nodes,
-            method_name="select_node",
+        selection = self._select_from_discovered(
+            self.find_nodes(participant, experiment),
+            participant,
+            experiment,
+            self.select_node,
+            "select_node",
         )
-        if selection is None:
-            return "exit"
+        if not isinstance(selection, Selection):
+            return selection
 
         self._advance_to_selected_block(selection.value.block, participant)
         return selection

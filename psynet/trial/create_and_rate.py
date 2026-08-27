@@ -23,6 +23,22 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
+class CreateAndRateAssignmentPending(Exception):
+    """Raised when a selected head cannot receive a trial yet.
+
+    Parameters
+    ----------
+    outcome
+        ``"wait"`` or ``"exit"``, matching ``wait_for_networks``.
+    """
+
+    def __init__(self, outcome):
+        if outcome not in ("wait", "exit"):
+            raise ValueError("outcome must be 'wait' or 'exit'")
+        super().__init__(outcome)
+        self.outcome = outcome
+
+
 def get_super_classes(cls):
     return inspect.getmro(cls)
 
@@ -410,16 +426,39 @@ class CreateAndRateTrialMakerMixin(object):
         trial_maker_kwargs["trials_per_node"] = trials_per_node
         return trial_maker_kwargs, mixin_kwargs
 
+    def prepare_trial(self, experiment, participant):
+        try:
+            return super().prepare_trial(experiment, participant)
+        except CreateAndRateAssignmentPending as exc:
+            logger.info(
+                "Create-and-rate assignment deferred for participant %s: %s",
+                getattr(participant, "id", participant),
+                exc.outcome,
+            )
+            return None, exc.outcome
+
     def get_trial_class(self, node, participant, experiment):
         phase = self.get_creation_phases([node])[node.id]
         if phase == self.NEEDS_CREATORS:
             return self.creator_class
         if phase == self.WAITING_FOR_CREATORS:
-            raise RuntimeError(
-                f"Node {node.id} is waiting for creator trials to finalize and "
-                "cannot receive a rater trial yet."
+            raise CreateAndRateAssignmentPending(
+                "wait" if self.wait_for_networks else "exit"
             )
         return self.rater_class
+
+    def filter_chains_by_role(self, chains, want_rating):
+        """Keep waiting chains plus those matching the creator or rater role.
+
+        Waiting chains stay in the list so ``find_chains`` can wait or exit.
+        """
+        phases = self.get_creation_phases([chain.head for chain in chains])
+        return [
+            chain
+            for chain in chains
+            if phases[chain.head.id] == self.WAITING_FOR_CREATORS
+            or (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
+        ]
 
     def _creation_phase_from_counts(self, n_creations, n_finished_creations):
         if n_creations < self.n_creators:

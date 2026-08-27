@@ -1521,14 +1521,8 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def _selection_hook_overrides(self):
         return [
-            (
-                NetworkTrialMaker,
-                "find_networks",
+            *self._generic_removed_selection_hooks(
                 "Override find_chains(participant, experiment) instead.",
-            ),
-            (
-                NetworkTrialMaker,
-                "find_node",
                 "The selected chain's head is now resolved automatically.",
             ),
             (
@@ -1883,99 +1877,77 @@ class ChainTrialMaker(NetworkTrialMaker):
                 next_block = participant.module_state.block_order[next_block_position]
                 self.set_block_state(participant, next_block)
 
-        # networks = db.session.query(
-        #     self.network_class.chain_type,
-        #     self.network_class.head,
-        # ,
-        # )
-        #
-        #
-        networks = self.network_class.query.filter_by(
+        chain_query = self.network_class.query.filter_by(
             trial_maker_id=self.id, full=False, failed=False
         ).options(
             subqueryload(self.network_class.head),
         )
 
-        # logger.info(
-        #     "There are %i non-full networks for trialmaker %s.",
-        #     networks.count(),
-        #     self.id,
-        # )
-
         if self.chain_type == "within":
             if self.sync_group_type is not None:
                 sync_group = participant.active_sync_groups[self.sync_group_type]
                 assert sync_group.id is not None
-                networks = networks.filter_by(sync_group_id=sync_group.id)
+                chain_query = chain_query.filter_by(sync_group_id=sync_group.id)
             else:
-                networks = self.filter_by_participant_id(networks, participant)
+                chain_query = self.filter_by_participant_id(chain_query, participant)
         elif (
             self.chain_type == "across"
             and not self.allow_revisiting_networks_in_across_chains
         ):
-            networks = self.exclude_participated(networks, participant)
+            chain_query = self.exclude_participated(chain_query, participant)
 
         participant_group = participant.module_state.participant_group
-        networks = networks.filter_by(participant_group=participant_group)
+        chain_query = chain_query.filter_by(participant_group=participant_group)
 
-        # logger.info(
-        #     "%i of these networks match the current participant group (%s).",
-        #     networks.count(),
-        #     participant_group,
-        # )
-
-        networks = networks.all()
-
-        eligible_networks = self._filter_eligible_networks(
-            networks,
+        chains = self._filter_eligible_networks(
+            chain_query.all(),
             participant=participant,
             experiment=experiment,
         )
-        networks = eligible_networks
         logger.info(
             "%i eligible %s remain after applying custom filters.",
-            len(networks),
+            len(chains),
             candidate_plural,
         )
 
-        def has_pending_process(network):
-            return network.async_post_grow_network_pending or (
-                network.head and network.head.async_on_deploy_pending
+        def has_pending_process(chain):
+            return chain.async_post_grow_network_pending or (
+                chain.head and chain.head.async_on_deploy_pending
             )
 
-        networks_without_pending_processes = [
-            n for n in networks if not has_pending_process(n)
+        chains_without_pending_processes = [
+            chain for chain in chains if not has_pending_process(chain)
         ]
 
         logger.info(
             "%i out of %i eligible %s await asynchronous processing.",
-            len(networks) - len(networks_without_pending_processes),
-            len(networks),
+            len(chains) - len(chains_without_pending_processes),
+            len(chains),
             candidate_plural,
         )
 
         if (
-            len(networks_without_pending_processes) == 0
-            and len(networks) > 0
+            len(chains_without_pending_processes) == 0
+            and len(chains) > 0
             and self.wait_for_networks
         ):
             logger.info("Will wait for an eligible %s.", candidate_type)
             return "wait"
 
-        networks = networks_without_pending_processes
+        chains = chains_without_pending_processes
 
         # find_chains normally takes place in a participant's 'response' call.
         # This means that the previous trial will exist in the database,
         # but it might not have been marked as finalized yet.
         # That's fine if we use `n_viable_trials_at_head` to determine whether there is space,
         # because this will count that previous trial.
-        networks_with_head_space = [
-            n
-            for n in networks
-            if n.head and n.n_viable_trials_at_head < self.trials_per_node
+        chains_with_head_space = [
+            chain
+            for chain in chains
+            if chain.head and chain.n_viable_trials_at_head < self.trials_per_node
         ]
 
-        if len(networks) > 0 and len(networks_with_head_space) == 0:
+        if len(chains) > 0 and len(chains_with_head_space) == 0:
             logger.info(
                 "All eligible %s have exhausted their current trial capacity.",
                 candidate_plural,
@@ -1985,39 +1957,35 @@ class ChainTrialMaker(NetworkTrialMaker):
             else:
                 return "exit"
 
-        networks = networks_with_head_space
+        chains = chains_with_head_space
 
-        if len(networks) == 0:
+        if len(chains) == 0:
             return "exit"
 
-        random.shuffle(networks)
+        random.shuffle(chains)
 
         if self.balance_across_chains:
             # We used to sort by n_completed_trials, but this is likely to be out of date
             # because the completion of the latest trial might not have been committed yet.
-            networks.sort(key=lambda network: network.n_viable_trials_at_head)
-            networks.sort(key=lambda network: network.head.degree)
+            chains.sort(key=lambda chain: chain.n_viable_trials_at_head)
+            chains.sort(key=lambda chain: chain.head.degree)
 
         remaining_blocks = participant.module_state.remaining_blocks
-        networks = [n for n in networks if n.block in remaining_blocks]
-        networks.sort(key=lambda network: remaining_blocks.index(network.block))
+        chains = [chain for chain in chains if chain.block in remaining_blocks]
+        chains.sort(key=lambda chain: remaining_blocks.index(chain.block))
 
-        return networks
+        return chains
 
     def _select_trial_node(self, participant, experiment):
-        chains = self.find_chains(participant, experiment)
-        if isinstance(chains, str):
-            return chains
-        if not chains:
-            return "exit"
-
-        selection = self._coerce_selection(
-            self.select_chain(chains, participant, experiment),
-            allowed_values=chains,
-            method_name="select_chain",
+        selection = self._select_from_discovered(
+            self.find_chains(participant, experiment),
+            participant,
+            experiment,
+            self.select_chain,
+            "select_chain",
         )
-        if selection is None:
-            return "exit"
+        if not isinstance(selection, Selection):
+            return selection
 
         chain = selection.value
         if chain.head is None:
@@ -2027,15 +1995,20 @@ class ChainTrialMaker(NetworkTrialMaker):
         return Selection(value=chain.head, context=selection.context)
 
     def select_chain(self, chains, participant, experiment):
-        """Select from a nonempty list of eligible chains."""
+        """Select from a nonempty list of eligible chains.
+
+        Return a chain from ``chains`` or ``Selection(value, context)``.
+        Returning ``None`` raises ``TypeError``.
+        """
         return chains[0]
 
     def _advance_to_selected_block(self, chosen_block, participant):
         current_block = participant.module_state.block
         if chosen_block != current_block:
             logger.info(
-                f"Advanced from block '{current_block}' to '{chosen_block}' "
-                "because there weren't any spots available in the former."
+                "Advanced from block %r to %r.",
+                current_block,
+                chosen_block,
             )
             self.set_block_state(participant, chosen_block)
 
@@ -2058,11 +2031,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         else:
             participant.module_state.set_block_position(new_block_position)
 
-    def _filter_eligible_networks(self, networks, participant, experiment):
+    def _filter_eligible_networks(self, chains, participant, experiment):
         """Apply chain eligibility before wait/exit checks."""
         return self._validate_selection_subset(
-            self.custom_chain_filter(networks, participant, experiment),
-            allowed_values=networks,
+            self.custom_chain_filter(chains, participant, experiment),
+            allowed_values=chains,
             method_name="custom_chain_filter",
         )
 
@@ -2119,28 +2092,17 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
 
     @staticmethod
-    def filter_by_participant_id(networks, participant):
-        query = networks.filter_by(participant_id=participant.id)
-        # logger.info(
-        #     "%i of these belong to participant %i.",
-        #     query.count(),
-        #     participant.id,
-        # )
-        return query
+    def filter_by_participant_id(chains, participant):
+        return chains.filter_by(participant_id=participant.id)
 
-    def exclude_participated(self, networks, participant):
-        query = networks.filter(
+    def exclude_participated(self, chains, participant):
+        return chains.filter(
             not_(
                 self.network_class.id.in_(
                     participant.module_state.participated_networks
                 )
             )
         )
-        # logger.info(
-        #     "%i of these are available once you exclude already-visited networks.",
-        #     query.count(),
-        # )
-        return query
 
     @staticmethod
     def _completed_trial_count_for_node(node_cls):

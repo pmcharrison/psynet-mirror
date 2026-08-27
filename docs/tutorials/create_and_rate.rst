@@ -131,13 +131,9 @@ different groups which is set in ``participant.var.is_rater``. We can then imple
         return self.creator_class
 
     def custom_chain_filter(self, chains, participant, experiment):
-        phases = self.get_creation_phases([chain.head for chain in chains])
-        want_rating = participant.var.is_rater
-        return [
-            chain
-            for chain in chains
-            if (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
-        ]
+        return self.filter_chains_by_role(
+            chains, want_rating=participant.var.is_rater
+        )
 
 
 
@@ -168,13 +164,9 @@ Also, you can easily modify the number of trials for creators and raters, e.g.:
             def custom_chain_filter(self, chains, participant, experiment):
                 if self.has_enough_trials(participant):
                     return []
-                phases = self.get_creation_phases([chain.head for chain in chains])
-                want_rating = participant.var.is_rater
-                return [
-                    chain
-                    for chain in chains
-                    if (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
-                ]
+                return self.filter_chains_by_role(
+                    chains, want_rating=participant.var.is_rater
+                )
 
 
 See the GAP demo for the full example.
