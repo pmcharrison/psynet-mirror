@@ -2221,7 +2221,7 @@ def test_missing_scaffold_boilerplate_requires_minimal_local_run_set(tmp_path):
         (tmp_path / ".gitignore").write_text("source_code.zip\n")
         (tmp_path / ".python-version").write_text("3.13\n")
         (tmp_path / "config.txt").touch()
-        (tmp_path / "deploy.toml").write_text("version = 1\nexclude = []\n")
+        (tmp_path / "deploy.toml").write_text("version = 1\n[exclude]\n")
         assert missing_scaffold_paths_required_for_local_run() == [
             "Dockerfile",
             "test.py",

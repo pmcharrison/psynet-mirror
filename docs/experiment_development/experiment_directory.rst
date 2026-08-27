@@ -55,8 +55,9 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     therefore the debug staging directory, Docker build context, or remote
     deployment package. PsyNet creates this file from its template when it is
     missing and never overwrites an existing copy; ``psynet scripts scaffold``
-    and ``psynet scripts update`` do the same. ``exclude`` is root-relative
-    prefixes; ``exclude_anywhere`` is basenames or ``*.suffix`` patterns.
+    and ``psynet scripts update`` do the same. ``[exclude]`` ``paths`` are
+    root-relative prefixes; ``names`` are basenames in every directory;
+    ``suffixes`` are literal endings such as ``.db``.
     Format, auto-omitted paths, and inspection commands are documented in
     Dallinger's
     `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_.

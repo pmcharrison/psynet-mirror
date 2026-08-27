@@ -1,10 +1,9 @@
 # Deployment selection is independent of Git.
-# exclude entries are literal, root-relative prefixes.
-# exclude_anywhere entries are literal basenames or *.suffix patterns
-# matched in every directory. Other Git globs and negation are not supported.
 version = 1
 
-exclude = [
+[exclude]
+# Root-relative prefixes. data skips ./data, not static/data.
+paths = [
     ".deploy",
     "data",
     "deploy",
@@ -14,10 +13,8 @@ exclude = [
     "snapshots",
     "static/assets",
 ]
-
-exclude_anywhere = [
-    "*.db",
-    "*.dmg",
+# Basenames skipped in every directory.
+names = [
     ".env",
     ".pytest_cache",
     ".python-version",
@@ -27,4 +24,9 @@ exclude_anywhere = [
     "node_modules",
     "server.log",
     "source_code.zip",
+]
+# Literal endings such as .db, skipped in every directory.
+suffixes = [
+    ".db",
+    ".dmg",
 ]

@@ -17,7 +17,7 @@ from psynet.experiment_scaffold import (
 from psynet.timeline import PreDeployRoutine
 from psynet.utils import get_psynet_root, working_directory
 
-EXPECTED_EXCLUSIONS = (
+EXPECTED_EXCLUDE_PATHS = (
     ".deploy",
     "data",
     "deploy",
@@ -28,9 +28,7 @@ EXPECTED_EXCLUSIONS = (
     "static/assets",
 )
 
-EXPECTED_EXCLUDE_ANYWHERE = (
-    "*.db",
-    "*.dmg",
+EXPECTED_EXCLUDE_NAMES = (
     ".env",
     ".pytest_cache",
     ".python-version",
@@ -40,6 +38,11 @@ EXPECTED_EXCLUDE_ANYWHERE = (
     "node_modules",
     "server.log",
     "source_code.zip",
+)
+
+EXPECTED_EXCLUDE_SUFFIXES = (
+    ".db",
+    ".dmg",
 )
 
 
@@ -74,37 +77,45 @@ def test_generated_deployment_policy_is_valid_and_replaces_dockerignore():
     policy = parse_deployment_policy(template_directory / "deploy.toml")
 
     assert policy.version == 1
-    assert policy.exclude == EXPECTED_EXCLUSIONS
-    assert policy.exclude_anywhere == EXPECTED_EXCLUDE_ANYWHERE
+    assert policy.exclude_paths == EXPECTED_EXCLUDE_PATHS
+    assert policy.exclude_names == EXPECTED_EXCLUDE_NAMES
+    assert policy.exclude_suffixes == EXPECTED_EXCLUDE_SUFFIXES
     assert not (template_directory / ".dockerignore").exists()
 
 
 def test_stock_policy_covers_dallinger_starter_paths():
     """Fail when Dallinger adds a generic starter path that PsyNet omitted."""
     from dallinger.command_line.deployment_files import (
-        _STARTER_EXCLUDE_ANYWHERE,
-        _STARTER_EXCLUSIONS,
+        _STARTER_EXCLUDE_NAMES,
+        _STARTER_EXCLUDE_PATHS,
+        _STARTER_EXCLUDE_SUFFIXES,
     )
 
     policy = parse_deployment_policy(_template_directory() / "deploy.toml")
-    missing_exclude = tuple(
-        path for path in _STARTER_EXCLUSIONS if path not in policy.exclude
+    missing_paths = tuple(
+        path for path in _STARTER_EXCLUDE_PATHS if path not in policy.exclude_paths
     )
-    missing_anywhere = tuple(
-        path
-        for path in _STARTER_EXCLUDE_ANYWHERE
-        if path not in policy.exclude_anywhere
+    missing_names = tuple(
+        name for name in _STARTER_EXCLUDE_NAMES if name not in policy.exclude_names
     )
-    assert missing_exclude == (), (
+    missing_suffixes = tuple(
+        suffix
+        for suffix in _STARTER_EXCLUDE_SUFFIXES
+        if suffix not in policy.exclude_suffixes
+    )
+    assert missing_paths == (), (
         "PsyNet's stock deploy.toml is missing Dallinger starter exclude "
-        "prefixes: " + ", ".join(missing_exclude) + ". Review whether to add them to "
+        "paths: " + ", ".join(missing_paths) + ". Review whether to add them to "
         "psynet/resources/experiment_scripts/deploy.toml."
     )
-    assert missing_anywhere == (), (
-        "PsyNet's stock deploy.toml is missing Dallinger starter "
-        "exclude_anywhere names: "
-        + ", ".join(missing_anywhere)
-        + ". Review whether to add them to "
+    assert missing_names == (), (
+        "PsyNet's stock deploy.toml is missing Dallinger starter exclude "
+        "names: " + ", ".join(missing_names) + ". Review whether to add them to "
+        "psynet/resources/experiment_scripts/deploy.toml."
+    )
+    assert missing_suffixes == (), (
+        "PsyNet's stock deploy.toml is missing Dallinger starter exclude "
+        "suffixes: " + ", ".join(missing_suffixes) + ". Review whether to add them to "
         "psynet/resources/experiment_scripts/deploy.toml."
     )
 
@@ -117,8 +128,9 @@ def test_scaffold_creates_stock_deployment_policy(tmp_path):
         scaffold_experiment_directory()
 
     policy = parse_deployment_policy(tmp_path / "deploy.toml")
-    assert policy.exclude == EXPECTED_EXCLUSIONS
-    assert policy.exclude_anywhere == EXPECTED_EXCLUDE_ANYWHERE
+    assert policy.exclude_paths == EXPECTED_EXCLUDE_PATHS
+    assert policy.exclude_names == EXPECTED_EXCLUDE_NAMES
+    assert policy.exclude_suffixes == EXPECTED_EXCLUDE_SUFFIXES
     assert not (tmp_path / ".dockerignore").exists()
 
 
@@ -139,7 +151,7 @@ def test_scripts_update_replaces_generated_dockerignore(tmp_path):
 
 def test_scripts_update_preserves_existing_deployment_policy(tmp_path):
     contents = (
-        '# Experiment-specific review\nversion = 1\nexclude = ["custom-local"]\n'
+        '# Experiment-specific review\nversion = 1\n[exclude]\npaths = ["custom-local"]\n'
     ).encode()
     policy = tmp_path / "deploy.toml"
     policy.write_bytes(contents)
@@ -190,7 +202,7 @@ def test_check_experiment_directory_preserves_existing_deploy_toml(
 
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
     monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
-    contents = b'version = 1\nexclude = ["custom-local"]\n'
+    contents = b'version = 1\n[exclude]\npaths = ["custom-local"]\n'
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")
     (tmp_path / "deploy.toml").write_bytes(contents)
