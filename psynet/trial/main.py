@@ -2638,12 +2638,18 @@ class NetworkTrialMaker(TrialMaker):
                 )
         for ancestor, method_name, instruction in self._deprecated_selection_hooks():
             if is_method_overridden(self, ancestor, method_name):
-                warnings.warn(
-                    f"{self.__class__.__name__} overrides {method_name}, which is "
-                    f"deprecated. {instruction}",
-                    DeprecationWarning,
-                    stacklevel=2,
+                message = (
+                    f"{method_name} is deprecated: {self.__class__.__name__} still "
+                    f"overrides it. {instruction}"
                 )
+                if sys.version_info >= (3, 12):
+                    warnings.warn(
+                        message,
+                        DeprecationWarning,
+                        skip_file_prefixes=psynet_source_prefixes(),
+                    )
+                else:
+                    warnings.warn(message, DeprecationWarning, stacklevel=2)
 
     def _selection_hook_overrides(self):
         """Return obsolete or wrong-paradigm hooks and their replacements."""

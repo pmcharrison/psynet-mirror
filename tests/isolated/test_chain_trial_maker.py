@@ -667,8 +667,10 @@ def test_deprecated_network_filter_still_filters_chains():
         def custom_network_filter(self, candidates, participant):
             return [chain for chain in candidates if chain.id != 1]
 
-    with pytest.warns(DeprecationWarning, match="custom_chain_filter"):
+    with pytest.warns(DeprecationWarning, match="custom_chain_filter") as record:
         trial_maker = make_trial_maker(LegacyChainMaker)
+    if sys.version_info >= (3, 12):
+        assert Path(record[0].filename).resolve() == Path(__file__).resolve()
     kept = SimpleNamespace(id=0)
     dropped = SimpleNamespace(id=1)
 
