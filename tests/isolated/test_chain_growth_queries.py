@@ -173,6 +173,7 @@ def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
 
     create_and_rate = object.__new__(CreateAndRateTrialMakerMixin)
     create_and_rate.creator_class = GrowthQueryTrial
+    create_and_rate.rater_class = object()
     create_and_rate.n_creators = 2
 
     with assert_query_count(min_queries=2, max_queries=2):
@@ -183,6 +184,17 @@ def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
     assert phases[networks[0].head.id] == create_and_rate.WAITING_FOR_CREATORS
     assert phases[networks[1].head.id] == create_and_rate.READY_FOR_RATERS
     assert phases[networks[2].head.id] == create_and_rate.NEEDS_CREATORS
+
+    with pytest.raises(RuntimeError, match="creator trials to finalize"):
+        create_and_rate.get_trial_class(networks[0].head, participant, exp)
+    assert (
+        create_and_rate.get_trial_class(networks[1].head, participant, exp)
+        is create_and_rate.rater_class
+    )
+    assert (
+        create_and_rate.get_trial_class(networks[2].head, participant, exp)
+        is create_and_rate.creator_class
+    )
 
 
 @pytest.mark.parametrize(

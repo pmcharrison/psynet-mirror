@@ -411,7 +411,7 @@ class CreateAndRateTrialMakerMixin(object):
         return trial_maker_kwargs, mixin_kwargs
 
     def get_trial_class(self, node, participant, experiment):
-        phase = self._get_creation_phase(node)
+        phase = self.get_creation_phases([node])[node.id]
         if phase == self.NEEDS_CREATORS:
             return self.creator_class
         if phase == self.WAITING_FOR_CREATORS:
@@ -420,16 +420,6 @@ class CreateAndRateTrialMakerMixin(object):
                 "cannot receive a rater trial yet."
             )
         return self.rater_class
-
-    def _get_creation_phase(self, node):
-        create_trials = self.get_non_failed_creations(node)
-        if len(create_trials) < self.n_creators:
-            return self.NEEDS_CREATORS
-        finished_creations = self.get_finished_creations(node)
-        return self._creation_phase_from_counts(
-            len(create_trials),
-            len(finished_creations),
-        )
 
     def _creation_phase_from_counts(self, n_creations, n_finished_creations):
         if n_creations < self.n_creators:
@@ -478,12 +468,6 @@ class CreateAndRateTrialMakerMixin(object):
             for node in nodes
         }
 
-    def needs_creators(self, node):
-        return self._get_creation_phase(node) == self.NEEDS_CREATORS
-
-    def waiting_for_creators(self, node):
-        return self._get_creation_phase(node) == self.WAITING_FOR_CREATORS
-
     def find_chains(self, participant, experiment):
         chains = super().find_chains(participant, experiment)
         if isinstance(chains, str):
@@ -502,10 +486,8 @@ class CreateAndRateTrialMakerMixin(object):
             return "wait"
         return "exit"
 
-    def get_non_failed_creations(self, node):
-        return self.creator_class.query.filter_by(node_id=node.id, failed=False).all()
-
     def get_finished_creations(self, node):
+        """Return the finalized, non-failed creator trials for a node."""
         return self.creator_class.query.filter_by(
             node_id=node.id, failed=False, finalized=True
         ).all()

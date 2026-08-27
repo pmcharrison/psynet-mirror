@@ -11,29 +11,17 @@ class _Parent:
 
 
 class CreateAndRateSelectionHarness(CreateAndRateTrialMakerMixin, _Parent):
-    def __init__(self, candidates, non_failed, finished, wait_for_networks=False):
+    def __init__(self, candidates, phases, wait_for_networks=False):
         self._candidates = candidates
-        self._non_failed = non_failed
-        self._finished = finished
-        self.n_creators = 2
+        self._phases = phases
         self.creator_class = "creator"
         self.rater_class = "rater"
         self.wait_for_networks = wait_for_networks
         self.phase_batch_calls = 0
 
-    def get_non_failed_creations(self, node):
-        if isinstance(self._non_failed, dict):
-            return self._non_failed[node.id]
-        return self._non_failed
-
-    def get_finished_creations(self, node):
-        if isinstance(self._finished, dict):
-            return self._finished[node.id]
-        return self._finished
-
     def get_creation_phases(self, nodes):
         self.phase_batch_calls += 1
-        return {node.id: self._get_creation_phase(node) for node in nodes}
+        return {node.id: self._phases[node.id] for node in nodes}
 
 
 def chain(node_id):
@@ -41,36 +29,33 @@ def chain(node_id):
 
 
 def test_create_and_rate_assigns_creators_until_slots_are_filled():
+    node = SimpleNamespace(id=1)
     maker = CreateAndRateSelectionHarness(
         candidates=[chain(1)],
-        non_failed=[object()],
-        finished=[],
+        phases={node.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS},
     )
-    node = SimpleNamespace(id=1)
 
-    assert maker.needs_creators(node)
     assert maker.get_trial_class(node, None, None) == "creator"
+    assert maker.phase_batch_calls == 1
 
 
 def test_create_and_rate_pending_creations_are_not_assignable():
+    node = SimpleNamespace(id=1)
     maker = CreateAndRateSelectionHarness(
         candidates=[chain(1)],
-        non_failed=[object(), object()],
-        finished=[object()],
+        phases={node.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS},
     )
-    node = SimpleNamespace(id=1)
 
-    assert maker.waiting_for_creators(node)
     with pytest.raises(RuntimeError, match="creator trials to finalize"):
         maker.get_trial_class(node, None, None)
+    assert maker.phase_batch_calls == 1
 
 
 def test_create_and_rate_waits_when_only_pending_chains_remain():
     pending = chain(1)
     maker = CreateAndRateSelectionHarness(
         candidates=[pending],
-        non_failed=[object(), object()],
-        finished=[object()],
+        phases={pending.head.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS},
         wait_for_networks=True,
     )
 
@@ -81,8 +66,7 @@ def test_create_and_rate_exits_when_only_pending_chains_remain_without_wait():
     pending = chain(1)
     maker = CreateAndRateSelectionHarness(
         candidates=[pending],
-        non_failed=[object(), object()],
-        finished=[object()],
+        phases={pending.head.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS},
         wait_for_networks=False,
     )
 
@@ -94,8 +78,10 @@ def test_create_and_rate_returns_assignable_chains():
     ready = chain(2)
     maker = CreateAndRateSelectionHarness(
         candidates=[pending, ready],
-        non_failed={1: [object(), object()], 2: [object()]},
-        finished={1: [object()], 2: []},
+        phases={
+            pending.head.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS,
+            ready.head.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS,
+        },
         wait_for_networks=True,
     )
 
