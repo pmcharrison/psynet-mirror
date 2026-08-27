@@ -3,6 +3,7 @@
 import io
 import json
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -22,6 +23,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     desc,
 )
@@ -45,6 +47,119 @@ from .utils import (
 )
 
 logger = get_logger()
+
+BONUS_STATUS_NOT_DUE_YET = "not_due_yet"
+BONUS_STATUS_UNCONFIRMED = "unconfirmed"
+BONUS_STATUS_SUCCESS = "success"
+BONUS_STATUS_DISMISSED = "dismissed"
+BONUS_STATUS_CAPPED = "capped"
+
+SETTLED_BONUS_STATUSES = frozenset(
+    {
+        BONUS_STATUS_SUCCESS,
+        BONUS_STATUS_DISMISSED,
+        BONUS_STATUS_CAPPED,
+    }
+)
+
+_BONUS_STATUS_LABELS = {
+    BONUS_STATUS_NOT_DUE_YET: "Not due yet",
+    BONUS_STATUS_UNCONFIRMED: "Unconfirmed",
+    BONUS_STATUS_SUCCESS: "Success",
+    BONUS_STATUS_DISMISSED: "Dismissed",
+    BONUS_STATUS_CAPPED: "Capped",
+}
+
+
+def display_bonus_status(participant) -> str:
+    """Experimenter-facing bonus outcome.
+
+    ``Unconfirmed`` means PsyNet meant to pay and cannot tell if the
+    bonus arrived. ``Success`` is what PsyNet recorded, not a Prolific
+    receipt. ``Dismissed`` and ``Capped`` mean we will not post again.
+    """
+    stored = getattr(participant, "bonus_status", None)
+    return _BONUS_STATUS_LABELS.get(stored, "Not due yet")
+
+
+def bonus_is_settled(participant) -> bool:
+    """True when PsyNet will not automatically post a bonus for this person."""
+    return getattr(participant, "bonus_status", None) in SETTLED_BONUS_STATUSES
+
+
+def bonus_needs_review(participant) -> bool:
+    """True when the automatic bonus POST is unconfirmed on an external recruiter."""
+    if getattr(participant, "bonus_status", None) != BONUS_STATUS_UNCONFIRMED:
+        return False
+    recruiter = getattr(participant, "recruiter", None)
+    if recruiter is None:
+        return True
+    return recruiter.has_external_bonus_payment()
+
+
+def bonus_transfer_already_claimed(participant) -> bool:
+    """True when PsyNet will not automatically POST a bonus again.
+
+    Settled statuses skip a repeat transfer. ``unconfirmed`` also skips,
+    including on local recruiters that are not listed for dashboard review.
+    """
+    return bonus_is_settled(participant) or (
+        getattr(participant, "bonus_status", None) == BONUS_STATUS_UNCONFIRMED
+    )
+
+
+NO_BONUS_ATTEMPT_RESULT = "No result recorded from the pay request."
+
+
+def record_bonus_attempt_detail(participant, detail: str) -> None:
+    """Store a diagnostic about the last bonus pay attempt.
+
+    This is not a payment status. Unconfirmed still means we do not know
+    whether money moved.
+    """
+    participant.bonus_attempt_detail = detail
+
+
+def _extract_server_error_details(response_text):
+    """Pull a useful exception message out of an HTTP error response body."""
+    if not response_text:
+        return None
+
+    from .timeline import _SPA_INCOMPATIBILITY_MARKER
+
+    spa_match = re.search(
+        r"Page '[^']+' uses HTML/JS that needs a full browser reload.*?"
+        + re.escape(_SPA_INCOMPATIBILITY_MARKER),
+        response_text,
+        flags=re.DOTALL,
+    )
+    if spa_match:
+        return re.sub(r"[ \t]+\n", "\n", spa_match.group(0)).strip()
+
+    value_error_match = re.search(
+        r"ValueError:\s*(.+?)(?:\n\s*File \"|\n\s*</|\Z)",
+        response_text,
+        flags=re.DOTALL,
+    )
+    if value_error_match:
+        return "ValueError: " + value_error_match.group(1).strip()
+
+    return None
+
+
+def _raise_for_status_with_server_details(response):
+    """Like ``Response.raise_for_status``, but include useful server details."""
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        details = _extract_server_error_details(response.text)
+        if details:
+            raise requests.HTTPError(
+                f"{exc}\n\nServer error details:\n{details}",
+                response=response,
+            ) from None
+        raise
+
 
 if TYPE_CHECKING:
     from .sync import SyncGroup
@@ -210,7 +325,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
-    unpaid_bonus = Column(Float)
+    # Planned Prolific top-up from ``decide_payment`` (after per-participant
+    # clip). If hard-capped, this stays the decided amount so the cut is
+    # visible against delivered ``bonus``.
+    planned_bonus = Column(Float)
+    # not_due_yet | unconfirmed | success | dismissed | capped
+    bonus_status = Column(String)
+    # Diagnostic from the last bonus pay attempt; not a payment status.
+    bonus_attempt_detail = Column(Text)
+    issued_completion_code_type = Column(String)
     total_wait_page_time = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
@@ -546,7 +669,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.sequences = []
         self.complete = False
         self.performance_reward = 0.0
-        self.unpaid_bonus = 0.0
+        self.planned_bonus = 0.0
+        self.bonus_status = BONUS_STATUS_NOT_DUE_YET
+        self.bonus_attempt_detail = None
+        self.issued_completion_code_type = None
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
         self.branch_log = []
@@ -563,12 +689,43 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         pass
 
     @property
+    def bonus_status_label(self):
+        """Experimenter-facing bonus outcome. See ``display_bonus_status``."""
+        return display_bonus_status(self)
+
+    @property
+    def bonus_needs_review(self):
+        """True when the automatic bonus POST is unconfirmed on an external recruiter."""
+        return bonus_needs_review(self)
+
+    @classmethod
+    def needing_payment_review(cls):
+        """Participants whose automatic bonus transfer is unconfirmed.
+
+        PsyNet already used its one automatic platform bonus POST (or was
+        interrupted while doing so). Local recruiters such as HotAir are
+        omitted: they have no external platform to review. Open the
+        participant on the Participants dashboard to compare with the
+        platform, then pay or dismiss.
+        """
+        return [
+            participant
+            for participant in cls.query.filter_by(
+                bonus_status=BONUS_STATUS_UNCONFIRMED
+            )
+            .order_by(cls.id.asc())
+            .all()
+            if participant.recruiter.has_external_bonus_payment()
+        ]
+
+    @property
     def locale(self):
         return self.var.get("locale", default=None)
 
     @property
     def failure_cascade(self):
-        return [lambda: self.alive_trials]
+        """Return no owned objects. ``failed`` is not an ownership marker."""
+        return []
 
     @property
     def gettext(self):
@@ -581,7 +738,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     def time_reward(self):
         wage_per_hour = get_config().get("wage_per_hour")
-        seconds = self.time_credit
+        seconds = self.time_credit or 0.0
         hours = seconds / 3600
         return hours * wage_per_hour
 
@@ -593,7 +750,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             The reward as a ``float``.
         """
         return round(
-            self.time_reward + self.performance_reward,
+            self.time_reward + (self.performance_reward or 0.0),
             ndigits=2,
         )
 
@@ -731,12 +888,28 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
     def fail(self, reason=None):
+        """
+        Mark this participant as failed.
+
+        Incomplete trials are failed here. Completed trials stay unless a
+        TrialMaker performance-check policy treats them as unusable. A
+        completed participant can still be failed; they are not redirected
+        off the successful-end page. Already-failed calls are a no-op.
+
+        If they are still on the main timeline, they are redirected to
+        ``unsuccessful_end``. They are also removed from active sync groups.
+        If that drops a ``SimpleSyncGroup`` below its minimum size, remaining
+        members are failed immediately when
+        ``fail_participants_below_min_size`` is True. See
+        :doc:`/tutorials/participant_and_trial_failure`.
+
+        Parameters
+        ----------
+        reason : str, optional
+            Failure tag to append, for example ``"premature_exit"``.
+        """
         if self.failed:
             logger.info("Participant %i already failed, not failing again.", self.id)
-            return
-
-        if self.complete:
-            logger.info("Participant %i already completed, not failing.", self.id)
             return
 
         if reason is not None:
@@ -753,6 +926,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         exp = get_experiment()
 
+        self._fail_incomplete_trials(reason)
+
         for i, routine in enumerate(exp.participant_fail_routines):
             logger.info(
                 "Executing fail routine %i/%i ('%s')...",
@@ -767,16 +942,36 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
 
         super().fail(reason=reason)
-        for group in self.active_sync_groups.values():
-            from .sync import SimpleSyncGroup
 
-            if isinstance(group, SimpleSyncGroup):
-                group.check_numbers()
+        for group in list(self.active_sync_groups.values()):
+            group.remove_participant(self)
 
         self._redirect_to_unsuccessful_end(exp)
 
+    def _fail_incomplete_trials(self, reason):
+        """Fail this participant's unfinished trials.
+
+        Includes the trial currently on screen and trials not owned by a
+        timeline TrialMaker. Completed trials are left to TrialMaker
+        performance-check policy.
+        """
+        from psynet.trial.main import Trial
+
+        trials = (
+            Trial.query.filter_by(participant_id=self.id, failed=False)
+            .filter(Trial.complete.is_not(True))
+            .order_by(Trial.id)
+            .with_for_update(of=Trial)
+            .populate_existing()
+            .all()
+        )
+        for trial in trials:
+            trial.fail(reason=reason)
+
     def _redirect_to_unsuccessful_end(self, experiment):
-        if experiment.timeline.participant_is_in_end_logic(self):
+        # Queued redirect is navigation only. Incomplete trials, including the
+        # one on screen, have already been failed.
+        if self.complete or experiment.timeline.participant_is_in_end_logic(self):
             return
 
         if self._in_advance_page:
@@ -1012,7 +1207,7 @@ class ParticipantDriver:
             f"{self.experiment.base_url}/timeline",
             params={"unique_id": self.participant_unique_id},
         )
-        response.raise_for_status()
+        _raise_for_status_with_server_details(response)
 
     def _simulate_page_time(self, time_factor):
         """
@@ -1071,6 +1266,8 @@ class ParticipantDriver:
             "participant_id": self.id,
             "page_uuid": status["page_uuid"],
             **bot_response,
+            # Drivers fetch status separately and do not consume SPA fragments.
+            "include_timeline_fragment": False,
         }
 
         if "time_taken" not in submission_data["metadata"]:
@@ -1086,7 +1283,7 @@ class ParticipantDriver:
                 data={"json": json.dumps(submission_data)},
                 files=files,
             )
-        response.raise_for_status()
+        _raise_for_status_with_server_details(response)
         resp_json = response.json()
         if resp_json.get("submission") != "approved":
             raise RuntimeError(

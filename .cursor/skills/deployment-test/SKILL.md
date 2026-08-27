@@ -241,17 +241,23 @@ uv pip install -e <dallinger-root>
 uv pip install -e ".[dev,slack]"
 ```
 
-7. Refresh the experiment template scripts from the installed PsyNet (which
-   matches the base after step 6) and commit the result, so the deployment
-   image is built with the base version's current templates (Dockerfile,
-   `docker/` helpers, `pytest.ini`, etc.). Run this in **each** experiment
-   directory being deployed:
+7. Prepare deployable experiment boilerplate from the installed PsyNet (which
+   matches the base after step 6). In-repo experiments under
+   `tests/deployment/` track authored files only, so the deployment branch must
+   materialize scaffold templates (Dockerfile, `docker/` helpers, `pytest.ini`,
+   etc.) before deploy. Run this in **each** experiment directory being
+   deployed:
 
 ```bash
 for exp in payment_flows_prolific audio_gibbs; do
-  (cd <psynet-root>/tests/deployment/$exp && psynet update-scripts)
+  (cd <psynet-root>/tests/deployment/$exp && psynet scripts update)
+  # If boilerplate is missing entirely, use:
+  # psynet scripts scaffold --skip-constraints
 done
-git add tests/deployment && git commit -m "Refresh experiment scripts via psynet update-scripts"
+# Scaffold paths are gitignored under tests/deployment/; force-add so the
+# deployment branch records the exact deployable tree.
+git add -f tests/deployment
+git commit -m "Refresh experiment scripts via psynet scripts update"
 ```
 
    Review the diff before committing; template changes should be plausible for
@@ -277,16 +283,20 @@ git add tests/deployment && git commit -m "Refresh experiment scripts via psynet
    deployment branch (for auditability), and record the base tag (or master
    commit), the deployment-branch commit, and the Dallinger pin in the final
    report.
-9. Regenerate `constraints.txt` from the updated `requirements.txt` in each
-   experiment directory before deploying, and commit them. The experiment
-   Dockerfile installs from `constraints.txt` when it exists, so a stale file
-   would silently override the new pins:
+9. Generate `constraints.txt` from the pinned `requirements.txt` in each
+   experiment directory before deploying, and commit them. Authored-only
+   in-repo layouts omit constraints by design; the experiment Dockerfile
+   installs from `constraints.txt` when it exists, so deployable branches need
+   a fresh file matching the pins:
 
 ```bash
 for exp in payment_flows_prolific audio_gibbs; do
   (cd <psynet-root>/tests/deployment/$exp && psynet generate-constraints)
 done
-git add tests/deployment/*/constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
+# constraints.txt is gitignored under tests/deployment/; force-add for the
+# deployment-branch audit trail.
+git add -f tests/deployment/*/constraints.txt
+git commit -m "Generate constraints from pinned requirements"
 ```
 
 10. Ensure neither experiment enables `prolific_is_custom_screening`
@@ -357,7 +367,8 @@ in the paid variants.
 ```bash
 cd <psynet-root>/tests/deployment/payment_flows_prolific
 cp config.txt.prolific config.txt
-git add config.txt
+# config.txt is gitignored under tests/deployment/.
+git add -f config.txt
 git commit -m "Switch payment_flows_prolific to Prolific recruiter for deployment"
 git push
 ```
@@ -372,7 +383,8 @@ git worktree add -b deployment-tests/<base-tag>-audio-gibbs-prolific \
   /tmp/psynet-audio-gibbs-prolific-deploy deployment-tests/<base-tag>
 cd /tmp/psynet-audio-gibbs-prolific-deploy/tests/deployment/audio_gibbs
 cp config.txt.prolific config.txt
-git add config.txt
+# config.txt is gitignored under tests/deployment/.
+git add -f config.txt
 git commit -m "Switch audio_gibbs to Prolific recruiter for deployment"
 git push -u origin deployment-tests/<base-tag>-audio-gibbs-prolific
 
@@ -382,7 +394,7 @@ git worktree add -b deployment-tests/<base-tag>-audio-gibbs-lucid \
 cd /tmp/psynet-audio-gibbs-lucid-deploy/tests/deployment/audio_gibbs
 cp experiment.py.lucid experiment.py
 cp config.txt.lucid config.txt
-git add experiment.py config.txt
+git add experiment.py && git add -f config.txt
 git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
 git push -u origin deployment-tests/<base-tag>-audio-gibbs-lucid
 ```

@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
@@ -172,14 +172,10 @@ class StaticTrialMaker(ChainTrialMaker):
         for implementing performance checks.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
-        Defaults to ``True``.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
-        Defaults to ``True``.
+        See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``True``.
 
     n_repeat_trials
         Number of repeat trials to present to the participant. These trials
@@ -264,12 +260,16 @@ class StaticTrialMaker(ChainTrialMaker):
         balance_across_nodes: bool = True,
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
-        fail_trials_on_premature_exit: bool = True,
+        fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = True,
         n_repeat_trials: int = 0,
         assets=None,
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
+        sync_group_timeout_between_barriers_time: Optional[float] = None,
+        sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
         # balance_across_chains = (
         #     active_balancing_across_participants or active_balancing_within_participants
@@ -354,6 +354,10 @@ class StaticTrialMaker(ChainTrialMaker):
             assets=assets,
             choose_participant_group=choose_participant_group,
             sync_group_type=sync_group_type,
+            sync_group_max_wait_time=sync_group_max_wait_time,
+            sync_group_max_wait_action=sync_group_max_wait_action,
+            sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
+            sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
 
     def _start_nodes_param_name(self) -> str:

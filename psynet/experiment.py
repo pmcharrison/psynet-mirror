@@ -53,8 +53,8 @@ from dallinger.utils import classproperty
 from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
+from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask import g as flask_app_globals
-from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import with_polymorphic
@@ -81,19 +81,32 @@ from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
-from .participant import Participant
+from .participant import (
+    BONUS_STATUS_CAPPED,
+    BONUS_STATUS_DISMISSED,
+    BONUS_STATUS_SUCCESS,
+    BONUS_STATUS_UNCONFIRMED,
+    NO_BONUS_ATTEMPT_RESULT,
+    Participant,
+    bonus_is_settled,
+    bonus_needs_review,
+    bonus_transfer_already_claimed,
+    record_bonus_attempt_detail,
+)
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
     CapRecruiter,  # noqa: F401; Backward compatibility alias
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
+    PaymentDecision,
     PsyNetProlificRecruiterMixin,
     StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
+from .static_resources import get_static_package_extra_files
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -109,7 +122,7 @@ from .timeline import (
 from .translation.check import check_translations
 from .translation.translate import create_pot
 from .translation.utils import compile_mo, load_po
-from .trial.main import Trial, TrialMaker
+from .trial.main import Trial, TrialMaker, TrialNetwork
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
@@ -123,6 +136,7 @@ from .utils import (
     get_authenticated_session,
     get_logger,
     get_translator,
+    is_in_repo_experiment,
     log_time_taken,
     render_template_with_translations,
     safe,
@@ -160,6 +174,31 @@ def json_serial(obj):
         serial = obj.isoformat()
         return serial
     raise TypeError("Type not serializable")
+
+
+def _reject_overridden_fail_participant(cls):
+    """Reject PsyNet Experiment subclasses that replace fail_participant."""
+    if cls.__name__ == "Experiment" and cls.__module__ == "psynet.experiment":
+        return
+
+    psy_experiment = None
+    for base in cls.__mro__:
+        if (
+            base.__name__ == "Experiment"
+            and getattr(base, "__module__", "") == "psynet.experiment"
+        ):
+            psy_experiment = base
+            break
+    if (
+        psy_experiment is not None
+        and cls.fail_participant is not psy_experiment.fail_participant
+    ):
+        raise RuntimeError(
+            "Do not override Experiment.fail_participant. "
+            "That Dallinger hook is not part of PsyNet's failure contract "
+            "and used to fail owned nodes. Call Participant.fail() "
+            "or register a ParticipantFailRoutine instead."
+        )
 
 
 class ExperimentMeta(type):
@@ -205,6 +244,8 @@ def __init__(self, session=None):
     self.initial_recruitment_size = 1
             """
             )
+
+        _reject_overridden_fail_participant(cls)
 
 
 @register_table
@@ -335,13 +376,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The maximum payment in US dollars a participant is allowed to get. Default: `25.0`.
 
     soft_max_experiment_payment : `float`
-        The recruiting process stops if the amount of accumulated payments
-        (incl. time and performance rewards) in US dollars exceedes this value. Default: `1000.0`.
+        The recruiting process stops if ``amount_spent()`` (recorded
+        ``base_payment`` + ``bonus`` for every participant, including those
+        still in progress) exceeds this value. Default: `1000.0`.
 
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
-        Bonuses are not paid from the point this value is reached and a record of the amount
-        of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
+        A bonus that would exceed this value is clipped to remaining room
+        (or not paid if that remainder is below $0.01). ``planned_bonus``
+        stays the decided amount, delivered ``bonus`` is what was sent, and
+        ``bonus_status = capped``. Default: `1100.0`.
 
     big_base_payment : `bool`
         Set this to `True` if you REALLY want to set `base_payment` to a value > 20.
@@ -664,6 +708,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "dashboard.dashboard_monitoring",
             "dashboard.dashboard_timeline",
             "dashboard.dashboard_resources",
+            "dashboard.dashboard_sync_groups",
             "dashboard.dashboard_participants",
             "dashboard.dashboard_logger",
             "dashboard.dashboard_errors",
@@ -1303,10 +1348,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         if not config.ready:
             config.load()
+        # as_dict() resolves each key by source priority, matching what
+        # config.get() would return; merging config.data layers manually
+        # would resolve by load order instead. as_dict() only excludes
+        # keys registered as sensitive, so also apply is_sensitive(),
+        # which additionally matches sensitive-looking key names.
         self.var.deployment_config = {
             key: value
-            for section in reversed(config.data)
-            for key, value in section.items()
+            for key, value in config.as_dict().items()
             if not config.is_sensitive(key)
         }
 
@@ -1343,6 +1392,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
+        self._check_static_spa_contracts()
 
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
@@ -1357,6 +1407,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
         self._report_request_statistics()
+
+    def _check_static_spa_contracts(self):
+        """Fail fast on static timeline pages that are not SPA-compatible.
+
+        PageMakers are skipped here because their pages do not exist until
+        runtime; bots still surface those via richer HTTP 500 details.
+        """
+        from .timeline import Page
+        from .utils import get_config
+
+        config = get_config()
+        inplace = config.get("inplace_timeline_transitions")
+        for elt in self.timeline.all_elts:
+            if not isinstance(elt, Page):
+                continue
+            elt._check_spa_template_contract(inplace_timeline_transitions=inplace)
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
@@ -1581,6 +1647,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.grow_networks()
 
     @staticmethod
+    def _fail_grown_network(network):
+        """Mark a network's head (or degree-0 trials) failed after a grow error."""
+        if network.head is not None and network.head.degree > 0:
+            network.head.fail()
+        elif network.head is not None and network.head.degree == 0:
+            for trial in network.head.all_trials:
+                trial.fail()
+
+    @staticmethod
     def grow_networks():
         from psynet.trial.chain import ChainTrialMaker
 
@@ -1599,24 +1674,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
-            for network in networks:
+            # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+            # holding detached ORM instances for later networks.
+            for network_id in [network.id for network in networks]:
+                network = db.session.get(TrialNetwork, network_id)
+                if network is None:
+                    continue
                 try:
                     network.trial_maker.call_grow_network(
                         network, check_readiness=False
                     )
                 except Exception as err:
-                    if not isinstance(err, exp.HandledError):
-                        exp.handle_error(
-                            err,
-                            network=network,
-                        )
-                    if network.head.degree > 0:
-                        network.head.fail()
-                    elif network.head.degree == 0:
-                        for trial in network.head.all_trials:
-                            trial.fail()
+                    # Re-fetch after handle_error rollback; commit the fail so a
+                    # later error in this batch cannot undo it.
+                    exp.isolate_batch_item_failure(
+                        err,
+                        refetch=lambda: db.session.get(TrialNetwork, network_id),
+                        fail=Experiment._fail_grown_network,
+                        network=network,
+                    )
 
             logger.info("Finished growing networks.")
+
+    @scheduled_task("interval", seconds=5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _finalize_pending_trials():
+        if not is_experiment_launched():
+            return
+        # Event-driven finalize checks remain the fast path. This poller only
+        # recovers trials that became ready without those callbacks running.
+        Trial.finalize_pending_trials()
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
@@ -1624,14 +1713,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_barriers():
         if not is_experiment_launched():
             return
-        exp = get_experiment()
-        exp.check_barriers()
+        from .sync import check_barriers
 
-    @staticmethod
-    def check_barriers():
-        from .sync import check_barriers as sync_check_barriers
-
-        sync_check_barriers()
+        check_barriers()
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken
@@ -1720,13 +1804,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def amount_spent(cls):
-        return sum(
-            [
-                (0.0 if p.base_payment is None else p.base_payment)
-                + (0.0 if p.bonus is None else p.bonus)
-                for p in Participant.query.all()
-            ]
-        )
+        """Return recorded spend across all participants.
+
+        This is the sum of each participant's ``base_payment`` and ``bonus``,
+        including people who have started the study but not finished. A
+        participant is assigned ``base_payment = experiment.base_payment``
+        when they start, so their full study base is already reserved here
+        while they are still in progress. Do not add a separate outstanding-
+        base term on top of this figure (for example when applying spend
+        caps).
+
+        After payment is recorded, ``base_payment`` may be rewritten to the
+        platform amount actually used (for example a Prolific screen-out
+        reward, or ``0`` for a returned submission). ``bonus`` stays ``None``
+        until a transfer succeeds. Planned bonuses that were capped,
+        dismissed, or left unconfirmed are not included.
+        """
+        base_sum, bonus_sum = db.session.query(
+            func.coalesce(func.sum(Participant.base_payment), 0.0),
+            func.coalesce(func.sum(Participant.bonus), 0.0),
+        ).one()
+        return float(base_sum) + float(bonus_sum)
 
     @classmethod
     def estimated_max_reward(cls, wage_per_hour):
@@ -1806,7 +1904,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
-            "inplace_timeline_transitions": False,
+            "inplace_timeline_transitions": True,
+            "legacy_js_var_globals": "warn",
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -1818,9 +1917,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "resource_danger_pct": 0.95,
             "minimal_disk_space_warning_gb": 5,
             "minimal_disk_space_danger_gb": 2,
-            **cls.config,
         }
 
+        return cls._normalize_config_types(config)
+
+    @classmethod
+    def config_settings(cls):
+        """
+        Values set in the experiment's ``config`` dictionary.
+
+        These are the experimenter's explicit decisions: they override the
+        user's ``~/.dallingerconfig``. The experiment's ``config.txt``
+        formally takes precedence over them (though PsyNet forbids setting
+        the same key in both places), followed by environment variables and
+        runtime writes.
+        """
+        return cls._normalize_config_types(
+            {
+                **super().config_settings(),
+                **cls.config,
+            }
+        )
+
+    @classmethod
+    def _normalize_config_types(cls, config):
+        """Cast config values to the types Dallinger expects."""
         config_types = dallinger_get_config().types
 
         for key, value in config.items():
@@ -2124,6 +2245,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         cls.check_base_payment(config)
         cls.check_stale_error_page_override()
+        cls.check_unused_dallinger_quality_checks()
+        cls.check_stale_bonus_override()
         PsyNetProlificRecruiterMixin.check_screen_out_config(config)
 
         parser = configparser.ConfigParser()
@@ -2140,6 +2263,60 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Please choose just one location."
                 )
 
+        cls._warn_about_overridden_experiment_config(config)
+
+    @classmethod
+    def _warn_about_overridden_experiment_config(cls, config):
+        """
+        Warn when values set in ``Experiment.config`` lose out to
+        higher-priority configuration sources.
+
+        Values set in experiment.py override ``~/.dallingerconfig``, but
+        environment variables and runtime writes still take precedence over
+        them. This is easy to miss and can lead to confusing behavior (e.g. a
+        ``dashboard_user`` set in experiment.py being silently replaced by a
+        stale environment variable), so we warn about it loudly at deployment
+        time.
+        """
+        if not cls.config:
+            return
+
+        experiment_values = {
+            key: value
+            for key, value in cls.config_settings().items()
+            if key in cls.config
+        }
+
+        for key, experiment_value in experiment_values.items():
+            resolved_value = config.get(key, None)
+            if resolved_value == experiment_value:
+                continue
+            source = _identify_config_override_source(key)
+            if config.is_sensitive(key):
+                details = ""
+            else:
+                details = (
+                    f" (experiment.py sets {experiment_value!r}, "
+                    f"but the resolved value is {resolved_value!r})"
+                )
+            logger.warning(
+                f"Config variable '{key}' is set in experiment.py but overridden by "
+                f"{source}{details}. Values set in experiment.py have lower priority than "
+                "environment variables and runtime configuration writes."
+            )
+
+    @classmethod
+    def _subclass_overridden_names(cls, *names):
+        """Return ``names`` defined on subclasses before ``Experiment`` in the MRO."""
+        found = []
+        for klass in cls.__mro__:
+            if klass is Experiment:
+                break
+            for name in names:
+                if name in klass.__dict__ and name not in found:
+                    found.append(name)
+        return found
+
     @classmethod
     def check_stale_error_page_override(cls):
         """Fail fast when an experiment overrides the removed
@@ -2147,7 +2324,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         silently ignored (the Prolific error page is now generated by the
         recruiter and participants would see the default page instead).
         """
-        if hasattr(cls, "error_page_content__prolific"):
+        if cls._subclass_overridden_names("error_page_content__prolific"):
             raise RuntimeError(
                 "Overriding `Experiment.error_page_content__prolific` is no "
                 "longer supported: the Prolific error page is now generated "
@@ -2155,6 +2332,54 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "To customize the error page, override "
                 "`Experiment.error_page_content` instead, or override "
                 "`error_page_content` on a custom Prolific recruiter class."
+            )
+
+    _UNUSED_DALLINGER_QUALITY_CHECKS = (
+        "data_check",
+        "attention_check",
+        "data_check_failed",
+        "attention_check_failed",
+    )
+
+    @classmethod
+    def check_unused_dallinger_quality_checks(cls):
+        """Reject experiment overrides of unused Dallinger quality-check hooks.
+
+        PsyNet fails participants during the timeline (``fail()``,
+        ``UnsuccessfulEndPage``) and does not call Dallinger's
+        ``data_check`` / ``attention_check`` path, which would otherwise
+        set ``bad_data`` / ``did_not_attend``.
+        """
+        overridden = cls._subclass_overridden_names(
+            *cls._UNUSED_DALLINGER_QUALITY_CHECKS
+        )
+        if overridden:
+            names = ", ".join(f"`{name}`" for name in overridden)
+            raise RuntimeError(
+                "PsyNet no longer uses Dallinger's "
+                f"{names} hooks (they would set participant status to "
+                "`bad_data` or `did_not_attend`). Fail participants during "
+                "the timeline instead, for example with `fail()` or "
+                "`UnsuccessfulEndPage`."
+            )
+
+    @classmethod
+    def check_stale_bonus_override(cls):
+        """Fail fast when an experiment overrides removed payment methods.
+
+        Payment amounts are decided by the recruiter's ``decide_payment``
+        method; an ``Experiment.bonus`` or ``check_bonus`` override would be
+        silently ignored.
+        """
+        overridden = cls._subclass_overridden_names("bonus", "check_bonus")
+        if overridden:
+            names = " and ".join(f"`{name}`" for name in overridden)
+            raise RuntimeError(
+                f"Overriding Experiment.{names} is no longer supported: "
+                "PsyNet does not call these methods when paying participants. "
+                "Customize payment amounts on the recruiter instead "
+                "(see `decide_payment`, `platform_base_for`, and "
+                "`total_owed`)."
             )
 
     @classmethod
@@ -2220,8 +2445,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
-            Working participants' bonuses will not be paid out. Instead, the amount of unpaid
-            bonus is saved in the participant's `unpaid_bonus` variable.
+            Further bonuses are clipped to remaining room under that cap (or
+            not paid if the remainder is below $0.01). The decided amount is
+            stored as ``planned_bonus`` with bonus status ``capped``.
 
             The application id is: {app_id}
 
@@ -2300,120 +2526,482 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return (not self.need_more_participants) and self.num_working_participants == 0
 
     def assignment_abandoned(self, participant):
-        participant.append_failure_tags("assignment_abandoned", "premature_exit")
-        super().assignment_abandoned(participant)
+        self._handle_premature_exit(participant, "assignment_abandoned")
 
     def assignment_returned(self, participant):
-        participant.append_failure_tags("assignment_returned", "premature_exit")
-        super().assignment_returned(participant)
+        self._handle_premature_exit(participant, "assignment_returned")
 
     def assignment_reassigned(self, participant):
-        participant.append_failure_tags("assignment_reassigned", "premature_exit")
-        super().assignment_reassigned(participant)
+        self._handle_premature_exit(participant, "assignment_reassigned")
 
-    def bonus(self, participant: Participant) -> float:
-        """Calculate the bonus the participant gets when completing the experiment.
+    def _handle_premature_exit(self, participant, cause_tag):
+        """Fail a still-working participant after a recruiter exit event.
 
-        The bonus makes up the difference between the total reward owed to
-        the participant and the base payment the recruitment platform has
-        already paid them, and is never negative.
-
-        Parameters
-        ----------
-        participant : Participant
-            The participant to calculate the bonus for.
-
-        Returns
-        -------
-        float
-            The calculated bonus, rounded to 2 decimal places.
+        Recruiter abandonment, return, and reassignment are premature exits.
+        See :doc:`/tutorials/participant_and_trial_failure`.
         """
-        total_owed = participant.calculate_reward()
-        base_already_paid = self.base_payment
+        if participant.complete:
+            logger.info(
+                "Ignoring recruiter event %s for participant %i; they already completed.",
+                cause_tag,
+                participant.id,
+            )
+            return
 
-        recruiter = participant.recruiter
-        pays_via_screen_out = getattr(
-            recruiter, "pays_participant_via_screen_out", None
+        if participant.failed:
+            participant.append_failure_tags(cause_tag)
+            return
+
+        participant.append_failure_tags(cause_tag, "premature_exit")
+        participant.fail()
+
+    def fail_participant(self, participant):
+        """Fail a participant using PsyNet's participant-failure contract.
+
+        This Dallinger compatibility shim calls
+        :meth:`~psynet.participant.Participant.fail` and does not fail owned
+        nodes. Do not override it; PsyNet rejects subclasses that do.
+        Recruiter premature-exit handling stays on
+        :meth:`_handle_premature_exit`.
+        """
+        participant.fail()
+
+    def data_check_failed(self, participant):
+        """Ignore Dallinger's post-submission data check.
+
+        PsyNet quality screening happens during the timeline via
+        :meth:`~psynet.trial.main.TrialMaker.performance_check`. Dallinger's
+        ``data_check`` runs after the participant has already submitted.
+        To fail a participant after they have finished, call
+        :meth:`~psynet.participant.Participant.fail`.
+        """
+        self._warn_unsupported_dallinger_submission_check("data_check", participant)
+
+    def attention_check_failed(self, participant):
+        """Ignore Dallinger's post-submission attention check.
+
+        See :meth:`data_check_failed`.
+        """
+        self._warn_unsupported_dallinger_submission_check(
+            "attention_check", participant
         )
-        if pays_via_screen_out is not None and pays_via_screen_out(participant):
-            # The platform already paid the fixed screen-out reward instead of
-            # the full base payment. Checked before the screened_out/returned
-            # branch so re-entering bonus() after we relabel the participant
-            # as screened_out still uses the screen-out amount (not zero).
-            base_already_paid = recruiter.unsuccessful_base_payment
-            # Dallinger's on_recruiter_submission_complete records the full
-            # study base_payment before calling bonus()/check_bonus(); correct
-            # it here so amount_paid() and amount_spent() see the true base.
-            participant.base_pay = base_already_paid
-            participant.base_payment = base_already_paid
-            if not recruiter.tops_up_unsuccessful_participants:
-                # Time rewards are forfeited, but performance rewards
-                # are always paid.
-                total_owed = base_already_paid + (participant.performance_reward or 0.0)
-        elif participant.status in ("screened_out", "returned"):
-            # Return-for-bonus flow: the platform pays no base payment, so
-            # the accumulated reward is paid entirely as a bonus.
-            base_already_paid = 0.0
 
-        bonus = max(0.0, total_owed - base_already_paid)
-        return round(self.check_bonus(bonus, participant), 2)
+    def _warn_unsupported_dallinger_submission_check(self, hook_name, participant):
+        logger.warning(
+            "PsyNet does not use Dallinger's %s hook for participant %i. "
+            "That check runs after the participant has already submitted. "
+            "Use TrialMaker.performance_check for in-experiment quality "
+            "screening, or Participant.fail() to fail someone after they "
+            "have finished. This method does not fail the participant or "
+            "their nodes.",
+            hook_name,
+            participant.id,
+        )
+
+    def bonus(self, participant):
+        raise NotImplementedError(
+            "Experiment.bonus is no longer used. Payment amounts are decided "
+            "by the recruiter's decide_payment method."
+        )
+
+    def decide_and_record_payment(self, participant) -> PaymentDecision:
+        """Decide how the participant should be paid and write it to the ledger."""
+        recruiter = participant.recruiter
+        decision = recruiter.decide_payment(participant, experiment=self)
+        recruiter.record_payment(participant, decision)
+        return decision
+
+    def commit_payment_state(self):
+        """Persist claimed payment fields so a crash cannot replay a POST."""
+        db.session.commit()
+
+    def _lock_participant_for_payment(self, participant):
+        """Reload the participant row with ``FOR UPDATE`` for the pay claim.
+
+        Isolated tests stub this to return the in-memory participant.
+        """
+        participant_id = getattr(participant, "id", None)
+        if participant_id is None:
+            return participant
+        return type(self).get_participant_from_participant_id(
+            int(participant_id), for_update=True
+        )
+
+    def clip_bonus_for_spend_caps(
+        self, participant, bonus: float, *, record: bool = True
+    ) -> tuple[float, bool]:
+        """Return ``(payable, hard_capped)`` after experiment spend caps.
+
+        ``hard_capped`` is True when ``hard_max_experiment_payment`` reduced
+        the payout. This method does not use ``bonus_status`` as the clip
+        signal; ``record=True`` still writes ``planned_bonus`` and sends cap
+        emails, but does not set ``capped`` (settlement happens after the
+        transfer claim). ``record=False`` is for dashboard Pay, which must
+        not settle the participant before the POST.
+
+        The hard cap is evaluated per payout against current
+        ``amount_spent()``; it is not latched after the first clip.
+        Concurrent payouts can each see the same remainder and together
+        spend past the cap. Soft experiment spend limits are enforced
+        when recruiting (``need_more_participants``), not here.
+        In-progress participants already reserve their study base inside
+        ``amount_spent()``; see that method rather than adding a separate
+        outstanding-base term here.
+        """
+        if bonus <= 0:
+            return 0.0, False
+
+        decided = bonus
+        hard_capped = False
+        room = round(self.var.hard_max_experiment_payment - self.amount_spent(), 2)
+        if decided > room:
+            hard_capped = True
+            clipped = round(max(0.0, room), 2)
+            if record:
+                participant.planned_bonus = decided
+                self.ensure_hard_max_experiment_payment_email_sent()
+                logger.warning(
+                    "Clipping bonus of %s to %s for participant %s: experiment "
+                    "spend would exceed hard_max_experiment_payment (%s).",
+                    decided,
+                    clipped,
+                    participant.id,
+                    self.var.hard_max_experiment_payment,
+                )
+            bonus = clipped
+            if bonus <= 0:
+                return 0.0, True
+
+        already_paid = participant.amount_paid()
+        max_payment = self.var.max_participant_payment
+        if already_paid + bonus > max_payment:
+            reduced = round(max(0.0, max_payment - already_paid), 2)
+            if record:
+                participant.send_email_max_payment_reached(self, decided, reduced)
+            return reduced, hard_capped
+        return bonus, hard_capped
+
+    def apply_payment_caps(self, participant, bonus: float) -> float:
+        """Return the bonus that may actually be transferred after spend caps.
+
+        If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
+        payout is clipped to remaining room (or ``0`` if none).
+        ``planned_bonus`` stays the decided amount and the experimenter is
+        emailed once. ``bonus_status`` is not set here; the caller settles
+        ``capped`` after the transfer claim. If it would exceed
+        ``max_participant_payment``, the bonus is reduced to the remaining
+        room under that cap without using ``capped`` unless the hard cap
+        already reduced it.
+        """
+        payable, _hard_capped = self.clip_bonus_for_spend_caps(
+            participant, bonus, record=True
+        )
+        return payable
+
+    def pay_decided_bonus(self, participant, decision, *, reason=None) -> bool:
+        """Transfer ``decision.bonus`` after spend-cap checks, then record it.
+
+        Returns True if payout for this participant is finished (paid,
+        clipped or skipped by a spend cap, skipped as too small, or already
+        settled). Returns False if the platform rejected the transfer or a
+        previous attempt already failed. PsyNet posts a bonus to the
+        platform at most once per participant: the participant row is
+        locked, then the attempt is claimed by setting
+        ``bonus_status = unconfirmed``, ``planned_bonus``, and a
+        last-attempt placeholder before the recruiter call, so a later
+        replay will not pay again. ``unconfirmed`` skips a second
+        automatic POST even on local recruiters. A failed transfer stays unconfirmed and
+        asks the experimenter to review on the Participants dashboard.
+        A hard-cap clip keeps ``planned_bonus`` as the decided amount and
+        finishes as ``capped`` even when a remainder was sent.
+
+        Does not re-apply caps or send emails when already settled.
+        """
+        participant = self._lock_participant_for_payment(participant)
+        if bonus_is_settled(participant):
+            logger.info(
+                "Bonus will NOT be paid, since participant %s already has "
+                "bonus_status=%s (bonus=%s).",
+                participant.id,
+                participant.bonus_status,
+                participant.bonus,
+            )
+            return True
+        if bonus_transfer_already_claimed(participant):
+            logger.warning(
+                "Bonus will NOT be paid automatically, since participant %s "
+                "already has an unconfirmed planned bonus (planned_bonus=%s).",
+                participant.id,
+                participant.planned_bonus,
+            )
+            return False
+        if participant.bonus is not None:
+            logger.info(
+                "Bonus will NOT be paid, since participant %s already has "
+                "a recorded bonus of %s.",
+                participant.id,
+                participant.bonus,
+            )
+            participant.bonus_status = BONUS_STATUS_SUCCESS
+            if not (participant.planned_bonus or 0.0):
+                participant.planned_bonus = participant.bonus
+            return True
+
+        bonus, hard_capped = self.clip_bonus_for_spend_caps(
+            participant, decision.bonus, record=True
+        )
+        bonus = round(bonus, 2)
+        planned = participant.planned_bonus if hard_capped else bonus
+        min_real_bonus = 0.01
+        if bonus < min_real_bonus:
+            logger.info(
+                "Bonus of %s will NOT be paid to participant %s as it is less than %s.",
+                bonus,
+                participant.id,
+                min_real_bonus,
+            )
+            if hard_capped:
+                participant.planned_bonus = planned
+                participant.bonus_status = BONUS_STATUS_CAPPED
+                return True
+            if not bonus_is_settled(participant):
+                participant.planned_bonus = 0.0
+                participant.bonus_status = BONUS_STATUS_SUCCESS
+            return True
+
+        # Claim the single automatic platform POST and commit it before
+        # calling the recruiter, so a crash after a successful POST cannot
+        # look like not_due_yet and pay twice.
+        participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+        participant.planned_bonus = planned
+        record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
+        self.commit_payment_state()
+        logger.info("Paying bonus of %s to %s", bonus, participant.id)
+        transferred = participant.recruiter.reward_bonus(
+            participant,
+            bonus,
+            self.bonus_reason() if reason is None else reason,
+        )
+        if transferred is False:
+            logger.error(
+                "Bonus transfer failed for participant %s; leaving payment "
+                "unconfirmed for manual review.",
+                participant.id,
+            )
+            self._notify_bonus_transfer_failed(participant, bonus)
+            return False
+
+        self._record_bonus_transfer_success(
+            participant,
+            bonus,
+            bonus_status=BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS,
+        )
+        return True
+
+    def _record_bonus_transfer_success(
+        self, participant, amount: float, *, bonus_status=BONUS_STATUS_SUCCESS
+    ) -> None:
+        """Record that this bonus was transferred and no longer needs review."""
+        participant.bonus = amount
+        if not (participant.planned_bonus or 0.0):
+            participant.planned_bonus = amount
+        participant.bonus_status = bonus_status
+        participant.bonus_attempt_detail = None
+
+    def pay_review_bonus(self, participant) -> tuple[str, str]:
+        """Poll the platform, then POST remaining capped bonus if unpaid.
+
+        Re-applies spend caps to ``planned_bonus`` (the decided amount).
+        If the platform already reports at least that payable remainder,
+        record it and skip the POST. Otherwise POST ``payable - apparent``,
+        not the full decided amount. Automatic submission-complete still
+        posts at most once; this is the human-gated extra attempt.
+        """
+        if not bonus_needs_review(participant):
+            return (
+                "warning",
+                f"Participant {participant.id} is not flagged for payment review.",
+            )
+        planned = round(float(participant.planned_bonus or 0.0), 2)
+        payable, hard_capped = self.clip_bonus_for_spend_caps(
+            participant, planned, record=False
+        )
+        payable = round(payable, 2)
+        settled_status = BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS
+        recruiter = participant.recruiter
+        can_report = recruiter.can_report_apparent_bonus()
+        apparent = recruiter.apparent_bonus_paid(participant) if can_report else None
+        if can_report and apparent is None:
+            return (
+                "warning",
+                f"Could not read the platform bonus for participant "
+                f"{participant.id}. Try again in a moment.",
+            )
+        already = 0.0 if apparent is None else round(float(apparent), 2)
+        accounted = round(min(already, payable), 2)
+        if already + 1e-9 >= payable:
+            self._record_bonus_transfer_success(
+                participant, accounted, bonus_status=settled_status
+            )
+            return (
+                "success",
+                f"Platform already reports {already:.2f} paid for "
+                f"participant {participant.id}; recorded without posting.",
+            )
+        to_post = round(max(0.0, payable - already), 2)
+        min_real_bonus = 0.01
+        if to_post < min_real_bonus:
+            self._record_bonus_transfer_success(
+                participant, accounted, bonus_status=settled_status
+            )
+            return (
+                "success",
+                f"No remaining bonus to post for participant {participant.id}.",
+            )
+        logger.info(
+            "Dashboard retry: paying bonus of %s to participant %s",
+            to_post,
+            participant.id,
+        )
+        record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
+        self.commit_payment_state()
+        transferred = recruiter.reward_bonus(participant, to_post, self.bonus_reason())
+        if transferred is False:
+            return (
+                "danger",
+                f"Bonus POST failed for participant {participant.id}. "
+                "Check the platform, then try again if it still looks unpaid.",
+            )
+        delivered = round(min(already + to_post, payable), 2)
+        self._record_bonus_transfer_success(
+            participant, delivered, bonus_status=settled_status
+        )
+        return (
+            "success",
+            f"Posted bonus of {to_post:.2f} for participant {participant.id}.",
+        )
+
+    def dismiss_review_bonus(self, participant) -> tuple[str, str]:
+        """Clear payment review without posting a bonus.
+
+        Marks bonus status dismissed so a later submission-complete replay
+        will not POST. ``planned_bonus`` and ``bonus_attempt_detail`` are
+        kept as a record of the skipped amount and last pay attempt.
+        """
+        if not bonus_needs_review(participant):
+            return (
+                "warning",
+                f"Participant {participant.id} is not flagged for payment review.",
+            )
+        participant.bonus_status = BONUS_STATUS_DISMISSED
+        logger.info(
+            "Dismissed payment review for participant %s without posting "
+            "(planned_bonus=%s).",
+            participant.id,
+            participant.planned_bonus,
+        )
+        return (
+            "success",
+            f"Dismissed payment review for participant {participant.id} "
+            "without posting a bonus.",
+        )
+
+    def _notify_bonus_transfer_failed(self, participant, bonus: float) -> None:
+        message = (
+            f"Bonus transfer failed for participant {participant.id} "
+            f"(assignment {participant.assignment_id}, worker "
+            f"{participant.worker_id}). PsyNet will not retry automatically. "
+            f"Please open this participant on the Participants dashboard "
+            f"(listed under Needs payment review). Compare PsyNet and "
+            f"platform status there, then pay {bonus} or dismiss. "
+            "bonus_status is unconfirmed."
+        )
+        logger.error(message)
+        try:
+            self.notifier.notify(message)
+        except Exception:
+            logger.exception(
+                "Failed to notify experimenter about a bonus transfer "
+                "failure for participant %s.",
+                participant.id,
+            )
 
     def recruiter_exit_info(self, participant):
         """Ask the recruiter which completion-code type to use for this
         participant's exit URL. Returning ``None`` selects the recruiter's
         default code.
+
+        The code actually issued is stored on
+        ``participant.issued_completion_code_type`` so later payment
+        decisions match what the platform paid, even if the participant
+        is failed afterwards.
         """
         exit_code_type = getattr(participant.recruiter, "exit_code_type", None)
         if exit_code_type is None:
             return None
-        return exit_code_type(participant)
+        code_type = exit_code_type(participant)
+        issued = code_type
+        if issued is None:
+            issued = getattr(participant.recruiter, "default_code_type", None)
+        participant.issued_completion_code_type = issued
+        self.commit_payment_state()
+        return code_type
 
     def on_recruiter_submission_complete(self, participant, event):
-        super().on_recruiter_submission_complete(participant, event)
-        recruiter_hook = getattr(
-            participant.recruiter, "on_recruiter_submission_complete", None
-        )
-        if recruiter_hook is not None:
-            recruiter_hook(participant)
+        """Record payment fields, approve, pay the bonus, and recruit.
 
-    def check_bonus(self, reward, participant):
+        PsyNet owns this handler rather than calling Dallinger's
+        implementation. Status and platform base are always re-recorded
+        (so a Prolific listener replay that reset status to ``submitted``
+        is restored). ``bonus_status`` skips a repeat money transfer:
+        PsyNet posts a bonus at most once. Recruitment still runs if the
+        first bonus transfer fails; a later replay does not recruit again.
+        Opening an unconfirmed person polls the platform into
+        the participant table and offers Pay bonus or Dismiss.
+        Dallinger's unused ``data_check`` / ``attention_check`` hooks are
+        not run.
         """
-        Ensures that a participant receives no more than a reward of max_participant_payment.
-        Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
-        been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
-
-        :param reward: float
-            The reward calculated in :func:`~psynet.experiment.Experiment.bonus()`.
-        :type participant:
-            :attr: `~psynet.participant.Participant`
-        :returns:
-            The possibly reduced reward as a ``float``.
-        """
-
-        # check hard_max_experiment_payment
-        if (
-            self.var.hard_max_experiment_payment_email_sent
-            or self.amount_spent() + self.outstanding_base_payments() + reward
-            > self.var.hard_max_experiment_payment
+        participant = self._lock_participant_for_payment(participant)
+        if participant.status not in (
+            "submitted",
+            "approved",
+            "screened_out",
+            "returned",
         ):
-            participant.var.set("unpaid_bonus", reward)
-            self.ensure_hard_max_experiment_payment_email_sent()
-
-        # check soft_max_experiment_payment
-        if self.amount_spent() + reward >= self.var.soft_max_experiment_payment:
-            self.ensure_soft_max_experiment_payment_email_sent()
-
-        # check max_participant_payment
-        if participant.amount_paid() + reward > self.var.max_participant_payment:
-            reduced_reward = round(
-                self.var.max_participant_payment - participant.amount_paid(), 2
+            logger.warning(
+                "Called with unexpected participant status! "
+                "participant ID: %s, status: %s, recruiter: %s",
+                participant.id,
+                participant.status,
+                participant.recruiter.nickname,
             )
-            participant.send_email_max_payment_reached(self, reward, reduced_reward)
-            return reduced_reward
-        return reward
+            return
 
-    def outstanding_base_payments(self):
-        return self.num_working_participants * self.base_payment
+        if participant.end_time is None:
+            timestamp = None if event is None else event.get("timestamp")
+            if timestamp is not None:
+                participant.end_time = timestamp
+
+        already_handled = bonus_transfer_already_claimed(participant)
+        decision = self.decide_and_record_payment(participant)
+        participant.recruiter.approve_hit(participant.assignment_id)
+        if not self.pay_decided_bonus(participant, decision):
+            if already_handled:
+                logger.error(
+                    "Bonus transfer remains unconfirmed for participant %s; "
+                    "skipping a second recruitment pass.",
+                    participant.id,
+                )
+            else:
+                logger.error(
+                    "Bonus transfer failed for participant %s; continuing "
+                    "recruitment and leaving payment for manual review.",
+                    participant.id,
+                )
+        if already_handled:
+            return
+        self.submission_successful(participant=participant)
+        self.recruit()
 
     def with_lucid_recruitment(self):
         return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
@@ -2430,6 +3018,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page_uuid,
         client_ip_address,
         answer=NoArgumentProvided,
+        include_timeline_fragment=True,
     ):
         _p = get_translator(context=True)
         logger.info(
@@ -2488,7 +3077,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
-            return self.response_approved(participant)
+            return self.response_approved(participant, include_timeline_fragment)
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -2510,7 +3099,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             return error_response(participant=participant)
 
-    def response_approved(self, participant):
+    def response_approved(self, participant, include_timeline_fragment=True):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
         payload = {
@@ -2519,8 +3108,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
         config = get_config()
         # In inplace mode, the same /response round-trip both advances the
-        # participant state and returns the next timeline fragment.
-        if config.get("inplace_timeline_transitions"):
+        # participant state and returns the next timeline fragment. Skip the
+        # fragment when the next page forces a full reload; the client will
+        # navigate via /timeline instead.
+        if (
+            include_timeline_fragment
+            and config.get("inplace_timeline_transitions")
+            and not page.requires_full_page_reload
+        ):
             payload["timeline_fragment"] = self.render_partial_timeline_payload(
                 page, self, participant
             )
@@ -2572,6 +3167,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = []
         for trialmaker in cls.timeline.trial_makers.values():
             files.extend(trialmaker.extra_files())
+        files.extend(get_static_package_extra_files())
 
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
@@ -2620,6 +3216,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/scripts/psynet.js",
                     "/static/scripts/psynet.js",
+                ),
+                (
+                    resources.files("psynet") / "static/scripts/chatroom-widget.js",
+                    "/static/scripts/chatroom-widget.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/execute-front-end-js.js",
+                    "/static/scripts/execute-front-end-js.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/scripts/jspsych-page.js",
+                    "/static/scripts/jspsych-page.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "static/scripts/music-notation-prompt.js",
+                    "/static/scripts/music-notation-prompt.js",
                 ),
                 (
                     resources.files("psynet")
@@ -2705,7 +3319,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/survey-jquery",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/abc-js",
+                    resources.files("psynet") / "static/libraries/abc-js",
                     "/static/scripts/abc-js",
                 ),
                 (
@@ -2779,6 +3393,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Register PsyNet-specific configuration parameters.
         """
         config = dallinger_get_config()
+
+        def legacy_js_var_globals_validator(value):
+            """Validate the legacy JavaScript variable global access mode."""
+            if value not in {"warn", "error", "off"}:
+                raise ValueError(
+                    '`legacy_js_var_globals` must be one of: "warn", "error", or "off".'
+                )
+
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
         config.register("lab_recruiter_external_submission_url", str)
@@ -2805,6 +3427,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
         config.register("inplace_timeline_transitions", bool)
+        config.register(
+            "legacy_js_var_globals",
+            str,
+            validators=[legacy_js_var_globals_validator],
+        )
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
@@ -2833,7 +3460,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("notifier", str)
         config.register("experimenter_name", str)
         config.register("slack_channel_name", str)
-        config.register("slack_bot_token", str)
+        config.register("slack_bot_token", str, sensitive=True)
         config.register("needs_internet_access", bool)
 
         def is_positive_float(value):
@@ -3102,6 +3729,43 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return report_lucid()
 
+    @dashboard_tab("Sync groups")
+    @classmethod
+    def dashboard_sync_groups(cls):
+        from .dashboard.sync_groups import report_sync_groups
+
+        return report_sync_groups()
+
+    @dashboard.route(
+        "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/fail",
+        methods=["POST"],
+    )
+    @login_required
+    @with_transaction
+    def manual_fail_sync_group_participant(sync_group_id, participant_id):  # noqa F811
+        from .dashboard.sync_groups import manual_fail_sync_group_participant
+
+        return manual_fail_sync_group_participant(
+            participant_id,
+            sync_group_id,
+            fail_reason=request.form.get("fail_reason"),
+        )
+
+    @dashboard.route(
+        "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/kick",
+        methods=["POST"],
+    )
+    @login_required
+    @with_transaction
+    def manual_kick_sync_group_participant(sync_group_id, participant_id):  # noqa F811
+        from .dashboard.sync_groups import manual_kick_sync_group_participant
+
+        return manual_kick_sync_group_participant(
+            participant_id,
+            sync_group_id,
+            kick_reason=request.form.get("kick_reason"),
+        )
+
     @dashboard_tab("Participants")
     @classmethod
     def dashboard_participants(cls):
@@ -3134,12 +3798,80 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except sqlalchemy.orm.exc.MultipleResultsFound:
             message = "Found multiple participants matching those specifications."
 
+        if participant is not None:
+            cls._attach_platform_payment_view(participant)
+
         return render_template(
             "dashboard_participant.html",
-            title="Participant",
+            title="Participants",
             participant=participant,
             message=message,
+            participants_needing_review=Participant.needing_payment_review(),
+            currency=get_config().currency,
             app_base_url=get_experiment_url(),
+        )
+
+    @staticmethod
+    def _attach_platform_payment_view(participant):
+        recruiter = getattr(participant, "recruiter", None)
+        if recruiter is None:
+            participant.platform_payment_supported = False
+            participant.platform_bonus = None
+            participant.platform_submission_status = None
+            return
+        try:
+            view = recruiter.platform_payment_view(participant)
+        except Exception:
+            logger.exception(
+                "Could not poll platform payment status for participant %s.",
+                getattr(participant, "id", None),
+            )
+            participant.platform_payment_supported = bool(
+                recruiter.can_report_apparent_bonus()
+            )
+            participant.platform_bonus = None
+            participant.platform_submission_status = None
+            return
+        participant.platform_payment_supported = view.supported
+        participant.platform_bonus = view.bonus
+        participant.platform_submission_status = view.submission_status
+
+    @dashboard.route("/participants/pay-bonus", methods=["POST"])
+    @login_required
+    @with_transaction
+    def dashboard_pay_bonus():  # noqa F811
+        return Experiment._handle_dashboard_review_bonus(action="pay")
+
+    @dashboard.route("/participants/dismiss-bonus", methods=["POST"])
+    @login_required
+    @with_transaction
+    def dashboard_dismiss_bonus():  # noqa F811
+        return Experiment._handle_dashboard_review_bonus(action="dismiss")
+
+    @classmethod
+    def _handle_dashboard_review_bonus(cls, *, action: str):
+        participant_id = request.form.get("participant_id")
+        try:
+            participant = cls.get_participant_from_participant_id(
+                int(participant_id), for_update=True
+            )
+        except (TypeError, ValueError):
+            flash("Invalid participant ID.", "danger")
+            return redirect(url_for("dashboard.dashboard_participants"))
+        except sqlalchemy.orm.exc.NoResultFound:
+            flash("Failed to find that participant.", "danger")
+            return redirect(url_for("dashboard.dashboard_participants"))
+        exp = get_experiment()
+        if action == "dismiss":
+            category, message = exp.dismiss_review_bonus(participant)
+        else:
+            category, message = exp.pay_review_bonus(participant)
+        flash(message, category)
+        return redirect(
+            url_for(
+                "dashboard.dashboard_participants",
+                participant_id=participant.id,
+            )
         )
 
     @classmethod
@@ -3960,6 +4692,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return handled_error.error_page()
 
     @classmethod
+    def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
+        """
+        Report a per-item batch failure, mark the item failed, and commit.
+
+        Used by pollers that process many candidates in one transaction
+        (network growth, finalize backstop). ``handle_error`` rolls back the
+        session, so ``refetch`` must return a fresh ORM instance (or ``None``).
+        ``fail`` receives that instance and marks it failed. The fail is
+        committed immediately so a later ``handle_error`` in the same batch
+        cannot undo it (same mid-batch commit pattern as ErrorRecord logging).
+        """
+        if not isinstance(error, cls.HandledError):
+            cls.handle_error(error, **error_parents)
+        entity = refetch()
+        if entity is None:
+            return None
+        fail(entity)
+        db.session.commit()
+        return entity
+
+    @classmethod
     def handle_error(cls, error, **kwargs):
         parents = cls._compile_error_parents(**kwargs)
         db.session.rollback()
@@ -4150,6 +4903,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This helper is the shared render authority for inplace fragment output
         returned directly from /response.
         """
+        # Mirror the full-page /timeline path (see get_current_page), which
+        # calls pre_render() before rendering. Without this, pages advanced via
+        # an inplace transition would skip pre_render() hooks (e.g. prompt/control
+        # setup such as S3 presigned URL preparation).
+        page.pre_render()
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,
@@ -4206,6 +4964,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
+        include_timeline_fragment = get_arg_from_dict(
+            json_data, "include_timeline_fragment", use_default=True, default=True
+        )
         client_ip_address = cls.get_client_ip_address()
 
         res = exp.process_response(
@@ -4216,6 +4977,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
             answer,
+            include_timeline_fragment,
         )
 
         return res
@@ -4294,6 +5056,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.timeline.check_consents(self)
 
     def check_python_dependencies(self):
+        if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+            return
+        if is_in_repo_experiment():
+            if Path("constraints.txt").exists():
+                logger.warning(
+                    "Ignoring constraints.txt in in-repo experiment %s; in-repo "
+                    "experiments use PsyNet's shared development environment "
+                    "instead of per-demo constraint pins.",
+                    Path.cwd(),
+                )
+            return
         extra_deps = self.notifier.python_dependencies
         with open("constraints.txt", "r") as f:
             constraints = f.readlines()
@@ -4421,6 +5194,14 @@ def assert_config_txt_does_not_contain_sensitive_values():
 
 def in_deployment_package():
     return os.path.exists("DEPLOYMENT_PACKAGE")
+
+
+def _identify_config_override_source(key):
+    """Identify which configuration source overrides an experiment.py value."""
+    if key in os.environ:
+        return "an environment variable"
+
+    return "another configuration source"
 
 
 def authenticate(auth, config):

@@ -10,6 +10,15 @@ performance over time. The benchmark configuration lives in ``asv.conf.json``,
 benchmark code lives in ``benchmarks/``, and CI stores generated result files on
 the ``benchmark-results`` branch.
 
+.. note::
+
+    This page describes how PsyNet benchmarks *its own* performance across
+    commits. If instead you want to load-test *your experiment* to check how it
+    will cope with real participants, see the
+    :ref:`testing experiment performance tutorial <performance_testing>`. The
+    slow ASV tier below drives that same ``psynet performance-test`` command
+    under the hood.
+
 Benchmark tiers
 ===============
 

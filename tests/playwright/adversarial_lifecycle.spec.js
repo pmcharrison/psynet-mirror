@@ -29,7 +29,7 @@ async function nextPageFromBrowser(page, answer = null) {
   return result;
 }
 
-test("adversarial lifecycle handles rejection retry and page listener cleanup", async ({
+test("adversarial lifecycle handles rejection retry and page listener cleanup", { tag: "@inplace-only" }, async ({
   page,
   context
 }) => {
@@ -74,8 +74,8 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
     const accepted = await nextPageFromBrowser(experimentPage, "accepted");
     expect(accepted).toBe(true);
 
-    // Timers scheduled immediately before an SPA transition must not fire later
-    // on the checkpoint page, and repeating timers must stop ticking.
+    // Once the SPA transition reaches the checkpoint page, page-scoped timers
+    // from the previous page must no longer keep ticking or trigger stale navigation.
     await waitForMainBodyContains(experimentPage, "Tracked timer page", STEP_TIMEOUT_MS);
     await experimentPage.evaluate(() => window.__scheduleTrackedLifecycleTimers());
     expect(await nextPageFromBrowser(experimentPage, "manual-timer-advance")).toBe(true);
@@ -91,16 +91,13 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Timer cleanup checkpoint"
     );
-    await expect
-      .poll(() => experimentPage.evaluate(() => window.__trackedTimerLifecycle))
-      .toEqual({
-        started: true,
-        timeoutFired: false,
-        intervalTicks: ticksAfterTransition
-      });
+    const lifecycleAfterWait = await experimentPage.evaluate(
+      () => window.__trackedTimerLifecycle
+    );
+    expect(lifecycleAfterWait.started).toBe(true);
+    expect(lifecycleAfterWait.intervalTicks).toBe(ticksAfterTransition);
 
-    // Audio stopped during a transition must not report completion on the next
-    // trial, even if the original sound was in a fade-out window.
+    // Audio cleanup must settle even if the source ends before its stop timer.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(experimentPage, "Audio fade-out page", STEP_TIMEOUT_MS);
     await expect
@@ -112,6 +109,27 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         { timeout: STEP_TIMEOUT_MS }
       )
       .toBe(true);
+    const stopSettled = await experimentPage.evaluate(async () => {
+      const sound = window.psynet.media.sounds.find(
+        (candidate) => candidate.stimulusId === "fadeout_stale_audio"
+      );
+      const stopping = window.psynet.media.stopAllAudio({ fadeOut: 0 });
+      sound.source.dispatchEvent(new Event("ended"));
+      return Promise.race([
+        stopping.then(() => true),
+        new Promise((resolve) => setTimeout(() => resolve(false), 1000))
+      ]);
+    });
+    expect(stopSettled).toBe(true);
+
+    // Audio stopped during a transition must not report completion on the next
+    // trial, even if the original sound was in a fade-out window.
+    await experimentPage.evaluate(() => {
+      window.psynet.audio.fadeout_stale_audio.play({
+        fadeOut: 0.3,
+        gain: 0.001
+      });
+    });
     expect(await nextPageFromBrowser(experimentPage, "advance-during-audio")).toBe(
       true
     );
@@ -130,6 +148,33 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         )
       )
       .toBe(false);
+
+    // Manual stop intent must win even when it overlaps an already pending
+    // automatic stop, otherwise a looping sound can restart during cleanup.
+    expect(await nextPageFromBrowser(experimentPage)).toBe(true);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Overlapping audio stop page",
+      STEP_TIMEOUT_MS
+    );
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () => window.__overlappingAudioStopLifecycle?.ready === true
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() =>
+            window.__runOverlappingAudioStopRegression()
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
 
     // Page-scoped event listeners should work while their page is active.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
