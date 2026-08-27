@@ -1,11 +1,15 @@
+import inspect
+import sys
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from psynet.sync import GroupBarrier
 from psynet.trial.chain import ChainNode, ChainTrial, ChainTrialMaker
-from psynet.trial.main import Trial
-from psynet.trial.static import StaticTrial, StaticTrialMaker
+from psynet.trial.dense import DenseTrialMaker
+from psynet.trial.main import NetworkTrialMaker, Trial, TrialMaker
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 
 class CustomTrial(ChainTrial):
@@ -55,6 +59,86 @@ def make_trial_maker(**kwargs):
         recruit_mode="n_trials",
     )
     return ChainTrialMaker(**{**args, **kwargs})
+
+
+def test_failure_policy_constructor_defaults():
+    chain = inspect.signature(ChainTrialMaker.__init__).parameters
+    static = inspect.signature(StaticTrialMaker.__init__).parameters
+    dense = inspect.signature(DenseTrialMaker.__init__).parameters
+    base = inspect.signature(TrialMaker.__init__).parameters
+    network = inspect.signature(NetworkTrialMaker.__init__).parameters
+
+    assert chain["fail_trials_on_premature_exit"].default is False
+    assert chain["fail_trials_on_participant_performance_check"].default is False
+    assert static["fail_trials_on_premature_exit"].default is False
+    assert static["fail_trials_on_participant_performance_check"].default is True
+    assert dense["fail_trials_on_premature_exit"].default is False
+    assert dense["fail_trials_on_participant_performance_check"].default is True
+    assert base["fail_trials_on_premature_exit"].default is False
+    assert network["fail_trials_on_premature_exit"].default is False
+
+    trial_maker = make_trial_maker()
+    assert not trial_maker.fail_trials_on_participant_performance_check
+    assert not hasattr(trial_maker, "fail_trials_on_premature_exit")
+
+
+def test_trial_maker_constructors_are_keyword_only():
+    for cls in (TrialMaker, NetworkTrialMaker):
+        params = inspect.signature(cls.__init__).parameters
+        kinds = [p.kind for name, p in params.items() if name != "self"]
+        assert kinds
+        assert all(kind is inspect.Parameter.KEYWORD_ONLY for kind in kinds)
+
+    with pytest.raises(TypeError):
+        TrialMaker(
+            "id",
+            object,
+            1,
+            False,
+            False,
+            False,
+            True,
+            "n_trials",
+            None,
+            0,
+            None,
+        )
+
+    with pytest.raises(TypeError):
+        NetworkTrialMaker(
+            "id",
+            object,
+            object,
+            1,
+            False,
+            False,
+            False,
+            True,
+            "n_trials",
+            None,
+            0,
+            False,
+        )
+
+
+def test_fail_trials_on_premature_exit_true_emits_deprecation_warning():
+    with pytest.warns(
+        DeprecationWarning, match="fail_trials_on_premature_exit"
+    ) as record:
+        StaticTrialMaker(
+            id_="deprecated_flag",
+            trial_class=CustomStaticTrial,
+            nodes=[StaticNode(definition={"x": 1})],
+            expected_trials_per_participant=1,
+            max_trials_per_participant=1,
+            recruit_mode="n_trials",
+            target_trials_per_node=1,
+            fail_trials_on_premature_exit=True,
+        )
+
+    warning = record[0]
+    if sys.version_info >= (3, 12):
+        assert Path(warning.filename).resolve() == Path(__file__).resolve()
 
 
 def test_chain_trial_maker_rejects_mismatched_start_nodes():

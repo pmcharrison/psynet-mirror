@@ -611,7 +611,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def failure_cascade(self):
-        return [lambda: self.alive_trials]
+        """Return no owned objects. ``failed`` is not an ownership marker."""
+        return []
 
     @property
     def gettext(self):
@@ -774,12 +775,28 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
     def fail(self, reason=None):
+        """
+        Mark this participant as failed.
+
+        Incomplete trials are failed here. Completed trials stay unless a
+        TrialMaker performance-check policy treats them as unusable. A
+        completed participant can still be failed; they are not redirected
+        off the successful-end page. Already-failed calls are a no-op.
+
+        If they are still on the main timeline, they are redirected to
+        ``unsuccessful_end``. They are also removed from active sync groups.
+        If that drops a ``SimpleSyncGroup`` below its minimum size, remaining
+        members are failed immediately when
+        ``fail_participants_below_min_size`` is True. See
+        :doc:`/tutorials/participant_and_trial_failure`.
+
+        Parameters
+        ----------
+        reason : str, optional
+            Failure tag to append, for example ``"premature_exit"``.
+        """
         if self.failed:
             logger.info("Participant %i already failed, not failing again.", self.id)
-            return
-
-        if self.complete:
-            logger.info("Participant %i already completed, not failing.", self.id)
             return
 
         if reason is not None:
@@ -795,6 +812,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         from psynet.experiment import get_experiment
 
         exp = get_experiment()
+
+        self._fail_incomplete_trials(reason)
 
         for i, routine in enumerate(exp.participant_fail_routines):
             logger.info(
@@ -816,8 +835,30 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         self._redirect_to_unsuccessful_end(exp)
 
+    def _fail_incomplete_trials(self, reason):
+        """Fail this participant's unfinished trials.
+
+        Includes the trial currently on screen and trials not owned by a
+        timeline TrialMaker. Completed trials are left to TrialMaker
+        performance-check policy.
+        """
+        from psynet.trial.main import Trial
+
+        trials = (
+            Trial.query.filter_by(participant_id=self.id, failed=False)
+            .filter(Trial.complete.is_not(True))
+            .order_by(Trial.id)
+            .with_for_update(of=Trial)
+            .populate_existing()
+            .all()
+        )
+        for trial in trials:
+            trial.fail(reason=reason)
+
     def _redirect_to_unsuccessful_end(self, experiment):
-        if experiment.timeline.participant_is_in_end_logic(self):
+        # Queued redirect is navigation only. Incomplete trials, including the
+        # one on screen, have already been failed.
+        if self.complete or experiment.timeline.participant_is_in_end_logic(self):
             return
 
         if self._in_advance_page:
