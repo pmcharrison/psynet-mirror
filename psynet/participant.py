@@ -23,6 +23,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     desc,
 )
@@ -46,6 +47,77 @@ from .utils import (
 )
 
 logger = get_logger()
+
+BONUS_STATUS_NOT_DUE_YET = "not_due_yet"
+BONUS_STATUS_UNCONFIRMED = "unconfirmed"
+BONUS_STATUS_SUCCESS = "success"
+BONUS_STATUS_DISMISSED = "dismissed"
+BONUS_STATUS_CAPPED = "capped"
+
+SETTLED_BONUS_STATUSES = frozenset(
+    {
+        BONUS_STATUS_SUCCESS,
+        BONUS_STATUS_DISMISSED,
+        BONUS_STATUS_CAPPED,
+    }
+)
+
+_BONUS_STATUS_LABELS = {
+    BONUS_STATUS_NOT_DUE_YET: "Not due yet",
+    BONUS_STATUS_UNCONFIRMED: "Unconfirmed",
+    BONUS_STATUS_SUCCESS: "Success",
+    BONUS_STATUS_DISMISSED: "Dismissed",
+    BONUS_STATUS_CAPPED: "Capped",
+}
+
+
+def display_bonus_status(participant) -> str:
+    """Experimenter-facing bonus outcome.
+
+    ``Unconfirmed`` means PsyNet meant to pay and cannot tell if the
+    bonus arrived. ``Success`` is what PsyNet recorded, not a Prolific
+    receipt. ``Dismissed`` and ``Capped`` mean we will not post again.
+    """
+    stored = getattr(participant, "bonus_status", None)
+    return _BONUS_STATUS_LABELS.get(stored, "Not due yet")
+
+
+def bonus_is_settled(participant) -> bool:
+    """True when PsyNet will not automatically post a bonus for this person."""
+    return getattr(participant, "bonus_status", None) in SETTLED_BONUS_STATUSES
+
+
+def bonus_needs_review(participant) -> bool:
+    """True when the automatic bonus POST is unconfirmed on an external recruiter."""
+    if getattr(participant, "bonus_status", None) != BONUS_STATUS_UNCONFIRMED:
+        return False
+    recruiter = getattr(participant, "recruiter", None)
+    if recruiter is None:
+        return True
+    return recruiter.has_external_bonus_payment()
+
+
+def bonus_transfer_already_claimed(participant) -> bool:
+    """True when PsyNet will not automatically POST a bonus again.
+
+    Settled statuses skip a repeat transfer. ``unconfirmed`` also skips,
+    including on local recruiters that are not listed for dashboard review.
+    """
+    return bonus_is_settled(participant) or (
+        getattr(participant, "bonus_status", None) == BONUS_STATUS_UNCONFIRMED
+    )
+
+
+NO_BONUS_ATTEMPT_RESULT = "No result recorded from the pay request."
+
+
+def record_bonus_attempt_detail(participant, detail: str) -> None:
+    """Store a diagnostic about the last bonus pay attempt.
+
+    This is not a payment status. Unconfirmed still means we do not know
+    whether money moved.
+    """
+    participant.bonus_attempt_detail = detail
 
 
 def _extract_server_error_details(response_text):
@@ -253,7 +325,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
-    unpaid_bonus = Column(Float)
+    # Planned Prolific top-up from ``decide_payment`` (after per-participant
+    # clip). If hard-capped, this stays the decided amount so the cut is
+    # visible against delivered ``bonus``.
+    planned_bonus = Column(Float)
+    # not_due_yet | unconfirmed | success | dismissed | capped
+    bonus_status = Column(String)
+    # Diagnostic from the last bonus pay attempt; not a payment status.
+    bonus_attempt_detail = Column(Text)
+    issued_completion_code_type = Column(String)
     total_wait_page_time = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
     answer_is_fresh = Column(Boolean, default=False)
@@ -589,7 +669,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.sequences = []
         self.complete = False
         self.performance_reward = 0.0
-        self.unpaid_bonus = 0.0
+        self.planned_bonus = 0.0
+        self.bonus_status = BONUS_STATUS_NOT_DUE_YET
+        self.bonus_attempt_detail = None
+        self.issued_completion_code_type = None
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
         self.branch_log = []
@@ -604,6 +687,36 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def initialize(self, experiment):
         pass
+
+    @property
+    def bonus_status_label(self):
+        """Experimenter-facing bonus outcome. See ``display_bonus_status``."""
+        return display_bonus_status(self)
+
+    @property
+    def bonus_needs_review(self):
+        """True when the automatic bonus POST is unconfirmed on an external recruiter."""
+        return bonus_needs_review(self)
+
+    @classmethod
+    def needing_payment_review(cls):
+        """Participants whose automatic bonus transfer is unconfirmed.
+
+        PsyNet already used its one automatic platform bonus POST (or was
+        interrupted while doing so). Local recruiters such as HotAir are
+        omitted: they have no external platform to review. Open the
+        participant on the Participants dashboard to compare with the
+        platform, then pay or dismiss.
+        """
+        return [
+            participant
+            for participant in cls.query.filter_by(
+                bonus_status=BONUS_STATUS_UNCONFIRMED
+            )
+            .order_by(cls.id.asc())
+            .all()
+            if participant.recruiter.has_external_bonus_payment()
+        ]
 
     @property
     def locale(self):
@@ -625,7 +738,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     def time_reward(self):
         wage_per_hour = get_config().get("wage_per_hour")
-        seconds = self.time_credit
+        seconds = self.time_credit or 0.0
         hours = seconds / 3600
         return hours * wage_per_hour
 
@@ -637,7 +750,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             The reward as a ``float``.
         """
         return round(
-            self.time_reward + self.performance_reward,
+            self.time_reward + (self.performance_reward or 0.0),
             ndigits=2,
         )
 

@@ -20,11 +20,24 @@ Key design constraints for maintainers:
   ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``) or asked to
   return their submission for a bonus (the legacy fallback when
   ``prolific_pay_unsuccessful = false``).
-- Payment amounts are computed in ``psynet.experiment.Experiment.bonus``,
-  which consults the recruiter for platform-specific inputs (such as the
-  Prolific screen-out reward in
-  ``PsyNetProlificRecruiterMixin.unsuccessful_base_payment``); recruiters
-  are otherwise only responsible for transferring the money.
+- Payment is split into decide / record / transfer. ``decide_payment``
+  returns a ``PaymentDecision`` (status, platform base, bonus)
+  from the participant's outcome and recruiter policy; ``record_payment``
+  writes those fields onto the participant; ``reward_bonus`` transfers
+  money and returns ``False`` if the platform rejected the transfer.
+  ``Experiment.on_recruiter_submission_complete`` owns this sequence,
+  always re-recording status and platform base, and uses ``bonus_status``
+  to skip a repeat transfer. PsyNet posts a bonus automatically at most
+  once per participant. A failed transfer still continues recruitment,
+  stores the amount on ``planned_bonus``, sets ``bonus_status`` to
+  unconfirmed, and records ``bonus_attempt_detail`` from the last pay
+  attempt. The Participants dashboard lists everyone who needs that
+  review. Opening a participant polls the platform (Prolific
+  ``bonus_payments`` and submission status, which may lag a POST) and
+  shows those facts in the participant table, with Pay bonus or Dismiss
+  when review is needed. ``reward_bonus`` returns ``False`` if the
+  platform rejected the transfer. PsyNet does not call Dallinger's unused
+  ``data_check`` / ``attention_check`` hooks.
 """
 
 import hashlib
@@ -53,6 +66,7 @@ from dallinger.recruiters import (
     RecruitmentStatus,
     RedisStore,
     alphanumeric_code,
+    handle_recruitment_error,
 )
 from dallinger.utils import get_base_url
 from dominate import tags
@@ -65,7 +79,12 @@ from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService, get_lucid_service
 from .page import InfoPage
-from .participant import Participant
+from .participant import (
+    BONUS_STATUS_CAPPED,
+    BONUS_STATUS_SUCCESS,
+    Participant,
+    record_bonus_attempt_detail,
+)
 from .timeline import (
     AsyncCodeBlock,
     CodeBlock,
@@ -102,6 +121,88 @@ PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 #: base payment, so studies with ``base_payment <= 0.25`` must set
 #: ``prolific_unsuccessful_base_payment`` explicitly (or disable the feature).
 PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
+
+
+def _bonus_payments_total(bonus_payments) -> float:
+    """Convert Prolific ``bonus_payments`` (pence/cents) to currency units."""
+    if not bonus_payments:
+        return 0.0
+    return round(sum(bonus_payments) / 100.0, 2)
+
+
+def _fetch_prolific_submission(prolificservice, assignment_id: str) -> dict | None:
+    """GET a Prolific submission without treating HTTP errors as recruitment failures.
+
+    Dashboard polling is expected to miss (for example 404) when an assignment
+    id is unknown or still propagating. Dallinger's ``ProlificService._req``
+    would log those as recruitment errors.
+    """
+    try:
+        headers = {
+            "Authorization": f"Token {prolificservice.api_token}",
+            "Referer": getattr(prolificservice, "referer_header", "") or "",
+        }
+        url = f"{prolificservice.api_root}/submissions/{assignment_id}/"
+        response = requests.get(url, headers=headers, timeout=15)
+    except requests.RequestException:
+        logger.warning(
+            "Could not reach Prolific for submission %s.",
+            assignment_id,
+            exc_info=True,
+        )
+        return None
+    if response.status_code == 404:
+        logger.info("Prolific submission %s was not found.", assignment_id)
+        return None
+    if not response.ok:
+        logger.warning(
+            "Prolific submission %s returned HTTP %s.",
+            assignment_id,
+            response.status_code,
+        )
+        return None
+    try:
+        parsed = response.json()
+    except ValueError:
+        logger.warning(
+            "Prolific submission %s returned a non-JSON body.",
+            assignment_id,
+        )
+        return None
+    if isinstance(parsed, dict) and "error" in parsed:
+        logger.info(
+            "Prolific submission %s returned an error payload.",
+            assignment_id,
+        )
+        return None
+    return parsed
+
+
+@dataclass(frozen=True)
+class PlatformPaymentView:
+    """What the recruitment platform currently reports for a participant.
+
+    ``supported`` is False when this recruiter cannot poll. ``bonus`` is
+    ``None`` when a supported lookup failed. Prolific pay is asynchronous,
+    so ``bonus`` can lag a successful POST.
+    """
+
+    supported: bool
+    bonus: float | None = None
+    submission_status: str | None = None
+
+
+@dataclass(frozen=True)
+class PaymentDecision:
+    """How a participant should be paid for this exit, before money moves.
+
+    ``bonus`` is ``max(0, total_owed - platform_base)`` and has not yet been
+    clipped by experiment spend caps (``Experiment.apply_payment_caps``).
+    """
+
+    status: str
+    platform_base: float
+    bonus: float
 
 
 def latest_participant_for_assignment(assignment_id):
@@ -147,9 +248,9 @@ class PsyNetRecruiterMixin:
     def submit_assignment(self) -> TimelineLogic:
         # This calls dallinger.submitAssignment, submitting the assignment to
         # the recruiter. What happens next depends on the recruiter and (for
-        # Prolific) the completion code in the participant's exit URL: by
-        # default Dallinger approves the assignment, pays the base payment,
-        # and pays a bonus calculated from participant.bonus().
+        # Prolific) the completion code in the participant's exit URL.
+        # ``Experiment.on_recruiter_submission_complete`` then records the
+        # payment decision and transfers any bonus.
         from .page import ExecuteFrontEndJS
 
         _p = get_translator(context=True)
@@ -180,8 +281,94 @@ class PsyNetRecruiterMixin:
                 "or psynet.consent.NoConsent to skip this check entirely."
             )
 
+    def completion_status(self, participant) -> str:
+        """Return the payment-path status for this participant.
+
+        ``returned`` and ``screened_out`` are trusted once recorded. Otherwise
+        the default is ``approved`` (the platform pays the full study base).
+        """
+        if participant.status in ("returned", "screened_out"):
+            return participant.status
+        return "approved"
+
+    def platform_base_for(self, status: str, experiment) -> float:
+        """Base amount the recruitment platform pays for this payment status."""
+        if status == "approved":
+            return experiment.base_payment
+        if status in ("returned", "screened_out"):
+            return 0.0
+        raise ValueError(f"Unknown payment status {status!r}")
+
+    def total_owed(self, participant, status: str, platform_base: float) -> float:
+        """Total compensation PsyNet intends the participant to receive."""
+        return participant.calculate_reward()
+
+    def decide_payment(self, participant, *, experiment) -> PaymentDecision:
+        """Decide status, platform base, and bonus without writing or paying."""
+        status = self.completion_status(participant)
+        platform_base = self.platform_base_for(status, experiment)
+        total_owed = self.total_owed(participant, status, platform_base)
+        bonus = max(0.0, round(total_owed - platform_base, 2))
+        return PaymentDecision(
+            status=status,
+            platform_base=platform_base,
+            bonus=bonus,
+        )
+
+    def record_payment(self, participant, decision: PaymentDecision) -> None:
+        """Write the payment decision onto the participant (no money transfer)."""
+        participant.status = decision.status
+        participant.base_pay = decision.platform_base
+        participant.base_payment = decision.platform_base
+
+    def reward_bonus(self, participant, amount, reason):
+        """Transfer a bonus. Return False if the platform rejected the transfer.
+
+        Dallinger helpers often return ``None`` on success. ``None`` or any
+        value other than ``False`` is treated as success.
+        """
+        result = super().reward_bonus(participant, amount, reason)
+        if result is False:
+            record_bonus_attempt_detail(
+                participant, "The platform pay request did not succeed."
+            )
+        return False if result is False else True
+
+    def can_report_apparent_bonus(self) -> bool:
+        """Whether this recruiter can poll the platform for bonuses already paid."""
+        return False
+
+    def has_external_bonus_payment(self) -> bool:
+        """Whether bonuses are paid through an external recruitment platform.
+
+        Local debug recruiters such as HotAir have no platform, so payment
+        review and platform status are hidden for them.
+        """
+        return True
+
+    def platform_payment_view(self, participant) -> PlatformPaymentView:
+        """Return the platform's current bonus and submission status, if any."""
+        return PlatformPaymentView(supported=False)
+
+    def apparent_bonus_paid(self, participant) -> float | None:
+        """Bonus the platform currently reports as paid, or ``None`` if unknown.
+
+        A return of ``0.0`` means the platform reports no bonus yet. ``None``
+        means this recruiter cannot tell, or the lookup failed. Prolific pay
+        is asynchronous, so a successful POST can still look unpaid for a
+        while.
+        """
+        view = self.platform_payment_view(participant)
+        if not view.supported:
+            return None
+        return view.bonus
+
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
+    def has_external_bonus_payment(self) -> bool:
+        """HotAir does not pay through an external recruitment platform."""
+        return False
+
     def get_status(self) -> RecruitmentStatus:
         from .experiment import get_experiment
 
@@ -219,6 +406,47 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         automatically via a Prolific screen-out completion code.
         """
         return self.unsuccessful_base_payment is not None
+
+    def completion_status(self, participant) -> str:
+        """Return the payment-path status for this Prolific participant.
+
+        ``returned`` is trusted once the return-for-bonus flow has recorded it.
+        If an exit completion code was issued, that snapshot is preferred over
+        the current ``failed`` flag, so a later fail cannot reclassify a
+        participant who already left with the auto-approving code.
+        """
+        if participant.status == "returned":
+            return "returned"
+        issued = getattr(participant, "issued_completion_code_type", None)
+        if issued == self.unsuccessful_code_type:
+            return "screened_out"
+        if issued:
+            return super().completion_status(participant)
+        if participant.failed and self.pays_unsuccessful_participants_via_screen_out:
+            return "screened_out"
+        return super().completion_status(participant)
+
+    def platform_base_for(self, status: str, experiment) -> float:
+        """Base amount Prolific pays for this payment status."""
+        if status == "screened_out":
+            payment = self.unsuccessful_base_payment
+            if payment is None:
+                raise RuntimeError(
+                    "Cannot record a screened_out payment while "
+                    "`prolific_pay_unsuccessful` is disabled."
+                )
+            return payment
+        return super().platform_base_for(status, experiment)
+
+    def total_owed(self, participant, status: str, platform_base: float) -> float:
+        """Total compensation for this Prolific participant.
+
+        When screen-out top-up is disabled, time rewards are forfeited and
+        only the fixed screen-out amount plus any performance reward is owed.
+        """
+        if status == "screened_out" and not self.tops_up_unsuccessful_participants:
+            return round(platform_base + (participant.performance_reward or 0.0), 2)
+        return super().total_owed(participant, status, platform_base)
 
     @property
     def screen_out_slots(self):
@@ -305,21 +533,16 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         if should_fail:
             participant.fail("error_page")
 
-    def pays_participant_via_screen_out(self, participant) -> bool:
-        """Whether this participant will be paid via Prolific's fixed
-        screen-out reward (rather than the full base payment) because they
-        failed or errored and ``prolific_pay_unsuccessful`` is enabled.
-        """
-        return participant.failed and self.pays_unsuccessful_participants_via_screen_out
-
     def exit_code_type(self, participant):
         """Return the completion-code type for the participant's exit URL.
 
         Unsuccessful participants get the UNSUCCESSFUL code, which triggers
         Prolific's fixed screen-out payment. ``None`` selects the recruiter's
-        default (auto-approving) code.
+        default (auto-approving) code. This decision is based on the
+        participant's state at exit time; ``Experiment.recruiter_exit_info``
+        persists the issued code for later payment.
         """
-        if self.pays_participant_via_screen_out(participant):
+        if participant.failed and self.pays_unsuccessful_participants_via_screen_out:
             return self.unsuccessful_code_type
         return None
 
@@ -331,28 +554,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         only performance rewards are paid on top of the fixed payment.
         """
         return bool(get_config().get("prolific_unsuccessful_topup", True))
-
-    def on_recruiter_submission_complete(self, participant):
-        """Correct recorded payment fields after a screen-out submission.
-
-        Dallinger's submission handler records the full study ``base_payment``
-        and, on an attention-check pass, sets ``status = "approved"``. For
-        participants paid via the screen-out completion code, Prolific actually
-        paid the fixed screen-out reward and screened them out, so we:
-
-        - Correct Dallinger's ``base_pay`` and PsyNet's ``base_payment`` (used
-          for spending accounting, e.g. ``Experiment.amount_spent``). When
-          bonus calculation ran, ``Experiment.bonus`` already applied the same
-          correction so ``check_bonus`` saw the right amounts; this covers
-          paths that return before ``bonus()`` (e.g. a failed data check).
-        - Relabel ``approved`` participants as ``screened_out`` so dashboards
-          and exports that key off ``status`` do not treat them as successes.
-        """
-        if self.pays_participant_via_screen_out(participant):
-            participant.base_pay = self.unsuccessful_base_payment
-            participant.base_payment = self.unsuccessful_base_payment
-            if participant.status == "approved":
-                participant.status = "screened_out"
 
     @staticmethod
     def check_screen_out_config(config):
@@ -416,6 +617,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             and assignment_id
             and error_participant is not None
         )
+        if can_submit_unsuccessful:
+            error_participant.issued_completion_code_type = self.unsuccessful_code_type
 
         html = tags.div()
         with html:
@@ -479,8 +682,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             # ask them to return the submission and pay them via bonus.
             return self.request_return_for_bonus(participant)
         # Everyone else submits normally; the completion code chosen by
-        # exit_code_type determines approval vs. screen-out payment
-        # (see also Experiment.bonus).
+        # exit_code_type determines approval vs. screen-out payment.
         return self.submit_assignment()
 
     def open_recruitment(self, n: int = 1) -> dict:
@@ -507,22 +709,62 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             raise
 
     def approve_hit(self, assignment_id: str):
-        """Skip Prolific approval for participants paid via the screen-out code.
+        """Skip Prolific approval when the recorded status is not approvable.
 
-        Such submissions are screened out by Prolific automatically, so they are
-        never in ``AWAITING REVIEW`` status; attempting to approve them would
-        trigger Dallinger's retry loop and a spurious recruitment error.
+        Screen-out submissions are never in ``AWAITING REVIEW``; returned
+        submissions are no longer the experimenter's to approve. Attempting
+        either would trigger Dallinger's retry loop and a spurious recruitment
+        error.
         """
-        if self.pays_unsuccessful_participants_via_screen_out:
-            participant = latest_participant_for_assignment(assignment_id)
-            if participant is not None and participant.failed:
-                logger.info(
-                    "Skipping Prolific approval for assignment %s: the participant "
-                    "failed and is paid via the screen-out completion code.",
-                    assignment_id,
-                )
-                return True
+        participant = latest_participant_for_assignment(assignment_id)
+        if participant is not None and participant.status in (
+            "screened_out",
+            "returned",
+        ):
+            logger.info(
+                "Skipping Prolific approval for assignment %s: status is %s.",
+                assignment_id,
+                participant.status,
+            )
+            return True
         return super().approve_hit(assignment_id)
+
+    def reward_bonus(self, participant, amount, reason):
+        """Pay a Prolific bonus. Return False if Prolific rejected the transfer."""
+        try:
+            self.prolificservice.pay_session_bonus(
+                study_id=self.current_study_id,
+                worker_id=participant.worker_id,
+                amount=amount,
+            )
+        except ProlificServiceException as ex:
+            handle_recruitment_error(ex)
+            record_bonus_attempt_detail(participant, str(ex))
+            return False
+        return True
+
+    def can_report_apparent_bonus(self) -> bool:
+        """Prolific submissions expose ``bonus_payments`` on GET."""
+        return True
+
+    def platform_payment_view(self, participant) -> PlatformPaymentView:
+        """Read Prolific submission status and ``bonus_payments``.
+
+        Uses a quiet submission GET because Dallinger's translator drops
+        ``bonus_payments``, and ``ProlificService._req`` treats HTTP errors
+        as recruitment failures. Pay is asynchronous, so bonus can lag a POST.
+        """
+        assignment_id = getattr(participant, "assignment_id", None)
+        if not assignment_id:
+            return PlatformPaymentView(supported=True)
+        response = _fetch_prolific_submission(self.prolificservice, assignment_id)
+        if not response:
+            return PlatformPaymentView(supported=True)
+        return PlatformPaymentView(
+            supported=True,
+            bonus=_bonus_payments_total(response.get("bonus_payments")),
+            submission_status=response.get("status"),
+        )
 
     def request_return_for_bonus(self, participant) -> TimelineLogic:
         """Ask the participant to return their Prolific submission and pay
@@ -565,14 +807,28 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         ),
                         logic_if_true=join(
                             CodeBlock(self.reward_and_set_bonus),
-                            InfoPage(
-                                _p(
-                                    "return_for_bonus_completed",
-                                    "That worked! You have been credited for the time spent on the experiment. "
-                                    "Thank you for participating. You can now close this browser window.",
+                            conditional(
+                                "return_for_bonus_credited",
+                                condition=self._return_for_bonus_credited,
+                                logic_if_true=InfoPage(
+                                    _p(
+                                        "return_for_bonus_completed",
+                                        "That worked! You have been credited for the time spent on the experiment. "
+                                        "Thank you for participating. You can now close this browser window.",
+                                    ),
+                                    show_next_button=False,
+                                    time_estimate=0.0,
                                 ),
-                                show_next_button=False,
-                                time_estimate=0.0,
+                                logic_if_false=InfoPage(
+                                    _p(
+                                        "return_for_bonus_payment_failed",
+                                        "Your return was recorded, but we could not complete the bonus payment automatically. "
+                                        "The experimenter has been notified and will arrange payment. "
+                                        "You can now close this browser window.",
+                                    ),
+                                    show_next_button=False,
+                                    time_estimate=0.0,
+                                ),
                             ),
                         ),
                         logic_if_false=InfoPage(
@@ -695,19 +951,25 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return is_returned
 
     @staticmethod
+    def _return_for_bonus_credited(participant) -> bool:
+        """True when the return-for-bonus path finished paying or capping."""
+        return participant.bonus_status in (
+            BONUS_STATUS_SUCCESS,
+            BONUS_STATUS_CAPPED,
+        )
+
+    @staticmethod
     def reward_and_set_bonus(participant):
+        """Pay a returned participant from the same decision/record/pay path."""
         from psynet.experiment import get_experiment
 
         experiment = get_experiment()
-        recruiter = experiment.recruiter
-
-        bonus = participant.calculate_reward()
-        recruiter.reward_bonus(
+        decision = experiment.decide_and_record_payment(participant)
+        experiment.pay_decided_bonus(
             participant,
-            bonus,
-            "Partial payment for incomplete participation",
+            decision,
+            reason="Partial payment for incomplete participation",
         )
-        participant.bonus = bonus
 
     def check_for_returned_assignment(self, participant) -> bool:
         """Check if the participant has returned the assignment."""
@@ -804,7 +1066,32 @@ class MockProlificRecruiter(
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
-    pass
+    def reward_bonus(self, participant, amount, reason):
+        """Pay an MTurk bonus. Return False if MTurk rejected the transfer."""
+        from dallinger.mturk import MTurkServiceException
+
+        try:
+            granted = self.mturkservice.grant_bonus(
+                participant.assignment_id, amount, reason
+            )
+        except MTurkServiceException as ex:
+            handle_recruitment_error(ex)
+            record_bonus_attempt_detail(participant, str(ex))
+            return False
+        if granted is False:
+            handle_recruitment_error(
+                MTurkServiceException(
+                    f"MTurk grant_bonus returned unsuccessful for assignment "
+                    f"{participant.assignment_id}."
+                )
+            )
+            record_bonus_attempt_detail(
+                participant,
+                f"MTurk grant_bonus returned unsuccessful for assignment "
+                f"{participant.assignment_id}.",
+            )
+            return False
+        return True
 
 
 # Lab Recruiter
@@ -866,12 +1153,33 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         url = self.external_submission_url
         url += "/fail" if participant.failed else "/complete"
 
-        requests.post(
-            url,
-            json=data,
-            headers={"Authorization": os.environ.get("LAB_RECRUITER_AUTH_TOKEN")},
-            verify=False,  # Temporary fix because of SSLCertVerificationError
-        )
+        try:
+            response = requests.post(
+                url,
+                json=data,
+                headers={"Authorization": os.environ.get("LAB_RECRUITER_AUTH_TOKEN")},
+                verify=False,  # Temporary fix because of SSLCertVerificationError
+            )
+        except requests.RequestException as ex:
+            logger.error(
+                "Lab recruiter bonus POST failed for assignment %s: %s",
+                participant.assignment_id,
+                ex,
+            )
+            record_bonus_attempt_detail(participant, str(ex))
+            return False
+        if not response.ok:
+            logger.error(
+                "Lab recruiter bonus POST for assignment %s returned HTTP %s.",
+                participant.assignment_id,
+                response.status_code,
+            )
+            record_bonus_attempt_detail(
+                participant,
+                f"Lab recruiter bonus POST returned HTTP {response.status_code}.",
+            )
+            return False
+        return True
 
     def get_status(self) -> LabRecruitmentStatus:
         """Return the status of the recruiter as a RecruitmentStatus."""
@@ -1602,21 +1910,32 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def reward_bonus(self, participant, amount, reason):
         """
-        Set `completed_at` timestamp on participant's LucidRID entry
+        Set `completed_at` timestamp on participant's LucidRID entry.
+
+        Returns False if the Lucid complete/terminate call raises.
         """
-        if participant is not None and participant.progress == 1:
-            self.complete_participant(participant.assignment_id)
-        else:
-            responses = (
-                Response.query.filter_by(participant_id=participant.id)
-                .order_by(Response.creation_time)
-                .all()
-            )
-            if responses[-1].answer == {"lucid_consent": False}:
-                reason = "consent-rejected"
+        try:
+            if participant is not None and participant.progress == 1:
+                self.complete_participant(participant.assignment_id)
             else:
-                reason = "participant-did-not-complete"
-            self.terminate_participant(participant=participant, reason=reason)
+                responses = (
+                    Response.query.filter_by(participant_id=participant.id)
+                    .order_by(Response.creation_time)
+                    .all()
+                )
+                if responses and responses[-1].answer == {"lucid_consent": False}:
+                    reason = "consent-rejected"
+                else:
+                    reason = "participant-did-not-complete"
+                self.terminate_participant(participant=participant, reason=reason)
+        except Exception as ex:
+            logger.exception(
+                "Lucid reward_bonus failed for participant %s.",
+                getattr(participant, "id", None),
+            )
+            record_bonus_attempt_detail(participant, str(ex))
+            return False
+        return True
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.get_survey_storage_key("survey_number"), survey_number)
@@ -1971,6 +2290,10 @@ class GenericRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
 
     nickname = "generic"
+
+    def has_external_bonus_payment(self) -> bool:
+        """Generic/local recruitment does not pay through an external platform."""
+        return False
 
     def recruit(self, n=1):
         return []

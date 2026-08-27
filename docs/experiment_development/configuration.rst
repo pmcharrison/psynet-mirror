@@ -290,8 +290,10 @@ Payment
 
 ``hard_max_experiment_payment`` *float* |psynet-icon|
     Guarantees that in an experiment no more is spent than the value assigned.
-    Bonuses are not paid from the point this value is reached and a record of the amount
-    of unpaid bonus is kept in the participant's ``unpaid_bonus`` variable. Default: ``1100.0``.
+    A bonus that would exceed this value is clipped to remaining room (or not
+    paid if that remainder is below $0.01). ``planned_bonus`` stays the
+    decided amount, delivered ``bonus`` is what was sent, and
+    ``bonus_status = capped``. Default: ``1100.0``.
 
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
@@ -300,8 +302,10 @@ Payment
     The threshold of reward accumulated, in the currency set via the ``currency`` config variable, for the participant to be able to receive compensation when aborting an experiment using the `Abort experiment` button. Default: ``0.20``.
 
 ``soft_max_experiment_payment`` *float* |psynet-icon|
-    The recruiting process stops if the amount of accumulated payments
-    (incl. time and performance rewards), in the currency set via the ``currency`` config variable, exceedes this value. Default: ``1000.0``.
+    The recruiting process stops if ``amount_spent()`` (recorded
+    ``base_payment`` + ``bonus`` for every participant, including those
+    still in progress) exceeds this value, in the currency set via the
+    ``currency`` config variable. Default: ``1000.0``.
 
 ``wage_per_hour`` *float* |psynet-icon|
     The payment in currency the participant gets per hour. Default: ``9.0``.
