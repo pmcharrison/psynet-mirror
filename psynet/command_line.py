@@ -54,6 +54,15 @@ from .experiment_scaffold import (
     missing_scaffold_paths_required_for_local_run,
     scaffold_experiment_directory,
 )
+from .local_deployment import (
+    append_deployment_event,
+    choose_snapshot,
+    create_snapshot,
+    local_deployment_lock,
+    protect_existing_database,
+    read_database_owner,
+    validate_local_id,
+)
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
@@ -366,7 +375,17 @@ def sandbox(*args, **kwargs):
     )
 
 
-def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
+def _run_local(
+    ctx,
+    docker,
+    archive,
+    legacy,
+    no_browsers,
+    mode,
+    context_group,
+    local_id=None,
+    resumed_from=None,
+):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
@@ -380,7 +399,16 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
             "It is not possible to select both --legacy and --docker modes simultaneously."
         )
 
-    _pre_launch(ctx, mode=mode, archive=archive, local_=True, docker=docker, app=None)
+    _pre_launch(
+        ctx,
+        mode=mode,
+        archive=archive,
+        local_=True,
+        docker=docker,
+        app=None,
+        local_id=local_id,
+        resumed_from=resumed_from,
+    )
     _cleanup_before_debug()
 
     try:
@@ -1078,6 +1106,8 @@ def _pre_launch(
     heroku=False,
     server=None,
     app=None,
+    local_id=None,
+    resumed_from=None,
 ):
     from .experiment import get_experiment
 
@@ -1101,6 +1131,11 @@ def _pre_launch(
         is_ssh_deployment=ssh,
         server=server,
         app=app,
+    )
+    deployment_info.write(
+        local_id=local_id,
+        local_experiment_path=str(Path.cwd().resolve()) if local_id else None,
+        resumed_from=resumed_from,
     )
 
     if ssh:
@@ -1177,18 +1212,191 @@ def deploy():
 
 
 @deploy.command("local")
+@click.option(
+    "--id",
+    "local_id",
+    required=True,
+    help="Stable ID for this local deployment's snapshot history.",
+)
+@click.option(
+    "--snapshot",
+    default=None,
+    help="Snapshot sequence to resume, or 'latest'.",
+)
+@click.option(
+    "--adopt-existing",
+    is_flag=True,
+    help="Save an existing unmanaged local database under this ID.",
+)
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
 @click.pass_context
-def deploy__local(ctx, docker, archive, legacy, no_browsers):
+def deploy__local(
+    ctx,
+    local_id,
+    snapshot,
+    adopt_existing,
+    docker,
+    archive,
+    legacy,
+    no_browsers,
+):
     """
     Deploy the experiment locally (e.g., when collecting data on a computer in the lab or in the field).
     """
-    _run_local(
-        ctx, docker, archive, legacy, no_browsers, mode="live", context_group=deploy
+    try:
+        local_id = validate_local_id(local_id)
+    except ValueError as error:
+        raise click.BadParameter(str(error), param_hint="--id") from error
+    if archive is not None and snapshot is not None:
+        raise click.UsageError("You cannot combine --archive and --snapshot.")
+    if docker:
+        raise click.UsageError(
+            "Managed local deployment snapshots do not yet support --docker."
+        )
+
+    experiment_path = Path.cwd().resolve()
+    try:
+        with local_deployment_lock(experiment_path, local_id):
+            from .services import ensure_local_services
+
+            ensure_local_services(assume_yes=False, strict=True)
+            protect_existing_database(
+                experiment_path,
+                local_id,
+                adopt_existing=adopt_existing,
+            )
+
+            selected_snapshot = None
+            if archive is None:
+                try:
+                    selected_snapshot = choose_snapshot(
+                        experiment_path,
+                        local_id,
+                        requested=snapshot,
+                    )
+                except ValueError as error:
+                    raise click.ClickException(str(error)) from error
+                if selected_snapshot is not None:
+                    archive = str(selected_snapshot.path)
+
+            append_deployment_event(
+                experiment_path,
+                "deploy.requested",
+                local_id,
+                snapshot=(
+                    selected_snapshot.sequence
+                    if selected_snapshot is not None
+                    else None
+                ),
+                archive=archive if selected_snapshot is None else None,
+            )
+            try:
+                _run_local(
+                    ctx,
+                    docker,
+                    archive,
+                    legacy,
+                    no_browsers,
+                    mode="live",
+                    context_group=deploy,
+                    local_id=local_id,
+                    resumed_from=(
+                        selected_snapshot.sequence
+                        if selected_snapshot is not None
+                        else None
+                    ),
+                )
+            except Exception as error:
+                append_deployment_event(
+                    experiment_path,
+                    "deploy.failed",
+                    local_id,
+                    error=str(error),
+                )
+                raise
+
+            owner = read_database_owner()
+            if owner is None or owner.local_id != local_id:
+                raise RuntimeError(
+                    "The stopped database does not match the local deployment "
+                    f"ID '{local_id}'; refusing to save it as that deployment."
+                )
+            try:
+                final_snapshot = create_snapshot(
+                    experiment_path,
+                    local_id,
+                    reason="shutdown",
+                    deployment_id=owner.deployment_id,
+                    resumed_from=(
+                        selected_snapshot.sequence
+                        if selected_snapshot is not None
+                        else None
+                    ),
+                )
+            except Exception:
+                append_deployment_event(
+                    experiment_path,
+                    "deploy.stopped",
+                    local_id,
+                    deployment_id=owner.deployment_id,
+                    saved=False,
+                )
+                raise
+            append_deployment_event(
+                experiment_path,
+                "deploy.stopped",
+                local_id,
+                deployment_id=owner.deployment_id,
+                saved=True,
+                snapshot=final_snapshot.sequence,
+            )
+    except RuntimeError as error:
+        raise click.ClickException(str(error)) from error
+
+
+@psynet.command("comment")
+@click.argument("text", required=False)
+@click.option("--id", "local_id", default=None)
+@require_exp_directory
+def comment(text, local_id):
+    """Add a comment to this experiment's deployment history."""
+    import getpass
+    import socket
+
+    experiment_path = Path.cwd().resolve()
+    if local_id is None:
+        owner = read_database_owner()
+        if (
+            owner is None
+            or owner.local_id is None
+            or owner.experiment_path != experiment_path
+        ):
+            raise click.UsageError(
+                "Provide --id when this experiment does not own the local database."
+            )
+        local_id = owner.local_id
+    try:
+        local_id = validate_local_id(local_id)
+    except ValueError as error:
+        raise click.BadParameter(str(error), param_hint="--id") from error
+    if text is None:
+        from rich.prompt import Prompt
+
+        text = Prompt.ask("Comment")
+    text = text.strip()
+    if not text:
+        raise click.UsageError("Comment text cannot be empty.")
+    append_deployment_event(
+        experiment_path,
+        "comment",
+        local_id,
+        author=f"{getpass.getuser()}@{socket.gethostname()}",
+        text=text,
     )
+    click.echo(f"Added comment to local deployment '{local_id}'.")
 
 
 @deploy.command("heroku")

@@ -16,6 +16,12 @@ static/assets
 # Experiment source code snapshot created in `Experiment.pre_deploy`
 source_code.zip
 
+# Local deployment recovery data and full exports
+/data/snapshots/
+/data/exports/
+/data/deployment-events.jsonl
+/data/.deployment-events.lock
+
 # PyCharm configuration file
 .idea
 

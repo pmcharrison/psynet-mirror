@@ -85,4 +85,4 @@ However, you can also add custom messages to the Slack channel by code like this
 
 By default such notifications will only occur when an experiment is deployed (i.e. ``psynet deploy``),
 not when it is run locally in debug mode (i.e. ``psynet debug``). However, to trial the Slack notification service
-locally you can run ``psynet deploy local``.
+locally you can run ``psynet deploy local --id slack-test``.

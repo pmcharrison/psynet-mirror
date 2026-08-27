@@ -1,0 +1,545 @@
+"""Manage recoverable local PsyNet deployments.
+
+Local live deployments share one PostgreSQL database, and starting a new
+deployment resets that database. This module places a small safety layer around
+that behavior: a required user-facing ID groups recovery snapshots inside the
+experiment directory, snapshots are written atomically in Dallinger's existing
+CSV archive format, and an append-only JSONL file records operational events.
+
+Snapshots are deliberately database-only and intended for recovery on the same
+machine. Full PsyNet exports remain the portable format for analysis, sharing,
+and migration.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+import sys
+import tempfile
+import threading
+import zipfile
+from contextlib import contextmanager
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Callable, Optional
+from uuid import uuid4
+
+from rich.console import Console
+from rich.prompt import IntPrompt
+from rich.table import Table
+
+from psynet.serialize import unserialize
+
+LOCAL_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
+SNAPSHOT_INTERVAL_SECONDS = 10 * 60
+
+_append_lock = threading.Lock()
+
+
+@dataclass(frozen=True)
+class Snapshot:
+    """Describe one local database recovery snapshot."""
+
+    sequence: int
+    path: Path
+    metadata_path: Path
+    created_at: str
+    reason: str
+    deployment_id: Optional[str]
+    parent_sequence: Optional[int]
+    participant_count: Optional[int]
+    sha256: Optional[str]
+
+
+@dataclass(frozen=True)
+class DatabaseOwner:
+    """Describe the managed local deployment currently stored in PostgreSQL."""
+
+    local_id: Optional[str]
+    experiment_path: Optional[Path]
+    deployment_id: Optional[str]
+    label: Optional[str]
+
+    @property
+    def managed(self) -> bool:
+        """Return whether this database has managed local-deployment metadata."""
+        return self.local_id is not None and self.experiment_path is not None
+
+
+def validate_local_id(value: str) -> str:
+    """Validate and return a user-facing local deployment ID."""
+    if not LOCAL_ID_PATTERN.fullmatch(value):
+        raise ValueError(
+            "Local deployment IDs must contain only lowercase letters, digits, "
+            "and dashes, and must start and end with a letter or digit."
+        )
+    return value
+
+
+def snapshots_directory(experiment_path: Path | str, local_id: str) -> Path:
+    """Return the directory containing snapshots for ``local_id``."""
+    validate_local_id(local_id)
+    return Path(experiment_path).resolve() / "data" / "snapshots" / local_id
+
+
+def deployment_event_log(experiment_path: Path | str) -> Path:
+    """Return the experiment's append-only deployment event log."""
+    return Path(experiment_path).resolve() / "data" / "deployment-events.jsonl"
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+@contextmanager
+def _file_lock(path: Path, *, blocking: bool = True):
+    """Lock ``path`` for the duration of the context."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    file = path.open("a+")
+    try:
+        try:
+            import fcntl
+
+            flags = fcntl.LOCK_EX
+            if not blocking:
+                flags |= fcntl.LOCK_NB
+            fcntl.flock(file.fileno(), flags)
+        except ImportError:
+            # Native Windows is not a supported deployment host; this fallback
+            # still serializes threads in environments without fcntl.
+            _append_lock.acquire()
+        yield file
+    finally:
+        try:
+            import fcntl
+
+            fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+        except ImportError:
+            if _append_lock.locked():
+                _append_lock.release()
+        file.close()
+
+
+def append_deployment_event(
+    experiment_path: Path | str,
+    event: str,
+    local_id: Optional[str] = None,
+    **details,
+) -> dict:
+    """Append one structured event to the experiment's deployment history."""
+    if local_id is not None:
+        validate_local_id(local_id)
+    payload = {
+        "schema_version": 1,
+        "at": _utc_now(),
+        "event": event,
+    }
+    if local_id is not None:
+        payload["id"] = local_id
+    payload.update({key: value for key, value in details.items() if value is not None})
+
+    path = deployment_event_log(experiment_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    line = (json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n").encode()
+    with _file_lock(path.parent / ".deployment-events.lock"):
+        descriptor = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)
+        try:
+            os.write(descriptor, line)
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+    return payload
+
+
+def _snapshot_from_files(path: Path) -> Snapshot:
+    metadata_path = path.with_suffix(".json")
+    if metadata_path.exists():
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    else:
+        metadata = {}
+    created_at = metadata.get(
+        "created_at",
+        datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+        .isoformat(timespec="seconds")
+        .replace("+00:00", "Z"),
+    )
+    return Snapshot(
+        sequence=int(path.stem),
+        path=path,
+        metadata_path=metadata_path,
+        created_at=created_at,
+        reason=metadata.get("reason", "unknown"),
+        deployment_id=metadata.get("deployment_id"),
+        parent_sequence=metadata.get("parent_sequence"),
+        participant_count=metadata.get("participant_count"),
+        sha256=metadata.get("sha256"),
+    )
+
+
+def list_snapshots(experiment_path: Path | str, local_id: str) -> list[Snapshot]:
+    """List completed snapshots in ascending sequence order."""
+    directory = snapshots_directory(experiment_path, local_id)
+    if not directory.exists():
+        return []
+    snapshots = []
+    for path in directory.glob("*.zip"):
+        if path.stem.isdigit() and _archive_is_valid(path):
+            snapshot = _snapshot_from_files(path)
+            if snapshot.sha256 is None or snapshot.sha256 == _sha256(path):
+                snapshots.append(snapshot)
+    return sorted(snapshots, key=lambda snapshot: snapshot.sequence)
+
+
+def _archive_is_valid(path: Path) -> bool:
+    try:
+        with zipfile.ZipFile(path) as archive:
+            return archive.testzip() is None and any(
+                name.endswith(".csv") for name in archive.namelist()
+            )
+    except (OSError, zipfile.BadZipFile):
+        return False
+
+
+def _next_snapshot_sequence(directory: Path) -> int:
+    sequences = [
+        int(path.stem)
+        for pattern in ("*.zip", "*.json")
+        for path in directory.glob(pattern)
+        if path.stem.isdigit()
+    ]
+    return max(sequences, default=0) + 1
+
+
+def _snapshot_parent(
+    snapshots: list[Snapshot],
+    deployment_id: Optional[str],
+    resumed_from: Optional[int],
+) -> Optional[int]:
+    current_launch = [
+        snapshot.sequence
+        for snapshot in snapshots
+        if deployment_id is not None and snapshot.deployment_id == deployment_id
+    ]
+    if current_launch:
+        return max(current_launch)
+    return resumed_from
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        for chunk in iter(lambda: file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _write_json_atomically(path: Path, content: dict) -> None:
+    temporary = path.with_name(f".{path.name}.{uuid4().hex}.partial")
+    try:
+        temporary.write_text(
+            json.dumps(content, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def create_snapshot(
+    experiment_path: Path | str,
+    local_id: str,
+    reason: str,
+    deployment_id: Optional[str],
+    resumed_from: Optional[int] = None,
+    *,
+    exporter: Optional[Callable[[Path], Optional[int]]] = None,
+) -> Snapshot:
+    """Create and record one atomic database recovery snapshot."""
+    validate_local_id(local_id)
+    root = Path(experiment_path).resolve()
+    directory = snapshots_directory(root, local_id)
+    directory.mkdir(parents=True, exist_ok=True)
+    exporter = exporter or export_database_snapshot
+
+    with _file_lock(directory / ".snapshot.lock"):
+        snapshots = list_snapshots(root, local_id)
+        sequence = _next_snapshot_sequence(directory)
+        stem = f"{sequence:06d}"
+        path = directory / f"{stem}.zip"
+        metadata_path = directory / f"{stem}.json"
+        temporary = directory / f".{stem}.{uuid4().hex}.zip.partial"
+        parent_sequence = _snapshot_parent(snapshots, deployment_id, resumed_from)
+        started_at = datetime.now(timezone.utc)
+        try:
+            participant_count = exporter(temporary)
+            if not _archive_is_valid(temporary):
+                raise RuntimeError("Snapshot exporter produced an invalid archive.")
+            checksum = _sha256(temporary)
+            os.replace(temporary, path)
+            metadata = {
+                "schema_version": 1,
+                "id": local_id,
+                "sequence": sequence,
+                "created_at": _utc_now(),
+                "reason": reason,
+                "deployment_id": deployment_id,
+                "parent_sequence": parent_sequence,
+                "participant_count": participant_count,
+                "sha256": checksum,
+            }
+            _write_json_atomically(metadata_path, metadata)
+        except Exception as error:
+            temporary.unlink(missing_ok=True)
+            path.unlink(missing_ok=True)
+            metadata_path.unlink(missing_ok=True)
+            append_deployment_event(
+                root,
+                "snapshot.failed",
+                local_id,
+                reason=reason,
+                deployment_id=deployment_id,
+                error=str(error),
+            )
+            raise
+
+    duration = (datetime.now(timezone.utc) - started_at).total_seconds()
+    append_deployment_event(
+        root,
+        "snapshot.succeeded",
+        local_id,
+        sequence=sequence,
+        reason=reason,
+        deployment_id=deployment_id,
+        parent_sequence=parent_sequence,
+        participant_count=participant_count,
+        sha256=checksum,
+        duration_seconds=round(duration, 3),
+    )
+    return _snapshot_from_files(path)
+
+
+def choose_snapshot(
+    experiment_path: Path | str,
+    local_id: str,
+    requested: Optional[str] = None,
+    *,
+    console: Optional[Console] = None,
+) -> Optional[Snapshot]:
+    """Select a snapshot explicitly or interactively, defaulting to the latest."""
+    snapshots = list_snapshots(experiment_path, local_id)
+    if not snapshots:
+        if requested is not None:
+            raise ValueError(f"Snapshot {requested} does not exist for ID '{local_id}'.")
+        return None
+
+    by_sequence = {snapshot.sequence: snapshot for snapshot in snapshots}
+    if requested is not None:
+        if requested == "latest":
+            return snapshots[-1]
+        try:
+            sequence = int(requested)
+        except ValueError as error:
+            raise ValueError("Snapshot must be 'latest' or a sequence number.") from error
+        if sequence not in by_sequence:
+            raise ValueError(f"Snapshot {sequence} does not exist for ID '{local_id}'.")
+        return by_sequence[sequence]
+
+    if not sys.stdin.isatty():
+        return snapshots[-1]
+
+    console = console or Console()
+    recent = list(reversed(snapshots[-10:]))
+    table = Table(title=f"Snapshots for local deployment '{local_id}'")
+    table.add_column("Choice", justify="right")
+    table.add_column("Snapshot")
+    table.add_column("Created")
+    table.add_column("Reason")
+    table.add_column("Participants", justify="right")
+    for choice, snapshot in enumerate(recent, start=1):
+        table.add_row(
+            str(choice),
+            f"{snapshot.sequence:06d}",
+            snapshot.created_at,
+            snapshot.reason,
+            "" if snapshot.participant_count is None else str(snapshot.participant_count),
+        )
+    console.print(table)
+    choice = IntPrompt.ask(
+        "Resume from",
+        choices=[str(index) for index in range(1, len(recent) + 1)],
+        default=1,
+        console=console,
+    )
+    return recent[choice - 1]
+
+
+def export_database_snapshot(destination: Path, db_url: Optional[str] = None) -> int:
+    """Write a consistent Dallinger-compatible CSV database archive."""
+    import psycopg2
+    from psycopg2 import sql
+
+    if db_url is None:
+        from dallinger import db
+
+        db_url = db.db_url
+
+    connection = psycopg2.connect(dsn=db_url)
+    try:
+        connection.set_session(
+            isolation_level="REPEATABLE READ",
+            readonly=True,
+            autocommit=False,
+        )
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT tablename FROM pg_catalog.pg_tables "
+            "WHERE schemaname = 'public' ORDER BY tablename"
+        )
+        tables = [row[0] for row in cursor.fetchall()]
+        if "experiment" not in tables:
+            raise RuntimeError("The local database does not contain a PsyNet experiment.")
+
+        participant_count = 0
+        if "participant" in tables:
+            cursor.execute("SELECT count(*) FROM participant")
+            participant_count = cursor.fetchone()[0]
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            data_directory = root / "data"
+            data_directory.mkdir()
+            for table in tables:
+                path = data_directory / f"{table}.csv"
+                statement = sql.SQL("COPY {} TO STDOUT WITH CSV HEADER").format(
+                    sql.Identifier(table)
+                )
+                with path.open("w", encoding="utf-8", newline="") as file:
+                    cursor.copy_expert(statement.as_string(connection), file)
+            (root / "experiment_id.md").write_text("local", encoding="utf-8")
+            with zipfile.ZipFile(
+                destination, "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True
+            ) as archive:
+                for path in sorted(root.rglob("*")):
+                    if path.is_file():
+                        archive.write(path, path.relative_to(root))
+        connection.rollback()
+        return participant_count
+    finally:
+        connection.close()
+
+
+def read_database_owner(db_url: Optional[str] = None) -> Optional[DatabaseOwner]:
+    """Read managed local-deployment identity from the current PostgreSQL database."""
+    import psycopg2
+
+    if db_url is None:
+        from dallinger import db
+
+        db_url = db.db_url
+    connection = psycopg2.connect(dsn=db_url)
+    try:
+        cursor = connection.cursor()
+        try:
+            cursor.execute("SELECT vars FROM experiment")
+        except psycopg2.errors.UndefinedTable:
+            connection.rollback()
+            return None
+        rows = cursor.fetchall()
+        if not rows:
+            return None
+        if len(rows) != 1:
+            raise RuntimeError("Expected exactly one row in the experiment table.")
+        variables = unserialize(rows[0][0])
+        experiment_path = variables.get("local_experiment_path")
+        return DatabaseOwner(
+            local_id=variables.get("local_deployment_id"),
+            experiment_path=Path(experiment_path).resolve() if experiment_path else None,
+            deployment_id=variables.get("deployment_id"),
+            label=variables.get("label"),
+        )
+    finally:
+        connection.close()
+
+
+@contextmanager
+def local_deployment_lock(experiment_path: Path | str, local_id: str):
+    """Prevent two local live deployments from sharing PostgreSQL."""
+    validate_local_id(local_id)
+    path = Path.home() / "psynet-data" / "local-deployment.lock"
+    try:
+        with _file_lock(path, blocking=False) as file:
+            file.seek(0)
+            file.truncate()
+            file.write(
+                json.dumps(
+                    {
+                        "pid": os.getpid(),
+                        "experiment_path": str(Path(experiment_path).resolve()),
+                        "id": local_id,
+                    }
+                )
+            )
+            file.flush()
+            yield
+    except BlockingIOError as error:
+        raise RuntimeError(
+            "Another local PsyNet deployment is already running on this machine."
+        ) from error
+
+
+def protect_existing_database(
+    requested_experiment_path: Path | str,
+    requested_local_id: str,
+    *,
+    adopt_existing: bool = False,
+) -> Optional[Snapshot]:
+    """Snapshot unsaved database state before a destructive local launch."""
+    owner = read_database_owner()
+    if owner is None:
+        return None
+
+    requested_path = Path(requested_experiment_path).resolve()
+    if not owner.managed:
+        if not adopt_existing:
+            raise RuntimeError(
+                "The local database contains an unmanaged PsyNet experiment. "
+                "Re-run with --adopt-existing to save it under the requested ID."
+            )
+        append_deployment_event(
+            requested_path,
+            "database.adopted",
+            requested_local_id,
+            previous_label=owner.label,
+        )
+        return create_snapshot(
+            requested_path,
+            requested_local_id,
+            reason="adopt-existing",
+            deployment_id=owner.deployment_id,
+        )
+
+    if not owner.experiment_path.exists():
+        raise RuntimeError(
+            "The local database belongs to an experiment directory that no longer "
+            f"exists: {owner.experiment_path}"
+        )
+
+    snapshots = list_snapshots(owner.experiment_path, owner.local_id)
+    latest = snapshots[-1] if snapshots else None
+    if (
+        latest is not None
+        and latest.reason == "shutdown"
+        and latest.deployment_id == owner.deployment_id
+    ):
+        return None
+
+    return create_snapshot(
+        owner.experiment_path,
+        owner.local_id,
+        reason="recovery-before-reset",
+        deployment_id=owner.deployment_id,
+    )

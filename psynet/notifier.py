@@ -282,7 +282,7 @@ class SlackNotifier(Notifier):
         if not self.exp.is_deployed_experiment:
             logger.error(
                 "Slack messages are disabled on `psynet debug`."
-                "If you want to receive messages, use `psynet deploy local` or `psynet deploy ssh`"
+                "If you want to receive messages, use `psynet deploy local --id <id>` or `psynet deploy ssh`"
             )
 
         experimenter_name = get_config().get("experimenter_name", None)

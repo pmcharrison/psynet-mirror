@@ -875,9 +875,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._nodes_on_deploy()
 
         config = dallinger_get_config()
+        local_deployment_id = deployment_info.read_all().get("local_id")
         redis_vars.set("server_working_directory", os.getcwd())
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
+        if local_deployment_id is not None:
+            self.var.local_deployment_id = local_deployment_id
+            self.var.local_experiment_path = deployment_info.read(
+                "local_experiment_path"
+            )
         if deployment_info.read("is_local_deployment"):
             # This is necessary because the local deployment command is blocking and therefore we can't
             # get the launch data from the command-line invocation.
@@ -889,6 +895,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
         self.record_experiment_status()
+        if local_deployment_id is not None:
+            from .local_deployment import append_deployment_event
+
+            append_deployment_event(
+                deployment_info.read("local_experiment_path"),
+                "deploy.ready",
+                local_deployment_id,
+                deployment_id=self.var.deployment_id,
+                dallinger_id=config.get("id"),
+            )
 
     @staticmethod
     def before_request():
@@ -1246,6 +1262,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if exp.automatic_backups:
             safe(exp.backup_basic_data)()
             safe(exp.backup_database)()
+
+    @scheduled_task("interval", seconds=600, max_instances=1)
+    @staticmethod
+    def snapshot_local_deployment():
+        """Create a periodic snapshot for a managed local live deployment."""
+        info = deployment_info.read_all()
+        if not (
+            info.get("is_local_deployment")
+            and info.get("mode") == "live"
+            and info.get("local_id") is not None
+        ):
+            return
+        from .local_deployment import create_snapshot
+
+        try:
+            create_snapshot(
+                info["local_experiment_path"],
+                info["local_id"],
+                reason="periodic",
+                deployment_id=info["deployment_id"],
+                resumed_from=info.get("resumed_from"),
+            )
+        except Exception:
+            logger.exception("Failed to create periodic local deployment snapshot.")
 
     @classmethod
     def backup_database(cls):
@@ -2161,7 +2201,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def generate_deployment_id(cls):
         mode = deployment_info.read("mode")
-        id_ = f"{cls.label}"
+        local_id = deployment_info.read_all().get("local_id")
+        id_ = local_id if local_id is not None else f"{cls.label}"
         id_ = id_.replace(" ", "-").lower()
         id_ += (
             "__mode="
