@@ -2,7 +2,7 @@ from typing import List, Literal, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
-from ..utils import get_logger
+from ..utils import get_logger, is_method_overridden
 from .main import NetworkTrialMaker, Trial
 
 logger = get_logger()
@@ -88,8 +88,10 @@ class StaticTrialMaker(ChainTrialMaker):
     * :meth:`~psynet.trial.static.StaticTrialMaker.select_node`;
       selects one of the eligible nodes for the participant's next trial.
 
-    * :meth:`~psynet.trial.static.StaticTrialMaker.custom_node_filter`;
-      filters eligible nodes before selection.
+    * :meth:`~psynet.trial.static.StaticTrialMaker.node_is_eligible`;
+      decides whether an eligible node may be assigned. Override
+      ``nodes_are_eligible`` instead when the decision needs the whole
+      candidate set.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the sequence of trials is complete.
@@ -386,7 +388,7 @@ class StaticTrialMaker(ChainTrialMaker):
             (
                 ChainTrialMaker,
                 "custom_network_filter",
-                "Override custom_node_filter(nodes, participant, experiment) instead.",
+                "Override node_is_eligible(node, participant, experiment) instead.",
             ),
             (
                 StaticTrialMaker,
@@ -401,7 +403,17 @@ class StaticTrialMaker(ChainTrialMaker):
             (
                 StaticTrialMaker,
                 "custom_chain_filter",
-                "Static trial makers use custom_node_filter(nodes, participant, experiment).",
+                "Static trial makers use node_is_eligible(node, participant, experiment).",
+            ),
+        ]
+
+    def _deprecated_selection_hooks(self):
+        return [
+            (
+                StaticTrialMaker,
+                "custom_node_filter",
+                "Override node_is_eligible(node, participant, experiment) instead, "
+                "or nodes_are_eligible(nodes, participant, experiment) for a batched mask.",
             ),
         ]
 
@@ -410,31 +422,61 @@ class StaticTrialMaker(ChainTrialMaker):
         chains = self._find_eligible_chains(
             participant=participant,
             experiment=experiment,
-            custom_filter=self._apply_custom_node_filter,
             candidate_type="node",
-            validate_custom_filter_result=False,
         )
         if isinstance(chains, str):
             return chains
         return [chain.head for chain in chains]
 
-    def _apply_custom_node_filter(self, chains, participant, experiment):
-        headless_chain_ids = [chain.id for chain in chains if chain.head is None]
+    def _filter_eligible_networks(self, networks, participant, experiment):
+        """Apply node eligibility before wait/exit checks."""
+        headless_chain_ids = [chain.id for chain in networks if chain.head is None]
         if headless_chain_ids:
             raise RuntimeError(
                 "Every StaticNetwork must have a head node; headless network IDs: "
                 f"{headless_chain_ids}."
             )
-        nodes = [chain.head for chain in chains]
-        eligible_nodes = self._validate_selection_subset(
-            self.custom_node_filter(nodes, participant, experiment),
-            allowed_values=nodes,
-            method_name="custom_node_filter",
-        )
+        nodes = [chain.head for chain in networks]
+        if is_method_overridden(self, StaticTrialMaker, "custom_node_filter"):
+            eligible_nodes = self._validate_selection_subset(
+                self.custom_node_filter(nodes, participant, experiment),
+                allowed_values=nodes,
+                method_name="custom_node_filter",
+            )
+        else:
+            eligible_nodes = self._apply_eligibility_mask(
+                nodes,
+                self.nodes_are_eligible(nodes, participant, experiment),
+                method_name="nodes_are_eligible",
+            )
         return [node.network for node in eligible_nodes]
 
+    def nodes_are_eligible(self, nodes, participant, experiment):
+        """Return one boolean per node, in the same order.
+
+        Override this when eligibility needs the whole candidate set.
+        Otherwise override
+        :meth:`~psynet.trial.static.StaticTrialMaker.node_is_eligible`.
+        """
+        return [self.node_is_eligible(node, participant, experiment) for node in nodes]
+
+    def node_is_eligible(self, node, participant, experiment):
+        """Return whether this node may be assigned to the participant.
+
+        Override this to change eligibility. Ranking among eligible nodes
+        belongs in ``select_node``.
+        """
+        return True
+
     def custom_node_filter(self, nodes, participant, experiment):
-        """Filter eligible static nodes before selection."""
+        """Deprecated list-based eligibility hook.
+
+        Override :meth:`~psynet.trial.static.StaticTrialMaker.node_is_eligible`
+        or :meth:`~psynet.trial.static.StaticTrialMaker.nodes_are_eligible`
+        instead.
+
+        :meta private:
+        """
         return nodes
 
     def select_node(self, nodes, participant, experiment):
@@ -466,7 +508,7 @@ class StaticTrialMaker(ChainTrialMaker):
         :meta private:
         """
         raise TypeError(
-            "StaticTrialMaker uses custom_node_filter(nodes, participant, experiment), "
+            "StaticTrialMaker uses node_is_eligible(node, participant, experiment), "
             "not custom_chain_filter"
         )
 

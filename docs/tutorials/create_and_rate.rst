@@ -130,18 +130,13 @@ different groups which is set in ``participant.var.is_rater``. We can then imple
             return self.rater_class
         return self.creator_class
 
-    def custom_chain_filter(self, chains, participant, experiment):
+    def chains_are_eligible(self, chains, participant, experiment):
         phases = self.get_creation_phases([chain.head for chain in chains])
-        creation_chains = []
-        rating_chains = []
-        for chain in chains:
-            if phases[chain.head.id] == self.READY_FOR_RATERS:
-                rating_chains.append(chain)
-            else:
-                creation_chains.append(chain)
-        if participant.var.is_rater:
-            return rating_chains
-        return creation_chains
+        want_rating = participant.var.is_rater
+        return [
+            (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
+            for chain in chains
+        ]
 
 
 
@@ -169,26 +164,15 @@ Also, you can easily modify the number of trials for creators and raters, e.g.:
                         return True
                 return False
 
-            def get_creation_and_rating_chains(self, chains):
-                phases = self.get_creation_phases([chain.head for chain in chains])
-                creation_chains = []
-                rating_chains = []
-                for chain in chains:
-                    if phases[chain.head.id] == self.READY_FOR_RATERS:
-                        rating_chains.append(chain)
-                    else:
-                        creation_chains.append(chain)
-                return creation_chains, rating_chains
-
-            def custom_chain_filter(self, chains, participant, experiment):
+            def chains_are_eligible(self, chains, participant, experiment):
                 if self.has_enough_trials(participant):
-                    return []
-                creation_chains, rating_chains = self.get_creation_and_rating_chains(
-                    chains
-                )
-                if participant.var.is_rater:
-                    return rating_chains
-                return creation_chains
+                    return [False] * len(chains)
+                phases = self.get_creation_phases([chain.head for chain in chains])
+                want_rating = participant.var.is_rater
+                return [
+                    (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
+                    for chain in chains
+                ]
 
 
 See the GAP demo for the full example.

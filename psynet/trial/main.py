@@ -2636,9 +2636,21 @@ class NetworkTrialMaker(TrialMaker):
                     f"{self.__class__.__name__} overrides {method_name}, which is "
                     f"not supported by this trial maker. {instruction}"
                 )
+        for ancestor, method_name, instruction in self._deprecated_selection_hooks():
+            if is_method_overridden(self, ancestor, method_name):
+                warnings.warn(
+                    f"{self.__class__.__name__} overrides {method_name}, which is "
+                    f"deprecated. {instruction}",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
     def _selection_hook_overrides(self):
         """Return obsolete or wrong-paradigm hooks and their replacements."""
+        return []
+
+    def _deprecated_selection_hooks(self):
+        """Return still-honoured hooks that should be migrated."""
         return []
 
     @log_time_taken
@@ -2720,13 +2732,23 @@ class NetworkTrialMaker(TrialMaker):
         """Validate values returned by a public eligibility filter."""
         if not isinstance(values, list):
             raise TypeError(f"{method_name} must return a list")
-        if any(
-            not any(value is allowed for allowed in allowed_values) for value in values
-        ):
+        allowed_ids = {id(value) for value in allowed_values}
+        if any(id(value) not in allowed_ids for value in values):
             raise ValueError(f"{method_name} must return only supplied eligible values")
         if len({id(value) for value in values}) != len(values):
             raise ValueError(f"{method_name} must not return duplicate values")
         return values
+
+    @staticmethod
+    def _apply_eligibility_mask(values, mask, method_name):
+        """Keep candidates whose corresponding mask entry is true."""
+        if not isinstance(mask, (list, tuple)):
+            raise TypeError(f"{method_name} must return a sequence of booleans")
+        if len(mask) != len(values):
+            raise ValueError(f"{method_name} must return one boolean per candidate")
+        if any(keep not in (True, False) for keep in mask):
+            raise TypeError(f"{method_name} must return only boolean values")
+        return [value for value, keep in zip(values, mask) if keep]
 
     def find_networks(self, participant, experiment):
         """Removed selection hook.
