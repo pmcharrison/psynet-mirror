@@ -412,6 +412,40 @@ def test_approve_hit_skips_when_status_is_not_approvable(status, expect_skipped)
         super_approve.assert_called_once_with("assignment-1")
 
 
+@pytest.mark.parametrize(
+    "bonus_status,expect_skipped",
+    [
+        (BONUS_STATUS_NOT_DUE_YET, False),  # first pass: approve normally
+        (BONUS_STATUS_UNCONFIRMED, True),  # replay: payment already handled
+        (BONUS_STATUS_SUCCESS, True),
+        (BONUS_STATUS_CAPPED, True),
+        (BONUS_STATUS_DISMISSED, True),
+    ],
+)
+def test_approve_hit_skips_submission_complete_replays(bonus_status, expect_skipped):
+    """A submission-complete replay must not approve an already-approved
+    submission: Prolific rejects it, producing spurious recruitment errors.
+    """
+    config = make_config(prolific_unsuccessful_base_payment=0.50)
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock(status="submitted", bonus_status=bonus_status)
+
+    query = MagicMock()
+    query.filter_by.return_value.order_by.return_value.first.return_value = participant
+
+    with patch.object(Participant, "query", query):
+        with patch.object(
+            dallinger.recruiters.ProlificRecruiter, "approve_hit"
+        ) as super_approve:
+            result = recruiter.approve_hit("assignment-1")
+
+    if expect_skipped:
+        super_approve.assert_not_called()
+        assert result is True
+    else:
+        super_approve.assert_called_once_with("assignment-1")
+
+
 def make_participant_with_recruiter(config, failed=True, status="working"):
     recruiter = make_prolific_recruiter(config)
     participant = MagicMock()
@@ -463,6 +497,10 @@ def _identity_translator(context, message):
     return message
 
 
+def make_error_page_participant(id=42, complete=False, issued=None):
+    return MagicMock(id=id, complete=complete, issued_completion_code_type=issued)
+
+
 def render_error_page_html(recruiter, config, assignment_id, participant):
     with patch("psynet.recruiters.get_config", return_value=config):
         with patch(
@@ -484,7 +522,7 @@ def render_error_page_html(recruiter, config, assignment_id, participant):
 def test_error_page_content_offers_submit_button_when_screen_out_enabled():
     config = make_config(prolific_unsuccessful_base_payment=0.20)
     recruiter = make_prolific_recruiter(config)
-    participant = MagicMock(id=42)
+    participant = make_error_page_participant()
 
     html, external_url = render_error_page_html(
         recruiter, config, assignment_id="assignment-1", participant=participant
@@ -506,7 +544,10 @@ def test_error_page_content_asks_to_message_when_screen_out_disabled():
     recruiter = make_prolific_recruiter(config)
 
     html, external_url = render_error_page_html(
-        recruiter, config, assignment_id="assignment-1", participant=MagicMock(id=42)
+        recruiter,
+        config,
+        assignment_id="assignment-1",
+        participant=make_error_page_participant(),
     )
 
     assert "prolific-unsuccessful-submit" not in html
@@ -517,8 +558,8 @@ def test_error_page_content_asks_to_message_when_screen_out_disabled():
 @pytest.mark.parametrize(
     "assignment_id,participant",
     [
-        (None, MagicMock(id=42)),
-        ("", MagicMock(id=42)),
+        (None, make_error_page_participant()),
+        ("", make_error_page_participant()),
         ("assignment-1", None),
     ],
 )
@@ -535,6 +576,56 @@ def test_error_page_content_falls_back_without_assignment_or_participant(
     assert "prolific-unsuccessful-submit" not in html
     assert "send the researcher a message" in html
     external_url.assert_not_called()
+
+
+def test_error_page_content_does_not_reclassify_complete_participant():
+    """Rendering the error page for a complete participant must not offer the
+    screen-out submit button or overwrite the issued completion code, which
+    would reclassify a successful participant as screened-out on a
+    submission-complete replay.
+    """
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = make_error_page_participant(complete=True, issued="DEFAULT")
+
+    html, external_url = render_error_page_html(
+        recruiter, config, assignment_id="assignment-1", participant=participant
+    )
+
+    assert "prolific-unsuccessful-submit" not in html
+    assert "send the researcher a message" in html
+    assert participant.issued_completion_code_type == "DEFAULT"
+    external_url.assert_not_called()
+
+
+def test_error_page_content_does_not_overwrite_other_issued_code():
+    # First issuance wins even for incomplete participants: whoever already
+    # exited with the auto-approving code must not be re-stamped.
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = make_error_page_participant(complete=False, issued="DEFAULT")
+
+    html, _ = render_error_page_html(
+        recruiter, config, assignment_id="assignment-1", participant=participant
+    )
+
+    assert "prolific-unsuccessful-submit" not in html
+    assert participant.issued_completion_code_type == "DEFAULT"
+
+
+def test_error_page_content_keeps_button_on_rerender():
+    # A participant already stamped UNSUCCESSFUL (e.g. reloading the error
+    # page) still sees the submit button.
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = make_error_page_participant(issued=PROLIFIC_UNSUCCESSFUL_CODE_TYPE)
+
+    html, _ = render_error_page_html(
+        recruiter, config, assignment_id="assignment-1", participant=participant
+    )
+
+    assert 'id="prolific-unsuccessful-submit"' in html
+    assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
 
 
 def test_recruiter_exit_info_returns_unsuccessful_code_type_for_failed_participant():
@@ -1569,6 +1660,80 @@ def test_prolific_apparent_bonus_paid_sums_submission_bonus_payments():
     get.assert_called_once()
     assert get.call_args.args[0].endswith("/submissions/submission-1/")
     recruiter.prolificservice._req.assert_not_called()
+
+
+def _screen_out_platform_view(bonus_payments, config, participant):
+    recruiter = make_prolific_recruiter(config)
+    recruiter.prolificservice = _mock_prolific_service()
+    response = MagicMock(ok=True, status_code=200)
+    response.json.return_value = {
+        "bonus_payments": bonus_payments,
+        "status": "AWAITING REVIEW",
+    }
+    with patch("psynet.recruiters.get_config", return_value=config):
+        with patch("psynet.recruiters.requests.get", return_value=response):
+            return recruiter.platform_payment_view(participant)
+
+
+def test_prolific_platform_view_excludes_screen_out_reward_for_screened_out():
+    """Prolific reports the fixed screen-out reward inside ``bonus_payments``
+    (live run: [20, 30] = 20p screen-out reward + 30p top-up). The view must
+    exclude it so Dashboard Pay does not treat it as PsyNet's top-up and
+    underpay a failed bonus.
+    """
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    participant = MagicMock(
+        assignment_id="submission-1",
+        status="screened_out",
+        issued_completion_code_type=PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
+    )
+
+    view = _screen_out_platform_view([20, 30], config, participant)
+
+    assert view.bonus == 0.30
+
+
+def test_prolific_platform_view_removes_only_one_matching_screen_out_entry():
+    # If the top-up equals the fixed reward ([20, 20]), only one entry is
+    # treated as the screen-out reward.
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    participant = MagicMock(
+        assignment_id="submission-1",
+        status="screened_out",
+        issued_completion_code_type=PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
+    )
+
+    view = _screen_out_platform_view([20, 20], config, participant)
+
+    assert view.bonus == 0.20
+
+
+def test_prolific_platform_view_reports_zero_when_only_screen_out_reward_present():
+    # Only the automatic screen-out reward landed; the top-up is still owed,
+    # so the apparent PsyNet bonus must be zero.
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    participant = MagicMock(
+        assignment_id="submission-1",
+        status="screened_out",
+        issued_completion_code_type=PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
+    )
+
+    view = _screen_out_platform_view([20], config, participant)
+
+    assert view.bonus == 0.0
+
+
+def test_prolific_platform_view_keeps_full_total_for_non_screened_out():
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    participant = MagicMock(
+        assignment_id="submission-1",
+        status="approved",
+        issued_completion_code_type="DEFAULT",
+    )
+
+    view = _screen_out_platform_view([20, 30], config, participant)
+
+    assert view.bonus == 0.50
 
 
 def test_prolific_apparent_bonus_paid_returns_none_when_lookup_fails():

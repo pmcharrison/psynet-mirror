@@ -89,6 +89,7 @@ from .participant import (
     Participant,
     bonus_is_settled,
     bonus_needs_review,
+    bonus_transfer_already_claimed,
     record_bonus_attempt_detail,
 )
 from .timeline import (
@@ -634,10 +635,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         # The participant id is needed for the submit button's POST to
         # /prolific-submission-listener; resolve it from the assignment id.
         error_participant = latest_participant_for_assignment(assignment_id)
+        already_issued = getattr(error_participant, "issued_completion_code_type", None)
         can_submit_unsuccessful = (
             self.pays_unsuccessful_participants_via_screen_out
             and assignment_id
             and error_participant is not None
+            # A complete participant exits via the normal exit page with the
+            # auto-approving code; never offer them the screen-out submit
+            # button just because they hit an error page afterwards.
+            and not error_participant.complete
+            # First issuance wins: a participant who already left with
+            # another completion code (e.g. the auto-approving DEFAULT)
+            # must not be reclassified as screened-out by merely rendering
+            # this page. See ``completion_status``, which trusts this
+            # snapshot over the current ``failed`` flag.
+            and already_issued in (None, self.unsuccessful_code_type)
         )
         if can_submit_unsuccessful:
             error_participant.issued_completion_code_type = self.unsuccessful_code_type
@@ -731,24 +743,35 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             raise
 
     def approve_hit(self, assignment_id: str):
-        """Skip Prolific approval when the recorded status is not approvable.
+        """Skip Prolific approval when it would be redundant or rejected.
 
         Screen-out submissions are never in ``AWAITING REVIEW``; returned
         submissions are no longer the experimenter's to approve. Attempting
         either would trigger Dallinger's retry loop and a spurious recruitment
-        error.
+        error. Likewise, a submission-complete replay (Prolific's listener
+        re-fires after resetting status to ``submitted``) must not approve a
+        submission a second time: the participant's payment was already
+        handled once, and Prolific rejects approving an already-approved
+        submission, which would surface as a spurious recruitment error.
         """
         participant = latest_participant_for_assignment(assignment_id)
-        if participant is not None and participant.status in (
-            "screened_out",
-            "returned",
-        ):
-            logger.info(
-                "Skipping Prolific approval for assignment %s: status is %s.",
-                assignment_id,
-                participant.status,
-            )
-            return True
+        if participant is not None:
+            if participant.status in ("screened_out", "returned"):
+                logger.info(
+                    "Skipping Prolific approval for assignment %s: status is %s.",
+                    assignment_id,
+                    participant.status,
+                )
+                return True
+            if bonus_transfer_already_claimed(participant):
+                logger.info(
+                    "Skipping Prolific approval for assignment %s: payment was "
+                    "already handled once (bonus_status=%s), so this is a "
+                    "submission-complete replay.",
+                    assignment_id,
+                    participant.bonus_status,
+                )
+                return True
         return super().approve_hit(assignment_id)
 
     def reward_bonus(self, participant, amount, reason):
@@ -775,6 +798,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         Uses a quiet submission GET because Dallinger's translator drops
         ``bonus_payments``, and ``ProlificService._req`` treats HTTP errors
         as recruitment failures. Pay is asynchronous, so bonus can lag a POST.
+
+        For participants paid via the screen-out completion code, the fixed
+        screen-out reward is excluded from ``bonus``, so the reported figure
+        is comparable to PsyNet's own top-up bonus (see
+        ``_without_screen_out_reward``).
         """
         assignment_id = getattr(participant, "assignment_id", None)
         if not assignment_id:
@@ -782,11 +810,57 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         response = _fetch_prolific_submission(self.prolificservice, assignment_id)
         if not response:
             return PlatformPaymentView(supported=True)
+        bonus_payments = self._without_screen_out_reward(
+            participant, response.get("bonus_payments")
+        )
         return PlatformPaymentView(
             supported=True,
-            bonus=_bonus_payments_total(response.get("bonus_payments")),
+            bonus=_bonus_payments_total(bonus_payments),
             submission_status=response.get("status"),
         )
+
+    def _without_screen_out_reward(self, participant, bonus_payments):
+        """Drop the fixed screen-out reward from Prolific's ``bonus_payments``.
+
+        Prolific reports the fixed screen-out reward as an entry in
+        ``bonus_payments`` alongside PsyNet's top-up bonus (verified live:
+        ``[20, 30]`` for a 20p screen-out reward plus a 30p top-up). PsyNet
+        accounts for the fixed reward as the platform base payment, so it
+        must not be mistaken for PsyNet's top-up when the dashboard decides
+        how much of a reviewed bonus is still unpaid — otherwise a failed
+        top-up would be under-posted (or skipped entirely) because the fixed
+        reward looked like money PsyNet had already sent.
+
+        Only one entry matching the fixed reward is removed. If the top-up
+        happens to equal the fixed reward, the match is still treated as the
+        fixed reward: it is paid automatically by Prolific at screen-out, so
+        it is the entry most likely to be present, and erring this way leads
+        at worst to a human-gated repeat POST rather than a silent underpay.
+        """
+        if not bonus_payments:
+            return bonus_payments
+        issued = getattr(participant, "issued_completion_code_type", None)
+        paid_via_screen_out = (
+            participant.status == "screened_out"
+            or issued == self.unsuccessful_code_type
+        )
+        if not paid_via_screen_out:
+            return bonus_payments
+        fixed_reward = self.unsuccessful_base_payment
+        if fixed_reward is None:
+            # Screen-out payment has since been disabled; the recorded
+            # platform base is the best remaining estimate of the fixed
+            # reward that was configured when this participant was paid.
+            fixed_reward = getattr(participant, "base_payment", None)
+        if not fixed_reward:
+            return bonus_payments
+        fixed_subcurrency = int(round(fixed_reward * 100))
+        remaining = list(bonus_payments)
+        for index, entry in enumerate(remaining):
+            if int(round(entry)) == fixed_subcurrency:
+                del remaining[index]
+                break
+        return remaining
 
     def request_return_for_bonus(self, participant) -> TimelineLogic:
         """Ask the participant to return their Prolific submission and pay
