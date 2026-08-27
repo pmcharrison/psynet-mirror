@@ -84,7 +84,7 @@ experiment = [
     "arabic-reshaper",  # Used by VocabTest
     "pillow",  # Used by VocabTest
     # Experiment audit render/validate (shipped with experiment runtime)
-    "markdown-it-py>=3,<4",  # via Dallinger today; keep an explicit compatible pin
+    "markdown-it-py>=3,<5",  # Dallinger 12.3 pins 4.x; keep an explicit compatible bound
     "nh3>=0.3.6",
     "pygments>=2.20.0",
 ]
