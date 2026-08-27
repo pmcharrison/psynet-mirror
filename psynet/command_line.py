@@ -4204,7 +4204,7 @@ def audit_init(audit_dir, source_path, force):
     )
     try:
         init_audit(resolved, source_path, force)
-    except FileExistsError as exc:
+    except (FileExistsError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
     for line in init_success_messages(resolved):
         click.echo(line)

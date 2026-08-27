@@ -973,6 +973,22 @@ def test_experiment_source_path_must_stay_inside_packet(
         render_audit_site(audit_dir)
 
 
+@pytest.mark.parametrize("entry_point", ["/etc/passwd", "../secret.env"])
+def test_experiment_entry_point_must_stay_inside_source(
+    tmp_path: Path,
+    entry_point: str,
+) -> None:
+    audit_dir = tmp_path / "experiment" / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["experiment"]["entry_point"] = entry_point
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    problems = validate_audit(audit_dir)
+
+    assert any("experiment.entry_point" in problem for problem in problems)
+
+
 def test_mark_artifact_present_rejects_invalid_notebook(tmp_path: Path) -> None:
     from psynet.audit.cli import mark_artifact_present
 
@@ -995,16 +1011,56 @@ def test_mark_artifact_present_accepts_notebook_larger_than_preview(
         "nbformat": 4,
         "nbformat_minor": 5,
         "metadata": {},
-        "cells": [],
+        "cells": [
+            {
+                "cell_type": "markdown",
+                "metadata": {},
+                "source": ["Unique large-notebook marker"],
+            }
+        ],
         "embedded_output": "x" * (MAX_AUDIT_TEXT_BYTES + 1),
     }
     write(audit_dir / "analyses/analysis.ipynb", json.dumps(notebook))
 
     mark_artifact_present(audit_dir, "analysis_notebook")
+    site_dir = render_audit_site(audit_dir)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
 
     assert not any(
         "audit notebooks must be at most" in p for p in validate_audit(audit_dir)
     )
+    assert 'id="analysis-notebook"' in index
+    assert "Unique large-notebook marker" in index
+    assert "Open raw notebook" in index
+
+
+def test_init_audit_rejects_escaping_source_path(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "experiment" / "audit"
+
+    with pytest.raises(ValueError, match="experiment.source_path"):
+        init_audit(audit_dir, source_path="../outside")
+
+    result = run_audit_cli("init", str(audit_dir), "--source-path", "/etc")
+    assert result.exit_code != 0
+    assert "experiment.source_path" in result.output
+
+
+def test_validate_audit_notebook_skips_read_when_oversized() -> None:
+    from unittest.mock import MagicMock
+
+    from psynet.audit.cli import MAX_AUDIT_NOTEBOOK_BYTES, validate_audit_notebook
+
+    notebook = MagicMock()
+    notebook.stat.return_value.st_size = MAX_AUDIT_NOTEBOOK_BYTES + 1
+    notebook.read_text.side_effect = AssertionError(
+        "oversized notebooks must not be read",
+    )
+    notebook.__str__.return_value = "analysis.ipynb"
+
+    problems = validate_audit_notebook(notebook)
+
+    assert any("audit notebooks must be at most" in problem for problem in problems)
+    notebook.read_text.assert_not_called()
 
 
 def test_read_audit_artifact_content_marks_truncation(tmp_path: Path) -> None:
@@ -1230,7 +1286,7 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
 def test_init_audit_cli_prints_next_steps(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
 
-    result = run_audit_cli("init", str(audit_dir), "--source-path", "../experiment")
+    result = run_audit_cli("init", str(audit_dir), "--source-path", ".")
 
     assert result.exit_code == 0
     assert "Initialized experiment audit directory" in result.output
@@ -1238,7 +1294,7 @@ def test_init_audit_cli_prints_next_steps(tmp_path: Path) -> None:
     assert "psynet audit validate" in result.output
     assert "packet coherent ≠ experiment ready" in result.output
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
-    assert manifest["experiment"]["source_path"] == "../experiment"
+    assert manifest["experiment"]["source_path"] == "."
 
 
 def test_init_audit_refuses_to_overwrite_by_default(tmp_path: Path) -> None:
@@ -1258,10 +1314,10 @@ def test_init_audit_force_replaces_starter_files(tmp_path: Path) -> None:
     (audit_dir / "audit.json").write_text("custom\n", encoding="utf-8")
     (audit_dir / "REPORT.md").write_text("custom\n", encoding="utf-8")
 
-    init_audit(audit_dir, source_path="..", force=True)
+    init_audit(audit_dir, source_path="code/primary_color_rating", force=True)
 
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
-    assert manifest["experiment"]["source_path"] == ".."
+    assert manifest["experiment"]["source_path"] == "code/primary_color_rating"
     assert "Summarize the implementation" in (audit_dir / "REPORT.md").read_text(
         encoding="utf-8",
     )

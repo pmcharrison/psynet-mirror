@@ -567,6 +567,10 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
 def init_audit(audit_dir: Path, source_path: str = ".", force: bool = False) -> None:
     """Create a starter experiment audit directory."""
 
+    _, source_path_problems = experiment_source_root(audit_dir, source_path)
+    if source_path_problems:
+        raise ValueError(source_path_problems[0])
+
     manifest_path = audit_dir / "audit.json"
     if manifest_path.exists() and not force:
         raise FileExistsError(
@@ -667,10 +671,10 @@ def validate_audit_notebook(notebook_file: Path) -> list[str]:
     problems: list[str] = []
     size_bytes = notebook_file.stat().st_size
     if size_bytes > MAX_AUDIT_NOTEBOOK_BYTES:
-        problems.append(
+        return [
             f"{notebook_file}: audit notebooks must be at most "
             f"{MAX_AUDIT_NOTEBOOK_BYTES} bytes",
-        )
+        ]
     try:
         notebook = json.loads(notebook_file.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -1094,11 +1098,21 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
         if "source_path" not in experiment:
             problems.append(f"{manifest_path}: experiment missing source_path")
         else:
-            _, source_path_problems = experiment_source_root(
+            source_root, source_path_problems = experiment_source_root(
                 audit_dir,
                 experiment.get("source_path"),
             )
             problems.extend(source_path_problems)
+            entry_point = experiment.get("entry_point", "experiment.py")
+            if source_root is not None and isinstance(entry_point, str):
+                entry_relative = Path(entry_point)
+                if entry_relative.is_absolute() or not (
+                    source_root / entry_relative
+                ).resolve().is_relative_to(source_root):
+                    problems.append(
+                        f"{manifest_path}: experiment.entry_point must stay "
+                        "inside the experiment source directory"
+                    )
     if isinstance(manifest.get("implementation"), dict):
         implementation = manifest["implementation"]
         if (
@@ -1275,21 +1289,37 @@ def publish_screenshot_manifest_files(
     return rendered
 
 
-def read_audit_artifact_content(
-    source_file: Path,
-    max_bytes: int = MAX_AUDIT_TEXT_BYTES,
-) -> tuple[str | None, bool]:
-    """Read text artifact content for audit classification."""
+def read_bounded_bytes(source_file: Path, max_bytes: int) -> tuple[bytes | None, bool]:
+    """Read at most ``max_bytes`` from a file without loading a larger remainder."""
 
-    if source_file.suffix.lower() not in TEXT_AUDIT_EXTENSIONS:
-        return None, False
     try:
-        data = source_file.read_bytes()
+        with source_file.open("rb") as handle:
+            data = handle.read(max_bytes + 1)
     except OSError:
         return None, False
     truncated = len(data) > max_bytes
     if truncated:
         data = data[:max_bytes]
+    return data, truncated
+
+
+def read_audit_artifact_content(
+    source_file: Path,
+    max_bytes: int | None = None,
+) -> tuple[str | None, bool]:
+    """Read text artifact content for audit classification."""
+
+    if source_file.suffix.lower() not in TEXT_AUDIT_EXTENSIONS:
+        return None, False
+    if max_bytes is None:
+        max_bytes = (
+            MAX_AUDIT_NOTEBOOK_BYTES
+            if source_file.suffix.lower() == ".ipynb"
+            else MAX_AUDIT_TEXT_BYTES
+        )
+    data, truncated = read_bounded_bytes(source_file, max_bytes)
+    if data is None:
+        return None, False
     text = data.decode("utf-8", errors="ignore")
     if not text:
         return None, truncated

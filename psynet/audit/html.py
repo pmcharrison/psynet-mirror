@@ -16,6 +16,7 @@ from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
 
 from psynet.audit.model import (
+    MAX_AUDIT_TEXT_BYTES,
     AuditEvidenceView,
     AuditFile,
     CompletenessItem,
@@ -568,19 +569,39 @@ def render_analysis_notebook(
 
     notebook_file = evidence.analysis_notebook_file
     notebook = evidence.analysis_notebook
-    if notebook_file is None or not notebook:
+    if notebook_file is None:
         return "<p>No analysis notebook was found.</p>" if standalone else ""
 
-    cells = notebook.get("cells")
+    cells = notebook.get("cells") if notebook else []
     if not isinstance(cells, list):
         cells = []
-    rendered_cells = [
-        render_notebook_cell(cell) for cell in cells if isinstance(cell, dict)
-    ]
+    rendered_cells = []
+    preview_bytes = 0
+    truncated_preview = bool(notebook_file.truncated)
+    for cell in cells:
+        if not isinstance(cell, dict):
+            continue
+        html_cell = render_notebook_cell(cell)
+        extra = len(html_cell.encode("utf-8"))
+        if rendered_cells and preview_bytes + extra > MAX_AUDIT_TEXT_BYTES:
+            truncated_preview = True
+            break
+        rendered_cells.append(html_cell)
+        preview_bytes += extra
     section_class = "analysis-notebook-panel evidence-subsection"
     if standalone:
         section_class += " section-standalone"
     heading = "" if standalone else "<h3>Analysis notebook</h3>"
+    truncation_note = (
+        '<p class="artifact-note">Notebook preview is truncated; open the raw notebook for the full file.</p>'
+        if truncated_preview
+        else ""
+    )
+    preview = (
+        "\n".join(rendered_cells)
+        if rendered_cells
+        else "<p>Notebook preview could not be parsed.</p>"
+    )
     return (
         f'<section id="analysis-notebook" class="{section_class}">'
         '<div class="section-heading">'
@@ -588,9 +609,8 @@ def render_analysis_notebook(
         f'<a href="{escape_url(notebook_file.url, url_transform)}">Open raw notebook</a>'
         "</div>"
         f'<p class="artifact-note">Rendered from <code>{html.escape(notebook_file.path)}</code>.</p>'
-        '<div class="notebook-preview">'
-        + "\n".join(rendered_cells)
-        + "</div></section>"
+        f"{truncation_note}"
+        f'<div class="notebook-preview">{preview}</div></section>'
     )
 
 

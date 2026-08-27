@@ -108,9 +108,13 @@ class AuditEvidenceView:
 
     @property
     def has_analysis_notebook(self) -> bool:
-        """Return whether a renderable analysis notebook is present."""
+        """Return whether an analysis notebook file is present.
 
-        return self.analysis_notebook_file is not None and bool(self.analysis_notebook)
+        Presence does not require a parsed notebook: notebooks too large to
+        preview are still linked from the analysis panel.
+        """
+
+        return self.analysis_notebook_file is not None
 
 
 MAX_AUDIT_TEXT_BYTES = 100_000

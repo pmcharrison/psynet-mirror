@@ -35,8 +35,9 @@ dependencies. Participant video validation also requires ``ffprobe`` from
    psynet audit serve
 
 * ``init`` creates a starter ``audit/`` directory whose required-but-missing
-  artifacts are covered by starter blockers. Validate can pass on this sparse
-  starter; that means the packet is coherent, not that the experiment is ready.
+  artifacts are covered by starter blockers. ``--source-path`` must stay inside
+  the packet, matching ``validate``. Validate can pass on this sparse starter;
+  that means the packet is coherent, not that the experiment is ready.
 * ``validate`` checks the manifest structure, required artifact files, blocker
   coverage, video limits, and notebook JSON readiness. It reports how many
   blockers are still recorded and that readiness may still be incomplete.
