@@ -1558,6 +1558,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             (
                 ChainTrialMaker,
                 "custom_network_filter",
+                # TODO: remove this deprecation once downstream packages
+                # (notably psynet-step, https://github.com/pmcharrison/STEP/pull/5)
+                # ship custom_chain_filter for PsyNet 14.
                 "Override custom_chain_filter(chains, participant, experiment) instead.",
             ),
         ]
