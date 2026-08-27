@@ -261,16 +261,20 @@ git commit -m "Refresh experiment scripts via psynet scripts update"
    `praat-parselmouth` and `scipy` in place):
 
    - **Release-tag deployment (default)**: pin PsyNet to the base tag and
-     Dallinger to its matching tag, e.g.
+     Dallinger to its matching tag. From PsyNet 13.4 the core package is
+     click-only, so the pin **must** use the ``[experiment]`` extra (bare
+     ``psynet`` produces an image that crash-loops on ``import rpdb`` /
+     ``import pytest``). Example:
 
      ```text
      dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@v12.2.1
-     psynet @ git+https://gitlab.com/PsyNetDev/PsyNet.git@v13.3.0rc0
+     psynet[experiment] @ git+https://gitlab.com/PsyNetDev/PsyNet.git@v13.3.0rc0
      ```
 
-   - **Master-based deployment**: pin both to the latest pushed `master`
-     commit hash. Never pin to a branch name; PsyNet's deploy pre-check
-     rejects branch-name requirements as ambiguous.
+   - **Master-based or feature-branch deployment**: pin both to the latest
+     pushed commit hash, still with ``psynet[experiment]``. Never pin to a
+     branch name; PsyNet's deploy pre-check rejects branch-name requirements
+     as ambiguous.
 
    Commit the imported/updated experiment configuration and pins, push the
    deployment branch (for auditability), and record the base tag (or master
@@ -291,6 +295,13 @@ done
 git add -f tests/deployment/*/constraints.txt
 git commit -m "Generate constraints from pinned requirements"
 ```
+
+   After generating, confirm the lockfile actually pulled the experiment extra
+   (missing entries mean the image will crash-loop at import time):
+
+   ```bash
+   rg '^(pytest|rpdb|yaspin|debugpy)==' tests/deployment/*/constraints.txt
+   ```
 
 10. Ensure neither experiment enables `prolific_is_custom_screening`
    (`payment_flows_prolific/experiment.py` sets it to `False`
@@ -346,6 +357,47 @@ release-tag ones. (Older deployments used the app names
 `test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`, before the
 recruiter suffix became part of the convention.) After deployment, inspect
 each launch output for the experiment URL, dashboard URL, and Dozzle URL.
+
+## Investigate Logs During Deploy
+
+Treat a slow `Initializing database...` step as a crash-loop, not as a slow
+database. After compose comes up, Dallinger runs:
+
+```text
+docker compose -f ~/dallinger/<app>/docker-compose.yml exec -T web dallinger-housekeeper initdb
+```
+
+That command can only succeed if the `web` container stays running. If
+`web`/`clock`/`worker` crash on import, they restart every few seconds, `exec`
+never gets a healthy process, and the remote command is eventually killed. The
+deploy then reports `Error: exit code was not 0 (137)` (SIGKILL). 137 here is
+almost never "initdb is slow"; it is "the app never started."
+
+Do **not** wait for the deploy command to time out. As soon as you see
+`Initializing database...` with no `Database initialized.` within about 30
+seconds, inspect logs on the server while deploy is still running:
+
+```bash
+ssh -i <ssh-key> -o BatchMode=yes <ssh-user>@<ssh-host> \
+  "docker compose -f ~/dallinger/<app-name>/docker-compose.yml ps -a; \
+   docker compose -f ~/dallinger/<app-name>/docker-compose.yml logs --tail 200 web clock worker"
+```
+
+Dozzle is already printed in the deploy output before initdb
+(`https://logs.experiments1.cococo-lab.cornell.edu/`); filter by the app name.
+Prefer the compose logs above if Dozzle login is not yet available.
+
+Look first for:
+
+- `Restarting (1)` on `web`/`clock`/`worker` while redis/pgbouncer are healthy
+- `ModuleNotFoundError` / `ImportError` during
+  `from dallinger_experiment import experiment` or `import psynet.experiment`
+- Missing `psynet[experiment]` extras (`rpdb`, `pytest`, `yaspin`, `debugpy`)
+  when `requirements.txt` pinned bare `psynet` after the thin-bootstrap split
+- Tracebacks in `dallinger_heroku_web` / gunicorn `launch`
+
+Fix the import or dependency, destroy the leftover crash-looping app, then
+redeploy. Do not retry the same image hoping initdb will eventually succeed.
 
 ## Prepare The Recruiter Variants
 
@@ -775,12 +827,14 @@ and report any new errors separately.
 Useful search patterns for downloaded logs:
 
 ```text
-Traceback|TypeError|AttributeError|RuntimeError|Exception|ERROR|CRITICAL|Internal Server Error| 500 |raised an exception|ProlificServiceException|no assignment data|Session idle|Deadlock|UndefinedTable
+Traceback|TypeError|AttributeError|RuntimeError|Exception|ERROR|CRITICAL|Internal Server Error| 500 |raised an exception|ProlificServiceException|no assignment data|Session idle|Deadlock|UndefinedTable|ModuleNotFoundError
 assignment_returned|AssignmentReturned|AssignmentAbandoned|approve_participant_submission|bonus|reward|Prolific API request|Close recruitment|launch complete|Launched experiment
 ```
 
 Interpretation shortcuts:
 
+- `Error: exit code was not 0 (137)` during `dallinger-housekeeper initdb` means the `web` container was crash-looping (or was SIGKILL'd) so `docker compose exec` never completed. Inspect `web`/`clock`/`worker` logs immediately; do not treat it as a slow initdb.
+- `ModuleNotFoundError: No module named 'rpdb'` (or `pytest`, `yaspin`, `debugpy`) at `import psynet.experiment` means the image was built from a bare `psynet` pin. Regenerated constraints must include `psynet[experiment]`.
 - `TypeError: sequence item 0: expected str instance, list found` in `Experiment.run_recruiter_checks` points to a PsyNet notifier combine/list bug.
 - `We found no assignment data for participant <id> with assignment ID <assignment_id> on Prolific!` should be cross-checked against the participant dashboard row for `status`, `failed`, `failed_reason`, and `failure_tags`.
 - `Prolific session not yet submitted (current status is 'ACTIVE')` during `approve_participant_submission` can be non-fatal if the worker continues to pay bonuses and later state is consistent.
