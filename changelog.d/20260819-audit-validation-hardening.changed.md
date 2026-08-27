@@ -1,1 +1,1 @@
-Hardened audit validation: unified credential redaction, mark-present parity, stricter video checks, blocker integrity, section size limits, and clearer missing-packet errors.
+Hardened audit validation with unified credential redaction, mark-present parity, stricter video checks, blocker integrity, source-path confinement, practical notebook size limits, section size limits, and clearer missing-packet errors.

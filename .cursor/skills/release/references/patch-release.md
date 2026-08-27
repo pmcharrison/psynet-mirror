@@ -20,6 +20,8 @@ Perform the shared steps, in this order:
    patch release section. Add fragments manually for any fix that is
    missing one.
 2. [Bump the version](#bump-the-version) (e.g. `13.1.0` → `13.1.1`)
+3. [Update What's new](#update-whats-new) only if the patch has something
+   experimenter-facing worth calling out
 
 ### 3. Push the release branch
 

@@ -47,6 +47,22 @@ git add psynet/version.py pyproject.toml
 git commit -m "Bump version to X.Y.Z"
 ```
 
+### Update What's new
+
+Visit `docs/whats_new/` whenever the release includes experimenter-facing
+highlights or breaking changes. Add or revise the matching version page
+(for example `docs/whats_new/psynet_14.rst`) and link it from
+`docs/whats_new/index.rst`.
+
+Write these pages for experiment authors: lead with what is exciting or
+useful, then point clearly at any upgrade path (docs and/or
+`/upgrade-to-psynet-*` skill). Do not turn them into full technical
+migration manuals.
+
+Skip this step only for patch-only releases with nothing meaningful to say
+there. Commit What's new changes with the other release-preparation commits
+or as their own commit on the release branch.
+
 ### Update experiment templates (no longer required)
 
 PsyNet demos used to contain boilerplate that needed to be updated as part 

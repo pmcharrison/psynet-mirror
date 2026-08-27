@@ -29,6 +29,8 @@ Perform the shared steps, in this order:
 1. [Update the CHANGELOG](#update-the-changelog)
 2. [Bump the version](#bump-the-version) (from the alpha version, e.g.
    `13.2.0a0` → `13.2.0`)
+3. [Update What's new](#update-whats-new) when the release has
+   experimenter-facing highlights or breaking changes
 
 ### 3. Push the release branch
 

@@ -17,7 +17,8 @@ experiment directory that contains this audit folder” (relative to the audit
 directory’s parent). Commands auto-detect the packet: from the experiment root
 you can pass ``.`` or omit the path and PsyNet will use ``./audit/`` when that
 is where ``audit.json`` lives (or the current directory when it already contains
-``audit.json``).
+``audit.json``). Source paths must be relative and remain inside the audit
+packet; validation and rendering reject absolute paths and ``..`` escapes.
 
 Audit support ships with PsyNet but requires the full experiment runtime
 (``psynet[experiment]``), including Dallinger and the audit HTML render
@@ -39,6 +40,8 @@ dependencies. Participant video validation also requires ``ffprobe`` from
 * ``validate`` checks the manifest structure, required artifact files, blocker
   coverage, video limits, and notebook JSON readiness. It reports how many
   blockers are still recorded and that readiness may still be incomplete.
+  Executed notebooks may be up to 10 MB, accommodating embedded figures while
+  keeping packet validation bounded.
   Warnings (non-fatal) include a still-placeholder ``implementation.summary``
   and ``TIMELINE.md`` lines that look like entries but were ignored because the
   actor tag was not one of ``agent-start``, ``agent``, ``agent-stop``,
@@ -50,7 +53,8 @@ dependencies. Participant video validation also requires ``ffprobe`` from
   instead of hand-editing status fields.
 * ``render`` validates first, then builds a self-contained static site under
   ``audit/site/``. Pass ``--allow-invalid`` only when you need to preview a
-  broken manifest.
+  broken manifest. Text and notebook previews are truncated after 100 KB; this
+  preview limit does not prevent a larger valid notebook from being included.
 * ``serve`` hosts that static site over HTTP (default ``http://127.0.0.1:8765/``).
   Pass ``--render`` to rebuild first. It does not create a public tunnel.
   Binding to a non-localhost host (for example ``--host 0.0.0.0``) exposes the

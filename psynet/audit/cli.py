@@ -128,7 +128,9 @@ ARTIFACT_STATUSES = {"present", "missing", "blocked", "not_applicable"}
 ARTIFACT_CREATORS = {"agent", "cli", "manual", "unknown"}
 BLOCKER_SEVERITIES = {"warning", "error"}
 CHECK_STATUSES = {"pass", "fail", "warning", "not_run"}
-MAX_AUDIT_NOTEBOOK_BYTES = MAX_AUDIT_TEXT_BYTES
+# Notebooks often contain embedded image output. Keep the rendered text preview
+# bounded separately, but allow a practical packet size for executed notebooks.
+MAX_AUDIT_NOTEBOOK_BYTES = 10_000_000
 MAX_AUDIT_SECTION_BYTES = MAX_AUDIT_TEXT_BYTES
 CLI_NAME = "psynet audit"
 AUDIT_CSS_OUTPUT = "css/audit.css"
@@ -614,6 +616,28 @@ def relative_audit_path(
     return resolved_path, []
 
 
+def experiment_source_root(
+    audit_dir: Path,
+    source_path: object,
+) -> tuple[Path | None, list[str]]:
+    """Resolve an experiment source path inside its audit packet."""
+
+    label = f"{audit_dir / 'audit.json'}: experiment.source_path"
+    if not isinstance(source_path, str) or not source_path:
+        return None, [f"{label}: path must be a non-empty string"]
+
+    relative_path = Path(source_path)
+    if relative_path.is_absolute():
+        return None, [f"{label}: path must be relative to the audit packet"]
+
+    packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
+    packet_root = packet_root.resolve()
+    resolved_path = (packet_root / relative_path).resolve()
+    if not resolved_path.is_relative_to(packet_root):
+        return None, [f"{label}: path must stay inside the audit packet"]
+    return resolved_path, []
+
+
 def validate_present_artifact_file(
     artifact_path: Path,
     *,
@@ -1069,6 +1093,12 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
             )
         if "source_path" not in experiment:
             problems.append(f"{manifest_path}: experiment missing source_path")
+        else:
+            _, source_path_problems = experiment_source_root(
+                audit_dir,
+                experiment.get("source_path"),
+            )
+            problems.extend(source_path_problems)
     if isinstance(manifest.get("implementation"), dict):
         implementation = manifest["implementation"]
         if (
@@ -1449,8 +1479,9 @@ def experiment_entry_point(
     entry_relative = Path(entry_point)
     if entry_relative.is_absolute():
         return None, entry_point
-    packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
-    source_root = (packet_root / source_path).resolve()
+    source_root, source_path_problems = experiment_source_root(audit_dir, source_path)
+    if source_path_problems or source_root is None:
+        return None, entry_point
     source_file = (source_root / entry_relative).resolve()
     if not source_file.is_relative_to(source_root):
         return None, entry_point

@@ -1,5 +1,5 @@
 import random
-from typing import Iterable, List, Optional, Type, Union
+from typing import Iterable, List, Literal, Optional, Type, Union
 
 from dallinger import db
 from dallinger.models import Vector
@@ -1031,10 +1031,10 @@ class ChainTrial(Trial):
 
     @property
     def failure_cascade(self):
+        """Fail ``node.child`` when this trial is finalized and already has one."""
         to_fail = []
-        if self.propagate_failure:
-            if self.node.child:
-                to_fail.append(lambda: [self.node.child])
+        if self.propagate_failure and self.finalized and self.node.child:
+            to_fail.append(lambda: [self.node.child])
         return to_fail
 
     @property
@@ -1198,16 +1198,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         ``recruit_mode="n_participants"``.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
-        Defaults to ``False`` because failing such trials can end up destroying
-        large parts of existing chains.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
-        Defaults to ``False`` because failing such trials can end up destroying
-        large parts of existing chains.
+        See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``False``
+        because failing completed trials can invalidate large amounts of
+        downstream chain data.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
@@ -1248,9 +1244,20 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     sync_group_max_wait_time
         The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
-        If this time is exceeded then the participant will be failed and the experiment will
-        terminate early. Defaults to 45.0 seconds.
+        If this time is exceeded, the participant is either failed or kicked (see ``sync_group_max_wait_action``).
+        Defaults to 45.0 seconds.
 
+    sync_group_max_wait_action
+        When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant; ``"kick"`` removes them
+        from the group and lets them continue. Defaults to ``"fail"``.
+
+    sync_group_timeout_between_barriers_time
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
+
+    sync_group_timeout_between_barriers_action
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
     ----------
@@ -1328,6 +1335,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
+        sync_group_timeout_between_barriers_time: Optional[float] = None,
+        sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1468,6 +1478,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             assets=assets,
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
+            sync_group_max_wait_action=sync_group_max_wait_action,
+            sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
+            sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
 
         self.check_initialization()

@@ -953,6 +953,26 @@ def test_relative_audit_path_rejects_escape(tmp_path: Path) -> None:
     assert any("stay inside" in problem for problem in problems)
 
 
+@pytest.mark.parametrize("source_path", ["/etc", "../../../../etc"])
+def test_experiment_source_path_must_stay_inside_packet(
+    tmp_path: Path,
+    source_path: str,
+) -> None:
+    from psynet.audit.cli import AuditValidationError
+
+    audit_dir = tmp_path / "experiment" / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["experiment"]["source_path"] = source_path
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    problems = validate_audit(audit_dir)
+
+    assert any("experiment.source_path" in problem for problem in problems)
+    with pytest.raises(AuditValidationError, match="experiment.source_path"):
+        render_audit_site(audit_dir)
+
+
 def test_mark_artifact_present_rejects_invalid_notebook(tmp_path: Path) -> None:
     from psynet.audit.cli import mark_artifact_present
 
@@ -962,6 +982,29 @@ def test_mark_artifact_present_rejects_invalid_notebook(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="invalid notebook JSON"):
         mark_artifact_present(audit_dir, "analysis_notebook")
+
+
+def test_mark_artifact_present_accepts_notebook_larger_than_preview(
+    tmp_path: Path,
+) -> None:
+    from psynet.audit.cli import MAX_AUDIT_TEXT_BYTES, mark_artifact_present
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    notebook = {
+        "nbformat": 4,
+        "nbformat_minor": 5,
+        "metadata": {},
+        "cells": [],
+        "embedded_output": "x" * (MAX_AUDIT_TEXT_BYTES + 1),
+    }
+    write(audit_dir / "analyses/analysis.ipynb", json.dumps(notebook))
+
+    mark_artifact_present(audit_dir, "analysis_notebook")
+
+    assert not any(
+        "audit notebooks must be at most" in p for p in validate_audit(audit_dir)
+    )
 
 
 def test_read_audit_artifact_content_marks_truncation(tmp_path: Path) -> None:

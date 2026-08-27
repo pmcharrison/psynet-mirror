@@ -44,7 +44,9 @@ using the shared steps with the RC version:
    changes land before the next RC or final release, record them as new
    fragments in `changelog.d/`.
 2. [Bump the version](#bump-the-version) from `13.2.0a0` to `13.2.0rc1`.
-3. Push the release branch and tag the RC. RC tags are pushed directly from
+3. [Update What's new](#update-whats-new) for experimenter-facing highlights
+   or breaking changes (usually on the first RC of a minor/major).
+4. Push the release branch and tag the RC. RC tags are pushed directly from
    the release branch — there is **no MR** and **no merge to `master`** at
    this stage:
 
@@ -55,19 +57,19 @@ using the shared steps with the RC version:
    ```
 
    Wait for the tag pipeline to pass on GitLab.
-5. [Build and upload to PyPI](#build-and-upload-to-pypi) using the RC
+6. [Build and upload to PyPI](#build-and-upload-to-pypi) using the RC
    version. Since the pre-build `rm -rf` guarantees a clean `dist/`, the
    broader glob `dist/psynet-13.2.0rc1*` is safe here. RCs are not marked
    as the latest release on PyPI, so users must opt in with
    `pip install psynet==13.2.0rc1`.
-6. [Verify the documentation deployment](#verify-the-documentation-deployment):
+7. [Verify the documentation deployment](#verify-the-documentation-deployment):
    confirm that `https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc1/` loads
    and that the RC appears in the version dropdown at
    <https://psynetdev.gitlab.io/PsyNet/>.
-7. **Skip the GitLab release entry.** RCs are tag-only on GitLab (see
+8. **Skip the GitLab release entry.** RCs are tag-only on GitLab (see
    above); the [Create the GitLab release](#create-the-gitlab-release)
    step applies to final releases only.
-8. [Announce the release on Slack](#announce-the-release-on-slack) with the
+9. [Announce the release on Slack](#announce-the-release-on-slack) with the
    RC version, writing the highlights file from the RC's CHANGELOG
    section as described there. `psynet dev release announce 13.2.0rc1
    --summary-file ...` auto-detects the `rc` segment and generates an
@@ -88,7 +90,7 @@ using the shared steps with the RC version:
 
    Tag any specific people whose feedback you need on a thread under the
    post rather than `@channel`-ing the whole channel.
-9. **Validate the RC with a deployment test.** Run the deployment test
+10. **Validate the RC with a deployment test.** Run the deployment test
    suite against the RC tag by following the `deployment-test` skill
    (`.cursor/skills/deployment-test/SKILL.md`): by default this deploys
    the two Prolific test experiments (`payment_flows_prolific` and

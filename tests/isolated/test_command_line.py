@@ -293,6 +293,95 @@ class TestCommandLine(object):
         assert "--sphinx-option" in result.output
         assert "Uses --jobs 1 by default" in result.output
 
+    def test_dev_docs_linkcheck_dispatches_to_builder(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        calls = []
+        monkeypatch.setattr(
+            docs_module,
+            "linkcheck_command",
+            lambda **kwargs: calls.append(kwargs) or 0,
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            [
+                "dev",
+                "docs",
+                "linkcheck",
+                "--clean",
+                "--jobs",
+                "auto",
+                "--sphinx-option=-q",
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [
+            {
+                "clean": True,
+                "jobs": "auto",
+                "sphinx_options": ("-q",),
+            }
+        ]
+
+    def test_dev_docs_linkcheck_cleans_by_default(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        calls = []
+        monkeypatch.setattr(
+            docs_module,
+            "linkcheck_command",
+            lambda **kwargs: calls.append(kwargs) or 0,
+        )
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "linkcheck"])
+
+        assert result.exit_code == 0, result.output
+        assert calls == [
+            {
+                "clean": True,
+                "jobs": "1",
+                "sphinx_options": (),
+            }
+        ]
+
+    def test_dev_docs_linkcheck_can_skip_clean(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        calls = []
+        monkeypatch.setattr(
+            docs_module,
+            "linkcheck_command",
+            lambda **kwargs: calls.append(kwargs) or 0,
+        )
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "linkcheck", "--no-clean"])
+
+        assert result.exit_code == 0, result.output
+        assert calls == [
+            {
+                "clean": False,
+                "jobs": "1",
+                "sphinx_options": (),
+            }
+        ]
+
+    def test_dev_docs_linkcheck_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "linkcheck", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "Wrap Sphinx's linkcheck builder" in result.output
+        assert "make linkcheck" in result.output
+        assert "--clean / --no-clean" in result.output
+        assert "--jobs" in result.output
+        assert "--sphinx-option" in result.output
+
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
         output = subprocess.check_output(

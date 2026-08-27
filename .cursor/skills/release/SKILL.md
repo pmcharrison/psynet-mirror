@@ -24,6 +24,8 @@ version files, naming, and Dallinger upgrade notes.
 - Active venv: `source .venv/bin/activate`; deps: `uv pip install -e '.[dev,slack]'`
 - **Minor:** intended MRs merged; `master` CI green.
 - **Patch:** fixes committed/cherry-picked on the release branch.
+- The Dallinger dependency in `pyproject.toml` is pinned to a released
+  version, not a Git reference; see `references/version-reference.md`.
 
 ### Pre-existing local changes
 
