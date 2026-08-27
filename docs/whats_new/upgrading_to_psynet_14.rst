@@ -119,22 +119,18 @@ Search custom trial makers for ``find_networks``, ``find_node``,
 ``prioritize_networks``, and ``custom_network_filter``.
 
 * :class:`~psynet.trial.chain.ChainTrialMaker` subclasses now discover,
-  filter, and select chains with ``find_chains``, ``chain_is_eligible``
-  (or batched ``chains_are_eligible``), and ``select_chain``. PsyNet
-  resolves the selected chain to ``chain.head``.
+  filter, and select chains with ``find_chains``, ``custom_chain_filter``,
+  and ``select_chain``. PsyNet resolves the selected chain to ``chain.head``.
 * :class:`~psynet.trial.static.StaticTrialMaker` subclasses use the
-  node-specific ``find_nodes``, ``node_is_eligible`` (or batched
-  ``nodes_are_eligible``), and ``select_node`` hooks instead.
-* List-returning ``custom_chain_filter`` / ``custom_node_filter`` still
-  work with a deprecation warning; migrate to the boolean predicates.
+  node-specific ``find_nodes``, ``custom_node_filter``, and ``select_node``
+  hooks instead.
 * Selection hooks may return their selected value directly or wrap it in
   :class:`~psynet.trial.main.Selection` to pass request-local context to
   ``on_trial_created``.
-* ``get_trial_class`` must return a concrete trial class. Mark unavailable
-  chains or nodes ineligible with ``chain_is_eligible`` /
-  ``node_is_eligible`` instead of returning ``None``. Synchronized follower
-  trials reuse the leader's concrete trial class without calling
-  ``get_trial_class`` again.
+* ``get_trial_class`` must return a concrete trial class. Remove unavailable
+  chains or nodes in the corresponding custom filter instead of returning
+  ``None``. Synchronized follower trials reuse the leader's concrete trial
+  class without calling ``get_trial_class`` again.
 
 PsyNet raises an actionable ``TypeError`` when a removed or wrong-paradigm
 hook is still overridden.

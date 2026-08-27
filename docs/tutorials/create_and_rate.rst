@@ -130,12 +130,13 @@ different groups which is set in ``participant.var.is_rater``. We can then imple
             return self.rater_class
         return self.creator_class
 
-    def chains_are_eligible(self, chains, participant, experiment):
+    def custom_chain_filter(self, chains, participant, experiment):
         phases = self.get_creation_phases([chain.head for chain in chains])
         want_rating = participant.var.is_rater
         return [
-            (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
+            chain
             for chain in chains
+            if (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
         ]
 
 
@@ -164,14 +165,15 @@ Also, you can easily modify the number of trials for creators and raters, e.g.:
                         return True
                 return False
 
-            def chains_are_eligible(self, chains, participant, experiment):
+            def custom_chain_filter(self, chains, participant, experiment):
                 if self.has_enough_trials(participant):
-                    return [False] * len(chains)
+                    return []
                 phases = self.get_creation_phases([chain.head for chain in chains])
                 want_rating = participant.var.is_rater
                 return [
-                    (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
+                    chain
                     for chain in chains
+                    if (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
                 ]
 
 

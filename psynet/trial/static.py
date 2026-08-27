@@ -2,7 +2,7 @@ from typing import List, Literal, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
-from ..utils import get_logger, is_method_overridden
+from ..utils import get_logger
 from .main import NetworkTrialMaker, Trial
 
 logger = get_logger()
@@ -88,10 +88,8 @@ class StaticTrialMaker(ChainTrialMaker):
     * :meth:`~psynet.trial.static.StaticTrialMaker.select_node`;
       selects one of the eligible nodes for the participant's next trial.
 
-    * :meth:`~psynet.trial.static.StaticTrialMaker.node_is_eligible`;
-      decides whether an eligible node may be assigned. Override
-      ``nodes_are_eligible`` instead when the decision needs the whole
-      candidate set.
+    * :meth:`~psynet.trial.static.StaticTrialMaker.custom_node_filter`;
+      filters eligible nodes before selection.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the sequence of trials is complete.
@@ -388,7 +386,7 @@ class StaticTrialMaker(ChainTrialMaker):
             (
                 ChainTrialMaker,
                 "custom_network_filter",
-                "Override node_is_eligible(node, participant, experiment) instead.",
+                "Override custom_node_filter(nodes, participant, experiment) instead.",
             ),
             (
                 StaticTrialMaker,
@@ -403,17 +401,7 @@ class StaticTrialMaker(ChainTrialMaker):
             (
                 StaticTrialMaker,
                 "custom_chain_filter",
-                "Static trial makers use node_is_eligible(node, participant, experiment).",
-            ),
-        ]
-
-    def _deprecated_selection_hooks(self):
-        return [
-            (
-                StaticTrialMaker,
-                "custom_node_filter",
-                "Override node_is_eligible(node, participant, experiment) instead, "
-                "or nodes_are_eligible(nodes, participant, experiment) for a batched mask.",
+                "Static trial makers use custom_node_filter(nodes, participant, experiment).",
             ),
         ]
 
@@ -437,45 +425,19 @@ class StaticTrialMaker(ChainTrialMaker):
                 f"{headless_chain_ids}."
             )
         nodes = [chain.head for chain in networks]
-        if is_method_overridden(self, StaticTrialMaker, "custom_node_filter"):
-            eligible_nodes = self._validate_selection_subset(
-                self.custom_node_filter(nodes, participant, experiment),
-                allowed_values=nodes,
-                method_name="custom_node_filter",
-            )
-        else:
-            eligible_nodes = self._apply_eligibility_mask(
-                nodes,
-                self.nodes_are_eligible(nodes, participant, experiment),
-                method_name="nodes_are_eligible",
-            )
+        eligible_nodes = self._validate_selection_subset(
+            self.custom_node_filter(nodes, participant, experiment),
+            allowed_values=nodes,
+            method_name="custom_node_filter",
+        )
         return [node.network for node in eligible_nodes]
 
-    def nodes_are_eligible(self, nodes, participant, experiment):
-        """Return one boolean per node, in the same order.
-
-        Override this when eligibility needs the whole candidate set.
-        Otherwise override
-        :meth:`~psynet.trial.static.StaticTrialMaker.node_is_eligible`.
-        """
-        return [self.node_is_eligible(node, participant, experiment) for node in nodes]
-
-    def node_is_eligible(self, node, participant, experiment):
-        """Return whether this node may be assigned to the participant.
-
-        Override this to change eligibility. Ranking among eligible nodes
-        belongs in ``select_node``.
-        """
-        return True
-
     def custom_node_filter(self, nodes, participant, experiment):
-        """Deprecated list-based eligibility hook.
+        """Filter eligible static nodes before selection.
 
-        Override :meth:`~psynet.trial.static.StaticTrialMaker.node_is_eligible`
-        or :meth:`~psynet.trial.static.StaticTrialMaker.nodes_are_eligible`
-        instead.
-
-        :meta private:
+        Override this to remove nodes the participant must not receive.
+        The default returns the original list. Ranking among eligible nodes
+        belongs in ``select_node``.
         """
         return nodes
 
@@ -508,7 +470,7 @@ class StaticTrialMaker(ChainTrialMaker):
         :meta private:
         """
         raise TypeError(
-            "StaticTrialMaker uses node_is_eligible(node, participant, experiment), "
+            "StaticTrialMaker uses custom_node_filter(nodes, participant, experiment), "
             "not custom_chain_filter"
         )
 

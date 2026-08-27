@@ -1102,9 +1102,8 @@ class ChainTrialMaker(NetworkTrialMaker):
     eligibility checks and returns all remaining chains.
     :meth:`~psynet.trial.chain.ChainTrialMaker.select_chain` then chooses one.
     Override ``select_chain`` to change assignment among eligible chains;
-    override ``chain_is_eligible`` (or ``chains_are_eligible`` for a batched
-    mask) to change eligibility. Do not override ``find_chains`` unless you
-    need to replace that whole procedure.
+    override ``custom_chain_filter`` to change eligibility. Do not override
+    ``find_chains`` unless you need to replace that whole procedure.
 
     Parameters
     ----------
@@ -1540,7 +1539,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             (
                 ChainTrialMaker,
                 "custom_network_filter",
-                "Override chain_is_eligible(chain, participant, experiment) instead.",
+                "Override custom_chain_filter(chains, participant, experiment) instead.",
             ),
             (
                 ChainTrialMaker,
@@ -1555,17 +1554,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             (
                 ChainTrialMaker,
                 "custom_node_filter",
-                "Chain trial makers now use chain_is_eligible(chain, participant, experiment).",
-            ),
-        ]
-
-    def _deprecated_selection_hooks(self):
-        return [
-            (
-                ChainTrialMaker,
-                "custom_chain_filter",
-                "Override chain_is_eligible(chain, participant, experiment) instead, "
-                "or chains_are_eligible(chains, participant, experiment) for a batched mask.",
+                "Chain trial makers now use custom_chain_filter(chains, participant, experiment).",
             ),
         ]
 
@@ -1831,7 +1820,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         This method applies PsyNet's built-in eligibility checks (capacity,
         blocks, asynchronous processes, and
-        :meth:`~psynet.trial.chain.ChainTrialMaker.chain_is_eligible`).
+        :meth:`~psynet.trial.chain.ChainTrialMaker.custom_chain_filter`).
         Override ``select_chain`` to change which eligible chain is assigned.
 
         Parameters
@@ -2064,45 +2053,18 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def _filter_eligible_networks(self, networks, participant, experiment):
         """Apply chain eligibility before wait/exit checks."""
-        if is_method_overridden(self, ChainTrialMaker, "custom_chain_filter"):
-            return self._validate_selection_subset(
-                self.custom_chain_filter(networks, participant, experiment),
-                allowed_values=networks,
-                method_name="custom_chain_filter",
-            )
-        return self._apply_eligibility_mask(
-            networks,
-            self.chains_are_eligible(networks, participant, experiment),
-            method_name="chains_are_eligible",
+        return self._validate_selection_subset(
+            self.custom_chain_filter(networks, participant, experiment),
+            allowed_values=networks,
+            method_name="custom_chain_filter",
         )
 
-    def chains_are_eligible(self, chains, participant, experiment):
-        """Return one boolean per chain, in the same order.
-
-        Override this when eligibility needs the whole candidate set, for
-        example a batched phase query. Otherwise override
-        :meth:`~psynet.trial.chain.ChainTrialMaker.chain_is_eligible`.
-        """
-        return [
-            self.chain_is_eligible(chain, participant, experiment) for chain in chains
-        ]
-
-    def chain_is_eligible(self, chain, participant, experiment):
-        """Return whether this chain may be assigned to the participant.
-
-        Override this to change eligibility. Ranking among eligible chains
-        belongs in ``select_chain``.
-        """
-        return True
-
     def custom_chain_filter(self, chains, participant, experiment):
-        """Deprecated list-based eligibility hook.
+        """Filter eligible chains before selection.
 
-        Override :meth:`~psynet.trial.chain.ChainTrialMaker.chain_is_eligible`
-        or :meth:`~psynet.trial.chain.ChainTrialMaker.chains_are_eligible`
-        instead.
-
-        :meta private:
+        Override this to remove chains the participant must not receive.
+        The default returns the original list. Ranking among eligible chains
+        belongs in ``select_chain``.
         """
         return chains
 
@@ -2113,8 +2075,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         """
         raise TypeError(
             f"{self.__class__.__name__} called custom_network_filter, which is no longer used. "
-            "Override chain_is_eligible(chain, participant, experiment) instead "
-            "and return whether each chain may be assigned."
+            "Override custom_chain_filter(chains, participant, experiment) instead "
+            "and return the eligible chains."
         )
 
     def find_nodes(self, participant, experiment):
@@ -2144,7 +2106,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         """
         raise TypeError(
             f"{self.__class__.__name__} called custom_node_filter, which is not a "
-            "chain selection hook. Override chain_is_eligible(chain, participant, "
+            "chain selection hook. Override custom_chain_filter(chains, participant, "
             "experiment) instead."
         )
 

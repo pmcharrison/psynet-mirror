@@ -507,12 +507,12 @@ def test_selection_rejects_a_value_outside_the_eligible_list():
     ("method_name", "replacement"),
     [
         ("prioritize_networks", "select_chain"),
-        ("custom_network_filter", "chain_is_eligible"),
+        ("custom_network_filter", "custom_chain_filter"),
         ("find_networks", "find_chains"),
         ("find_node", "head"),
         ("find_nodes", "find_chains"),
         ("select_node", "select_chain"),
-        ("custom_node_filter", "chain_is_eligible"),
+        ("custom_node_filter", "custom_chain_filter"),
     ],
 )
 def test_chain_rejects_removed_or_wrong_paradigm_hooks(method_name, replacement):
@@ -532,10 +532,10 @@ def test_chain_rejects_removed_or_wrong_paradigm_hooks(method_name, replacement)
         ("find_networks", "find_nodes"),
         ("find_node", "select nodes directly"),
         ("prioritize_networks", "select_node"),
-        ("custom_network_filter", "node_is_eligible"),
+        ("custom_network_filter", "custom_node_filter"),
         ("find_chains", "find_nodes"),
         ("select_chain", "select_node"),
-        ("custom_chain_filter", "node_is_eligible"),
+        ("custom_chain_filter", "custom_node_filter"),
     ],
 )
 def test_static_rejects_removed_or_wrong_paradigm_hooks(method_name, replacement):
@@ -584,10 +584,10 @@ def test_selection_subset_validation_is_linear_in_candidate_count():
     assert allowed.iter_count == 1
 
 
-def test_node_is_eligible_drops_nodes_without_returning_objects():
+def test_custom_node_filter_drops_nodes():
     class SelectiveStaticMaker(StaticTrialMaker):
-        def node_is_eligible(self, node, participant, experiment):
-            return node.id != 1
+        def custom_node_filter(self, nodes, participant, experiment):
+            return [node for node in nodes if node.id != 1]
 
     trial_maker = make_static_trial_maker(SelectiveStaticMaker)
     kept, dropped = _headed_chains(2)
@@ -599,69 +599,14 @@ def test_node_is_eligible_drops_nodes_without_returning_objects():
     ) == [kept]
 
 
-def test_nodes_are_eligible_can_batch_decisions():
-    class BatchedStaticMaker(StaticTrialMaker):
-        def nodes_are_eligible(self, nodes, participant, experiment):
-            return [node.id != 0 for node in nodes]
-
-    trial_maker = make_static_trial_maker(BatchedStaticMaker)
-    dropped, kept = _headed_chains(2)
-
-    assert trial_maker._filter_eligible_networks(
-        [dropped, kept],
-        participant=SimpleNamespace(),
-        experiment=SimpleNamespace(),
-    ) == [kept]
-
-
-def test_node_eligibility_is_linear_in_candidate_count():
-    class CountingStaticMaker(StaticTrialMaker):
-        def __init__(self, *args, **kwargs):
-            self.eligibility_calls = 0
-            super().__init__(*args, **kwargs)
-
-        def node_is_eligible(self, node, participant, experiment):
-            self.eligibility_calls += 1
-            return True
-
-    trial_maker = make_static_trial_maker(CountingStaticMaker)
-    chains = _headed_chains(80)
-
-    assert (
-        trial_maker._filter_eligible_networks(
-            chains,
-            participant=SimpleNamespace(),
-            experiment=SimpleNamespace(),
-        )
-        == chains
-    )
-    assert trial_maker.eligibility_calls == 80
-
-
-def test_nodes_are_eligible_rejects_a_mask_of_the_wrong_length():
-    class InvalidMaskMaker(StaticTrialMaker):
-        def nodes_are_eligible(self, nodes, participant, experiment):
-            return [True]
-
-    trial_maker = make_static_trial_maker(InvalidMaskMaker)
-
-    with pytest.raises(ValueError, match="one boolean per candidate"):
-        trial_maker._filter_eligible_networks(
-            _headed_chains(2),
-            participant=SimpleNamespace(),
-            experiment=SimpleNamespace(),
-        )
-
-
-def test_deprecated_node_filter_still_returns_a_subset():
+def test_custom_node_filter_rejects_noncandidate_node():
     outsider = SimpleNamespace(id=2)
 
     class InvalidStaticMaker(StaticTrialMaker):
         def custom_node_filter(self, nodes, participant, experiment):
             return [outsider]
 
-    with pytest.warns(DeprecationWarning, match="custom_node_filter"):
-        trial_maker = make_static_trial_maker(InvalidStaticMaker)
+    trial_maker = make_static_trial_maker(InvalidStaticMaker)
     chain = SimpleNamespace(id=1)
     node = SimpleNamespace(id=1, network=chain)
     chain.head = node
@@ -674,13 +619,12 @@ def test_deprecated_node_filter_still_returns_a_subset():
         )
 
 
-def test_deprecated_node_filter_rejects_duplicate_node():
+def test_custom_node_filter_rejects_duplicate_node():
     class DuplicateStaticMaker(StaticTrialMaker):
         def custom_node_filter(self, nodes, participant, experiment):
             return [nodes[0], nodes[0]]
 
-    with pytest.warns(DeprecationWarning, match="custom_node_filter"):
-        trial_maker = make_static_trial_maker(DuplicateStaticMaker)
+    trial_maker = make_static_trial_maker(DuplicateStaticMaker)
     chain = SimpleNamespace(id=1)
     node = SimpleNamespace(id=1, network=chain)
     chain.head = node
@@ -704,10 +648,10 @@ def test_static_node_filter_rejects_headless_network():
         )
 
 
-def test_chain_is_eligible_drops_chains():
+def test_custom_chain_filter_drops_chains():
     class SelectiveChainMaker(ChainTrialMaker):
-        def chain_is_eligible(self, chain, participant, experiment):
-            return chain.id != 1
+        def custom_chain_filter(self, chains, participant, experiment):
+            return [chain for chain in chains if chain.id != 1]
 
     trial_maker = make_trial_maker(SelectiveChainMaker)
     kept = SimpleNamespace(id=0)
