@@ -1031,10 +1031,10 @@ class ChainTrial(Trial):
 
     @property
     def failure_cascade(self):
+        """Fail ``node.child`` when this trial is finalized and already has one."""
         to_fail = []
-        if self.propagate_failure:
-            if self.node.child:
-                to_fail.append(lambda: [self.node.child])
+        if self.propagate_failure and self.finalized and self.node.child:
+            to_fail.append(lambda: [self.node.child])
         return to_fail
 
     @property
@@ -1198,16 +1198,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         ``recruit_mode="n_participants"``.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
-        Defaults to ``False`` because failing such trials can end up destroying
-        large parts of existing chains.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
-        Defaults to ``False`` because failing such trials can end up destroying
-        large parts of existing chains.
+        See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``False``
+        because failing completed trials can invalidate large amounts of
+        downstream chain data.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other

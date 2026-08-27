@@ -82,7 +82,9 @@ def chain_trial_maker(**kwargs):
     return ChainTrialMaker(**{**args, **kwargs})
 
 
-def create_chain_network(trial_maker, experiment, *, network_class=ChainNetwork):
+def create_chain_network(
+    trial_maker, experiment, *, network_class=ChainNetwork, participant=None
+):
     start_node = trial_maker.node_class(definition={"x": 0})
     network = network_class(
         trial_maker_id=trial_maker.id,
@@ -91,6 +93,7 @@ def create_chain_network(trial_maker, experiment, *, network_class=ChainNetwork)
         chain_type=trial_maker.chain_type,
         trials_per_node=trial_maker.trials_per_node,
         target_n_nodes=trial_maker.max_nodes_per_chain,
+        participant=participant,
     )
     db.session.add(network)
     db.session.flush()
@@ -98,13 +101,20 @@ def create_chain_network(trial_maker, experiment, *, network_class=ChainNetwork)
 
 
 def add_trial(
-    trial_class, node, participant, *, answer=1, finalized=True, failed=False
+    trial_class,
+    node,
+    participant,
+    *,
+    answer=1,
+    finalized=True,
+    failed=False,
+    propagate_failure=False,
 ):
     trial = trial_class(
         experiment=get_experiment(),
         node=node,
         participant=participant,
-        propagate_failure=False,
+        propagate_failure=propagate_failure,
         is_repeat_trial=False,
     )
     trial.answer = answer
@@ -180,6 +190,109 @@ def test_ready_to_spawn_access_has_migration_error(db_session):
 
     with pytest.raises(AttributeError, match="check_ready_to_spawn"):
         network.head.check_ready_to_spawn()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_assignment_returned_does_not_fail_within_chain_start_node(
+    db_session, participant
+):
+    exp = get_experiment()
+    within_maker = chain_trial_maker(
+        id_="within_growth",
+        chain_type="within",
+        chains_per_participant=1,
+        chains_per_experiment=None,
+        recruit_mode="n_participants",
+        target_n_participants=1,
+    )
+    network = within_maker.create_network(
+        exp, participant=participant, id_within_participant=0
+    )
+    start_node = network.head
+    assert start_node.degree == 0
+    assert start_node.participant_id == participant.id
+
+    completed = add_trial(GrowthQueryTrial, start_node, participant, finalized=True)
+    incomplete = add_trial(GrowthQueryTrial, start_node, participant, finalized=False)
+    db.session.commit()
+
+    exp.assignment_returned(participant)
+    db.session.commit()
+
+    assert participant.failed
+    assert "assignment_returned" in participant.failure_tags
+    assert "premature_exit" in participant.failure_tags
+    assert not network.failed
+    assert not start_node.failed
+    assert not completed.failed
+    assert incomplete.failed
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_incomplete_trial_does_not_fail_child_node(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker()
+    network = create_chain_network(trial_maker, exp)
+    parent = network.head
+    add_trial(GrowthQueryTrial, parent, participant, finalized=True)
+    db.session.commit()
+
+    assert trial_maker.grow_network(network, exp) is True
+    child = network.head
+    assert child.id != parent.id
+
+    incomplete = add_trial(
+        GrowthQueryTrial,
+        parent,
+        participant,
+        finalized=False,
+        propagate_failure=True,
+    )
+    incomplete.fail(reason="premature_exit")
+    db.session.commit()
+
+    assert incomplete.failed
+    assert not incomplete.finalized
+    assert not parent.failed
+    assert not child.failed
+    assert not network.failed
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_finalized_trial_fails_child_node(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker()
+    network = create_chain_network(trial_maker, exp)
+    parent = network.head
+    finalized = add_trial(
+        GrowthQueryTrial,
+        parent,
+        participant,
+        finalized=True,
+        propagate_failure=True,
+    )
+    db.session.commit()
+
+    assert trial_maker.grow_network(network, exp) is True
+    child = network.head
+    assert child.id != parent.id
+
+    finalized.fail(reason="performance_check")
+    db.session.commit()
+
+    assert finalized.failed
+    assert child.failed
+    assert not parent.failed
+    assert not network.failed
 
 
 def graph_trial_maker():
