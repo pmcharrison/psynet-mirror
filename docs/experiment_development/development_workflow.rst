@@ -37,6 +37,9 @@ This should involve creating a virtual environment for your project (typically i
 and then install the experiment's dependencies into this virtual environment.
 This list of dependencies is stored in the ``requirements.txt`` and ``constraints.txt`` files.
 
+PsyNet supports Python 3.11 through 3.14 and recommends Python 3.13 for
+experiment development.
+
 To create the environment and install the dependencies, run the following in your terminal:
 
 .. code-block:: bash

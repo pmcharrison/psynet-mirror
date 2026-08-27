@@ -28,6 +28,7 @@ API Documentation
    recruiters
    redis
    serialize
+   static_resources
    sync
    timeline
    trial/index

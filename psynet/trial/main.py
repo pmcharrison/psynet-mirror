@@ -3,7 +3,7 @@
 import datetime
 import random
 from math import isnan
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -573,7 +573,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         sync_group_type = self.trial_maker.sync_group_type
         if sync_group_type is None:
             return None
-        return self.participant.active_sync_groups[sync_group_type]
+        return self.participant.active_sync_groups.get(sync_group_type)
 
     def _allocate_performance_reward(self):
         reward = self.compute_performance_reward(score=self.score)
@@ -1394,8 +1394,20 @@ class TrialMaker(Module):
 
     sync_group_max_wait_time
         The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
-        If this time is exceeded then the participant will be failed and the experiment will
-        terminate early. Defaults to 45.0 seconds.
+        If this time is exceeded, the participant is either failed or kicked (see ``sync_group_max_wait_action``).
+        Defaults to 45.0 seconds.
+
+    sync_group_max_wait_action
+        When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
+        of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
+
+    sync_group_timeout_between_barriers_time
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
+
+    sync_group_timeout_between_barriers_action
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
     """
 
     state_class = TrialMakerState
@@ -1416,6 +1428,9 @@ class TrialMaker(Module):
         assets: List,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
+        sync_group_timeout_between_barriers_time: Optional[float] = None,
+        sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1452,6 +1467,13 @@ class TrialMaker(Module):
         self.n_repeat_trials = n_repeat_trials
         self.sync_group_type = sync_group_type
         self.sync_group_max_wait_time = sync_group_max_wait_time
+        self.sync_group_max_wait_action = sync_group_max_wait_action
+        self.sync_group_timeout_between_barriers_time = (
+            sync_group_timeout_between_barriers_time
+        )
+        self.sync_group_timeout_between_barriers_action = (
+            sync_group_timeout_between_barriers_action
+        )
 
         elts = self.compile_elts()
 
@@ -1515,19 +1537,32 @@ class TrialMaker(Module):
             # If the participant is in a sync group and the leader has not been initialized,
             # then we put a GroupBarrier to ensure that the leader can be initialized first.
             # Otherwise we go ahead and initialize the participant.
-            lambda participant: (
-                self.sync_group_type is not None
-                and not self._leader_is_initialized(participant)
-            ),
+            self._requires_sync_group_initialization_barrier,
             logic_if_true=GroupBarrier(
                 "init_participant",
                 group_type=self.sync_group_type,
                 max_wait_time=self.sync_group_max_wait_time,
+                max_wait_action=self.sync_group_max_wait_action,
                 on_release=self._init_participants_in_sync_group,
+                timeout_between_barriers_time=self.sync_group_timeout_between_barriers_time,
+                timeout_between_barriers_action=self.sync_group_timeout_between_barriers_action,
             ),
             logic_if_false=CodeBlock(self.init_participant),
             time_estimate=0.0 if self.sync_group_type is None else 3.0,
         )
+
+    def _requires_sync_group_initialization_barrier(self, participant):
+        """Return whether the participant should wait for sync-group initialization."""
+        if self.sync_group_type is None:
+            return False
+        if self.sync_group_type not in participant.active_sync_groups:
+            participant_id = getattr(participant, "id", "<unknown>")
+            raise RuntimeError(
+                f"Trial maker '{self.id}' expected participant {participant_id} "
+                f"to have an active sync group of type '{self.sync_group_type}' "
+                "during initialization."
+            )
+        return not self._leader_is_initialized(participant)
 
     def _leader_is_initialized(self, participant):
         group = participant.active_sync_groups[self.sync_group_type]
@@ -1543,7 +1578,7 @@ class TrialMaker(Module):
 
     def _init_participants_in_sync_group(self, group: SyncGroup, experiment):
         self.init_participant(experiment, group.leader)
-        for participant in group.participants:
+        for participant in group.active_participants:
             if participant != group.leader and not self._is_initialized(participant):
                 self.init_participant(experiment, participant)
 
@@ -1555,9 +1590,7 @@ class TrialMaker(Module):
 
     @property
     def _wrapup_core(self):
-        return join(
-            CodeBlock(self.on_complete),
-        )
+        return join(CodeBlock(self.on_complete))
 
     @property
     def n_complete_participants(self):
@@ -2062,6 +2095,13 @@ class TrialMaker(Module):
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):
+        # In synchronous trial makers, we only make sure that the participant is still in the sync group (and not e.g. kicked out) before delivering the next trial.
+        if (
+            self.sync_group_type is not None
+            and self.sync_group_type not in participant.active_sync_groups
+        ):
+            return None, "exit"
+
         if not participant.module_state.in_repeat_phase:
             if leader is None:
                 trial, trial_status = self.prepare_trial(
@@ -2160,18 +2200,27 @@ class TrialMaker(Module):
 
     def _wait_for_trial(self):
         def try_to_prepare_trial():
-            if self.sync_group_type:
-                return join(
+            if not self.sync_group_type:
+                return CodeBlock(self._try_to_prepare_trial_solo)
+            return conditional(
+                "prepare_trial",
+                lambda participant: (
+                    self.sync_group_type in participant.active_sync_groups
+                ),
+                join(
                     GroupBarrier(
                         id_="prepare_trial",
                         group_type=self.sync_group_type,
                         on_release=self._try_to_prepare_trial_group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
+                        max_wait_action=self.sync_group_max_wait_action,
+                        timeout_between_barriers_time=self.sync_group_timeout_between_barriers_time,
+                        timeout_between_barriers_action=self.sync_group_timeout_between_barriers_action,
                     )
-                )
-            else:
-                return CodeBlock(self._try_to_prepare_trial_solo)
+                ),
+                CodeBlock(self._try_to_prepare_trial_solo),
+            )
 
         return join(
             try_to_prepare_trial(),
@@ -2366,9 +2415,20 @@ class NetworkTrialMaker(TrialMaker):
 
     sync_group_max_wait_time
         The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
-        If this time is exceeded then the participant will be failed and the experiment will
-        terminate early. Defaults to 45.0 seconds.
+        If this time is exceeded, the participant is either failed or kicked (see ``sync_group_max_wait_action``).
+        Defaults to 45.0 seconds.
 
+    sync_group_max_wait_action
+        When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
+        of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
+
+    sync_group_timeout_between_barriers_time
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When ``None`` (default), no between-barrier timeout is applied.
+
+    sync_group_timeout_between_barriers_action
+        When ``sync_group_timeout_between_barriers_time`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
     ----------
@@ -2434,6 +2494,9 @@ class NetworkTrialMaker(TrialMaker):
         assets=None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
+        sync_group_timeout_between_barriers_time: Optional[float] = None,
+        sync_group_timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
         performance_check_is_enabled = (
             check_performance_at_end or check_performance_every_trial
@@ -2472,6 +2535,9 @@ class NetworkTrialMaker(TrialMaker):
             assets=assets,
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
+            sync_group_max_wait_action=sync_group_max_wait_action,
+            sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
+            sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks

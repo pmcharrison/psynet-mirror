@@ -166,6 +166,46 @@ def make_docs(
         ) from exc
 
 
+@docs.command("linkcheck")
+@click.option(
+    "--clean/--no-clean",
+    default=True,
+    show_default=True,
+    help="Delete docs/_build before checking links.",
+)
+@click.option(
+    "--jobs",
+    "-j",
+    default="1",
+    show_default=True,
+    help="Parallel Sphinx jobs to pass through SPHINXOPTS, e.g. 1, 4, or auto.",
+)
+@click.option(
+    "--sphinx-option",
+    "sphinx_options",
+    multiple=True,
+    help="Extra option passed to Sphinx via SPHINXOPTS; repeat as needed.",
+)
+def linkcheck_docs(clean, jobs, sphinx_options):
+    """Wrap Sphinx's linkcheck builder and summarize broken links.
+
+    Runs `make linkcheck` in docs/ (the same Sphinx target as
+    `psynet dev docs make linkcheck`), then prints broken links grouped
+    by failure category.
+
+    Cleans docs/_build by default. For faster local reruns, pass
+    --no-clean. Pass extra Sphinx flags with --sphinx-option.
+    """
+    try:
+        docs_module.linkcheck_command(
+            clean=clean,
+            jobs=jobs,
+            sphinx_options=sphinx_options,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
 @dev.group("release")
 def release():
     """Release management helpers for PsyNet source checkouts."""
