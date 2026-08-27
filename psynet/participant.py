@@ -97,6 +97,17 @@ def bonus_needs_review(participant) -> bool:
     return recruiter.has_external_bonus_payment()
 
 
+def bonus_transfer_already_claimed(participant) -> bool:
+    """True when PsyNet will not automatically POST a bonus again.
+
+    Settled statuses skip a repeat transfer. ``unconfirmed`` also skips,
+    including on local recruiters that are not listed for dashboard review.
+    """
+    return bonus_is_settled(participant) or (
+        getattr(participant, "bonus_status", None) == BONUS_STATUS_UNCONFIRMED
+    )
+
+
 NO_BONUS_ATTEMPT_RESULT = "No result recorded from the pay request."
 
 

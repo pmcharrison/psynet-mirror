@@ -1923,7 +1923,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                     .order_by(Response.creation_time)
                     .all()
                 )
-                if responses[-1].answer == {"lucid_consent": False}:
+                if responses and responses[-1].answer == {"lucid_consent": False}:
                     reason = "consent-rejected"
                 else:
                     reason = "participant-did-not-complete"
@@ -2290,6 +2290,10 @@ class GenericRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
 
     nickname = "generic"
+
+    def has_external_bonus_payment(self) -> bool:
+        """Generic/local recruitment does not pay through an external platform."""
+        return False
 
     def recruit(self, n=1):
         return []

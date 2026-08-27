@@ -17,6 +17,7 @@ from psynet.participant import (
     Participant,
     bonus_is_settled,
     bonus_needs_review,
+    bonus_transfer_already_claimed,
     display_bonus_status,
 )
 from psynet.recruiters import (
@@ -599,6 +600,9 @@ class PaymentHarness:
     _notify_bonus_transfer_failed = _Experiment._notify_bonus_transfer_failed
     on_recruiter_submission_complete = _Experiment.on_recruiter_submission_complete
 
+    def _lock_participant_for_payment(self, participant):
+        return participant
+
     def __init__(self):
         self.recruit_calls = 0
         self.submission_successful_calls = []
@@ -1164,6 +1168,9 @@ class PaymentCapHarness:
     def commit_payment_state(self):
         self.payment_commits += 1
 
+    def _lock_participant_for_payment(self, participant):
+        return participant
+
     def ensure_hard_max_experiment_payment_email_sent(self):
         self.hard_max_emails += 1
         self.var.hard_max_experiment_payment_email_sent = True
@@ -1180,7 +1187,7 @@ def test_apply_payment_caps_clips_bonus_to_remaining_hard_max():
 
     assert result == 0.50
     assert participant.planned_bonus == 1.00
-    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert participant.bonus_status == BONUS_STATUS_NOT_DUE_YET
     assert harness.hard_max_emails == 1
     participant.send_email_max_payment_reached.assert_not_called()
 
@@ -1195,7 +1202,7 @@ def test_apply_payment_caps_pays_nothing_when_hard_max_has_no_room():
 
     assert result == 0.0
     assert participant.planned_bonus == 1.00
-    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert participant.bonus_status == BONUS_STATUS_NOT_DUE_YET
     assert harness.hard_max_emails == 1
     participant.amount_paid.assert_not_called()
     participant.send_email_max_payment_reached.assert_not_called()
@@ -1238,7 +1245,7 @@ def test_apply_payment_caps_applies_both_hard_max_and_participant_cap():
 
     assert result == 0.20
     assert participant.planned_bonus == 1.00
-    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert participant.bonus_status == BONUS_STATUS_NOT_DUE_YET
     participant.send_email_max_payment_reached.assert_called_once_with(
         harness, 1.00, 0.20
     )
@@ -1364,6 +1371,44 @@ def test_pay_decided_bonus_does_not_repost_when_review_is_needed():
     assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
     assert participant.bonus is None
     assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
+
+
+def test_pay_decided_bonus_skips_unconfirmed_for_local_recruiter():
+    config = make_config()
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="approved")
+    )
+    participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+    participant.planned_bonus = 1.50
+    participant.recruiter.has_external_bonus_payment = MagicMock(return_value=False)
+    harness = PaymentHarness()
+    decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.50)
+
+    assert harness.pay_decided_bonus(participant, decision) is False
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+
+
+def test_pay_decided_bonus_respects_status_after_lock():
+    config = make_config()
+    original = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="approved")
+    )
+    locked = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="approved")
+    )
+    locked.bonus_status = BONUS_STATUS_UNCONFIRMED
+    locked.planned_bonus = 1.50
+    decision = PaymentDecision(status="approved", platform_base=1.00, bonus=1.50)
+
+    class LockHarness(PaymentHarness):
+        def _lock_participant_for_payment(self, participant):
+            return locked
+
+    harness = LockHarness()
+    assert harness.pay_decided_bonus(original, decision) is False
+    original.recruiter.reward_bonus.assert_not_called()
+    locked.recruiter.reward_bonus.assert_not_called()
 
 
 def test_pay_decided_bonus_commits_unconfirmed_before_post():
@@ -1557,6 +1602,13 @@ def test_hotair_apparent_bonus_paid_is_unknown():
     assert recruiter.apparent_bonus_paid(MagicMock()) is None
 
 
+def test_generic_recruiter_has_no_external_bonus_payment():
+    from psynet.recruiters import GenericRecruiter
+
+    recruiter = object.__new__(GenericRecruiter)
+    assert recruiter.has_external_bonus_payment() is False
+
+
 def _review_participant(apparent=0.0, planned=1.50):
     participant = prepare_payout_participant(
         make_participant_with_recruiter(make_config(), failed=False, status="approved")
@@ -1686,6 +1738,21 @@ def test_pay_review_bonus_records_partial_platform_amount_without_overpaying():
     assert participant.planned_bonus == 1.00
 
 
+def test_pay_review_bonus_does_not_record_apparent_above_payable():
+    participant = _review_participant(apparent=2.00, planned=1.00)
+    participant.amount_paid.return_value = 1.00
+    participant.recruiter.reward_bonus = MagicMock()
+    harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
+
+    category, message = harness.pay_review_bonus(participant)
+
+    assert category == "success"
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_CAPPED
+    assert participant.bonus == 0.50
+    assert participant.planned_bonus == 1.00
+
+
 def test_clip_bonus_for_spend_caps_record_false_does_not_settle():
     harness = PaymentCapHarness(spent=9.50, hard_max=10.0)
     participant = MagicMock(
@@ -1750,6 +1817,15 @@ def test_bonus_status_helpers():
     assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_DISMISSED))
     assert bonus_is_settled(SimpleNamespace(bonus_status=BONUS_STATUS_CAPPED))
     assert not bonus_needs_review(SimpleNamespace(bonus_status=BONUS_STATUS_SUCCESS))
+    assert bonus_transfer_already_claimed(
+        SimpleNamespace(bonus_status=BONUS_STATUS_UNCONFIRMED)
+    )
+    assert bonus_transfer_already_claimed(
+        SimpleNamespace(bonus_status=BONUS_STATUS_SUCCESS)
+    )
+    assert not bonus_transfer_already_claimed(
+        SimpleNamespace(bonus_status=BONUS_STATUS_NOT_DUE_YET)
+    )
 
 
 def test_dismiss_review_bonus_refuses_when_not_in_review():
@@ -1797,6 +1873,24 @@ def test_hotair_reward_bonus_returns_true():
 
     recruiter = object.__new__(HotAirRecruiter)
     assert recruiter.reward_bonus(MagicMock(assignment_id="a"), 1.0, "thanks") is True
+
+
+def test_lucid_reward_bonus_terminates_when_responses_empty():
+    from psynet.recruiters import BaseLucidRecruiter
+
+    recruiter = object.__new__(BaseLucidRecruiter)
+    recruiter.complete_participant = MagicMock()
+    recruiter.terminate_participant = MagicMock()
+    participant = MagicMock(progress=0.5, id=1)
+
+    with patch("psynet.recruiters.Response") as response_cls:
+        response_cls.query.filter_by.return_value.order_by.return_value.all.return_value = []
+        assert recruiter.reward_bonus(participant, 0.0, "thanks") is True
+
+    recruiter.complete_participant.assert_not_called()
+    recruiter.terminate_participant.assert_called_once_with(
+        participant=participant, reason="participant-did-not-complete"
+    )
 
 
 def test_experiment_bonus_raises():

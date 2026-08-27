@@ -90,6 +90,7 @@ from .participant import (
     Participant,
     bonus_is_settled,
     bonus_needs_review,
+    bonus_transfer_already_claimed,
     record_bonus_attempt_detail,
 )
 from .recruiters import (  # noqa: F401
@@ -2526,6 +2527,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Persist claimed payment fields so a crash cannot replay a POST."""
         db.session.commit()
 
+    def _lock_participant_for_payment(self, participant):
+        """Reload the participant row with ``FOR UPDATE`` for the pay claim.
+
+        Isolated tests stub this to return the in-memory participant.
+        """
+        participant_id = getattr(participant, "id", None)
+        if participant_id is None:
+            return participant
+        return type(self).get_participant_from_participant_id(
+            int(participant_id), for_update=True
+        )
+
     def clip_bonus_for_spend_caps(
         self, participant, bonus: float, *, record: bool = True
     ) -> tuple[float, bool]:
@@ -2533,9 +2546,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         ``hard_capped`` is True when ``hard_max_experiment_payment`` reduced
         the payout. This method does not use ``bonus_status`` as the clip
-        signal; ``record=True`` still writes ``planned_bonus``, may set
-        ``capped``, and sends cap emails. ``record=False`` is for dashboard
-        Pay, which must not settle the participant before the POST.
+        signal; ``record=True`` still writes ``planned_bonus`` and sends cap
+        emails, but does not set ``capped`` (settlement happens after the
+        transfer claim). ``record=False`` is for dashboard Pay, which must
+        not settle the participant before the POST.
 
         The hard cap is evaluated per payout against current
         ``amount_spent()``; it is not latched after the first clip.
@@ -2557,7 +2571,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             clipped = round(max(0.0, room), 2)
             if record:
                 participant.planned_bonus = decided
-                participant.bonus_status = BONUS_STATUS_CAPPED
                 self.ensure_hard_max_experiment_payment_email_sent()
                 logger.warning(
                     "Clipping bonus of %s to %s for participant %s: experiment "
@@ -2585,11 +2598,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
         payout is clipped to remaining room (or ``0`` if none).
-        ``planned_bonus`` stays the decided amount, ``bonus_status`` is set
-        to ``capped``, and the experimenter is emailed once. If it would
-        exceed ``max_participant_payment``, the bonus is reduced to the
-        remaining room under that cap without using ``capped`` unless the
-        hard cap already reduced it.
+        ``planned_bonus`` stays the decided amount and the experimenter is
+        emailed once. ``bonus_status`` is not set here; the caller settles
+        ``capped`` after the transfer claim. If it would exceed
+        ``max_participant_payment``, the bonus is reduced to the remaining
+        room under that cap without using ``capped`` unless the hard cap
+        already reduced it.
         """
         payable, _hard_capped = self.clip_bonus_for_spend_caps(
             participant, bonus, record=True
@@ -2603,16 +2617,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         clipped or skipped by a spend cap, skipped as too small, or already
         settled). Returns False if the platform rejected the transfer or a
         previous attempt already failed. PsyNet posts a bonus to the
-        platform at most once per participant: the attempt is claimed by
-        setting ``bonus_status = unconfirmed``, ``planned_bonus``, and a
+        platform at most once per participant: the participant row is
+        locked, then the attempt is claimed by setting
+        ``bonus_status = unconfirmed``, ``planned_bonus``, and a
         last-attempt placeholder before the recruiter call, so a later
-        replay will not pay again. A failed transfer stays unconfirmed and
+        replay will not pay again. ``unconfirmed`` skips a second
+        automatic POST even on local recruiters. A failed transfer stays unconfirmed and
         asks the experimenter to review on the Participants dashboard.
         A hard-cap clip keeps ``planned_bonus`` as the decided amount and
         finishes as ``capped`` even when a remainder was sent.
 
         Does not re-apply caps or send emails when already settled.
         """
+        participant = self._lock_participant_for_payment(participant)
         if bonus_is_settled(participant):
             logger.info(
                 "Bonus will NOT be paid, since participant %s already has "
@@ -2622,7 +2639,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.bonus,
             )
             return True
-        if bonus_needs_review(participant):
+        if bonus_transfer_already_claimed(participant):
             logger.warning(
                 "Bonus will NOT be paid automatically, since participant %s "
                 "already has an unconfirmed planned bonus (planned_bonus=%s).",
@@ -2656,6 +2673,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 min_real_bonus,
             )
             if hard_capped:
+                participant.planned_bonus = planned
+                participant.bonus_status = BONUS_STATUS_CAPPED
                 return True
             if not bonus_is_settled(participant):
                 participant.planned_bonus = 0.0
@@ -2731,9 +2750,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"{participant.id}. Try again in a moment.",
             )
         already = 0.0 if apparent is None else round(float(apparent), 2)
+        accounted = round(min(already, payable), 2)
         if already + 1e-9 >= payable:
             self._record_bonus_transfer_success(
-                participant, already, bonus_status=settled_status
+                participant, accounted, bonus_status=settled_status
             )
             return (
                 "success",
@@ -2744,7 +2764,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         min_real_bonus = 0.01
         if to_post < min_real_bonus:
             self._record_bonus_transfer_success(
-                participant, already, bonus_status=settled_status
+                participant, accounted, bonus_status=settled_status
             )
             return (
                 "success",
@@ -2764,7 +2784,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Bonus POST failed for participant {participant.id}. "
                 "Check the platform, then try again if it still looks unpaid.",
             )
-        delivered = round(already + to_post, 2)
+        delivered = round(min(already + to_post, payable), 2)
         self._record_bonus_transfer_success(
             participant, delivered, bonus_status=settled_status
         )
@@ -2853,6 +2873,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
         """
+        participant = self._lock_participant_for_payment(participant)
         if participant.status not in (
             "submitted",
             "approved",
@@ -2873,9 +2894,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if timestamp is not None:
                 participant.end_time = timestamp
 
-        already_handled = bonus_is_settled(participant) or (
-            participant.bonus_status == BONUS_STATUS_UNCONFIRMED
-        )
+        already_handled = bonus_transfer_already_claimed(participant)
         decision = self.decide_and_record_payment(participant)
         participant.recruiter.approve_hit(participant.assignment_id)
         if not self.pay_decided_bonus(participant, decision):
