@@ -10,7 +10,14 @@ from psynet.trial.create_and_rate import (
 
 class _Parent:
     def find_chains(self, participant, experiment):
-        return list(self._candidates)
+        return self._filter_eligible_candidates(
+            list(self._candidates),
+            participant,
+            experiment,
+        )
+
+    def _filter_eligible_candidates(self, chains, participant, experiment):
+        return chains
 
 
 class CreateAndRateSelectionHarness(CreateAndRateTrialMakerMixin, _Parent):
@@ -194,6 +201,32 @@ def test_invalid_participant_role_is_rejected():
 
     with pytest.raises(ValueError, match="get_participant_role"):
         maker.find_chains(None, None)
+
+
+def test_invalid_participant_role_is_rejected_during_trial_class_resolution():
+    node = SimpleNamespace(id=1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[chain(1)],
+        phases={1: CreateAndRateTrialMakerMixin.NEEDS_CREATORS},
+        role="reviewer",
+    )
+
+    with pytest.raises(ValueError, match="get_participant_role"):
+        maker.get_trial_class(node, None, None)
+
+
+def test_role_phase_mismatch_exits_when_wait_is_disabled():
+    node = SimpleNamespace(id=1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[chain(1)],
+        phases={1: CreateAndRateTrialMakerMixin.READY_FOR_RATERS},
+        wait_for_networks=False,
+        role=CreateAndRateTrialMakerMixin.CREATOR_ROLE,
+    )
+
+    with pytest.raises(CreateAndRateAssignmentPending) as exc_info:
+        maker.get_trial_class(node, None, None)
+    assert exc_info.value.outcome == "exit"
 
 
 def test_create_and_rate_waits_when_only_pending_chains_remain():

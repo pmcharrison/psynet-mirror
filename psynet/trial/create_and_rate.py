@@ -493,6 +493,24 @@ class CreateAndRateTrialMakerMixin(object):
             "wait" if self.wait_for_networks else "exit"
         )
 
+    def _filter_eligible_candidates(self, chains, participant, experiment):
+        """Apply custom and fixed-role eligibility before availability checks."""
+        chains = super()._filter_eligible_candidates(
+            chains,
+            participant,
+            experiment,
+        )
+        participant_role = self._participant_role(participant, experiment)
+        if participant_role is None:
+            return chains
+
+        phases = self.get_creation_phases([chain.head for chain in chains])
+        return [
+            chain
+            for chain in chains
+            if self._phase_matches_role(phases[chain.head.id], participant_role)
+        ]
+
     def _creation_phase_from_counts(self, n_creations, n_finished_creations):
         if n_creations < self.n_creators:
             return self.NEEDS_CREATORS
@@ -545,15 +563,8 @@ class CreateAndRateTrialMakerMixin(object):
         if isinstance(chains, str):
             return chains
 
-        participant_role = self._participant_role(participant, experiment)
         phases = self.get_creation_phases([chain.head for chain in chains])
         classified = [(chain, phases[chain.head.id]) for chain in chains]
-        if participant_role is not None:
-            classified = [
-                (chain, phase)
-                for chain, phase in classified
-                if self._phase_matches_role(phase, participant_role)
-            ]
         assignable = [
             chain for chain, phase in classified if phase != self.WAITING_FOR_CREATORS
         ]
