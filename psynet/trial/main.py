@@ -2636,9 +2636,21 @@ class NetworkTrialMaker(TrialMaker):
                     f"{self.__class__.__name__} overrides {method_name}, which is "
                     f"not supported by this trial maker. {instruction}"
                 )
+        for ancestor, method_name, instruction in self._deprecated_selection_hooks():
+            if is_method_overridden(self, ancestor, method_name):
+                warnings.warn(
+                    f"{self.__class__.__name__} overrides {method_name}, which is "
+                    f"deprecated. {instruction}",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
     def _selection_hook_overrides(self):
         """Return obsolete or wrong-paradigm hooks and their replacements."""
+        return []
+
+    def _deprecated_selection_hooks(self):
+        """Return still-honoured hooks that should be migrated."""
         return []
 
     @log_time_taken

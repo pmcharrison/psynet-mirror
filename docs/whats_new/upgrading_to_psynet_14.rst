@@ -124,6 +124,9 @@ Search custom trial makers for ``find_networks``, ``find_node``,
 * :class:`~psynet.trial.static.StaticTrialMaker` subclasses use the
   node-specific ``find_nodes``, ``custom_node_filter``, and ``select_node``
   hooks instead.
+* ``custom_network_filter`` is still honoured, but construction emits a
+  ``DeprecationWarning``. Replace it with ``custom_chain_filter`` on chain
+  trial makers or ``custom_node_filter`` on static trial makers.
 * Selection hooks may return their selected value directly or wrap it in
   :class:`~psynet.trial.main.Selection` to pass request-local context to
   ``on_trial_created``.

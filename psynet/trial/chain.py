@@ -1538,11 +1538,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             ),
             (
                 ChainTrialMaker,
-                "custom_network_filter",
-                "Override custom_chain_filter(chains, participant, experiment) instead.",
-            ),
-            (
-                ChainTrialMaker,
                 "find_nodes",
                 "Chain trial makers now use find_chains(participant, experiment).",
             ),
@@ -1555,6 +1550,15 @@ class ChainTrialMaker(NetworkTrialMaker):
                 ChainTrialMaker,
                 "custom_node_filter",
                 "Chain trial makers now use custom_chain_filter(chains, participant, experiment).",
+            ),
+        ]
+
+    def _deprecated_selection_hooks(self):
+        return [
+            (
+                ChainTrialMaker,
+                "custom_network_filter",
+                "Override custom_chain_filter(chains, participant, experiment) instead.",
             ),
         ]
 
@@ -2066,18 +2070,19 @@ class ChainTrialMaker(NetworkTrialMaker):
         The default returns the original list. Ranking among eligible chains
         belongs in ``select_chain``.
         """
-        return chains
+        return self.custom_network_filter(chains, participant)
 
     def custom_network_filter(self, candidates, participant):
-        """Removed selection hook.
+        """Deprecated list-based eligibility hook.
 
-        :meta private:
+        Chain trial makers should override
+        :meth:`~psynet.trial.chain.ChainTrialMaker.custom_chain_filter` instead.
+        Static trial makers should override
+        :meth:`~psynet.trial.static.StaticTrialMaker.custom_node_filter`.
+        This method still receives candidate networks and must return a subset
+        of those objects.
         """
-        raise TypeError(
-            f"{self.__class__.__name__} called custom_network_filter, which is no longer used. "
-            "Override custom_chain_filter(chains, participant, experiment) instead "
-            "and return the eligible chains."
-        )
+        return candidates
 
     def find_nodes(self, participant, experiment):
         """Wrong-paradigm selection hook.

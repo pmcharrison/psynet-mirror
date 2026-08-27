@@ -2,7 +2,7 @@ from typing import List, Literal, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
-from ..utils import get_logger
+from ..utils import get_logger, is_method_overridden
 from .main import NetworkTrialMaker, Trial
 
 logger = get_logger()
@@ -384,11 +384,6 @@ class StaticTrialMaker(ChainTrialMaker):
                 "Override select_node(nodes, participant, experiment) instead.",
             ),
             (
-                ChainTrialMaker,
-                "custom_network_filter",
-                "Override custom_node_filter(nodes, participant, experiment) instead.",
-            ),
-            (
                 StaticTrialMaker,
                 "find_chains",
                 "Static trial makers use find_nodes(participant, experiment).",
@@ -402,6 +397,15 @@ class StaticTrialMaker(ChainTrialMaker):
                 StaticTrialMaker,
                 "custom_chain_filter",
                 "Static trial makers use custom_node_filter(nodes, participant, experiment).",
+            ),
+        ]
+
+    def _deprecated_selection_hooks(self):
+        return [
+            (
+                ChainTrialMaker,
+                "custom_network_filter",
+                "Override custom_node_filter(nodes, participant, experiment) instead.",
             ),
         ]
 
@@ -425,6 +429,14 @@ class StaticTrialMaker(ChainTrialMaker):
                 f"{headless_chain_ids}."
             )
         nodes = [chain.head for chain in networks]
+        if not is_method_overridden(
+            self, StaticTrialMaker, "custom_node_filter"
+        ) and is_method_overridden(self, ChainTrialMaker, "custom_network_filter"):
+            return self._validate_selection_subset(
+                self.custom_network_filter(networks, participant),
+                allowed_values=networks,
+                method_name="custom_network_filter",
+            )
         eligible_nodes = self._validate_selection_subset(
             self.custom_node_filter(nodes, participant, experiment),
             allowed_values=nodes,

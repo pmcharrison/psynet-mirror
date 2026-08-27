@@ -507,7 +507,6 @@ def test_selection_rejects_a_value_outside_the_eligible_list():
     ("method_name", "replacement"),
     [
         ("prioritize_networks", "select_chain"),
-        ("custom_network_filter", "custom_chain_filter"),
         ("find_networks", "find_chains"),
         ("find_node", "head"),
         ("find_nodes", "find_chains"),
@@ -532,7 +531,6 @@ def test_chain_rejects_removed_or_wrong_paradigm_hooks(method_name, replacement)
         ("find_networks", "find_nodes"),
         ("find_node", "select nodes directly"),
         ("prioritize_networks", "select_node"),
-        ("custom_network_filter", "custom_node_filter"),
         ("find_chains", "find_nodes"),
         ("select_chain", "select_node"),
         ("custom_chain_filter", "custom_node_filter"),
@@ -656,6 +654,78 @@ def test_custom_chain_filter_drops_chains():
     trial_maker = make_trial_maker(SelectiveChainMaker)
     kept = SimpleNamespace(id=0)
     dropped = SimpleNamespace(id=1)
+
+    assert trial_maker._filter_eligible_networks(
+        [kept, dropped],
+        participant=SimpleNamespace(),
+        experiment=SimpleNamespace(),
+    ) == [kept]
+
+
+def test_deprecated_network_filter_still_filters_chains():
+    class LegacyChainMaker(ChainTrialMaker):
+        def custom_network_filter(self, candidates, participant):
+            return [chain for chain in candidates if chain.id != 1]
+
+    with pytest.warns(DeprecationWarning, match="custom_chain_filter"):
+        trial_maker = make_trial_maker(LegacyChainMaker)
+    kept = SimpleNamespace(id=0)
+    dropped = SimpleNamespace(id=1)
+
+    assert trial_maker._filter_eligible_networks(
+        [kept, dropped],
+        participant=SimpleNamespace(),
+        experiment=SimpleNamespace(),
+    ) == [kept]
+
+
+def test_deprecated_network_filter_still_filters_static_networks():
+    class LegacyStaticMaker(StaticTrialMaker):
+        def custom_network_filter(self, candidates, participant):
+            return [chain for chain in candidates if chain.id != 1]
+
+    with pytest.warns(DeprecationWarning, match="custom_node_filter"):
+        trial_maker = make_static_trial_maker(LegacyStaticMaker)
+    kept, dropped = _headed_chains(2)
+
+    assert trial_maker._filter_eligible_networks(
+        [kept, dropped],
+        participant=SimpleNamespace(),
+        experiment=SimpleNamespace(),
+    ) == [kept]
+
+
+def test_custom_chain_filter_takes_precedence_over_deprecated_network_filter():
+    class BothFilters(ChainTrialMaker):
+        def custom_chain_filter(self, chains, participant, experiment):
+            return [chain for chain in chains if chain.id != 2]
+
+        def custom_network_filter(self, candidates, participant):
+            return [chain for chain in candidates if chain.id != 1]
+
+    with pytest.warns(DeprecationWarning, match="custom_chain_filter"):
+        trial_maker = make_trial_maker(BothFilters)
+    first = SimpleNamespace(id=1)
+    second = SimpleNamespace(id=2)
+
+    assert trial_maker._filter_eligible_networks(
+        [first, second],
+        participant=SimpleNamespace(),
+        experiment=SimpleNamespace(),
+    ) == [first]
+
+
+def test_custom_node_filter_takes_precedence_over_deprecated_network_filter():
+    class BothFilters(StaticTrialMaker):
+        def custom_node_filter(self, nodes, participant, experiment):
+            return [node for node in nodes if node.id != 1]
+
+        def custom_network_filter(self, candidates, participant):
+            return [chain for chain in candidates if chain.id != 0]
+
+    with pytest.warns(DeprecationWarning, match="custom_node_filter"):
+        trial_maker = make_static_trial_maker(BothFilters)
+    kept, dropped = _headed_chains(2)
 
     assert trial_maker._filter_eligible_networks(
         [kept, dropped],
