@@ -1,9 +1,17 @@
+"""Create-and-rate trials for collecting and evaluating participant creations.
+
+The trial-maker mixin specializes chain selection: each chain head first
+receives creator trials, waits for those trials to finalize, and then receives
+rater trials. Selection therefore operates on chains, while trial-class
+resolution remains node-based after the selected chain is resolved to its head.
+"""
+
 import inspect
 from random import sample
 
 from dallinger import db
 from dallinger.transformations import Transformation
-from sqlalchemy import Column
+from sqlalchemy import Column, func
 from sqlalchemy.orm import declared_attr, deferred
 
 from psynet.field import PythonObject
@@ -293,6 +301,10 @@ class CreateAndRateNode(CreateAndRateNodeMixin, ChainNode):
 
 
 class CreateAndRateTrialMakerMixin(object):
+    NEEDS_CREATORS = "needs_creators"
+    WAITING_FOR_CREATORS = "waiting_for_creators"
+    READY_FOR_RATERS = "ready_for_raters"
+
     def __init__(self, **kwargs):
         assert_correct_inheritance(self.__class__, CreateAndRateTrialMakerMixin)
         extended_class = get_extended_class(self)
@@ -399,18 +411,96 @@ class CreateAndRateTrialMakerMixin(object):
         return trial_maker_kwargs, mixin_kwargs
 
     def get_trial_class(self, node, participant, experiment):
-        create_trials = self.get_non_failed_creations(node)
-        finished_creations = self.get_finished_creations(node)
-        need_creators = len(create_trials) < self.n_creators
-        waiting_for_creators = len(finished_creations) < len(create_trials)
-
-        if need_creators:
+        phase = self._get_creation_phase(node)
+        if phase == self.NEEDS_CREATORS:
             return self.creator_class
-        else:
-            if waiting_for_creators:
-                return None
-            else:
-                return self.rater_class
+        if phase == self.WAITING_FOR_CREATORS:
+            raise RuntimeError(
+                f"Node {node.id} is waiting for creator trials to finalize and "
+                "cannot receive a rater trial yet."
+            )
+        return self.rater_class
+
+    def _get_creation_phase(self, node):
+        create_trials = self.get_non_failed_creations(node)
+        if len(create_trials) < self.n_creators:
+            return self.NEEDS_CREATORS
+        finished_creations = self.get_finished_creations(node)
+        return self._creation_phase_from_counts(
+            len(create_trials),
+            len(finished_creations),
+        )
+
+    def _creation_phase_from_counts(self, n_creations, n_finished_creations):
+        if n_creations < self.n_creators:
+            return self.NEEDS_CREATORS
+        if n_finished_creations < n_creations:
+            return self.WAITING_FOR_CREATORS
+        return self.READY_FOR_RATERS
+
+    def get_creation_phases(self, nodes):
+        """Classify nodes using a constant number of database queries.
+
+        Parameters
+        ----------
+        nodes
+            Create-and-rate nodes to classify.
+
+        Returns
+        -------
+        dict
+            A mapping from node ID to ``NEEDS_CREATORS``,
+            ``WAITING_FOR_CREATORS``, or ``READY_FOR_RATERS``.
+        """
+        node_ids = [node.id for node in nodes]
+        if not node_ids:
+            return {}
+
+        def counts(finalized=None):
+            query = db.session.query(
+                self.creator_class.node_id,
+                func.count(self.creator_class.id),
+            ).filter(
+                self.creator_class.node_id.in_(node_ids),
+                self.creator_class.failed.is_(False),
+            )
+            if finalized is not None:
+                query = query.filter(self.creator_class.finalized.is_(finalized))
+            return dict(query.group_by(self.creator_class.node_id).all())
+
+        creation_counts = counts()
+        finished_creation_counts = counts(finalized=True)
+        return {
+            node.id: self._creation_phase_from_counts(
+                creation_counts.get(node.id, 0),
+                finished_creation_counts.get(node.id, 0),
+            )
+            for node in nodes
+        }
+
+    def needs_creators(self, node):
+        return self._get_creation_phase(node) == self.NEEDS_CREATORS
+
+    def waiting_for_creators(self, node):
+        return self._get_creation_phase(node) == self.WAITING_FOR_CREATORS
+
+    def find_chains(self, participant, experiment):
+        chains = super().find_chains(participant, experiment)
+        if isinstance(chains, str):
+            return chains
+
+        phases = self.get_creation_phases([chain.head for chain in chains])
+        classified = [(chain, phases[chain.head.id]) for chain in chains]
+        assignable = [
+            chain for chain, phase in classified if phase != self.WAITING_FOR_CREATORS
+        ]
+        if assignable:
+            return assignable
+
+        has_pending = any(phase == self.WAITING_FOR_CREATORS for _, phase in classified)
+        if has_pending and self.wait_for_networks:
+            return "wait"
+        return "exit"
 
     def get_non_failed_creations(self, node):
         return self.creator_class.query.filter_by(node_id=node.id, failed=False).all()

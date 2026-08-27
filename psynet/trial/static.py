@@ -3,7 +3,7 @@ from typing import List, Literal, Optional, Union
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 from ..utils import get_logger
-from .main import Trial
+from .main import NetworkTrialMaker, Trial
 
 logger = get_logger()
 
@@ -84,6 +84,12 @@ class StaticTrialMaker(ChainTrialMaker):
         Similarly, to alternate participants between two groups, one could write::
 
             choose_participant_group=lambda(participant): ["g1", "g2"][participant.id % 2]
+
+    * :meth:`~psynet.trial.static.StaticTrialMaker.select_node`;
+      selects one of the eligible nodes for the participant's next trial.
+
+    * :meth:`~psynet.trial.static.StaticTrialMaker.custom_node_filter`;
+      filters eligible nodes before selection.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the sequence of trials is complete.
@@ -359,6 +365,128 @@ class StaticTrialMaker(ChainTrialMaker):
             sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
             sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
+
+    def _selection_hook_overrides(self):
+        return [
+            (
+                NetworkTrialMaker,
+                "find_networks",
+                "Override find_nodes(participant, experiment) instead.",
+            ),
+            (
+                NetworkTrialMaker,
+                "find_node",
+                "Static trial makers select nodes directly with select_node().",
+            ),
+            (
+                ChainTrialMaker,
+                "prioritize_networks",
+                "Override select_node(nodes, participant, experiment) instead.",
+            ),
+            (
+                ChainTrialMaker,
+                "custom_network_filter",
+                "Override custom_node_filter(nodes, participant, experiment) instead.",
+            ),
+            (
+                StaticTrialMaker,
+                "find_chains",
+                "Static trial makers use find_nodes(participant, experiment).",
+            ),
+            (
+                StaticTrialMaker,
+                "select_chain",
+                "Static trial makers use select_node(nodes, participant, experiment).",
+            ),
+            (
+                StaticTrialMaker,
+                "custom_chain_filter",
+                "Static trial makers use custom_node_filter(nodes, participant, experiment).",
+            ),
+        ]
+
+    def find_nodes(self, participant, experiment):
+        """Return eligible static nodes, or ``"wait"`` / ``"exit"``."""
+        chains = self._find_eligible_chains(
+            participant=participant,
+            experiment=experiment,
+            custom_filter=self._apply_custom_node_filter,
+            candidate_type="node",
+            validate_custom_filter_result=False,
+        )
+        if isinstance(chains, str):
+            return chains
+        return [chain.head for chain in chains]
+
+    def _apply_custom_node_filter(self, chains, participant, experiment):
+        headless_chain_ids = [chain.id for chain in chains if chain.head is None]
+        if headless_chain_ids:
+            raise RuntimeError(
+                "Every StaticNetwork must have a head node; headless network IDs: "
+                f"{headless_chain_ids}."
+            )
+        nodes = [chain.head for chain in chains]
+        eligible_nodes = self._validate_selection_subset(
+            self.custom_node_filter(nodes, participant, experiment),
+            allowed_values=nodes,
+            method_name="custom_node_filter",
+        )
+        return [node.network for node in eligible_nodes]
+
+    def custom_node_filter(self, nodes, participant, experiment):
+        """Filter eligible static nodes before selection."""
+        return nodes
+
+    def select_node(self, nodes, participant, experiment):
+        """Select from a nonempty list of eligible nodes."""
+        return nodes[0]
+
+    def find_chains(self, participant, experiment):
+        """Wrong-paradigm selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            "StaticTrialMaker uses find_nodes(participant, experiment), not find_chains"
+        )
+
+    def select_chain(self, chains, participant, experiment):
+        """Wrong-paradigm selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            "StaticTrialMaker uses select_node(nodes, participant, experiment), "
+            "not select_chain"
+        )
+
+    def custom_chain_filter(self, chains, participant, experiment):
+        """Wrong-paradigm selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            "StaticTrialMaker uses custom_node_filter(nodes, participant, experiment), "
+            "not custom_chain_filter"
+        )
+
+    def _select_trial_node(self, participant, experiment):
+        nodes = self.find_nodes(participant, experiment)
+        if isinstance(nodes, str):
+            return nodes
+        if not nodes:
+            return "exit"
+
+        selection = self._coerce_selection(
+            self.select_node(nodes, participant, experiment),
+            allowed_values=nodes,
+            method_name="select_node",
+        )
+        if selection is None:
+            return "exit"
+
+        self._advance_to_selected_block(selection.value.block, participant)
+        return selection
 
     def _start_nodes_param_name(self) -> str:
         return "nodes"

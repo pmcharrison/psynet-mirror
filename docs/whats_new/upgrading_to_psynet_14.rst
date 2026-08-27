@@ -112,8 +112,31 @@ show up in ``psynet test local`` / ``psynet debug local``. See
 
 Details: :doc:`/tutorials/writing_custom_frontends`.
 
-9. Validate
------------
+9. Migrate trial-selection hooks
+--------------------------------
+
+Search custom trial makers for ``find_networks``, ``find_node``,
+``prioritize_networks``, and ``custom_network_filter``.
+
+* :class:`~psynet.trial.chain.ChainTrialMaker` subclasses now discover,
+  filter, and select chains with ``find_chains``, ``custom_chain_filter``,
+  and ``select_chain``. PsyNet resolves the selected chain to ``chain.head``.
+* :class:`~psynet.trial.static.StaticTrialMaker` subclasses use the
+  node-specific ``find_nodes``, ``custom_node_filter``, and ``select_node``
+  hooks instead.
+* Selection hooks may return their selected value directly or wrap it in
+  :class:`~psynet.trial.main.Selection` to pass request-local context to
+  ``on_trial_created``.
+* ``get_trial_class`` must return a concrete trial class. Remove unavailable
+  chains or nodes in the corresponding custom filter instead of returning
+  ``None``. Synchronized follower trials reuse the leader's concrete trial
+  class without calling ``get_trial_class`` again.
+
+PsyNet raises an actionable ``TypeError`` when a removed or wrong-paradigm
+hook is still overridden.
+
+10. Validate
+------------
 
 From a complete experiment directory. At minimum you typically need:
 

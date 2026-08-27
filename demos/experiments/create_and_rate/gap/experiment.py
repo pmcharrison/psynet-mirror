@@ -308,43 +308,29 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
                 return True
         return False
 
-    @staticmethod
-    def get_creation_and_rating_networks(candidates):
-        creation_networks = []
-        rating_networks = []
-        for network in candidates:
-            node = CreateAndRateNode.query.filter_by(
-                network_id=network.id, degree=network.degree
-            ).one()
-            n_creations = CreateTrial.query.filter_by(
-                network_id=network.id, node_id=node.id, failed=False, finalized=True
-            ).count()
-            if n_creations < N_CREATORS:
-                creation_networks.append(network)
+    def get_creation_and_rating_chains(self, chains):
+        phases = self.get_creation_phases([chain.head for chain in chains])
+        creation_chains = []
+        rating_chains = []
+        for chain in chains:
+            if phases[chain.head.id] == self.READY_FOR_RATERS:
+                rating_chains.append(chain)
             else:
-                rating_networks.append(network)
-        return creation_networks, rating_networks
+                creation_chains.append(chain)
+        return creation_chains, rating_chains
 
-    def custom_network_filter(self, candidates, participant):
+    def custom_chain_filter(self, chains, participant, experiment):
         if self.has_enough_trials(participant):
             return []
-        creation_networks, rating_networks = self.get_creation_and_rating_networks(
-            candidates
-        )
+        creation_chains, rating_chains = self.get_creation_and_rating_chains(chains)
         if participant.var.is_rater:
-            return rating_networks
-        else:
-            return creation_networks
+            return rating_chains
+        return creation_chains
 
     def get_trial_class(self, node, participant, experiment):
-        proposed_role_class = super().get_trial_class(node, participant, experiment)
         if participant.var.is_rater:
-            if proposed_role_class == self.rater_class:
-                return self.rater_class
-        else:
-            if proposed_role_class == self.creator_class:
-                return self.creator_class
-        return None
+            return self.rater_class
+        return self.creator_class
 
 
 def is_rater(participant):

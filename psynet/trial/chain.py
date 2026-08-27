@@ -37,6 +37,7 @@ from ..utils import (
 from .main import (
     NetworkTrialMaker,
     NetworkTrialMakerState,
+    Selection,
     Trial,
     TrialNetwork,
     TrialNode,
@@ -1097,6 +1098,13 @@ class ChainTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a chain-based paradigm.
 
+    :meth:`~psynet.trial.chain.ChainTrialMaker.find_chains` applies PsyNet's
+    eligibility checks and returns all remaining chains.
+    :meth:`~psynet.trial.chain.ChainTrialMaker.select_chain` then chooses one.
+    Override ``select_chain`` to change assignment among eligible chains;
+    override ``custom_chain_filter`` to change eligibility. Do not override
+    ``find_chains`` unless you need to replace that whole procedure.
+
     Parameters
     ----------
 
@@ -1511,8 +1519,44 @@ class ChainTrialMaker(NetworkTrialMaker):
                     f"Got {type(node).__name__} at index {index}."
                 )
 
-    def check_initialization(self):
-        pass
+    def _selection_hook_overrides(self):
+        return [
+            (
+                NetworkTrialMaker,
+                "find_networks",
+                "Override find_chains(participant, experiment) instead.",
+            ),
+            (
+                NetworkTrialMaker,
+                "find_node",
+                "The selected chain's head is now resolved automatically.",
+            ),
+            (
+                ChainTrialMaker,
+                "prioritize_networks",
+                "Override select_chain(chains, participant, experiment) instead.",
+            ),
+            (
+                ChainTrialMaker,
+                "custom_network_filter",
+                "Override custom_chain_filter(chains, participant, experiment) instead.",
+            ),
+            (
+                ChainTrialMaker,
+                "find_nodes",
+                "Chain trial makers now use find_chains(participant, experiment).",
+            ),
+            (
+                ChainTrialMaker,
+                "select_node",
+                "Chain trial makers now use select_chain(chains, participant, experiment).",
+            ),
+            (
+                ChainTrialMaker,
+                "custom_node_filter",
+                "Chain trial makers now use custom_chain_filter(chains, participant, experiment).",
+            ),
+        ]
 
     def check_participant_groups(self, networks):
         for n in networks:
@@ -1771,24 +1815,47 @@ class ChainTrialMaker(NetworkTrialMaker):
         return network
 
     @log_time_taken
-    def find_networks(self, participant, experiment):
-        """
+    def find_chains(self, participant, experiment):
+        """Find eligible chains for the participant's next trial.
+
+        This method applies PsyNet's built-in eligibility checks (capacity,
+        blocks, asynchronous processes, and
+        :meth:`~psynet.trial.chain.ChainTrialMaker.custom_chain_filter`).
+        Override ``select_chain`` to change which eligible chain is assigned.
 
         Parameters
         ----------
         participant
+            The participant receiving the next trial.
         experiment
+            The current experiment.
 
         Returns
         -------
-
-        Either "exit", "wait", or a list of networks.
-
+        "exit", "wait", or list of chains
         """
+        return self._find_eligible_chains(
+            participant=participant,
+            experiment=experiment,
+            custom_filter=self.custom_chain_filter,
+            candidate_type="chain",
+        )
+
+    def _find_eligible_chains(
+        self,
+        participant,
+        experiment,
+        custom_filter,
+        candidate_type,
+        validate_custom_filter_result=True,
+    ):
+        """Apply built-in availability checks and a paradigm-specific filter."""
         participant.module_state  # type: ChainTrialMakerState
+        candidate_plural = f"{candidate_type}s"
 
         logger.info(
-            "Looking for networks for participant %i.",
+            "Looking for eligible %s for participant %i.",
+            candidate_plural,
             participant.id,
         )
 
@@ -1855,15 +1922,23 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         networks = networks.all()
 
-        networks = self.custom_network_filter(
-            candidates=networks,
+        eligible_networks = custom_filter(
+            networks,
             participant=participant,
+            experiment=experiment,
         )
-
-        logger.info("%i remain after applying custom network filters.", len(networks))
-
-        if not isinstance(networks, list):
-            return TypeError("custom_network_filter must return a list of networks")
+        if validate_custom_filter_result:
+            eligible_networks = self._validate_selection_subset(
+                eligible_networks,
+                allowed_values=networks,
+                method_name=f"custom_{candidate_type}_filter",
+            )
+        networks = eligible_networks
+        logger.info(
+            "%i eligible %s remain after applying custom filters.",
+            len(networks),
+            candidate_plural,
+        )
 
         def has_pending_process(network):
             return network.async_post_grow_network_pending or (
@@ -1875,9 +1950,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         ]
 
         logger.info(
-            "%i out of %i networks are awaiting async processes (or have nodes awaiting async processes).",
+            "%i out of %i eligible %s await asynchronous processing.",
             len(networks) - len(networks_without_pending_processes),
             len(networks),
+            candidate_plural,
         )
 
         if (
@@ -1885,12 +1961,12 @@ class ChainTrialMaker(NetworkTrialMaker):
             and len(networks) > 0
             and self.wait_for_networks
         ):
-            logger.info("Will wait for a network to become available.")
+            logger.info("Will wait for an eligible %s.", candidate_type)
             return "wait"
 
         networks = networks_without_pending_processes
 
-        # find_networks normally takes place in a participant's 'response' call.
+        # find_chains normally takes place in a participant's 'response' call.
         # This means that the previous trial will exist in the database,
         # but it might not have been marked as finalized yet.
         # That's fine if we use `n_viable_trials_at_head` to determine whether there is space,
@@ -1903,8 +1979,8 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if len(networks) > 0 and len(networks_with_head_space) == 0:
             logger.info(
-                "All of these chains have head nodes that have already received their full complement of trials. "
-                "They need to grow before a new participant can join them."
+                "All eligible %s have exhausted their current trial capacity.",
+                candidate_plural,
             )
             if self.wait_for_networks:
                 return "wait"
@@ -1924,42 +2000,56 @@ class ChainTrialMaker(NetworkTrialMaker):
             networks.sort(key=lambda network: network.n_viable_trials_at_head)
             networks.sort(key=lambda network: network.head.degree)
 
-            # if "across" in self.balance_strategy:
-            #     networks.sort(key=lambda network: network.n_completed_trials)
-            # if "within" in self.balance_strategy:
-            #     networks.sort(
-            #         key=lambda network: len(
-            #             [
-            #                 t
-            #                 for t in network.alive_trials
-            #                 if t.participant_id == participant.id
-            #             ]
-            #         )
-            #     )
-
-        current_block = participant.module_state.block
         remaining_blocks = participant.module_state.remaining_blocks
         networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
-        networks = self.prioritize_networks(networks, participant, experiment)
+        return networks
 
-        if len(networks) == 0:
+    def _select_trial_node(self, participant, experiment):
+        chains = self.find_chains(participant, experiment)
+        if isinstance(chains, str):
+            return chains
+        if not chains:
             return "exit"
 
-        chosen = networks[0]
+        selection = self._coerce_selection(
+            self.select_chain(chains, participant, experiment),
+            allowed_values=chains,
+            method_name="select_chain",
+        )
+        if selection is None:
+            return "exit"
 
-        if chosen.block != current_block:
+        chain = selection.value
+        if chain.head is None:
+            raise RuntimeError(f"Selected chain {chain.id} has no head")
+
+        self._advance_to_selected_block(chain.block, participant)
+        return Selection(value=chain.head, context=selection.context)
+
+    def select_chain(self, chains, participant, experiment):
+        """Select from a nonempty list of eligible chains."""
+        return chains[0]
+
+    def _advance_to_selected_block(self, chosen_block, participant):
+        current_block = participant.module_state.block
+        if chosen_block != current_block:
             logger.info(
-                f"Advanced from block '{current_block}' to '{chosen.block}' "
+                f"Advanced from block '{current_block}' to '{chosen_block}' "
                 "because there weren't any spots available in the former."
             )
-            self.set_block_state(participant, chosen.block)
-
-        return [chosen]
+            self.set_block_state(participant, chosen_block)
 
     def prioritize_networks(self, networks, participant, experiment):
-        return networks
+        """Removed selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            f"{self.__class__.__name__} called prioritize_networks, which is no longer used. "
+            "Override select_chain(chains, participant, experiment) instead."
+        )
 
     def set_block_state(self, participant, block):
         new_block_position = participant.module_state.block_order.index(block)
@@ -1970,25 +2060,69 @@ class ChainTrialMaker(NetworkTrialMaker):
         else:
             participant.module_state.set_block_position(new_block_position)
 
-    def custom_network_filter(self, candidates, participant):
-        """
-        Override this function to define a custom filter for choosing the participant's next network.
+    def custom_chain_filter(self, chains, participant, experiment):
+        """Filter eligible chains before selection.
+
+        Override this to remove chains the participant must not receive.
+        The default returns the original list.
 
         Parameters
         ----------
-        candidates:
-            The current list of candidate networks as defined by the built-in chain procedure.
-
-        participant:
+        chains
+            Chains that passed PsyNet's built-in network query.
+        participant
             The current participant.
+        experiment
+            The current experiment.
 
         Returns
         -------
-
-        An updated list of candidate networks. The default implementation simply returns the original list.
-        The experimenter might alter this function to remove certain networks from the list.
+        list
+            The eligible chains.
         """
-        return candidates
+        return chains
+
+    def custom_network_filter(self, candidates, participant):
+        """Removed selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            f"{self.__class__.__name__} called custom_network_filter, which is no longer used. "
+            "Override custom_chain_filter(chains, participant, experiment) instead "
+            "and return the eligible chains."
+        )
+
+    def find_nodes(self, participant, experiment):
+        """Wrong-paradigm selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            f"{self.__class__.__name__} called find_nodes, which is not a chain "
+            "selection hook. Override find_chains(participant, experiment) instead."
+        )
+
+    def select_node(self, nodes, participant, experiment):
+        """Wrong-paradigm selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            f"{self.__class__.__name__} called select_node, which is not a chain "
+            "selection hook. Override select_chain(chains, participant, experiment) instead."
+        )
+
+    def custom_node_filter(self, nodes, participant, experiment):
+        """Wrong-paradigm selection hook.
+
+        :meta private:
+        """
+        raise TypeError(
+            f"{self.__class__.__name__} called custom_node_filter, which is not a "
+            "chain selection hook. Override custom_chain_filter(chains, participant, "
+            "experiment) instead."
+        )
 
     @staticmethod
     def filter_by_participant_id(networks, participant):
@@ -2175,10 +2309,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             node.check_on_deploy()
             return True
         return False
-
-    @log_time_taken
-    def find_node(self, network, participant, experiment):
-        return network.head
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
