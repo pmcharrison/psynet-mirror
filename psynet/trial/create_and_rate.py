@@ -4,6 +4,8 @@ The trial-maker mixin specializes chain selection: each chain head first
 receives creator trials, waits for those trials to finalize, and then receives
 rater trials. Selection therefore operates on chains, while trial-class
 resolution remains node-based after the selected chain is resolved to its head.
+Experiments may optionally assign fixed participant roles; the mixin then uses
+the same role for candidate eligibility and final trial-class validation.
 """
 
 import inspect
@@ -320,6 +322,8 @@ class CreateAndRateTrialMakerMixin(object):
     NEEDS_CREATORS = "needs_creators"
     WAITING_FOR_CREATORS = "waiting_for_creators"
     READY_FOR_RATERS = "ready_for_raters"
+    CREATOR_ROLE = "creator"
+    RATER_ROLE = "rater"
 
     def __init__(self, **kwargs):
         assert_correct_inheritance(self.__class__, CreateAndRateTrialMakerMixin)
@@ -439,26 +443,55 @@ class CreateAndRateTrialMakerMixin(object):
 
     def get_trial_class(self, node, participant, experiment):
         phase = self.get_creation_phases([node])[node.id]
-        if phase == self.NEEDS_CREATORS:
-            return self.creator_class
         if phase == self.WAITING_FOR_CREATORS:
-            raise CreateAndRateAssignmentPending(
-                "wait" if self.wait_for_networks else "exit"
-            )
-        return self.rater_class
+            self._defer_assignment()
 
-    def filter_chains_by_role(self, chains, want_rating):
-        """Keep waiting chains plus those matching the creator or rater role.
+        phase_role = self._role_for_phase(phase)
+        participant_role = self._participant_role(participant, experiment)
+        if participant_role is not None and participant_role != phase_role:
+            self._defer_assignment()
 
-        Waiting chains stay in the list so ``find_chains`` can wait or exit.
+        role = participant_role or phase_role
+        return self.creator_class if role == self.CREATOR_ROLE else self.rater_class
+
+    def get_participant_role(self, participant, experiment):
+        """Return a fixed create-and-rate role, or ``None`` for phase-driven roles.
+
+        Override this when participants must remain creators or raters. The
+        returned role controls both chain eligibility and final trial-class
+        validation.
+
+        Returns
+        -------
+        str or None
+            ``CREATOR_ROLE``, ``RATER_ROLE``, or ``None``.
         """
-        phases = self.get_creation_phases([chain.head for chain in chains])
-        return [
-            chain
-            for chain in chains
-            if phases[chain.head.id] == self.WAITING_FOR_CREATORS
-            or (phases[chain.head.id] == self.READY_FOR_RATERS) == want_rating
-        ]
+        return None
+
+    def _participant_role(self, participant, experiment):
+        role = self.get_participant_role(participant, experiment)
+        if role not in (None, self.CREATOR_ROLE, self.RATER_ROLE):
+            raise ValueError(
+                "get_participant_role must return CREATOR_ROLE, RATER_ROLE, or None"
+            )
+        return role
+
+    def _role_for_phase(self, phase):
+        if phase == self.NEEDS_CREATORS:
+            return self.CREATOR_ROLE
+        if phase == self.READY_FOR_RATERS:
+            return self.RATER_ROLE
+        raise ValueError(f"Cannot assign a trial for create-and-rate phase {phase!r}")
+
+    def _phase_matches_role(self, phase, role):
+        if phase == self.WAITING_FOR_CREATORS:
+            return role == self.RATER_ROLE
+        return self._role_for_phase(phase) == role
+
+    def _defer_assignment(self):
+        raise CreateAndRateAssignmentPending(
+            "wait" if self.wait_for_networks else "exit"
+        )
 
     def _creation_phase_from_counts(self, n_creations, n_finished_creations):
         if n_creations < self.n_creators:
@@ -512,8 +545,15 @@ class CreateAndRateTrialMakerMixin(object):
         if isinstance(chains, str):
             return chains
 
+        participant_role = self._participant_role(participant, experiment)
         phases = self.get_creation_phases([chain.head for chain in chains])
         classified = [(chain, phases[chain.head.id]) for chain in chains]
+        if participant_role is not None:
+            classified = [
+                (chain, phase)
+                for chain, phase in classified
+                if self._phase_matches_role(phase, participant_role)
+            ]
         assignable = [
             chain for chain, phase in classified if phase != self.WAITING_FOR_CREATORS
         ]

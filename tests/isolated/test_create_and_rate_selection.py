@@ -14,9 +14,10 @@ class _Parent:
 
 
 class CreateAndRateSelectionHarness(CreateAndRateTrialMakerMixin, _Parent):
-    def __init__(self, candidates, phases, wait_for_networks=False):
+    def __init__(self, candidates, phases, wait_for_networks=False, role=None):
         self._candidates = candidates
         self._phases = phases
+        self._role = role
         self.creator_class = "creator"
         self.rater_class = "rater"
         self.wait_for_networks = wait_for_networks
@@ -25,6 +26,9 @@ class CreateAndRateSelectionHarness(CreateAndRateTrialMakerMixin, _Parent):
     def get_creation_phases(self, nodes):
         self.phase_batch_calls += 1
         return {node.id: self._phases[node.id] for node in nodes}
+
+    def get_participant_role(self, participant, experiment):
+        return self._role
 
 
 def chain(node_id):
@@ -81,19 +85,18 @@ def test_create_and_rate_prepare_trial_maps_pending_assignment_to_wait():
     assert Harness().prepare_trial(None, None) == (None, "wait")
 
 
-def test_role_filter_then_mixin_trial_class_waits_on_phase_flip():
+def test_participant_role_filters_chains_and_waits_on_phase_flip():
     pending = chain(1)
-    participant = SimpleNamespace(var=SimpleNamespace(is_rater=True))
     maker = CreateAndRateSelectionHarness(
         candidates=[pending],
         phases={pending.head.id: CreateAndRateTrialMakerMixin.READY_FOR_RATERS},
         wait_for_networks=True,
+        role=CreateAndRateTrialMakerMixin.RATER_ROLE,
     )
-    maker._candidates = maker.filter_chains_by_role(maker._candidates, want_rating=True)
-    assert maker.find_chains(participant=participant, experiment=None) == [pending]
+    assert maker.find_chains(participant=None, experiment=None) == [pending]
     maker._phases[pending.head.id] = CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS
     with pytest.raises(CreateAndRateAssignmentPending) as exc_info:
-        maker.get_trial_class(pending.head, participant, None)
+        maker.get_trial_class(pending.head, None, None)
     assert exc_info.value.outcome == "wait"
 
 
@@ -111,7 +114,7 @@ def test_create_and_rate_phase_flip_after_selection_defers_assignment():
     assert exc_info.value.outcome == "wait"
 
 
-def test_filter_chains_by_role_keeps_waiting_chains_for_raters():
+def test_rater_role_keeps_ready_and_waiting_chains():
     pending = chain(1)
     ready = chain(2)
     needs = chain(3)
@@ -123,20 +126,74 @@ def test_filter_chains_by_role_keeps_waiting_chains_for_raters():
             needs.head.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS,
         },
         wait_for_networks=True,
+        role=CreateAndRateTrialMakerMixin.RATER_ROLE,
     )
-    filtered = maker.filter_chains_by_role([pending, ready, needs], want_rating=True)
-    assert filtered == [pending, ready]
+    assert maker.find_chains(None, None) == [ready]
 
 
-def test_rater_role_filter_then_mixin_waits_when_only_pending_remain():
+def test_rater_role_waits_when_only_pending_chains_remain():
     pending = chain(1)
     maker = CreateAndRateSelectionHarness(
         candidates=[pending],
         phases={pending.head.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS},
         wait_for_networks=True,
+        role=CreateAndRateTrialMakerMixin.RATER_ROLE,
     )
-    maker._candidates = maker.filter_chains_by_role(maker._candidates, want_rating=True)
     assert maker.find_chains(participant=None, experiment=None) == "wait"
+
+
+def test_creator_role_ignores_chains_waiting_to_become_ratable():
+    pending = chain(1)
+    needs = chain(2)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[pending, needs],
+        phases={
+            pending.head.id: CreateAndRateTrialMakerMixin.WAITING_FOR_CREATORS,
+            needs.head.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS,
+        },
+        wait_for_networks=True,
+        role=CreateAndRateTrialMakerMixin.CREATOR_ROLE,
+    )
+
+    assert maker.find_chains(None, None) == [needs]
+
+
+@pytest.mark.parametrize(
+    ("role", "phase"),
+    [
+        (
+            CreateAndRateTrialMakerMixin.CREATOR_ROLE,
+            CreateAndRateTrialMakerMixin.READY_FOR_RATERS,
+        ),
+        (
+            CreateAndRateTrialMakerMixin.RATER_ROLE,
+            CreateAndRateTrialMakerMixin.NEEDS_CREATORS,
+        ),
+    ],
+)
+def test_role_phase_mismatch_defers_instead_of_switching_trial_class(role, phase):
+    node = SimpleNamespace(id=1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[chain(1)],
+        phases={node.id: phase},
+        wait_for_networks=True,
+        role=role,
+    )
+
+    with pytest.raises(CreateAndRateAssignmentPending) as exc_info:
+        maker.get_trial_class(node, None, None)
+    assert exc_info.value.outcome == "wait"
+
+
+def test_invalid_participant_role_is_rejected():
+    maker = CreateAndRateSelectionHarness(
+        candidates=[chain(1)],
+        phases={1: CreateAndRateTrialMakerMixin.NEEDS_CREATORS},
+        role="reviewer",
+    )
+
+    with pytest.raises(ValueError, match="get_participant_role"):
+        maker.find_chains(None, None)
 
 
 def test_create_and_rate_waits_when_only_pending_chains_remain():

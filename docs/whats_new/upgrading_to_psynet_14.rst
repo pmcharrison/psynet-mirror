@@ -135,11 +135,13 @@ Search custom trial makers for ``find_networks``, ``find_node``,
   chains or nodes in the corresponding custom filter instead of returning
   ``None``. Synchronized follower trials reuse the leader's concrete trial
   class without calling ``get_trial_class`` again.
-* Create-and-rate role filters should keep ``WAITING_FOR_CREATORS`` chains
-  (see :meth:`~psynet.trial.create_and_rate.CreateAndRateTrialMakerMixin.filter_chains_by_role`)
-  so the mixin can wait. Do not override ``get_trial_class`` from participant
-  role alone; that skips the mixin's final phase check. A selected head that is
-  still waiting for creators waits or exits instead of raising.
+* Create-and-rate experiments with fixed creator and rater groups should
+  override
+  :meth:`~psynet.trial.create_and_rate.CreateAndRateTrialMakerMixin.get_participant_role`.
+  The mixin then uses that role for both chain eligibility and the final phase
+  check. Do not override ``get_trial_class`` from participant role alone. A
+  selected head that is still waiting for creators waits or exits instead of
+  assigning the opposite role's trial class.
 * :attr:`~psynet.trial.main.Trial.position` is now stored when the trial is
   created and counts across all concrete trial classes in a participant's trial
   maker. Previously it was calculated within each concrete trial class. Trials

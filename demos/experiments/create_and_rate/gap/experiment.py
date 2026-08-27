@@ -311,7 +311,12 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
     def custom_chain_filter(self, chains, participant, experiment):
         if self.has_enough_trials(participant):
             return []
-        return self.filter_chains_by_role(chains, want_rating=participant.var.is_rater)
+        return chains
+
+    def get_participant_role(self, participant, experiment):
+        if participant.var.is_rater:
+            return self.RATER_ROLE
+        return self.CREATOR_ROLE
 
 
 def is_rater(participant):
