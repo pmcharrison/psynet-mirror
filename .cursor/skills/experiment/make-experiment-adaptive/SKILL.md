@@ -241,14 +241,15 @@ eligible node exists.
 `select_node` when `allow_repeated_nodes=False`, which is the default.
 Set it explicitly and keep `n_repeat_trials=0` when the participant must never
 see an item twice. If several nodes represent the same logical item, use
-`custom_node_filter` with a stable item identifier so every copy becomes
+`node_is_eligible` with a stable item identifier so every copy becomes
 ineligible after the first assignment.
 
-Use `custom_node_filter` only when the policy changes item eligibility rather
-than priority; ordinary repeat suppression is already provided by
-`allow_repeated_nodes=False`. On `StaticTrialMaker`, override `select_node`
-rather than `find_nodes`. Chain-based adaptation instead chooses among evolving
-chains with `select_chain`; it may likewise return
+Use `node_is_eligible` (or batched `nodes_are_eligible`) only when the policy
+changes item eligibility rather than priority; ordinary repeat suppression is
+already provided by `allow_repeated_nodes=False`. On `StaticTrialMaker`,
+override `select_node` rather than `find_nodes`. Chain-based adaptation
+instead chooses among evolving chains with `select_chain` and
+`chain_is_eligible`; it may likewise return
 `Selection(value=selected_chain, context=...)`. Do not override the managed
 `prepare_trial` of a `NetworkTrialMaker`.
 
