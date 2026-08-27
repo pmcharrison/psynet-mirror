@@ -1,6 +1,7 @@
 import json
 import zipfile
 from contextlib import contextmanager
+from io import StringIO
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -64,6 +65,8 @@ def test_create_snapshot_numbers_archives_and_records_events(tmp_path):
     assert second.parent_sequence == 1
     assert second.path == tmp_path / "data/snapshots/gibbs/000002.zip"
     assert not list((tmp_path / "data/snapshots/gibbs").glob("*.partial"))
+    assert first.path.stat().st_mode & 0o777 == 0o600
+    assert first.metadata_path.stat().st_mode & 0o777 == 0o600
 
     metadata = json.loads((tmp_path / "data/snapshots/gibbs/000002.json").read_text())
     assert metadata["reason"] == "shutdown"
@@ -139,6 +142,54 @@ def test_choose_snapshot_supports_explicit_sequence(tmp_path):
         choose_snapshot(tmp_path, "gibbs", "9")
 
 
+def test_choose_snapshot_rejects_corrupted_archive(tmp_path):
+    from psynet.local_deployment import choose_snapshot, create_snapshot
+
+    def exporter(path):
+        _write_archive(path)
+
+    snapshot = create_snapshot(
+        tmp_path, "gibbs", "shutdown", "launch-1", exporter=exporter
+    )
+    snapshot.path.write_bytes(b"corrupt")
+
+    with pytest.raises(ValueError, match="corrupt or incomplete"):
+        choose_snapshot(tmp_path, "gibbs", "latest")
+
+
+def test_snapshot_without_metadata_is_not_published(tmp_path):
+    from psynet.local_deployment import list_snapshots
+
+    archive = tmp_path / "data/snapshots/gibbs/000001.zip"
+    archive.parent.mkdir(parents=True)
+    _write_archive(archive)
+
+    assert list_snapshots(tmp_path, "gibbs") == []
+
+
+def test_choose_snapshot_displays_rich_table(tmp_path, monkeypatch):
+    from rich.console import Console
+
+    from psynet.local_deployment import choose_snapshot, create_snapshot
+
+    def exporter(path):
+        _write_archive(path)
+
+    snapshot = create_snapshot(
+        tmp_path, "gibbs", "shutdown", "launch-1", exporter=exporter
+    )
+    output = StringIO()
+    console = Console(file=output, width=100)
+    monkeypatch.setattr("psynet.local_deployment.sys.stdin.isatty", lambda: True)
+    monkeypatch.setattr(
+        "psynet.local_deployment.IntPrompt.ask", lambda *_args, **_kwargs: 1
+    )
+
+    assert choose_snapshot(tmp_path, "gibbs", console=console) == snapshot
+    assert "Snapshots for local deployment 'gibbs'" in output.getvalue()
+    assert "000001" in output.getvalue()
+
+
 def test_deploy_local_requires_id(tmp_path):
     from psynet.command_line import psynet
     from psynet.utils import working_directory
@@ -169,6 +220,72 @@ def test_comment_writes_event_for_explicit_id(tmp_path):
     assert event["event"] == "comment"
     assert event["id"] == "gibbs"
     assert event["text"] == "Changed headphones."
+
+
+def test_generic_event_helper_only_writes_inside_experiment(tmp_path):
+    from psynet.command_line import _append_deployment_event_if_in_experiment
+    from psynet.utils import working_directory
+
+    with working_directory(tmp_path):
+        _append_deployment_event_if_in_experiment("export.succeeded")
+    assert not (tmp_path / "data").exists()
+
+    (tmp_path / "experiment.py").write_text("")
+    with working_directory(tmp_path):
+        _append_deployment_event_if_in_experiment("export.succeeded")
+    event = json.loads((tmp_path / "data/deployment-events.jsonl").read_text().strip())
+    assert event["event"] == "export.succeeded"
+
+
+def test_prepare_protects_managed_database_before_reset(tmp_path, monkeypatch):
+    from psynet.command_line import _prepare
+    from psynet.utils import working_directory
+
+    calls = []
+
+    @contextmanager
+    def locked(*_args):
+        calls.append("lock")
+        yield
+
+    monkeypatch.setattr("psynet.command_line.local_database_lock", locked)
+    monkeypatch.setattr(
+        "psynet.command_line.protect_existing_database",
+        lambda *_args, **_kwargs: calls.append("protect"),
+    )
+    monkeypatch.setattr(
+        "psynet.command_line._prepare_unlocked",
+        lambda archive: calls.append(("prepare", archive)),
+    )
+
+    with working_directory(tmp_path):
+        _prepare("snapshot.zip")
+
+    assert calls == ["lock", "protect", ("prepare", "snapshot.zip")]
+
+
+def test_local_runner_holds_database_lock(tmp_path, monkeypatch):
+    from psynet.command_line import _run_local
+    from psynet.utils import working_directory
+
+    calls = []
+
+    @contextmanager
+    def locked(*_args):
+        calls.append(("lock", _args))
+        yield
+
+    monkeypatch.setattr("psynet.command_line.local_database_lock", locked)
+    monkeypatch.setattr(
+        "psynet.command_line._run_local_unlocked",
+        lambda *_args, **_kwargs: calls.append("run"),
+    )
+
+    with working_directory(tmp_path):
+        _run_local(None, False, None, False, True, "debug", Mock())
+
+    assert calls[0][0] == "lock"
+    assert calls[1] == "run"
 
 
 @pytest.mark.parametrize("signal_shutdown", [False, True])
@@ -294,19 +411,24 @@ def test_protect_existing_database_recovers_interrupted_owner(tmp_path, monkeypa
 def test_protect_existing_database_skips_clean_shutdown(tmp_path, monkeypatch):
     from psynet.local_deployment import (
         DatabaseOwner,
-        Snapshot,
         protect_existing_database,
+    )
+    from psynet.local_deployment import (
+        create_snapshot as save_snapshot,
     )
 
     owner_path = tmp_path / "owner"
     owner_path.mkdir()
-    latest = Mock(spec=Snapshot, reason="shutdown", deployment_id="launch-1")
+    save_snapshot(
+        owner_path,
+        "first",
+        reason="shutdown",
+        deployment_id="launch-1",
+        exporter=lambda path: _write_archive(path),
+    )
     monkeypatch.setattr(
         "psynet.local_deployment.read_database_owner",
         lambda: DatabaseOwner("first", owner_path, "launch-1", "Example"),
-    )
-    monkeypatch.setattr(
-        "psynet.local_deployment.list_snapshots", lambda *_args: [latest]
     )
     create_snapshot = Mock()
     monkeypatch.setattr(

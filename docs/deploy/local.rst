@@ -50,7 +50,9 @@ Deployment history
 ------------------
 
 Deployment and snapshot events are appended to
-``data/deployment-events.jsonl``. Add an operator comment with:
+``data/deployment-events.jsonl``. Successful exports and remote deployment or
+destruction commands run from the experiment directory use the same history.
+Add an operator comment with:
 
 .. code-block:: bash
 

@@ -58,6 +58,7 @@ from .local_deployment import (
     append_deployment_event,
     choose_snapshot,
     create_snapshot,
+    local_database_lock,
     local_deployment_lock,
     protect_existing_database,
     read_database_owner,
@@ -124,6 +125,16 @@ def log(msg, chevrons=True, verbose=True, **kw):
             click.echo("\n❯❯ " + msg, **kw)
         else:
             click.echo(msg, **kw)
+
+
+def _append_deployment_event_if_in_experiment(event, local_id=None, **details):
+    """Append an event only when the command runs from an experiment directory."""
+    experiment_path = Path.cwd()
+    if (experiment_path / "experiment.py").is_file():
+        try:
+            append_deployment_event(experiment_path, event, local_id, **details)
+        except OSError as error:
+            logger.warning("Failed to append deployment event %s: %s", event, error)
 
 
 def clean_sys_modules():
@@ -193,6 +204,16 @@ def prepare(archive):
 
 
 def _prepare(archive=None):
+    with local_database_lock(Path.cwd()):
+        protect_existing_database(
+            Path.cwd(),
+            "prepare",
+            ignore_unmanaged=True,
+        )
+        return _prepare_unlocked(archive)
+
+
+def _prepare_unlocked(archive=None):
     from dallinger import db
 
     from .experiment import get_experiment
@@ -376,6 +397,31 @@ def sandbox(*args, **kwargs):
 
 
 def _run_local(
+    ctx,
+    docker,
+    archive,
+    legacy,
+    no_browsers,
+    mode,
+    context_group,
+    local_id=None,
+    resumed_from=None,
+):
+    with local_database_lock(Path.cwd(), local_id):
+        return _run_local_unlocked(
+            ctx,
+            docker,
+            archive,
+            legacy,
+            no_browsers,
+            mode,
+            context_group,
+            local_id,
+            resumed_from,
+        )
+
+
+def _run_local_unlocked(
     ctx,
     docker,
     archive,
@@ -919,6 +965,15 @@ def kill_psynet_worker_processes():
         )
     for p in processes:
         safely_kill_process(p)
+    if processes:
+        _gone, alive = psutil.wait_procs(processes, timeout=5)
+        for process in alive:
+            safely_kill_process(process)
+        if alive:
+            _gone, alive = psutil.wait_procs(alive, timeout=5)
+        if alive:
+            pids = ", ".join(str(process.pid) for process in alive)
+            raise RuntimeError(f"Failed to stop PsyNet worker process(es): {pids}.")
 
 
 def kill_psynet_chrome_processes():
@@ -1279,6 +1334,15 @@ def deploy__local(
                     raise click.ClickException(str(error)) from error
                 if selected_snapshot is not None:
                     archive = str(selected_snapshot.path)
+                    click.echo(
+                        f"Resuming local deployment '{local_id}' from snapshot "
+                        f"{selected_snapshot.sequence:06d}."
+                    )
+                else:
+                    click.echo(
+                        f"No snapshots found for local deployment '{local_id}'; "
+                        "starting with a new database."
+                    )
 
             append_deployment_event(
                 experiment_path,
@@ -1515,6 +1579,16 @@ def _post_deploy(result):
     export_launch_data(
         deployment_id=deployment_info.read("deployment_id"),
         **result,
+    )
+    info = deployment_info.read_all()
+    mode = info.get("mode")
+    _append_deployment_event_if_in_experiment(
+        "deploy.succeeded" if mode == "live" else "debug.succeeded",
+        mode=mode,
+        target="ssh" if info.get("is_ssh_deployment") else "heroku",
+        app=info.get("app"),
+        server=info.get("server"),
+        deployment_id=info.get("deployment_id"),
     )
 
 
@@ -2632,6 +2706,14 @@ def export_(
         path = experiment_class.export_path(deployment_id)
 
     path = os.path.expanduser(path)
+    event_details = {
+        "deployment_id": deployment_id,
+        "target": "local" if local else ("ssh" if docker_ssh else "heroku"),
+        "app": app,
+        "server": server,
+        "path": str(Path(path).resolve()),
+    }
+    event_local_id = exp_variables.get("local_deployment_id") if local else None
 
     if app is None and not local:
         raise ValueError(
@@ -2694,6 +2776,11 @@ def export_(
                     experiment_url=experiment_url,
                 )
             log(f"Export complete. You can find your results at: {path}")
+            _append_deployment_event_if_in_experiment(
+                "export.succeeded",
+                event_local_id,
+                **event_details,
+            )
         else:
             log(
                 f"Failed to export data. Response: {response.reason} ({response.status_code})"
@@ -2707,6 +2794,12 @@ def export_(
                     f"\nResponse content: {response.content}"
                 )
             log("You can add the --legacy flag to retry the export locally.")
+            _append_deployment_event_if_in_experiment(
+                "export.failed",
+                event_local_id,
+                status_code=response.status_code,
+                **event_details,
+            )
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
@@ -2728,6 +2821,11 @@ def export_(
             )
             if should_export_source_code:
                 source_code_exported = True
+        _append_deployment_event_if_in_experiment(
+            "export.succeeded",
+            event_local_id,
+            **event_details,
+        )
 
 
 def _export_(
@@ -3244,10 +3342,23 @@ def _destroy(
                         **kwargs,
                     )
                 spinner.ok("✔")
-            except subprocess.CalledProcessError:
+                _append_deployment_event_if_in_experiment(
+                    "destroy.succeeded",
+                    target="ssh" if server else "heroku",
+                    app=app,
+                    server=server,
+                )
+            except subprocess.CalledProcessError as error:
                 spinner.fail("✗")
                 click.echo(
                     "Failed to destroy the app. Maybe it was already destroyed, or the app name was wrong?"
+                )
+                _append_deployment_event_if_in_experiment(
+                    "destroy.failed",
+                    target="ssh" if server else "heroku",
+                    app=app,
+                    server=server,
+                    return_code=error.returncode,
                 )
 
     if expire_hit is None:
