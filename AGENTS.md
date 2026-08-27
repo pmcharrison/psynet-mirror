@@ -205,6 +205,15 @@ solutions that avoid unnecessary code growth, remove obsolete code, or reuse
 existing abstractions, and call out promising refactoring opportunities to the
 user when they are relevant.
 
+## Framework improvements
+
+When developing or documenting a workflow, identify missing PsyNet abstractions
+that make experiment code override private methods, repeat framework
+bookkeeping, or use public hooks for unintended purposes. Propose a framework
+improvement alongside the experiment-level workflow and clearly distinguish it
+from APIs that already exist. If the user approves the proposal, implement it
+with focused tests and update the workflow to use the new public interface.
+
 ## Testing
 
 Non-trivial code changes should be tested.
