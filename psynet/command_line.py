@@ -1131,8 +1131,6 @@ def _pre_launch(
         is_ssh_deployment=ssh,
         server=server,
         app=app,
-    )
-    deployment_info.write(
         local_id=local_id,
         local_experiment_path=str(Path.cwd().resolve()) if local_id else None,
         resumed_from=resumed_from,
@@ -1309,6 +1307,9 @@ def deploy__local(
                         else None
                     ),
                 )
+            except SystemExit as error:
+                if error.code != 0:
+                    raise
             except Exception as error:
                 append_deployment_event(
                     experiment_path,

@@ -65,9 +65,7 @@ def test_create_snapshot_numbers_archives_and_records_events(tmp_path):
     assert second.path == tmp_path / "data/snapshots/gibbs/000002.zip"
     assert not list((tmp_path / "data/snapshots/gibbs").glob("*.partial"))
 
-    metadata = json.loads(
-        (tmp_path / "data/snapshots/gibbs/000002.json").read_text()
-    )
+    metadata = json.loads((tmp_path / "data/snapshots/gibbs/000002.json").read_text())
     assert metadata["reason"] == "shutdown"
     assert metadata["participant_count"] == 12
     assert metadata["parent_sequence"] == 1
@@ -75,9 +73,7 @@ def test_create_snapshot_numbers_archives_and_records_events(tmp_path):
 
     events = [
         json.loads(line)
-        for line in (tmp_path / "data/deployment-events.jsonl")
-        .read_text()
-        .splitlines()
+        for line in (tmp_path / "data/deployment-events.jsonl").read_text().splitlines()
     ]
     assert [event["event"] for event in events] == [
         "snapshot.succeeded",
@@ -106,9 +102,7 @@ def test_create_snapshot_records_failure_without_partial_archive(tmp_path):
     assert not list((tmp_path / "data/snapshots/gibbs").glob("*.zip"))
     events = [
         json.loads(line)
-        for line in (tmp_path / "data/deployment-events.jsonl")
-        .read_text()
-        .splitlines()
+        for line in (tmp_path / "data/deployment-events.jsonl").read_text().splitlines()
     ]
     assert events[-1]["event"] == "snapshot.failed"
     assert "database unavailable" in events[-1]["error"]
@@ -171,16 +165,15 @@ def test_comment_writes_event_for_explicit_id(tmp_path):
         )
 
     assert result.exit_code == 0, result.output
-    event = json.loads(
-        (tmp_path / "data/deployment-events.jsonl").read_text().strip()
-    )
+    event = json.loads((tmp_path / "data/deployment-events.jsonl").read_text().strip())
     assert event["event"] == "comment"
     assert event["id"] == "gibbs"
     assert event["text"] == "Changed headphones."
 
 
+@pytest.mark.parametrize("signal_shutdown", [False, True])
 def test_deploy_local_restores_selected_snapshot_and_saves_shutdown(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, signal_shutdown
 ):
     from psynet.command_line import psynet
     from psynet.local_deployment import DatabaseOwner, Snapshot
@@ -221,6 +214,8 @@ def test_deploy_local_restores_selected_snapshot_and_saves_shutdown(
 
     def run_local(*args, **kwargs):
         calls["run"] = (args, kwargs)
+        if signal_shutdown:
+            raise SystemExit(0)
 
     def create_final(*args, **kwargs):
         calls["snapshot"] = (args, kwargs)

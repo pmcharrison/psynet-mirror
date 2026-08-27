@@ -18,6 +18,9 @@ def init(
     server: str,
     app: str,
     folder_name: str = os.path.basename(os.getcwd()),
+    local_id: str | None = None,
+    local_experiment_path: str | None = None,
+    resumed_from: int | None = None,
 ):
     secret = uuid.uuid4()
     origin = find_git_repo()
