@@ -25,7 +25,7 @@ def test_resolve_audit_artifact_path_creates_artifacts(tmp_path):
     audit_dir.mkdir()
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
 
-    resolved = resolve_audit_artifact_path(audit_dir, AUDIT_SIMULATED_DATA_ZIP)
+    resolved = resolve_audit_artifact_path(tmp_path, AUDIT_SIMULATED_DATA_ZIP)
     assert resolved == audit_dir / "artifacts" / "simulated_data.zip"
     assert (audit_dir / "artifacts").is_dir()
 
@@ -42,7 +42,7 @@ def test_resolve_audit_artifact_path_autodetects_nested_audit(tmp_path, monkeypa
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
     monkeypatch.chdir(experiment)
 
-    resolved = resolve_audit_artifact_path(Path("."), AUDIT_SIMULATED_DATA_ZIP)
+    resolved = resolve_audit_artifact_path(None, AUDIT_SIMULATED_DATA_ZIP)
     assert (
         resolved.resolve() == (audit_dir / "artifacts" / "simulated_data.zip").resolve()
     )
@@ -110,7 +110,7 @@ def test_run_simulate_audit_requires_packet_before_test(tmp_path, monkeypatch):
             calls.append(cmd)
 
     with pytest.raises(click.UsageError, match="No audit packet found"):
-        _run_simulate(DummyCtx(), audit=Path("."))
+        _run_simulate(DummyCtx(), audit=True)
 
     assert calls == []
 
@@ -131,7 +131,7 @@ def test_run_simulate_without_audit_does_not_zip(tmp_path, monkeypatch):
             if cmd is export__local:
                 _write_export_tree(tmp_path)
 
-    _run_simulate(DummyCtx(), audit=None)
+    _run_simulate(DummyCtx(), audit=False)
 
     assert [cmd for cmd, _ in calls] == [test__local, export__local]
     assert not list(tmp_path.glob("**/*.zip"))
@@ -153,7 +153,7 @@ def test_run_simulate_audit_zips_export_and_marks_present(tmp_path, monkeypatch)
             if cmd is export__local:
                 _write_export_tree(experiment)
 
-    _run_simulate(DummyCtx(), audit=Path("."))
+    _run_simulate(DummyCtx(), audit=True)
 
     zip_path = audit_dir / "artifacts" / "simulated_data.zip"
     assert zip_path.is_file()
@@ -184,7 +184,7 @@ def test_run_simulate_audit_can_skip_mark_present(tmp_path, monkeypatch):
             if cmd is export__local:
                 _write_export_tree(experiment)
 
-    _run_simulate(DummyCtx(), audit=Path("."), mark_present=False)
+    _run_simulate(DummyCtx(), audit=True, mark_present=False)
 
     assert (audit_dir / "artifacts" / "simulated_data.zip").is_file()
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
@@ -216,7 +216,7 @@ def test_mark_audit_artifact_present_updates_declared_path(tmp_path):
     )
     (audit_dir / "artifacts" / "performance.json").write_text("{}\n", encoding="utf-8")
 
-    mark_audit_artifact_present(audit_dir, AUDIT_PERFORMANCE_JSON)
+    mark_audit_artifact_present(tmp_path, AUDIT_PERFORMANCE_JSON)
 
     updated = json.loads(manifest_path.read_text(encoding="utf-8"))
     artifact = next(a for a in updated["artifacts"] if a["id"] == "performance_result")
@@ -237,7 +237,7 @@ def test_mark_audit_artifact_present_updates_performance_result(tmp_path):
     init_audit(audit_dir)
     (audit_dir / "artifacts" / "performance.json").write_text("{}\n", encoding="utf-8")
 
-    mark_audit_artifact_present(audit_dir, AUDIT_PERFORMANCE_JSON)
+    mark_audit_artifact_present(tmp_path, AUDIT_PERFORMANCE_JSON)
 
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     artifact = next(a for a in manifest["artifacts"] if a["id"] == "performance_result")
@@ -248,9 +248,9 @@ def test_mark_audit_artifact_present_updates_performance_result(tmp_path):
 def test_no_mark_present_requires_audit():
     from psynet.command_line import require_audit_when_skipping_mark_present
 
-    require_audit_when_skipping_mark_present(Path("."), True)
+    require_audit_when_skipping_mark_present(True, True)
     with pytest.raises(click.UsageError, match="requires --audit"):
-        require_audit_when_skipping_mark_present(None, True)
+        require_audit_when_skipping_mark_present(False, True)
 
 
 def test_simulate_no_mark_present_without_audit_errors(monkeypatch):
@@ -267,6 +267,22 @@ def test_simulate_no_mark_present_without_audit_errors(monkeypatch):
     result = CliRunner().invoke(simulate, ["--no-mark-present"])
     assert result.exit_code != 0
     assert "requires --audit" in result.output
+
+
+def test_simulate_experiment_without_audit_errors(monkeypatch, tmp_path):
+    from click.testing import CliRunner
+
+    from psynet.command_line import simulate
+
+    monkeypatch.setattr("psynet.utils.experiment_available", lambda: True)
+    monkeypatch.setattr(
+        "psynet.utils.ensure_experiment_directory_name_does_not_conflict",
+        lambda: None,
+    )
+
+    result = CliRunner().invoke(simulate, ["--experiment", str(tmp_path)])
+    assert result.exit_code != 0
+    assert "--experiment requires --audit" in result.output
 
 
 def test_performance_results_have_successful_bots():
@@ -295,7 +311,8 @@ def test_maybe_mark_performance_result_skips_zero_success(tmp_path, capsys):
     (audit_dir / "artifacts" / "performance.json").write_text("{}\n", encoding="utf-8")
 
     maybe_mark_performance_result_present(
-        audit_dir,
+        True,
+        tmp_path,
         [{"n_bots": 2, "bots_succeeded": 0}],
         mark_present=True,
     )
@@ -315,6 +332,7 @@ def test_simulate_help_documents_audit_option():
     result = CliRunner().invoke(simulate, ["--help"])
     assert result.exit_code == 0
     assert "--audit" in result.output
+    assert "--experiment" in result.output
     assert "simulated_data.zip" in result.output
     assert "--no-mark-present" in result.output
     assert "simulation_export" in result.output
@@ -335,6 +353,7 @@ def test_performance_test_ssh_help_documents_no_mark_present(monkeypatch):
     assert result.exit_code == 0
     assert "--no-mark-present" in result.output
     assert "--audit" in result.output
+    assert "--experiment" in result.output
 
 
 def test_performance_test_ssh_rejects_audit():
@@ -345,5 +364,5 @@ def test_performance_test_ssh_rejects_audit():
             performance_test__docker_ssh.callback(
                 app="example",
                 server="example",
-                audit=Path("."),
+                audit=True,
             )

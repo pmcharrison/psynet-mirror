@@ -17,7 +17,7 @@ from psynet.audit.constants import (
     PLACEHOLDER_IMPLEMENTATION_SUMMARY,
 )
 from psynet.audit.content import validate_present_artifact_file
-from psynet.audit.paths import experiment_source_root, relative_audit_path
+from psynet.audit.paths import relative_audit_path
 
 
 def count_blockers(manifest: dict[str, Any]) -> int:
@@ -219,7 +219,7 @@ def audit_profile(manifest: dict[str, Any]) -> str:
     return DEFAULT_AUDIT_PROFILE
 
 
-def starter_audit_manifest(source_path: str = ".") -> dict[str, object]:
+def starter_audit_manifest() -> dict[str, object]:
     """Create a starter experiment audit manifest."""
 
     timestamp = utc_timestamp()
@@ -229,9 +229,7 @@ def starter_audit_manifest(source_path: str = ".") -> dict[str, object]:
         "updated_at": timestamp,
         "profile": DEFAULT_AUDIT_PROFILE,
         "extensions": [],
-        "experiment": {
-            "source_path": source_path,
-        },
+        "experiment": {},
         "implementation": {
             "summary": PLACEHOLDER_IMPLEMENTATION_SUMMARY,
         },
@@ -333,7 +331,7 @@ def starter_audit_manifest(source_path: str = ".") -> dict[str, object]:
             starter_blocker(
                 "performance_result",
                 "Performance test has not been run yet.",
-                "Run psynet performance-test local … --audit (or --audit <packet>).",
+                "Run psynet performance-test local … --audit.",
             ),
             starter_blocker(
                 "monitor_snapshot",
@@ -343,7 +341,7 @@ def starter_audit_manifest(source_path: str = ".") -> dict[str, object]:
             starter_blocker(
                 "simulation_export",
                 "Simulation export has not been produced yet.",
-                "Run psynet simulate --audit (or --audit <packet>).",
+                "Run psynet simulate --audit.",
             ),
             starter_blocker(
                 "analysis_notebook",
@@ -358,16 +356,12 @@ def starter_audit_manifest(source_path: str = ".") -> dict[str, object]:
     }
 
 
-def init_audit(
-    audit_dir: Path,
-    source_path: str = ".",
-    force: bool = False,
-) -> None:
-    """Create a starter experiment audit directory."""
+def init_audit(audit_dir: Path, force: bool = False) -> None:
+    """Create a starter experiment audit directory.
 
-    _, source_path_problems = experiment_source_root(audit_dir, source_path)
-    if source_path_problems:
-        raise ValueError(source_path_problems[0])
+    ``audit_dir`` is the packet directory (``<experiment>/audit``). The CLI
+    always creates that nested folder; tests may pass it directly.
+    """
 
     manifest_path = audit_dir / "audit.json"
     if manifest_path.exists() and not force:
@@ -386,7 +380,7 @@ def init_audit(
 
     manifest_path.write_text(
         json.dumps(
-            starter_audit_manifest(source_path),
+            starter_audit_manifest(),
             indent=2,
             sort_keys=True,
         )

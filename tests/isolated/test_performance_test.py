@@ -299,12 +299,12 @@ def test_resolve_performance_json_output_prefers_explicit_path(tmp_path):
     audit_dir = tmp_path / "audit"
     audit_dir.mkdir()
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
-    resolved = resolve_performance_json_output(audit=audit_dir)
+    resolved = resolve_performance_json_output(audit=True, experiment=tmp_path)
     assert Path(resolved) == audit_dir / "artifacts" / "performance.json"
     assert (audit_dir / "artifacts").is_dir()
 
     with pytest.raises(click.UsageError):
-        resolve_performance_json_output("results.json", audit=audit_dir)
+        resolve_performance_json_output("results.json", audit=True)
 
 
 def test_resolve_performance_json_output_requires_manifest(tmp_path):
@@ -317,7 +317,7 @@ def test_resolve_performance_json_output_requires_manifest(tmp_path):
     audit_dir = tmp_path / "attempt"
     audit_dir.mkdir()
     with pytest.raises(click.UsageError, match="No audit packet found"):
-        resolve_performance_json_output(audit=audit_dir)
+        resolve_performance_json_output(audit=True, experiment=audit_dir)
 
 
 def test_resolve_performance_json_output_autodetects_nested_audit(
@@ -333,7 +333,7 @@ def test_resolve_performance_json_output_autodetects_nested_audit(
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
     monkeypatch.chdir(experiment)
 
-    resolved = resolve_performance_json_output(audit=Path("."))
+    resolved = resolve_performance_json_output(audit=True)
     assert (
         Path(resolved).resolve()
         == (audit_dir / "artifacts" / "performance.json").resolve()

@@ -11,18 +11,19 @@ experimenters gather artifacts with the usual PsyNet commands
 ``psynet performance-test local --audit``, exports, and so
 on), then record the outcomes in ``audit/audit.json``.
 
-**Default layout:** run the CLI from the experiment directory so the audit lives
-at ``./audit/``. ``experiment.source_path`` is relative to that experiment
-directory (the parent of ``audit/``). Default ``.`` means the experiment root
-itself; use a subdirectory only when the code does not live at the experiment
-root. Paths must stay inside that directory; validation and rendering reject
-absolute paths and ``..`` escapes.
+**Default layout:** run the CLI from the experiment directory. The audit always
+lives at ``./audit/``. Experiment source is that experiment directory (the parent
+of ``audit/``). If ``experiment.py`` is in a subdirectory, set
+``experiment.entry_point``. Commands take no packet path: use
+``--experiment`` only when you are not already in the experiment (or inside
+``audit/``). ``psynet simulate --audit`` and
+``psynet performance-test local --audit`` are boolean flags; they write into
+this experiment's ``./audit/``.
 
-Commands auto-detect ``./audit/`` from the experiment root (``psynet audit
-validate`` or ``validate .``). Running from inside ``audit/`` also works.
 Leftover flat packets with ``audit.json`` in the experiment root are rejected
-with a message to move them to ``./audit/audit.json``. A leftover
-``experiment.source_base`` field is ignored with a warning.
+with a message to move them to ``./audit/audit.json``. Leftover
+``experiment.source_base`` and ``experiment.source_path`` fields are ignored
+with a warning.
 
 Audit support ships with PsyNet but requires the full experiment runtime
 (``psynet[experiment]``), including Dallinger and the audit HTML render
@@ -33,17 +34,13 @@ dependencies. Participant video validation also requires ``ffprobe`` from
 
    psynet audit init
    psynet audit validate
-   psynet audit validate .
    psynet audit mark-present <artifact_id>
    psynet audit render
    psynet audit serve
 
 * ``init`` creates a starter ``audit/`` directory whose required-but-missing
-  artifacts are covered by starter blockers. ``psynet audit init`` and
-  ``psynet audit init .`` both create ``./audit``. ``--source-path`` must stay
-  inside the experiment directory, matching ``validate``. Validate can pass on
-  this sparse starter; that means the packet is coherent, not that the
-  experiment is ready.
+  artifacts are covered by starter blockers. Validate can pass on this sparse
+  starter; that means the packet is coherent, not that the experiment is ready.
 * ``validate`` checks the manifest structure, required artifact files, blocker
   coverage, video limits, and notebook JSON readiness. It reports how many
   blockers are still recorded and that readiness may still be incomplete.

@@ -193,12 +193,12 @@ file without updating ``audit.json``:
 
 .. code-block:: bash
 
-    # From the experiment root with ./audit/ (auto-detect)
+    # From the experiment root
     psynet performance-test local --n-bots 40 --duration-minutes 5 --audit
 
-    # Explicit experiment root or audit/ folder
-    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit .
-    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit audit
+    # Another experiment directory
+    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit \
+      --experiment /path/to/experiment
 
 Do not combine ``--json-output`` and ``--audit``.
 

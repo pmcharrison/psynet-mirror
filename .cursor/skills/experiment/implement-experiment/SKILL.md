@@ -167,7 +167,7 @@ tree to the canonical audit path. From the experiment root:
 psynet simulate --audit
 ```
 
-`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`
+`--audit` writes `<experiment>/audit/artifacts/simulated_data.zip`
 and still leaves `data/simulated_data/` in place for analysis. It also marks
 `simulation_export` present. Use `--no-mark-present` only when you want the zip
 in the packet without updating `audit.json`. Overwrite the same zip when a later

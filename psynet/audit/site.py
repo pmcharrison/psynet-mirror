@@ -345,19 +345,13 @@ def experiment_entry_point(
     experiment = manifest.get("experiment")
     if not isinstance(experiment, dict):
         return None, "experiment.py"
-    source_path = experiment.get("source_path", ".")
+    source_root = experiment_source_root(audit_dir)
     entry_point = experiment.get("entry_point", "experiment.py")
-    if not isinstance(source_path, str) or not isinstance(entry_point, str):
+    if not isinstance(entry_point, str):
         return None, "experiment.py"
 
     entry_relative = Path(entry_point)
     if entry_relative.is_absolute():
-        return None, entry_point
-    source_root, source_path_problems = experiment_source_root(
-        audit_dir,
-        source_path,
-    )
-    if source_path_problems or source_root is None:
         return None, entry_point
     source_file = (source_root / entry_relative).resolve()
     if not source_file.is_relative_to(source_root):
@@ -366,7 +360,7 @@ def experiment_entry_point(
 
 
 def render_source_section(audit_dir: Path, manifest: dict[str, Any]) -> str:
-    """Render the experiment entry point from ``experiment.source_path``."""
+    """Render the experiment entry point from the experiment directory."""
 
     source_file, entry_point = experiment_entry_point(audit_dir, manifest)
     if source_file is None or not source_file.is_file():
@@ -674,7 +668,6 @@ def render_audit_site(
     blocker_count = len(blockers) if isinstance(blockers, list) else 0
     metadata = render_metadata_grid(
         [
-            ("Source path", render_metadata_code(experiment.get("source_path"))),
             ("Entry point", render_metadata_code(experiment.get("entry_point"))),
             ("PsyNet version", render_metadata_value(experiment.get("psynet_version"))),
             ("Git commit", render_metadata_code(experiment.get("git_commit"))),

@@ -397,6 +397,12 @@ def collect_audit_warnings(
             f"{manifest_path}: experiment.source_base is ignored; experiment "
             "source is the parent of the audit directory"
         )
+    if isinstance(experiment, dict) and "source_path" in experiment:
+        warnings.append(
+            f"{manifest_path}: experiment.source_path is ignored; experiment "
+            "source is the parent of the audit directory. Put a subdirectory "
+            "in experiment.entry_point if needed"
+        )
     if audit_profile(manifest) == DEFAULT_AUDIT_PROFILE:
         sections = manifest.get("sections")
         if isinstance(sections, list):
@@ -464,24 +470,17 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
             problems.append(
                 f"{manifest_path}: experiment.title must be a non-empty string"
             )
-        if "source_path" not in experiment:
-            problems.append(f"{manifest_path}: experiment missing source_path")
-        else:
-            source_root, source_path_problems = experiment_source_root(
-                audit_dir,
-                experiment.get("source_path"),
-            )
-            problems.extend(source_path_problems)
-            entry_point = experiment.get("entry_point", "experiment.py")
-            if source_root is not None and isinstance(entry_point, str):
-                entry_relative = Path(entry_point)
-                if entry_relative.is_absolute() or not (
-                    source_root / entry_relative
-                ).resolve().is_relative_to(source_root):
-                    problems.append(
-                        f"{manifest_path}: experiment.entry_point must stay "
-                        "inside the experiment source directory"
-                    )
+        entry_point = experiment.get("entry_point", "experiment.py")
+        source_root = experiment_source_root(audit_dir)
+        if isinstance(entry_point, str):
+            entry_relative = Path(entry_point)
+            if entry_relative.is_absolute() or not (
+                source_root / entry_relative
+            ).resolve().is_relative_to(source_root):
+                problems.append(
+                    f"{manifest_path}: experiment.entry_point must stay "
+                    "inside the experiment directory"
+                )
     if isinstance(manifest.get("implementation"), dict):
         implementation = manifest["implementation"]
         if (

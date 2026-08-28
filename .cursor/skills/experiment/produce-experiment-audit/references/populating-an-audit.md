@@ -20,18 +20,18 @@ implementation.
 
 ## Path cheat-sheet
 
-`psynet audit` auto-detects the packet from the current directory:
+`psynet audit` uses `./audit/` from the current directory:
 
 | Working directory | Typical command | Resolved packet |
 |-------------------|-----------------|-----------------|
-| Experiment root (`./audit/audit.json`) | `psynet audit validate` or `validate .` | `./audit` |
-| Inside the packet itself | `psynet audit validate` | `.` |
+| Experiment root | `psynet audit validate` | `./audit` |
+| Inside `audit/` | `psynet audit validate` | `.` |
 
 Prefer staying at the experiment root. Running from inside `audit/` also works
 when that folder is named `audit` and contains `audit.json`.
 
-For `mark-present` / `render`, the same rules apply. Pass an explicit experiment
-or `audit/` path only when you are not already at the experiment root.
+For `mark-present` / `render`, the same rules apply. Pass `--experiment` only
+when you are not already at the experiment root or inside `audit/`.
 
 ## Early audit-aware habit
 
@@ -188,10 +188,11 @@ root:
 psynet simulate --audit
 ```
 
-`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`
+`--audit` writes `<experiment>/audit/artifacts/simulated_data.zip`
 and marks `simulation_export` present. Use `--no-mark-present` to write the zip
 without updating `audit.json`. Overwrite the same zip when a later simulation
-supersedes an interim run.
+supersedes an interim run. Pass `--experiment` when not running from the
+experiment directory.
 
 ### Performance evidence
 
@@ -207,11 +208,11 @@ psynet performance-test local \
   --audit
 ```
 
-`--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/performance.json`
+`--audit` writes `<experiment>/audit/artifacts/performance.json`
 and marks `performance_result` present. Use `--json-output` only for a non-audit
 path, and `--no-mark-present` only when you want the JSON in the packet without
-updating `audit.json`. Prefer an absolute `--audit` path when PsyNet may execute
-from a temporary deployment directory.
+updating `audit.json`. Pass `--experiment` when PsyNet may execute from a
+temporary deployment directory.
 
 Shorter smoke runs are fine while iterating or infrastructure-testing; omit
 `--audit` (or use `--json-output`) so they do not become the packet's evidence.

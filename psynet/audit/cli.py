@@ -67,7 +67,11 @@ from psynet.audit.manifest import (
     validate_success_message,
 )
 from psynet.audit.model import MAX_AUDIT_TEXT_BYTES
-from psynet.audit.paths import relative_audit_path, resolve_audit_dir
+from psynet.audit.paths import (
+    relative_audit_path,
+    resolve_audit_dir,
+    resolve_experiment_root,
+)
 from psynet.audit.site import (
     artifact_output_url,
     completeness_from_manifest,
@@ -176,6 +180,7 @@ __all__ = [
     "render_source_section",
     "render_timeline_section",
     "resolve_audit_dir",
+    "resolve_experiment_root",
     "resolve_audit_site_dir",
     "section_open_by_default",
     "section_panel_class",

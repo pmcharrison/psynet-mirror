@@ -7,7 +7,7 @@ compatibility: Requires PsyNet with `psynet audit` CLI; ffprobe recommended for 
 # Produce an experiment audit
 
 A standalone audit is an `audit/` folder inside the experiment directory. Run
-the CLI from the experiment root so `experiment.source_path` stays `.`.
+the CLI from the experiment root.
 
 ## Prerequisites
 
