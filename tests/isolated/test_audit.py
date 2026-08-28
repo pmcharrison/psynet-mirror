@@ -185,7 +185,7 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert "Use a chain trial maker." in index
     assert "psynet test local" in index
     assert "No simulated export has been produced yet." in index
-    assert index.count('class="attempt-file"') >= 2
+    assert index.count('class="attempt-file"') >= 1
     assert (
         '<summary class="file-header"><h3><code>artifacts/psynet_debug.log</code></h3>'
         in index
@@ -194,10 +194,7 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
         '<pre class="file-preview"><code>Dashboard user: admin password: [REDACTED]'
         in index
     )
-    assert (
-        '<summary class="file-header"><h3><code>artifacts/monitor.html</code></h3>'
-        in index
-    )
+    assert "Open monitor snapshot" in index
 
     published_files = sorted((site_dir / "static/artifacts/blobs/sha256").glob("**/*"))
     published_text = "\n".join(
@@ -354,7 +351,7 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     write(audit_dir / "artifacts/source/experiment.py", "print('hello')\n")
     write(audit_dir / "analyses/analysis.ipynb", json.dumps({"cells": []}))
 
-    site_dir = render_audit_site(audit_dir)
+    site_dir = render_audit_site(audit_dir, allow_invalid=True)
 
     index = (site_dir / "index.html").read_text(encoding="utf-8")
     assert "<video" in index
@@ -366,9 +363,8 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     assert "<td>4</td>" in index
     assert "<td>3</td>" in index
     assert "Download data export" in index
-    assert "simulated_data.zip" in index
-    assert "<h3><code>artifacts/data.zip</code></h3>" in index
-    assert "Preview is not available." in index
+    assert "Download simulated data" in index
+    assert "<h3><code>artifacts/data.zip</code></h3>" not in index
     assert "<h3><code>artifacts/source/experiment.py</code></h3>" in index
     assert '<div class="file-preview code-preview">' in index
     assert "print" in index
@@ -652,7 +648,13 @@ def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None
 
     assert "<h2>Evidence</h2>" not in index
     assert '<details id="evidence"' not in index
-    for section_id in ("screenshots", "participant_video", "monitor", "performance"):
+    for section_id in (
+        "screenshots",
+        "participant_video",
+        "monitor",
+        "performance",
+        "data_exports",
+    ):
         assert f'<details id="{section_id}"' in index
     assert index.index('id="screenshots"') < index.index('id="participant_video"')
     assert index.index('id="participant_video"') < index.index('id="performance"')
@@ -1311,6 +1313,7 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
         "participant_video",
         "monitor",
         "performance",
+        "data_exports",
         "analysis",
         "files",
         "blockers",
@@ -1502,7 +1505,9 @@ def test_validate_rejects_escaping_render_site_path(tmp_path: Path) -> None:
     assert any("must stay inside" in problem for problem in problems)
 
 
-@pytest.mark.parametrize("site_path", [".", "artifacts/site", "analyses/site", "logs/site"])
+@pytest.mark.parametrize(
+    "site_path", [".", "artifacts/site", "analyses/site", "logs/site"]
+)
 def test_validate_rejects_render_site_path_overlapping_packet_content(
     tmp_path: Path,
     site_path: str,

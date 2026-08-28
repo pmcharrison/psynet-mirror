@@ -24,6 +24,7 @@ from psynet.audit.html import (
     pygments_css,
     render_analysis_notebook,
     render_completeness,
+    render_data_exports,
     render_evidence_section,
     render_file_grid,
     render_json_block,
@@ -50,8 +51,10 @@ from psynet.audit.paths import (
     SOURCE_BASES,
     experiment_source_root,
     relative_audit_path,
-    resolve_audit_dir,
     validate_audit_site_dir,
+)
+from psynet.audit.paths import (
+    resolve_audit_dir as resolve_audit_dir,
 )
 from psynet.audit.timeline import (
     ALLOWED_TIMELINE_ACTORS,
@@ -96,6 +99,7 @@ SECTION_KINDS = {
     "participant_video",
     "monitor",
     "performance",
+    "data",
     "analysis",
     "source",
     "files",
@@ -414,6 +418,7 @@ def starter_audit_manifest(
             ),
             starter_section("monitor", "Monitor snapshot", "monitor"),
             starter_section("performance", "Performance test", "performance"),
+            starter_section("data_exports", "Data exports", "data"),
             starter_section("analysis", "Analysis", "analysis"),
             starter_section("files", "Additional files", "files"),
             starter_section("blockers", "Blockers", "blockers"),
@@ -1520,6 +1525,8 @@ def render_audit_section(
             return render_monitor_snapshot(evidence)
         if kind == "performance":
             return render_performance_result(evidence, standalone=True)
+        if kind == "data":
+            return render_data_exports(evidence)
         if kind == "analysis":
             return render_analysis_notebook(evidence, standalone=True)
         if kind == "source":

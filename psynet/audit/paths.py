@@ -83,8 +83,13 @@ def validate_audit_site_dir(
     if not resolved_site.is_relative_to(audit_root):
         return []
 
-    protected = [audit_root]
-    protected.extend(audit_root / name for name in PROTECTED_PACKET_DIRECTORIES)
+    if resolved_site == audit_root:
+        return [
+            f"{label}: must use a dedicated output directory that does not "
+            "overlap audit packet inputs"
+        ]
+
+    protected = [audit_root / name for name in PROTECTED_PACKET_DIRECTORIES]
     if any(
         resolved_site == path
         or resolved_site.is_relative_to(path)

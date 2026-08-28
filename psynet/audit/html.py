@@ -514,6 +514,30 @@ def render_evidence_actions(
     return '<ul class="evidence-actions">' + "\n".join(items) + "</ul>"
 
 
+def render_data_exports(
+    evidence: AuditEvidenceView,
+    *,
+    url_transform: UrlTransform = identity_url,
+) -> str:
+    """Render download links for real and simulated data exports."""
+
+    items = [
+        evidence_action_item(
+            "Data export",
+            evidence.data_file,
+            "Download data export",
+            url_transform,
+        ),
+        evidence_action_item(
+            "Simulated data export",
+            evidence.simulated_data_file,
+            "Download simulated data",
+            url_transform,
+        ),
+    ]
+    return '<ul class="evidence-actions">' + "\n".join(items) + "</ul>"
+
+
 def evidence_action_item(
     missing_label: str,
     file: AuditFile | None,

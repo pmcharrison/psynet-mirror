@@ -4204,9 +4204,7 @@ def audit_init(audit_dir, source_path, force):
     )
     try:
         source_base = (
-            "packet"
-            if resolved.resolve() == Path.cwd().resolve()
-            else "packet_parent"
+            "packet" if resolved.resolve() == Path.cwd().resolve() else "packet_parent"
         )
         init_audit(
             resolved,
