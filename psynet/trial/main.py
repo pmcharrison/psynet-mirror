@@ -2698,14 +2698,7 @@ class NetworkTrialMaker(TrialMaker):
             node=node,
             participant=participant,
             experiment=experiment,
-            finalize=False,
         )
-        self._prepare_trial_for_created_hook(
-            trial=trial,
-            experiment=experiment,
-            participant=participant,
-        )
-        self._finalize_created_trial(trial)
         self.on_trial_created(
             trial=trial,
             experiment=experiment,
@@ -2713,9 +2706,6 @@ class NetworkTrialMaker(TrialMaker):
             selection_context=selection.context,
         )
         return trial, "available"
-
-    def _prepare_trial_for_created_hook(self, trial, experiment, participant):
-        """Finish subclass-specific trial setup before ``on_trial_created``."""
 
     def on_trial_created(
         self,
@@ -2733,9 +2723,9 @@ class NetworkTrialMaker(TrialMaker):
         runs for primary trials created through the managed network-selection
         pipeline, not for repeat trials or synchronized follower copies.
 
-        Subclasses that add trial state after construction should do so in
-        :meth:`_prepare_trial_for_created_hook`. Assets added there are
-        finalized and snapshotted before this hook runs.
+        Trial-specific definition and assets belong in
+        :meth:`~psynet.trial.main.Trial.finalize_definition`. Those assets are
+        deposited and snapshotted before this hook runs.
 
         Parameters
         ----------
@@ -2869,8 +2859,6 @@ class NetworkTrialMaker(TrialMaker):
         participant,
         experiment,
         trial_class=None,
-        *,
-        finalize=True,
     ):
         if trial_class is None:
             trial_class = self.get_trial_class(node, participant, experiment)
@@ -2887,8 +2875,7 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=self.propagate_failure,
             is_repeat_trial=False,
         )
-        if finalize:
-            self._finalize_created_trial(trial)
+        self._finalize_created_trial(trial)
         db.session.add(trial)
         return trial
 

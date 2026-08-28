@@ -306,6 +306,22 @@ class VocabTrial(StaticTrial):
             "presentAsImage": self.trial_maker.present_as_image,
         }
 
+    def finalize_definition(self, definition, experiment, participant):
+        previous_trials = [
+            previous
+            for previous in VocabTrial.query.filter_by(
+                trial_maker_id=self.trial_maker_id,
+                participant_id=participant.id,
+            ).all()
+            if previous is not self
+        ]
+        selected_hashes = self.trial_maker.choose_hashes(
+            self.node.seed, previous_trials
+        )
+        assets = self.trial_maker.get_assets(self.node.seed, selected_hashes)
+        self.assets = {**self.assets, **assets}
+        return {**definition, "hashes": selected_hashes}
+
     @property
     def items(self) -> list[dict]:
         return [{"hash": _hash} for _hash in self.definition["hashes"]]
@@ -688,22 +704,6 @@ class VocabTest(StaticTrialMaker):
                 asset.deposit()
                 assets[hash_] = asset
         return assets
-
-    def _prepare_trial_for_created_hook(self, trial, experiment, participant):
-        """Add vocabulary-test state before ``on_trial_created`` runs."""
-        super()._prepare_trial_for_created_hook(trial, experiment, participant)
-        previous_trials = [
-            previous
-            for previous in VocabTrial.query.filter_by(
-                trial_maker_id=self.id,
-                participant_id=participant.id,
-            ).all()
-            if previous is not trial
-        ]
-        stimuli = trial.node.seed
-        selected_hashes = self.choose_hashes(stimuli, previous_trials)
-        trial.definition["hashes"] = selected_hashes
-        trial.assets = self.get_assets(stimuli, selected_hashes)
 
     @staticmethod
     def score_consistency(items, repeat_items):

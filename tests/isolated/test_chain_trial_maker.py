@@ -320,7 +320,7 @@ def test_static_selection_carries_context_to_on_trial_created(monkeypatch):
     participant.module_state = DummyModuleState()
     network = SimpleNamespace(id=3, block="default")
     node = SimpleNamespace(id=2, network=network, block="default")
-    trial = SimpleNamespace(assets={}, finalize_assets=lambda: None)
+    trial = SimpleNamespace()
     calls = []
 
     monkeypatch.setattr(
@@ -339,83 +339,6 @@ def test_static_selection_carries_context_to_on_trial_created(monkeypatch):
 
     assert result == (trial, "available")
     assert calls[0]["selection_context"] == context
-
-
-def test_trial_is_prepared_before_on_trial_created(monkeypatch):
-    class PreparingStaticTrialMaker(StaticTrialMaker):
-        def _prepare_trial_for_created_hook(self, trial, experiment, participant):
-            trial.definition = {"prepared": True}
-
-        def on_trial_created(
-            self,
-            trial,
-            experiment,
-            participant,
-            selection_context=None,
-        ):
-            assert trial.definition == {"prepared": True}
-
-    trial_maker = make_static_trial_maker(PreparingStaticTrialMaker)
-    participant = DummyParticipant()
-    participant.module_state = DummyModuleState()
-    network = SimpleNamespace(id=3, block="default")
-    node = SimpleNamespace(id=2, network=network, block="default")
-    trial = SimpleNamespace(assets={}, finalize_assets=lambda: None)
-
-    monkeypatch.setattr(
-        trial_maker,
-        "find_nodes",
-        lambda participant, experiment: [node],
-    )
-    monkeypatch.setattr(trial_maker, "_create_trial", lambda **kwargs: trial)
-
-    assert trial_maker.prepare_trial(SimpleNamespace(), participant) == (
-        trial,
-        "available",
-    )
-
-
-def test_prepare_hook_assets_are_finalized_before_on_trial_created(monkeypatch):
-    extra = object()
-    finalized = []
-
-    class AssetAddingMaker(StaticTrialMaker):
-        def _prepare_trial_for_created_hook(self, trial, experiment, participant):
-            trial.assets["extra"] = extra
-
-        def on_trial_created(
-            self,
-            trial,
-            experiment,
-            participant,
-            selection_context=None,
-        ):
-            assert trial._initial_assets["extra"] is extra
-            assert finalized == ["extra"]
-
-    trial = SimpleNamespace(assets={})
-
-    def finalize_assets():
-        finalized.extend(trial.assets)
-
-    trial.finalize_assets = finalize_assets
-    trial_maker = make_static_trial_maker(AssetAddingMaker)
-    participant = DummyParticipant()
-    participant.module_state = DummyModuleState()
-    network = SimpleNamespace(id=3, block="default")
-    node = SimpleNamespace(id=2, network=network, block="default")
-
-    monkeypatch.setattr(
-        trial_maker,
-        "find_nodes",
-        lambda participant, experiment: [node],
-    )
-    monkeypatch.setattr(trial_maker, "_create_trial", lambda **kwargs: trial)
-
-    assert trial_maker.prepare_trial(SimpleNamespace(), participant) == (
-        trial,
-        "available",
-    )
 
 
 def test_deprecated_network_filter_accepts_keyword_only_override():

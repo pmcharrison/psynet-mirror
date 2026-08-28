@@ -9,22 +9,36 @@ from psynet.trial.create_and_rate import (
 
 
 class _Parent:
+    """Stands in for the chain trial maker, which waits on unavailable chains."""
+
     def find_chains(self, participant, experiment):
-        return self._filter_eligible_candidates(
+        chains = self._filter_eligible_candidates(
             list(self._candidates),
             participant,
             experiment,
         )
+        available = [chain for chain in chains if chain not in self._unavailable]
+        if chains and not available and self.wait_for_networks:
+            return "wait"
+        return available
 
     def _filter_eligible_candidates(self, chains, participant, experiment):
         return chains
 
 
 class CreateAndRateSelectionHarness(CreateAndRateTrialMakerMixin, _Parent):
-    def __init__(self, candidates, phases, wait_for_networks=False, role=None):
+    def __init__(
+        self,
+        candidates,
+        phases,
+        wait_for_networks=False,
+        role=None,
+        unavailable=(),
+    ):
         self._candidates = candidates
         self._phases = phases
         self._role = role
+        self._unavailable = list(unavailable)
         self.creator_class = "creator"
         self.rater_class = "rater"
         self.wait_for_networks = wait_for_networks
@@ -163,6 +177,20 @@ def test_creator_role_ignores_chains_waiting_to_become_ratable():
     )
 
     assert maker.find_chains(None, None) == [needs]
+
+
+def test_fixed_role_filter_runs_before_availability_checks():
+    """A creator must not wait for a chain that only raters may take."""
+    rater_chain = chain(1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[rater_chain],
+        phases={rater_chain.head.id: CreateAndRateTrialMakerMixin.READY_FOR_RATERS},
+        wait_for_networks=True,
+        role=CreateAndRateTrialMakerMixin.CREATOR_ROLE,
+        unavailable=[rater_chain],
+    )
+
+    assert maker.find_chains(None, None) == "exit"
 
 
 @pytest.mark.parametrize(
