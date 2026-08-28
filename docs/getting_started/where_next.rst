@@ -16,11 +16,11 @@ See :doc:`running_remotely` for details, as well as the :doc:`/deploy/index` doc
 Implementing your own experiment
 --------------------------------
 
-For a new experiment, the usual path is to work with a coding agent from an
-empty project directory. See :doc:`/experiment_development/agentic_programming`.
+Coding agents make it very easy to develop your own experiments from scratch.
+See :doc:`/experiment_development/agentic_programming`.
 
-The :doc:`customizing_an_experiment` page describes how to start from a demo
-and modify it by hand.
+Alternatively, a good way to develop an experiment is to start by copying a demo
+and modifying it by hand. This workflow is described in :doc:`customizing_an_experiment`.
 
 Topical tutorials
 -----------------
