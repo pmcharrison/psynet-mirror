@@ -61,32 +61,37 @@ A full deployment test covers two experiments in `tests/deployment`:
 
 - `tests/deployment/payment_flows_prolific`: the basic Prolific recruiter test,
   exercising payment flows (base payment, screen-out compensation, and
-  performance rewards). Its default `experiment.py` uses HotAir; the paid
-  variant lives in `experiment.py.prolific` (with `config.txt.prolific`).
+  performance rewards). It has a single `experiment.py`; the recruiter is
+  selected via the config file. The default `config.txt` sets
+  `recruiter = devprolific` (a simulated Prolific API — requests are logged,
+  not sent), and the paid variant `config.txt.prolific` sets
+  `recruiter = prolific`.
 - `tests/deployment/audio_gibbs`: an audio Gibbs sampler experiment that
   additionally exercises audio synthesis (parselmouth), asset
   generation/storage, async worker processes, and a headphone prescreen.
-  Its default `experiment.py` also uses HotAir. Prolific and Lucid variants
+  Its default `experiment.py` uses HotAir. Prolific and Lucid variants
   (`experiment.py.prolific` and `experiment.py.lucid`, with matching config
   files) are deployed from temporary worktrees.
 
-Both experiments default to HotAir so running a directory directly cannot
-accidentally start paid recruitment; every paid deployment swaps in an
-explicit recruiter variant first. All paid variants show the approved
+Both experiments' defaults cannot spend money (devprolific simulates the
+Prolific API locally; HotAir does not recruit at all), so running a directory
+directly cannot accidentally start paid recruitment; every paid deployment
+swaps in an explicit recruiter variant first. All paid variants show the approved
 cultural-foundation consent (vendored `consents_cococo` package in each
 experiment directory): the Prolific variants use the `MAIN` consent and the
 Lucid variant uses the `CINT` consent.
 
 By default a full deployment test produces **three apps**: the two Prolific
-experiments plus the Lucid variant of `audio_gibbs`, all deployed **in
-parallel** to save wall-clock time (the paid `audio_gibbs` variants deploy
-from temporary git worktrees; see "Prepare The Recruiter Variants").
+experiments plus the Lucid variant of `audio_gibbs`. Overlap the long
+remote image builds to save wall-clock time, but **do not start all three
+`psynet deploy ssh` commands at once** (see "Stagger Local Prepare, Then
+Overlap Remote Builds"). The paid `audio_gibbs` variants deploy from
+temporary git worktrees; see "Prepare The Recruiter Variants".
 Deploy a subset only when the user explicitly asks for it.
 Prepare both experiment directories on a **single fresh deployment branch
-created for this deployment** (the preparation steps below are shared), then run the three
-`psynet deploy ssh` commands concurrently. Do not reuse or rebase a
-long-lived deployment branch; each deployment gets its own branch so its
-exact code is preserved for later auditing.
+created for this deployment** (the preparation steps below are shared).
+Do not reuse or rebase a long-lived deployment branch; each deployment
+gets its own branch so its exact code is preserved for later auditing.
 
 **Base the branch on the latest PsyNet release tag by default** (including
 release candidates, e.g. `v13.3.0rc0`), so the test exercises what users
@@ -174,11 +179,12 @@ git checkout <previous-deployment-branch> -- tests/deployment/payment_flows_prol
    Verify the imported experiment configuration includes the standing
    deployment settings:
 
-   - `payment_flows_prolific/experiment.py`: recruiter `hotair` (safe local
-     default).
-   - `payment_flows_prolific/experiment.py.prolific`:
+   - `payment_flows_prolific/config.txt`: `recruiter = devprolific` (safe
+     simulated default).
+   - `payment_flows_prolific/experiment.py` (shared by both recruiters):
      `prolific_is_custom_screening=False`, `auto_recruit=True`,
      `initial_recruitment_size=12`.
+   - `payment_flows_prolific/config.txt.prolific`: `recruiter = prolific`.
    - `audio_gibbs/experiment.py`: recruiter `hotair` (safe local default).
    - `audio_gibbs/experiment.py.prolific`: `auto_recruit=True`,
      `initial_recruitment_size=3`, `target_n_participants=5`.
@@ -256,16 +262,20 @@ git commit -m "Refresh experiment scripts via psynet scripts update"
    `praat-parselmouth` and `scipy` in place):
 
    - **Release-tag deployment (default)**: pin PsyNet to the base tag and
-     Dallinger to its matching tag, e.g.
+     Dallinger to its matching tag. From PsyNet 13.4 the core package is
+     click-only, so the pin **must** use the ``[experiment]`` extra (bare
+     ``psynet`` produces an image that crash-loops on ``import rpdb`` /
+     ``import pytest``). Example:
 
      ```text
      dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@v12.2.1
-     psynet @ git+https://gitlab.com/PsyNetDev/PsyNet.git@v13.3.0rc0
+     psynet[experiment] @ git+https://gitlab.com/PsyNetDev/PsyNet.git@v13.3.0rc0
      ```
 
-   - **Master-based deployment**: pin both to the latest pushed `master`
-     commit hash. Never pin to a branch name; PsyNet's deploy pre-check
-     rejects branch-name requirements as ambiguous.
+   - **Master-based or feature-branch deployment**: pin both to the latest
+     pushed commit hash, still with ``psynet[experiment]``. Never pin to a
+     branch name; PsyNet's deploy pre-check rejects branch-name requirements
+     as ambiguous.
 
    Commit the imported/updated experiment configuration and pins, push the
    deployment branch (for auditability), and record the base tag (or master
@@ -287,28 +297,45 @@ git add -f tests/deployment/*/constraints.txt
 git commit -m "Generate constraints from pinned requirements"
 ```
 
+   After generating, confirm the lockfile actually pulled the experiment extra
+   (missing entries mean the image will crash-loop at import time):
+
+   ```bash
+   rg '^(pytest|rpdb|yaspin|debugpy)==' tests/deployment/*/constraints.txt
+   ```
+
 10. Ensure neither experiment enables `prolific_is_custom_screening`
-   (`payment_flows_prolific/experiment.py.prolific` sets it to `False`
+   (`payment_flows_prolific/experiment.py` sets it to `False`
    explicitly;
    `audio_gibbs` relies on the `False` default). Prolific no longer supports
    the older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
 
-Deploy all three apps **in parallel**, each from its own directory with its
-own app name: `payment_flows_prolific` from the main checkout (after its
-Prolific-variant swap is committed on the deployment branch), and the two
-paid `audio_gibbs` variants from temporary worktrees (both swaps prepared
-as described in "Prepare The Recruiter Variants" below). Start each deploy
-as a background process (or in separate terminals) and monitor all launch
-outputs:
+Deploy all three apps from their own directories with their own app names:
+`payment_flows_prolific` from the main checkout (after its Prolific-variant
+swap is committed on the deployment branch), and the two paid `audio_gibbs`
+variants from temporary worktrees (both swaps prepared as described in
+"Prepare The Recruiter Variants" below). Start each deploy as a background
+process (or in separate terminals) and monitor all launch outputs, but
+**stagger the starts** so only one deploy is in local prepare at a time
+(see the next section). Do not background all three in one shot.
 
 ```bash
 source <psynet-root>/<venv>/bin/activate
 
+# Start the first deploy, then wait for its local-prepare marker before
+# starting the next. Repeat for the third. After all three have passed
+# that marker, the remote builds overlap.
 (cd <psynet-root>/tests/deployment/payment_flows_prolific && psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
   --app <payment-flows-prolific-app-name>) &
+
+# Wait until this deploy prints:
+#   Attempting to build image on remote host
+# Fallback marker if that line is skipped:
+#   Experiment UID:
+# Then start the next deploy the same way.
 
 (cd <prolific-worktree>/tests/deployment/audio_gibbs && psynet deploy ssh \
   --server <ssh-host> \
@@ -319,8 +346,6 @@ source <psynet-root>/<venv>/bin/activate
   --server <ssh-host> \
   --dns-host <dns-host> \
   --app <audio-gibbs-lucid-app-name>) &
-
-wait
 ```
 
 Do not let one deployment's failure silently abort the others: check each
@@ -342,24 +367,99 @@ release-tag ones. (Older deployments used the app names
 recruiter suffix became part of the convention.) After deployment, inspect
 each launch output for the experiment URL, dashboard URL, and Dozzle URL.
 
+## Stagger Local Prepare, Then Overlap Remote Builds
+
+Every `psynet deploy ssh` uses the **developer's local Postgres** before it
+touches the remote host. `_pre_launch` calls `prepare`, which runs
+`db.init_db(drop_all=True)` and `experiment.pre_deploy()` against the shared
+`dallinger` database (schema create includes
+`CREATE TYPE participant_status AS ENUM ...`). After that local work
+finishes, the deploy no longer needs local Postgres: it builds the image
+and launches on the server.
+
+Starting two or more deploys at the same instant races that local
+`init_db`. The typical failure is **not** a remote crash-loop. It dies
+during local prepare with:
+
+```text
+IntegrityError / UniqueViolation
+Key (typname, typnamespace)=(participant_status, 2200) already exists
+CREATE TYPE participant_status AS ENUM (...)
+```
+
+`audio_gibbs` `pre_deploy` (assets / snapshot) can take longer than
+`payment_flows_prolific`, so a "start all three and hope" launch often
+fails the two `audio_gibbs` apps while the first one proceeds.
+
+**Rule:** only one deploy may be in local prepare at a time. Start the
+next only after the previous log shows
+`Attempting to build image on remote host` (fallback: `Experiment UID:`).
+From that point the expensive remote Docker builds and launches may
+overlap.
+
+If a deploy hits the `participant_status` UniqueViolation, treat it as
+this local race. Leave any deploy that already passed the marker running.
+Retry **only** the failed command, and only after every in-flight deploy
+has printed the marker (or finished). Do not restart the whole trio at
+once.
+
+## Investigate Logs During Deploy
+
+Treat a slow `Initializing database...` step as a crash-loop, not as a slow
+database. After compose comes up, Dallinger runs:
+
+```text
+docker compose -f ~/dallinger/<app>/docker-compose.yml exec -T web dallinger-housekeeper initdb
+```
+
+That command can only succeed if the `web` container stays running. If
+`web`/`clock`/`worker` crash on import, they restart every few seconds, `exec`
+never gets a healthy process, and the remote command is eventually killed. The
+deploy then reports `Error: exit code was not 0 (137)` (SIGKILL). 137 here is
+almost never "initdb is slow"; it is "the app never started."
+
+Do **not** wait for the deploy command to time out. As soon as you see
+`Initializing database...` with no `Database initialized.` within about 30
+seconds, inspect logs on the server while deploy is still running:
+
+```bash
+ssh -i <ssh-key> -o BatchMode=yes <ssh-user>@<ssh-host> \
+  "docker compose -f ~/dallinger/<app-name>/docker-compose.yml ps -a; \
+   docker compose -f ~/dallinger/<app-name>/docker-compose.yml logs --tail 200 web clock worker"
+```
+
+Dozzle is already printed in the deploy output before initdb
+(`https://logs.experiments1.cococo-lab.cornell.edu/`); filter by the app name.
+Prefer the compose logs above if Dozzle login is not yet available.
+
+Look first for:
+
+- `Restarting (1)` on `web`/`clock`/`worker` while redis/pgbouncer are healthy
+- `ModuleNotFoundError` / `ImportError` during
+  `from dallinger_experiment import experiment` or `import psynet.experiment`
+- Missing `psynet[experiment]` extras (`rpdb`, `pytest`, `yaspin`, `debugpy`)
+  when `requirements.txt` pinned bare `psynet` after the thin-bootstrap split
+- Tracebacks in `dallinger_heroku_web` / gunicorn `launch`
+
+Fix the import or dependency, destroy the leftover crash-looping app, then
+redeploy. Do not retry the same image hoping initdb will eventually succeed.
+
 ## Prepare The Recruiter Variants
 
-Both experiments' default `experiment.py` files use HotAir so running a
-directory directly cannot accidentally start paid recruitment. Before
-starting the three parallel deploy commands above, swap in the paid
-variants.
+The experiments' defaults cannot start paid recruitment (devprolific for
+`payment_flows_prolific`, HotAir for `audio_gibbs`). Before starting the
+three staggered deploy commands above, swap in the paid variants.
 
-1. `payment_flows_prolific` has a single paid variant, so swap it directly
-   on the deployment branch and commit (this is the state the main-checkout
-   deploy uses):
+1. `payment_flows_prolific` selects its recruiter via the config file, so
+   swap in the paid config directly on the deployment branch and commit
+   (this is the state the main-checkout deploy uses):
 
 ```bash
 cd <psynet-root>/tests/deployment/payment_flows_prolific
-cp experiment.py.prolific experiment.py
 cp config.txt.prolific config.txt
 # config.txt is gitignored under tests/deployment/.
-git add experiment.py && git add -f config.txt
-git commit -m "Switch payment_flows_prolific to Prolific variant for deployment"
+git add -f config.txt
+git commit -m "Switch payment_flows_prolific to Prolific recruiter for deployment"
 git push
 ```
 
@@ -390,7 +490,7 @@ git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
 git push -u origin deployment-tests/<base-tag>-audio-gibbs-lucid
 ```
 
-3. Deploy from the worktrees (these are the second and third parallel
+3. Deploy from the worktrees (these are the second and third staggered
    `psynet deploy ssh` commands shown above). Name the Lucid app
    `test-<base-tag>-audio-gibbs-lucid`, appending `-2`, `-3`, ... for repeat
    deployments (e.g. `test-v13-3-0rc1-audio-gibbs-lucid-1`).
@@ -772,12 +872,15 @@ and report any new errors separately.
 Useful search patterns for downloaded logs:
 
 ```text
-Traceback|TypeError|AttributeError|RuntimeError|Exception|ERROR|CRITICAL|Internal Server Error| 500 |raised an exception|ProlificServiceException|no assignment data|Session idle|Deadlock|UndefinedTable
+Traceback|TypeError|AttributeError|RuntimeError|Exception|ERROR|CRITICAL|Internal Server Error| 500 |raised an exception|ProlificServiceException|no assignment data|Session idle|Deadlock|UndefinedTable|ModuleNotFoundError
 assignment_returned|AssignmentReturned|AssignmentAbandoned|approve_participant_submission|bonus|reward|Prolific API request|Close recruitment|launch complete|Launched experiment
 ```
 
 Interpretation shortcuts:
 
+- `Error: exit code was not 0 (137)` during `dallinger-housekeeper initdb` means the `web` container was crash-looping (or was SIGKILL'd) so `docker compose exec` never completed. Inspect `web`/`clock`/`worker` logs immediately; do not treat it as a slow initdb.
+- `UniqueViolation` / `Key (typname, typnamespace)=(participant_status, 2200) already exists` during `CREATE TYPE participant_status` is a **local** Postgres race from two `psynet deploy ssh` prepares on the same developer database. It is not a remote initdb failure. Stagger starts (see "Stagger Local Prepare, Then Overlap Remote Builds") and retry only the failed deploy.
+- `ModuleNotFoundError: No module named 'rpdb'` (or `pytest`, `yaspin`, `debugpy`) at `import psynet.experiment` means the image was built from a bare `psynet` pin. Regenerated constraints must include `psynet[experiment]`.
 - `TypeError: sequence item 0: expected str instance, list found` in `Experiment.run_recruiter_checks` points to a PsyNet notifier combine/list bug.
 - `We found no assignment data for participant <id> with assignment ID <assignment_id> on Prolific!` should be cross-checked against the participant dashboard row for `status`, `failed`, `failed_reason`, and `failure_tags`.
 - `Prolific session not yet submitted (current status is 'ACTIVE')` during `approve_participant_submission` can be non-fatal if the worker continues to pay bonuses and later state is consistent.
