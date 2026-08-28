@@ -70,6 +70,14 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     their latest PsyNet versions by running ``psynet scripts update`` within an experiment directory.
     If the file is missing entirely, you can recreate it with ``psynet scripts scaffold``.
 
+-   ``.cursor/skills/psynet/`` contains PsyNet-managed Agent Skills for experiment
+    implementation, validation, deployment, data, and participant evidence.
+    ``psynet scripts update`` replaces this managed subdirectory with the version
+    shipped by the installed PsyNet release. The directory is gitignored and
+    excluded in ``deploy.toml`` so it is not committed or uploaded with the
+    experiment; other directories under ``.cursor/skills/`` are
+    experiment-owned, preserved on update, and remain eligible to track.
+
 -   ``Dockertag`` determines the name of the Docker image that is built for the present experiment.
     It defaults to the name of the current directory.
 

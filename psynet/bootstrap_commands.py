@@ -93,6 +93,8 @@ def scripts_update(ctx):
     """Overwrite experiment boilerplate with the latest PsyNet templates.
 
     Existing ``config.txt``, ``README.md``, and ``deploy.toml`` files are
+    preserved. PsyNet-managed Agent Skills under ``.cursor/skills/psynet`` are
+    refreshed; other skill directories under ``.cursor/skills/`` are
     preserved. Leftover generated ``docker/`` helper scripts are deleted.
     """
     from psynet.experiment_scaffold import scaffold_experiment_directory

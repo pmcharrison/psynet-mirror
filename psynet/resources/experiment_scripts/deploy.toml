@@ -4,6 +4,7 @@ version = 1
 [exclude]
 # Root-relative prefixes. data skips ./data, not static/data.
 paths = [
+    ".cursor/skills/psynet",
     ".deploy",
     "data",
     "deploy",

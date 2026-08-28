@@ -172,14 +172,10 @@ class StaticTrialMaker(ChainTrialMaker):
         for implementing performance checks.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
-        Defaults to ``True``.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
-        Defaults to ``True``.
+        See :class:`~psynet.trial.main.TrialMaker`. Defaults to ``True``.
 
     n_repeat_trials
         Number of repeat trials to present to the participant. These trials
@@ -264,7 +260,7 @@ class StaticTrialMaker(ChainTrialMaker):
         balance_across_nodes: bool = True,
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
-        fail_trials_on_premature_exit: bool = True,
+        fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = True,
         n_repeat_trials: int = 0,
         assets=None,

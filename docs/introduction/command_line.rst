@@ -263,7 +263,9 @@ generates ``constraints.txt`` when needed (unless ``--skip-constraints``).
 
 Overwrite scaffold-managed boilerplate with the latest templates from the
 installed PsyNet version. Existing ``config.txt``, ``README.md``, and
-``deploy.toml`` files are preserved. Leftover generated ``docker/`` helper
+``deploy.toml`` files are preserved. PsyNet-managed Agent Skills under
+``.cursor/skills/psynet`` are refreshed; other skill directories under
+``.cursor/skills/`` are preserved. Leftover generated ``docker/`` helper
 scripts (``docker/psynet``, ``docker/run``, and related files) are deleted;
 other files under ``docker/`` are kept. This is **not**
 ``psynet installation update``.
@@ -354,11 +356,17 @@ Simulate data for an experiment
 -------------------------------
 
 This command generates simulated data for an experiment by running the experiment's regression test
-and exporting the resulting data.
+and exporting the resulting data to ``data/simulated_data/``.
 
 .. code:: bash
 
   psynet simulate
+  psynet simulate --audit
+
+``--audit`` also zips that directory to ``./audit/artifacts/simulated_data.zip``
+and marks ``simulation_export`` present. Use ``--no-mark-present`` to write the
+zip without updating ``audit.json``. Iterate without ``--audit`` when you do
+not want the packet's evidence updated.
 
 
 .. _install:

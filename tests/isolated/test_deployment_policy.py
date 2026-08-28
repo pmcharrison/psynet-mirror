@@ -18,6 +18,7 @@ from psynet.timeline import PreDeployRoutine
 from psynet.utils import get_psynet_root, working_directory
 
 EXPECTED_EXCLUDE_PATHS = (
+    ".cursor/skills/psynet",
     ".deploy",
     "data",
     "deploy",

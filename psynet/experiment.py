@@ -163,6 +163,31 @@ def json_serial(obj):
     raise TypeError("Type not serializable")
 
 
+def _reject_overridden_fail_participant(cls):
+    """Reject PsyNet Experiment subclasses that replace fail_participant."""
+    if cls.__name__ == "Experiment" and cls.__module__ == "psynet.experiment":
+        return
+
+    psy_experiment = None
+    for base in cls.__mro__:
+        if (
+            base.__name__ == "Experiment"
+            and getattr(base, "__module__", "") == "psynet.experiment"
+        ):
+            psy_experiment = base
+            break
+    if (
+        psy_experiment is not None
+        and cls.fail_participant is not psy_experiment.fail_participant
+    ):
+        raise RuntimeError(
+            "Do not override Experiment.fail_participant. "
+            "That Dallinger hook is not part of PsyNet's failure contract "
+            "and used to fail owned nodes. Call Participant.fail() "
+            "or register a ParticipantFailRoutine instead."
+        )
+
+
 class ExperimentMeta(type):
     def __init__(cls, name, bases, dct):
         cls.assets = AssetRegistry(storage=cls.asset_storage)
@@ -206,6 +231,8 @@ def __init__(self, session=None):
     self.initial_recruitment_size = 1
             """
             )
+
+        _reject_overridden_fail_participant(cls)
 
 
 @register_table
@@ -2361,16 +2388,77 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return (not self.need_more_participants) and self.num_working_participants == 0
 
     def assignment_abandoned(self, participant):
-        participant.append_failure_tags("assignment_abandoned", "premature_exit")
-        super().assignment_abandoned(participant)
+        self._handle_premature_exit(participant, "assignment_abandoned")
 
     def assignment_returned(self, participant):
-        participant.append_failure_tags("assignment_returned", "premature_exit")
-        super().assignment_returned(participant)
+        self._handle_premature_exit(participant, "assignment_returned")
 
     def assignment_reassigned(self, participant):
-        participant.append_failure_tags("assignment_reassigned", "premature_exit")
-        super().assignment_reassigned(participant)
+        self._handle_premature_exit(participant, "assignment_reassigned")
+
+    def _handle_premature_exit(self, participant, cause_tag):
+        """Fail a still-working participant after a recruiter exit event.
+
+        Recruiter abandonment, return, and reassignment are premature exits.
+        See :doc:`/tutorials/participant_and_trial_failure`.
+        """
+        if participant.complete:
+            logger.info(
+                "Ignoring recruiter event %s for participant %i; they already completed.",
+                cause_tag,
+                participant.id,
+            )
+            return
+
+        if participant.failed:
+            participant.append_failure_tags(cause_tag)
+            return
+
+        participant.append_failure_tags(cause_tag, "premature_exit")
+        participant.fail()
+
+    def fail_participant(self, participant):
+        """Fail a participant using PsyNet's participant-failure contract.
+
+        This Dallinger compatibility shim calls
+        :meth:`~psynet.participant.Participant.fail` and does not fail owned
+        nodes. Do not override it; PsyNet rejects subclasses that do.
+        Recruiter premature-exit handling stays on
+        :meth:`_handle_premature_exit`.
+        """
+        participant.fail()
+
+    def data_check_failed(self, participant):
+        """Ignore Dallinger's post-submission data check.
+
+        PsyNet quality screening happens during the timeline via
+        :meth:`~psynet.trial.main.TrialMaker.performance_check`. Dallinger's
+        ``data_check`` runs after the participant has already submitted.
+        To fail a participant after they have finished, call
+        :meth:`~psynet.participant.Participant.fail`.
+        """
+        self._warn_unsupported_dallinger_submission_check("data_check", participant)
+
+    def attention_check_failed(self, participant):
+        """Ignore Dallinger's post-submission attention check.
+
+        See :meth:`data_check_failed`.
+        """
+        self._warn_unsupported_dallinger_submission_check(
+            "attention_check", participant
+        )
+
+    def _warn_unsupported_dallinger_submission_check(self, hook_name, participant):
+        logger.warning(
+            "PsyNet does not use Dallinger's %s hook for participant %i. "
+            "That check runs after the participant has already submitted. "
+            "Use TrialMaker.performance_check for in-experiment quality "
+            "screening, or Participant.fail() to fail someone after they "
+            "have finished. This method does not fail the participant or "
+            "their nodes.",
+            hook_name,
+            participant.id,
+        )
 
     def bonus(self, participant: Participant) -> float:
         """Calculate the reward the participant gets when completing the experiment.
