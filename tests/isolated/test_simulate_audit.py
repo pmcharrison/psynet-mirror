@@ -15,7 +15,7 @@ def _write_export_tree(root: Path) -> Path:
     return export_dir
 
 
-def test_resolve_audit_artifact_path_creates_artifacts(tmp_path):
+def test_resolve_audit_artifact_path_creates_artifacts(tmp_path, monkeypatch):
     from psynet.command_line import (
         AUDIT_SIMULATED_DATA_ZIP,
         resolve_audit_artifact_path,
@@ -24,9 +24,12 @@ def test_resolve_audit_artifact_path_creates_artifacts(tmp_path):
     audit_dir = tmp_path / "audit"
     audit_dir.mkdir()
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
-    resolved = resolve_audit_artifact_path(tmp_path, AUDIT_SIMULATED_DATA_ZIP)
-    assert resolved == audit_dir / "artifacts" / "simulated_data.zip"
+    resolved = resolve_audit_artifact_path(AUDIT_SIMULATED_DATA_ZIP)
+    assert (
+        resolved.resolve() == (audit_dir / "artifacts" / "simulated_data.zip").resolve()
+    )
     assert (audit_dir / "artifacts").is_dir()
 
 
@@ -42,7 +45,7 @@ def test_resolve_audit_artifact_path_autodetects_nested_audit(tmp_path, monkeypa
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
     monkeypatch.chdir(experiment)
 
-    resolved = resolve_audit_artifact_path(None, AUDIT_SIMULATED_DATA_ZIP)
+    resolved = resolve_audit_artifact_path(AUDIT_SIMULATED_DATA_ZIP)
     assert (
         resolved.resolve() == (audit_dir / "artifacts" / "simulated_data.zip").resolve()
     )
@@ -193,7 +196,7 @@ def test_run_simulate_audit_can_skip_mark_present(tmp_path, monkeypatch):
     assert any(b["artifact_id"] == "simulation_export" for b in manifest["blockers"])
 
 
-def test_mark_audit_artifact_present_updates_declared_path(tmp_path):
+def test_mark_audit_artifact_present_updates_declared_path(tmp_path, monkeypatch):
     import json
 
     from psynet.audit.cli import init_audit
@@ -215,8 +218,9 @@ def test_mark_audit_artifact_present_updates_declared_path(tmp_path):
         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     (audit_dir / "artifacts" / "performance.json").write_text("{}\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
-    mark_audit_artifact_present(tmp_path, AUDIT_PERFORMANCE_JSON)
+    mark_audit_artifact_present(AUDIT_PERFORMANCE_JSON)
 
     updated = json.loads(manifest_path.read_text(encoding="utf-8"))
     artifact = next(a for a in updated["artifacts"] if a["id"] == "performance_result")
@@ -224,7 +228,7 @@ def test_mark_audit_artifact_present_updates_declared_path(tmp_path):
     assert artifact["path"] == "artifacts/performance.json"
 
 
-def test_mark_audit_artifact_present_updates_performance_result(tmp_path):
+def test_mark_audit_artifact_present_updates_performance_result(tmp_path, monkeypatch):
     import json
 
     from psynet.audit.cli import init_audit
@@ -236,8 +240,9 @@ def test_mark_audit_artifact_present_updates_performance_result(tmp_path):
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
     (audit_dir / "artifacts" / "performance.json").write_text("{}\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
-    mark_audit_artifact_present(tmp_path, AUDIT_PERFORMANCE_JSON)
+    mark_audit_artifact_present(AUDIT_PERFORMANCE_JSON)
 
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     artifact = next(a for a in manifest["artifacts"] if a["id"] == "performance_result")
@@ -269,22 +274,6 @@ def test_simulate_no_mark_present_without_audit_errors(monkeypatch):
     assert "requires --audit" in result.output
 
 
-def test_simulate_experiment_without_audit_errors(monkeypatch, tmp_path):
-    from click.testing import CliRunner
-
-    from psynet.command_line import simulate
-
-    monkeypatch.setattr("psynet.utils.experiment_available", lambda: True)
-    monkeypatch.setattr(
-        "psynet.utils.ensure_experiment_directory_name_does_not_conflict",
-        lambda: None,
-    )
-
-    result = CliRunner().invoke(simulate, ["--experiment", str(tmp_path)])
-    assert result.exit_code != 0
-    assert "--experiment requires --audit" in result.output
-
-
 def test_performance_results_have_successful_bots():
     from psynet.command_line import performance_results_have_successful_bots
 
@@ -300,7 +289,9 @@ def test_performance_results_have_successful_bots():
     )
 
 
-def test_maybe_mark_performance_result_skips_zero_success(tmp_path, capsys):
+def test_maybe_mark_performance_result_skips_zero_success(
+    tmp_path, capsys, monkeypatch
+):
     import json
 
     from psynet.audit.cli import init_audit
@@ -309,10 +300,10 @@ def test_maybe_mark_performance_result_skips_zero_success(tmp_path, capsys):
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
     (audit_dir / "artifacts" / "performance.json").write_text("{}\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
     maybe_mark_performance_result_present(
         True,
-        tmp_path,
         [{"n_bots": 2, "bots_succeeded": 0}],
         mark_present=True,
     )
@@ -332,7 +323,6 @@ def test_simulate_help_documents_audit_option():
     result = CliRunner().invoke(simulate, ["--help"])
     assert result.exit_code == 0
     assert "--audit" in result.output
-    assert "--experiment" in result.output
     assert "simulated_data.zip" in result.output
     assert "--no-mark-present" in result.output
     assert "simulation_export" in result.output
@@ -353,7 +343,6 @@ def test_performance_test_ssh_help_documents_no_mark_present(monkeypatch):
     assert result.exit_code == 0
     assert "--no-mark-present" in result.output
     assert "--audit" in result.output
-    assert "--experiment" in result.output
 
 
 def test_performance_test_ssh_rejects_audit():

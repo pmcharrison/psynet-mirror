@@ -196,10 +196,6 @@ file without updating ``audit.json``:
     # From the experiment root
     psynet performance-test local --n-bots 40 --duration-minutes 5 --audit
 
-    # Another experiment directory
-    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit \
-      --experiment /path/to/experiment
-
 Do not combine ``--json-output`` and ``--audit``.
 
 This is useful for tracking performance over time or feeding results into other

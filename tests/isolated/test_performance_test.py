@@ -285,7 +285,7 @@ def test_performance_summary_handles_no_completed_or_failed_bots():
     assert isinstance(lines, list)
 
 
-def test_resolve_performance_json_output_prefers_explicit_path(tmp_path):
+def test_resolve_performance_json_output_prefers_explicit_path(tmp_path, monkeypatch):
     from pathlib import Path
 
     import click
@@ -299,15 +299,19 @@ def test_resolve_performance_json_output_prefers_explicit_path(tmp_path):
     audit_dir = tmp_path / "audit"
     audit_dir.mkdir()
     (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
-    resolved = resolve_performance_json_output(audit=True, experiment=tmp_path)
-    assert Path(resolved) == audit_dir / "artifacts" / "performance.json"
+    monkeypatch.chdir(tmp_path)
+    resolved = resolve_performance_json_output(audit=True)
+    assert (
+        Path(resolved).resolve()
+        == (audit_dir / "artifacts" / "performance.json").resolve()
+    )
     assert (audit_dir / "artifacts").is_dir()
 
     with pytest.raises(click.UsageError):
         resolve_performance_json_output("results.json", audit=True)
 
 
-def test_resolve_performance_json_output_requires_manifest(tmp_path):
+def test_resolve_performance_json_output_requires_manifest(tmp_path, monkeypatch):
 
     import click
     import pytest
@@ -316,8 +320,9 @@ def test_resolve_performance_json_output_requires_manifest(tmp_path):
 
     audit_dir = tmp_path / "attempt"
     audit_dir.mkdir()
+    monkeypatch.chdir(audit_dir)
     with pytest.raises(click.UsageError, match="No audit packet found"):
-        resolve_performance_json_output(audit=True, experiment=audit_dir)
+        resolve_performance_json_output(audit=True)
 
 
 def test_resolve_performance_json_output_autodetects_nested_audit(

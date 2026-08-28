@@ -36,8 +36,7 @@ psynet performance-test local \
 ```
 
 That writes `audit/artifacts/performance.json` and marks `performance_result`
-present. Use `--json-output` only for a custom non-audit path. Pass
-`--experiment` when PsyNet may run from a temporary deployment directory.
+present. Use `--json-output` only for a custom non-audit path.
 If the experiment customizes `run_bot`, preserve `bot=None` support and delegate
 to `super().run_bot(...)` for framework-created bots; `psynet performance-test`
 calls `exp.run_bot(time_factor=...)` without passing a bot object.

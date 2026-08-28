@@ -3388,35 +3388,20 @@ def _audit_flag_option(help_text: str):
     )
 
 
-_test_options["experiment"] = click.option(
-    "--experiment",
-    "experiment",
-    type=click.Path(file_okay=False, path_type=Path),
-    default=None,
-    help=(
-        "Experiment directory (default: current directory). "
-        "The audit packet is always <experiment>/audit/. "
-        "If the current directory is audit/, the experiment is its parent."
-    ),
-)
-
-
 _test_options["performance_audit"] = _audit_flag_option(
     """
-    Write performance results to <experiment>/audit/artifacts/performance.json
-    and mark performance_result present. Combine with --experiment when not
-    running from the experiment directory. Do not combine with
-    --json-output. Use --no-mark-present to write the file without updating
-    audit.json."""
+    Write performance results to ./audit/artifacts/performance.json
+    and mark performance_result present. Run from the experiment directory.
+    Do not combine with --json-output. Use --no-mark-present to write the
+    file without updating audit.json."""
 )
 
 _test_options["simulate_audit"] = _audit_flag_option(
     """
     After exporting data/simulated_data/, zip it to
-    <experiment>/audit/artifacts/simulated_data.zip and mark
-    simulation_export present. Combine with --experiment when not running from
-    the experiment directory. Use --no-mark-present to write the zip without
-    updating audit.json."""
+    ./audit/artifacts/simulated_data.zip and mark simulation_export present.
+    Run from the experiment directory. Use --no-mark-present to write the zip
+    without updating audit.json."""
 )
 
 _test_options["audit_no_mark_present"] = click.option(
@@ -3435,28 +3420,25 @@ AUDIT_ARTIFACT_IDS = {
 }
 
 
-def resolve_audit_root(experiment=None) -> Path:
-    """Resolve ``<experiment>/audit`` for ``--audit`` / audit CLI commands."""
+def resolve_audit_root() -> Path:
+    """Resolve ``./audit`` for ``--audit`` / audit CLI commands."""
     from psynet.audit.cli import resolve_audit_dir
 
     try:
-        return resolve_audit_dir(experiment, require_manifest=True)
+        return resolve_audit_dir(require_manifest=True)
     except ValueError as exc:
         raise click.UsageError(str(exc)) from exc
 
 
-def resolve_audit_artifact_path(experiment, relative_path: Path) -> Path:
-    """Resolve ``<experiment>/audit/<relative_path>``, creating parents.
+def resolve_audit_artifact_path(relative_path: Path) -> Path:
+    """Resolve ``./audit/<relative_path>``, creating parents.
 
     Parameters
     ----------
-    experiment :
-        Experiment directory from ``--experiment``. ``None`` uses the current
-        directory (or the parent when cwd is ``audit/``).
     relative_path :
         Path relative to the resolved audit folder.
     """
-    output_path = resolve_audit_root(experiment) / relative_path
+    output_path = resolve_audit_root() / relative_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
     return output_path
 
@@ -3469,13 +3451,7 @@ def require_audit_when_skipping_mark_present(
         raise click.UsageError("--no-mark-present requires --audit.")
 
 
-def require_experiment_with_audit(audit: bool, experiment) -> None:
-    """Reject ``--experiment`` unless ``--audit`` is set."""
-    if experiment is not None and not audit:
-        raise click.UsageError("--experiment requires --audit.")
-
-
-def mark_audit_artifact_present(experiment, relative_path: Path) -> Path:
+def mark_audit_artifact_present(relative_path: Path) -> Path:
     """Mark the canonical artifact for ``relative_path`` present in the packet.
 
     Updates the artifact's declared path to ``relative_path`` so a custom
@@ -3486,7 +3462,7 @@ def mark_audit_artifact_present(experiment, relative_path: Path) -> Path:
     artifact_id = AUDIT_ARTIFACT_IDS.get(Path(relative_path))
     if artifact_id is None:
         raise RuntimeError(f"No audit artifact id is registered for {relative_path}.")
-    audit_root = resolve_audit_root(experiment)
+    audit_root = resolve_audit_root()
     try:
         mark_artifact_present(
             audit_root, artifact_id, path=Path(relative_path).as_posix()
@@ -3499,7 +3475,6 @@ def mark_audit_artifact_present(experiment, relative_path: Path) -> Path:
 
 def maybe_mark_audit_artifact_present(
     audit: bool,
-    experiment,
     relative_path: Path,
     *,
     mark_present: bool,
@@ -3507,7 +3482,7 @@ def maybe_mark_audit_artifact_present(
     """Mark the written ``--audit`` artifact present unless the caller opted out."""
     if not audit or not mark_present:
         return
-    mark_audit_artifact_present(experiment, relative_path)
+    mark_audit_artifact_present(relative_path)
 
 
 def performance_results_have_successful_bots(all_results) -> bool:
@@ -3526,7 +3501,6 @@ def performance_results_have_successful_bots(all_results) -> bool:
 
 def maybe_mark_performance_result_present(
     audit: bool,
-    experiment,
     all_results,
     *,
     mark_present: bool,
@@ -3541,10 +3515,10 @@ def maybe_mark_performance_result_present(
             err=True,
         )
         return
-    mark_audit_artifact_present(experiment, AUDIT_PERFORMANCE_JSON)
+    mark_audit_artifact_present(AUDIT_PERFORMANCE_JSON)
 
 
-def resolve_performance_json_output(json_output=None, audit=False, experiment=None):
+def resolve_performance_json_output(json_output=None, audit=False):
     """Resolve the JSON output path for a performance test.
 
     Parameters
@@ -3553,8 +3527,6 @@ def resolve_performance_json_output(json_output=None, audit=False, experiment=No
         Explicit JSON output path from ``--json-output``.
     audit :
         Whether ``--audit`` was set.
-    experiment :
-        Experiment directory from ``--experiment``.
 
     Returns
     -------
@@ -3568,7 +3540,7 @@ def resolve_performance_json_output(json_output=None, audit=False, experiment=No
         return str(json_output)
     if not audit:
         return None
-    return str(resolve_audit_artifact_path(experiment, AUDIT_PERFORMANCE_JSON))
+    return str(resolve_audit_artifact_path(AUDIT_PERFORMANCE_JSON))
 
 
 def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
@@ -3618,18 +3590,18 @@ def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
 
 
 def package_simulated_data_for_audit(
-    experiment, export_path: Path = SIMULATED_DATA_EXPORT_PATH
+    export_path: Path = SIMULATED_DATA_EXPORT_PATH,
 ) -> Path:
     """Zip a simulate export into the audit packet's simulated-data artifact."""
-    zip_path = resolve_audit_artifact_path(experiment, AUDIT_SIMULATED_DATA_ZIP)
+    zip_path = resolve_audit_artifact_path(AUDIT_SIMULATED_DATA_ZIP)
     write_directory_zip(export_path, zip_path)
     return zip_path
 
 
-def _run_simulate(ctx, audit=False, experiment=None, mark_present=True):
+def _run_simulate(ctx, audit=False, mark_present=True):
     """Run the experiment test, export simulated data, and optionally zip it."""
     if audit:
-        resolve_audit_root(experiment)
+        resolve_audit_root()
     ctx.invoke(test__local)
     ctx.invoke(
         export__local,
@@ -3640,10 +3612,10 @@ def _run_simulate(ctx, audit=False, experiment=None, mark_present=True):
     )
     if not audit:
         return
-    zip_path = package_simulated_data_for_audit(experiment)
+    zip_path = package_simulated_data_for_audit()
     click.echo(f"Simulated data (audit zip): {zip_path}")
     maybe_mark_audit_artifact_present(
-        audit, experiment, AUDIT_SIMULATED_DATA_ZIP, mark_present=mark_present
+        audit, AUDIT_SIMULATED_DATA_ZIP, mark_present=mark_present
     )
 
 
@@ -3665,7 +3637,6 @@ def performance_test(ctx):
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
 @_test_options["performance_audit"]
-@_test_options["experiment"]
 @_test_options["audit_no_mark_present"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 def performance_test__local(
@@ -3676,7 +3647,6 @@ def performance_test__local(
     duration_minutes=None,
     json_output=None,
     audit=False,
-    experiment=None,
     no_mark_present=False,
     debug=False,
 ):
@@ -3691,10 +3661,7 @@ def performance_test__local(
     Use --existing to connect to an already-running server instead.
     """
     require_audit_when_skipping_mark_present(audit, no_mark_present)
-    require_experiment_with_audit(audit, experiment)
-    json_output = resolve_performance_json_output(
-        json_output, audit=audit, experiment=experiment
-    )
+    json_output = resolve_performance_json_output(json_output, audit=audit)
     if existing:
         all_results = _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
@@ -3704,7 +3671,7 @@ def performance_test__local(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
     maybe_mark_performance_result_present(
-        audit, experiment, all_results, mark_present=not no_mark_present
+        audit, all_results, mark_present=not no_mark_present
     )
 
 
@@ -4058,7 +4025,6 @@ def _run_performance_test_with_new_server(
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
 @_test_options["performance_audit"]
-@_test_options["experiment"]
 @_test_options["audit_no_mark_present"]
 @click.pass_context
 def performance_test__docker_ssh(
@@ -4071,7 +4037,6 @@ def performance_test__docker_ssh(
     duration_minutes=None,
     json_output=None,
     audit=False,
-    experiment=None,
     no_mark_present=False,
 ):
     """
@@ -4090,7 +4055,6 @@ def performance_test__docker_ssh(
     ``psynet performance-test local --json-output`` or ``--audit`` instead.
     """
     require_audit_when_skipping_mark_present(audit, no_mark_present)
-    require_experiment_with_audit(audit, experiment)
     if json_output or audit:
         raise click.UsageError(
             "--json-output, --audit, and --no-mark-present are not yet "
@@ -4135,26 +4099,22 @@ def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minut
 
 @psynet.command()
 @_test_options["simulate_audit"]
-@_test_options["experiment"]
 @_test_options["audit_no_mark_present"]
 @click.pass_context
 @require_exp_directory
-def simulate(ctx, audit=False, experiment=None, no_mark_present=False):
+def simulate(ctx, audit=False, no_mark_present=False):
     """
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
 
     Writes ``data/simulated_data/``. Pass ``--audit`` to also zip that directory
-    to ``<experiment>/audit/artifacts/simulated_data.zip`` and mark
+    to ``./audit/artifacts/simulated_data.zip`` and mark
     ``simulation_export`` present.
     """
     # No need to catch the exit code here, because test__local now uses sys.exit()
     # if an error occurs.
     require_audit_when_skipping_mark_present(audit, no_mark_present)
-    require_experiment_with_audit(audit, experiment)
-    _run_simulate(
-        ctx, audit=audit, experiment=experiment, mark_present=not no_mark_present
-    )
+    _run_simulate(ctx, audit=audit, mark_present=not no_mark_present)
 
 
 @psynet.command(name="list-experiment-dirs")
@@ -4188,12 +4148,12 @@ def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
         print(test_)
 
 
-def _cli_resolve_audit_dir(experiment=None, *, require_manifest=False):
-    """Resolve ``<experiment>/audit`` for audit subcommands."""
+def _cli_resolve_audit_dir(*, require_manifest=False):
+    """Resolve ``./audit`` for audit subcommands."""
     from psynet.audit.cli import resolve_audit_dir
 
     try:
-        return resolve_audit_dir(experiment, require_manifest=require_manifest)
+        return resolve_audit_dir(require_manifest=require_manifest)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
 
@@ -4208,23 +4168,22 @@ def audit(ctx):
     An audit records artifacts, checks, and blockers for human inspection.
     It does not run tests or collect evidence for you. Audits always live in
     ./audit/ inside the experiment directory. Run these commands from the
-    experiment, or from inside audit/, or pass --experiment.
+    experiment directory.
     """
     pass
 
 
 @audit.command("init")
-@_test_options["experiment"]
 @click.option(
     "--force",
     is_flag=True,
     help="Replace audit.json and starter section files.",
 )
-def audit_init(experiment, force):
-    """Create a starter experiment audit at ``<experiment>/audit``."""
+def audit_init(force):
+    """Create a starter experiment audit at ``./audit``."""
     from psynet.audit.cli import init_audit, init_success_messages
 
-    resolved = _cli_resolve_audit_dir(experiment)
+    resolved = _cli_resolve_audit_dir()
     try:
         init_audit(resolved, force)
     except (FileExistsError, ValueError) as exc:
@@ -4234,8 +4193,7 @@ def audit_init(experiment, force):
 
 
 @audit.command("validate")
-@_test_options["experiment"]
-def audit_validate(experiment):
+def audit_validate():
     """Validate an experiment audit.
 
     Exit 0 means the packet is coherent, not that the experiment is ready
@@ -4247,7 +4205,7 @@ def audit_validate(experiment):
         validate_success_message,
     )
 
-    resolved = _cli_resolve_audit_dir(experiment, require_manifest=True)
+    resolved = _cli_resolve_audit_dir(require_manifest=True)
     problems = validate_audit(resolved)
     if problems:
         for problem in problems:
@@ -4259,7 +4217,6 @@ def audit_validate(experiment):
 
 
 @audit.command("render")
-@_test_options["experiment"]
 @click.option(
     "--output",
     type=click.Path(),
@@ -4271,13 +4228,13 @@ def audit_validate(experiment):
     is_flag=True,
     help="Render even when validate would fail.",
 )
-def audit_render(experiment, output, allow_invalid):
+def audit_render(output, allow_invalid):
     """Render a static experiment audit site."""
     from pathlib import Path
 
     from psynet.audit.cli import AuditValidationError, render_audit_site
 
-    resolved = _cli_resolve_audit_dir(experiment, require_manifest=True)
+    resolved = _cli_resolve_audit_dir(require_manifest=True)
     try:
         site_dir = render_audit_site(
             resolved,
@@ -4296,7 +4253,6 @@ def audit_render(experiment, output, allow_invalid):
 
 
 @audit.command("serve")
-@_test_options["experiment"]
 @click.option(
     "--host",
     default="127.0.0.1",
@@ -4320,7 +4276,7 @@ def audit_render(experiment, output, allow_invalid):
     is_flag=True,
     help="With --render, allow rendering even when validate would fail.",
 )
-def audit_serve(experiment, host, port, render, allow_invalid):
+def audit_serve(host, port, render, allow_invalid):
     """Serve the rendered experiment audit site over HTTP.
 
     Does not create a public tunnel; use a separate tunnel helper when remote
@@ -4336,7 +4292,7 @@ def audit_serve(experiment, host, port, render, allow_invalid):
     if allow_invalid and not render:
         raise click.UsageError("--allow-invalid is only valid together with --render.")
 
-    resolved = _cli_resolve_audit_dir(experiment, require_manifest=True)
+    resolved = _cli_resolve_audit_dir(require_manifest=True)
     try:
         if render:
             site_dir = render_audit_site(
@@ -4359,17 +4315,16 @@ def audit_serve(experiment, host, port, render, allow_invalid):
 
 @audit.command("mark-present")
 @click.argument("artifact_id")
-@_test_options["experiment"]
 @click.option(
     "--path",
     default=None,
     help="Optional new artifact path relative to the audit directory.",
 )
-def audit_mark_present(artifact_id, experiment, path):
+def audit_mark_present(artifact_id, path):
     """Mark an artifact present and remove its blockers."""
     from psynet.audit.cli import mark_artifact_present
 
-    resolved = _cli_resolve_audit_dir(experiment, require_manifest=True)
+    resolved = _cli_resolve_audit_dir(require_manifest=True)
     try:
         mark_artifact_present(resolved, artifact_id, path)
     except (OSError, ValueError) as exc:

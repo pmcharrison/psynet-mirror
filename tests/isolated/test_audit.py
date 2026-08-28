@@ -1041,7 +1041,7 @@ def test_mark_artifact_present_accepts_notebook_larger_than_preview(
     assert "Open raw notebook" in index
 
 
-def test_init_from_inside_audit_does_not_nest(
+def test_init_from_inside_audit_errors(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1053,20 +1053,9 @@ def test_init_from_inside_audit_does_not_nest(
 
     result = run_audit_cli("init", "--force")
 
-    assert result.exit_code == 0
-    assert (experiment_dir / "audit" / "audit.json").is_file()
-    assert not (experiment_dir / "audit" / "audit" / "audit.json").exists()
-
-
-def test_experiment_option_rejects_audit_folder(tmp_path: Path) -> None:
-    experiment_dir = tmp_path / "experiment"
-    audit_dir = experiment_dir / "audit"
-    init_audit(audit_dir)
-
-    result = run_audit_cli("validate", "--experiment", str(audit_dir))
-
     assert result.exit_code != 0
-    assert "looks like an audit folder" in result.output
+    assert "not from audit/" in result.output
+    assert not (experiment_dir / "audit" / "audit" / "audit.json").exists()
 
 
 def test_audit_cli_rejects_positional_packet_path() -> None:
@@ -1074,25 +1063,6 @@ def test_audit_cli_rejects_positional_packet_path() -> None:
     assert result.exit_code != 0
     combined = f"{result.output}{result.stderr}"
     assert "unexpected extra argument" in combined.lower()
-
-
-def test_init_custom_experiment_directory_creates_nested_audit(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    experiment_dir = tmp_path / "experiment"
-    experiment_dir.mkdir()
-    monkeypatch.chdir(experiment_dir)
-
-    result = run_audit_cli("init", "--experiment", "review")
-
-    assert result.exit_code == 0
-    audit_dir = experiment_dir / "review" / "audit"
-    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
-    assert "source_path" not in manifest["experiment"]
-    write(experiment_dir / "review" / "experiment.py", 'LABEL = "custom packet"\n')
-    site_dir = render_audit_site(audit_dir)
-    assert "custom packet" in (site_dir / "index.html").read_text(encoding="utf-8")
 
 
 def test_init_creates_nested_audit(
@@ -1228,16 +1198,22 @@ def test_collect_audit_warnings_when_ffprobe_unavailable(
     assert validate_audit(audit_dir) == []
 
 
-def test_resolve_audit_dir_requires_manifest(tmp_path: Path) -> None:
+def test_resolve_audit_dir_requires_manifest(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from psynet.audit.cli import resolve_audit_dir
 
     missing = tmp_path / "nowhere"
+    missing.mkdir()
+    monkeypatch.chdir(missing)
     with pytest.raises(ValueError, match="No audit packet found"):
-        resolve_audit_dir(missing, require_manifest=True)
+        resolve_audit_dir(require_manifest=True)
 
 
 def test_validate_audit_accepts_unknown_extension_ids_with_warning(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from psynet.audit.cli import collect_audit_warnings
 
@@ -1261,7 +1237,8 @@ def test_validate_audit_accepts_unknown_extension_ids_with_warning(
     assert not any("psynetskills.challenge" in warning for warning in warnings)
     assert any("example.unknown" in warning for warning in warnings)
 
-    result = run_audit_cli("validate", "--experiment", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    result = run_audit_cli("validate")
     assert result.exit_code == 0
     assert "Warning:" in result.stderr
     assert "example.unknown" in result.stderr
@@ -1292,13 +1269,15 @@ def test_validate_audit_fails_for_invalid_notebook_json(tmp_path: Path) -> None:
     assert any("invalid notebook JSON" in problem for problem in problems)
 
 
-def test_validate_audit_cli_exits_nonzero_on_problems(tmp_path: Path) -> None:
+def test_validate_audit_cli_exits_nonzero_on_problems(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     audit_dir = tmp_path / "audit"
     write(audit_dir / "audit.json", json.dumps(audit_manifest()) + "\n")
+    monkeypatch.chdir(tmp_path)
 
-    result = CliRunner().invoke(
-        psynet, ["audit", "validate", "--experiment", str(tmp_path)]
-    )
+    result = CliRunner().invoke(psynet, ["audit", "validate"])
 
     assert result.exit_code == 1
     combined = f"{result.output}{result.stderr}"
@@ -1353,10 +1332,15 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
     assert validate_audit(audit_dir) == []
 
 
-def test_init_audit_cli_prints_next_steps(tmp_path: Path) -> None:
+def test_init_audit_cli_prints_next_steps(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     experiment_dir = tmp_path / "experiment"
+    experiment_dir.mkdir()
+    monkeypatch.chdir(experiment_dir)
 
-    result = run_audit_cli("init", "--experiment", str(experiment_dir))
+    result = run_audit_cli("init")
 
     assert result.exit_code == 0
     assert "Initialized experiment audit directory" in result.output
@@ -1462,11 +1446,15 @@ def test_mark_artifact_present_updates_manifest_and_drops_blocker(
     assert validate_audit(audit_dir) == []
 
 
-def test_validate_success_message_mentions_blockers(tmp_path: Path) -> None:
+def test_validate_success_message_mentions_blockers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
+    monkeypatch.chdir(tmp_path)
 
-    result = run_audit_cli("validate", "--experiment", str(tmp_path))
+    result = run_audit_cli("validate")
 
     assert result.exit_code == 0
     assert "Audit packet coherent" in result.output
@@ -1474,7 +1462,7 @@ def test_validate_success_message_mentions_blockers(tmp_path: Path) -> None:
     assert "readiness incomplete" in result.output
 
 
-def test_resolve_audit_dir_autodetects_nested_layout(
+def test_resolve_audit_dir_nested_layout(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1486,24 +1474,19 @@ def test_resolve_audit_dir_autodetects_nested_layout(
     write(nested / "audit.json", "{}\n")
     monkeypatch.chdir(experiment)
 
-    assert resolve_audit_dir(None) == Path("audit")
-    assert resolve_audit_dir(Path(".")) == Path("audit")
-    with pytest.raises(ValueError, match="looks like an audit folder"):
-        resolve_audit_dir(Path("audit"))
+    assert resolve_audit_dir() == Path("audit")
+    assert resolve_audit_dir(require_manifest=True) == Path("audit")
 
     monkeypatch.chdir(nested)
-    assert resolve_audit_dir(None) == Path(".")
-    with pytest.raises(ValueError, match="looks like an audit folder"):
-        resolve_audit_dir(Path("."))
+    with pytest.raises(ValueError, match="not from audit/"):
+        resolve_audit_dir()
 
     leftover = tmp_path / "legacy"
     leftover.mkdir()
     write(leftover / "audit.json", "{}\n")
-    with pytest.raises(ValueError, match="Audits must live in ./audit/"):
-        resolve_audit_dir(leftover)
     monkeypatch.chdir(leftover)
     with pytest.raises(ValueError, match="Audits must live in ./audit/"):
-        resolve_audit_dir(None)
+        resolve_audit_dir()
 
 
 def test_validate_cli_accepts_experiment_root_dot(
@@ -1524,16 +1507,18 @@ def test_validate_cli_accepts_experiment_root_dot(
     assert "readiness incomplete" in result.output
 
 
-def test_render_cli_blocked_by_validation(tmp_path: Path) -> None:
+def test_render_cli_blocked_by_validation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     manifest["artifacts"][0]["status"] = "done"
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    monkeypatch.chdir(tmp_path)
 
-    result = CliRunner().invoke(
-        psynet, ["audit", "render", "--experiment", str(tmp_path)]
-    )
+    result = CliRunner().invoke(psynet, ["audit", "render"])
 
     assert result.exit_code != 0
     combined = f"{result.output}{result.stderr}"
@@ -1625,13 +1610,15 @@ def test_make_audit_site_server_requires_index(tmp_path: Path) -> None:
         make_audit_site_server(site_dir, host="127.0.0.1", port=0)
 
 
-def test_audit_serve_cli_errors_when_site_missing(tmp_path: Path) -> None:
+def test_audit_serve_cli_errors_when_site_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
+    monkeypatch.chdir(tmp_path)
 
-    result = CliRunner().invoke(
-        psynet, ["audit", "serve", "--experiment", str(tmp_path), "--port", "0"]
-    )
+    result = CliRunner().invoke(psynet, ["audit", "serve", "--port", "0"])
 
     assert result.exit_code != 0
     combined = f"{result.output}{result.stderr}"
@@ -1661,13 +1648,12 @@ def test_audit_serve_cli_render_then_serve(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(audit_cli, "serve_audit_site", fake_serve)
 
+    monkeypatch.chdir(tmp_path)
     result = CliRunner().invoke(
         psynet,
         [
             "audit",
             "serve",
-            "--experiment",
-            str(tmp_path),
             "--render",
             "--allow-invalid",
             "--host",

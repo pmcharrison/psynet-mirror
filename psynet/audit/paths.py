@@ -30,60 +30,34 @@ def _flat_packet_error(location: Path) -> ValueError:
     )
 
 
-def _audit_folder_as_experiment_error(location: Path) -> ValueError:
-    """Return an error when an experiment path is actually the packet."""
+def _run_from_experiment_error() -> ValueError:
+    """Return an error when the current directory is the audit packet."""
 
-    return ValueError(
-        f"{location} looks like an audit folder; pass the experiment "
-        "directory (the parent of audit/), or omit --experiment when the "
-        "current directory is the experiment or audit/"
-    )
+    return ValueError("Run this command from the experiment directory, not from audit/")
 
 
-def resolve_experiment_root(experiment: Path | str | None = None) -> Path:
-    """Return the experiment directory.
+def resolve_experiment_root() -> Path:
+    """Return the current directory as the experiment root.
 
-    With no argument, the current directory is the experiment unless it is
-    already the ``audit/`` packet, in which case the parent is used.
-    An explicit path is always the experiment root, never the packet.
+    Audits are always ``./audit/``. Running from inside that packet is an
+    error, as is a leftover ``audit.json`` in the experiment root.
     """
-
-    if experiment is not None:
-        requested = Path(experiment)
-        if _is_audit_folder(requested):
-            raise _audit_folder_as_experiment_error(requested)
-        if _has_audit_manifest(requested):
-            raise _flat_packet_error(requested)
-        return requested
 
     cwd = Path(".")
     if _is_audit_folder(cwd):
-        return Path("..")
+        raise _run_from_experiment_error()
     if _has_audit_manifest(cwd):
         raise _flat_packet_error(cwd)
     return cwd
 
 
-def resolve_audit_dir(
-    experiment: Path | str | None = None,
-    *,
-    require_manifest: bool = False,
-) -> Path:
-    """Return ``<experiment>/audit``.
+def resolve_audit_dir(*, require_manifest: bool = False) -> Path:
+    """Return ``./audit`` for the current experiment directory."""
 
-    ``experiment`` is the experiment root. Omit it to use the current
-    directory, or the parent when the current directory is ``audit/``.
-    """
-
-    if experiment is None and _is_audit_folder(Path(".")):
-        resolved = Path(".")
-    else:
-        resolved = resolve_experiment_root(experiment) / AUDIT_DIR_NAME
-
+    resolved = resolve_experiment_root() / AUDIT_DIR_NAME
     if require_manifest and not _has_audit_manifest(resolved):
-        display = Path(experiment) if experiment is not None else Path(".")
         raise ValueError(
-            f"No audit packet found at {display}; expected {AUDIT_DIR_NAME}/audit.json",
+            f"No audit packet found; expected {AUDIT_DIR_NAME}/audit.json",
         )
     return resolved
 

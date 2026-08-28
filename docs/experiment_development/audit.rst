@@ -14,11 +14,10 @@ on), then record the outcomes in ``audit/audit.json``.
 **Default layout:** run the CLI from the experiment directory. The audit always
 lives at ``./audit/``. Experiment source is that experiment directory (the parent
 of ``audit/``). If ``experiment.py`` is in a subdirectory, set
-``experiment.entry_point``. Commands take no packet path: use
-``--experiment`` only when you are not already in the experiment (or inside
-``audit/``). ``psynet simulate --audit`` and
+``experiment.entry_point``. Commands take no packet path and no
+``--experiment`` option. ``psynet simulate --audit`` and
 ``psynet performance-test local --audit`` are boolean flags; they write into
-this experiment's ``./audit/``.
+this experiment's ``./audit/``. Running from inside ``audit/`` is an error.
 
 Leftover flat packets with ``audit.json`` in the experiment root are rejected
 with a message to move them to ``./audit/audit.json``. Leftover

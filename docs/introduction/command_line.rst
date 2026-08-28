@@ -359,8 +359,7 @@ and exporting the resulting data to ``data/simulated_data/``.
 
 ``--audit`` also zips that directory to ``./audit/artifacts/simulated_data.zip``
 and marks ``simulation_export`` present. Use ``--no-mark-present`` to write the
-zip without updating ``audit.json``. Pass ``--experiment`` when you are not
-already in the experiment directory. Iterate without ``--audit`` when you do
+zip without updating ``audit.json``. Iterate without ``--audit`` when you do
 not want the packet's evidence updated.
 
 
