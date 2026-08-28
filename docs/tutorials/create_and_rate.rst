@@ -135,7 +135,8 @@ validation:
 
 Creators then only receive heads that still need creators. Raters receive
 heads that are ready for raters, and they wait or exit on heads whose creator
-slots are filled but not yet finalized.
+slots are filled but not yet finalized. Heads that still need creators are
+not rater-eligible.
 
 Also, you can easily modify the number of trials for creators and raters, e.g.:
 

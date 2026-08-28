@@ -132,7 +132,14 @@ Search custom trial makers for ``find_networks``, ``find_node``,
   ``on_trial_created``. Returning ``None`` from ``select_chain`` or
   ``select_node`` raises ``TypeError``. Return the selected object from the
   supplied ``chains`` or ``nodes`` list; a newly queried copy with the same
-  id raises ``ValueError``.
+  id raises ``ValueError``. ``find_chains`` and ``find_nodes`` must return a
+  list, ``"wait"``, or ``"exit"``; ``None`` raises ``TypeError``.
+* ``select_chain`` and ``select_node`` replace ranking in
+  ``prioritize_networks``. They receive a nonempty eligible list and cannot
+  return ``None``, ``[]``, ``"wait"``, or ``"exit"``. Logic that emptied the
+  candidate set or chose to wait belongs in ``find_chains`` or
+  ``find_nodes``: call ``super()``, then filter or return ``"wait"`` /
+  ``"exit"``.
 * ``get_trial_class`` must return a concrete trial class. Remove unavailable
   chains or nodes in the corresponding custom filter instead of returning
   ``None``. Synchronized follower trials reuse the leader's concrete trial

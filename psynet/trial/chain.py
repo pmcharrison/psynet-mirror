@@ -1831,6 +1831,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         blocks, asynchronous processes, and
         :meth:`~psynet.trial.chain.ChainTrialMaker.custom_chain_filter`).
         Override ``select_chain`` to change which eligible chain is assigned.
+        To wait, exit, or drop candidates after those built-in checks, override
+        this method, call ``super().find_chains``, then filter or return
+        ``"wait"`` / ``"exit"``. ``select_chain`` cannot return those outcomes.
 
         Parameters
         ----------
@@ -2051,8 +2054,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         """Filter eligible chains before selection.
 
         Override this to remove chains the participant must not receive.
-        The default returns the original list. Ranking among eligible chains
-        belongs in ``select_chain``.
+        The default returns the original list, or applies a deprecated
+        ``custom_network_filter`` override when that is the only filter present.
+        Ranking among eligible chains belongs in ``select_chain``.
         """
         return self._apply_deprecated_network_filter(
             chains,

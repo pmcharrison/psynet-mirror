@@ -2774,6 +2774,11 @@ class NetworkTrialMaker(TrialMaker):
         """Select from a discovered list, or pass through ``wait`` / ``exit``."""
         if isinstance(discovered, str):
             return discovered
+        if not isinstance(discovered, list):
+            raise TypeError(
+                "find_chains / find_nodes must return a list of eligible values, "
+                "'wait', or 'exit'; it must not return None"
+            )
         if not discovered:
             return "exit"
         return self._coerce_selection(
@@ -2798,7 +2803,8 @@ class NetworkTrialMaker(TrialMaker):
             selection = Selection(value=selection)
         if not any(selection.value is value for value in allowed_values):
             raise ValueError(
-                f"{method_name} must select one of the supplied eligible values"
+                f"{method_name} must select one of the supplied eligible values "
+                "(same object identity, not a re-queried copy with the same id)"
             )
         return selection
 

@@ -407,6 +407,28 @@ def test_empty_discovery_exits_without_calling_selection_hook(
     )
 
 
+@pytest.mark.parametrize(
+    "trial_maker_factory, find_hook",
+    [
+        (make_trial_maker, "find_chains"),
+        (make_static_trial_maker, "find_nodes"),
+    ],
+)
+@pytest.mark.parametrize("bad_value", [None, object()])
+def test_discovery_rejects_non_list_results(
+    trial_maker_factory, find_hook, bad_value, monkeypatch
+):
+    trial_maker = trial_maker_factory()
+    monkeypatch.setattr(
+        trial_maker,
+        find_hook,
+        lambda participant, experiment: bad_value,
+    )
+
+    with pytest.raises(TypeError, match="must return a list"):
+        trial_maker._select_trial_node(DummyParticipant(), SimpleNamespace())
+
+
 def test_chain_selection_resolves_head_and_advances_block(monkeypatch):
     trial_maker = make_trial_maker()
     participant = DummyParticipant()
@@ -611,7 +633,7 @@ def test_selection_rejects_a_requery_with_the_same_id():
     eligible = SimpleNamespace(id=1)
     requery = SimpleNamespace(id=1)
 
-    with pytest.raises(ValueError, match="supplied eligible values"):
+    with pytest.raises(ValueError, match="same object identity"):
         trial_maker._coerce_selection(
             requery,
             allowed_values=[eligible],

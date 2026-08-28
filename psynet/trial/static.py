@@ -412,7 +412,14 @@ class StaticTrialMaker(ChainTrialMaker):
         ]
 
     def find_nodes(self, participant, experiment):
-        """Return eligible static nodes, or ``"wait"`` / ``"exit"``."""
+        """Return eligible static nodes, or ``"wait"`` / ``"exit"``.
+
+        Override ``select_node`` to change which eligible node is assigned.
+        To wait, exit, or drop candidates after built-in availability checks,
+        override this method, call ``super().find_nodes``, then filter or
+        return ``"wait"`` / ``"exit"``. ``select_node`` cannot return those
+        outcomes.
+        """
         return self._find_eligible_candidates(participant, experiment)
 
     _candidate_label = "node"

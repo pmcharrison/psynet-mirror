@@ -139,7 +139,7 @@ def test_create_and_rate_phase_flip_after_selection_defers_assignment():
     assert exc_info.value.outcome == "wait"
 
 
-def test_rater_role_keeps_ready_and_waiting_chains():
+def test_rater_role_assigns_ready_chains_and_skips_waiting():
     pending = chain(1)
     ready = chain(2)
     needs = chain(3)
