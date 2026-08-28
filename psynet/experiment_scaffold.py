@@ -35,6 +35,12 @@ _PRESERVE_EXISTING_TEMPLATE_FILES = frozenset({"config.txt", "README.md"})
 
 _TEMPLATE_DIRECTORIES = ("docker",)
 
+# Copied into experiments by ``psynet scripts update``; not a packaged template
+# directory (canonical source is ``.cursor/skills/experiment/`` in the PsyNet
+# checkout).
+_EXPERIMENT_SKILLS_DIRECTORY = ".cursor/skills/psynet"
+_MANAGED_DIRECTORIES = (*_TEMPLATE_DIRECTORIES, _EXPERIMENT_SKILLS_DIRECTORY)
+
 # Minimal scaffold subset needed to run locally (debug/test). Omits IDE/CI-only
 # templates such as ``.vscode/`` and ``.github/workflows/``.
 _TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
@@ -105,7 +111,7 @@ def scaffold_managed_paths() -> frozenset[str]:
         Relative paths to scaffold-managed files and directories.
     """
     paths = set(_TEMPLATE_FILES)
-    paths.update(_TEMPLATE_DIRECTORIES)
+    paths.update(_MANAGED_DIRECTORIES)
     paths.update(_GENERATED_FILES)
     return frozenset(paths)
 
@@ -389,6 +395,14 @@ def installed_psynet_direct_requirement() -> str | None:
     return None
 
 
+def _with_experiment_extra(requirement: str) -> str:
+    """Ensure a PsyNet requirement includes the ``[experiment]`` extra."""
+    text = requirement.strip()
+    if re.match(r"(?i)^psynet\[experiment\]\b", text):
+        return text
+    return re.sub(r"(?i)^psynet\b", "psynet[experiment]", text, count=1)
+
+
 def _default_psynet_requirement() -> str:
     """Return a resolvable PsyNet requirement for a new experiment.
 
@@ -399,7 +413,9 @@ def _default_psynet_requirement() -> str:
 
     1. Editable checkout → commit pin (alphas, when the commit is servable) or
        editable path.
-    2. Non-editable local path install → ``psynet[experiment] @ file://...``.
+    2. Non-editable VCS or local-path install → the same source, with the
+       ``[experiment]`` extra. A git checkout of an unpublished alpha must not
+       become ``psynet[experiment]==<version>``, which is unsatisfiable on PyPI.
     3. Otherwise → version pin ``psynet[experiment]==<version>``.
     """
     editable_source = get_editable_psynet_source()
@@ -409,6 +425,10 @@ def _default_psynet_requirement() -> str:
             if commit_requirement is not None:
                 return commit_requirement
         return editable_psynet_requirement(editable_source)
+
+    direct = installed_psynet_direct_requirement()
+    if direct is not None:
+        return _with_experiment_extra(direct)
 
     local_path = _installed_psynet_file_path()
     if local_path is not None:
@@ -736,7 +756,7 @@ def _assert_scaffold_paths_are_safe(paths):
     for relative_path in paths:
         _assert_managed_path_is_safe(relative_path)
 
-    for relative_path in _TEMPLATE_DIRECTORIES:
+    for relative_path in _MANAGED_DIRECTORIES:
         if relative_path not in paths:
             continue
         directory = Path(relative_path)
@@ -785,6 +805,8 @@ def _managed_path_matches_scaffold(relative_path):
         return _generated_file_matches(relative_path)
     if relative_path in _TEMPLATE_DIRECTORIES:
         return _template_directory_matches(relative_path)
+    if relative_path == _EXPERIMENT_SKILLS_DIRECTORY:
+        return _experiment_skills_directory_matches()
     raise ValueError(f"Unknown scaffold-managed path: {relative_path}")
 
 
@@ -954,9 +976,86 @@ def scaffold_experiment_directory(
                 shutil.rmtree(directory)
                 written.append(directory)
 
+    skills_relative = _EXPERIMENT_SKILLS_DIRECTORY
+    if skills_relative not in skip_files:
+        if _update_experiment_skills(overwrite=overwrite):
+            written.append(skills_relative)
+        else:
+            skipped.append(skills_relative)
+
     _report_scaffold_result(written, overwrite=overwrite)
 
     return {"written": written, "skipped": skipped}
+
+
+def _update_experiment_skills(*, overwrite: bool = False) -> bool:
+    """Install PsyNet-managed Agent Skills without touching user skills.
+
+    The managed tree lives at ``.cursor/skills/psynet``. Other skill directories
+    under ``.cursor/skills/`` are experiment-owned and are never modified.
+    """
+    target = Path(_EXPERIMENT_SKILLS_DIRECTORY)
+    if target.exists() and not overwrite:
+        return False
+
+    source = _experiment_skills_source()
+    if source is None:
+        return False
+
+    def _install_from(source_path: Path) -> bool:
+        if (
+            overwrite
+            and target.is_dir()
+            and md5_directory(target) == md5_directory(source_path)
+        ):
+            return False
+
+        click.echo(f"...updating {target} directory.")
+        if target.exists():
+            shutil.rmtree(target)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source_path, target)
+        return True
+
+    if isinstance(source, Path):
+        return _install_from(source)
+
+    with resources.as_file(source) as path:
+        return _install_from(Path(path))
+
+
+def _experiment_skills_source():
+    """Return the Path or package resource for PsyNet-managed experiment skills."""
+    # Editable PsyNet checkouts keep the canonical skills at the repository
+    # root, where IDEs discover them for PsyNet development. Built wheels
+    # force-include the same tree as a package resource for installed PsyNet.
+    checkout_source = Path(__file__).resolve().parents[1] / ".cursor/skills/experiment"
+    if checkout_source.is_dir():
+        return checkout_source
+
+    packaged_source = (
+        resources.files("psynet")
+        / "resources"
+        / "experiment_scripts"
+        / ".cursor"
+        / "skills"
+        / "psynet"
+    )
+    if packaged_source.is_dir():
+        return packaged_source
+    return None
+
+
+def _experiment_skills_directory_matches() -> bool:
+    """Return whether the copied experiment skills match the PsyNet source tree."""
+    destination = Path(_EXPERIMENT_SKILLS_DIRECTORY)
+    source = _experiment_skills_source()
+    if not destination.is_dir() or source is None:
+        return False
+    if isinstance(source, Path):
+        return md5_directory(destination) == md5_directory(source)
+    with resources.as_file(source) as path:
+        return md5_directory(destination) == md5_directory(Path(path))
 
 
 def _scaffold_context_paths():
@@ -1095,7 +1194,7 @@ def prune_experiment_scaffold(
     removed = []
 
     for relative_path in sorted(
-        managed_paths - set(_TEMPLATE_DIRECTORIES) - preserve_files
+        managed_paths - set(_MANAGED_DIRECTORIES) - preserve_files
     ):
         path = Path(relative_path)
         if path.exists():
@@ -1107,7 +1206,7 @@ def prune_experiment_scaffold(
             removed.append(relative_path)
             _remove_empty_parent_dirs(path.parent)
 
-    for relative_path in _TEMPLATE_DIRECTORIES:
+    for relative_path in _MANAGED_DIRECTORIES:
         if _path_is_tracked_or_has_tracked_contents(relative_path, preserve_files):
             continue
         path = Path(relative_path)
@@ -1119,6 +1218,8 @@ def prune_experiment_scaffold(
                 continue
             shutil.rmtree(path)
             removed.append(relative_path)
+            if relative_path == _EXPERIMENT_SKILLS_DIRECTORY:
+                _remove_empty_parent_dirs(path.parent)
 
     preserved_tracked = sorted(
         relative_path
