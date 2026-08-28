@@ -49,7 +49,7 @@
     "experiment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["source_base", "source_path"],
+      "required": ["source_path"],
       "properties": {
         "title": {
           "type": "string",

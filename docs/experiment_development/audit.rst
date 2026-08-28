@@ -23,6 +23,10 @@ when it already contains ``audit.json``). Source paths must be relative and
 remain inside their declared source base; validation and rendering reject
 absolute paths and ``..`` escapes.
 
+Packets created before ``source_base`` was introduced remain valid. PsyNet
+infers ``packet_parent`` for a folder named ``audit`` and ``packet`` otherwise,
+and validation warns so the manifest can be made explicit.
+
 Audit support ships with PsyNet but requires the full experiment runtime
 (``psynet[experiment]``), including Dallinger and the audit HTML render
 dependencies. Participant video validation also requires ``ffprobe`` from

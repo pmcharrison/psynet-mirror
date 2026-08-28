@@ -312,7 +312,7 @@ def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
     write(
         audit_dir / "artifacts/monitor.html", "<html><head></head><body></body></html>"
     )
-    write_bytes(audit_dir / "artifacts/participant.mp4", LFS_VIDEO_POINTER)
+    write_bytes(audit_dir / "artifacts/participant.mp4", b"video bytes")
     write_bytes(audit_dir / "artifacts/screenshots/01-intro.png", b"png bytes")
     write_bytes(audit_dir / "artifacts/screenshots/02-trial.png", b"png bytes 2")
     write(
@@ -611,7 +611,7 @@ def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None
         artifact["status"] = "present"
     manifest["blockers"] = []
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
-    write_bytes(audit_dir / "artifacts/participant.mp4", LFS_VIDEO_POINTER)
+    write_bytes(audit_dir / "artifacts/participant.mp4", b"video bytes")
     write_bytes(audit_dir / "artifacts/screenshots/01-intro.png", b"png bytes")
     write(
         audit_dir / "artifacts/screenshots/manifest.json",
@@ -712,7 +712,7 @@ def test_render_audit_section_isolates_render_failures(
     def boom_markdown(audit_dir: Path, section: dict[str, object]) -> str:
         raise RuntimeError("markdown render failed")
 
-    monkeypatch.setattr("psynet.audit.cli.render_markdown_section", boom_markdown)
+    monkeypatch.setattr("psynet.audit.site.render_markdown_section", boom_markdown)
 
     html = render_audit_section(audit_dir, manifest, section, [])
 
@@ -1015,6 +1015,29 @@ def test_mark_artifact_present_rejects_git_lfs_video_pointer(tmp_path: Path) -> 
         mark_artifact_present(audit_dir, "participant_video")
 
 
+def test_allow_invalid_render_does_not_publish_git_lfs_video_pointer(
+    tmp_path: Path,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    video = next(
+        artifact
+        for artifact in manifest["artifacts"]
+        if artifact["id"] == "participant_video"
+    )
+    video["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write_bytes(audit_dir / "artifacts/participant.mp4", LFS_VIDEO_POINTER)
+
+    site_dir = render_audit_site(audit_dir, allow_invalid=True)
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+
+    assert "<video" not in index
+    assert "Participant walkthrough <span>unavailable</span>" in index
+    assert "0/5 required present" in index
+
+
 def test_mark_artifact_present_accepts_notebook_larger_than_preview(
     tmp_path: Path,
 ) -> None:
@@ -1196,7 +1219,7 @@ def test_collect_audit_warnings_when_ffprobe_unavailable(
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
 
     monkeypatch.setattr(
-        "psynet.audit.cli.probe_video_metadata",
+        "psynet.audit.validate.probe_video_metadata",
         lambda _path: VideoProbeResult(None, "unavailable"),
     )
     monkeypatch.setattr(
@@ -1373,13 +1396,29 @@ def test_init_audit_force_replaces_starter_files(tmp_path: Path) -> None:
 
 
 def test_render_audit_site_uses_resolved_parent_title(tmp_path: Path) -> None:
-    audit_dir = tmp_path / "tone-comparison" / "audit"
-    init_audit(audit_dir)
+    audit_dir = tmp_path / "tone-comparison" / "review"
+    init_audit(audit_dir, source_base="packet_parent")
     site_dir = render_audit_site(audit_dir)
     index = (site_dir / "index.html").read_text(encoding="utf-8")
     assert "Tone Comparison" in index
     assert "Experiment readiness audit" in index
     assert "0/5 required present" in index
+
+
+def test_validate_infers_legacy_source_base_with_warning(tmp_path: Path) -> None:
+    from psynet.audit.cli import collect_audit_warnings
+
+    audit_dir = tmp_path / "tone-comparison" / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    del manifest["experiment"]["source_base"]
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    assert validate_audit(audit_dir) == []
+    assert any(
+        "source_base is missing" in warning
+        for warning in collect_audit_warnings(audit_dir)
+    )
 
 
 def test_render_refuses_invalid_manifest_unless_allowed(tmp_path: Path) -> None:

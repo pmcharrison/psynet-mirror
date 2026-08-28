@@ -103,6 +103,16 @@ def validate_audit_site_dir(
     return []
 
 
+def effective_source_base(audit_dir: Path, source_base: object) -> str | None:
+    """Return an explicit source base or infer the legacy packet layout."""
+
+    if source_base in SOURCE_BASES:
+        return str(source_base)
+    if source_base is None:
+        return "packet_parent" if audit_dir.name == "audit" else "packet"
+    return None
+
+
 def experiment_source_root(
     audit_dir: Path,
     source_path: object,
@@ -112,7 +122,8 @@ def experiment_source_root(
 
     manifest_path = audit_dir / "audit.json"
     label = f"{manifest_path}: experiment.source_path"
-    if source_base not in SOURCE_BASES:
+    resolved_source_base = effective_source_base(audit_dir, source_base)
+    if resolved_source_base is None:
         allowed = ", ".join(sorted(SOURCE_BASES))
         return None, [
             f"{manifest_path}: experiment.source_base must be one of: {allowed}"
@@ -124,7 +135,7 @@ def experiment_source_root(
     if relative_path.is_absolute():
         return None, [f"{label}: path must be relative to its source base"]
 
-    root = audit_dir if source_base == "packet" else audit_dir.parent
+    root = audit_dir if resolved_source_base == "packet" else audit_dir.parent
     root = root.resolve()
     resolved_path = (root / relative_path).resolve()
     if not resolved_path.is_relative_to(root):
