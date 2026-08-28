@@ -16,4 +16,5 @@ header matches PsyNet's Dallinger dependency.
 `ensure-dallinger-docker-network.sh` starts Redis and Postgres on the
 Dallinger Docker network used by local Docker-in-Docker test runners. Source
 it; do not confuse it with ``psynet services ensure``, which publishes those
-services on localhost.
+services on localhost. The script enables ``set -euo pipefail`` so a failed
+container or network setup aborts the sourcing runner.

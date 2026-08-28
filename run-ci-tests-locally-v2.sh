@@ -1,5 +1,7 @@
 # Note -- AWS tests will fail without setting AWS keys
 
+set -euo pipefail
+
 AWS_ACCESS_KEY_ID=TODO
 AWS_DEFAULT_REGION=TODO
 AWS_SECRET_ACCESS_KEY=TODO

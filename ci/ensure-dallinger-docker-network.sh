@@ -4,6 +4,12 @@
 # Dallinger's in-network Docker tests talk to redis://dallinger_redis:6379 and
 # postgres on that same user-defined network. This is not the host-port setup
 # created by ``psynet services ensure``.
+#
+# ``set -euo pipefail`` is required even when sourced: otherwise a failed
+# ``docker network create`` or ``docker run`` is ignored and the parent runner
+# continues into tests without Redis/Postgres.
+
+set -euo pipefail
 
 echo "Checking Docker access..."
 if [[ "$(docker network ls | grep "could not be found in this WSL 2 distro")" != "" ]]
