@@ -6,7 +6,12 @@ from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.sqlalchemy_profiling import assert_query_count
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
+from psynet.trial.create_and_rate import (
+    CreateAndRateAssignmentPending,
+    CreateAndRateTrialMakerMixin,
+)
 from psynet.trial.graph import (
     GraphChainEdge,
     GraphChainNetwork,
@@ -100,6 +105,17 @@ def create_chain_network(
     return network
 
 
+def initialize_trial_maker_state(trial_maker, participant):
+    state = trial_maker.state_class(trial_maker, participant)
+    state.participant_group = "default"
+    state.participated_networks = []
+    state.block_order = ["default"]
+    state.set_block_position(0)
+    participant.module_state = state
+    db.session.add(state)
+    db.session.flush()
+
+
 def add_trial(
     trial_class,
     node,
@@ -124,6 +140,65 @@ def add_trial(
     db.session.add(trial)
     db.session.flush()
     return trial
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_find_chains_keeps_query_count_bounded(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker(
+        chains_per_experiment=20,
+        max_trials_per_participant=None,
+    )
+    networks = [create_chain_network(trial_maker, exp) for _ in range(20)]
+    initialize_trial_maker_state(trial_maker, participant)
+
+    with assert_query_count(min_queries=2, max_queries=3):
+        eligible = trial_maker.find_chains(participant, exp)
+
+    assert {chain.id for chain in eligible} == {chain.id for chain in networks}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker()
+    networks = [create_chain_network(trial_maker, exp) for _ in range(20)]
+    add_trial(GrowthQueryTrial, networks[0].head, participant, finalized=True)
+    add_trial(GrowthQueryTrial, networks[0].head, participant, finalized=False)
+    add_trial(GrowthQueryTrial, networks[1].head, participant, finalized=True)
+    add_trial(GrowthQueryTrial, networks[1].head, participant, finalized=True)
+
+    create_and_rate = object.__new__(CreateAndRateTrialMakerMixin)
+    create_and_rate.creator_class = GrowthQueryTrial
+    create_and_rate.rater_class = object()
+    create_and_rate.n_creators = 2
+    create_and_rate.wait_for_networks = False
+
+    with assert_query_count(min_queries=2, max_queries=2):
+        phases = create_and_rate.get_creation_phases(
+            [network.head for network in networks]
+        )
+
+    assert phases[networks[0].head.id] == create_and_rate.WAITING_FOR_CREATORS
+    assert phases[networks[1].head.id] == create_and_rate.READY_FOR_RATERS
+    assert phases[networks[2].head.id] == create_and_rate.NEEDS_CREATORS
+
+    with pytest.raises(CreateAndRateAssignmentPending, match="exit"):
+        create_and_rate.get_trial_class(networks[0].head, participant, exp)
+    assert (
+        create_and_rate.get_trial_class(networks[1].head, participant, exp)
+        is create_and_rate.rater_class
+    )
+    assert (
+        create_and_rate.get_trial_class(networks[2].head, participant, exp)
+        is create_and_rate.creator_class
+    )
 
 
 @pytest.mark.parametrize(
