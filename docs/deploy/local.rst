@@ -16,6 +16,12 @@ experiment directory and identifies a history of database snapshots under
 Managed local snapshots currently support the standard and ``--legacy`` local
 runners, but not ``--docker``.
 
+Only one local experiment can use the shared PostgreSQL database at a time.
+Starting a second ``psynet deploy local`` while another is still running
+asks you to stop the running experiment first. Sequential launches after a
+normal stop do not hit this error; they offer the previous snapshot history
+instead.
+
 Snapshots
 ---------
 

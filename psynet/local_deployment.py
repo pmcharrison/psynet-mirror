@@ -512,6 +512,48 @@ def read_database_owner(db_url: Optional[str] = None) -> Optional[DatabaseOwner]
         connection.close()
 
 
+def local_database_lock_path() -> Path:
+    """Return the machine-wide lock file for local PostgreSQL access."""
+    return Path.home() / "psynet-data" / "local-deployment.lock"
+
+
+def _read_lock_holder(path: Path) -> Optional[dict]:
+    """Return the process currently described by ``path``, if readable."""
+    try:
+        text = path.read_text().strip()
+    except OSError:
+        return None
+    if not text:
+        return None
+    try:
+        holder = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(holder, dict):
+        return None
+    return holder
+
+
+def concurrent_deployment_error(lock_path: Optional[Path] = None) -> RuntimeError:
+    """Explain that another local experiment must be stopped before starting this one."""
+    message = (
+        "Another local PsyNet experiment is already running. "
+        "Stop it first, then try again."
+    )
+    holder = _read_lock_holder(lock_path or local_database_lock_path())
+    if holder:
+        details = []
+        if holder.get("id"):
+            details.append(f"id {holder['id']}")
+        if holder.get("experiment_path"):
+            details.append(f"directory {holder['experiment_path']}")
+        if holder.get("pid") is not None:
+            details.append(f"pid {holder['pid']}")
+        if details:
+            message += " Running experiment: " + "; ".join(details) + "."
+    return RuntimeError(message)
+
+
 @contextmanager
 def local_database_lock(
     experiment_path: Path | str | None = None,
@@ -522,7 +564,7 @@ def local_database_lock(
 
     if local_id is not None:
         validate_local_id(local_id)
-    path = Path.home() / "psynet-data" / "local-deployment.lock"
+    path = local_database_lock_path()
     outermost = False
     try:
         with _database_lock_guard:
@@ -553,9 +595,7 @@ def local_database_lock(
             file.flush()
         yield
     except BlockingIOError as error:
-        raise RuntimeError(
-            "Another local PsyNet deployment is already running on this machine."
-        ) from error
+        raise concurrent_deployment_error(path) from error
     finally:
         with _database_lock_guard:
             if _database_lock_depth > 0:

@@ -264,6 +264,122 @@ def test_prepare_protects_managed_database_before_reset(tmp_path, monkeypatch):
     assert calls == ["lock", "protect", ("prepare", "snapshot.zip")]
 
 
+def test_concurrent_deployment_error_tells_operator_to_stop_the_other_experiment(
+    tmp_path,
+):
+    from psynet.local_deployment import concurrent_deployment_error
+
+    lock_path = tmp_path / "local-deployment.lock"
+    lock_path.write_text(
+        json.dumps(
+            {
+                "pid": 4242,
+                "experiment_path": "/lab/gibbs",
+                "id": "gibbs",
+            }
+        )
+    )
+
+    message = str(concurrent_deployment_error(lock_path))
+    assert message.startswith(
+        "Another local PsyNet experiment is already running. "
+        "Stop it first, then try again."
+    )
+    assert "id gibbs" in message
+    assert "directory /lab/gibbs" in message
+    assert "pid 4242" in message
+    assert "Stop it first" in message
+
+
+def test_concurrent_deployment_error_without_holder_still_asks_to_stop(tmp_path):
+    from psynet.local_deployment import concurrent_deployment_error
+
+    message = str(concurrent_deployment_error(tmp_path / "missing.lock"))
+    assert message == (
+        "Another local PsyNet experiment is already running. "
+        "Stop it first, then try again."
+    )
+
+
+def test_local_database_lock_uses_concurrent_error_when_lock_is_held(
+    tmp_path, monkeypatch
+):
+    from psynet.local_deployment import local_database_lock
+
+    lock_path = tmp_path / "local-deployment.lock"
+    lock_path.write_text(
+        json.dumps(
+            {
+                "pid": 99,
+                "experiment_path": str(tmp_path),
+                "id": "first-run",
+            }
+        )
+    )
+    monkeypatch.setattr(
+        "psynet.local_deployment.local_database_lock_path",
+        lambda: lock_path,
+    )
+
+    @contextmanager
+    def already_locked(*_args, **_kwargs):
+        raise BlockingIOError
+        yield
+
+    monkeypatch.setattr("psynet.local_deployment._file_lock", already_locked)
+
+    with pytest.raises(RuntimeError, match="Stop it first") as error:
+        with local_database_lock(tmp_path, "second-run"):
+            pass
+
+    assert "id first-run" in str(error.value)
+    assert "pid 99" in str(error.value)
+
+
+def test_second_process_is_told_to_stop_the_running_experiment(tmp_path, monkeypatch):
+    import os
+    import subprocess
+    import sys
+    import time
+
+    from psynet.local_deployment import local_database_lock
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    holder = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            "import time\n"
+            "from pathlib import Path\n"
+            "from psynet.local_deployment import local_database_lock\n"
+            "with local_database_lock(Path('/lab/gibbs'), 'gibbs'):\n"
+            "    time.sleep(30)\n",
+        ],
+        env={**os.environ, "HOME": str(tmp_path)},
+    )
+    lock_path = tmp_path / "psynet-data" / "local-deployment.lock"
+    try:
+        deadline = time.time() + 5
+        while time.time() < deadline:
+            if lock_path.exists() and "gibbs" in lock_path.read_text():
+                break
+            time.sleep(0.05)
+        else:
+            raise AssertionError("holder process did not write the lock file")
+
+        with pytest.raises(RuntimeError, match="Stop it first") as error:
+            with local_database_lock(tmp_path, "second-run"):
+                pass
+
+        message = str(error.value)
+        assert "id gibbs" in message
+        assert "directory /lab/gibbs" in message
+        assert f"pid {holder.pid}" in message
+    finally:
+        holder.terminate()
+        holder.wait(timeout=5)
+
+
 def test_local_runner_holds_database_lock(tmp_path, monkeypatch):
     from psynet.command_line import _run_local
     from psynet.utils import working_directory
