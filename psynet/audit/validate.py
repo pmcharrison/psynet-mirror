@@ -48,6 +48,7 @@ from psynet.audit.timeline import (
 )
 from psynet.audit.video import is_git_lfs_pointer, probe_video_metadata
 
+
 def validate_audit_blockers(
     audit_dir: Path,
     manifest: dict[str, Any],
@@ -532,6 +533,7 @@ def validate_audit(audit_dir: Path) -> list[str]:
     except ValueError as exc:
         return [str(exc)]
     return validate_audit_manifest(audit_dir, manifest)
+
 
 __all__ = [
     "collect_audit_warnings",

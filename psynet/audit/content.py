@@ -13,6 +13,7 @@ from psynet.audit.model import MAX_AUDIT_TEXT_BYTES, TEXT_AUDIT_EXTENSIONS
 from psynet.audit.paths import relative_audit_path
 from psynet.audit.video import validate_evidence_video
 
+
 def validate_present_artifact_file(
     artifact_path: Path,
     *,
@@ -54,6 +55,8 @@ def validate_audit_notebook(notebook_file: Path) -> list[str]:
     if not isinstance(notebook, dict):
         problems.append(f"{notebook_file}: notebook must be a JSON object")
     return problems
+
+
 def read_bounded_bytes(source_file: Path, max_bytes: int) -> tuple[bytes | None, bool]:
     """Read at most ``max_bytes`` from a file without loading a larger remainder."""
 
@@ -95,6 +98,8 @@ def read_audit_artifact_content(
         ),
         truncated,
     )
+
+
 def strip_redundant_section_heading(
     markdown: str,
     _section: dict[str, Any],
@@ -119,6 +124,7 @@ def section_text(audit_dir: Path, section: dict[str, Any]) -> str | None:
     if problems or section_path is None or not section_path.is_file():
         return None
     return section_path.read_text(encoding="utf-8")
+
 
 __all__ = [
     "read_audit_artifact_content",

@@ -25,6 +25,7 @@ from psynet.audit.paths import (
     relative_audit_path,
 )
 
+
 def count_blockers(manifest: dict[str, Any]) -> int:
     """Return the number of blocker records in a manifest."""
 
@@ -420,6 +421,7 @@ def init_audit(
     (audit_dir / "PLAN.md").write_text(STARTER_PLAN, encoding="utf-8")
     (audit_dir / "TIMELINE.md").write_text(STARTER_TIMELINE, encoding="utf-8")
 
+
 def mark_artifact_present(
     audit_dir: Path,
     artifact_id: str,
@@ -493,6 +495,7 @@ def mark_artifact_present(
         encoding="utf-8",
     )
     return manifest
+
 
 __all__ = [
     "STARTER_PLAN",

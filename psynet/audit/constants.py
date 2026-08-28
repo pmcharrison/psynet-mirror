@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from psynet.audit.model import MAX_AUDIT_TEXT_BYTES
 

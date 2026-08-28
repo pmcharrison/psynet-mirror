@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import html
 import json
-import re
 import shutil
 from dataclasses import replace
 from pathlib import Path
@@ -64,6 +63,7 @@ from psynet.audit.timeline import parse_timeline_entries
 from psynet.audit.validate import validate_audit
 from psynet.audit.video import is_git_lfs_pointer
 
+
 def artifact_output_url(relative_url: str) -> str:
     """Return a browser path from a rendered audit page to a published artifact."""
 
@@ -101,8 +101,7 @@ def publish_audit_artifacts(
         if path_problems or source_file is None or not source_file.is_file():
             continue
         if (
-            artifact.get("kind") == "video"
-            or source_file.suffix.lower() == ".mp4"
+            artifact.get("kind") == "video" or source_file.suffix.lower() == ".mp4"
         ) and is_git_lfs_pointer(source_file):
             continue
         published_url = write_hashed_artifact(
@@ -201,6 +200,8 @@ def publish_screenshot_manifest_files(
         )
         published_paths.add(relative_path)
     return rendered
+
+
 def render_metadata_grid(items: list[tuple[str, str]]) -> str:
     """Render a dashboard-style metadata grid."""
 
@@ -311,6 +312,7 @@ def render_markdown_section(audit_dir: Path, section: dict[str, Any]) -> str:
         return '<p class="missing">Section file missing.</p>'
     content = section_path.read_text(encoding="utf-8")
     return render_markdown_block(strip_redundant_section_heading(content, section))
+
 
 def render_timeline_section(audit_dir: Path, section: dict[str, Any]) -> str:
     """Render one timeline section."""
@@ -517,6 +519,8 @@ def render_blockers(manifest: dict[str, Any]) -> str:
             f"<br>Next step: {next_step}</li>"
         )
     return f'{explanation}<ul class="blocker-list">{"".join(items)}</ul>'
+
+
 def section_open_by_default(section: dict[str, Any]) -> bool:
     """Return whether a section panel should start expanded."""
 
@@ -537,6 +541,7 @@ def readiness_score_card(
         else []
     )
     required = [a for a in artifact_rows if a.get("required") is True]
+
     def is_present(artifact: dict[str, Any]) -> bool:
         if artifact.get("status") != "present":
             return False
@@ -577,9 +582,7 @@ def completeness_from_manifest(
         path = str(artifact.get("path") or "")
         title = str(artifact.get("title") or artifact.get("id") or path)
         status = str(artifact.get("status") or "missing")
-        if status == "present" and (
-            published_paths is None or path in published_paths
-        ):
+        if status == "present" and (published_paths is None or path in published_paths):
             present = True
             detail = "present"
         elif status == "present":
@@ -832,6 +835,7 @@ def serve_audit_site(
         print("\nStopped.")
     finally:
         server.server_close()
+
 
 __all__ = [
     "artifact_output_url",
