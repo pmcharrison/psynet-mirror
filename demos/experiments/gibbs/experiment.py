@@ -164,9 +164,9 @@ class CustomTrialMaker(GibbsTrialMaker):
                 .alive_trials
             )
 
-        # The candidate order is randomized before this hook, so max() retains
-        # random tie-breaking among equally loaded chains.
-        return max(chains, key=lambda chain: chain.alive_trials_at_degree)
+        candidates = list(chains)
+        random.shuffle(candidates)
+        return max(candidates, key=lambda chain: chain.alive_trials_at_degree)
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
