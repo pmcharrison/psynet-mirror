@@ -83,6 +83,10 @@ experiment = [
     "yaspin",
     "arabic-reshaper",  # Used by VocabTest
     "pillow",  # Used by VocabTest
+    # Experiment audit render/validate (shipped with experiment runtime)
+    "markdown-it-py>=3,<5",  # Dallinger 12.3 pins 4.x; keep an explicit compatible bound
+    "nh3>=0.3.6",
+    "pygments>=2.20.0",
 ]
 # PsyNet source development and docs: runtime plus tooling.
 # Demo-only packages stay in ``demos`` so docs/CI installs stay lean.
@@ -136,6 +140,9 @@ Repository = "https://gitlab.com/PsyNetDev/PsyNet/"
 
 [tool.hatch.build.targets.wheel]
 include = ["/psynet"]
+
+[tool.hatch.build.targets.wheel.force-include]
+".cursor/skills/experiment" = "psynet/resources/experiment_scripts/.cursor/skills/psynet"
 
 [tool.hatch.build.targets.sdist]
 exclude = [

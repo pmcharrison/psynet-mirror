@@ -944,6 +944,30 @@ def test_check_dockerfile():
                 check_dockerfile()
 
 
+def test_scripts_update_installs_managed_skills_and_preserves_user_skills():
+    with tempfile.TemporaryDirectory() as directory:
+        with working_directory(directory):
+            Path("experiment.py").write_text("class Exp:\n    pass\n", encoding="utf-8")
+            custom_skill = Path(".cursor/skills/custom/SKILL.md")
+            custom_skill.parent.mkdir(parents=True)
+            custom_skill.write_text("# Custom skill\n", encoding="utf-8")
+
+            stale_skill = Path(".cursor/skills/psynet/stale/SKILL.md")
+            stale_skill.parent.mkdir(parents=True)
+            stale_skill.write_text("# Stale managed skill\n", encoding="utf-8")
+
+            with patch("click.echo"):
+                scaffold_experiment_directory(overwrite=True)
+
+            assert custom_skill.read_text(encoding="utf-8") == "# Custom skill\n"
+            assert not stale_skill.exists()
+            assert Path(".cursor/skills/psynet/implement-experiment/SKILL.md").is_file()
+            assert Path(
+                ".cursor/skills/psynet/record-participant-video/SKILL.md"
+            ).is_file()
+            assert not Path(".cursor/skills/psynet/release").exists()
+
+
 def test_scripts_scaffold_bootstraps_empty_directory():
     runner = CliRunner()
 
@@ -964,6 +988,10 @@ def test_scripts_scaffold_bootstraps_empty_directory():
             assert Path("Dockerfile").exists()
             assert Path("config.txt").exists()
             assert Path("constraints.txt").read_text() == "# generated constraints\n"
+            gitignore = Path(".gitignore").read_text(encoding="utf-8")
+            assert ".cursor/skills/psynet/" in gitignore
+            dockerignore = Path(".dockerignore").read_text(encoding="utf-8")
+            assert ".cursor/skills/psynet/" in dockerignore
 
 
 def test_scripts_scaffold_uses_running_python_version(tmp_path, monkeypatch):
