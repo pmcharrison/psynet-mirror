@@ -2784,7 +2784,11 @@ class NetworkTrialMaker(TrialMaker):
 
     @staticmethod
     def _coerce_selection(selection, allowed_values, method_name):
-        """Normalize and validate a public selection-hook result."""
+        """Normalize and validate a public selection-hook result.
+
+        The selected value must be one of ``allowed_values`` by object
+        identity, not a re-queried copy with the same id.
+        """
         if selection is None:
             raise TypeError(
                 f"{method_name} must return one of the supplied eligible values "

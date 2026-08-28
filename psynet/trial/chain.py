@@ -2008,7 +2008,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         """Select from a nonempty list of eligible chains.
 
         Return a chain from ``chains`` or ``Selection(value, context)``.
-        Returning ``None`` raises ``TypeError``.
+        Returning ``None`` raises ``TypeError``. The returned chain must be
+        one of the objects in ``chains``, not a re-queried copy.
         """
         return chains[0]
 

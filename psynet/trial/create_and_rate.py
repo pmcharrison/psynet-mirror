@@ -6,6 +6,10 @@ rater trials. Selection therefore operates on chains, while trial-class
 resolution remains node-based after the selected chain is resolved to its head.
 Experiments may optionally assign fixed participant roles; the mixin then uses
 the same role for candidate eligibility and final trial-class validation.
+Creators only receive heads that still need creators. Raters receive heads that
+are ready for raters, and they wait (or exit) on heads whose creator slots are
+filled but not yet finalized. Heads that still need creators are not
+rater-eligible.
 """
 
 import inspect
@@ -459,7 +463,11 @@ class CreateAndRateTrialMakerMixin(object):
 
         Override this when participants must remain creators or raters. The
         returned role controls both chain eligibility and final trial-class
-        validation.
+        validation. Creators are eligible only for ``NEEDS_CREATORS`` heads.
+        Raters are eligible for ``READY_FOR_RATERS`` heads and for
+        ``WAITING_FOR_CREATORS`` heads (so assignment can wait or exit until
+        those heads become ratable). ``NEEDS_CREATORS`` heads are not
+        rater-eligible.
 
         Returns
         -------
@@ -493,6 +501,16 @@ class CreateAndRateTrialMakerMixin(object):
             "wait" if self.wait_for_networks else "exit"
         )
 
+    def _require_chain_heads(self, chains):
+        """Raise if any chain is missing a head.
+
+        A headless chain is a programming or data error, not an empty
+        candidate list. Skipping it would hide the problem behind wait/exit.
+        """
+        headless_ids = [chain.id for chain in chains if chain.head is None]
+        if headless_ids:
+            raise RuntimeError(f"Create-and-rate chains have no head: {headless_ids}")
+
     def _filter_eligible_candidates(self, chains, participant, experiment):
         """Apply custom and fixed-role eligibility before availability checks."""
         chains = super()._filter_eligible_candidates(
@@ -504,6 +522,7 @@ class CreateAndRateTrialMakerMixin(object):
         if participant_role is None:
             return chains
 
+        self._require_chain_heads(chains)
         phases = self.get_creation_phases([chain.head for chain in chains])
         return [
             chain
@@ -563,6 +582,7 @@ class CreateAndRateTrialMakerMixin(object):
         if isinstance(chains, str):
             return chains
 
+        self._require_chain_heads(chains)
         phases = self.get_creation_phases([chain.head for chain in chains])
         classified = [(chain, phases[chain.head.id]) for chain in chains]
         assignable = [

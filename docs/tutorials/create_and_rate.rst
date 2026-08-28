@@ -127,12 +127,15 @@ validation:
 
 ::
 
-    def get_participant_role(self, participant, experiment):
-        if participant.var.is_rater:
-            return self.RATER_ROLE
-        return self.CREATOR_ROLE
+    class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
+        def get_participant_role(self, participant, experiment):
+            if participant.var.is_rater:
+                return self.RATER_ROLE
+            return self.CREATOR_ROLE
 
-
+Creators then only receive heads that still need creators. Raters receive
+heads that are ready for raters, and they wait or exit on heads whose creator
+slots are filled but not yet finalized.
 
 Also, you can easily modify the number of trials for creators and raters, e.g.:
 

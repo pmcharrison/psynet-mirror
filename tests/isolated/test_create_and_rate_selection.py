@@ -163,6 +163,31 @@ def test_rater_role_waits_when_only_pending_chains_remain():
     assert maker.find_chains(participant=None, experiment=None) == "wait"
 
 
+def test_rater_role_exits_when_only_creator_heads_remain():
+    needs = chain(1)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[needs],
+        phases={needs.head.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS},
+        wait_for_networks=True,
+        role=CreateAndRateTrialMakerMixin.RATER_ROLE,
+    )
+    assert maker.find_chains(None, None) == "exit"
+
+
+def test_headless_chain_is_an_error_even_when_other_chains_are_assignable():
+    headless = SimpleNamespace(id=99, head=None)
+    ready = chain(2)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[headless, ready],
+        phases={ready.head.id: CreateAndRateTrialMakerMixin.READY_FOR_RATERS},
+        wait_for_networks=True,
+        role=CreateAndRateTrialMakerMixin.RATER_ROLE,
+    )
+
+    with pytest.raises(RuntimeError, match="have no head: \\[99\\]"):
+        maker.find_chains(None, None)
+
+
 def test_creator_role_ignores_chains_waiting_to_become_ratable():
     pending = chain(1)
     needs = chain(2)

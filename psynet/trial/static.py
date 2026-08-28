@@ -459,7 +459,8 @@ class StaticTrialMaker(ChainTrialMaker):
         """Select from a nonempty list of eligible nodes.
 
         Return a node from ``nodes`` or ``Selection(value, context)``.
-        Returning ``None`` raises ``TypeError``.
+        Returning ``None`` raises ``TypeError``. The returned node must be
+        one of the objects in ``nodes``, not a re-queried copy.
         """
         return nodes[0]
 

@@ -606,6 +606,19 @@ def test_selection_rejects_a_value_outside_the_eligible_list():
         )
 
 
+def test_selection_rejects_a_requery_with_the_same_id():
+    trial_maker = make_trial_maker()
+    eligible = SimpleNamespace(id=1)
+    requery = SimpleNamespace(id=1)
+
+    with pytest.raises(ValueError, match="supplied eligible values"):
+        trial_maker._coerce_selection(
+            requery,
+            allowed_values=[eligible],
+            method_name="select_chain",
+        )
+
+
 @pytest.mark.parametrize(
     ("method_name", "replacement"),
     [

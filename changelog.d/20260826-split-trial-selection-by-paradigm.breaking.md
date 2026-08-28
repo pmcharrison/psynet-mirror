@@ -4,7 +4,9 @@ Replaced trial assignment hooks ``find_networks``, ``find_node``, and
 makers use ``find_nodes``, ``select_node``, and ``custom_node_filter``.
 Selection hooks receive a nonempty eligible list and may return the selected
 value or ``Selection(value, context)``. Returning ``None`` from
-``select_chain`` or ``select_node`` raises ``TypeError``. ``get_trial_class``
+``select_chain`` or ``select_node`` raises ``TypeError``. The selected object
+must be one of the supplied eligible values (object identity); a re-queried
+copy with the same id raises ``ValueError``. ``get_trial_class``
 must return a trial class for every eligible selection; synchronized followers
 reuse their leader's concrete trial class without calling this hook again.
 PsyNet raises an actionable ``TypeError`` at construction when a removed or
