@@ -12,13 +12,16 @@ experimenters gather artifacts with the usual PsyNet commands
 on), then record the outcomes in ``audit/audit.json``.
 
 **Default layout:** run the CLI from the experiment directory so the audit lives
-at ``./audit/``. ``experiment.source_path`` defaults to ``.``, meaning “the
-experiment directory that contains this audit folder” (relative to the audit
-directory’s parent). Commands auto-detect the packet: from the experiment root
-you can pass ``.`` or omit the path and PsyNet will use ``./audit/`` when that
-is where ``audit.json`` lives (or the current directory when it already contains
-``audit.json``). Source paths must be relative and remain inside the audit
-packet; validation and rendering reject absolute paths and ``..`` escapes.
+at ``./audit/``. ``experiment.source_base`` records whether source paths are
+relative to the audit folder (``packet``) or its parent (``packet_parent``);
+``experiment.source_path`` then selects a path below that base. Nested audit
+folders use ``packet_parent`` with source path ``.`` while a flat
+``psynet audit init .`` packet uses ``packet``. Commands auto-detect the packet:
+from the experiment root you can pass ``.`` or omit the path and PsyNet will use
+``./audit/`` when that is where ``audit.json`` lives (or the current directory
+when it already contains ``audit.json``). Source paths must be relative and
+remain inside their declared source base; validation and rendering reject
+absolute paths and ``..`` escapes.
 
 Audit support ships with PsyNet but requires the full experiment runtime
 (``psynet[experiment]``), including Dallinger and the audit HTML render

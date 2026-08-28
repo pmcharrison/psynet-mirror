@@ -48,10 +48,6 @@ def test_classify_audit_evidence_matches_dashboard_conventions() -> None:
     assert view.simulated_data_file is not None
     assert view.has_analysis_notebook
     assert [file.path for file in view.visible_files] == [
-        "performance.json",
-        "monitor.html",
-        "data.zip",
-        "simulated_data.zip",
         "logs/debug.log",
     ]
 

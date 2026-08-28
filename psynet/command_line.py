@@ -4180,8 +4180,8 @@ def audit(ctx):
     default=".",
     help=(
         "Path to the experiment directory that contains the audit folder, "
-        "relative to the audit directory's parent (default: .). Run from the "
-        "experiment root so ./audit/ is created and source_path stays ."
+        "relative to the source base (default: .). Nested audit folders use "
+        "their parent as the source base; `init .` uses the packet itself."
     ),
 )
 @click.option(
@@ -4203,7 +4203,17 @@ def audit_init(audit_dir, source_path, force):
         Path(audit_dir) if audit_dir is not None else None, for_init=True
     )
     try:
-        init_audit(resolved, source_path, force)
+        source_base = (
+            "packet"
+            if resolved.resolve() == Path.cwd().resolve()
+            else "packet_parent"
+        )
+        init_audit(
+            resolved,
+            source_path,
+            force,
+            source_base=source_base,
+        )
     except (FileExistsError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
     for line in init_success_messages(resolved):

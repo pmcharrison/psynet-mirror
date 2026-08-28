@@ -335,3 +335,23 @@ def test_performance_test_ssh_help_documents_no_mark_present(monkeypatch):
     assert result.exit_code == 0
     assert "--no-mark-present" in result.output
     assert "--audit" in result.output
+
+
+def test_performance_test_ssh_rejects_audit(monkeypatch):
+    from click.testing import CliRunner
+
+    from psynet.command_line import performance_test__docker_ssh
+
+    monkeypatch.setattr("psynet.utils.experiment_available", lambda: True)
+    monkeypatch.setattr(
+        "psynet.utils.ensure_experiment_directory_name_does_not_conflict",
+        lambda: None,
+    )
+
+    result = CliRunner().invoke(
+        performance_test__docker_ssh,
+        ["--app", "example", "--server", "example", "--audit"],
+    )
+
+    assert result.exit_code != 0
+    assert "not yet implemented for SSH mode" in result.output

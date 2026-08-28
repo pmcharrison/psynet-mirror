@@ -103,7 +103,10 @@ def validate_evidence_video(
 
     problems: list[str] = []
     if is_git_lfs_pointer(video_file):
-        return problems
+        return [
+            f"{video_file}: file is a Git LFS pointer; fetch the video content "
+            "before marking it present",
+        ]
 
     probe = probe_video_metadata(video_file)
     if probe.error == "unavailable":

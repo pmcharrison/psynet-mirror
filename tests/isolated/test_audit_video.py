@@ -1,4 +1,6 @@
 from pathlib import Path
+import subprocess
+import sys
 from unittest.mock import patch
 
 from psynet.audit.video import (
@@ -13,13 +15,33 @@ VALID_METADATA = {
 }
 
 
-def test_validate_evidence_video_skips_git_lfs_pointer(tmp_path: Path) -> None:
+def test_video_module_import_does_not_require_html_dependencies() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import sys; "
+                "sys.modules['nh3'] = None; "
+                "import psynet.audit.video"
+            ),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_validate_evidence_video_rejects_git_lfs_pointer(tmp_path: Path) -> None:
     video = tmp_path / "participant.mp4"
     video.write_bytes(
         b"version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 1\n",
     )
 
-    assert validate_evidence_video(video) == []
+    problems = validate_evidence_video(video)
+
+    assert any("Git LFS pointer" in problem for problem in problems)
 
 
 def test_validate_evidence_video_fails_for_unreadable_file(tmp_path: Path) -> None:

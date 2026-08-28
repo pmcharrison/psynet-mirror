@@ -1,2 +1,2 @@
-Experiment audit support is part of core PsyNet (no optional ``[audit]`` extra).
-The argparse dual entrypoint was removed; use ``psynet audit`` via Click only.
+Experiment audit support is available from the core ``psynet audit`` Click
+command group without an optional ``[audit]`` extra.

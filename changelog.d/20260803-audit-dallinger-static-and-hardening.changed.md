@@ -1,1 +1,3 @@
-Source experiment-audit monitor static assets from installed Dallinger, remove the vendored copy, drop the psynet-audit console script, and harden path containment for site_path and /static refs.
+Experiment-audit monitor snapshots now use static assets from installed
+Dallinger, and audit rendering confines static references and configured output
+paths to safe locations.

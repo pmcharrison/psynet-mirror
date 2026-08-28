@@ -46,6 +46,13 @@ from psynet.audit.model import (
     classify_audit_evidence,
     file_kind,
 )
+from psynet.audit.paths import (
+    SOURCE_BASES,
+    experiment_source_root,
+    relative_audit_path,
+    resolve_audit_dir,
+    validate_audit_site_dir,
+)
 from psynet.audit.timeline import (
     ALLOWED_TIMELINE_ACTORS,
     parse_timeline_entries,
@@ -134,15 +141,6 @@ MAX_AUDIT_NOTEBOOK_BYTES = 10_000_000
 MAX_AUDIT_SECTION_BYTES = MAX_AUDIT_TEXT_BYTES
 CLI_NAME = "psynet audit"
 AUDIT_CSS_OUTPUT = "css/audit.css"
-AUDIT_DIR_HELP = (
-    "Audit packet directory or experiment root. When omitted (or when the path "
-    "is an experiment root), auto-detects ./audit.json or ./audit/audit.json."
-)
-SOURCE_PATH_HELP = (
-    "Path to the experiment directory that contains the audit folder, relative "
-    "to the audit directory's parent (default: .). Run init from the experiment "
-    "root so ./audit/ is created and source_path stays ."
-)
 
 
 class AuditValidationError(ValueError):
@@ -166,64 +164,6 @@ def artifact_label(audit_dir: Path, index: int, artifact_id: object) -> str:
     if isinstance(artifact_id, str) and artifact_id:
         return f"{base} (id={artifact_id})"
     return base
-
-
-def _has_audit_manifest(candidate: Path) -> bool:
-    """Return whether ``candidate/audit.json`` exists."""
-
-    return (candidate / "audit.json").is_file()
-
-
-def resolve_audit_dir(
-    path: Path | str | None = None,
-    *,
-    for_init: bool = False,
-    require_manifest: bool = False,
-) -> Path:
-    """Resolve an audit packet directory from a CLI path argument.
-
-    When ``path`` is omitted, prefer the current directory if it already
-    contains ``audit.json`` (challenge attempt root or cwd inside the packet),
-    otherwise use ``./audit`` (standalone experiment layout). Default ``init``
-    always targets ``./audit``.
-
-    When ``path`` is given for validate/render/mark-present, use it if it
-    contains ``audit.json``; otherwise, if ``path/audit/audit.json`` exists, use
-    that nested packet. This lets ``psynet audit validate .`` work from an
-    experiment root that holds ``./audit/``. Explicit ``init`` paths are never
-    redirected: ``init .`` still creates a flat packet in the current directory.
-
-    When ``require_manifest`` is true, raise ``ValueError`` if no packet is
-    found.
-    """
-
-    if path is None:
-        cwd = Path(".")
-        if for_init:
-            return cwd / "audit"
-        if _has_audit_manifest(cwd):
-            return cwd
-        resolved = cwd / "audit"
-    else:
-        requested = Path(path)
-        if for_init:
-            return requested
-        if _has_audit_manifest(requested):
-            resolved = requested
-        else:
-            nested = requested / "audit"
-            if _has_audit_manifest(nested):
-                resolved = nested
-            else:
-                resolved = requested
-
-    if require_manifest and not _has_audit_manifest(resolved):
-        display = Path(path) if path is not None else Path(".")
-        raise ValueError(
-            f"No audit packet found at {display}; "
-            "expected audit.json or audit/audit.json",
-        )
-    return resolved
 
 
 def count_blockers(manifest: dict[str, Any]) -> int:
@@ -426,9 +366,14 @@ def audit_profile(manifest: dict[str, Any]) -> str:
     return DEFAULT_AUDIT_PROFILE
 
 
-def starter_audit_manifest(source_path: str) -> dict[str, object]:
+def starter_audit_manifest(
+    source_path: str,
+    source_base: str = "packet_parent",
+) -> dict[str, object]:
     """Create a starter experiment audit manifest."""
 
+    if source_base not in SOURCE_BASES:
+        raise ValueError(f"source_base must be one of: {format_allowed(SOURCE_BASES)}")
     timestamp = utc_timestamp()
     return {
         "schema_version": "1.0",
@@ -437,6 +382,7 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
         "profile": DEFAULT_AUDIT_PROFILE,
         "extensions": [],
         "experiment": {
+            "source_base": source_base,
             "source_path": source_path,
         },
         "implementation": {
@@ -564,10 +510,20 @@ def starter_audit_manifest(source_path: str) -> dict[str, object]:
     }
 
 
-def init_audit(audit_dir: Path, source_path: str = ".", force: bool = False) -> None:
+def init_audit(
+    audit_dir: Path,
+    source_path: str = ".",
+    force: bool = False,
+    *,
+    source_base: str = "packet_parent",
+) -> None:
     """Create a starter experiment audit directory."""
 
-    _, source_path_problems = experiment_source_root(audit_dir, source_path)
+    _, source_path_problems = experiment_source_root(
+        audit_dir,
+        source_path,
+        source_base,
+    )
     if source_path_problems:
         raise ValueError(source_path_problems[0])
 
@@ -587,7 +543,11 @@ def init_audit(audit_dir: Path, source_path: str = ".", force: bool = False) -> 
         directory.mkdir(parents=True, exist_ok=True)
 
     manifest_path.write_text(
-        json.dumps(starter_audit_manifest(source_path), indent=2, sort_keys=True)
+        json.dumps(
+            starter_audit_manifest(source_path, source_base),
+            indent=2,
+            sort_keys=True,
+        )
         + "\n",
         encoding="utf-8",
     )
@@ -595,51 +555,6 @@ def init_audit(audit_dir: Path, source_path: str = ".", force: bool = False) -> 
     (audit_dir / "PROMPT.md").write_text(STARTER_PROMPT, encoding="utf-8")
     (audit_dir / "PLAN.md").write_text(STARTER_PLAN, encoding="utf-8")
     (audit_dir / "TIMELINE.md").write_text(STARTER_TIMELINE, encoding="utf-8")
-
-
-def relative_audit_path(
-    audit_dir: Path,
-    path_text: object,
-    label: str,
-) -> tuple[Path | None, list[str]]:
-    """Resolve a manifest path and ensure it stays inside the bundle directory."""
-
-    if not isinstance(path_text, str) or not path_text:
-        return None, [f"{label}: path must be a non-empty string"]
-
-    relative_path = Path(path_text)
-    if relative_path.is_absolute():
-        return None, [
-            f"{label}: path must be relative to the experiment audit directory"
-        ]
-
-    audit_root = audit_dir.resolve()
-    resolved_path = (audit_dir / relative_path).resolve()
-    if not resolved_path.is_relative_to(audit_root):
-        return None, [f"{label}: path must stay inside the experiment audit directory"]
-    return resolved_path, []
-
-
-def experiment_source_root(
-    audit_dir: Path,
-    source_path: object,
-) -> tuple[Path | None, list[str]]:
-    """Resolve an experiment source path inside its audit packet."""
-
-    label = f"{audit_dir / 'audit.json'}: experiment.source_path"
-    if not isinstance(source_path, str) or not source_path:
-        return None, [f"{label}: path must be a non-empty string"]
-
-    relative_path = Path(source_path)
-    if relative_path.is_absolute():
-        return None, [f"{label}: path must be relative to the audit packet"]
-
-    packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
-    packet_root = packet_root.resolve()
-    resolved_path = (packet_root / relative_path).resolve()
-    if not resolved_path.is_relative_to(packet_root):
-        return None, [f"{label}: path must stay inside the audit packet"]
-    return resolved_path, []
 
 
 def validate_present_artifact_file(
@@ -1101,6 +1016,7 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
             source_root, source_path_problems = experiment_source_root(
                 audit_dir,
                 experiment.get("source_path"),
+                experiment.get("source_base"),
             )
             problems.extend(source_path_problems)
             entry_point = experiment.get("entry_point", "experiment.py")
@@ -1131,12 +1047,20 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
 
     render = manifest.get("render")
     if isinstance(render, dict) and "site_path" in render:
-        _, site_problems = relative_audit_path(
+        resolved_site, site_problems = relative_audit_path(
             audit_dir,
             render.get("site_path"),
             f"{audit_dir / 'audit.json'}: render.site_path",
         )
         problems.extend(site_problems)
+        if resolved_site is not None:
+            problems.extend(
+                validate_audit_site_dir(
+                    audit_dir,
+                    resolved_site,
+                    f"{audit_dir / 'audit.json'}: render.site_path",
+                )
+            )
     return problems
 
 
@@ -1502,6 +1426,7 @@ def experiment_entry_point(
     if not isinstance(experiment, dict):
         return None, "experiment.py"
     source_path = experiment.get("source_path", ".")
+    source_base = experiment.get("source_base")
     entry_point = experiment.get("entry_point", "experiment.py")
     if not isinstance(source_path, str) or not isinstance(entry_point, str):
         return None, "experiment.py"
@@ -1509,7 +1434,11 @@ def experiment_entry_point(
     entry_relative = Path(entry_point)
     if entry_relative.is_absolute():
         return None, entry_point
-    source_root, source_path_problems = experiment_source_root(audit_dir, source_path)
+    source_root, source_path_problems = experiment_source_root(
+        audit_dir,
+        source_path,
+        source_base,
+    )
     if source_path_problems or source_root is None:
         return None, entry_point
     source_file = (source_root / entry_relative).resolve()
@@ -1781,7 +1710,6 @@ def readiness_score_card(manifest: dict[str, Any]) -> str:
 
 def completeness_from_manifest(
     manifest: dict[str, Any],
-    evidence: Any,
 ) -> list[Any]:
     """Build completeness rows from declared manifest artifacts."""
 
@@ -1857,6 +1785,13 @@ def render_audit_site(
         else:
             site_dir = audit_dir / "site"
 
+    site_problems = validate_audit_site_dir(
+        audit_dir,
+        site_dir,
+        "audit site output",
+    )
+    if site_problems:
+        raise ValueError("; ".join(site_problems))
     site_dir.mkdir(parents=True, exist_ok=True)
     rendered_artifacts = publish_audit_artifacts(audit_dir, site_dir, manifest)
 
@@ -1867,7 +1802,7 @@ def render_audit_site(
     evidence = classify_audit_evidence(rendered_artifacts)
     evidence = replace(
         evidence,
-        completeness=completeness_from_manifest(manifest, evidence),
+        completeness=completeness_from_manifest(manifest),
     )
     css_url = write_audit_static_assets(site_dir)
     sections = display_sections(manifest)
@@ -1987,6 +1922,13 @@ def resolve_audit_site_dir(audit_dir: Path) -> Path:
         )
         if site_problems or resolved_site is None:
             raise ValueError("; ".join(site_problems) or "invalid render.site_path")
+        site_problems = validate_audit_site_dir(
+            audit_dir,
+            resolved_site,
+            f"{audit_dir / 'audit.json'}: render.site_path",
+        )
+        if site_problems:
+            raise ValueError("; ".join(site_problems))
         return resolved_site
     return audit_dir / "site"
 

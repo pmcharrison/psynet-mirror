@@ -317,7 +317,13 @@ def is_special_rendered_file(
 ) -> bool:
     """Return whether a file is rendered elsewhere in the evidence view."""
 
-    if evidence_path(file.path) == "participant.mp4":
+    if evidence_path(file.path) in {
+        "participant.mp4",
+        "performance.json",
+        "monitor.html",
+        "data.zip",
+        "simulated_data.zip",
+    }:
         return True
     if file in screenshots:
         return True

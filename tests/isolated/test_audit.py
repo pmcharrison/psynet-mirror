@@ -42,6 +42,7 @@ def audit_manifest() -> dict[str, object]:
         "profile": "psynet.core",
         "extensions": [],
         "experiment": {
+            "source_base": "packet_parent",
             "source_path": ".",
             "entry_point": "experiment.py",
         },
@@ -566,19 +567,20 @@ def test_starter_sections_rename_implementation_narrative() -> None:
 
 
 @pytest.mark.parametrize(
-    ("audit_relative", "source_path"),
+    ("audit_relative", "source_base", "source_path"),
     [
-        ("experiment/audit", "."),
-        ("attempt", "code/primary_color_rating"),
+        ("experiment/audit", "packet_parent", "."),
+        ("attempt", "packet", "code/primary_color_rating"),
     ],
 )
 def test_render_audit_site_inlines_experiment_entry_point(
     tmp_path: Path,
     audit_relative: str,
+    source_base: str,
     source_path: str,
 ) -> None:
     audit_dir = tmp_path / audit_relative
-    init_audit(audit_dir, source_path=source_path)
+    init_audit(audit_dir, source_path=source_path, source_base=source_base)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     manifest["sections"] = [
         section for section in manifest["sections"] if section["id"] != "source"
@@ -588,7 +590,7 @@ def test_render_audit_site_inlines_experiment_entry_point(
             "display"
         ] = False
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
-    packet_root = audit_dir.parent if audit_dir.name == "audit" else audit_dir
+    packet_root = audit_dir.parent if source_base == "packet_parent" else audit_dir
     write(
         packet_root / source_path / "experiment.py",
         'LABEL = "safe-source-value"\n\nclass Exp:\n    pass\n',
@@ -645,7 +647,7 @@ def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None
         ),
     )
 
-    site_dir = render_audit_site(audit_dir)
+    site_dir = render_audit_site(audit_dir, allow_invalid=True)
     index = (site_dir / "index.html").read_text(encoding="utf-8")
 
     assert "<h2>Evidence</h2>" not in index
@@ -1000,6 +1002,17 @@ def test_mark_artifact_present_rejects_invalid_notebook(tmp_path: Path) -> None:
         mark_artifact_present(audit_dir, "analysis_notebook")
 
 
+def test_mark_artifact_present_rejects_git_lfs_video_pointer(tmp_path: Path) -> None:
+    from psynet.audit.cli import mark_artifact_present
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    write_bytes(audit_dir / "artifacts/participant.mp4", LFS_VIDEO_POINTER)
+
+    with pytest.raises(ValueError, match="Git LFS pointer"):
+        mark_artifact_present(audit_dir, "participant_video")
+
+
 def test_mark_artifact_present_accepts_notebook_larger_than_preview(
     tmp_path: Path,
 ) -> None:
@@ -1043,6 +1056,39 @@ def test_init_audit_rejects_escaping_source_path(tmp_path: Path) -> None:
     result = run_audit_cli("init", str(audit_dir), "--source-path", "/etc")
     assert result.exit_code != 0
     assert "experiment.source_path" in result.output
+
+
+def test_init_custom_packet_directory_uses_experiment_parent_as_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    experiment_dir = tmp_path / "experiment"
+    experiment_dir.mkdir()
+    monkeypatch.chdir(experiment_dir)
+
+    result = run_audit_cli("init", "review")
+
+    assert result.exit_code == 0
+    manifest = json.loads(
+        (experiment_dir / "review" / "audit.json").read_text(encoding="utf-8")
+    )
+    assert manifest["experiment"]["source_base"] == "packet_parent"
+    write(experiment_dir / "experiment.py", 'LABEL = "custom packet"\n')
+    site_dir = render_audit_site(experiment_dir / "review")
+    assert "custom packet" in (site_dir / "index.html").read_text(encoding="utf-8")
+
+
+def test_init_flat_packet_uses_packet_as_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    result = run_audit_cli("init", ".")
+
+    assert result.exit_code == 0
+    manifest = json.loads((tmp_path / "audit.json").read_text(encoding="utf-8"))
+    assert manifest["experiment"]["source_base"] == "packet"
 
 
 def test_validate_audit_notebook_skips_read_when_oversized() -> None:
@@ -1454,6 +1500,23 @@ def test_validate_rejects_escaping_render_site_path(tmp_path: Path) -> None:
     problems = validate_audit(audit_dir)
     assert any("render.site_path" in problem for problem in problems)
     assert any("must stay inside" in problem for problem in problems)
+
+
+@pytest.mark.parametrize("site_path", [".", "artifacts/site", "analyses/site", "logs/site"])
+def test_validate_rejects_render_site_path_overlapping_packet_content(
+    tmp_path: Path,
+    site_path: str,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["render"]["site_path"] = site_path
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    problems = validate_audit(audit_dir)
+
+    assert any("render.site_path" in problem for problem in problems)
+    assert any("dedicated output directory" in problem for problem in problems)
 
 
 def test_render_refuses_escaping_site_path_even_with_allow_invalid(
