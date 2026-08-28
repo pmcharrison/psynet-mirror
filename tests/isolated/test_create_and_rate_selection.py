@@ -17,7 +17,11 @@ class _Parent:
             participant,
             experiment,
         )
-        available = [chain for chain in chains if chain not in self._unavailable]
+        available = [
+            chain
+            for chain in chains
+            if chain not in self._unavailable and chain.head is not None
+        ]
         if chains and not available and self.wait_for_networks:
             return "wait"
         return available
@@ -182,6 +186,31 @@ def test_headless_chain_is_an_error_even_when_other_chains_are_assignable():
         phases={ready.head.id: CreateAndRateTrialMakerMixin.READY_FOR_RATERS},
         wait_for_networks=True,
         role=CreateAndRateTrialMakerMixin.RATER_ROLE,
+    )
+
+    with pytest.raises(RuntimeError, match="have no head: \\[99\\]"):
+        maker.find_chains(None, None)
+
+
+def test_phase_driven_headless_chain_is_an_error():
+    headless = SimpleNamespace(id=99, head=None)
+    needs = chain(2)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[headless, needs],
+        phases={needs.head.id: CreateAndRateTrialMakerMixin.NEEDS_CREATORS},
+        wait_for_networks=True,
+    )
+
+    with pytest.raises(RuntimeError, match="have no head: \\[99\\]"):
+        maker.find_chains(None, None)
+
+
+def test_phase_driven_all_headless_chains_raise_instead_of_waiting():
+    headless = SimpleNamespace(id=99, head=None)
+    maker = CreateAndRateSelectionHarness(
+        candidates=[headless],
+        phases={},
+        wait_for_networks=True,
     )
 
     with pytest.raises(RuntimeError, match="have no head: \\[99\\]"):

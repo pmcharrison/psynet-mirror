@@ -512,17 +512,21 @@ class CreateAndRateTrialMakerMixin(object):
             raise RuntimeError(f"Create-and-rate chains have no head: {headless_ids}")
 
     def _filter_eligible_candidates(self, chains, participant, experiment):
-        """Apply custom and fixed-role eligibility before availability checks."""
+        """Apply custom and role eligibility before availability checks.
+
+        Headless chains raise before wait/exit, including phase-driven
+        assignment where ``get_participant_role`` returns ``None``.
+        """
         chains = super()._filter_eligible_candidates(
             chains,
             participant,
             experiment,
         )
+        self._require_chain_heads(chains)
         participant_role = self._participant_role(participant, experiment)
         if participant_role is None:
             return chains
 
-        self._require_chain_heads(chains)
         phases = self.get_creation_phases([chain.head for chain in chains])
         return [
             chain
