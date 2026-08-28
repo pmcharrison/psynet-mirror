@@ -1,3 +1,3 @@
-Rendered ``experiment.py`` (or the configured ``experiment.entry_point``) from
-the explicit ``experiment.source_base`` and ``experiment.source_path`` in a
-dedicated Experiment code audit section.
+Rendered ``experiment.py`` (or the configured ``experiment.entry_point``)
+from the experiment directory (the parent of ``audit/``) in a dedicated
+Experiment code audit section.

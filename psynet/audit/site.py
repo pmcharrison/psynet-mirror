@@ -346,7 +346,6 @@ def experiment_entry_point(
     if not isinstance(experiment, dict):
         return None, "experiment.py"
     source_path = experiment.get("source_path", ".")
-    source_base = experiment.get("source_base")
     entry_point = experiment.get("entry_point", "experiment.py")
     if not isinstance(source_path, str) or not isinstance(entry_point, str):
         return None, "experiment.py"
@@ -357,7 +356,6 @@ def experiment_entry_point(
     source_root, source_path_problems = experiment_source_root(
         audit_dir,
         source_path,
-        source_base,
     )
     if source_path_problems or source_root is None:
         return None, entry_point

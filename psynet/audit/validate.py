@@ -37,7 +37,6 @@ from psynet.audit.manifest import (
     read_audit_manifest,
 )
 from psynet.audit.paths import (
-    effective_source_base,
     experiment_source_root,
     relative_audit_path,
     validate_audit_site_dir,
@@ -393,11 +392,10 @@ def collect_audit_warnings(
     warnings: list[str] = []
     manifest_path = audit_dir / "audit.json"
     experiment = manifest.get("experiment")
-    if isinstance(experiment, dict) and "source_base" not in experiment:
-        inferred = effective_source_base(audit_dir, None)
+    if isinstance(experiment, dict) and "source_base" in experiment:
         warnings.append(
-            f"{manifest_path}: experiment.source_base is missing; inferred "
-            f"{inferred!r} from the legacy packet layout"
+            f"{manifest_path}: experiment.source_base is ignored; experiment "
+            "source is the parent of the audit directory"
         )
     if audit_profile(manifest) == DEFAULT_AUDIT_PROFILE:
         sections = manifest.get("sections")
@@ -472,7 +470,6 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
             source_root, source_path_problems = experiment_source_root(
                 audit_dir,
                 experiment.get("source_path"),
-                experiment.get("source_base"),
             )
             problems.extend(source_path_problems)
             entry_point = experiment.get("entry_point", "experiment.py")

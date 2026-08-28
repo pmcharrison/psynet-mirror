@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-SOURCE_BASES = {"packet", "packet_parent"}
 PROTECTED_PACKET_DIRECTORIES = ("artifacts", "analyses", "logs")
 
 
@@ -14,36 +13,66 @@ def _has_audit_manifest(candidate: Path) -> bool:
     return (candidate / "audit.json").is_file()
 
 
+def _is_named_audit(path: Path) -> bool:
+    """Return whether ``path`` is the nested ``audit/`` folder."""
+
+    name = path.name
+    if name in ("", ".", ".."):
+        return path.resolve().name == "audit"
+    return name == "audit"
+
+
+def _flat_packet_error(location: Path) -> ValueError:
+    """Return an error for a leftover flat ``audit.json`` layout."""
+
+    destination = location / "audit" / "audit.json"
+    return ValueError(
+        "Audits must live in ./audit/. Found audit.json at "
+        f"{location}; move it to {destination}"
+    )
+
+
 def resolve_audit_dir(
     path: Path | str | None = None,
     *,
     for_init: bool = False,
     require_manifest: bool = False,
 ) -> Path:
-    """Resolve an audit packet directory from a CLI path argument."""
+    """Resolve the nested ``audit/`` directory from a CLI path argument.
+
+    ``path`` is the experiment root unless it is already the ``audit/``
+    folder. ``for_init`` always returns ``<experiment>/audit``.
+    """
+
+    if for_init:
+        experiment = Path(path) if path is not None else Path(".")
+        return experiment / "audit"
 
     if path is None:
         cwd = Path(".")
-        if for_init:
-            return cwd / "audit"
-        if _has_audit_manifest(cwd):
-            return cwd
-        resolved = cwd / "audit"
+        if _has_audit_manifest(cwd) and _is_named_audit(cwd):
+            resolved = cwd
+        elif _has_audit_manifest(cwd / "audit"):
+            resolved = cwd / "audit"
+        elif _has_audit_manifest(cwd):
+            raise _flat_packet_error(cwd)
+        else:
+            resolved = cwd / "audit"
     else:
         requested = Path(path)
-        if for_init:
-            return requested
-        if _has_audit_manifest(requested):
+        if _has_audit_manifest(requested) and _is_named_audit(requested):
             resolved = requested
+        elif _has_audit_manifest(requested / "audit"):
+            resolved = requested / "audit"
+        elif _has_audit_manifest(requested):
+            raise _flat_packet_error(requested)
         else:
-            nested = requested / "audit"
-            resolved = nested if _has_audit_manifest(nested) else requested
+            resolved = requested if _is_named_audit(requested) else requested / "audit"
 
     if require_manifest and not _has_audit_manifest(resolved):
         display = Path(path) if path is not None else Path(".")
         raise ValueError(
-            f"No audit packet found at {display}; "
-            "expected audit.json or audit/audit.json",
+            f"No audit packet found at {display}; expected audit/audit.json",
         )
     return resolved
 
@@ -103,41 +132,23 @@ def validate_audit_site_dir(
     return []
 
 
-def effective_source_base(audit_dir: Path, source_base: object) -> str | None:
-    """Return an explicit source base or infer the legacy packet layout."""
-
-    if source_base in SOURCE_BASES:
-        return str(source_base)
-    if source_base is None:
-        return "packet_parent" if audit_dir.name == "audit" else "packet"
-    return None
-
-
 def experiment_source_root(
     audit_dir: Path,
     source_path: object,
-    source_base: object,
 ) -> tuple[Path | None, list[str]]:
-    """Resolve an experiment source path from its explicit base."""
+    """Resolve experiment source relative to the parent of ``audit/``."""
 
     manifest_path = audit_dir / "audit.json"
     label = f"{manifest_path}: experiment.source_path"
-    resolved_source_base = effective_source_base(audit_dir, source_base)
-    if resolved_source_base is None:
-        allowed = ", ".join(sorted(SOURCE_BASES))
-        return None, [
-            f"{manifest_path}: experiment.source_base must be one of: {allowed}"
-        ]
     if not isinstance(source_path, str) or not source_path:
         return None, [f"{label}: path must be a non-empty string"]
 
     relative_path = Path(source_path)
     if relative_path.is_absolute():
-        return None, [f"{label}: path must be relative to its source base"]
+        return None, [f"{label}: path must be relative to the experiment directory"]
 
-    root = audit_dir if resolved_source_base == "packet" else audit_dir.parent
-    root = root.resolve()
+    root = audit_dir.resolve().parent
     resolved_path = (root / relative_path).resolve()
     if not resolved_path.is_relative_to(root):
-        return None, [f"{label}: path must stay inside its source base"]
+        return None, [f"{label}: path must stay inside the experiment directory"]
     return resolved_path, []

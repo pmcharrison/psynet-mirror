@@ -59,10 +59,6 @@
           "type": "string",
           "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*$"
         },
-        "source_base": {
-          "type": "string",
-          "enum": ["packet", "packet_parent"]
-        },
         "source_path": {
           "$ref": "#/$defs/relativePath"
         },

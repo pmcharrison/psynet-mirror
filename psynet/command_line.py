@@ -3394,9 +3394,9 @@ def _audit_packet_option(help_text: str):
 _test_options["performance_audit"] = _audit_packet_option(
     """
     Write performance results to <audit>/artifacts/performance.json and mark
-    performance_result present. Pass a packet path, or --audit alone to
-    auto-detect from the current directory (./audit.json or
-    ./audit/audit.json). Creates artifacts/ if needed. Do not combine with
+    performance_result present. Pass the experiment root, the audit/ folder,
+    or --audit alone to auto-detect ./audit/audit.json. Creates artifacts/ if
+    needed. Do not combine with
     --json-output. Use --no-mark-present to write the file without updating
     audit.json."""
 )
@@ -3405,9 +3405,9 @@ _test_options["simulate_audit"] = _audit_packet_option(
     """
     After exporting data/simulated_data/, zip it to
     <audit>/artifacts/simulated_data.zip and mark simulation_export present.
-    Pass a packet path, or --audit alone to auto-detect from the current
-    directory (./audit.json or ./audit/audit.json). Creates artifacts/ if
-    needed. Use --no-mark-present to write the zip without updating
+    Pass the experiment root, the audit/ folder, or --audit alone to
+    auto-detect ./audit/audit.json. Creates artifacts/ if needed. Use
+    --no-mark-present to write the zip without updating
     audit.json."""
 )
 
@@ -4165,10 +4165,9 @@ def audit(ctx):
     Package experiment readiness evidence (does not run tests).
 
     An audit records artifacts, checks, and blockers for human inspection.
-    It does not run tests or collect evidence for you. Create the audit/
-    folder inside the experiment directory (default layout). Commands
-    auto-detect ./audit.json or ./audit/audit.json when AUDIT_DIR is omitted
-    or points at the experiment root.
+    It does not run tests or collect evidence for you. Audits live in
+    ./audit/ inside the experiment directory. Commands auto-detect that
+    folder when AUDIT_DIR is omitted or points at the experiment root.
     """
     pass
 
@@ -4179,9 +4178,8 @@ def audit(ctx):
     "--source-path",
     default=".",
     help=(
-        "Path to the experiment directory that contains the audit folder, "
-        "relative to the source base (default: .). Nested audit folders use "
-        "their parent as the source base; `init .` uses the packet itself."
+        "Path to the experiment code, relative to the experiment directory "
+        "(the parent of audit/). Default: ."
     ),
 )
 @click.option(
@@ -4192,8 +4190,8 @@ def audit(ctx):
 def audit_init(audit_dir, source_path, force):
     """Create a starter experiment audit directory.
 
-    AUDIT_DIR defaults to ./audit. Pass an explicit path to create a flat
-    packet (for example ``.`` for the current directory).
+    AUDIT_DIR is the experiment root (default: .). The packet is always
+    created at ``<experiment>/audit``.
     """
     from pathlib import Path
 
@@ -4203,15 +4201,7 @@ def audit_init(audit_dir, source_path, force):
         Path(audit_dir) if audit_dir is not None else None, for_init=True
     )
     try:
-        source_base = (
-            "packet" if resolved.resolve() == Path.cwd().resolve() else "packet_parent"
-        )
-        init_audit(
-            resolved,
-            source_path,
-            force,
-            source_base=source_base,
-        )
+        init_audit(resolved, source_path, force)
     except (FileExistsError, ValueError) as exc:
         raise click.ClickException(str(exc)) from exc
     for line in init_success_messages(resolved):
@@ -4224,7 +4214,7 @@ def audit_validate(audit_dir):
     """Validate an experiment audit directory.
 
     AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
-    ./audit.json or ./audit/audit.json. Exit 0 means the packet is coherent,
+    ./audit/audit.json. Exit 0 means the packet is coherent,
     not that the experiment is ready (blockers may remain).
     """
     from pathlib import Path
@@ -4270,7 +4260,7 @@ def audit_render(audit_dir, output, allow_invalid):
     """Render a static experiment audit site.
 
     AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
-    ./audit.json or ./audit/audit.json.
+    ./audit/audit.json.
     """
     from pathlib import Path
 
@@ -4333,7 +4323,7 @@ def audit_serve(audit_dir, host, port, render, allow_invalid):
     """Serve the rendered experiment audit site over HTTP.
 
     AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
-    ./audit.json or ./audit/audit.json. Does not create a public tunnel; use a
+    ./audit/audit.json. Does not create a public tunnel; use a
     separate tunnel helper when remote review is needed.
     """
     from pathlib import Path
@@ -4388,7 +4378,7 @@ def audit_mark_present(artifact_id, audit_dir, path):
     """Mark an artifact present and remove its blockers.
 
     AUDIT_DIR may be omitted or be the experiment root; PsyNet auto-detects
-    ./audit.json or ./audit/audit.json.
+    ./audit/audit.json.
     """
     from pathlib import Path
 

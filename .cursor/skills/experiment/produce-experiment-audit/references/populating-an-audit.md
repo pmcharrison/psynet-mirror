@@ -28,10 +28,10 @@ implementation.
 | Inside the packet itself | `psynet audit validate` | `.` |
 
 Prefer staying at the experiment root. Running from inside `audit/` also works
-when `audit.json` is in the current directory.
+when that folder is named `audit` and contains `audit.json`.
 
-For `mark-present` / `render`, the same rules apply. Pass an explicit packet
-path only when you are not already at the experiment root.
+For `mark-present` / `render`, the same rules apply. Pass an explicit experiment
+or `audit/` path only when you are not already at the experiment root.
 
 ## Early audit-aware habit
 
@@ -191,9 +191,7 @@ psynet simulate --audit
 `--audit` (alone or with a path) writes `<AUDIT_ROOT>/artifacts/simulated_data.zip`
 and marks `simulation_export` present. Use `--no-mark-present` to write the zip
 without updating `audit.json`. Overwrite the same zip when a later simulation
-supersedes an interim run. When the packet is a parent of the experiment
-directory (challenge attempts: experiment at `code/<slug>/`, packet at the
-attempt root), pass `--audit ../..` instead of bare `--audit`.
+supersedes an interim run.
 
 ### Performance evidence
 

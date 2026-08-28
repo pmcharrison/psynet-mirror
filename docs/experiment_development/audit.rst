@@ -12,20 +12,17 @@ experimenters gather artifacts with the usual PsyNet commands
 on), then record the outcomes in ``audit/audit.json``.
 
 **Default layout:** run the CLI from the experiment directory so the audit lives
-at ``./audit/``. ``experiment.source_base`` records whether source paths are
-relative to the audit folder (``packet``) or its parent (``packet_parent``);
-``experiment.source_path`` then selects a path below that base. Nested audit
-folders use ``packet_parent`` with source path ``.`` while a flat
-``psynet audit init .`` packet uses ``packet``. Commands auto-detect the packet:
-from the experiment root you can pass ``.`` or omit the path and PsyNet will use
-``./audit/`` when that is where ``audit.json`` lives (or the current directory
-when it already contains ``audit.json``). Source paths must be relative and
-remain inside their declared source base; validation and rendering reject
+at ``./audit/``. ``experiment.source_path`` is relative to that experiment
+directory (the parent of ``audit/``). Default ``.`` means the experiment root
+itself; use a subdirectory only when the code does not live at the experiment
+root. Paths must stay inside that directory; validation and rendering reject
 absolute paths and ``..`` escapes.
 
-Packets created before ``source_base`` was introduced remain valid. PsyNet
-infers ``packet_parent`` for a folder named ``audit`` and ``packet`` otherwise,
-and validation warns so the manifest can be made explicit.
+Commands auto-detect ``./audit/`` from the experiment root (``psynet audit
+validate`` or ``validate .``). Running from inside ``audit/`` also works.
+Leftover flat packets with ``audit.json`` in the experiment root are rejected
+with a message to move them to ``./audit/audit.json``. A leftover
+``experiment.source_base`` field is ignored with a warning.
 
 Audit support ships with PsyNet but requires the full experiment runtime
 (``psynet[experiment]``), including Dallinger and the audit HTML render
@@ -42,9 +39,11 @@ dependencies. Participant video validation also requires ``ffprobe`` from
    psynet audit serve
 
 * ``init`` creates a starter ``audit/`` directory whose required-but-missing
-  artifacts are covered by starter blockers. ``--source-path`` must stay inside
-  the packet, matching ``validate``. Validate can pass on this sparse starter;
-  that means the packet is coherent, not that the experiment is ready.
+  artifacts are covered by starter blockers. ``psynet audit init`` and
+  ``psynet audit init .`` both create ``./audit``. ``--source-path`` must stay
+  inside the experiment directory, matching ``validate``. Validate can pass on
+  this sparse starter; that means the packet is coherent, not that the
+  experiment is ready.
 * ``validate`` checks the manifest structure, required artifact files, blocker
   coverage, video limits, and notebook JSON readiness. It reports how many
   blockers are still recorded and that readiness may still be incomplete.
@@ -109,8 +108,8 @@ Implementation timeline, Implementation notes, Experiment code, Screenshots,
 Participant video, Monitor snapshot, Performance test, Data exports, Analysis,
 Additional files, Blockers, and Checks. Data exports have their own download
 panel rather than being repeated under Additional files. The Experiment code panel reads ``experiment.py``
-(or ``experiment.entry_point`` when configured) from
-``experiment.source_path`` and displays it as Python source. Each evidence kind
+(or ``experiment.entry_point`` when configured) from the experiment directory
+and displays it as Python source. Each evidence kind
 is its own top-level section, so a section kind maps to one panel:
 
 * ``screenshots``, ``participant_video``, ``monitor``, ``performance``,

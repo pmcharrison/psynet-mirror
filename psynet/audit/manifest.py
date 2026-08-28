@@ -15,15 +15,9 @@ from psynet.audit.constants import (
     CLI_NAME,
     DEFAULT_AUDIT_PROFILE,
     PLACEHOLDER_IMPLEMENTATION_SUMMARY,
-    format_allowed,
 )
 from psynet.audit.content import validate_present_artifact_file
-from psynet.audit.paths import (
-    SOURCE_BASES,
-    effective_source_base,
-    experiment_source_root,
-    relative_audit_path,
-)
+from psynet.audit.paths import experiment_source_root, relative_audit_path
 
 
 def count_blockers(manifest: dict[str, Any]) -> int:
@@ -111,15 +105,10 @@ def read_audit_manifest(audit_dir: Path) -> dict[str, Any]:
     return manifest
 
 
-def display_title_from_path(
-    audit_dir: Path,
-    source_base: object = None,
-) -> str:
-    """Derive a human-readable experiment title from an audit path."""
+def display_title_from_path(audit_dir: Path) -> str:
+    """Derive a human-readable experiment title from the experiment directory."""
 
-    resolved = audit_dir.resolve()
-    base = effective_source_base(audit_dir, source_base)
-    source = resolved.parent if base == "packet_parent" else resolved
+    source = audit_dir.resolve().parent
     normalized = re.sub(r"[-_]+", " ", source.name).strip()
     return normalized.title() if normalized else "Experiment Audit"
 
@@ -132,7 +121,7 @@ def audit_display_title(audit_dir: Path, manifest: dict[str, Any]) -> str:
         title = experiment.get("title")
         if isinstance(title, str) and title.strip():
             return title
-        return display_title_from_path(audit_dir, experiment.get("source_base"))
+        return display_title_from_path(audit_dir)
     return display_title_from_path(audit_dir)
 
 
@@ -230,14 +219,9 @@ def audit_profile(manifest: dict[str, Any]) -> str:
     return DEFAULT_AUDIT_PROFILE
 
 
-def starter_audit_manifest(
-    source_path: str,
-    source_base: str = "packet_parent",
-) -> dict[str, object]:
+def starter_audit_manifest(source_path: str = ".") -> dict[str, object]:
     """Create a starter experiment audit manifest."""
 
-    if source_base not in SOURCE_BASES:
-        raise ValueError(f"source_base must be one of: {format_allowed(SOURCE_BASES)}")
     timestamp = utc_timestamp()
     return {
         "schema_version": "1.0",
@@ -246,7 +230,6 @@ def starter_audit_manifest(
         "profile": DEFAULT_AUDIT_PROFILE,
         "extensions": [],
         "experiment": {
-            "source_base": source_base,
             "source_path": source_path,
         },
         "implementation": {
@@ -379,16 +362,10 @@ def init_audit(
     audit_dir: Path,
     source_path: str = ".",
     force: bool = False,
-    *,
-    source_base: str = "packet_parent",
 ) -> None:
     """Create a starter experiment audit directory."""
 
-    _, source_path_problems = experiment_source_root(
-        audit_dir,
-        source_path,
-        source_base,
-    )
+    _, source_path_problems = experiment_source_root(audit_dir, source_path)
     if source_path_problems:
         raise ValueError(source_path_problems[0])
 
@@ -409,7 +386,7 @@ def init_audit(
 
     manifest_path.write_text(
         json.dumps(
-            starter_audit_manifest(source_path, source_base),
+            starter_audit_manifest(source_path),
             indent=2,
             sort_keys=True,
         )

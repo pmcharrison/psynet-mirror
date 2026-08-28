@@ -196,9 +196,9 @@ file without updating ``audit.json``:
     # From the experiment root with ./audit/ (auto-detect)
     psynet performance-test local --n-bots 40 --duration-minutes 5 --audit
 
-    # Explicit packet path (standalone nested audit, or challenge attempt root)
+    # Explicit experiment root or audit/ folder
+    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit .
     psynet performance-test local --n-bots 40 --duration-minutes 5 --audit audit
-    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit ../..
 
 Do not combine ``--json-output`` and ``--audit``.
 

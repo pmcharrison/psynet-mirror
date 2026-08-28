@@ -42,7 +42,6 @@ def audit_manifest() -> dict[str, object]:
         "profile": "psynet.core",
         "extensions": [],
         "experiment": {
-            "source_base": "packet_parent",
             "source_path": ".",
             "entry_point": "experiment.py",
         },
@@ -563,32 +562,22 @@ def test_starter_sections_rename_implementation_narrative() -> None:
 
 
 @pytest.mark.parametrize(
-    ("audit_relative", "source_base", "source_path"),
-    [
-        ("experiment/audit", "packet_parent", "."),
-        ("attempt", "packet", "code/primary_color_rating"),
-    ],
+    "source_path",
+    [".", "code/primary_color_rating"],
 )
 def test_render_audit_site_inlines_experiment_entry_point(
     tmp_path: Path,
-    audit_relative: str,
-    source_base: str,
     source_path: str,
 ) -> None:
-    audit_dir = tmp_path / audit_relative
-    init_audit(audit_dir, source_path=source_path, source_base=source_base)
+    audit_dir = tmp_path / "experiment" / "audit"
+    init_audit(audit_dir, source_path=source_path)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     manifest["sections"] = [
         section for section in manifest["sections"] if section["id"] != "source"
     ]
-    if audit_relative == "attempt":
-        next(section for section in manifest["sections"] if section["id"] == "report")[
-            "display"
-        ] = False
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
-    packet_root = audit_dir.parent if source_base == "packet_parent" else audit_dir
     write(
-        packet_root / source_path / "experiment.py",
+        audit_dir.parent / source_path / "experiment.py",
         'LABEL = "safe-source-value"\n\nclass Exp:\n    pass\n',
     )
 
@@ -1078,12 +1067,14 @@ def test_init_audit_rejects_escaping_source_path(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="experiment.source_path"):
         init_audit(audit_dir, source_path="../outside")
 
-    result = run_audit_cli("init", str(audit_dir), "--source-path", "/etc")
+    result = run_audit_cli(
+        "init", str(tmp_path / "experiment"), "--source-path", "/etc"
+    )
     assert result.exit_code != 0
     assert "experiment.source_path" in result.output
 
 
-def test_init_custom_packet_directory_uses_experiment_parent_as_source(
+def test_init_custom_packet_directory_creates_nested_audit(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1094,16 +1085,16 @@ def test_init_custom_packet_directory_uses_experiment_parent_as_source(
     result = run_audit_cli("init", "review")
 
     assert result.exit_code == 0
-    manifest = json.loads(
-        (experiment_dir / "review" / "audit.json").read_text(encoding="utf-8")
-    )
-    assert manifest["experiment"]["source_base"] == "packet_parent"
-    write(experiment_dir / "experiment.py", 'LABEL = "custom packet"\n')
-    site_dir = render_audit_site(experiment_dir / "review")
+    audit_dir = experiment_dir / "review" / "audit"
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    assert "source_base" not in manifest["experiment"]
+    assert manifest["experiment"]["source_path"] == "."
+    write(experiment_dir / "review" / "experiment.py", 'LABEL = "custom packet"\n')
+    site_dir = render_audit_site(audit_dir)
     assert "custom packet" in (site_dir / "index.html").read_text(encoding="utf-8")
 
 
-def test_init_flat_packet_uses_packet_as_source(
+def test_init_dot_creates_nested_audit(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1112,8 +1103,12 @@ def test_init_flat_packet_uses_packet_as_source(
     result = run_audit_cli("init", ".")
 
     assert result.exit_code == 0
-    manifest = json.loads((tmp_path / "audit.json").read_text(encoding="utf-8"))
-    assert manifest["experiment"]["source_base"] == "packet"
+    manifest = json.loads(
+        (tmp_path / "audit" / "audit.json").read_text(encoding="utf-8")
+    )
+    assert "source_base" not in manifest["experiment"]
+    assert manifest["experiment"]["source_path"] == "."
+    assert not (tmp_path / "audit.json").exists()
 
 
 def test_validate_audit_notebook_skips_read_when_oversized() -> None:
@@ -1323,6 +1318,7 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
     assert (audit_dir / "logs").is_dir()
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     assert "title" not in manifest["experiment"]
+    assert "source_base" not in manifest["experiment"]
     assert manifest["experiment"]["source_path"] == "."
     assert manifest["profile"] == "psynet.core"
     assert manifest["extensions"] == []
@@ -1356,16 +1352,18 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
 
 
 def test_init_audit_cli_prints_next_steps(tmp_path: Path) -> None:
-    audit_dir = tmp_path / "audit"
+    experiment_dir = tmp_path / "experiment"
 
-    result = run_audit_cli("init", str(audit_dir), "--source-path", ".")
+    result = run_audit_cli("init", str(experiment_dir), "--source-path", ".")
 
     assert result.exit_code == 0
     assert "Initialized experiment audit directory" in result.output
     assert "starter packet" in result.output
     assert "psynet audit validate" in result.output
     assert "packet coherent ≠ experiment ready" in result.output
-    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (experiment_dir / "audit" / "audit.json").read_text(encoding="utf-8")
+    )
     assert manifest["experiment"]["source_path"] == "."
 
 
@@ -1395,9 +1393,9 @@ def test_init_audit_force_replaces_starter_files(tmp_path: Path) -> None:
     )
 
 
-def test_render_audit_site_uses_resolved_parent_title(tmp_path: Path) -> None:
-    audit_dir = tmp_path / "tone-comparison" / "review"
-    init_audit(audit_dir, source_base="packet_parent")
+def test_render_audit_site_uses_experiment_directory_title(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "tone-comparison" / "audit"
+    init_audit(audit_dir)
     site_dir = render_audit_site(audit_dir)
     index = (site_dir / "index.html").read_text(encoding="utf-8")
     assert "Tone Comparison" in index
@@ -1405,20 +1403,23 @@ def test_render_audit_site_uses_resolved_parent_title(tmp_path: Path) -> None:
     assert "0/5 required present" in index
 
 
-def test_validate_infers_legacy_source_base_with_warning(tmp_path: Path) -> None:
+def test_validate_ignores_legacy_source_base_with_warning(tmp_path: Path) -> None:
     from psynet.audit.cli import collect_audit_warnings
 
     audit_dir = tmp_path / "tone-comparison" / "audit"
     init_audit(audit_dir)
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
-    del manifest["experiment"]["source_base"]
+    manifest["experiment"]["source_base"] = "packet"
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(audit_dir.parent / "experiment.py", 'LABEL = "from parent"\n')
 
     assert validate_audit(audit_dir) == []
     assert any(
-        "source_base is missing" in warning
+        "source_base is ignored" in warning
         for warning in collect_audit_warnings(audit_dir)
     )
+    site_dir = render_audit_site(audit_dir)
+    assert "from parent" in (site_dir / "index.html").read_text(encoding="utf-8")
 
 
 def test_render_refuses_invalid_manifest_unless_allowed(tmp_path: Path) -> None:
@@ -1471,7 +1472,7 @@ def test_validate_success_message_mentions_blockers(tmp_path: Path) -> None:
     assert "readiness incomplete" in result.output
 
 
-def test_resolve_audit_dir_autodetects_nested_and_flat(
+def test_resolve_audit_dir_autodetects_nested_layout(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1487,14 +1488,20 @@ def test_resolve_audit_dir_autodetects_nested_and_flat(
     assert resolve_audit_dir(Path(".")) == Path("audit")
     assert resolve_audit_dir(Path("audit")) == Path("audit")
     assert resolve_audit_dir(None, for_init=True) == Path("audit")
-    assert resolve_audit_dir(Path("."), for_init=True) == Path(".")
+    assert resolve_audit_dir(Path("."), for_init=True) == Path("audit")
 
-    attempt = tmp_path / "attempt"
-    attempt.mkdir()
-    write(attempt / "audit.json", "{}\n")
-    monkeypatch.chdir(attempt)
+    monkeypatch.chdir(nested)
     assert resolve_audit_dir(None) == Path(".")
     assert resolve_audit_dir(Path(".")) == Path(".")
+
+    leftover = tmp_path / "legacy"
+    leftover.mkdir()
+    write(leftover / "audit.json", "{}\n")
+    with pytest.raises(ValueError, match="Audits must live in ./audit/"):
+        resolve_audit_dir(leftover)
+    monkeypatch.chdir(leftover)
+    with pytest.raises(ValueError, match="Audits must live in ./audit/"):
+        resolve_audit_dir(None)
 
 
 def test_validate_cli_accepts_experiment_root_dot(
