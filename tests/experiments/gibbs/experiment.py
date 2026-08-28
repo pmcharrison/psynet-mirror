@@ -20,7 +20,6 @@ from psynet.participant import Participant
 from psynet.process import AsyncProcess
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
-from psynet.trial.main import TrialNode
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -155,19 +154,6 @@ class CustomTrialMaker(GibbsTrialMaker):
 
     # If we set this to True, then the performance check will wait until all async_post_trial processes have finished
     end_performance_check_waits = False
-
-    def select_chain(self, chains, participant, experiment):
-        for chain in chains:
-            chain.alive_trials_at_degree = len(
-                TrialNode.query.filter_by(network_id=chain.id)
-                .order_by(TrialNode.id)
-                .all()[-1]
-                .alive_trials
-            )
-
-        candidates = list(chains)
-        random.shuffle(candidates)
-        return max(candidates, key=lambda chain: chain.alive_trials_at_degree)
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
