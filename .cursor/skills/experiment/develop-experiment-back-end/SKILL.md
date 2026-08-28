@@ -13,10 +13,11 @@ Most experiment logic should go through these components.
 
 Prefer `TrialMaker`s where possible for administering sequences of trials,
 as they provide standardized helpers for administration and visualization.
-`StaticTrialMaker`s are suitable for standard, non-adaptive experiments;
-use a chain-based trial maker when later trials depend on state produced by
-completed earlier trials. Inspect the closest PsyNet demo and trial-maker
-implementation before choosing an architecture.
+Use `StaticTrialMaker` when selecting among a fixed bank of nodes, including
+adaptive policies that reprioritize that bank. Use a chain-based trial maker
+when completed trials create or change the state represented by later nodes.
+Inspect the closest PsyNet demo and trial-maker implementation before choosing
+an architecture.
 
 ## Internationalization
 

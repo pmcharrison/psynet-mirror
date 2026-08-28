@@ -32,7 +32,7 @@ class StudyModelSnapshot(SQLBase, SQLMixin):
 
     status = Column(String, index=True)
     model_version = Column(String)
-    data_version = Column(Integer, index=True)
+    data_version = Column(Integer, unique=True, index=True)
     observation_count = Column(Integer)
     observation_fingerprint = Column(String)
 
@@ -81,6 +81,37 @@ summary for a failed fit, but keep the previous ready snapshot available. Give
 each successful fit a model version and a monotonically increasing data
 version.
 
+## Create decisions transactionally
+
+Create the decision row in the trial maker's `on_trial_created` hook. PsyNet
+calls this after the exact primary assignment exists but before the participant
+sees it. Repeat trials and synchronized follower copies do not call this hook.
+
+```python
+class AdaptiveTrialMaker(StaticTrialMaker):
+    def on_trial_created(self, trial, experiment, participant, selection_context):
+        selected_item_id = trial.definition["item_id"]
+        if selection_context["selected_candidate_id"] != selected_item_id:
+            raise RuntimeError("Adaptive decision does not match the trial.")
+        decision = AdaptiveDecision(
+            participant_id=participant.id,
+            selected_candidate_id=selected_item_id,
+            participant_history_count=selection_context["participant_history_count"],
+            study_fit_id=selection_context["study_fit_id"],
+            candidate_pool_version=selection_context["candidate_pool_version"],
+            selected_utility=selection_context["selected_utility"],
+            details=selection_context["details"],
+        )
+        decision.trial = trial
+        db.session.add(decision)
+```
+
+Assigning the relationship lets SQLAlchemy populate `trial_id` when the
+transaction flushes. The trial and decision commit or roll back together; do
+not flush merely to obtain the trial ID. Use explicit columns for routine
+queries and exports. Keep `details` small unless the complete candidate and
+utility set is needed to reconstruct the policy.
+
 ## Publish a snapshot
 
 Create and commit the `building` row before starting the expensive fit. Perform
@@ -97,6 +128,8 @@ snapshot = StudyModelSnapshot(
 )
 db.session.add(snapshot)
 db.session.commit()
+snapshot_id = snapshot.id
+db.session.remove()
 
 try:
     model_fit = fit_study_model(
@@ -104,16 +137,23 @@ try:
         participants=participants,
         items=items,
     )
+except Exception as error:
+    snapshot = StudyModelSnapshot.query.get(snapshot_id)
+    snapshot.status = "failed"
+    snapshot.error = str(error)
+    db.session.commit()
+    raise
+else:
+    snapshot = StudyModelSnapshot.query.get(snapshot_id)
     snapshot.state = state_needed_for_scoring(model_fit)
     snapshot.diagnostics = fit_diagnostics(model_fit)
     snapshot.status = "ready"
-except Exception as error:
-    snapshot.status = "failed"
-    snapshot.error = str(error)
-    raise
-finally:
     db.session.commit()
 ```
+
+Removing the scoped session before fitting releases its connection and detaches
+the `building` row. Re-query the snapshot in a fresh session only when
+publishing success or failure.
 
 Selection queries the newest ready data version. It never reads a `building`
 row.
@@ -128,9 +168,11 @@ snapshot = (
 ```
 
 Do not rely on a scheduled task's `max_instances=1` when several server
-processes might execute it. Protect the claim for a data version with a database
-lock or uniqueness constraint. Truly incremental updates additionally need a
-single-writer mechanism that incorporates every observation exactly once.
+processes might execute it. The unique `data_version` constraint makes
+competing claims fail atomically; catch that integrity error and let the
+existing claimant continue. A database lock can coordinate more complex claim
+rules. Truly incremental updates additionally need a single-writer mechanism
+that incorporates every observation exactly once.
 
 ## Identify the fitted observations
 

@@ -6,6 +6,11 @@ description: Implement a PsyNet experiment in which accumulated responses influe
 # Make an experiment adaptive
 
 An adaptive experiment uses earlier responses to decide what to measure next.
+Before implementation, read
+[references/adaptive-design-contract.md](references/adaptive-design-contract.md)
+and agree its specification gate, posterior strategy, dependencies, and
+validation criteria with the user.
+
 Classify the procedure by the level at which its adaptive state is maintained:
 
 | Level | Information used for selection | Examples |
@@ -237,6 +242,11 @@ travels only through the current trial-construction call; it is not stored in
 participant or module state. PsyNet calls `select_node` only when at least one
 eligible node exists.
 
+Return the exact node object from the `nodes` argument (or wrap that same object
+in `Selection`). PsyNet validates object identity; re-querying a node with the
+same database ID and returning the new Python object raises `ValueError`. The
+same rule applies to `select_chain`.
+
 `StaticTrialMaker` excludes previously visited nodes before calling
 `select_node` when `allow_repeated_nodes=False`, which is the default.
 Set it explicitly and keep `n_repeat_trials=0` when the participant must never
@@ -246,11 +256,20 @@ ineligible after the first assignment.
 
 Use `custom_node_filter` only when the policy changes item eligibility rather
 than priority; ordinary repeat suppression is already provided by
-`allow_repeated_nodes=False`. On `StaticTrialMaker`, override `select_node`
-rather than `find_nodes`. Chain-based adaptation instead chooses among evolving
-chains with `select_chain`; it may likewise return
+`allow_repeated_nodes=False`. For candidate ranking on `StaticTrialMaker`,
+override `select_node`, not `find_nodes`; temporary wait/exit is the exception
+described below. Chain-based adaptation instead chooses among evolving chains
+with `select_chain`; it may likewise return
 `Selection(value=selected_chain, context=...)`. Do not override the managed
 `prepare_trial` of a `NetworkTrialMaker`.
+
+`select_node` and `select_chain` cannot express temporary unavailability: they
+must return one of the supplied objects (directly or in `Selection`), and
+returning `None` raises `TypeError`. If the policy must wait for a model refresh,
+override `find_nodes` or `find_chains` and return `"wait"` before selection.
+Return `"exit"` only when the trial maker should end. Otherwise delegate normal
+candidate discovery to `super()` and return its list unchanged; keep ordinary
+eligibility in `custom_node_filter` or `custom_chain_filter`.
 
 Item selection belongs in the trial maker. Adaptive recruitment or participant
 selection instead needs an experiment recruitment criterion or scheduler. A
@@ -385,9 +404,19 @@ statement = (
     )
 )
 
+columns = [
+    "observation_id",
+    "participant_id",
+    "item_id",
+    "rating",
+    "trial_order",
+]
 rows = db.session.execute(statement).mappings()
-observations = pd.DataFrame.from_records(rows)
+observations = pd.DataFrame.from_records(rows, columns=columns)
 ```
+
+Passing explicit columns preserves the table schema before the first response;
+without them an empty query produces a dataframe with no columns.
 
 When the outcome genuinely represents correctness or participant performance,
 use PsyNet's existing scoring interface:
@@ -407,58 +436,12 @@ outcomes, and results of asynchronous processing. Prefer domain-specific names
 such as `rating`, `response_time_seconds`, or `estimated_threshold` over a
 generic `model_response`.
 
-Create the decision record when selection occurs, not after the participant has
-answered. A useful minimum is:
-
-```text
-id | participant_id | trial_id | selected_candidate_id
-participant_history_count | study_fit_id | candidate_pool_version
-selected_utility
-```
-
-`participant_history_count` is the number of that participant's finalized
-observations used for selection. `study_fit_id` identifies the shared model
-snapshot, when there is one. `candidate_pool_version` identifies the item bank
-and eligibility rules that produced the candidates. `selected_utility` records
-the winning score in the policy's natural units.
-
-A dedicated table makes these fields queryable and gives non-trial decisions a
-place to live. Use the suggested `AdaptiveDecision` definition in
-`references/study-state-storage.md`, including its relationship to `Trial`.
-
-Create the row in the trial maker's `on_trial_created` hook. PsyNet calls this
-after the exact primary trial assignment exists but before the participant sees
-it. Repeat trials and synchronized follower copies do not call this hook, so one
-adaptive decision row corresponds to one actual policy choice:
-
-```python
-class AdaptiveTrialMaker(StaticTrialMaker):
-    def on_trial_created(self, trial, experiment, participant, selection_context):
-        selected_item_id = trial.definition["item_id"]
-        if selection_context["selected_candidate_id"] != selected_item_id:
-            raise RuntimeError("Adaptive decision does not match the trial.")
-        decision = AdaptiveDecision(
-            participant_id=participant.id,
-            selected_candidate_id=selected_item_id,
-            participant_history_count=selection_context["participant_history_count"],
-            study_fit_id=selection_context["study_fit_id"],
-            candidate_pool_version=selection_context["candidate_pool_version"],
-            selected_utility=selection_context["selected_utility"],
-            details=selection_context["details"],
-        )
-        decision.trial = trial
-        db.session.add(decision)
-```
-
-Assigning `decision.trial = trial` lets SQLAlchemy populate `trial_id` when the
-transaction flushes. The trial and decision are committed or rolled back
-together, so do not flush merely to obtain the trial ID.
-
-Use explicit columns for fields needed in routine queries or exports. Keep
-`details` small and use it only for genuinely structured diagnostics. Recording
-every candidate and utility can be useful for reconstructing a policy, but it
-can also be large. Store the full set only when required; otherwise record a
-reproducible candidate-pool version and compact summaries.
+Create each decision record when selection occurs, not after the participant
+answers. Follow
+[references/study-state-storage.md](references/study-state-storage.md) for the
+table schema and transactional `on_trial_created` example. Keep diagnostics
+compact unless reconstructing the full candidate set is scientifically
+necessary.
 
 Finalized responses remain the source of truth for study-level adaptation.
 Publish fitted study state as immutable snapshots in a dedicated table, and let
