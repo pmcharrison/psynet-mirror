@@ -28,11 +28,11 @@ def _git_output(*args):
 
 
 def _get_git_provenance():
-    """Return the current commit SHA and working-tree dirty state."""
+    """Return the current commit SHA and directory-scoped dirty state."""
     commit_sha = _git_output("rev-parse", "HEAD")
     if commit_sha is None:
         return None, None
-    status = _git_output("status", "--porcelain", "--untracked-files=normal")
+    status = _git_output("status", "--porcelain", "--untracked-files=normal", "--", ".")
     return commit_sha, None if status is None else bool(status)
 
 

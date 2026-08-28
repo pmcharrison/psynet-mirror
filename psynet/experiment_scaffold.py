@@ -1,5 +1,6 @@
 """Create, update, and prune PsyNet experiment scaffold files."""
 
+import hashlib
 import json
 import re
 import shutil
@@ -52,10 +53,20 @@ _TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
     "deploy.toml",
 )
 
-_GENERATED_DOCKERIGNORE_LINES = (
-    "# We don't want to copy virtual environments into the Docker image",
-    ".venv",
-    ".env",
+_GENERATED_DOCKERIGNORE_VARIANTS = (
+    (
+        "# We don't want to copy virtual environments into the Docker image",
+        ".venv",
+        ".env",
+    ),
+    (
+        "# We don't want to copy virtual environments into the Docker image",
+        ".venv",
+        ".env",
+        "",
+        "# Agent Skills are for local editors, not the running experiment image",
+        ".cursor/skills/psynet/",
+    ),
 )
 
 # Previously scaffolded experiment-local Docker CLI helpers. These called
@@ -75,6 +86,24 @@ _OBSOLETE_DOCKER_SCRIPT_PATHS = (
     "docker/run-dev",
     "docker/services",
 )
+
+# Hashes of the final experiment-local Docker helper templates shipped by
+# PsyNet. Divergent files are author-owned and must not be deleted.
+_OBSOLETE_DOCKER_SCRIPT_HASHES = {
+    "docker/build": "6fa98c5faa398675de5aa6cb82481b4a",
+    "docker/check-dev-installations": "8d699b652b6381a3b38a0ea60281050a",
+    "docker/docs/INSTALL.md": "4a0b5f238227ecb39f9af16368265b35",
+    "docker/docs/RUN.md": "ef8ea770256bc4280d347f33e5c34ee1",
+    "docker/docs/UPDATE.md": "e990837fbe40d4113a2160cb3998b8bb",
+    "docker/local-ssh": "65ddab944cecf4de0e7f942268f4c164",
+    "docker/params": "24e5784cfed1584aff8c76804a7d72a2",
+    "docker/psynet": "2e689f85e226e41da343609ccc412bad",
+    "docker/psynet-dev": "facd3771875eac8a2453dca5bd39bd90",
+    "docker/README.md": "8a17a4cea31b7ea438993be74c9deec1",
+    "docker/run": "d2130575f9bf70b8552abad173ad7caa",
+    "docker/run-dev": "5eb60b21412b9fece4fa7e1959fa7247",
+    "docker/services": "acd66129fe59699302ab998b4b1eeca3",
+}
 
 _GENERATED_FILES = {
     "Dockertag": lambda: dockertag_contents(),
@@ -779,7 +808,7 @@ def _remove_obsolete_generated_dockerignore() -> bool:
         generated = path.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeDecodeError):
         generated = None
-    if generated == list(_GENERATED_DOCKERIGNORE_LINES):
+    if generated is not None and tuple(generated) in _GENERATED_DOCKERIGNORE_VARIANTS:
         path.unlink()
         click.echo("Removed obsolete generated .dockerignore.")
         return True
@@ -794,10 +823,8 @@ def _remove_obsolete_generated_dockerignore() -> bool:
 def _remove_obsolete_generated_docker_scripts() -> bool:
     """Remove generated experiment-local Docker helper scripts.
 
-    Known helper paths are deleted even if their contents were customized,
-    because those scripts cannot honor ``deploy.toml``. Other files under
-    ``docker/`` are preserved with a warning. A ``docker/`` symlink, or any
-    helper path whose parent is a symlink, is left untouched.
+    Known generated helper files are identified by content hash and deleted.
+    Customized files and symlinks are preserved with a warning.
 
     Returns
     -------
@@ -821,7 +848,11 @@ def _remove_obsolete_generated_docker_scripts() -> bool:
                 _warn_preserved_docker_symlink(symlink_parent)
                 warned_symlinks.add(symlink_parent)
             continue
-        if path.is_file() or path.is_symlink():
+        if (
+            path.is_file()
+            and not path.is_symlink()
+            and _is_obsolete_docker_script(path)
+        ):
             path.unlink()
             removed_any = True
 
@@ -834,13 +865,25 @@ def _remove_obsolete_generated_docker_scripts() -> bool:
     if docker_dir.is_dir():
         click.echo(
             "WARNING: Preserving custom files in docker/. "
-            "Generated Docker helper scripts have been removed; "
+            "Recognized generated Docker helper scripts were removed when present; "
             "use 'psynet debug local' or 'psynet debug local --docker'.",
             err=True,
         )
     elif removed_any:
         click.echo("Removed obsolete generated docker/ helper scripts.")
     return removed_any
+
+
+def _is_obsolete_docker_script(path: Path) -> bool:
+    """Return whether ``path`` matches its final PsyNet-generated template."""
+    expected_hash = _OBSOLETE_DOCKER_SCRIPT_HASHES.get(path.as_posix())
+    if expected_hash is None:
+        return False
+    try:
+        digest = hashlib.md5(path.read_bytes()).hexdigest()
+    except OSError:
+        return False
+    return digest == expected_hash
 
 
 def _first_symlink_parent(relative_path: Path) -> Path | None:
@@ -1214,7 +1257,8 @@ PRUNE_COMMAND_HELP = (
     "By default only unmodified, untracked scaffold paths are removed. "
     "--include-modified also removes divergent untracked scaffold paths. "
     "--include-tracked also removes git-tracked managed paths. "
-    "Generated docker/ helper scripts are always deleted."
+    "Recognized generated docker/ helper scripts are deleted; customized "
+    "copies are preserved."
 )
 
 

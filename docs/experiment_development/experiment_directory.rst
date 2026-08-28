@@ -13,10 +13,11 @@ for keeping track of changes to your experiment directory.
 We recommend *Git*. PsyNet requires an active Git repository so it can record
 deployment provenance (commit SHA and dirty state). To learn more visit
 `Version control with Git <../tutorials/version_control_with_git.html>`_.
-PsyNet records the deployed Git commit and whether the working tree contained
-uncommitted changes. For reproducible live deployments, commit your changes
-before deploying. Experiment-file membership for staging and deployment comes
-from ``deploy.toml``, not from Git visibility.
+PsyNet records the deployed Git commit and whether the experiment directory
+contained uncommitted changes. Changes elsewhere in a parent repository do not
+mark an in-repository experiment as dirty. For reproducible live deployments,
+commit your changes before deploying. Experiment-file membership for staging
+and deployment comes from ``deploy.toml``, not from Git visibility.
 
 .. warning::
 
@@ -39,7 +40,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     data, or files that need storage-backed caching and export; see
     `Assets <../tutorials/assets.html>`_.
 
-    Dallinger applies an experiment-package size limit, currently 256 MB by default.
+    PsyNet applies a deployment-plan size limit, currently 256 MB by default.
     Set the ``EXP_MAX_SIZE_MB`` environment variable when intentionally baking a
     larger static corpus into an image.
 

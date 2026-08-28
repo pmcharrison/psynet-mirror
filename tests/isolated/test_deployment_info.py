@@ -66,6 +66,26 @@ def test_deployment_info_records_git_provenance(tmp_path):
         assert deployment_info.read("git_dirty") is True
 
 
+def test_git_dirty_is_scoped_to_experiment_directory(tmp_path):
+    experiment_dir = tmp_path / "experiment"
+    experiment_dir.mkdir()
+    sibling = tmp_path / "notes.txt"
+    sibling.write_text("clean")
+    (experiment_dir / "experiment.py").write_text("clean")
+
+    with working_directory(tmp_path):
+        _git("init", "--quiet")
+        _git("config", "user.email", "test@example.com")
+        _git("config", "user.name", "Test User")
+        _git("add", ".")
+        _git("commit", "--quiet", "-m", "Initial commit")
+        sibling.write_text("dirty")
+
+    with working_directory(experiment_dir):
+        _initialize_deployment_info()
+        assert deployment_info.read("git_dirty") is False
+
+
 def test_deployment_info_handles_missing_git_repository(tmp_path):
     with working_directory(tmp_path):
         _initialize_deployment_info()

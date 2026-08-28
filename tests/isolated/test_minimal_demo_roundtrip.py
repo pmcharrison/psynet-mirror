@@ -405,7 +405,7 @@ def test_prune_include_modified_deletes_untracked_readme(tmp_path):
         assert Path("experiment.py").exists()
 
 
-def test_prune_keeps_custom_docker_files_and_removes_helpers(tmp_path):
+def test_prune_preserves_custom_docker_helpers(tmp_path):
     experiment_dir = tmp_path / "standalone"
     experiment_dir.mkdir()
     with working_directory(experiment_dir):
@@ -434,7 +434,7 @@ def test_prune_keeps_custom_docker_files_and_removes_helpers(tmp_path):
         result = prune_experiment_scaffold(include_modified=True)
 
     assert "docker" not in result["preserved_tracked"]
-    assert not (experiment_dir / "docker" / "psynet").exists()
+    assert (experiment_dir / "docker" / "psynet").read_text() == "# Tracked helper\n"
     assert (experiment_dir / "docker" / "custom").read_text() == "# Tracked custom\n"
     assert not (experiment_dir / "Dockerfile").exists()
 

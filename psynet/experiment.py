@@ -2165,6 +2165,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
     @classmethod
+    def check_size(cls):
+        """Reject deployment plans that exceed the configured package limit."""
+        from dallinger.utils import ExperimentFileSource
+
+        size_in_mb = ExperimentFileSource(os.getcwd()).size / (1024**2)
+        logger.info("Experiment deployment size: %.3f MB.", size_in_mb)
+        max_size_in_mb = int(os.environ.get("EXP_MAX_SIZE_MB", "256"))
+        if size_in_mb > max_size_in_mb:
+            raise RuntimeError(
+                f"Your experiment deployment plan exceeds the {max_size_in_mb} MB "
+                "limit. Large packages make deployment slow. Exclude local files "
+                "in deploy.toml or use PsyNet's asset management system. Set "
+                "EXP_MAX_SIZE_MB to override this limit when the package size is "
+                "intentional."
+            )
+
+    @classmethod
     def check_config(cls):
         config = get_config()
 

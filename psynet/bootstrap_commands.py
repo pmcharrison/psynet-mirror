@@ -95,7 +95,8 @@ def scripts_update(ctx):
     Existing ``config.txt``, ``README.md``, and ``deploy.toml`` files are
     preserved. PsyNet-managed Agent Skills under ``.cursor/skills/psynet`` are
     refreshed; other skill directories under ``.cursor/skills/`` are
-    preserved. Leftover generated ``docker/`` helper scripts are deleted.
+    preserved. Recognized generated ``docker/`` helper scripts are deleted;
+    customized copies are preserved.
     """
     from psynet.experiment_scaffold import scaffold_experiment_directory
     from psynet.light_utils import (

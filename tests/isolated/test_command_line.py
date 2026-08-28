@@ -2915,12 +2915,20 @@ def test_scripts_prune_keeps_git_tracked_readme_by_default(tmp_path):
     assert not (tmp_path / "test.py").exists()
 
 
-def test_scripts_prune_removes_obsolete_docker_helpers_even_if_tracked(tmp_path):
+def test_scripts_prune_removes_generated_helpers_and_preserves_custom_helpers(
+    tmp_path,
+):
     with working_directory(tmp_path):
         Path("experiment.py").write_text("class Exp:\n    pass\n")
         Path("requirements.txt").write_text("psynet==0.0.0\n")
         Path("docker").mkdir()
-        Path("docker/psynet").write_text("# Tracked helper\n")
+        Path("docker/psynet").write_text("# Tracked custom helper\n")
+        Path("docker/run-dev").write_text(
+            "#!/bin/bash\n\n"
+            "set -euo pipefail\n\n"
+            "export PSYNET_DEVELOPER_MODE=1\n\n"
+            './docker/run "$@"\n'
+        )
         Path("docker/custom").write_text("# Tracked custom helper\n")
         subprocess.run(["git", "init", "-q"], check=True)
         subprocess.run(["git", "add", "-A"], check=True)
@@ -2942,7 +2950,8 @@ def test_scripts_prune_removes_obsolete_docker_helpers_even_if_tracked(tmp_path)
         result = CliRunner().invoke(psynet, ["scripts", "prune", "--include-modified"])
 
     assert result.exit_code == 0, result.output
-    assert not (tmp_path / "docker" / "psynet").exists()
+    assert (tmp_path / "docker" / "psynet").read_text() == "# Tracked custom helper\n"
+    assert not (tmp_path / "docker" / "run-dev").exists()
     assert (tmp_path / "docker" / "custom").read_text() == "# Tracked custom helper\n"
     assert not (tmp_path / "Dockerfile").exists()
 
@@ -3059,7 +3068,7 @@ def test_scripts_prune_help_is_shared_across_cli_surfaces():
         assert "static/assets" in result.output
         assert "include-modified" in result.output
         assert "Remove scaffold-managed boilerplate" in result.output
-        assert "Generated docker/ helper scripts are always deleted" in " ".join(
+        assert "Recognized generated docker/ helper scripts are deleted" in " ".join(
             result.output.split()
         )
 
@@ -3071,8 +3080,12 @@ def test_scripts_update_removes_obsolete_docker_helpers():
         with working_directory(dir):
             Path("experiment.py").write_text("class Exp:\n    pass\n")
             Path("docker").mkdir()
-            Path("docker/run").write_text("#!/bin/bash\n")
-            Path("docker/psynet").write_text("#!/bin/bash\n")
+            Path("docker/run-dev").write_text(
+                "#!/bin/bash\n\n"
+                "set -euo pipefail\n\n"
+                "export PSYNET_DEVELOPER_MODE=1\n\n"
+                './docker/run "$@"\n'
+            )
 
             result = runner.invoke(psynet, ["scripts", "update"])
 
@@ -3094,7 +3107,7 @@ def test_scaffold_removes_obsolete_docker_helpers_and_keeps_custom_files():
             result = runner.invoke(psynet, ["scripts", "scaffold"])
 
             assert result.exit_code == 0
-            assert not Path("docker/psynet").exists()
+            assert Path("docker/psynet").read_text() == "# Custom helper\n"
             assert Path("docker/custom").read_text() == "# keep me\n"
             assert not Path("docker/run").exists()
 

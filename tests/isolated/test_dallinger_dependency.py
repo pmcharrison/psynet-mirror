@@ -9,7 +9,6 @@ import pytest
 from psynet.dallinger_dependency import (
     dallinger_constraints_github_ref,
     dallinger_lower_bound_from_pyproject,
-    supported_dallinger_lower_bound,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,7 +31,6 @@ def test_github_ref_tracks_declared_dallinger_dependency():
     version = dallinger_lower_bound_from_pyproject(ROOT / "pyproject.toml")
     assert ref == f"v{version}"
     assert version in declared
-    assert supported_dallinger_lower_bound() == version
 
 
 def test_github_ref_uses_git_sha_pin(tmp_path, monkeypatch):
@@ -166,10 +164,10 @@ experiment = ["dallinger[docker]>=12.3.0,<13"]
     )
     monkeypatch.setattr(
         dallinger_dependency,
-        "_lower_bound_from_installed_metadata",
-        lambda: pytest.fail("source checkout should not consult stale metadata"),
+        "requires",
+        lambda name: pytest.fail("source checkout should not consult stale metadata"),
     )
-    assert supported_dallinger_lower_bound() == "12.3.0"
+    assert dallinger_constraints_github_ref() == "v12.3.0"
 
 
 def test_requirement_match_does_not_accept_similarly_named_distribution(tmp_path):

@@ -11,7 +11,7 @@ from dallinger.utils import ExperimentFileSource
 
 from psynet.experiment import Experiment
 from psynet.experiment_scaffold import (
-    _GENERATED_DOCKERIGNORE_LINES,
+    _GENERATED_DOCKERIGNORE_VARIANTS,
     scaffold_experiment_directory,
 )
 from psynet.timeline import PreDeployRoutine
@@ -135,9 +135,10 @@ def test_scaffold_creates_stock_deployment_policy(tmp_path):
     assert not (tmp_path / ".dockerignore").exists()
 
 
-def test_scripts_update_replaces_generated_dockerignore(tmp_path):
+@pytest.mark.parametrize("generated_lines", _GENERATED_DOCKERIGNORE_VARIANTS)
+def test_scripts_update_replaces_generated_dockerignore(tmp_path, generated_lines):
     dockerignore = tmp_path / ".dockerignore"
-    dockerignore.write_text("\n".join(_GENERATED_DOCKERIGNORE_LINES) + "\n")
+    dockerignore.write_text("\n".join(generated_lines) + "\n")
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")
 
@@ -228,7 +229,9 @@ def test_check_experiment_directory_removes_generated_dockerignore(
 
     with working_directory(tmp_path):
         scaffold_experiment_directory()
-        dockerignore.write_text("\n".join(_GENERATED_DOCKERIGNORE_LINES) + "\n")
+        dockerignore.write_text(
+            "\n".join(max(_GENERATED_DOCKERIGNORE_VARIANTS, key=len)) + "\n"
+        )
         _check_experiment_directory("debug")
 
     assert (tmp_path / "deploy.toml").exists()
@@ -277,11 +280,12 @@ def test_check_experiment_directory_removes_obsolete_docker_helpers(
 def _write_obsolete_docker_helpers(root):
     docker = root / "docker"
     docker.mkdir()
-    (docker / "run").write_text("#!/bin/bash\n. docker/build\n")
-    (docker / "psynet").write_text('#!/bin/bash\n./docker/run psynet "$@"\n')
-    docs = docker / "docs"
-    docs.mkdir()
-    (docs / "RUN.md").write_text("# Running instructions\n")
+    (docker / "run-dev").write_text(
+        "#!/bin/bash\n\n"
+        "set -euo pipefail\n\n"
+        "export PSYNET_DEVELOPER_MODE=1\n\n"
+        './docker/run "$@"\n'
+    )
 
 
 def test_scaffold_does_not_create_docker_helpers(tmp_path):
@@ -311,14 +315,15 @@ def test_scripts_update_preserves_custom_docker_files(tmp_path, capsys):
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")
     _write_obsolete_docker_helpers(tmp_path)
+    (tmp_path / "docker" / "run").write_text("# custom launcher\n")
     (tmp_path / "docker" / "custom").write_text("# keep me\n")
 
     with working_directory(tmp_path):
         scaffold_experiment_directory(overwrite=True)
 
     assert (tmp_path / "docker" / "custom").read_text() == "# keep me\n"
-    assert not (tmp_path / "docker" / "run").exists()
-    assert not (tmp_path / "docker" / "docs").exists()
+    assert (tmp_path / "docker" / "run").read_text() == "# custom launcher\n"
+    assert not (tmp_path / "docker" / "run-dev").exists()
     assert "Preserving custom files in docker/" in capsys.readouterr().err
 
 
@@ -327,7 +332,12 @@ def test_scaffold_preserves_symlinked_docker_docs_directory(tmp_path, capsys):
     (tmp_path / "requirements.txt").write_text("psynet\n")
     docker = tmp_path / "docker"
     docker.mkdir()
-    (docker / "run").write_text("#!/bin/bash\n")
+    (docker / "run-dev").write_text(
+        "#!/bin/bash\n\n"
+        "set -euo pipefail\n\n"
+        "export PSYNET_DEVELOPER_MODE=1\n\n"
+        './docker/run "$@"\n'
+    )
     outside = tmp_path / "outside-docs"
     outside.mkdir()
     (outside / "INSTALL.md").write_text("# keep me\n")
@@ -338,11 +348,38 @@ def test_scaffold_preserves_symlinked_docker_docs_directory(tmp_path, capsys):
 
     assert (outside / "INSTALL.md").read_text() == "# keep me\n"
     assert (docker / "docs").is_symlink()
-    assert not (docker / "run").exists()
+    assert not (docker / "run-dev").exists()
     captured = capsys.readouterr()
     assert (
         "Preserving docker/docs/ because it is a symlink" in captured.out + captured.err
     )
+
+
+def test_package_size_check_uses_deployment_plan(tmp_path, monkeypatch):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        Path("included.bin").write_bytes(b"x" * (2 * 1024**2))
+        monkeypatch.setenv("EXP_MAX_SIZE_MB", "1")
+
+        with pytest.raises(RuntimeError, match="exceeds the 1 MB limit"):
+            Experiment.check_size()
+
+
+def test_package_size_check_ignores_policy_exclusions(tmp_path, monkeypatch):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        assets = Path("static/assets")
+        assets.mkdir(parents=True)
+        (assets / "excluded.bin").write_bytes(b"x" * (2 * 1024**2))
+        monkeypatch.setenv("EXP_MAX_SIZE_MB", "1")
+
+        Experiment.check_size()
 
 
 class _TranslationPreDeployExperiment(Experiment):

@@ -34,20 +34,6 @@ _DALLINGER_REQUIREMENT_PATTERN = re.compile(
 )
 
 
-def supported_dallinger_lower_bound() -> str:
-    """Return PsyNet's supported Dallinger lower-bound version (e.g. ``12.2.0``)."""
-    pyproject_path = _default_pyproject_path()
-    if pyproject_path.is_file():
-        return dallinger_lower_bound_from_pyproject(pyproject_path)
-    from_metadata = _lower_bound_from_installed_metadata()
-    if from_metadata is not None:
-        return from_metadata
-    raise ValueError(
-        "Could not determine PsyNet's supported Dallinger version from "
-        "pyproject.toml or installed package metadata."
-    )
-
-
 def dallinger_constraints_github_ref(pyproject_path: Path | None = None) -> str:
     """Return the GitHub ref for constraints-script and CI snapshot fetches.
 
@@ -98,17 +84,6 @@ def dallinger_lower_bound_from_pyproject(pyproject_path: Path) -> str:
     return _lower_bound_from_requirement_strings(
         [requirement], source=str(pyproject_path)
     )
-
-
-def _lower_bound_from_installed_metadata() -> str | None:
-    """Return the Dallinger lower bound from installed ``psynet`` metadata."""
-    try:
-        requirement = _dallinger_requirement_from_installed_metadata()
-        return _lower_bound_from_requirement_strings(
-            [requirement], source="psynet metadata"
-        )
-    except ValueError:
-        return None
 
 
 def _dallinger_requirement_from_pyproject(pyproject_path: Path) -> str:

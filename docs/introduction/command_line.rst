@@ -127,7 +127,8 @@ Recommended commands by goal:
 * **Run or deploy that experiment with Docker:** after ``psynet setup``, use
   ``psynet debug local --docker`` or a Docker deploy command.
 * **Refresh template files only:** ``psynet scripts update`` (overwrites
-  scaffold-managed files; preserves ``config.txt`` / ``README.md``).
+  scaffold-managed files; preserves ``config.txt``, ``README.md``, and
+  ``deploy.toml``).
 * **Refresh dependency locks only:** ``psynet generate-constraints``.
 * **Upgrade the installed PsyNet/Dallinger packages:**
   ``psynet installation update`` (not the same as ``psynet scripts update``).
@@ -265,9 +266,9 @@ Overwrite scaffold-managed boilerplate with the latest templates from the
 installed PsyNet version. Existing ``config.txt``, ``README.md``, and
 ``deploy.toml`` files are preserved. PsyNet-managed Agent Skills under
 ``.cursor/skills/psynet`` are refreshed; other skill directories under
-``.cursor/skills/`` are preserved. Leftover generated ``docker/`` helper
+``.cursor/skills/`` are preserved. Recognized generated ``docker/`` helper
 scripts (``docker/psynet``, ``docker/run``, and related files) are deleted;
-other files under ``docker/`` are kept. This is **not**
+customized helpers and other files under ``docker/`` are kept. This is **not**
 ``psynet installation update``.
 
 .. code:: bash
@@ -288,8 +289,8 @@ managed paths are kept. ``--include-modified`` also removes divergent untracked
 scaffold paths. ``--include-tracked`` also removes git-tracked managed paths.
 If this directory is a git work tree but tracked files cannot be listed, the
 command errors unless ``--include-tracked`` is passed.
-Generated ``docker/`` helper scripts are always deleted, even if they are
-git-tracked.
+Recognized generated ``docker/`` helper scripts are deleted even if they are
+git-tracked. Customized copies are preserved.
 
 .. code:: bash
 
