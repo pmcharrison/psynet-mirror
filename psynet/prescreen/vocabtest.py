@@ -392,6 +392,10 @@ class VocabTest(StaticTrialMaker):
     with the vocabulary tests created with the VocabTest package by Pol van Rijn
     (https://github.com/polvanrijn/VocabTest).
 
+    VocabTest does not support synchronized groups. Each participant must
+    receive independently chosen items; a follower copy would run
+    ``finalize_definition`` again and pick a different set.
+
     Attributes
     ----------
 
@@ -483,6 +487,12 @@ class VocabTest(StaticTrialMaker):
         ] = "https://psynet.s3.amazonaws.com/resources/fonts/GoNotoKurrent-Bold.ttf",
         **kwargs,
     ):
+        if kwargs.get("sync_group_type") is not None:
+            raise ValueError(
+                "VocabTest does not support synchronized groups. "
+                "Each participant must receive independently chosen items; "
+                "a follower copy would pick a different item set."
+            )
         self.locale = locale
         self.label = label
 
@@ -563,6 +573,7 @@ class VocabTest(StaticTrialMaker):
             recruit_mode=None,
             target_trials_per_node=None,
             target_n_participants=None,
+            sync_group_type=None,
         )
 
     def get_font_path(self, font_url):
