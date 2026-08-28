@@ -69,7 +69,7 @@ The experiment audit packet lives under `audit/` (see
 `produce-experiment-audit`). Put review artifacts under `audit/artifacts/`,
 analysis under `audit/analyses/`, and command logs under `audit/logs/`. Keep
 `audit/audit.json` in sync with `psynet audit mark-present <artifact_id>` /
-blockers as files land (auto-detect works from the experiment root).
+blockers as files land. Run those commands from the experiment root.
 
 Record what you ran and what happened in those directories. If a command cannot
 run because system services are unavailable, record that clearly rather than

@@ -118,6 +118,18 @@ def test_run_simulate_audit_requires_packet_before_test(tmp_path, monkeypatch):
     assert calls == []
 
 
+def test_resolve_audit_root_from_inside_audit_errors(tmp_path, monkeypatch):
+    from psynet.audit.cli import init_audit
+    from psynet.command_line import resolve_audit_root
+
+    experiment = tmp_path / "exp"
+    init_audit(experiment / "audit")
+    monkeypatch.chdir(experiment / "audit")
+
+    with pytest.raises(click.UsageError, match="not from audit/"):
+        resolve_audit_root()
+
+
 def test_run_simulate_without_audit_does_not_zip(tmp_path, monkeypatch):
     from psynet.command_line import (
         _run_simulate,

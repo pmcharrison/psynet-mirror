@@ -470,17 +470,23 @@ def validate_audit_manifest(audit_dir: Path, manifest: dict[str, Any]) -> list[s
             problems.append(
                 f"{manifest_path}: experiment.title must be a non-empty string"
             )
-        entry_point = experiment.get("entry_point", "experiment.py")
-        source_root = experiment_source_root(audit_dir)
-        if isinstance(entry_point, str):
-            entry_relative = Path(entry_point)
-            if entry_relative.is_absolute() or not (
-                source_root / entry_relative
-            ).resolve().is_relative_to(source_root):
+        if "entry_point" in experiment:
+            entry_point = experiment["entry_point"]
+            if not isinstance(entry_point, str) or not entry_point.strip():
                 problems.append(
-                    f"{manifest_path}: experiment.entry_point must stay "
-                    "inside the experiment directory"
+                    f"{manifest_path}: experiment.entry_point must be a "
+                    "non-empty string"
                 )
+            else:
+                source_root = experiment_source_root(audit_dir)
+                entry_relative = Path(entry_point)
+                if entry_relative.is_absolute() or not (
+                    source_root / entry_relative
+                ).resolve().is_relative_to(source_root):
+                    problems.append(
+                        f"{manifest_path}: experiment.entry_point must stay "
+                        "inside the experiment directory"
+                    )
     if isinstance(manifest.get("implementation"), dict):
         implementation = manifest["implementation"]
         if (

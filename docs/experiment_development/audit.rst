@@ -17,7 +17,8 @@ of ``audit/``). If ``experiment.py`` is in a subdirectory, set
 ``experiment.entry_point``. Commands take no packet path and no
 ``--experiment`` option. ``psynet simulate --audit`` and
 ``psynet performance-test local --audit`` are boolean flags; they write into
-this experiment's ``./audit/``. Running from inside ``audit/`` is an error.
+this experiment's ``./audit/``. Running from a directory named ``audit`` is an
+error.
 
 Leftover flat packets with ``audit.json`` in the experiment root are rejected
 with a message to move them to ``./audit/audit.json``. Leftover

@@ -14,10 +14,10 @@ def _has_audit_manifest(candidate: Path) -> bool:
     return (candidate / "audit.json").is_file()
 
 
-def _is_audit_folder(path: Path) -> bool:
-    """Return whether ``path`` is the nested ``audit/`` packet."""
+def _is_named_audit_directory(path: Path) -> bool:
+    """Return whether ``path`` is a directory named ``audit``."""
 
-    return path.resolve().name == AUDIT_DIR_NAME and _has_audit_manifest(path)
+    return path.resolve().name == AUDIT_DIR_NAME
 
 
 def _flat_packet_error(location: Path) -> ValueError:
@@ -39,12 +39,12 @@ def _run_from_experiment_error() -> ValueError:
 def resolve_experiment_root() -> Path:
     """Return the current directory as the experiment root.
 
-    Audits are always ``./audit/``. Running from inside that packet is an
-    error, as is a leftover ``audit.json`` in the experiment root.
+    Audits are always ``./audit/``. Running from a directory named ``audit``
+    is an error, as is a leftover ``audit.json`` in the experiment root.
     """
 
     cwd = Path(".")
-    if _is_audit_folder(cwd):
+    if _is_named_audit_directory(cwd):
         raise _run_from_experiment_error()
     if _has_audit_manifest(cwd):
         raise _flat_packet_error(cwd)

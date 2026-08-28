@@ -946,10 +946,10 @@ def test_relative_audit_path_rejects_escape(tmp_path: Path) -> None:
     assert any("stay inside" in problem for problem in problems)
 
 
-@pytest.mark.parametrize("entry_point", ["/etc/passwd", "../secret.env"])
+@pytest.mark.parametrize("entry_point", ["/etc/passwd", "../secret.env", "", None, 1])
 def test_experiment_entry_point_must_stay_inside_source(
     tmp_path: Path,
-    entry_point: str,
+    entry_point: object,
 ) -> None:
     audit_dir = tmp_path / "experiment" / "audit"
     init_audit(audit_dir)
@@ -1056,6 +1056,21 @@ def test_init_from_inside_audit_errors(
     assert result.exit_code != 0
     assert "not from audit/" in result.output
     assert not (experiment_dir / "audit" / "audit" / "audit.json").exists()
+
+
+def test_init_from_empty_audit_directory_errors(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    empty_audit = tmp_path / "audit"
+    empty_audit.mkdir()
+    monkeypatch.chdir(empty_audit)
+
+    result = run_audit_cli("init")
+
+    assert result.exit_code != 0
+    assert "not from audit/" in result.output
+    assert not (empty_audit / "audit" / "audit.json").exists()
 
 
 def test_audit_cli_rejects_positional_packet_path() -> None:
@@ -1478,6 +1493,12 @@ def test_resolve_audit_dir_nested_layout(
     assert resolve_audit_dir(require_manifest=True) == Path("audit")
 
     monkeypatch.chdir(nested)
+    with pytest.raises(ValueError, match="not from audit/"):
+        resolve_audit_dir()
+
+    empty_audit = tmp_path / "empty" / "audit"
+    empty_audit.mkdir(parents=True)
+    monkeypatch.chdir(empty_audit)
     with pytest.raises(ValueError, match="not from audit/"):
         resolve_audit_dir()
 

@@ -232,7 +232,7 @@ blocker for each missing artifact is recorded honestly:
 - From the experiment root, update `audit/audit.json` (prefer
   `psynet audit mark-present <artifact_id>`) and record blockers in the audit
   packet. Validate and render with `psynet audit validate` / `psynet audit render`
-  (auto-detects `./audit/`). See `produce-experiment-audit`.
+  from the experiment directory (packet is `./audit/`). See `produce-experiment-audit`.
 - Offer to open the rendered audit for the human: run
   `psynet audit serve --render`, share the local URL, and leave the server
   running. Do not ask the human to remember or type that command.

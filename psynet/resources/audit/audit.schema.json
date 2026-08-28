@@ -30,7 +30,7 @@
     "profile": {
       "type": "string",
       "minLength": 1,
-      "description": "Audit profile. Default is psynet.core, which requires a displayed plan markdown section."
+      "description": "Audit profile. Default is psynet.core, which recommends a displayed plan markdown section."
     },
     "extensions": {
       "type": "array",

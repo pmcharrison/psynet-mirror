@@ -4155,7 +4155,7 @@ def _cli_resolve_audit_dir(*, require_manifest=False):
     try:
         return resolve_audit_dir(require_manifest=require_manifest)
     except ValueError as exc:
-        raise click.ClickException(str(exc)) from exc
+        raise click.UsageError(str(exc)) from exc
 
 
 # Recruiter specific
