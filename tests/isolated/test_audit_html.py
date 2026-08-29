@@ -402,6 +402,23 @@ def test_render_notebook_output_rejects_invalid_plotly_mime_bundle() -> None:
     assert "Invalid Plotly figure output" in html
 
 
+def test_render_notebook_output_renders_sanitized_markdown() -> None:
+    html = render_notebook_output(
+        {
+            "output_type": "display_data",
+            "data": {
+                "text/markdown": "## Conclusion\n\n**16-item cap** <script>bad()</script>",
+                "text/plain": "<IPython.core.display.Markdown object>",
+            },
+        }
+    )
+
+    assert "<h2>Conclusion</h2>" in html
+    assert "<strong>16-item cap</strong>" in html
+    assert "<script>bad()</script>" not in html
+    assert "IPython.core.display.Markdown" not in html
+
+
 PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 
 

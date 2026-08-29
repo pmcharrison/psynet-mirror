@@ -908,6 +908,13 @@ def render_notebook_output(output: dict[str, object]) -> str:
     html_output = notebook_text(data.get("text/html"))
     if html_output:
         return f'<div class="notebook-html">{sanitize_html_fragment(html_output)}</div>'
+    markdown_output = notebook_text(data.get("text/markdown"))
+    if markdown_output:
+        return (
+            '<div class="notebook-markdown">'
+            f"{render_markdown_block(markdown_output)}"
+            "</div>"
+        )
     plain = notebook_text(data.get("text/plain"))
     if plain:
         return f"<pre><code>{html.escape(plain)}</code></pre>"
