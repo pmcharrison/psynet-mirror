@@ -158,6 +158,12 @@ deployment-info_*
 # but might become visible when switching branches.
 source_code.zip
 .deploy
+
+# Local deployment recovery data and event history, written into whichever
+# experiment directory a local command runs from.
+**/data/snapshots/
+**/data/deployment-events.jsonl
+**/data/.deployment-events.lock
 **/static/assets
 **/deploy_logs/
 dump.rdb
