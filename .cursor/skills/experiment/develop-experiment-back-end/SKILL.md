@@ -23,6 +23,31 @@ PsyNet's `GeometricStaircaseTrialMaker` is a `ChainTrialMaker` for that reason.
 Inspect the closest PsyNet demo and trial-maker implementation before choosing
 an architecture.
 
+## Python modules beside ``experiment.py``
+
+Keep ``experiment.py`` as the timeline and experiment class. Put substantial
+helpers in sibling files (for example ``adaptive_logic.py``, ``stimuli.py``).
+Import those siblings from ``experiment.py`` with a **relative** import:
+
+```python
+from . import adaptive_logic
+from .adaptive_logic import select_item
+```
+
+Dallinger loads the experiment directory as a package (``dallinger_experiment``).
+A plain ``import adaptive_logic`` can pass under pytest in the experiment
+directory, then fail in the web, worker, and clock processes with
+``ModuleNotFoundError``. Do not work around that by putting the experiment
+directory on ``sys.path``: a file named ``json.py`` or ``tests.py`` would
+shadow the standard library.
+
+Standalone scripts that you invoke as ordinary Python (``python -m power.core``,
+``simulate_procedure.py``) are not loaded as that package, so they keep using
+top-level imports such as ``import adaptive_logic``.
+
+See ``docs/experiment_development/experiment_directory.rst``
+(section "Importing other Python files").
+
 ## Internationalization
 
 If the experiment is cross-cultural, cross-national, multilingual,

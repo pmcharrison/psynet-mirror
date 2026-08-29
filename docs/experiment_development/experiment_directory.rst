@@ -99,6 +99,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     directory is complete.
 
 -   ``experiment.py`` is a Python file that defines the primary experiment logic.
+    Split substantial helpers into sibling modules and import them with
+    relative imports (see :ref:`experiment_python_modules`).
 
 -   ``instructions.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
@@ -134,3 +136,30 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     If this file is missing, you can regenerate it with ``psynet scripts scaffold``.
 
     ``volume_calibration.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
+
+
+.. _experiment_python_modules:
+
+Importing other Python files
+----------------------------
+
+You can split experiment code across several ``.py`` files in the experiment
+directory. Dallinger imports that directory as a package, so modules sitting
+beside ``experiment.py`` are submodules of that package. From
+``experiment.py`` (and from other files in the same package) import them
+relatively:
+
+.. code-block:: python
+
+    from . import instructions
+    from .synth import synthesize_stimulus
+
+A plain ``import instructions`` often works when you run pytest from the
+experiment directory, but it fails in the web, worker, and clock processes
+with ``ModuleNotFoundError``. Putting the experiment directory on
+``sys.path`` is not a safe workaround: a file named ``json.py`` or
+``tests.py`` would shadow the standard library.
+
+Standalone scripts that you invoke as ordinary Python, such as
+``python -m power.core``, are not loaded as that package. Those files keep
+using ordinary top-level imports of the same helpers.

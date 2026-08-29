@@ -122,6 +122,10 @@ installs the experiment runtime (`psynet[experiment]`), and initializes Git when
 needed. Use `psynet setup --docker` when the experiment will run in Docker mode
 (file prep without local package sync; follow `docker/docs`).
 
+When splitting logic out of `experiment.py`, follow
+`develop-experiment-back-end/SKILL.md`: import sibling modules with
+`from . import my_module`.
+
 **3. Editable local PsyNet (agents / contributors)**
 
 When developing against an editable `~/PsyNet` checkout, keep a **dedicated**

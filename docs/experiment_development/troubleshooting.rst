@@ -221,3 +221,22 @@ If the CLI is installed correctly, you should see output similar to:
 
     heroku/7.0.0 (darwin-x64) node-v8.0.0
 
+
+``ModuleNotFoundError`` for a file beside ``experiment.py``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Suppose ``experiment.py`` contains ``import adaptive_logic`` (or another module
+that sits in the same directory) and debug or deploy fails with
+``ModuleNotFoundError: No module named 'adaptive_logic'``.
+
+Dallinger imports the experiment directory as a package. Import the sibling
+relatively instead:
+
+.. code-block:: python
+
+    from . import adaptive_logic
+
+Do not add the experiment directory to ``sys.path`` to make the plain import
+work; that can shadow the standard library. See
+:ref:`experiment_python_modules`.
+

@@ -9,6 +9,11 @@ and with the development of individual PsyNet experiments.
 If the root contains a file called `experiment.py`, assume that we are working on an experiment.
 Otherwise assume we are working on the PsyNet source code.
 
+From `experiment.py`, import other Python files in the same directory with
+relative imports (`from . import my_module`). A plain `import my_module` can
+pass under pytest and then fail in the web, worker, and clock processes.
+Do not put the experiment directory on `sys.path` to paper over that.
+
 PsyNet experiment skills are installed under `.cursor/skills/psynet/` by
 `psynet scripts update` (and created when missing by `psynet scripts scaffold`).
 Treat that directory as PsyNet-managed: update the canonical skills in the

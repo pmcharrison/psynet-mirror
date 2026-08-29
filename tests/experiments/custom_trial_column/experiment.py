@@ -1,10 +1,11 @@
 """Minimal experiment that adds a custom column to a trial class."""
 
+from sqlalchemy import Column, String
+
 import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticTrial
-from sqlalchemy import Column, String
 
 
 class CustomColumnTrial(StaticTrial):
