@@ -1086,7 +1086,7 @@ def _pre_launch(
 
     # Scaffold/git checks before Redis so missing-boilerplate guidance is visible
     # even when Redis is not running.
-    _check_experiment_directory(mode)
+    _check_experiment_directory(mode, require_git_commit=not local_)
 
     from .services import ensure_local_services
 
@@ -1391,16 +1391,18 @@ def _prepare_in_repo_experiment():
     return True
 
 
-def _check_experiment_directory(mode):
+def _check_experiment_directory(mode, *, require_git_commit=False):
     """
     Fail fast on missing scaffold or git before Redis or other heavy I/O.
 
     In-repo experiments are auto-scaffolded first so their missing-boilerplate
     check does not falsely fail. A missing ``deploy.toml`` is created from the
-    PsyNet template and never overwritten. Leftover generated ``.dockerignore``
-    files and ``docker/`` helper scripts are removed (custom copies are
-    preserved with a warning). These checks must run before
-    ``redis_vars.clear()`` so users without Redis still see actionable guidance.
+    PsyNet template and never overwritten. Remote deployments additionally
+    require a Git commit for provenance; local debug and test runs may use a
+    repository with no commits. Leftover generated ``.dockerignore`` files and
+    ``docker/`` helper scripts are removed (custom copies are preserved with a
+    warning). These checks must run before ``redis_vars.clear()`` so users
+    without Redis still see actionable guidance.
     """
     prepared = _prepare_in_repo_experiment()
     created_policy = ensure_deployment_policy()
@@ -1473,6 +1475,16 @@ def _check_experiment_directory(mode):
             "so its commit cannot identify the experiment's source state. Run "
             "'psynet setup' to create a dedicated Git repository before continuing."
         )
+    if require_git_commit:
+        from .light_utils import git_commit_available
+
+        if not git_commit_available():
+            raise click.ClickException(
+                "This Git repository has no commits yet. Remote deployments need "
+                "a commit so PsyNet can record exactly which source version was "
+                "deployed. Review 'git status', commit the experiment files you "
+                "want to keep, then rerun this command."
+            )
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):

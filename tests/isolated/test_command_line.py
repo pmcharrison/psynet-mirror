@@ -2511,6 +2511,40 @@ def test_check_experiment_directory_passes_with_scaffold_and_git(tmp_path, monke
         _check_experiment_directory("debug")
 
 
+def test_check_experiment_directory_requires_commit_only_for_remote_deployments(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+
+    with working_directory(tmp_path):
+        Path("experiment.py").write_text("class Exp:\n    pass\n")
+        Path("requirements.txt").write_text("psynet\n")
+        scaffold_experiment_directory()
+        subprocess.run(["git", "init", "-q"], check=True)
+
+        _check_experiment_directory("debug", require_git_commit=False)
+        with pytest.raises(click.ClickException, match="has no commits"):
+            _check_experiment_directory("deploy", require_git_commit=True)
+
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.email=test@example.com",
+                "-c",
+                "user.name=Test",
+                "commit",
+                "-qm",
+                "Initial commit",
+            ],
+            check=True,
+        )
+        _check_experiment_directory("deploy", require_git_commit=True)
+
+
 def test_test_local_reports_missing_scaffold_like_debug(tmp_path, monkeypatch):
     """Non-bundled dirs missing local-run scaffold fail the same way as debug."""
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
@@ -3254,7 +3288,9 @@ def test_pre_launch_aborts_when_app_exists():
 
     ctx = Mock()
     with (
-        patch("psynet.command_line._check_experiment_directory"),
+        patch(
+            "psynet.command_line._check_experiment_directory"
+        ) as mock_check_directory,
         patch("psynet.command_line.redis_vars.clear"),
         patch("psynet.command_line.deployment_info.init"),
         patch("psynet.command_line.deployment_info.write"),
@@ -3278,6 +3314,7 @@ def test_pre_launch_aborts_when_app_exists():
                 app="test-app",
             )
 
+    mock_check_directory.assert_called_once_with("live", require_git_commit=True)
     mock_run_pre_checks.assert_not_called()
 
 
@@ -3292,7 +3329,8 @@ def test_pre_launch_skips_dependency_check_for_in_repo_experiments(
     monkeypatch.delenv("SKIP_DEPENDENCY_CHECK", raising=False)
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
     monkeypatch.setattr(
-        "psynet.command_line._check_experiment_directory", lambda mode: None
+        "psynet.command_line._check_experiment_directory",
+        lambda mode, **kwargs: None,
     )
     monkeypatch.setattr("psynet.services.ensure_local_services", lambda **kwargs: None)
     monkeypatch.setattr("psynet.command_line.redis_vars.clear", lambda: None)
@@ -3331,7 +3369,7 @@ def test_pre_launch_checks_directory_before_redis():
     with (
         patch(
             "psynet.command_line._check_experiment_directory",
-            side_effect=lambda mode: call_order.append("directory"),
+            side_effect=lambda mode, **kwargs: call_order.append("directory"),
         ),
         patch(
             "psynet.command_line.redis_vars.clear",

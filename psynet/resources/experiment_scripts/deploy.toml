@@ -10,6 +10,7 @@ paths = [
     "deploy",
     "deploy_logs",
     "develop",
+    "exports",
     "local_only",
     "snapshots",
     "static/assets",
@@ -17,6 +18,7 @@ paths = [
 # Basenames skipped in every directory.
 names = [
     ".env",
+    ".idea",
     ".pytest_cache",
     ".python-version",
     ".venv",
@@ -29,6 +31,7 @@ names = [
 ]
 # Literal endings such as .db, skipped in every directory.
 suffixes = [
+    ".DS_Store",
     ".db",
     ".dmg",
 ]

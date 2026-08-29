@@ -24,6 +24,7 @@ EXPECTED_EXCLUDE_PATHS = (
     "deploy",
     "deploy_logs",
     "develop",
+    "exports",
     "local_only",
     "snapshots",
     "static/assets",
@@ -31,6 +32,7 @@ EXPECTED_EXCLUDE_PATHS = (
 
 EXPECTED_EXCLUDE_NAMES = (
     ".env",
+    ".idea",
     ".pytest_cache",
     ".python-version",
     ".venv",
@@ -43,6 +45,7 @@ EXPECTED_EXCLUDE_NAMES = (
 )
 
 EXPECTED_EXCLUDE_SUFFIXES = (
+    ".DS_Store",
     ".db",
     ".dmg",
 )
@@ -136,7 +139,7 @@ def test_scaffold_creates_stock_deployment_policy(tmp_path):
     assert not (tmp_path / ".dockerignore").exists()
 
 
-def test_stock_policy_excludes_gitignore_virtualenv_directories(tmp_path):
+def test_stock_policy_excludes_local_and_gitignored_files(tmp_path):
     experiment_root = tmp_path / "experiment"
     experiment_root.mkdir()
     (experiment_root / "experiment.py").write_text("class Exp:\n    pass\n")
@@ -145,8 +148,10 @@ def test_stock_policy_excludes_gitignore_virtualenv_directories(tmp_path):
         scaffold_experiment_directory()
 
     gitignore = (experiment_root / ".gitignore").read_text(encoding="utf-8")
+    assert ".env" in gitignore
     assert "env/" in gitignore
     assert ".venv/" in gitignore
+    assert "exports/" in gitignore
 
     env_file = experiment_root / "env" / "lib" / "python.py"
     env_file.parent.mkdir(parents=True)
@@ -154,18 +159,27 @@ def test_stock_policy_excludes_gitignore_virtualenv_directories(tmp_path):
     venv_file = experiment_root / ".venv" / "lib" / "sitecustomize.py"
     venv_file.parent.mkdir(parents=True)
     venv_file.write_text("# virtualenv\n")
+    idea_file = experiment_root / ".idea" / "workspace.xml"
+    idea_file.parent.mkdir()
+    idea_file.write_text("<project/>\n")
+    (experiment_root / ".DS_Store").write_bytes(b"local metadata")
+    (experiment_root / ".env").write_text("API_KEY=private\n")
+    exports_file = experiment_root / "exports" / "participant.csv"
+    exports_file.parent.mkdir()
+    exports_file.write_text("participant_id\n")
     (experiment_root / "kept.txt").write_text("keep\n")
 
     plan = build_deployment_plan(experiment_root)
     assert "kept.txt" in plan.destinations
-    assert not any(
-        destination == "env" or destination.startswith("env/")
-        for destination in plan.destinations
-    )
-    assert not any(
-        destination == ".venv" or destination.startswith(".venv/")
-        for destination in plan.destinations
-    )
+    for excluded in [
+        ".DS_Store",
+        ".env",
+        ".idea/workspace.xml",
+        ".venv/lib/sitecustomize.py",
+        "env/lib/python.py",
+        "exports/participant.csv",
+    ]:
+        assert excluded not in plan.destinations
 
 
 @pytest.mark.parametrize("generated_lines", _GENERATED_DOCKERIGNORE_VARIANTS)
