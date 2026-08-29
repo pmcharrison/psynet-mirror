@@ -4636,6 +4636,12 @@ def import_local_experiment():
     #
     # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
     ensure_experiment_directory_name_does_not_conflict()
+    # Dallinger loads experiment.py before this function would otherwise amend
+    # ``sys.path``. Put the experiment directory on the path first so sibling
+    # modules such as ``adaptive_logic.py`` can use absolute imports.
+    experiment_dir = os.getcwd()
+    if experiment_dir not in sys.path:
+        sys.path.insert(0, experiment_dir)
     dallinger_get_config()
 
     import dallinger.experiment
@@ -4643,7 +4649,6 @@ def import_local_experiment():
     dallinger.experiment.load()
 
     dallinger_experiment = sys.modules.get("dallinger_experiment")
-    sys.path.append(os.getcwd())
 
     try:
         module = dallinger_experiment.experiment
