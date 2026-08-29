@@ -268,24 +268,33 @@ than a JupyterLab window. Figures that look fine while authoring routinely
 collide once rendered: facet titles overlap each other, in-plot annotations
 land on the data, and long legends wrap into the title.
 
+Fix crowding by changing the layout, not by dropping data. A reviewer needs to
+see every condition that was simulated or measured, so hiding series to make a
+figure tidy is the wrong trade: it silently narrows the question the figure can
+answer. Two encodings in one panel (colour for one factor, `line_dash` for
+another) usually fit comfortably once the labels are short and the legend has
+its own column.
+
 Follow these rules.
 
-- **One question per figure.** Split a crowded figure instead of shrinking its
-  text. Two figures that each answer one question beat one figure that answers
-  two.
+- **Keep all the series.** Prefer one panel showing every condition over
+  several panels that each show a subset. Split a figure only when it genuinely
+  covers separate analyses, never to reduce line count.
 - **Avoid facets.** With three facets the usable panel width drops to about
-  250 px, which is where `facet_col` titles start overlapping. Encode the
-  extra dimension with colour, or split into separate figures.
+  250 px, which is where `facet_col` titles start overlapping. Encode the extra
+  dimension with colour or `line_dash` in a single panel instead.
 - **Shorten every label.** Map database-style ids
   (`well_specified_2pl`) to display labels (`Matching 2PL`) before plotting,
   and strip the `variable=` prefix Plotly Express adds to facet titles.
+  Relabel the encoding columns too, not just the axes: anything missing from
+  `labels` shows up as a raw column name in the hover text.
 - **Put explanations in Markdown, not in the plot.** A `display(Markdown(...))`
   caption above the figure has unlimited room; an `annotation_text` inside the
   axes does not, and will sit on top of a line.
 - **Give the legend its own space.** A horizontal legend above the plot works
-  while it fits on one row. Two encodings (colour plus `line_dash`) produce one
-  entry per combination, which wraps and pushes into the title, so those
-  figures need a right-hand legend column and a matching right margin.
+  while it fits on one row. Two encodings produce one entry per combination,
+  which wraps and pushes into the title, so those figures need a right-hand
+  legend column and a matching right margin.
 - **Set an explicit height.** The rendered container is 20 rem tall by default;
   420 px or more avoids a squashed plot.
 - **Set explicit tick values** for a handful of design points, rather than
@@ -314,23 +323,32 @@ AUDIT_FIGURE_LAYOUT_SIDE_LEGEND = dict(
 
 SCENARIO_LABELS = {"well_specified_2pl": "Matching 2PL", "three_pl_guessing": "3PL guessing"}
 results["scenario"] = results["response_scenario"].map(SCENARIO_LABELS)
+# Hover text shows the raw column name unless it is relabelled here too.
+AXIS_LABELS = {"rmse": "Ability RMSE", "scenario": "Scenario", "policy": "Policy"}
 
 display(Markdown("""## Operational performance
 
-The dashed line is the RMSE requirement of 0.45; error bars are Monte Carlo
-95% intervals."""))
+Solid lines are adaptive selection, dashed lines are random. Error bars are
+Monte Carlo 95% intervals; the dashed red line is the RMSE requirement of
+0.45."""))
 
+# Every simulated condition stays in the panel: colour separates the response
+# scenario, line_dash separates the selection policy.
 fig = px.line(
-    results, x="max_trials", y="rmse", color="scenario",
+    results, x="max_trials", y="rmse", color="scenario", line_dash="policy",
     error_y="rmse_mc95_half_width", markers=True,
-    labels={"max_trials": "Maximum CAT items", "rmse": "Ability RMSE"},
+    labels=dict(AXIS_LABELS, max_trials="Maximum CAT items"),
     title="Operational ability recovery",
 )
 fig.add_hline(y=0.45, line_dash="dash", line_color="firebrick")
 fig.update_xaxes(tickvals=sorted(results["max_trials"].unique()))
-fig.update_layout(**AUDIT_FIGURE_LAYOUT)
+fig.update_layout(**AUDIT_FIGURE_LAYOUT_SIDE_LEGEND)
 fig.show()
 ```
+
+Use `AUDIT_FIGURE_LAYOUT` for the simpler case of a single encoding with a few
+short labels, where a legend row above the plot reads better than a side
+column.
 
 Check the result at the rendered width before finalizing, not only in the
 authoring window. `psynet audit render` followed by `psynet audit serve` shows
