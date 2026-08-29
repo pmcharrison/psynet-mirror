@@ -57,6 +57,26 @@ participants after returns or time-outs. Continue observing until
 `study_status == "COMPLETED"`. Treat all other study states as not completed
 unless the user explicitly asks to stop watching.
 
+### Regular polls and chat news
+
+Silent background polling is not enough. The user should see progress without
+asking.
+
+- Poll all watched apps every **3 minutes** (dashboard participant counts,
+  Prolific study/submission counts, Lucid summary). Write each snapshot to a
+  temp file (e.g. `/tmp/<base-name>-observe.jsonl`) so a later turn can resume.
+- Post a short chat status at least every **10 minutes**, and **immediately**
+  when any of these change: study/survey status, places taken / available
+  places, submission-status counts, PsyNet approved/screened-out/complete
+  counts, Lucid `total_completes`, or a new error class in logs.
+- Each update is a few lines: app name, recruiter status, places or
+  completes vs target, PsyNet row counts, and one sentence on what changed
+  since the last post. Do not dump raw JSON or identifiers.
+- Keep polling after a no-change interval. A quiet 10-minute window still
+  gets a "no change" line so the user knows the watch is alive.
+- When several apps are in flight, one combined status block is fine; do
+  not skip an app because another did not move.
+
 Once the Prolific run reaches a terminal state, perform the post-completion
 Dozzle log download and review described below. Compare these logs against the
 initial deployment-time scan and call out errors that only appeared after

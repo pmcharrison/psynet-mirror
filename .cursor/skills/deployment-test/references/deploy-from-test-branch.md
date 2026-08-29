@@ -335,6 +335,10 @@ the archive path also shows the version. (Older deployments used
 `test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs` before the
 recruiter suffix became part of the convention.) After deployment, inspect
 each launch output for the experiment URL, dashboard URL, and Dozzle URL.
+For `audio_gibbs` variants, also run the post-launch container source check
+in `recruiter-variants.md` before calling the deploy a success. A matching
+   git branch is not enough: Dallinger can reuse a Docker image that still
+   contains the other variant's `experiment.py`.
 
 ## Stagger Local Prepare, Then Overlap Remote Builds
 

@@ -20,7 +20,18 @@ git push
 
 2. `audio_gibbs` has two paid variants sharing one directory, so prepare
    them in separate temporary worktrees on branches off the deployment
-   branch; each worktree branch records exactly what was deployed:
+   branch; each worktree branch records exactly what was deployed.
+
+   Dallinger `<= 12.3.0` tags the experiment Docker image from a hash of
+   **only** `requirements.txt` and `prepare_docker_image.sh`. The image
+   then `COPY`s the whole experiment directory, including `experiment.py`.
+   If both variants keep the same hashed files, the second deploy **reuses
+   the first image** and runs the wrong `experiment.py` while taking
+   recruiter settings from the later config. That is what left the
+   `v13.4.0a0-dbf918694` Lucid survey live: it ran the Prolific
+   `experiment.py` (target 5, no `_stop_lucid_fielding`). Always copy the
+   variant `prepare_docker_image.sh.*` as well, then **diff-check** before
+   deploy and **inspect the running container** after launch.
 
 ```bash
 cd <psynet-root>
@@ -29,8 +40,11 @@ git worktree add -b deployment-tests/<base-name>-audio-gibbs-prolific \
 cd /tmp/psynet-audio-gibbs-prolific-deploy/tests/deployment/audio_gibbs
 cp experiment.py.prolific experiment.py
 cp config.txt.prolific config.txt
+cp prepare_docker_image.sh.prolific prepare_docker_image.sh
 # config.txt is gitignored under tests/deployment/.
-git add experiment.py && git add -f config.txt
+diff -q experiment.py experiment.py.prolific
+test -n "$(rg -n 'image-variant=audio_gibbs-prolific' prepare_docker_image.sh)"
+git add experiment.py prepare_docker_image.sh && git add -f config.txt
 git commit -m "Switch audio_gibbs to Prolific variant for deployment"
 git push -u origin deployment-tests/<base-name>-audio-gibbs-prolific
 
@@ -40,10 +54,36 @@ git worktree add -b deployment-tests/<base-name>-audio-gibbs-lucid \
 cd /tmp/psynet-audio-gibbs-lucid-deploy/tests/deployment/audio_gibbs
 cp experiment.py.lucid experiment.py
 cp config.txt.lucid config.txt
-git add experiment.py && git add -f config.txt
+cp prepare_docker_image.sh.lucid prepare_docker_image.sh
+diff -q experiment.py experiment.py.lucid
+test -n "$(rg -n 'image-variant=audio_gibbs-lucid' prepare_docker_image.sh)"
+test -n "$(rg -n '_stop_lucid_fielding' experiment.py)"
+git add experiment.py prepare_docker_image.sh && git add -f config.txt
 git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
 git push -u origin deployment-tests/<base-name>-audio-gibbs-lucid
 ```
+
+   Do not start `psynet deploy ssh` for a variant until those `diff` /
+   `rg` checks pass. After each app launches, confirm the **running**
+   container (not only the git branch) has the right code:
+
+```bash
+ssh -i <ssh-key> <ssh-user>@<ssh-host> \
+  "docker compose -f ~/dallinger/<app-name>/docker-compose.yml exec -T web python - <<'PY'
+import inspect
+from dallinger_experiment.experiment import Exp
+src = inspect.getsource(Exp)
+expected = getattr(Exp, 'expected_recruiter', None)
+print('expected_recruiter', expected)
+print('has_stop_lucid', '_stop_lucid_fielding' in src)
+PY"
+```
+
+   Lucid app must print `expected_recruiter lucid` and `has_stop_lucid True`.
+   Prolific app must print `expected_recruiter prolific` and `has_stop_lucid False`.
+   If either check fails, close any live Lucid survey immediately, destroy
+   the app, and redeploy from a worktree that passed the file diffs. Do
+   not keep watching a mismatched app.
 
 3. Deploy from the worktrees (these are the second and third staggered
    `psynet deploy ssh` commands shown above). Name the Lucid app
@@ -73,5 +113,6 @@ Notes for the Lucid app:
   until the target number of participants completes or the user stops the
   test, then apply the same per-app audit-trail workflow (skipping the
   Prolific study/submissions JSON artifact and capturing the equivalent
-  Lucid recruiter-state evidence instead).
+  Lucid recruiter-state evidence instead). Use the same 3-minute poll /
+  10-minute chat-news cadence as the Prolific observe notes.
 
