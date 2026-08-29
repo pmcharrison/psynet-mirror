@@ -1,3 +1,4 @@
-psynet
+dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@v12.3.0
+psynet[experiment] @ git+https://gitlab.com/PsyNetDev/PsyNet.git@2a9e19698b75b683fa7bdeb07f665c5c96d5a5ff
 praat-parselmouth
 scipy
