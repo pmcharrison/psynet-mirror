@@ -1,0 +1,1 @@
+Stamp ``audio_gibbs`` Lucid and Prolific variants so they do not reuse one Docker image, document the deployment-test checks for that, and refresh the merge request title and description during ``/branch-review``.

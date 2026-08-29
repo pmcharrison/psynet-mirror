@@ -40,6 +40,7 @@ from consents_cococo.consent_cultural_foundation import (  # noqa: E402
 )
 
 from . import custom_synth
+from .recruiter_variant import assert_expected_recruiter
 
 TARGETS = ["dominant", "trustworthy"]
 DIMENSIONS = 7
@@ -130,6 +131,7 @@ def get_hotair_settings():
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio game - play with sounds."
+    expected_recruiter = "hotair"
     asset_storage = LocalStorage()
     config = {
         **get_hotair_settings(),
@@ -141,6 +143,10 @@ class Exp(psynet.experiment.Experiment):
         "organization_name": "Max Planck Institute for Empirical Aesthetics",
         "show_reward": False,
     }
+
+    def on_launch(self):
+        assert_expected_recruiter(self.expected_recruiter)
+        super().on_launch()
 
     timeline = Timeline(
         # DURATION/PAYMENT are passed explicitly because this experiment sets

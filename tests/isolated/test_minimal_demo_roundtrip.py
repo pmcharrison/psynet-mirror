@@ -124,6 +124,7 @@ AUTHORED_TEST_EXPERIMENT_FILENAMES = {
     "DEPLOYMENT_ID",
     "custom_synth.py",
     "pre_deployed_assets.csv",
+    "recruiter_variant.py",
 }
 
 
@@ -137,7 +138,11 @@ def _is_authored_test_experiment_path(relative_path: str) -> bool:
     if name in AUTHORED_TEST_EXPERIMENT_FILENAMES:
         return True
     # Recruiter/deployment variants, e.g. experiment.py.prolific / config.txt.lucid.
+    # Distinct prepare_docker_image.sh.* stamps keep Dallinger from reusing one
+    # image across those variants; the un-suffixed script is scaffold-managed.
     if name.startswith("experiment.py") or name.startswith("config.txt"):
+        return True
+    if name.startswith("prepare_docker_image.sh."):
         return True
     if name.endswith((".wav", ".csv")):
         return True
