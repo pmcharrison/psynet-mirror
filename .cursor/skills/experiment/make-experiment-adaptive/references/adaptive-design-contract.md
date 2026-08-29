@@ -37,7 +37,11 @@ the simulation response model is only a testing assumption.
 - Document which fields correspond to observations `y` and covariates `z`.
 - Keep raw answers for audit alongside transformed model observations.
 - Prefer queryable SQLAlchemy columns for core variables; use `PythonObject`
-  only where structured values genuinely require it.
+  only where structured values genuinely require it. Do not add extra
+  ``Column`` attributes on a ``StaticTrial`` subclass: trials share Dallinger's
+  ``info`` table. Use a dedicated observation table instead.
+- Put calibrated item banks in ``stimuli/`` (or another non-excluded folder)
+  and commit them. Dallinger omits ``data/`` from the copied experiment package.
 - Record candidate IDs, chosen ID, objective components, model snapshot, data
   cutoff, and optimizer version for every adaptive decision.
 - When already available without extra approximation, record the posterior
@@ -102,5 +106,7 @@ Choose one strategy explicitly:
 - Using online learning without concurrency protection.
 - Re-querying a selected node or chain instead of returning the exact candidate
   object supplied by PsyNet.
+- Adding mapped columns on ``StaticTrial``, or storing the item bank under
+  ``data/``.
 - Overriding managed trial preparation rather than the relevant discovery,
   eligibility, or selection hook.

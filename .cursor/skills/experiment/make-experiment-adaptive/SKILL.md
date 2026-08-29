@@ -47,6 +47,10 @@ benchmark/
 
 `adaptive_logic.py` contains the fitting and selection functions used by both
 PsyNet and the standalone simulation. It must not import PsyNet or SQLAlchemy.
+Before importing it from ``experiment.py``, put the experiment directory on
+``sys.path`` using ``Path(__file__).resolve().parent``. Debug and deploy load
+``experiment.py`` from a temporary package where a bare ``import adaptive_logic``
+otherwise fails.
 
 `simulate_procedure.py` runs one complete adaptive experiment without starting
 PsyNet. It maintains the observation, participant, item, and decision tables;
@@ -94,10 +98,12 @@ when fitting or selection is stochastic.
 ## Participant-level adaptation
 
 When item parameters are already calibrated, load the immutable item table once
-per server process and retain its stable item-ID mapping:
+per server process and retain its stable item-ID mapping. Put the file in
+``stimuli/`` (not ``data/``, which Dallinger excludes from the copied package)
+and commit it so verification and deploy copies include it:
 
 ```python
-ITEMS = pd.read_csv("data/item_bank.csv").set_index("item_id", drop=False)
+ITEMS = pd.read_csv("stimuli/item_bank.csv").set_index("item_id", drop=False)
 ```
 
 Selection normally updates one participant estimate and scores the remaining
@@ -355,71 +361,16 @@ authoritative response. When it already has a scientifically meaningful form,
 put it directly into the observation table. A seven-point rating does not need
 to be called a score.
 
-For a small dataset, the observation table can unpack `trial.answer` and
-`trial.definition` in Python. Adaptive fitting may read a large trial table
-repeatedly, however. In that case, store the fields used by the model in
-explicit columns while retaining the original answer:
+For a small dataset, unpack `trial.answer` and `trial.definition` in Python.
+If fitting rereads a large trial table, store model fields on a dedicated
+SQLAlchemy table as in
+[references/study-state-storage.md](references/study-state-storage.md).
+Do not add extra ``Column`` attributes on a ``StaticTrial`` subclass: trials
+share Dallinger's ``info`` table, and those columns conflict once it is mapped.
 
-```python
-from sqlalchemy import Column, Integer, String
-
-from psynet.trial.static import StaticTrial, StaticTrialMaker
-
-
-class RatingTrial(StaticTrial):
-    item_id = Column(String, index=True)
-    rating = Column(Integer, nullable=True)
-
-    def finalize_definition(self, definition, experiment, participant):
-        definition = super().finalize_definition(definition, experiment, participant)
-        self.item_id = definition["item_id"]
-        return definition
-
-
-class RatingTrialMaker(StaticTrialMaker):
-    def finalize_trial(self, answer, trial, experiment, participant):
-        trial.rating = int(answer)
-        super().finalize_trial(answer, trial, experiment, participant)
-```
-
-Only finalized trials belong in the PsyNet observation table. This ensures that
-any required asynchronous processing has succeeded. Select the required
-columns directly rather than constructing full trial objects. PsyNet stores
-the zero-based `Trial.position`, so it can be selected without another query.
-
-```python
-from dallinger import db
-from sqlalchemy import select
-
-
-statement = (
-    select(
-        RatingTrial.id.label("observation_id"),
-        RatingTrial.participant_id,
-        RatingTrial.item_id,
-        RatingTrial.rating,
-        RatingTrial.position.label("trial_order"),
-    )
-    .where(
-        RatingTrial.finalized.is_(True),
-        RatingTrial.failed.is_(False),
-        RatingTrial.trial_maker_id == "adaptive_ratings",
-    )
-)
-
-columns = [
-    "observation_id",
-    "participant_id",
-    "item_id",
-    "rating",
-    "trial_order",
-]
-rows = db.session.execute(statement).mappings()
-observations = pd.DataFrame.from_records(rows, columns=columns)
-```
-
-Passing explicit columns preserves the table schema before the first response;
-without them an empty query produces a dataframe with no columns.
+Only finalized, non-failed trials belong in the observation table. Select those
+columns directly. PsyNet stores the zero-based `Trial.position`, so it can be
+copied onto the observation row without another query.
 
 When the outcome genuinely represents correctness or participant performance,
 use PsyNet's existing scoring interface:
