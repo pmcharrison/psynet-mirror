@@ -141,6 +141,28 @@ def test_git_dirty_is_scoped_to_deployment_plan(tmp_path):
         assert deployment_info.read("git_dirty") is True
 
 
+def test_git_dirty_ignores_deletions_excluded_by_name(tmp_path):
+    with working_directory(tmp_path):
+        _git("init", "--quiet")
+        _git("config", "user.email", "test@example.com")
+        _git("config", "user.name", "Test User")
+        Path("experiment.py").write_text("content")
+        Path("deploy.toml").write_text(
+            'version = 1\n[exclude]\npaths = [".deploy"]\nnames = [".idea"]\n'
+        )
+        idea = Path(".idea")
+        idea.mkdir()
+        workspace = idea / "workspace.xml"
+        workspace.write_text("local")
+        _git("add", ".")
+        _git("add", "--force", ".idea/workspace.xml")
+        _git("commit", "--quiet", "-m", "Initial commit")
+
+        workspace.unlink()
+        _initialize_deployment_info()
+        assert deployment_info.read("git_dirty") is False
+
+
 def test_deployment_info_handles_missing_git_repository(tmp_path):
     with working_directory(tmp_path):
         _initialize_deployment_info()

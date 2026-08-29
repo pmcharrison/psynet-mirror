@@ -72,18 +72,16 @@ def _experiment_relative_git_path(path, prefix):
 
 def _policy_selects_path(path, policy):
     """Return whether ``path`` would be copied under ``policy`` if it existed."""
+    from dallinger.deployment_plan import _is_excluded, _is_omitted_anywhere
+
     parts = tuple(part for part in path.replace("\\", "/").split("/") if part)
     if not parts:
         return False
-    name = parts[-1]
-    if name in policy.exclude_names:
+    names = frozenset(policy.exclude_names)
+    suffixes = policy.exclude_suffixes
+    if any(_is_omitted_anywhere(part, names, suffixes) for part in parts):
         return False
-    if any(name.endswith(suffix) for suffix in policy.exclude_suffixes):
-        return False
-    exclusions = frozenset(policy.exclude_paths)
-    return not any(
-        "/".join(parts[:depth]) in exclusions for depth in range(1, len(parts) + 1)
-    )
+    return not _is_excluded(parts, frozenset(policy.exclude_paths))
 
 
 def _deployment_plan():

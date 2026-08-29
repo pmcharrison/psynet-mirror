@@ -802,20 +802,15 @@ def _clear_deployment_policy_review_marker() -> None:
         marker.unlink()
 
 
-def ensure_deployment_policy() -> bool:
+def ensure_deployment_policy() -> None:
     """Create ``deploy.toml`` from the PsyNet template when it is missing.
 
     Existing files are never overwritten. A newly written file also gets a
     local review marker so the next debug, test, or deploy command pauses
     once before copying files.
-
-    Returns
-    -------
-    bool
-        True when a new file was written.
     """
     _assert_managed_path_is_safe("deploy.toml")
-    return _copy_template_file("deploy.toml", overwrite=False)
+    _copy_template_file("deploy.toml", overwrite=False)
 
 
 def _remove_obsolete_generated_dockerignore() -> bool:
