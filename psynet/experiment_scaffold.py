@@ -784,13 +784,7 @@ def ensure_deployment_policy() -> bool:
         True when a new file was written.
     """
     _assert_managed_path_is_safe("deploy.toml")
-    created = _copy_template_file("deploy.toml", overwrite=False)
-    if created:
-        click.echo(
-            "Created deploy.toml from the PsyNet template. "
-            "Review [exclude] paths, names, and suffixes before deploying."
-        )
-    return created
+    return _copy_template_file("deploy.toml", overwrite=False)
 
 
 def _remove_obsolete_generated_dockerignore() -> bool:
