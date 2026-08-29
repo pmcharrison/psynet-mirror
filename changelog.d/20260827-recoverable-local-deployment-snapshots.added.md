@@ -1,1 +1,1 @@
-Added required IDs, periodic recovery snapshots, and deployment event history for local live experiments. Local launches now refuse to reset the shared local database while another local experiment or a leftover worker process could still write to it.
+Added required IDs, periodic recovery snapshots, and deployment event history for local live experiments. A local launch now refuses to reset the shared local database while another local experiment is still running, and says which one to stop.

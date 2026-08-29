@@ -572,53 +572,6 @@ def read_database_owner(db_url: Optional[str] = None) -> Optional[DatabaseOwner]
         connection.close()
 
 
-def terminate_other_database_sessions(db_url: Optional[str] = None) -> int:
-    """Disconnect other clients from the local experiment database.
-
-    Called immediately before the database is reset, so a leftover worker cannot
-    write through a connection that outlived the process we tried to stop. This
-    is a database-side guarantee: it does not depend on being able to kill or
-    even observe the process that owns the connection.
-    """
-    import psycopg2
-
-    if db_url is None:
-        from dallinger import db
-
-        db_url = db.db_url
-    try:
-        connection = psycopg2.connect(
-            dsn=db_url,
-            connect_timeout=DATABASE_READ_TIMEOUT_SECONDS,
-            options=f"-c statement_timeout={int(DATABASE_READ_TIMEOUT_SECONDS * 1000)}",
-        )
-    except psycopg2.Error as error:
-        logger.warning(
-            "Could not disconnect other clients from the local database: %s", error
-        )
-        return 0
-    try:
-        connection.autocommit = True
-        cursor = connection.cursor()
-        cursor.execute(
-            "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-            "WHERE datname = current_database() AND pid <> pg_backend_pid()"
-        )
-        terminated = len(cursor.fetchall())
-        if terminated:
-            logger.info(
-                "Disconnected %d other client(s) from the local database.", terminated
-            )
-        return terminated
-    except psycopg2.Error as error:
-        logger.warning(
-            "Could not disconnect other clients from the local database: %s", error
-        )
-        return 0
-    finally:
-        connection.close()
-
-
 def local_database_lock_path() -> Path:
     """Return the machine-wide lock file for local PostgreSQL access."""
     return Path.home() / "psynet-data" / "local-deployment.lock"

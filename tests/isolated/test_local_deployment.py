@@ -609,43 +609,6 @@ def test_read_database_owner_survives_a_locked_experiment_table(monkeypatch):
     )
 
 
-def test_terminate_other_database_sessions_disconnects_other_clients(monkeypatch):
-    import psycopg2
-
-    from psynet.local_deployment import terminate_other_database_sessions
-
-    cursor = Mock()
-    cursor.fetchall.return_value = [(True,), (True,)]
-    connection = Mock()
-    connection.cursor.return_value = cursor
-    monkeypatch.setattr(psycopg2, "connect", lambda **_kwargs: connection)
-
-    assert terminate_other_database_sessions(db_url="postgresql://example") == 2
-    statement = cursor.execute.call_args[0][0]
-    assert "pg_terminate_backend" in statement
-    assert "pid <> pg_backend_pid()" in statement
-    connection.close.assert_called_once()
-
-
-def test_terminate_other_database_sessions_survives_database_errors(
-    monkeypatch, caplog
-):
-    import psycopg2
-
-    from psynet.local_deployment import terminate_other_database_sessions
-
-    cursor = Mock()
-    cursor.execute.side_effect = psycopg2.errors.InsufficientPrivilege("nope")
-    connection = Mock()
-    connection.cursor.return_value = cursor
-    monkeypatch.setattr(psycopg2, "connect", lambda **_kwargs: connection)
-
-    with caplog.at_level("WARNING"):
-        assert terminate_other_database_sessions(db_url="postgresql://example") == 0
-
-    assert "Could not disconnect other clients" in caplog.text
-
-
 def test_protect_existing_database_skips_clean_shutdown(tmp_path, monkeypatch):
     from psynet.local_deployment import (
         DatabaseOwner,

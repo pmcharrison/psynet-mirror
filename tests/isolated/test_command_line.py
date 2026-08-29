@@ -3539,32 +3539,6 @@ def test_kill_psynet_worker_processes_ignores_zombies(caplog):
     assert "4243" not in caplog.text
 
 
-def test_prepare_disconnects_other_database_clients_before_resetting(tmp_path):
-    from psynet.command_line import _prepare
-    from psynet.utils import working_directory
-
-    calls = []
-
-    with (
-        patch(
-            "psynet.command_line.protect_existing_database",
-            side_effect=lambda *_a, **_k: calls.append("protect"),
-        ),
-        patch(
-            "psynet.command_line.terminate_other_database_sessions",
-            side_effect=lambda *_a, **_k: calls.append("disconnect"),
-        ),
-        patch(
-            "psynet.command_line._prepare_unlocked",
-            side_effect=lambda _archive: calls.append("reset"),
-        ),
-        working_directory(tmp_path),
-    ):
-        _prepare()
-
-    assert calls == ["protect", "disconnect", "reset"]
-
-
 def test_terminate_server_process_escalates_when_sendcontrol_raises_oserror():
     from psynet.command_line import _terminate_server_process
 

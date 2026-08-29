@@ -62,7 +62,6 @@ from .local_deployment import (
     local_deployment_lock,
     protect_existing_database,
     read_database_owner,
-    terminate_other_database_sessions,
     validate_local_id,
 )
 from .log import bold
@@ -206,17 +205,11 @@ def prepare(archive):
 
 def _prepare(archive=None):
     with local_database_lock(Path.cwd()):
-        # Snapshot any unsaved managed state, then disconnect every other client
-        # so nothing can write while the database is reset.
         protect_existing_database(
             Path.cwd(),
             "prepare",
             ignore_unmanaged=True,
         )
-        if terminate_other_database_sessions():
-            # Our own pooled connections were disconnected too; drop them so the
-            # reset starts from fresh ones.
-            db.engine.dispose()
         return _prepare_unlocked(archive)
 
 
@@ -993,10 +986,10 @@ def kill_psynet_worker_processes(wait_timeout=1):
     """Terminate leftover PsyNet worker processes, best effort.
 
     Cleanup must never fail a launch or a shutdown, so an unkillable or already
-    defunct worker is reported and otherwise ignored. What actually protects the
-    database is ``terminate_other_database_sessions``, which runs immediately
-    before the local database is reset. Only processes that were signalled are
-    waited for, so leftovers cannot slow every launch down.
+    defunct worker is reported and otherwise ignored: raising here previously
+    broke every local launch after the first whenever one such process lingered.
+    Only processes that were signalled are waited for, so leftovers cannot slow
+    every launch down.
     """
     processes = [
         process
@@ -1017,8 +1010,7 @@ def kill_psynet_worker_processes(wait_timeout=1):
         ]
     if unstoppable:
         logger.warning(
-            "PsyNet worker process(es) did not stop: %s. Their database sessions "
-            "are disconnected before the local database is reset.",
+            "PsyNet worker process(es) did not stop: %s.",
             ", ".join(str(process.pid) for process in unstoppable),
         )
 
