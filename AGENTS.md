@@ -1,5 +1,7 @@
 # Agent instructions
 
+On Windows, develop in WSL (Ubuntu) using Linux commands. Native Windows is not supported.
+
 Start by following `psynet/resources/experiment_scripts/AGENTS.md`.
 
 Then act on the following PsyNet developer instructions:
@@ -186,6 +188,9 @@ record that explicitly in the merge request description.
 ## Merge request descriptions
 
 Use `.gitlab/merge_request_templates/Default.md` as the template.
+Write for experiment authors, not only for maintainers: prefer plain language
+over internal jargon, and include short code examples when the change affects
+a public API or migration.
 
 ## CLI development
 

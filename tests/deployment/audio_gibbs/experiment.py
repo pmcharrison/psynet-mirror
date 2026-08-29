@@ -157,6 +157,9 @@ class Exp(psynet.experiment.Experiment):
     config = {
         **get_prolific_settings(),
         "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
+        # Required for Prolific deployments: caps the number of automatic
+        # screen-out payments (see prolific_pay_unsuccessful).
+        "prolific_screen_out_slots": 10 * INITIAL_RECRUITMENT_SIZE,
         "force_incognito_mode": False,
         "title": "Sound game: play with sounds (Chrome browser, Headphones required ~3 min)",
         "description": "A short sound game. Requires a Chrome browser and headphones. The game lasts approximately 3 minutes.",
