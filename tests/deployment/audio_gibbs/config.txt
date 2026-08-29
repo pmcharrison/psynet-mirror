@@ -1,6 +1,6 @@
 [Parameters]
 aws_region = us-east-1
-publish_experiment = false
+publish_experiment = true
 
 [Lucid]
 recruiter = hotair

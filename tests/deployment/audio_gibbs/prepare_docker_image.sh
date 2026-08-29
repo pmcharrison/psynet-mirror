@@ -4,3 +4,4 @@
 # tagging the experiment Docker image. Keep this comment distinct from
 # the Prolific sibling so the two variants never reuse one image.
 true
+# dry-run-rebuild=hotair-publish
