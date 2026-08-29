@@ -1,14 +1,13 @@
-"""Audio Gibbs sampler test experiment with a safe HotAir default.
+"""Audio Gibbs sampler test experiment for Prolific deployment tests.
 
 Participants adjust a slider to make a synthesized word sound as
 "dominant" or "trustworthy" as possible. Compared to the sibling
 payment-flow test experiment, this one additionally exercises on-the-fly
 audio synthesis (parselmouth), asset generation and storage, parallel
-async worker processes, and a headphone prescreen. Recruiter-specific
-deployment variants live in ``experiment.py.prolific`` and
-``experiment.py.lucid``.
+async worker processes, and a headphone prescreen.
 """
 
+import json
 import os
 import sys
 from typing import List
@@ -118,12 +117,19 @@ trial_maker = CustomTrialMaker(
 )
 
 
-def get_hotair_settings():
-    """Return recruiter settings safe for local runs."""
+def get_prolific_settings():
+    with open("qualification_prolific_en.json", "r") as f:
+        qualification = json.dumps(json.load(f))
+
     return {
-        "recruiter": "hotair",
+        "recruiter": "prolific",
         "base_payment": 0.50,
         "prolific_estimated_completion_minutes": 3,
+        "prolific_recruitment_config": qualification,
+        # True so deployment tests exercise the programmatic top-up path
+        # (ProlificRecruiter.recruit); recruitment grows from
+        # INITIAL_RECRUITMENT_SIZE toward TARGET_N_PARTICIPANTS.
+        "auto_recruit": True,
         "currency": "£",
         "wage_per_hour": 10,
     }
@@ -131,11 +137,14 @@ def get_hotair_settings():
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio game - play with sounds."
-    expected_recruiter = "hotair"
+    expected_recruiter = "prolific"
     asset_storage = LocalStorage()
     config = {
-        **get_hotair_settings(),
+        **get_prolific_settings(),
         "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
+        # Required for Prolific deployments: caps the number of automatic
+        # screen-out payments (see prolific_pay_unsuccessful).
+        "prolific_screen_out_slots": 10 * INITIAL_RECRUITMENT_SIZE,
         "force_incognito_mode": False,
         "title": "Sound game: play with sounds (Chrome browser, Headphones required ~3 min)",
         "description": "A short sound game. Requires a Chrome browser and headphones. The game lasts approximately 3 minutes.",
