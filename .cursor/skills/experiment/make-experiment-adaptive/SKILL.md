@@ -235,8 +235,10 @@ class AdaptiveTrialMaker(StaticTrialMaker):
         )
 ```
 
-Here `utilities` is a Series indexed by `item_id`. A non-adaptive override can
-simply `return selected_node`. `current_study_fit_id()`
+Here `utilities` is a Series indexed by `item_id`. Returning the node itself is
+enough when you are not writing a decision row; PsyNet then calls
+`on_trial_created` with `selection_context=None`. If you persist an
+`AdaptiveDecision`, return `Selection` with that context. `current_study_fit_id()`
 returns `None` for participant-level adaptation. `Selection.context`
 travels only through the current trial-construction call; it is not stored in
 participant or module state. PsyNet calls `select_node` only when at least one
@@ -268,8 +270,9 @@ must return one of the supplied objects (directly or in `Selection`), and
 returning `None` raises `TypeError`. If the policy must wait for a model refresh,
 override `find_nodes` or `find_chains` and return `"wait"` before selection.
 Return `"exit"` only when the trial maker should end. Otherwise delegate normal
-candidate discovery to `super()` and return its list unchanged; keep ordinary
-eligibility in `custom_node_filter` or `custom_chain_filter`.
+candidate discovery to `super()` and return its list unchanged. Keep ordinary
+eligibility in the filter that matches the maker: `custom_node_filter` on
+`StaticTrialMaker`, `custom_chain_filter` on chain-based makers.
 
 Item selection belongs in the trial maker. Adaptive recruitment or participant
 selection instead needs an experiment recruitment criterion or scheduler. A
@@ -471,8 +474,9 @@ Repeat the comparison under plausible misspecification by changing the response
 model while leaving the adaptive learner unchanged. Follow
 [references/benchmark-adaptive-procedure.md](references/benchmark-adaptive-procedure.md)
 for baseline matching, checkpoint metrics, plots, robustness scenarios, and
-saved artifacts. Use `power-analysis/SKILL.md` separately to decide whether the
-eventual experimental design meets its inferential criterion.
+saved artifacts. Fold those policy comparisons into the power-analysis
+simulation rather than running a second Monte Carlo campaign; use
+`power-analysis/SKILL.md` for sample size, cost, and the inferential decision.
 
 ## Validate in PsyNet
 Run bots through the adaptive selection path. Use concurrent bots when the

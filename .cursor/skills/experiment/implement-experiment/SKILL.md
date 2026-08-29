@@ -57,11 +57,12 @@ provisional until its human-review and power-analysis workflow is complete, then
 incorporate the selected design and supporting evidence into `audit/PLAN.md`
 (potentially rerunning the simulations if required).
 
-When accumulated responses influence later measurements or assignments, follow
-`make-experiment-adaptive/SKILL.md`. Use its standalone simulation to benchmark
-the adaptive policy against a credible non-adaptive alternative, including
-robustness to plausible model misspecification. Review this benchmark before
-using power analysis to select the final design.
+If the design is adaptive, include the selection policy in that same
+simulation: compare it with a realistic non-adaptive alternative under
+matched participants, items, and budgets, and check that the advantage
+survives plausible misspecification. The adaptive-experiment skill describes
+the procedure simulator and those comparisons; do not run a second,
+unrelated Monte Carlo campaign.
 
 #### Implementation
 

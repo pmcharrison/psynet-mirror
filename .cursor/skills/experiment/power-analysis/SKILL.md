@@ -178,5 +178,7 @@ the notebook with its review-relevant tables and interactive figures embedded (p
 
 ## Related reading
 
-- `make-experiment-adaptive/SKILL.md` explains the implementation of adaptive
-  experiments.
+- If the design is adaptive, treat the selection policy as a design factor
+  in this simulation rather than running a separate campaign first. The
+  adaptive-experiment skill covers the procedure simulator and the
+  policy-comparison checks.

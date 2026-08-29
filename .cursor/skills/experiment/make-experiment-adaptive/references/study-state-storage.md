@@ -90,6 +90,8 @@ sees it. Repeat trials and synchronized follower copies do not call this hook.
 ```python
 class AdaptiveTrialMaker(StaticTrialMaker):
     def on_trial_created(self, trial, experiment, participant, selection_context):
+        if selection_context is None:
+            return
         selected_item_id = trial.definition["item_id"]
         if selection_context["selected_candidate_id"] != selected_item_id:
             raise RuntimeError("Adaptive decision does not match the trial.")
@@ -107,10 +109,12 @@ class AdaptiveTrialMaker(StaticTrialMaker):
 ```
 
 Assigning the relationship lets SQLAlchemy populate `trial_id` when the
-transaction flushes. The trial and decision commit or roll back together; do
-not flush merely to obtain the trial ID. Use explicit columns for routine
-queries and exports. Keep `details` small unless the complete candidate and
-utility set is needed to reconstruct the policy.
+transaction flushes. The `selection_context is None` return covers a
+`select_node` that returned a bare node instead of `Selection`. The trial and
+decision commit or roll back together; do not flush merely to obtain the
+trial ID. Use explicit columns for routine queries and exports. Keep
+`details` small unless the complete candidate and utility set is needed to
+reconstruct the policy.
 
 ## Publish a snapshot
 

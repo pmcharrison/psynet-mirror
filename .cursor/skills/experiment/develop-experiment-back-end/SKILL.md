@@ -14,8 +14,12 @@ Most experiment logic should go through these components.
 Prefer `TrialMaker`s where possible for administering sequences of trials,
 as they provide standardized helpers for administration and visualization.
 Use `StaticTrialMaker` when selecting among a fixed bank of nodes, including
-adaptive policies that reprioritize that bank. Use a chain-based trial maker
-when completed trials create or change the state represented by later nodes.
+adaptive policies that reprioritize that bank. Adaptive testing over an
+authored item bank belongs here, because adaptation changes which item is
+chosen rather than what the items are. Use a chain-based trial maker when a
+later node's content must be derived from a completed earlier trial, as in a
+staircase whose next difficulty level is computed from the last response;
+PsyNet's `GeometricStaircaseTrialMaker` is a `ChainTrialMaker` for that reason.
 Inspect the closest PsyNet demo and trial-maker implementation before choosing
 an architecture.
 
@@ -67,7 +71,7 @@ If something seems very hard to achieve, stop and ask the user rather than devia
   `markupsafe.Markup` only for trusted, static HTML snippets passed directly as
   page content; do not nest raw markup strings inside `dominate` containers.
   Avoid interpolating participant- or user-provided data into `Markup`.
-- For repeated tasks, use `StaticTrialMaker` when rounds are independent and a
-  chain-based trial maker when later rounds depend on completed earlier rounds.
-  Read `synchronous-experiments/SKILL.md` as well when participant
+- For repeated tasks, choose the trial maker with the rule under "Approach"
+  above. Adaptive selection does not on its own require a chain. Read
+  `synchronous-experiments/SKILL.md` as well when participant
   grouping, barriers, cohorts, or waiting rooms are involved.
