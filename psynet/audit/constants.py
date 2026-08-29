@@ -87,6 +87,7 @@ MAX_AUDIT_SECTION_BYTES = MAX_AUDIT_TEXT_BYTES
 PLACEHOLDER_IMPLEMENTATION_SUMMARY = "TODO: Summarize the experiment implementation."
 CLI_NAME = "psynet audit"
 AUDIT_CSS_OUTPUT = "css/audit.css"
+AUDIT_JS_OUTPUT = "js/audit.js"
 AUDIT_PLOTLY_JS_OUTPUT = "js/plotly.min.js"
 
 

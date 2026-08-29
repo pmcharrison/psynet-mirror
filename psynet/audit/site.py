@@ -18,6 +18,7 @@ from psynet.audit.artifacts import (
 )
 from psynet.audit.constants import (
     AUDIT_CSS_OUTPUT,
+    AUDIT_JS_OUTPUT,
     AUDIT_PLOTLY_JS_OUTPUT,
     AuditValidationError,
 )
@@ -49,6 +50,7 @@ from psynet.audit.html import (
 from psynet.audit.manifest import (
     audit_css_path,
     audit_display_title,
+    audit_js_path,
     audit_plotly_js_path,
     display_implementation_summary,
     read_audit_manifest,
@@ -250,6 +252,15 @@ def write_audit_plotly_asset(site_dir: Path) -> str:
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(audit_plotly_js_path(), target)
     return f"static/{AUDIT_PLOTLY_JS_OUTPUT}"
+
+
+def write_audit_js_asset(site_dir: Path) -> str:
+    """Copy audit-page behavior into a rendered audit site."""
+
+    target = site_dir / "static" / AUDIT_JS_OUTPUT
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(audit_js_path(), target)
+    return f"static/{AUDIT_JS_OUTPUT}"
 
 
 def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
@@ -676,6 +687,7 @@ def render_audit_site(
         completeness=completeness_from_manifest(manifest, published_paths),
     )
     css_url = write_audit_static_assets(site_dir)
+    audit_js_url = write_audit_js_asset(site_dir)
     plotly_js_url = write_audit_plotly_asset(site_dir)
     sections = display_sections(manifest)
     experiment = manifest.get("experiment", {})
@@ -715,7 +727,7 @@ def render_audit_site(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; font-src 'self' data:; object-src 'none'; base-uri 'none'">
+        content="default-src 'self'; img-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; font-src 'self' data:; object-src 'none'; base-uri 'none'">
   <title>{html.escape(title)}</title>
   <link rel="stylesheet" href="{html.escape(css_url)}">
 </head>
@@ -747,44 +759,7 @@ def render_audit_site(
     </div>
   </article>
   <script src="{html.escape(plotly_js_url)}"></script>
-  <script>
-    document.querySelectorAll(".notebook-plotly").forEach((wrapper) => {{
-      const specElement = wrapper.querySelector("[data-plotly-spec]");
-      const target = wrapper.querySelector("[data-plotly-target]");
-      const error = wrapper.querySelector("[data-plotly-error]");
-      try {{
-        const spec = JSON.parse(specElement.textContent);
-        Plotly.newPlot(target, spec.data, spec.layout, spec.config);
-      }} catch (exception) {{
-        console.error("Failed to render Plotly notebook output", exception);
-        target.hidden = true;
-        error.hidden = false;
-      }}
-    }});
-    document.querySelectorAll("[data-screenshot-gallery]").forEach((gallery) => {{
-      const cards = Array.from(gallery.querySelectorAll("[data-screenshot-card]"));
-      const panel = gallery.closest(".screenshot-gallery");
-      const counter = panel.querySelector("[data-screenshot-counter]");
-      const previous = panel.querySelector("[data-screenshot-prev]");
-      const next = panel.querySelector("[data-screenshot-next]");
-      const caption = panel.querySelector("[data-screenshot-caption]");
-      const show = (index) => {{
-        cards.forEach((card, cardIndex) => {{ card.hidden = cardIndex !== index; }});
-        caption.textContent = cards[index]?.dataset.screenshotCaptionText || "";
-        counter.textContent = `${{index + 1}} / ${{cards.length}}`;
-        gallery.dataset.screenshotIndex = String(index);
-      }};
-      const step = (offset) => {{
-        const current = Number(gallery.dataset.screenshotIndex || 0);
-        show((current + offset + cards.length) % cards.length);
-      }};
-      if (cards.length > 0) {{
-        show(0);
-        previous.addEventListener("click", () => step(-1));
-        next.addEventListener("click", () => step(1));
-      }}
-    }});
-  </script>
+  <script src="{html.escape(audit_js_url)}"></script>
 </body>
 </html>
 """
