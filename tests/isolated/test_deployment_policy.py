@@ -248,9 +248,12 @@ def test_check_experiment_directory_stops_after_creating_missing_deploy_toml(
         with pytest.raises(ClickException) as error:
             _check_experiment_directory("debug")
 
-        assert "Deployment stopped" in str(error.value)
-        assert "secret.txt" in str(error.value)
-        assert "dallinger deployment-files list" in str(error.value)
+        message = str(error.value)
+        assert "experiment has not started yet" in message
+        assert "ignored by Git but would still be copied" in message
+        assert "What to do next:" in message
+        assert "secret.txt" in message
+        assert "dallinger deployment-files list" in message
 
         # The policy now exists, so the author can review it and rerun.
         _check_experiment_directory("debug")

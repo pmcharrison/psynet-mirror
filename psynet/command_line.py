@@ -1415,14 +1415,18 @@ def _check_experiment_directory(mode):
             if remaining > 0:
                 preview += f"\n  ... and {remaining} more"
             ignored_summary = (
-                "\n\nGit-ignored files currently selected for deployment:\n" + preview
+                "\n\nThese files are ignored by Git but would still be copied:\n"
+                + preview
             )
         raise click.ClickException(
-            "Created deploy.toml from the PsyNet template. Deployment stopped so "
-            "the new file-selection policy cannot be used without review. "
-            ".gitignore no longer controls debug or deployment contents."
-            f"{ignored_summary}\n\nReview deploy.toml, run "
-            "'dallinger deployment-files list', then rerun this command."
+            "This experiment did not have a deploy.toml file, so PsyNet created "
+            "one.\n\nThe experiment has not started yet. From now on, deploy.toml "
+            "decides which files are copied when you test, debug, or deploy this "
+            "experiment. Git and .gitignore no longer decide this."
+            f"{ignored_summary}\n\nWhat to do next:\n"
+            "  1. Open deploy.toml and exclude anything that should stay local.\n"
+            "  2. Preview the files with 'dallinger deployment-files list'.\n"
+            "  3. Rerun this command."
         )
     if not prepared:
         _remove_obsolete_generated_dockerignore()
