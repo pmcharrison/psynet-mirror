@@ -6,6 +6,7 @@ from psynet.audit.html import (
     render_json_block,
     render_markdown_document,
     render_notebook_output,
+    render_power_analysis,
     render_timeline_section,
     safe_section_html,
 )
@@ -148,6 +149,52 @@ def test_render_evidence_section_marks_unpublished_actions_without_empty_links()
     assert 'href=""' not in html
 
 
+def test_render_power_analysis_reports_absence() -> None:
+    view = classify_audit_evidence([file("analyses/analysis.ipynb", "{}")])
+
+    assert "No power analysis" in render_power_analysis(view)
+
+
+def test_render_power_analysis_renders_notebook_and_provenance() -> None:
+    view = classify_audit_evidence(
+        [
+            file(
+                "power/analysis.ipynb",
+                json.dumps(
+                    {
+                        "cells": [
+                            {
+                                "cell_type": "markdown",
+                                "source": ["## Precision by design"],
+                            }
+                        ]
+                    }
+                ),
+            ),
+            file(
+                "power/run.json",
+                json.dumps(
+                    {
+                        "method": "precision-estimation",
+                        "command": "python -m power.core",
+                        "replicates": 1000,
+                    }
+                ),
+            ),
+            file("power/results.csv", "result_id,decision_value\na,0.2\n"),
+        ]
+    )
+
+    html = render_power_analysis(view)
+
+    assert "precision-estimation" in html
+    assert "1000" in html
+    assert "Precision by design" in html
+    assert "power/results.csv" in html
+    # The notebook is rendered inline, so it should not repeat as a plain file.
+    assert not any(item.path == "power/analysis.ipynb" for item in view.visible_files)
+
+
 def test_render_markdown_document_renders_safe_report_markup() -> None:
     html = render_markdown_document(
         "# Report\n\n"
@@ -263,6 +310,51 @@ def test_render_evidence_section_renders_safe_notebook_rich_outputs() -> None:
     assert 'onload="bad()"' not in html
     assert "<script>" not in html
     assert "plain result" in html
+
+
+MATPLOTLIB_SVG = (
+    '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">'
+    '<defs><path id="glyph-1" d="M 0 0 L 1 1"/>'
+    '<clipPath id="clip-1"><rect x="0" y="0" width="20" height="20"/></clipPath>'
+    "</defs>"
+    '<g id="axes" clip-path="url(#clip-1)" transform="translate(2 3)">'
+    '<path d="M 0 0 L 10 10" style="fill:#ffffff;stroke:#1f77b4;stroke-width:1.5"/>'
+    '<use xlink:href="#glyph-1" x="4" y="5"/>'
+    "</g></svg>"
+)
+
+
+def test_render_notebook_output_keeps_matplotlib_svg_presentation() -> None:
+    html = render_notebook_output(
+        {"output_type": "display_data", "data": {"image/svg+xml": MATPLOTLIB_SVG}}
+    )
+
+    assert "<defs>" in html
+    assert "<clipPath" in html
+    assert 'transform="translate(2 3)"' in html
+    assert 'clip-path="url(#clip-1)"' in html
+    assert "stroke:#1f77b4" in html
+    assert 'xlink:href="#glyph-1"' in html
+
+
+def test_render_notebook_output_blocks_unsafe_svg_references() -> None:
+    html = render_notebook_output(
+        {
+            "output_type": "display_data",
+            "data": {
+                "image/svg+xml": (
+                    '<svg viewBox="0 0 10 10">'
+                    '<use xlink:href="https://example.invalid/x.svg#a"/>'
+                    '<rect style="fill:red;background:url(javascript:bad())"/>'
+                    "</svg>"
+                )
+            },
+        }
+    )
+
+    assert "example.invalid" not in html
+    assert "javascript:" not in html
+    assert "fill:red" in html
 
 
 PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="

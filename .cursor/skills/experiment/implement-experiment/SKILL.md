@@ -57,6 +57,9 @@ provisional until its human-review and power-analysis workflow is complete, then
 incorporate the selected design and supporting evidence into `audit/PLAN.md`
 (potentially rerunning the simulations if required).
 
+The power analysis is optional audit evidence and lives at `audit/power/`. Do
+not create a second copy at the experiment root.
+
 If the design is adaptive, include the selection policy in that same
 simulation: compare it with a realistic non-adaptive alternative under
 matched participants, items, and budgets, and check that the advantage

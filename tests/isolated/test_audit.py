@@ -1312,6 +1312,7 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
     assert (audit_dir / "artifacts/screenshots").is_dir()
     assert (audit_dir / "analyses").is_dir()
     assert (audit_dir / "logs").is_dir()
+    assert (audit_dir / "power").is_dir()
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     assert "title" not in manifest["experiment"]
     assert "source_base" not in manifest["experiment"]
@@ -1329,6 +1330,7 @@ def test_init_audit_creates_starter_structure_and_manifest(tmp_path: Path) -> No
         "monitor",
         "performance",
         "data_exports",
+        "power",
         "analysis",
         "files",
         "blockers",

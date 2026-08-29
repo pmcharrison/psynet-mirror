@@ -260,6 +260,7 @@ def starter_audit_manifest() -> dict[str, object]:
             starter_section("monitor", "Monitor snapshot", "monitor"),
             starter_section("performance", "Performance test", "performance"),
             starter_section("data_exports", "Data exports", "data"),
+            starter_section("power", "Power analysis", "power"),
             starter_section("analysis", "Analysis", "analysis"),
             starter_section("files", "Additional files", "files"),
             starter_section("blockers", "Blockers", "blockers"),
@@ -320,6 +321,35 @@ def starter_audit_manifest() -> dict[str, object]:
                 required=True,
                 status="blocked",
             ),
+            starter_artifact(
+                "power_analysis",
+                "notebook",
+                "power/analysis.ipynb",
+                "Power analysis notebook",
+                "Executed power-analysis notebook; optional, and only for experiments "
+                "whose design quantities were chosen by simulation.",
+                required=False,
+                status="missing",
+            ),
+            starter_artifact(
+                "power_run",
+                "report",
+                "power/run.json",
+                "Power analysis run record",
+                "Provenance for the power-analysis run, including method, seed, and "
+                "replicate count.",
+                required=False,
+                status="missing",
+            ),
+            starter_artifact(
+                "power_results",
+                "report",
+                "power/results.csv",
+                "Power analysis results",
+                "Per-scenario power-analysis results consumed by the power notebook.",
+                required=False,
+                status="missing",
+            ),
         ],
         "checks": [],
         "blockers": [
@@ -375,6 +405,7 @@ def init_audit(audit_dir: Path, force: bool = False) -> None:
         audit_dir / "artifacts" / "screenshots",
         audit_dir / "analyses",
         audit_dir / "logs",
+        audit_dir / "power",
     ):
         directory.mkdir(parents=True, exist_ok=True)
 

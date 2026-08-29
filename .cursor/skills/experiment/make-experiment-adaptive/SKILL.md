@@ -35,14 +35,15 @@ simulate_procedure.py
 response_model/
 ├── __init__.py
 └── core.py
-power/
-├── config.toml
-├── core.py
-├── results.csv
-├── run.json
-└── analysis.ipynb
-benchmark/
-└── same files as power/
+audit/
+├── power/
+│   ├── config.toml
+│   ├── core.py
+│   ├── results.csv
+│   ├── run.json
+│   └── analysis.ipynb
+└── benchmark/
+    └── same files as power/
 ```
 
 `adaptive_logic.py` contains the fitting and selection functions used by both
@@ -56,7 +57,8 @@ from . import adaptive_logic
 Dallinger imports the experiment directory as a package, so a plain
 ``import adaptive_logic`` raises ``ModuleNotFoundError`` in the web, worker, and
 clock processes even though it succeeds under `pytest`. Standalone code such as
-`simulate_procedure.py` and `power/core.py` runs outside that package and keeps
+`simulate_procedure.py` and `audit/power/core.py` runs outside that package and
+keeps
 using ordinary top-level imports.
 
 `simulate_procedure.py` runs one complete adaptive experiment without starting
@@ -66,7 +68,7 @@ response from `response_model/`. This standalone simulation tests the
 scientific procedure at scale; `psynet simulate` is still needed to test its
 integration with the PsyNet timeline, response handling, and export path.
 
-`power/` follows `power-analysis/SKILL.md`; `benchmark/` follows
+`audit/power/` follows `power-analysis/SKILL.md`; `audit/benchmark/` follows
 [references/benchmark-adaptive-procedure.md](references/benchmark-adaptive-procedure.md).
 Both call `simulate_procedure.py` across designs, assumptions, and replicates.
 Keep the adaptive loop there rather than recreating it in either analysis.

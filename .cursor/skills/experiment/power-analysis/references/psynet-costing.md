@@ -51,7 +51,7 @@ same time estimate or when alternative routes differ. Re-run `psynet estimate`
 after material timeline changes; it is not necessary to rerun it for every
 participant count.
 
-Store the reference command output or its parsed values in `power/run.json`.
+Store the reference command output or its parsed values in `audit/power/run.json`.
 State the currency and whether the plotted total includes attrition inflation,
 performance bonuses, recruiter fees, or other costs. Do not invent these values;
 include them only when the user supplies an assumption or the experiment defines

@@ -60,6 +60,8 @@ SAFE_HTML_TAGS = {
 }
 SAFE_SVG_TAGS = {
     "circle",
+    "clipPath",
+    "defs",
     "ellipse",
     "g",
     "line",
@@ -70,6 +72,8 @@ SAFE_SVG_TAGS = {
     "svg",
     "text",
     "title",
+    "tspan",
+    "use",
 }
 SAFE_ATTRS = {
     "align",
@@ -89,23 +93,45 @@ SAFE_HTML_ATTRS = {
     "a": SAFE_ATTRS | {"href"},
 }
 SAFE_SVG_ATTRS = {
+    "clip-path",
+    "clip-rule",
     "cx",
     "cy",
     "d",
+    "dominant-baseline",
     "fill",
+    "fill-opacity",
+    "fill-rule",
+    "font-family",
+    "font-size",
+    "font-style",
+    "font-weight",
     "height",
+    "href",
+    "opacity",
     "points",
+    "preserveAspectRatio",
     "r",
     "rx",
     "ry",
     "stroke",
+    "stroke-dasharray",
+    "stroke-dashoffset",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "stroke-miterlimit",
+    "stroke-opacity",
     "stroke-width",
+    "style",
+    "text-anchor",
+    "transform",
     "viewBox",
     "viewbox",
     "width",
     "x",
     "x1",
     "x2",
+    "xlink:href",
     "xmlns",
     "y",
     "y1",
@@ -114,6 +140,32 @@ SAFE_SVG_ATTRS = {
 SAFE_SVG_ATTRS_BY_TAG = {
     "*": SAFE_ATTRS | SAFE_SVG_ATTRS,
     "svg": SAFE_ATTRS | SAFE_SVG_ATTRS | {"viewBox"},
+}
+# ``style`` carries matplotlib's colours and line styles, so it must survive
+# sanitization; restricting it to presentation properties keeps out positioning
+# and resource-loading CSS.
+SAFE_SVG_STYLE_PROPERTIES = {
+    "clip-rule",
+    "color",
+    "display",
+    "fill",
+    "fill-opacity",
+    "fill-rule",
+    "font-family",
+    "font-size",
+    "font-style",
+    "font-weight",
+    "opacity",
+    "stroke",
+    "stroke-dasharray",
+    "stroke-dashoffset",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "stroke-miterlimit",
+    "stroke-opacity",
+    "stroke-width",
+    "text-anchor",
+    "visibility",
 }
 URL_SCHEMES = {"http", "https", "mailto"}
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -170,14 +222,30 @@ def sanitize_html_fragment(source: str) -> str:
     )
 
 
+def _svg_attribute_filter(tag: str, attribute: str, value: str) -> str | None:
+    """Keep SVG references pointing inside the same document."""
+
+    if attribute in {"href", "xlink:href"} and not value.startswith("#"):
+        return None
+    return value
+
+
 def sanitize_svg_fragment(source: str) -> str:
-    """Render a safe subset of an SVG fragment."""
+    """Render a safe subset of an SVG fragment.
+
+    Plot output from matplotlib relies on ``defs``/``use`` glyph references,
+    ``transform``, ``clip-path``, and inline ``style`` declarations. Dropping
+    those leaves untransformed shapes painted in the default fill, which is why
+    the allowlist covers them.
+    """
 
     return nh3.clean(
         source,
         tags=SAFE_SVG_TAGS,
         attributes=SAFE_SVG_ATTRS_BY_TAG,
+        attribute_filter=_svg_attribute_filter,
         clean_content_tags={"script", "style"},
+        filter_style_properties=SAFE_SVG_STYLE_PROPERTIES,
         link_rel=None,
         url_schemes=URL_SCHEMES,
     )
@@ -580,21 +648,16 @@ def analysis_action_item(
     return '<li><span class="missing-artifact">Analysis summary missing</span></li>'
 
 
-def render_analysis_notebook(
-    evidence: AuditEvidenceView,
+def render_notebook_panel(
+    notebook_file: AuditFile,
+    notebook: dict[str, object],
     *,
-    standalone: bool = False,
+    section_id: str,
+    heading: str,
+    standalone: bool,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render a small safe preview of an analysis notebook.
-
-    Set ``standalone`` when the notebook is its own top-level audit section.
-    """
-
-    notebook_file = evidence.analysis_notebook_file
-    notebook = evidence.analysis_notebook
-    if notebook_file is None:
-        return "<p>No analysis notebook was found.</p>" if standalone else ""
+    """Render a bounded, sanitized preview of one executed notebook."""
 
     cells = notebook.get("cells") if notebook else []
     if not isinstance(cells, list):
@@ -615,7 +678,7 @@ def render_analysis_notebook(
     section_class = "analysis-notebook-panel evidence-subsection"
     if standalone:
         section_class += " section-standalone"
-    heading = "" if standalone else "<h3>Analysis notebook</h3>"
+    heading_html = "" if standalone else f"<h3>{html.escape(heading)}</h3>"
     truncation_note = (
         '<p class="artifact-note">Notebook preview is truncated; open the raw notebook for the full file.</p>'
         if truncated_preview
@@ -627,15 +690,118 @@ def render_analysis_notebook(
         else "<p>Notebook preview could not be parsed.</p>"
     )
     return (
-        f'<section id="analysis-notebook" class="{section_class}">'
+        f'<section id="{html.escape(section_id, quote=True)}" class="{section_class}">'
         '<div class="section-heading">'
-        f"{heading}"
+        f"{heading_html}"
         f'<a href="{escape_url(notebook_file.url, url_transform)}">Open raw notebook</a>'
         "</div>"
         f'<p class="artifact-note">Rendered from <code>{html.escape(notebook_file.path)}</code>.</p>'
         f"{truncation_note}"
         f'<div class="notebook-preview">{preview}</div></section>'
     )
+
+
+def render_analysis_notebook(
+    evidence: AuditEvidenceView,
+    *,
+    standalone: bool = False,
+    url_transform: UrlTransform = identity_url,
+) -> str:
+    """Render a small safe preview of an analysis notebook.
+
+    Set ``standalone`` when the notebook is its own top-level audit section.
+    """
+
+    notebook_file = evidence.analysis_notebook_file
+    if notebook_file is None:
+        return "<p>No analysis notebook was found.</p>" if standalone else ""
+
+    return render_notebook_panel(
+        notebook_file,
+        evidence.analysis_notebook,
+        section_id="analysis-notebook",
+        heading="Analysis notebook",
+        standalone=standalone,
+        url_transform=url_transform,
+    )
+
+
+def render_power_analysis(
+    evidence: AuditEvidenceView,
+    *,
+    standalone: bool = True,
+    url_transform: UrlTransform = identity_url,
+) -> str:
+    """Render the optional power-analysis panel.
+
+    Power analysis is optional evidence. When an experiment has one, its
+    executed notebook, run provenance, and supporting files live under the
+    audit's ``power/`` directory.
+    """
+
+    if not evidence.has_power_analysis:
+        return (
+            '<p class="missing">No power analysis was included in this audit.</p>'
+            if standalone
+            else ""
+        )
+
+    run_summary = render_power_run_summary(evidence.power_run)
+    notebook_file = evidence.power_notebook_file
+    if notebook_file is None:
+        notebook_html = (
+            '<p class="missing">No executed power-analysis notebook was found.</p>'
+        )
+    else:
+        notebook_html = render_notebook_panel(
+            notebook_file,
+            evidence.power_notebook,
+            section_id="power-notebook",
+            heading="Power analysis notebook",
+            standalone=standalone,
+            url_transform=url_transform,
+        )
+    supporting = [
+        file
+        for file in evidence.power_files
+        if file is not evidence.power_notebook_file
+    ]
+    files_html = (
+        render_file_grid(
+            supporting,
+            empty_message="No supporting power-analysis files.",
+            url_transform=url_transform,
+        )
+        if supporting
+        else ""
+    )
+    return f"{run_summary}{notebook_html}{files_html}"
+
+
+def render_power_run_summary(run: dict[str, object]) -> str:
+    """Render key provenance fields from a power-analysis run record."""
+
+    fields = [
+        ("Method", run.get("method")),
+        ("Command", run.get("command")),
+        ("Replicates", run.get("replicates")),
+        ("Result rows", run.get("result_row_count")),
+        ("Created at", run.get("created_at")),
+    ]
+    rows = "".join(
+        f"<div><dt>{html.escape(label)}</dt><dd>{html.escape(str(value))}</dd></div>"
+        for label, value in fields
+        if value not in (None, "")
+    )
+    if not rows:
+        return ""
+    note = run.get("note")
+    note_html = (
+        f'<p class="artifact-note">{html.escape(str(note))}</p>'
+        if isinstance(note, str) and note
+        else ""
+    )
+    return f'<dl class="metadata-grid attempt-summary">{rows}</dl>{note_html}'
 
 
 def render_notebook_cell(cell: dict[str, object]) -> str:

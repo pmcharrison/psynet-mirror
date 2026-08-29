@@ -67,6 +67,7 @@ experiment/
     artifacts/
     analyses/
     logs/
+    power/         # optional power analysis
     site/          # generated; normally not committed
 ```
 

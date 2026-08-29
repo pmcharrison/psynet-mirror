@@ -61,6 +61,10 @@ class AuditEvidenceView:
     analysis_files: list[AuditFile]
     analysis_notebook_file: AuditFile | None
     analysis_notebook: dict[str, object]
+    power_files: list[AuditFile]
+    power_notebook_file: AuditFile | None
+    power_notebook: dict[str, object]
+    power_run: dict[str, object]
     visible_files: list[AuditFile]
     completeness: list[CompletenessItem]
 
@@ -115,6 +119,12 @@ class AuditEvidenceView:
         """
 
         return self.analysis_notebook_file is not None
+
+    @property
+    def has_power_analysis(self) -> bool:
+        """Return whether the audit carries power-analysis evidence."""
+
+        return bool(self.power_files)
 
 
 MAX_AUDIT_TEXT_BYTES = 100_000
@@ -233,11 +243,22 @@ def performance_results(performance_data: dict[str, object]) -> list[dict[str, o
 def analysis_files(files: list[AuditFile]) -> list[AuditFile]:
     """Return analysis files under the canonical analyses directory."""
 
+    return files_under_directory(files, "analyses/")
+
+
+def power_files(files: list[AuditFile]) -> list[AuditFile]:
+    """Return power-analysis files under the canonical power directory."""
+
+    return files_under_directory(files, "power/")
+
+
+def files_under_directory(files: list[AuditFile], prefix: str) -> list[AuditFile]:
+    """Return files under an audit-relative directory prefix."""
+
     return [
         file
         for file in files
-        if evidence_path(file.path).startswith("analyses/")
-        or file.path.startswith("analyses/")
+        if evidence_path(file.path).startswith(prefix) or file.path.startswith(prefix)
     ]
 
 
@@ -272,6 +293,16 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
     ) or (notebook_files[0] if notebook_files else None)
     analysis_notebook = parse_json_content(analysis_notebook_file)
 
+    power = power_files(audit_files)
+    power_notebook_files = [file for file in power if file.kind == "ipynb"]
+    power_notebook_file = first_file_by_evidence_path(
+        audit_files, "power/analysis.ipynb"
+    ) or (power_notebook_files[0] if power_notebook_files else None)
+    power_notebook = parse_json_content(power_notebook_file)
+    power_run = parse_json_content(
+        first_file_by_evidence_path(audit_files, "power/run.json")
+    )
+
     visible_files = [
         file
         for file in audit_files
@@ -280,6 +311,7 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
             screenshot_files,
             screenshot_manifest,
             analysis_notebook_file,
+            power_notebook_file,
         )
     ]
     completeness = completeness_items(
@@ -304,6 +336,10 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
         analysis_files=analyses,
         analysis_notebook_file=analysis_notebook_file,
         analysis_notebook=analysis_notebook,
+        power_files=power,
+        power_notebook_file=power_notebook_file,
+        power_notebook=power_notebook,
+        power_run=power_run,
         visible_files=visible_files,
         completeness=completeness,
     )
@@ -314,6 +350,7 @@ def is_special_rendered_file(
     screenshots: list[AuditFile],
     screenshot_manifest: AuditFile | None,
     analysis_notebook_file: AuditFile | None,
+    power_notebook_file: AuditFile | None = None,
 ) -> bool:
     """Return whether a file is rendered elsewhere in the evidence view."""
 
@@ -332,6 +369,8 @@ def is_special_rendered_file(
     if evidence_path(file.path) == "screenshots/README.md":
         return True
     if analysis_notebook_file is not None and file.path == analysis_notebook_file.path:
+        return True
+    if power_notebook_file is not None and file.path == power_notebook_file.path:
         return True
     return False
 

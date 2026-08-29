@@ -34,6 +34,7 @@ from psynet.audit.html import (
     render_monitor_snapshot,
     render_participant_video,
     render_performance_result,
+    render_power_analysis,
     render_screenshot_gallery,
     render_visible_artifacts,
     safe_section_html,
@@ -389,13 +390,15 @@ def render_source_section(audit_dir: Path, manifest: dict[str, Any]) -> str:
     )
 
 
-def section_paths(manifest: dict[str, Any]) -> set[str]:
-    """Return paths rendered by markdown sections."""
+def section_paths(manifest: dict[str, Any], evidence: Any = None) -> set[str]:
+    """Return paths already rendered by a dedicated section."""
 
     paths: set[str] = set()
     for section in display_sections(manifest):
         if section.get("kind") == "markdown" and isinstance(section.get("path"), str):
             paths.add(section["path"])
+        if section.get("kind") == "power" and evidence is not None:
+            paths.update(file.path for file in evidence.power_files)
     return paths
 
 
@@ -436,11 +439,13 @@ def render_audit_section(
             return render_data_exports(evidence)
         if kind == "analysis":
             return render_analysis_notebook(evidence, standalone=True)
+        if kind == "power":
+            return render_power_analysis(evidence, standalone=True)
         if kind == "source":
             return render_source_section(audit_dir, manifest)
         if kind == "files":
             return render_visible_artifacts(
-                evidence, exclude_paths=section_paths(manifest)
+                evidence, exclude_paths=section_paths(manifest, evidence)
             )
         if kind == "json":
             return render_json_section(audit_dir, section)

@@ -100,7 +100,8 @@ section. That warning is expected for retrospective audits.
    - `artifacts/` for participant flow, exports, monitor snapshots, performance
      results, and other primary evidence;
    - `analyses/` for notebooks and analysis outputs;
-   - `logs/` for concise command logs.
+   - `logs/` for concise command logs;
+   - `power/` for an optional power analysis (`power-analysis/SKILL.md`).
 4. Keep evidence-generation scripts with the implementation source. Evidence
    should be reproducible, not just a manually assembled folder.
 5. After an artifact exists, run:
@@ -132,6 +133,8 @@ Choose evidence that matches the experiment. Common artifacts are:
 - `artifacts/data.zip`: exported local or real-run data;
 - `artifacts/simulated_data.zip`: simulated-participant export;
 - `analyses/analysis.ipynb`: executed, self-contained analysis notebook;
+- `power/analysis.ipynb` and `power/run.json`: optional power analysis, for
+  experiments whose design quantities were chosen by simulation;
 - `logs/*.log`: concise logs that explain commands and failures.
 
 Use `record-participant-video` for screenshot and video production. Keep videos
@@ -139,8 +142,18 @@ at most 3 minutes and 1280×720. Keep rendered notebooks small enough for typica
 review tooling (normally under about 100 KB).
 
 Rendering gives screenshots, participant video, monitor snapshot, performance
-test, and analysis their own top-level sections, so each of those artifacts is
-reviewed on its own rather than inside one combined evidence panel.
+test, power analysis, and analysis their own top-level sections, so each of
+those artifacts is reviewed on its own rather than inside one combined evidence
+panel.
+
+### Power analysis
+
+A power analysis is optional. When the experiment has one, it belongs in the
+audit at `power/` and nowhere else; do not keep a second copy at the experiment
+root. Follow `power-analysis/SKILL.md` for its files and method, then mark
+`power_analysis` and `power_run` present. Leave both artifacts `missing` when
+the experiment does not need a power analysis: they are optional and need no
+blocker.
 
 ### Monitor snapshot
 

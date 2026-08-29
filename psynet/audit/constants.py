@@ -41,6 +41,7 @@ SECTION_KINDS = {
     "performance",
     "data",
     "analysis",
+    "power",
     "source",
     "files",
     "timeline",

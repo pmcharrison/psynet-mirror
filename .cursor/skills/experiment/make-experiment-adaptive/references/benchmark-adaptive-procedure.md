@@ -106,7 +106,7 @@ best.
 Use the following directory:
 
 ```text
-benchmark/
+audit/benchmark/
 ├── config.toml
 ├── core.py
 ├── results.csv

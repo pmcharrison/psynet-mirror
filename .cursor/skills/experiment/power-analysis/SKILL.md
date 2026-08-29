@@ -33,21 +33,32 @@ Read [references/terminology.md](references/terminology.md) for fuller definitio
 Power-analysis methods that simulate participant responses need a simulation
 response model. Follow `participant-response-models/SKILL.md` for this.
 Record the response-model parameter values or named parameter set in
-`power/config.toml`, and record a code hash or version in `power/run.json`.
+`audit/power/config.toml`, and record a code hash or version in
+`audit/power/run.json`.
 
 ## Required files
 
-Every power analysis should use the following layout in the experiment root:
+A power analysis is optional audit evidence. When an experiment has one, it
+lives inside the audit packet, and nowhere else:
 
 ```text
-power/
-├── config.toml
-├── core.py
-├── results.csv
-├── run.json
-└── analysis.ipynb
+audit/
+└── power/
+    ├── config.toml
+    ├── core.py
+    ├── results.csv
+    ├── run.json
+    └── analysis.ipynb
 ```
-All files are required, but contents can be customized as desired. Additional files are allowed when the method needs them.
+
+`psynet audit init` creates `audit/power/` and declares the optional
+`power_analysis` and `power_run` artifacts. `psynet audit render` then shows the
+executed notebook and its run provenance in the audit's "Power analysis"
+section. Leave those artifacts `missing` when the experiment does not need a
+power analysis; they are optional and need no blocker.
+
+All five files are required once a power analysis exists, but contents can be
+customized as desired. Additional files are allowed when the method needs them.
 
 A typical data flow is `config.toml` → `core.py` → `results.csv` and `run.json` → `analysis.ipynb` → `audit/PLAN.md`.
 
@@ -86,14 +97,14 @@ and write `results.csv` and `run.json`. A `main()` entry point makes the analysi
 easy to run from the experiment root:
 
 ```bash
-python -m power.core
+python -m audit.power.core
 ```
 
 The following pseudocode illustrates the intended orchestration:
 
 ```python
 def main():
-    config = load_toml("power/config.toml")
+    config = load_toml("audit/power/config.toml")
     rows = []
 
     for design, assumptions in expand_scenarios(config):
@@ -111,17 +122,17 @@ def main():
             })
 
     results = DataFrame(rows)
-    results.to_csv("power/results.csv", index=False)
+    results.to_csv("audit/power/results.csv", index=False)
     run = {
         "schema_version": "1.0",
         "created_at": utc_now(),
         "method": config["method"],
-        "command": "python -m power.core",
-        "source_sha256": hash_files("power/config.toml", "power/core.py"),
-        "results_sha256": hash_file("power/results.csv"),
+        "command": "python -m audit.power.core",
+        "source_sha256": hash_files("audit/power/config.toml", "audit/power/core.py"),
+        "results_sha256": hash_file("audit/power/results.csv"),
         "result_row_count": len(results),
     }
-    Path("power/run.json").write_text(json.dumps(run, indent=2))
+    Path("audit/power/run.json").write_text(json.dumps(run, indent=2))
 ```
 
 `run_selected_method(...)` and the result summaries are supplied by the chosen
@@ -175,6 +186,19 @@ and outputs rather than rerunning `core.py` or silently altering the results. It
 explains the method and assumptions, shows the candidate-design comparison and
 participant costs, and states which designs satisfy the decision criterion. Save
 the notebook with its review-relevant tables and interactive figures embedded (prefer Plotly unless otherwise specified).
+
+The audit renders this notebook, so its figures must be embedded outputs. Follow
+the plotting guidance in
+`produce-experiment-audit/references/populating-an-audit.md`; static SVG or PNG
+output renders reliably, whereas Plotly's JavaScript widgets do not appear in the
+rendered audit.
+
+After executing it, mark the artifacts present:
+
+```bash
+psynet audit mark-present power_analysis
+psynet audit mark-present power_run
+```
 
 ## Related reading
 
