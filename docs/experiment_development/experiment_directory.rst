@@ -63,8 +63,9 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     Dallinger's
     `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_.
     Inspect the current plan with ``dallinger deployment-files list``.
-    Source ``.dockerignore`` files are ignored by the plan; move any custom
-    rules into ``deploy.toml`` and remove the file.
+    ``.dockerignore`` is no longer supported. PsyNet removes recognized
+    generated copies; a custom copy blocks debug and deployment until its rules
+    are moved into ``deploy.toml`` and the file is removed.
 
 -   ``Dockerfile`` is used by Docker to define the experiment's Docker image. Normally you should not edit this file
     directly, but instead use the boilerplate file provided by PsyNet. You can update this file to

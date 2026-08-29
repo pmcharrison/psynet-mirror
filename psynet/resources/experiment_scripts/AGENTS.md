@@ -134,6 +134,9 @@ such as `.db`). PsyNet creates it from the template when missing and never
 overwrites a custom copy. Inspect the current plan with
 `dallinger deployment-files list`.
 
+`.dockerignore` is no longer supported. Move any custom exclusions into
+`deploy.toml` and remove `.dockerignore` before debug or deployment.
+
 ## Navigating experiments
 
 Cursor's browser extension can be used to interact with experiments programmatically:

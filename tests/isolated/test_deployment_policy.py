@@ -184,6 +184,20 @@ def test_scripts_update_replaces_generated_dockerignore(tmp_path, generated_line
     assert not dockerignore.exists()
 
 
+def test_prune_removes_generated_dockerignore(tmp_path):
+    from psynet.experiment_scaffold import prune_experiment_scaffold
+
+    dockerignore = tmp_path / ".dockerignore"
+    dockerignore.write_text(
+        "\n".join(max(_GENERATED_DOCKERIGNORE_VARIANTS, key=len)) + "\n"
+    )
+
+    with working_directory(tmp_path):
+        prune_experiment_scaffold()
+
+    assert not dockerignore.exists()
+
+
 def test_scripts_update_preserves_existing_deployment_policy(tmp_path):
     contents = (
         '# Experiment-specific review\nversion = 1\n[exclude]\npaths = ["custom-local"]\n'
@@ -249,6 +263,27 @@ def test_check_experiment_directory_preserves_existing_deploy_toml(
     assert (tmp_path / "deploy.toml").read_bytes() == contents
 
 
+def test_check_experiment_directory_rejects_ignored_parent_provenance(tmp_path):
+    from click import ClickException
+
+    from psynet.command_line import _check_experiment_directory
+
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / ".gitignore").write_text("experiment/\n")
+    experiment = tmp_path / "experiment"
+    experiment.mkdir()
+    (experiment / "experiment.py").write_text("class Exp:\n    pass\n")
+    (experiment / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(experiment):
+        scaffold_experiment_directory()
+        with pytest.raises(
+            ClickException,
+            match="commit cannot identify the experiment's source state",
+        ):
+            _check_experiment_directory("debug")
+
+
 def test_check_experiment_directory_removes_generated_dockerignore(
     tmp_path, monkeypatch
 ):
@@ -271,9 +306,11 @@ def test_check_experiment_directory_removes_generated_dockerignore(
     assert not dockerignore.exists()
 
 
-def test_check_experiment_directory_warns_on_custom_dockerignore(
+def test_check_experiment_directory_rejects_custom_dockerignore(
     tmp_path, monkeypatch, capsys
 ):
+    from click import ClickException
+
     from psynet.command_line import _check_experiment_directory
 
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
@@ -286,7 +323,8 @@ def test_check_experiment_directory_warns_on_custom_dockerignore(
         scaffold_experiment_directory()
         dockerignore.write_text("custom-local-file\n")
         capsys.readouterr()
-        _check_experiment_directory("debug")
+        with pytest.raises(ClickException, match="no longer supported"):
+            _check_experiment_directory("debug")
 
     assert dockerignore.read_text() == "custom-local-file\n"
     assert "must be moved to deploy.toml" in capsys.readouterr().err

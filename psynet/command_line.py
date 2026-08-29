@@ -1407,6 +1407,11 @@ def _check_experiment_directory(mode):
     if not prepared:
         _remove_obsolete_generated_dockerignore()
         _remove_obsolete_generated_docker_scripts()
+    if Path(".dockerignore").exists() or Path(".dockerignore").is_symlink():
+        raise click.ClickException(
+            "Custom .dockerignore files are no longer supported. Move any "
+            "deployment exclusions to deploy.toml, then remove .dockerignore."
+        )
 
     missing_boilerplate = missing_scaffold_paths_required_for_local_run()
     if missing_boilerplate:
@@ -1432,6 +1437,14 @@ def _check_experiment_directory(mode):
             "This directory is not a git repository. Create one by running "
             "'git init'. If you copied a demo into a new directory, run "
             "'git init' before 'psynet debug local' or 'psynet test local'."
+        )
+    from .experiment_setup import _containing_worktree_ignores_experiment
+
+    if _containing_worktree_ignores_experiment():
+        raise click.ClickException(
+            "The containing Git repository ignores this experiment directory, "
+            "so its commit cannot identify the experiment's source state. Run "
+            "'psynet setup' to create a dedicated Git repository before continuing."
         )
 
 
@@ -2323,6 +2336,26 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     )
 
 
+def _warn_deprecated_export_options(no_source, username, password):
+    """Warn when removed source-export options are explicitly supplied."""
+    deprecated_options = [
+        option
+        for option, used in (
+            ("--no-source", no_source),
+            ("--username", username is not None),
+            ("--password", password is not None),
+        )
+        if used
+    ]
+    if deprecated_options:
+        click.echo(
+            "WARNING: Deprecated export option(s) "
+            + ", ".join(deprecated_options)
+            + " are accepted for compatibility but have no effect.",
+            err=True,
+        )
+
+
 def export_(
     ctx,
     exp_variables,
@@ -2377,6 +2410,8 @@ def export_(
             - experiment data in CSV format
             - assets
     """
+    _warn_deprecated_export_options(no_source, username, password)
+
     from .experiment import import_local_experiment
 
     deployment_id = exp_variables["deployment_id"]
@@ -3469,7 +3504,6 @@ def _run_simulate(ctx, audit=False, mark_present=True):
         export__local,
         # TODO - maybe legacy is not the best name for this parameter...
         legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
-        no_source=True,
         path=SIMULATED_DATA_EXPORT_PATH.as_posix(),
     )
     if not audit:

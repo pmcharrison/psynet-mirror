@@ -1405,11 +1405,7 @@ def test_setup_tells_delegated_users_to_activate_the_new_environment(
 def test_setup_initialises_nested_repo_when_parent_ignores_experiment(
     tmp_path, monkeypatch
 ):
-    """A parent repo that ignores the experiment would package no files.
-
-    Setup must give it a dedicated repository rather than trust the containing
-    work tree, which Dallinger's ``git ls-files`` packaging would leave empty.
-    """
+    """An ignored experiment needs its own repository for useful provenance."""
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     (tmp_path / ".gitignore").write_text("experiment/\n")
     experiment = tmp_path / "experiment"
@@ -1431,6 +1427,7 @@ def test_setup_initialises_nested_repo_when_parent_ignores_experiment(
     assert result.exit_code == 0, result.output
     assert (experiment / ".git").is_dir()
     assert "ignores this experiment directory" in result.output
+    assert "meaningful source provenance" in result.output
 
 
 def test_useful_commands_reports_failed_git_init_distinctly(capsys):
@@ -3712,6 +3709,21 @@ def test_removed_source_export_options_remain_hidden_and_accepted():
     assert "--no-source" not in result.output
     assert "--username" not in result.output
     assert "--password" not in result.output
+
+
+def test_removed_source_export_options_warn_when_used(capsys):
+    from psynet.command_line import _warn_deprecated_export_options
+
+    _warn_deprecated_export_options(
+        no_source=True,
+        username="legacy-user",
+        password="legacy-password",
+    )
+
+    warning = capsys.readouterr().err
+    assert "--no-source, --username, --password" in warning
+    assert "have no effect" in warning
+    assert "legacy" not in warning
 
 
 def test_run_performance_test_with_new_server_loads_runtime_server_config():

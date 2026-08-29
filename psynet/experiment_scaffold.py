@@ -814,7 +814,7 @@ def _remove_obsolete_generated_dockerignore() -> bool:
         return True
     click.echo(
         "WARNING: Preserving custom .dockerignore. Its rules must be moved "
-        "to deploy.toml and the file removed before deployment.",
+        "to deploy.toml and the file removed before debug or deployment.",
         err=True,
     )
     return False
@@ -1297,6 +1297,7 @@ def prune_experiment_scaffold(
     )
     preserved_unrecognized = []
     removed = []
+    _remove_obsolete_generated_dockerignore()
     _remove_obsolete_generated_docker_scripts()
 
     for relative_path in sorted(

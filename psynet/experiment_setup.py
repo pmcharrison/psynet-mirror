@@ -61,9 +61,9 @@ def _git_repository_root():
 def _containing_worktree_ignores_experiment():
     """Return whether the containing worktree ignores this experiment directory.
 
-    Dallinger packages files via ``git ls-files``, so an experiment that its
-    surrounding repository ignores would deploy with no files at all. A concrete
-    tracked-intent file is checked when present, otherwise the directory itself.
+    An ignored experiment cannot use the containing repository's commit as
+    meaningful source provenance. A concrete tracked-intent file is checked when
+    present, otherwise the directory itself.
     """
     target = "experiment.py" if Path("experiment.py").exists() else "."
     result = subprocess.run(
@@ -98,18 +98,12 @@ def _init_git_repository_here():
 
 
 def _ensure_git_repository():
-    """Ensure this experiment has a Git repository suitable for deployment.
+    """Ensure this experiment has a Git repository for source provenance.
 
-    Dallinger packages an experiment by intersecting its directory tree with
-    ``git ls-files``, so a repository is what gives deployment its ignore rules.
-    Being anywhere inside a work tree is normally sufficient -- the experiment
-    need not be the repository root -- so a surrounding repository (for example
-    a monorepo of experiments, or a bundled experiment inside the PsyNet source
-    checkout) is used as-is rather than nested inside a new one.
-
-    The exception is a surrounding repository that *ignores* this experiment
-    directory: there ``git ls-files`` returns nothing, so setup initialises a
-    dedicated repository here instead of silently producing an empty deployment.
+    Being anywhere inside a work tree is normally sufficient: the experiment
+    need not be the repository root. A surrounding repository that ignores the
+    experiment cannot identify its source state, so setup creates a dedicated
+    repository in the experiment directory.
     """
     if git_repository_available():
         if not _containing_worktree_ignores_experiment():
@@ -119,8 +113,8 @@ def _ensure_git_repository():
             return _GitStatus.READY
         click.echo(
             "The surrounding Git repository ignores this experiment directory, "
-            "so setup is initialising a dedicated repository here (otherwise "
-            "deployment would package no files)."
+            "so setup is initialising a dedicated repository here to record "
+            "meaningful source provenance."
         )
         return _init_git_repository_here()
 
