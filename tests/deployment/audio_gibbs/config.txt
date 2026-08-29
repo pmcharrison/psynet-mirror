@@ -1,5 +1,12 @@
 [Parameters]
 aws_region = us-east-1
-
-# check_dallinger_version = false
 publish_experiment = true
+
+[Lucid]
+recruiter = lucid-recruiter
+# debug_recruiter = DevLucidRecruiter
+lucid_recruitment_config = file:./lucid_recruitment_config.json
+# show_reward = false
+
+recruiter = hotair
+publish_experiment = false
