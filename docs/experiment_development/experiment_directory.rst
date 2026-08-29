@@ -13,9 +13,10 @@ for keeping track of changes to your experiment directory.
 We recommend *Git*. PsyNet requires an active Git repository so it can record
 deployment provenance (commit SHA and dirty state). To learn more visit
 `Version control with Git <../tutorials/version_control_with_git.html>`_.
-PsyNet records the deployed Git commit and whether the experiment directory
-contained uncommitted changes. Changes elsewhere in a parent repository do not
-mark an in-repository experiment as dirty. For reproducible live deployments,
+PsyNet records the deployed Git commit and whether files selected by the
+deployment plan contain uncommitted changes. Selected Git-ignored or untracked
+files mark the deployment as dirty; changes outside the deployment plan, or
+elsewhere in a parent repository, do not. For reproducible live deployments,
 commit your changes before deploying. Experiment-file membership for staging
 and deployment comes from ``deploy.toml``, not from Git visibility.
 
@@ -55,8 +56,11 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``deploy.toml`` controls which files enter Dallinger's deployment plan and
     therefore the debug staging directory, Docker build context, or remote
     deployment package. PsyNet creates this file from its template when it is
-    missing and never overwrites an existing copy; ``psynet scripts scaffold``
-    and ``psynet scripts update`` do the same. ``[exclude]`` ``paths`` are
+    missing and never overwrites an existing copy. If a debug or deployment
+    command creates the file, that command stops and reports Git-ignored files
+    selected by the new policy so that you can review them before rerunning.
+    ``psynet scripts scaffold`` and ``psynet scripts update`` also create the
+    file when needed. ``[exclude]`` ``paths`` are
     root-relative prefixes; ``names`` are basenames in every directory;
     ``suffixes`` are literal endings such as ``.db``.
     Format, auto-omitted paths, and inspection commands are documented in

@@ -1403,7 +1403,27 @@ def _check_experiment_directory(mode):
     ``redis_vars.clear()`` so users without Redis still see actionable guidance.
     """
     prepared = _prepare_in_repo_experiment()
-    ensure_deployment_policy()
+    created_policy = ensure_deployment_policy()
+    missing_after_policy_creation = missing_scaffold_paths_required_for_local_run()
+    if created_policy and not missing_after_policy_creation:
+        ignored_paths = deployment_info._git_ignored_deployment_paths()
+        ignored_summary = ""
+        if ignored_paths:
+            preview_limit = 10
+            preview = "\n".join(f"  {path}" for path in ignored_paths[:preview_limit])
+            remaining = len(ignored_paths) - preview_limit
+            if remaining > 0:
+                preview += f"\n  ... and {remaining} more"
+            ignored_summary = (
+                "\n\nGit-ignored files currently selected for deployment:\n" + preview
+            )
+        raise click.ClickException(
+            "Created deploy.toml from the PsyNet template. Deployment stopped so "
+            "the new file-selection policy cannot be used without review. "
+            ".gitignore no longer controls debug or deployment contents."
+            f"{ignored_summary}\n\nReview deploy.toml, run "
+            "'dallinger deployment-files list', then rerun this command."
+        )
     if not prepared:
         _remove_obsolete_generated_dockerignore()
         _remove_obsolete_generated_docker_scripts()
@@ -1413,7 +1433,7 @@ def _check_experiment_directory(mode):
             "deployment exclusions to deploy.toml, then remove .dockerignore."
         )
 
-    missing_boilerplate = missing_scaffold_paths_required_for_local_run()
+    missing_boilerplate = missing_after_policy_creation
     if missing_boilerplate:
         missing_paths = ", ".join(missing_boilerplate)
         raise click.ClickException(

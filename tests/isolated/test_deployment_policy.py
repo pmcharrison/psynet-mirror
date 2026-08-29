@@ -226,17 +226,33 @@ def test_scripts_update_preserves_custom_dockerignore(tmp_path, capsys):
     assert "must be moved to deploy.toml" in capsys.readouterr().err
 
 
-def test_check_experiment_directory_creates_missing_deploy_toml(tmp_path, monkeypatch):
+def test_check_experiment_directory_stops_after_creating_missing_deploy_toml(
+    tmp_path, monkeypatch
+):
+    from click import ClickException
+
     from psynet.command_line import _check_experiment_directory
 
     monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
-    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")
 
     with working_directory(tmp_path):
         scaffold_experiment_directory()
         Path("deploy.toml").unlink()
+        with Path(".gitignore").open("a", encoding="utf-8") as file:
+            file.write("\nsecret.txt\n")
+        Path("secret.txt").write_text("API_KEY=private\n")
+        subprocess.run(["git", "init", "-q"], check=True)
+
+        with pytest.raises(ClickException) as error:
+            _check_experiment_directory("debug")
+
+        assert "Deployment stopped" in str(error.value)
+        assert "secret.txt" in str(error.value)
+        assert "dallinger deployment-files list" in str(error.value)
+
+        # The policy now exists, so the author can review it and rerun.
         _check_experiment_directory("debug")
 
     assert (tmp_path / "deploy.toml").read_bytes() == (

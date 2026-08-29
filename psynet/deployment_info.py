@@ -1,3 +1,11 @@
+"""Persist launch metadata and deployment-scoped Git provenance.
+
+Git identifies the commit that anchors a deployment, while ``deploy.toml``
+identifies the files that are actually packaged. Dirty-state checks therefore
+intersect Git changes with the deployment plan instead of treating unrelated,
+excluded files as deployment changes.
+"""
+
 import os
 import subprocess
 import uuid
@@ -27,13 +35,67 @@ def _git_output(*args):
     return result.stdout.strip()
 
 
+def _git_path_set(*args):
+    """Run Git with NUL output and return its paths as a set."""
+    output = _git_output(*args, "-z", "--", ".")
+    if output is None:
+        return None
+    return {path for path in output.split("\0") if path}
+
+
+def _deployment_plan():
+    """Build the current deployment plan, or return ``None`` before migration."""
+    if not Path("deploy.toml").is_file():
+        return None
+    from dallinger.deployment_plan import build_deployment_plan
+
+    return build_deployment_plan(Path.cwd())
+
+
+def _git_ignored_deployment_paths():
+    """Return deployment-selected paths currently ignored by Git."""
+    plan = _deployment_plan()
+    if plan is None or not plan.destinations:
+        return ()
+
+    try:
+        result = subprocess.run(
+            ["git", "check-ignore", "--stdin", "-z"],
+            input="\0".join(sorted(plan.destinations)) + "\0",
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        return ()
+    if result.returncode not in {0, 1}:
+        return ()
+    return tuple(path for path in result.stdout.split("\0") if path)
+
+
 def _get_git_provenance():
-    """Return the current commit SHA and directory-scoped dirty state."""
+    """Return the current commit SHA and deployment-scoped dirty state."""
     commit_sha = _git_output("rev-parse", "HEAD")
     if commit_sha is None:
         return None, None
-    status = _git_output("status", "--porcelain", "--untracked-files=normal", "--", ".")
-    return commit_sha, None if status is None else bool(status)
+
+    plan = _deployment_plan()
+    if plan is None:
+        status = _git_output(
+            "status", "--porcelain", "--untracked-files=normal", "--", "."
+        )
+        return commit_sha, None if status is None else bool(status)
+
+    tracked = _git_path_set("ls-files", "--cached")
+    changed = _git_path_set("diff", "--name-only", "HEAD")
+    deleted = _git_path_set("diff", "--name-only", "--diff-filter=D", "HEAD")
+    if tracked is None or changed is None or deleted is None:
+        return commit_sha, None
+
+    selected = plan.destinations
+    selected_untracked = selected - tracked
+    selected_changed = selected & changed
+    return commit_sha, bool(selected_untracked or selected_changed or deleted)
 
 
 def init(
