@@ -3,7 +3,8 @@
 Git identifies the commit that anchors a deployment, while ``deploy.toml``
 identifies the files that are actually packaged. Dirty-state checks therefore
 intersect Git changes with the deployment plan instead of treating unrelated,
-excluded files as deployment changes.
+excluded files as deployment changes. Git path output is normalized to the
+experiment directory so nested repositories compare cleanly.
 """
 
 import os
@@ -35,12 +36,54 @@ def _git_output(*args):
     return result.stdout.strip()
 
 
-def _git_path_set(*args):
-    """Run Git with NUL output and return its paths as a set."""
+def _git_path_set(*args, prefix=""):
+    """Run Git with NUL output and return experiment-relative paths.
+
+    ``git ls-files`` reports paths relative to the current directory, while
+    ``git diff --name-only`` reports paths relative to the repository root.
+    Strip ``prefix`` (from ``git rev-parse --show-prefix``) so both can be
+    compared with deployment-plan destinations.
+    """
     output = _git_output(*args, "-z", "--", ".")
     if output is None:
         return None
-    return {path for path in output.split("\0") if path}
+    return {
+        _experiment_relative_git_path(path, prefix)
+        for path in output.split("\0")
+        if path
+    }
+
+
+def _git_worktree_prefix():
+    """Return the repository-relative prefix of the current directory."""
+    prefix = _git_output("rev-parse", "--show-prefix")
+    if prefix is None:
+        return None
+    return prefix
+
+
+def _experiment_relative_git_path(path, prefix):
+    """Return a Git path relative to the experiment working directory."""
+    posix = path.replace("\\", "/")
+    if prefix and posix.startswith(prefix):
+        return posix[len(prefix) :]
+    return posix
+
+
+def _policy_selects_path(path, policy):
+    """Return whether ``path`` would be copied under ``policy`` if it existed."""
+    parts = tuple(part for part in path.replace("\\", "/").split("/") if part)
+    if not parts:
+        return False
+    name = parts[-1]
+    if name in policy.exclude_names:
+        return False
+    if any(name.endswith(suffix) for suffix in policy.exclude_suffixes):
+        return False
+    exclusions = frozenset(policy.exclude_paths)
+    return not any(
+        "/".join(parts[:depth]) in exclusions for depth in range(1, len(parts) + 1)
+    )
 
 
 def _deployment_plan():
@@ -86,16 +129,25 @@ def _get_git_provenance():
         )
         return commit_sha, None if status is None else bool(status)
 
-    tracked = _git_path_set("ls-files", "--cached")
-    changed = _git_path_set("diff", "--name-only", "HEAD")
-    deleted = _git_path_set("diff", "--name-only", "--diff-filter=D", "HEAD")
+    prefix = _git_worktree_prefix()
+    if prefix is None:
+        return commit_sha, None
+
+    tracked = _git_path_set("ls-files", "--cached", prefix=prefix)
+    changed = _git_path_set("diff", "--name-only", "HEAD", prefix=prefix)
+    deleted = _git_path_set(
+        "diff", "--name-only", "--diff-filter=D", "HEAD", prefix=prefix
+    )
     if tracked is None or changed is None or deleted is None:
         return commit_sha, None
 
     selected = plan.destinations
     selected_untracked = selected - tracked
     selected_changed = selected & changed
-    return commit_sha, bool(selected_untracked or selected_changed or deleted)
+    selected_deleted = {
+        path for path in deleted if _policy_selects_path(path, plan.policy)
+    }
+    return commit_sha, bool(selected_untracked or selected_changed or selected_deleted)
 
 
 def init(

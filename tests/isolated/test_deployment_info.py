@@ -72,6 +72,9 @@ def test_git_dirty_is_scoped_to_experiment_directory(tmp_path):
     sibling = tmp_path / "notes.txt"
     sibling.write_text("clean")
     (experiment_dir / "experiment.py").write_text("clean")
+    (experiment_dir / "deploy.toml").write_text(
+        'version = 1\n[exclude]\npaths = [".deploy"]\n'
+    )
 
     with working_directory(tmp_path):
         _git("init", "--quiet")
@@ -84,6 +87,10 @@ def test_git_dirty_is_scoped_to_experiment_directory(tmp_path):
     with working_directory(experiment_dir):
         _initialize_deployment_info()
         assert deployment_info.read("git_dirty") is False
+
+        Path("experiment.py").write_text("dirty")
+        _initialize_deployment_info()
+        assert deployment_info.read("git_dirty") is True
 
 
 def test_git_dirty_is_scoped_to_deployment_plan(tmp_path):
@@ -120,6 +127,16 @@ def test_git_dirty_is_scoped_to_deployment_plan(tmp_path):
 
         Path("secret.txt").unlink()
         Path("notes.txt").write_text("untracked and selected")
+        _initialize_deployment_info()
+        assert deployment_info.read("git_dirty") is True
+
+        Path("notes.txt").unlink()
+        Path("experiment.py").write_text("content")
+        excluded_tracked.unlink()
+        _initialize_deployment_info()
+        assert deployment_info.read("git_dirty") is False
+
+        Path("experiment.py").unlink()
         _initialize_deployment_info()
         assert deployment_info.read("git_dirty") is True
 
