@@ -51,13 +51,25 @@ release. For RC-based deployments, end each app's `analysis.md` with an
 explicit verdict line — either recommending promotion to the final release
 or recommending another RC, naming the blocking findings.
 
-Name the branch after the base, e.g. `deployment-tests/v13.3.0rc1`,
-appending `-2`, `-3`, ... for repeat deployments from the same base. For a
-master-based deployment, name it after `master` plus the short commit hash
-it was cut from, e.g. `deployment-tests/master-8ece25f0`, so master-based
-test deployments are clearly distinguishable from release-tag ones and
-from each other. (Older deployment branches carry a per-experiment suffix
-such as `-prolific`; new branches cover both experiments and drop it.)
+Name the branch after the **PsyNet tag**, then the commit hash when the
+base is not that tag. Resolve the tag from the base commit:
+
+```bash
+PSYNET_TAG=$(git describe --tags --abbrev=0 <base-commit>)
+SHORT_HASH=$(git rev-parse --short=9 <base-commit>)
+```
+
+- Base **is** the tag: `deployment-tests/v13.3.0rc1`
+- Base is any other commit (master, a feature branch, a pin):
+  `deployment-tests/v13.3.0-7e0c52c31` (`<tag>-<short-hash>`)
+
+The tag must come **before** the hash so a later reader can see which
+released version the test was run on without opening `pyproject.toml`.
+Do not use `master-<hash>` or `issue-<n>-<hash>` as the version-bearing
+name. Append `-2`, `-3`, ... for repeat deployments from the same base.
+(Older branches used `master-<hash>`, `issue-1049-<hash>`, or a
+per-experiment suffix such as `-prolific`; new branches cover both
+experiments and drop the suffix.)
 
 Before deploying:
 
@@ -110,9 +122,16 @@ PY
 ```bash
 cd <psynet-root>
 git fetch origin master --tags
-BASE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the tag the user specifies
-echo "Base: $BASE_TAG"
-git switch -c deployment-tests/$BASE_TAG "$BASE_TAG"
+BASE_COMMIT=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the commit the user specifies
+PSYNET_TAG=$(git describe --tags --abbrev=0 "$BASE_COMMIT")
+SHORT_HASH=$(git rev-parse --short=9 "$BASE_COMMIT")
+if [ "$(git rev-parse "$BASE_COMMIT")" = "$(git rev-parse "$PSYNET_TAG")" ]; then
+  BASE_NAME=$PSYNET_TAG
+else
+  BASE_NAME=$PSYNET_TAG-$SHORT_HASH
+fi
+echo "Base: $BASE_NAME ($BASE_COMMIT)"
+git switch -c deployment-tests/$BASE_NAME "$BASE_COMMIT"
 git checkout <previous-deployment-branch> -- tests/deployment/payment_flows_prolific tests/deployment/audio_gibbs
 ```
 
@@ -286,19 +305,24 @@ After all three have passed the marker, the remote builds overlap.
 Do not let one deployment's failure silently abort the others: check each
 launch output separately, and report per-app success/failure.
 
-Name each app after the deployment branch, experiment, and recruiter:
-`test-<base-tag>-payment-flows-prolific` and
-`test-<base-tag>-audio-gibbs-prolific`, appending `-2`, `-3`, ... for repeat
-deployments. App names only allow `a-z`, `0-9`, and `-` (the deploy command
-rejects anything else), so replace the dots in the base tag with dashes,
-e.g. base tag `v13.3.0rc1` gives `test-v13-3-0rc1-payment-flows-prolific-1`
-and `test-v13-3-0rc1-audio-gibbs-prolific-1`. For a master-based
-deployment the same rule applied to the branch name gives e.g.
-`test-master-8ece25f0-payment-flows-prolific-1`. Because the
+Name each app after the same `<base-name>` as the deployment branch
+(tag, or `tag-hash`), then the experiment and recruiter:
+`test-<base-name>-payment-flows-prolific` and
+`test-<base-name>-audio-gibbs-prolific`, appending `-2`, `-3`, ... for
+repeat deployments. App names only allow `a-z`, `0-9`, and `-` (the deploy
+command rejects anything else), so replace the dots in the tag with dashes
+and keep the hash after the tag:
+
+- Tag base `v13.3.0rc1` → `test-v13-3-0rc1-payment-flows-prolific-1`
+- Commit base `v13.3.0` + `7e0c52c31` →
+  `test-v13-3-0-7e0c52c31-payment-flows-prolific-1`
+
+Never put the hash before the tag, and never omit the tag on a
+commit-based app (`test-master-8ece25f0-...` and
+`test-issue-1049-7e0c52c31-...` are the old forms). Because the
 per-deployment folder under `deployment-tests/` is named after the app,
-this also keeps master-based audit folders clearly separate from
-release-tag ones. (Older deployments used the app names
-`test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`, before the
+the archive path also shows the version. (Older deployments used
+`test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs` before the
 recruiter suffix became part of the convention.) After deployment, inspect
 each launch output for the experiment URL, dashboard URL, and Dozzle URL.
 

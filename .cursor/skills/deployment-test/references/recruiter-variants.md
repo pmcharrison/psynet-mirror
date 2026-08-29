@@ -24,31 +24,33 @@ git push
 
 ```bash
 cd <psynet-root>
-git worktree add -b deployment-tests/<base-tag>-audio-gibbs-prolific \
-  /tmp/psynet-audio-gibbs-prolific-deploy deployment-tests/<base-tag>
+git worktree add -b deployment-tests/<base-name>-audio-gibbs-prolific \
+  /tmp/psynet-audio-gibbs-prolific-deploy deployment-tests/<base-name>
 cd /tmp/psynet-audio-gibbs-prolific-deploy/tests/deployment/audio_gibbs
 cp experiment.py.prolific experiment.py
 cp config.txt.prolific config.txt
 # config.txt is gitignored under tests/deployment/.
 git add experiment.py && git add -f config.txt
 git commit -m "Switch audio_gibbs to Prolific variant for deployment"
-git push -u origin deployment-tests/<base-tag>-audio-gibbs-prolific
+git push -u origin deployment-tests/<base-name>-audio-gibbs-prolific
 
 cd <psynet-root>
-git worktree add -b deployment-tests/<base-tag>-audio-gibbs-lucid \
-  /tmp/psynet-audio-gibbs-lucid-deploy deployment-tests/<base-tag>
+git worktree add -b deployment-tests/<base-name>-audio-gibbs-lucid \
+  /tmp/psynet-audio-gibbs-lucid-deploy deployment-tests/<base-name>
 cd /tmp/psynet-audio-gibbs-lucid-deploy/tests/deployment/audio_gibbs
 cp experiment.py.lucid experiment.py
 cp config.txt.lucid config.txt
 git add experiment.py && git add -f config.txt
 git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
-git push -u origin deployment-tests/<base-tag>-audio-gibbs-lucid
+git push -u origin deployment-tests/<base-name>-audio-gibbs-lucid
 ```
 
 3. Deploy from the worktrees (these are the second and third staggered
    `psynet deploy ssh` commands shown above). Name the Lucid app
-   `test-<base-tag>-audio-gibbs-lucid`, appending `-2`, `-3`, ... for repeat
-   deployments (e.g. `test-v13-3-0rc1-audio-gibbs-lucid-1`).
+   `test-<base-name>-audio-gibbs-lucid`, appending `-2`, `-3`, ... for repeat
+   deployments (e.g. `test-v13-3-0rc1-audio-gibbs-lucid-1`, or
+   `test-v13-3-0-7e0c52c31-audio-gibbs-lucid-1` when the base is a commit
+   after that tag).
 
 4. After both deploys have launched, remove the worktrees (the pushed
    branches preserve the deployed code for auditing):

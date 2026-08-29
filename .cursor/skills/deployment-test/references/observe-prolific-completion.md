@@ -168,16 +168,17 @@ the PsyNet repository under `tests/deployment/`.
 Its structure groups deployments by the base they were cut from:
 
 ```text
-releases/<base-tag>/<YYYYMMDD-HHMMSS>-<app-name>/   # e.g. releases/v13.3.0rc0/...
-master/<short-hash>/<YYYYMMDD-HHMMSS>-<app-name>/   # master-based deployments
-practice/<...>/                                     # workflow shakedown runs
+releases/<base-name>/<YYYYMMDD-HHMMSS>-<app-name>/
+# tag base:    releases/v13.3.0rc0/...
+# commit base: releases/v13.3.0-7e0c52c31/...   (tag before hash)
+practice/<...>/                                 # workflow shakedown runs
 ```
 
 Each archived folder keeps the layout described above (`analysis.md` plus
 `local/`). To archive, clone the repository (or pull an existing clone),
 copy the finished per-deployment folder(s) into the matching
-`releases/<base-tag>/` or `master/<short-hash>/` directory, and commit and
-push with a message naming the base and app(s). Ask the user before pushing.
+`releases/<base-name>/` directory, and commit and push with a message
+naming the base and app(s). Ask the user before pushing.
 The repository must stay private: exports contain participant data. Large
 raw archives (e.g. `data.zip`) may be pruned after the corresponding release
 has shipped and the analysis conclusions are settled.
