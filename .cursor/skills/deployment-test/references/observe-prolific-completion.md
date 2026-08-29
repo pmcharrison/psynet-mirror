@@ -170,7 +170,7 @@ Its structure groups deployments by the base they were cut from:
 ```text
 releases/<base-name>/<YYYYMMDD-HHMMSS>-<app-name>/
 # tag base:    releases/v13.3.0rc0/...
-# commit base: releases/v13.3.0-7e0c52c31/...   (tag before hash)
+# commit base: releases/v13.4.0a0-7e0c52c31/...   (version tag before hash)
 practice/<...>/                                 # workflow shakedown runs
 ```
 

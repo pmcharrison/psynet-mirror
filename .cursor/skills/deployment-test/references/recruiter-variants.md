@@ -49,8 +49,8 @@ git push -u origin deployment-tests/<base-name>-audio-gibbs-lucid
    `psynet deploy ssh` commands shown above). Name the Lucid app
    `test-<base-name>-audio-gibbs-lucid`, appending `-2`, `-3`, ... for repeat
    deployments (e.g. `test-v13-3-0rc1-audio-gibbs-lucid-1`, or
-   `test-v13-3-0-7e0c52c31-audio-gibbs-lucid-1` when the base is a commit
-   after that tag).
+   `test-v13-4-0a0-7e0c52c31-audio-gibbs-lucid-1` when the base is an
+   unreleased alpha commit).
 
 4. After both deploys have launched, remove the worktrees (the pushed
    branches preserve the deployed code for auditing):

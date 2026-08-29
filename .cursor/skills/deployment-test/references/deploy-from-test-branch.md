@@ -51,25 +51,32 @@ release. For RC-based deployments, end each app's `analysis.md` with an
 explicit verdict line — either recommending promotion to the final release
 or recommending another RC, naming the blocking findings.
 
-Name the branch after the **PsyNet tag**, then the commit hash when the
-base is not that tag. Resolve the tag from the base commit:
+Name the branch after the **PsyNet version the base commit carries**,
+then the commit hash when the base is not that version's git tag.
+Read the version from that commit's `pyproject.toml` (this includes
+alpha versions such as `13.4.0a0`). Do **not** use
+`git describe --abbrev=0` — that returns the previous *released* tag
+(`v13.3.0`) and hides that the test ran on the current alpha.
 
 ```bash
-PSYNET_TAG=$(git describe --tags --abbrev=0 <base-commit>)
+PSYNET_VERSION=$(git show <base-commit>:pyproject.toml | python -c \
+  "import sys, tomllib; print(tomllib.loads(sys.stdin.read())['project']['version'])")
+PSYNET_TAG=v$PSYNET_VERSION
 SHORT_HASH=$(git rev-parse --short=9 <base-commit>)
 ```
 
-- Base **is** the tag: `deployment-tests/v13.3.0rc1`
-- Base is any other commit (master, a feature branch, a pin):
-  `deployment-tests/v13.3.0-7e0c52c31` (`<tag>-<short-hash>`)
+- Base **is** the git tag `v$PSYNET_VERSION`: `deployment-tests/v13.3.0rc1`
+- Base is any other commit (master, a feature branch, a pin, including
+  unreleased alpha): `deployment-tests/v13.4.0a0-7e0c52c31`
+  (`<version-tag>-<short-hash>`)
 
-The tag must come **before** the hash so a later reader can see which
-released version the test was run on without opening `pyproject.toml`.
+The version tag must come **before** the hash so a later reader can see
+which PsyNet version the test was run on (stable, RC, or alpha).
 Do not use `master-<hash>` or `issue-<n>-<hash>` as the version-bearing
 name. Append `-2`, `-3`, ... for repeat deployments from the same base.
-(Older branches used `master-<hash>`, `issue-1049-<hash>`, or a
-per-experiment suffix such as `-prolific`; new branches cover both
-experiments and drop the suffix.)
+(Older branches used `master-<hash>`, `issue-1049-<hash>`,
+`v13.3.0-<hash>` on an alpha commit, or a per-experiment suffix such as
+`-prolific`; new branches cover both experiments and drop the suffix.)
 
 Before deploying:
 
@@ -123,9 +130,12 @@ PY
 cd <psynet-root>
 git fetch origin master --tags
 BASE_COMMIT=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the commit the user specifies
-PSYNET_TAG=$(git describe --tags --abbrev=0 "$BASE_COMMIT")
+PSYNET_VERSION=$(git show "$BASE_COMMIT:pyproject.toml" | python -c \
+  "import sys, tomllib; print(tomllib.loads(sys.stdin.read())['project']['version'])")
+PSYNET_TAG=v$PSYNET_VERSION
 SHORT_HASH=$(git rev-parse --short=9 "$BASE_COMMIT")
-if [ "$(git rev-parse "$BASE_COMMIT")" = "$(git rev-parse "$PSYNET_TAG")" ]; then
+if git rev-parse -q --verify "refs/tags/$PSYNET_TAG" >/dev/null \
+  && [ "$(git rev-parse "$BASE_COMMIT")" = "$(git rev-parse "$PSYNET_TAG")" ]; then
   BASE_NAME=$PSYNET_TAG
 else
   BASE_NAME=$PSYNET_TAG-$SHORT_HASH
@@ -314,8 +324,8 @@ command rejects anything else), so replace the dots in the tag with dashes
 and keep the hash after the tag:
 
 - Tag base `v13.3.0rc1` → `test-v13-3-0rc1-payment-flows-prolific-1`
-- Commit base `v13.3.0` + `7e0c52c31` →
-  `test-v13-3-0-7e0c52c31-payment-flows-prolific-1`
+- Alpha commit `13.4.0a0` + `7e0c52c31` →
+  `test-v13-4-0a0-7e0c52c31-payment-flows-prolific-1`
 
 Never put the hash before the tag, and never omit the tag on a
 commit-based app (`test-master-8ece25f0-...` and
