@@ -38,6 +38,7 @@ from consents_cococo.consent_cultural_foundation import (  # noqa: E402
 )
 
 from . import custom_synth
+from .recruiter_variant import assert_expected_recruiter
 
 logger = get_logger()
 
@@ -143,6 +144,7 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio game - play with sounds."
+    expected_recruiter = "lucid"
     asset_storage = LocalStorage()
     config = {
         "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
@@ -178,6 +180,10 @@ class Exp(psynet.experiment.Experiment):
         debrief_page(),
         SuccessfulEndPage(),
     )
+
+    def on_launch(self):
+        assert_expected_recruiter(self.expected_recruiter)
+        super().on_launch()
 
     def recruit(self):
         """Stop Lucid fielding once the participant target is reached.
