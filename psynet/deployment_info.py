@@ -56,6 +56,11 @@ def write(**kwargs):
 def read_all():
     with open(path, "r") as file:
         txt = file.read()
+    return loads(txt)
+
+
+def loads(txt: str) -> dict:
+    """Decode a deployment_info JSON document (for example from a remote cat)."""
     content = jsonpickle.decode(txt, keys=True)
     assert isinstance(content, dict)
     return content

@@ -253,6 +253,7 @@ Under the hood, the deployment command works as follows:
 - Instruct the remote server to pull the Docker image
 - Instruct the remote server to spin up the Docker app
 - Instruct the remote server to launch the experiment
+  (skipped when you pass ``--update``; the existing database is kept)
 
 This command can go wrong at several points. The parts that happen on the local
 machine are usually easiest to debug. When things go wrong on the remote server,

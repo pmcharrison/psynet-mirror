@@ -2115,14 +2115,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         redeploying_from_archive : bool
             If True, skip asset deposits and the database snapshot.
         update : bool
-            If True, rebuild an existing SSH app in place. Skip a new
-            deployment id, network setup, asset deposits, and the database
+            If True, rebuild an existing SSH app in place. Skip network
+            setup, local DB writes, asset deposits, and the database
             snapshot so the remote participant database is not replaced.
+            ``deployment_id`` is left as-is if the CLI already restored it.
         """
-        if not update:
+        try:
+            has_deployment_id = bool(deployment_info.read("deployment_id"))
+        except (KeyError, FileNotFoundError):
+            has_deployment_id = False
+        if not has_deployment_id:
             self.update_deployment_id()
-        self.setup_experiment_config()
-        self.setup_experiment_variables()
+        if not update:
+            self.setup_experiment_config()
+            self.setup_experiment_variables()
 
         _write_pre_deploy_constant_registry()
 

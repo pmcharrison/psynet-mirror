@@ -57,25 +57,43 @@ def test_pre_deploy_archive_deployment():
         mock_zip.assert_called_once()
 
 
-def test_pre_deploy_update_skips_assets_networks_and_snapshot():
+def test_pre_deploy_update_skips_assets_networks_and_snapshot(tmp_path):
     """In-place SSH updates must not rebuild networks or replace assets."""
+    from psynet import deployment_info
+    from psynet.utils import working_directory
+
     experiment = MockExperiment()
     experiment.timeline.modules = {"trials": MagicMock()}
     experiment.pre_deploy_routines = [MagicMock(label="make-networks")]
 
-    with (
-        patch.object(experiment, "update_deployment_id") as mock_id,
-        patch.object(experiment, "setup_experiment_config"),
-        patch.object(experiment, "setup_experiment_variables"),
-        patch("psynet.experiment._write_pre_deploy_constant_registry"),
-        patch.object(experiment, "assets") as mock_assets,
-        patch.object(experiment, "create_database_snapshot") as mock_db,
-        patch.object(experiment, "create_source_code_zip_file") as mock_zip,
-    ):
-        experiment.pre_deploy(update=True)
+    with working_directory(tmp_path):
+        deployment_info.init(
+            redeploying_from_archive=False,
+            mode="live",
+            is_local_deployment=False,
+            is_ssh_deployment=True,
+            server="lab",
+            app="my-app",
+        )
+        deployment_info.write(deployment_id="kept-id", secret="kept-secret")
+        with (
+            patch.object(experiment, "update_deployment_id") as mock_id,
+            patch.object(experiment, "setup_experiment_config") as mock_config,
+            patch.object(experiment, "setup_experiment_variables") as mock_vars,
+            patch("psynet.experiment._write_pre_deploy_constant_registry"),
+            patch.object(experiment, "assets") as mock_assets,
+            patch.object(experiment, "create_database_snapshot") as mock_db,
+            patch.object(experiment, "create_source_code_zip_file") as mock_zip,
+        ):
+            experiment.pre_deploy(update=True)
 
-        mock_id.assert_not_called()
-        experiment.timeline.modules["trials"].prepare_for_deployment.assert_not_called()
-        mock_assets.prepare_for_deployment.assert_not_called()
-        mock_db.assert_not_called()
-        mock_zip.assert_called_once()
+            mock_id.assert_not_called()
+            mock_config.assert_not_called()
+            mock_vars.assert_not_called()
+            experiment.timeline.modules[
+                "trials"
+            ].prepare_for_deployment.assert_not_called()
+            mock_assets.prepare_for_deployment.assert_not_called()
+            mock_db.assert_not_called()
+            mock_zip.assert_called_once()
+            assert deployment_info.read("deployment_id") == "kept-id"

@@ -3315,6 +3315,129 @@ def test_abort_if_ssh_update_mode_mismatch():
     assert "psynet deploy ssh" in mock_echo.call_args.args[0]
 
 
+def test_abort_if_ssh_update_mode_mismatch_when_mode_unknown():
+    from psynet.command_line import _abort_if_ssh_update_mode_mismatch
+
+    with (
+        patch("psynet.command_line._get_remote_app_mode", return_value=None),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        with pytest.raises(click.Abort):
+            _abort_if_ssh_update_mode_mismatch("test-server", "my-app", "live")
+    assert "Could not determine" in mock_echo.call_args.args[0]
+
+
+def test_parse_remote_deployment_info_extracts_json_object():
+    import jsonpickle
+
+    from psynet.command_line import _parse_remote_deployment_info
+
+    payload = jsonpickle.encode(
+        {"deployment_id": "kept-id", "secret": "kept-secret"},
+        keys=True,
+    )
+    parsed = _parse_remote_deployment_info(f"noise\n{payload}\n")
+    assert parsed["deployment_id"] == "kept-id"
+    assert parsed["secret"] == "kept-secret"
+
+
+def test_restore_remote_deployment_identity(tmp_path):
+    import jsonpickle
+
+    from psynet import deployment_info
+    from psynet.command_line import _restore_remote_deployment_identity
+    from psynet.utils import working_directory
+
+    remote = {
+        "deployment_id": "original-id",
+        "secret": "original-secret",
+        "mode": "live",
+    }
+    executor = Mock()
+    executor.run.return_value = jsonpickle.encode(remote, indent=4, keys=True)
+    with working_directory(tmp_path):
+        deployment_info.init(
+            redeploying_from_archive=False,
+            mode="live",
+            is_local_deployment=False,
+            is_ssh_deployment=True,
+            server="lab",
+            app="my-app",
+        )
+        assert "deployment_id" not in deployment_info.read_all()
+        minted_secret = deployment_info.read("secret")
+        with (
+            patch(
+                "psynet.command_line.CONFIGURED_HOSTS",
+                {"lab": {"host": "example.com", "user": "tester"}},
+            ),
+            patch(
+                "dallinger.command_line.docker_ssh.Executor",
+                return_value=executor,
+            ),
+        ):
+            _restore_remote_deployment_identity("lab", "my-app")
+        assert deployment_info.read("deployment_id") == "original-id"
+        assert deployment_info.read("secret") == "original-secret"
+        assert minted_secret != "original-secret"
+
+
+def test_validate_remote_package_update_requires_docker_image_base_name():
+    from psynet.command_line import _validate_remote_package
+
+    exp = Mock()
+    exp.make_uuid.return_value = "uuid"
+    config = Mock()
+    config.ready = True
+    config.get.side_effect = lambda key, default=None: (
+        None if key == "docker_image_base_name" else default
+    )
+    with (
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.utils.check_todos_before_deployment"),
+        pytest.raises(click.UsageError, match="docker_image_base_name"),
+    ):
+        _validate_remote_package(
+            exp,
+            mode="live",
+            heroku=False,
+            docker=True,
+            app="my-app",
+            update=True,
+        )
+
+
+def test_validate_remote_package_update_skips_recruiter_confirms():
+    from psynet.command_line import _validate_remote_package
+
+    exp = Mock()
+    exp.make_uuid.return_value = "uuid"
+    exp.recruiter = Mock()
+    config = Mock()
+    config.ready = True
+    config.get.side_effect = lambda key, default=None: (
+        "registry.example/img" if key == "docker_image_base_name" else "0.0.0.0"
+    )
+    with (
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.utils.check_todos_before_deployment"),
+        patch("psynet.command_line.check_psynet_requirement_is_unambiguous"),
+        patch("psynet.command_line.check_core_dependency_versions_match_requirements"),
+        patch("psynet.command_line.run_pre_checks_deploy") as mock_deploy_checks,
+        patch("psynet.command_line.user_confirms", return_value=True),
+    ):
+        _validate_remote_package(
+            exp,
+            mode="live",
+            heroku=False,
+            docker=True,
+            app="my-app",
+            update=True,
+        )
+    mock_deploy_checks.assert_not_called()
+    config.set.assert_called_once()
+
+
 def test_pre_launch_update_skips_exists_check_and_confirms():
     from psynet.command_line import _pre_launch
 
@@ -3330,6 +3453,9 @@ def test_pre_launch_update_skips_exists_check_and_confirms():
         patch("psynet.command_line._abort_if_app_missing") as mock_missing,
         patch("psynet.command_line._abort_if_ssh_update_mode_mismatch") as mock_mode,
         patch("psynet.command_line._confirm_ssh_update") as mock_confirm,
+        patch(
+            "psynet.command_line._restore_remote_deployment_identity"
+        ) as mock_restore,
         patch(
             "psynet.command_line.run_pre_checks",
             side_effect=RuntimeError("stop-after-confirm"),
@@ -3356,6 +3482,7 @@ def test_pre_launch_update_skips_exists_check_and_confirms():
     mock_missing.assert_called_once_with("test-server", "test-app")
     mock_mode.assert_called_once_with("test-server", "test-app", "live")
     mock_confirm.assert_called_once()
+    mock_restore.assert_called_once_with("test-server", "test-app")
     assert mock_run_pre_checks.call_args.kwargs["update"] is True
 
 
@@ -3402,15 +3529,11 @@ def test_prepare_skips_init_db_on_update():
         patch("psynet.experiment.get_experiment", return_value=experiment),
         patch("psynet.command_line.clean_sys_modules"),
         patch("psynet.command_line.update_docker_tag"),
-        patch("dallinger.db.session"),
     ):
         _prepare(update=True)
 
     mock_init.assert_not_called()
-    experiment.pre_deploy.assert_called_once_with(
-        redeploying_from_archive=False,
-        update=True,
-    )
+    experiment.pre_deploy.assert_called_once_with(update=True)
 
 
 def test_confirm_ssh_update_defaults_no_for_live():

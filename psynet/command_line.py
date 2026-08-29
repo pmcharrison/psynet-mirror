@@ -184,6 +184,15 @@ def prepare(archive):
 
 
 def _prepare(archive=None, update=False):
+    """Prepare files for deployment. ``psynet prepare`` always prepares a new study."""
+    if update:
+        _prepare_image_for_update()
+    else:
+        _prepare_new_study(archive)
+
+
+def _prepare_new_study(archive=None):
+    """Drop the local DB, build networks/assets, and write the image snapshot."""
     from dallinger import db
 
     from .experiment import get_experiment
@@ -195,18 +204,24 @@ def _prepare(archive=None, update=False):
 
         shutil.copyfile(archive, database_template_path)
 
-    if not update:
-        db.init_db(drop_all=True)
+    db.init_db(drop_all=True)
     experiment = get_experiment()
-    experiment.pre_deploy(
-        redeploying_from_archive=archive is not None,
-        update=update,
-    )
+    experiment.pre_deploy(redeploying_from_archive=archive is not None)
     db.session.flush()
     clean_sys_modules()
     update_docker_tag()
-
     db.session.commit()
+
+
+def _prepare_image_for_update():
+    """Rebuild image artifacts without touching the local or remote participant DB."""
+    from .experiment import get_experiment
+
+    redis_vars.clear()
+    experiment = get_experiment()
+    experiment.pre_deploy(update=True)
+    clean_sys_modules()
+    update_docker_tag()
 
 
 #########
@@ -1021,14 +1036,11 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 ##############
 # pre deploy #
 ##############
-def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter, update=False):
-    check_psynet_requirement_is_unambiguous()
-    check_core_dependency_versions_match_requirements()
+def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
-        not update
-        and is_mturk
+        is_mturk
         and initial_recruitment_size <= 10
         and not user_confirms(
             f"Are you sure you want to deploy to MTurk with initial_recruitment_size set to {initial_recruitment_size}? "
@@ -1092,6 +1104,14 @@ def _abort_if_app_missing(server, app):
         raise click.Abort
 
 
+def _ssh_executor(server, app=None):
+    """Build a Dallinger SSH executor for a configured server."""
+    from dallinger.command_line.docker_ssh import Executor
+
+    server_info = CONFIGURED_HOSTS[server]
+    return Executor(server_info["host"], user=server_info.get("user"), app=app)
+
+
 def _get_remote_app_mode(server, app):
     """Read ``mode`` from the remote app's docker-compose file.
 
@@ -1100,11 +1120,7 @@ def _get_remote_app_mode(server, app):
     str or None
         ``"sandbox"`` or ``"live"`` when it can be parsed, otherwise ``None``.
     """
-    from dallinger.command_line.docker_ssh import Executor
-
-    server_info = CONFIGURED_HOSTS[server]
-    executor = Executor(server_info["host"], user=server_info.get("user"))
-    output = executor.run(
+    output = _ssh_executor(server).run(
         f"grep -E '^[[:space:]]+mode:' ~/dallinger/{app}/docker-compose.yml || true",
         raise_=False,
     )
@@ -1113,6 +1129,72 @@ def _get_remote_app_mode(server, app):
         if match:
             return match.group(1)
     return None
+
+
+def _parse_remote_deployment_info(output):
+    """Extract a deployment_info dict from remote command stdout."""
+    text = (output or "").strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError("Remote output did not contain a JSON object.")
+    return deployment_info.loads(text[start : end + 1])
+
+
+def _read_remote_deployment_info(server, app):
+    """Read ``.deploy/deployment_info.json`` from the existing SSH app image."""
+    executor = _ssh_executor(server, app)
+    compose = f"~/dallinger/{app}/docker-compose.yml"
+    output = executor.run(
+        f"docker compose -f {compose} exec -T web "
+        "cat /experiment/.deploy/deployment_info.json "
+        f"|| docker compose -f {compose} run --rm --no-deps web "
+        "cat /experiment/.deploy/deployment_info.json",
+        raise_=False,
+    )
+    try:
+        return _parse_remote_deployment_info(output)
+    except Exception as exc:
+        click.echo(
+            f"Could not read .deploy/deployment_info.json from app {app} on "
+            f"server {server}. `--update` needs the original deployment_id and "
+            "secret from the running image."
+        )
+        raise click.Abort from exc
+
+
+def _restore_remote_deployment_identity(server, app):
+    """Copy deployment_id and secret from the running app into local deployment_info."""
+    remote = _read_remote_deployment_info(server, app)
+    missing = [key for key in ("deployment_id", "secret") if key not in remote]
+    if missing:
+        click.echo(
+            f"Remote deployment_info.json for {app} is missing {', '.join(missing)}."
+        )
+        raise click.Abort
+    deployment_info.write(
+        deployment_id=remote["deployment_id"],
+        secret=remote["secret"],
+    )
+    return remote
+
+
+def _guard_ssh_app(server, app, mode, update):
+    """Create vs update lifecycle checks for an SSH app, then restore identity on update."""
+    server_info = CONFIGURED_HOSTS[server]
+    ssh_host = server_info["host"]
+    ssh_user = server_info.get("user")
+
+    from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
+
+    ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+    if update:
+        _abort_if_app_missing(server, app)
+        _abort_if_ssh_update_mode_mismatch(server, app, mode)
+        _confirm_ssh_update(app=app, server=server, mode=mode)
+        _restore_remote_deployment_identity(server, app)
+    else:
+        _abort_if_app_exists(server, app)
 
 
 def _abort_if_ssh_update_mode_mismatch(server, app, mode):
@@ -1203,10 +1285,17 @@ def _pre_launch(
     app=None,
     update=False,
 ):
+    """Run shared launch setup for debug/deploy.
+
+    1. Validate the local experiment directory.
+    2. Guard the remote SSH app (create vs ``--update``) and restore identity.
+    3. Validate the package that will go in the image.
+    4. Prepare a new study or image-only update artifacts.
+    """
     from .experiment import get_experiment
 
-    # Scaffold/git checks before Redis so missing-boilerplate guidance is visible
-    # even when Redis is not running.
+    # Four phases: validate directory, guard remote app, validate package,
+    # then prepare either a new study or an image-only update.
     _check_experiment_directory(mode)
 
     if update and not ssh:
@@ -1234,21 +1323,11 @@ def _pre_launch(
 
     if ssh:
         server_info = CONFIGURED_HOSTS[server]
-
-        ssh_host = server_info["host"]
-        ssh_user = server_info.get("user")
-
-        deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
-
-        from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
-
-        ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
-        if update:
-            _abort_if_app_missing(server, app)
-            _abort_if_ssh_update_mode_mismatch(server, app, mode)
-            _confirm_ssh_update(app=app, server=server, mode=mode)
-        else:
-            _abort_if_app_exists(server, app)
+        deployment_info.write(
+            ssh_host=server_info["host"],
+            ssh_user=server_info.get("user"),
+        )
+        _guard_ssh_app(server, app, mode, update)
 
     run_pre_checks(mode, local_, heroku, docker, app, update=update)
 
@@ -1274,7 +1353,10 @@ def _pre_launch(
     if config.get("check_dallinger_version"):
         check_installed_dallinger_version_is_recommended()
 
-    _prepare(archive=archive, update=update)
+    if update:
+        _prepare_image_for_update()
+    else:
+        _prepare_new_study(archive)
 
     _forget_tables_defined_in_experiment_directory()
 
@@ -1560,10 +1642,7 @@ def _check_experiment_directory(mode):
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None, update=False):
-    from dallinger.recruiters import MTurkRecruiter
-
     from .experiment import get_experiment
-    from .utils import check_todos_before_deployment
 
     # Directory readiness is checked earlier in ``_pre_launch`` (before Redis)
     # and directly from ``psynet test local``. Avoid duplicating that work here.
@@ -1632,74 +1711,93 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None, update=Fa
     if docker:
         check_dockerfile()
 
-    if not local_ and not update:
-        init_db(drop_all=True)
+    if not local_:
+        _validate_remote_package(
+            exp,
+            mode=mode,
+            heroku=heroku,
+            docker=docker,
+            app=app,
+            update=update,
+            local_=local_,
+        )
 
-        config = get_config()
-        if not config.ready:
-            config.load()
-        check_todos_before_deployment()
 
-        if docker:
-            if config.get("docker_image_base_name", None) is None:
-                raise click.UsageError(
-                    "docker_image_base_name must be specified in config.txt or ~/.dallingerconfig before you can "
-                    "launch an experiment using Docker. For example, you might write the following: \n"
-                    "docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images"
-                )
-            _expected_docker_volumes = "${HOME}/psynet-data/assets:/psynet-data/assets"
-            if _expected_docker_volumes not in config.get(
-                "docker_volumes", ""
-            ) and not user_confirms(
-                "For deploying PsyNet experiments with Docker, you should typically have the following line "
-                "in your config.txt: \n"
-                f"docker_volumes = {_expected_docker_volumes}\n"
-                "You are advised to change this line then retry launching the experiment. "
-                "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
-            ):
-                raise click.Abort
-            if config.get("host") != "0.0.0.0" and not user_confirms(
-                "For deploying PsyNet experiments with Docker, you should typically have host = 0.0.0.0 in config.txt. "
-                "You are advised to change this line then retry launching the experiment. "
-                "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
-            ):
-                raise click.Abort
+def _validate_remote_package(exp, *, mode, heroku, docker, app, update, local_=False):
+    """Validate a package that will be built into a remote (SSH/Heroku) image.
 
-        config.set("id", exp.make_uuid(app))
+    Runs on both create and ``--update``. Skips recruiter confirms on update
+    because recruitment is not re-opened. Does not drop the local database.
+    """
+    from dallinger.recruiters import MTurkRecruiter
 
-        recruiter = exp.recruiter
-        is_mturk = isinstance(recruiter, MTurkRecruiter)
-        is_prolific = isinstance(recruiter, ProlificRecruiter)
+    from .utils import check_todos_before_deployment
 
-        if heroku:
-            if not exp.asset_storage.heroku_compatible:
-                raise AttributeError(
-                    f"You can't deploy an experiment to Heroku with this asset storage back-end ({exp.asset_storage}). "
-                    "The storage back-end is set in your experiment class with a line like `asset_storage = ...`. "
-                    "If you don't need assets in your experiment, you can probably remove the line altogether. "
-                    "If you do need assets, you should replace the current storage option with a "
-                    "Heroku-compatible backend, for example S3Storage('your-bucket', 'your-root')."
-                )
-            if is_prolific:
-                check_prolific_payment(exp, config)
+    config = get_config()
+    if not config.ready:
+        config.load()
+    check_todos_before_deployment()
 
-        if mode == "sandbox":
-            run_pre_checks_sandbox(exp, config, is_mturk, update=update)
-        elif mode == "live":
-            run_pre_checks_deploy(
-                exp, config, is_mturk, local_, recruiter, update=update
+    if docker:
+        if config.get("docker_image_base_name", None) is None:
+            raise click.UsageError(
+                "docker_image_base_name must be specified in config.txt or ~/.dallingerconfig before you can "
+                "launch an experiment using Docker. For example, you might write the following: \n"
+                "docker_image_base_name = registry.gitlab.developers.cam.ac.uk/mus/cms/psynet-experiment-images"
             )
+        _expected_docker_volumes = "${HOME}/psynet-data/assets:/psynet-data/assets"
+        if _expected_docker_volumes not in config.get(
+            "docker_volumes", ""
+        ) and not user_confirms(
+            "For deploying PsyNet experiments with Docker, you should typically have the following line "
+            "in your config.txt: \n"
+            f"docker_volumes = {_expected_docker_volumes}\n"
+            "You are advised to change this line then retry launching the experiment. "
+            "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
+        ):
+            raise click.Abort
+        if config.get("host") != "0.0.0.0" and not user_confirms(
+            "For deploying PsyNet experiments with Docker, you should typically have host = 0.0.0.0 in config.txt. "
+            "You are advised to change this line then retry launching the experiment. "
+            "However, if you're sure you want to continue, enter 'y' and press 'Enter'."
+        ):
+            raise click.Abort
 
+    config.set("id", exp.make_uuid(app))
 
-def run_pre_checks_sandbox(exp, config, is_mturk, update=False):
+    recruiter = exp.recruiter
+    is_mturk = isinstance(recruiter, MTurkRecruiter)
+    is_prolific = isinstance(recruiter, ProlificRecruiter)
+
+    if heroku:
+        if not exp.asset_storage.heroku_compatible:
+            raise AttributeError(
+                f"You can't deploy an experiment to Heroku with this asset storage back-end ({exp.asset_storage}). "
+                "The storage back-end is set in your experiment class with a line like `asset_storage = ...`. "
+                "If you don't need assets in your experiment, you can probably remove the line altogether. "
+                "If you do need assets, you should replace the current storage option with a "
+                "Heroku-compatible backend, for example S3Storage('your-bucket', 'your-root')."
+            )
+        if is_prolific:
+            check_prolific_payment(exp, config)
+
     check_psynet_requirement_is_unambiguous()
     check_core_dependency_versions_match_requirements()
 
+    if update:
+        return
+
+    if mode == "sandbox":
+        run_pre_checks_sandbox(exp, config, is_mturk)
+    elif mode == "live":
+        run_pre_checks_deploy(exp, config, is_mturk, local_=local_, recruiter=recruiter)
+
+
+def run_pre_checks_sandbox(exp, config, is_mturk):
     us_only = config.get("us_only")
 
     if (
-        not update
-        and is_mturk
+        is_mturk
         and us_only
         and not user_confirms(
             "Are you sure you want to sandbox with us_only = True? "
