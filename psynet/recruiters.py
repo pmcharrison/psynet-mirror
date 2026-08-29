@@ -619,6 +619,30 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "screen-out payment."
             )
 
+    def issue_unsuccessful_completion_code(self, participant) -> bool:
+        """Record that this failed participant is leaving with the screen-out code.
+
+        Called from submission-complete (the error-page Submit button POSTs
+        ``/prolific-submission-listener``, which enqueues that handler).
+        Rendering the error page must not write this field: viewing the page
+        without submitting would otherwise classify later payment as
+        ``screened_out``. First issuance wins: a different already-issued
+        code is left alone.
+
+        Returns True if the unsuccessful code is now recorded.
+        """
+        if not self.pays_unsuccessful_participants_via_screen_out:
+            return False
+        if getattr(participant, "complete", False):
+            return False
+        if not getattr(participant, "failed", False):
+            return False
+        already_issued = getattr(participant, "issued_completion_code_type", None)
+        if already_issued not in (None, self.unsuccessful_code_type):
+            return False
+        participant.issued_completion_code_type = self.unsuccessful_code_type
+        return True
+
     def error_page_content(self, assignment_id=None, external_submit_url=None):
         """Error-page HTML for Prolific participants.
 
@@ -651,8 +675,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             # snapshot over the current ``failed`` flag.
             and already_issued in (None, self.unsuccessful_code_type)
         )
-        if can_submit_unsuccessful:
-            error_participant.issued_completion_code_type = self.unsuccessful_code_type
 
         html = tags.div()
         with html:
