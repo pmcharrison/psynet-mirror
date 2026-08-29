@@ -183,7 +183,7 @@ def prepare(archive):
     _prepare(archive)
 
 
-def _prepare(archive=None):
+def _prepare(archive=None, update=False):
     from dallinger import db
 
     from .experiment import get_experiment
@@ -195,9 +195,13 @@ def _prepare(archive=None):
 
         shutil.copyfile(archive, database_template_path)
 
-    db.init_db(drop_all=True)
+    if not update:
+        db.init_db(drop_all=True)
     experiment = get_experiment()
-    experiment.pre_deploy(redeploying_from_archive=archive is not None)
+    experiment.pre_deploy(
+        redeploying_from_archive=archive is not None,
+        update=update,
+    )
     db.session.flush()
     clean_sys_modules()
     update_docker_tag()
@@ -1017,13 +1021,14 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 ##############
 # pre deploy #
 ##############
-def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
+def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter, update=False):
     check_psynet_requirement_is_unambiguous()
     check_core_dependency_versions_match_requirements()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
-        is_mturk
+        not update
+        and is_mturk
         and initial_recruitment_size <= 10
         and not user_confirms(
             f"Are you sure you want to deploy to MTurk with initial_recruitment_size set to {initial_recruitment_size}? "
@@ -1042,24 +1047,142 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
+_option_ssh_update = click.option(
+    "--update",
+    "-u",
+    is_flag=True,
+    help=(
+        "Rebuild an existing SSH app in place without wiping participant data. "
+        "Does not replace pre-deposited stimulus files or reopen recruitment."
+    ),
+)
+
+
+def _remote_ssh_app_names(server):
+    """Return the set of PsyNet/Dallinger app names on an SSH server."""
+    from dallinger.command_line.docker_ssh import get_apps
+
+    return {entry.name for entry in get_apps(server)}
+
+
 def _abort_if_app_exists(server, app):
     if not app:
         return
 
-    from dallinger.command_line.docker_ssh import get_apps
-
-    apps = get_apps(server)
-    existing_apps = {entry.name for entry in apps}
-    if app in existing_apps:
+    if app in _remote_ssh_app_names(server):
         click.echo(
             "\n".join(
                 [
                     f"App with name {app} already exists: found on server. Aborting.",
-                    "Use a different name or destroy the current app.",
+                    "Use a different name, destroy the current app, "
+                    "or pass --update to rebuild in place without wiping data.",
                 ]
             )
         )
         raise click.Abort
+
+
+def _abort_if_app_missing(server, app):
+    """Abort an SSH ``--update`` if the named app is not on the server."""
+    if app not in _remote_ssh_app_names(server):
+        click.echo(
+            f"App with name {app} was not found on server {server}. "
+            "`--update` rebuilds an existing app; omit `--update` to create a new one."
+        )
+        raise click.Abort
+
+
+def _get_remote_app_mode(server, app):
+    """Read ``mode`` from the remote app's docker-compose file.
+
+    Returns
+    -------
+    str or None
+        ``"sandbox"`` or ``"live"`` when it can be parsed, otherwise ``None``.
+    """
+    from dallinger.command_line.docker_ssh import Executor
+
+    server_info = CONFIGURED_HOSTS[server]
+    executor = Executor(server_info["host"], user=server_info.get("user"))
+    output = executor.run(
+        f"grep -E '^[[:space:]]+mode:' ~/dallinger/{app}/docker-compose.yml || true",
+        raise_=False,
+    )
+    for line in (output or "").splitlines():
+        match = re.search(r'mode:\s*"?(\w+)"?', line)
+        if match:
+            return match.group(1)
+    return None
+
+
+def _abort_if_ssh_update_mode_mismatch(server, app, mode):
+    """Require ``debug ssh --update`` vs ``deploy ssh --update`` to match the live app."""
+    remote_mode = _get_remote_app_mode(server, app)
+    if remote_mode is None:
+        click.echo(
+            f"Could not determine whether app {app} is a debug (sandbox) or "
+            "live deployment. Inspect "
+            f"~/dallinger/{app}/docker-compose.yml on the server, then use "
+            "`psynet debug ssh --update` or `psynet deploy ssh --update` to match."
+        )
+        raise click.Abort
+    if remote_mode == mode:
+        return
+
+    original = "psynet debug ssh" if remote_mode == "sandbox" else "psynet deploy ssh"
+    attempted = "psynet debug ssh" if mode == "sandbox" else "psynet deploy ssh"
+    click.echo(
+        f"App {app} was created with `{original}`, but you used `{attempted} --update`. "
+        f"Use `{original} --app {app} --update` instead."
+    )
+    raise click.Abort
+
+
+def _validate_ssh_update_options(update, app, archive):
+    """Reject illegal combinations of ``--update`` with ``--app`` / ``--archive``."""
+    if not update:
+        return
+    if archive:
+        raise click.UsageError("`--update` cannot be combined with `--archive`.")
+    if not app:
+        raise click.UsageError("`--update` requires `--app`.")
+
+
+def _confirm_ssh_update(app, server, mode):
+    """Ask the user to confirm an in-place SSH rebuild."""
+    question = (
+        f"This rebuilds and restarts app {app} on server {server}. "
+        "The participant database and Redis are kept, and recruitment is not "
+        "re-opened. Pre-deposited stimulus files are not replaced. "
+        "Containers restart, so people currently on a page may be interrupted. "
+        "Do not change the timeline, module IDs, or trial-maker structure "
+        "unless nobody is still taking the experiment. Continue?"
+    )
+    default = mode != "live"
+    if not user_confirms(question, default=default):
+        raise click.Abort
+
+
+def _invoke_dallinger_ssh_deploy(
+    ctx, dallinger_command, *, server, dns_host, app, update
+):
+    """Invoke Dallinger docker-ssh deploy/sandbox with a real boolean ``update``.
+
+    Click can stringify a missing ``update`` default as ``'False'``, which is
+    truthy, so this helper always passes ``True`` or ``False``.
+    """
+    result = ctx.invoke(
+        dallinger_command,
+        server=server,
+        dns_host=dns_host,
+        app_name=app,
+        config_options={},
+        archive_path=None,
+        update=bool(update),
+    )
+    if not update:
+        _post_deploy(result)
+    return result
 
 
 ##########
@@ -1078,12 +1201,18 @@ def _pre_launch(
     heroku=False,
     server=None,
     app=None,
+    update=False,
 ):
     from .experiment import get_experiment
 
     # Scaffold/git checks before Redis so missing-boilerplate guidance is visible
     # even when Redis is not running.
     _check_experiment_directory(mode)
+
+    if update and not ssh:
+        raise click.UsageError(
+            "`--update` is only supported for `psynet debug ssh` and `psynet deploy ssh`."
+        )
 
     from .services import ensure_local_services
 
@@ -1114,9 +1243,14 @@ def _pre_launch(
         from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
 
         ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
-        _abort_if_app_exists(server, app)
+        if update:
+            _abort_if_app_missing(server, app)
+            _abort_if_ssh_update_mode_mismatch(server, app, mode)
+            _confirm_ssh_update(app=app, server=server, mode=mode)
+        else:
+            _abort_if_app_exists(server, app)
 
-    run_pre_checks(mode, local_, heroku, docker, app)
+    run_pre_checks(mode, local_, heroku, docker, app, update=update)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
     os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
@@ -1131,7 +1265,8 @@ def _pre_launch(
         os.environ["SKIP_DEPENDENCY_CHECK"] = "1"
 
     experiment = get_experiment()
-    experiment.update_deployment_id()
+    if not update:
+        experiment.update_deployment_id()
 
     config = get_config()
     deployment_info.write(locale=config.get("locale", "en"))
@@ -1139,7 +1274,7 @@ def _pre_launch(
     if config.get("check_dallinger_version"):
         check_installed_dallinger_version_is_recommended()
 
-    ctx.invoke(prepare, archive=archive)
+    _prepare(archive=archive, update=update)
 
     _forget_tables_defined_in_experiment_directory()
 
@@ -1256,11 +1391,13 @@ def _deploy__docker_heroku(ctx, app, archive):
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
+@_option_ssh_update
 @click.pass_context
-def deploy__docker_ssh(ctx, app, archive, dns_host, server):
+def deploy__docker_ssh(ctx, app, archive, dns_host, server, update):
     """
     Deploy the experiment to a remote server via Docker and SSH.
     """
+    _validate_ssh_update_options(update, app, archive)
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
@@ -1275,6 +1412,7 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
             docker=True,
             server=server,
             app=app,
+            update=update,
         )
 
         from dallinger.command_line.docker_ssh import (
@@ -1282,18 +1420,14 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
         )
 
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
-        # Explicitly pass update=False to avoid Click converting the default to the string 'False'
-        result = ctx.invoke(
+        _invoke_dallinger_ssh_deploy(
+            ctx,
             dallinger_docker_ssh_deploy,
             server=server,
             dns_host=dns_host,
-            app_name=app,
-            config_options={},
-            archive_path=None,
-            update=False,
+            app=app,
+            update=update,
         )
-
-        _post_deploy(result)
     finally:
         _cleanup_exp_directory()
         reset_console()
@@ -1425,7 +1559,7 @@ def _check_experiment_directory(mode):
         )
 
 
-def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
+def run_pre_checks(mode, local_, heroku=False, docker=False, app=None, update=False):
     from dallinger.recruiters import MTurkRecruiter
 
     from .experiment import get_experiment
@@ -1498,7 +1632,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     if docker:
         check_dockerfile()
 
-    if not local_:
+    if not local_ and not update:
         init_db(drop_all=True)
 
         config = get_config()
@@ -1550,19 +1684,22 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 check_prolific_payment(exp, config)
 
         if mode == "sandbox":
-            run_pre_checks_sandbox(exp, config, is_mturk)
+            run_pre_checks_sandbox(exp, config, is_mturk, update=update)
         elif mode == "live":
-            run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter)
+            run_pre_checks_deploy(
+                exp, config, is_mturk, local_, recruiter, update=update
+            )
 
 
-def run_pre_checks_sandbox(exp, config, is_mturk):
+def run_pre_checks_sandbox(exp, config, is_mturk, update=False):
     check_psynet_requirement_is_unambiguous()
     check_core_dependency_versions_match_requirements()
 
     us_only = config.get("us_only")
 
     if (
-        is_mturk
+        not update
+        and is_mturk
         and us_only
         and not user_confirms(
             "Are you sure you want to sandbox with us_only = True? "
@@ -1630,11 +1767,13 @@ def debug__docker_heroku(ctx, app, archive):
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
+@_option_ssh_update
 @click.pass_context
-def debug__docker_ssh(ctx, app, archive, server, dns_host):
+def debug__docker_ssh(ctx, app, archive, server, dns_host, update):
     """
     Debug the experiment on a remote server via SSH.
     """
+    _validate_ssh_update_options(update, app, archive)
     try:
         from dallinger.command_line.docker_ssh import sandbox
 
@@ -1649,21 +1788,18 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
             docker=True,
             server=server,
             app=app,
+            update=update,
         )
 
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
-        # Explicitly pass update=False to avoid Click converting the default to the string 'False'
-        result = ctx.invoke(
+        _invoke_dallinger_ssh_deploy(
+            ctx,
             sandbox,
             server=server,
             dns_host=dns_host,
-            app_name=app,
-            config_options={},
-            archive_path=None,
-            update=False,
+            app=app,
+            update=update,
         )
-
-        _post_deploy(result)
     finally:
         _cleanup_exp_directory()
 

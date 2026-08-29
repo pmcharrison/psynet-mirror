@@ -3215,6 +3215,7 @@ def test_abort_if_app_exists():
         with pytest.raises(click.Abort):
             _abort_if_app_exists(server="test-server", app="test-app")
     assert mock_echo.call_count == 1
+    assert "--update" in mock_echo.call_args.args[0]
 
 
 def test_abort_if_app_exists_skips_missing_app():
@@ -3232,6 +3233,200 @@ def test_abort_if_app_exists_skips_missing_app():
         _abort_if_app_exists(server="test-server", app="test-app")
 
     mock_echo.assert_not_called()
+
+
+def test_abort_if_app_missing():
+    from psynet.command_line import _abort_if_app_missing
+
+    app = Mock()
+    app.name = "other-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        with pytest.raises(click.Abort):
+            _abort_if_app_missing(server="test-server", app="test-app")
+    assert "--update" in mock_echo.call_args.args[0]
+
+
+def test_abort_if_app_missing_skips_when_present():
+    from psynet.command_line import _abort_if_app_missing
+
+    app = Mock()
+    app.name = "test-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        _abort_if_app_missing(server="test-server", app="test-app")
+    mock_echo.assert_not_called()
+
+
+def test_validate_ssh_update_options():
+    from psynet.command_line import _validate_ssh_update_options
+
+    _validate_ssh_update_options(update=False, app=None, archive=None)
+    _validate_ssh_update_options(update=True, app="my-app", archive=None)
+    with pytest.raises(click.UsageError, match="--app"):
+        _validate_ssh_update_options(update=True, app=None, archive=None)
+    with pytest.raises(click.UsageError, match="--archive"):
+        _validate_ssh_update_options(update=True, app="my-app", archive="db.zip")
+
+
+def test_get_remote_app_mode_parses_compose_line():
+    from psynet.command_line import _get_remote_app_mode
+
+    executor = Mock()
+    executor.run.return_value = '      mode: "live"\n'
+    with (
+        patch(
+            "psynet.command_line.CONFIGURED_HOSTS",
+            {"test-server": {"host": "example.com", "user": "tester"}},
+        ),
+        patch(
+            "dallinger.command_line.docker_ssh.Executor",
+            return_value=executor,
+        ),
+    ):
+        assert _get_remote_app_mode("test-server", "my-app") == "live"
+    assert "my-app" in executor.run.call_args.args[0]
+
+
+def test_abort_if_ssh_update_mode_mismatch():
+    from psynet.command_line import _abort_if_ssh_update_mode_mismatch
+
+    with (
+        patch(
+            "psynet.command_line._get_remote_app_mode",
+            return_value="live",
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        _abort_if_ssh_update_mode_mismatch("test-server", "my-app", "live")
+        mock_echo.assert_not_called()
+        with pytest.raises(click.Abort):
+            _abort_if_ssh_update_mode_mismatch("test-server", "my-app", "sandbox")
+    assert "psynet deploy ssh" in mock_echo.call_args.args[0]
+
+
+def test_pre_launch_update_skips_exists_check_and_confirms():
+    from psynet.command_line import _pre_launch
+
+    ctx = Mock()
+    with (
+        patch("psynet.command_line._check_experiment_directory"),
+        patch("psynet.services.ensure_local_services"),
+        patch("psynet.command_line.redis_vars.clear"),
+        patch("psynet.command_line.deployment_info.init"),
+        patch("psynet.command_line.deployment_info.write"),
+        patch("dallinger.command_line.docker_ssh.ensure_remote_host_in_known_hosts"),
+        patch("psynet.command_line._abort_if_app_exists") as mock_exists,
+        patch("psynet.command_line._abort_if_app_missing") as mock_missing,
+        patch("psynet.command_line._abort_if_ssh_update_mode_mismatch") as mock_mode,
+        patch("psynet.command_line._confirm_ssh_update") as mock_confirm,
+        patch(
+            "psynet.command_line.run_pre_checks",
+            side_effect=RuntimeError("stop-after-confirm"),
+        ) as mock_run_pre_checks,
+        patch(
+            "psynet.command_line.CONFIGURED_HOSTS",
+            {"test-server": {"host": "example.com", "user": "test-user"}},
+        ),
+    ):
+        with pytest.raises(RuntimeError, match="stop-after-confirm"):
+            _pre_launch(
+                ctx,
+                mode="live",
+                archive=None,
+                local_=False,
+                ssh=True,
+                docker=True,
+                server="test-server",
+                app="test-app",
+                update=True,
+            )
+
+    mock_exists.assert_not_called()
+    mock_missing.assert_called_once_with("test-server", "test-app")
+    mock_mode.assert_called_once_with("test-server", "test-app", "live")
+    mock_confirm.assert_called_once()
+    assert mock_run_pre_checks.call_args.kwargs["update"] is True
+
+
+def test_invoke_dallinger_ssh_deploy_passes_boolean_update():
+    from psynet.command_line import _invoke_dallinger_ssh_deploy
+
+    ctx = Mock()
+    ctx.invoke.return_value = {
+        "dashboard_user": "admin",
+        "dashboard_password": "secret",
+    }
+    command = Mock()
+    with patch("psynet.command_line._post_deploy") as mock_post:
+        _invoke_dallinger_ssh_deploy(
+            ctx,
+            command,
+            server="test-server",
+            dns_host=None,
+            app="test-app",
+            update=True,
+        )
+        mock_post.assert_not_called()
+        assert ctx.invoke.call_args.kwargs["update"] is True
+
+        _invoke_dallinger_ssh_deploy(
+            ctx,
+            command,
+            server="test-server",
+            dns_host=None,
+            app="test-app",
+            update=False,
+        )
+        mock_post.assert_called_once()
+        assert ctx.invoke.call_args.kwargs["update"] is False
+
+
+def test_prepare_skips_init_db_on_update():
+    from psynet.command_line import _prepare
+
+    experiment = Mock()
+    with (
+        patch("psynet.command_line.redis_vars.clear"),
+        patch("dallinger.db.init_db") as mock_init,
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.command_line.clean_sys_modules"),
+        patch("psynet.command_line.update_docker_tag"),
+        patch("dallinger.db.session"),
+    ):
+        _prepare(update=True)
+
+    mock_init.assert_not_called()
+    experiment.pre_deploy.assert_called_once_with(
+        redeploying_from_archive=False,
+        update=True,
+    )
+
+
+def test_confirm_ssh_update_defaults_no_for_live():
+    from psynet.command_line import _confirm_ssh_update
+
+    with patch(
+        "psynet.command_line.user_confirms",
+        return_value=True,
+    ) as mock_confirm:
+        _confirm_ssh_update(app="my-app", server="lab", mode="live")
+        assert mock_confirm.call_args.kwargs["default"] is False
+        _confirm_ssh_update(app="my-app", server="lab", mode="sandbox")
+        assert mock_confirm.call_args.kwargs["default"] is True
+        question = mock_confirm.call_args.args[0]
+        assert "stimulus files are not replaced" in question
+        assert "timeline" in question
 
 
 def test_pre_launch_aborts_when_app_exists():

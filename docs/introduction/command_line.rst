@@ -35,14 +35,23 @@ The following code runs an experiment in debug mode on your local computer:
 
     psynet debug local
 
-The following code runs an experiment in debug mode on your own web server, via SSH;
-this will push the experiment code to Heroku, but won't recruit any participants,
-even if your recruiter is set to ``mturk`` or ``prolific``.
+The following code runs an experiment in debug mode on your own web server, via SSH.
+This will not recruit paid participants, even if your recruiter is set to
+``mturk`` or ``prolific``.
 Note the specification of an app name.
 
 .. code:: bash
 
     psynet debug ssh --app my-app-name
+
+To rebuild that same debug app without wiping participant data, pass ``--update``
+(or ``-u``). Pre-deposited stimulus files stay as they are, recruitment is not
+re-opened, and you should not change the timeline while anyone is still taking
+the experiment.
+
+.. code:: bash
+
+    psynet debug ssh --app my-app-name --update
 
 This code does the same, but provisioning the web server automatically via the paid service Heroku:
 
@@ -62,6 +71,19 @@ This command deploys an experiment, and enable the recruiter so you can collect 
 
     psynet deploy ssh --app my-app-name  # for deploying via SSH
     psynet deploy heroku --app my-app-name  # for deploying via Heroku
+
+To push code changes onto an SSH app that is already running, without destroying
+the participant database, add ``--update``:
+
+.. code:: bash
+
+    psynet deploy ssh --app my-app-name --update
+
+This is a hotfix, not a new study version. It does not replace pre-deposited
+stimulus files, does not reopen recruitment, and should not be used to change
+the timeline while anyone is still taking the experiment. For a new stimulus
+set or a redesigned timeline, destroy the app and deploy again (or use
+``--archive``).
 
 (Experimental): It is possible to deploy an experiment that resurrects the state of a previous
 experiment deployment. To do this you add ``--archive path/to/database.zip`` where

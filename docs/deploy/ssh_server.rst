@@ -217,6 +217,34 @@ what experiment names to support, and then setting up the DNS to support those n
     one of those subdomains. For example, when deploying through the web server of the Centre for Music and Science
     at Cambridge, only app names of the form ``psynet-01``, ``psynet-02``, ..., ``psynet-20`` are supported.
 
+Updating an existing SSH app
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the app is already running and you need to push a code or config hotfix
+without wiping participant data, pass ``--update`` (or ``-u``):
+
+.. code:: bash
+
+    psynet debug ssh --app your-app-name --update
+    psynet deploy ssh --app your-app-name --update
+
+Use the same command (debug vs deploy) that you used to create the app.
+``--update`` rebuilds the Docker image and restarts the containers. It keeps
+the remote Postgres database and Redis, does not reopen recruitment, and does
+not replace pre-deposited stimulus files. On-demand assets that are generated
+from code in the image *will* pick up function changes.
+
+Do not use ``--update`` to change the timeline, module IDs, or trial-maker
+structure unless nobody is still taking the experiment: participant progress is
+stored as a position in that timeline. For a new stimulus set, new networks, or
+a PsyNet upgrade, destroy the app and deploy again.
+
+Containers restart, so anyone currently on a page may need to refresh. Dallinger
+currently also mints a new Flask secret on update, which can drop browser
+sessions.
+
+``--update`` cannot be combined with ``--archive``, and it requires ``--app``.
+
 Under the hood, the deployment command works as follows:
 
 - Run any preliminary steps, e.g. uploading assets to the remote server

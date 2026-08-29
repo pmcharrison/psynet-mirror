@@ -2107,24 +2107,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 experiment=self,
             )
 
-    def pre_deploy(self, redeploying_from_archive=False):
-        self.update_deployment_id()
+    def pre_deploy(self, redeploying_from_archive=False, *, update=False):
+        """Prepare experiment files and (unless updating) the database snapshot.
+
+        Parameters
+        ----------
+        redeploying_from_archive : bool
+            If True, skip asset deposits and the database snapshot.
+        update : bool
+            If True, rebuild an existing SSH app in place. Skip a new
+            deployment id, network setup, asset deposits, and the database
+            snapshot so the remote participant database is not replaced.
+        """
+        if not update:
+            self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
 
         _write_pre_deploy_constant_registry()
 
-        for module in self.timeline.modules.values():
-            module.prepare_for_deployment(experiment=self)
+        if not update:
+            for module in self.timeline.modules.values():
+                module.prepare_for_deployment(experiment=self)
 
-        for routine in self.pre_deploy_routines:
-            logger.info(f"Running pre-deployment routine '{routine.label}'...")
-            call_function_with_context(
-                routine.function, experiment=self, **routine.args
-            )
+            for routine in self.pre_deploy_routines:
+                logger.info(f"Running pre-deployment routine '{routine.label}'...")
+                call_function_with_context(
+                    routine.function, experiment=self, **routine.args
+                )
 
-        # Skip asset preparation and database snapshot when deploying from archive
-        if not redeploying_from_archive:
+        # Skip asset preparation and database snapshot when deploying from
+        # archive or updating an existing SSH app in place.
+        if not redeploying_from_archive and not update:
             self.assets.prepare_for_deployment()
             self.create_database_snapshot()
 
