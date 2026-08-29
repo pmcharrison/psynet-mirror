@@ -1,4 +1,4 @@
-Documented packaging and modelling constraints for adaptive experiments: keep
-item banks outside the excluded experiment-root ``data/`` directory until a
-follow-up after !1151 can narrow that exclude; use ``inherit_column`` for extra
-fields on ``StaticTrial``.
+Documented packaging constraints for adaptive experiments: keep item banks
+outside the excluded experiment-root ``data/`` directory, and choose between
+extra trial columns and a dedicated observation table on the basis of how the
+model reads the data.

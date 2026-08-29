@@ -11,6 +11,6 @@ pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
     [path_to_test_experiment("local_module")],
     indirect=True,
 )
-def test_absolute_import_of_experiment_sibling_module(in_experiment_directory):
+def test_relative_import_of_experiment_sibling_module(in_experiment_directory):
     exp = get_experiment()
     assert exp.helper_value == 7

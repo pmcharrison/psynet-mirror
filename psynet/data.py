@@ -36,7 +36,7 @@ from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import deferred
+from sqlalchemy.orm import ColumnProperty, deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
@@ -303,6 +303,76 @@ class InvalidDefinitionError(ValueError):
 checked_classes = set()
 
 
+def _reuse_inherited_columns(cls):
+    """Reuse an inherited table's column when a subclass redeclares its name.
+
+    Dallinger models such as ``Info`` use single-table inheritance, so every
+    ``Trial`` subclass contributes its columns to the shared ``info`` table.
+    A plain ``Column`` in a subclass body therefore fails as soon as that name
+    is already on the table. This happens for sibling classes, and also when
+    PsyNet imports the same ``experiment.py`` twice in one process, for
+    example once from the experiment directory and once from the debug
+    staging copy. Substituting the existing column keeps such declarations
+    idempotent, so experiment authors can write ordinary SQLAlchemy.
+
+    Parameters
+    ----------
+    cls
+        The subclass being created, before SQLAlchemy maps it.
+
+    Raises
+    ------
+    InvalidDefinitionError
+        If the redeclared column asks for a different type than the column
+        already on the table, which would otherwise be silently ignored.
+    """
+    if cls.__dict__.get("__abstract__"):
+        return
+    # A subclass with its own table starts from an empty column collection,
+    # so nothing can be inherited and ``cls.__table__`` is not yet defined.
+    if "__tablename__" in cls.__dict__ or "__table__" in cls.__dict__:
+        return
+
+    table = getattr(cls, "__table__", None)
+    if table is None:
+        return
+
+    for attribute, value in list(cls.__dict__.items()):
+        column = _declared_column(value)
+        if column is None:
+            continue
+        existing = table.c.get(column.name or attribute)
+        if existing is None or existing is column:
+            continue
+        if type(existing.type) is not type(column.type):  # noqa: E721
+            raise InvalidDefinitionError(
+                f"Column '{attribute}' on class {cls.__name__} is declared as "
+                f"{type(column.type).__name__}, but '{table.name}.{existing.name}' "
+                f"already exists as {type(existing.type).__name__}. Classes that "
+                f"share the '{table.name}' table must agree on each column's type; "
+                "rename one of them."
+            )
+        setattr(
+            cls,
+            attribute,
+            deferred(existing) if isinstance(value, ColumnProperty) else existing,
+        )
+
+
+def _declared_column(value):
+    """Return the unmapped column a class attribute declares, if it declares one.
+
+    Handles both ``Column(...)`` and ``deferred(Column(...))``.
+    """
+    if isinstance(value, Column):
+        return value
+    if isinstance(value, ColumnProperty) and len(value.columns) == 1:
+        column = value.columns[0]
+        if isinstance(column, Column):
+            return column
+    return None
+
+
 class SQLMixinDallinger(SharedMixin):
     """
     We apply this Mixin class when subclassing Dallinger classes,
@@ -326,6 +396,10 @@ class SQLMixinDallinger(SharedMixin):
         None  # set this to a string if you want to customize your polymorphic identity
     )
     __extra_vars__ = {}
+
+    def __init_subclass__(cls, **kwargs):
+        _reuse_inherited_columns(cls)
+        super().__init_subclass__(**kwargs)
 
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls)

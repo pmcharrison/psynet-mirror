@@ -5,7 +5,6 @@ from jsonpickle.unpickler import loadclass
 from jsonpickle.util import importable_name
 from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import declared_attr
 from sqlalchemy.types import TypeDecorator
 
 from .utils import get_logger
@@ -105,44 +104,6 @@ def extra_var(extra_vars):
         return function
 
     return real_decorator
-
-
-def inherit_column(type_, **kwargs):
-    """Add a mapped column on a subclass that shares its parent's SQL table.
-
-    Dallinger models such as :class:`~psynet.trial.main.Trial` (table ``info``)
-    use single-table inheritance. A bare ``item_id = Column(String)`` on the
-    first subclass works, but a later subclass or a second import of the
-    experiment module raises ``Column 'item_id' conflicts with existing column
-    'info.item_id'``. This helper reuses the column when it already exists.
-
-    Parameters
-    ----------
-    type_
-        SQLAlchemy type or ``TypeDecorator`` passed to :class:`~sqlalchemy.Column`.
-    **kwargs
-        Extra :class:`~sqlalchemy.Column` keyword arguments, such as
-        ``index=True``. They apply only when the column is created, not when an
-        existing table column is reused.
-
-    Examples
-    --------
-    >>> from sqlalchemy import String
-    >>> from psynet.field import inherit_column
-    >>> from psynet.trial.static import StaticTrial
-    >>> class VocabularyTrial(StaticTrial):
-    ...     item_id = inherit_column(String, index=True)
-    """
-
-    @declared_attr
-    def _column(cls):
-        name = _column.__name__
-        existing = cls.__table__.c.get(name)
-        if existing is not None:
-            return existing
-        return Column(type_, **kwargs)
-
-    return _column
 
 
 def claim_field(name: str, extra_vars: dict, field_type=object):

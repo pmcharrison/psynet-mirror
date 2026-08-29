@@ -126,31 +126,27 @@ What variables might we filter on? The simplest way to find out is to inspect th
 |br|
 You may find that this list is missing some variables that you want to use. In particular, if you’ve been storing custom variables in ``CustomTrial.var``, you won’t see them as SQL columns and you won’t be able to filter on them. This is because these var objects are stored in JSON in the database, and are hence difficult to filter on in SQL.
 
-Fortunately, it’s quite straightforward to define your own columns manually using standard SQLAlchemy syntax. Trial classes share Dallinger's ``info`` table, so prefer :func:`psynet.field.inherit_column` rather than a bare ``Column()``. A bare column works on the first subclass definition, but a later subclass or a second import of ``experiment.py`` raises ``conflicts with existing column 'info.<name>'``.
+Fortunately, it’s quite straightforward to define your own columns manually using standard SQLAlchemy syntax. See the following example:
 
 .. code-block:: python
 
-    from sqlalchemy import Integer
-
-    from psynet.field import inherit_column
+    from sqlalchemy import Column, Integer
 
     class CustomTrial(GibbsTrial):
-        random_integer = inherit_column(Integer)
+        random_integer = Column(Integer)
 
         def __init__(*args, **kwargs):
             super().__init__(*args, **kwargs)
             self.random_integer = random.randint(0, 10)
 
-The equivalent explicit form is a :func:`~sqlalchemy.orm.declared_attr` that reuses the table column when it already exists:
+.. note::
 
-.. code-block:: python
-
-    from sqlalchemy import Column, Integer
-    from sqlalchemy.orm import declared_attr
-
-    @declared_attr
-    def random_integer(cls):
-        return cls.__table__.c.get("random_integer", Column(Integer))
+    Trial classes share Dallinger's ``info`` table, so two trial classes that
+    declare the same column name share one column. PsyNet reuses the existing
+    column in that case, which also lets PsyNet reimport ``experiment.py``
+    from its staging copy during debug and deployment. If the two declarations
+    ask for different types, PsyNet raises an error asking you to rename one of
+    them.
 
 Having defined the class in this way, we can then run queries for ``CustomTrial`` objects that filter on the value of ``random_integer``:
 

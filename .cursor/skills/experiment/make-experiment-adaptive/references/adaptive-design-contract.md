@@ -37,10 +37,11 @@ the simulation response model is only a testing assumption.
 - Document which fields correspond to observations `y` and covariates `z`.
 - Keep raw answers for audit alongside transformed model observations.
 - Prefer queryable SQLAlchemy columns for core variables; use `PythonObject`
-  only where structured values genuinely require it. Extra fields on a
-  ``StaticTrial`` subclass must use ``psynet.field.inherit_column`` (trials
-  share Dallinger's ``info`` table). Use a dedicated observation table when
-  the same schema is shared with standalone simulation code.
+  only where structured values genuinely require it. Extra ``Column``
+  attributes on a trial class are fine, but trial classes share Dallinger's
+  ``info`` table, so a shared column name must have one type. Use a dedicated
+  observation table when the same schema is shared with standalone simulation
+  code.
 - Put calibrated item banks in ``stimuli/`` (or another non-excluded folder)
   and commit them. Stock packaging still omits the experiment-root ``data/``
   directory (Dallinger ``exclusion_policy``, and after !1151 the stock
@@ -112,7 +113,6 @@ Choose one strategy explicitly:
 - Using online learning without concurrency protection.
 - Re-querying a selected node or chain instead of returning the exact candidate
   object supplied by PsyNet.
-- Adding a bare ``Column()`` on ``StaticTrial`` (use ``inherit_column``), or
-  storing the item bank under ``data/``.
+- Storing the item bank under ``data/``.
 - Overriding managed trial preparation rather than the relevant discovery,
   eligibility, or selection hook.

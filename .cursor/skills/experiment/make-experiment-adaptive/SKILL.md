@@ -47,13 +47,17 @@ benchmark/
 
 `adaptive_logic.py` contains the fitting and selection functions used by both
 PsyNet and the standalone simulation. It must not import PsyNet or SQLAlchemy.
-Before importing it from ``experiment.py``, put the experiment directory on
-``sys.path`` using ``Path(__file__).resolve().parent``. Debug and deploy load
-``experiment.py`` from a temporary package where a bare ``import adaptive_logic``
-otherwise fails. Do not leave the experiment directory on ``sys.path`` for the
-whole process as a substitute: a file named ``json.py``, ``tests.py``, or
-similar will shadow the standard library or installed packages in every later
-import. The ``Path(__file__)`` insert is scoped to that experiment.
+Import it from ``experiment.py`` with a relative import:
+
+```python
+from . import adaptive_logic
+```
+
+Dallinger imports the experiment directory as a package, so a plain
+``import adaptive_logic`` raises ``ModuleNotFoundError`` in the web, worker, and
+clock processes even though it succeeds under `pytest`. Standalone code such as
+`simulate_procedure.py` and `power/core.py` runs outside that package and keeps
+using ordinary top-level imports.
 
 `simulate_procedure.py` runs one complete adaptive experiment without starting
 PsyNet. It maintains the observation, participant, item, and decision tables;
@@ -366,24 +370,24 @@ to be called a score.
 
 For a small dataset, unpack `trial.answer` and `trial.definition` in Python.
 If fitting rereads a large trial table, store model fields as queryable columns.
-Extra fields on a ``StaticTrial`` subclass are supported; they live on
-Dallinger's shared ``info`` table, so declare them with
-``inherit_column`` rather than a bare ``Column()``:
+Extra columns on a trial class use ordinary SQLAlchemy syntax:
 
 ```python
-from sqlalchemy import String
+from sqlalchemy import Column, String
 
-from psynet.field import inherit_column
 from psynet.trial.static import StaticTrial
 
 
 class VocabularyTrial(StaticTrial):
-    item_id = inherit_column(String, index=True)
+    item_id = Column(String, index=True)
 ```
 
+Trial classes share Dallinger's ``info`` table, so two trial classes declaring
+the same column name share one column and must agree on its type.
+
 A dedicated observation table remains appropriate when the same fields are
-shared with standalone simulation code, or when several trial classes would
-otherwise duplicate columns. Follow
+shared with standalone simulation code, or when the model rereads observations
+far more often than trials. Follow
 [references/study-state-storage.md](references/study-state-storage.md) for
 snapshot and decision tables.
 
