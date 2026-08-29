@@ -261,6 +261,82 @@ more appropriate. It should:
   appropriate equivalent so figures are stored in the executed notebook;
 - distinguish technical validation from scientific conclusions.
 
+## Figure layout for rendered audits
+
+The audit renders notebooks inside a column roughly 700-900 px wide, narrower
+than a JupyterLab window. Figures that look fine while authoring routinely
+collide once rendered: facet titles overlap each other, in-plot annotations
+land on the data, and long legends wrap into the title.
+
+Follow these rules.
+
+- **One question per figure.** Split a crowded figure instead of shrinking its
+  text. Two figures that each answer one question beat one figure that answers
+  two.
+- **Avoid facets.** With three facets the usable panel width drops to about
+  250 px, which is where `facet_col` titles start overlapping. Encode the
+  extra dimension with colour, or split into separate figures.
+- **Shorten every label.** Map database-style ids
+  (`well_specified_2pl`) to display labels (`Matching 2PL`) before plotting,
+  and strip the `variable=` prefix Plotly Express adds to facet titles.
+- **Put explanations in Markdown, not in the plot.** A `display(Markdown(...))`
+  caption above the figure has unlimited room; an `annotation_text` inside the
+  axes does not, and will sit on top of a line.
+- **Give the legend its own space.** A horizontal legend above the plot works
+  while it fits on one row. Two encodings (colour plus `line_dash`) produce one
+  entry per combination, which wraps and pushes into the title, so those
+  figures need a right-hand legend column and a matching right margin.
+- **Set an explicit height.** The rendered container is 20 rem tall by default;
+  420 px or more avoids a squashed plot.
+- **Set explicit tick values** for a handful of design points, rather than
+  letting Plotly choose ticks that repeat or crowd.
+
+Use this reference layout, adjusting the numbers rather than inventing a new
+scheme per figure:
+
+```python
+AUDIT_FIGURE_LAYOUT = dict(
+    height=420,
+    margin=dict(l=70, r=30, t=90, b=60),
+    title=dict(x=0, xanchor="left"),
+    legend=dict(
+        orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0, title_text=""
+    ),
+)
+# Many series, or two encodings: move the legend into its own column.
+AUDIT_FIGURE_LAYOUT_SIDE_LEGEND = dict(
+    AUDIT_FIGURE_LAYOUT,
+    margin=dict(l=70, r=210, t=70, b=60),
+    legend=dict(
+        orientation="v", yanchor="top", y=1, xanchor="left", x=1.02, title_text=""
+    ),
+)
+
+SCENARIO_LABELS = {"well_specified_2pl": "Matching 2PL", "three_pl_guessing": "3PL guessing"}
+results["scenario"] = results["response_scenario"].map(SCENARIO_LABELS)
+
+display(Markdown("""## Operational performance
+
+The dashed line is the RMSE requirement of 0.45; error bars are Monte Carlo
+95% intervals."""))
+
+fig = px.line(
+    results, x="max_trials", y="rmse", color="scenario",
+    error_y="rmse_mc95_half_width", markers=True,
+    labels={"max_trials": "Maximum CAT items", "rmse": "Ability RMSE"},
+    title="Operational ability recovery",
+)
+fig.add_hline(y=0.45, line_dash="dash", line_color="firebrick")
+fig.update_xaxes(tickvals=sorted(results["max_trials"].unique()))
+fig.update_layout(**AUDIT_FIGURE_LAYOUT)
+fig.show()
+```
+
+Check the result at the rendered width before finalizing, not only in the
+authoring window. `psynet audit render` followed by `psynet audit serve` shows
+the real column width; a browser window around 1024 px wide is a good stress
+test.
+
 `REPORT.md` should state:
 
 - what was implemented;

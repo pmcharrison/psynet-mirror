@@ -201,6 +201,16 @@ interactive and work offline. Prefer `plotly_mimetype` over `notebook`,
 `notebook_connected`, or HTML-only renderers, which may pull a CDN or embed a
 second copy of Plotly. Static SVG or PNG output remains supported.
 
+Power grids invite crowded figures: several designs, several policies, and
+several assumption scenarios at once. The rendered audit column is narrower
+than a JupyterLab window, so `facet_col` titles overlap, in-plot annotations
+land on the data, and combined colour/dash legends wrap into the title. Give
+each figure one question, avoid facets, shorten labels, and keep the decision
+threshold explained in a Markdown caption rather than an `annotation_text`.
+The layout rules and reference code live in
+`produce-experiment-audit/references/populating-an-audit.md`; verify the result
+at the rendered width with `psynet audit render` and `psynet audit serve`.
+
 After executing it, mark the artifacts present:
 
 ```bash
