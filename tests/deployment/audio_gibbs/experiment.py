@@ -122,7 +122,8 @@ def get_prolific_settings():
         qualification = json.dumps(json.load(f))
 
     return {
-        "recruiter": "prolific",
+        # No-study dry-run: DevProlific does not create a Prolific study.
+        "recruiter": "devprolific",
         "base_payment": 0.50,
         "prolific_estimated_completion_minutes": 3,
         "prolific_recruitment_config": qualification,

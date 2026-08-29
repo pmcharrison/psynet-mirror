@@ -2,7 +2,4 @@
 aws_region = us-east-1
 
 # check_dallinger_version = false
-publish_experiment = true
-
-recruiter = devprolific
 publish_experiment = false
