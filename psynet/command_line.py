@@ -62,6 +62,7 @@ from .local_deployment import (
     local_deployment_lock,
     protect_existing_database,
     read_database_owner,
+    terminate_other_database_sessions,
     validate_local_id,
 )
 from .log import bold
@@ -205,12 +206,18 @@ def prepare(archive):
 
 def _prepare(archive=None):
     with local_database_lock(Path.cwd()):
-        _check_no_live_workers_before_database_reset()
+        # Reap workers first so they cannot reconnect, snapshot any unsaved
+        # managed state, then disconnect whatever is left before the reset.
+        kill_psynet_worker_processes()
         protect_existing_database(
             Path.cwd(),
             "prepare",
             ignore_unmanaged=True,
         )
+        if terminate_other_database_sessions():
+            # Our own pooled connections were disconnected too; drop them so the
+            # reset starts from fresh ones.
+            db.engine.dispose()
         return _prepare_unlocked(archive)
 
 
@@ -960,6 +967,8 @@ def safely_kill_process(p):
         p.kill()
     except psutil.NoSuchProcess:
         pass
+    except psutil.Error as error:
+        logger.warning("Could not stop process %s: %s", getattr(p, "pid", "?"), error)
 
 
 def _process_is_defunct(process):
@@ -978,55 +987,29 @@ def _process_is_defunct(process):
         return False
 
 
-def _reap_psynet_worker_processes(rounds=2, timeout=5):
-    """Kill leftover PsyNet workers and return those still able to run."""
+def kill_psynet_worker_processes(wait_timeout=1):
+    """Terminate leftover PsyNet worker processes, best effort.
+
+    Cleanup must never fail a launch or a shutdown: an unkillable or already
+    defunct worker is reported and otherwise ignored. What actually protects the
+    database is ``terminate_other_database_sessions``, which runs immediately
+    before the local database is reset.
+    """
     processes = list_psynet_worker_processes()
     if len(processes) == 0:
-        return []
+        return
     log(
         f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
     )
-    alive = processes
-    for _round in range(rounds):
-        for process in alive:
-            safely_kill_process(process)
-        _gone, alive = psutil.wait_procs(alive, timeout=timeout)
-        alive = [process for process in alive if not _process_is_defunct(process)]
-        if not alive:
-            break
-    return alive
-
-
-def kill_psynet_worker_processes():
-    """Terminate leftover PsyNet workers, warning about any that survive.
-
-    This runs on shutdown paths, where raising would mask the original error
-    and skip remaining cleanup. Launch paths that reset the database call
-    ``_check_no_live_workers_before_database_reset`` instead, which refuses to
-    continue while a worker could still write.
-    """
-    alive = _reap_psynet_worker_processes()
+    for process in processes:
+        safely_kill_process(process)
+    _gone, alive = psutil.wait_procs(processes, timeout=wait_timeout)
+    alive = [process for process in alive if not _process_is_defunct(process)]
     if alive:
         logger.warning(
-            "Failed to stop PsyNet worker process(es): %s.",
+            "PsyNet worker process(es) did not stop: %s. Their database sessions "
+            "are disconnected before the local database is reset.",
             ", ".join(str(process.pid) for process in alive),
-        )
-
-
-def _check_no_live_workers_before_database_reset():
-    """Refuse to reset the local database while a worker could still write.
-
-    Workers are given several kill/wait rounds first, because a busy machine can
-    take a while to tear them down and refusing too eagerly would block launches
-    that are in fact safe.
-    """
-    alive = _reap_psynet_worker_processes(rounds=3, timeout=10)
-    if alive:
-        pids = ", ".join(str(process.pid) for process in alive)
-        raise click.ClickException(
-            "PsyNet worker process(es) are still running and could write to the "
-            f"local database while it is reset: {pids}. "
-            "Stop them, then try again."
         )
 
 

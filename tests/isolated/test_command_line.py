@@ -3515,6 +3515,7 @@ def test_kill_psynet_worker_processes_warns_instead_of_raising(caplog):
         kill_psynet_worker_processes()
 
     assert "4242" in caplog.text
+    assert "did not stop" in caplog.text
 
 
 def test_kill_psynet_worker_processes_ignores_zombies(caplog):
@@ -3538,13 +3539,14 @@ def test_kill_psynet_worker_processes_ignores_zombies(caplog):
     assert "4243" not in caplog.text
 
 
-def test_prepare_refuses_database_reset_while_a_worker_survives(tmp_path):
+def test_prepare_disconnects_other_database_clients_before_resetting(tmp_path):
     import psutil
 
     from psynet.command_line import _prepare
     from psynet.utils import working_directory
 
     survivor = _worker_process(4244, psutil.STATUS_RUNNING)
+    calls = []
 
     with (
         patch(
@@ -3553,15 +3555,23 @@ def test_prepare_refuses_database_reset_while_a_worker_survives(tmp_path):
         ),
         patch("psynet.command_line.safely_kill_process"),
         patch("psynet.command_line.psutil.wait_procs", return_value=([], [survivor])),
-        patch("psynet.command_line.protect_existing_database") as protect,
-        patch("psynet.command_line._prepare_unlocked") as prepare_unlocked,
+        patch(
+            "psynet.command_line.protect_existing_database",
+            side_effect=lambda *_a, **_k: calls.append("protect"),
+        ),
+        patch(
+            "psynet.command_line.terminate_other_database_sessions",
+            side_effect=lambda *_a, **_k: calls.append("disconnect"),
+        ),
+        patch(
+            "psynet.command_line._prepare_unlocked",
+            side_effect=lambda _archive: calls.append("reset"),
+        ),
         working_directory(tmp_path),
     ):
-        with pytest.raises(click.ClickException, match="4244"):
-            _prepare()
+        _prepare()
 
-    protect.assert_not_called()
-    prepare_unlocked.assert_not_called()
+    assert calls == ["protect", "disconnect", "reset"]
 
 
 def test_terminate_server_process_escalates_when_sendcontrol_raises_oserror():
