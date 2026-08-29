@@ -1097,6 +1097,45 @@ def test_on_recruiter_submission_complete_replays_record_without_paying():
     assert harness.submission_successful_calls == []
 
 
+def test_submission_complete_replay_rerecords_when_issued_code_changes_while_unconfirmed():
+    """A replay still re-runs decide/record. If the issued completion code
+    changed after a failed first transfer, status and platform base are
+    rewritten without a second money POST or a second recruit.
+    """
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="submitted")
+    )
+    participant.issued_completion_code_type = "DEFAULT"
+    participant.recruiter.reward_bonus.return_value = False
+    harness = PaymentHarness()
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        harness.on_recruiter_submission_complete(participant, event=None)
+
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.status == "approved"
+    assert participant.base_payment == 1.00
+    assert participant.bonus is None
+    assert harness.recruit_calls == 1
+    participant.recruiter.reward_bonus.reset_mock()
+
+    participant.status = "submitted"
+    participant.failed = True
+    participant.issued_completion_code_type = PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        harness.on_recruiter_submission_complete(participant, event=None)
+
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.bonus is None
+    assert participant.status == "screened_out"
+    assert participant.base_payment == 0.25
+    assert harness.recruit_calls == 1
+    assert harness.submission_successful_calls == [participant]
+
+
 def test_on_recruiter_submission_complete_continues_recruiting_when_transfer_fails():
     config = make_config()
     participant = prepare_payout_participant(
