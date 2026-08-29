@@ -26,15 +26,16 @@ experiment directory): the Prolific variants use the `MAIN` consent and the
 Lucid variant uses the `CINT` consent.
 
 By default a full deployment test produces **three apps**: the two Prolific
-experiments plus the Lucid variant of `audio_gibbs`, all deployed **in
-parallel** to save wall-clock time (the paid `audio_gibbs` variants deploy
-from temporary git worktrees; see "Prepare The Recruiter Variants").
+experiments plus the Lucid variant of `audio_gibbs`. Overlap the long
+remote image builds to save wall-clock time, but **do not start all three
+`psynet deploy ssh` commands at once** (see "Stagger Local Prepare, Then
+Overlap Remote Builds"). The paid `audio_gibbs` variants deploy from
+temporary git worktrees; see "Prepare The Recruiter Variants".
 Deploy a subset only when the user explicitly asks for it.
 Prepare both experiment directories on a **single fresh deployment branch
-created for this deployment** (the preparation steps below are shared), then run the three
-`psynet deploy ssh` commands concurrently. Do not reuse or rebase a
-long-lived deployment branch; each deployment gets its own branch so its
-exact code is preserved for later auditing.
+created for this deployment** (the preparation steps below are shared).
+Do not reuse or rebase a long-lived deployment branch; each deployment
+gets its own branch so its exact code is preserved for later auditing.
 
 **Base the branch on the latest PsyNet release tag by default** (including
 release candidates, e.g. `v13.3.0rc0`), so the test exercises what users
@@ -243,13 +244,14 @@ git commit -m "Generate constraints from pinned requirements"
    the older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
 
-Deploy all three apps **in parallel**, each from its own directory with its
-own app name: `payment_flows_prolific` from the main checkout (after its
-Prolific-variant swap is committed on the deployment branch), and the two
-paid `audio_gibbs` variants from temporary worktrees (both swaps prepared
-as described in "Prepare The Recruiter Variants" below). Start each deploy
-as a background process (or in separate terminals) and monitor all launch
-outputs:
+Deploy all three apps from their own directories with their own app names:
+`payment_flows_prolific` from the main checkout (after its Prolific-variant
+swap is committed on the deployment branch), and the two paid `audio_gibbs`
+variants from temporary worktrees (both swaps prepared as described in
+"Prepare The Recruiter Variants" below). Start each deploy as a background
+process (or in a separate terminal) and monitor all launch outputs, but
+**stagger the starts** so only one deploy is in local prepare at a time
+(see the next section). Do not background all three in one shot.
 
 ```bash
 source <psynet-root>/<venv>/bin/activate
@@ -258,19 +260,28 @@ source <psynet-root>/<venv>/bin/activate
   --server <ssh-host> \
   --dns-host <dns-host> \
   --app <payment-flows-prolific-app-name>) &
+```
 
+Wait until that deploy prints `Attempting to build image on remote host`
+(fallback if that line is skipped: `Experiment UID:`). Then start the next:
+
+```bash
 (cd <prolific-worktree>/tests/deployment/audio_gibbs && psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
   --app <audio-gibbs-prolific-app-name>) &
+```
 
+Wait for the same marker, then start the third:
+
+```bash
 (cd <lucid-worktree>/tests/deployment/audio_gibbs && psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
   --app <audio-gibbs-lucid-app-name>) &
-
-wait
 ```
+
+After all three have passed the marker, the remote builds overlap.
 
 Do not let one deployment's failure silently abort the others: check each
 launch output separately, and report per-app success/failure.
@@ -290,4 +301,40 @@ release-tag ones. (Older deployments used the app names
 `test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`, before the
 recruiter suffix became part of the convention.) After deployment, inspect
 each launch output for the experiment URL, dashboard URL, and Dozzle URL.
+
+## Stagger Local Prepare, Then Overlap Remote Builds
+
+Every `psynet deploy ssh` uses the **developer's local Postgres** before it
+touches the remote host. `_pre_launch` calls `prepare`, which runs
+`db.init_db(drop_all=True)` and `experiment.pre_deploy()` against the shared
+`dallinger` database (schema create includes
+`CREATE TYPE participant_status AS ENUM ...`). After that local work
+finishes, the deploy no longer needs local Postgres: it builds the image
+and launches on the server.
+
+Starting two or more deploys at the same instant races that local
+`init_db`. The typical failure is **not** a remote crash-loop. It dies
+during local prepare with:
+
+```text
+IntegrityError / UniqueViolation
+Key (typname, typnamespace)=(participant_status, 2200) already exists
+CREATE TYPE participant_status AS ENUM (...)
+```
+
+`audio_gibbs` `pre_deploy` (assets / snapshot) can take longer than
+`payment_flows_prolific`, so a "start all three and hope" launch often
+fails the two `audio_gibbs` apps while the first one proceeds.
+
+**Rule:** only one deploy may be in local prepare at a time. Start the
+next only after the previous log shows
+`Attempting to build image on remote host` (fallback: `Experiment UID:`).
+From that point the expensive remote Docker builds and launches may
+overlap.
+
+If a deploy hits the `participant_status` UniqueViolation, treat it as
+this local race. Leave any deploy that already passed the marker running.
+Retry **only** the failed command, and only after every in-flight deploy
+has printed the marker (or finished). Do not restart the whole trio at
+once.
 

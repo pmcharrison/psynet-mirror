@@ -3,7 +3,7 @@
 
 The experiments' defaults cannot start paid recruitment (devprolific for
 `payment_flows_prolific`, HotAir for `audio_gibbs`). Before starting the
-three parallel deploy commands above, swap in the paid variants.
+three staggered deploy commands above, swap in the paid variants.
 
 1. `payment_flows_prolific` selects its recruiter via the config file, so
    swap in the paid config directly on the deployment branch and commit
@@ -45,7 +45,7 @@ git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
 git push -u origin deployment-tests/<base-tag>-audio-gibbs-lucid
 ```
 
-3. Deploy from the worktrees (these are the second and third parallel
+3. Deploy from the worktrees (these are the second and third staggered
    `psynet deploy ssh` commands shown above). Name the Lucid app
    `test-<base-tag>-audio-gibbs-lucid`, appending `-2`, `-3`, ... for repeat
    deployments (e.g. `test-v13-3-0rc1-audio-gibbs-lucid-1`).

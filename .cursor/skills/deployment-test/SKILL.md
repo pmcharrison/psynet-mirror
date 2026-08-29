@@ -20,7 +20,9 @@ See `references/browser-and-dashboard.md` for default URLs and credential policy
 ## Workflow
 
 1. **Deploy** (optional full test): follow `references/deploy-from-test-branch.md`.
-   Prepare paid variants per `references/recruiter-variants.md` before parallel deploys.
+   Prepare paid variants per `references/recruiter-variants.md`. Stagger local
+   prepare, then overlap remote builds — do not start all `psynet deploy ssh`
+   commands at once.
 2. **Infer app name** from the experiment URL hostname (first segment).
 3. **Inspect** dashboard and Dozzle per `references/browser-and-dashboard.md`.
 4. **Observe** recruiter completion per `references/observe-prolific-completion.md`
