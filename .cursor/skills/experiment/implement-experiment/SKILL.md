@@ -203,7 +203,7 @@ it into the PsyNet virtualenv before executing the notebook, and execute it
 headlessly so its outputs are embedded for review:
 
 ```bash
-uv pip install matplotlib jupyter nbconvert nbformat ipykernel
+uv pip install matplotlib plotly jupyter nbconvert nbformat ipykernel
 # nbconvert uses the notebook directory as cwd; resolve data paths from the
 # experiment root (for example Path(__file__) is unavailable in notebooks—
 # walk parents until experiment.py is found, or pass an absolute data path).

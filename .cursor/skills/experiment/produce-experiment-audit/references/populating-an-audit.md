@@ -255,9 +255,10 @@ more appropriate. It should:
 
 - read exported data directly;
 - show data loading and cleaning;
-- display useful summary tables or plots (prefer inline SVG; call
-  `plt.show()` or equivalent so figures are stored in the executed notebook);
-- distinguish technical validation from scientific conclusions.
+- display useful summary tables or plots. Prefer Plotly with
+  `pio.renderers.default = "plotly_mimetype"` for offline interactive figures;
+  inline SVG/PNG is also supported. Call `fig.show()`, `plt.show()`, or the
+  appropriate equivalent so figures are stored in the executed notebook;
 - distinguish technical validation from scientific conclusions.
 
 `REPORT.md` should state:

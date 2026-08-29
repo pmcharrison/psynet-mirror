@@ -187,11 +187,19 @@ explains the method and assumptions, shows the candidate-design comparison and
 participant costs, and states which designs satisfy the decision criterion. Save
 the notebook with its review-relevant tables and interactive figures embedded (prefer Plotly unless otherwise specified).
 
-The audit renders this notebook, so its figures must be embedded outputs. Follow
-the plotting guidance in
-`produce-experiment-audit/references/populating-an-audit.md`; static SVG or PNG
-output renders reliably, whereas Plotly's JavaScript widgets do not appear in the
-rendered audit.
+The audit renders this notebook, so its figures must be embedded outputs. Prefer
+Plotly and select its notebook MIME renderer before creating figures:
+
+```python
+import plotly.io as pio
+
+pio.renderers.default = "plotly_mimetype"
+```
+
+The audit packages Plotly.js with the rendered site, so these figures remain
+interactive and work offline. Do not use `notebook`, `notebook_connected`, or
+HTML-only renderers: they emit arbitrary scripts that the audit intentionally
+does not execute. Static SVG or PNG output remains supported.
 
 After executing it, mark the artifacts present:
 

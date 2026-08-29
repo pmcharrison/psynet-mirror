@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import binascii
 import html
+import json
 import logging
 from collections.abc import Callable, Iterable, Mapping
 
@@ -891,6 +892,9 @@ def render_notebook_output(output: dict[str, object]) -> str:
     data = output.get("data")
     if not isinstance(data, dict):
         return ""
+    plotly = data.get("application/vnd.plotly.v1+json")
+    if isinstance(plotly, dict):
+        return render_plotly_output(plotly)
     svg = notebook_text(data.get("image/svg+xml"))
     if svg:
         return f'<div class="notebook-svg">{sanitize_svg_fragment(svg)}</div>'
@@ -908,6 +912,43 @@ def render_notebook_output(output: dict[str, object]) -> str:
     if plain:
         return f"<pre><code>{html.escape(plain)}</code></pre>"
     return ""
+
+
+def render_plotly_output(specification: dict[str, object]) -> str:
+    """Render an interactive Plotly notebook MIME bundle.
+
+    The JSON is inert until the audit's trusted initializer passes it to the
+    vendored Plotly runtime. Escaping HTML-significant characters prevents
+    strings in the figure from closing the script element.
+    """
+
+    data = specification.get("data")
+    layout = specification.get("layout")
+    if not isinstance(data, list) or not isinstance(layout, dict):
+        return '<p class="notebook-error">Invalid Plotly figure output.</p>'
+
+    payload = {
+        "data": data,
+        "layout": layout,
+        "config": {
+            "displaylogo": False,
+            "responsive": True,
+        },
+    }
+    serialized = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+    serialized = (
+        serialized.replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
+    return (
+        '<div class="notebook-plotly">'
+        f'<script type="application/json" data-plotly-spec>{serialized}</script>'
+        '<div class="notebook-plotly-target" data-plotly-target></div>'
+        '<p class="notebook-plotly-error" data-plotly-error hidden>'
+        "Interactive plot could not be rendered."
+        "</p></div>"
+    )
 
 
 def render_performance_result(

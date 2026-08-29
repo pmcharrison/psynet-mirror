@@ -357,6 +357,51 @@ def test_render_notebook_output_blocks_unsafe_svg_references() -> None:
     assert "fill:red" in html
 
 
+def test_render_notebook_output_renders_plotly_mime_bundle() -> None:
+    html = render_notebook_output(
+        {
+            "output_type": "display_data",
+            "data": {
+                "application/vnd.plotly.v1+json": {
+                    "data": [
+                        {
+                            "type": "scatter",
+                            "x": [1, 2],
+                            "y": [3, 4],
+                            "name": "</script><script>bad()</script>",
+                        }
+                    ],
+                    "layout": {"title": {"text": "Interactive result"}},
+                }
+            },
+        }
+    )
+
+    assert 'class="notebook-plotly"' in html
+    assert 'type="application/json" data-plotly-spec' in html
+    assert '"type":"scatter"' in html
+    assert "Interactive result" in html
+    assert "</script><script>bad()" not in html
+    assert "\\u003c/script\\u003e" in html
+    assert '"responsive":true' in html
+
+
+def test_render_notebook_output_rejects_invalid_plotly_mime_bundle() -> None:
+    html = render_notebook_output(
+        {
+            "output_type": "display_data",
+            "data": {
+                "application/vnd.plotly.v1+json": {
+                    "data": "not a list",
+                    "layout": {},
+                }
+            },
+        }
+    )
+
+    assert "Invalid Plotly figure output" in html
+
+
 PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 
 

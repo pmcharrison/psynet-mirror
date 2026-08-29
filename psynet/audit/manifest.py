@@ -68,6 +68,13 @@ def audit_css_path() -> Path:
     return Path(resources.files("psynet") / "resources" / "audit" / "audit.css")
 
 
+def audit_plotly_js_path() -> Path:
+    """Return the packaged Plotly.js runtime path."""
+    from importlib import resources
+
+    return Path(resources.files("psynet") / "resources" / "audit" / "plotly.min.js")
+
+
 STARTER_PROMPT = """# Prompt
 
 Summarize the original request or experiment brief.
@@ -506,6 +513,7 @@ __all__ = [
     "STARTER_TIMELINE",
     "audit_css_path",
     "audit_display_title",
+    "audit_plotly_js_path",
     "audit_profile",
     "count_blockers",
     "display_implementation_summary",

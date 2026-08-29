@@ -16,7 +16,11 @@ from psynet.audit.artifacts import (
     write_hashed_artifact,
     write_shared_monitor_static_assets,
 )
-from psynet.audit.constants import AUDIT_CSS_OUTPUT, AuditValidationError
+from psynet.audit.constants import (
+    AUDIT_CSS_OUTPUT,
+    AUDIT_PLOTLY_JS_OUTPUT,
+    AuditValidationError,
+)
 from psynet.audit.content import (
     read_audit_artifact_content,
     section_text,
@@ -45,6 +49,7 @@ from psynet.audit.html import (
 from psynet.audit.manifest import (
     audit_css_path,
     audit_display_title,
+    audit_plotly_js_path,
     display_implementation_summary,
     read_audit_manifest,
     starter_section,
@@ -236,6 +241,15 @@ def write_audit_static_assets(site_dir: Path) -> str:
     css = audit_css_path().read_text(encoding="utf-8")
     target.write_text(f"{css}\n\n{pygments_css()}\n", encoding="utf-8")
     return f"static/{AUDIT_CSS_OUTPUT}"
+
+
+def write_audit_plotly_asset(site_dir: Path) -> str:
+    """Copy the vendored Plotly runtime into a rendered audit site."""
+
+    target = site_dir / "static" / AUDIT_PLOTLY_JS_OUTPUT
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(audit_plotly_js_path(), target)
+    return f"static/{AUDIT_PLOTLY_JS_OUTPUT}"
 
 
 def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
@@ -662,6 +676,7 @@ def render_audit_site(
         completeness=completeness_from_manifest(manifest, published_paths),
     )
     css_url = write_audit_static_assets(site_dir)
+    plotly_js_url = write_audit_plotly_asset(site_dir)
     sections = display_sections(manifest)
     experiment = manifest.get("experiment", {})
     environment = manifest.get("environment", {})
@@ -699,6 +714,8 @@ def render_audit_site(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; font-src 'self' data:; object-src 'none'; base-uri 'none'">
   <title>{html.escape(title)}</title>
   <link rel="stylesheet" href="{html.escape(css_url)}">
 </head>
@@ -729,7 +746,21 @@ def render_audit_site(
       </div>
     </div>
   </article>
+  <script src="{html.escape(plotly_js_url)}"></script>
   <script>
+    document.querySelectorAll(".notebook-plotly").forEach((wrapper) => {{
+      const specElement = wrapper.querySelector("[data-plotly-spec]");
+      const target = wrapper.querySelector("[data-plotly-target]");
+      const error = wrapper.querySelector("[data-plotly-error]");
+      try {{
+        const spec = JSON.parse(specElement.textContent);
+        Plotly.newPlot(target, spec.data, spec.layout, spec.config);
+      }} catch (exception) {{
+        console.error("Failed to render Plotly notebook output", exception);
+        target.hidden = true;
+        error.hidden = false;
+      }}
+    }});
     document.querySelectorAll("[data-screenshot-gallery]").forEach((gallery) => {{
       const cards = Array.from(gallery.querySelectorAll("[data-screenshot-card]"));
       const panel = gallery.closest(".screenshot-gallery");
