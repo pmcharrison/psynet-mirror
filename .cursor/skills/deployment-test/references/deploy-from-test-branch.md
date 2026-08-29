@@ -5,18 +5,22 @@ A full deployment test covers two experiments in `tests/deployment`:
 
 - `tests/deployment/payment_flows_prolific`: the basic Prolific recruiter test,
   exercising payment flows (base payment, screen-out compensation, and
-  performance rewards). Its default `experiment.py` uses HotAir; the paid
-  variant lives in `experiment.py.prolific` (with `config.txt.prolific`).
+  performance rewards). It has a single `experiment.py`; the recruiter is
+  selected via the config file. The default `config.txt` sets
+  `recruiter = devprolific` (a simulated Prolific API — requests are logged,
+  not sent), and the paid variant `config.txt.prolific` sets
+  `recruiter = prolific`.
 - `tests/deployment/audio_gibbs`: an audio Gibbs sampler experiment that
   additionally exercises audio synthesis (parselmouth), asset
   generation/storage, async worker processes, and a headphone prescreen.
-  Its default `experiment.py` also uses HotAir. Prolific and Lucid variants
+  Its default `experiment.py` uses HotAir. Prolific and Lucid variants
   (`experiment.py.prolific` and `experiment.py.lucid`, with matching config
   files) are deployed from temporary worktrees.
 
-Both experiments default to HotAir so running a directory directly cannot
-accidentally start paid recruitment; every paid deployment swaps in an
-explicit recruiter variant first. All paid variants show the approved
+Both experiments' defaults cannot spend money (devprolific simulates the
+Prolific API locally; HotAir does not recruit at all), so running a directory
+directly cannot accidentally start paid recruitment; every paid deployment
+swaps in an explicit recruiter variant first. All paid variants show the approved
 cultural-foundation consent (vendored `consents_cococo` package in each
 experiment directory): the Prolific variants use the `MAIN` consent and the
 Lucid variant uses the `CINT` consent.
@@ -118,11 +122,12 @@ git checkout <previous-deployment-branch> -- tests/deployment/payment_flows_prol
    Verify the imported experiment configuration includes the standing
    deployment settings:
 
-   - `payment_flows_prolific/experiment.py`: recruiter `hotair` (safe local
-     default).
-   - `payment_flows_prolific/experiment.py.prolific`:
+   - `payment_flows_prolific/config.txt`: `recruiter = devprolific` (safe
+     simulated default).
+   - `payment_flows_prolific/experiment.py` (shared by both recruiters):
      `prolific_is_custom_screening=False`, `auto_recruit=True`,
      `initial_recruitment_size=12`.
+   - `payment_flows_prolific/config.txt.prolific`: `recruiter = prolific`.
    - `audio_gibbs/experiment.py`: recruiter `hotair` (safe local default).
    - `audio_gibbs/experiment.py.prolific`: `auto_recruit=True`,
      `initial_recruitment_size=3`, `target_n_participants=5`.
@@ -232,7 +237,7 @@ git commit -m "Generate constraints from pinned requirements"
 ```
 
 10. Ensure neither experiment enables `prolific_is_custom_screening`
-   (`payment_flows_prolific/experiment.py.prolific` sets it to `False`
+   (`payment_flows_prolific/experiment.py` sets it to `False`
    explicitly;
    `audio_gibbs` relies on the `False` default). Prolific no longer supports
    the older custom-screening study creation flow; a launch payload with

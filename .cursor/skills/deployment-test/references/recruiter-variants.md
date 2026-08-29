@@ -1,22 +1,20 @@
 # Prepare recruiter variants
 
 
-Both experiments' default `experiment.py` files use HotAir so running a
-directory directly cannot accidentally start paid recruitment. Before
-starting the three parallel deploy commands above, swap in the paid
-variants.
+The experiments' defaults cannot start paid recruitment (devprolific for
+`payment_flows_prolific`, HotAir for `audio_gibbs`). Before starting the
+three parallel deploy commands above, swap in the paid variants.
 
-1. `payment_flows_prolific` has a single paid variant, so swap it directly
-   on the deployment branch and commit (this is the state the main-checkout
-   deploy uses):
+1. `payment_flows_prolific` selects its recruiter via the config file, so
+   swap in the paid config directly on the deployment branch and commit
+   (this is the state the main-checkout deploy uses):
 
 ```bash
 cd <psynet-root>/tests/deployment/payment_flows_prolific
-cp experiment.py.prolific experiment.py
 cp config.txt.prolific config.txt
 # config.txt is gitignored under tests/deployment/.
-git add experiment.py && git add -f config.txt
-git commit -m "Switch payment_flows_prolific to Prolific variant for deployment"
+git add -f config.txt
+git commit -m "Switch payment_flows_prolific to Prolific recruiter for deployment"
 git push
 ```
 
