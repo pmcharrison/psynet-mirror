@@ -206,9 +206,8 @@ def prepare(archive):
 
 def _prepare(archive=None):
     with local_database_lock(Path.cwd()):
-        # Reap workers first so they cannot reconnect, snapshot any unsaved
-        # managed state, then disconnect whatever is left before the reset.
-        kill_psynet_worker_processes()
+        # Snapshot any unsaved managed state, then disconnect every other client
+        # so nothing can write while the database is reset.
         protect_existing_database(
             Path.cwd(),
             "prepare",
@@ -963,12 +962,15 @@ patch_dallinger_develop()
 
 
 def safely_kill_process(p):
+    """Kill ``p``, returning whether the signal was delivered."""
     try:
         p.kill()
     except psutil.NoSuchProcess:
         pass
     except psutil.Error as error:
         logger.warning("Could not stop process %s: %s", getattr(p, "pid", "?"), error)
+        return False
+    return True
 
 
 def _process_is_defunct(process):
@@ -990,26 +992,34 @@ def _process_is_defunct(process):
 def kill_psynet_worker_processes(wait_timeout=1):
     """Terminate leftover PsyNet worker processes, best effort.
 
-    Cleanup must never fail a launch or a shutdown: an unkillable or already
+    Cleanup must never fail a launch or a shutdown, so an unkillable or already
     defunct worker is reported and otherwise ignored. What actually protects the
     database is ``terminate_other_database_sessions``, which runs immediately
-    before the local database is reset.
+    before the local database is reset. Only processes that were signalled are
+    waited for, so leftovers cannot slow every launch down.
     """
-    processes = list_psynet_worker_processes()
+    processes = [
+        process
+        for process in list_psynet_worker_processes()
+        if not _process_is_defunct(process)
+    ]
     if len(processes) == 0:
         return
     log(
         f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
     )
-    for process in processes:
-        safely_kill_process(process)
-    _gone, alive = psutil.wait_procs(processes, timeout=wait_timeout)
-    alive = [process for process in alive if not _process_is_defunct(process)]
-    if alive:
+    signalled = [process for process in processes if safely_kill_process(process)]
+    unstoppable = [process for process in processes if process not in signalled]
+    if signalled:
+        _gone, alive = psutil.wait_procs(signalled, timeout=wait_timeout)
+        unstoppable += [
+            process for process in alive if not _process_is_defunct(process)
+        ]
+    if unstoppable:
         logger.warning(
             "PsyNet worker process(es) did not stop: %s. Their database sessions "
             "are disconnected before the local database is reset.",
-            ", ".join(str(process.pid) for process in alive),
+            ", ".join(str(process.pid) for process in unstoppable),
         )
 
 

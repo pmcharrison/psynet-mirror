@@ -3540,21 +3540,12 @@ def test_kill_psynet_worker_processes_ignores_zombies(caplog):
 
 
 def test_prepare_disconnects_other_database_clients_before_resetting(tmp_path):
-    import psutil
-
     from psynet.command_line import _prepare
     from psynet.utils import working_directory
 
-    survivor = _worker_process(4244, psutil.STATUS_RUNNING)
     calls = []
 
     with (
-        patch(
-            "psynet.command_line.list_psynet_worker_processes",
-            return_value=[survivor],
-        ),
-        patch("psynet.command_line.safely_kill_process"),
-        patch("psynet.command_line.psutil.wait_procs", return_value=([], [survivor])),
         patch(
             "psynet.command_line.protect_existing_database",
             side_effect=lambda *_a, **_k: calls.append("protect"),
