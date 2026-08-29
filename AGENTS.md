@@ -192,6 +192,9 @@ Write for experiment authors, not only for maintainers: prefer plain language
 over internal jargon, and include short code examples when the change affects
 a public API or migration.
 
+When running `/branch-review`, always update the merge request title and
+description so they match the committed branch diff.
+
 ## CLI development
 
 Use Click for new and refactored command-line interfaces, following the
