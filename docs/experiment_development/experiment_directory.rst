@@ -66,6 +66,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     Format, auto-omitted paths, and inspection commands are documented in
     Dallinger's
     `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_.
+    Existing experiments should follow
+    :doc:`/whats_new/upgrading_deployment_file_selection`.
     Inspect the current plan with ``dallinger deployment-files list``.
     ``.dockerignore`` is no longer supported. PsyNet removes recognized
     generated copies; a custom copy blocks debug and deployment until its rules

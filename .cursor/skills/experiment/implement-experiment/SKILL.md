@@ -81,8 +81,9 @@ briefly in `audit/PLAN.md` or `audit/TIMELINE.md` and continue.
 
 Prefer **`psynet setup`** as the general-purpose route for creating and
 refreshing experiment files and the constrained environment. Do not hand-write
-boilerplate (`Dockerfile`, `test.py`, `.gitignore`, `docker/`, managed skills)
-when setup/scaffold can produce it.
+boilerplate (`Dockerfile`, `test.py`, `.gitignore`, `deploy.toml`, managed
+skills) when setup/scaffold can produce it. Experiment-local `docker/` helper
+scripts are obsolete; use `psynet debug local --docker`.
 
 Canonical human docs: `~/PsyNet/docs/experiment_development/agentic_programming.rst`
 and `~/PsyNet/psynet/resources/experiment_scripts/AGENTS.md`.
