@@ -9,6 +9,8 @@ debug/deploy; customized helpers and `docker/` symlinks are preserved.
 `psynet setup --docker` is removed; use `psynet setup` then
 `psynet debug local --docker`. Membership no longer depends on Git visibility,
 and the 256 MB package-size check now measures the deployment plan.
+Stock excludes include virtualenv directories (`env`, `.venv`). Heroku
+deploys no longer ask authors to remove `.deploy` from `.gitignore`.
 This requires Dallinger with `deploy.toml` (master after
 [Dallinger #9680](https://github.com/Dallinger/Dallinger/pull/9680);
 not yet in a 12.3.x release), Python 3.11 or later, and a POSIX filesystem.

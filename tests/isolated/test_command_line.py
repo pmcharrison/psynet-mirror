@@ -21,6 +21,7 @@ from psynet.command_line import (
     _enable_sql_profile,
     check_dockerfile,
     psynet,
+    run_pre_checks,
 )
 from psynet.experiment_scaffold import (
     _remove_empty_parent_dirs,
@@ -941,6 +942,29 @@ def test_check_dockerfile():
                 match="Your Dockerfile appears to be using an outdated format",
             ):
                 check_dockerfile()
+
+
+def test_heroku_pre_checks_do_not_prompt_to_unignore_deploy(tmp_path, monkeypatch):
+    (tmp_path / ".gitignore").write_text(".deploy/\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    experiment = Mock()
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
+
+    prompts = []
+
+    def fake_confirm(message):
+        prompts.append(message)
+        return True
+
+    monkeypatch.setattr("psynet.command_line.user_confirms", fake_confirm)
+
+    with working_directory(tmp_path):
+        run_pre_checks(
+            mode="debug", local_=True, heroku=True, docker=False, app="test-app"
+        )
+
+    assert experiment.check_config.called
+    assert not any(".deploy" in message for message in prompts)
 
 
 def test_scripts_update_installs_managed_skills_and_preserves_user_skills():

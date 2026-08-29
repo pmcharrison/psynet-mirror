@@ -21,6 +21,7 @@ names = [
     ".python-version",
     ".venv",
     "__pycache__",
+    "env",
     "logs.jsonl",
     "node_modules",
     "server.log",

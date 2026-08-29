@@ -35,6 +35,7 @@ EXPECTED_EXCLUDE_NAMES = (
     ".python-version",
     ".venv",
     "__pycache__",
+    "env",
     "logs.jsonl",
     "node_modules",
     "server.log",
@@ -133,6 +134,38 @@ def test_scaffold_creates_stock_deployment_policy(tmp_path):
     assert policy.exclude_names == EXPECTED_EXCLUDE_NAMES
     assert policy.exclude_suffixes == EXPECTED_EXCLUDE_SUFFIXES
     assert not (tmp_path / ".dockerignore").exists()
+
+
+def test_stock_policy_excludes_gitignore_virtualenv_directories(tmp_path):
+    experiment_root = tmp_path / "experiment"
+    experiment_root.mkdir()
+    (experiment_root / "experiment.py").write_text("class Exp:\n    pass\n")
+    (experiment_root / "requirements.txt").write_text("psynet\n")
+    with working_directory(experiment_root):
+        scaffold_experiment_directory()
+
+    gitignore = (experiment_root / ".gitignore").read_text(encoding="utf-8")
+    assert "env/" in gitignore
+    assert ".venv/" in gitignore
+
+    env_file = experiment_root / "env" / "lib" / "python.py"
+    env_file.parent.mkdir(parents=True)
+    env_file.write_text("# virtualenv\n")
+    venv_file = experiment_root / ".venv" / "lib" / "sitecustomize.py"
+    venv_file.parent.mkdir(parents=True)
+    venv_file.write_text("# virtualenv\n")
+    (experiment_root / "kept.txt").write_text("keep\n")
+
+    plan = build_deployment_plan(experiment_root)
+    assert "kept.txt" in plan.destinations
+    assert not any(
+        destination == "env" or destination.startswith("env/")
+        for destination in plan.destinations
+    )
+    assert not any(
+        destination == ".venv" or destination.startswith(".venv/")
+        for destination in plan.destinations
+    )
 
 
 @pytest.mark.parametrize("generated_lines", _GENERATED_DOCKERIGNORE_VARIANTS)

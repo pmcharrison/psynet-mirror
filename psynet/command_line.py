@@ -1467,25 +1467,15 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             f"requirements.txt is missing from your experiment directory ({os.getcwd()})."
         )
 
-    if heroku:
-        if docker and not user_confirms(
+    if (
+        heroku
+        and docker
+        and not user_confirms(
             "Heroku deployment with Docker hasn't been working well recently; experiments have been failing to launch "
             "and returning a psutil version error. Are you sure you want to continue?"
-        ):
-            raise click.Abort
-
-        try:
-            with open(".gitignore", "r") as f:
-                for line in f.readlines():
-                    if line.startswith(".deploy"):
-                        if not user_confirms(
-                            "The .gitignore file contains '.deploy'; "
-                            "in order to deploy on Heroku without Docker this line must ordinarily be removed. "
-                            "Are you sure you want to continue?"
-                        ):
-                            raise click.Abort
-        except FileNotFoundError:
-            pass
+        )
+    ):
+        raise click.Abort
 
     if docker:
         check_dockerfile()
