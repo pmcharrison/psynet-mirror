@@ -609,6 +609,53 @@ def test_read_database_owner_survives_a_locked_experiment_table(monkeypatch):
     )
 
 
+@pytest.mark.parametrize(
+    "deployment_id,disposable",
+    [
+        ("gibbs-demo__mode=debug__launch=2026-08-29--16-37-05", True),
+        (None, True),
+        ("gibbs-demo__mode=live__launch=2026-08-29--16-37-05", False),
+        ("gibbs-demo__mode=sandbox__launch=2026-08-29--16-37-05", False),
+    ],
+)
+def test_protect_existing_database_discards_disposable_databases(
+    tmp_path, monkeypatch, capsys, deployment_id, disposable
+):
+    from psynet.local_deployment import DatabaseOwner, protect_existing_database
+
+    monkeypatch.setattr(
+        "psynet.local_deployment.read_database_owner",
+        lambda: DatabaseOwner(None, None, deployment_id, "Gibbs demo"),
+    )
+    create_snapshot = Mock()
+    monkeypatch.setattr("psynet.local_deployment.create_snapshot", create_snapshot)
+
+    if disposable:
+        assert protect_existing_database(tmp_path, "yolo") is None
+        assert "Discarding the local database" in capsys.readouterr().out
+    else:
+        with pytest.raises(RuntimeError, match="--adopt-existing"):
+            protect_existing_database(tmp_path, "yolo")
+    create_snapshot.assert_not_called()
+
+
+def test_protect_existing_database_never_discards_an_unreadable_database(
+    tmp_path, monkeypatch
+):
+    from psynet.local_deployment import (
+        UNREADABLE_DATABASE_OWNER,
+        protect_existing_database,
+    )
+
+    monkeypatch.setattr(
+        "psynet.local_deployment.read_database_owner",
+        lambda: UNREADABLE_DATABASE_OWNER,
+    )
+
+    with pytest.raises(RuntimeError, match="identity unreadable"):
+        protect_existing_database(tmp_path, "yolo")
+
+
 def test_protect_existing_database_skips_clean_shutdown(tmp_path, monkeypatch):
     from psynet.local_deployment import (
         DatabaseOwner,

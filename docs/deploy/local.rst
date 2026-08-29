@@ -44,9 +44,14 @@ contains an interrupted managed deployment. If so, PsyNet saves a recovery
 snapshot in the owning experiment directory. A failed recovery prevents the
 new deployment from starting.
 
-Databases created before this snapshot system have no managed ID. Adopt one
-explicitly after checking that the current experiment directory contains the
-matching source:
+A database left behind by ``psynet debug local`` is discarded without
+prompting, because debugging runs are disposable. The same applies to a
+database that was only prepared and never launched.
+
+A local database from a live or sandbox run that PsyNet cannot account for,
+such as one created before this snapshot system, is never discarded silently.
+Adopt it explicitly after checking that the current experiment directory
+contains the matching source:
 
 .. code-block:: bash
 

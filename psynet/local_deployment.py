@@ -71,22 +71,52 @@ class Snapshot:
 
 @dataclass(frozen=True)
 class DatabaseOwner:
-    """Describe the managed local deployment currently stored in PostgreSQL."""
+    """Describe the experiment currently stored in the local PostgreSQL database."""
 
     local_id: Optional[str]
     experiment_path: Optional[Path]
     deployment_id: Optional[str]
     label: Optional[str]
+    readable: bool = True
 
     @property
     def managed(self) -> bool:
         """Return whether this database has managed local-deployment metadata."""
         return self.local_id is not None and self.experiment_path is not None
 
+    @property
+    def mode(self) -> Optional[str]:
+        """Return the mode of the run that created this database, if recorded.
+
+        PsyNet deployment IDs embed the mode, as in
+        ``gibbs-demo__mode=debug__launch=2026-08-29--16-37-05``.
+        """
+        if not self.deployment_id:
+            return None
+        match = re.search(r"__mode=([^_]*)", self.deployment_id)
+        if match is None:
+            return None
+        return match.group(1) or None
+
+    @property
+    def disposable(self) -> bool:
+        """Return whether this database may be discarded without asking.
+
+        ``psynet debug local`` databases are disposable by definition, and a
+        database that was only ever prepared has no collected data to lose. A
+        live or sandbox run, or a database whose identity could not be read, is
+        never treated as disposable.
+        """
+        return self.readable and self.mode not in ("live", "sandbox")
+
 
 # Returned when the database holds an experiment whose identity cannot be read.
 UNREADABLE_DATABASE_OWNER = DatabaseOwner(
-    local_id=None, experiment_path=None, deployment_id=None, label=None
+    local_id=None,
+    experiment_path=None,
+    deployment_id=None,
+    label=None,
+    readable=False,
 )
 
 
@@ -695,6 +725,18 @@ def local_deployment_lock(experiment_path: Path | str, local_id: str):
         yield
 
 
+def _describe_owner(owner: DatabaseOwner) -> str:
+    """Return a parenthesised description of ``owner``, or an empty string."""
+    details = []
+    if owner.label:
+        details.append(f"label {owner.label!r}")
+    if owner.mode:
+        details.append(f"mode {owner.mode}")
+    if not owner.readable:
+        details.append("identity unreadable")
+    return f" ({', '.join(details)})" if details else ""
+
+
 def protect_existing_database(
     requested_experiment_path: Path | str,
     requested_local_id: str,
@@ -711,10 +753,17 @@ def protect_existing_database(
     if not owner.managed:
         if ignore_unmanaged:
             return None
+        if owner.disposable and not adopt_existing:
+            Console().print(
+                "Discarding the local database left by a previous "
+                f"{owner.mode or 'preparation'} run."
+            )
+            return None
         if not adopt_existing:
             raise RuntimeError(
-                "The local database contains an unmanaged PsyNet experiment. "
-                "Re-run with --adopt-existing to save it under the requested ID."
+                "The local database contains an unmanaged PsyNet experiment"
+                f"{_describe_owner(owner)}. Re-run with --adopt-existing to save "
+                "it under the requested ID."
             )
         append_deployment_event(
             requested_path,
