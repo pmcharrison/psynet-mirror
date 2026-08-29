@@ -1415,18 +1415,21 @@ def _check_experiment_directory(mode):
             if remaining > 0:
                 preview += f"\n  ... and {remaining} more"
             ignored_summary = (
-                "\n\nThese files are ignored by Git but would still be copied:\n"
-                + preview
+                "\n\nYour existing .gitignore covered the following files, but "
+                "your new deploy.toml does not:\n" + preview
             )
         raise click.ClickException(
-            "This experiment did not have a deploy.toml file, so PsyNet created "
-            "one.\n\nThe experiment has not started yet. From now on, deploy.toml "
-            "decides which files are copied when you test, debug, or deploy this "
-            "experiment. Git and .gitignore no longer decide this."
-            f"{ignored_summary}\n\nWhat to do next:\n"
-            "  1. Open deploy.toml and exclude anything that should stay local.\n"
-            "  2. Preview the files with 'dallinger deployment-files list'.\n"
-            "  3. Rerun this command."
+            "PsyNet now requires experiments to provide a deploy.toml file to "
+            "specify which files to include in the deployed experiment. Previously "
+            ".gitignore was used for this purpose.\n\nPsyNet created a new "
+            "deploy.toml file for this experiment."
+            f"{ignored_summary}\n\nBefore continuing:\n"
+            "  1. Run 'dallinger deployment-files list'. This only prints the files "
+            "that PsyNet would copy; it does not start or deploy the experiment.\n"
+            "  2. Check the list for credentials, private data, large files, and "
+            "generated files that should stay local.\n"
+            "  3. Add anything that should stay local to [exclude] in deploy.toml.\n"
+            "  4. Rerun this command."
         )
     if not prepared:
         _remove_obsolete_generated_dockerignore()

@@ -249,9 +249,14 @@ def test_check_experiment_directory_stops_after_creating_missing_deploy_toml(
             _check_experiment_directory("debug")
 
         message = str(error.value)
-        assert "experiment has not started yet" in message
-        assert "ignored by Git but would still be copied" in message
-        assert "What to do next:" in message
+        assert "PsyNet now requires experiments to provide a deploy.toml" in message
+        assert (
+            "existing .gitignore covered the following files, but your new "
+            "deploy.toml does not"
+        ) in message
+        assert "This only prints the files that PsyNet would copy" in message
+        assert "it does not start or deploy the experiment" in message
+        assert "Check the list for credentials, private data, large files" in message
         assert "secret.txt" in message
         assert "dallinger deployment-files list" in message
 
