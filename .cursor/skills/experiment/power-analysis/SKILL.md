@@ -197,9 +197,9 @@ pio.renderers.default = "plotly_mimetype"
 ```
 
 The audit packages Plotly.js with the rendered site, so these figures remain
-interactive and work offline. Do not use `notebook`, `notebook_connected`, or
-HTML-only renderers: they emit arbitrary scripts that the audit intentionally
-does not execute. Static SVG or PNG output remains supported.
+interactive and work offline. Prefer `plotly_mimetype` over `notebook`,
+`notebook_connected`, or HTML-only renderers, which may pull a CDN or embed a
+second copy of Plotly. Static SVG or PNG output remains supported.
 
 After executing it, mark the artifacts present:
 

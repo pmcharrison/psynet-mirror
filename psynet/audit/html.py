@@ -1,4 +1,12 @@
-"""Shared HTML rendering for experiment audit evidence."""
+"""HTML rendering for experiment audit evidence.
+
+The rendered site is author documentation, not a sandbox. Experiment notebooks,
+Markdown reports, and the PsyNet audit templates are trusted. Notebook HTML and
+SVG outputs are included as produced. Markdown files are still parsed as
+Markdown (raw HTML in ``.md`` is not interpreted). Plotly figures use the
+notebook MIME bundle plus the vendored Plotly runtime so interactive plots work
+offline without depending on a CDN.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +17,6 @@ import json
 import logging
 from collections.abc import Callable, Iterable, Mapping
 
-import nh3
 from markdown_it import MarkdownIt
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
@@ -25,150 +32,6 @@ from psynet.audit.model import (
 )
 
 UrlTransform = Callable[[str], str]
-SAFE_HTML_TAGS = {
-    "a",
-    "b",
-    "blockquote",
-    "br",
-    "code",
-    "dd",
-    "div",
-    "dl",
-    "dt",
-    "em",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "hr",
-    "i",
-    "li",
-    "ol",
-    "p",
-    "pre",
-    "s",
-    "span",
-    "strong",
-    "table",
-    "tbody",
-    "td",
-    "th",
-    "thead",
-    "tr",
-    "ul",
-}
-SAFE_SVG_TAGS = {
-    "circle",
-    "clipPath",
-    "defs",
-    "ellipse",
-    "g",
-    "line",
-    "path",
-    "polygon",
-    "polyline",
-    "rect",
-    "svg",
-    "text",
-    "title",
-    "tspan",
-    "use",
-}
-SAFE_ATTRS = {
-    "align",
-    "aria-label",
-    "class",
-    "colspan",
-    "height",
-    "id",
-    "role",
-    "rowspan",
-    "scope",
-    "title",
-    "width",
-}
-SAFE_HTML_ATTRS = {
-    "*": SAFE_ATTRS,
-    "a": SAFE_ATTRS | {"href"},
-}
-SAFE_SVG_ATTRS = {
-    "clip-path",
-    "clip-rule",
-    "cx",
-    "cy",
-    "d",
-    "dominant-baseline",
-    "fill",
-    "fill-opacity",
-    "fill-rule",
-    "font-family",
-    "font-size",
-    "font-style",
-    "font-weight",
-    "height",
-    "href",
-    "opacity",
-    "points",
-    "preserveAspectRatio",
-    "r",
-    "rx",
-    "ry",
-    "stroke",
-    "stroke-dasharray",
-    "stroke-dashoffset",
-    "stroke-linecap",
-    "stroke-linejoin",
-    "stroke-miterlimit",
-    "stroke-opacity",
-    "stroke-width",
-    "style",
-    "text-anchor",
-    "transform",
-    "viewBox",
-    "viewbox",
-    "width",
-    "x",
-    "x1",
-    "x2",
-    "xlink:href",
-    "xmlns",
-    "y",
-    "y1",
-    "y2",
-}
-SAFE_SVG_ATTRS_BY_TAG = {
-    "*": SAFE_ATTRS | SAFE_SVG_ATTRS,
-    "svg": SAFE_ATTRS | SAFE_SVG_ATTRS | {"viewBox"},
-}
-# ``style`` carries matplotlib's colours and line styles, so it must survive
-# sanitization; restricting it to presentation properties keeps out positioning
-# and resource-loading CSS.
-SAFE_SVG_STYLE_PROPERTIES = {
-    "clip-rule",
-    "color",
-    "display",
-    "fill",
-    "fill-opacity",
-    "fill-rule",
-    "font-family",
-    "font-size",
-    "font-style",
-    "font-weight",
-    "opacity",
-    "stroke",
-    "stroke-dasharray",
-    "stroke-dashoffset",
-    "stroke-linecap",
-    "stroke-linejoin",
-    "stroke-miterlimit",
-    "stroke-opacity",
-    "stroke-width",
-    "text-anchor",
-    "visibility",
-}
-URL_SCHEMES = {"http", "https", "mailto"}
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 MARKDOWN = MarkdownIt(
     "commonmark",
@@ -210,48 +73,6 @@ def escape_url(url: str, url_transform: UrlTransform = identity_url) -> str:
     return html.escape(url_transform(url), quote=True)
 
 
-def sanitize_html_fragment(source: str) -> str:
-    """Render a safe subset of an HTML fragment."""
-
-    return nh3.clean(
-        source,
-        tags=SAFE_HTML_TAGS,
-        attributes=SAFE_HTML_ATTRS,
-        clean_content_tags={"script", "style"},
-        link_rel=None,
-        url_schemes=URL_SCHEMES,
-    )
-
-
-def _svg_attribute_filter(tag: str, attribute: str, value: str) -> str | None:
-    """Keep SVG references pointing inside the same document."""
-
-    if attribute in {"href", "xlink:href"} and not value.startswith("#"):
-        return None
-    return value
-
-
-def sanitize_svg_fragment(source: str) -> str:
-    """Render a safe subset of an SVG fragment.
-
-    Plot output from matplotlib relies on ``defs``/``use`` glyph references,
-    ``transform``, ``clip-path``, and inline ``style`` declarations. Dropping
-    those leaves untransformed shapes painted in the default fill, which is why
-    the allowlist covers them.
-    """
-
-    return nh3.clean(
-        source,
-        tags=SAFE_SVG_TAGS,
-        attributes=SAFE_SVG_ATTRS_BY_TAG,
-        attribute_filter=_svg_attribute_filter,
-        clean_content_tags={"script", "style"},
-        filter_style_properties=SAFE_SVG_STYLE_PROPERTIES,
-        link_rel=None,
-        url_schemes=URL_SCHEMES,
-    )
-
-
 def render_code_block(code: str, language: str = "") -> str:
     """Render a highlighted code block."""
 
@@ -272,9 +93,9 @@ def pygments_css() -> str:
 
 
 def render_markdown_document(source: str) -> str:
-    """Render Markdown to sanitized HTML for reports and notebook cells."""
+    """Render Markdown to HTML for reports and notebook cells."""
 
-    return sanitize_html_fragment(MARKDOWN.render(source))
+    return MARKDOWN.render(source)
 
 
 def render_markdown_block(source: str, class_name: str = "attempt-markdown") -> str:
@@ -658,7 +479,7 @@ def render_notebook_panel(
     standalone: bool,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render a bounded, sanitized preview of one executed notebook."""
+    """Render a bounded preview of one executed notebook."""
 
     cells = notebook.get("cells") if notebook else []
     if not isinstance(cells, list):
@@ -708,7 +529,7 @@ def render_analysis_notebook(
     standalone: bool = False,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render a small safe preview of an analysis notebook.
+    """Render an analysis notebook.
 
     Set ``standalone`` when the notebook is its own top-level audit section.
     """
@@ -806,7 +627,7 @@ def render_power_run_summary(run: dict[str, object]) -> str:
 
 
 def render_notebook_cell(cell: dict[str, object]) -> str:
-    """Render one notebook cell with safe source and outputs."""
+    """Render one notebook cell with source and outputs."""
 
     cell_type = str(cell.get("cell_type") or "raw")
     safe_type = html.escape(cell_type)
@@ -854,7 +675,7 @@ def normalized_png_base64(value: object) -> str:
 
 
 def render_notebook_outputs(outputs: object) -> str:
-    """Render safe text, HTML, or SVG outputs from a notebook code cell."""
+    """Render text, HTML, or SVG outputs from a notebook code cell."""
 
     if not isinstance(outputs, list) or not outputs:
         return ""
@@ -897,7 +718,7 @@ def render_notebook_output(output: dict[str, object]) -> str:
         return render_plotly_output(plotly)
     svg = notebook_text(data.get("image/svg+xml"))
     if svg:
-        return f'<div class="notebook-svg">{sanitize_svg_fragment(svg)}</div>'
+        return f'<div class="notebook-svg">{svg}</div>'
     png_b64 = normalized_png_base64(data.get("image/png"))
     if png_b64:
         return (
@@ -907,7 +728,7 @@ def render_notebook_output(output: dict[str, object]) -> str:
         )
     html_output = notebook_text(data.get("text/html"))
     if html_output:
-        return f'<div class="notebook-html">{sanitize_html_fragment(html_output)}</div>'
+        return f'<div class="notebook-html">{html_output}</div>'
     markdown_output = notebook_text(data.get("text/markdown"))
     if markdown_output:
         return (
@@ -924,9 +745,9 @@ def render_notebook_output(output: dict[str, object]) -> str:
 def render_plotly_output(specification: dict[str, object]) -> str:
     """Render an interactive Plotly notebook MIME bundle.
 
-    The JSON is inert until the audit's trusted initializer passes it to the
-    vendored Plotly runtime. Escaping HTML-significant characters prevents
-    strings in the figure from closing the script element.
+    Figure JSON is stored as a JSON script and drawn by the vendored Plotly
+    runtime. HTML-significant characters are escaped so labels cannot close the
+    script element.
     """
 
     data = specification.get("data")

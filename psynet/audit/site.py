@@ -726,8 +726,6 @@ def render_audit_site(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; font-src 'self' data:; object-src 'none'; base-uri 'none'">
   <title>{html.escape(title)}</title>
   <link rel="stylesheet" href="{html.escape(css_url)}">
 </head>

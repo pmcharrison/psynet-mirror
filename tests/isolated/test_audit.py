@@ -170,9 +170,7 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert '<link rel="stylesheet" href="static/css/audit.css">' in index
     assert '<script src="static/js/plotly.min.js"></script>' in index
     assert '<script src="static/js/audit.js"></script>' in index
-    assert "Content-Security-Policy" in index
-    assert "script-src 'self';" in index
-    assert "script-src 'self' 'unsafe-inline'" not in index
+    assert "Content-Security-Policy" not in index
     assert '<body class="attempt-page">' in index
     assert 'class="attempt-layout"' in index
     assert "Pitch Discrimination Demo" in index

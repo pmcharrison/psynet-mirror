@@ -244,7 +244,7 @@ def test_shared_section_renderers_cover_files_timeline_and_json() -> None:
     assert "{&quot;model&quot;: &quot;test&quot;}" in json_html
 
 
-def test_render_evidence_section_renders_safe_notebook_rich_outputs() -> None:
+def test_render_evidence_section_renders_notebook_rich_outputs() -> None:
     view = classify_audit_evidence(
         [
             file(
@@ -265,8 +265,7 @@ def test_render_evidence_section_renders_safe_notebook_rich_outputs() -> None:
                                         "data": {
                                             "text/html": (
                                                 "<table><tr><th>n</th></tr>"
-                                                '<tr><td onclick="bad()">4</td></tr></table>'
-                                                "<script>bad()</script>"
+                                                "<tr><td>4</td></tr></table>"
                                             ),
                                         },
                                     },
@@ -274,9 +273,9 @@ def test_render_evidence_section_renders_safe_notebook_rich_outputs() -> None:
                                         "output_type": "display_data",
                                         "data": {
                                             "image/svg+xml": (
-                                                '<svg viewBox="0 0 10 10" onload="bad()">'
+                                                '<svg viewBox="0 0 10 10">'
                                                 '<circle cx="5" cy="5" r="4" />'
-                                                "<script>bad()</script></svg>"
+                                                "</svg>"
                                             ),
                                         },
                                     },
@@ -303,12 +302,9 @@ def test_render_evidence_section_renders_safe_notebook_rich_outputs() -> None:
     assert "<table>" in html
     assert "<th>n</th>" in html
     assert "<td>4</td>" in html
-    assert 'onclick="bad()"' not in html
     assert '<div class="notebook-svg">' in html
     assert '<svg viewBox="0 0 10 10">' in html
-    assert '<circle cx="5" cy="5" r="4"></circle>' in html
-    assert 'onload="bad()"' not in html
-    assert "<script>" not in html
+    assert '<circle cx="5" cy="5" r="4" />' in html
     assert "plain result" in html
 
 
@@ -335,26 +331,6 @@ def test_render_notebook_output_keeps_matplotlib_svg_presentation() -> None:
     assert 'clip-path="url(#clip-1)"' in html
     assert "stroke:#1f77b4" in html
     assert 'xlink:href="#glyph-1"' in html
-
-
-def test_render_notebook_output_blocks_unsafe_svg_references() -> None:
-    html = render_notebook_output(
-        {
-            "output_type": "display_data",
-            "data": {
-                "image/svg+xml": (
-                    '<svg viewBox="0 0 10 10">'
-                    '<use xlink:href="https://example.invalid/x.svg#a"/>'
-                    '<rect style="fill:red;background:url(javascript:bad())"/>'
-                    "</svg>"
-                )
-            },
-        }
-    )
-
-    assert "example.invalid" not in html
-    assert "javascript:" not in html
-    assert "fill:red" in html
 
 
 def test_render_notebook_output_renders_plotly_mime_bundle() -> None:
@@ -402,7 +378,7 @@ def test_render_notebook_output_rejects_invalid_plotly_mime_bundle() -> None:
     assert "Invalid Plotly figure output" in html
 
 
-def test_render_notebook_output_renders_sanitized_markdown() -> None:
+def test_render_notebook_output_renders_markdown() -> None:
     html = render_notebook_output(
         {
             "output_type": "display_data",

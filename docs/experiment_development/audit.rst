@@ -166,9 +166,14 @@ Python API
 ----------
 
 Shared helpers live under :mod:`psynet.audit` (model classification, HTML
-rendering, and artifact sanitization). The audit package modules avoid importing
+rendering, and artifact publication). The audit package modules avoid importing
 the experiment runtime. Publishing monitor snapshots copies static assets from
 the installed Dallinger package (``dallinger/frontend/static``).
+
+The rendered site treats the experiment's notebooks, Markdown reports, and the
+PsyNet audit templates as trusted author content. Notebook HTML and SVG outputs
+are included as produced. Markdown is parsed as Markdown. Credential redaction
+for published logs and snapshots is separate from that rendering.
 
 Monitor snapshots
 -----------------
