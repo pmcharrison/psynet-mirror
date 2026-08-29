@@ -37,11 +37,17 @@ the simulation response model is only a testing assumption.
 - Document which fields correspond to observations `y` and covariates `z`.
 - Keep raw answers for audit alongside transformed model observations.
 - Prefer queryable SQLAlchemy columns for core variables; use `PythonObject`
-  only where structured values genuinely require it. Do not add extra
-  ``Column`` attributes on a ``StaticTrial`` subclass: trials share Dallinger's
-  ``info`` table. Use a dedicated observation table instead.
+  only where structured values genuinely require it. Extra fields on a
+  ``StaticTrial`` subclass must use ``psynet.field.inherit_column`` (trials
+  share Dallinger's ``info`` table). Use a dedicated observation table when
+  the same schema is shared with standalone simulation code.
 - Put calibrated item banks in ``stimuli/`` (or another non-excluded folder)
-  and commit them. Dallinger omits ``data/`` from the copied experiment package.
+  and commit them. Stock packaging still omits the experiment-root ``data/``
+  directory (Dallinger ``exclusion_policy``, and after !1151 the stock
+  ``deploy.toml`` ``paths`` entry ``data``). Follow-up after !1151:
+  https://gitlab.com/PsyNetDev/PsyNet/-/issues/1062 — decide whether that
+  exclude can be narrowed to export dumps so item banks may live under
+  ``data/``.
 - Record candidate IDs, chosen ID, objective components, model snapshot, data
   cutoff, and optimizer version for every adaptive decision.
 - When already available without extra approximation, record the posterior
@@ -106,7 +112,7 @@ Choose one strategy explicitly:
 - Using online learning without concurrency protection.
 - Re-querying a selected node or chain instead of returning the exact candidate
   object supplied by PsyNet.
-- Adding mapped columns on ``StaticTrial``, or storing the item bank under
-  ``data/``.
+- Adding a bare ``Column()`` on ``StaticTrial`` (use ``inherit_column``), or
+  storing the item bank under ``data/``.
 - Overriding managed trial preparation rather than the relevant discovery,
   eligibility, or selection hook.

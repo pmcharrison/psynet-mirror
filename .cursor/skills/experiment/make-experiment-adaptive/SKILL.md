@@ -50,7 +50,10 @@ PsyNet and the standalone simulation. It must not import PsyNet or SQLAlchemy.
 Before importing it from ``experiment.py``, put the experiment directory on
 ``sys.path`` using ``Path(__file__).resolve().parent``. Debug and deploy load
 ``experiment.py`` from a temporary package where a bare ``import adaptive_logic``
-otherwise fails.
+otherwise fails. Do not leave the experiment directory on ``sys.path`` for the
+whole process as a substitute: a file named ``json.py``, ``tests.py``, or
+similar will shadow the standard library or installed packages in every later
+import. The ``Path(__file__)`` insert is scoped to that experiment.
 
 `simulate_procedure.py` runs one complete adaptive experiment without starting
 PsyNet. It maintains the observation, participant, item, and decision tables;
@@ -362,11 +365,27 @@ put it directly into the observation table. A seven-point rating does not need
 to be called a score.
 
 For a small dataset, unpack `trial.answer` and `trial.definition` in Python.
-If fitting rereads a large trial table, store model fields on a dedicated
-SQLAlchemy table as in
-[references/study-state-storage.md](references/study-state-storage.md).
-Do not add extra ``Column`` attributes on a ``StaticTrial`` subclass: trials
-share Dallinger's ``info`` table, and those columns conflict once it is mapped.
+If fitting rereads a large trial table, store model fields as queryable columns.
+Extra fields on a ``StaticTrial`` subclass are supported; they live on
+Dallinger's shared ``info`` table, so declare them with
+``inherit_column`` rather than a bare ``Column()``:
+
+```python
+from sqlalchemy import String
+
+from psynet.field import inherit_column
+from psynet.trial.static import StaticTrial
+
+
+class VocabularyTrial(StaticTrial):
+    item_id = inherit_column(String, index=True)
+```
+
+A dedicated observation table remains appropriate when the same fields are
+shared with standalone simulation code, or when several trial classes would
+otherwise duplicate columns. Follow
+[references/study-state-storage.md](references/study-state-storage.md) for
+snapshot and decision tables.
 
 Only finalized, non-failed trials belong in the observation table. Select those
 columns directly. PsyNet stores the zero-based `Trial.position`, so it can be

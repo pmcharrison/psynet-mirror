@@ -182,3 +182,8 @@ the notebook with its review-relevant tables and interactive figures embedded (p
   in this simulation rather than running a separate campaign first. The
   adaptive-experiment skill covers the procedure simulator and the
   policy-comparison checks.
+- If the adaptive policy can stop early, do not treat a max-trial cap as the
+  realized budget. Either disable stopping for matched-budget cells
+  (``se_stop=None`` or equivalent) or report ``mean_n_observations`` next to
+  RMSE and other precision metrics so shorter adaptive runs are not compared
+  as if they used the full cap.

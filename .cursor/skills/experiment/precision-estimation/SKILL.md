@@ -35,6 +35,9 @@ rather than silently changing the simulated world for each analysis.
 Candidate designs are combinations of quantities the experimenter can choose,
 such as participants, sampled stimuli, trials per participant, or adaptive budget.
 The design grid should be dense enough to reveal the precision/cost frontier.
+When an adaptive policy stops early, a cell labelled by its cap is not a
+fixed-length design: disable stopping for matched-budget comparisons, or
+report realized ``mean_n_observations`` beside precision metrics.
 
 ## Configure the simulation
 

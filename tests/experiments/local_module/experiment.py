@@ -1,6 +1,7 @@
 """Minimal experiment that absolutely imports a sibling module."""
 
 import local_helper
+
 import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import Timeline

@@ -126,35 +126,31 @@ What variables might we filter on? The simplest way to find out is to inspect th
 |br|
 You may find that this list is missing some variables that you want to use. In particular, if you’ve been storing custom variables in ``CustomTrial.var``, you won’t see them as SQL columns and you won’t be able to filter on them. This is because these var objects are stored in JSON in the database, and are hence difficult to filter on in SQL.
 
-Fortunately, it’s quite straightforward to define your own columns manually using standard SQLAlchemy syntax. See the following example:
+Fortunately, it’s quite straightforward to define your own columns manually using standard SQLAlchemy syntax. Trial classes share Dallinger's ``info`` table, so prefer :func:`psynet.field.inherit_column` rather than a bare ``Column()``. A bare column works on the first subclass definition, but a later subclass or a second import of ``experiment.py`` raises ``conflicts with existing column 'info.<name>'``.
 
 .. code-block:: python
 
-    from sqlalchemy import Column, Integer
+    from sqlalchemy import Integer
+
+    from psynet.field import inherit_column
 
     class CustomTrial(GibbsTrial):
-        random_integer = Column(Integer)
+        random_integer = inherit_column(Integer)
 
         def __init__(*args, **kwargs):
             super().__init__(*args, **kwargs)
             self.random_integer = random.randint(0, 10)
 
+The equivalent explicit form is a :func:`~sqlalchemy.orm.declared_attr` that reuses the table column when it already exists:
 
-.. warning::
+.. code-block:: python
 
-    Some people have reported errors of the following form here:
+    from sqlalchemy import Column, Integer
+    from sqlalchemy.orm import declared_attr
 
-    ..
-
-        "sqlalchemy.exc.ArgumentError: Column 'random_integer' on class <class 'dallinger_experiment.experiment.CustomTrial'> conflicts with existing column 'info.random_integer'"
-
-    Such errors can be resolved with the following, more verbose version:
-
-    .. code-block:: python
-
-        @declared_attr
-        def random_integer(cls):
-            return cls.__table__.c.get("random_integer", Column(Integer))
+    @declared_attr
+    def random_integer(cls):
+        return cls.__table__.c.get("random_integer", Column(Integer))
 
 Having defined the class in this way, we can then run queries for ``CustomTrial`` objects that filter on the value of ``random_integer``:
 
