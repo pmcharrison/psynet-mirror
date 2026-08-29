@@ -563,6 +563,52 @@ def test_protect_existing_database_recovers_interrupted_owner(tmp_path, monkeypa
     )
 
 
+@pytest.mark.parametrize(
+    "rows,expected_unmanaged",
+    [
+        ([], False),
+        ([("{}",), ("{}",)], True),
+        ([("not-serialized-psynet-data",)], True),
+    ],
+)
+def test_read_database_owner_treats_unreadable_state_as_unmanaged(
+    monkeypatch, rows, expected_unmanaged
+):
+    import psycopg2
+
+    from psynet.local_deployment import UNREADABLE_DATABASE_OWNER, read_database_owner
+
+    cursor = Mock()
+    cursor.fetchall.return_value = rows
+    connection = Mock()
+    connection.cursor.return_value = cursor
+    monkeypatch.setattr(psycopg2, "connect", lambda **_kwargs: connection)
+
+    owner = read_database_owner(db_url="postgresql://example")
+
+    if expected_unmanaged:
+        assert owner is UNREADABLE_DATABASE_OWNER
+        assert not owner.managed
+    else:
+        assert owner is None
+
+
+def test_read_database_owner_survives_a_locked_experiment_table(monkeypatch):
+    import psycopg2
+
+    from psynet.local_deployment import UNREADABLE_DATABASE_OWNER, read_database_owner
+
+    cursor = Mock()
+    cursor.execute.side_effect = psycopg2.errors.QueryCanceled("statement timeout")
+    connection = Mock()
+    connection.cursor.return_value = cursor
+    monkeypatch.setattr(psycopg2, "connect", lambda **_kwargs: connection)
+
+    assert read_database_owner(db_url="postgresql://example") is (
+        UNREADABLE_DATABASE_OWNER
+    )
+
+
 def test_protect_existing_database_skips_clean_shutdown(tmp_path, monkeypatch):
     from psynet.local_deployment import (
         DatabaseOwner,

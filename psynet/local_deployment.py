@@ -43,6 +43,9 @@ LOCAL_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
 # reporting a genuine conflict.
 DATABASE_LOCK_WAIT_SECONDS = 30.0
 
+# Reading deployment identity must not block a launch behind a leftover backend.
+DATABASE_READ_TIMEOUT_SECONDS = 10
+
 logger = logging.getLogger("psynet")
 
 _fallback_file_lock = threading.RLock()
@@ -79,6 +82,12 @@ class DatabaseOwner:
     def managed(self) -> bool:
         """Return whether this database has managed local-deployment metadata."""
         return self.local_id is not None and self.experiment_path is not None
+
+
+# Returned when the database holds an experiment whose identity cannot be read.
+UNREADABLE_DATABASE_OWNER = DatabaseOwner(
+    local_id=None, experiment_path=None, deployment_id=None, label=None
+)
 
 
 def validate_local_id(value: str) -> str:
@@ -487,14 +496,29 @@ def export_database_snapshot(destination: Path, db_url: Optional[str] = None) ->
 
 
 def read_database_owner(db_url: Optional[str] = None) -> Optional[DatabaseOwner]:
-    """Read managed local-deployment identity from the current PostgreSQL database."""
+    """Read managed local-deployment identity from the current PostgreSQL database.
+
+    Returns ``None`` when the database holds no experiment, and
+    ``UNREADABLE_DATABASE_OWNER`` when one is present but its identity cannot be
+    read. This runs before every local launch, so a leftover backend holding
+    locks, or unexpected table contents, must not hang or crash the launch;
+    callers treat an unreadable database as unmanaged, which keeps managed
+    deployments from overwriting it without ``--adopt-existing``.
+    """
     import psycopg2
 
     if db_url is None:
         from dallinger import db
 
         db_url = db.db_url
-    connection = psycopg2.connect(dsn=db_url)
+    connection = psycopg2.connect(
+        dsn=db_url,
+        connect_timeout=DATABASE_READ_TIMEOUT_SECONDS,
+        options=(
+            f"-c statement_timeout={int(DATABASE_READ_TIMEOUT_SECONDS * 1000)} "
+            f"-c lock_timeout={int(DATABASE_READ_TIMEOUT_SECONDS * 1000)}"
+        ),
+    )
     try:
         cursor = connection.cursor()
         try:
@@ -502,12 +526,39 @@ def read_database_owner(db_url: Optional[str] = None) -> Optional[DatabaseOwner]
         except psycopg2.errors.UndefinedTable:
             connection.rollback()
             return None
+        except (psycopg2.errors.QueryCanceled, psycopg2.errors.LockNotAvailable):
+            connection.rollback()
+            logger.warning(
+                "Timed out reading local deployment metadata; another process may "
+                "still be using the local database. Treating it as unmanaged."
+            )
+            return UNREADABLE_DATABASE_OWNER
         rows = cursor.fetchall()
         if not rows:
             return None
         if len(rows) != 1:
-            raise RuntimeError("Expected exactly one row in the experiment table.")
-        variables = unserialize(rows[0][0])
+            logger.warning(
+                "Expected one row in the experiment table, found %d. "
+                "Treating the local database as unmanaged.",
+                len(rows),
+            )
+            return UNREADABLE_DATABASE_OWNER
+        try:
+            variables = unserialize(rows[0][0])
+        except Exception as error:
+            logger.warning(
+                "Could not read local deployment metadata (%s). "
+                "Treating the local database as unmanaged.",
+                error,
+            )
+            return UNREADABLE_DATABASE_OWNER
+        if not isinstance(variables, dict):
+            logger.warning(
+                "Local deployment metadata has unexpected type %s. "
+                "Treating the local database as unmanaged.",
+                type(variables).__name__,
+            )
+            return UNREADABLE_DATABASE_OWNER
         experiment_path = variables.get("local_experiment_path")
         return DatabaseOwner(
             local_id=variables.get("local_deployment_id"),

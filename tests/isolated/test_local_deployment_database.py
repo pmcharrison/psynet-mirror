@@ -1,3 +1,4 @@
+import sys
 import zipfile
 
 import pytest
@@ -11,7 +12,11 @@ from psynet.pytest_psynet import path_to_test_experiment
     indirect=True,
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_database_snapshot_round_trip(db_session, tmp_path):
+def test_database_snapshot_round_trip(db_session, tmp_path, monkeypatch):
+    # Importing the experiment appends its directory to sys.path, which would
+    # otherwise change how later tests resolve the name ``experiment``.
+    monkeypatch.setattr(sys, "path", list(sys.path))
+
     from dallinger import db
 
     from psynet import deployment_info
