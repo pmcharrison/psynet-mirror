@@ -48,6 +48,8 @@ from . import deployment_info
 from .bootstrap_commands import register_bootstrap_commands
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    _clear_deployment_policy_review_marker,
+    _deployment_policy_needs_review,
     _remove_obsolete_generated_docker_scripts,
     _remove_obsolete_generated_dockerignore,
     dockertag_contents,
@@ -1397,7 +1399,9 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
 
     In-repo experiments are auto-scaffolded first so their missing-boilerplate
     check does not falsely fail. A missing ``deploy.toml`` is created from the
-    PsyNet template and never overwritten. Remote deployments additionally
+    PsyNet template and never overwritten. Auto-created policies leave a local
+    review marker so the next debug, test, or deploy command stops once even
+    when setup or scaffold wrote the file. Remote deployments additionally
     require a Git commit for provenance; local debug and test runs may use a
     repository with no commits. Leftover generated ``.dockerignore`` files and
     ``docker/`` helper scripts are removed (custom copies are preserved with a
@@ -1405,34 +1409,8 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
     without Redis still see actionable guidance.
     """
     prepared = _prepare_in_repo_experiment()
-    created_policy = ensure_deployment_policy()
+    ensure_deployment_policy()
     missing_after_policy_creation = missing_scaffold_paths_required_for_local_run()
-    if created_policy and not missing_after_policy_creation:
-        ignored_paths = deployment_info._git_ignored_deployment_paths()
-        ignored_summary = ""
-        if ignored_paths:
-            preview_limit = 10
-            preview = "\n".join(f"  {path}" for path in ignored_paths[:preview_limit])
-            remaining = len(ignored_paths) - preview_limit
-            if remaining > 0:
-                preview += f"\n  ... and {remaining} more"
-            ignored_summary = (
-                "\n\nYour existing .gitignore covered the following files, but "
-                "your new deploy.toml does not:\n" + preview
-            )
-        raise click.ClickException(
-            "PsyNet now requires experiments to provide a deploy.toml file to "
-            "specify which files to include in the deployed experiment. Previously "
-            ".gitignore was used for this purpose.\n\nPsyNet created a new "
-            "deploy.toml file for this experiment."
-            f"{ignored_summary}\n\nBefore continuing:\n"
-            "  1. Run 'dallinger deployment-files list'. This only prints the files "
-            "that PsyNet would copy; it does not start or deploy the experiment.\n"
-            "  2. Check the list for credentials, private data, large files, and "
-            "generated files that should stay local.\n"
-            "  3. Add anything that should stay local to [exclude] in deploy.toml.\n"
-            "  4. Rerun this command."
-        )
     if not prepared:
         _remove_obsolete_generated_dockerignore()
         _remove_obsolete_generated_docker_scripts()
@@ -1449,6 +1427,33 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
             "Experiment directory is missing required PsyNet boilerplate files "
             f"({missing_paths}). "
             f"{_missing_boilerplate_fix(mode=mode, missing_paths=missing_boilerplate)}"
+        )
+    if _deployment_policy_needs_review():
+        ignored_paths = deployment_info._git_ignored_deployment_paths()
+        ignored_summary = ""
+        if ignored_paths:
+            preview_limit = 10
+            preview = "\n".join(f"  {path}" for path in ignored_paths[:preview_limit])
+            remaining = len(ignored_paths) - preview_limit
+            if remaining > 0:
+                preview += f"\n  ... and {remaining} more"
+            ignored_summary = (
+                "\n\nYour existing .gitignore covered the following files, but "
+                "your new deploy.toml does not:\n" + preview
+            )
+        _clear_deployment_policy_review_marker()
+        raise click.ClickException(
+            "PsyNet now requires experiments to provide a deploy.toml file to "
+            "specify which files to include in the deployed experiment. Previously "
+            ".gitignore was used for this purpose.\n\nPsyNet created a new "
+            "deploy.toml file for this experiment."
+            f"{ignored_summary}\n\nBefore continuing:\n"
+            "  1. Run 'dallinger deployment-files list'. This only prints the files "
+            "that PsyNet would copy; it does not start or deploy the experiment.\n"
+            "  2. Check the list for credentials, private data, large files, and "
+            "generated files that should stay local.\n"
+            "  3. Add anything that should stay local to [exclude] in deploy.toml.\n"
+            "  4. Rerun this command."
         )
 
     # Git provenance (commit SHA and dirty state) is recorded for deployments.

@@ -1,1 +1,1 @@
-Stopped debug and deployment after automatically creating `deploy.toml` so authors can review Git-ignored files before rerunning, and scoped Git dirty-state provenance to deployment-selected files.
+Stopped debug, test, and deployment once after PsyNet auto-creates `deploy.toml`, including when setup or scaffold wrote the file, so authors can review the deployment plan before rerunning. Git-ignored files may still be deployed after that one-time review. Git dirty-state provenance is scoped to deployment-selected files.

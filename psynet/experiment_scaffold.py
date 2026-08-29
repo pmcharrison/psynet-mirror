@@ -770,13 +770,44 @@ def _copy_template_file(relative_path, overwrite):
     destination.parent.mkdir(parents=True, exist_ok=True)
     with resources.as_file(_experiment_script_resource(relative_path)) as path:
         shutil.copyfile(path, destination)
+    if relative_path == "deploy.toml":
+        _mark_deployment_policy_for_review()
     return True
+
+
+_DEPLOYMENT_POLICY_REVIEW_MARKER = Path(".deploy/deploy.toml.needs_review")
+
+
+def _mark_deployment_policy_for_review() -> None:
+    """Record that a newly created ``deploy.toml`` still needs a launch-time review."""
+    marker = _DEPLOYMENT_POLICY_REVIEW_MARKER
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(
+        "PsyNet created deploy.toml for this experiment. The next debug, test, "
+        "or deploy command stops once so you can inspect the deployment plan "
+        "with 'dallinger deployment-files list'. This file is local-only; "
+        "you can delete it after that review.\n"
+    )
+
+
+def _deployment_policy_needs_review() -> bool:
+    """Return whether the current ``deploy.toml`` still has a one-shot review marker."""
+    return _DEPLOYMENT_POLICY_REVIEW_MARKER.is_file()
+
+
+def _clear_deployment_policy_review_marker() -> None:
+    """Remove the one-shot review marker if it is present."""
+    marker = _DEPLOYMENT_POLICY_REVIEW_MARKER
+    if marker.is_file():
+        marker.unlink()
 
 
 def ensure_deployment_policy() -> bool:
     """Create ``deploy.toml`` from the PsyNet template when it is missing.
 
-    Existing files are never overwritten.
+    Existing files are never overwritten. A newly written file also gets a
+    local review marker so the next debug, test, or deploy command pauses
+    once before copying files.
 
     Returns
     -------

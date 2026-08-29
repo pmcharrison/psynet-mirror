@@ -25,8 +25,10 @@ Check that the experiment folder has:
 - `requirements.txt`
 - `constraints.txt`
 - `Dockerfile` and/or `Dockertag` when the template expects them
-- `deploy.toml` with reviewed `[exclude]` rules; run
-  `dallinger deployment-files list` to inspect every file that PsyNet will copy
+- `deploy.toml` with reviewed `[exclude]` rules; if PsyNet just created it,
+  the first debug/test/deploy command stops once so you can review. Then run
+  `dallinger deployment-files list` to inspect every file that PsyNet will copy.
+  Git-ignored files may still be deployed after that review.
 - `.gitignore` excluding `.venv/`, `.deploy/`, `.pytest_cache/`, `exports/`,
   `deploy_logs/`, source archives, generated logs, and the managed
   `.cursor/skills/psynet/` bundle

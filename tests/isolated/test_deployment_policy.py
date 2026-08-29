@@ -12,6 +12,8 @@ from dallinger.utils import ExperimentFileSource
 from psynet.experiment import Experiment
 from psynet.experiment_scaffold import (
     _GENERATED_DOCKERIGNORE_VARIANTS,
+    _clear_deployment_policy_review_marker,
+    _deployment_policy_needs_review,
     scaffold_experiment_directory,
 )
 from psynet.timeline import PreDeployRoutine
@@ -131,6 +133,7 @@ def test_scaffold_creates_stock_deployment_policy(tmp_path):
 
     with working_directory(tmp_path):
         scaffold_experiment_directory()
+        assert _deployment_policy_needs_review()
 
     policy = parse_deployment_policy(tmp_path / "deploy.toml")
     assert policy.exclude_paths == EXPECTED_EXCLUDE_PATHS
@@ -275,11 +278,42 @@ def test_check_experiment_directory_stops_after_creating_missing_deploy_toml(
         assert "dallinger deployment-files list" in message
 
         # The policy now exists, so the author can review it and rerun.
+        assert not _deployment_policy_needs_review()
         _check_experiment_directory("debug")
 
     assert (tmp_path / "deploy.toml").read_bytes() == (
         _template_directory() / "deploy.toml"
     ).read_bytes()
+
+
+def test_check_experiment_directory_stops_after_setup_creates_deploy_toml(
+    tmp_path, monkeypatch
+):
+    from click import ClickException
+
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        with Path(".gitignore").open("a", encoding="utf-8") as file:
+            file.write("\nsecret.txt\n")
+        Path("secret.txt").write_text("API_KEY=private\n")
+        subprocess.run(["git", "init", "-q"], check=True)
+
+        assert _deployment_policy_needs_review()
+        with pytest.raises(ClickException) as error:
+            _check_experiment_directory("debug")
+
+        message = str(error.value)
+        assert "PsyNet created a new deploy.toml file for this experiment." in message
+        assert "secret.txt" in message
+        assert not _deployment_policy_needs_review()
+
+        _check_experiment_directory("debug")
 
 
 def test_check_experiment_directory_preserves_existing_deploy_toml(
@@ -296,6 +330,7 @@ def test_check_experiment_directory_preserves_existing_deploy_toml(
 
     with working_directory(tmp_path):
         scaffold_experiment_directory()
+        assert not _deployment_policy_needs_review()
         _check_experiment_directory("debug")
 
     assert (tmp_path / "deploy.toml").read_bytes() == contents
@@ -315,6 +350,7 @@ def test_check_experiment_directory_rejects_ignored_parent_provenance(tmp_path):
 
     with working_directory(experiment):
         scaffold_experiment_directory()
+        _clear_deployment_policy_review_marker()
         with pytest.raises(
             ClickException,
             match="commit cannot identify the experiment's source state",
@@ -335,6 +371,7 @@ def test_check_experiment_directory_removes_generated_dockerignore(
 
     with working_directory(tmp_path):
         scaffold_experiment_directory()
+        _clear_deployment_policy_review_marker()
         dockerignore.write_text(
             "\n".join(max(_GENERATED_DOCKERIGNORE_VARIANTS, key=len)) + "\n"
         )
@@ -359,6 +396,7 @@ def test_check_experiment_directory_rejects_custom_dockerignore(
 
     with working_directory(tmp_path):
         scaffold_experiment_directory()
+        _clear_deployment_policy_review_marker()
         dockerignore.write_text("custom-local-file\n")
         capsys.readouterr()
         with pytest.raises(ClickException, match="no longer supported"):
@@ -380,6 +418,7 @@ def test_check_experiment_directory_removes_obsolete_docker_helpers(
 
     with working_directory(tmp_path):
         scaffold_experiment_directory()
+        _clear_deployment_policy_review_marker()
         _write_obsolete_docker_helpers(tmp_path)
         _check_experiment_directory("debug")
 
