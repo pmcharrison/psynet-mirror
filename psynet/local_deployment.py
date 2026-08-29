@@ -15,11 +15,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import re
 import sys
 import tempfile
 import threading
+import time
 import zipfile
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -35,6 +37,13 @@ from rich.table import Table
 from psynet.serialize import unserialize
 
 LOCAL_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
+
+# A stopping deployment releases the lock only once its process exits, so a
+# stop-then-start sequence can briefly overlap. Wait that race out before
+# reporting a genuine conflict.
+DATABASE_LOCK_WAIT_SECONDS = 30.0
+
+logger = logging.getLogger("psynet")
 
 _fallback_file_lock = threading.RLock()
 _database_lock_guard = threading.RLock()
@@ -554,10 +563,33 @@ def concurrent_deployment_error(lock_path: Optional[Path] = None) -> RuntimeErro
     return RuntimeError(message)
 
 
+def _acquire_lock_file(path: Path, wait_seconds: float):
+    """Acquire ``path``, waiting out a lock that a stopping deployment still holds."""
+    deadline = time.monotonic() + wait_seconds
+    waited = False
+    while True:
+        lock_context = _file_lock(path, blocking=False)
+        try:
+            return lock_context, lock_context.__enter__()
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                raise
+            if not waited:
+                waited = True
+                logger.info(
+                    "The local database is locked by another PsyNet process; "
+                    "waiting up to %.0fs in case it is shutting down.",
+                    wait_seconds,
+                )
+            time.sleep(0.5)
+
+
 @contextmanager
 def local_database_lock(
     experiment_path: Path | str | None = None,
     local_id: Optional[str] = None,
+    *,
+    wait_seconds: float = DATABASE_LOCK_WAIT_SECONDS,
 ):
     """Serialize destructive access to the shared local PostgreSQL database."""
     global _database_lock_context, _database_lock_depth
@@ -569,8 +601,7 @@ def local_database_lock(
     try:
         with _database_lock_guard:
             if _database_lock_depth == 0:
-                lock_context = _file_lock(path, blocking=False)
-                file = lock_context.__enter__()
+                lock_context, file = _acquire_lock_file(path, wait_seconds)
                 _database_lock_context = lock_context
                 outermost = True
             else:

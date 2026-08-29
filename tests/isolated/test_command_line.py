@@ -3489,6 +3489,81 @@ def test_stop_local_debug_process_reaps_workers_even_if_terminate_fails():
     kill_workers.assert_called_once()
 
 
+def _worker_process(pid, status):
+    process = Mock()
+    process.pid = pid
+    process.status.return_value = status
+    return process
+
+
+def test_kill_psynet_worker_processes_warns_instead_of_raising(caplog):
+    import psutil
+
+    from psynet.command_line import kill_psynet_worker_processes
+
+    survivor = _worker_process(4242, psutil.STATUS_RUNNING)
+
+    with (
+        patch(
+            "psynet.command_line.list_psynet_worker_processes",
+            return_value=[survivor],
+        ),
+        patch("psynet.command_line.safely_kill_process"),
+        patch("psynet.command_line.psutil.wait_procs", return_value=([], [survivor])),
+        caplog.at_level("WARNING"),
+    ):
+        kill_psynet_worker_processes()
+
+    assert "4242" in caplog.text
+
+
+def test_kill_psynet_worker_processes_ignores_zombies(caplog):
+    import psutil
+
+    from psynet.command_line import kill_psynet_worker_processes
+
+    zombie = _worker_process(4243, psutil.STATUS_ZOMBIE)
+
+    with (
+        patch(
+            "psynet.command_line.list_psynet_worker_processes",
+            return_value=[zombie],
+        ),
+        patch("psynet.command_line.safely_kill_process"),
+        patch("psynet.command_line.psutil.wait_procs", return_value=([], [zombie])),
+        caplog.at_level("WARNING"),
+    ):
+        kill_psynet_worker_processes()
+
+    assert "4243" not in caplog.text
+
+
+def test_prepare_refuses_database_reset_while_a_worker_survives(tmp_path):
+    import psutil
+
+    from psynet.command_line import _prepare
+    from psynet.utils import working_directory
+
+    survivor = _worker_process(4244, psutil.STATUS_RUNNING)
+
+    with (
+        patch(
+            "psynet.command_line.list_psynet_worker_processes",
+            return_value=[survivor],
+        ),
+        patch("psynet.command_line.safely_kill_process"),
+        patch("psynet.command_line.psutil.wait_procs", return_value=([], [survivor])),
+        patch("psynet.command_line.protect_existing_database") as protect,
+        patch("psynet.command_line._prepare_unlocked") as prepare_unlocked,
+        working_directory(tmp_path),
+    ):
+        with pytest.raises(click.ClickException, match="4244"):
+            _prepare()
+
+    protect.assert_not_called()
+    prepare_unlocked.assert_not_called()
+
+
 def test_terminate_server_process_escalates_when_sendcontrol_raises_oserror():
     from psynet.command_line import _terminate_server_process
 

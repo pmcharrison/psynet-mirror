@@ -205,6 +205,7 @@ def prepare(archive):
 
 def _prepare(archive=None):
     with local_database_lock(Path.cwd()):
+        _check_no_live_workers_before_database_reset()
         protect_existing_database(
             Path.cwd(),
             "prepare",
@@ -961,23 +962,72 @@ def safely_kill_process(p):
         pass
 
 
-def kill_psynet_worker_processes():
+def _process_is_defunct(process):
+    """Return whether ``process`` can no longer run code (gone or a zombie).
+
+    Zombies have already stopped executing and only await reaping by their
+    parent, so they cannot touch the database. Containers whose PID 1 is not a
+    reaper keep such entries indefinitely, so treating them as alive would
+    block local launches forever.
+    """
+    try:
+        return process.status() == psutil.STATUS_ZOMBIE
+    except psutil.NoSuchProcess:
+        return True
+    except psutil.AccessDenied:
+        return False
+
+
+def _reap_psynet_worker_processes(rounds=2, timeout=5):
+    """Kill leftover PsyNet workers and return those still able to run."""
     processes = list_psynet_worker_processes()
-    if len(processes) > 0:
-        log(
-            f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
-        )
-    for p in processes:
-        safely_kill_process(p)
-    if processes:
-        _gone, alive = psutil.wait_procs(processes, timeout=5)
+    if len(processes) == 0:
+        return []
+    log(
+        f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
+    )
+    alive = processes
+    for _round in range(rounds):
         for process in alive:
             safely_kill_process(process)
-        if alive:
-            _gone, alive = psutil.wait_procs(alive, timeout=5)
-        if alive:
-            pids = ", ".join(str(process.pid) for process in alive)
-            raise RuntimeError(f"Failed to stop PsyNet worker process(es): {pids}.")
+        _gone, alive = psutil.wait_procs(alive, timeout=timeout)
+        alive = [process for process in alive if not _process_is_defunct(process)]
+        if not alive:
+            break
+    return alive
+
+
+def kill_psynet_worker_processes():
+    """Terminate leftover PsyNet workers, warning about any that survive.
+
+    This runs on shutdown paths, where raising would mask the original error
+    and skip remaining cleanup. Launch paths that reset the database call
+    ``_check_no_live_workers_before_database_reset`` instead, which refuses to
+    continue while a worker could still write.
+    """
+    alive = _reap_psynet_worker_processes()
+    if alive:
+        logger.warning(
+            "Failed to stop PsyNet worker process(es): %s.",
+            ", ".join(str(process.pid) for process in alive),
+        )
+
+
+def _check_no_live_workers_before_database_reset():
+    """Refuse to reset the local database while a worker could still write.
+
+    Workers are given several kill/wait rounds first, because a busy machine can
+    take a while to tear them down and refusing too eagerly would block launches
+    that are in fact safe.
+    """
+    alive = _reap_psynet_worker_processes(rounds=3, timeout=10)
+    if alive:
+        pids = ", ".join(str(process.pid) for process in alive)
+        raise click.ClickException(
+            "PsyNet worker process(es) are still running and could write to the "
+            f"local database while it is reset: {pids}. "
+            "Stop them, then try again."
+        )
 
 
 def kill_psynet_chrome_processes():

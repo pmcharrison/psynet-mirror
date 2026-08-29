@@ -14,6 +14,12 @@ def _write_archive(path: Path):
         archive.writestr("data/experiment.csv", "id,vars\n1,{}\n")
 
 
+def local_deployment_module():
+    import psynet.local_deployment
+
+    return psynet.local_deployment
+
+
 @pytest.mark.parametrize(
     "value",
     ["gibbs", "village-01", "a1", "0"],
@@ -329,11 +335,41 @@ def test_local_database_lock_uses_concurrent_error_when_lock_is_held(
     monkeypatch.setattr("psynet.local_deployment._file_lock", already_locked)
 
     with pytest.raises(RuntimeError, match="Stop it first") as error:
-        with local_database_lock(tmp_path, "second-run"):
+        with local_database_lock(tmp_path, "second-run", wait_seconds=0):
             pass
 
     assert "id first-run" in str(error.value)
     assert "pid 99" in str(error.value)
+
+
+def test_local_database_lock_waits_out_a_deployment_that_is_stopping(
+    tmp_path, monkeypatch
+):
+    from psynet.local_deployment import local_database_lock
+
+    monkeypatch.setattr(
+        "psynet.local_deployment.local_database_lock_path",
+        lambda: tmp_path / "local-deployment.lock",
+    )
+    real_file_lock = local_deployment_module()._file_lock
+    attempts = []
+
+    @contextmanager
+    def locked_until_second_attempt(path, **kwargs):
+        attempts.append(path)
+        if len(attempts) == 1:
+            raise BlockingIOError
+        with real_file_lock(path, **kwargs) as file:
+            yield file
+
+    monkeypatch.setattr(
+        "psynet.local_deployment._file_lock", locked_until_second_attempt
+    )
+
+    with local_database_lock(tmp_path, "second-run", wait_seconds=5):
+        pass
+
+    assert len(attempts) == 2
 
 
 def test_second_process_is_told_to_stop_the_running_experiment(tmp_path, monkeypatch):
@@ -368,7 +404,7 @@ def test_second_process_is_told_to_stop_the_running_experiment(tmp_path, monkeyp
             raise AssertionError("holder process did not write the lock file")
 
         with pytest.raises(RuntimeError, match="Stop it first") as error:
-            with local_database_lock(tmp_path, "second-run"):
+            with local_database_lock(tmp_path, "second-run", wait_seconds=0):
                 pass
 
         message = str(error.value)
