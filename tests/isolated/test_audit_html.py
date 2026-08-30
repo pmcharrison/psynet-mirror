@@ -2,6 +2,7 @@ import json
 
 from psynet.audit.constants import MAX_AUDIT_NOTEBOOK_BYTES
 from psynet.audit.html import (
+    render_analysis_notebook,
     render_design_simulation,
     render_evidence_section,
     render_file_grid,
@@ -149,6 +150,22 @@ def test_render_evidence_section_marks_unpublished_actions_without_empty_links()
     assert "trials.csv" in html
     assert "Analysis summary not published" in html
     assert 'href=""' not in html
+
+
+def test_render_analysis_notebook_lists_supporting_files() -> None:
+    view = classify_audit_evidence(
+        [
+            file("simulate/analysis/analysis.ipynb", "{}"),
+            file("simulate/analysis/summary.csv", "metric,value\nrmse,0.2\n"),
+            file("simulate/analysis/simulated_export/trials.csv", None),
+        ]
+    )
+
+    html = render_analysis_notebook(view, standalone=True)
+
+    assert "summary.csv" in html
+    assert "simulated_export/trials.csv" in html
+    assert html.index("summary.csv") < html.index("simulated_export/trials.csv")
 
 
 def test_render_design_simulation_reports_absence() -> None:

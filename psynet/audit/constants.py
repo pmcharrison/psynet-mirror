@@ -78,6 +78,7 @@ ARTIFACT_KINDS = {
 }
 ARTIFACT_STATUSES = {"present", "missing", "blocked", "not_applicable"}
 ARTIFACT_CREATORS = {"agent", "cli", "manual", "unknown"}
+DIRECTORY_ARTIFACT_IDS = frozenset({"simulate_export"})
 BLOCKER_SEVERITIES = {"warning", "error"}
 CHECK_STATUSES = {"pass", "fail", "warning", "not_run"}
 # Notebooks often contain embedded image output. Keep the rendered text preview
@@ -137,6 +138,7 @@ __all__ = [
     "CLI_NAME",
     "CORE_KNOWN_EXTENSION_IDS",
     "DEFAULT_AUDIT_PROFILE",
+    "DIRECTORY_ARTIFACT_IDS",
     "DOCUMENTED_EXTERNAL_EXTENSION_IDS",
     "MAX_AUDIT_NOTEBOOK_BYTES",
     "MAX_AUDIT_SECTION_BYTES",

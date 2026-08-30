@@ -8,20 +8,26 @@ from pathlib import Path
 from typing import Any
 
 from psynet.audit.artifacts import redact_known_credentials
-from psynet.audit.constants import MAX_AUDIT_NOTEBOOK_BYTES
+from psynet.audit.constants import DIRECTORY_ARTIFACT_IDS, MAX_AUDIT_NOTEBOOK_BYTES
 from psynet.audit.model import MAX_AUDIT_TEXT_BYTES, TEXT_AUDIT_EXTENSIONS
 from psynet.audit.paths import relative_audit_path
 from psynet.audit.video import validate_evidence_video
 
 
-def artifact_path_is_ready(path: Path) -> bool:
-    """Return whether an artifact path is a file or a non-empty directory."""
+def artifact_allows_directory(artifact_id: str | None) -> bool:
+    """Return whether *artifact_id* is stored as a non-empty directory."""
 
-    if path.is_file():
-        return True
-    return path.is_dir() and any(
-        item.is_file() and not item.is_symlink() for item in path.rglob("*")
-    )
+    return artifact_id in DIRECTORY_ARTIFACT_IDS
+
+
+def artifact_path_is_ready(path: Path, *, allow_directory: bool = False) -> bool:
+    """Return whether an artifact path is ready for its allowed shape."""
+
+    if allow_directory:
+        return path.is_dir() and any(
+            item.is_file() and not item.is_symlink() for item in path.rglob("*")
+        )
+    return path.is_file()
 
 
 def validate_present_artifact_file(
@@ -137,6 +143,7 @@ def section_text(audit_dir: Path, section: dict[str, Any]) -> str | None:
 
 
 __all__ = [
+    "artifact_allows_directory",
     "artifact_path_is_ready",
     "read_audit_artifact_content",
     "read_bounded_bytes",

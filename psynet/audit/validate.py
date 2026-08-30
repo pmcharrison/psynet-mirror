@@ -28,6 +28,7 @@ from psynet.audit.constants import (
     format_allowed,
 )
 from psynet.audit.content import (
+    artifact_allows_directory,
     artifact_path_is_ready,
     section_text,
     validate_present_artifact_file,
@@ -255,7 +256,16 @@ def validate_audit_artifacts(
             continue
 
         if status == "present":
-            if not artifact_path_is_ready(artifact_path):
+            allow_directory = artifact_allows_directory(artifact_id)
+            if artifact_path.is_dir() and not allow_directory:
+                problems.append(
+                    f"{label}: artifact must be a file, not a directory: "
+                    f"{artifact_path}",
+                )
+                continue
+            if not artifact_path_is_ready(
+                artifact_path, allow_directory=allow_directory
+            ):
                 problems.append(
                     f"{label}: artifact marked present but path is missing or empty: "
                     f"{artifact_path}",

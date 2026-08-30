@@ -16,7 +16,11 @@ from psynet.audit.constants import (
     DEFAULT_AUDIT_PROFILE,
     PLACEHOLDER_IMPLEMENTATION_SUMMARY,
 )
-from psynet.audit.content import artifact_path_is_ready, validate_present_artifact_file
+from psynet.audit.content import (
+    artifact_allows_directory,
+    artifact_path_is_ready,
+    validate_present_artifact_file,
+)
 from psynet.audit.paths import relative_audit_path
 
 
@@ -490,7 +494,10 @@ def mark_artifact_present(
             raise ValueError("; ".join(path_problems))
 
     assert resolved is not None
-    if not artifact_path_is_ready(resolved):
+    allow_directory = artifact_allows_directory(artifact_id)
+    if resolved.is_dir() and not allow_directory:
+        raise ValueError(f"{resolved}: artifact must be a file, not a directory")
+    if not artifact_path_is_ready(resolved, allow_directory=allow_directory):
         raise FileNotFoundError(
             f"{resolved}: artifact is missing or empty; create it before marking present"
         )

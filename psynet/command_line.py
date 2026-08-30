@@ -3456,6 +3456,25 @@ def mark_performance_result_present(all_results) -> None:
     mark_audit_artifact_present(AUDIT_PERFORMANCE_JSON)
 
 
+def _replace_directory(source: Path, destination: Path) -> None:
+    """Replace *destination* with *source*, restoring *destination* on failure."""
+
+    backup = destination.with_name(f".{destination.name}.bak")
+    if backup.exists():
+        shutil.rmtree(backup)
+    had_destination = destination.exists()
+    if had_destination:
+        destination.rename(backup)
+    try:
+        source.rename(destination)
+    except OSError:
+        if had_destination and backup.exists() and not destination.exists():
+            backup.rename(destination)
+        raise
+    if backup.exists():
+        shutil.rmtree(backup)
+
+
 def _run_simulate(ctx):
     """Run experiment bots and export their data into the audit packet."""
 
@@ -3463,16 +3482,22 @@ def _run_simulate(ctx):
 
     export_path = resolve_audit_artifact_path(SIMULATED_EXPORT_PATH)
     ctx.invoke(test__local)
-    shutil.rmtree(export_path, ignore_errors=True)
-    ctx.invoke(
-        export__local,
-        # TODO - maybe legacy is not the best name for this parameter...
-        legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
-        no_source=True,
-        path=export_path.as_posix(),
+    staging = Path(
+        tempfile.mkdtemp(prefix=".simulated_export.", dir=export_path.parent)
     )
-    if not artifact_path_is_ready(export_path):
-        raise click.ClickException(f"Simulate produced no files in {export_path}.")
+    try:
+        ctx.invoke(
+            export__local,
+            # TODO - maybe legacy is not the best name for this parameter...
+            legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
+            no_source=True,
+            path=staging.as_posix(),
+        )
+        if not artifact_path_is_ready(staging, allow_directory=True):
+            raise click.ClickException(f"Simulate produced no files in {export_path}.")
+        _replace_directory(staging, export_path)
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
     click.echo(f"Simulated export: {export_path}")
     mark_audit_artifact_present(SIMULATED_EXPORT_PATH)
 

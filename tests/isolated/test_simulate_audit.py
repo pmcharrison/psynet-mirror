@@ -108,6 +108,35 @@ def test_run_simulate_rejects_an_empty_export(tmp_path, monkeypatch):
         _run_simulate(DummyCtx())
 
 
+def test_run_simulate_keeps_previous_export_when_export_fails(tmp_path, monkeypatch):
+    from psynet.audit.cli import init_audit, mark_artifact_present
+    from psynet.command_line import SIMULATED_EXPORT_PATH, _run_simulate, export__local
+
+    experiment = tmp_path / "exp"
+    audit_dir = experiment / "audit"
+    init_audit(audit_dir)
+    previous = _write_export_tree(audit_dir / SIMULATED_EXPORT_PATH)
+    mark_artifact_present(audit_dir, "simulate_export")
+    monkeypatch.chdir(experiment)
+
+    class DummyCtx:
+        def invoke(self, cmd, **kwargs):
+            if cmd is export__local:
+                raise click.ClickException("export failed")
+
+    with pytest.raises(click.ClickException, match="export failed"):
+        _run_simulate(DummyCtx())
+
+    assert (previous / "regular" / "data" / "AnimalTrial.csv").is_file()
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    artifact = next(a for a in manifest["artifacts"] if a["id"] == "simulate_export")
+    assert artifact["status"] == "present"
+    staging_dirs = list(
+        (audit_dir / "simulate" / "analysis").glob(".simulated_export*")
+    )
+    assert staging_dirs == []
+
+
 def test_mark_present_accepts_nonempty_directory(tmp_path, monkeypatch):
     from psynet.audit.cli import init_audit
     from psynet.command_line import SIMULATED_EXPORT_PATH, mark_audit_artifact_present

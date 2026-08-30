@@ -543,12 +543,26 @@ def render_analysis_notebook(
         if notebook_file is not None
         else ("<p>No analysis notebook was found.</p>" if standalone else "")
     )
+    supporting = [
+        file
+        for file in evidence.analysis_files
+        if file is not evidence.analysis_notebook_file
+    ]
+    supporting_html = (
+        render_file_grid(
+            supporting,
+            empty_message="No supporting analysis files.",
+            url_transform=url_transform,
+        )
+        if supporting
+        else ""
+    )
     export_html = render_file_grid(
         evidence.simulated_export_files,
         empty_message="No simulated export was found.",
         url_transform=url_transform,
     )
-    return f"{notebook_html}{export_html}"
+    return f"{notebook_html}{supporting_html}{export_html}"
 
 
 def render_design_simulation(

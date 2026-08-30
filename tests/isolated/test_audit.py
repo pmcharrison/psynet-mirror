@@ -764,6 +764,47 @@ def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None
     assert "Raw JSON" in index
 
 
+def test_render_shows_supporting_analysis_files_in_analysis_panel(
+    tmp_path: Path,
+) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    write(
+        audit_dir / "simulate/analysis/analysis.ipynb",
+        json.dumps(
+            {
+                "nbformat": 4,
+                "nbformat_minor": 5,
+                "metadata": {},
+                "cells": [
+                    {
+                        "cell_type": "markdown",
+                        "metadata": {},
+                        "source": ["Analysis body"],
+                    }
+                ],
+            }
+        ),
+    )
+    write(audit_dir / "simulate/analysis/summary.csv", "metric,value\nrmse,0.2\n")
+    write(audit_dir / "simulate/analysis/simulated_export/trials.csv", "id\n1\n")
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    for artifact in manifest["artifacts"]:
+        if artifact["id"] in {"analysis_notebook", "simulate_export"}:
+            artifact["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    index = (render_audit_site(audit_dir, allow_invalid=True) / "index.html").read_text(
+        encoding="utf-8"
+    )
+
+    analysis = index[index.index('id="analysis"') : index.index('id="files"')]
+    additional = index[index.index('id="files"') :]
+    assert "summary.csv" in analysis
+    assert "summary.csv" not in additional
+    assert "simulated_export/trials.csv" in analysis
+
+
 def test_render_audit_site_keeps_blockers_collapsed_and_explained(
     tmp_path: Path,
 ) -> None:
@@ -875,6 +916,24 @@ def test_validate_audit_rejects_present_empty_directory(tmp_path: Path) -> None:
         "artifact marked present but path is missing or empty" in problem
         for problem in problems
     )
+
+
+def test_validate_audit_rejects_present_video_directory(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    video_dir = audit_dir / "artifacts/participant.mp4"
+    video_dir.mkdir(parents=True)
+    write(video_dir / "note.txt", "not a video\n")
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    artifact = next(
+        item for item in manifest["artifacts"] if item["id"] == "participant_video"
+    )
+    artifact["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+
+    problems = validate_audit(audit_dir)
+
+    assert any("must be a file, not a directory" in problem for problem in problems)
 
 
 def test_validate_audit_fails_when_required_artifact_lacks_blocker(
@@ -1096,6 +1155,19 @@ def test_mark_artifact_present_rejects_invalid_notebook(tmp_path: Path) -> None:
     write(audit_dir / "simulate/analysis/analysis.ipynb", "{not json")
 
     with pytest.raises(ValueError, match="invalid notebook JSON"):
+        mark_artifact_present(audit_dir, "analysis_notebook")
+
+
+def test_mark_artifact_present_rejects_notebook_directory(tmp_path: Path) -> None:
+    from psynet.audit.cli import mark_artifact_present
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    notebook_dir = audit_dir / "simulate/analysis/analysis.ipynb"
+    notebook_dir.mkdir(parents=True)
+    write(notebook_dir / "note.txt", "not a notebook\n")
+
+    with pytest.raises(ValueError, match="must be a file, not a directory"):
         mark_artifact_present(audit_dir, "analysis_notebook")
 
 

@@ -155,7 +155,48 @@ def publish_audit_artifacts(
                     published_paths,
                 )
             )
+    rendered.extend(
+        _publish_analysis_supporting_files(
+            audit_dir,
+            target_root,
+            site_dir,
+            rendered,
+        )
+    )
     return rendered
+
+
+def _publish_analysis_supporting_files(
+    audit_dir: Path,
+    target_root: Path,
+    site_dir: Path,
+    rendered: list[AuditFile],
+) -> list[AuditFile]:
+    """Publish extra files beside a present analysis notebook."""
+
+    published_paths = {item.path for item in rendered}
+    if "simulate/analysis/analysis.ipynb" not in published_paths:
+        return []
+    parent = audit_dir / "simulate" / "analysis"
+    if not parent.is_dir():
+        return []
+    extras: list[AuditFile] = []
+    for child in sorted(parent.iterdir()):
+        if not child.is_file() or child.is_symlink():
+            continue
+        child_relative = f"simulate/analysis/{child.name}"
+        if child_relative in published_paths:
+            continue
+        extras.append(
+            publish_audit_artifact_file(
+                child,
+                child_relative,
+                target_root,
+                site_dir,
+            )
+        )
+        published_paths.add(child_relative)
+    return extras
 
 
 def publish_audit_artifact_file(
