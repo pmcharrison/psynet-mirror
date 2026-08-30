@@ -243,11 +243,16 @@ def test_top_level_simulate_command_is_removed():
     assert "No such command 'simulate'" in result.output
 
 
-def test_performance_test_routes_separate_measurement_and_audit_output():
+def test_performance_test_routes_separate_measurement_and_audit_output(monkeypatch):
     from click.testing import CliRunner
 
     from psynet.command_line import psynet
 
+    monkeypatch.setattr("psynet.utils.experiment_available", lambda: True)
+    monkeypatch.setattr(
+        "psynet.utils.ensure_experiment_directory_name_does_not_conflict",
+        lambda: None,
+    )
     runner = CliRunner()
     measurement = runner.invoke(psynet, ["performance-test", "local", "--help"])
     evidence = runner.invoke(psynet, ["audit", "performance-test", "local", "--help"])
