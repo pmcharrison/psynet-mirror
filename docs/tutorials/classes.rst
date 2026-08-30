@@ -585,6 +585,30 @@ or for On-Demand Assets (i.e. Assets that are generated on-demand).
         ),
     )
 
+Adaptive or generated trials can use ``on_trial_created`` to create related
+database records in the same transaction as the cued trial. Pass request-local
+provenance through ``creation_context`` and assign ORM relationships in the
+callback, because the trial's database ID may not exist until the transaction
+flushes:
+
+.. code-block:: python
+
+    from dallinger import db
+
+
+    def record_decision(trial, creation_context):
+        decision = AdaptiveDecision(
+            snapshot_id=creation_context["snapshot_id"],
+        )
+        decision.trial = trial
+        db.session.add(decision)
+
+    RateTrial.cue(
+        definition={"item_id": "item-1"},
+        on_trial_created=record_decision,
+        creation_context={"snapshot_id": 12},
+    )
+
 
 Node
 ^^^^

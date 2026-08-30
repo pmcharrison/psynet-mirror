@@ -18,6 +18,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import soundfile as sf
 from dallinger import db
 from dominate import tags
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
@@ -25,16 +26,23 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import deferred, relationship
 
 import psynet.experiment
+from psynet.asset import Asset, asset
 from psynet.bot import Bot
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.experiment import scheduled_task
 from psynet.field import PythonDict, PythonObject
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import InfoPage
+from psynet.page import InfoPage, VolumeCalibration
 from psynet.process import WorkerAsyncProcess
-from psynet.timeline import Timeline
-from psynet.trial.main import Selection, Trial
-from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
+from psynet.timeline import (
+    Event,
+    MediaSpec,
+    Module,
+    ProgressDisplay,
+    Timeline,
+    for_loop,
+)
+from psynet.trial.main import Trial
 from psynet.utils import get_logger
 
 if __package__:
@@ -91,21 +99,35 @@ SIMULATION_UTILITIES = (SIMULATION_RANKS - SIMULATION_RANKS.mean()) / (
 SIMULATION_UTILITY_BY_ID = dict(
     zip([item["item_id"] for item in ITEMS], SIMULATION_UTILITIES)
 )
+SAMPLE_RATE = 16_000
+TONE_DURATION = 0.35
 
 
-def get_nodes() -> list[StaticNode]:
-    """Create nodes for the balanced 500-pair comparison graph."""
+def synthesize_tone(path, frequency):
+    """Synthesize one short demonstration tone."""
 
-    return [
-        StaticNode(
-            definition={
-                "pair_id": pair_id,
-                "item_a_id": item_a_id,
-                "item_b_id": item_b_id,
-            }
+    time_axis = np.arange(round(SAMPLE_RATE * TONE_DURATION)) / SAMPLE_RATE
+    envelope = np.sin(np.pi * np.linspace(0.0, 1.0, len(time_axis))) ** 2
+    waveform = 0.2 * envelope * np.sin(2.0 * np.pi * frequency * time_axis)
+    sf.write(path, waveform, SAMPLE_RATE)
+
+
+def get_assets() -> dict[str, Asset]:
+    """Create one cached audio asset per item, rather than per pair."""
+
+    return {
+        item["item_id"]: asset(
+            synthesize_tone,
+            arguments={
+                "frequency": 220.0
+                * 2.0 ** ((float(item["simulation_rank"]) - 1.0) / 99.0 * 2.0)
+            },
+            extension=".wav",
+            cache=True,
+            description=f"Demonstration tone for {item['item_id']}",
         )
-        for pair_id, item_a_id, item_b_id in PAIR_DEFINITIONS
-    ]
+        for item in ITEMS
+    }
 
 
 @register_table
@@ -310,8 +332,8 @@ def refresh_model_snapshot(bootstrap_replicates: int | None = None) -> int | Non
     )
 
 
-class AdaptivePairwiseTrial(StaticTrial):
-    """One 2AFC comparison selected from the 100-item candidate bank."""
+class AdaptivePairwiseTrial(Trial):
+    """One cued 2AFC audio comparison selected from the virtual pair bank."""
 
     time_estimate = 4
 
@@ -323,52 +345,48 @@ class AdaptivePairwiseTrial(StaticTrial):
     adaptive_chosen_left = Column(Boolean, nullable=True)
     adaptive_snapshot_id = Column(Integer, nullable=True, index=True)
 
-    def finalize_definition(self, definition, experiment, participant):
-        position_seed = 100_000 * participant.id + self.node.id
-        if np.random.default_rng(position_seed).random() < 0.5:
-            left_id, right_id = definition["item_a_id"], definition["item_b_id"]
-        else:
-            left_id, right_id = definition["item_b_id"], definition["item_a_id"]
-        return {
-            **definition,
-            "left_item_id": left_id,
-            "right_item_id": right_id,
-        }
-
-    @staticmethod
-    def _item_card(item_id: str):
-        item = ITEM_BY_ID[item_id]
-        return tags.div(
-            tags.div(
-                style=(
-                    "height: 90px; border-radius: 8px; "
-                    f"background: hsl({item['hue']} 65% 70%);"
-                )
-            ),
-            tags.h4(item["label"], style="margin-top: 12px;"),
-            style="width: 240px; padding: 16px; border: 1px solid #bbb;",
-        )
-
     def show_trial(self, experiment, participant):
-        prompt = tags.div(
-            tags.h3("Which item do you prefer?"),
-            tags.div(
-                self._item_card(self.definition["left_item_id"]),
-                self._item_card(self.definition["right_item_id"]),
-                style=(
-                    "display: flex; justify-content: center; gap: 32px; margin: 24px 0;"
-                ),
-            ),
-        )
         return ModularPage(
             "adaptive_pairwise_choice",
-            prompt,
+            "You will hear two sounds. Which one do you prefer?",
             PushButtonControl(
-                choices=["Left item", "Right item"],
+                choices=["First sound", "Second sound"],
                 arrange_vertically=False,
                 bot_response=self.get_bot_response,
             ),
             time_estimate=self.time_estimate,
+            media=MediaSpec(
+                audio={
+                    "firstSound": self.assets["first_sound"],
+                    "secondSound": self.assets["second_sound"],
+                }
+            ),
+            events={
+                "playFirstSound": Event(
+                    is_triggered_by="trialStart",
+                    js="psynet.audio.firstSound.play();",
+                    message="First sound",
+                    message_color="blue",
+                ),
+                "silence": Event(
+                    is_triggered_by="audioFinished: firstSound",
+                    delay=0.25,
+                    message="",
+                ),
+                "playSecondSound": Event(
+                    is_triggered_by="silence",
+                    js="psynet.audio.secondSound.play();",
+                    message="Second sound",
+                    message_color="blue",
+                ),
+                "responseEnable": Event(
+                    is_triggered_by="audioFinished: secondSound",
+                ),
+                "submitEnable": Event(
+                    is_triggered_by="responseEnable",
+                ),
+            },
+            progress_display=ProgressDisplay([], show_bar=False),
         )
 
     def get_bot_response(self, bot: Bot) -> str:
@@ -380,113 +398,134 @@ class AdaptivePairwiseTrial(StaticTrial):
             parameters=MISSPECIFIED,
             rng=np.random.default_rng(10_000 * bot.id + self.id),
         )[0]
-        return "Left item" if chosen_left else "Right item"
+        return "First sound" if chosen_left else "Second sound"
+
+    def on_finalized(self):
+        self.adaptive_chosen_left = self.answer == "First sound"
+        super().on_finalized()
 
 
-class AdaptivePairwiseTrialMaker(StaticTrialMaker):
-    """Select comparisons from cached snapshots and persist decision provenance."""
+def _record_adaptive_decision(
+    trial,
+    participant,
+    creation_context,
+):
+    """Persist assignment provenance in the same transaction as a cued trial."""
 
-    def select_node(self, nodes, participant, experiment):
-        snapshot = _ensure_prior_snapshot()
-        history_count = participant.module_state.n_completed_trials
-        eligible_candidate_ids = [node.definition["pair_id"] for node in nodes]
-        decision = select_pair(
-            pair_ids=eligible_candidate_ids,
-            item_a_ids=np.asarray([node.definition["item_a_id"] for node in nodes]),
-            item_b_ids=np.asarray([node.definition["item_b_id"] for node in nodes]),
-            state=snapshot.state,
-            tie_break_seed=100_000 * participant.id + history_count,
-        )
-        selected_node = nodes[decision["selected_index"]]
-        context = {
-            **decision,
-            "study_fit_id": snapshot.id,
-            "posterior_version": snapshot.model_version,
-            "data_version": snapshot.data_version,
-            "observation_fingerprint": snapshot.observation_fingerprint,
-            "participant_history_count": history_count,
-            "eligible_candidate_count": len(eligible_candidate_ids),
-            "eligible_candidate_ids_sha256": hashlib.sha256(
-                "\n".join(eligible_candidate_ids).encode()
-            ).hexdigest(),
-            "excluded_candidate_ids": sorted(
-                set(ALL_PAIR_IDS).difference(eligible_candidate_ids)
+    if creation_context["selected_candidate_id"] != trial.definition["pair_id"]:
+        raise RuntimeError("Adaptive decision does not match the assigned trial.")
+
+    trial.adaptive_pair_id = trial.definition["pair_id"]
+    trial.adaptive_item_a_id = trial.definition["item_a_id"]
+    trial.adaptive_item_b_id = trial.definition["item_b_id"]
+    trial.adaptive_left_item_id = trial.definition["left_item_id"]
+    trial.adaptive_right_item_id = trial.definition["right_item_id"]
+    trial.adaptive_snapshot_id = creation_context["study_fit_id"]
+    predictive_probability_item_a = creation_context["predictive_probability_item_a"]
+    predictive_probability_first = (
+        predictive_probability_item_a
+        if trial.adaptive_left_item_id == trial.adaptive_item_a_id
+        else 1.0 - predictive_probability_item_a
+    )
+    decision = AdaptiveDecision(
+        participant_id=participant.id,
+        study_fit_id=creation_context["study_fit_id"],
+        selected_candidate_id=creation_context["selected_candidate_id"],
+        participant_history_count=creation_context["participant_history_count"],
+        candidate_pool_version=CANDIDATE_POOL_VERSION,
+        selected_utility=creation_context["selected_utility"],
+        details={
+            "eligible_candidate_count": creation_context["eligible_candidate_count"],
+            "eligible_candidate_ids_sha256": creation_context[
+                "eligible_candidate_ids_sha256"
+            ],
+            "excluded_candidate_ids": creation_context["excluded_candidate_ids"],
+            "candidate_reconstruction": (
+                "All pair IDs generated from the versioned item-bank manifest "
+                "minus excluded_candidate_ids."
             ),
-        }
-        logger.info(
-            "Adaptive selection participant=%s pair=%s snapshot=%s "
-            "data_version=%s score_seconds=%.4f",
-            participant.id,
-            decision["selected_candidate_id"],
-            snapshot.id,
-            snapshot.data_version,
-            decision["scoring_seconds"],
-        )
-        return Selection(value=selected_node, context=context)
+            "objective_components": creation_context["objective_components"],
+            "optimizer_version": OPTIMIZER_VERSION,
+            "posterior_version": creation_context["posterior_version"],
+            "data_version": creation_context["data_version"],
+            "observation_fingerprint": creation_context["observation_fingerprint"],
+            "scoring_seconds": creation_context["scoring_seconds"],
+            "posterior_predictive": [
+                predictive_probability_first,
+                1.0 - predictive_probability_first,
+            ],
+        },
+    )
+    decision.trial = trial
+    db.session.add(decision)
 
-    def on_trial_created(
-        self,
-        trial,
-        experiment,
-        participant,
-        selection_context=None,
-    ):
-        if selection_context is None:
-            raise RuntimeError("Adaptive trials require selection context.")
-        if selection_context["selected_candidate_id"] != trial.definition["pair_id"]:
-            raise RuntimeError("Adaptive decision does not match the assigned trial.")
 
-        trial.adaptive_pair_id = trial.definition["pair_id"]
-        trial.adaptive_item_a_id = trial.definition["item_a_id"]
-        trial.adaptive_item_b_id = trial.definition["item_b_id"]
-        trial.adaptive_left_item_id = trial.definition["left_item_id"]
-        trial.adaptive_right_item_id = trial.definition["right_item_id"]
-        trial.adaptive_snapshot_id = selection_context["study_fit_id"]
-        predictive_probability_item_a = selection_context[
-            "predictive_probability_item_a"
-        ]
-        predictive_probability_left = (
-            predictive_probability_item_a
-            if trial.adaptive_left_item_id == trial.adaptive_item_a_id
-            else 1.0 - predictive_probability_item_a
-        )
-        decision = AdaptiveDecision(
-            participant_id=participant.id,
-            study_fit_id=selection_context["study_fit_id"],
-            selected_candidate_id=selection_context["selected_candidate_id"],
-            participant_history_count=selection_context["participant_history_count"],
-            candidate_pool_version=CANDIDATE_POOL_VERSION,
-            selected_utility=selection_context["selected_utility"],
-            details={
-                "eligible_candidate_count": selection_context[
-                    "eligible_candidate_count"
-                ],
-                "eligible_candidate_ids_sha256": selection_context[
-                    "eligible_candidate_ids_sha256"
-                ],
-                "excluded_candidate_ids": selection_context["excluded_candidate_ids"],
-                "candidate_reconstruction": (
-                    "All pair IDs generated from the versioned item-bank manifest "
-                    "minus excluded_candidate_ids."
-                ),
-                "objective_components": selection_context["objective_components"],
-                "optimizer_version": OPTIMIZER_VERSION,
-                "posterior_version": selection_context["posterior_version"],
-                "data_version": selection_context["data_version"],
-                "observation_fingerprint": selection_context["observation_fingerprint"],
-                "scoring_seconds": selection_context["scoring_seconds"],
-                "posterior_predictive": [
-                    predictive_probability_left,
-                    1.0 - predictive_probability_left,
-                ],
-            },
-        )
-        decision.trial = trial
-        db.session.add(decision)
+def _select_and_cue_pair(trial_index, participant, experiment):
+    """Select one virtual pair and return its cued trial logic."""
 
-    def finalize_trial(self, answer, trial, experiment, participant):
-        trial.adaptive_chosen_left = answer == "Left item"
-        super().finalize_trial(answer, trial, experiment, participant)
+    previous_trials = AdaptivePairwiseTrial.query.filter_by(
+        participant_id=participant.id,
+        failed=False,
+    ).all()
+    excluded_candidate_ids = sorted(
+        trial.adaptive_pair_id
+        for trial in previous_trials
+        if trial.adaptive_pair_id is not None
+    )
+    excluded = set(excluded_candidate_ids)
+    eligible_pairs = [pair for pair in PAIR_DEFINITIONS if pair[0] not in excluded]
+    eligible_candidate_ids = [pair[0] for pair in eligible_pairs]
+    snapshot = _ensure_prior_snapshot()
+    decision = select_pair(
+        pair_ids=eligible_candidate_ids,
+        item_a_ids=np.asarray([pair[1] for pair in eligible_pairs]),
+        item_b_ids=np.asarray([pair[2] for pair in eligible_pairs]),
+        state=snapshot.state,
+        tie_break_seed=100_000 * participant.id + trial_index,
+    )
+    _, item_a_id, item_b_id = eligible_pairs[decision["selected_index"]]
+    if np.random.default_rng(100_000 * participant.id + trial_index).random() < 0.5:
+        first_item_id, second_item_id = item_a_id, item_b_id
+    else:
+        first_item_id, second_item_id = item_b_id, item_a_id
+
+    creation_context = {
+        **decision,
+        "study_fit_id": snapshot.id,
+        "posterior_version": snapshot.model_version,
+        "data_version": snapshot.data_version,
+        "observation_fingerprint": snapshot.observation_fingerprint,
+        "participant_history_count": len(previous_trials),
+        "eligible_candidate_count": len(eligible_candidate_ids),
+        "eligible_candidate_ids_sha256": hashlib.sha256(
+            "\n".join(eligible_candidate_ids).encode()
+        ).hexdigest(),
+        "excluded_candidate_ids": excluded_candidate_ids,
+    }
+    logger.info(
+        "Adaptive cue participant=%s pair=%s snapshot=%s "
+        "data_version=%s score_seconds=%.4f",
+        participant.id,
+        decision["selected_candidate_id"],
+        snapshot.id,
+        snapshot.data_version,
+        decision["scoring_seconds"],
+    )
+    return AdaptivePairwiseTrial.cue(
+        definition={
+            "pair_id": decision["selected_candidate_id"],
+            "item_a_id": item_a_id,
+            "item_b_id": item_b_id,
+            "left_item_id": first_item_id,
+            "right_item_id": second_item_id,
+        },
+        assets={
+            "first_sound": pairwise_module.assets[first_item_id],
+            "second_sound": pairwise_module.assets[second_item_id],
+        },
+        on_trial_created=_record_adaptive_decision,
+        creation_context=creation_context,
+    )
 
 
 def _practice_page():
@@ -495,30 +534,29 @@ def _practice_page():
         tags.div(
             tags.h3("Practice"),
             tags.p(
-                "On each trial, compare the two abstract items and choose the one "
+                "On each trial, listen to two short sounds and choose the one "
                 "you prefer. There are no correct answers."
             ),
         ),
         PushButtonControl(
-            ["I would choose the left item", "I would choose the right item"],
+            ["I understand"],
             arrange_vertically=False,
-            bot_response="I would choose the left item",
+            bot_response="I understand",
         ),
         time_estimate=5,
         save_answer="pairwise_practice",
     )
 
 
-trial_maker = AdaptivePairwiseTrialMaker(
-    id_="adaptive_pairwise",
-    trial_class=AdaptivePairwiseTrial,
-    nodes=get_nodes,
-    expected_trials_per_participant=N_TRIALS_PER_PARTICIPANT,
-    max_trials_per_participant=N_TRIALS_PER_PARTICIPANT,
-    allow_repeated_nodes=False,
-    balance_across_nodes=False,
-    recruit_mode="n_participants",
-    target_n_participants=40,
+pairwise_module = Module(
+    "adaptive_pairwise",
+    for_loop(
+        label="adaptive audio comparisons",
+        iterate_over=range(N_TRIALS_PER_PARTICIPANT),
+        logic=_select_and_cue_pair,
+        time_estimate_per_iteration=AdaptivePairwiseTrial.time_estimate,
+    ),
+    assets=get_assets,
 )
 
 
@@ -529,12 +567,13 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 4
 
     timeline = Timeline(
+        VolumeCalibration(),
         InfoPage(
-            "You will compare abstract items in a series of two-choice trials.",
+            "You will compare short sounds in a series of two-choice trials.",
             time_estimate=4,
         ),
         _practice_page(),
-        trial_maker,
+        pairwise_module,
         InfoPage("Thank you. You have completed the comparisons.", time_estimate=2),
     )
 
@@ -578,10 +617,14 @@ class Exp(psynet.experiment.Experiment):
         )
         assert len(trials) == N_TRIALS_PER_PARTICIPANT
         assert all(trial.adaptive_chosen_left is not None for trial in trials)
-        assert all(trial.answer in {"Left item", "Right item"} for trial in trials)
+        assert all(trial.answer in {"First sound", "Second sound"} for trial in trials)
         assert all(trial.adaptive_snapshot_id is not None for trial in trials)
+        assert all(trial.trial_maker_id is None for trial in trials)
         assert AdaptiveDecision.query.filter_by(participant_id=bot.id).count() == len(
             trials
+        )
+        assert Asset.query.filter_by(module_id="adaptive_pairwise").count() == len(
+            ITEMS
         )
 
     @classmethod
@@ -637,4 +680,7 @@ class Exp(psynet.experiment.Experiment):
 
 
 if __name__ == "__main__":
-    print(f"Loaded {len(ITEMS)} items and {len(get_nodes())} candidate pairs.")
+    print(
+        f"Loaded {len(ITEMS)} audio items and "
+        f"{len(PAIR_DEFINITIONS)} virtual candidate pairs."
+    )
