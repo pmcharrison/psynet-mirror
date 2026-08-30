@@ -54,6 +54,31 @@ from .main import (
 logger = get_logger()
 
 
+def _count_viable_trials_for_nodes(node_ids: Iterable[int]) -> dict[int, int]:
+    """Return viable trial counts keyed by node ID."""
+
+    ids = list(dict.fromkeys(node_id for node_id in node_ids if node_id is not None))
+    if not ids:
+        return {}
+    rows = (
+        db.session.query(Trial.node_id, func.count(Trial.id))
+        .filter(
+            Trial.node_id.in_(ids),
+            Trial.is_repeat_trial.is_(False),
+            Trial.failed.is_(False),
+        )
+        .group_by(Trial.node_id)
+        .all()
+    )
+    return {node_id: count for node_id, count in rows}
+
+
+def _count_viable_trials_for_node(node_id: int) -> int:
+    """Return the viable trial count for one node."""
+
+    return _count_viable_trials_for_nodes([node_id]).get(node_id, 0)
+
+
 # class HasSeed:
 #     # Mixin class that provides a 'seed' slot.
 #     # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
@@ -406,13 +431,19 @@ class ChainNetwork(TrialNetwork):
 
     @hybrid_property
     def n_viable_trials_at_head(self):
-        return self.head.n_viable_trials
+        if self.head is None:
+            return 0
+        return _count_viable_trials_for_node(self.head.id)
 
     @n_viable_trials_at_head.expression
     def n_viable_trials_at_head(cls):
         return (
-            select(ChainNode.n_viable_trials)
-            .where(ChainNode.id == cls.head_id)
+            select(func.count(Trial.id))
+            .where(
+                Trial.node_id == cls.head_id,
+                Trial.is_repeat_trial.is_(False),
+                Trial.failed.is_(False),
+            )
             .scalar_subquery()
         )
 
@@ -867,15 +898,13 @@ class ChainNode(TrialNode):
     #     )
 
 
-TrialNode.n_viable_trials = column_property(
-    select(func.count(Trial.id))
-    .where(
-        Trial.node_id == TrialNode.id,
-        ~Trial.is_repeat_trial,
-        ~Trial.failed,
-    )
-    .scalar_subquery()
-)
+def _n_viable_trials(node):
+    """Return the current viable-trial count for a node."""
+
+    return _count_viable_trials_for_node(node.id)
+
+
+TrialNode.n_viable_trials = property(_n_viable_trials)
 
 
 UniqueConstraint(ChainNode.module_id, ChainNode.key)
@@ -1466,6 +1495,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.chains_per_experiment = chains_per_experiment
         self.max_nodes_per_chain = max_nodes_per_chain
         self.trials_per_node = trials_per_node
+        self._node_capacity_is_unlimited = False
         self.balance_across_chains = balance_across_chains
         # self.balance_strategy = balance_strategy
         self.check_performance_at_end = check_performance_at_end
@@ -1940,15 +1970,29 @@ class ChainTrialMaker(NetworkTrialMaker):
             logger.info("Will wait for an eligible %s.", self._candidate_label)
             return "wait"
 
-        # find_chains normally takes place in a participant's 'response' call.
-        # This means that the previous trial will exist in the database,
-        # but it might not have been marked as finalized yet.
-        # That's fine if we use `n_viable_trials_at_head` to determine whether there is space,
-        # because this will count that previous trial.
+        # Discovery normally runs in the response that submits the previous trial.
+        # Counting all viable trials, rather than only finalized trials, includes
+        # that newly submitted trial and prevents over-allocation.
+        needs_viable_counts = (
+            not self._node_capacity_is_unlimited or self.balance_across_chains
+        )
+        viable_counts = (
+            _count_viable_trials_for_nodes(
+                network.head.id
+                for _, network in available_candidate_networks
+                if network.head is not None
+            )
+            if needs_viable_counts
+            else {}
+        )
         candidate_networks_with_head_space = [
             pair
             for pair in available_candidate_networks
-            if pair[1].head and pair[1].n_viable_trials_at_head < self.trials_per_node
+            if pair[1].head
+            and (
+                self._node_capacity_is_unlimited
+                or viable_counts.get(pair[1].head.id, 0) < self.trials_per_node
+            )
         ]
 
         if (
@@ -1973,7 +2017,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         if self.balance_across_chains:
             # We used to sort by n_completed_trials, but this is likely to be out of date
             # because the completion of the latest trial might not have been committed yet.
-            candidate_networks.sort(key=lambda pair: pair[1].n_viable_trials_at_head)
+            candidate_networks.sort(
+                key=lambda pair: viable_counts.get(pair[1].head.id, 0)
+            )
             candidate_networks.sort(key=lambda pair: pair[1].head.degree)
 
         remaining_blocks = participant.module_state.remaining_blocks

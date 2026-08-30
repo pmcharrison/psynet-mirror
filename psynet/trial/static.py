@@ -356,7 +356,11 @@ class StaticTrialMaker(ChainTrialMaker):
             chains_per_participant=None,
             chains_per_experiment=chains_per_experiment,
             max_nodes_per_chain=1,
-            trials_per_node=target_trials_per_node if target_trials_per_node else 1e6,
+            trials_per_node=(
+                target_trials_per_node
+                if target_trials_per_node is not None
+                else 1_000_000
+            ),
             balance_across_chains=balance_across_nodes,
             # balance_strategy=balance_strategy,
             allow_revisiting_networks_in_across_chains=allow_repeated_nodes,
@@ -373,6 +377,7 @@ class StaticTrialMaker(ChainTrialMaker):
             sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
             sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
+        self._node_capacity_is_unlimited = target_trials_per_node is None
 
     def _selection_hook_overrides(self):
         return [
