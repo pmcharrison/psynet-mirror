@@ -26,33 +26,18 @@ an architecture.
 ## Python modules beside ``experiment.py``
 
 Keep ``experiment.py`` as the timeline and experiment class. Put substantial
-helpers in sibling files (for example ``adaptive_logic.py``, ``stimuli.py``).
-Import those siblings from ``experiment.py`` with a **relative** import:
+helpers in sibling files (for example ``adaptive_logic.py``, ``stimuli.py``)
+and import them relatively:
 
 ```python
 from . import adaptive_logic
 from .adaptive_logic import select_item
-
-def choose_next_item(state):
-    return adaptive_logic.select_item(state)
 ```
 
-Dallinger loads the experiment directory as a package (``dallinger_experiment``).
-A top-level ``import adaptive_logic`` in ``experiment.py`` already failed in the
-web, worker, and clock processes; it can still pass under pytest. Do not work
-around that by putting the experiment directory on ``sys.path``. Also do not
-rely on a later bare import inside a function (``import adaptive_logic`` after
-the experiment class is loaded): ``import_local_experiment()`` no longer
-appends the experiment directory to ``sys.path``.
-
-Standalone scripts that you invoke as ordinary Python (``python -m audit.power.core``,
-``simulate_procedure.py``) are not loaded as that package, so they keep using
-top-level imports such as ``import adaptive_logic``. Run ``python -m audit.power.core``
-from the experiment root; ``audit/`` and ``audit/power/`` are namespace packages
-and need no ``__init__.py``.
-
+Standalone scripts such as ``python -m audit.power.core`` and
+``simulate_procedure.py`` use ordinary top-level imports of the same helpers.
 See ``docs/experiment_development/experiment_directory.rst``
-(section "Importing other Python files").
+("Importing other Python files").
 
 ## Internationalization
 

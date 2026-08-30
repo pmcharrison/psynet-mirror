@@ -9,12 +9,8 @@ and with the development of individual PsyNet experiments.
 If the root contains a file called `experiment.py`, assume that we are working on an experiment.
 Otherwise assume we are working on the PsyNet source code.
 
-From `experiment.py`, import other Python files in the same directory with
-relative imports (`from . import my_module`) and call that name later. A
-plain `import my_module` can pass under pytest and then fail in the web,
-worker, and clock processes. Do not put the experiment directory on
-`sys.path` to paper over that. See
-`docs/experiment_development/experiment_directory.rst`
+From `experiment.py`, import sibling modules with `from . import my_module`.
+See `docs/experiment_development/experiment_directory.rst`
 ("Importing other Python files").
 
 PsyNet experiment skills are installed under `.cursor/skills/psynet/` by

@@ -100,9 +100,7 @@ easy to run from the experiment root:
 python -m audit.power.core
 ```
 
-Run this from the experiment root. `audit/` and `audit/power/` are namespace
-packages (no `__init__.py` required). Do not add another top-level `audit`
-package to `PYTHONPATH`.
+Run this from the experiment root.
 
 The following pseudocode illustrates the intended orchestration:
 
@@ -202,15 +200,8 @@ pio.templates.default = "plotly_white"
 ```
 
 The audit packages Plotly.js with the rendered site, so these figures remain
-interactive and work offline. Prefer `plotly_mimetype` over `notebook`,
-`notebook_connected`, or HTML-only renderers, which may pull a CDN or embed a
-second copy of Plotly. Static SVG or PNG output remains supported.
-
-Power grids invite crowded figures. Follow the layout rules in
-`produce-experiment-audit/references/populating-an-audit.md` rather than
-inventing a new scheme: keep every simulated condition, facet by row when
-panels are needed, give the legend its own space, and verify labels at the
-rendered width.
+interactive and work offline. Layout, crowding, and resize checks are in
+`produce-experiment-audit/references/populating-an-audit.md`.
 
 Report precision at single-item (or single-participant) resolution where the
 simulation allows it, rather than only at the handful of candidate designs.
@@ -268,17 +259,15 @@ Begin the notebook with two short prose sections before any results:
    counts, missingness or attrition assumptions, omitted costs, and the purpose
    of each misspecification scenario.
 
-Use `plotly_white` by default. For a dense budget curve, show the primary
-metric's Monte Carlo interval as a translucent confidence ribbon rather than
-an error bar at every x value; retain the exact bounds in hover text. Error
-bars remain appropriate for a sparse set of unrelated candidate designs.
+Use a translucent confidence ribbon for a dense budget curve's Monte Carlo
+interval rather than an error bar at every x value; retain the exact bounds in
+hover text. Error bars remain appropriate for a sparse set of unrelated
+candidate designs.
 
-The layout rules and reference code live in
-`produce-experiment-audit/references/populating-an-audit.md`. Verify the result
-at the rendered width with `psynet audit render` and `psynet audit serve`, in
-every metric-button state and after resizing the window, and check for
-overlapping labels with the console snippet in that reference. Do not hand over
-a figure whose text collides.
+Verify figures at the rendered width with `psynet audit render` and
+`psynet audit serve`, including every metric-button state and after a resize.
+The overlap-check snippet is in
+`produce-experiment-audit/references/populating-an-audit.md`.
 
 After executing it, mark the artifacts present:
 

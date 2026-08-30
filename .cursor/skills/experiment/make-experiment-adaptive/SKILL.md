@@ -46,18 +46,9 @@ audit/
 
 `adaptive_logic.py` contains the fitting and selection functions used by both
 PsyNet and the standalone simulation. It must not import PsyNet or SQLAlchemy.
-Import it from ``experiment.py`` with a relative import:
-
-```python
-from . import adaptive_logic
-```
-
-Dallinger imports the experiment directory as a package, so a plain
-``import adaptive_logic`` raises ``ModuleNotFoundError`` in the web, worker, and
-clock processes even though it succeeds under `pytest`. Standalone code such as
-`simulate_procedure.py` and `audit/power/core.py` runs outside that package and
-keeps
-using ordinary top-level imports.
+From ``experiment.py`` import it with ``from . import adaptive_logic``.
+Standalone ``simulate_procedure.py`` and ``audit/power/core.py`` use ordinary
+top-level imports.
 
 `simulate_procedure.py` runs one complete adaptive experiment without starting
 PsyNet. It maintains the observation, participant, item, and decision tables;
