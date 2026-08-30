@@ -27,12 +27,8 @@ The canonical skill format spec is `.cursor/skills/create-skill/SKILL.md` in the
 PsyNet source repository. Experiment skills live under
 `.cursor/skills/experiment/`; repo meta skills live under `.cursor/skills/`.
 After editing skills, run `python scripts/validate_agent_skills.py` and refresh
-experiment copies with `psynet scripts update`. Then read the result as a
-finished page: show the correct pattern with a short example, state a rule
-once and link to it, and check headings against how someone will look up the
-next step. Watch for verbosity, LLM-style jargon, vague bullet lists, missing
-examples, long explanations of bad practice, duplicated content, shapeless
-structure, and files that have grown too long to read.
+experiment copies with `psynet scripts update`. Then reread the result using
+the "After writing" section of that skill.
 
 The PsyNetSkills workshop repository adds a thin `create-skill` addendum for
 challenge/attempt workflows and `psynetsk-validate`.
