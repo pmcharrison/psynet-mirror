@@ -32,14 +32,18 @@ Import those siblings from ``experiment.py`` with a **relative** import:
 ```python
 from . import adaptive_logic
 from .adaptive_logic import select_item
+
+def choose_next_item(state):
+    return adaptive_logic.select_item(state)
 ```
 
 Dallinger loads the experiment directory as a package (``dallinger_experiment``).
-A plain ``import adaptive_logic`` can pass under pytest in the experiment
-directory, then fail in the web, worker, and clock processes with
-``ModuleNotFoundError``. Do not work around that by putting the experiment
-directory on ``sys.path``: a file named ``json.py`` or ``tests.py`` would
-shadow the standard library.
+A top-level ``import adaptive_logic`` in ``experiment.py`` already failed in the
+web, worker, and clock processes; it can still pass under pytest. Do not work
+around that by putting the experiment directory on ``sys.path``. Also do not
+rely on a later bare import inside a function (``import adaptive_logic`` after
+the experiment class is loaded): ``import_local_experiment()`` no longer
+appends the experiment directory to ``sys.path``.
 
 Standalone scripts that you invoke as ordinary Python (``python -m audit.power.core``,
 ``simulate_procedure.py``) are not loaded as that package, so they keep using

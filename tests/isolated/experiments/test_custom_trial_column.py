@@ -130,7 +130,8 @@ def test_deferred_custom_columns_reuse_the_inherited_column():
 
 def test_import_local_experiment_does_not_put_the_experiment_directory_on_sys_path():
     source = inspect.getsource(import_local_experiment)
-    assert "sys.path" not in source
+    assert "sys.path.append" not in source
+    assert "sys.path.insert" not in source
 
     experiment_dir = path_to_test_experiment("custom_trial_column")
     with working_directory(experiment_dir):

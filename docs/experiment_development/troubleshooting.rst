@@ -236,7 +236,11 @@ relatively instead:
 
     from . import adaptive_logic
 
-Do not add the experiment directory to ``sys.path`` to make the plain import
-work; that can shadow the standard library. See
-:ref:`experiment_python_modules`.
+    def choose_next_item(state):
+        return adaptive_logic.select_item(state)
+
+Do not add the experiment directory to ``sys.path`` to make a plain
+``import adaptive_logic`` work; that can shadow the standard library. See
+:ref:`experiment_python_modules` for the supported patterns, including
+standalone scripts such as ``python -m audit.power.core``.
 

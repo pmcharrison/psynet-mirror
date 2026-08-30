@@ -4626,14 +4626,19 @@ _patch_dallinger_models()
 
 
 def import_local_experiment():
-    # Imports experiment.py and returns a dict consisting of
-    # 'package' which corresponds to the experiment *package*,
-    # 'module' which corresponds to the experiment *module*, and
-    # 'class' which corresponds to the experiment *class*.
-    # Dallinger imports the experiment directory as a package, so modules
-    # beside experiment.py are imported with `from . import my_module`.
-    #
-    # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
+    """Load the local experiment package, module, and class.
+
+    Returns a dict with ``package`` (the ``dallinger_experiment`` package),
+    ``module`` (the ``experiment`` module), and ``class`` (the Experiment
+    subclass). Dallinger already imports the experiment directory as a
+    package, so siblings of ``experiment.py`` use ``from . import my_module``.
+    This function does not put the experiment directory on ``sys.path``.
+
+    Notes
+    -----
+    TODO: Is it a problem if we try to import_local_experiment before
+    config.load() has been called?
+    """
     ensure_experiment_directory_name_does_not_conflict()
     dallinger_get_config()
 
