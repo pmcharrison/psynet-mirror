@@ -31,7 +31,7 @@ dependencies. Participant video validation also requires ``ffprobe`` from
 
    psynet audit init
    psynet audit simulate
-   psynet audit performance-test local
+   psynet audit performance-test
    psynet audit validate
    psynet audit mark-present <artifact_id>
    psynet audit render

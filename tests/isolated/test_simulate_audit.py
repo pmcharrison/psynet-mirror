@@ -255,7 +255,7 @@ def test_performance_test_routes_separate_measurement_and_audit_output(monkeypat
     )
     runner = CliRunner()
     measurement = runner.invoke(psynet, ["performance-test", "local", "--help"])
-    evidence = runner.invoke(psynet, ["audit", "performance-test", "local", "--help"])
+    evidence = runner.invoke(psynet, ["audit", "performance-test", "--help"])
 
     assert measurement.exit_code == 0
     assert "--json-output" in measurement.output
@@ -263,6 +263,7 @@ def test_performance_test_routes_separate_measurement_and_audit_output(monkeypat
     assert evidence.exit_code == 0
     assert "--json-output" not in evidence.output
     assert "--audit" not in evidence.output
+    assert "Commands:" not in evidence.output
 
 
 def test_audit_performance_test_writes_canonical_output_and_marks_present(
@@ -293,7 +294,7 @@ def test_audit_performance_test_writes_canonical_output_and_marks_present(
 
     result = CliRunner().invoke(
         psynet,
-        ["audit", "performance-test", "local", "--n-bots", "5"],
+        ["audit", "performance-test", "--n-bots", "5"],
         catch_exceptions=False,
     )
 

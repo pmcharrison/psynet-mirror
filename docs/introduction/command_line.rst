@@ -344,7 +344,7 @@ Unlike ``psynet test``, which checks correctness, ``performance-test`` is about
 performance under load. For a full guide, including how to sweep several
 concurrency levels and how to interpret the results, see the
 :ref:`testing experiment performance tutorial <performance_testing>`.
-Use ``psynet audit performance-test local`` when the result should become
+Use ``psynet audit performance-test`` when the result should become
 canonical audit evidence.
 
 

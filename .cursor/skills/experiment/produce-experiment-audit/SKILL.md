@@ -41,7 +41,7 @@ See `references/populating-an-audit.md` for the full pathway guidance.
    canonical files rather than regenerating later.
 3. Keep evidence-generation scripts with the experiment source.
 4. Close the packet: `psynet audit simulate` marks `simulate_export`, and
-   `psynet audit performance-test local` marks `performance_result` present;
+   `psynet audit performance-test` marks `performance_result` present;
    mark remaining artifacts, record blockers, then
    run `psynet audit validate` from the experiment root.
    A pass with blockers means the packet is coherent, not that the experiment is

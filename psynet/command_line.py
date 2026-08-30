@@ -3515,7 +3515,7 @@ def performance_test__local(
     Use --existing to connect to an already-running server instead.
 
     This command never updates an experiment audit. Use
-    ``psynet audit performance-test local`` to collect audit evidence.
+    ``psynet audit performance-test`` to collect audit evidence.
     """
     return _run_performance_test_local(
         existing=existing,
@@ -4028,14 +4028,7 @@ def audit_simulate(ctx):
     _run_simulate(ctx)
 
 
-@audit.group("performance-test")
-def audit_performance_test():
-    """Collect performance-test evidence in the audit packet."""
-
-    pass
-
-
-@audit_performance_test.command("local")
+@audit.command("performance-test")
 @_test_options["existing"]
 @_test_options["performance_n_bots"]
 @_test_options["performance_stagger"]
@@ -4043,7 +4036,7 @@ def audit_performance_test():
 @_test_options["duration_minutes"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 @require_exp_directory
-def audit_performance_test_local(
+def audit_performance_test(
     existing=False,
     n_bots=None,
     stagger=None,

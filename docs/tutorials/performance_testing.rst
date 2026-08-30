@@ -193,7 +193,7 @@ marks ``performance_result`` present:
 .. code-block:: bash
 
     # From the experiment root
-    psynet audit performance-test local --n-bots 40 --duration-minutes 5
+    psynet audit performance-test --n-bots 40 --duration-minutes 5
 
 The top-level ``psynet performance-test local`` command remains available for
 load testing and custom ``--json-output`` files; it never updates an audit.

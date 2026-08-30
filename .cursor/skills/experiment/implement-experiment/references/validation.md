@@ -28,7 +28,7 @@ functional checks pass. Do not rely on experiment defaults such as
 immediately. From the experiment root:
 
 ```bash
-psynet audit performance-test local \
+psynet audit performance-test \
   --n-bots 40 \
   --duration-minutes 5 \
   --time-factor 1.0

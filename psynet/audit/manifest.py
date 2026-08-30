@@ -385,7 +385,7 @@ def starter_audit_manifest() -> dict[str, object]:
             starter_blocker(
                 "performance_result",
                 "Performance test has not been run yet.",
-                "Run psynet audit performance-test local ….",
+                "Run psynet audit performance-test ….",
             ),
             starter_blocker(
                 "monitor_snapshot",
