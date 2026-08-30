@@ -17,7 +17,7 @@
       "kind": "screenshot",
       "path": "artifacts/screenshots/manifest.json",
       "required": false,
-      "status": "missing",
+      "status": "not_applicable",
       "title": "Screenshot walkthrough"
     },
     {
@@ -94,21 +94,21 @@
   "blockers": [
     {
       "artifact_id": "participant_video",
-      "next_step": "Record or explicitly mark participant video as not applicable.",
-      "reason": "Participant walkthrough has not been recorded yet.",
-      "severity": "error"
+      "next_step": "Record a Playwright participant walkthrough if visual review is needed later.",
+      "reason": "Server UI testing was skipped by request, so participant.mp4 was not recorded.",
+      "severity": "warning"
     },
     {
       "artifact_id": "performance_result",
-      "next_step": "Run psynet audit performance-test \u2026.",
-      "reason": "Performance test has not been run yet.",
+      "next_step": "Reduce StaticTrialMaker candidate-discovery cost under 40 concurrent participants, or accept a lower concurrent load.",
+      "reason": "psynet audit performance-test with 40 bots for 5 minutes wrote audit/artifacts/performance.json but completed 0 bots (median 1.13 s, p95 23.3 s).",
       "severity": "error"
     },
     {
       "artifact_id": "monitor_snapshot",
-      "next_step": "Capture a static PsyNet monitor snapshot at artifacts/monitor.html.",
-      "reason": "Monitor snapshot has not been captured yet.",
-      "severity": "error"
+      "next_step": "Capture /dashboard/monitoring while a debug server is running if visual review is needed later.",
+      "reason": "Server UI testing was skipped by request, so monitor.html was not captured.",
+      "severity": "warning"
     }
   ],
   "checks": [],
