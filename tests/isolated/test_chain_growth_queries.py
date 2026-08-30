@@ -172,7 +172,8 @@ def test_find_chains_keeps_query_count_bounded(db_session, participant):
     networks = [create_chain_network(trial_maker, exp) for _ in range(20)]
     initialize_trial_maker_state(trial_maker, participant)
 
-    with assert_query_count(min_queries=2, max_queries=3):
+    # The fourth query batches viable-trial counts for every candidate head.
+    with assert_query_count(min_queries=3, max_queries=4):
         eligible = trial_maker.find_chains(participant, exp)
 
     assert {chain.id for chain in eligible} == {chain.id for chain in networks}
