@@ -240,6 +240,7 @@ with tempfile.NamedTemporaryFile(suffix=".pkl") as file:
         local_key=f"study_model_snapshot_{snapshot.id}",
         extension=".pkl",
         description=f"Study model snapshot {snapshot.id}",
+        module_id="common",
         personal=True,
         obfuscate=2,
     )
@@ -256,7 +257,10 @@ db.session.commit()
 Mark the snapshot ready only after a synchronous deposit succeeds. If deposit
 is asynchronous, its completion path must publish the snapshot. `personal=True`
 keeps the asset out of anonymous exports; it is not a substitute for excluding
-secrets or unnecessary participant data from the fitted object.
+secrets or unnecessary participant data from the fitted object. Depositing an
+`ExperimentAsset` requires `Experiment.asset_storage` (for local work,
+`LocalStorage`). `module_id="common"` scopes the asset to the shared experiment
+module rather than a participant.
 
 ## Load and cache an asset
 

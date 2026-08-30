@@ -36,7 +36,7 @@ from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import deferred
+from sqlalchemy.orm import ColumnProperty, deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
@@ -303,6 +303,112 @@ class InvalidDefinitionError(ValueError):
 checked_classes = set()
 
 
+def _reuse_inherited_columns(cls):
+    """Reuse an inherited table's column when a subclass redeclares its name.
+
+    Dallinger models such as ``Info`` use single-table inheritance, so every
+    ``Trial`` subclass contributes its columns to the shared ``info`` table.
+    A plain ``Column`` in a subclass body therefore fails as soon as that name
+    is already on the table. This happens for sibling classes, and also when
+    PsyNet imports the same ``experiment.py`` twice in one process, for
+    example once from the experiment directory and once from the debug
+    staging copy. Substituting the existing column keeps such declarations
+    idempotent, so experiment authors can write ordinary SQLAlchemy.
+
+    Parameters
+    ----------
+    cls
+        The subclass being created, before SQLAlchemy maps it.
+
+    Raises
+    ------
+    InvalidDefinitionError
+        If the redeclared column asks for a different type, length, nullability,
+        uniqueness, index flag, primary key, or foreign-key target than the
+        column already on the table.
+    """
+    if cls.__dict__.get("__abstract__"):
+        return
+    # A subclass with its own table starts from an empty column collection,
+    # so nothing can be inherited and ``cls.__table__`` is not yet defined.
+    if "__tablename__" in cls.__dict__ or "__table__" in cls.__dict__:
+        return
+
+    table = getattr(cls, "__table__", None)
+    if table is None:
+        return
+
+    for attribute, value in list(cls.__dict__.items()):
+        column = _declared_column(value)
+        if column is None:
+            continue
+        existing = table.c.get(column.name or attribute)
+        if existing is None or existing is column:
+            continue
+        conflict = _inherited_column_conflict(existing, column)
+        if conflict is not None:
+            raise InvalidDefinitionError(
+                f"Column '{attribute}' on class {cls.__name__} {conflict} "
+                f"'{table.name}.{existing.name}'. Classes that share the "
+                f"'{table.name}' table must agree on each column's definition; "
+                "rename one of them."
+            )
+        setattr(
+            cls,
+            attribute,
+            deferred(existing) if isinstance(value, ColumnProperty) else existing,
+        )
+
+
+def _inherited_column_conflict(existing, column) -> str | None:
+    """Return a conflict description if two shared-table columns disagree."""
+
+    if type(existing.type) is not type(column.type):  # noqa: E721
+        return (
+            f"is declared as {type(column.type).__name__}, but already exists as "
+            f"{type(existing.type).__name__} on"
+        )
+    existing_length = getattr(existing.type, "length", None)
+    new_length = getattr(column.type, "length", None)
+    if existing_length != new_length:
+        return (
+            f"is declared with length {new_length}, but already exists with length "
+            f"{existing_length} on"
+        )
+    for flag in ("primary_key", "unique", "index", "nullable"):
+        if bool(getattr(existing, flag, False)) != bool(getattr(column, flag, False)):
+            return f"disagrees on {flag} with the existing column"
+    if _column_foreign_key_specs(existing) != _column_foreign_key_specs(column):
+        return "disagrees on foreign-key targets with the existing column"
+    return None
+
+
+def _column_foreign_key_specs(column) -> frozenset[str]:
+    """Return comparable foreign-key target strings for a column."""
+
+    specs: list[str] = []
+    for foreign_key in getattr(column, "foreign_keys", ()) or ():
+        spec = getattr(foreign_key, "target_fullname", None) or getattr(
+            foreign_key, "_colspec", None
+        )
+        specs.append(str(spec))
+    return frozenset(specs)
+
+
+def _declared_column(value):
+    """Return the unmapped column a class attribute declares, if it declares one.
+
+    Handles both ``Column(...)`` and ``deferred(Column(...))``.
+    """
+    if isinstance(value, Column):
+        return value
+    if isinstance(value, ColumnProperty) and len(value.columns) == 1:
+        column = value.columns[0]
+        if isinstance(column, Column):
+            return column
+    return None
+
+
 class SQLMixinDallinger(SharedMixin):
     """
     We apply this Mixin class when subclassing Dallinger classes,
@@ -326,6 +432,10 @@ class SQLMixinDallinger(SharedMixin):
         None  # set this to a string if you want to customize your polymorphic identity
     )
     __extra_vars__ = {}
+
+    def __init_subclass__(cls, **kwargs):
+        _reuse_inherited_columns(cls)
+        super().__init_subclass__(**kwargs)
 
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls)

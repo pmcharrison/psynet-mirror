@@ -99,6 +99,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     directory is complete.
 
 -   ``experiment.py`` is a Python file that defines the primary experiment logic.
+    Split substantial helpers into sibling modules and import them with
+    relative imports (see :ref:`experiment_python_modules`).
 
 -   ``instructions.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
@@ -134,3 +136,24 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     If this file is missing, you can regenerate it with ``psynet scripts scaffold``.
 
     ``volume_calibration.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
+
+
+.. _experiment_python_modules:
+
+Importing other Python files
+----------------------------
+
+You can split experiment code across several ``.py`` files in the experiment
+directory. Import siblings of ``experiment.py`` relatively:
+
+.. code-block:: python
+
+    from . import adaptive_logic
+    from .stimuli import load_item_bank
+
+    def choose_next_item(state):
+        return adaptive_logic.select_item(state, load_item_bank())
+
+Standalone scripts such as ``python -m audit.simulate.design.core`` use ordinary
+top-level imports of the same helpers. Run that command from the experiment
+root.

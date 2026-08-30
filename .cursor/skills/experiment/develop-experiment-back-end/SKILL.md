@@ -23,6 +23,22 @@ PsyNet's `GeometricStaircaseTrialMaker` is a `ChainTrialMaker` for that reason.
 Inspect the closest PsyNet demo and trial-maker implementation before choosing
 an architecture.
 
+## Python modules beside ``experiment.py``
+
+Keep ``experiment.py`` as the timeline and experiment class. Put substantial
+helpers in sibling files (for example ``adaptive_logic.py``, ``stimuli.py``)
+and import them relatively:
+
+```python
+from . import adaptive_logic
+from .adaptive_logic import select_item
+```
+
+Standalone scripts such as ``python -m audit.simulate.design.core`` and
+``simulate_procedure.py`` use ordinary top-level imports of the same helpers.
+See ``docs/experiment_development/experiment_directory.rst``
+("Importing other Python files").
+
 ## Internationalization
 
 If the experiment is cross-cultural, cross-national, multilingual,

@@ -9,6 +9,10 @@ and with the development of individual PsyNet experiments.
 If the root contains a file called `experiment.py`, assume that we are working on an experiment.
 Otherwise assume we are working on the PsyNet source code.
 
+From `experiment.py`, import sibling modules with `from . import my_module`.
+See `docs/experiment_development/experiment_directory.rst`
+("Importing other Python files").
+
 PsyNet experiment skills are installed under `.cursor/skills/psynet/` by
 `psynet scripts update` (and created when missing by `psynet scripts scaffold`).
 Treat that directory as PsyNet-managed: update the canonical skills in the
@@ -23,7 +27,8 @@ The canonical skill format spec is `.cursor/skills/create-skill/SKILL.md` in the
 PsyNet source repository. Experiment skills live under
 `.cursor/skills/experiment/`; repo meta skills live under `.cursor/skills/`.
 After editing skills, run `python scripts/validate_agent_skills.py` and refresh
-experiment copies with `psynet scripts update`.
+experiment copies with `psynet scripts update`. Then reread the result using
+the "After writing" section of that skill.
 
 The PsyNetSkills workshop repository adds a thin `create-skill` addendum for
 challenge/attempt workflows and `psynetsk-validate`.

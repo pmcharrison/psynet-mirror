@@ -1,8 +1,12 @@
 # Benchmark an adaptive procedure
 
-Benchmarking asks whether adaptation improves estimation or decision quality
-enough to justify its complexity. It is distinct from power analysis, which
-asks whether a chosen design meets a prespecified inferential requirement.
+Ask whether adaptation improves estimation or decision quality enough to
+justify its complexity. Put that comparison in the **Adaptive procedure**
+section of `audit/simulate/design/simulation.ipynb`. Treat policy as a design
+factor in the same campaign as the power analysis.
+
+Power analysis asks whether a chosen design meets a prespecified inferential
+requirement. Benchmarking supplies the policy comparison that decision needs.
 
 ## Define the target and oracle
 
@@ -103,15 +107,15 @@ best.
 
 ## Save reproducible artifacts
 
-Use the following directory:
+Write the comparison into the design-simulation campaign:
 
 ```text
-benchmark/
+audit/simulate/design/
 ├── config.toml
 ├── core.py
 ├── results.csv
 ├── run.json
-└── analysis.ipynb
+└── simulation.ipynb
 ```
 
 `config.toml` specifies policies, checkpoints, response-model scenarios,

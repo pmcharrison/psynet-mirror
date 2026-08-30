@@ -139,22 +139,16 @@ Fortunately, it’s quite straightforward to define your own columns manually us
             super().__init__(*args, **kwargs)
             self.random_integer = random.randint(0, 10)
 
+.. note::
 
-.. warning::
-
-    Some people have reported errors of the following form here:
-
-    ..
-
-        "sqlalchemy.exc.ArgumentError: Column 'random_integer' on class <class 'dallinger_experiment.experiment.CustomTrial'> conflicts with existing column 'info.random_integer'"
-
-    Such errors can be resolved with the following, more verbose version:
-
-    .. code-block:: python
-
-        @declared_attr
-        def random_integer(cls):
-            return cls.__table__.c.get("random_integer", Column(Integer))
+    Trial classes share Dallinger's ``info`` table, so two trial classes that
+    declare the same column name share one column. Prefer a plain ``Column`` on
+    the trial class. PsyNet reuses the existing column when the name is already
+    present, which also lets PsyNet reimport ``experiment.py`` from its staging
+    copy during debug and deployment. The same reuse applies to other
+    Dallinger-backed classes that share a table. If the two declarations
+    disagree on type, length, nullability, uniqueness, or indexing, PsyNet
+    raises an error asking you to rename one of them.
 
 Having defined the class in this way, we can then run queries for ``CustomTrial`` objects that filter on the value of ``random_integer``:
 

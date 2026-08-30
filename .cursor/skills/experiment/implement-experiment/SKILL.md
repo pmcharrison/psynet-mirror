@@ -57,6 +57,9 @@ provisional until its human-review and power-analysis workflow is complete, then
 incorporate the selected design and supporting evidence into `audit/PLAN.md`
 (potentially rerunning the simulations if required).
 
+The power analysis lives in the **Power analysis** section of
+`audit/simulate/design/simulation.ipynb`.
+
 If the design is adaptive, include the selection policy in that same
 simulation: compare it with a realistic non-adaptive alternative under
 matched participants, items, and budgets, and check that the advantage
@@ -122,6 +125,10 @@ installs the experiment runtime (`psynet[experiment]`), and initializes Git when
 needed. Use `psynet setup --docker` when the experiment will run in Docker mode
 (file prep without local package sync; follow `docker/docs`).
 
+When splitting logic out of `experiment.py`, follow
+`develop-experiment-back-end/SKILL.md`: import sibling modules with
+`from . import my_module`.
+
 **3. Editable local PsyNet (agents / contributors)**
 
 When developing against an editable `~/PsyNet` checkout, keep a **dedicated**
@@ -164,21 +171,17 @@ PsyNet. Do not treat `scripts update` as a substitute for first-time setup.
 
 ### Run simulations
 
-Use `psynet simulate` to simulate participants and produce an example dataset.
+Use `psynet audit simulate` to simulate participants and produce an example dataset.
 This dataset should contain a decent number of participants representative of a real study;
-adjust `Exp.test_n_bots` to ensure this. `psynet simulate` writes
-`data/simulated_data/` (a directory). Prefer `--audit` so PsyNet also zips that
-tree to the canonical audit path. From the experiment root:
+adjust `Exp.test_n_bots` to ensure this. From the experiment root:
 
 ```bash
-psynet simulate --audit
+psynet audit simulate
 ```
 
-`--audit` writes `<experiment>/audit/artifacts/simulated_data.zip`
-and still leaves `data/simulated_data/` in place for analysis. It also marks
-`simulation_export` present. Use `--no-mark-present` only when you want the zip
-in the packet without updating `audit.json`. Overwrite the same zip when a later
-simulation supersedes an interim run.
+The command writes the only export to
+`audit/simulate/analysis/simulated_export/` and marks `simulate_export`
+present.
 
 For profile design, data-path parity, mock-LLM patterns, and simulation
 limitations, follow `simulate-participants/SKILL.md`.
@@ -186,7 +189,7 @@ limitations, follow `simulate-participants/SKILL.md`.
 ### Develop analysis scripts
 
 Write scripts to analyze the generated data. Use a Jupyter notebook for this,
-with the canonical filename `audit/analyses/analysis.ipynb`.
+with the canonical filename `audit/simulate/analysis/analysis.ipynb`.
 The notebook should be self-contained for review, including all code, tables,
 and plots.
 If the implementation is inspired by a published paper, replicate the analyses reported in the paper as closely as possible.
@@ -196,12 +199,12 @@ it into the PsyNet virtualenv before executing the notebook, and execute it
 headlessly so its outputs are embedded for review:
 
 ```bash
-uv pip install matplotlib jupyter nbconvert nbformat ipykernel
+uv pip install matplotlib plotly jupyter nbconvert nbformat ipykernel
 # nbconvert uses the notebook directory as cwd; resolve data paths from the
 # experiment root (for example Path(__file__) is unavailable in notebooks—
 # walk parents until experiment.py is found, or pass an absolute data path).
 
-jupyter nbconvert --to notebook --execute --inplace audit/analyses/analysis.ipynb
+jupyter nbconvert --to notebook --execute --inplace audit/simulate/analysis/analysis.ipynb
 ```
 
 Prefer inline SVG outputs for plots. Configure the notebook’s plotting backend
