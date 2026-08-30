@@ -88,6 +88,7 @@ PLACEHOLDER_IMPLEMENTATION_SUMMARY = "TODO: Summarize the experiment implementat
 CLI_NAME = "psynet audit"
 AUDIT_CSS_OUTPUT = "css/audit.css"
 AUDIT_JS_OUTPUT = "js/audit.js"
+AUDIT_MATHJAX_JS_OUTPUT = "js/mathjax-tex-svg.min.js"
 AUDIT_PLOTLY_JS_OUTPUT = "js/plotly.min.js"
 
 
@@ -121,6 +122,7 @@ __all__ = [
     "ARTIFACT_REQUIRED_FIELDS",
     "ARTIFACT_STATUSES",
     "AUDIT_CSS_OUTPUT",
+    "AUDIT_MATHJAX_JS_OUTPUT",
     "AUDIT_TOP_LEVEL_REQUIRED",
     "AuditValidationError",
     "BLOCKER_REQUIRED_FIELDS",

@@ -66,6 +66,11 @@ dependencies. Participant video validation also requires ``ffprobe`` from
   rendered audit, including any data exports, to the network without
   authentication.
 
+Rendered Markdown and notebook Markdown outputs support MathJax equations.
+Use ``$...$`` or ``\(...\)`` for inline mathematics and ``$$...$$`` or
+``\[...\]`` for display mathematics. The renderer packages MathJax with the
+audit site, so equations work offline.
+
 Status conventions
 ------------------
 

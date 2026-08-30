@@ -1,3 +1,20 @@
+window.MathJax = {
+  tex: {
+    inlineMath: [
+      ["$", "$"],
+      ["\\(", "\\)"],
+    ],
+    displayMath: [
+      ["$$", "$$"],
+      ["\\[", "\\]"],
+    ],
+    processEscapes: true,
+  },
+  svg: {
+    fontCache: "global",
+  },
+};
+
 document.querySelectorAll(".notebook-plotly").forEach((wrapper) => {
   const specElement = wrapper.querySelector("[data-plotly-spec]");
   const target = wrapper.querySelector("[data-plotly-target]");

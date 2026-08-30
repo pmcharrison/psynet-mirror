@@ -148,6 +148,7 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
         audit_dir / "REPORT.md",
         "# Report\n\n"
         "Experiment **behaves** as expected.\n\n"
+        "The response probability is $P(Y = 1) = \\operatorname{logit}^{-1}(a(\\theta-b))$.\n\n"
         "- Functional check passed\n\n"
         "<script>bad()</script>\n",
     )
@@ -170,6 +171,10 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert '<link rel="stylesheet" href="static/css/audit.css">' in index
     assert '<script src="static/js/plotly.min.js"></script>' in index
     assert '<script src="static/js/audit.js"></script>' in index
+    assert '<script src="static/js/mathjax-tex-svg.min.js"></script>' in index
+    assert index.index('src="static/js/audit.js"') < index.index(
+        'src="static/js/mathjax-tex-svg.min.js"'
+    )
     assert "Content-Security-Policy" not in index
     assert '<body class="attempt-page">' in index
     assert 'class="attempt-layout"' in index
@@ -178,6 +183,7 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert "Readiness" in index
     assert "<h1>Report</h1>" not in index
     assert "Experiment <strong>behaves</strong> as expected." in index
+    assert "$P(Y = 1) = \\operatorname{logit}^{-1}(a(\\theta-b))$" in index
     assert "<li>Functional check passed</li>" in index
     assert "<script>bad()</script>" not in index
     assert '<details id="plan" class="attempt-panel plan-panel">' in index
@@ -213,6 +219,7 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert (site_dir / "static/css/audit.css").exists()
     assert (site_dir / "static/js/audit.js").exists()
     assert (site_dir / "static/js/plotly.min.js").stat().st_size > 1_000_000
+    assert (site_dir / "static/js/mathjax-tex-svg.min.js").stat().st_size > 1_000_000
 
 
 def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:

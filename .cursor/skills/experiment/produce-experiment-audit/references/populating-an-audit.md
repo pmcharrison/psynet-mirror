@@ -260,6 +260,9 @@ more appropriate. It should:
   and `pio.templates.default = "plotly_white"` for consistent presentation;
   inline SVG/PNG is also supported. Call `fig.show()`, `plt.show()`, or the
   appropriate equivalent so figures are stored in the executed notebook;
+- write equations with normal MathJax delimiters: `$...$` or `\(...\)` inline,
+  and `$$...$$` or `\[...\]` on their own line for display mathematics. MathJax
+  is packaged with the rendered audit and works offline;
 - distinguish technical validation from scientific conclusions.
 
 ## Figure layout for rendered audits

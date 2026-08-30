@@ -75,6 +75,15 @@ def audit_plotly_js_path() -> Path:
     return Path(resources.files("psynet") / "resources" / "audit" / "plotly.min.js")
 
 
+def audit_mathjax_js_path() -> Path:
+    """Return the packaged MathJax runtime path."""
+    from importlib import resources
+
+    return Path(
+        resources.files("psynet") / "resources" / "audit" / "mathjax-tex-svg.min.js"
+    )
+
+
 def audit_js_path() -> Path:
     """Return the packaged audit-page JavaScript path."""
     from importlib import resources
@@ -521,6 +530,7 @@ __all__ = [
     "audit_css_path",
     "audit_display_title",
     "audit_js_path",
+    "audit_mathjax_js_path",
     "audit_plotly_js_path",
     "audit_profile",
     "count_blockers",

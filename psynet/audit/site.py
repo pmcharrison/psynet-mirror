@@ -19,6 +19,7 @@ from psynet.audit.artifacts import (
 from psynet.audit.constants import (
     AUDIT_CSS_OUTPUT,
     AUDIT_JS_OUTPUT,
+    AUDIT_MATHJAX_JS_OUTPUT,
     AUDIT_PLOTLY_JS_OUTPUT,
     AuditValidationError,
 )
@@ -51,6 +52,7 @@ from psynet.audit.manifest import (
     audit_css_path,
     audit_display_title,
     audit_js_path,
+    audit_mathjax_js_path,
     audit_plotly_js_path,
     display_implementation_summary,
     read_audit_manifest,
@@ -252,6 +254,15 @@ def write_audit_plotly_asset(site_dir: Path) -> str:
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(audit_plotly_js_path(), target)
     return f"static/{AUDIT_PLOTLY_JS_OUTPUT}"
+
+
+def write_audit_mathjax_asset(site_dir: Path) -> str:
+    """Copy the vendored MathJax runtime into a rendered audit site."""
+
+    target = site_dir / "static" / AUDIT_MATHJAX_JS_OUTPUT
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(audit_mathjax_js_path(), target)
+    return f"static/{AUDIT_MATHJAX_JS_OUTPUT}"
 
 
 def write_audit_js_asset(site_dir: Path) -> str:
@@ -689,6 +700,7 @@ def render_audit_site(
     css_url = write_audit_static_assets(site_dir)
     audit_js_url = write_audit_js_asset(site_dir)
     plotly_js_url = write_audit_plotly_asset(site_dir)
+    mathjax_js_url = write_audit_mathjax_asset(site_dir)
     sections = display_sections(manifest)
     experiment = manifest.get("experiment", {})
     environment = manifest.get("environment", {})
@@ -758,6 +770,7 @@ def render_audit_site(
   </article>
   <script src="{html.escape(plotly_js_url)}"></script>
   <script src="{html.escape(audit_js_url)}"></script>
+  <script src="{html.escape(mathjax_js_url)}"></script>
 </body>
 </html>
 """
