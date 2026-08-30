@@ -210,7 +210,8 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     assert (
         site_dir / "static/artifacts/monitor-static/vis@4.17.0/dist/vis.min.js"
     ).exists()
-    assert (site_dir / "static/css/audit.css").exists()
+    audit_css = (site_dir / "static/css/audit.css").read_text(encoding="utf-8")
+    assert "max-width: 1440px" in audit_css
     assert (site_dir / "static/js/audit.js").exists()
     assert (site_dir / "static/js/plotly.min.js").stat().st_size > 1_000_000
 

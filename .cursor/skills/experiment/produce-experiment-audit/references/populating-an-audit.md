@@ -138,8 +138,8 @@ Choose evidence that matches the experiment. Common artifacts are:
 - `logs/*.log`: concise logs that explain commands and failures.
 
 Use `record-participant-video` for screenshot and video production. Keep videos
-at most 3 minutes and 1280×720. Keep rendered notebooks small enough for typical
-review tooling (normally under about 100 KB).
+at most 3 minutes and 1280×720. Audit notebooks may be up to 10 MB, but avoid
+unnecessary inline output so the rendered audit remains quick to load.
 
 Rendering gives screenshots, participant video, monitor snapshot, performance
 test, power analysis, and analysis their own top-level sections, so each of
@@ -264,10 +264,10 @@ more appropriate. It should:
 
 ## Figure layout for rendered audits
 
-The audit renders notebooks inside a column roughly 700-900 px wide, narrower
-than a JupyterLab window. Figures that look fine while authoring routinely
-collide once rendered: facet titles overlap each other, in-plot annotations
-land on the data, and long legends wrap into the title.
+The audit renders notebooks inside a column that is typically 900-1200 px wide,
+depending on the browser viewport. Figures that look fine while authoring can
+still collide once rendered: facet titles overlap each other, in-plot
+annotations land on the data, and long legends wrap into the title.
 
 Fix crowding by changing the layout, not by dropping data. A reviewer needs to
 see every condition that was simulated or measured, so hiding series to make a

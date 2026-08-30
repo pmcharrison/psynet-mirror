@@ -1,5 +1,6 @@
 import json
 
+from psynet.audit.constants import MAX_AUDIT_NOTEBOOK_BYTES
 from psynet.audit.html import (
     render_evidence_section,
     render_file_grid,
@@ -396,11 +397,11 @@ def test_render_notebook_output_renders_markdown() -> None:
     assert "IPython.core.display.Markdown" not in html
 
 
-def test_notebook_preview_has_a_separate_bounded_size_allowance() -> None:
+def test_notebook_preview_uses_full_notebook_size_allowance() -> None:
     notebook = {
         "cells": [
-            {"cell_type": "code", "source": "", "outputs": [{"text": "x" * 110_000}]},
-            {"cell_type": "code", "source": "", "outputs": [{"text": "y" * 160_000}]},
+            {"cell_type": "code", "source": "", "outputs": [{"text": "x" * 300_000}]},
+            {"cell_type": "code", "source": "", "outputs": [{"text": "y" * 100_000}]},
         ]
     }
 
@@ -413,8 +414,9 @@ def test_notebook_preview_has_a_separate_bounded_size_allowance() -> None:
     )
 
     assert "x" * 1_000 in rendered
-    assert "y" * 1_000 not in rendered
-    assert "Notebook preview is truncated" in rendered
+    assert "y" * 1_000 in rendered
+    assert "Notebook preview is truncated" not in rendered
+    assert MAX_AUDIT_NOTEBOOK_BYTES == 10_000_000
 
 
 PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="

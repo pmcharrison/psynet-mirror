@@ -23,6 +23,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
 
+from psynet.audit.constants import MAX_AUDIT_NOTEBOOK_BYTES
 from psynet.audit.model import (
     AuditEvidenceView,
     AuditFile,
@@ -35,7 +36,7 @@ PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 # Rendered notebook cells are larger than their source because syntax
 # highlighting and Plotly MIME bundles expand them. Keep notebook previews
 # bounded, but do not apply the smaller plain-text artifact limit to them.
-_MAX_NOTEBOOK_PREVIEW_BYTES = 250_000
+_MAX_NOTEBOOK_PREVIEW_BYTES = MAX_AUDIT_NOTEBOOK_BYTES
 MARKDOWN = MarkdownIt(
     "commonmark",
     {

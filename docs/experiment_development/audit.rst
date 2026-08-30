@@ -57,8 +57,9 @@ dependencies. Participant video validation also requires ``ffprobe`` from
   instead of hand-editing status fields.
 * ``render`` validates first, then builds a self-contained static site under
   ``audit/site/``. Pass ``--allow-invalid`` only when you need to preview a
-  broken manifest. Text and notebook previews are truncated after 100 KB; this
-  preview limit does not prevent a larger valid notebook from being included.
+  broken manifest. Text previews are truncated after 100 KB. Rendered notebook
+  previews have a separate 10 MB allowance for embedded figures and other rich
+  output.
 * ``serve`` hosts that static site over HTTP (default ``http://127.0.0.1:8765/``).
   Pass ``--render`` to rebuild first. It does not create a public tunnel.
   Binding to a non-localhost host (for example ``--host 0.0.0.0``) exposes the
