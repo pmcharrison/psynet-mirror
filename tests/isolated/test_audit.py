@@ -217,7 +217,10 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
         site_dir / "static/artifacts/monitor-static/vis@4.17.0/dist/vis.min.js"
     ).exists()
     assert (site_dir / "static/css/audit.css").exists()
-    assert (site_dir / "static/js/audit.js").exists()
+    audit_js = (site_dir / "static/js/audit.js").read_text(encoding="utf-8")
+    assert "window.MathJax" in audit_js
+    assert '["$", "$"]' in audit_js
+    assert '["\\\\(", "\\\\)"]' in audit_js
     assert (site_dir / "static/js/plotly.min.js").stat().st_size > 1_000_000
     assert (site_dir / "static/js/mathjax-tex-svg.min.js").stat().st_size > 1_000_000
 

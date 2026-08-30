@@ -262,7 +262,8 @@ more appropriate. It should:
   appropriate equivalent so figures are stored in the executed notebook;
 - write equations with normal MathJax delimiters: `$...$` or `\(...\)` inline,
   and `$$...$$` or `\[...\]` on their own line for display mathematics. MathJax
-  is packaged with the rendered audit and works offline;
+  is packaged with the rendered audit and works offline. Write a literal
+  currency symbol as `\$` when another dollar sign occurs later in the block;
 - distinguish technical validation from scientific conclusions.
 
 ## Figure layout for rendered audits

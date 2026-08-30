@@ -69,7 +69,8 @@ dependencies. Participant video validation also requires ``ffprobe`` from
 Rendered Markdown and notebook Markdown outputs support MathJax equations.
 Use ``$...$`` or ``\(...\)`` for inline mathematics and ``$$...$$`` or
 ``\[...\]`` for display mathematics. The renderer packages MathJax with the
-audit site, so equations work offline.
+audit site, so equations work offline. Escape a literal currency symbol as
+``\$`` when another dollar sign occurs later in the same block.
 
 Status conventions
 ------------------
