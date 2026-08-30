@@ -33,34 +33,33 @@ Read [references/terminology.md](references/terminology.md) for fuller definitio
 Power-analysis methods that simulate participant responses need a simulation
 response model. Follow `participant-response-models/SKILL.md` for this.
 Record the response-model parameter values or named parameter set in
-`audit/power/config.toml`, and record a code hash or version in
-`audit/power/run.json`.
+`audit/simulate/design/config.toml`, and record a code hash or version in
+`audit/simulate/design/run.json`.
 
 ## Required files
 
-A power analysis is optional audit evidence. When an experiment has one, it
-lives inside the audit packet, and nowhere else:
+A power analysis is one part of an optional design-simulation campaign:
 
 ```text
-audit/
-└── power/
+audit/simulate/
+└── design/
     ├── config.toml
     ├── core.py
     ├── results.csv
     ├── run.json
-    └── analysis.ipynb
+    └── simulation.ipynb
 ```
 
-`psynet audit init` creates `audit/power/` and declares the optional
-`power_analysis`, `power_run`, and `power_results` artifacts. `psynet audit
-render` then shows the executed notebook and its run provenance in the audit's
-"Power analysis" section. Leave those artifacts `missing` when the experiment
-does not need a power analysis; they are optional and need no blocker.
+`psynet audit init` creates this directory and declares the optional
+`simulation_notebook`, `simulation_run`, and `simulation_results` artifacts.
+The notebook contains a **Power analysis** section and, for adaptive
+experiments, may also contain an **Adaptive procedure** section. Leave the
+artifacts `missing` when no design simulation is needed.
 
 All five files are required once a power analysis exists, but contents can be
 customized as desired. Additional files are allowed when the method needs them.
 
-A typical data flow is `config.toml` → `core.py` → `results.csv` and `run.json` → `analysis.ipynb` → `audit/PLAN.md`.
+A typical data flow is `config.toml` → `core.py` → `results.csv` and `run.json` → `simulation.ipynb` → `audit/PLAN.md`.
 
 ### `config.toml`
 
@@ -97,7 +96,7 @@ and write `results.csv` and `run.json`. A `main()` entry point makes the analysi
 easy to run from the experiment root:
 
 ```bash
-python -m audit.power.core
+python -m audit.simulate.design.core
 ```
 
 Run this from the experiment root.
@@ -106,7 +105,7 @@ The following pseudocode illustrates the intended orchestration:
 
 ```python
 def main():
-    config = load_toml("audit/power/config.toml")
+    config = load_toml("audit/simulate/design/config.toml")
     rows = []
 
     for design, assumptions in expand_scenarios(config):
@@ -124,17 +123,20 @@ def main():
             })
 
     results = DataFrame(rows)
-    results.to_csv("audit/power/results.csv", index=False)
+    results.to_csv("audit/simulate/design/results.csv", index=False)
     run = {
         "schema_version": "1.0",
         "created_at": utc_now(),
         "method": config["method"],
-        "command": "python -m audit.power.core",
-        "source_sha256": hash_files("audit/power/config.toml", "audit/power/core.py"),
-        "results_sha256": hash_file("audit/power/results.csv"),
+        "command": "python -m audit.simulate.design.core",
+        "source_sha256": hash_files(
+            "audit/simulate/design/config.toml",
+            "audit/simulate/design/core.py",
+        ),
+        "results_sha256": hash_file("audit/simulate/design/results.csv"),
         "result_row_count": len(results),
     }
-    Path("audit/power/run.json").write_text(json.dumps(run, indent=2))
+    Path("audit/simulate/design/run.json").write_text(json.dumps(run, indent=2))
 ```
 
 `run_selected_method(...)` and the result summaries are supplied by the chosen
@@ -181,7 +183,7 @@ hashes, Git commit and dirty state, Python and relevant package versions, and
 result row count. Include the random seed and replicate count when applicable. A
 representative subset is shown in the `core.py` pseudocode above.
 
-### `analysis.ipynb`
+### `simulation.ipynb`
 
 This is the executed review document. It should normally read the saved inputs
 and outputs rather than rerunning `core.py` or silently altering the results. It
@@ -272,9 +274,9 @@ The overlap-check snippet is in
 After executing it, mark the artifacts present:
 
 ```bash
-psynet audit mark-present power_analysis
-psynet audit mark-present power_run
-psynet audit mark-present power_results
+psynet audit mark-present simulation_notebook
+psynet audit mark-present simulation_run
+psynet audit mark-present simulation_results
 ```
 
 ## Related reading

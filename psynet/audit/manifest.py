@@ -16,7 +16,7 @@ from psynet.audit.constants import (
     DEFAULT_AUDIT_PROFILE,
     PLACEHOLDER_IMPLEMENTATION_SUMMARY,
 )
-from psynet.audit.content import validate_present_artifact_file
+from psynet.audit.content import artifact_path_is_ready, validate_present_artifact_file
 from psynet.audit.paths import relative_audit_path
 
 
@@ -110,7 +110,7 @@ Use one list item per event. The actor tag must be one of `agent-start`,
 `agent`, `agent-stop`, `manual`, or `system`:
 
 `- T+00:00:00 [agent-start] Started implementation.`
-`- T+00:05:12 [agent] Ran psynet simulate --audit.`
+`- T+00:05:12 [agent] Ran psynet simulate.`
 """
 STARTER_REPORT = """# Experiment audit report
 
@@ -284,7 +284,7 @@ def starter_audit_manifest() -> dict[str, object]:
             starter_section("monitor", "Monitor snapshot", "monitor"),
             starter_section("performance", "Performance test", "performance"),
             starter_section("data_exports", "Data exports", "data"),
-            starter_section("power", "Power analysis", "power"),
+            starter_section("design_simulation", "Design simulation", "simulation"),
             starter_section("analysis", "Analysis", "analysis"),
             starter_section("files", "Additional files", "files"),
             starter_section("blockers", "Blockers", "blockers"),
@@ -328,49 +328,49 @@ def starter_audit_manifest() -> dict[str, object]:
                 status="blocked",
             ),
             starter_artifact(
-                "simulation_export",
+                "simulate_export",
                 "data_export",
-                "artifacts/simulated_data.zip",
-                "Simulated data export",
-                "Data export produced by simulated participants.",
+                "simulate/analysis/simulated_export",
+                "Simulated export",
+                "Data directory produced by simulated participants.",
                 required=True,
                 status="blocked",
             ),
             starter_artifact(
                 "analysis_notebook",
                 "notebook",
-                "analyses/analysis.ipynb",
+                "simulate/analysis/analysis.ipynb",
                 "Analysis notebook",
                 "Executed notebook that reads the simulated export and summarizes results.",
                 required=True,
                 status="blocked",
             ),
             starter_artifact(
-                "power_analysis",
+                "simulation_notebook",
                 "notebook",
-                "power/analysis.ipynb",
-                "Power analysis notebook",
-                "Executed power-analysis notebook; optional, and only for experiments "
-                "whose design quantities were chosen by simulation.",
+                "simulate/design/simulation.ipynb",
+                "Design simulation notebook",
+                "Executed design-simulation notebook; optional, with power analysis "
+                "and adaptive-procedure sections when applicable.",
                 required=False,
                 status="missing",
             ),
             starter_artifact(
-                "power_run",
+                "simulation_run",
                 "report",
-                "power/run.json",
-                "Power analysis run record",
-                "Provenance for the power-analysis run, including method, seed, and "
+                "simulate/design/run.json",
+                "Design simulation run record",
+                "Provenance for the design-simulation run, including method, seed, and "
                 "replicate count.",
                 required=False,
                 status="missing",
             ),
             starter_artifact(
-                "power_results",
+                "simulation_results",
                 "report",
-                "power/results.csv",
-                "Power analysis results",
-                "Per-scenario power-analysis results consumed by the power notebook.",
+                "simulate/design/results.csv",
+                "Design simulation results",
+                "Per-scenario results consumed by the design-simulation notebook.",
                 required=False,
                 status="missing",
             ),
@@ -393,14 +393,14 @@ def starter_audit_manifest() -> dict[str, object]:
                 "Capture a static PsyNet monitor snapshot at artifacts/monitor.html.",
             ),
             starter_blocker(
-                "simulation_export",
+                "simulate_export",
                 "Simulation export has not been produced yet.",
-                "Run psynet simulate --audit.",
+                "Run psynet simulate.",
             ),
             starter_blocker(
                 "analysis_notebook",
                 "Analysis notebook has not been executed yet.",
-                "Create and execute analyses/analysis.ipynb.",
+                "Create and execute simulate/analysis/analysis.ipynb.",
             ),
         ],
         "render": {
@@ -427,9 +427,9 @@ def init_audit(audit_dir: Path, force: bool = False) -> None:
         audit_dir,
         audit_dir / "artifacts",
         audit_dir / "artifacts" / "screenshots",
-        audit_dir / "analyses",
         audit_dir / "logs",
-        audit_dir / "power",
+        audit_dir / "simulate" / "analysis",
+        audit_dir / "simulate" / "design",
     ):
         directory.mkdir(parents=True, exist_ok=True)
 
@@ -490,17 +490,21 @@ def mark_artifact_present(
             raise ValueError("; ".join(path_problems))
 
     assert resolved is not None
-    if not resolved.is_file():
+    if not artifact_path_is_ready(resolved):
         raise FileNotFoundError(
-            f"{resolved}: file missing; create it before marking present"
+            f"{resolved}: artifact is missing or empty; create it before marking present"
         )
 
-    problems = validate_present_artifact_file(
-        resolved,
-        artifact_kind=(
-            str(target.get("kind")) if isinstance(target.get("kind"), str) else None
-        ),
-        require_video_probe=True,
+    problems = (
+        validate_present_artifact_file(
+            resolved,
+            artifact_kind=(
+                str(target.get("kind")) if isinstance(target.get("kind"), str) else None
+            ),
+            require_video_probe=True,
+        )
+        if resolved.is_file()
+        else []
     )
     if problems:
         raise ValueError("; ".join(problems))

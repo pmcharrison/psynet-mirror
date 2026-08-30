@@ -40,7 +40,8 @@ See `references/populating-an-audit.md` for the full pathway guidance.
    go (see `references/populating-an-audit.md`). Prefer overwriting interim
    canonical files rather than regenerating later.
 3. Keep evidence-generation scripts with the experiment source.
-4. Close the packet: `--audit` already marks `simulation_export` and
+4. Close the packet: `psynet simulate` already marks `simulate_export`, and
+   `--audit` on the performance command marks
    `performance_result` present; mark remaining artifacts, record blockers, then
    run `psynet audit validate` from the experiment root.
    A pass with blockers means the packet is coherent, not that the experiment is
@@ -65,9 +66,10 @@ experiment/
     TIMELINE.md
     REPORT.md
     artifacts/
-    analyses/
     logs/
-    power/         # optional power analysis
+    simulate/
+      analysis/    # simulated export and analysis notebook
+      design/      # optional design simulation
     site/          # generated; normally not committed
 ```
 

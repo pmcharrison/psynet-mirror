@@ -2,13 +2,13 @@ import json
 
 from psynet.audit.constants import MAX_AUDIT_NOTEBOOK_BYTES
 from psynet.audit.html import (
+    render_design_simulation,
     render_evidence_section,
     render_file_grid,
     render_json_block,
     render_markdown_document,
     render_notebook_output,
     render_notebook_panel,
-    render_power_analysis,
     render_timeline_section,
     safe_section_html,
 )
@@ -92,9 +92,9 @@ def test_render_evidence_section_uses_shared_dashboard_markup() -> None:
             ),
             file("monitor.html", "<html></html>"),
             file("data.zip", None),
-            file("simulated_data.zip", None),
+            file("simulate/analysis/simulated_export/trials.csv", None),
             file(
-                "analyses/analysis.ipynb",
+                "simulate/analysis/analysis.ipynb",
                 json.dumps(
                     {
                         "cells": [
@@ -126,7 +126,7 @@ def test_render_evidence_section_uses_shared_dashboard_markup() -> None:
     assert 'src="/artifacts/participant.mp4"' in html
     assert "data-screenshot-gallery" in html
     assert "Intro &lt;screen&gt;" in html
-    assert "Download simulated data" in html
+    assert "simulated_export/trials.csv" in html
     assert 'id="analysis-notebook"' in html
     assert "<h1>Analysis</h1>" in html
     assert "<td>0.123</td>" in html
@@ -139,29 +139,29 @@ def test_render_evidence_section_marks_unpublished_actions_without_empty_links()
 ):
     view = classify_audit_evidence(
         [
-            unpublished_file("simulated_data.zip"),
-            unpublished_file("analyses/summary.html"),
+            unpublished_file("simulate/analysis/simulated_export/trials.csv"),
+            unpublished_file("simulate/analysis/summary.html"),
         ]
     )
 
     html = render_evidence_section(view, include_heading=False, section_id=None)
 
-    assert "Simulated data export not published" in html
+    assert "trials.csv" in html
     assert "Analysis summary not published" in html
     assert 'href=""' not in html
 
 
-def test_render_power_analysis_reports_absence() -> None:
-    view = classify_audit_evidence([file("analyses/analysis.ipynb", "{}")])
+def test_render_design_simulation_reports_absence() -> None:
+    view = classify_audit_evidence([file("simulate/analysis/analysis.ipynb", "{}")])
 
-    assert "No power analysis" in render_power_analysis(view)
+    assert "No design simulation" in render_design_simulation(view)
 
 
-def test_render_power_analysis_renders_notebook_and_provenance() -> None:
+def test_render_design_simulation_renders_notebook_and_provenance() -> None:
     view = classify_audit_evidence(
         [
             file(
-                "power/analysis.ipynb",
+                "simulate/design/simulation.ipynb",
                 json.dumps(
                     {
                         "cells": [
@@ -174,27 +174,32 @@ def test_render_power_analysis_renders_notebook_and_provenance() -> None:
                 ),
             ),
             file(
-                "power/run.json",
+                "simulate/design/run.json",
                 json.dumps(
                     {
                         "method": "precision-estimation",
-                        "command": "python -m audit.power.core",
+                        "command": "python -m audit.simulate.design.core",
                         "replicates": 1000,
                     }
                 ),
             ),
-            file("power/results.csv", "result_id,decision_value\na,0.2\n"),
+            file(
+                "simulate/design/results.csv",
+                "result_id,decision_value\na,0.2\n",
+            ),
         ]
     )
 
-    html = render_power_analysis(view)
+    html = render_design_simulation(view)
 
     assert "precision-estimation" in html
     assert "1000" in html
     assert "Precision by design" in html
-    assert "power/results.csv" in html
+    assert "simulate/design/results.csv" in html
     # The notebook is rendered inline, so it should not repeat as a plain file.
-    assert not any(item.path == "power/analysis.ipynb" for item in view.visible_files)
+    assert not any(
+        item.path == "simulate/design/simulation.ipynb" for item in view.visible_files
+    )
 
 
 def test_render_markdown_document_renders_safe_report_markup() -> None:
@@ -250,7 +255,7 @@ def test_render_evidence_section_renders_notebook_rich_outputs() -> None:
     view = classify_audit_evidence(
         [
             file(
-                "analyses/analysis.ipynb",
+                "simulate/analysis/analysis.ipynb",
                 json.dumps(
                     {
                         "cells": [
@@ -458,7 +463,7 @@ def test_notebook_preview_uses_full_notebook_size_allowance() -> None:
     }
 
     rendered = render_notebook_panel(
-        file("power/analysis.ipynb"),
+        file("simulate/design/simulation.ipynb"),
         notebook,
         section_id="power-notebook",
         heading="Power analysis",

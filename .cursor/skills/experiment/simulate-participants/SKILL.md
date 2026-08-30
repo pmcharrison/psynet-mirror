@@ -98,8 +98,8 @@ participants whenever possible.
 
 - Run `psynet test local` with enough bots to cover each required group, profile,
   condition, prescreener branch, and check failure path.
-- Run `psynet simulate --audit` and inspect `data/simulated_data/` plus
-  `artifacts/simulated_data.zip`. Verify trial answers, trial data,
+- Run `psynet simulate` and inspect
+  `audit/simulate/analysis/simulated_export/`. Verify trial answers, trial data,
   participant vars, profile metadata, telemetry fields, and analysis inputs are
   present and typed as expected.
 - Run `psynet performance-test local --audit` when profile logic changes timing,

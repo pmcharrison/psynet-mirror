@@ -1,9 +1,9 @@
 # Benchmark an adaptive procedure
 
 Ask whether adaptation improves estimation or decision quality enough to
-justify its complexity. That comparison belongs in the same `audit/power/`
-campaign as the inferential decision: treat policy as a design factor, do not
-create a second Monte Carlo packet.
+justify its complexity. Put that comparison in the **Adaptive procedure**
+section of `audit/simulate/design/simulation.ipynb`. Treat policy as a design
+factor in the same campaign as the power analysis.
 
 Power analysis asks whether a chosen design meets a prespecified inferential
 requirement. Benchmarking supplies the policy comparison that decision needs.
@@ -107,15 +107,15 @@ best.
 
 ## Save reproducible artifacts
 
-Write the comparison into the power-analysis packet, not a parallel directory:
+Write the comparison into the design-simulation campaign:
 
 ```text
-audit/power/
+audit/simulate/design/
 ├── config.toml
 ├── core.py
 ├── results.csv
 ├── run.json
-└── analysis.ipynb
+└── simulation.ipynb
 ```
 
 `config.toml` specifies policies, checkpoints, response-model scenarios,

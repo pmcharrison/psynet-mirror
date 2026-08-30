@@ -1,9 +1,5 @@
-Added an optional power-analysis section to experiment audits. A power analysis
-now lives at ``audit/power/`` instead of the experiment root, and
-``psynet audit render`` shows its executed notebook, run provenance, and
-supporting files. Packets that omit the section but still have ``power/`` files
-get a Power analysis panel; packets that hide the section with
-``"display": false`` keep it hidden. ``psynet audit init`` creates the directory
-and declares the optional ``power_analysis``, ``power_run``, and
-``power_results`` artifacts, which stay ``missing`` without a blocker when an
-experiment needs no power analysis.
+Added an optional Design simulation section to experiment audits. Its
+``simulate/design/simulation.ipynb`` contains a Power analysis section and may
+also contain an Adaptive procedure section. The run record and results live
+beside it. ``psynet audit init`` declares ``simulation_notebook``,
+``simulation_run``, and ``simulation_results`` as optional artifacts.

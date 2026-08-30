@@ -25,7 +25,7 @@ Put parameter definitions, expected responses when useful, and the canonical
 from `__init__.py`.
 
 Keep this package at the experiment's top level, separate from `experiment.py`
-and `audit/power/`. Import the same package from scientific bots, power analyses, and
+and `audit/simulate/design/`. Import the same package from scientific bots, power analyses, and
 standalone adaptive simulations. It must not import PsyNet or access its
 database.
 

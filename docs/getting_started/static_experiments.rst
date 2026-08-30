@@ -858,7 +858,8 @@ and implement the following changes:
    where participants fail if they score less than 50%.
 
 6. Use ``psynet simulate`` to run automated bots through your experiment.
-   Explore the exported dataset at ``data/simulated_data``.
+   Explore the exported dataset at
+   ``audit/simulate/analysis/simulated_export``.
    Can you find the csv file containing your trial data?
    Can you find all you'd need to do a proper analysis?
 

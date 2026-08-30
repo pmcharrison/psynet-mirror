@@ -36,7 +36,8 @@ Initialize the packet before meaningful runs. From the first useful command
 onward, write outputs into the audit layout even when they are interim:
 
 - Prefer canonical paths such as `artifacts/performance.json`,
-  `artifacts/simulated_data.zip`, and `analyses/analysis.ipynb`.
+  `simulate/analysis/simulated_export/`, and
+  `simulate/analysis/analysis.ipynb`.
 - Overwrite the same path when a later run supersedes an interim result.
 - Mark artifacts `present` when the file is the evidence you intend to hand
   off (including smoke runs used for infrastructure testing).
@@ -97,11 +98,11 @@ section. That warning is expected for retrospective audits.
      rendered page. Leave the starter TODO only until you have a real summary;
      validate warns, and the page omits it until rewritten.
 3. Collect reviewable outputs under:
-   - `artifacts/` for participant flow, exports, monitor snapshots, performance
+   - `artifacts/` for participant flow, real-data exports, monitor snapshots, performance
      results, and other primary evidence;
-   - `analyses/` for notebooks and analysis outputs;
    - `logs/` for concise command logs;
-   - `power/` for an optional power analysis (`power-analysis/SKILL.md`).
+   - `simulate/analysis/` for the simulated export and its analysis;
+   - `simulate/design/` for an optional design-simulation campaign.
 4. Keep evidence-generation scripts with the implementation source. Evidence
    should be reproducible, not just a manually assembled folder.
 5. After an artifact exists, run:
@@ -131,10 +132,10 @@ Choose evidence that matches the experiment. Common artifacts are:
 - `artifacts/performance.json`: sustained performance-test output;
 - `artifacts/monitor.html`: static monitor snapshot;
 - `artifacts/data.zip`: exported local or real-run data;
-- `artifacts/simulated_data.zip`: simulated-participant export;
-- `analyses/analysis.ipynb`: executed, self-contained analysis notebook;
-- `power/analysis.ipynb` and `power/run.json`: optional power analysis, for
-  experiments whose design quantities were chosen by simulation;
+- `simulate/analysis/simulated_export/`: simulated-participant export;
+- `simulate/analysis/analysis.ipynb`: executed analysis of that export;
+- `simulate/design/simulation.ipynb` and `simulate/design/run.json`: optional
+  design simulation;
 - `logs/*.log`: concise logs that explain commands and failures.
 
 Use `record-participant-video` for screenshot and video production. Keep videos
@@ -142,18 +143,16 @@ at most 3 minutes and 1280×720. Audit notebooks may be up to 10 MB, but avoid
 unnecessary inline output so the rendered audit remains quick to load.
 
 Rendering gives screenshots, participant video, monitor snapshot, performance
-test, power analysis, and analysis their own top-level sections, so each of
+test, design simulation, and analysis their own top-level sections, so each of
 those artifacts is reviewed on its own rather than inside one combined evidence
 panel.
 
-### Power analysis
+### Design simulation
 
-A power analysis is optional. When the experiment has one, it belongs in the
-audit at `power/` and nowhere else; do not keep a second copy at the experiment
-root. Follow `power-analysis/SKILL.md` for its files and method, then mark
-`power_analysis`, `power_run`, and `power_results` present. Leave those
-artifacts `missing` when the experiment does not need a power analysis: they
-are optional and need no blocker.
+The optional `simulate/design/simulation.ipynb` contains a **Power analysis**
+section and, for adaptive experiments, may contain an **Adaptive procedure**
+section. Follow `power-analysis/SKILL.md`, then mark `simulation_notebook`,
+`simulation_run`, and `simulation_results` present.
 
 ### Monitor snapshot
 
@@ -188,20 +187,17 @@ There is no dedicated `psynet audit` subcommand for N/A yet; set
 `status: not_applicable` on the artifact in `audit.json`, remove its required
 blocker (or replace it with an N/A note in `REPORT.md`), then re-validate.
 
-### Simulation export packaging
+### Simulated export
 
-`psynet simulate` writes `data/simulated_data/` (a directory). Prefer `--audit`
-so PsyNet also zips that tree to the canonical audit path. From the experiment
-root:
+Run from the experiment root:
 
 ```bash
-psynet simulate --audit
+psynet simulate
 ```
 
-`--audit` writes `<experiment>/audit/artifacts/simulated_data.zip`
-and marks `simulation_export` present. Use `--no-mark-present` to write the zip
-without updating `audit.json`. Overwrite the same zip when a later simulation
-supersedes an interim run.
+The command writes the only copy to
+`audit/simulate/analysis/simulated_export/` and marks `simulate_export`
+present. Use `--no-mark-present` to skip the manifest update.
 
 ### Performance evidence
 
@@ -250,8 +246,7 @@ paths referenced by that manifest and builds the screenshot carousel.
 
 ## Analysis and reporting
 
-The canonical analysis is `analyses/analysis.ipynb` unless another format is
-more appropriate. It should:
+The canonical analysis is `simulate/analysis/analysis.ipynb`. It should:
 
 - read exported data directly;
 - show data loading and cleaning;

@@ -34,7 +34,7 @@ from . import adaptive_logic
 from .adaptive_logic import select_item
 ```
 
-Standalone scripts such as ``python -m audit.power.core`` and
+Standalone scripts such as ``python -m audit.simulate.design.core`` and
 ``simulate_procedure.py`` use ordinary top-level imports of the same helpers.
 See ``docs/experiment_development/experiment_directory.rst``
 ("Importing other Python files").

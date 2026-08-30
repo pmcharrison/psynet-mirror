@@ -57,14 +57,14 @@ class AuditEvidenceView:
     performance_results: list[dict[str, object]]
     monitor_file: AuditFile | None
     data_file: AuditFile | None
-    simulated_data_file: AuditFile | None
+    simulated_export_files: list[AuditFile]
     analysis_files: list[AuditFile]
     analysis_notebook_file: AuditFile | None
     analysis_notebook: dict[str, object]
-    power_files: list[AuditFile]
-    power_notebook_file: AuditFile | None
-    power_notebook: dict[str, object]
-    power_run: dict[str, object]
+    simulation_files: list[AuditFile]
+    simulation_notebook_file: AuditFile | None
+    simulation_notebook: dict[str, object]
+    simulation_run: dict[str, object]
     visible_files: list[AuditFile]
     completeness: list[CompletenessItem]
 
@@ -99,10 +99,10 @@ class AuditEvidenceView:
         return self.data_file is not None
 
     @property
-    def has_simulated_data(self) -> bool:
-        """Return whether simulated data export evidence is present."""
+    def has_simulated_export(self) -> bool:
+        """Return whether the simulated export contains files."""
 
-        return self.simulated_data_file is not None
+        return bool(self.simulated_export_files)
 
     @property
     def has_analyses(self) -> bool:
@@ -121,10 +121,10 @@ class AuditEvidenceView:
         return self.analysis_notebook_file is not None
 
     @property
-    def has_power_analysis(self) -> bool:
-        """Return whether the audit carries power-analysis evidence."""
+    def has_design_simulation(self) -> bool:
+        """Return whether the audit carries design-simulation evidence."""
 
-        return bool(self.power_files)
+        return bool(self.simulation_files)
 
 
 MAX_AUDIT_TEXT_BYTES = 100_000
@@ -241,15 +241,27 @@ def performance_results(performance_data: dict[str, object]) -> list[dict[str, o
 
 
 def analysis_files(files: list[AuditFile]) -> list[AuditFile]:
-    """Return analysis files under the canonical analyses directory."""
+    """Return files under the simulated-data analysis directory."""
 
-    return files_under_directory(files, "analyses/")
+    return [
+        file
+        for file in files_under_directory(files, "simulate/analysis/")
+        if not evidence_path(file.path).startswith(
+            "simulate/analysis/simulated_export/"
+        )
+    ]
 
 
-def power_files(files: list[AuditFile]) -> list[AuditFile]:
-    """Return power-analysis files under the canonical power directory."""
+def simulated_export_files(files: list[AuditFile]) -> list[AuditFile]:
+    """Return files in the simulated participant export."""
 
-    return files_under_directory(files, "power/")
+    return files_under_directory(files, "simulate/analysis/simulated_export/")
+
+
+def simulation_files(files: list[AuditFile]) -> list[AuditFile]:
+    """Return files under the design-simulation directory."""
+
+    return files_under_directory(files, "simulate/design/")
 
 
 def files_under_directory(files: list[AuditFile], prefix: str) -> list[AuditFile]:
@@ -282,25 +294,22 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
     performance_data = parse_json_content(performance_file)
     monitor_file = first_file_by_evidence_path(audit_files, "monitor.html")
     data_file = first_file_by_evidence_path(audit_files, "data.zip")
-    simulated_data_file = first_file_by_evidence_path(
-        audit_files,
-        "simulated_data.zip",
-    )
+    simulated_export = simulated_export_files(audit_files)
     analyses = analysis_files(audit_files)
     notebook_files = [file for file in analyses if file.kind == "ipynb"]
     analysis_notebook_file = first_file_by_evidence_path(
-        audit_files, "analyses/analysis.ipynb"
+        audit_files, "simulate/analysis/analysis.ipynb"
     ) or (notebook_files[0] if notebook_files else None)
     analysis_notebook = parse_json_content(analysis_notebook_file)
 
-    power = power_files(audit_files)
-    power_notebook_files = [file for file in power if file.kind == "ipynb"]
-    power_notebook_file = first_file_by_evidence_path(
-        audit_files, "power/analysis.ipynb"
-    ) or (power_notebook_files[0] if power_notebook_files else None)
-    power_notebook = parse_json_content(power_notebook_file)
-    power_run = parse_json_content(
-        first_file_by_evidence_path(audit_files, "power/run.json")
+    simulation = simulation_files(audit_files)
+    simulation_notebooks = [file for file in simulation if file.kind == "ipynb"]
+    simulation_notebook_file = first_file_by_evidence_path(
+        audit_files, "simulate/design/simulation.ipynb"
+    ) or (simulation_notebooks[0] if simulation_notebooks else None)
+    simulation_notebook = parse_json_content(simulation_notebook_file)
+    simulation_run = parse_json_content(
+        first_file_by_evidence_path(audit_files, "simulate/design/run.json")
     )
 
     visible_files = [
@@ -311,7 +320,7 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
             screenshot_files,
             screenshot_manifest,
             analysis_notebook_file,
-            power_notebook_file,
+            simulation_notebook_file,
         )
     ]
     completeness = completeness_items(
@@ -320,7 +329,7 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
         performance_file=performance_file,
         monitor_file=monitor_file,
         data_file=data_file,
-        simulated_data_file=simulated_data_file,
+        simulated_export_files=simulated_export,
         analyses=analyses,
     )
     return AuditEvidenceView(
@@ -332,14 +341,14 @@ def classify_audit_evidence(files: list[AuditFileLike]) -> AuditEvidenceView:
         performance_results=performance_results(performance_data),
         monitor_file=monitor_file,
         data_file=data_file,
-        simulated_data_file=simulated_data_file,
+        simulated_export_files=simulated_export,
         analysis_files=analyses,
         analysis_notebook_file=analysis_notebook_file,
         analysis_notebook=analysis_notebook,
-        power_files=power,
-        power_notebook_file=power_notebook_file,
-        power_notebook=power_notebook,
-        power_run=power_run,
+        simulation_files=simulation,
+        simulation_notebook_file=simulation_notebook_file,
+        simulation_notebook=simulation_notebook,
+        simulation_run=simulation_run,
         visible_files=visible_files,
         completeness=completeness,
     )
@@ -350,7 +359,7 @@ def is_special_rendered_file(
     screenshots: list[AuditFile],
     screenshot_manifest: AuditFile | None,
     analysis_notebook_file: AuditFile | None,
-    power_notebook_file: AuditFile | None = None,
+    simulation_notebook_file: AuditFile | None = None,
 ) -> bool:
     """Return whether a file is rendered elsewhere in the evidence view."""
 
@@ -359,8 +368,9 @@ def is_special_rendered_file(
         "performance.json",
         "monitor.html",
         "data.zip",
-        "simulated_data.zip",
     }:
+        return True
+    if evidence_path(file.path).startswith("simulate/analysis/simulated_export/"):
         return True
     if file in screenshots:
         return True
@@ -370,7 +380,10 @@ def is_special_rendered_file(
         return True
     if analysis_notebook_file is not None and file.path == analysis_notebook_file.path:
         return True
-    if power_notebook_file is not None and file.path == power_notebook_file.path:
+    if (
+        simulation_notebook_file is not None
+        and file.path == simulation_notebook_file.path
+    ):
         return True
     return False
 
@@ -382,7 +395,7 @@ def completeness_items(
     performance_file: AuditFile | None,
     monitor_file: AuditFile | None,
     data_file: AuditFile | None,
-    simulated_data_file: AuditFile | None,
+    simulated_export_files: list[AuditFile],
     analyses: list[AuditFile],
 ) -> list[CompletenessItem]:
     """Build experiment audit artifact completeness rows."""
@@ -421,14 +434,19 @@ def completeness_items(
             "present" if data_file is not None else "missing",
         ),
         CompletenessItem(
-            "simulated_data",
-            "simulated_data.zip",
-            simulated_data_file is not None,
-            "present" if simulated_data_file is not None else "missing",
+            "simulated_export",
+            "simulate/analysis/simulated_export/",
+            bool(simulated_export_files),
+            (
+                f"{len(simulated_export_files)} file"
+                f"{'s' if len(simulated_export_files) != 1 else ''}"
+                if simulated_export_files
+                else "missing"
+            ),
         ),
         CompletenessItem(
-            "analyses",
-            "analyses/",
+            "analysis",
+            "simulate/analysis/",
             bool(analyses),
             f"{len(analyses)} file{'s' if len(analyses) != 1 else ''}"
             if analyses

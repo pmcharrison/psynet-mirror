@@ -14,6 +14,16 @@ from psynet.audit.paths import relative_audit_path
 from psynet.audit.video import validate_evidence_video
 
 
+def artifact_path_is_ready(path: Path) -> bool:
+    """Return whether an artifact path is a file or a non-empty directory."""
+
+    if path.is_file():
+        return True
+    return path.is_dir() and any(
+        item.is_file() and not item.is_symlink() for item in path.rglob("*")
+    )
+
+
 def validate_present_artifact_file(
     artifact_path: Path,
     *,
@@ -127,6 +137,7 @@ def section_text(audit_dir: Path, section: dict[str, Any]) -> str | None:
 
 
 __all__ = [
+    "artifact_path_is_ready",
     "read_audit_artifact_content",
     "read_bounded_bytes",
     "section_text",

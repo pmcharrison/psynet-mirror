@@ -36,19 +36,20 @@ response_model/
 ├── __init__.py
 └── core.py
 audit/
-├── power/
-│   ├── config.toml
-│   ├── core.py
-│   ├── results.csv
-│   ├── run.json
-│   └── analysis.ipynb
+└── simulate/
+    └── design/
+        ├── config.toml
+        ├── core.py
+        ├── results.csv
+        ├── run.json
+        └── simulation.ipynb
 ```
 
 `adaptive_logic.py` contains the fitting and selection functions used by both
 PsyNet and the standalone simulation. It must not import PsyNet or SQLAlchemy.
 From ``experiment.py`` import it with ``from . import adaptive_logic``.
-Standalone ``simulate_procedure.py`` and ``audit/power/core.py`` use ordinary
-top-level imports.
+Standalone ``simulate_procedure.py`` and ``audit/simulate/design/core.py`` use
+ordinary top-level imports.
 
 `simulate_procedure.py` runs one complete adaptive experiment without starting
 PsyNet. It maintains the observation, participant, item, and decision tables;
@@ -57,10 +58,11 @@ response from `response_model/`. This standalone simulation tests the
 scientific procedure at scale; `psynet simulate` is still needed to test its
 integration with the PsyNet timeline, response handling, and export path.
 
-`audit/power/` follows `power-analysis/SKILL.md` and includes the policy
-comparisons in
+`audit/simulate/design/` follows `power-analysis/SKILL.md`. Its
+`simulation.ipynb` includes a **Power analysis** section and the **Adaptive
+procedure** comparison described in
 [references/benchmark-adaptive-procedure.md](references/benchmark-adaptive-procedure.md).
-That is one simulation campaign, not a second packet. Keep the adaptive loop in
+Keep both in one simulation campaign. Keep the adaptive loop in
 `simulate_procedure.py` rather than recreating it in the analysis.
 
 `response_model/` follows `participant-response-models/SKILL.md` and generates

@@ -350,17 +350,15 @@ Simulate data for an experiment
 -------------------------------
 
 This command generates simulated data for an experiment by running the experiment's regression test
-and exporting the resulting data to ``data/simulated_data/``.
+and exporting the resulting data to
+``audit/simulate/analysis/simulated_export/``.
 
 .. code:: bash
 
   psynet simulate
-  psynet simulate --audit
 
-``--audit`` also zips that directory to ``./audit/artifacts/simulated_data.zip``
-and marks ``simulation_export`` present. Use ``--no-mark-present`` to write the
-zip without updating ``audit.json``. Iterate without ``--audit`` when you do
-not want the packet's evidence updated.
+The command marks ``simulate_export`` present in ``audit.json``. Use
+``--no-mark-present`` to write the directory without updating the manifest.
 
 
 .. _install:

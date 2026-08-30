@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 AUDIT_DIR_NAME = "audit"
-PROTECTED_PACKET_DIRECTORIES = ("artifacts", "analyses", "logs", "power")
+PROTECTED_PACKET_DIRECTORIES = ("artifacts", "logs", "simulate")
 
 
 def _has_audit_manifest(candidate: Path) -> bool:

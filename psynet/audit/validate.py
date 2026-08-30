@@ -28,6 +28,7 @@ from psynet.audit.constants import (
     format_allowed,
 )
 from psynet.audit.content import (
+    artifact_path_is_ready,
     section_text,
     validate_present_artifact_file,
 )
@@ -254,21 +255,25 @@ def validate_audit_artifacts(
             continue
 
         if status == "present":
-            if not artifact_path.is_file():
+            if not artifact_path_is_ready(artifact_path):
                 problems.append(
-                    f"{label}: artifact marked present but file is missing: "
+                    f"{label}: artifact marked present but path is missing or empty: "
                     f"{artifact_path}",
                 )
                 continue
             problems.extend(
-                validate_present_artifact_file(
-                    artifact_path,
-                    artifact_kind=(
-                        str(artifact.get("kind"))
-                        if isinstance(artifact.get("kind"), str)
-                        else None
-                    ),
-                    require_video_probe=False,
+                (
+                    validate_present_artifact_file(
+                        artifact_path,
+                        artifact_kind=(
+                            str(artifact.get("kind"))
+                            if isinstance(artifact.get("kind"), str)
+                            else None
+                        ),
+                        require_video_probe=False,
+                    )
+                    if artifact_path.is_file()
+                    else []
                 ),
             )
 

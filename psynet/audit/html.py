@@ -401,12 +401,6 @@ def render_evidence_actions(
         evidence_action_item(
             "Data export", evidence.data_file, "Download data export", url_transform
         ),
-        evidence_action_item(
-            "Simulated data export",
-            evidence.simulated_data_file,
-            "Download simulated data",
-            url_transform,
-        ),
         analysis_action_item(evidence, analysis_file, url_transform),
     ]
     return '<ul class="evidence-actions">' + "\n".join(items) + "</ul>"
@@ -417,19 +411,13 @@ def render_data_exports(
     *,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render download links for real and simulated data exports."""
+    """Render the real-data export download link."""
 
     items = [
         evidence_action_item(
             "Data export",
             evidence.data_file,
             "Download data export",
-            url_transform,
-        ),
-        evidence_action_item(
-            "Simulated data export",
-            evidence.simulated_data_file,
-            "Download simulated data",
             url_transform,
         ),
     ]
@@ -543,63 +531,69 @@ def render_analysis_notebook(
     """
 
     notebook_file = evidence.analysis_notebook_file
-    if notebook_file is None:
-        return "<p>No analysis notebook was found.</p>" if standalone else ""
-
-    return render_notebook_panel(
-        notebook_file,
-        evidence.analysis_notebook,
-        section_id="analysis-notebook",
-        heading="Analysis notebook",
-        standalone=standalone,
+    notebook_html = (
+        render_notebook_panel(
+            notebook_file,
+            evidence.analysis_notebook,
+            section_id="analysis-notebook",
+            heading="Analysis notebook",
+            standalone=standalone,
+            url_transform=url_transform,
+        )
+        if notebook_file is not None
+        else ("<p>No analysis notebook was found.</p>" if standalone else "")
+    )
+    export_html = render_file_grid(
+        evidence.simulated_export_files,
+        empty_message="No simulated export was found.",
         url_transform=url_transform,
     )
+    return f"{notebook_html}{export_html}"
 
 
-def render_power_analysis(
+def render_design_simulation(
     evidence: AuditEvidenceView,
     *,
     standalone: bool = True,
     url_transform: UrlTransform = identity_url,
 ) -> str:
-    """Render the optional power-analysis panel.
+    """Render the optional design-simulation panel.
 
-    Power analysis is optional evidence. When an experiment has one, its
-    executed notebook, run provenance, and supporting files live under the
-    audit's ``power/`` directory.
+    A design simulation may contain power analysis and an optional adaptive
+    procedure analysis in one executed notebook.
     """
 
-    if not evidence.has_power_analysis:
+    if not evidence.has_design_simulation:
         return (
-            '<p class="missing">No power analysis was included in this audit.</p>'
+            '<p class="missing">No design simulation was included in this audit.</p>'
             if standalone
             else ""
         )
 
-    run_summary = render_power_run_summary(evidence.power_run)
-    notebook_file = evidence.power_notebook_file
+    run_summary = render_simulation_run_summary(evidence.simulation_run)
+    notebook_file = evidence.simulation_notebook_file
     if notebook_file is None:
         notebook_html = (
-            '<p class="missing">No executed power-analysis notebook was found.</p>'
+            '<p class="missing">No executed design-simulation notebook was found.</p>'
         )
     else:
         notebook_html = render_notebook_panel(
             notebook_file,
-            evidence.power_notebook,
-            section_id="power-notebook",
-            heading="Power analysis notebook",
+            evidence.simulation_notebook,
+            section_id="simulation-notebook",
+            heading="Design simulation notebook",
             standalone=standalone,
             url_transform=url_transform,
         )
     supporting = [
         file
-        for file in evidence.power_files
-        if file is not evidence.power_notebook_file
+        for file in evidence.simulation_files
+        if file is not evidence.simulation_notebook_file
     ]
     files_html = (
         render_file_grid(
             supporting,
-            empty_message="No supporting power-analysis files.",
+            empty_message="No supporting design-simulation files.",
             url_transform=url_transform,
         )
         if supporting
@@ -608,8 +602,8 @@ def render_power_analysis(
     return f"{run_summary}{notebook_html}{files_html}"
 
 
-def render_power_run_summary(run: dict[str, object]) -> str:
-    """Render key provenance fields from a power-analysis run record."""
+def render_simulation_run_summary(run: dict[str, object]) -> str:
+    """Render key provenance fields from a design-simulation run record."""
 
     fields = [
         ("Method", run.get("method")),

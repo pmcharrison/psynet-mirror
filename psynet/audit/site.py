@@ -33,6 +33,7 @@ from psynet.audit.html import (
     render_analysis_notebook,
     render_completeness,
     render_data_exports,
+    render_design_simulation,
     render_evidence_section,
     render_file_grid,
     render_json_block,
@@ -40,7 +41,6 @@ from psynet.audit.html import (
     render_monitor_snapshot,
     render_participant_video,
     render_performance_result,
-    render_power_analysis,
     render_screenshot_gallery,
     render_visible_artifacts,
     safe_section_html,
@@ -108,32 +108,41 @@ def publish_audit_artifacts(
             relative_path,
             f"artifact {artifact.get('id')!r}",
         )
-        if path_problems or source_file is None or not source_file.is_file():
+        if path_problems or source_file is None or not source_file.exists():
+            continue
+        if source_file.is_dir():
+            published_any = False
+            for child in sorted(
+                path
+                for path in source_file.rglob("*")
+                if path.is_file() and not path.is_symlink()
+            ):
+                child_relative = (
+                    Path(relative_path) / child.relative_to(source_file)
+                ).as_posix()
+                rendered.append(
+                    publish_audit_artifact_file(
+                        child,
+                        child_relative,
+                        target_root,
+                        site_dir,
+                    )
+                )
+                published_paths.add(child_relative)
+                published_any = True
+            if published_any:
+                published_paths.add(relative_path)
             continue
         if (
             artifact.get("kind") == "video" or source_file.suffix.lower() == ".mp4"
         ) and is_git_lfs_pointer(source_file):
             continue
-        published_url = write_hashed_artifact(
-            source_file,
-            target_root,
-            HASHED_ARTIFACTS_DIR,
-        )
-        artifact_url = artifact_output_url(published_url)
-        published_path = published_blob_path(site_dir, published_url)
-        content, truncated = read_audit_artifact_content(source_file)
         rendered.append(
-            AuditFile(
-                path=relative_path,
-                url=artifact_url,
-                content=content,
-                size_bytes=(
-                    published_path.stat().st_size
-                    if published_path.is_file()
-                    else source_file.stat().st_size
-                ),
-                kind=file_kind(relative_path),
-                truncated=truncated,
+            publish_audit_artifact_file(
+                source_file,
+                relative_path,
+                target_root,
+                site_dir,
             )
         )
         published_paths.add(relative_path)
@@ -147,6 +156,36 @@ def publish_audit_artifacts(
                 )
             )
     return rendered
+
+
+def publish_audit_artifact_file(
+    source_file: Path,
+    relative_path: str,
+    target_root: Path,
+    site_dir: Path,
+) -> AuditFile:
+    """Publish one artifact file and return its render metadata."""
+
+    published_url = write_hashed_artifact(
+        source_file,
+        target_root,
+        HASHED_ARTIFACTS_DIR,
+    )
+    artifact_url = artifact_output_url(published_url)
+    published_path = published_blob_path(site_dir, published_url)
+    content, truncated = read_audit_artifact_content(source_file)
+    return AuditFile(
+        path=relative_path,
+        url=artifact_url,
+        content=content,
+        size_bytes=(
+            published_path.stat().st_size
+            if published_path.is_file()
+            else source_file.stat().st_size
+        ),
+        kind=file_kind(relative_path),
+        truncated=truncated,
+    )
 
 
 def publish_screenshot_manifest_files(
@@ -283,11 +322,9 @@ def display_sections(
     *,
     evidence: Any = None,
 ) -> list[dict[str, Any]]:
-    """Return displayable section records, adding source or power when missing.
+    """Return displayable sections, adding source or simulation when missing.
 
-    Source and power backfill look at every manifest section, including those
-    with ``"display": false``. A hidden power section is therefore not replaced
-    by a visible one just because ``power/`` files exist.
+    Backfill looks at every manifest section, including hidden sections.
     """
 
     sections = manifest.get("sections")
@@ -328,15 +365,18 @@ def display_sections(
             else len(displayable)
         )
         displayable.insert(insert_at, source_section)
-    has_power = any(
+    has_simulation = any(
         isinstance(section, dict)
-        and (section.get("id") == "power" or section.get("kind") == "power")
+        and (
+            section.get("id") == "design_simulation"
+            or section.get("kind") == "simulation"
+        )
         for section in sections
     )
     if (
-        not has_power
+        not has_simulation
         and evidence is not None
-        and getattr(evidence, "has_power_analysis", False)
+        and getattr(evidence, "has_design_simulation", False)
     ):
         analysis_position = next(
             (
@@ -353,7 +393,8 @@ def display_sections(
             analysis_position if analysis_position is not None else len(displayable)
         )
         displayable.insert(
-            insert_at, starter_section("power", "Power analysis", "power")
+            insert_at,
+            starter_section("design_simulation", "Design simulation", "simulation"),
         )
     return displayable
 
@@ -473,8 +514,11 @@ def section_paths(manifest: dict[str, Any], evidence: Any = None) -> set[str]:
     for section in display_sections(manifest, evidence=evidence):
         if section.get("kind") == "markdown" and isinstance(section.get("path"), str):
             paths.add(section["path"])
-        if section.get("kind") == "power" and evidence is not None:
-            paths.update(file.path for file in evidence.power_files)
+        if section.get("kind") == "simulation" and evidence is not None:
+            paths.update(file.path for file in evidence.simulation_files)
+        if section.get("kind") == "analysis" and evidence is not None:
+            paths.update(file.path for file in evidence.analysis_files)
+            paths.update(file.path for file in evidence.simulated_export_files)
     return paths
 
 
@@ -515,8 +559,8 @@ def render_audit_section(
             return render_data_exports(evidence)
         if kind == "analysis":
             return render_analysis_notebook(evidence, standalone=True)
-        if kind == "power":
-            return render_power_analysis(evidence, standalone=True)
+        if kind == "simulation":
+            return render_design_simulation(evidence, standalone=True)
         if kind == "source":
             return render_source_section(audit_dir, manifest)
         if kind == "files":
@@ -728,6 +772,12 @@ def render_audit_site(
     site_dir.mkdir(parents=True, exist_ok=True)
     rendered_artifacts = publish_audit_artifacts(audit_dir, site_dir, manifest)
     published_paths = {artifact.path for artifact in rendered_artifacts}
+    for artifact in manifest.get("artifacts", []):
+        if not isinstance(artifact, dict):
+            continue
+        path = str(artifact.get("path") or "").rstrip("/")
+        if path and any(item.startswith(f"{path}/") for item in published_paths):
+            published_paths.add(path)
 
     title = audit_display_title(audit_dir, manifest)
     summary = display_implementation_summary(manifest)

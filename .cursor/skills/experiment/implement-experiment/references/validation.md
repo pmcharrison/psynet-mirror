@@ -14,11 +14,11 @@ Run functional checks from the experiment directory:
 ```bash
 python experiment.py
 psynet test local
-psynet simulate --audit
+psynet simulate
 ```
 
-`psynet simulate --audit` still writes `data/simulated_data/` and also zips it
-to `audit/artifacts/simulated_data.zip`, then marks `simulation_export` present.
+`psynet simulate` writes `audit/simulate/analysis/simulated_export/` and marks
+`simulate_export` present.
 
 ## Performance evidence
 
@@ -67,7 +67,9 @@ reliable evidence collection.
 
 The experiment audit packet lives under `audit/` (see
 `produce-experiment-audit`). Put review artifacts under `audit/artifacts/`,
-analysis under `audit/analyses/`, and command logs under `audit/logs/`. Keep
+simulated-data analysis under `audit/simulate/analysis/`, optional design
+simulation under `audit/simulate/design/`, and command logs under
+`audit/logs/`. Keep
 `audit/audit.json` in sync with `psynet audit mark-present <artifact_id>` /
 blockers as files land. Run those commands from the experiment root.
 

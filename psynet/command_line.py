@@ -3396,14 +3396,6 @@ _test_options["performance_audit"] = _audit_flag_option(
     file without updating audit.json."""
 )
 
-_test_options["simulate_audit"] = _audit_flag_option(
-    """
-    After exporting data/simulated_data/, zip it to
-    ./audit/artifacts/simulated_data.zip and mark simulation_export present.
-    Run from the experiment directory. Use --no-mark-present to write the zip
-    without updating audit.json."""
-)
-
 _test_options["audit_no_mark_present"] = click.option(
     "--no-mark-present",
     is_flag=True,
@@ -3412,11 +3404,10 @@ _test_options["audit_no_mark_present"] = click.option(
 )
 
 AUDIT_PERFORMANCE_JSON = Path("artifacts") / "performance.json"
-AUDIT_SIMULATED_DATA_ZIP = Path("artifacts") / "simulated_data.zip"
-SIMULATED_DATA_EXPORT_PATH = Path("data") / "simulated_data"
+SIMULATED_EXPORT_PATH = Path("simulate") / "analysis" / "simulated_export"
 AUDIT_ARTIFACT_IDS = {
     AUDIT_PERFORMANCE_JSON: "performance_result",
-    AUDIT_SIMULATED_DATA_ZIP: "simulation_export",
+    SIMULATED_EXPORT_PATH: "simulate_export",
 }
 
 
@@ -3543,80 +3534,26 @@ def resolve_performance_json_output(json_output=None, audit=False):
     return str(resolve_audit_artifact_path(AUDIT_PERFORMANCE_JSON))
 
 
-def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
-    """Zip files under ``source_dir``.
+def _run_simulate(ctx, mark_present=True):
+    """Run experiment bots and export their data into the audit packet."""
 
-    When ``source_dir`` is under the current working directory, archive members
-    keep that relative prefix (for example ``data/simulated_data/...``).
-    Directory entries are omitted; empty trees are rejected.
-    """
-    source_dir = Path(source_dir)
-    if not source_dir.is_dir():
-        raise click.UsageError(
-            f"Cannot write audit zip: {source_dir} is not a directory."
-        )
+    from psynet.audit.content import artifact_path_is_ready
 
-    zip_path = Path(zip_path)
-    zip_path.parent.mkdir(parents=True, exist_ok=True)
-    cwd = Path.cwd().resolve()
-    resolved_source = source_dir.resolve()
-    try:
-        resolved_source.relative_to(cwd)
-        archive_root = cwd
-    except ValueError:
-        archive_root = resolved_source.parent
-
-    partial = zip_path.with_name(zip_path.name + ".partial")
-    if partial.exists():
-        partial.unlink()
-    partial_resolved = partial.resolve()
-    try:
-        with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for path in sorted(resolved_source.rglob("*")):
-                if not path.is_file():
-                    continue
-                if path.resolve() == partial_resolved:
-                    continue
-                archive.write(path, path.relative_to(archive_root).as_posix())
-            if not archive.namelist():
-                raise click.UsageError(
-                    f"Cannot write audit zip: {source_dir} contains no files."
-                )
-        partial.replace(zip_path)
-    except Exception:
-        if partial.exists():
-            partial.unlink()
-        raise
-
-
-def package_simulated_data_for_audit(
-    export_path: Path = SIMULATED_DATA_EXPORT_PATH,
-) -> Path:
-    """Zip a simulate export into the audit packet's simulated-data artifact."""
-    zip_path = resolve_audit_artifact_path(AUDIT_SIMULATED_DATA_ZIP)
-    write_directory_zip(export_path, zip_path)
-    return zip_path
-
-
-def _run_simulate(ctx, audit=False, mark_present=True):
-    """Run the experiment test, export simulated data, and optionally zip it."""
-    if audit:
-        resolve_audit_root()
+    export_path = resolve_audit_artifact_path(SIMULATED_EXPORT_PATH)
     ctx.invoke(test__local)
+    shutil.rmtree(export_path, ignore_errors=True)
     ctx.invoke(
         export__local,
         # TODO - maybe legacy is not the best name for this parameter...
         legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
         no_source=True,
-        path=SIMULATED_DATA_EXPORT_PATH.as_posix(),
+        path=export_path.as_posix(),
     )
-    if not audit:
-        return
-    zip_path = package_simulated_data_for_audit()
-    click.echo(f"Simulated data (audit zip): {zip_path}")
-    maybe_mark_audit_artifact_present(
-        audit, AUDIT_SIMULATED_DATA_ZIP, mark_present=mark_present
-    )
+    if not artifact_path_is_ready(export_path):
+        raise click.ClickException(f"Simulate produced no files in {export_path}.")
+    click.echo(f"Simulated export: {export_path}")
+    if mark_present:
+        mark_audit_artifact_present(SIMULATED_EXPORT_PATH)
 
 
 @psynet.group("performance-test")
@@ -4098,23 +4035,25 @@ def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minut
 
 
 @psynet.command()
-@_test_options["simulate_audit"]
-@_test_options["audit_no_mark_present"]
+@click.option(
+    "--no-mark-present",
+    is_flag=True,
+    default=False,
+    help="Write the simulated export without updating audit.json.",
+)
 @click.pass_context
 @require_exp_directory
-def simulate(ctx, audit=False, no_mark_present=False):
+def simulate(ctx, no_mark_present=False):
     """
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
 
-    Writes ``data/simulated_data/``. Pass ``--audit`` to also zip that directory
-    to ``./audit/artifacts/simulated_data.zip`` and mark
-    ``simulation_export`` present.
+    Writes ``audit/simulate/analysis/simulated_export/`` and marks
+    ``simulate_export`` present.
     """
     # No need to catch the exit code here, because test__local now uses sys.exit()
     # if an error occurs.
-    require_audit_when_skipping_mark_present(audit, no_mark_present)
-    _run_simulate(ctx, audit=audit, mark_present=not no_mark_present)
+    _run_simulate(ctx, mark_present=not no_mark_present)
 
 
 @psynet.command(name="list-experiment-dirs")
