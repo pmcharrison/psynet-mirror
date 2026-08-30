@@ -65,7 +65,7 @@ ROOT = Path(__file__).parent
 ITEM_BANK_PATH = ROOT / "stimuli" / "item_bank.csv"
 CANDIDATE_POOL_VERSION = hashlib.sha256(ITEM_BANK_PATH.read_bytes()).hexdigest()[:16]
 N_TRIALS_PER_PARTICIPANT = 20
-REFIT_MIN_NEW_OBSERVATIONS = 5
+REFIT_MIN_NEW_OBSERVATIONS = 40
 
 
 def load_items() -> list[dict]:

@@ -67,8 +67,9 @@ and PsyNet-independent inference and policy code in `adaptive_logic.py`.
 The model fit is intentionally expensive: 2,048 bootstrap refits take several
 seconds once data accumulate. A scheduled task claims a unique data version,
 fits outside the database transaction, and atomically marks the snapshot
-`ready`. The participant request path only scores the compact state and must
-remain below one second.
+`ready`. Refreshes are batched after at least 40 new finalized observations so
+fit demand cannot grow faster than a heavily loaded study. The participant
+request path only scores the compact state and must remain below one second.
 
 ## Workflow review assumption
 
