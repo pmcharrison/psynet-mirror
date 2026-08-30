@@ -8,6 +8,7 @@ import stat
 import subprocess
 import sys
 from contextlib import contextmanager
+from contextvars import ContextVar
 from importlib import metadata, resources
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -770,12 +771,15 @@ def _copy_template_file(relative_path, overwrite):
     destination.parent.mkdir(parents=True, exist_ok=True)
     with resources.as_file(_experiment_script_resource(relative_path)) as path:
         shutil.copyfile(path, destination)
-    if relative_path == "deploy.toml":
+    if relative_path == "deploy.toml" and not _suppress_policy_review_marker.get():
         _mark_deployment_policy_for_review()
     return True
 
 
 _DEPLOYMENT_POLICY_REVIEW_MARKER = Path(".deploy/deploy.toml.needs_review")
+_suppress_policy_review_marker: ContextVar[bool] = ContextVar(
+    "psynet_suppress_policy_review_marker", default=False
+)
 
 
 def _mark_deployment_policy_for_review() -> None:
@@ -800,6 +804,20 @@ def _clear_deployment_policy_review_marker() -> None:
     marker = _DEPLOYMENT_POLICY_REVIEW_MARKER
     if marker.is_file():
         marker.unlink()
+    parent = marker.parent
+    if parent.is_dir() and not any(parent.iterdir()):
+        parent.rmdir()
+
+
+@contextmanager
+def _without_deployment_policy_review():
+    """Skip the one-shot deploy.toml review for temporary or in-repo scaffolds."""
+    token = _suppress_policy_review_marker.set(True)
+    try:
+        yield
+    finally:
+        _suppress_policy_review_marker.reset(token)
+        _clear_deployment_policy_review_marker()
 
 
 def ensure_deployment_policy() -> None:
@@ -807,7 +825,8 @@ def ensure_deployment_policy() -> None:
 
     Existing files are never overwritten. A newly written file also gets a
     local review marker so the next debug, test, or deploy command pauses
-    once before copying files.
+    once before copying files, unless the copy happens inside a temporary
+    pytest scaffold or in-repo auto-prepare.
     """
     _assert_managed_path_is_safe("deploy.toml")
     _copy_template_file("deploy.toml", overwrite=False)
@@ -1188,7 +1207,11 @@ def _scaffold_context_paths():
     return (
         scaffold_managed_paths()
         | set(_BOOTSTRAP_FILES)
-        | {"constraints.txt", "static/assets"}
+        | {
+            "constraints.txt",
+            "static/assets",
+            _DEPLOYMENT_POLICY_REVIEW_MARKER.as_posix(),
+        }
     )
 
 
@@ -1257,9 +1280,12 @@ def scaffold_missing_files():
         The result returned by :func:`scaffold_experiment_directory`.
     """
     original_paths, original_modes = _snapshot_scaffold_context_paths()
+    token = _suppress_policy_review_marker.set(True)
     try:
         yield scaffold_experiment_directory()
     finally:
+        _suppress_policy_review_marker.reset(token)
+        _clear_deployment_policy_review_marker()
         _remove_new_scaffold_context_paths(original_paths)
         _restore_scaffold_context_modes(original_modes)
 

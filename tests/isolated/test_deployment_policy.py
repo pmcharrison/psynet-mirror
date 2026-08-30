@@ -11,10 +11,12 @@ from dallinger.utils import ExperimentFileSource
 
 from psynet.experiment import Experiment
 from psynet.experiment_scaffold import (
+    _DEPLOYMENT_POLICY_REVIEW_MARKER,
     _GENERATED_DOCKERIGNORE_VARIANTS,
     _clear_deployment_policy_review_marker,
     _deployment_policy_needs_review,
     scaffold_experiment_directory,
+    scaffold_missing_files,
 )
 from psynet.timeline import PreDeployRoutine
 from psynet.utils import get_psynet_root, working_directory
@@ -140,6 +142,38 @@ def test_scaffold_creates_stock_deployment_policy(tmp_path):
     assert policy.exclude_names == EXPECTED_EXCLUDE_NAMES
     assert policy.exclude_suffixes == EXPECTED_EXCLUDE_SUFFIXES
     assert not (tmp_path / ".dockerignore").exists()
+
+
+def test_scaffold_missing_files_does_not_leave_review_marker(tmp_path, monkeypatch):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: False)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        with scaffold_missing_files():
+            assert not _deployment_policy_needs_review()
+            _check_experiment_directory("debug")
+        assert not _DEPLOYMENT_POLICY_REVIEW_MARKER.exists()
+        assert not Path(".deploy").exists()
+
+
+def test_check_experiment_directory_skips_review_for_in_repo_prepare(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _check_experiment_directory
+
+    monkeypatch.setattr("psynet.command_line.is_in_repo_experiment", lambda: True)
+    monkeypatch.setattr("psynet.command_line.git_repository_available", lambda: True)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        _check_experiment_directory("debug")
+        assert (tmp_path / "deploy.toml").exists()
+        assert not _deployment_policy_needs_review()
 
 
 def test_stock_policy_excludes_local_and_gitignored_files(tmp_path):

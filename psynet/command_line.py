@@ -52,6 +52,7 @@ from .experiment_scaffold import (
     _deployment_policy_needs_review,
     _remove_obsolete_generated_docker_scripts,
     _remove_obsolete_generated_dockerignore,
+    _without_deployment_policy_review,
     dockertag_contents,
     ensure_deployment_policy,
     get_psynet_requirement,
@@ -1389,7 +1390,8 @@ def _prepare_in_repo_experiment():
     """Generate ignored boilerplate when running an in-repo experiment."""
     if not is_in_repo_experiment():
         return False
-    scaffold_experiment_directory()
+    with _without_deployment_policy_review():
+        scaffold_experiment_directory()
     return True
 
 
@@ -1400,8 +1402,10 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
     In-repo experiments are auto-scaffolded first so their missing-boilerplate
     check does not falsely fail. A missing ``deploy.toml`` is created from the
     PsyNet template and never overwritten. Auto-created policies leave a local
-    review marker so the next debug, test, or deploy command stops once even
-    when setup or scaffold wrote the file. Remote deployments additionally
+    review marker so the next debug, test, or deploy command stops once when
+    setup or scaffold wrote the file on an author machine. Temporary pytest
+    scaffolds and in-repo auto-prepare skip that pause so first launch can
+    run. Remote deployments additionally
     require a Git commit for provenance; local debug and test runs may use a
     repository with no commits. Leftover generated ``.dockerignore`` files and
     ``docker/`` helper scripts are removed (custom copies are preserved with a

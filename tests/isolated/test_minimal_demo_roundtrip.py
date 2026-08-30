@@ -581,13 +581,23 @@ def test_empty_directory_scaffold_git_init_and_test_local(tmp_path):
     git_init = _run_command(["git", "init", "-q"], experiment_dir)
     assert git_init.returncode == 0, git_init.stderr
 
+    first = _run_command(
+        ["psynet", "test", "local"],
+        experiment_dir,
+        env_updates={"SKIP_DEPENDENCY_CHECK": "1"},
+    )
+    assert first.returncode != 0, first.stdout + first.stderr
+    assert "created a new deploy.toml" in first.stdout + first.stderr
+
     result = _run_command(
         ["psynet", "test", "local"],
         experiment_dir,
         env_updates={"SKIP_DEPENDENCY_CHECK": "1"},
     )
     assert result.returncode == 0, (
-        "Empty-directory Workflow A failed\n"
+        "Empty-directory Workflow A failed on rerun after policy review\n"
+        f"FIRST STDOUT:\n{first.stdout}\n"
+        f"FIRST STDERR:\n{first.stderr}\n"
         f"STDOUT:\n{result.stdout}\n"
         f"STDERR:\n{result.stderr}"
     )

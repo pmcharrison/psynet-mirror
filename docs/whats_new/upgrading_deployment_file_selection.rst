@@ -19,6 +19,8 @@ or deployment command after that auto-created file stops before copying files,
 whether the file was created by setup or by the launch command itself.
 The message lists files covered by ``.gitignore`` but not by the new policy.
 Git-ignored files may still be deployed after that one-time review.
+In-repo demo prepare and pytest's temporary scaffold skip that pause so the
+first local test or debug can run.
 
 Preview the complete deployment plan:
 
