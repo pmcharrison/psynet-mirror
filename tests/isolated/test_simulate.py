@@ -5,7 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from psynet.audit.cli import init_audit
-from psynet.command_line import simulate
+from psynet.command_line import psynet
 from psynet.pytest_psynet import path_to_demo_experiment
 
 
@@ -15,7 +15,11 @@ from psynet.pytest_psynet import path_to_demo_experiment
 @pytest.mark.usefixtures("in_experiment_directory", "audit_directory")
 def test_simulate():
     runner = CliRunner()
-    result = runner.invoke(simulate, [], catch_exceptions=False)
+    result = runner.invoke(
+        psynet,
+        ["audit", "simulate"],
+        catch_exceptions=False,
+    )
     print(result.output)
     assert result.exit_code == 0
 
