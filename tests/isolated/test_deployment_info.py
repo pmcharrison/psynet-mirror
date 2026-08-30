@@ -92,6 +92,11 @@ def test_git_dirty_is_scoped_to_experiment_directory(tmp_path):
         _initialize_deployment_info()
         assert deployment_info.read("git_dirty") is True
 
+        Path("experiment.py").write_text("clean")
+        Path("experiment.py").unlink()
+        _initialize_deployment_info()
+        assert deployment_info.read("git_dirty") is True
+
 
 def test_git_dirty_is_scoped_to_deployment_plan(tmp_path):
     with working_directory(tmp_path):

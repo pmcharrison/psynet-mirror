@@ -1280,12 +1280,10 @@ def scaffold_missing_files():
         The result returned by :func:`scaffold_experiment_directory`.
     """
     original_paths, original_modes = _snapshot_scaffold_context_paths()
-    token = _suppress_policy_review_marker.set(True)
     try:
-        yield scaffold_experiment_directory()
+        with _without_deployment_policy_review():
+            yield scaffold_experiment_directory()
     finally:
-        _suppress_policy_review_marker.reset(token)
-        _clear_deployment_policy_review_marker()
         _remove_new_scaffold_context_paths(original_paths)
         _restore_scaffold_context_modes(original_modes)
 
