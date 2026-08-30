@@ -42,7 +42,13 @@ Scientific sample size and item content remain provisional.
 - Simulated export: `psynet audit simulate` wrote `audit/simulate/analysis/simulated_export/`. After a worker-only `seed` bug was fixed, 15 non-prior snapshots published as `ready` and later trials referenced fitted snapshots.
 - Analysis: executed `audit/simulate/analysis/analysis.ipynb`.
 - Design simulation: `python -m audit.simulate.design.core` plus executed `audit/simulate/design/simulation.ipynb`.
-- Sustained load: `psynet audit performance-test --n-bots 40 --duration-minutes 5 --time-factor 1.0` wrote `audit/artifacts/performance.json` twice. Both runs completed 0 of 40 bots.
+- SQL profiling: `audit/logs/sql-profile-summary.md` records the before/after
+  query counts and call sites. Preserving already-loaded static networks removed
+  two lazy queries per candidate.
+- Sustained load: the final
+  `psynet audit performance-test --n-bots 40 --duration-minutes 5 --time-factor 1.0`
+  wrote `audit/artifacts/performance.json`. It completed 27 bots successfully,
+  with median response latency 0.153 seconds and p95 5.616 seconds.
 
 Participant video, screenshots, and a monitor snapshot were skipped after an
 explicit request not to test the server UI.
@@ -62,13 +68,29 @@ kept without post-hoc policy tuning. Infrastructure dogfooding succeeded; this
 policy should not be recommended for a scientific study without a revised
 objective.
 
+## Performance investigation
+
+The August static-selection refactor introduced a SQL N+1: discovery converted
+loaded networks to nodes, then followed `node.network`, which triggered two
+polymorphic lazy loads for nearly every candidate. A one-bot profile recorded
+38,501 statements and 32.16 seconds in SQL, including two statements executed
+16,719 times each. Pairing nodes with their already-loaded networks reduced the
+equivalent profile to 11,169 statements and 7.80 seconds while completing seven
+times as many bots.
+
+The final 40-bot run improves p95 from about 23 seconds to 5.616 seconds and
+produces successful completions. It still exceeds the two-second adaptive
+threshold. Concurrent profiling shows the static candidate query itself
+averages only 6.34 ms after the fix; remaining tail latency is therefore mainly
+full-pool ORM hydration/deserialization and request queueing. A scalable
+pairwise design should generate candidates from item-level state and materialize
+only the selected pair.
+
 ## Remaining blockers
 
-- Canonical 40-bot / 5-minute performance evidence: 0 completions, median
-  response about 1.13 seconds, p95 about 23 seconds. Four-bot concurrent flow
-  is acceptable; 40-way `StaticTrialMaker` candidate materialization is not.
-  Next step is a PsyNet-level candidate-query optimization or a different
-  assignment architecture, not a silent change to the agreed model.
+- Forty-way p95 latency remains above two seconds. The next step is a
+  lightweight or virtual candidate-selection path, rather than further tuning
+  the now-fast SQL statement.
 - Participant video, screenshots, and monitor snapshot: skipped by request.
 
 Automatic `/branch-review` has not been run.
