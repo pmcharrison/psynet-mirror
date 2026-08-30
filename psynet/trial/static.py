@@ -438,16 +438,49 @@ class StaticTrialMaker(ChainTrialMaker):
                 headless_chain_ids,
             )
         nodes = [chain.head for chain in chains if chain.head is not None]
+        if not is_method_overridden(
+            self,
+            StaticTrialMaker,
+            "custom_node_filter",
+        ) and is_method_overridden(
+            self,
+            ChainTrialMaker,
+            "custom_network_filter",
+        ):
+            filtered_networks = self._apply_deprecated_network_filter(
+                chains,
+                participant,
+                replacement_method="custom_node_filter",
+            )
+            filtered_nodes = [
+                network.head
+                for network in filtered_networks
+                if network.head is not None
+            ]
+        else:
+            filtered_nodes = self.custom_node_filter(nodes, participant, experiment)
         return self._validate_selection_subset(
-            self.custom_node_filter(nodes, participant, experiment),
+            filtered_nodes,
             allowed_values=nodes,
             method_name="custom_node_filter",
         )
 
     @staticmethod
-    def _candidate_network(candidate):
-        """Return the one-node network backing a static candidate."""
-        return candidate.network
+    def _pair_candidates_with_networks(candidates, discovered_chains):
+        """Pair static nodes with the networks loaded during discovery."""
+
+        networks_by_head_id = {
+            chain.head_id: chain for chain in discovered_chains if chain.head_id
+        }
+        try:
+            return [
+                (candidate, networks_by_head_id[candidate.id])
+                for candidate in candidates
+            ]
+        except KeyError as error:
+            raise RuntimeError(
+                f"Static candidate node {error.args[0]} has no discovered network."
+            ) from error
 
     def custom_node_filter(self, nodes, participant, experiment):
         """Filter eligible static nodes before selection.
@@ -457,14 +490,6 @@ class StaticTrialMaker(ChainTrialMaker):
         ``custom_network_filter`` override when that is the only filter present.
         Ranking among eligible nodes belongs in ``select_node``.
         """
-        if is_method_overridden(self, ChainTrialMaker, "custom_network_filter"):
-            networks = [node.network for node in nodes]
-            eligible_networks = self._apply_deprecated_network_filter(
-                networks,
-                participant,
-                replacement_method="custom_node_filter",
-            )
-            return [network.head for network in eligible_networks]
         return nodes
 
     def select_node(self, nodes, participant, experiment):

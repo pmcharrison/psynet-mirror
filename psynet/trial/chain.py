@@ -1932,8 +1932,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant_group = participant.module_state.participant_group
         chain_query = chain_query.filter_by(participant_group=participant_group)
 
+        discovered_chains = chain_query.all()
         candidates = self._filter_eligible_candidates(
-            chain_query.all(),
+            discovered_chains,
             participant=participant,
             experiment=experiment,
         )
@@ -1942,9 +1943,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             len(candidates),
             candidate_plural,
         )
-        candidate_networks = [
-            (candidate, self._candidate_network(candidate)) for candidate in candidates
-        ]
+        candidate_networks = self._pair_candidates_with_networks(
+            candidates,
+            discovered_chains,
+        )
 
         def has_pending_process(network):
             return network.async_post_grow_network_pending or (
@@ -2031,9 +2033,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         return [candidate for candidate, _ in candidate_networks]
 
     @staticmethod
-    def _candidate_network(candidate):
-        """Return the network used for candidate availability checks."""
-        return candidate
+    def _pair_candidates_with_networks(candidates, discovered_chains):
+        """Pair chain candidates with their already-loaded network objects."""
+
+        return [(candidate, candidate) for candidate in candidates]
 
     def _select_trial_node(self, participant, experiment):
         selection = self._select_from_discovered(

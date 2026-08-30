@@ -233,10 +233,17 @@ def test_unlimited_static_nodes_skip_viable_trial_counts(
         "_count_viable_trials_for_nodes",
         lambda node_ids: pytest.fail("Unlimited nodes should not query trial counts."),
     )
+    participant_id = participant.id
+    expected_node_ids = {network.head.id for network in networks}
+    db.session.commit()
+    db.session.remove()
+    participant = db.session.get(Participant, participant_id)
+    participant.module_state
 
-    eligible = trial_maker.find_nodes(participant, exp)
+    with assert_query_count(min_queries=2, max_queries=5):
+        eligible = trial_maker.find_nodes(participant, exp)
 
-    assert {node.id for node in eligible} == {network.head.id for network in networks}
+    assert {node.id for node in eligible} == expected_node_ids
     assert "n_viable_trials" not in inspect(StaticNode).attrs
 
 
