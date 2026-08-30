@@ -144,45 +144,16 @@ Importing other Python files
 ----------------------------
 
 You can split experiment code across several ``.py`` files in the experiment
-directory. Dallinger loads that directory as the ``dallinger_experiment``
-package, so modules sitting beside ``experiment.py`` are submodules of that
-package. Import them relatively from ``experiment.py`` and from other files in
-the same directory:
+directory. Import siblings of ``experiment.py`` relatively:
 
 .. code-block:: python
 
-    # experiment.py
     from . import adaptive_logic
     from .stimuli import load_item_bank
 
     def choose_next_item(state):
         return adaptive_logic.select_item(state, load_item_bank())
 
-That relative import is the supported pattern in pytest and in the web, worker,
-and clock processes. A top-level ``import adaptive_logic`` in ``experiment.py``
-already failed in those processes on previous PsyNet releases, even though it
-can pass under pytest from the experiment directory.
-
-``import_local_experiment()`` used to append the experiment directory to
-``sys.path`` *after* Dallinger had loaded ``experiment.py``. That never made
-``experiment.py``'s own top-level imports work. It only made a later bare
-import succeed, for example inside a function that ran after the experiment
-class was loaded:
-
-.. code-block:: python
-
-    def choose_next_item(state):
-        import adaptive_logic  # used to work after import_local_experiment()
-        return adaptive_logic.select_item(state)
-
-That later ``import adaptive_logic`` no longer works. Use the relative import
-shown above, or the name you already imported at module level. Do not put the
-experiment directory on ``sys.path``: a file named ``json.py`` or ``tests.py``
-would shadow the standard library.
-
-Standalone scripts that you invoke as ordinary Python, such as
-``python -m audit.power.core``, are not loaded as that package. Those files keep
-using ordinary top-level imports of the same helpers. Run that command from the
-experiment root. ``audit/`` and ``audit/power/`` are namespace packages (they
-need no ``__init__.py``). Do not add a different top-level package named
-``audit`` on ``PYTHONPATH``.
+Standalone scripts such as ``python -m audit.power.core`` use ordinary
+top-level imports of the same helpers. Run that command from the experiment
+root.
