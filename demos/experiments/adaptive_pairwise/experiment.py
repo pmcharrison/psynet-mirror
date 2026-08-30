@@ -620,6 +620,9 @@ class Exp(psynet.experiment.Experiment):
         assert all(trial.answer in {"First sound", "Second sound"} for trial in trials)
         assert all(trial.adaptive_snapshot_id is not None for trial in trials)
         assert all(trial.trial_maker_id is None for trial in trials)
+        assert all(
+            set(trial.assets) == {"first_sound", "second_sound"} for trial in trials
+        )
         assert AdaptiveDecision.query.filter_by(participant_id=bot.id).count() == len(
             trials
         )
