@@ -8,7 +8,13 @@ authors customize node eligibility with ``custom_node_filter`` and ranking with
 
 from typing import List, Literal, Optional, Union
 
-from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
+from psynet.trial.chain import (
+    ChainNetwork,
+    ChainNode,
+    ChainTrial,
+    ChainTrialMaker,
+    _Candidate,
+)
 
 from ..utils import get_logger, is_method_overridden
 from .main import Selection, Trial
@@ -465,17 +471,21 @@ class StaticTrialMaker(ChainTrialMaker):
             method_name="custom_node_filter",
         )
 
-    @staticmethod
-    def _pair_candidates_with_networks(candidates, discovered_chains):
-        """Pair static nodes with the networks loaded during discovery."""
+    def _build_candidates(self, discovered_chains, participant, experiment):
+        """Build internal records exposing nodes without losing their networks."""
 
+        nodes = self._filter_eligible_candidates(
+            discovered_chains,
+            participant=participant,
+            experiment=experiment,
+        )
         networks_by_head_id = {
             chain.head_id: chain for chain in discovered_chains if chain.head_id
         }
         try:
             return [
-                (candidate, networks_by_head_id[candidate.id])
-                for candidate in candidates
+                _Candidate(value=node, network=networks_by_head_id[node.id])
+                for node in nodes
             ]
         except KeyError as error:
             raise RuntimeError(
