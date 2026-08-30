@@ -2,10 +2,11 @@
 
 The rendered site is author documentation, not a sandbox. Experiment notebooks,
 Markdown reports, and the PsyNet audit templates are trusted. Notebook HTML and
-SVG outputs are included as produced. Markdown files are still parsed as
-Markdown (raw HTML in ``.md`` is not interpreted). Plotly figures use the
-notebook MIME bundle plus the vendored Plotly runtime so interactive plots work
-offline without depending on a CDN.
+SVG outputs are included as produced, including any scripts they contain, so
+viewing an audit in a browser runs that content with the viewer's privileges.
+Markdown files are still parsed as Markdown (raw HTML in ``.md`` is not
+interpreted). Plotly figures use the notebook MIME bundle plus the vendored
+Plotly runtime so interactive plots work offline without depending on a CDN.
 """
 
 from __future__ import annotations
@@ -721,6 +722,11 @@ def render_notebook_output(output: dict[str, object]) -> str:
     if not isinstance(data, dict):
         return ""
     plotly = data.get("application/vnd.plotly.v1+json")
+    if isinstance(plotly, str):
+        try:
+            plotly = json.loads(plotly)
+        except json.JSONDecodeError:
+            plotly = None
     if isinstance(plotly, dict):
         return render_plotly_output(plotly)
     svg = notebook_text(data.get("image/svg+xml"))

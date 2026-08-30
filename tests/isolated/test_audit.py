@@ -607,6 +607,43 @@ def test_render_audit_site_inlines_experiment_entry_point(
     assert index.index('<details id="source"') < index.index('<details id="blockers"')
 
 
+def test_render_backfills_power_section_for_legacy_manifests(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    manifest["sections"] = [
+        section
+        for section in manifest["sections"]
+        if section.get("id") != "power" and section.get("kind") != "power"
+    ]
+    for artifact in manifest["artifacts"]:
+        if artifact.get("id") == "power_analysis":
+            artifact["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(
+        audit_dir / "power/analysis.ipynb",
+        json.dumps(
+            {
+                "nbformat": 4,
+                "nbformat_minor": 5,
+                "metadata": {},
+                "cells": [
+                    {
+                        "cell_type": "markdown",
+                        "metadata": {},
+                        "source": ["# Legacy power notebook\n"],
+                    }
+                ],
+            }
+        ),
+    )
+
+    index = (render_audit_site(audit_dir) / "index.html").read_text(encoding="utf-8")
+
+    assert 'id="power"' in index
+    assert "Legacy power notebook" in index
+
+
 def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None:
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
@@ -1579,7 +1616,7 @@ def test_validate_rejects_escaping_render_site_path(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "site_path", [".", "artifacts/site", "analyses/site", "logs/site"]
+    "site_path", [".", "artifacts/site", "analyses/site", "logs/site", "power/site"]
 )
 def test_validate_rejects_render_site_path_overlapping_packet_content(
     tmp_path: Path,

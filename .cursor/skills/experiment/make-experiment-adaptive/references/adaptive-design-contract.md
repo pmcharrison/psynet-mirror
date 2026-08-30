@@ -43,12 +43,10 @@ the simulation response model is only a testing assumption.
   observation table when the same schema is shared with standalone simulation
   code.
 - Put calibrated item banks in ``stimuli/`` (or another non-excluded folder)
-  and commit them. Stock packaging still omits the experiment-root ``data/``
-  directory (Dallinger ``exclusion_policy``, and after !1151 the stock
-  ``deploy.toml`` ``paths`` entry ``data``). Follow-up after !1151:
-  https://gitlab.com/PsyNetDev/PsyNet/-/issues/1062 — decide whether that
-  exclude can be narrowed to export dumps so item banks may live under
-  ``data/``.
+  and commit them. Stock packaging omits the experiment-root ``data/``
+  directory via Dallinger's ``exclusion_policy``. A forthcoming ``deploy.toml``
+  packaging path (GitLab !1151) should keep that same exclude; follow-up after
+  it lands is https://gitlab.com/PsyNetDev/PsyNet/-/issues/1062.
 - Record candidate IDs, chosen ID, objective components, model snapshot, data
   cutoff, and optimizer version for every adaptive decision.
 - When already available without extra approximation, record the posterior

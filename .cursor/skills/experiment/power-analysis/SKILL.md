@@ -52,10 +52,10 @@ audit/
 ```
 
 `psynet audit init` creates `audit/power/` and declares the optional
-`power_analysis` and `power_run` artifacts. `psynet audit render` then shows the
-executed notebook and its run provenance in the audit's "Power analysis"
-section. Leave those artifacts `missing` when the experiment does not need a
-power analysis; they are optional and need no blocker.
+`power_analysis`, `power_run`, and `power_results` artifacts. `psynet audit
+render` then shows the executed notebook and its run provenance in the audit's
+"Power analysis" section. Leave those artifacts `missing` when the experiment
+does not need a power analysis; they are optional and need no blocker.
 
 All five files are required once a power analysis exists, but contents can be
 customized as desired. Additional files are allowed when the method needs them.
@@ -202,15 +202,11 @@ interactive and work offline. Prefer `plotly_mimetype` over `notebook`,
 `notebook_connected`, or HTML-only renderers, which may pull a CDN or embed a
 second copy of Plotly. Static SVG or PNG output remains supported.
 
-Power grids invite crowded figures: several designs, several policies, and
-several assumption scenarios at once. The rendered audit column is narrower
-than a JupyterLab window, so `facet_col` titles overlap, in-plot annotations
-land on the data, and combined colour/dash legends wrap into the title. Fix
-that with layout, not by dropping conditions: a reviewer needs to see every
-cell that was simulated. Keep all series in one panel, encode the extra factor
-with `line_dash`, give the legend its own column, shorten labels, and explain
-the decision threshold in a Markdown caption rather than an `annotation_text`.
-When panels really are needed, facet by row so each one keeps the full width.
+Power grids invite crowded figures. Follow the layout rules in
+`produce-experiment-audit/references/populating-an-audit.md` rather than
+inventing a new scheme: keep every simulated condition, facet by row when
+panels are needed, give the legend its own space, and verify labels at the
+rendered width.
 
 Report precision at single-item (or single-participant) resolution where the
 simulation allows it, rather than only at the handful of candidate designs.
@@ -228,7 +224,10 @@ percentage and monetary savings, the fixed-budget metric, the stopping-rule
 metric, and their difference. Never describe fewer items as a saving without
 showing the corresponding precision change.
 
-Use one primary decision metric and a standard diagnostic set:
+For adaptive estimate-recovery analyses, use one primary decision metric and a
+standard diagnostic set. Leave `standardized_margin_of_error` as the default
+for ordinary precision-estimation power analyses (see the `config.toml` example
+above and `precision-estimation/SKILL.md`).
 
 ```toml
 [metrics]
@@ -282,6 +281,7 @@ After executing it, mark the artifacts present:
 ```bash
 psynet audit mark-present power_analysis
 psynet audit mark-present power_run
+psynet audit mark-present power_results
 ```
 
 ## Related reading
@@ -291,7 +291,7 @@ psynet audit mark-present power_run
   adaptive-experiment skill covers the procedure simulator and the
   policy-comparison checks.
 - If the adaptive policy can stop early, do not treat a max-trial cap as the
-  realized budget. Either disable stopping for matched-budget cells
-  (``se_stop=None`` or equivalent) or report ``mean_n_observations`` next to
-  RMSE and other precision metrics so shorter adaptive runs are not compared
-  as if they used the full cap.
+  realized budget. Either disable the simulation's stopping rule for
+  matched-budget cells, or report ``mean_n_observations`` next to RMSE and
+  other precision metrics so shorter adaptive runs are not compared as if they
+  used the full cap.

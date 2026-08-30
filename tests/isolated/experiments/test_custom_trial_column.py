@@ -1,7 +1,10 @@
+import inspect
 import shutil
+import sys
 
 import pytest
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import deferred
 
 from psynet.command_line import clean_sys_modules, working_directory
 from psynet.data import InvalidDefinitionError
@@ -23,6 +26,14 @@ class FirstSiblingTrial(StaticTrial):
 class SecondSiblingTrial(StaticTrial):
     time_estimate = 1
     sibling_probe = Column(String)
+
+    def show_trial(self, experiment, participant):
+        pass
+
+
+class DeferredSiblingTrial(StaticTrial):
+    time_estimate = 1
+    sibling_probe = deferred(Column(String))
 
     def show_trial(self, experiment, participant):
         pass
@@ -66,3 +77,35 @@ def test_conflicting_column_types_are_rejected():
 
         class ClashingSiblingTrial(StaticTrial):
             sibling_probe = Column(Integer)
+
+
+def test_conflicting_string_lengths_are_rejected():
+    with pytest.raises(InvalidDefinitionError, match="length"):
+
+        class LongerSiblingTrial(StaticTrial):
+            sibling_probe = Column(String(200))
+
+
+def test_conflicting_nullability_is_rejected():
+    with pytest.raises(InvalidDefinitionError, match="nullable"):
+
+        class RequiredSiblingTrial(StaticTrial):
+            sibling_probe = Column(String, nullable=False)
+
+
+def test_deferred_custom_columns_reuse_the_inherited_column():
+    assert (
+        FirstSiblingTrial.__table__.c.sibling_probe
+        is DeferredSiblingTrial.__table__.c.sibling_probe
+    )
+
+
+def test_import_local_experiment_does_not_put_the_experiment_directory_on_sys_path():
+    source = inspect.getsource(import_local_experiment)
+    assert "sys.path" not in source
+
+    experiment_dir = path_to_test_experiment("custom_trial_column")
+    with working_directory(experiment_dir):
+        before = list(sys.path)
+        import_local_experiment()
+        assert sys.path == before

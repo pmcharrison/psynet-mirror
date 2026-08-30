@@ -1,8 +1,12 @@
 # Benchmark an adaptive procedure
 
-Benchmarking asks whether adaptation improves estimation or decision quality
-enough to justify its complexity. It is distinct from power analysis, which
-asks whether a chosen design meets a prespecified inferential requirement.
+Ask whether adaptation improves estimation or decision quality enough to
+justify its complexity. That comparison belongs in the same `audit/power/`
+campaign as the inferential decision: treat policy as a design factor, do not
+create a second Monte Carlo packet.
+
+Power analysis asks whether a chosen design meets a prespecified inferential
+requirement. Benchmarking supplies the policy comparison that decision needs.
 
 ## Define the target and oracle
 
@@ -103,10 +107,10 @@ best.
 
 ## Save reproducible artifacts
 
-Use the following directory:
+Write the comparison into the power-analysis packet, not a parallel directory:
 
 ```text
-audit/benchmark/
+audit/power/
 ├── config.toml
 ├── core.py
 ├── results.csv

@@ -63,8 +63,8 @@ dependencies. Participant video validation also requires ``ffprobe`` from
 * ``serve`` hosts that static site over HTTP (default ``http://127.0.0.1:8765/``).
   Pass ``--render`` to rebuild first. It does not create a public tunnel.
   Binding to a non-localhost host (for example ``--host 0.0.0.0``) exposes the
-  rendered audit, including any data exports, to the network without
-  authentication.
+  rendered audit, including any data exports and executable notebook HTML, to
+  the network without authentication.
 
 Rendered Markdown and notebook Markdown outputs support MathJax equations.
 Use ``$...$`` or ``\(...\)`` for inline mathematics and ``$$...$$`` or
@@ -179,8 +179,12 @@ the installed Dallinger package (``dallinger/frontend/static``).
 
 The rendered site treats the experiment's notebooks, Markdown reports, and the
 PsyNet audit templates as trusted author content. Notebook HTML and SVG outputs
-are included as produced. Markdown is parsed as Markdown. Credential redaction
-for published logs and snapshots is separate from that rendering.
+are included as produced, including any scripts they contain, so opening an
+audit in a browser runs that content with the viewer's privileges. Markdown
+files are parsed as Markdown and do not interpret raw HTML. Credential
+redaction for published logs and snapshots is separate from that rendering.
+Do not bind ``psynet audit serve`` beyond localhost unless every viewer is
+trusted with that notebook content.
 
 Monitor snapshots
 -----------------

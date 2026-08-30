@@ -323,8 +323,8 @@ def _reuse_inherited_columns(cls):
     Raises
     ------
     InvalidDefinitionError
-        If the redeclared column asks for a different type than the column
-        already on the table, which would otherwise be silently ignored.
+        If the redeclared column asks for a different type, length, nullability,
+        uniqueness, or index flag than the column already on the table.
     """
     if cls.__dict__.get("__abstract__"):
         return
@@ -344,12 +344,12 @@ def _reuse_inherited_columns(cls):
         existing = table.c.get(column.name or attribute)
         if existing is None or existing is column:
             continue
-        if type(existing.type) is not type(column.type):  # noqa: E721
+        conflict = _inherited_column_conflict(existing, column)
+        if conflict is not None:
             raise InvalidDefinitionError(
-                f"Column '{attribute}' on class {cls.__name__} is declared as "
-                f"{type(column.type).__name__}, but '{table.name}.{existing.name}' "
-                f"already exists as {type(existing.type).__name__}. Classes that "
-                f"share the '{table.name}' table must agree on each column's type; "
+                f"Column '{attribute}' on class {cls.__name__} {conflict} "
+                f"'{table.name}.{existing.name}'. Classes that share the "
+                f"'{table.name}' table must agree on each column's definition; "
                 "rename one of them."
             )
         setattr(
@@ -357,6 +357,27 @@ def _reuse_inherited_columns(cls):
             attribute,
             deferred(existing) if isinstance(value, ColumnProperty) else existing,
         )
+
+
+def _inherited_column_conflict(existing, column) -> str | None:
+    """Return a conflict description if two shared-table columns disagree."""
+
+    if type(existing.type) is not type(column.type):  # noqa: E721
+        return (
+            f"is declared as {type(column.type).__name__}, but already exists as "
+            f"{type(existing.type).__name__} on"
+        )
+    existing_length = getattr(existing.type, "length", None)
+    new_length = getattr(column.type, "length", None)
+    if existing_length != new_length:
+        return (
+            f"is declared with length {new_length}, but already exists with length "
+            f"{existing_length} on"
+        )
+    for flag in ("nullable", "unique", "index"):
+        if bool(getattr(existing, flag, False)) != bool(getattr(column, flag, False)):
+            return f"disagrees on {flag} with the existing column"
+    return None
 
 
 def _declared_column(value):

@@ -161,5 +161,5 @@ with ``ModuleNotFoundError``. Putting the experiment directory on
 ``tests.py`` would shadow the standard library.
 
 Standalone scripts that you invoke as ordinary Python, such as
-``python -m power.core``, are not loaded as that package. Those files keep
+``python -m audit.power.core``, are not loaded as that package. Those files keep
 using ordinary top-level imports of the same helpers.

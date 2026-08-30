@@ -61,34 +61,35 @@ def init_success_messages(audit_dir: Path, prog: str = CLI_NAME) -> list[str]:
     ]
 
 
-def audit_css_path() -> Path:
-    """Return the packaged audit stylesheet path."""
+def _audit_resource_path(*parts: str) -> Path:
+    """Return a packaged file under ``psynet/resources/audit``."""
     from importlib import resources
 
-    return Path(resources.files("psynet") / "resources" / "audit" / "audit.css")
+    return Path(resources.files("psynet") / "resources" / "audit" / Path(*parts))
+
+
+def audit_css_path() -> Path:
+    """Return the packaged audit stylesheet path."""
+
+    return _audit_resource_path("audit.css")
 
 
 def audit_plotly_js_path() -> Path:
     """Return the packaged Plotly.js runtime path."""
-    from importlib import resources
 
-    return Path(resources.files("psynet") / "resources" / "audit" / "plotly.min.js")
+    return _audit_resource_path("plotly.min.js")
 
 
 def audit_mathjax_js_path() -> Path:
     """Return the packaged MathJax runtime path."""
-    from importlib import resources
 
-    return Path(
-        resources.files("psynet") / "resources" / "audit" / "mathjax-tex-svg.min.js"
-    )
+    return _audit_resource_path("mathjax-tex-svg.min.js")
 
 
 def audit_js_path() -> Path:
     """Return the packaged audit-page JavaScript path."""
-    from importlib import resources
 
-    return Path(resources.files("psynet") / "resources" / "audit" / "audit.js")
+    return _audit_resource_path("audit.js")
 
 
 STARTER_PROMPT = """# Prompt

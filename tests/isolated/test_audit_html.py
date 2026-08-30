@@ -178,7 +178,7 @@ def test_render_power_analysis_renders_notebook_and_provenance() -> None:
                 json.dumps(
                     {
                         "method": "precision-estimation",
-                        "command": "python -m power.core",
+                        "command": "python -m audit.power.core",
                         "replicates": 1000,
                     }
                 ),
@@ -362,6 +362,38 @@ def test_render_notebook_output_renders_plotly_mime_bundle() -> None:
     assert "</script><script>bad()" not in html
     assert "\\u003c/script\\u003e" in html
     assert '"responsive":true' in html
+
+
+def test_render_notebook_output_parses_stringified_plotly_mime_bundle() -> None:
+    html = render_notebook_output(
+        {
+            "output_type": "display_data",
+            "data": {
+                "application/vnd.plotly.v1+json": json.dumps(
+                    {
+                        "data": [{"type": "scatter", "x": [1], "y": [2]}],
+                        "layout": {"title": {"text": "String figure"}},
+                    }
+                )
+            },
+        }
+    )
+
+    assert 'class="notebook-plotly"' in html
+    assert "String figure" in html
+
+
+def test_render_notebook_output_preserves_notebook_html_scripts() -> None:
+    html = render_notebook_output(
+        {
+            "output_type": "display_data",
+            "data": {
+                "text/html": "<div>ok</div><script>window.auditProbe = true</script>"
+            },
+        }
+    )
+
+    assert "<script>window.auditProbe = true</script>" in html
 
 
 def test_render_plotly_output_pins_an_authored_figure_height() -> None:

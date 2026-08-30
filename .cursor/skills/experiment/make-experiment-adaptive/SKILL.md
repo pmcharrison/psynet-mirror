@@ -42,8 +42,6 @@ audit/
 │   ├── results.csv
 │   ├── run.json
 │   └── analysis.ipynb
-└── benchmark/
-    └── same files as power/
 ```
 
 `adaptive_logic.py` contains the fitting and selection functions used by both
@@ -68,10 +66,11 @@ response from `response_model/`. This standalone simulation tests the
 scientific procedure at scale; `psynet simulate` is still needed to test its
 integration with the PsyNet timeline, response handling, and export path.
 
-`audit/power/` follows `power-analysis/SKILL.md`; `audit/benchmark/` follows
+`audit/power/` follows `power-analysis/SKILL.md` and includes the policy
+comparisons in
 [references/benchmark-adaptive-procedure.md](references/benchmark-adaptive-procedure.md).
-Both call `simulate_procedure.py` across designs, assumptions, and replicates.
-Keep the adaptive loop there rather than recreating it in either analysis.
+That is one simulation campaign, not a second packet. Keep the adaptive loop in
+`simulate_procedure.py` rather than recreating it in the analysis.
 
 `response_model/` follows `participant-response-models/SKILL.md` and generates
 synthetic participant responses. The adaptive model estimates quantities used
@@ -112,7 +111,13 @@ per server process and retain its stable item-ID mapping. Put the file in
 and commit it so verification and deploy copies include it:
 
 ```python
-ITEMS = pd.read_csv("stimuli/item_bank.csv").set_index("item_id", drop=False)
+from pathlib import Path
+
+import pandas as pd
+
+ITEMS = pd.read_csv(
+    Path(__file__).resolve().parent / "stimuli" / "item_bank.csv"
+).set_index("item_id", drop=False)
 ```
 
 Selection normally updates one participant estimate and scores the remaining

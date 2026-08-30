@@ -41,7 +41,7 @@ directory, then fail in the web, worker, and clock processes with
 directory on ``sys.path``: a file named ``json.py`` or ``tests.py`` would
 shadow the standard library.
 
-Standalone scripts that you invoke as ordinary Python (``python -m power.core``,
+Standalone scripts that you invoke as ordinary Python (``python -m audit.power.core``,
 ``simulate_procedure.py``) are not loaded as that package, so they keep using
 top-level imports such as ``import adaptive_logic``.
 

@@ -247,35 +247,43 @@ def write_audit_static_assets(site_dir: Path) -> str:
     return f"static/{AUDIT_CSS_OUTPUT}"
 
 
+def write_audit_copied_asset(site_dir: Path, source: Path, relative_output: str) -> str:
+    """Copy one packaged runtime file into a rendered audit site."""
+
+    target = site_dir / "static" / relative_output
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, target)
+    return f"static/{relative_output}"
+
+
 def write_audit_plotly_asset(site_dir: Path) -> str:
     """Copy the vendored Plotly runtime into a rendered audit site."""
 
-    target = site_dir / "static" / AUDIT_PLOTLY_JS_OUTPUT
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(audit_plotly_js_path(), target)
-    return f"static/{AUDIT_PLOTLY_JS_OUTPUT}"
+    return write_audit_copied_asset(
+        site_dir, audit_plotly_js_path(), AUDIT_PLOTLY_JS_OUTPUT
+    )
 
 
 def write_audit_mathjax_asset(site_dir: Path) -> str:
     """Copy the vendored MathJax runtime into a rendered audit site."""
 
-    target = site_dir / "static" / AUDIT_MATHJAX_JS_OUTPUT
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(audit_mathjax_js_path(), target)
-    return f"static/{AUDIT_MATHJAX_JS_OUTPUT}"
+    return write_audit_copied_asset(
+        site_dir, audit_mathjax_js_path(), AUDIT_MATHJAX_JS_OUTPUT
+    )
 
 
 def write_audit_js_asset(site_dir: Path) -> str:
     """Copy audit-page behavior into a rendered audit site."""
 
-    target = site_dir / "static" / AUDIT_JS_OUTPUT
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(audit_js_path(), target)
-    return f"static/{AUDIT_JS_OUTPUT}"
+    return write_audit_copied_asset(site_dir, audit_js_path(), AUDIT_JS_OUTPUT)
 
 
-def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return displayable section records, adding source for older packets."""
+def display_sections(
+    manifest: dict[str, Any],
+    *,
+    evidence: Any = None,
+) -> list[dict[str, Any]]:
+    """Return displayable section records, adding source or power when missing."""
 
     sections = manifest.get("sections")
     if not isinstance(sections, list):
@@ -315,6 +323,33 @@ def display_sections(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             else len(displayable)
         )
         displayable.insert(insert_at, source_section)
+    has_power = any(
+        isinstance(section, dict)
+        and (section.get("id") == "power" or section.get("kind") == "power")
+        for section in displayable
+    )
+    if (
+        not has_power
+        and evidence is not None
+        and getattr(evidence, "has_power_analysis", False)
+    ):
+        analysis_position = next(
+            (
+                index
+                for index, section in enumerate(displayable)
+                if isinstance(section, dict)
+                and (
+                    section.get("id") == "analysis" or section.get("kind") == "analysis"
+                )
+            ),
+            None,
+        )
+        insert_at = (
+            analysis_position if analysis_position is not None else len(displayable)
+        )
+        displayable.insert(
+            insert_at, starter_section("power", "Power analysis", "power")
+        )
     return displayable
 
 
@@ -430,7 +465,7 @@ def section_paths(manifest: dict[str, Any], evidence: Any = None) -> set[str]:
     """Return paths already rendered by a dedicated section."""
 
     paths: set[str] = set()
-    for section in display_sections(manifest):
+    for section in display_sections(manifest, evidence=evidence):
         if section.get("kind") == "markdown" and isinstance(section.get("path"), str):
             paths.add(section["path"])
         if section.get("kind") == "power" and evidence is not None:
@@ -701,7 +736,7 @@ def render_audit_site(
     audit_js_url = write_audit_js_asset(site_dir)
     plotly_js_url = write_audit_plotly_asset(site_dir)
     mathjax_js_url = write_audit_mathjax_asset(site_dir)
-    sections = display_sections(manifest)
+    sections = display_sections(manifest, evidence=evidence)
     experiment = manifest.get("experiment", {})
     environment = manifest.get("environment", {})
     checks = manifest.get("checks", [])

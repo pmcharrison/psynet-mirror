@@ -151,9 +151,9 @@ panel.
 A power analysis is optional. When the experiment has one, it belongs in the
 audit at `power/` and nowhere else; do not keep a second copy at the experiment
 root. Follow `power-analysis/SKILL.md` for its files and method, then mark
-`power_analysis` and `power_run` present. Leave both artifacts `missing` when
-the experiment does not need a power analysis: they are optional and need no
-blocker.
+`power_analysis`, `power_run`, and `power_results` present. Leave those
+artifacts `missing` when the experiment does not need a power analysis: they
+are optional and need no blocker.
 
 ### Monitor snapshot
 
@@ -460,6 +460,11 @@ remember or type that command. Use `public-tunnel` when a remote URL is needed.
 Use only safe local credentials and redact secrets from logs and artifacts.
 Never commit production tokens, custom service credentials, or participant
 secrets.
+
+Notebook HTML and SVG in the rendered audit can include executable script.
+Treat the audit as trusted author content: do not bind `psynet audit serve`
+beyond localhost unless every viewer is trusted with that notebook content.
+Markdown reports still do not interpret raw HTML.
 
 When a requirement depends on an external service, collect evidence that the
 real integration worked end to end. Mocks and simulated payloads support
