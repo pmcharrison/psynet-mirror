@@ -171,17 +171,17 @@ PsyNet. Do not treat `scripts update` as a substitute for first-time setup.
 
 ### Run simulations
 
-Use `psynet simulate` to simulate participants and produce an example dataset.
+Use `psynet audit simulate` to simulate participants and produce an example dataset.
 This dataset should contain a decent number of participants representative of a real study;
 adjust `Exp.test_n_bots` to ensure this. From the experiment root:
 
 ```bash
-psynet simulate
+psynet audit simulate
 ```
 
 The command writes the only export to
 `audit/simulate/analysis/simulated_export/` and marks `simulate_export`
-present. Use `--no-mark-present` to skip the manifest update.
+present.
 
 For profile design, data-path parity, mock-LLM patterns, and simulation
 limitations, follow `simulate-participants/SKILL.md`.

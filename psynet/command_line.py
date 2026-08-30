@@ -3373,34 +3373,7 @@ _test_options["performance_json_output"] = click.option(
     started_at / finished_at (ISO timestamps), options (n_bots_sweep,
     duration_minutes, stagger_interval_s, time_factor), and results
     (one entry per bot count tested, with all metrics).
-    Useful for downstream consumption (e.g. benchmarking tools like asv).
-    Do not combine with --audit.""",
-)
-
-
-def _audit_flag_option(help_text: str):
-    """Return a boolean ``--audit`` flag."""
-    return click.option(
-        "--audit",
-        is_flag=True,
-        default=False,
-        help=help_text,
-    )
-
-
-_test_options["performance_audit"] = _audit_flag_option(
-    """
-    Write performance results to ./audit/artifacts/performance.json
-    and mark performance_result present. Run from the experiment directory.
-    Do not combine with --json-output. Use --no-mark-present to write the
-    file without updating audit.json."""
-)
-
-_test_options["audit_no_mark_present"] = click.option(
-    "--no-mark-present",
-    is_flag=True,
-    default=False,
-    help="With --audit, write the artifact file but do not update audit.json.",
+    Useful for downstream consumption (e.g. benchmarking tools like asv).""",
 )
 
 AUDIT_PERFORMANCE_JSON = Path("artifacts") / "performance.json"
@@ -3412,7 +3385,7 @@ AUDIT_ARTIFACT_IDS = {
 
 
 def resolve_audit_root() -> Path:
-    """Resolve ``./audit`` for ``--audit`` / audit CLI commands."""
+    """Resolve ``./audit`` for audit CLI commands."""
     from psynet.audit.cli import resolve_audit_dir
 
     try:
@@ -3432,14 +3405,6 @@ def resolve_audit_artifact_path(relative_path: Path) -> Path:
     output_path = resolve_audit_root() / relative_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
     return output_path
-
-
-def require_audit_when_skipping_mark_present(
-    audit: bool, no_mark_present: bool
-) -> None:
-    """Reject ``--no-mark-present`` unless ``--audit`` is set."""
-    if no_mark_present and not audit:
-        raise click.UsageError("--no-mark-present requires --audit.")
 
 
 def mark_audit_artifact_present(relative_path: Path) -> Path:
@@ -3464,18 +3429,6 @@ def mark_audit_artifact_present(relative_path: Path) -> Path:
     return audit_root
 
 
-def maybe_mark_audit_artifact_present(
-    audit: bool,
-    relative_path: Path,
-    *,
-    mark_present: bool,
-) -> None:
-    """Mark the written ``--audit`` artifact present unless the caller opted out."""
-    if not audit or not mark_present:
-        return
-    mark_audit_artifact_present(relative_path)
-
-
 def performance_results_have_successful_bots(all_results) -> bool:
     """Return True when any performance result completed at least one bot."""
     for result in all_results or []:
@@ -3490,15 +3443,9 @@ def performance_results_have_successful_bots(all_results) -> bool:
     return False
 
 
-def maybe_mark_performance_result_present(
-    audit: bool,
-    all_results,
-    *,
-    mark_present: bool,
-) -> None:
-    """Mark ``performance_result`` present after a successful ``--audit`` run."""
-    if not audit or not mark_present:
-        return
+def mark_performance_result_present(all_results) -> None:
+    """Mark ``performance_result`` present after a successful audit run."""
+
     if not performance_results_have_successful_bots(all_results):
         click.echo(
             "Skipping performance_result mark-present: no bots succeeded. "
@@ -3509,32 +3456,7 @@ def maybe_mark_performance_result_present(
     mark_audit_artifact_present(AUDIT_PERFORMANCE_JSON)
 
 
-def resolve_performance_json_output(json_output=None, audit=False):
-    """Resolve the JSON output path for a performance test.
-
-    Parameters
-    ----------
-    json_output :
-        Explicit JSON output path from ``--json-output``.
-    audit :
-        Whether ``--audit`` was set.
-
-    Returns
-    -------
-    str or None
-        Absolute or relative path to write, or ``None`` when no JSON output is
-        requested.
-    """
-    if json_output and audit:
-        raise click.UsageError("Use either --json-output or --audit, not both.")
-    if json_output:
-        return str(json_output)
-    if not audit:
-        return None
-    return str(resolve_audit_artifact_path(AUDIT_PERFORMANCE_JSON))
-
-
-def _run_simulate(ctx, mark_present=True):
+def _run_simulate(ctx):
     """Run experiment bots and export their data into the audit packet."""
 
     from psynet.audit.content import artifact_path_is_ready
@@ -3552,8 +3474,7 @@ def _run_simulate(ctx, mark_present=True):
     if not artifact_path_is_ready(export_path):
         raise click.ClickException(f"Simulate produced no files in {export_path}.")
     click.echo(f"Simulated export: {export_path}")
-    if mark_present:
-        mark_audit_artifact_present(SIMULATED_EXPORT_PATH)
+    mark_audit_artifact_present(SIMULATED_EXPORT_PATH)
 
 
 @psynet.group("performance-test")
@@ -3573,8 +3494,6 @@ def performance_test(ctx):
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
-@_test_options["performance_audit"]
-@_test_options["audit_no_mark_present"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 def performance_test__local(
     existing=False,
@@ -3583,8 +3502,6 @@ def performance_test__local(
     time_factor=None,
     duration_minutes=None,
     json_output=None,
-    audit=False,
-    no_mark_present=False,
     debug=False,
 ):
     """
@@ -3596,19 +3513,39 @@ def performance_test__local(
 
     By default, this command starts a new experiment server automatically.
     Use --existing to connect to an already-running server instead.
+
+    This command never updates an experiment audit. Use
+    ``psynet audit performance-test local`` to collect audit evidence.
     """
-    require_audit_when_skipping_mark_present(audit, no_mark_present)
-    json_output = resolve_performance_json_output(json_output, audit=audit)
+    return _run_performance_test_local(
+        existing=existing,
+        n_bots=n_bots,
+        stagger=stagger,
+        time_factor=time_factor,
+        duration_minutes=duration_minutes,
+        json_output=json_output,
+        debug=debug,
+    )
+
+
+def _run_performance_test_local(
+    *,
+    existing,
+    n_bots,
+    stagger,
+    time_factor,
+    duration_minutes,
+    json_output,
+    debug,
+):
+    """Run a local performance test and return its result records."""
+
     if existing:
-        all_results = _run_performance_test_with_existing_server(
+        return _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
-    else:
-        all_results = _run_performance_test_with_new_server(
-            n_bots, stagger, time_factor, duration_minutes, debug, json_output
-        )
-    maybe_mark_performance_result_present(
-        audit, all_results, mark_present=not no_mark_present
+    return _run_performance_test_with_new_server(
+        n_bots, stagger, time_factor, duration_minutes, debug, json_output
     )
 
 
@@ -3961,8 +3898,6 @@ def _run_performance_test_with_new_server(
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
-@_test_options["performance_audit"]
-@_test_options["audit_no_mark_present"]
 @click.pass_context
 def performance_test__docker_ssh(
     ctx,
@@ -3973,8 +3908,6 @@ def performance_test__docker_ssh(
     time_factor=None,
     duration_minutes=None,
     json_output=None,
-    audit=False,
-    no_mark_present=False,
 ):
     """
     Runs performance tests on the remote server. Assumes that the app has
@@ -3987,16 +3920,13 @@ def performance_test__docker_ssh(
     If the app is in use during the performance test, results may not be
     reliable.
 
-    Note: The --json-output, --audit, and --no-mark-present options are not yet
-    supported for remote SSH execution. For JSON output, run
-    ``psynet performance-test local --json-output`` or ``--audit`` instead.
+    Note: --json-output is not yet supported for remote SSH execution. For
+    JSON output, run ``psynet performance-test local --json-output`` instead.
     """
-    require_audit_when_skipping_mark_present(audit, no_mark_present)
-    if json_output or audit:
+    if json_output:
         raise click.UsageError(
-            "--json-output, --audit, and --no-mark-present are not yet "
-            "implemented for SSH mode. "
-            "Use 'psynet performance-test local' with those options instead.",
+            "--json-output is not yet implemented for SSH mode. "
+            "Use 'psynet performance-test local --json-output' instead.",
         )
 
     from dallinger.command_line.docker_ssh import Executor
@@ -4032,28 +3962,6 @@ def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minut
         cmd += f" --duration-minutes {duration_minutes}"
 
     return cmd
-
-
-@psynet.command()
-@click.option(
-    "--no-mark-present",
-    is_flag=True,
-    default=False,
-    help="Write the simulated export without updating audit.json.",
-)
-@click.pass_context
-@require_exp_directory
-def simulate(ctx, no_mark_present=False):
-    """
-    Generates simulated data for an experiment by running the experiment's regression test
-    and exporting the resulting data.
-
-    Writes ``audit/simulate/analysis/simulated_export/`` and marks
-    ``simulate_export`` present.
-    """
-    # No need to catch the exit code here, because test__local now uses sys.exit()
-    # if an error occurs.
-    _run_simulate(ctx, mark_present=not no_mark_present)
 
 
 @psynet.command(name="list-experiment-dirs")
@@ -4102,14 +4010,60 @@ def _cli_resolve_audit_dir(*, require_manifest=False):
 @click.pass_context
 def audit(ctx):
     """
-    Package experiment readiness evidence (does not run tests).
+    Collect and package experiment readiness evidence.
 
-    An audit records artifacts, checks, and blockers for human inspection.
-    It does not run tests or collect evidence for you. Audits always live in
-    ./audit/ inside the experiment directory. Run these commands from the
-    experiment directory.
+    Audits record artifacts, checks, and blockers for human inspection. Audit
+    evidence commands run tests and write their canonical outputs into
+    ./audit/. Run these commands from the experiment directory.
     """
     pass
+
+
+@audit.command("simulate")
+@click.pass_context
+@require_exp_directory
+def audit_simulate(ctx):
+    """Run test bots and write the simulated export into the audit packet."""
+
+    _run_simulate(ctx)
+
+
+@audit.group("performance-test")
+def audit_performance_test():
+    """Collect performance-test evidence in the audit packet."""
+
+    pass
+
+
+@audit_performance_test.command("local")
+@_test_options["existing"]
+@_test_options["performance_n_bots"]
+@_test_options["performance_stagger"]
+@_test_options["performance_time_factor"]
+@_test_options["duration_minutes"]
+@click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
+@require_exp_directory
+def audit_performance_test_local(
+    existing=False,
+    n_bots=None,
+    stagger=None,
+    time_factor=None,
+    duration_minutes=None,
+    debug=False,
+):
+    """Run a local performance test and write its audit evidence."""
+
+    json_output = str(resolve_audit_artifact_path(AUDIT_PERFORMANCE_JSON))
+    all_results = _run_performance_test_local(
+        existing=existing,
+        n_bots=n_bots,
+        stagger=stagger,
+        time_factor=time_factor,
+        duration_minutes=duration_minutes,
+        json_output=json_output,
+        debug=debug,
+    )
+    mark_performance_result_present(all_results)
 
 
 @audit.command("init")

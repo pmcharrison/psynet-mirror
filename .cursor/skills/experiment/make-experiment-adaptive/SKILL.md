@@ -55,7 +55,7 @@ ordinary top-level imports.
 PsyNet. It maintains the observation, participant, item, and decision tables;
 calls `adaptive_logic.py` to select each assignment; and draws the resulting
 response from `response_model/`. This standalone simulation tests the
-scientific procedure at scale; `psynet simulate` is still needed to test its
+scientific procedure at scale; `psynet audit simulate` is still needed to test its
 integration with the PsyNet timeline, response handling, and export path.
 
 `audit/simulate/design/` follows `power-analysis/SKILL.md`. Its

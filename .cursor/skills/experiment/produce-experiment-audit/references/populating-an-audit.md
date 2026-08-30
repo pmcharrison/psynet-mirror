@@ -192,34 +192,32 @@ blocker (or replace it with an N/A note in `REPORT.md`), then re-validate.
 Run from the experiment root:
 
 ```bash
-psynet simulate
+psynet audit simulate
 ```
 
 The command writes the only copy to
 `audit/simulate/analysis/simulated_export/` and marks `simulate_export`
-present. Use `--no-mark-present` to skip the manifest update.
+present.
 
 ### Performance evidence
 
 For review-ready performance evidence, prefer a sustained test (typically
-`--n-bots 40 --duration-minutes 5`). Prefer `--audit` so PsyNet writes the
-canonical path. From the experiment root:
+`--n-bots 40 --duration-minutes 5`). Use the audit-scoped command so PsyNet
+writes the canonical path. From the experiment root:
 
 ```bash
-psynet performance-test local \
+psynet audit performance-test local \
   --n-bots 40 \
   --duration-minutes 5 \
-  --time-factor 1.0 \
-  --audit
+  --time-factor 1.0
 ```
 
-`--audit` writes `<experiment>/audit/artifacts/performance.json`
-and marks `performance_result` present. Use `--json-output` only for a non-audit
-path, and `--no-mark-present` only when you want the JSON in the packet without
-updating `audit.json`.
+The command writes `<experiment>/audit/artifacts/performance.json`
+and marks `performance_result` present. Use top-level
+`psynet performance-test local --json-output <path>` for a non-audit file.
 
-Shorter smoke runs are fine while iterating or infrastructure-testing; omit
-`--audit` (or use `--json-output`) so they do not become the packet's evidence.
+Shorter smoke runs are fine while iterating or infrastructure-testing; use
+top-level `psynet performance-test local` so they do not become packet evidence.
 Skip an expensive re-run when a suitable `artifacts/performance.json` already
 exists for the current implementation.
 

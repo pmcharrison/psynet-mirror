@@ -1,4 +1,4 @@
-"""Isolated tests for ``psynet simulate`` audit output."""
+"""Isolated tests for audit simulation and performance evidence."""
 
 import json
 from pathlib import Path
@@ -90,37 +90,6 @@ def test_run_simulate_writes_only_audit_export_and_marks_present(tmp_path, monke
     artifact = next(a for a in manifest["artifacts"] if a["id"] == "simulate_export")
     assert artifact["status"] == "present"
     assert all(b["artifact_id"] != "simulate_export" for b in manifest["blockers"])
-
-
-def test_run_simulate_can_skip_mark_present(tmp_path, monkeypatch):
-    from psynet.audit.cli import init_audit
-    from psynet.command_line import _run_simulate, export__local
-
-    experiment = tmp_path / "exp"
-    audit_dir = experiment / "audit"
-    init_audit(audit_dir)
-    monkeypatch.chdir(experiment)
-
-    class DummyCtx:
-        def invoke(self, cmd, **kwargs):
-            if cmd is export__local:
-                _write_export_tree(Path(kwargs["path"]))
-
-    _run_simulate(DummyCtx(), mark_present=False)
-
-    assert (
-        audit_dir
-        / "simulate"
-        / "analysis"
-        / "simulated_export"
-        / "regular"
-        / "data"
-        / "AnimalTrial.csv"
-    ).is_file()
-    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
-    artifact = next(a for a in manifest["artifacts"] if a["id"] == "simulate_export")
-    assert artifact["status"] == "blocked"
-    assert any(b["artifact_id"] == "simulate_export" for b in manifest["blockers"])
 
 
 def test_run_simulate_rejects_an_empty_export(tmp_path, monkeypatch):
@@ -219,14 +188,6 @@ def test_mark_audit_artifact_present_updates_performance_result(tmp_path, monkey
     assert all(b["artifact_id"] != "performance_result" for b in manifest["blockers"])
 
 
-def test_no_mark_present_requires_audit():
-    from psynet.command_line import require_audit_when_skipping_mark_present
-
-    require_audit_when_skipping_mark_present(True, True)
-    with pytest.raises(click.UsageError, match="requires --audit"):
-        require_audit_when_skipping_mark_present(False, True)
-
-
 def test_performance_results_have_successful_bots():
     from psynet.command_line import performance_results_have_successful_bots
 
@@ -242,22 +203,16 @@ def test_performance_results_have_successful_bots():
     )
 
 
-def test_maybe_mark_performance_result_skips_zero_success(
-    tmp_path, capsys, monkeypatch
-):
+def test_mark_performance_result_skips_zero_success(tmp_path, capsys, monkeypatch):
     from psynet.audit.cli import init_audit
-    from psynet.command_line import maybe_mark_performance_result_present
+    from psynet.command_line import mark_performance_result_present
 
     audit_dir = tmp_path / "audit"
     init_audit(audit_dir)
     (audit_dir / "artifacts" / "performance.json").write_text("{}\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
 
-    maybe_mark_performance_result_present(
-        True,
-        [{"n_bots": 2, "bots_succeeded": 0}],
-        mark_present=True,
-    )
+    mark_performance_result_present([{"n_bots": 2, "bots_succeeded": 0}])
 
     captured = capsys.readouterr()
     assert "no bots succeeded" in captured.err
@@ -269,35 +224,85 @@ def test_maybe_mark_performance_result_skips_zero_success(
 def test_simulate_help_describes_canonical_output():
     from click.testing import CliRunner
 
-    from psynet.command_line import simulate
+    from psynet.command_line import psynet
 
-    result = CliRunner().invoke(simulate, ["--help"])
+    result = CliRunner().invoke(psynet, ["audit", "simulate", "--help"])
 
     assert result.exit_code == 0
-    assert "--audit" not in result.output
-    assert "audit/simulate/analysis/simulated_export" in result.output
-    assert "--no-mark-present" in result.output
-    assert "simulate_export" in result.output
+    assert "write the simulated export into the audit packet" in result.output
 
 
-def test_performance_test_ssh_help_documents_no_mark_present(monkeypatch):
+def test_top_level_simulate_command_is_removed():
     from click.testing import CliRunner
 
-    from psynet.command_line import performance_test__docker_ssh
+    from psynet.command_line import psynet
 
+    result = CliRunner().invoke(psynet, ["simulate"])
+
+    assert result.exit_code != 0
+    assert "No such command 'simulate'" in result.output
+
+
+def test_performance_test_routes_separate_measurement_and_audit_output():
+    from click.testing import CliRunner
+
+    from psynet.command_line import psynet
+
+    runner = CliRunner()
+    measurement = runner.invoke(psynet, ["performance-test", "local", "--help"])
+    evidence = runner.invoke(psynet, ["audit", "performance-test", "local", "--help"])
+
+    assert measurement.exit_code == 0
+    assert "--json-output" in measurement.output
+    assert "--audit" not in measurement.output
+    assert evidence.exit_code == 0
+    assert "--json-output" not in evidence.output
+    assert "--audit" not in evidence.output
+
+
+def test_audit_performance_test_writes_canonical_output_and_marks_present(
+    tmp_path, monkeypatch
+):
+    from click.testing import CliRunner
+
+    from psynet.audit.cli import init_audit
+    from psynet.command_line import psynet
+
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr("psynet.utils.experiment_available", lambda: True)
     monkeypatch.setattr(
         "psynet.utils.ensure_experiment_directory_name_does_not_conflict",
         lambda: None,
     )
 
-    result = CliRunner().invoke(performance_test__docker_ssh, ["--help"])
+    def run_performance_test(**kwargs):
+        Path(kwargs["json_output"]).write_text("{}\n", encoding="utf-8")
+        return [{"bots_succeeded": 1}]
+
+    monkeypatch.setattr(
+        "psynet.command_line._run_performance_test_local",
+        run_performance_test,
+    )
+
+    result = CliRunner().invoke(
+        psynet,
+        ["audit", "performance-test", "local", "--n-bots", "5"],
+        catch_exceptions=False,
+    )
+
     assert result.exit_code == 0
-    assert "--no-mark-present" in result.output
-    assert "--audit" in result.output
+    assert (audit_dir / "artifacts" / "performance.json").is_file()
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    artifact = next(
+        item for item in manifest["artifacts"] if item["id"] == "performance_result"
+    )
+    assert artifact["status"] == "present"
+    assert "Marked performance_result present" in result.output
 
 
-def test_performance_test_ssh_rejects_audit():
+def test_performance_test_ssh_rejects_json_output():
     from psynet.command_line import performance_test__docker_ssh
 
     with click.Context(performance_test__docker_ssh):
@@ -305,5 +310,5 @@ def test_performance_test_ssh_rejects_audit():
             performance_test__docker_ssh.callback(
                 app="example",
                 server="example",
-                audit=True,
+                json_output="results.json",
             )

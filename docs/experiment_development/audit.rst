@@ -5,17 +5,15 @@ An **experiment audit** is a portable ``audit/`` folder that packages evidence
 that an experiment was implemented and validated. It records artifacts, checks,
 and blockers for human inspection, then renders a static HTML site.
 
-The audit CLI does **not** run tests or collect evidence for you. Agents or
-experimenters gather artifacts with the usual PsyNet commands
-(``psynet test local``, ``psynet simulate``,
-``psynet performance-test local --audit``, exports, and so
-on), then record the outcomes in ``audit/audit.json``.
+The audit CLI can run participant simulations and local performance tests,
+write their canonical evidence into the packet, and update ``audit.json``.
+Other evidence is collected separately and marked present once ready.
 
 **Default layout:** run the CLI from the experiment directory. The audit always
 lives at ``./audit/``. Experiment source is that experiment directory (the parent
 of ``audit/``). If ``experiment.py`` is in a subdirectory, set
 ``experiment.entry_point``. Commands take no packet path and no
-``--experiment`` option. ``psynet simulate`` writes the simulated export
+``--experiment`` option. ``psynet audit simulate`` writes the simulated export
 directly into this experiment's ``./audit/``. Running from a directory named
 ``audit`` is an error.
 
@@ -32,6 +30,8 @@ dependencies. Participant video validation also requires ``ffprobe`` from
 .. code-block:: bash
 
    psynet audit init
+   psynet audit simulate
+   psynet audit performance-test local
    psynet audit validate
    psynet audit mark-present <artifact_id>
    psynet audit render

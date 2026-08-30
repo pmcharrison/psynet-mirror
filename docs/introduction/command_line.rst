@@ -344,21 +344,23 @@ Unlike ``psynet test``, which checks correctness, ``performance-test`` is about
 performance under load. For a full guide, including how to sweep several
 concurrency levels and how to interpret the results, see the
 :ref:`testing experiment performance tutorial <performance_testing>`.
+Use ``psynet audit performance-test local`` when the result should become
+canonical audit evidence.
 
 
-Simulate data for an experiment
--------------------------------
+Simulate audit data for an experiment
+-------------------------------------
 
-This command generates simulated data for an experiment by running the experiment's regression test
-and exporting the resulting data to
+``psynet audit simulate`` generates simulated data by running the experiment's
+regression test and exporting the result to
 ``audit/simulate/analysis/simulated_export/``.
 
 .. code:: bash
 
-  psynet simulate
+  psynet audit simulate
 
-The command marks ``simulate_export`` present in ``audit.json``. Use
-``--no-mark-present`` to write the directory without updating the manifest.
+The command requires an initialized audit packet and marks ``simulate_export``
+present in ``audit.json``.
 
 
 .. _install:

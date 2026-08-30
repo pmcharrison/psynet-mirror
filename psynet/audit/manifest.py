@@ -110,7 +110,7 @@ Use one list item per event. The actor tag must be one of `agent-start`,
 `agent`, `agent-stop`, `manual`, or `system`:
 
 `- T+00:00:00 [agent-start] Started implementation.`
-`- T+00:05:12 [agent] Ran psynet simulate.`
+`- T+00:05:12 [agent] Ran psynet audit simulate.`
 """
 STARTER_REPORT = """# Experiment audit report
 
@@ -385,7 +385,7 @@ def starter_audit_manifest() -> dict[str, object]:
             starter_blocker(
                 "performance_result",
                 "Performance test has not been run yet.",
-                "Run psynet performance-test local … --audit.",
+                "Run psynet audit performance-test local ….",
             ),
             starter_blocker(
                 "monitor_snapshot",
@@ -395,7 +395,7 @@ def starter_audit_manifest() -> dict[str, object]:
             starter_blocker(
                 "simulate_export",
                 "Simulation export has not been produced yet.",
-                "Run psynet simulate.",
+                "Run psynet audit simulate.",
             ),
             starter_blocker(
                 "analysis_notebook",

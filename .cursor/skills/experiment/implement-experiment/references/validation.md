@@ -14,35 +14,35 @@ Run functional checks from the experiment directory:
 ```bash
 python experiment.py
 psynet test local
-psynet simulate
+psynet audit simulate
 ```
 
-`psynet simulate` writes `audit/simulate/analysis/simulated_export/` and marks
+`psynet audit simulate` writes `audit/simulate/analysis/simulated_export/` and marks
 `simulate_export` present.
 
 ## Performance evidence
 
 When the work needs performance evidence, run this sustained load test after
 functional checks pass. Do not rely on experiment defaults such as
-`test_n_bots = 1`. Prefer `--audit` so results land in the audit packet
+`test_n_bots = 1`. Use the audit-scoped route so results land in the packet
 immediately. From the experiment root:
 
 ```bash
-psynet performance-test local \
+psynet audit performance-test local \
   --n-bots 40 \
   --duration-minutes 5 \
-  --time-factor 1.0 \
-  --audit
+  --time-factor 1.0
 ```
 
 That writes `audit/artifacts/performance.json` and marks `performance_result`
-present. Use `--json-output` only for a custom non-audit path.
+present. Use top-level `psynet performance-test local --json-output <path>`
+for a custom non-audit file.
 If the experiment customizes `run_bot`, preserve `bot=None` support and delegate
 to `super().run_bot(...)` for framework-created bots; `psynet performance-test`
 calls `exp.run_bot(time_factor=...)` without passing a bot object.
 
-Short smoke runs are fine while iterating or infrastructure-testing; omit
-`--audit` (or use `--json-output`) so they do not become the packet's evidence.
+Short smoke runs are fine while iterating or infrastructure-testing; use
+top-level `psynet performance-test local` so they do not become packet evidence.
 Prefer a sustained run when claiming production-like performance evidence. Skip
 an expensive re-run when a suitable `audit/artifacts/performance.json` already
 exists for the current implementation.

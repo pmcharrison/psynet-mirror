@@ -185,18 +185,18 @@ used), to a JSON file:
 
     psynet performance-test local --n-bots "10,25,50" --json-output results.json
 
-When the experiment is being packaged as a PsyNet audit, prefer ``--audit``
-instead. It writes the canonical audit path
+When the experiment is being packaged as a PsyNet audit, use the audit-scoped
+command instead. It writes the canonical audit path
 ``<audit>/artifacts/performance.json`` (creating ``artifacts/`` if needed) and
-marks ``performance_result`` present. Use ``--no-mark-present`` to write the
-file without updating ``audit.json``:
+marks ``performance_result`` present:
 
 .. code-block:: bash
 
     # From the experiment root
-    psynet performance-test local --n-bots 40 --duration-minutes 5 --audit
+    psynet audit performance-test local --n-bots 40 --duration-minutes 5
 
-Do not combine ``--json-output`` and ``--audit``.
+The top-level ``psynet performance-test local`` command remains available for
+load testing and custom ``--json-output`` files; it never updates an audit.
 
 This is useful for tracking performance over time or feeding results into other
 tools. PsyNet's own :ref:`ASV benchmark suite <asv_performance_tests>` uses
