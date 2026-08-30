@@ -280,9 +280,24 @@ Follow these rules.
 - **Keep all the series.** Prefer one panel showing every condition over
   several panels that each show a subset. Split a figure only when it genuinely
   covers separate analyses, never to reduce line count.
-- **Avoid facets.** With three facets the usable panel width drops to about
-  250 px, which is where `facet_col` titles start overlapping. Encode the extra
-  dimension with colour or `line_dash` in a single panel instead.
+- **Facet by row, not by column.** `facet_col` divides the already narrow
+  width, and three columns leave about 250 px per panel, which is where facet
+  titles start overlapping. `facet_row` keeps the full width for every panel
+  and spends vertical space instead, which the page has plenty of. Use it when
+  the panels have different y ranges or would otherwise be an unreadable
+  tangle; otherwise encode the extra factor with colour or `line_dash` in one
+  panel.
+- **When faceting by row**, scale the height with the number of panels
+  (`height=260 * n_rows + 140`), strip the `variable=` prefix Plotly Express
+  puts in facet titles, and leave right margin for the rotated row labels:
+
+  ```python
+  fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+  fig.update_layout(height=260 * n_rows + 140, margin=dict(l=70, r=90, t=90, b=60))
+  ```
+
+  Row labels sit on the right edge, so pair `facet_row` with the horizontal
+  legend above the plot rather than a right-hand legend column.
 - **Shorten every label.** Map database-style ids
   (`well_specified_2pl`) to display labels (`Matching 2PL`) before plotting,
   and strip the `variable=` prefix Plotly Express adds to facet titles.

@@ -209,6 +209,15 @@ that with layout, not by dropping conditions: a reviewer needs to see every
 cell that was simulated. Keep all series in one panel, encode the extra factor
 with `line_dash`, give the legend its own column, shorten labels, and explain
 the decision threshold in a Markdown caption rather than an `annotation_text`.
+When panels really are needed, facet by row so each one keeps the full width.
+
+Report precision at single-item (or single-participant) resolution where the
+simulation allows it, rather than only at the handful of candidate designs.
+A curve over every budget shows where a criterion is first met and how quickly
+returns diminish, which a three-point comparison hides. Compute such a curve
+with stopping disabled: conditioning on a *realized* length under an adaptive
+stopping rule compares self-selected subgroups, because who stops early depends
+on the quantity being estimated.
 The layout rules and reference code live in
 `produce-experiment-audit/references/populating-an-audit.md`; verify the result
 at the rendered width with `psynet audit render` and `psynet audit serve`.
