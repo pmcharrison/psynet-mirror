@@ -43,7 +43,9 @@ shadow the standard library.
 
 Standalone scripts that you invoke as ordinary Python (``python -m audit.power.core``,
 ``simulate_procedure.py``) are not loaded as that package, so they keep using
-top-level imports such as ``import adaptive_logic``.
+top-level imports such as ``import adaptive_logic``. Run ``python -m audit.power.core``
+from the experiment root; ``audit/`` and ``audit/power/`` are namespace packages
+and need no ``__init__.py``.
 
 See ``docs/experiment_development/experiment_directory.rst``
 (section "Importing other Python files").

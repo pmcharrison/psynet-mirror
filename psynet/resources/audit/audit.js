@@ -15,6 +15,8 @@ window.MathJax = {
   },
 };
 
+// MathJax 4 reads window.MathJax then typesets the page when tex-svg.js loads.
+
 document.querySelectorAll(".notebook-plotly").forEach((wrapper) => {
   const specElement = wrapper.querySelector("[data-plotly-spec]");
   const target = wrapper.querySelector("[data-plotly-target]");

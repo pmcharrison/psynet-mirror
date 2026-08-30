@@ -140,7 +140,9 @@ def write_core_section_files(audit_dir: Path) -> None:
     write(audit_dir / "REPORT.md", "# Report\n\nReady for review.\n")
 
 
-def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None:
+def test_render_audit_site_publishes_trusted_notebooks_and_escaped_markdown(
+    tmp_path: Path,
+) -> None:
     audit_dir = tmp_path / "pitch-discrimination-demo" / "audit"
     manifest = audit_manifest()
     write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
@@ -168,6 +170,8 @@ def test_render_audit_site_publishes_sanitized_artifacts(tmp_path: Path) -> None
     site_dir = render_audit_site(audit_dir)
 
     index = (site_dir / "index.html").read_text(encoding="utf-8")
+    css = (site_dir / "static" / "css" / "audit.css").read_text(encoding="utf-8")
+    assert "max-width: 1180px" in css
     assert '<link rel="stylesheet" href="static/css/audit.css">' in index
     assert '<script src="static/js/plotly.min.js"></script>' in index
     assert '<script src="static/js/audit.js"></script>' in index
@@ -642,6 +646,41 @@ def test_render_backfills_power_section_for_legacy_manifests(tmp_path: Path) -> 
 
     assert 'id="power"' in index
     assert "Legacy power notebook" in index
+
+
+def test_render_does_not_show_a_hidden_power_section(tmp_path: Path) -> None:
+    audit_dir = tmp_path / "audit"
+    init_audit(audit_dir)
+    manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
+    for section in manifest["sections"]:
+        if section.get("id") == "power" or section.get("kind") == "power":
+            section["display"] = False
+    for artifact in manifest["artifacts"]:
+        if artifact.get("id") == "power_analysis":
+            artifact["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write(
+        audit_dir / "power/analysis.ipynb",
+        json.dumps(
+            {
+                "nbformat": 4,
+                "nbformat_minor": 5,
+                "metadata": {},
+                "cells": [
+                    {
+                        "cell_type": "markdown",
+                        "metadata": {},
+                        "source": ["# Hidden power notebook\n"],
+                    }
+                ],
+            }
+        ),
+    )
+
+    index = (render_audit_site(audit_dir) / "index.html").read_text(encoding="utf-8")
+
+    assert 'id="power"' not in index
+    assert "Hidden power notebook" not in index
 
 
 def test_render_audit_site_elevates_evidence_subsections(tmp_path: Path) -> None:

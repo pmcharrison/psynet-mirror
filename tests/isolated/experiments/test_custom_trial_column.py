@@ -3,7 +3,7 @@ import shutil
 import sys
 
 import pytest
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import deferred
 
 from psynet.command_line import clean_sys_modules, working_directory
@@ -91,6 +91,34 @@ def test_conflicting_nullability_is_rejected():
 
         class RequiredSiblingTrial(StaticTrial):
             sibling_probe = Column(String, nullable=False)
+
+
+def test_conflicting_uniqueness_is_rejected():
+    with pytest.raises(InvalidDefinitionError, match="unique"):
+
+        class UniqueSiblingTrial(StaticTrial):
+            sibling_probe = Column(String, unique=True)
+
+
+def test_conflicting_index_flag_is_rejected():
+    with pytest.raises(InvalidDefinitionError, match="index"):
+
+        class IndexedSiblingTrial(StaticTrial):
+            sibling_probe = Column(String, index=True)
+
+
+def test_conflicting_foreign_keys_are_rejected():
+    with pytest.raises(InvalidDefinitionError, match="foreign-key"):
+
+        class ForeignKeySiblingTrial(StaticTrial):
+            sibling_probe = Column(String, ForeignKey("participant.id"))
+
+
+def test_conflicting_primary_key_is_rejected():
+    with pytest.raises(InvalidDefinitionError, match="primary_key"):
+
+        class PrimaryKeySiblingTrial(StaticTrial):
+            sibling_probe = Column(String, primary_key=True)
 
 
 def test_deferred_custom_columns_reuse_the_inherited_column():

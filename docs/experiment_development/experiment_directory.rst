@@ -162,4 +162,7 @@ with ``ModuleNotFoundError``. Putting the experiment directory on
 
 Standalone scripts that you invoke as ordinary Python, such as
 ``python -m audit.power.core``, are not loaded as that package. Those files keep
-using ordinary top-level imports of the same helpers.
+using ordinary top-level imports of the same helpers. Run that command from the
+experiment root. ``audit/`` and ``audit/power/`` are namespace packages (they
+need no ``__init__.py``). Do not add a different top-level package named
+``audit`` on ``PYTHONPATH``.

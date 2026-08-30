@@ -100,6 +100,10 @@ easy to run from the experiment root:
 python -m audit.power.core
 ```
 
+Run this from the experiment root. `audit/` and `audit/power/` are namespace
+packages (no `__init__.py` required). Do not add another top-level `audit`
+package to `PYTHONPATH`.
+
 The following pseudocode illustrates the intended orchestration:
 
 ```python

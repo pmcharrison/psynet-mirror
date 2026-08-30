@@ -324,7 +324,8 @@ def _reuse_inherited_columns(cls):
     ------
     InvalidDefinitionError
         If the redeclared column asks for a different type, length, nullability,
-        uniqueness, or index flag than the column already on the table.
+        uniqueness, index flag, primary key, or foreign-key target than the
+        column already on the table.
     """
     if cls.__dict__.get("__abstract__"):
         return
@@ -374,10 +375,24 @@ def _inherited_column_conflict(existing, column) -> str | None:
             f"is declared with length {new_length}, but already exists with length "
             f"{existing_length} on"
         )
-    for flag in ("nullable", "unique", "index"):
+    for flag in ("primary_key", "unique", "index", "nullable"):
         if bool(getattr(existing, flag, False)) != bool(getattr(column, flag, False)):
             return f"disagrees on {flag} with the existing column"
+    if _column_foreign_key_specs(existing) != _column_foreign_key_specs(column):
+        return "disagrees on foreign-key targets with the existing column"
     return None
+
+
+def _column_foreign_key_specs(column) -> frozenset[str]:
+    """Return comparable foreign-key target strings for a column."""
+
+    specs: list[str] = []
+    for foreign_key in getattr(column, "foreign_keys", ()) or ():
+        spec = getattr(foreign_key, "target_fullname", None) or getattr(
+            foreign_key, "_colspec", None
+        )
+        specs.append(str(spec))
+    return frozenset(specs)
 
 
 def _declared_column(value):

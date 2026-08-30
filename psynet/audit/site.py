@@ -283,7 +283,12 @@ def display_sections(
     *,
     evidence: Any = None,
 ) -> list[dict[str, Any]]:
-    """Return displayable section records, adding source or power when missing."""
+    """Return displayable section records, adding source or power when missing.
+
+    Source and power backfill look at every manifest section, including those
+    with ``"display": false``. A hidden power section is therefore not replaced
+    by a visible one just because ``power/`` files exist.
+    """
 
     sections = manifest.get("sections")
     if not isinstance(sections, list):
@@ -326,7 +331,7 @@ def display_sections(
     has_power = any(
         isinstance(section, dict)
         and (section.get("id") == "power" or section.get("kind") == "power")
-        for section in displayable
+        for section in sections
     )
     if (
         not has_power

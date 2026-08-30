@@ -88,6 +88,9 @@ PLACEHOLDER_IMPLEMENTATION_SUMMARY = "TODO: Summarize the experiment implementat
 CLI_NAME = "psynet audit"
 AUDIT_CSS_OUTPUT = "css/audit.css"
 AUDIT_JS_OUTPUT = "js/audit.js"
+# Vendored Plotly.js (plotly.min.js) and MathJax 4 tex-svg (mathjax-tex-svg.min.js)
+# live in psynet/resources/audit/ with adjacent LICENSE files. Replace those
+# copies and licenses together when upgrading.
 AUDIT_MATHJAX_JS_OUTPUT = "js/mathjax-tex-svg.min.js"
 AUDIT_PLOTLY_JS_OUTPUT = "js/plotly.min.js"
 

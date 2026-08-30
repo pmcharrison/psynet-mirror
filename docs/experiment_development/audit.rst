@@ -122,7 +122,9 @@ is its own top-level section, so a section kind maps to one panel:
   evidence;
 * ``power`` is optional: it renders the executed notebook and run provenance
   from ``power/`` when present, and otherwise states that no power analysis was
-  included;
+  included. Hide the starter section with ``"display": false`` if you want
+  ``power/`` files on disk without a visible panel; render does not replace a
+  hidden power section.
 * ``source`` renders the experiment entry point directly from the implementation
   directory;
 * ``evidence`` renders every evidence subsection in a single panel and remains
