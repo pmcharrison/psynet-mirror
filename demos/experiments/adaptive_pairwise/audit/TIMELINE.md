@@ -17,3 +17,8 @@
 - T+03:30:00 [agent] Preserved already-loaded networks through static candidate filtering, eliminating the N+1.
 - T+03:40:00 [agent] [evidence] One-bot p95 fell from 1.553 seconds to 0.136 seconds; the fixed run completed seven bots instead of one.
 - T+03:50:00 [agent] [evidence] Final 40-bot test completed 27 bots with median 0.153 seconds and p95 5.616 seconds.
+- T+04:10:00 [agent] Added transactional `Trial.cue` creation callbacks with rollback coverage.
+- T+04:25:00 [agent] Converted the worked experiment to virtual audio pairs with 100 cached item assets.
+- T+04:35:00 [agent] [evidence] Four virtual-audio bots passed with two assets per trial, mean HTTP 0.256 seconds, and mean completion 29.3 seconds.
+- T+04:45:00 [agent] [evidence] Exported 80 virtual trials, 160 trial-asset links, 100 cached assets, one generic node, and a successful non-prior snapshot.
+- T+04:55:00 [agent] [evidence] The 40-bot audio run had median HTTP 0.259 seconds and p95 7.210 seconds; extreme-concurrency tail latency remains unresolved.

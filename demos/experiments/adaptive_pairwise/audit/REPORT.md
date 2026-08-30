@@ -2,15 +2,16 @@
 
 ## What was implemented
 
-`demos/experiments/adaptive_pairwise` is a 100-item two-alternative forced-choice
-preference experiment used to dogfood the adaptive-experiment skill, especially
-the slow-to-fit posterior path.
+`demos/experiments/adaptive_pairwise` is a 100-item audio two-alternative
+forced-choice preference experiment used to dogfood the adaptive-experiment
+skill, especially the slow-to-fit posterior path and virtual candidate delivery.
 
-Participants complete one practice choice and 20 scored comparisons. The item
-bank is `stimuli/item_bank.csv`. The adaptive unit is a pair from a balanced
-500-pair graph (every item has ten neighbors), not the full 4,950-pair matrix.
-That graph was chosen after a 4,950-node `StaticTrialMaker` discovery path made
-assignment too slow under concurrency.
+Participants complete volume calibration, one practice acknowledgement, and 20
+comparisons. The item bank is `stimuli/item_bank.csv`. The adaptive unit is a
+pair from a balanced 500-pair virtual graph (every item has ten neighbors), not
+the full 4,950-pair matrix. Each item has one cached synthesized audio asset.
+The selected pair is delivered with `Trial.cue`; the database therefore stores
+one generic node, 100 item assets, and delivered trials rather than pair nodes.
 
 The learner is a Bradley--Terry model with a Gaussian prior, Laplace
 uncertainty, and 2,048 bootstrap refits. Fitting is intentionally slow
@@ -20,7 +21,7 @@ publishes an append-only `ready` snapshot. Selection reads only the newest
 ready snapshot. Refits wait for 40 new finalized observations so refresh demand
 cannot grow faster than a loaded study.
 
-Raw answers (`Left item` / `Right item`) are kept beside the Boolean
+Raw answers (`First sound` / `Second sound`) are kept beside the Boolean
 observation `chosen_left`. Each assignment stores reconstructible candidate
 provenance, objective components, snapshot and data versions, an observation
 fingerprint, optimizer version, scoring time, and the binary posterior
@@ -36,19 +37,26 @@ Scientific sample size and item content remain provisional.
 ## Commands and evidence
 
 - Isolated logic tests: `pytest -q tests/isolated/experiments/test_adaptive_pairwise_logic.py` (5 passed).
-- Experiment import: `python experiment.py` reports 100 items and 500 pairs.
+- Experiment import: `python experiment.py` reports 100 audio items and 500
+  virtual pairs.
 - Dedicated fit benchmark: 2,048 bootstrap refits on 1,000 observations took 3.34 seconds; pair scoring stayed in milliseconds.
-- Concurrent functional bots: `psynet test local --parallel --time-factor 0` with four bots passed (mean HTTP 0.596 seconds; mean completion 89 seconds).
-- Simulated export: `psynet audit simulate` wrote `audit/simulate/analysis/simulated_export/`. After a worker-only `seed` bug was fixed, 15 non-prior snapshots published as `ready` and later trials referenced fitted snapshots.
+- Concurrent virtual-audio bots: `psynet test local --parallel --time-factor 0`
+  with four bots passed (mean HTTP 0.256 seconds; mean completion 29.3
+  seconds). Bot checks verified two audio links per trial and 100 module assets.
+- Simulated export: `psynet audit simulate` wrote
+  `audit/simulate/analysis/simulated_export/`. It contains 80 trials, 80
+  decisions, 160 trial-asset links, 100 cached item assets, one generic node,
+  and a successful 2,048-bootstrap non-prior snapshot.
 - Analysis: executed `audit/simulate/analysis/analysis.ipynb`.
 - Design simulation: `python -m audit.simulate.design.core` plus executed `audit/simulate/design/simulation.ipynb`.
 - SQL profiling: `audit/logs/sql-profile-summary.md` records the before/after
   query counts and call sites. Preserving already-loaded static networks removed
   two lazy queries per candidate.
-- Sustained load: the final
+- Sustained virtual-audio load: the final
   `psynet audit performance-test --n-bots 40 --duration-minutes 5 --time-factor 1.0`
-  wrote `audit/artifacts/performance.json`. It completed 27 bots successfully,
-  with median response latency 0.153 seconds and p95 5.616 seconds.
+  wrote `audit/artifacts/performance.json`. It completed one full,
+  volume-calibrated participant within the window, with median response latency
+  0.259 seconds and p95 7.210 seconds.
 
 Participant video, screenshots, and a monitor snapshot were skipped after an
 explicit request not to test the server UI.
@@ -78,19 +86,19 @@ polymorphic lazy loads for nearly every candidate. A one-bot profile recorded
 equivalent profile to 11,169 statements and 7.80 seconds while completing seven
 times as many bots.
 
-The final 40-bot run improves p95 from about 23 seconds to 5.616 seconds and
-produces successful completions. It still exceeds the two-second adaptive
-threshold. Concurrent profiling shows the static candidate query itself
-averages only 6.34 ms after the fix; remaining tail latency is therefore mainly
-full-pool ORM hydration/deserialization and request queueing. A scalable
-pairwise design should generate candidates from item-level state and materialize
-only the selected pair.
+The static-node fix improved p95 from about 23 seconds to 5.616 seconds.
+Converting the worked example to virtual `Trial.cue` candidates removes
+full-pool ORM hydration entirely; four-bot completion time fell from about 89 to
+29 seconds. The 40-bot p95 remains above two seconds, so extreme concurrent
+tail latency is still not production-ready even though median latency is 0.259
+seconds. The longer timeline, including volume calibration, makes completion
+counts incomparable with the previous static run.
 
 ## Remaining blockers
 
-- Forty-way p95 latency remains above two seconds. The next step is a
-  lightweight or virtual candidate-selection path, rather than further tuning
-  the now-fast SQL statement.
+- Forty-way p95 latency remains above two seconds despite virtual candidates.
+  Further work should profile request queueing and model-worker contention
+  rather than pair discovery.
 - Participant video, screenshots, and monitor snapshot: skipped by request.
 
 Automatic `/branch-review` has not been run.

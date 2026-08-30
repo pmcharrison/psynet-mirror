@@ -38,3 +38,16 @@ a large improvement over zero completions and p95 23.3 seconds, but the tail
 still exceeds the adaptive workflow's two-second threshold. Remaining work is
 dominated by loading and deserializing the full 500-candidate ORM collection
 and request queueing, not by the removed SQL N+1.
+
+## Virtual-candidate follow-up
+
+The worked experiment was subsequently converted from 500 static pair nodes to
+runtime `Trial.cue` selection. Its export contains one generic node, 100 cached
+item-level audio assets, and only the 80 delivered trials. Four concurrent bots
+completed in 29.3 seconds with mean HTTP latency 0.256 seconds, compared with
+about 89 seconds and 0.596 seconds for the static version.
+
+At 40-way concurrency, median latency remained low at 0.259 seconds but p95 was
+7.210 seconds. Pair discovery and its SQL N+1 are absent from this version;
+future investigation should isolate request queueing and model-worker
+contention.
