@@ -8,12 +8,11 @@ import json
 import platform
 import subprocess
 import time
-import tomllib
 from pathlib import Path
 
 import numpy as np
 import scipy
-
+import tomllib
 from simulate_procedure import load_items, simulate_policy
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -75,7 +74,9 @@ def main() -> None:
                 if row["n_observations"] == budget and row["scenario"] == scenario
             ]
             random_rmse = {
-                row["seed"]: row["rmse"] for row in matching if row["policy"] == "random"
+                row["seed"]: row["rmse"]
+                for row in matching
+                if row["policy"] == "random"
             }
             for policy in config["design"]["policies"]:
                 policy_rows = [row for row in matching if row["policy"] == policy]

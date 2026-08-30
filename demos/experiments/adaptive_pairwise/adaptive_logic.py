@@ -28,6 +28,22 @@ class FitResult:
     diagnostics: dict
 
 
+def candidate_pairs(
+    item_ids: list[str],
+    offsets: tuple[int, ...] = (1, 2, 5, 10, 25),
+) -> list[tuple[str, str, str]]:
+    """Return a balanced sparse comparison graph over an ordered item bank."""
+
+    pairs = set()
+    n_items = len(item_ids)
+    for index, item_a in enumerate(item_ids):
+        for offset in offsets:
+            item_b = item_ids[(index + offset) % n_items]
+            lower, upper = sorted((item_a, item_b))
+            pairs.add((f"{lower}__{upper}", lower, upper))
+    return sorted(pairs)
+
+
 def prior_state(item_ids: list[str], prior_sd: float = 2.0) -> dict:
     """Return the zero-data Gaussian prior used by the selection policy."""
 
@@ -58,24 +74,24 @@ def _design_matrix(
     return design
 
 
-def _fit_map(design: np.ndarray, chosen_left: np.ndarray, prior_sd: float) -> np.ndarray:
+def _fit_map(
+    design: np.ndarray, chosen_left: np.ndarray, prior_sd: float
+) -> np.ndarray:
     """Fit one regularized Bradley--Terry maximum a posteriori estimate."""
 
     precision = 1.0 / prior_sd**2
 
     def objective(free_utilities):
         logits = design @ free_utilities
-        negative_log_likelihood = np.logaddexp(0.0, logits).sum() - (
-            chosen_left * logits
-        ).sum()
+        negative_log_likelihood = (
+            np.logaddexp(0.0, logits).sum() - (chosen_left * logits).sum()
+        )
         penalty = 0.5 * precision * np.square(free_utilities).sum()
         return negative_log_likelihood + penalty
 
     def gradient(free_utilities):
         logits = design @ free_utilities
-        return design.T @ (expit(logits) - chosen_left) + (
-            precision * free_utilities
-        )
+        return design.T @ (expit(logits) - chosen_left) + (precision * free_utilities)
 
     result = minimize(
         objective,

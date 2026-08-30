@@ -40,8 +40,7 @@ def choice_probabilities(
     )
     model_probability = expit(logits)
     return (
-        parameters.lapse_rate * 0.5
-        + (1.0 - parameters.lapse_rate) * model_probability
+        parameters.lapse_rate * 0.5 + (1.0 - parameters.lapse_rate) * model_probability
     )
 
 

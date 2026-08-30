@@ -25,25 +25,40 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import deferred, relationship
 
 import psynet.experiment
-from adaptive_logic import (
-    DEFAULT_BOOTSTRAP_REPLICATES,
-    MODEL_VERSION,
-    OPTIMIZER_VERSION,
-    fit_model,
-    prior_state,
-    select_pair,
-)
 from psynet.bot import Bot
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.experiment import scheduled_task
 from psynet.field import PythonDict, PythonObject
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage
+from psynet.process import WorkerAsyncProcess
 from psynet.timeline import Timeline
 from psynet.trial.main import Selection, Trial
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
-from response_model import MISSPECIFIED, sample_choices
+
+if __package__:
+    from .adaptive_logic import (
+        DEFAULT_BOOTSTRAP_REPLICATES,
+        MODEL_VERSION,
+        OPTIMIZER_VERSION,
+        candidate_pairs,
+        fit_model,
+        prior_state,
+        select_pair,
+    )
+    from .response_model import MISSPECIFIED, sample_choices
+else:
+    from adaptive_logic import (
+        DEFAULT_BOOTSTRAP_REPLICATES,
+        MODEL_VERSION,
+        OPTIMIZER_VERSION,
+        candidate_pairs,
+        fit_model,
+        prior_state,
+        select_pair,
+    )
+    from response_model import MISSPECIFIED, sample_choices
 
 logger = get_logger("adaptive_pairwise")
 ROOT = Path(__file__).parent
@@ -67,6 +82,8 @@ def load_items() -> list[dict]:
 
 ITEMS = load_items()
 ITEM_BY_ID = {item["item_id"]: item for item in ITEMS}
+PAIR_DEFINITIONS = candidate_pairs([item["item_id"] for item in ITEMS])
+ALL_PAIR_IDS = [pair_id for pair_id, _, _ in PAIR_DEFINITIONS]
 SIMULATION_RANKS = np.asarray([float(item["simulation_rank"]) for item in ITEMS])
 SIMULATION_UTILITIES = (SIMULATION_RANKS - SIMULATION_RANKS.mean()) / (
     SIMULATION_RANKS.std()
@@ -77,18 +94,17 @@ SIMULATION_UTILITY_BY_ID = dict(
 
 
 def get_nodes() -> list[StaticNode]:
-    """Create one candidate node for every unordered item pair."""
+    """Create nodes for the balanced 500-pair comparison graph."""
 
     return [
         StaticNode(
             definition={
-                "pair_id": f"{item_a['item_id']}__{item_b['item_id']}",
-                "item_a_id": item_a["item_id"],
-                "item_b_id": item_b["item_id"],
+                "pair_id": pair_id,
+                "item_a_id": item_a_id,
+                "item_b_id": item_b_id,
             }
         )
-        for index, item_a in enumerate(ITEMS)
-        for item_b in ITEMS[index + 1 :]
+        for pair_id, item_a_id, item_b_id in PAIR_DEFINITIONS
     ]
 
 
@@ -170,9 +186,9 @@ def _ensure_prior_snapshot() -> StudyModelSnapshot:
         return snapshot
 
 
-def _finalized_observations() -> tuple[list[AdaptivePairwiseTrial], float]:
+def _finalized_observations() -> tuple[list[dict], float]:
     started = time.perf_counter()
-    observations = (
+    trials = (
         AdaptivePairwiseTrial.query.filter_by(
             finalized=True,
             failed=False,
@@ -181,12 +197,23 @@ def _finalized_observations() -> tuple[list[AdaptivePairwiseTrial], float]:
         .order_by(AdaptivePairwiseTrial.id)
         .all()
     )
+    observations = [
+        {
+            "trial_id": trial.id,
+            "left_item_id": trial.adaptive_left_item_id,
+            "right_item_id": trial.adaptive_right_item_id,
+            "chosen_left": trial.adaptive_chosen_left,
+        }
+        for trial in trials
+    ]
     return observations, time.perf_counter() - started
 
 
-def refresh_model_snapshot(bootstrap_replicates: int | None = None) -> int | None:
-    """Fit all finalized observations and atomically publish a new snapshot."""
+def _claim_model_snapshot() -> tuple[int, list[dict], float] | None:
+    """Claim the current finalized-data version for one model worker."""
 
+    if StudyModelSnapshot.query.filter_by(status="building").first() is not None:
+        return None
     previous = _ensure_prior_snapshot()
     observations, loading_seconds = _finalized_observations()
     data_version = len(observations)
@@ -194,7 +221,7 @@ def refresh_model_snapshot(bootstrap_replicates: int | None = None) -> int | Non
         return None
 
     fingerprint = hashlib.sha256(
-        ",".join(str(trial.id) for trial in observations).encode()
+        ",".join(str(row["trial_id"]) for row in observations).encode()
     ).hexdigest()
     seed = 20260830 + data_version
     building = StudyModelSnapshot(
@@ -212,20 +239,24 @@ def refresh_model_snapshot(bootstrap_replicates: int | None = None) -> int | Non
     except IntegrityError:
         db.session.rollback()
         return None
+    return building.id, observations, loading_seconds
 
-    snapshot_id = building.id
+
+def _fit_claimed_snapshot(
+    snapshot_id: int,
+    observations: list[dict],
+    loading_seconds: float,
+    bootstrap_replicates: int | None = None,
+) -> int | None:
+    """Fit a claimed data version and atomically publish its snapshot."""
+
+    seed = 20260830 + len(observations)
     db.session.remove()
     try:
         fit = fit_model(
-            left_item_ids=np.asarray(
-                [trial.adaptive_left_item_id for trial in observations]
-            ),
-            right_item_ids=np.asarray(
-                [trial.adaptive_right_item_id for trial in observations]
-            ),
-            chosen_left=np.asarray(
-                [trial.adaptive_chosen_left for trial in observations]
-            ),
+            left_item_ids=np.asarray([row["left_item_id"] for row in observations]),
+            right_item_ids=np.asarray([row["right_item_id"] for row in observations]),
+            chosen_left=np.asarray([row["chosen_left"] for row in observations]),
             item_ids=[item["item_id"] for item in ITEMS],
             rng=np.random.default_rng(seed),
             bootstrap_replicates=(
@@ -258,10 +289,25 @@ def refresh_model_snapshot(bootstrap_replicates: int | None = None) -> int | Non
     logger.info(
         "Published adaptive model snapshot %s from %s observations in %.3f s.",
         snapshot.id,
-        data_version,
+        len(observations),
         fit.diagnostics["fit_seconds"],
     )
     return snapshot.id
+
+
+def refresh_model_snapshot(bootstrap_replicates: int | None = None) -> int | None:
+    """Synchronously claim, fit, and publish the current data version."""
+
+    claim = _claim_model_snapshot()
+    if claim is None:
+        return None
+    snapshot_id, observations, loading_seconds = claim
+    return _fit_claimed_snapshot(
+        snapshot_id,
+        observations,
+        loading_seconds,
+        bootstrap_replicates,
+    )
 
 
 class AdaptivePairwiseTrial(StaticTrial):
@@ -278,7 +324,8 @@ class AdaptivePairwiseTrial(StaticTrial):
     adaptive_snapshot_id = Column(Integer, nullable=True, index=True)
 
     def finalize_definition(self, definition, experiment, participant):
-        if np.random.default_rng(self.id).random() < 0.5:
+        position_seed = 100_000 * participant.id + self.node.id
+        if np.random.default_rng(position_seed).random() < 0.5:
             left_id, right_id = definition["item_a_id"], definition["item_b_id"]
         else:
             left_id, right_id = definition["item_b_id"], definition["item_a_id"]
@@ -309,8 +356,7 @@ class AdaptivePairwiseTrial(StaticTrial):
                 self._item_card(self.definition["left_item_id"]),
                 self._item_card(self.definition["right_item_id"]),
                 style=(
-                    "display: flex; justify-content: center; gap: 32px; "
-                    "margin: 24px 0;"
+                    "display: flex; justify-content: center; gap: 32px; margin: 24px 0;"
                 ),
             ),
         )
@@ -343,8 +389,9 @@ class AdaptivePairwiseTrialMaker(StaticTrialMaker):
     def select_node(self, nodes, participant, experiment):
         snapshot = _ensure_prior_snapshot()
         history_count = participant.module_state.n_completed_trials
+        eligible_candidate_ids = [node.definition["pair_id"] for node in nodes]
         decision = select_pair(
-            pair_ids=[node.definition["pair_id"] for node in nodes],
+            pair_ids=eligible_candidate_ids,
             item_a_ids=np.asarray([node.definition["item_a_id"] for node in nodes]),
             item_b_ids=np.asarray([node.definition["item_b_id"] for node in nodes]),
             state=snapshot.state,
@@ -358,9 +405,13 @@ class AdaptivePairwiseTrialMaker(StaticTrialMaker):
             "data_version": snapshot.data_version,
             "observation_fingerprint": snapshot.observation_fingerprint,
             "participant_history_count": history_count,
-            "eligible_candidate_ids": [
-                node.definition["pair_id"] for node in nodes
-            ],
+            "eligible_candidate_count": len(eligible_candidate_ids),
+            "eligible_candidate_ids_sha256": hashlib.sha256(
+                "\n".join(eligible_candidate_ids).encode()
+            ).hexdigest(),
+            "excluded_candidate_ids": sorted(
+                set(ALL_PAIR_IDS).difference(eligible_candidate_ids)
+            ),
         }
         logger.info(
             "Adaptive selection participant=%s pair=%s snapshot=%s "
@@ -382,10 +433,7 @@ class AdaptivePairwiseTrialMaker(StaticTrialMaker):
     ):
         if selection_context is None:
             raise RuntimeError("Adaptive trials require selection context.")
-        if (
-            selection_context["selected_candidate_id"]
-            != trial.definition["pair_id"]
-        ):
+        if selection_context["selected_candidate_id"] != trial.definition["pair_id"]:
             raise RuntimeError("Adaptive decision does not match the assigned trial.")
 
         trial.adaptive_pair_id = trial.definition["pair_id"]
@@ -406,22 +454,26 @@ class AdaptivePairwiseTrialMaker(StaticTrialMaker):
             participant_id=participant.id,
             study_fit_id=selection_context["study_fit_id"],
             selected_candidate_id=selection_context["selected_candidate_id"],
-            participant_history_count=selection_context[
-                "participant_history_count"
-            ],
+            participant_history_count=selection_context["participant_history_count"],
             candidate_pool_version=CANDIDATE_POOL_VERSION,
             selected_utility=selection_context["selected_utility"],
             details={
-                "eligible_candidate_ids": selection_context[
-                    "eligible_candidate_ids"
+                "eligible_candidate_count": selection_context[
+                    "eligible_candidate_count"
                 ],
+                "eligible_candidate_ids_sha256": selection_context[
+                    "eligible_candidate_ids_sha256"
+                ],
+                "excluded_candidate_ids": selection_context["excluded_candidate_ids"],
+                "candidate_reconstruction": (
+                    "All pair IDs generated from the versioned item-bank manifest "
+                    "minus excluded_candidate_ids."
+                ),
                 "objective_components": selection_context["objective_components"],
                 "optimizer_version": OPTIMIZER_VERSION,
                 "posterior_version": selection_context["posterior_version"],
                 "data_version": selection_context["data_version"],
-                "observation_fingerprint": selection_context[
-                    "observation_fingerprint"
-                ],
+                "observation_fingerprint": selection_context["observation_fingerprint"],
                 "scoring_seconds": selection_context["scoring_seconds"],
                 "posterior_predictive": [
                     predictive_probability_left,
@@ -492,7 +544,31 @@ class Exp(psynet.experiment.Experiment):
         from psynet.experiment import is_experiment_launched
 
         if is_experiment_launched():
-            refresh_model_snapshot()
+            claim = _claim_model_snapshot()
+            if claim is None:
+                return
+            snapshot_id, observations, loading_seconds = claim
+            try:
+                WorkerAsyncProcess(
+                    function=_fit_claimed_snapshot,
+                    arguments={
+                        "snapshot_id": snapshot_id,
+                        "observations": observations,
+                        "loading_seconds": loading_seconds,
+                    },
+                )
+                db.session.commit()
+            except Exception as error:
+                db.session.rollback()
+                snapshot = db.session.get(StudyModelSnapshot, snapshot_id)
+                snapshot.status = "failed"
+                snapshot.error = f"Failed to queue model worker: {error}"
+                db.session.commit()
+                logger.warning(
+                    "Failed to queue adaptive model refresh %s: %s",
+                    snapshot_id,
+                    error,
+                )
 
     def test_check_bot(self, bot: Bot, **kwargs):
         trials = (

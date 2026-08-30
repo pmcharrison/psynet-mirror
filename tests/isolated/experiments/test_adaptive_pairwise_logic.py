@@ -6,10 +6,7 @@ import numpy as np
 import pytest
 
 DEMO = (
-    Path(__file__).resolve().parents[3]
-    / "demos"
-    / "experiments"
-    / "adaptive_pairwise"
+    Path(__file__).resolve().parents[3] / "demos" / "experiments" / "adaptive_pairwise"
 )
 
 
@@ -87,6 +84,19 @@ def test_prior_selection_is_deterministic(model_modules):
 
     assert first["selected_candidate_id"] == second["selected_candidate_id"]
     assert first["selected_utility"] == second["selected_utility"]
+
+
+def test_candidate_graph_balances_all_100_items(model_modules):
+    adaptive_logic, _, _ = model_modules
+    item_ids = [f"item_{index:03d}" for index in range(100)]
+    pairs = adaptive_logic.candidate_pairs(item_ids)
+    degree = {item_id: 0 for item_id in item_ids}
+    for _, item_a, item_b in pairs:
+        degree[item_a] += 1
+        degree[item_b] += 1
+
+    assert len(pairs) == 500
+    assert set(degree.values()) == {10}
 
 
 def test_standalone_simulation_exercises_the_adaptive_loop(model_modules):

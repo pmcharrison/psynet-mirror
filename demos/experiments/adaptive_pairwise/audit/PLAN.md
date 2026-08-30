@@ -5,9 +5,11 @@
 ### Design
 
 Participants complete 20 two-alternative forced-choice comparisons drawn from a
-fixed bank of 100 abstract visual items. Each unordered pair is eligible at most
-once per participant. The adaptive unit is the item pair. Left/right position is
-randomized after selection and the raw answer is retained.
+fixed bank of 100 abstract visual items. A balanced sparse graph supplies 500
+candidate pairs, giving every item ten neighbors without imposing the request
+cost of materializing all 4,950 possible pairs. Each candidate pair is eligible
+at most once per participant. The adaptive unit is the item pair. Left/right
+position is randomized after selection and the raw answer is retained.
 
 The 20-trial budget is provisional workflow-test scaffolding, not a
 scientifically powered sample size. The design simulation compares adaptive and
@@ -35,7 +37,7 @@ waiting for human review:
   answers `Left item` and `Right item`.
 - Covariates \(z\): an empty vector. This first model has no participant or
   contextual covariates.
-- Adaptive unit: one unordered pair from the 4,950-pair candidate bank.
+- Adaptive unit: one unordered pair from the balanced 500-pair candidate graph.
 - Learner: a Bayesian Bradley--Terry model with item utilities, a Gaussian
   prior, and the final item fixed as the reference.
 - Simulation response model: a matching Bradley--Terry model and a
@@ -49,9 +51,11 @@ waiting for human review:
   atomically.
 - Dependencies: NumPy and SciPy only; no probabilistic-programming runtime.
 
-Every assignment stores the candidate IDs, chosen pair, objective components,
-snapshot and data versions, observation fingerprint, optimizer version,
-selection timing, and the free binary posterior predictive distribution.
+Every assignment stores a digest and count of the candidate IDs, the short list
+of excluded IDs needed to reconstruct the exact set from the versioned manifest,
+the chosen pair, objective components, snapshot and data versions, observation
+fingerprint, optimizer version, selection timing, and the free binary posterior
+predictive distribution.
 
 ## Implementation
 

@@ -14,9 +14,9 @@ import time
 from pathlib import Path
 
 import numpy as np
-
 from adaptive_logic import (
     DEFAULT_BOOTSTRAP_REPLICATES,
+    candidate_pairs,
     fit_model,
     prior_state,
     select_pair,
@@ -31,14 +31,6 @@ def load_items(path: Path = ROOT / "stimuli" / "item_bank.csv") -> list[dict]:
 
     with path.open(newline="") as file:
         return list(csv.DictReader(file))
-
-
-def _all_pairs(item_ids: list[str]) -> list[tuple[str, str, str]]:
-    return [
-        (f"{item_a}__{item_b}", item_a, item_b)
-        for i, item_a in enumerate(item_ids)
-        for item_b in item_ids[i + 1 :]
-    ]
 
 
 def _recovery_metrics(estimate: np.ndarray, truth: np.ndarray) -> dict:
@@ -70,7 +62,9 @@ def simulate_policy(
     truth = np.asarray([float(item["simulation_rank"]) for item in items])
     truth = (truth - truth.mean()) / truth.std()
     truth_by_id = dict(zip(item_ids, truth))
-    candidates = _all_pairs(item_ids)
+    candidates = candidate_pairs(item_ids)
+    if n_observations > len(candidates):
+        raise ValueError("n_observations exceeds the candidate-pair count.")
     state = prior_state(item_ids)
     observations: list[tuple[str, str, bool]] = []
     fit_seconds: list[float] = []
