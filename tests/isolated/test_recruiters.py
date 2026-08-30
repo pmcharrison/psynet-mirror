@@ -450,6 +450,7 @@ def make_participant_with_recruiter(config, failed=True, status="working"):
     recruiter = make_prolific_recruiter(config)
     participant = MagicMock()
     participant.failed = failed
+    participant.complete = False
     participant.status = status
     participant.recruiter = recruiter
     participant.calculate_reward.return_value = 2.50
@@ -535,7 +536,7 @@ def test_error_page_content_offers_submit_button_when_screen_out_enabled():
     assert "42" in html
     assert "https://app.prolific.com/submissions/complete?cc=UNSUCCESSFUL-CODE" in html
     assert "send the researcher a message" not in html
-    assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+    assert participant.issued_completion_code_type is None
     external_url.assert_called_once_with(code_type=PROLIFIC_UNSUCCESSFUL_CODE_TYPE)
 
 
@@ -614,8 +615,9 @@ def test_error_page_content_does_not_overwrite_other_issued_code():
 
 
 def test_error_page_content_keeps_button_on_rerender():
-    # A participant already stamped UNSUCCESSFUL (e.g. reloading the error
-    # page) still sees the submit button.
+    # A participant who already submitted with UNSUCCESSFUL (e.g. reloading
+    # the error page after the listener stamped the code) still sees the
+    # submit button.
     config = make_config(prolific_unsuccessful_base_payment=0.20)
     recruiter = make_prolific_recruiter(config)
     participant = make_error_page_participant(issued=PROLIFIC_UNSUCCESSFUL_CODE_TYPE)
@@ -626,6 +628,75 @@ def test_error_page_content_keeps_button_on_rerender():
 
     assert 'id="prolific-unsuccessful-submit"' in html
     assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+
+
+def test_error_page_render_does_not_change_decide_payment():
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = make_participant_with_recruiter(config, failed=False)
+    participant.id = 42
+    participant.complete = False
+
+    html, _ = render_error_page_html(
+        recruiter, config, assignment_id="assignment-1", participant=participant
+    )
+
+    assert 'id="prolific-unsuccessful-submit"' in html
+    assert participant.issued_completion_code_type is None
+    decision = decide_for(participant, config)
+    assert decision.status == "approved"
+    assert decision.platform_base == 1.00
+
+
+def test_issue_unsuccessful_completion_code_stamps_failed_participant():
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = make_participant_with_recruiter(config, failed=True)
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        assert recruiter.issue_unsuccessful_completion_code(participant) is True
+    assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+
+
+@pytest.mark.parametrize(
+    "failed,complete,issued,expect_stamped",
+    [
+        (False, False, None, False),
+        (True, True, None, False),
+        (True, False, "DEFAULT", False),
+        (True, False, PROLIFIC_UNSUCCESSFUL_CODE_TYPE, True),
+    ],
+)
+def test_issue_unsuccessful_completion_code_first_issuance_wins(
+    failed, complete, issued, expect_stamped
+):
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = make_participant_with_recruiter(config, failed=failed)
+    participant.complete = complete
+    participant.issued_completion_code_type = issued
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        assert (
+            recruiter.issue_unsuccessful_completion_code(participant) is expect_stamped
+        )
+    assert participant.issued_completion_code_type == (
+        PROLIFIC_UNSUCCESSFUL_CODE_TYPE if expect_stamped else issued
+    )
+
+
+def test_on_recruiter_submission_complete_stamps_unsuccessful_code_on_submit():
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=True, status="submitted")
+    )
+    harness = PaymentHarness()
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        harness.on_recruiter_submission_complete(participant, event=None)
+
+    assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+    assert participant.status == "screened_out"
 
 
 def test_recruiter_exit_info_returns_unsuccessful_code_type_for_failed_participant():
@@ -1024,6 +1095,45 @@ def test_on_recruiter_submission_complete_replays_record_without_paying():
     assert participant.base_payment == 0.25
     assert harness.recruit_calls == 0
     assert harness.submission_successful_calls == []
+
+
+def test_submission_complete_replay_rerecords_when_issued_code_changes_while_unconfirmed():
+    """A replay still re-runs decide/record. If the issued completion code
+    changed after a failed first transfer, status and platform base are
+    rewritten without a second money POST or a second recruit.
+    """
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="submitted")
+    )
+    participant.issued_completion_code_type = "DEFAULT"
+    participant.recruiter.reward_bonus.return_value = False
+    harness = PaymentHarness()
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        harness.on_recruiter_submission_complete(participant, event=None)
+
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.status == "approved"
+    assert participant.base_payment == 1.00
+    assert participant.bonus is None
+    assert harness.recruit_calls == 1
+    participant.recruiter.reward_bonus.reset_mock()
+
+    participant.status = "submitted"
+    participant.failed = True
+    participant.issued_completion_code_type = PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        harness.on_recruiter_submission_complete(participant, event=None)
+
+    participant.recruiter.reward_bonus.assert_not_called()
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.bonus is None
+    assert participant.status == "screened_out"
+    assert participant.base_payment == 0.25
+    assert harness.recruit_calls == 1
+    assert harness.submission_successful_calls == [participant]
 
 
 def test_on_recruiter_submission_complete_continues_recruiting_when_transfer_fails():

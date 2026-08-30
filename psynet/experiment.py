@@ -2996,6 +2996,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant.end_time = timestamp
 
         already_handled = bonus_transfer_already_claimed(participant)
+        issue_unsuccessful = getattr(
+            participant.recruiter, "issue_unsuccessful_completion_code", None
+        )
+        if issue_unsuccessful is not None:
+            issue_unsuccessful(participant)
         decision = self.decide_and_record_payment(participant)
         participant.recruiter.approve_hit(participant.assignment_id)
         if not self.pay_decided_bonus(participant, decision):

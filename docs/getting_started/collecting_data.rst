@@ -167,6 +167,8 @@ e.g. due to a technical error or a failed pre-screening task.
 You should select the Prolific recruiter by setting the config parameter ``recruiter`` to ``prolific``.
 Also, for most users we recommend setting the ``auto_recruit`` parameter to ``false``, meaning that you will manually
 control the recruitment of participants via the Prolific interface rather than letting PsyNet manage it for you.
+You must also set ``prolific_screen_out_slots`` (a common choice is 10 times ``initial_recruitment_size``);
+deployment fails without it. See :doc:`../experiment_development/configuration`.
 
 In summary, your config.txt might look something like this:
 
@@ -182,6 +184,7 @@ In summary, your config.txt might look something like this:
     wage_per_hour = 10
     base_payment = 5
     prolific_estimated_completion_minutes = 30
+    prolific_screen_out_slots = 100
 
 
 Testing your experiment
@@ -286,21 +289,27 @@ efficiency of your own code.
   :width: 800
   :alt: Increase places in the survey
 
-Participants may encounter technical errors. Respond to them promptly via the Prolific website,
-and tell them that you can pay them if they return their submission. You can look up a particular participant
-via their Prolific ID in the experiment dashboard to see how much bonus they had accumulated so far
-(look via the Participant tab). Normally you would pay the participant this amount of money via the Prolific website,
-as a bonus; you may also wish to pay them the base payment, or part of the base payment.
+Participants who hit a technical error are offered a "Submit to Prolific" button on the error page.
+That submits their study with the unsuccessful completion code: Prolific pays the fixed screen-out
+amount automatically, and PsyNet tops them up to their accumulated reward with a bonus. Respond to
+Prolific messages promptly, and look the person up by Prolific ID on the Participants dashboard
+to confirm that PsyNet recorded the screen-out and any bonus. You should not ask them to return
+the submission or pay them by hand unless they never submitted (for example they closed the error
+page) or you disabled automatic screen-out payment
+(``prolific_pay_unsuccessful = false``).
 
-Before you terminate your experiment, you want to make sure you deal with all the participants in the
-'Awaiting review' category. Some of these participants may be people who had technical errors;
-some may have just stopped the experiment early. You need to look through these cases and deal with them
-appropriately. It's best to have a dialogue with the participant where possible, rather than rejecting their
-submissions straightaway, which can upset people.
+Before you terminate the experiment, check two places:
+
+- The Participants dashboard, including anyone listed under Needs payment review. Those are
+  cases where PsyNet meant to pay a bonus and could not confirm it; you can Pay or Dismiss there.
+- Prolific's 'Awaiting review' list. Screened-out submissions do not appear there. The remaining
+  cases are typically successful completions that still need approval, people who stopped early
+  without submitting, or timed-out assignments. Talk to the participant where possible rather
+  than rejecting submissions straightaway.
 
 .. image:: ../_static/images/prolific/awaiting_review_2.png
   :width: 800
-  :alt: Pay participants who are awaiting review
+  :alt: Review remaining Prolific submissions that are awaiting review
 
 Once the experiment is finished, you will need to export the data.
 You can either do this via the admin panel or from the command line:
