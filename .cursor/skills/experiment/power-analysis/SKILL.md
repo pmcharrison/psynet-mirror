@@ -217,7 +217,43 @@ A curve over every budget shows where a criterion is first met and how quickly
 returns diminish, which a three-point comparison hides. Compute such a curve
 with stopping disabled: conditioning on a *realized* length under an adaptive
 stopping rule compares self-selected subgroups, because who stops early depends
-on the quantity being estimated.
+on the quantity being estimated. Put this fixed-budget curve first. Do not plot
+the same curve again at only the candidate budgets.
+
+Treat adaptive stopping as a second-stage optimization. First choose a sensible
+fixed budget from the full curve; then report what a stopping rule saves
+relative to that baseline and what it costs in precision. Include mean items,
+percentage and monetary savings, the fixed-budget metric, the stopping-rule
+metric, and their difference. Never describe fewer items as a saving without
+showing the corresponding precision change.
+
+Use one primary decision metric and a standard diagnostic set:
+
+```toml
+[metrics]
+primary = "rmse"
+report = [
+    "rmse",
+    "pearson_r",
+    "mae",
+    "bias",
+    "mean_posterior_sd",
+    "coverage_95",
+]
+```
+
+Store metric curves in long format (scenario, policy, budget, metric, estimate,
+Monte Carlo interval). Average correlations on the Fisher-z scale. Keep the
+primary metric permanently visible as its own figure. A companion Plotly figure
+may use `updatemenus` buttons for correlation, model SEM (mean posterior SD),
+bias, and coverage; keep a table of every metric at the chosen design.
+Page-level or ipywidget tabs do not survive the static audit renderer.
+
+Create the companion figure with one trace per displayed scenario/policy and
+have each button restyle the traces' `y` and hover values. Do **not** create a
+duplicate set of traces for every metric: that inflates the notebook MIME
+bundle and can exhaust the bounded audit preview.
+
 The layout rules and reference code live in
 `produce-experiment-audit/references/populating-an-audit.md`; verify the result
 at the rendered width with `psynet audit render` and `psynet audit serve`.

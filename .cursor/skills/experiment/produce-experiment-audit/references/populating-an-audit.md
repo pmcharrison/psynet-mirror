@@ -365,6 +365,21 @@ Use `AUDIT_FIGURE_LAYOUT` for the simpler case of a single encoding with a few
 short labels, where a legend row above the plot reads better than a side
 column.
 
+### Metric controls
+
+Use Plotly `updatemenus` buttons, not page-level or ipywidget tabs, when one
+diagnostic figure needs several y metrics. Tabs outside Plotly are not preserved
+by the static notebook renderer. Keep the primary decision metric in a
+permanently visible figure and put secondary views (for example correlation,
+model SEM, bias, and coverage) behind the buttons. Also render a summary table
+so printed and screenshotted audits retain the values.
+
+Keep the metric data long-form. Build one trace per scenario/policy for the
+initial metric, then have each button restyle those traces' `y`, error, and
+hover arrays. Do not add a hidden duplicate trace for every metric: Plotly
+serializes all hidden traces into the notebook, which can make the MIME bundle
+large enough to exhaust the bounded audit preview.
+
 Check the result at the rendered width before finalizing, not only in the
 authoring window. `psynet audit render` followed by `psynet audit serve` shows
 the real column width; a browser window around 1024 px wide is a good stress
