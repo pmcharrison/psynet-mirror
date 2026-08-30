@@ -364,6 +364,26 @@ def test_render_notebook_output_renders_plotly_mime_bundle() -> None:
     assert '"responsive":true' in html
 
 
+def test_render_plotly_output_pins_an_authored_figure_height() -> None:
+    def render(height: object) -> str:
+        return render_notebook_output(
+            {
+                "output_type": "display_data",
+                "data": {
+                    "application/vnd.plotly.v1+json": {
+                        "data": [{"type": "scatter", "x": [1], "y": [2]}],
+                        "layout": {"height": height},
+                    }
+                },
+            }
+        )
+
+    assert 'data-plotly-target style="height:950px"' in render(950)
+    assert "style=" not in render(None)
+    assert "style=" not in render("tall")
+    assert "style=" not in render(50_000)
+
+
 def test_render_notebook_output_rejects_invalid_plotly_mime_bundle() -> None:
     html = render_notebook_output(
         {

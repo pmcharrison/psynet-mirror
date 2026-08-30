@@ -271,8 +271,11 @@ an error bar at every x value; retain the exact bounds in hover text. Error
 bars remain appropriate for a sparse set of unrelated candidate designs.
 
 The layout rules and reference code live in
-`produce-experiment-audit/references/populating-an-audit.md`; verify the result
-at the rendered width with `psynet audit render` and `psynet audit serve`.
+`produce-experiment-audit/references/populating-an-audit.md`. Verify the result
+at the rendered width with `psynet audit render` and `psynet audit serve`, in
+every metric-button state and after resizing the window, and check for
+overlapping labels with the console snippet in that reference. Do not hand over
+a figure whose text collides.
 
 After executing it, mark the artifacts present:
 

@@ -37,6 +37,9 @@ PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 # highlighting and Plotly MIME bundles expand them. Keep notebook previews
 # bounded, but do not apply the smaller plain-text artifact limit to them.
 _MAX_NOTEBOOK_PREVIEW_BYTES = MAX_AUDIT_NOTEBOOK_BYTES
+# Guards against a figure whose authored height would push the rest of the audit
+# off the page; taller figures fall back to responsive height.
+MAX_PLOTLY_FIGURE_HEIGHT_PX = 4000
 MARKDOWN = MarkdownIt(
     "commonmark",
     {
@@ -752,6 +755,11 @@ def render_plotly_output(specification: dict[str, object]) -> str:
     Figure JSON is stored as a JSON script and drawn by the vendored Plotly
     runtime. HTML-significant characters are escaped so labels cannot close the
     script element.
+
+    Responsive mode keeps figures as wide as the audit column, but it recomputes
+    height from the container as well, which collapses a tall figure to the
+    container's minimum height on the first window resize and jams its labels
+    together. Pin the container to the authored height so only width responds.
     """
 
     data = specification.get("data")
@@ -773,14 +781,27 @@ def render_plotly_output(specification: dict[str, object]) -> str:
         .replace("<", "\\u003c")
         .replace(">", "\\u003e")
     )
+    authored_height = plotly_layout_height(layout)
+    height_style = f' style="height:{authored_height}px"' if authored_height else ""
     return (
         '<div class="notebook-plotly">'
         f'<script type="application/json" data-plotly-spec>{serialized}</script>'
-        '<div class="notebook-plotly-target" data-plotly-target></div>'
+        f'<div class="notebook-plotly-target" data-plotly-target{height_style}></div>'
         '<p class="notebook-plotly-error" data-plotly-error hidden>'
         "Interactive plot could not be rendered."
         "</p></div>"
     )
+
+
+def plotly_layout_height(layout: Mapping[str, object]) -> int | None:
+    """Return a figure's authored pixel height, when it declares a usable one."""
+
+    height = layout.get("height")
+    if isinstance(height, bool) or not isinstance(height, int | float):
+        return None
+    if not 0 < height <= MAX_PLOTLY_FIGURE_HEIGHT_PX:
+        return None
+    return round(height)
 
 
 def render_performance_result(

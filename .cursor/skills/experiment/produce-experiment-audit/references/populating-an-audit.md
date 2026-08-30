@@ -264,10 +264,12 @@ more appropriate. It should:
 
 ## Figure layout for rendered audits
 
-The audit renders notebooks inside a column that is typically 900-1200 px wide,
-depending on the browser viewport. Figures that look fine while authoring can
-still collide once rendered: facet titles overlap each other, in-plot
-annotations land on the data, and long legends wrap into the title.
+The audit renders notebooks inside a column roughly 700-900 px wide, narrower
+than a JupyterLab window. That width is deliberate: code and prose stay
+readable, and a wider page would not help because Python lines are short.
+Figures that look fine while authoring routinely collide once rendered: facet
+titles overlap each other, in-plot annotations land on the data, and long
+legends wrap into the title.
 
 Fix crowding by changing the layout, not by dropping data. A reviewer needs to
 see every condition that was simulated or measured, so hiding series to make a
@@ -314,8 +316,10 @@ Follow these rules.
   while it fits on one row. Two encodings produce one entry per combination,
   which wraps and pushes into the title, so those figures need a right-hand
   legend column and a matching right margin.
-- **Set an explicit height.** The rendered container is 20 rem tall by default;
-  420 px or more avoids a squashed plot.
+- **Set an explicit height.** A figure without one falls back to the 20 rem
+  container, which squashes it; 420 px or more is a safe floor. The audit holds
+  a figure to its authored height when the window is resized, so the height you
+  choose is the height reviewers see.
 - **Set explicit tick values** for a handful of design points, rather than
   letting Plotly choose ticks that repeat or crowd.
 - **Use translucent confidence ribbons for dense curves.** Repeated error bars
@@ -388,10 +392,40 @@ hover arrays. Do not add a hidden duplicate trace for every metric: Plotly
 serializes all hidden traces into the notebook, which can make the MIME bundle
 large enough to exhaust the bounded audit preview.
 
-Check the result at the rendered width before finalizing, not only in the
-authoring window. `psynet audit render` followed by `psynet audit serve` shows
-the real column width; a browser window around 1024 px wide is a good stress
-test.
+### Check the rendered figures for overlapping text
+
+Judging a figure in the authoring window is not enough, and neither is one
+glance at a screenshot. Render the audit (`psynet audit render`, then
+`psynet audit serve`), open it, and inspect every figure at the real column
+width, in every metric-button state, and after resizing the browser window.
+Resizing matters because it forces Plotly to redraw at a new size, which is when
+a figure that was laid out generously can suddenly crowd itself.
+
+Overlapping text is the failure to watch for: facet titles running into the
+legend, y-axis titles from stacked panels colliding, tick labels merging, the
+modebar sitting on top of the metric buttons. It is easy to miss by eye when the
+labels are small, so check it directly in the browser console (or from
+Playwright) rather than trusting a visual scan:
+
+```javascript
+Array.from(document.querySelectorAll(".notebook-plotly-target")).flatMap((figure) => {
+  const labels = Array.from(figure.querySelectorAll("text"))
+    .filter((node) => node.textContent.trim() && node.getBoundingClientRect().width > 0);
+  return labels.flatMap((a, i) =>
+    labels.slice(i + 1)
+      .filter((b) => {
+        const [boxA, boxB] = [a.getBoundingClientRect(), b.getBoundingClientRect()];
+        return Math.min(boxA.right, boxB.right) - Math.max(boxA.left, boxB.left) > 1 &&
+          Math.min(boxA.bottom, boxB.bottom) - Math.max(boxA.top, boxB.top) > 1;
+      })
+      .map((b) => [a.textContent.trim(), b.textContent.trim()]),
+  );
+});
+```
+
+An empty result is the standard to hold each figure to. Anything reported is a
+layout bug to fix by shortening labels, adding margin, moving the legend, or
+increasing the figure height, not something to leave for the reviewer.
 
 `REPORT.md` should state:
 
