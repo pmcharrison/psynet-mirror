@@ -24,7 +24,6 @@ from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
 
 from psynet.audit.model import (
-    MAX_AUDIT_TEXT_BYTES,
     AuditEvidenceView,
     AuditFile,
     CompletenessItem,
@@ -33,6 +32,10 @@ from psynet.audit.model import (
 
 UrlTransform = Callable[[str], str]
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+# Rendered notebook cells are larger than their source because syntax
+# highlighting and Plotly MIME bundles expand them. Keep notebook previews
+# bounded, but do not apply the smaller plain-text artifact limit to them.
+_MAX_NOTEBOOK_PREVIEW_BYTES = 250_000
 MARKDOWN = MarkdownIt(
     "commonmark",
     {
@@ -492,7 +495,7 @@ def render_notebook_panel(
             continue
         html_cell = render_notebook_cell(cell)
         extra = len(html_cell.encode("utf-8"))
-        if rendered_cells and preview_bytes + extra > MAX_AUDIT_TEXT_BYTES:
+        if rendered_cells and preview_bytes + extra > _MAX_NOTEBOOK_PREVIEW_BYTES:
             truncated_preview = True
             break
         rendered_cells.append(html_cell)

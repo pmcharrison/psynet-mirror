@@ -6,6 +6,7 @@ from psynet.audit.html import (
     render_json_block,
     render_markdown_document,
     render_notebook_output,
+    render_notebook_panel,
     render_power_analysis,
     render_timeline_section,
     safe_section_html,
@@ -393,6 +394,27 @@ def test_render_notebook_output_renders_markdown() -> None:
     assert "<strong>16-item cap</strong>" in html
     assert "<script>bad()</script>" not in html
     assert "IPython.core.display.Markdown" not in html
+
+
+def test_notebook_preview_has_a_separate_bounded_size_allowance() -> None:
+    notebook = {
+        "cells": [
+            {"cell_type": "code", "source": "", "outputs": [{"text": "x" * 110_000}]},
+            {"cell_type": "code", "source": "", "outputs": [{"text": "y" * 160_000}]},
+        ]
+    }
+
+    rendered = render_notebook_panel(
+        file("power/analysis.ipynb"),
+        notebook,
+        section_id="power-notebook",
+        heading="Power analysis",
+        standalone=True,
+    )
+
+    assert "x" * 1_000 in rendered
+    assert "y" * 1_000 not in rendered
+    assert "Notebook preview is truncated" in rendered
 
 
 PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="

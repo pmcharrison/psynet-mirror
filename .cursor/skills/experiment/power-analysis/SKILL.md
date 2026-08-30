@@ -194,6 +194,7 @@ Plotly and select its notebook MIME renderer before creating figures:
 import plotly.io as pio
 
 pio.renderers.default = "plotly_mimetype"
+pio.templates.default = "plotly_white"
 ```
 
 The audit packages Plotly.js with the rendered site, so these figures remain
@@ -253,6 +254,21 @@ Create the companion figure with one trace per displayed scenario/policy and
 have each button restyle the traces' `y` and hover values. Do **not** create a
 duplicate set of traces for every metric: that inflates the notebook MIME
 bundle and can exhaust the bounded audit preview.
+
+Begin the notebook with two short prose sections before any results:
+
+1. **How to read the statistics** defines the primary metric and each
+   diagnostic in plain language, says whether higher or lower is better, and
+   distinguishes Monte Carlo intervals from participant-level intervals.
+2. **Simulation assumptions** states the data-generating model, true-parameter
+   distribution, item-bank/calibration assumptions, sample and replicate
+   counts, missingness or attrition assumptions, omitted costs, and the purpose
+   of each misspecification scenario.
+
+Use `plotly_white` by default. For a dense budget curve, show the primary
+metric's Monte Carlo interval as a translucent confidence ribbon rather than
+an error bar at every x value; retain the exact bounds in hover text. Error
+bars remain appropriate for a sparse set of unrelated candidate designs.
 
 The layout rules and reference code live in
 `produce-experiment-audit/references/populating-an-audit.md`; verify the result

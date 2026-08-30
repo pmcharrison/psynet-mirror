@@ -256,7 +256,8 @@ more appropriate. It should:
 - read exported data directly;
 - show data loading and cleaning;
 - display useful summary tables or plots. Prefer Plotly with
-  `pio.renderers.default = "plotly_mimetype"` for offline interactive figures;
+  `pio.renderers.default = "plotly_mimetype"` for offline interactive figures
+  and `pio.templates.default = "plotly_white"` for consistent presentation;
   inline SVG/PNG is also supported. Call `fig.show()`, `plt.show()`, or the
   appropriate equivalent so figures are stored in the executed notebook;
 - distinguish technical validation from scientific conclusions.
@@ -277,6 +278,9 @@ its own column.
 
 Follow these rules.
 
+- **Use `plotly_white` by default.** Set
+  `pio.templates.default = "plotly_white"` beside the MIME renderer so figures
+  have a consistent, print-friendly background.
 - **Keep all the series.** Prefer one panel showing every condition over
   several panels that each show a subset. Split a figure only when it genuinely
   covers separate analyses, never to reduce line count.
@@ -314,6 +318,10 @@ Follow these rules.
   420 px or more avoids a squashed plot.
 - **Set explicit tick values** for a handful of design points, rather than
   letting Plotly choose ticks that repeat or crowd.
+- **Use translucent confidence ribbons for dense curves.** Repeated error bars
+  become a picket fence at single-unit resolution. Draw upper and lower bounds
+  as a low-opacity filled polygon behind each line and put exact bounds in the
+  line's hover text. Keep error bars for sparse, unrelated design points.
 
 Use this reference layout, adjusting the numbers rather than inventing a new
 scheme per figure:
