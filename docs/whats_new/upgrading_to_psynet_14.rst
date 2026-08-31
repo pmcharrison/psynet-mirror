@@ -175,7 +175,7 @@ From a complete experiment directory. At minimum you typically need:
 
 * ``experiment.py``, ``test.py``, ``constraints.txt``
 * ``config.txt``, ``requirements.txt``
-* ``.gitignore`` (must include ``source_code.zip``) and ``.python-version``
+* ``.gitignore``, ``deploy.toml``, and ``.python-version``
 
 If you are scaffolding from scratch, see
 :doc:`/tutorials/creating_a_new_experiment` or run ``psynet update-scripts``
