@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import timedelta
 from types import SimpleNamespace
@@ -16,13 +17,16 @@ from psynet.dashboard.sync_groups import (
 )
 from psynet.data import SQLBase
 from psynet.experiment import get_experiment
+from psynet.page import WaitPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
 from psynet.sync import (
+    BARRIER_HOLD_CHANNEL_PREFIX,
     Barrier,
     BarrierRecord,
     GroupBarrier,
+    ParticipantLinkBarrier,
     SimpleGrouper,
     SimpleSyncGroup,
     check_barriers,
@@ -58,6 +62,11 @@ class ExplodingBarrier(Barrier):
 class RecordingBarrier(Barrier):
     def check(self):
         processed_barriers.append(self.id)
+
+
+class ReleaseAllBarrier(Barrier):
+    def choose_who_to_release(self, waiting_participants):
+        return waiting_participants
 
 
 class RecordingTimeoutGroupBarrier(GroupBarrier):
@@ -101,6 +110,21 @@ def test_max_wait_action_kick_requires_group_barrier():
         max_wait_action="kick",
     )
     assert barrier.max_wait_action == "kick"
+
+
+def test_default_barrier_uses_timeline_hold():
+    barrier = ReleaseAllBarrier(id_="hold")
+
+    assert barrier.waiting_logic.is_timeline_hold
+    assert barrier.waiting_logic.barrier_id == barrier.id
+    assert not isinstance(barrier.waiting_logic, WaitPage)
+
+
+def test_explicit_barrier_waiting_logic_is_preserved():
+    waiting_logic = WaitPage(wait_time=1)
+    barrier = ReleaseAllBarrier(id_="page_wait", waiting_logic=waiting_logic)
+
+    assert barrier.waiting_logic is waiting_logic
 
 
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
@@ -499,6 +523,46 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     check_barriers()
 
     assert "b_good" in processed_barriers
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_barriers_publishes_release_after_commit(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    participant.status = "working"
+    participant.page_uuid = "hold-page-uuid"
+    barrier = ReleaseAllBarrier(id_="release_all")
+    barrier.receive_participant(participant)
+    db_session.commit()
+
+    publications = []
+
+    def publish(data, channel_name):
+        link = ParticipantLinkBarrier.query.filter_by(
+            participant_id=participant.id,
+            barrier_id=barrier.id,
+        ).one()
+        assert link.released
+        publications.append((json.loads(data), channel_name))
+
+    exp.publish_to_subscribers = publish
+
+    check_barriers()
+
+    assert publications == [
+        (
+            {
+                "type": "barrier_released",
+                "barrier_id": "release_all",
+                "page_uuid": "hold-page-uuid",
+            },
+            f"{BARRIER_HOLD_CHANNEL_PREFIX}{participant.id}",
+        )
+    ]
 
 
 def test_group_barrier_rejects_bound_method():
