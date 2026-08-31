@@ -114,22 +114,9 @@ transaction flushes; do not flush merely to obtain the trial ID. If the callback
 raises, the trial and the decision roll back together, so a decision never
 survives an assignment the participant did not receive.
 
-A trial maker exposes the same hook as a method, fed by `Selection.context`:
-
-```python
-class AdaptiveTrialMaker(StaticTrialMaker):
-    def on_trial_created(self, trial, experiment, participant, selection_context):
-        if selection_context is None:
-            return
-        selected_item_id = trial.definition["item_id"]
-        if selection_context["selected_candidate_id"] != selected_item_id:
-            raise RuntimeError("Adaptive decision does not match the trial.")
-        ...
-```
-
-`selection_context` is `None` when the selection hook returned a bare node
-rather than a `Selection`. The method runs for primary assignments only: repeat
-trials and synchronized follower copies do not call it.
+A trial maker's `on_trial_created` method is the same hook, with provenance in
+`Selection.context` instead of `creation_context`. It runs for primary
+assignments only: repeat trials and synchronized follower copies do not call it.
 
 Use explicit columns for routine queries and exports. Keep `details` small
 unless the complete candidate and utility set is needed to reconstruct the

@@ -266,19 +266,9 @@ asset per item is reused by every trial that presents it.
 row and the assignment commit or roll back together. Follow
 [references/study-state-storage.md](references/study-state-storage.md).
 
-Features that a trial maker would have provided become explicit lines:
-
-| Trial-maker feature | Cue equivalent |
-| --- | --- |
-| `allow_repeated_nodes=False` | exclude IDs already recorded for this participant |
-| `custom_node_filter` | filter the candidate table before scoring |
-| `Selection(value, context)` | `creation_context` |
-| `find_nodes` returning `"wait"` | a wait page or `conditional` in the timeline |
-| `should_finish_block` | the `while_loop` condition described below |
-
-Each row is a few lines of Python over IDs, and the same expression works in
-`simulate_procedure.py`, which has no nodes at all. Apply the exclusion rule to
-the decision table rather than inferring exposure from successful observations:
+Repeat suppression and extra eligibility rules are ordinary filters on the
+candidate table. Apply them to the decision table rather than inferring
+exposure from successful observations:
 
 ```python
 seen_item_ids = decisions.loc[
@@ -325,8 +315,7 @@ Always cap the loop, either with a hard maximum inside the condition or with
 patterns. `expected_repetitions` only informs progress and reward estimates.
 
 Avoid fitting the participant model twice for stopping and selection when that
-cost is material; share a fit keyed by the finalized observation set. On a
-`StaticTrialMaker`, the same criterion goes in `should_finish_block`.
+cost is material; share a fit keyed by the finalized observation set.
 
 ## Store observations and decisions
 
