@@ -1,0 +1,45 @@
+schema_version = "1.0"
+method = "precision-estimation"
+
+[decision]
+metric = "rmse"
+threshold = 0.45
+
+[metrics]
+primary = "rmse"
+report = [
+    "rmse",
+    "pearson_r",
+    "mae",
+    "bias",
+    "mean_posterior_sd",
+    "coverage_95",
+]
+
+[design]
+n_participants = [40]
+max_items = [8, 12, 16]
+policies = ["max_information", "random"]
+stop_early = false
+
+[stopping]
+# Deployed-policy cell, evaluated separately from the matched-budget grid.
+max_items = 16
+min_items = 8
+se_threshold = 0.40
+
+[assumptions]
+true_ability_sd = [1.0]
+guessing = [0.0, 0.25]
+
+[simulation]
+replicates = 20
+base_seed = 20260831
+keep_replicates = false
+n_jobs = 1
+
+[cost]
+currency = "USD"
+wage_per_hour = 12.0
+fixed_seconds = 35.0
+seconds_per_item = 8.0

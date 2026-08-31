@@ -11,6 +11,7 @@ Demos
    trial
    trial_2
    trial_3
+   adaptive_irt
    audio
    static_audio
    gibbs
