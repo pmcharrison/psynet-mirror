@@ -209,21 +209,9 @@ should be reproduced separately in simulation.
 
 ## Connect the policy to PsyNet
 
-An adaptive policy is usually a short piece of array code: load the
-observations, score the candidate actions, take the best one. `Trial.cue`
-delivers that directly, so start there. Use a trial maker when you need what it
-provides: balanced collection across an authored bank, chain-structured state,
-or its dashboard views.
-
-| The adaptive unit is | Use |
-| --- | --- |
-| a combination of stored objects, such as a pair of items or an item-by-condition cell | `Trial.cue` |
-| one row of an authored bank, and PsyNet should also balance trials across that bank | `StaticTrialMaker` |
-| derived from a completed earlier trial, as in staircases, transmission chains, or Gibbs sampling | `ChainTrialMaker` |
-
-Do not store combinations as nodes. A 100-item pairwise design has 4,950 pairs,
-and one node per pair means the server loads that whole pool on every
-assignment. Store the 100 items and build the pair when you need it.
+We generally recommend constructing adaptive paradigms using `Trial.cue`.
+This gives more flexibility than the classic `TrialMaker` options,
+such as `StaticTrialMaker` and `ChainTrialMaker`.
 
 ### Cue the selected candidate
 
@@ -299,15 +287,6 @@ seen_item_ids = decisions.loc[
 ]
 candidate_items = items[~items["item_id"].isin(seen_item_ids)]
 ```
-
-If a `StaticTrialMaker` is already in place because the experiment needs
-balanced collection across an authored bank, you can rank its eligible nodes
-with `select_node`. That is a trial-maker customization, documented on
-`StaticTrialMaker`, not a second adaptive architecture.
-
-Either approach selects stimuli. Adaptive recruitment or participant selection
-instead needs an experiment recruitment criterion or scheduler, and a combined
-policy can have both call the same `adaptive_logic.py`.
 
 ## Implement a custom stopping rule
 
@@ -429,6 +408,7 @@ scientific policy. Any shortlist, approximation, or batched update changes the
 implemented policy and must be included in planning and simulation.
 
 ## Simulate the full procedure
+
 `simulate_procedure.py` should run the adaptive loop without starting PsyNet. It
 draws responses from `response_model/`, calls the table-based selection code,
 and supports both adaptive and prespecified non-adaptive policies.
@@ -449,6 +429,7 @@ simulation rather than running a second Monte Carlo campaign; use
 `power-analysis/SKILL.md` for sample size, cost, and the inferential decision.
 
 ## Validate in PsyNet
+
 Run bots through the adaptive selection path. Use concurrent bots when the
 design has shared model state or exposure constraints. Verify from exported
 data that decisions use the recorded item-bank or model version and refer
