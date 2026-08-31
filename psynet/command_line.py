@@ -1403,9 +1403,10 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
     check does not falsely fail. A missing ``deploy.toml`` is created from the
     PsyNet template and never overwritten. Auto-created policies leave a local
     review marker so the next debug, test, or deploy command stops once when
-    setup or scaffold wrote the file on an author machine. Temporary pytest
-    scaffolds and in-repo auto-prepare skip that pause so first launch can
-    run. Remote deployments additionally
+    setup or scaffold wrote the file on an author machine; that pause runs
+    after the Git checks so the message can list Git-ignored selected files.
+    Temporary pytest scaffolds and in-repo auto-prepare skip the pause so first
+    launch can run. Remote deployments additionally
     require a Git commit for provenance; local debug and test runs may use a
     repository with no commits. Leftover generated ``.dockerignore`` files and
     ``docker/`` helper scripts are removed (custom copies are preserved with a
@@ -1432,6 +1433,33 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
             f"({missing_paths}). "
             f"{_missing_boilerplate_fix(mode=mode, missing_paths=missing_boilerplate)}"
         )
+    # Git provenance (commit SHA and dirty state) is recorded for deployments.
+    if not git_repository_available():
+        from .light_utils import git_command_available
+
+        if not git_command_available():
+            raise click.ClickException(
+                "Git does not appear to be installed. Install it from "
+                "https://git-scm.com/downloads, then create a repository by "
+                "running 'git init'. If you copied a demo into a new directory, "
+                "run 'git init' before 'psynet debug local' or 'psynet test local'."
+            )
+        raise click.ClickException(
+            "This directory is not a git repository. Create one by running "
+            "'git init'. If you copied a demo into a new directory, run "
+            "'git init' before 'psynet debug local' or 'psynet test local'."
+        )
+    from .experiment_setup import _containing_worktree_ignores_experiment
+
+    if _containing_worktree_ignores_experiment():
+        raise click.ClickException(
+            "The containing Git repository ignores this experiment directory, "
+            "so its commit cannot identify the experiment's source state. Run "
+            "'psynet setup' to create a dedicated Git repository before continuing."
+        )
+
+    # Runs after the Git checks so 'git check-ignore' can report which
+    # deployment-selected files the old .gitignore used to keep local.
     if _deployment_policy_needs_review():
         ignored_paths = deployment_info._git_ignored_deployment_paths()
         ignored_summary = ""
@@ -1458,31 +1486,6 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
             "generated files that should stay local.\n"
             "  3. Add anything that should stay local to [exclude] in deploy.toml.\n"
             "  4. Rerun this command."
-        )
-
-    # Git provenance (commit SHA and dirty state) is recorded for deployments.
-    if not git_repository_available():
-        from .light_utils import git_command_available
-
-        if not git_command_available():
-            raise click.ClickException(
-                "Git does not appear to be installed. Install it from "
-                "https://git-scm.com/downloads, then create a repository by "
-                "running 'git init'. If you copied a demo into a new directory, "
-                "run 'git init' before 'psynet debug local' or 'psynet test local'."
-            )
-        raise click.ClickException(
-            "This directory is not a git repository. Create one by running "
-            "'git init'. If you copied a demo into a new directory, run "
-            "'git init' before 'psynet debug local' or 'psynet test local'."
-        )
-    from .experiment_setup import _containing_worktree_ignores_experiment
-
-    if _containing_worktree_ignores_experiment():
-        raise click.ClickException(
-            "The containing Git repository ignores this experiment directory, "
-            "so its commit cannot identify the experiment's source state. Run "
-            "'psynet setup' to create a dedicated Git repository before continuing."
         )
     if require_git_commit:
         from .light_utils import git_commit_available

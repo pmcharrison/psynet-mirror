@@ -1322,6 +1322,9 @@ def prune_experiment_scaffold(
         When true, also delete git-tracked managed paths. When false (default),
         tracked paths are preserved. Raises ``click.UsageError`` if this
         directory is a git work tree but tracked paths cannot be listed.
+
+    Any pending ``deploy.toml`` review marker is dropped, because the policy it
+    refers to is itself scaffold-managed.
     """
     root = Path(".")
     tracked = _git_tracked_paths(
@@ -1341,6 +1344,7 @@ def prune_experiment_scaffold(
     )
     preserved_unrecognized = []
     removed = []
+    _clear_deployment_policy_review_marker()
     _remove_obsolete_generated_dockerignore()
     _remove_obsolete_generated_docker_scripts()
 
