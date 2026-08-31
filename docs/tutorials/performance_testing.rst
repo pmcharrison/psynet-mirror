@@ -100,26 +100,28 @@ comparing them. Use a duration long enough for every test to reach its target:
 The summary table shows, for each bot count, the number of bots that succeeded,
 total requests, throughput (requests per second), the median response time, and
 the median async-process queue delay. When multiple counts are run, it also shows
-each metric relative to the first (lowest) row, so you can spot the point where
-response times or queue delays start climbing faster than the load.
+each metric relative to the first (lowest) row. Treat the response-time columns
+as the ones that decide whether the load is acceptable; completion counts mix
+server speed with page pacing and the length of the test window.
 
 Reading the results
 -------------------
 
-Each individual test prints several sections. The most useful ones are:
+The main numbers are the HTTP **response times** for ``/timeline`` and
+``/response``. Use the median for typical assignment latency and the 95th
+percentile for the tail a participant will actually feel. If those percentiles
+are high, profile SQL with ``psynet test local --sql-profile`` (add
+``--parallel`` when the problem only appears under concurrency) before changing
+the scientific policy. Repeated identical statements usually mean an N+1 query;
+see :ref:`SQLAlchemy profiling <sqlalchemy_profiling>`.
+
+Each individual test also prints:
 
 * **Bot outcomes** — how many bots were started, completed successfully,
-  completed with an error, or were still running when time ran out, plus an
-  overall completion rate.
-* **Bot runtimes** — how long bots took, broken down by outcome (succeeded,
-  failed, timed out), along with bot initialization times.
-* **Request metrics** — total requests, request errors, and throughput in
-  requests per second.
-* **Response times** — median, 95th/99th percentile, max, mean, and standard
-  deviation of HTTP response times for the key participant-facing endpoints
-  (``/timeline`` and ``/response``). The percentiles are usually more
-  informative than the mean, since a few slow requests can badly affect the
-  participant experience.
+  completed with an error, or were still running when time ran out.
+* **Bot runtimes** — how long bots took, broken down by outcome, along with
+  initialization times.
+* **Request metrics** — total requests, request errors, and throughput.
 * **Wait page times** — how long successful bots spent on wait pages (relevant
   for synchronized experiments).
 * **Trials per bot** — the min/median/max number of trials completed by

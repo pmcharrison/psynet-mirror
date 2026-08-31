@@ -213,7 +213,10 @@ psynet audit performance-test \
 ```
 
 The command writes `<experiment>/audit/artifacts/performance.json`
-and marks `performance_result` present. Use top-level
+and marks `performance_result` present. Judge the run by median and p95
+`/timeline` and `/response` times, not by how many bots finished. If those
+percentiles are high, profile SQL with `psynet test local --sql-profile`
+before changing the scientific policy. Use top-level
 `psynet performance-test local --json-output <path>` for a non-audit file.
 
 Shorter smoke runs are fine while iterating or infrastructure-testing; use

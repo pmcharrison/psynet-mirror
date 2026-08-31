@@ -35,8 +35,12 @@ psynet audit performance-test \
 ```
 
 That writes `audit/artifacts/performance.json` and marks `performance_result`
-present. Use top-level `psynet performance-test local --json-output <path>`
-for a custom non-audit file.
+present. Judge the run by median and p95 `/timeline` and `/response` times, not
+by how many bots finished. If those percentiles are high, profile SQL with
+`psynet test local --sql-profile` before changing the scientific policy (see
+the performance-testing tutorial). Use top-level
+`psynet performance-test local --json-output <path>` for a custom non-audit
+file.
 If the experiment customizes `run_bot`, preserve `bot=None` support and delegate
 to `super().run_bot(...)` for framework-created bots; `psynet performance-test`
 calls `exp.run_bot(time_factor=...)` without passing a bot object.
