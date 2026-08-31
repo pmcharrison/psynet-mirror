@@ -27,13 +27,14 @@ Keep these distinctions in mind when interpreting a report:
 
 * **Statement count** finds lazy-loading N+1 patterns, but a constant number of
   statements can still become slower as the candidate pool grows.
-* **SQL execution time** does not include all Python-side ORM construction and
-  deserialization. Compare request wall time as well.
-* **Row count** matters even when query count does not. Loading 2,000 rows and
-  discarding 1,800 in Python is still expensive.
-* **Commit time** is reported separately. Moving or removing a commit can alter
-  durability and transaction semantics, so it is not merely a query
-  optimization.
+* **SQL execution time** measures cursor execution, not Python-side ORM object
+  construction and result deserialization. Compare request wall time as well.
+* **Row count** matters even when query count does not. Loading a large result
+  and discarding most of it in Python is still expensive.
+* **Commit time** wraps the full commit lifecycle and can therefore overlap
+  statement timings recorded for queries emitted by its flush. Do not add the
+  two totals together. Moving or removing a commit can also alter durability
+  and transaction semantics, so it is not merely a query optimization.
 
 For navigation investigations, separate ``/timeline`` and ``/response`` stacks
 from setup, schema inspection, test-only status endpoints, teardown, and
@@ -160,7 +161,8 @@ Small SQL-shape special cases
 -----------------------------
 
 Special-casing an empty ``IN``/``NOT IN`` input can make generated SQL look
-cleaner, but SQLAlchemy already emits a correct no-op predicate. Do not add a
+cleaner, but SQLAlchemy already emits a correct predicate: empty ``IN`` is
+always false and empty ``NOT IN`` is effectively always true. Do not add a
 branch unless profiling demonstrates a meaningful benefit.
 
 Remaining opportunities
@@ -195,18 +197,20 @@ isolate the server process's profiler without becoming timing-sensitive.
 Evidence from the investigation
 ===============================
 
-The following figures are local observations, not portable performance
-guarantees:
+The following results came from exploratory local profiles. The raw profiles
+were not committed, so treat them as motivation rather than reproducible
+benchmarks:
 
 * In one matched timeline flow, request-scoped participant loading reduced the
-  participant-load statements from about four per request to one. Mean
-  participant-facing HTTP duration moved from 72 ms to 69 ms.
-* In a synthetic multi-module performance-check benchmark, filtering by trial
-  maker in SQL hydrated 200 rows instead of 2,000 and reduced the measured
-  lookup from 44.1 ms to 5.7 ms.
+  participant-load statements from about four per request to one. End-to-end
+  request latency improved modestly.
+* In a synthetic comparison with ten trial makers and 200 trials per maker,
+  filtering by trial maker in SQL hydrated 200 rows instead of 2,000 and
+  substantially reduced lookup time.
 
-These results justify the retained changes, but production impact depends on
-database size, concurrency, experiment structure, and authored callbacks.
+These observations, together with focused regression tests, support the
+retained changes. Production impact still depends on database size,
+concurrency, experiment structure, and authored callbacks.
 
 Checklist for future investigations
 ===================================
