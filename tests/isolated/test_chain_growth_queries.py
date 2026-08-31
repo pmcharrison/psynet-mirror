@@ -349,6 +349,34 @@ def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
+def test_performance_check_filters_trials_by_maker_in_sql(db_session, participant):
+    exp = get_experiment()
+    selected_maker = chain_trial_maker(id_="selected_performance")
+    other_maker = chain_trial_maker(id_="other_performance")
+    selected_network = create_chain_network(selected_maker, exp)
+    other_network = create_chain_network(other_maker, exp)
+    selected_trial = add_trial(
+        GrowthQueryTrial,
+        selected_network.head,
+        participant,
+    )
+    for _ in range(20):
+        add_trial(GrowthQueryTrial, other_network.head, participant)
+
+    with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
+        trials = selected_maker.get_participant_trials(participant)
+
+    assert trials == [selected_trial]
+    statements = profiler.get_stats(top_n=None)
+    assert len(statements) == 1
+    where_clause = statements[0].statement.lower().split(" where ", maxsplit=1)[1]
+    assert "trial_maker_id" in where_clause
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_ready_to_grow_query_uses_live_trial_state(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()

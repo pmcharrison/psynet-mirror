@@ -2196,10 +2196,13 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        all_participant_trials = self.trial_class.query.filter_by(
-            participant_id=participant.id
+        # Performance checks may run after every trial. Filtering in Python
+        # would repeatedly hydrate trials from the participant's other trial
+        # makers, making long multi-module experiments increasingly expensive.
+        return self.trial_class.query.filter_by(
+            participant_id=participant.id,
+            trial_maker_id=self.id,
         ).all()
-        return [t for t in all_participant_trials if t.trial_maker_id == self.id]
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):
