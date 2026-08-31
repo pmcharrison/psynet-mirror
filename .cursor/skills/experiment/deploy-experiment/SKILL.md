@@ -25,6 +25,10 @@ Check that the experiment folder has:
 - `requirements.txt`
 - `constraints.txt`
 - `Dockerfile` and/or `Dockertag` when the template expects them
+- `deploy.toml` with reviewed `[exclude]` rules; if PsyNet just created it,
+  the first debug/test/deploy command stops once so you can review. Then run
+  `dallinger deployment-files list` to inspect every file that PsyNet will copy.
+  Git-ignored files may still be deployed after that review.
 - `.gitignore` excluding `.venv/`, `.deploy/`, `.pytest_cache/`, `exports/`,
   `deploy_logs/`, source archives, generated logs, and the managed
   `.cursor/skills/psynet/` bundle
@@ -117,8 +121,9 @@ dallinger ec2 teardown --name <server-name> --region <region> --dns-host <server
 ## Common failure modes
 
 - `psynet debug local` fails because port 5000 is already occupied.
-- `psynet debug local` package-size check counts `.venv` because the folder is
-  not a git repo or ignore rules are missing.
+- `psynet debug local` reports an oversized deployment plan; inspect it with
+  `dallinger deployment-files list`, then add local paths, names, or suffixes
+  to `[exclude]` in `deploy.toml`.
 - `dallinger ec2 list instances --all` is slow or times out; prefer explicit
   `--region` scans.
 - AWS commands fail with missing credentials; do not invent credentials.
