@@ -29,12 +29,13 @@ from psynet.sync import (
     SimpleSyncGroup,
     check_barriers,
 )
-from psynet.timeline import CodeBlock, GoTo
+from psynet.timeline import CodeBlock, GoTo, _while_loop_state_key
 from psynet.timeline_hold import (
     _TIMELINE_HOLD_CHANNEL,
     TimelineHoldRecord,
     _queue_timeline_hold_wake,
 )
+from psynet.utils import serialise
 
 
 def get_random_id():
@@ -135,6 +136,15 @@ def test_explicit_barrier_waiting_logic_is_preserved():
     barrier = ReleaseAllBarrier(id_="page_wait", waiting_logic=waiting_logic)
 
     assert barrier.waiting_logic is waiting_logic
+
+
+def test_expected_wait_rejects_explicit_waiting_logic():
+    with pytest.raises(ValueError, match="expected_wait"):
+        ReleaseAllBarrier(
+            id_="page_wait",
+            waiting_logic=WaitPage(wait_time=1),
+            expected_wait=2,
+        )
 
 
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
@@ -600,10 +610,8 @@ def test_check_barriers_publishes_release_after_commit(
                 "type": "timeline_hold_wake",
                 "targets": [
                     {
-                        "target_participant_id": str(participant_id),
                         "page_uuid": "hold-page-uuid",
                         "reason": "barrier_released",
-                        "hold_id": "barrier:release_all",
                     }
                 ],
             },
@@ -618,6 +626,19 @@ def test_check_barriers_publishes_release_after_commit(
 def test_timeline_hold_wake_is_discarded_on_rollback(
     in_experiment_directory, db_session, monkeypatch
 ):
+    participant = new_participant(get_experiment())
+    participant.page_uuid = "rolled-back"
+    hold = TimelineHoldRecord(
+        participant=participant,
+        page_uuid=participant.page_uuid,
+        hold_id="rollback",
+        started_at=timenow(),
+        expected_wait=1,
+        max_wait_time=20,
+        fix_time_credit=False,
+    )
+    db_session.add(hold)
+    db_session.flush()
     publications = []
     monkeypatch.setattr(
         get_experiment(),
@@ -625,8 +646,7 @@ def test_timeline_hold_wake_is_discarded_on_rollback(
         lambda *args, **kwargs: publications.append((args, kwargs)),
     )
 
-    db_session.execute(text("SELECT 1"))
-    _queue_timeline_hold_wake(1, page_uuid="rolled-back")
+    _queue_timeline_hold_wake(participant.id, page_uuid="rolled-back")
     db_session.rollback()
     db_session.commit()
 
@@ -687,7 +707,7 @@ def test_shared_barrier_id_preserves_each_visit_waiting_mode(
     page_barrier = ReleaseAllBarrier(id_="shared", waiting_logic=WaitPage(wait_time=1))
     page_barrier.receive_participant(page_participant)
     db_session.commit()
-    held_participant_id = held_participant.id
+    held_page_uuid = held_participant.page_uuid
 
     publications = []
     monkeypatch.setattr(
@@ -699,9 +719,8 @@ def test_shared_barrier_id_preserves_each_visit_waiting_mode(
     check_barriers()
 
     targets = publications[0]["targets"]
-    assert [target["target_participant_id"] for target in targets] == [
-        str(held_participant_id)
-    ]
+    assert [target["page_uuid"] for target in targets] == [held_page_uuid]
+    assert all("target_participant_id" not in target for target in targets)
 
 
 @pytest.mark.parametrize(
@@ -723,6 +742,34 @@ def test_barrier_hold_releases_link_before_pending_redirect(
 
     assert participant.barrier_links[0].released
     assert participant.barrier_links[0].timeline_hold.released_at is not None
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_hold_reuses_record_when_loop_reenters(
+    in_experiment_directory, db_session
+):
+    participant = new_participant(get_experiment())
+    participant.status = "working"
+    barrier = ReleaseAllBarrier(id_="reentry")
+    barrier.receive_participant(participant)
+    participant.var.set(
+        _while_loop_state_key("barrier:reentry", "loop_start_time"),
+        serialise(timenow()),
+    )
+
+    barrier.waiting_logic.consume(get_experiment(), participant)
+    barrier.waiting_logic.consume(get_experiment(), participant)
+    db_session.flush()
+
+    assert (
+        TimelineHoldRecord.query.filter_by(participant_id=participant.id).count() == 1
+    )
+    assert (
+        participant.active_barriers[barrier.id].timeline_hold.page_uuid
+        == participant.page_uuid
+    )
 
 
 def test_group_barrier_rejects_bound_method():

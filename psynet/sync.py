@@ -95,7 +95,6 @@ class _BarrierHoldPage(_TimelineHoldPage):
     """Internal timeline checkpoint that preserves the preceding browser page."""
 
     def __init__(self, barrier):
-        self.barrier = barrier
         self.barrier_id = barrier.id
         super().__init__(
             hold_id=f"barrier:{barrier.id}",
@@ -192,6 +191,10 @@ class Barrier(EltCollection):
         self.fix_time_credit = fix_time_credit
         self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
         self._uses_timeline_hold = waiting_logic is None
+        if waiting_logic is not None and expected_wait is not None:
+            raise ValueError(
+                "expected_wait only applies when waiting_logic is omitted."
+            )
         self.expected_wait = (
             0.5 * waiting_logic_expected_repetitions
             if expected_wait is None
@@ -284,7 +287,6 @@ class Barrier(EltCollection):
             participant=participant,
             barrier_id=self.id,
             arrival_time=timenow(),
-            uses_timeline_hold=self._uses_timeline_hold,
         )
         participant.active_barriers[self.id] = link
 
@@ -1172,9 +1174,8 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     arrival_time = Column(DateTime)
     departure_time = Column(DateTime)
     released = Column(Boolean, default=False)
-    uses_timeline_hold = Column(Boolean, default=False)
     timeline_hold_id = Column(Integer, ForeignKey("timeline_hold.id"), index=True)
-    timeline_hold = relationship("TimelineHoldRecord", backref="barrier_link")
+    timeline_hold = relationship("TimelineHoldRecord", backref="barrier_links")
 
     barrier_record = relationship("BarrierRecord", back_populates="participant_links")
 
@@ -1196,7 +1197,6 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
                 self.participant_id,
                 page_uuid=self.timeline_hold.page_uuid,
                 reason="barrier_released",
-                hold_id=self.timeline_hold.hold_id,
             )
 
     def get_waiting_participants(self, for_update: bool = False):

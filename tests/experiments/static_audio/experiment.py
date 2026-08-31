@@ -146,6 +146,7 @@ class Exp(psynet.experiment.Experiment):
             else:
                 assert trial.progress_after_trial == pytest.approx(1.0)
 
-        assert bot.time_credit == pytest.approx(
-            self.estimated_completion_time(wage_per_hour=0.0)
-        )
+        # Timeline duration is an estimate; asynchronous asset waits now credit
+        # the participant's actual visible waiting time.
+        assert bot.total_wait_page_time > 0
+        assert bot.time_credit >= bot.total_wait_page_time

@@ -445,7 +445,8 @@ class AsyncCodeBlock(EltCollection):
         Only relevant if ``wait=True``; corresponds to the time we expect the participant to wait on the wait page.
 
     check_interval:
-        Only relevant if ``wait=True``; corresponds to the time between checks we make to see if the function has finished.
+        Only relevant if ``wait=True``; corresponds to the fallback interval
+        between checks when no completion wake arrives. Default: 2.0 seconds.
     """
 
     def __init__(
@@ -453,7 +454,7 @@ class AsyncCodeBlock(EltCollection):
         function: Callable,
         wait: bool = True,
         expected_wait: Optional[float] = None,
-        check_interval: float = 0.5,
+        check_interval: float = 2.0,
     ):
         if is_lambda_function(function):
             raise ValueError(
@@ -2650,7 +2651,9 @@ class EndWhile(NullElt):
 
 
 def _while_loop_state_key(label, key):
-    """Return the existing participant-var key for while-loop state."""
+    """Return the bug-compatible participant-var key for while-loop state."""
+    # Keep the duplicated suffix so in-progress participants and existing
+    # experiment code continue to resolve the same stored keys.
     prefix = f"__{label}__{key}"
     return f"{prefix}__{key}"
 

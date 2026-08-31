@@ -31,17 +31,30 @@ _PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
 logger = get_logger()
 
 
-def _queue_timeline_hold_wake(
-    participant_id, *, page_uuid=None, reason=None, hold_id=None
-):
+def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     """Queue a targeted hold wake for publication after the next commit."""
+    if page_uuid is None:
+        from psynet.participant import Participant
+
+        page_uuid = (
+            Participant.query.with_entities(Participant.page_uuid)
+            .filter_by(id=participant_id)
+            .scalar()
+        )
+    if page_uuid is None:
+        return
+    active_hold = TimelineHoldRecord.query.filter_by(
+        participant_id=participant_id,
+        page_uuid=page_uuid,
+        resumed_at=None,
+    ).first()
+    if active_hold is None:
+        return
     wake = {
-        "target_participant_id": str(participant_id),
         "page_uuid": page_uuid,
         "reason": reason,
-        "hold_id": hold_id,
     }
-    key = (wake["target_participant_id"], page_uuid, reason, hold_id)
+    key = (page_uuid, reason)
     db.session.info.setdefault(_PENDING_WAKE_KEY, {})[key] = wake
 
 
@@ -72,7 +85,6 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
 
     __tablename__ = "timeline_hold"
 
-    id = Column(Integer, primary_key=True)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant", backref="timeline_holds"
@@ -176,18 +188,31 @@ class _TimelineHoldPage(Page):
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
         started_at = _get_while_loop_start_time(participant, self.hold_id) or timenow()
-        record = TimelineHoldRecord(
-            participant=participant,
-            page_uuid=participant.page_uuid,
-            hold_id=self.hold_id,
-            started_at=started_at,
-            expected_wait=self.expected_wait,
-            max_wait_time=self.max_wait_time,
-            fix_time_credit=self.fix_time_credit,
-            actual_wait_seconds=0.0,
-            credited_wait_seconds=0.0,
+        record = (
+            TimelineHoldRecord.query.filter_by(
+                participant_id=participant.id,
+                hold_id=self.hold_id,
+                started_at=started_at,
+                resumed_at=None,
+            )
+            .order_by(TimelineHoldRecord.id.desc())
+            .first()
         )
-        db.session.add(record)
+        if record is None:
+            record = TimelineHoldRecord(
+                participant=participant,
+                page_uuid=participant.page_uuid,
+                hold_id=self.hold_id,
+                started_at=started_at,
+                expected_wait=self.expected_wait,
+                max_wait_time=self.max_wait_time,
+                fix_time_credit=self.fix_time_credit,
+                actual_wait_seconds=0.0,
+                credited_wait_seconds=0.0,
+            )
+            db.session.add(record)
+        else:
+            record.page_uuid = participant.page_uuid
         participant._timeline_hold_record = record
         self.on_hold_record_created(participant, record)
 
@@ -235,6 +260,19 @@ class _TimelineHoldPage(Page):
         else:
             record.account_until(participant, timenow())
 
+    def translated_content(self, participant):
+        """Translate framework-provided hold messages for this participant."""
+        if self.content == "Waiting for other participants…":
+            return participant.pgettext(
+                "timeline_hold", "Waiting for other participants…"
+            )
+        if self.content == "Please wait, the experiment should continue shortly...":
+            return participant.pgettext(
+                "timeline_hold",
+                "Please wait, the experiment should continue shortly...",
+            )
+        return self.content
+
     def timeline_hold_payload(self, participant):
         """Return browser configuration for this hold visit."""
         record = self.get_hold_record(participant)
@@ -246,7 +284,7 @@ class _TimelineHoldPage(Page):
         return {
             "channel": _TIMELINE_HOLD_CHANNEL,
             "hold_id": self.hold_id,
-            "message": self.content,
+            "message": self.translated_content(participant),
             "page_uuid": participant.page_uuid,
             "safety_poll_ms": round(self.check_interval * 1000),
             "timeout_ms": remaining_timeout_ms,

@@ -884,6 +884,13 @@
         mainBody.inert = preservesVisiblePage;
         mainBody.setAttribute("aria-busy", "true");
       }
+      let commentButton = document.getElementById("comment-button");
+      if (commentButton) {
+        indicator.dataset.commentButtonWasDisabled = String(
+          commentButton.disabled,
+        );
+        commentButton.disabled = true;
+      }
     };
 
     psynet.scheduleTimelineHoldCheck = function (controller) {
@@ -907,21 +914,27 @@
 
     psynet.resumeTimelineHold = async function (reason) {
       let controller = psynet.timelineHold;
-      if (
-        !controller ||
-        controller.stopped ||
-        !psynet.pageReady
-      ) {
+      if (!controller || controller.stopped) {
+        return false;
+      }
+      if (!psynet.pageReady) {
+        psynet.scheduleTimelineHoldCheck(controller);
         return false;
       }
       if (psynet.nextPagePending || controller.resumeInFlight) {
         controller.resumeRequested = true;
         if (psynet.nextPagePending) {
-          clearTimeout(controller.queuedResumeTimer);
-          controller.queuedResumeTimer = setTimeout(
-            () => psynet.resumeTimelineHold("queued pending request"),
-            100,
-          );
+          controller.queuedResumeAttempts += 1;
+          if (controller.queuedResumeAttempts <= 50) {
+            clearTimeout(controller.queuedResumeTimer);
+            controller.queuedResumeTimer = setTimeout(
+              () => psynet.resumeTimelineHold("queued pending request"),
+              100,
+            );
+          } else {
+            controller.queuedResumeAttempts = 0;
+            psynet.scheduleTimelineHoldCheck(controller);
+          }
         }
         return false;
       }
@@ -929,10 +942,13 @@
       psynet.log.info("Checking timeline hold after " + reason + ".");
       controller.resumeInFlight = true;
       controller.resumeRequested = false;
+      controller.queuedResumeAttempts = 0;
       clearTimeout(controller.queuedResumeTimer);
       clearTimeout(controller.safetyTimer);
       try {
-        return await psynet.nextPage(null, {}, {});
+        return await psynet.nextPage(null, {}, {}, undefined, {
+          timelineHoldResume: true,
+        });
       } finally {
         if (psynet.timelineHold === controller) {
           controller.resumeInFlight = false;
@@ -973,6 +989,14 @@
         mainBody.inert = false;
         mainBody.setAttribute("aria-busy", "false");
       }
+      let commentButton = document.getElementById("comment-button");
+      if (
+        commentButton &&
+        indicator?.dataset.commentButtonWasDisabled !== undefined
+      ) {
+        commentButton.disabled =
+          indicator.dataset.commentButtonWasDisabled === "true";
+      }
       psynet.timelineHold = null;
       window.dispatchEvent(
         new CustomEvent("timelineHoldEnded", {
@@ -995,6 +1019,7 @@
       let controller = {
         connection: null,
         hold: hold,
+        queuedResumeAttempts: 0,
         queuedResumeTimer: null,
         resumeInFlight: false,
         resumeRequested: false,
@@ -1018,10 +1043,7 @@
           let matchingTarget = (message.targets || []).find(
             (target) =>
               message.type === "timeline_hold_wake" &&
-              String(target.target_participant_id) ===
-                String(dallinger.identity.participantId) &&
-              (!target.page_uuid || target.page_uuid === hold.page_uuid) &&
-              (!target.hold_id || target.hold_id === hold.hold_id),
+              target.page_uuid === hold.page_uuid,
           );
           if (matchingTarget) {
             psynet.resumeTimelineHold("server notification");
@@ -2845,10 +2867,22 @@
     };
 
     // ---- Response submission / handling ------------------------------------
-    psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
+    psynet.nextPage = async function (
+      rawAnswer,
+      metadata,
+      blobs,
+      onRejection,
+      options = {},
+    ) {
       if (!psynet.pageReady) {
         psynet.log.info("Blocked nextPage because pageReady is false.");
         psynet.alert(psynetTemplateData.strings.pageLoadNotReady);
+        return false;
+      }
+      if (psynet.timelineHold && !options.timelineHoldResume) {
+        psynet.log.warn(
+          "Blocked a page submission while the timeline is held.",
+        );
         return false;
       }
       if (psynet.nextPagePending) {

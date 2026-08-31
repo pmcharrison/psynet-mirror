@@ -265,6 +265,14 @@ Their ``detail.holdId`` identifies the wait. Authors that deliberately want a
 separate waiting screen should use :class:`psynet.page.WaitPage` directly or
 pass it explicitly as ``wait_page``/``waiting_logic``.
 
+By default, holds credit actual participant-visible waiting time up to
+``max_wait_time``. This may differ from the ``expected_wait`` used for progress,
+advertised duration, and reward estimation. ``fix_time_credit=True`` restores
+fixed expected credit when predictable per-participant payment is preferred.
+This policy also applies to ``AsyncCodeBlock(wait=True)`` and framework
+feedback/asset-processing waits because they use
+:func:`psynet.page.wait_while`.
+
 Bots
 ~~~~
 

@@ -2300,6 +2300,8 @@ class TrialMaker(Module):
                 lambda participant: participant.trial_status == "wait",
                 logic=join(
                     try_to_prepare_trial(),
+                    # This remains an explicit page-based wait because each
+                    # iteration must rerun the preparation timeline logic.
                     WaitPage(wait_time=2.0),
                 ),
                 expected_repetitions=0,

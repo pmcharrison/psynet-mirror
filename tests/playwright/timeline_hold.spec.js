@@ -62,6 +62,13 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     await experimentPage.waitForTimeout(700);
     expect(responses.getCount()).toBe(settledResponseCount);
 
+    const blockedBaseline = responses.getCount();
+    expect(
+      await experimentPage.evaluate(() => psynet.nextPage("unexpected"))
+    ).toBe(false);
+    await experimentPage.waitForTimeout(200);
+    expect(responses.getCount()).toBe(blockedBaseline);
+
     const pendingBaseline = responses.getCount();
     await experimentPage.evaluate(() => {
       psynet.nextPagePending = true;

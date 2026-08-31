@@ -92,7 +92,7 @@ class TestExp:
 
             assert len([t for t in trials if t.is_repeat_trial]) == 3  # 3 repeat trials
 
-            participant = Participant.query.filter_by(id=1).one()
+            participant = Participant.query.filter_by(id=1).populate_existing().one()
             p_trials = trial_maker.get_participant_trials(participant=participant)
 
             assert len(p_trials) == 9
@@ -117,11 +117,13 @@ class TestExp:
             # 9 * 1 cent reward for individual trials
             # + 9 dollars reward at the end
             # = 9.09
+            participant = Participant.query.filter_by(id=1).one()
+            time_reward = f"${participant.time_reward:.2f}"
             assert_text(
                 driver,
                 "main-body",
-                """
-                That\'s the end of the experiment! You will receive a reward of $0.13
+                f"""
+                That\'s the end of the experiment! You will receive a reward of {time_reward}
                 for the time you spent on the experiment. You have also been awarded a performance reward of $9.09!
                 Thank you for taking part.
                 Please click "Finish" to finalize the session. Finish

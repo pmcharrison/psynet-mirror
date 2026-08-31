@@ -13,33 +13,6 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-function startBarrierReleaseTracker(page) {
-  const releases = [];
-  page.on("websocket", (websocket) => {
-    websocket.on("framereceived", ({ payload }) => {
-      const text = String(payload || "");
-      const separator = text.indexOf(":");
-      if (separator < 0) return;
-      try {
-        const message = JSON.parse(text.slice(separator + 1));
-        if (message.type === "timeline_hold_wake") {
-          releases.push(...(message.targets || []));
-        }
-      } catch (error) {
-        // Ignore frames from unrelated websocket channels.
-      }
-    });
-  });
-  return {
-    countForBarrier: (barrierId) =>
-      releases.filter(
-        (message) =>
-          message.reason === "barrier_released" &&
-          message.hold_id === `barrier:${barrierId}`
-      ).length
-  };
-}
-
 test("default barriers hold the current page until websocket release", { tag: "@inplace-only" }, async ({
   browser
 }) => {
@@ -83,7 +56,6 @@ test("default barriers hold the current page until websocket release", { tag: "@
     firstParticipant.on("pageerror", (error) => pageErrors.push(error.message));
     secondParticipant.on("pageerror", (error) => pageErrors.push(error.message));
     const firstResponses = startResponseSubmitTracker(firstParticipant);
-    const firstReleases = startBarrierReleaseTracker(firstParticipant);
     await firstParticipant.getByRole("button", { name: "rock" }).click();
     await expect(
       firstParticipant.locator("#psynet-timeline-hold-indicator")
@@ -103,11 +75,6 @@ test("default barriers hold the current page until websocket release", { tag: "@
     );
 
     await secondParticipant.getByRole("button", { name: "paper" }).click();
-    await expect
-      .poll(() => firstReleases.countForBarrier("finished_trial"), {
-        timeout: 5000
-      })
-      .toBeGreaterThanOrEqual(1);
     await Promise.all([
       expect(firstParticipant.locator("#main-body")).toContainText(
         "Round results",

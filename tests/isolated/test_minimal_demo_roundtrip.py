@@ -108,6 +108,11 @@ TEST_EXPERIMENT_CUSTOM_CONFIGS = {
     "tests/playwright/experiments/legacy_page_javascript/config.txt",
     "tests/playwright/experiments/media_download_progress/config.txt",
     "tests/playwright/experiments/same_session_page_update/config.txt",
+    "tests/playwright/experiments/timeline_hold/config.txt",
+    "tests/playwright/experiments/timeline_hold_feedback/config.txt",
+    "tests/playwright/experiments/timeline_hold_reload/config.txt",
+    "tests/playwright/experiments/timeline_hold_same_session/config.txt",
+    "tests/playwright/experiments/timeline_hold_timeout/config.txt",
     "tests/deployment/payment_flows_prolific/config.txt",
     "tests/deployment/audio_gibbs/config.txt",
 }
