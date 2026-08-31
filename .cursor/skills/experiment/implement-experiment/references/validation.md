@@ -12,10 +12,12 @@ day-to-day backend or frontend testing strategy, use
 Run functional checks from the experiment directory:
 
 ```bash
-python experiment.py
 psynet test local
 psynet audit simulate
 ```
+
+Do not run ``python experiment.py`` as an import or syntax check.
+See `develop-experiment-back-end/SKILL.md`.
 
 `psynet audit simulate` writes `audit/simulate/analysis/simulated_export/` and marks
 `simulate_export` present.

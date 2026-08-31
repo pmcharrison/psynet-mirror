@@ -42,16 +42,28 @@ an architecture.
 ## Python modules beside ``experiment.py``
 
 Keep ``experiment.py`` as the timeline and experiment class. Put substantial
-helpers in sibling files (for example ``adaptive_logic.py``, ``stimuli.py``)
-and import them relatively:
+helpers in sibling files (for example ``adaptive_logic.py``, ``stimuli.py``).
+
+Dallinger imports the experiment directory as the package
+``dallinger_experiment`` and then loads ``experiment.py`` as
+``dallinger_experiment.experiment``. Sibling imports must be relative:
 
 ```python
 from . import adaptive_logic
 from .adaptive_logic import select_item
 ```
 
-Standalone scripts such as ``python -m audit.simulate.design.core`` and
-``simulate_procedure.py`` use ordinary top-level imports of the same helpers.
+Do not run ``python experiment.py`` to check that this works. That executes the
+file as a script, so there is no parent package and the relative import fails.
+``psynet test local`` and ``psynet debug`` load the experiment the same way
+Dallinger does.
+
+Standalone scripts such as ``simulate_procedure.py`` and
+``python audit/simulate/design/core.py`` are not that package. They import the
+same helpers as top-level names (``from adaptive_logic import select_item``)
+and may add the experiment root to ``sys.path``. Keep runtime helpers beside
+``experiment.py``; stock ``deploy.toml`` excludes ``audit/``.
+
 See ``docs/experiment_development/experiment_directory.rst``
 ("Importing other Python files").
 

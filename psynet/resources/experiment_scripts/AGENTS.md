@@ -10,6 +10,7 @@ If the root contains a file called `experiment.py`, assume that we are working o
 Otherwise assume we are working on the PsyNet source code.
 
 From `experiment.py`, import sibling modules with `from . import my_module`.
+Do not run `python experiment.py` to validate imports; use `psynet test local`.
 See `docs/experiment_development/experiment_directory.rst`
 ("Importing other Python files").
 

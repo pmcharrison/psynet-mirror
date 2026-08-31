@@ -166,7 +166,10 @@ Importing other Python files
 ----------------------------
 
 You can split experiment code across several ``.py`` files in the experiment
-directory. Import siblings of ``experiment.py`` relatively:
+directory. Dallinger imports that directory as the package
+``dallinger_experiment``, so siblings of ``experiment.py`` must use relative
+imports. Do not run ``python experiment.py`` as a syntax or import check;
+use ``psynet test local``.
 
 .. code-block:: python
 
@@ -176,6 +179,6 @@ directory. Import siblings of ``experiment.py`` relatively:
     def choose_next_item(state):
         return adaptive_logic.select_item(state, load_item_bank())
 
-Standalone scripts such as ``python -m audit.simulate.design.core`` use ordinary
+Standalone scripts such as ``python audit/simulate/design/core.py`` use ordinary
 top-level imports of the same helpers. Run that command from the experiment
 root.

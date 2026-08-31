@@ -26,10 +26,6 @@ Human plan review was skipped (dogfood). Labeled assumptions are in `PLAN.md`.
   HTTP 0.13 s, p95 1.3 s, 0/6 bots finished because the CAT is longer than
   one minute. This is a smoke run, not a 40-bot 5-minute load test.
 
-`python experiment.py` fails with a relative-import error when the file is
-run as a script. That matches the documented sibling-module pattern
-(`from .adaptive_logic import ...`) used by other multi-file demos.
-
 Scaffolded `config.txt` already sets `wage_per_hour`; putting the same key in
 `Experiment.config` raises. Keep wage in `config.txt` only.
 
