@@ -87,6 +87,14 @@ def make_static_trial_maker(trial_maker_class=StaticTrialMaker, **kwargs):
     return trial_maker_class(**{**args, **kwargs})
 
 
+@pytest.mark.parametrize("target_trials_per_node", [0, -1])
+def test_static_trial_maker_rejects_non_positive_target_trials_per_node(
+    target_trials_per_node,
+):
+    with pytest.raises(ValueError, match="positive"):
+        make_static_trial_maker(target_trials_per_node=target_trials_per_node)
+
+
 def test_failure_policy_constructor_defaults():
     chain = inspect.signature(ChainTrialMaker.__init__).parameters
     static = inspect.signature(StaticTrialMaker.__init__).parameters

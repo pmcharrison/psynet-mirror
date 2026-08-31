@@ -157,7 +157,9 @@ class StaticTrialMaker(ChainTrialMaker):
         ``recruit_mode="n_participants"``.
 
     target_trials_per_node
-        Target number of trials to recruit for each node in the experiment. This target is only relevant if
+        Target number of trials to recruit for each node. ``None`` (the
+        default) means unlimited. When set, it must be a positive number;
+        ``0`` is rejected. This target is only relevant if
         ``recruit_mode="n_trials"``.
 
     max_trials_per_block
@@ -339,6 +341,11 @@ class StaticTrialMaker(ChainTrialMaker):
             # set chains_per_experiment at all if start_nodes is being provided explicitly.
             # chains_per_experiment = len(nodes)
 
+        if target_trials_per_node is not None and target_trials_per_node <= 0:
+            raise ValueError(
+                "target_trials_per_node must be a positive number, or None for unlimited."
+            )
+
         chains_per_experiment = None
 
         if allow_repeated_nodes:
@@ -498,9 +505,11 @@ class StaticTrialMaker(ChainTrialMaker):
         """Filter eligible static nodes before selection.
 
         Override this to remove nodes the participant must not receive.
-        The default returns the original list, or applies a deprecated
-        ``custom_network_filter`` override when that is the only filter present.
-        Ranking among eligible nodes belongs in ``select_node``.
+        The default returns ``nodes`` unchanged. Ranking among eligible
+        nodes belongs in ``select_node``.
+
+        If you override this method, a deprecated ``custom_network_filter``
+        on the same maker is not applied.
         """
         return nodes
 
