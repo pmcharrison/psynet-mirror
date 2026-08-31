@@ -17,9 +17,9 @@ Design constraints
 * ``-r`` is passed explicitly. Since rsync 3.0, ``-a`` does not imply
   ``--recursive`` when ``--files-from`` is used, so folder objects would
   otherwise arrive empty.
-* Callers must fall back to the existing per-asset export path when rsync
-  is missing or the remote copy fails. S3-backed assets are not transferred
-  this way.
+* Callers must abort SSH asset export when rsync is missing or the remote
+  copy fails. SFTP is not used as a fallback. S3-backed assets are not
+  transferred this way.
 
 This module does not import SQLAlchemy models so it can be unit-tested
 without a running experiment.
@@ -44,6 +44,19 @@ logger = logging.getLogger(__name__)
 
 _DIGEST_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 _REMOTE_ASSETS_SUFFIX = "psynet-data/assets"
+
+
+class RsyncRequiredError(RuntimeError):
+    """Raised when SSH asset export needs rsync and cannot continue."""
+
+    def __init__(self, message: Optional[str] = None):
+        super().__init__(
+            message
+            or (
+                "SSH asset export requires rsync locally and on the SSH host. "
+                "Install it and re-run the export."
+            )
+        )
 
 
 def object_relative_path(digest: str) -> str:
@@ -129,7 +142,7 @@ def rsync_missing_warning_text(*, location: str, host: Optional[str] = None) -> 
     if location == "local":
         return (
             "WARNING: rsync is not installed on this computer.\n"
-            "SSH asset export will use slower per-file SFTP instead of one bulk transfer.\n"
+            "SSH asset export cannot copy files from the server until rsync is installed.\n"
             "\n"
             "Install rsync, then re-run the export:\n"
             "  Ubuntu/Debian:  sudo apt install rsync\n"
@@ -138,7 +151,7 @@ def rsync_missing_warning_text(*, location: str, host: Optional[str] = None) -> 
     host_label = host or "the SSH host"
     return (
         f"WARNING: rsync is not installed on the SSH host ({host_label}).\n"
-        "SSH asset export will use slower per-file SFTP instead of one bulk transfer.\n"
+        "SSH asset export cannot copy files from the server until rsync is installed.\n"
         "\n"
         "On the server, run:\n"
         "  sudo apt install rsync\n"

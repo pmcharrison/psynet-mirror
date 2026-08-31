@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from psynet.export.ssh_rsync import (
+    RsyncRequiredError,
     build_rsync_command,
     default_ssh_command,
     emit_rsync_missing_warning,
@@ -346,7 +347,8 @@ def test_rsync_missing_warning_text_tells_user_how_to_install():
     assert "this computer" in local
     assert "sudo apt install rsync" in local
     assert "brew install rsync" in local
-    assert "SFTP" in local
+    assert "cannot copy" in local
+    assert "SFTP" not in local
 
     remote = rsync_missing_warning_text(location="remote", host="example.com")
     assert remote.startswith("WARNING:")
@@ -429,7 +431,8 @@ def test_prefetch_warns_when_local_rsync_missing(monkeypatch):
         def warning(self, *args, **kwargs):
             pass
 
-    _prefetch_ssh_local_objects([asset], "demo", Logger())
+    with pytest.raises(RsyncRequiredError):
+        _prefetch_ssh_local_objects([asset], "demo", Logger())
     assert warnings == [{"location": "local"}]
     assert called["executor"] == 0
     assert called["prefetch"] == 0
@@ -472,6 +475,16 @@ def test_prefetch_warns_when_remote_rsync_missing(monkeypatch):
         def warning(self, *args, **kwargs):
             pass
 
-    _prefetch_ssh_local_objects([asset], "demo", Logger())
+    with pytest.raises(RsyncRequiredError):
+        _prefetch_ssh_local_objects([asset], "demo", Logger())
     assert warnings == [{"location": "remote", "host": "example.com"}]
     assert called["prefetch"] == 0
+
+
+def test_ssh_asset_export_does_not_use_sftp(tmp_path):
+    from psynet.asset import LocalStorage
+
+    storage = LocalStorage()
+    asset = type("Asset", (), {"var": type("V", (), {"file_system_path": "/nope"})()})()
+    with pytest.raises(RsyncRequiredError, match="rsync"):
+        storage._export_via_ssh(asset, str(tmp_path / "out"), "host", "user")

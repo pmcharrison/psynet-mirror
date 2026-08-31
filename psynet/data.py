@@ -811,8 +811,8 @@ def export_assets(
     Bytes are still fetched via the content-addressed local cache; the export
     tree itself uses human-readable paths from :attr:`Asset.export_path`.
     SSH command-line exports prefetch missing LocalStorage objects with one
-    ``rsync --files-from`` into that cache, then fall back to per-asset SFTP
-    for anything still missing.
+    ``rsync --files-from`` into that cache. If rsync is missing or the copy
+    fails, export stops; there is no per-asset SFTP fallback.
     """
     from .asset import ExternalAsset, OnDemandAsset
 
@@ -927,8 +927,10 @@ def export_assets(
 def _prefetch_ssh_local_objects(assets, server, logger):
     """Fill the local object cache from SSH LocalStorage using one rsync.
 
-    Failures are logged and ignored so the existing per-asset SFTP/HTTP path
-    remains the fallback. This never mutates Asset database rows.
+    If rsync is missing or the copy fails, raise
+    :class:`~psynet.export.ssh_rsync.RsyncRequiredError`. Repeat exports
+    whose objects are already cached do not need rsync. This never mutates
+    Asset database rows.
     """
     import subprocess
 
@@ -938,6 +940,7 @@ def _prefetch_ssh_local_objects(assets, server, logger):
     from .asset import ExternalAsset, LocalStorage, OnDemandAsset
     from .experiment import import_local_experiment
     from .export.ssh_rsync import (
+        RsyncRequiredError,
         default_ssh_command,
         emit_rsync_missing_warning,
         local_rsync_available,
@@ -948,12 +951,10 @@ def _prefetch_ssh_local_objects(assets, server, logger):
 
     try:
         experiment_storage = import_local_experiment()["class"].asset_storage
-    except Exception:
-        logger.warning(
-            "Could not resolve experiment asset storage; skipping rsync prefetch.",
-            exc_info=True,
-        )
-        return
+    except Exception as exc:
+        raise RsyncRequiredError(
+            "Could not resolve experiment asset storage for SSH rsync."
+        ) from exc
 
     digests = []
     seen = set()
@@ -977,11 +978,9 @@ def _prefetch_ssh_local_objects(assets, server, logger):
     try:
         server_info = CONFIGURED_HOSTS[server]
     except KeyError:
-        logger.warning(
-            "Unknown SSH server %r; skipping rsync prefetch.",
-            server,
-        )
-        return
+        raise RsyncRequiredError(
+            f"Unknown SSH server {server!r}; cannot rsync LocalStorage assets."
+        ) from None
 
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
@@ -989,12 +988,12 @@ def _prefetch_ssh_local_objects(assets, server, logger):
         return
     if not local_rsync_available():
         emit_rsync_missing_warning(location="local")
-        return
+        raise RsyncRequiredError()
     try:
         executor = Executor(ssh_host, user=ssh_user)
         if not executor.run("command -v rsync", raise_=False).strip():
             emit_rsync_missing_warning(location="remote", host=ssh_host)
-            return
+            raise RsyncRequiredError()
         home_dir = executor.run("echo $HOME").strip()
         pem_path = get_server_pem_path()
         written = prefetch_missing_objects(
@@ -1002,22 +1001,21 @@ def _prefetch_ssh_local_objects(assets, server, logger):
             source=remote_assets_source(ssh_host, ssh_user, home_dir),
             ssh_command=default_ssh_command(pem_path),
         )
+    except RsyncRequiredError:
+        raise
     except FileNotFoundError as exc:
         emit_rsync_missing_warning(location="local")
-        logger.warning("rsync executable was not found (%s).", exc)
-        return
+        raise RsyncRequiredError() from exc
     except subprocess.CalledProcessError as exc:
-        logger.warning(
-            "Rsync asset prefetch failed; falling back to per-asset SFTP. %s",
-            exc,
-        )
-        return
-    except Exception:
-        logger.warning(
-            "Rsync asset prefetch failed; falling back to per-asset SFTP.",
-            exc_info=True,
-        )
-        return
+        raise RsyncRequiredError(
+            "Rsync asset copy failed. Install rsync locally and on the SSH host, "
+            f"then re-run the export. ({exc})"
+        ) from exc
+    except Exception as exc:
+        raise RsyncRequiredError(
+            "Rsync asset copy failed. Install rsync locally and on the SSH host, "
+            "then re-run the export."
+        ) from exc
 
     logger.info(
         "Rsynced %s of %s missing LocalStorage asset object(s) from %s.",

@@ -2850,14 +2850,19 @@ def export_assets(
     log(f"Exporting assets to {export_path}")
     asset_path = os.path.join(export_path, "assets")
 
-    _export_assets(
-        asset_path,
-        collected_assets_only,
-        include_on_demand_assets,
-        n_parallel,
-        server,
-        local,
-    )
+    from .export.ssh_rsync import RsyncRequiredError
+
+    try:
+        _export_assets(
+            asset_path,
+            collected_assets_only,
+            include_on_demand_assets,
+            n_parallel,
+            server,
+            local,
+        )
+    except RsyncRequiredError as exc:
+        raise click.ClickException(str(exc)) from exc
     oversized_message = warn_if_cache_oversized()
     if oversized_message:
         log(oversized_message)

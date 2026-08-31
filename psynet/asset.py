@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Callable, Optional, Union
 
 import boto3
-import paramiko
 import requests
 from dallinger import db
 from dallinger.utils import classproperty
@@ -2284,19 +2283,13 @@ class LocalStorage(AssetStorage):
             AssetStorage.http_export(asset, path)
 
     def _export_via_ssh(self, asset, local_path, ssh_host=None, ssh_user=None):
-        if ssh_host is None or ssh_user is None:
-            raise ValueError(
-                "To export via SSH you need to provide an ssh_host and ssh_user. If you are seeing this error "
-                "it means that probably these values haven't been propagated properly through their caller functions."
-            )
-        docker_host_path = (
-            self.ssh_host_home_dir(ssh_host, ssh_user) + asset.var.file_system_path
+        from psynet.export.ssh_rsync import RsyncRequiredError
+
+        raise RsyncRequiredError(
+            "SSH asset export copies LocalStorage files with rsync into the "
+            "local cache. This asset was not cached. Install rsync locally "
+            "and on the SSH host, then re-run the export."
         )
-        sftp = self.sftp_connection(ssh_host, ssh_user)
-        paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(
-            2, 22
-        )  # 4 MB per chunk, prevents SFTPError('Garbage packet received')
-        sftp.get(docker_host_path, local_path)
 
     def _export_via_copying(self, asset: Asset, path):
         from_ = self.get_file_system_path(asset.host_path)
