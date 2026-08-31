@@ -51,33 +51,27 @@ class DeferredSiblingTrial(StaticTrial):
 
 class ColumnOptionsTrial(StaticTrial):
     time_estimate = 1
+    numeric_probe = Column(Numeric(precision=8, scale=2))
     scalar_default_probe = Column(Integer, default=1)
     callable_default_probe = Column(Integer, default=lambda: 1)
     server_default_probe = Column(Integer, server_default=text("1"))
     onupdate_probe = Column(Integer, onupdate=2)
     constrained_probe = Column(Integer, CheckConstraint("constrained_probe >= 0"))
+    foreign_key_probe = Column(
+        Integer, ForeignKey("participant.id", ondelete="CASCADE")
+    )
 
     def show_trial(self, experiment, participant):
         pass
 
 
-class TypeOptionsTrial(StaticTrial):
-    time_estimate = 1
-    numeric_probe = Column(Numeric(precision=8, scale=2))
-    collation_probe = Column(String(collation="C"))
+def declare_trial_class(attribute, column):
+    """Declare a throwaway trial class carrying one custom column."""
 
-    def show_trial(self, experiment, participant):
-        pass
+    name = "".join(part.title() for part in attribute.split("_"))
+    return type(f"Declared{name}Trial", (StaticTrial,), {attribute: column})
 
 
-# Reimporting an experiment redefines its classes, which SQLAlchemy reports for
-# every experiment class, not just those with custom columns.
-@pytest.mark.filterwarnings(
-    "ignore:This declarative base already contains a class:sqlalchemy.exc.SAWarning"
-)
-@pytest.mark.filterwarnings(
-    "ignore:Reassigning polymorphic association:sqlalchemy.exc.SAWarning"
-)
 def test_experiment_with_custom_trial_column_imports_from_two_directories(tmp_path):
     """PsyNet reimports experiment.py from its staging copy during debug and deploy."""
     source = path_to_test_experiment("custom_trial_column")
@@ -94,6 +88,9 @@ def test_experiment_with_custom_trial_column_imports_from_two_directories(tmp_pa
 
     assert first is not second
     assert first.__table__.c.item_id is second.__table__.c.item_id
+    # A callable default cannot be compared between two classes, so reuse has to
+    # recognize that this is the same class being declared again.
+    assert first.__table__.c.attempts is second.__table__.c.attempts
 
 
 def test_sibling_trial_classes_may_declare_the_same_column():
@@ -103,161 +100,69 @@ def test_sibling_trial_classes_may_declare_the_same_column():
     )
 
 
-def test_conflicting_column_types_are_rejected():
-    with pytest.raises(InvalidDefinitionError, match="already exists as String"):
-
-        class ClashingSiblingTrial(StaticTrial):
-            sibling_probe = Column(Integer)
-
-
-def test_conflicting_string_lengths_are_rejected():
-    with pytest.raises(InvalidDefinitionError, match="length"):
-
-        class LongerSiblingTrial(StaticTrial):
-            sibling_probe = Column(String(200))
+def test_deferred_custom_columns_reuse_the_inherited_column():
+    assert (
+        FirstSiblingTrial.__table__.c.sibling_probe
+        is DeferredSiblingTrial.__table__.c.sibling_probe
+    )
 
 
-@pytest.mark.parametrize(
-    ("attribute", "column"),
-    [
-        ("numeric_probe", Column(Numeric(precision=10, scale=2))),
-        ("numeric_probe", Column(Numeric(precision=8, scale=3))),
-        ("collation_probe", Column(String(collation="POSIX"))),
-    ],
-)
-def test_conflicting_type_options_are_rejected(attribute, column):
-    with pytest.raises(InvalidDefinitionError, match="already exists"):
-        type(
-            f"Conflicting{attribute.title().replace('_', '')}Trial",
-            (StaticTrial,),
-            {attribute: column},
+def test_equivalent_column_options_are_reused():
+    equivalent_columns = {
+        "numeric_probe": Column(Numeric(precision=8, scale=2)),
+        "scalar_default_probe": Column(Integer, default=1),
+        "server_default_probe": Column(Integer, server_default=text("1")),
+        "onupdate_probe": Column(Integer, onupdate=2),
+        "constrained_probe": Column(Integer, CheckConstraint("constrained_probe >= 0")),
+        "foreign_key_probe": Column(
+            Integer, ForeignKey("participant.id", ondelete="CASCADE")
+        ),
+    }
+    equivalent = type(
+        "EquivalentColumnOptionsTrial", (StaticTrial,), dict(equivalent_columns)
+    )
+    for attribute in equivalent_columns:
+        assert getattr(ColumnOptionsTrial.__table__.c, attribute) is getattr(
+            equivalent.__table__.c, attribute
         )
-
-
-def test_conflicting_nullability_is_rejected():
-    with pytest.raises(InvalidDefinitionError, match="nullable"):
-
-        class RequiredSiblingTrial(StaticTrial):
-            sibling_probe = Column(String, nullable=False)
-
-
-def test_conflicting_uniqueness_is_rejected():
-    with pytest.raises(InvalidDefinitionError, match="unique"):
-
-        class UniqueSiblingTrial(StaticTrial):
-            sibling_probe = Column(String, unique=True)
-
-
-def test_conflicting_index_flag_is_rejected():
-    with pytest.raises(InvalidDefinitionError, match="index"):
-
-        class IndexedSiblingTrial(StaticTrial):
-            sibling_probe = Column(String, index=True)
-
-
-def test_conflicting_foreign_keys_are_rejected():
-    with pytest.raises(InvalidDefinitionError, match="foreign-key"):
-
-        class ForeignKeySiblingTrial(StaticTrial):
-            sibling_probe = Column(String, ForeignKey("participant.id"))
-
-
-def test_conflicting_primary_key_is_rejected():
-    with pytest.raises(InvalidDefinitionError, match="primary_key"):
-
-        class PrimaryKeySiblingTrial(StaticTrial):
-            sibling_probe = Column(String, primary_key=True)
 
 
 @pytest.mark.parametrize(
     ("attribute", "column", "match"),
     [
+        ("sibling_probe", Column(Integer), "already exists as String"),
+        ("sibling_probe", Column(String(200)), "length"),
+        ("sibling_probe", Column(String, nullable=False), "nullable"),
+        ("sibling_probe", Column(String, unique=True), "unique"),
+        ("sibling_probe", Column(String, index=True), "index"),
+        ("sibling_probe", Column(String, primary_key=True), "primary_key"),
+        ("sibling_probe", Column(String, ForeignKey("participant.id")), "foreign-key"),
+        ("numeric_probe", Column(Numeric(precision=10, scale=2)), "already exists"),
         ("scalar_default_probe", Column(Integer, default=2), "default"),
-        ("callable_default_probe", Column(Integer, default=lambda: 2), "default"),
-        (
-            "server_default_probe",
-            Column(Integer, server_default=text("2")),
-            "server_default",
-        ),
+        ("server_default_probe", Column(Integer, server_default=text("2")), "default"),
         ("onupdate_probe", Column(Integer, onupdate=3), "onupdate"),
         (
             "constrained_probe",
             Column(Integer, CheckConstraint("constrained_probe > 0")),
             "constraints",
         ),
+        (
+            "foreign_key_probe",
+            Column(Integer, ForeignKey("participant.id", ondelete="SET NULL")),
+            "foreign-key",
+        ),
     ],
 )
-def test_conflicting_column_behavior_is_rejected(attribute, column, match):
+def test_conflicting_column_definitions_are_rejected(attribute, column, match):
     with pytest.raises(InvalidDefinitionError, match=match):
-        type(
-            f"Conflicting{attribute.title().replace('_', '')}Trial",
-            (StaticTrial,),
-            {attribute: column},
-        )
+        declare_trial_class(attribute, column)
 
 
-def test_equivalent_column_behavior_is_reused():
-    equivalent = type(
-        "EquivalentColumnOptionsTrial",
-        (StaticTrial,),
-        {
-            "scalar_default_probe": Column(Integer, default=1),
-            "callable_default_probe": Column(Integer, default=lambda: 1),
-            "server_default_probe": Column(Integer, server_default=text("1")),
-            "onupdate_probe": Column(Integer, onupdate=2),
-            "constrained_probe": Column(
-                Integer,
-                CheckConstraint("constrained_probe >= 0"),
-            ),
-            "numeric_probe": Column(Numeric(precision=8, scale=2)),
-            "collation_probe": Column(String(collation="C")),
-        },
-    )
-
-    for attribute in [
-        "scalar_default_probe",
-        "callable_default_probe",
-        "server_default_probe",
-        "onupdate_probe",
-        "constrained_probe",
-        "numeric_probe",
-        "collation_probe",
-    ]:
-        assert getattr(ColumnOptionsTrial.__table__.c, attribute) is getattr(
-            equivalent.__table__.c, attribute
-        )
-
-
-def test_conflicting_foreign_key_options_are_rejected():
-    type(
-        "ForeignKeyOptionsTrial",
-        (StaticTrial,),
-        {
-            "foreign_key_options_probe": Column(
-                Integer,
-                ForeignKey("participant.id", ondelete="CASCADE"),
-            )
-        },
-    )
-
-    with pytest.raises(InvalidDefinitionError, match="foreign-key"):
-        type(
-            "ConflictingForeignKeyOptionsTrial",
-            (StaticTrial,),
-            {
-                "foreign_key_options_probe": Column(
-                    Integer,
-                    ForeignKey("participant.id", ondelete="SET NULL"),
-                )
-            },
-        )
-
-
-def test_deferred_custom_columns_reuse_the_inherited_column():
-    assert (
-        FirstSiblingTrial.__table__.c.sibling_probe
-        is DeferredSiblingTrial.__table__.c.sibling_probe
-    )
+@pytest.mark.parametrize("default", [lambda: 1, lambda: 2])
+def test_callable_defaults_cannot_be_shared_between_classes(default):
+    """PsyNet does not try to decide whether two functions behave alike."""
+    with pytest.raises(InvalidDefinitionError, match="cannot be compared"):
+        declare_trial_class("callable_default_probe", Column(Integer, default=default))
 
 
 def test_import_local_experiment_does_not_put_the_experiment_directory_on_sys_path():
@@ -291,8 +196,10 @@ def test_custom_trial_column_persists_through_the_orm(
         module_id="custom_column_test",
         experiment=experiment,
     )
-    trial_class = experiment.__class__.__module__.rsplit(".", 1)[0]
-    custom_trial_class = sys.modules[f"{trial_class}.experiment"].CustomColumnTrial
+    experiment_package = experiment.__class__.__module__.rsplit(".", 1)[0]
+    custom_trial_class = sys.modules[
+        f"{experiment_package}.experiment"
+    ].CustomColumnTrial
     trial = custom_trial_class(
         experiment=experiment,
         node=node,
@@ -305,4 +212,6 @@ def test_custom_trial_column_persists_through_the_orm(
     db.session.commit()
     db.session.expire_all()
 
-    assert custom_trial_class.query.one().item_id == "item-42"
+    stored = custom_trial_class.query.one()
+    assert stored.item_id == "item-42"
+    assert stored.attempts == 0

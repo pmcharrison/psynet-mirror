@@ -1,6 +1,5 @@
 import contextlib
 import csv
-import inspect
 import io
 import os
 import shutil
@@ -304,6 +303,16 @@ class InvalidDefinitionError(ValueError):
 checked_classes = set()
 
 
+# Key under which ``Column.info`` remembers the class that declared the column.
+_DECLARED_BY = "psynet_declared_by"
+
+
+def _class_identity(cls) -> tuple[str, str]:
+    """Return the identity that survives re-executing the defining module."""
+
+    return (cls.__module__, cls.__qualname__)
+
+
 def _reuse_inherited_columns(cls):
     """Reuse an inherited table's column when a subclass redeclares its name.
 
@@ -311,10 +320,14 @@ def _reuse_inherited_columns(cls):
     ``Trial`` subclass contributes its columns to the shared ``info`` table.
     A plain ``Column`` in a subclass body therefore fails as soon as that name
     is already on the table. This happens for sibling classes, and also when
-    PsyNet imports the same ``experiment.py`` twice in one process, for
-    example once from the experiment directory and once from the debug
+    PsyNet executes the same ``experiment.py`` more than once in one process,
+    for example once from the experiment directory and once from the debug
     staging copy. Substituting the existing column keeps such declarations
     idempotent, so experiment authors can write ordinary SQLAlchemy.
+
+    Redeclaring a column from the same class is always safe, so PsyNet records
+    which class first declared each column and reuses it without comparing
+    anything. Two different classes must agree on the column's definition.
 
     Parameters
     ----------
@@ -324,9 +337,8 @@ def _reuse_inherited_columns(cls):
     Raises
     ------
     InvalidDefinitionError
-        If the redeclared column asks for a different type, length, nullability,
-        schema or value-generation behavior than the column already on the
-        table.
+        If a different class redeclares the column with a different type,
+        length, nullability, schema or value-generation behavior.
     """
     if cls.__dict__.get("__abstract__"):
         return
@@ -339,21 +351,24 @@ def _reuse_inherited_columns(cls):
     if table is None:
         return
 
+    identity = _class_identity(cls)
     for attribute, value in list(cls.__dict__.items()):
         column = _declared_column(value)
         if column is None:
             continue
         existing = table.c.get(column.name or attribute)
         if existing is None or existing is column:
+            column.info.setdefault(_DECLARED_BY, identity)
             continue
-        conflict = _inherited_column_conflict(existing, column)
-        if conflict is not None:
-            raise InvalidDefinitionError(
-                f"Column '{attribute}' on class {cls.__name__} {conflict} "
-                f"'{table.name}.{existing.name}'. Classes that share the "
-                f"'{table.name}' table must agree on each column's definition; "
-                "rename one of them."
-            )
+        if existing.info.get(_DECLARED_BY) != identity:
+            conflict = _inherited_column_conflict(existing, column)
+            if conflict is not None:
+                raise InvalidDefinitionError(
+                    f"Column '{attribute}' on class {cls.__name__} {conflict} "
+                    f"'{table.name}.{existing.name}'. Classes that share the "
+                    f"'{table.name}' table must agree on each column's "
+                    "definition; rename one of them."
+                )
         setattr(
             cls,
             attribute,
@@ -382,16 +397,55 @@ def _inherited_column_conflict(existing, column) -> str | None:
     if _column_foreign_key_specs(existing) != _column_foreign_key_specs(column):
         return "disagrees on foreign-key targets with the existing column"
     for option in ("default", "server_default", "onupdate", "server_onupdate"):
-        if _default_signature(getattr(existing, option, None)) != _default_signature(
-            getattr(column, option, None)
-        ):
-            return f"disagrees on {option} with the existing column"
+        conflict = _value_generation_conflict(
+            option,
+            getattr(existing, option, None),
+            getattr(column, option, None),
+        )
+        if conflict is not None:
+            return conflict
     if _column_constraint_specs(existing) != _column_constraint_specs(column):
         return "disagrees on constraints with the existing column"
     for option in ("autoincrement", "system", "comment"):
         if getattr(existing, option, None) != getattr(column, option, None):
             return f"disagrees on {option} with the existing column"
     return None
+
+
+def _value_generation_conflict(option, existing, declared) -> str | None:
+    """Return a conflict description if two columns generate values differently."""
+
+    if existing is None and declared is None:
+        return None
+    if existing is None or declared is None:
+        return f"disagrees on {option} with the existing column"
+    existing_signature = _default_signature(existing)
+    declared_signature = _default_signature(declared)
+    if existing_signature is None or declared_signature is None:
+        return f"declares a {option} that cannot be compared with the one already on"
+    if existing_signature != declared_signature:
+        return f"disagrees on {option} with the existing column"
+    return None
+
+
+def _default_signature(default):
+    """Return a comparison signature for a column default.
+
+    Returns ``None`` when the default cannot be compared across two class
+    definitions, which is the case for Python callables and for server-side
+    generators such as sequences. Two such defaults always count as
+    conflicting, so the author is asked to declare the shared column once
+    rather than PsyNet guessing that two functions behave the same way.
+    """
+
+    value = getattr(default, "arg", None)
+    if value is None or callable(value):
+        value = getattr(default, "sqltext", None)
+    if value is None or callable(value):
+        return None
+    if isinstance(value, sqlalchemy.sql.ClauseElement):
+        return (type(value), str(value))
+    return (type(value), repr(value))
 
 
 def _column_type_signature(type_):
@@ -401,115 +455,32 @@ def _column_type_signature(type_):
     return (type(type_), cache_key if cache_key is not None else repr(type_))
 
 
-def _default_signature(default):
-    """Return a stable signature for a client- or server-side column default."""
-
-    if default is None:
-        return None
-    option_names = (
-        "persisted",
-        "always",
-        "on_null",
-        "start",
-        "increment",
-        "minvalue",
-        "maxvalue",
-        "nominvalue",
-        "nomaxvalue",
-        "cycle",
-        "cache",
-        "order",
-    )
-    return (
-        type(default),
-        _value_signature(getattr(default, "arg", None)),
-        _value_signature(getattr(default, "sqltext", None)),
-        bool(getattr(default, "for_update", False)),
-        tuple(
-            (name, _value_signature(getattr(default, name)))
-            for name in option_names
-            if hasattr(default, name)
-        ),
-    )
-
-
-def _value_signature(value):
-    """Return a comparison signature for a default or SQL expression."""
-
-    if callable(value):
-        function = inspect.unwrap(value)
-        code = getattr(function, "__code__", None)
-        if code is not None:
-            closure = tuple(
-                _value_signature(cell.cell_contents)
-                for cell in (getattr(function, "__closure__", None) or ())
-            )
-            return (
-                "callable",
-                code.co_code,
-                _value_signature(code.co_consts),
-                code.co_names,
-                _value_signature(getattr(function, "__defaults__", None)),
-                _value_signature(getattr(function, "__kwdefaults__", None)),
-                closure,
-            )
-        return (
-            "callable",
-            getattr(value, "__module__", type(value).__module__),
-            getattr(value, "__qualname__", type(value).__qualname__),
-        )
-    if isinstance(value, dict):
-        return tuple(
-            sorted(
-                ((key, _value_signature(item)) for key, item in value.items()),
-                key=lambda pair: repr(pair[0]),
-            )
-        )
-    if isinstance(value, (list, tuple)):
-        return tuple(_value_signature(item) for item in value)
-    if isinstance(value, (str, bytes, int, float, bool, type(None))):
-        return value
-    if isinstance(value, sqlalchemy.sql.ClauseElement):
-        return (type(value), str(value))
-    return (type(value), repr(value))
-
-
 def _column_foreign_key_specs(column) -> frozenset[tuple]:
-    """Return comparable foreign-key definitions for a column."""
+    """Return comparable foreign-key definitions for a column.
 
-    specs = []
-    for foreign_key in getattr(column, "foreign_keys", ()) or ():
-        target = getattr(foreign_key, "target_fullname", None) or getattr(
-            foreign_key, "_colspec", None
+    Compares where the key points and what it does on change. Rarer DDL
+    options are left out: the column already on the table keeps its own
+    definition either way, as single-table inheritance requires.
+    """
+
+    return frozenset(
+        (
+            str(
+                getattr(foreign_key, "target_fullname", None)
+                or getattr(foreign_key, "_colspec", None)
+            ),
+            foreign_key.onupdate,
+            foreign_key.ondelete,
         )
-        specs.append(
-            (
-                str(target),
-                foreign_key.name,
-                foreign_key.onupdate,
-                foreign_key.ondelete,
-                foreign_key.deferrable,
-                foreign_key.initially,
-                foreign_key.use_alter,
-                foreign_key.match,
-                tuple(sorted(foreign_key.dialect_kwargs.items())),
-            )
-        )
-    return frozenset(specs)
+        for foreign_key in getattr(column, "foreign_keys", ()) or ()
+    )
 
 
 def _column_constraint_specs(column) -> frozenset[tuple]:
     """Return comparable non-foreign-key column constraints."""
 
     return frozenset(
-        (
-            type(constraint),
-            str(getattr(constraint, "sqltext", "")),
-            constraint.name,
-            constraint.deferrable,
-            constraint.initially,
-            tuple(sorted(constraint.dialect_kwargs.items())),
-        )
+        (type(constraint), str(getattr(constraint, "sqltext", "")))
         for constraint in column.constraints
     )
 
