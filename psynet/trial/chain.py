@@ -2344,12 +2344,20 @@ class ChainTrialMaker(NetworkTrialMaker):
         # Keep SQLAlchemy's normal autoflush enabled here. Trial finalization
         # calls this method before the surrounding request commits, so the
         # readiness SELECT must first flush that pending trial state.
-        return (
-            db.session.execute(
-                self.ready_to_grow_network_id_select([network.id]).limit(1)
-            ).first()
-            is not None
-        )
+        ready_row = db.session.execute(
+            self.ready_to_grow_network_id_select([network.id])
+            .limit(1)
+            .with_for_update(of=self.network_class)
+        ).first()
+        if ready_row is None:
+            return False
+
+        # The readiness predicate uses the database's current head. Refresh the
+        # passed object while holding the network-row lock so grow_network()
+        # cannot subsequently extend a stale in-memory head.
+        db.session.refresh(network, attribute_names=["head_id"])
+        db.session.expire(network, ["head"])
+        return True
 
     def call_grow_network(self, network, check_readiness=True):
         from psynet.experiment import get_experiment

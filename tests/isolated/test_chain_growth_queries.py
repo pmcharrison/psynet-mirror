@@ -947,3 +947,36 @@ def test_grow_readiness_autoflushes_uncommitted_trial_state(db_session, particip
     # The SQL readiness predicate relies intentionally on normal autoflush so
     # it sees finalization changes made earlier in the same request.
     assert not inspect(trial).attrs.finalized.history.has_changes()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_grow_readiness_refreshes_stale_head_while_locked(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker(id_="grow_readiness_stale_head")
+    network = create_chain_network(trial_maker, exp)
+    old_head = network.head
+    replacement = GrowthQueryNode(
+        definition={"x": 1},
+        parent=old_head,
+        network=network,
+        experiment=exp,
+    )
+    replacement.can_spawn = True
+    db.session.add(replacement)
+    db.session.flush()
+    add_trial(GrowthQueryTrial, replacement, participant, finalized=True)
+
+    # Simulate another transaction advancing the network without refreshing
+    # this session's already-loaded Network.head relationship.
+    db.session.execute(
+        ChainNetwork.__table__.update()
+        .where(ChainNetwork.__table__.c.id == network.id)
+        .values(head_id=replacement.id)
+    )
+    assert network.head is old_head
+
+    assert trial_maker.network_is_ready_to_grow(network) is True
+    assert network.head is replacement
