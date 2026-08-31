@@ -92,7 +92,10 @@ and how much they need to be paid as a result.
 Export data from an experiment (``export``)
 -------------------------------------------
 
-This command export data from an experiment. The data is saved by default to ``~/PsyNet-data/export``.
+This command exports data from an experiment. By default the latest export is
+saved to ``exports/latest/`` in the experiment directory, and the previous
+export is moved to ``exports/history/<timestamp>/``. Use ``--path`` to choose a
+different location. See :ref:`data` for the archive layout and asset options.
 
 .. code:: bash
 

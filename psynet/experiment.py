@@ -1287,7 +1287,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def backup_database(cls):
         with tempfile.TemporaryDirectory() as tempdir:
-            input_path = cls._export(tempdir)
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            input_path = cls._export(export_dir)
             cls.artifact_storage.upload_export(
                 input_path, deployment_id=cls.deployment_id
             )
@@ -3599,7 +3601,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         **kwargs,
     ):
         from .command_line import export__local
-        from .export.paths import EXPORT_ZIP_NAME
+        from .export.paths import EXPORT_ZIP_NAME, dashboard_export_zip_path
 
         ctx = Context(export__local)
         ctx.invoke(
@@ -3611,7 +3613,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         from .export.zip_utils import build_zip_from_dir
 
-        zip_path = os.path.abspath(EXPORT_ZIP_NAME)
+        zip_path = dashboard_export_zip_path(export_dir)
         zip_name = build_zip_from_dir(export_dir, zip_path)
         exp = get_experiment()
         storage = exp.artifact_storage
@@ -3630,8 +3632,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
 
         with tempfile.TemporaryDirectory() as tempdir:
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
             zip_filepath = exp._export(
-                tempdir,
+                export_dir,
                 **kwargs,
             )
             return send_file(zip_filepath, mimetype="zip")

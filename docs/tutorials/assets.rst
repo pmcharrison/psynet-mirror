@@ -300,28 +300,26 @@ By default, PsyNet organizes your storage back-end in a sensible hierarchy
 so that you can easily look up assets generated from a given historic experiment
 deployment. However, there are some limitations of working with this format:
 
-- The file names often contain obfuscation components for security purposes,
-  for example ``config_variables__abfe4815-f038-4a47-b59d-8c462d3d5b28.txt``,
-  which are ugly to retain in the long term.
-- Cached files won't be included in the experiment directory, so if you want
-  to construct a full set of your experiment's assets for your research paper's
-  Supplementary Materials, you'll have to do some extra work digging those out
-  from elsewhere in your storage back-end.
+- Server-side managed assets use content-addressed ``objects/sha256/<digest>``
+  paths. Exported archives instead use each asset's semantic ``export_path``.
+- Cached files are omitted from the default export, so a full set of stimuli
+  for supplementary materials needs ``--assets all`` or a separate copy from
+  storage.
 
 PsyNet therefore provides an additional workflow for exporting assets.
 This workflow is accessed via the standard ``psynet export`` command
 that is responsible for exporting the database contents once an experiment is finished.
-The current default behaviour is to export assets
-that are not marked as cached (because such assets typically correspond to pregenerated stimuli)
-and not generated using functions (because such assets can typically be generated on demand).
-To export more liberally, you can set ``--assets all`` to export all assets.
-You can alternatively set ``--assets none`` to export none.
+By default (``--assets collected``), PsyNet exports managed assets deposited
+during the experiment — for example recordings. Cached stimuli, external URLs,
+and on-demand assets are omitted. Use ``--assets all`` for a fuller archive,
+or ``--assets none`` to skip asset files. See :ref:`data` for the export layout.
 
 .. warning::
-    The ``psynet export`` workflow for exporting assets is still somewhat basic,
-    and not optimized well for large experiments. In such cases, it might be better
-    to export with ``--assets none`` and then manually download the assets you need
-    from the storage back-end. If you are using an SSH server, you can do this using the
+    Large experiments can still take a while to export when many collected
+    assets are included. SSH command-line exports (``psynet export ssh --legacy``)
+    reuse a local object cache and copy missing files with ``rsync``. You can
+    also export with ``--assets none`` and download selected files from storage.
+    If you are using an SSH server, you can do this using the
     ``scp`` command, for example:
 
     ::

@@ -1,1 +1,0 @@
-Fixed remaining branch-review polish: identifier-field test expectation, cleanup of temporary legacy database downloads, removal of unused worker_id mapping, and MIME-aware on-demand folder subfile serving.

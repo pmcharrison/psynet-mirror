@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from psynet.export.paths import (
+    dashboard_export_zip_path,
     find_table_member_in_zip,
     resolve_database_dir,
 )
@@ -41,3 +42,22 @@ def test_find_table_member_prefers_database_layout(tmp_path: Path):
         zf.writestr("database/trial.csv", "id\nnew\n")
     with zipfile.ZipFile(archive_path, "r") as archive:
         assert find_table_member_in_zip(archive, "trial") == "database/trial.csv"
+
+
+def test_dashboard_export_zip_path_is_sibling_of_export_tree(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.chdir(tmp_path)
+    export_dir = tmp_path / "scratch" / "export"
+    export_dir.mkdir(parents=True)
+    zip_path = dashboard_export_zip_path(str(export_dir))
+    assert zip_path == str((tmp_path / "scratch" / "export.zip").resolve())
+    assert zip_path != str((tmp_path / "export.zip").resolve())
+
+
+def test_dashboard_export_zip_path_rejects_process_cwd(tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    export_dir = tmp_path / "export"
+    export_dir.mkdir()
+    with pytest.raises(ValueError, match="working directory"):
+        dashboard_export_zip_path(str(export_dir))

@@ -22,6 +22,25 @@ DATABASE_DIRNAME = "database"
 EXPORT_ZIP_NAME = "export.zip"
 
 
+def dashboard_export_zip_path(export_dir: str) -> str:
+    """Return the ``export.zip`` path beside a dashboard/backup export tree.
+
+    The zip is written in the parent of ``export_dir`` so it is not included
+    in the archive and is not left in the process working directory. Callers
+    must nest ``export_dir`` under a disposable parent (for example
+    ``<tempdir>/export``).
+    """
+    zip_path = os.path.join(
+        os.path.dirname(os.path.abspath(export_dir)), EXPORT_ZIP_NAME
+    )
+    if zip_path == os.path.abspath(EXPORT_ZIP_NAME):
+        raise ValueError(
+            "Dashboard export.zip must be written under a temporary directory, "
+            "not the process working directory."
+        )
+    return zip_path
+
+
 def is_zip_path(path: str) -> bool:
     """Return whether ``path`` looks like a zip archive."""
     return os.path.isfile(path) and path.lower().endswith(".zip")
