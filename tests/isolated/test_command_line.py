@@ -671,43 +671,66 @@ class TestExport:
 
 
 @pytest.fixture
-def stub_ssh_log_transfer():
-    """Stub the SSH machinery used to fetch a deployment's logs.jsonl."""
+def stub_ssh_connection():
+    """Stub the SSH machinery used by export, sharing one connection."""
     from unittest.mock import Mock, patch
 
-    sftp = Mock()
+    from psynet.export.client import ssh_executor
+
     executor = Mock()
     executor.run.return_value = "/home/testuser\n"
+    ssh_executor.cache_clear()
     with (
         patch(
             "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
             {"test-server": {"host": "test-host", "user": "test-user"}},
         ),
-        patch("dallinger.command_line.docker_ssh.get_sftp", return_value=sftp),
-        patch("dallinger.command_line.docker_ssh.Executor", return_value=executor),
+        patch(
+            "dallinger.command_line.docker_ssh.Executor", return_value=executor
+        ) as connect,
     ):
-        yield sftp
+        yield executor, connect
+    ssh_executor.cache_clear()
 
 
-def test_fetch_logs_copies_the_deployment_log_file(tmp_path, stub_ssh_log_transfer):
+def test_fetch_logs_copies_the_deployment_log_file(tmp_path, stub_ssh_connection):
     from psynet.export.client import fetch_logs
+
+    executor, _ = stub_ssh_connection
+    sftp = executor.client.open_sftp.return_value
 
     assert fetch_logs(str(tmp_path), app="test-app", server="test-server") == str(
         tmp_path / "logs.jsonl"
     )
-    stub_ssh_log_transfer.get.assert_called_once_with(
+    sftp.get.assert_called_once_with(
         "/home/testuser/dallinger/test-app/logs.jsonl", str(tmp_path / "logs.jsonl")
     )
 
 
-def test_fetch_logs_warns_instead_of_failing_the_export(
-    tmp_path, stub_ssh_log_transfer
-):
+def test_fetch_logs_warns_instead_of_failing_the_export(tmp_path, stub_ssh_connection):
     from psynet.export.client import fetch_logs
 
-    stub_ssh_log_transfer.get.side_effect = Exception("Permission denied")
+    executor, _ = stub_ssh_connection
+    executor.client.open_sftp.return_value.get.side_effect = Exception(
+        "Permission denied"
+    )
 
     assert fetch_logs(str(tmp_path), app="test-app", server="test-server") is None
+
+
+def test_ssh_export_steps_share_one_connection(tmp_path, stub_ssh_connection):
+    """Each SSH handshake costs seconds, so the export must only make one."""
+    from psynet.export.client import fetch_logs, ssh_rsync_available, ssh_rsync_source
+
+    executor, connect = stub_ssh_connection
+    executor.run.return_value = "/usr/bin/rsync\n"
+    assert ssh_rsync_available("test-server")
+    executor.run.return_value = "/home/testuser\n"
+    source, _ = ssh_rsync_source("test-server")
+    fetch_logs(str(tmp_path), app="test-app", server="test-server")
+
+    assert source == "test-user@test-host:/home/testuser/psynet-data/assets/"
+    assert connect.call_count == 1
 
 
 def _setup_basic_data_export(monkeypatch, basic_data):

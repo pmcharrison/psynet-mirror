@@ -42,6 +42,7 @@ import shutil
 import subprocess
 import zipfile
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Optional
 from urllib.parse import urlencode
@@ -441,23 +442,45 @@ def hydrate_assets(
     return materialized
 
 
+def _server_address(server: str) -> tuple[str, Optional[str]]:
+    from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
+
+    server_info = CONFIGURED_HOSTS[server]
+    return server_info["host"], server_info.get("user")
+
+
+@lru_cache(maxsize=None)
+def ssh_executor(server: str):
+    """Return a shared SSH connection to ``server``.
+
+    One export probes for rsync, asks for the remote home directory, and fetches
+    ``logs.jsonl``. Opening a connection per step made a small export pay several
+    SSH handshakes, which dominated the runtime once the payload was cached, so
+    the connection is established once per process and reused.
+    """
+    from dallinger.command_line.docker_ssh import Executor
+
+    ssh_host, ssh_user = _server_address(server)
+    return Executor(ssh_host, user=ssh_user)
+
+
 def fetch_logs(staging_dir: str, *, app: str, server: str) -> Optional[str]:
     """Copy the deployment's ``logs.jsonl`` into the staging export tree.
 
     Logs are a convenience, so a failure here warns rather than aborting the
     export.
     """
-    from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS, Executor, get_sftp
-
-    server_info = CONFIGURED_HOSTS[server]
-    ssh_host = server_info["host"]
-    ssh_user = server_info.get("user")
     local_path = os.path.join(staging_dir, "logs.jsonl")
     try:
-        sftp = get_sftp(ssh_host, ssh_user)
-        executor = Executor(ssh_host, ssh_user, app)
+        executor = ssh_executor(server)
         home = executor.run("echo $HOME", raise_=False).strip()
-        sftp.get(f"{home}/dallinger/{app}/logs.jsonl", local_path)
+        # Opening SFTP on the existing client reuses the transport rather than
+        # negotiating a second connection.
+        sftp = executor.client.open_sftp()
+        try:
+            sftp.get(f"{home}/dallinger/{app}/logs.jsonl", local_path)
+        finally:
+            sftp.close()
     except Exception as exc:
         logger.warning("Could not export logs.jsonl from %s: %s", server, exc)
         return None
@@ -466,16 +489,12 @@ def fetch_logs(staging_dir: str, *, app: str, server: str) -> Optional[str]:
 
 def ssh_rsync_source(server: str) -> tuple[str, list]:
     """Return the rsync source spec and ssh options for a configured SSH server."""
-    from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS, Executor
     from dallinger.command_line.utils import get_server_pem_path
 
     from .ssh_rsync import default_ssh_command, remote_assets_source
 
-    server_info = CONFIGURED_HOSTS[server]
-    ssh_host = server_info["host"]
-    ssh_user = server_info.get("user")
-    executor = Executor(ssh_host, user=ssh_user)
-    home = executor.run("echo $HOME").strip()
+    ssh_host, ssh_user = _server_address(server)
+    home = ssh_executor(server).run("echo $HOME").strip()
     return (
         remote_assets_source(ssh_host, ssh_user, home),
         default_ssh_command(get_server_pem_path()),
@@ -484,8 +503,6 @@ def ssh_rsync_source(server: str) -> tuple[str, list]:
 
 def ssh_rsync_available(server: str) -> bool:
     """Return whether both ends of the SSH connection have ``rsync``."""
-    from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS, Executor
-
     from .ssh_rsync import (
         emit_rsync_missing_warning,
         local_rsync_available,
@@ -494,11 +511,9 @@ def ssh_rsync_available(server: str) -> bool:
     if not local_rsync_available():
         emit_rsync_missing_warning(location="local")
         return False
-    server_info = CONFIGURED_HOSTS[server]
-    ssh_host = server_info["host"]
+    ssh_host, _ = _server_address(server)
     try:
-        executor = Executor(ssh_host, user=server_info.get("user"))
-        if not executor.run("command -v rsync", raise_=False).strip():
+        if not ssh_executor(server).run("command -v rsync", raise_=False).strip():
             emit_rsync_missing_warning(location="remote", host=ssh_host)
             return False
     except Exception as exc:

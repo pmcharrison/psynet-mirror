@@ -52,6 +52,13 @@ interrupted export therefore always leaves your previous export intact. The
 ``exports/`` path is listed in ``deploy.toml`` so it is not uploaded on deploy,
 and the experiment ``.gitignore`` template ignores it.
 
+PsyNet does not currently prune ``exports/history/``, so it grows by one entry
+per export. This is cheaper than it looks: exported asset files are hard links
+to the shared cache described in :ref:`export_assets`, so repeated snapshots of
+unchanged recordings share their bytes rather than duplicating them. What each
+entry does duplicate is the table CSVs, which are small. Delete old
+subdirectories of ``exports/history/`` yourself when you no longer want them.
+
 A typical export directory looks like this:
 
 .. code-block:: text
@@ -161,6 +168,8 @@ when they do not. ``request.params`` is always blanked.
 PsyNet does not inspect assets, free-text answers, logs, serialized variables, or
 experiment-defined basic data for identifying content. Treat those as potentially
 identifying unless you have scrubbed them yourself.
+
+.. _export_assets:
 
 Assets
 ======
