@@ -52,13 +52,10 @@ These choices are workflow assumptions for the dogfood, labelled as such.
 
 ## Power analysis
 
-Provisional design (to be confirmed by `audit/simulate/design`): 12 expected
-scored items, stopping at SE 0.40 after 8 items, maximum 16. The primary
-decision metric is RMSE of the posterior mean versus true ability, with
-threshold 0.45 under the well-specified 1PL. Candidate designs vary test
-length (8, 12, 16) and policy (max information vs random without replacement).
-A 3PL-guessing scenario checks robustness. Participant payment uses the
-timeline time estimates at $12/hour.
+Provisional design after the Monte Carlo: keep max 16 scored items and
+max-information selection as a workflow demo. The RMSE ≤ 0.45 criterion was
+not met (about 0.48 adaptive vs 0.53 random at 16 well-specified items). The
+SE 0.40 stopping rule did not shorten tests. See `audit/simulate/design`.
 
 ## Implementation
 

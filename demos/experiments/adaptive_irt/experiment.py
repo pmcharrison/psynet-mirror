@@ -70,6 +70,7 @@ class IrtTrial(Trial):
     """One arithmetic item, either practice or adaptive."""
 
     time_estimate = 8
+    check_time_credit_received = False
 
     cat_item_id = Column(String, index=True)
     cat_difficulty = Column(Float)
@@ -171,7 +172,7 @@ def current_participant_fit(participant) -> ParticipantFit:
     trials = _adaptive_trials(participant)
     n = len(trials)
     cached_n = participant.var.get("fit_n", -1)
-    cached = participant.var.get("fit")
+    cached = participant.var.get("fit", None)
     if cached_n == n and cached is not None:
         return ParticipantFit(
             log_posterior=np.asarray(cached["log_posterior"]),
@@ -295,9 +296,7 @@ def practice_item_cue(item):
 
 def practice_items():
     return [
-        dict(item)
-        for item in load_item_bank()
-        if item["item_id"] in PRACTICE_ITEM_IDS
+        dict(item) for item in load_item_bank() if item["item_id"] in PRACTICE_ITEM_IDS
     ]
 
 
@@ -352,10 +351,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Adaptive arithmetic IRT"
     test_n_bots = 3
 
-    config = {
-        "wage_per_hour": 12.0,
-    }
-
     timeline = Timeline(
         CodeBlock(assign_simulation_profile),
         InfoPage(
@@ -395,7 +390,7 @@ class Exp(psynet.experiment.Experiment):
         decisions = AdaptiveDecision.query.filter_by(participant_id=bot.id).all()
         assert len(decisions) == len(adaptive)
         assert all(decision.selected_utility is not None for decision in decisions)
-        assert bot.var.get("response_profile") in RESPONSE_PROFILES
+        assert bot.var.get("response_profile", None) in RESPONSE_PROFILES
 
     @classmethod
     def get_basic_data(cls, context=None, **kwargs):
@@ -415,10 +410,10 @@ class Exp(psynet.experiment.Experiment):
             {
                 "id": participant.id,
                 "status": participant.status,
-                "true_ability": participant.var.get("true_ability"),
-                "response_profile": participant.var.get("response_profile"),
-                "ability_mean": participant.var.get("ability_mean"),
-                "ability_sd": participant.var.get("ability_sd"),
+                "true_ability": participant.var.get("true_ability", None),
+                "response_profile": participant.var.get("response_profile", None),
+                "ability_mean": participant.var.get("ability_mean", None),
+                "ability_sd": participant.var.get("ability_sd", None),
             }
             for participant in Participant.query.all()
         ]

@@ -4,17 +4,21 @@ from __future__ import annotations
 
 import hashlib
 import json
-import tomllib
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-from response_model.core import ResponseParameters
-from simulate_procedure import ProcedureConfig, simulate_one_participant
+import tomllib
 
 EXPERIMENT_ROOT = Path(__file__).resolve().parents[3]
+if str(EXPERIMENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(EXPERIMENT_ROOT))
+
+from response_model.core import ResponseParameters  # noqa: E402
+from simulate_procedure import ProcedureConfig, simulate_one_participant  # noqa: E402
+
 CONFIG_PATH = Path(__file__).with_name("config.toml")
 RESULTS_PATH = Path(__file__).with_name("results.csv")
 RUN_PATH = Path(__file__).with_name("run.json")
@@ -153,8 +157,12 @@ def main() -> None:
         scenario = _scenario_id(
             cell["policy"], cell["max_items"], cell["guessing"], cell["stop_early"]
         )
-        mean_n = float(np.mean([row["mean_n_observations"] for row in replicate_metrics]))
-        payment = n_participants * wage * (fixed_seconds + mean_n * seconds_per_item) / 3600
+        mean_n = float(
+            np.mean([row["mean_n_observations"] for row in replicate_metrics])
+        )
+        payment = (
+            n_participants * wage * (fixed_seconds + mean_n * seconds_per_item) / 3600
+        )
         for metric in metric_names:
             values = np.asarray([row[metric] for row in replicate_metrics], dtype=float)
             estimate = float(np.nanmean(values))
@@ -201,7 +209,8 @@ def main() -> None:
         "method": config["method"],
         "command": "python audit/simulate/design/core.py",
         "source_sha256": {
-            str(path.relative_to(EXPERIMENT_ROOT)): _sha256(path) for path in source_files
+            str(path.relative_to(EXPERIMENT_ROOT)): _sha256(path)
+            for path in source_files
         },
         "results_sha256": _sha256(RESULTS_PATH),
         "result_row_count": int(len(results)),

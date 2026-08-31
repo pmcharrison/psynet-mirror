@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "psynet_version": "13.4.0a0",
+  "dallinger_version": "12.3.0",
+  "python_version": "3.13.15",
+  "platform": "Linux-6.12.94+-x86_64-with-glibc2.39",
+  "experiment_label": "Adaptive arithmetic IRT",
+  "started_at": "2026-08-31T03:42:18",
+  "finished_at": "2026-08-31T03:43:20",
+  "options": {
+    "n_bots_sweep": [
+      6
+    ],
+    "duration_minutes": 1.0,
+    "stagger_interval_s": 0.1,
+    "time_factor": 1.0
+  },
+  "results": [
+    {
+      "n_bots": 6,
+      "duration_minutes": 1.0,
+      "actual_duration": 61.3696072101593,
+      "total_bots_started": 6,
+      "completed_during_test": 0,
+      "bots_succeeded": 0,
+      "bots_failed": 0,
+      "bots_incomplete": 6,
+      "total_requests": 109,
+      "requests_per_sec": 1.7761234747149535,
+      "bot_errors": 0,
+      "avg_response_time": 0.2659893259908335,
+      "median_response_time": 0.12680939100005162,
+      "p95_response_time": 1.286520203000009,
+      "p99_response_time": 1.525983718720045,
+      "stddev_response_time": 0.3851400697162585,
+      "max_response_time": 1.6828560149999703,
+      "avg_bot_duration": 56.38017169634501,
+      "avg_init_time": 2.353431502978007,
+      "initialization_times": [
+        1.9074373245239258,
+        2.1595020294189453,
+        2.5405020713806152,
+        2.7106070518493652,
+        2.448330879211426,
+        2.3542096614837646
+      ],
+      "request_errors": 0,
+      "median_wait_page_time": null,
+      "p95_wait_page_time": null,
+      "max_wait_page_time": null,
+      "n_wait_page_samples": null,
+      "avg_succeeded_duration": null,
+      "avg_failed_duration": null,
+      "avg_incomplete_duration": 56.38017169634501,
+      "q_delay_median": null,
+      "q_delay_p95": null,
+      "process_stats": [],
+      "min_trial_count": null,
+      "median_trial_count": null,
+      "max_trial_count": null,
+      "n_succeeded_bots": 0,
+      "n_rq_workers": 1
+    }
+  ]
+}

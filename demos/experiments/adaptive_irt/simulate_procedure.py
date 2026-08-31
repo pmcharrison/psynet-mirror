@@ -6,7 +6,6 @@ import time
 from dataclasses import dataclass
 
 import numpy as np
-
 from adaptive_logic import (
     MAX_ITEMS,
     MIN_ITEMS,

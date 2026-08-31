@@ -27,7 +27,7 @@
       "kind": "performance",
       "path": "artifacts/performance.json",
       "required": true,
-      "status": "blocked",
+      "status": "present",
       "title": "Performance test result"
     },
     {
@@ -47,7 +47,7 @@
       "kind": "data_export",
       "path": "simulate/analysis/simulated_export",
       "required": true,
-      "status": "blocked",
+      "status": "present",
       "title": "Simulated export"
     },
     {
@@ -57,7 +57,7 @@
       "kind": "notebook",
       "path": "simulate/analysis/analysis.ipynb",
       "required": true,
-      "status": "blocked",
+      "status": "present",
       "title": "Analysis notebook"
     },
     {
@@ -67,7 +67,7 @@
       "kind": "notebook",
       "path": "simulate/design/simulation.ipynb",
       "required": false,
-      "status": "missing",
+      "status": "present",
       "title": "Design simulation notebook"
     },
     {
@@ -77,7 +77,7 @@
       "kind": "report",
       "path": "simulate/design/run.json",
       "required": false,
-      "status": "missing",
+      "status": "present",
       "title": "Design simulation run record"
     },
     {
@@ -87,7 +87,7 @@
       "kind": "report",
       "path": "simulate/design/results.csv",
       "required": false,
-      "status": "missing",
+      "status": "present",
       "title": "Design simulation results"
     }
   ],
@@ -99,27 +99,9 @@
       "severity": "error"
     },
     {
-      "artifact_id": "performance_result",
-      "next_step": "Run psynet audit performance-test \u2026.",
-      "reason": "Performance test has not been run yet.",
-      "severity": "error"
-    },
-    {
       "artifact_id": "monitor_snapshot",
       "next_step": "Capture a static PsyNet monitor snapshot at artifacts/monitor.html.",
       "reason": "Monitor snapshot has not been captured yet.",
-      "severity": "error"
-    },
-    {
-      "artifact_id": "simulate_export",
-      "next_step": "Run psynet audit simulate.",
-      "reason": "Simulation export has not been produced yet.",
-      "severity": "error"
-    },
-    {
-      "artifact_id": "analysis_notebook",
-      "next_step": "Create and execute simulate/analysis/analysis.ipynb.",
-      "reason": "Analysis notebook has not been executed yet.",
       "severity": "error"
     }
   ],
@@ -236,5 +218,5 @@
       "title": "Checks"
     }
   ],
-  "updated_at": "2026-08-31T03:31:25Z"
+  "updated_at": "2026-08-31T03:43:33Z"
 }
