@@ -2611,6 +2611,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
         try:
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = client_ip_address
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
                 return self.response_rejected(
@@ -2627,7 +2629,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
-                client_ip_address=client_ip_address,
                 answer=answer,
             )
             validation = event.validate(

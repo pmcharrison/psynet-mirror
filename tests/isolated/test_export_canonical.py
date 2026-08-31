@@ -94,12 +94,33 @@ def test_identifier_separation_writes_sidecars_and_pseudonyms(tmp_path):
         ["id", "participant_id"],
         [{"id": "1", "participant_id": "7"}],
     )
+    _write_csv(
+        raw_dir / "notification.csv",
+        ["id", "assignment_id", "event_type"],
+        [
+            {
+                "id": "1",
+                "assignment_id": "assignment-1",
+                "event_type": "AssignmentAccepted",
+            },
+            {
+                "id": "2",
+                "assignment_id": "unknown-assignment",
+                "event_type": "AssignmentAbandoned",
+            },
+        ],
+    )
+    _write_csv(
+        raw_dir / "response.csv",
+        ["id", "participant_id", "client_ip_address"],
+        [{"id": "1", "participant_id": "7", "client_ip_address": "9.9.9.9"}],
+    )
 
     sidecars = write_identifier_sidecars_from_csv_dir(str(raw_dir), str(export_path))
     apply_identifier_separation_to_csv_dir(
         str(raw_dir),
         str(out_dir),
-        ["participant", "request", "lucid_rid", "trial"],
+        ["participant", "request", "lucid_rid", "trial", "notification", "response"],
     )
 
     participant_sidecar = pd.read_csv(sidecars["participant_identifiers"])
@@ -141,6 +162,18 @@ def test_identifier_separation_writes_sidecars_and_pseudonyms(tmp_path):
 
     trial = pd.read_csv(out_dir / "trial.csv")
     assert trial.iloc[0]["participant_id"] == 7
+
+    notification = pd.read_csv(out_dir / "notification.csv")
+    accepted = notification.set_index("id").loc[1]
+    abandoned = notification.set_index("id").loc[2]
+    assert str(int(accepted["assignment_id"])) == "7"
+    assert pd.isna(abandoned["assignment_id"]) or abandoned["assignment_id"] == ""
+
+    response = pd.read_csv(out_dir / "response.csv")
+    assert (
+        pd.isna(response.iloc[0]["client_ip_address"])
+        or response.iloc[0]["client_ip_address"] == ""
+    )
 
 
 def test_analysis_helpers_round_trip(tmp_path):

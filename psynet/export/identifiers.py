@@ -1,4 +1,12 @@
-"""Identifier separation for exported database snapshots."""
+"""Identifier separation for exported database snapshots.
+
+Live tables keep recruiter identifiers on ``Participant`` (and Lucid ghost
+entrants). Export writes those values to sidecar CSVs and replaces them with
+participant-id pseudonyms in ``database/`` so the archive remains loadable.
+Copied tables that still carry recruiter columns (``worker_id``,
+``assignment_id``, ``unique_id``, ``hit_id``, ``client_ip_address``,
+``entry_information``) are remapped or blanked the same way.
+"""
 
 from __future__ import annotations
 
@@ -100,7 +108,8 @@ def apply_identifier_separation_to_csv_dir(
     os.makedirs(out_dir, exist_ok=True)
 
     unique_id_map: dict[str, str] = {}
-    participant_rows = []
+    worker_id_map: dict[str, str] = {}
+    assignment_id_map: dict[str, str] = {}
     if os.path.exists(os.path.join(raw_dir, "participant.csv")):
         _, participant_rows = _read_csv(os.path.join(raw_dir, "participant.csv"))
         for row in participant_rows:
@@ -108,6 +117,18 @@ def apply_identifier_separation_to_csv_dir(
             old_unique = row.get("unique_id", "")
             if old_unique:
                 unique_id_map[old_unique] = pseudonyms["unique_id"]
+            old_worker = row.get("worker_id", "")
+            if old_worker:
+                worker_id_map[old_worker] = pseudonyms["worker_id"]
+            old_assignment = row.get("assignment_id", "")
+            if old_assignment:
+                assignment_id_map[old_assignment] = pseudonyms["assignment_id"]
+
+    maps = {
+        "unique_id": unique_id_map,
+        "worker_id": worker_id_map,
+        "assignment_id": assignment_id_map,
+    }
 
     for table in table_names:
         src = os.path.join(raw_dir, f"{table}.csv")
@@ -121,21 +142,6 @@ def apply_identifier_separation_to_csv_dir(
             for row in rows:
                 row = dict(row)
                 row.update(_participant_pseudonyms(row))
-                rewritten.append(row)
-            _write_csv(dst, fieldnames, rewritten)
-            continue
-
-        if table == "request":
-            fieldnames, rows = _read_csv(src)
-            rewritten = []
-            for row in rows:
-                row = dict(row)
-                old_unique = row.get("unique_id", "")
-                if old_unique in unique_id_map:
-                    row["unique_id"] = unique_id_map[old_unique]
-                # Request params can contain recruiter identifiers.
-                if "params" in row:
-                    row["params"] = ""
                 rewritten.append(row)
             _write_csv(dst, fieldnames, rewritten)
             continue
@@ -157,4 +163,52 @@ def apply_identifier_separation_to_csv_dir(
             _write_csv(dst, fieldnames, rewritten)
             continue
 
-        shutil.copyfile(src, dst)
+        fieldnames, rows = _read_csv(src)
+        if not _table_needs_identifier_rewrite(table, fieldnames):
+            shutil.copyfile(src, dst)
+            continue
+
+        rewritten = [
+            _rewrite_copied_row(row, maps, blank_params=(table == "request"))
+            for row in rows
+        ]
+        _write_csv(dst, fieldnames, rewritten)
+
+
+_COPIED_IDENTIFIER_MAP_FIELDS = ("unique_id", "worker_id", "assignment_id")
+_COPIED_IDENTIFIER_BLANK_FIELDS = (
+    "client_ip_address",
+    "entry_information",
+    "hit_id",
+)
+
+
+def _table_needs_identifier_rewrite(table: str, fieldnames: list[str]) -> bool:
+    """Return True when a copied table has recruiter identifiers or request params."""
+    if table == "request":
+        return True
+    names = set(fieldnames)
+    return any(
+        name in names
+        for name in _COPIED_IDENTIFIER_MAP_FIELDS + _COPIED_IDENTIFIER_BLANK_FIELDS
+    )
+
+
+def _rewrite_copied_row(
+    row: dict, maps: dict[str, dict[str, str]], *, blank_params: bool
+) -> dict:
+    """Replace recruiter identifiers on a non-participant, non-Lucid row."""
+    row = dict(row)
+    for field in _COPIED_IDENTIFIER_BLANK_FIELDS:
+        if field in row:
+            row[field] = ""
+    for field in _COPIED_IDENTIFIER_MAP_FIELDS:
+        if field not in row:
+            continue
+        old = row.get(field) or ""
+        if not old:
+            continue
+        row[field] = maps.get(field, {}).get(old, "")
+    if blank_params and "params" in row:
+        row["params"] = ""
+    return row

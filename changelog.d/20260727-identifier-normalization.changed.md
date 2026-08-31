@@ -1,3 +1,7 @@
-Removed duplicated participant identifiers from ``ErrorRecord`` and ``Response``,
-and linked ``LucidRID`` to participants via nullable ``participant_id`` instead of
-a foreign key on ``worker_id``.
+Removed duplicated participant identifiers from ``ErrorRecord`` and ``Response``.
+``Response`` no longer stores an IP address; Flask still updates
+``Participant.client_ip_address`` on ``/timeline`` and ``/response``.
+``LucidRID`` is linked to participants via nullable ``participant_id`` instead of
+a foreign key on ``worker_id``. Export remaps recruiter identifier columns on
+copied tables (for example ``notification.assignment_id``) to participant
+pseudonyms, and blanks unmatched values plus ``request.params``.
