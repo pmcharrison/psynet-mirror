@@ -95,7 +95,7 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     }));
     expect(accounting.credit).toBeGreaterThanOrEqual(2.5);
     expect(accounting.credit).toBeLessThanOrEqual(20);
-    expect(accounting.metric).toBeGreaterThanOrEqual(accounting.credit);
+    expect(accounting.metric).toBeCloseTo(accounting.credit, 5);
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);
