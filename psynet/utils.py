@@ -1678,6 +1678,13 @@ def generate_text_file(path, text="Lorem ipsum"):
 # experiment that defines a Trial subclass or a custom table sees these
 # warnings. They name PsyNet's own reloading rather than anything an
 # experimenter can act on.
+#
+# Retiring the previous entries instead, through ``registry._dispose_cls`` and
+# the base mapper's ``polymorphic_map``, does not work: a load boundary cannot
+# tell whether the module is about to be executed again, because ``sys.modules``
+# often already holds it. Removing entries up front therefore unregisters
+# classes that stay live, which breaks string-based ``relationship()`` targets
+# and makes loading a row fail with "No such polymorphic_identity is defined".
 _EXPERIMENT_REDECLARATION_WARNINGS = (
     "This declarative base already contains a class",
     "Reassigning polymorphic association",
