@@ -356,11 +356,12 @@ def test_assert_no_n_plus_one_requires_multiple_objects():
         assert_no_n_plus_one(None, 1)
 
 
-def test_assert_no_n_plus_one_rejects_non_positive_min_repeats(sqlite_engine):
+@pytest.mark.parametrize("min_repeats", [0, 1])
+def test_assert_no_n_plus_one_rejects_small_min_repeats(sqlite_engine, min_repeats):
     with sqlalchemy_profile(sqlite_engine) as profiler:
         pass
-    with pytest.raises(ValueError, match="min_repeats must be >= 1"):
-        assert_no_n_plus_one(profiler, 2, min_repeats=0)
+    with pytest.raises(ValueError, match="min_repeats must be >= 2"):
+        assert_no_n_plus_one(profiler, 2, min_repeats=min_repeats)
 
 
 def test_assert_query_duration_passes_with_high_limit(sqlite_engine):

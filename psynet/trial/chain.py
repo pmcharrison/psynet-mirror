@@ -148,13 +148,10 @@ def _bind_heads_to_loaded_networks(chains):
         if loaded_network is NO_VALUE:
             set_committed_value(head, "network", chain)
         elif loaded_network is not chain:
-            # Never overwrite a pending relationship assignment. In particular,
-            # set_committed_value() would clear that attribute's change history
-            # and could prevent SQLAlchemy from persisting the author's update.
-            raise RuntimeError(
-                f"Head node {head.id} has a loaded network inconsistent with "
-                f"chain {chain.id}."
-            )
+            # Leave pending relationship changes alone. set_committed_value()
+            # would clear their history and prevent SQLAlchemy from persisting
+            # the author's assignment.
+            continue
 
 
 # class HasSeed:

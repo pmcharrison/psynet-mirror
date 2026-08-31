@@ -532,12 +532,18 @@ def assert_no_n_plus_one(
         Number of candidate objects in the block. Must be at least 2.
     min_repeats :
         Statement-count threshold treated as N+1. Defaults to ``n_objects``.
+        Values below 2 are rejected because they would flag every query.
+
+    Notes
+    -----
+    This is a heuristic for blocks that process enough objects to distinguish
+    per-object SQL from the block's small, constant query budget.
     """
     if n_objects < 2:
         raise ValueError("n_objects must be >= 2 to detect N+1 queries.")
     threshold = n_objects if min_repeats is None else min_repeats
-    if threshold < 1:
-        raise ValueError("min_repeats must be >= 1.")
+    if threshold < 2:
+        raise ValueError("min_repeats must be >= 2.")
 
     # Stack capture deliberately splits QueryStats by (statement, stack). N+1
     # detection is about how often SQL executes regardless of which Python

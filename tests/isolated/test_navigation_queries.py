@@ -85,26 +85,6 @@ def test_public_participant_getter_retains_eager_relationships_when_detached(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_request_participant_query_preserves_row_lock(
-    db_session, participant_with_module_state
-):
-    experiment = get_experiment()
-
-    with assert_query_count(
-        min_queries=1, max_queries=1, capture_stack=True
-    ) as profiler:
-        experiment._get_request_participant_from_unique_id(
-            participant_with_module_state,
-            for_update=True,
-        )
-
-    assert "FOR UPDATE OF participant" in profiler.get_stats(top_n=None)[0].statement
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
-)
-@pytest.mark.usefixtures("in_experiment_directory")
 def test_experiment_var_loads_config_and_deferred_vars_together(db_session):
     experiment = get_experiment()
     db.session.commit()

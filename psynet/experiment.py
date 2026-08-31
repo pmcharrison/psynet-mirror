@@ -3368,14 +3368,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def _get_request_participant_from_unique_id(
-        cls, unique_id: str, for_update: bool = False
-    ):
+    def _get_request_participant_from_unique_id(cls, unique_id: str):
         """Load one request participant without unrelated eager relationships."""
-        query = cls._participant_request_query().filter_by(unique_id=unique_id)
-        if for_update:
-            query = query.with_for_update(of=Participant).populate_existing()
-        return query.one()
+        return cls._participant_request_query().filter_by(unique_id=unique_id).one()
 
     @classmethod
     def get_participant_from_assignment_id(
@@ -4056,9 +4051,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls._get_request_participant_from_unique_id(
-            unique_id, for_update=False
-        )
+        participant = cls._get_request_participant_from_unique_id(unique_id)
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)

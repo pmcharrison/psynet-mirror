@@ -891,8 +891,7 @@ def test_bind_heads_does_not_overwrite_dirty_relationship(db_session, participan
     first.head.network = second
 
     with db.session.no_autoflush:
-        with pytest.raises(RuntimeError, match="loaded network inconsistent"):
-            _bind_heads_to_loaded_networks([first])
+        _bind_heads_to_loaded_networks([first])
     assert first.head.network is second
     assert inspect(first.head).attrs.network.history.has_changes()
 
