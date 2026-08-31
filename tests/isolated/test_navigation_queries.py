@@ -99,6 +99,7 @@ def test_experiment_var_loads_config_and_deferred_vars_together(db_session):
 @pytest.mark.usefixtures("in_experiment_directory")
 def test_experiment_var_reuses_loaded_config_vars(db_session):
     experiment = get_experiment()
+    experiment.setup_experiment_config()
     db.session.commit()
 
     with assert_query_count(min_queries=1, max_queries=1):
