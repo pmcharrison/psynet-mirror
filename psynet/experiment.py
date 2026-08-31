@@ -57,7 +57,7 @@ from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import with_polymorphic
+from sqlalchemy.orm import lazyload, with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
@@ -2561,7 +2561,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
         participant = (
-            Participant.query.with_for_update(of=Participant)
+            self._participant_request_query()
+            .with_for_update(of=Participant)
             .populate_existing()
             .get(participant_id)
         )
@@ -3338,6 +3339,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
+    def _participant_request_query(cls):
+        """Return a participant query suited to one-participant HTTP requests.
+
+        Several participant relationships use ``lazy="selectin"`` because that
+        is efficient for dashboards and other queries that load many
+        participants. A timeline request loads exactly one participant, and
+        unconditional select-in loading would issue separate queries for the
+        current module, all module states, and active barriers even when the
+        current page does not use them.
+
+        Overriding those relationships to ordinary lazy loading preserves their
+        public behavior: the first access still loads the relationship. It only
+        avoids fetching relationships that this particular request never reads.
+        ``_current_trial`` deliberately keeps its joined-loading configuration
+        because response handling commonly needs it.
+        """
+        return Participant.query.options(
+            lazyload(Participant.module_state),
+            lazyload(Participant._module_states),
+            lazyload(Participant.active_barriers),
+        )
+
+    @classmethod
     def get_participant_from_assignment_id(
         cls, assignment_id: str, for_update: bool = False
     ):
@@ -3361,7 +3385,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = Participant.query.filter_by(assignment_id=assignment_id)
+        query = cls._participant_request_query().filter_by(assignment_id=assignment_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
@@ -3392,7 +3416,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The corresponding participant object.
         """
         participant_id = int(participant_id)
-        query = Participant.query.filter_by(id=participant_id)
+        query = cls._participant_request_query().filter_by(id=participant_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
@@ -3419,7 +3443,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = Participant.query.filter_by(worker_id=worker_id)
+        query = cls._participant_request_query().filter_by(worker_id=worker_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
@@ -3446,7 +3470,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = Participant.query.filter_by(unique_id=unique_id)
+        query = cls._participant_request_query().filter_by(unique_id=unique_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
