@@ -22,7 +22,6 @@ from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
 from psynet.sync import (
-    _BARRIER_HOLD_CHANNEL_PREFIX,
     Barrier,
     BarrierRecord,
     GroupBarrier,
@@ -32,6 +31,7 @@ from psynet.sync import (
     check_barriers,
 )
 from psynet.timeline import CodeBlock, GoTo
+from psynet.timeline_hold import TIMELINE_HOLD_CHANNEL, TimelineHoldRecord
 
 
 def get_random_id():
@@ -529,7 +529,7 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
 def test_check_barriers_publishes_release_after_commit(
-    in_experiment_directory, db_session
+    in_experiment_directory, db_session, monkeypatch
 ):
     exp = get_experiment()
     participant = new_participant(exp)
@@ -537,6 +537,19 @@ def test_check_barriers_publishes_release_after_commit(
     participant.page_uuid = "hold-page-uuid"
     barrier = ReleaseAllBarrier(id_="release_all")
     barrier.receive_participant(participant)
+    hold = TimelineHoldRecord(
+        participant=participant,
+        page_uuid=participant.page_uuid,
+        hold_id="barrier:release_all",
+        started_at=timenow(),
+        expected_wait=1.5,
+        max_wait_time=20,
+        fix_time_credit=False,
+        actual_wait_seconds=0,
+        credited_wait_seconds=0,
+    )
+    participant.active_barriers[barrier.id].timeline_hold = hold
+    db_session.add(hold)
     db_session.commit()
     participant_id = participant.id
     barrier_id = barrier.id
@@ -549,20 +562,27 @@ def test_check_barriers_publishes_release_after_commit(
             barrier_id=barrier_id,
         ).one()
         assert link.released
+        assert link.timeline_hold.released_at is not None
         publications.append((json.loads(data), channel_name))
 
-    exp.publish_to_subscribers = publish
+    monkeypatch.setattr(exp, "publish_to_subscribers", publish)
 
     check_barriers()
 
     assert publications == [
         (
             {
-                "type": "barrier_released",
-                "barrier_id": "release_all",
-                "page_uuid": "hold-page-uuid",
+                "type": "timeline_hold_wake",
+                "targets": [
+                    {
+                        "target_participant_id": str(participant_id),
+                        "page_uuid": "hold-page-uuid",
+                        "reason": "barrier_released",
+                        "hold_id": "barrier:release_all",
+                    }
+                ],
             },
-            f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant_id}",
+            TIMELINE_HOLD_CHANNEL,
         )
     ]
 

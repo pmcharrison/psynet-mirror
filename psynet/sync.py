@@ -55,7 +55,6 @@ Callable attributes on barriers (e.g., ``on_release``) are serialized via
 """
 
 import copy
-import json
 import random
 from math import floor
 from typing import Callable, List, Literal, Optional, Union
@@ -81,7 +80,7 @@ from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.timeline_hold import _TimelineHoldPage
+from psynet.timeline_hold import _TimelineHoldPage, queue_timeline_hold_wake
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -367,16 +366,6 @@ class Barrier(EltCollection):
             for participant in participants_to_release:
                 self.release(participant)
 
-        return [
-            {
-                "participant_id": participant.id,
-                "page_uuid": participant.page_uuid,
-                "barrier_id": self.id,
-            }
-            for participant in participants_to_release
-            if self._uses_timeline_hold
-        ]
-
 
 class GroupBarrier(Barrier):
     """
@@ -601,17 +590,6 @@ class GroupBarrier(Barrier):
                     participant.id,
                 )
                 participant.fail("timeout between barriers")
-
-    def release(self, participant: Participant):
-        link = participant.active_barriers.get(self.id, None)
-        if link is None:
-            raise RuntimeError(
-                "Could not find an appropriate barrier link to release the participant from "
-                f"(participant_id = {participant.id}, barrier_id = '{self.id}')."
-            )
-
-        link.release()
-
 
 class Grouper(Barrier):
     """
@@ -1190,6 +1168,12 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         self.released = True
         if self.timeline_hold is not None:
             self.timeline_hold.mark_released(self.participant, timestamp)
+            queue_timeline_hold_wake(
+                self.participant_id,
+                page_uuid=self.timeline_hold.page_uuid,
+                reason="barrier_released",
+                hold_id=self.timeline_hold.hold_id,
+            )
 
     def get_waiting_participants(self, for_update: bool = False):
         barrier = self.get_barrier()
@@ -1221,36 +1205,12 @@ def _next_waiting_barrier(excluded_ids):
     )
 
 
-def _publish_barrier_releases(releases):
-    """Notify browsers after barrier releases have committed."""
-    from psynet.experiment import get_experiment
-
-    experiment = get_experiment()
-    for release in releases:
-        participant_id = release["participant_id"]
-        payload = {
-            key: value for key, value in release.items() if key != "participant_id"
-        }
-        try:
-            experiment.publish_to_subscribers(
-                json.dumps({"type": "barrier_released", **payload}),
-                channel_name=f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant_id}",
-            )
-        except Exception:
-            logger.warning(
-                "Failed to publish barrier release for participant %s.",
-                participant_id,
-                exc_info=True,
-            )
-
-
 def check_barriers():
     """Process waiting barriers, isolating failures to individual barriers."""
     excluded_ids = set()
 
     while True:
         barrier_id = None
-        releases = []
         try:
             with transaction():
                 barrier_record = _next_waiting_barrier(excluded_ids)
@@ -1262,8 +1222,7 @@ def check_barriers():
                     raise RuntimeError(
                         f"Barrier '{barrier_record.id}' is missing or invalid."
                     )
-                releases = barrier.check() or []
-            _publish_barrier_releases(releases)
+                barrier.check()
         except Exception:
             if barrier_id is None:
                 raise

@@ -914,12 +914,11 @@
       if (
         !controller ||
         controller.stopped ||
-        !psynet.pageReady ||
-        psynet.nextPagePending
+        !psynet.pageReady
       ) {
         return false;
       }
-      if (controller.resumeInFlight) {
+      if (psynet.nextPagePending || controller.resumeInFlight) {
         controller.resumeRequested = true;
         return false;
       }
@@ -1010,12 +1009,16 @@
         },
         onMessage(message) {
           if (controller.stopped) return;
-          if (
-            message.type === "barrier_released" &&
-            message.barrier_id === hold.barrier_id &&
-            message.page_uuid === hold.page_uuid
-          ) {
-            psynet.resumeTimelineHold("barrier release");
+          let matchingTarget = (message.targets || []).find(
+            (target) =>
+              message.type === "timeline_hold_wake" &&
+              String(target.target_participant_id) ===
+                String(dallinger.identity.participantId) &&
+              (!target.page_uuid || target.page_uuid === hold.page_uuid) &&
+              (!target.hold_id || target.hold_id === hold.hold_id),
+          );
+          if (matchingTarget) {
+            psynet.resumeTimelineHold("server notification");
           }
         },
       });

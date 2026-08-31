@@ -5,18 +5,65 @@ server waits for a condition to clear. This module owns the durable accounting
 record and the internal page protocol shared by barriers and ``wait_while``.
 """
 
+import json
 from datetime import timedelta
 
 from dallinger import db
 from dallinger.models import timenow
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    event,
+)
 from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.timeline import Page, get_template
-from psynet.utils import call_function_with_context
+from psynet.timeline import Page, get_template, get_while_loop_start_time
+from psynet.utils import call_function_with_context, get_logger
 
 TIMELINE_HOLD_CHANNEL = "psynet_timeline_hold"
+_PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
+logger = get_logger()
+
+
+def queue_timeline_hold_wake(
+    participant_id, *, page_uuid=None, reason=None, hold_id=None
+):
+    """Queue a targeted hold wake for publication after the next commit."""
+    wake = {
+        "target_participant_id": str(participant_id),
+        "page_uuid": page_uuid,
+        "reason": reason,
+        "hold_id": hold_id,
+    }
+    key = (wake["target_participant_id"], page_uuid, reason, hold_id)
+    db.session.info.setdefault(_PENDING_WAKE_KEY, {})[key] = wake
+
+
+@event.listens_for(db.session, "after_commit")
+def _publish_timeline_hold_wakes(session):
+    wakes = list(session.info.pop(_PENDING_WAKE_KEY, {}).values())
+    if not wakes:
+        return
+    try:
+        from psynet.experiment import get_experiment
+
+        get_experiment().publish_to_subscribers(
+            json.dumps({"type": "timeline_hold_wake", "targets": wakes}),
+            channel_name=TIMELINE_HOLD_CHANNEL,
+        )
+    except Exception:
+        logger.warning("Failed to publish timeline hold wake.", exc_info=True)
+
+
+@event.listens_for(db.session, "after_rollback")
+def _discard_timeline_hold_wakes(session):
+    session.info.pop(_PENDING_WAKE_KEY, None)
 
 
 @register_table
@@ -126,11 +173,12 @@ class _TimelineHoldPage(Page):
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
+        started_at = get_while_loop_start_time(participant, self.hold_id) or timenow()
         record = TimelineHoldRecord(
             participant=participant,
             page_uuid=participant.page_uuid,
             hold_id=self.hold_id,
-            started_at=timenow(),
+            started_at=started_at,
             expected_wait=self.expected_wait,
             max_wait_time=self.max_wait_time,
             fix_time_credit=self.fix_time_credit,

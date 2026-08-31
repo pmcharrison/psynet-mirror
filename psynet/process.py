@@ -280,6 +280,14 @@ class AsyncProcess(SQLBase, SQLMixin):
                 process.fail(f"Exception in asynchronous process: {repr(err)}")
 
         finally:
+            if process is not None and process.participant_id is not None:
+                from psynet.timeline_hold import queue_timeline_hold_wake
+
+                queue_timeline_hold_wake(
+                    process.participant_id,
+                    page_uuid=process.participant.page_uuid,
+                    reason="async_process_finished",
+                )
             db.session.commit()
 
     @classmethod

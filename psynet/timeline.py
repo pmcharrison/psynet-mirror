@@ -2649,6 +2649,31 @@ class EndWhile(NullElt):
         self.label = label
 
 
+def _while_loop_state_key(label, key):
+    """Return the existing participant-var key for while-loop state."""
+    prefix = f"__{label}__{key}"
+    return f"{prefix}__{key}"
+
+
+def get_while_loop_start_time(participant, label):
+    """Return the authoritative server start time for a while loop."""
+    value = participant.var.get(_while_loop_state_key(label, "loop_start_time"))
+    return None if value is None else unserialise_datetime(value)
+
+
+def while_loop_timed_out(participant, label, max_loop_time, now=None):
+    """Return whether a while loop has reached its maximum duration."""
+    if max_loop_time is None:
+        return False
+    if now is None:
+        now = datetime.now()
+    started_at = get_while_loop_start_time(participant, label)
+    return (
+        started_at is not None
+        and (now - started_at).total_seconds() >= max_loop_time
+    )
+
+
 def while_loop(
     label: str,
     condition: Callable,
@@ -2721,21 +2746,10 @@ def while_loop(
 
     conditional_logic = join(logic, GoTo(start_while))
 
-    def with_namespace(x=None):
-        prefix = f"__{label}__{x}"
-        if x is None:
-            return prefix
-        return f"{prefix}__{x}"
-
     if max_loop_time is not None:
 
         def max_loop_time_condition(participant, experiment):
-            return (
-                datetime.now()
-                - unserialise_datetime(
-                    participant.var.get(with_namespace("loop_start_time"))
-                )
-            ).seconds > max_loop_time
+            return while_loop_timed_out(participant, label, max_loop_time)
 
     else:
 
@@ -2769,7 +2783,8 @@ def while_loop(
     elts = join(
         CodeBlock(
             lambda participant: participant.var.set(
-                with_namespace("loop_start_time"), serialise(datetime.now())
+                _while_loop_state_key(label, "loop_start_time"),
+                serialise(datetime.now()),
             )
         ),
         start_while,
