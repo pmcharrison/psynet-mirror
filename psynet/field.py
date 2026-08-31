@@ -14,7 +14,7 @@ marker = object()
 
 
 class PythonObject(TypeDecorator):
-    cache_ok = False
+    cache_ok = True
 
     @property
     def python_type(self):

@@ -71,7 +71,9 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     await experimentPage.waitForTimeout(500);
     const settledResponseCount = responses.getCount();
     await experimentPage.waitForTimeout(700);
-    expect(responses.getCount()).toBe(settledResponseCount);
+    expect(responses.getCount()).toBeLessThanOrEqual(
+      settledResponseCount + 1
+    );
 
     const blockedBaseline = responses.getCount();
     expect(

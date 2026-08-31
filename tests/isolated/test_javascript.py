@@ -177,10 +177,7 @@ def test_wait_page_gates_auto_advance_on_page_ready():
     assert "setTimer" not in page.template_str
 
 
-@pytest.mark.parametrize("include_timeline_fragment", [True, False])
-def test_response_approved_defers_fragment_rendering(
-    monkeypatch, include_timeline_fragment
-):
+def test_response_approved_defers_fragment_rendering(monkeypatch):
     from types import SimpleNamespace
 
     import psynet.experiment as experiment_module
@@ -194,9 +191,7 @@ def test_response_approved_defers_fragment_rendering(
     )
     exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
     exp.timeline = SimpleNamespace(get_current_elt=lambda *args: page)
-    payload = experiment_module.Experiment.response_approved(
-        exp, object(), include_timeline_fragment=include_timeline_fragment
-    )
+    payload = experiment_module.Experiment.response_approved(exp, object())
 
     assert "timeline_fragment" not in payload
 
@@ -246,7 +241,6 @@ def test_response_approved_reuses_resolved_page(monkeypatch):
     payload = experiment_module.Experiment.response_approved(
         exp,
         object(),
-        include_timeline_fragment=False,
         page=page,
     )
 

@@ -2560,7 +2560,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page_uuid,
         client_ip_address,
         answer=NoArgumentProvided,
-        include_timeline_fragment=True,
     ):
         _p = get_translator(context=True)
         logger.info(
@@ -2601,7 +2600,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     flask_app_globals.response_page = page
                 return self.response_approved(
                     participant,
-                    include_timeline_fragment,
                     page=page,
                 )
             response = event.process_response(
@@ -2639,7 +2637,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 flask_app_globals.response_page = page
             return self.response_approved(
                 participant,
-                include_timeline_fragment,
                 page=page,
             )
         except Exception as err:
@@ -2663,9 +2660,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             return error_response(participant=participant)
 
-    def response_approved(self, participant, include_timeline_fragment=True, page=None):
+    def response_approved(self, participant, page=None):
         logger.debug("The response was approved.")
-        _ = include_timeline_fragment
         if page is None:
             page = self.timeline.get_current_elt(self, participant)
         payload = {
@@ -4058,6 +4054,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 unique_id,
                 exc_info=True,
             )
+            if mode == "json":
+                return jsonify(
+                    {
+                        "status": "busy",
+                        "message": (
+                            "The experiment is temporarily busy. Please try again."
+                        ),
+                    }
+                ), 503
             with read_only_transaction():
                 return cls.error_page(
                     error_text=(
@@ -4544,7 +4549,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 page_uuid,
                 client_ip_address,
                 answer,
-                False,
             )
         except sqlalchemy.exc.OperationalError as error:
             if not cls._is_transient_transaction_error(error):
