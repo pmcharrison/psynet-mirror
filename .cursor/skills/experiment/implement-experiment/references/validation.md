@@ -12,10 +12,12 @@ day-to-day backend or frontend testing strategy, use
 Run functional checks from the experiment directory:
 
 ```bash
-python experiment.py
 psynet test local
 psynet audit simulate
 ```
+
+Do not run ``python experiment.py`` as an import or syntax check.
+See `develop-experiment-back-end/SKILL.md`.
 
 `psynet audit simulate` writes `audit/simulate/analysis/simulated_export/` and marks
 `simulate_export` present.
@@ -36,7 +38,8 @@ psynet audit performance-test \
 
 That writes `audit/artifacts/performance.json` and marks `performance_result`
 present. Judge the run by median and p95 `/timeline` and `/response` times, not
-by how many bots finished. If those percentiles are high, profile SQL with
+by how many bots finished. Zero finished bots is expected when the window is
+shorter than the experiment. If those percentiles are high, profile SQL with
 `psynet test local --sql-profile` before changing the scientific policy (see
 the performance-testing tutorial). Use top-level
 `psynet performance-test local --json-output <path>` for a custom non-audit
@@ -45,9 +48,10 @@ If the experiment customizes `run_bot`, preserve `bot=None` support and delegate
 to `super().run_bot(...)` for framework-created bots; `psynet performance-test`
 calls `exp.run_bot(time_factor=...)` without passing a bot object.
 
-Short smoke runs are fine while iterating or infrastructure-testing; use
+Short smoke runs are fine for a first pass or infrastructure testing; use
 top-level `psynet performance-test local` so they do not become packet evidence.
-Prefer a sustained run when claiming production-like performance evidence. Skip
+When the experiment is nearing finalizing, prefer a sustained run (and a window
+on the order of the estimated duration if you want completions). Skip
 an expensive re-run when a suitable `audit/artifacts/performance.json` already
 exists for the current implementation.
 

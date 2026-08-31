@@ -24,6 +24,7 @@ from psynet.utils import get_psynet_root, working_directory
 EXPECTED_EXCLUDE_PATHS = (
     ".cursor/skills/psynet",
     ".deploy",
+    "audit",
     "data",
     "deploy",
     "deploy_logs",
@@ -189,6 +190,7 @@ def test_stock_policy_excludes_local_and_gitignored_files(tmp_path):
     assert "env/" in gitignore
     assert ".venv/" in gitignore
     assert "exports/" in gitignore
+    assert "audit/site/" in gitignore
 
     env_file = experiment_root / "env" / "lib" / "python.py"
     env_file.parent.mkdir(parents=True)
@@ -204,6 +206,9 @@ def test_stock_policy_excludes_local_and_gitignored_files(tmp_path):
     exports_file = experiment_root / "exports" / "participant.csv"
     exports_file.parent.mkdir()
     exports_file.write_text("participant_id\n")
+    audit_file = experiment_root / "audit" / "REPORT.md"
+    audit_file.parent.mkdir()
+    audit_file.write_text("# local review packet\n")
     (experiment_root / "kept.txt").write_text("keep\n")
 
     plan = build_deployment_plan(experiment_root)
@@ -215,8 +220,11 @@ def test_stock_policy_excludes_local_and_gitignored_files(tmp_path):
         ".venv/lib/sitecustomize.py",
         "env/lib/python.py",
         "exports/participant.csv",
+        "audit/REPORT.md",
     ]:
         assert excluded not in plan.destinations
+    assert "experiment.py" in plan.destinations
+    assert "__init__.py" in plan.destinations
 
 
 @pytest.mark.parametrize("generated_lines", _GENERATED_DOCKERIGNORE_VARIANTS)

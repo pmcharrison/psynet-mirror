@@ -214,14 +214,17 @@ psynet audit performance-test \
 
 The command writes `<experiment>/audit/artifacts/performance.json`
 and marks `performance_result` present. Judge the run by median and p95
-`/timeline` and `/response` times, not by how many bots finished. If those
-percentiles are high, profile SQL with `psynet test local --sql-profile`
+`/timeline` and `/response` times, not by how many bots finished. Zero
+finished bots is expected when the window is shorter than the experiment. If
+those percentiles are high, profile SQL with `psynet test local --sql-profile`
 before changing the scientific policy. Use top-level
 `psynet performance-test local --json-output <path>` for a non-audit file.
 
-Shorter smoke runs are fine while iterating or infrastructure-testing; use
+Shorter smoke runs are fine for a first pass or infrastructure testing; use
 top-level `psynet performance-test local` so they do not become packet evidence.
-Skip an expensive re-run when a suitable `artifacts/performance.json` already
+When the experiment is nearing finalizing, prefer a sustained run (and a
+window on the order of the estimated duration if you want completions). Skip
+an expensive re-run when a suitable `artifacts/performance.json` already
 exists for the current implementation.
 
 ## Manifest rules
