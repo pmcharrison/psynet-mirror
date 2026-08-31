@@ -2582,7 +2582,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         "Please close all other tabs and refresh the page.",
                     )
                 )
-            if getattr(event, "is_timeline_hold", False):
+            if event.is_timeline_hold:
                 should_resume = event.should_resume(self, participant)
                 event.account_wait(participant, settle=should_resume)
                 if should_resume:
@@ -2647,7 +2647,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "submission": "approved",
             "page": page.__json__(participant),
         }
-        if getattr(page, "is_timeline_hold", False):
+        if page.is_timeline_hold:
             payload["timeline_hold"] = page.timeline_hold_payload(participant)
             return success_response(**payload)
         config = get_config()

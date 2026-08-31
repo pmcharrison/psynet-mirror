@@ -22,8 +22,8 @@ function startBarrierReleaseTracker(page) {
       if (separator < 0) return;
       try {
         const message = JSON.parse(text.slice(separator + 1));
-        if (message.type === "barrier_released") {
-          releases.push(message);
+        if (message.type === "timeline_hold_wake") {
+          releases.push(...(message.targets || []));
         }
       } catch (error) {
         // Ignore frames from unrelated websocket channels.
@@ -32,7 +32,11 @@ function startBarrierReleaseTracker(page) {
   });
   return {
     countForBarrier: (barrierId) =>
-      releases.filter((message) => message.barrier_id === barrierId).length
+      releases.filter(
+        (message) =>
+          message.reason === "barrier_released" &&
+          message.hold_id === `barrier:${barrierId}`
+      ).length
   };
 }
 

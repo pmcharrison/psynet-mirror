@@ -64,6 +64,17 @@
             pointer-events: none;
         }
 
+        #timeline-hold-region {
+            align-items: center;
+            display: flex;
+            justify-content: center;
+            padding: 0.75rem 1rem 0;
+        }
+
+        #timeline-hold-region:empty {
+            display: none;
+        }
+
         #psynet-timeline-hold-indicator {
             align-items: center;
             background: var(--bs-body-bg);
@@ -73,20 +84,8 @@
             color: var(--bs-body-color);
             display: flex;
             gap: 0.6rem;
-            left: 50%;
-            max-width: calc(100vw - 2rem);
+            max-width: 100%;
             padding: 0.65rem 1rem;
-            position: fixed;
-            top: 2.5rem;
-            transform: translateX(-50%);
-            z-index: 1080;
-        }
-
-        #psynet-timeline-hold-indicator.psynet-timeline-hold-fallback {
-            margin: 20vh auto 0;
-            position: static;
-            transform: none;
-            width: fit-content;
         }
     </style>
 
@@ -146,6 +145,18 @@
                            their scripts block. #}
                         {{ self.scripts() }}
                     </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endmacro %}
+
+    {% macro timeline_hold_region() %}
+        <div id="timeline-hold-region">
+            {% if page.is_timeline_hold %}
+                <div id="psynet-timeline-hold-indicator"
+                     role="status" aria-live="polite">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span class="psynet-timeline-hold-message">{{ page.content }}</span>
                 </div>
             {% endif %}
         </div>
@@ -211,6 +222,7 @@
         {# Fragment response used only by inplace transitions. #}
         <div id="psynet-timeline-fragment">
             {{ timeline_header() }}
+            {{ timeline_hold_region() }}
             {{ timeline_main_body() }}
             {{ timeline_footer() }}
             {{ template_data_script() }}
@@ -219,6 +231,7 @@
         {# Full-page render used for initial loads and for the legacy reload path. #}
         <div id="timeline-root">
             {{ timeline_header() }}
+            {{ timeline_hold_region() }}
             {{ timeline_main_body() }}
 
             {% block modals %}

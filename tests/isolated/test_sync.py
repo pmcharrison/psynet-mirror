@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 from dallinger import db
 from dallinger.models import timenow
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, text
 
 from psynet.dashboard.sync_groups import (
     _fail_sync_group_participant,
@@ -557,12 +557,27 @@ def test_check_barriers_publishes_release_after_commit(
     publications = []
 
     def publish(data, channel_name):
-        link = ParticipantLinkBarrier.query.filter_by(
-            participant_id=participant_id,
-            barrier_id=barrier_id,
-        ).one()
-        assert link.released
-        assert link.timeline_hold.released_at is not None
+        with db.engine.connect() as connection:
+            released, released_at = connection.execute(
+                text(
+                    """
+                    SELECT participant_link_barrier.released,
+                           timeline_hold.released_at
+                    FROM participant_link_barrier
+                    JOIN timeline_hold
+                      ON timeline_hold.id =
+                         participant_link_barrier.timeline_hold_id
+                    WHERE participant_link_barrier.participant_id = :participant_id
+                      AND participant_link_barrier.barrier_id = :barrier_id
+                    """
+                ),
+                {
+                    "participant_id": participant_id,
+                    "barrier_id": barrier_id,
+                },
+            ).one()
+        assert released
+        assert released_at is not None
         publications.append((json.loads(data), channel_name))
 
     monkeypatch.setattr(exp, "publish_to_subscribers", publish)

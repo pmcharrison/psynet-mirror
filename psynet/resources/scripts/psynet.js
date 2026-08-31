@@ -230,6 +230,7 @@
       utils: {},
       comments: [],
       var: psynetTemplateData.jsVars,
+      submissionPageUuid: psynetTemplateData.jsVars.pageUuid,
     };
     psynet.SUBMISSION_HANDLED = Symbol("psynet.SUBMISSION_HANDLED");
 
@@ -320,6 +321,7 @@
       Object.assign(psynetTemplateData, refreshedTemplateData);
       window.psynetTemplateData = psynetTemplateData;
       psynet.var = psynetTemplateData.jsVars || {};
+      psynet.submissionPageUuid = psynet.var.pageUuid;
       psynet.page = {
         ...(psynetTemplateData.page || {}),
         prompt: {},
@@ -849,20 +851,14 @@
     psynet.timelineHold = null;
 
     psynet.updatePageForTimelineHold = function (page) {
-      psynet.page = {
-        ...psynet.page,
-        attributes: page.attributes,
-        contents: page.contents,
-      };
-      let pageUuid = page.attributes.page_uuid;
-      psynet.var.pageUuid = pageUuid;
-      window.pageUuid = pageUuid;
+      psynet.submissionPageUuid = page.attributes.page_uuid;
     };
 
     psynet.showTimelineHoldIndicator = function (message) {
       let indicator = document.getElementById(
         "psynet-timeline-hold-indicator",
       );
+      let preservesVisiblePage = !indicator;
       if (!indicator) {
         indicator = document.createElement("div");
         indicator.id = "psynet-timeline-hold-indicator";
@@ -878,16 +874,17 @@
         let messageElement = document.createElement("span");
         messageElement.className = "psynet-timeline-hold-message";
         indicator.appendChild(messageElement);
-        document.body.appendChild(indicator);
+        document.getElementById("timeline-hold-region").appendChild(indicator);
       }
       indicator.querySelector(".psynet-timeline-hold-message").textContent =
         message;
       document.body.classList.add("timeline-held");
       let mainBody = document.getElementById("main-body");
       if (mainBody) {
-        mainBody.inert = true;
+        mainBody.inert = preservesVisiblePage;
         mainBody.setAttribute("aria-busy", "true");
       }
+      return preservesVisiblePage;
     };
 
     psynet.scheduleTimelineHoldCheck = function (controller) {
@@ -986,10 +983,11 @@
       }
 
       psynet.stopTimelineHold();
-      psynet.showTimelineHoldIndicator(hold.message);
+      let preservesVisiblePage = psynet.showTimelineHoldIndicator(hold.message);
       let controller = {
         connection: null,
         hold: hold,
+        preservesVisiblePage: preservesVisiblePage,
         resumeInFlight: false,
         resumeRequested: false,
         safetyTimer: null,
@@ -1049,6 +1047,7 @@
 
       let requiredIds = [
         "timeline-header",
+        "timeline-hold-region",
         "main-body",
         "footer",
         "psynet-template-data",
@@ -2944,6 +2943,7 @@
 
       if (psynet.isSameSessionPageUpdate(response)) {
         psynet.page = response.page;
+        psynet.submissionPageUuid = response.page.attributes.page_uuid;
         psynet.trial.registerEvent("pageUpdated");
         psynet.nextPagePending = false;
         return true;
@@ -3039,7 +3039,7 @@
 
       return JSON.stringify({
         participant_id: psynet.participantId,
-        page_uuid: psynet.var.pageUuid,
+        page_uuid: psynet.submissionPageUuid,
         assignment_id: psynet.assignmentId,
         unique_id: psynet.uniqueId,
         raw_answer: rawAnswer,

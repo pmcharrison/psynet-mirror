@@ -206,6 +206,7 @@ def test_response_approved_skips_fragment_for_reload_pages(
     monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
 
     page = SimpleNamespace(
+        is_timeline_hold=False,
         requires_full_page_reload=requires_reload,
         __json__=lambda participant: {},
     )
