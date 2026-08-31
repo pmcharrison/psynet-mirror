@@ -2584,6 +2584,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             if event.is_timeline_hold:
                 should_resume = event.should_resume(self, participant)
+                if should_resume:
+                    event.prepare_to_resume(participant)
                 event.account_wait(participant, settle=should_resume)
                 if should_resume:
                     self.timeline.advance_page(self, participant)

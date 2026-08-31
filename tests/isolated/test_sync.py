@@ -671,6 +671,27 @@ def test_overridden_barrier_check_still_publishes_hold_wake(
     assert publications[0]["targets"][0]["page_uuid"] == "override-hold"
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_hold_releases_link_before_pending_redirect(
+    in_experiment_directory, db_session
+):
+    participant = new_participant(get_experiment())
+    participant.status = "working"
+    participant.page_uuid = "redirect-hold"
+    barrier = ReleaseAllBarrier(id_="redirect")
+    barrier.receive_participant(participant)
+    hold_page = barrier.waiting_logic
+    hold_page.consume(get_experiment(), participant)
+    participant.pending_redirect = "unsuccessful_end"
+
+    hold_page.prepare_to_resume(participant)
+
+    assert participant.barrier_links[0].released
+    assert participant.barrier_links[0].timeline_hold.released_at is not None
+
+
 def test_group_barrier_rejects_bound_method():
     class Dummy:
         def handler(

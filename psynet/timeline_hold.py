@@ -93,6 +93,8 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
 
     def account_until(self, participant, timestamp):
         """Account newly elapsed visible waiting time through ``timestamp``."""
+        if self.resumed_at is not None and timestamp > self.resumed_at:
+            timestamp = self.resumed_at
         elapsed = self._elapsed_at(timestamp)
         previous_actual = self.actual_wait_seconds or 0.0
         if elapsed <= previous_actual:
@@ -215,6 +217,9 @@ class _TimelineHoldPage(Page):
             or self.participant_can_resume(experiment, participant)
             or self.participant_timed_out(participant)
         )
+
+    def prepare_to_resume(self, participant):
+        """Run subclass-specific cleanup immediately before settlement."""
 
     def account_wait(self, participant, settle=False):
         """Update actual wait diagnostics and compensation."""

@@ -113,6 +113,12 @@ class _BarrierHoldPage(_TimelineHoldPage):
             )
         link.timeline_hold = record
 
+    def prepare_to_resume(self, participant):
+        if (
+            participant.pending_redirect is not None or participant.failed
+        ) and self.barrier_id in participant.active_barriers:
+            participant.active_barriers[self.barrier_id].release()
+
 
 class _ReadOnlyParticipantList(list):
     """A participant list whose membership must be changed through its group."""

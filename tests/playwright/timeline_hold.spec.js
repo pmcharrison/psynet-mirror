@@ -244,3 +244,35 @@ test("timeline hold preserves same-session page identity", { tag: "@both" }, asy
     await assertNoBackendError(experimentPage);
   });
 });
+
+test("trial feedback processing uses an in-place timeline hold", { tag: "@both" }, async ({
+  page,
+  context
+}) => {
+  const experimentDir = path.resolve(
+    "tests/playwright/experiments/timeline_hold_feedback"
+  );
+
+  await withExperiment(page, context, experimentDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Choose a response before feedback processing.",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    await experimentPage
+      .getByRole("button", { name: "response", exact: true })
+      .click();
+
+    await expect(
+      experimentPage.locator("#psynet-timeline-hold-indicator")
+    ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Choose a response before feedback processing."
+    );
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Asynchronous feedback is ready.",
+      { timeout: 5000 }
+    );
+    await assertNoBackendError(experimentPage);
+  });
+});
