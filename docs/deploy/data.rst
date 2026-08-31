@@ -77,6 +77,11 @@ A typical export directory looks like this:
     │   └── <semantic export paths>
     └── logs.jsonl                      # SSH exports when available
 
+``database/`` contains a CSV only for tables that have at least one row, so a
+typical experiment does not include unused tables such as ``chat_message.csv``.
+``manifest.json`` still lists every table under ``table_row_counts``, with a
+count of ``0`` for omitted files.
+
 If you want to choose your own export location, use the ``--path`` argument:
 
 .. code:: bash

@@ -68,7 +68,7 @@ def copy_database_to_csv_dir(
     Returns
     -------
     list[str]
-        Table names that were exported (including empty tables).
+        Table names that were copied from the database, including empty tables.
     """
     os.makedirs(csv_dir, exist_ok=True)
     tables = list(table_names) if table_names is not None else _export_table_order()
@@ -92,6 +92,32 @@ def _count_csv_rows(path: str) -> int:
         reader = csv.reader(handle)
         next(reader, None)
         return sum(1 for _ in reader)
+
+
+def omit_empty_table_csvs(csv_dir: str, table_names: Iterable[str]) -> list[str]:
+    """Remove header-only table CSVs so unused tables do not appear in the export.
+
+    Parameters
+    ----------
+    csv_dir :
+        Directory of ``<table>.csv`` files.
+    table_names :
+        Physical tables that were exported.
+
+    Returns
+    -------
+    list of str
+        Table names whose files were removed.
+    """
+    omitted = []
+    for table in table_names:
+        path = os.path.join(csv_dir, f"{table}.csv")
+        if not os.path.exists(path):
+            continue
+        if _count_csv_rows(path) == 0:
+            os.remove(path)
+            omitted.append(table)
+    return omitted
 
 
 def _file_entry(path: str) -> dict:
@@ -149,7 +175,9 @@ def write_export_manifest(
     """Write ``manifest.json`` describing the export.
 
     The manifest records ``git_commit_sha`` and ``git_dirty`` from launch
-    provenance. Exports do not bundle experiment source code.
+    provenance. Exports do not bundle experiment source code. Empty table CSVs
+    are omitted from ``database/``; ``table_row_counts`` still includes those
+    tables with a count of ``0``.
     """
     from psynet import __version__ as psynet_version
 
@@ -169,6 +197,8 @@ def write_export_manifest(
         if os.path.exists(path):
             row_counts[table] = _count_csv_rows(path)
             files[f"{DATABASE_DIRNAME}/{table}.csv"] = _file_entry(path)
+        else:
+            row_counts[table] = 0
 
     if extra_files:
         for name, path in extra_files.items():
@@ -226,6 +256,7 @@ def export_database_snapshot(export_path: str) -> dict:
         sidecar_paths = write_identifier_sidecars_from_csv_dir(raw_dir, export_path)
         apply_identifier_separation_to_csv_dir(raw_dir, separated_dir, table_names)
         shutil.copytree(separated_dir, database_dir)
+        omit_empty_table_csvs(database_dir, table_names)
 
         manifest_path = write_export_manifest(
             export_path,

@@ -2533,6 +2533,8 @@ def export_(
     Table CSVs under ``database/`` use pseudonymous participant identifiers so
     the archive remains loadable. Original recruiter identifiers are written to
     the sidecar CSV files. This is identifier separation, not anonymization.
+    Empty tables are omitted from ``database/``; ``manifest.json`` still records
+    a row count of zero for them.
     ``manifest.json`` records the deployment git commit instead of bundling
     source code.
 

@@ -1,6 +1,9 @@
+import csv
+import json
 import os
 import tempfile
 from collections import Counter
+from pathlib import Path
 
 import dallinger
 import pandas
@@ -143,9 +146,25 @@ class TestExport:
         exported_csv_files = sorted(
             name for name in os.listdir(database_dir) if name.endswith(".csv")
         )
-        db_tables = sorted(list(dallinger.db.Base.metadata.tables.keys()))
+        assert exported_csv_files
+        for name in exported_csv_files:
+            path = os.path.join(database_dir, name)
+            with open(path, newline="") as handle:
+                reader = csv.reader(handle)
+                next(reader, None)
+                assert sum(1 for _ in reader) > 0, f"{name} should not be empty"
 
-        assert exported_csv_files == [t + ".csv" for t in db_tables]
+        manifest = json.loads(
+            Path(database_dir).parent.joinpath("manifest.json").read_text()
+        )
+        db_tables = sorted(dallinger.db.Base.metadata.tables.keys())
+        assert sorted(manifest["table_row_counts"]) == db_tables
+        for table, count in manifest["table_row_counts"].items():
+            csv_name = f"{table}.csv"
+            if count == 0:
+                assert csv_name not in exported_csv_files
+            else:
+                assert csv_name in exported_csv_files
 
 
 @pytest.mark.parametrize(

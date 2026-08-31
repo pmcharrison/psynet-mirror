@@ -254,6 +254,40 @@ def test_empty_lucid_table_omits_sidecar(tmp_path):
     assert not (export_path / "lucid_entrant_identifiers.csv").exists()
 
 
+def test_empty_table_csvs_are_omitted_from_the_export(tmp_path, monkeypatch):
+    from psynet.export.database import omit_empty_table_csvs, write_export_manifest
+
+    csv_dir = tmp_path / "database"
+    csv_dir.mkdir()
+    (csv_dir / "trial.csv").write_text("id\n1\n")
+    (csv_dir / "chat_message.csv").write_text("id,body\n")
+
+    omit_empty_table_csvs(str(csv_dir), ["trial", "chat_message"])
+
+    assert (csv_dir / "trial.csv").exists()
+    assert not (csv_dir / "chat_message.csv").exists()
+
+    experiment = Mock()
+    experiment.deployment_id = "demo__export"
+    experiment.label = "demo"
+    experiment.var.get.return_value = None
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
+
+    manifest = json.loads(
+        Path(
+            write_export_manifest(
+                str(tmp_path),
+                table_names=["trial", "chat_message"],
+                csv_dir=str(csv_dir),
+            )
+        ).read_text()
+    )
+    assert "database/trial.csv" in manifest["files"]
+    assert "database/chat_message.csv" not in manifest["files"]
+    assert manifest["table_row_counts"]["trial"] == 1
+    assert manifest["table_row_counts"]["chat_message"] == 0
+
+
 def test_write_export_manifest_records_git_provenance(tmp_path, monkeypatch):
     from psynet.export.database import write_export_manifest
 
