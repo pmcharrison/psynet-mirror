@@ -2344,6 +2344,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         """
         if network.id is None:
             return False
+        # Keep SQLAlchemy's normal autoflush enabled here. Trial finalization
+        # calls this method before the surrounding request commits, so the
+        # readiness SELECT must first flush that pending trial state.
         return (
             db.session.execute(
                 self.ready_to_grow_network_id_select([network.id]).limit(1)

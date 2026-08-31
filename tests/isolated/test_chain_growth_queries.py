@@ -820,6 +820,28 @@ def test_static_discovery_omits_mapped_network_count_subqueries(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
+def test_deferred_network_counts_remain_available_after_discovery(
+    db_session, participant
+):
+    exp = get_experiment()
+    trial_maker = make_static_trial_maker("static_deferred_counts")
+    network = create_static_networks(trial_maker, exp, 1)[0]
+    add_trial(GrowthQueryStaticTrial, network.head, participant)
+    initialize_trial_maker_state(trial_maker, participant)
+    participant = reload_participant(participant)
+
+    node = trial_maker.find_nodes(participant, exp)[0]
+
+    # Discovery defers this correlated count for performance, but the public
+    # attribute must still lazy-load correctly when experiment code requests it.
+    with assert_query_count(min_queries=1, max_queries=1):
+        assert node.network.n_all_trials == 1
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_chain_author_hooks_do_not_n_plus_one_on_head_network(db_session, participant):
     n_chains = 20
     exp = get_experiment()
@@ -870,3 +892,27 @@ def test_grow_readiness_does_not_load_trial_rows(db_session, participant):
                 "Readiness check loaded trial rows instead of counting them: "
                 f"{stat.statement}"
             )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_grow_readiness_autoflushes_uncommitted_trial_state(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker(id_="grow_readiness_autoflush")
+    network = create_chain_network(trial_maker, exp)
+    trial = add_trial(
+        GrowthQueryTrial,
+        network.head,
+        participant,
+        finalized=False,
+    )
+    trial.complete = True
+    trial.finalized = True
+
+    assert inspect(trial).attrs.finalized.history.has_changes()
+    assert trial_maker.network_is_ready_to_grow(network) is True
+    # The SQL readiness predicate relies intentionally on normal autoflush so
+    # it sees finalization changes made earlier in the same request.
+    assert not inspect(trial).attrs.finalized.history.has_changes()
