@@ -1,8 +1,8 @@
 .. _sqlalchemy_performance_decisions:
 
-=========================================
+==========================================
 SQLAlchemy performance investigation notes
-=========================================
+==========================================
 
 This page records lessons from profiling PsyNet's participant-navigation and
 trial-assignment paths. It is a decision record rather than a list of permanent
@@ -42,7 +42,7 @@ single-run timings cautiously because PostgreSQL caches and machine load can
 easily move small measurements.
 
 For durable performance gates, use same-runner comparisons as described in
-:ref:`asv_performance_tests`.
+:doc:`ASV performance tests <asv_performance_tests>`.
 
 Patterns worth keeping
 ======================
