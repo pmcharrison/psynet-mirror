@@ -22,6 +22,12 @@ class DummyTransactionModel(SQLBase):
 
 
 class MutatingRenderPage(Page):
+    def __init__(self):
+        super().__init__(
+            template_fragment_str="<p>Rendered</p>",
+            time_estimate=0,
+        )
+
     def render(self, experiment, participant, partial_mode=False):
         participant.worker_id = "mutated-during-render"
         return "<p>rendered</p>"
@@ -155,19 +161,24 @@ def test_transaction_lock_timeout_is_scoped_locally(db_session):
 )
 def test_full_timeline_render_rejects_orm_mutation(db_session):
     participant = new_participant()
+    db_session.flush()
+    participant_id = participant.id
+    unique_id = participant.unique_id
+    page_uuid = participant.page_uuid
+    experiment = get_experiment()
     db_session.commit()
 
     with pytest.raises(RuntimeError, match="attempted to mutate ORM state"):
         Experiment._render_timeline_page_read_only(
-            experiment=get_experiment(),
-            participant_id=participant.id,
-            unique_id=participant.unique_id,
-            page_uuid=participant.page_uuid,
+            experiment=experiment,
+            participant_id=participant_id,
+            unique_id=unique_id,
+            page_uuid=page_uuid,
             page=MutatingRenderPage(),
             mode=None,
         )
 
-    participant = Participant.query.get(participant.id)
+    participant = Participant.query.get(participant_id)
     assert participant.worker_id == "original-worker"
 
 
@@ -176,15 +187,19 @@ def test_full_timeline_render_rejects_orm_mutation(db_session):
 )
 def test_partial_timeline_render_rejects_orm_mutation(db_session):
     participant = new_participant()
+    db_session.flush()
+    participant_id = participant.id
+    page_uuid = participant.page_uuid
+    experiment = get_experiment()
     db_session.commit()
 
     with pytest.raises(RuntimeError, match="attempted to mutate ORM state"):
         Experiment._render_partial_timeline_payload_read_only(
-            experiment=get_experiment(),
-            participant_id=participant.id,
-            page_uuid=participant.page_uuid,
+            experiment=experiment,
+            participant_id=participant_id,
+            page_uuid=page_uuid,
             page=MutatingRenderPage(),
         )
 
-    participant = Participant.query.get(participant.id)
+    participant = Participant.query.get(participant_id)
     assert participant.worker_id == "original-worker"
