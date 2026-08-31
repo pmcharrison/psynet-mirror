@@ -24,7 +24,7 @@ from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.timeline import Page, _get_while_loop_start_time, get_template
-from psynet.utils import call_function_with_context, get_logger
+from psynet.utils import call_function_with_context, get_logger, get_translator
 
 _TIMELINE_HOLD_CHANNEL = "psynet_timeline_hold"
 _PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
@@ -260,14 +260,13 @@ class _TimelineHoldPage(Page):
         else:
             record.account_until(participant, timenow())
 
-    def translated_content(self, participant):
+    def translated_content(self):
         """Translate framework-provided hold messages for this participant."""
+        pgettext = get_translator(context=True)
         if self.content == "Waiting for other participants…":
-            return participant.pgettext(
-                "timeline_hold", "Waiting for other participants…"
-            )
+            return pgettext("timeline_hold", "Waiting for other participants…")
         if self.content == "Please wait, the experiment should continue shortly...":
-            return participant.pgettext(
+            return pgettext(
                 "timeline_hold",
                 "Please wait, the experiment should continue shortly...",
             )
@@ -284,7 +283,7 @@ class _TimelineHoldPage(Page):
         return {
             "channel": _TIMELINE_HOLD_CHANNEL,
             "hold_id": self.hold_id,
-            "message": self.translated_content(participant),
+            "message": self.translated_content(),
             "page_uuid": participant.page_uuid,
             "safety_poll_ms": round(self.check_interval * 1000),
             "timeout_ms": remaining_timeout_ms,

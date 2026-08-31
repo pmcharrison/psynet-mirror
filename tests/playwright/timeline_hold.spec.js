@@ -88,6 +88,13 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       "Background feedback processing finished.",
       { timeout: HOLD_WAKE_TIMEOUT_MS }
     );
+    const accounting = await experimentPage.evaluate(() => ({
+      credit: Number(document.getElementById("hold-credit").textContent),
+      metric: Number(document.getElementById("hold-metric").textContent)
+    }));
+    expect(accounting.credit).toBeGreaterThanOrEqual(2.5);
+    expect(accounting.credit).toBeLessThanOrEqual(20);
+    expect(accounting.metric).toBeGreaterThanOrEqual(accounting.credit);
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);
@@ -156,6 +163,7 @@ test("timeline hold uses the authoritative server timeout", { tag: "@both" }, as
       "The timeline hold timed out.",
       { timeout: 3000 }
     );
+    await expect(experimentPage.locator("#fixed-hold-credit")).toHaveText("0.5");
     expect(Date.now() - startedAt).toBeGreaterThanOrEqual(800);
     await assertNoBackendError(experimentPage);
   });
