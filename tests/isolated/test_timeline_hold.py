@@ -82,7 +82,7 @@ def test_fixed_timeline_hold_records_expected_credit():
 
 def test_wait_while_defaults_to_timeline_hold():
     logic = wait_while(lambda: True, expected_wait=3)
-    holds = [elt for elt in logic if elt.is_timeline_hold]
+    holds = [elt for elt in logic if getattr(elt, "is_timeline_hold", False)]
 
     assert len(holds) == 1
     assert holds[0].time_estimate == 3
@@ -94,5 +94,5 @@ def test_wait_while_preserves_explicit_wait_page_behavior():
     logic = wait_while(lambda: True, expected_wait=3, wait_page=WaitPage)
 
     assert any(isinstance(elt, WaitPage) for elt in logic)
-    assert not any(elt.is_timeline_hold for elt in logic)
+    assert not any(getattr(elt, "is_timeline_hold", False) for elt in logic)
     assert any(isinstance(elt, StartFixTimeCredit) for elt in logic)
