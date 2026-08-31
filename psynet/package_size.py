@@ -51,24 +51,35 @@ def package_size_limit_error(
     size_in_mb: float, max_size_in_mb: int, *, heroku: bool = False
 ) -> str:
     """Build the error shown when an experiment package is too large."""
-    if heroku:
-        return (
-            f"Your experiment deployment plan is {size_in_mb:.1f} MB, which "
-            f"exceeds Heroku's {HEROKU_MAX_SLUG_MB} MB slug limit. This is a "
-            "pre-check of the deployment-plan size (what deploy.toml would "
-            "copy), not a measurement of the built slug. Run "
-            "'dallinger deployment-files list' and exclude files in "
-            "deploy.toml, host large public media on S3, or deploy with "
-            "Docker/SSH."
-        )
-    return (
+    message = (
         f"Your experiment deployment plan is {size_in_mb:.1f} MB, which exceeds "
-        f"the {max_size_in_mb} MB limit. The default "
-        f"{DEFAULT_EXP_MAX_SIZE_MB} MB ceiling is meant for baking public "
-        "stimuli into static/. Run 'dallinger deployment-files list' to see "
-        "what is included, then exclude junk in deploy.toml. If the size is "
-        f"intentional, set {EXP_MAX_SIZE_MB_ENV} to override this limit. Do "
-        "not use that override to ship generated files, recordings, or private "
+        f"the {max_size_in_mb} MB limit."
+    )
+    if heroku:
+        message += (
+            " This is a pre-check of the deployment-plan size (what deploy.toml "
+            "would copy), not a measurement of the built slug."
+        )
+        if max_size_in_mb >= HEROKU_MAX_SLUG_MB:
+            message += (
+                f" Heroku slugs cannot exceed {HEROKU_MAX_SLUG_MB} MB; host large "
+                "public media on S3 or deploy with Docker/SSH."
+            )
+        else:
+            message += (
+                f" The bound that fired is {EXP_MAX_SIZE_MB_ENV}={max_size_in_mb}. "
+                f"Heroku slugs still cannot exceed {HEROKU_MAX_SLUG_MB} MB."
+            )
+        message += (
+            " Run 'dallinger deployment-files list' and exclude files in deploy.toml."
+        )
+        return message
+    return (
+        message + f" The default {DEFAULT_EXP_MAX_SIZE_MB} MB ceiling is meant "
+        "for baking public stimuli into static/. Run 'dallinger deployment-files "
+        "list' to see what is included, then exclude junk in deploy.toml. If the "
+        f"size is intentional, set {EXP_MAX_SIZE_MB_ENV} to override this limit. "
+        "Do not use that override to ship generated files, recordings, or private "
         "data; those belong in PsyNet's asset system. Heroku slugs cannot "
         f"exceed {HEROKU_MAX_SLUG_MB} MB, so host large media outside the "
         "package or deploy with Docker/SSH."

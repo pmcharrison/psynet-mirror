@@ -73,3 +73,11 @@ def test_heroku_size_error_mentions_deployment_files_list():
     assert "500 MB" in message
     assert "deployment-plan" in message
     assert "built slug" in message
+
+
+def test_heroku_size_error_cites_configured_limit_when_below_slug_cap():
+    message = package_size_limit_error(300, 200, heroku=True)
+    assert "200 MB" in message
+    assert "EXP_MAX_SIZE_MB=200" in message
+    assert "exceeds Heroku's 500 MB slug limit" not in message
+    assert "500 MB" in message

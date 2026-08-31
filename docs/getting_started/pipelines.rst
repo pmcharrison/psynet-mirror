@@ -46,10 +46,11 @@ Typically the directory is specified with some code like this:
 
 .. note::
 
-    File paths are typically specified relative to the root of the
-    experiment directory, i.e. the directory containing the ``experiment.py`` file.
-    However, if you want to point to files outside your experiment directory,
-    you can use absolute paths (e.g. ``/Users/alex/corpora/megacorpus``).
+    Copy public audio into the experiment ``static/`` directory (for example
+    ``static/instrument_sounds/``) so ``deploy.toml`` ships it and
+    :func:`~psynet.media.static_url_for` can build a ``/static/...`` URL.
+    Paths outside ``static/`` are not served this way; host a large remote
+    corpus on S3 or register it as a PsyNet asset.
 
 For this exercise, your task will be to choose one of these pipelines and apply it to your own stimuli.
 If you have some relevant files handy, then great;
