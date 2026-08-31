@@ -10,6 +10,15 @@ from psynet.pytest_psynet import path_to_test_experiment
 from psynet.sqlalchemy_profiling import assert_query_count
 from psynet.timeline import ModuleState
 
+pytestmark = [
+    pytest.mark.parametrize(
+        "experiment_directory",
+        [path_to_test_experiment("timeline")],
+        indirect=True,
+    ),
+    pytest.mark.usefixtures("in_experiment_directory"),
+]
+
 
 @pytest.fixture
 def participant_with_module_state(db_session):
@@ -32,10 +41,6 @@ def participant_with_module_state(db_session):
     return unique_id
 
 
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
-)
-@pytest.mark.usefixtures("in_experiment_directory")
 def test_participant_request_query_loads_relationships_only_when_used(
     db_session, participant_with_module_state
 ):
@@ -58,10 +63,6 @@ def test_participant_request_query_loads_relationships_only_when_used(
         assert participant.active_barriers == {}
 
 
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
-)
-@pytest.mark.usefixtures("in_experiment_directory")
 def test_public_participant_getter_retains_eager_relationships_when_detached(
     db_session, participant_with_module_state
 ):
@@ -81,10 +82,6 @@ def test_public_participant_getter_retains_eager_relationships_when_detached(
         assert participant.active_barriers == {}
 
 
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
-)
-@pytest.mark.usefixtures("in_experiment_directory")
 def test_experiment_var_loads_config_and_deferred_vars_together(db_session):
     experiment = get_experiment()
     db.session.commit()
@@ -93,10 +90,6 @@ def test_experiment_var_loads_config_and_deferred_vars_together(db_session):
         assert isinstance(dict(experiment.var.items()), dict)
 
 
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
-)
-@pytest.mark.usefixtures("in_experiment_directory")
 def test_experiment_var_reuses_loaded_config_vars(db_session):
     experiment = get_experiment()
     experiment.setup_experiment_config()
