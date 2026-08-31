@@ -215,57 +215,14 @@ such as `StaticTrialMaker` and `ChainTrialMaker`.
 
 ### Cue the selected candidate
 
-Selection is an ordinary function in the timeline:
+Selection is an ordinary function in the timeline. Keep one cached file per
+sound; the trial only receives the two it needs.
 
 ```python
+from psynet.asset import asset
 from psynet.timeline import Module, for_loop
 
 
-def select_and_cue_item(trial_index, participant, experiment):
-    snapshot = latest_ready_snapshot()
-    candidate_items = ITEMS[~ITEMS["item_id"].isin(items_seen_by(participant))]
-    utilities = adaptive_logic.score_available_items(
-        study_state=snapshot.state,
-        candidate_items=candidate_items,
-        participant=participant_row(participant),
-    )
-    selected_item_id = utilities.idxmax()
-
-    return AdaptiveTrial.cue(
-        definition={"item_id": selected_item_id},
-        on_trial_created=record_decision,
-        creation_context={
-            "selected_candidate_id": selected_item_id,
-            "selected_utility": float(utilities.loc[selected_item_id]),
-            "study_fit_id": snapshot.id,
-            "data_version": snapshot.data_version,
-            "eligible_candidate_count": len(candidate_items),
-        },
-    )
-
-
-adaptive_items = Module(
-    "adaptive_items",
-    for_loop(
-        label="adaptive items",
-        iterate_over=range(N_TRIALS),
-        logic=select_and_cue_item,
-        time_estimate_per_iteration=AdaptiveTrial.time_estimate,
-    ),
-)
-```
-
-Here `utilities` is a Series indexed by `item_id`. `for_loop` passes the
-iterated value as the first argument and supplies `participant` and
-`experiment` by name.
-
-Assets follow the same grain as the item bank. The audio similarity demo
-(`demos/experiments/audio_similarity`) keeps one cached file per sound and
-looks up Sound A and Sound B by name. Copy that for cued pairs: pass
-`assets=get_assets` to the `Module`, then hand the two files this trial needs
-to `Trial.cue`. Do not upload a new asset for the pair itself.
-
-```python
 def get_assets():
     return {
         stimulus["name"]: asset(stimulus["path"], extension=".mp3", cache=True)
@@ -273,20 +230,42 @@ def get_assets():
     }
 
 
-return AdaptiveTrial.cue(
-    definition={"stimulus_a": a, "stimulus_b": b},
-    assets={
-        "stimulusA": module.assets[a],
-        "stimulusB": module.assets[b],
-    },
-    on_trial_created=record_decision,
-    creation_context=creation_context,
+def select_and_cue_pair(trial_index, participant, experiment):
+    snapshot = latest_ready_snapshot()
+    a, b = adaptive_logic.select_pair(
+        study_state=snapshot.state,
+        candidate_pairs=pairs_not_seen_by(participant),
+    )
+    return AdaptiveTrial.cue(
+        definition={"stimulus_a": a, "stimulus_b": b},
+        assets={
+            "stimulusA": pairwise.assets[a],
+            "stimulusB": pairwise.assets[b],
+        },
+        on_trial_created=record_decision,
+        creation_context={
+            "selected_candidate_id": f"{a}__{b}",
+            "study_fit_id": snapshot.id,
+            "data_version": snapshot.data_version,
+        },
+    )
+
+
+pairwise = Module(
+    "audio_pairs",
+    for_loop(
+        label="adaptive pairs",
+        iterate_over=range(N_TRIALS),
+        logic=select_and_cue_pair,
+        time_estimate_per_iteration=AdaptiveTrial.time_estimate,
+    ),
+    assets=get_assets,
 )
 ```
 
-The similarity demo still builds one node per pair, which is fine for a small
-bank. Once the pair list is large, keep the asset lookup and drop the pair
-nodes.
+`for_loop` passes the iterated value as the first argument and supplies
+`participant` and `experiment` by name. Do not upload a new asset for the pair
+itself.
 
 `on_trial_created` runs inside the trial-creation transaction, so the decision
 row and the assignment commit or roll back together. Follow
@@ -297,11 +276,11 @@ candidate table. Apply them to the decision table rather than inferring
 exposure from successful observations:
 
 ```python
-seen_item_ids = decisions.loc[
+seen_pair_ids = decisions.loc[
     decisions["participant_id"] == participant_id,
     "selected_candidate_id",
 ]
-candidate_items = items[~items["item_id"].isin(seen_item_ids)]
+candidate_pairs = pairs[~pairs["pair_id"].isin(seen_pair_ids)]
 ```
 
 ## Implement a custom stopping rule
@@ -316,13 +295,13 @@ depends on the responses, replace `for_loop` with `while_loop`:
 
 ```python
 while_loop(
-    label="adaptive items",
+    label="adaptive pairs",
     condition=lambda participant: not adaptive_logic.should_stop_participant(
         participant_fit=current_participant_fit(participant),
         n_administered=n_trials_so_far(participant),
     ),
     logic=PageMaker(
-        lambda participant, experiment: select_and_cue_item(
+        lambda participant, experiment: select_and_cue_pair(
             n_trials_so_far(participant), participant, experiment
         ),
         time_estimate=AdaptiveTrial.time_estimate,
