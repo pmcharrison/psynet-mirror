@@ -1,4 +1,7 @@
+from unittest.mock import Mock, patch
+
 from psynet.perf_test import (
+    PerformanceTester,
     colorize_success_rate,
     format_performance_summary,
     format_test_results,
@@ -42,6 +45,17 @@ def _base_result(**overrides):
 
 def _join(lines):
     return "\n".join(lines)
+
+
+def test_random_stagger_is_bounded_relative_to_configured_interval():
+    tester = PerformanceTester(
+        authenticated_session=Mock(),
+        base_url="http://localhost",
+        stagger_interval_s=0.1,
+    )
+
+    with patch("psynet.perf_test.random.gammavariate", side_effect=[0.6, 0.4]):
+        assert tester._bounded_random_stagger() == 0.4
 
 
 # --- colorize_success_rate ---
@@ -269,3 +283,63 @@ def test_performance_summary_handles_no_completed_or_failed_bots():
     }
     lines = format_performance_summary([result])
     assert isinstance(lines, list)
+
+
+def test_resolve_performance_json_output_prefers_explicit_path(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    import click
+    import pytest
+
+    from psynet.command_line import resolve_performance_json_output
+
+    assert resolve_performance_json_output("results.json") == "results.json"
+    assert resolve_performance_json_output() is None
+
+    audit_dir = tmp_path / "audit"
+    audit_dir.mkdir()
+    (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    resolved = resolve_performance_json_output(audit=True)
+    assert (
+        Path(resolved).resolve()
+        == (audit_dir / "artifacts" / "performance.json").resolve()
+    )
+    assert (audit_dir / "artifacts").is_dir()
+
+    with pytest.raises(click.UsageError):
+        resolve_performance_json_output("results.json", audit=True)
+
+
+def test_resolve_performance_json_output_requires_manifest(tmp_path, monkeypatch):
+
+    import click
+    import pytest
+
+    from psynet.command_line import resolve_performance_json_output
+
+    audit_dir = tmp_path / "attempt"
+    audit_dir.mkdir()
+    monkeypatch.chdir(audit_dir)
+    with pytest.raises(click.UsageError, match="No audit packet found"):
+        resolve_performance_json_output(audit=True)
+
+
+def test_resolve_performance_json_output_autodetects_nested_audit(
+    tmp_path, monkeypatch
+):
+    from pathlib import Path
+
+    from psynet.command_line import resolve_performance_json_output
+
+    experiment = tmp_path / "exp"
+    audit_dir = experiment / "audit"
+    audit_dir.mkdir(parents=True)
+    (audit_dir / "audit.json").write_text("{}", encoding="utf-8")
+    monkeypatch.chdir(experiment)
+
+    resolved = resolve_performance_json_output(audit=True)
+    assert (
+        Path(resolved).resolve()
+        == (audit_dir / "artifacts" / "performance.json").resolve()
+    )

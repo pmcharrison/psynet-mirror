@@ -42,6 +42,10 @@ using a virtual environment with the same dependencies as the deployed experimen
     psynet export heroku --app my-app-name
 
 The data is saved by default to ``~/psynet-data/export``.
+If you export into the experiment directory, put results under ``exports/``:
+that path is listed in ``deploy.toml`` so it is not uploaded on deploy, and
+the experiment ``.gitignore`` template ignores it.
+
 A typical export directory looks like this:
 
 .. code-block:: text

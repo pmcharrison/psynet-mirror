@@ -365,14 +365,15 @@ class PerformanceTester:
                 return x
 
     def _bounded_random_stagger(self, max_multiplier=5.0):
-        """Bounded gamma distribution for bot stagger"""
+        """Return a gamma-distributed stagger bounded relative to its mean."""
         k = 3.0
         theta = self.stagger_interval_s / k
         if not theta:
             return 0.0
+        max_stagger = max_multiplier * self.stagger_interval_s
         while True:
             x = random.gammavariate(k, theta)
-            if x <= max_multiplier:
+            if x <= max_stagger:
                 return x
 
     def _create_bot_launcher(self, bot_state):
