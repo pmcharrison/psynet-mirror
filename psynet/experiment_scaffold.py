@@ -1,5 +1,6 @@
 """Create, update, and prune PsyNet experiment scaffold files."""
 
+import hashlib
 import json
 import re
 import shutil
@@ -7,6 +8,7 @@ import stat
 import subprocess
 import sys
 from contextlib import contextmanager
+from contextvars import ContextVar
 from importlib import metadata, resources
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -18,28 +20,28 @@ from psynet.version import psynet_version
 
 _TEMPLATE_FILES = (
     ".gitignore",
-    ".dockerignore",
     "Dockerfile",
     "README.md",
     "__init__.py",
     "pytest.ini",
     "test.py",
     "config.txt",
+    "deploy.toml",
     ".github/workflows/test.yml",
     ".vscode/launch.json",
     "AGENTS.md",
 )
 
 # Create these when missing, but never overwrite existing copies (authors customize them).
-_PRESERVE_EXISTING_TEMPLATE_FILES = frozenset({"config.txt", "README.md"})
-
-_TEMPLATE_DIRECTORIES = ("docker",)
+_PRESERVE_EXISTING_TEMPLATE_FILES = frozenset(
+    {"config.txt", "README.md", "deploy.toml"}
+)
 
 # Copied into experiments by ``psynet scripts update``; not a packaged template
 # directory (canonical source is ``.cursor/skills/experiment/`` in the PsyNet
 # checkout).
 _EXPERIMENT_SKILLS_DIRECTORY = ".cursor/skills/psynet"
-_MANAGED_DIRECTORIES = (*_TEMPLATE_DIRECTORIES, _EXPERIMENT_SKILLS_DIRECTORY)
+_MANAGED_DIRECTORIES = (_EXPERIMENT_SKILLS_DIRECTORY,)
 
 # Minimal scaffold subset needed to run locally (debug/test). Omits IDE/CI-only
 # templates such as ``.vscode/`` and ``.github/workflows/``.
@@ -49,7 +51,60 @@ _TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN = (
     "Dockerfile",
     "test.py",
     "config.txt",
+    "deploy.toml",
 )
+
+_GENERATED_DOCKERIGNORE_VARIANTS = (
+    (
+        "# We don't want to copy virtual environments into the Docker image",
+        ".venv",
+        ".env",
+    ),
+    (
+        "# We don't want to copy virtual environments into the Docker image",
+        ".venv",
+        ".env",
+        "",
+        "# Agent Skills are for local editors, not the running experiment image",
+        ".cursor/skills/psynet/",
+    ),
+)
+
+# Previously scaffolded experiment-local Docker CLI helpers. These called
+# ``docker build`` directly and cannot honor ``deploy.toml``.
+_OBSOLETE_DOCKER_SCRIPT_PATHS = (
+    "docker/build",
+    "docker/check-dev-installations",
+    "docker/docs/INSTALL.md",
+    "docker/docs/RUN.md",
+    "docker/docs/UPDATE.md",
+    "docker/local-ssh",
+    "docker/params",
+    "docker/psynet",
+    "docker/psynet-dev",
+    "docker/README.md",
+    "docker/run",
+    "docker/run-dev",
+    "docker/services",
+)
+
+# Hashes of the final experiment-local Docker helper templates shipped by
+# PsyNet. Divergent files are author-owned and must not be deleted.
+_OBSOLETE_DOCKER_SCRIPT_HASHES = {
+    "docker/build": "6fa98c5faa398675de5aa6cb82481b4a",
+    "docker/check-dev-installations": "8d699b652b6381a3b38a0ea60281050a",
+    "docker/docs/INSTALL.md": "4a0b5f238227ecb39f9af16368265b35",
+    "docker/docs/RUN.md": "ef8ea770256bc4280d347f33e5c34ee1",
+    "docker/docs/UPDATE.md": "e990837fbe40d4113a2160cb3998b8bb",
+    "docker/local-ssh": "65ddab944cecf4de0e7f942268f4c164",
+    "docker/params": "24e5784cfed1584aff8c76804a7d72a2",
+    "docker/psynet": "2e689f85e226e41da343609ccc412bad",
+    "docker/psynet-dev": "facd3771875eac8a2453dca5bd39bd90",
+    "docker/README.md": "8a17a4cea31b7ea438993be74c9deec1",
+    "docker/run": "d2130575f9bf70b8552abad173ad7caa",
+    "docker/run-dev": "5eb60b21412b9fece4fa7e1959fa7247",
+    "docker/services": "acd66129fe59699302ab998b4b1eeca3",
+}
 
 _GENERATED_FILES = {
     "Dockertag": lambda: dockertag_contents(),
@@ -59,8 +114,6 @@ _GENERATED_FILES = {
 _REMOVABLE_DIRECTORIES = (("docs", "abfc54bbbc3ef9d5948957841727a18b"),)
 
 _EMPTY_RESOURCE_DIRECTORIES = ("static", "templates")
-
-_EXECUTABLE_BITS = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
 _BOOTSTRAP_FILES = ("experiment.py", "requirements.txt")
 
@@ -120,10 +173,9 @@ def scaffold_paths_required_for_local_run() -> frozenset[str]:
     """Return scaffold paths required before running an experiment locally.
 
     This is a deliberate subset of :func:`scaffold_managed_paths`, covering the
-    files and directories needed for local runs rather than optional IDE/CI
-    templates.
+    files needed for local runs rather than optional IDE/CI templates.
     """
-    required = set(_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN) | set(_TEMPLATE_DIRECTORIES)
+    required = set(_TEMPLATE_FILES_REQUIRED_FOR_LOCAL_RUN)
     managed = scaffold_managed_paths()
     unexpected = required - managed
     if unexpected:
@@ -137,21 +189,11 @@ def scaffold_paths_required_for_local_run() -> frozenset[str]:
 def missing_scaffold_paths_required_for_local_run(
     root: Path | str | None = None,
 ) -> list[str]:
-    """Return required local-run scaffold paths missing from ``root``.
-
-    Directory members of the required set must exist as directories; other members
-    must exist as filesystem paths.
-    """
+    """Return required local-run scaffold paths missing from ``root``."""
     base = Path(".") if root is None else Path(root)
-    directory_names = set(_TEMPLATE_DIRECTORIES)
     missing = []
     for relative_path in sorted(scaffold_paths_required_for_local_run()):
-        path = base / relative_path
-        if relative_path in directory_names:
-            present = path.is_dir()
-        else:
-            present = path.exists()
-        if not present:
+        if not (base / relative_path).exists():
             missing.append(relative_path)
     return missing
 
@@ -729,7 +771,181 @@ def _copy_template_file(relative_path, overwrite):
     destination.parent.mkdir(parents=True, exist_ok=True)
     with resources.as_file(_experiment_script_resource(relative_path)) as path:
         shutil.copyfile(path, destination)
+    if relative_path == "deploy.toml" and not _suppress_policy_review_marker.get():
+        _mark_deployment_policy_for_review()
     return True
+
+
+_DEPLOYMENT_POLICY_REVIEW_MARKER = Path(".deploy/deploy.toml.needs_review")
+_suppress_policy_review_marker: ContextVar[bool] = ContextVar(
+    "psynet_suppress_policy_review_marker", default=False
+)
+
+
+def _mark_deployment_policy_for_review() -> None:
+    """Record that a newly created ``deploy.toml`` still needs a launch-time review."""
+    marker = _DEPLOYMENT_POLICY_REVIEW_MARKER
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(
+        "PsyNet created deploy.toml for this experiment. The next debug, test, "
+        "or deploy command stops once so you can inspect the deployment plan "
+        "with 'dallinger deployment-files list'. This file is local-only; "
+        "you can delete it after that review.\n"
+    )
+
+
+def _deployment_policy_needs_review() -> bool:
+    """Return whether the current ``deploy.toml`` still has a one-shot review marker."""
+    return _DEPLOYMENT_POLICY_REVIEW_MARKER.is_file()
+
+
+def _clear_deployment_policy_review_marker() -> None:
+    """Remove the one-shot review marker if it is present."""
+    marker = _DEPLOYMENT_POLICY_REVIEW_MARKER
+    if marker.is_file():
+        marker.unlink()
+    parent = marker.parent
+    if parent.is_dir() and not any(parent.iterdir()):
+        parent.rmdir()
+
+
+@contextmanager
+def _without_deployment_policy_review():
+    """Skip the one-shot deploy.toml review for temporary or in-repo scaffolds."""
+    token = _suppress_policy_review_marker.set(True)
+    try:
+        yield
+    finally:
+        _suppress_policy_review_marker.reset(token)
+        _clear_deployment_policy_review_marker()
+
+
+def ensure_deployment_policy() -> None:
+    """Create ``deploy.toml`` from the PsyNet template when it is missing.
+
+    Existing files are never overwritten. A newly written file also gets a
+    local review marker so the next debug, test, or deploy command pauses
+    once before copying files, unless the copy happens inside a temporary
+    pytest scaffold or in-repo auto-prepare.
+    """
+    _assert_managed_path_is_safe("deploy.toml")
+    _copy_template_file("deploy.toml", overwrite=False)
+
+
+def _remove_obsolete_generated_dockerignore() -> bool:
+    """Remove the obsolete generated Docker ignore file, preserving custom files.
+
+    Returns
+    -------
+    bool
+        True when the generated file was removed.
+    """
+    path = Path(".dockerignore")
+    if not path.is_symlink() and not path.exists():
+        return False
+    try:
+        generated = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        generated = None
+    if generated is not None and tuple(generated) in _GENERATED_DOCKERIGNORE_VARIANTS:
+        path.unlink()
+        click.echo("Removed obsolete generated .dockerignore.")
+        return True
+    click.echo(
+        "WARNING: Preserving custom .dockerignore. Its rules must be moved "
+        "to deploy.toml and the file removed before debug or deployment.",
+        err=True,
+    )
+    return False
+
+
+def _remove_obsolete_generated_docker_scripts() -> bool:
+    """Remove generated experiment-local Docker helper scripts.
+
+    Known generated helper files are identified by content hash and deleted.
+    Customized files and symlinks are preserved with a warning.
+
+    Returns
+    -------
+    bool
+        True when at least one generated helper path was removed.
+    """
+    docker_dir = Path("docker")
+    if docker_dir.is_symlink():
+        _warn_preserved_docker_symlink(docker_dir)
+        return False
+    if not docker_dir.exists():
+        return False
+
+    removed_any = False
+    warned_symlinks: set[Path] = set()
+    for relative_path in _OBSOLETE_DOCKER_SCRIPT_PATHS:
+        path = Path(relative_path)
+        symlink_parent = _first_symlink_parent(path)
+        if symlink_parent is not None:
+            if symlink_parent not in warned_symlinks:
+                _warn_preserved_docker_symlink(symlink_parent)
+                warned_symlinks.add(symlink_parent)
+            continue
+        if (
+            path.is_file()
+            and not path.is_symlink()
+            and _is_obsolete_docker_script(path)
+        ):
+            path.unlink()
+            removed_any = True
+
+    for directory in (Path("docker/docs"), docker_dir):
+        if directory.is_symlink():
+            continue
+        if directory.is_dir() and not any(directory.iterdir()):
+            directory.rmdir()
+
+    if docker_dir.is_dir():
+        click.echo(
+            "WARNING: Preserving custom files in docker/. "
+            "Recognized generated Docker helper scripts were removed when present; "
+            "use 'psynet debug local' or 'psynet debug local --docker'.",
+            err=True,
+        )
+    elif removed_any:
+        click.echo("Removed obsolete generated docker/ helper scripts.")
+    return removed_any
+
+
+def _is_obsolete_docker_script(path: Path) -> bool:
+    """Return whether ``path`` matches its final PsyNet-generated template."""
+    expected_hash = _OBSOLETE_DOCKER_SCRIPT_HASHES.get(path.as_posix())
+    if expected_hash is None:
+        return False
+    try:
+        digest = hashlib.md5(path.read_bytes()).hexdigest()
+    except OSError:
+        return False
+    return digest == expected_hash
+
+
+def _first_symlink_parent(relative_path: Path) -> Path | None:
+    """Return the first symlink among parent components of ``relative_path``."""
+    current = Path()
+    for part in Path(relative_path).parts[:-1]:
+        current /= part
+        if current.is_symlink():
+            return current
+    return None
+
+
+def _warn_preserved_docker_symlink(path: Path) -> None:
+    """Warn that a docker/ path was left untouched because it is a symlink."""
+    display = path.as_posix()
+    if not display.endswith("/"):
+        display = f"{display}/"
+    click.echo(
+        f"WARNING: Preserving {display} because it is a symlink. "
+        "Generated Docker helper scripts are no longer used; "
+        "use 'psynet debug local' or 'psynet debug local --docker'.",
+        err=True,
+    )
 
 
 def _assert_managed_path_is_safe(relative_path):
@@ -788,23 +1004,12 @@ def _generated_file_matches(relative_path):
     )
 
 
-def _template_directory_matches(relative_path):
-    """Return whether an existing directory matches its scaffold template."""
-    destination = Path(relative_path)
-    if not destination.is_dir():
-        return False
-    with resources.as_file(_experiment_script_resource(relative_path)) as template:
-        return md5_directory(destination) == md5_directory(template)
-
-
 def _managed_path_matches_scaffold(relative_path):
     """Return whether a managed path still has its generated contents."""
     if relative_path in _TEMPLATE_FILES:
         return _template_file_matches(relative_path)
     if relative_path in _GENERATED_FILES:
         return _generated_file_matches(relative_path)
-    if relative_path in _TEMPLATE_DIRECTORIES:
-        return _template_directory_matches(relative_path)
     if relative_path == _EXPERIMENT_SKILLS_DIRECTORY:
         return _experiment_skills_directory_matches()
     raise ValueError(f"Unknown scaffold-managed path: {relative_path}")
@@ -822,20 +1027,6 @@ def _write_generated_file(relative_path, contents, overwrite):
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(contents)
     return True
-
-
-def _copy_missing_directory_entries(source, destination):
-    """Copy missing entries from a template directory without overwriting files."""
-    copied = False
-    for source_path in source.rglob("*"):
-        destination_path = destination / source_path.relative_to(source)
-        if source_path.is_dir():
-            destination_path.mkdir(parents=True, exist_ok=True)
-        elif not destination_path.exists():
-            destination_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_path, destination_path)
-            copied = True
-    return copied
 
 
 def _remove_empty_parent_dirs(path):
@@ -875,22 +1066,6 @@ def _remove_empty_resource_directories():
         path.rmdir()
 
 
-def _make_docker_entries_executable():
-    """Add executable bits to immediate entries in the generated Docker directory."""
-    docker_directory = Path("docker")
-    if not docker_directory.is_dir():
-        return False
-
-    changed = False
-    for path in docker_directory.iterdir():
-        current_mode = path.stat().st_mode
-        updated_mode = current_mode | _EXECUTABLE_BITS
-        if updated_mode != current_mode:
-            path.chmod(updated_mode)
-            changed = True
-    return changed
-
-
 def scaffold_experiment_directory(
     *,
     overwrite=False,
@@ -905,6 +1080,8 @@ def scaffold_experiment_directory(
     _assert_scaffold_paths_are_safe(
         (scaffold_managed_paths() | set(_BOOTSTRAP_FILES)) - skip_files
     )
+    _remove_obsolete_generated_dockerignore()
+    _remove_obsolete_generated_docker_scripts()
 
     written = []
     skipped = []
@@ -935,39 +1112,6 @@ def scaffold_experiment_directory(
             written.append(relative_path)
         else:
             skipped.append(relative_path)
-
-    for relative_path in _TEMPLATE_DIRECTORIES:
-        if relative_path in skip_files:
-            skipped.append(relative_path)
-            continue
-
-        destination = Path(relative_path)
-        with resources.as_file(_experiment_script_resource(relative_path)) as path:
-            if destination.exists() and not overwrite:
-                if _copy_missing_directory_entries(path, destination):
-                    written.append(relative_path)
-                else:
-                    skipped.append(relative_path)
-                continue
-
-            if overwrite and _template_directory_matches(relative_path):
-                skipped.append(relative_path)
-                continue
-
-            if overwrite and destination.exists():
-                shutil.rmtree(destination)
-            shutil.copytree(
-                path,
-                destination,
-                dirs_exist_ok=True,
-            )
-        written.append(relative_path)
-
-    if "docker" not in skip_files and _make_docker_entries_executable():
-        if "docker" in skipped:
-            skipped.remove("docker")
-        if "docker" not in written:
-            written.append("docker")
 
     if overwrite:
         # Remove obsolete directories only when they still match the old template.
@@ -1063,7 +1207,11 @@ def _scaffold_context_paths():
     return (
         scaffold_managed_paths()
         | set(_BOOTSTRAP_FILES)
-        | {"constraints.txt", "static/assets"}
+        | {
+            "constraints.txt",
+            "static/assets",
+            _DEPLOYMENT_POLICY_REVIEW_MARKER.as_posix(),
+        }
     )
 
 
@@ -1133,7 +1281,8 @@ def scaffold_missing_files():
     """
     original_paths, original_modes = _snapshot_scaffold_context_paths()
     try:
-        yield scaffold_experiment_directory()
+        with _without_deployment_policy_review():
+            yield scaffold_experiment_directory()
     finally:
         _remove_new_scaffold_context_paths(original_paths)
         _restore_scaffold_context_modes(original_modes)
@@ -1144,15 +1293,16 @@ PRUNE_INCLUDE_MODIFIED_OPTION_HELP = (
     "Also delete scaffold paths that differ from current PsyNet templates."
 )
 PRUNE_INCLUDE_TRACKED_OPTION_HELP = (
-    "Also delete git-tracked managed paths. By default, tracked paths are kept "
-    "(a managed directory such as docker/ is kept if any nested path is tracked)."
+    "Also delete git-tracked managed paths. By default, tracked paths are kept."
 )
 PRUNE_COMMAND_HELP = (
     "Remove scaffold-managed boilerplate and generated leftovers "
     "(static/assets, untracked constraints.txt).\n\n"
     "By default only unmodified, untracked scaffold paths are removed. "
     "--include-modified also removes divergent untracked scaffold paths. "
-    "--include-tracked also removes git-tracked managed paths."
+    "--include-tracked also removes git-tracked managed paths. "
+    "Recognized generated docker/ helper scripts are deleted; customized "
+    "copies are preserved."
 )
 
 
@@ -1170,9 +1320,11 @@ def prune_experiment_scaffold(
         When false, divergent paths are preserved and reported.
     include_tracked :
         When true, also delete git-tracked managed paths. When false (default),
-        tracked paths are preserved (a managed directory is preserved if any
-        tracked path lives under it). Raises ``click.UsageError`` if this
+        tracked paths are preserved. Raises ``click.UsageError`` if this
         directory is a git work tree but tracked paths cannot be listed.
+
+    Any pending ``deploy.toml`` review marker is dropped, because the policy it
+    refers to is itself scaffold-managed.
     """
     root = Path(".")
     tracked = _git_tracked_paths(
@@ -1192,6 +1344,9 @@ def prune_experiment_scaffold(
     )
     preserved_unrecognized = []
     removed = []
+    _clear_deployment_policy_review_marker()
+    _remove_obsolete_generated_dockerignore()
+    _remove_obsolete_generated_docker_scripts()
 
     for relative_path in sorted(
         managed_paths - set(_MANAGED_DIRECTORIES) - preserve_files
