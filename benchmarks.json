@@ -13,7 +13,7 @@
             ]
         ],
         "pretty_name": "Static files debug launch time",
-        "setup_cache_key": "fast.debug_launch:149",
+        "setup_cache_key": "fast.debug_launch:148",
         "timeout": 180,
         "type": "track",
         "unit": "s",
