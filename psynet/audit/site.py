@@ -352,6 +352,44 @@ def write_audit_mathjax_asset(site_dir: Path) -> str:
     )
 
 
+def write_audit_scripts(site_dir: Path, *, rendered_body: str) -> list[str]:
+    """Copy the runtimes a rendered audit needs, and return their script URLs.
+
+    Plotly and MathJax are several megabytes each, so an audit that uses
+    neither should not carry them. Plotly is copied only when a figure was
+    rendered; MathJax only when the body could contain an equation. The
+    returned order matters: Plotly must be defined before ``audit.js`` draws
+    figures, and ``audit.js`` configures ``window.MathJax`` before MathJax
+    typesets the page.
+    """
+
+    urls = []
+    if _body_may_contain_plotly_figure(rendered_body):
+        urls.append(write_audit_plotly_asset(site_dir))
+    urls.append(write_audit_js_asset(site_dir))
+    if _body_may_contain_equation(rendered_body):
+        urls.append(write_audit_mathjax_asset(site_dir))
+    return urls
+
+
+def _body_may_contain_plotly_figure(body: str) -> bool:
+    """Return whether rendered audit content contains an interactive figure."""
+
+    return "data-plotly-spec" in body
+
+
+def _body_may_contain_equation(body: str) -> bool:
+    """Return whether rendered audit content plausibly contains an equation.
+
+    MathJax's own scanner decides what to typeset, so this only looks for
+    delimiters that could open one: a display delimiter, or two dollar signs
+    that could bracket inline mathematics. Being over-inclusive costs a copy of
+    the runtime; being under-inclusive would leave equations unrendered.
+    """
+
+    return "$$" in body or "\\[" in body or "\\(" in body or body.count("$") >= 2
+
+
 def write_audit_js_asset(site_dir: Path) -> str:
     """Copy audit-page behavior into a rendered audit site."""
 
@@ -829,9 +867,6 @@ def render_audit_site(
         completeness=completeness_from_manifest(manifest, published_paths),
     )
     css_url = write_audit_static_assets(site_dir)
-    audit_js_url = write_audit_js_asset(site_dir)
-    plotly_js_url = write_audit_plotly_asset(site_dir)
-    mathjax_js_url = write_audit_mathjax_asset(site_dir)
     sections = display_sections(manifest, evidence=evidence)
     experiment = manifest.get("experiment", {})
     environment = manifest.get("environment", {})
@@ -864,6 +899,13 @@ def render_audit_site(
     )
 
     summary_html = f"<p>{html.escape(summary)}</p>" if summary else ""
+    script_urls = write_audit_scripts(
+        site_dir,
+        rendered_body=section_panels + summary_html,
+    )
+    scripts = "".join(
+        f'\n  <script src="{html.escape(url)}"></script>' for url in script_urls
+    )
     html_text = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -899,9 +941,7 @@ def render_audit_site(
       </div>
     </div>
   </article>
-  <script src="{html.escape(plotly_js_url)}"></script>
-  <script src="{html.escape(audit_js_url)}"></script>
-  <script src="{html.escape(mathjax_js_url)}"></script>
+{scripts}
 </body>
 </html>
 """

@@ -173,9 +173,10 @@ def test_render_audit_site_publishes_trusted_notebooks_and_escaped_markdown(
     css = (site_dir / "static" / "css" / "audit.css").read_text(encoding="utf-8")
     assert "max-width: 1180px" in css
     assert '<link rel="stylesheet" href="static/css/audit.css">' in index
-    assert '<script src="static/js/plotly.min.js"></script>' in index
     assert '<script src="static/js/audit.js"></script>' in index
+    # The report contains equations but no figure, so only MathJax is shipped.
     assert '<script src="static/js/mathjax-tex-svg.min.js"></script>' in index
+    assert "plotly.min.js" not in index
     assert index.index('src="static/js/audit.js"') < index.index(
         'src="static/js/mathjax-tex-svg.min.js"'
     )
@@ -225,8 +226,66 @@ def test_render_audit_site_publishes_trusted_notebooks_and_escaped_markdown(
     assert "window.MathJax" in audit_js
     assert '["$", "$"]' in audit_js
     assert '["\\\\(", "\\\\)"]' in audit_js
-    assert (site_dir / "static/js/plotly.min.js").stat().st_size > 1_000_000
+    assert not (site_dir / "static/js/plotly.min.js").exists()
     assert (site_dir / "static/js/mathjax-tex-svg.min.js").stat().st_size > 1_000_000
+
+
+def plotly_notebook_json() -> str:
+    """Return an executed notebook whose only output is a Plotly figure."""
+
+    return json.dumps(
+        {
+            "cells": [
+                {
+                    "cell_type": "code",
+                    "source": ["figure.show()"],
+                    "outputs": [
+                        {
+                            "output_type": "display_data",
+                            "data": {
+                                "application/vnd.plotly.v1+json": {
+                                    "data": [{"x": [1, 2], "y": [3, 4]}],
+                                    "layout": {"title": "Precision"},
+                                },
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    ("notebook", "expects_plotly"),
+    [
+        (json.dumps({"cells": []}), False),
+        (plotly_notebook_json(), True),
+    ],
+)
+def test_render_audit_site_ships_only_the_runtimes_it_needs(
+    tmp_path: Path,
+    notebook: str,
+    expects_plotly: bool,
+) -> None:
+    audit_dir = tmp_path / "pitch-discrimination-demo" / "audit"
+    manifest = audit_manifest()
+    notebook_artifact = manifest["artifacts"][2]
+    assert notebook_artifact["id"] == "analysis_notebook"
+    notebook_artifact["status"] = "present"
+    write(audit_dir / "audit.json", json.dumps(manifest) + "\n")
+    write_core_section_files(audit_dir)
+    write(audit_dir / "simulate/analysis/analysis.ipynb", notebook)
+
+    site_dir = render_audit_site(audit_dir, allow_invalid=True)
+
+    index = (site_dir / "index.html").read_text(encoding="utf-8")
+    assert '<script src="static/js/audit.js"></script>' in index
+    assert ("plotly.min.js" in index) is expects_plotly
+    assert (site_dir / "static/js/plotly.min.js").exists() is expects_plotly
+    # Neither the sections nor the notebook contain equations.
+    assert "mathjax" not in index
+    assert not (site_dir / "static/js/mathjax-tex-svg.min.js").exists()
 
 
 def test_render_audit_site_renders_evidence_view(tmp_path: Path) -> None:
