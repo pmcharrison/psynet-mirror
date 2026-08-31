@@ -1793,47 +1793,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def experiment_config(self):
-        # #region agent log
-        from sqlalchemy.orm import object_session
-
-        from psynet.db import _agent_dbg
-
-        prev = self._experiment_config
-        prev_session_id = id(object_session(prev)) if prev is not None else None
-        # #endregion
         self._experiment_config = ExperimentConfig.query.get(1)
-        # #region agent log
-        cfg = self._experiment_config
-        cfg_session = object_session(cfg) if cfg is not None else None
-        session_match = (
-            cfg_session is db.session() if cfg_session is not None else None
-        )
-        replaced = (
-            prev is not None
-            and prev is not cfg
-            and prev_session_id is not None
-            and cfg_session is not None
-            and prev_session_id != id(cfg_session)
-        )
-        if session_match is False or replaced:
-            _agent_dbg(
-                "A",
-                "experiment.py:experiment_config",
-                "cross_session_or_replace",
-                {
-                    "experiment_id": id(self),
-                    "config_id": id(cfg) if cfg is not None else None,
-                    "config_session_id": id(cfg_session)
-                    if cfg_session is not None
-                    else None,
-                    "current_session_id": id(db.session()),
-                    "session_match": session_match,
-                    "prev_config_id": id(prev) if prev is not None else None,
-                    "prev_session_id": prev_session_id,
-                    "replaced_other_session_config": replaced,
-                },
-            )
-        # #endregion
         return self._experiment_config
 
     def register_participant_fail_routine(self, routine):
@@ -2030,52 +1990,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def start_experiment_in_popup_window(self):
-        # #region agent log
-        from sqlalchemy.orm import object_session
-
-        from psynet.db import _agent_dbg
-
-        _agent_dbg(
-            "A",
-            "experiment.py:start_experiment_in_popup_window",
-            "enter",
-            {
-                "experiment_id": id(self),
-                "cached_config_id": id(self._experiment_config)
-                if self._experiment_config is not None
-                else None,
-                "cached_config_session_id": id(object_session(self._experiment_config))
-                if self._experiment_config is not None
-                and object_session(self._experiment_config) is not None
-                else None,
-                "current_session_id": id(db.session()),
-            },
-        )
-        # #endregion
         if self.var.has("start_experiment_in_popup_window"):
             # This is for simulating pop up behaviour in psynet demo tests
-            # #region agent log
-            _agent_dbg(
-                "A",
-                "experiment.py:start_experiment_in_popup_window",
-                "after_var_has",
-                {"experiment_id": id(self), "hit": True},
-            )
-            # #endregion
             return self.var.get("start_experiment_in_popup_window")
-        # #region agent log
-        _agent_dbg(
-            "A",
-            "experiment.py:start_experiment_in_popup_window",
-            "after_var_has",
-            {"experiment_id": id(self), "hit": False},
-        )
-        # #endregion
-        if hasattr(self.recruiter, "start_experiment_in_popup_window"):
+        elif hasattr(self.recruiter, "start_experiment_in_popup_window"):
             return self.recruiter.start_experiment_in_popup_window
-        if isinstance(self.recruiter, MTurkRecruiter):
+        elif isinstance(self.recruiter, MTurkRecruiter):
             return True
-        return False
+
+        else:
+            return False
 
     @property
     def description(self):
@@ -4107,49 +4031,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        # #region agent log
-        from psynet.db import _agent_dbg
-
-        _agent_dbg(
-            "A",
-            "experiment.py:route_timeline",
-            "enter",
-            {
-                "unique_id": unique_id,
-                "mode": mode,
-                "session_id": id(db.session()),
-            },
-        )
-        # #endregion
         participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
         experiment = get_experiment()
-        # #region agent log
-        _agent_dbg(
-            "A",
-            "experiment.py:route_timeline",
-            "after_get_experiment",
-            {
-                "unique_id": unique_id,
-                "participant_id": getattr(participant, "id", None),
-                "experiment_id": id(experiment),
-                "session_id": id(db.session()),
-            },
-        )
-        # #endregion
 
-        result = cls._route_timeline(experiment, participant, mode)
-        # #region agent log
-        _agent_dbg(
-            "A",
-            "experiment.py:route_timeline",
-            "exit",
-            {
-                "unique_id": unique_id,
-                "participant_id": getattr(participant, "id", None),
-            },
-        )
-        # #endregion
-        return result
+        return cls._route_timeline(experiment, participant, mode)
 
     @experiment_route("/participant_status/<participant_id>", methods=["GET"])
     @classmethod

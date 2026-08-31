@@ -1767,35 +1767,6 @@ class Page(Elt):
         js_vars = {**self.js_vars, **internal_js_vars}
         inplace_timeline_transitions = config.get("inplace_timeline_transitions")
 
-        # #region agent log
-        from psynet.db import _agent_dbg
-
-        _agent_dbg(
-            "A",
-            "timeline.py:Page.render",
-            "before_popup_and_attributes",
-            {
-                "page_label": getattr(self, "label", None),
-                "participant_id": getattr(participant, "id", None),
-                "experiment_id": id(experiment),
-                "is_timeline_hold": getattr(self, "is_timeline_hold", False),
-                "session_id": id(db.session()),
-            },
-        )
-        # #endregion
-        popup_window = experiment.start_experiment_in_popup_window
-        # #region agent log
-        _agent_dbg(
-            "A",
-            "timeline.py:Page.render",
-            "after_popup_window",
-            {
-                "participant_id": getattr(participant, "id", None),
-                "popup_window": popup_window,
-            },
-        )
-        # #endregion
-
         all_template_args = {
             **self.template_arg,
             "js_vars": js_vars,
@@ -1829,32 +1800,13 @@ class Page(Elt):
             "locale": locale,
             "partial_mode": partial_mode,
             "inplace_timeline_transitions": inplace_timeline_transitions,
-            "start_experiment_in_popup_window": popup_window,
+            "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
-        # #region agent log
-        _agent_dbg(
-            "E",
-            "timeline.py:Page.render",
-            "before_render_string",
-            {"participant_id": getattr(participant, "id", None)},
-        )
-        # #endregion
         rendered = render_string_with_translations(
             template_string=self.template_str, **all_template_args
         )
-        # #region agent log
-        _agent_dbg(
-            "E",
-            "timeline.py:Page.render",
-            "after_render_string",
-            {
-                "participant_id": getattr(participant, "id", None),
-                "rendered_len": len(rendered) if rendered is not None else None,
-            },
-        )
-        # #endregion
         if partial_mode:
             rendered = self._extract_partial_render(rendered)
         else:
