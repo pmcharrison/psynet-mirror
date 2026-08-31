@@ -82,6 +82,7 @@ from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
 from .participant import (
+    BONUS_PAY_IN_PROGRESS,
     BONUS_STATUS_CAPPED,
     BONUS_STATUS_DISMISSED,
     BONUS_STATUS_SUCCESS,
@@ -92,6 +93,7 @@ from .participant import (
     bonus_needs_review,
     bonus_transfer_already_claimed,
     record_bonus_attempt_detail,
+    review_bonus_pay_in_progress,
 )
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -2824,11 +2826,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         record it and skip the POST. Otherwise POST ``payable - apparent``,
         not the full decided amount. Automatic submission-complete still
         posts at most once; this is the human-gated extra attempt.
+
+        Reloads the participant with ``FOR UPDATE`` and does not commit
+        before the platform call, so a second overlapping Pay blocks on
+        the row (or is refused if this request already claimed the retry).
+        Committing first would drop that lock while status is still
+        ``unconfirmed`` and allow two POSTs.
         """
+        participant = self._lock_participant_for_payment(participant)
         if not bonus_needs_review(participant):
             return (
                 "warning",
                 f"Participant {participant.id} is not flagged for payment review.",
+            )
+        if review_bonus_pay_in_progress(participant):
+            return (
+                "warning",
+                f"A bonus payment is already in progress for participant "
+                f"{participant.id}.",
             )
         planned = round(float(participant.planned_bonus or 0.0), 2)
         payable, hard_capped = self.clip_bonus_for_spend_caps(
@@ -2871,12 +2886,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             to_post,
             participant.id,
         )
-        record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
-        self.commit_payment_state()
+        record_bonus_attempt_detail(participant, BONUS_PAY_IN_PROGRESS)
         transferred = recruiter.report_submission_outcome(
             participant, to_post, self.bonus_reason()
         )
         if transferred is False:
+            if review_bonus_pay_in_progress(participant):
+                record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
             return (
                 "danger",
                 f"Payment outcome POST failed for participant {participant.id}. "

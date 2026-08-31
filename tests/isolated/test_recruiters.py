@@ -8,6 +8,7 @@ import pytest
 from dallinger.prolific import ProlificServiceException
 
 from psynet.participant import (
+    BONUS_PAY_IN_PROGRESS,
     BONUS_STATUS_CAPPED,
     BONUS_STATUS_DISMISSED,
     BONUS_STATUS_NOT_DUE_YET,
@@ -19,6 +20,7 @@ from psynet.participant import (
     bonus_needs_review,
     bonus_transfer_already_claimed,
     display_bonus_status,
+    review_bonus_pay_in_progress,
 )
 from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
@@ -2006,6 +2008,49 @@ def test_pay_review_bonus_leaves_review_when_post_fails():
     assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
 
 
+def test_pay_review_bonus_refuses_overlapping_pay():
+    participant = _review_participant(apparent=0.0)
+    harness = PaymentHarness()
+    nested = []
+
+    def post(_participant, amount, _reason):
+        nested.append(harness.pay_review_bonus(_participant))
+        return True
+
+    participant.recruiter.reward_bonus.side_effect = post
+    category, message = harness.pay_review_bonus(participant)
+
+    assert category == "success"
+    assert nested == [
+        (
+            "warning",
+            f"A bonus payment is already in progress for participant {participant.id}.",
+        )
+    ]
+    participant.recruiter.reward_bonus.assert_called_once()
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+    assert harness.payment_commits == 0
+
+
+def test_pay_review_bonus_can_retry_after_failed_post():
+    participant = _review_participant(apparent=0.0)
+    harness = PaymentHarness()
+    participant.recruiter.reward_bonus.return_value = False
+
+    category, message = harness.pay_review_bonus(participant)
+
+    assert category == "danger"
+    assert participant.bonus_status == BONUS_STATUS_UNCONFIRMED
+    assert participant.bonus_attempt_detail == NO_BONUS_ATTEMPT_RESULT
+
+    participant.recruiter.reward_bonus.return_value = True
+    category, message = harness.pay_review_bonus(participant)
+
+    assert category == "success"
+    assert participant.recruiter.reward_bonus.call_count == 2
+    assert participant.bonus_status == BONUS_STATUS_SUCCESS
+
+
 def test_pay_review_bonus_posts_remainder_after_hard_cap_clip():
     participant = _review_participant(apparent=0.0, planned=1.00)
     participant.amount_paid.return_value = 1.00
@@ -2021,7 +2066,7 @@ def test_pay_review_bonus_posts_remainder_after_hard_cap_clip():
     assert participant.bonus_status == BONUS_STATUS_CAPPED
     assert participant.bonus == 0.50
     assert participant.planned_bonus == 1.00
-    assert harness.payment_commits == 1
+    assert harness.payment_commits == 0
     assert "0.50" in message
 
 
@@ -2124,6 +2169,12 @@ def test_bonus_status_helpers():
     )
     assert bonus_transfer_already_claimed(
         SimpleNamespace(bonus_status=BONUS_STATUS_SUCCESS)
+    )
+    assert review_bonus_pay_in_progress(
+        SimpleNamespace(bonus_attempt_detail=BONUS_PAY_IN_PROGRESS)
+    )
+    assert not review_bonus_pay_in_progress(
+        SimpleNamespace(bonus_attempt_detail=NO_BONUS_ATTEMPT_RESULT)
     )
     assert not bonus_transfer_already_claimed(
         SimpleNamespace(bonus_status=BONUS_STATUS_NOT_DUE_YET)
