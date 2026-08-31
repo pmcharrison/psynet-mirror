@@ -140,13 +140,23 @@ def _deferred_network_count_options(network_cls):
 
 
 def _bind_heads_to_loaded_networks(chains):
-    """Fill ``Node.network`` from chains already loaded in this query.
+    """Populate each loaded head's ``Node.network`` relationship without SQL.
 
-    ``ChainNetwork.head`` and Dallinger's ``Node.network`` are different
-    relationships. Subquery-loading heads does not populate the reverse side,
-    and accessing ``node.network`` issues two polymorphic lazy loads per node.
-    Binding the already-loaded chain keeps author hooks and trial construction
-    from repeating that N+1.
+    Loading ``ChainNetwork.head`` does not automatically populate
+    ``head.network`` because the relationships use different foreign keys:
+
+    ``ChainNetwork.head``: ``network.head_id -> node.id``
+    ``Node.network``:     ``node.network_id -> network.id``
+
+    They are therefore not SQLAlchemy ``back_populates`` counterparts. Without
+    this binding, later code such as ``Trial(node=head, ...)`` may issue another
+    query when Dallinger's ``Info`` constructor reads ``head.network``.
+
+    Discovery already loaded both objects, and PsyNet maintains the invariant
+    that a chain's head belongs to that chain. ``set_committed_value`` records
+    the known relationship as loaded without marking ``head`` dirty or
+    scheduling a database update. This is intentionally different from
+    ``head.network = chain``, which participates in ORM change tracking.
     """
 
     for chain in chains:
