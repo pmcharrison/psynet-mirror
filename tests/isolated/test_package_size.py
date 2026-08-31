@@ -24,6 +24,12 @@ def test_get_exp_max_size_mb_reads_explicit_env(monkeypatch):
     assert get_exp_max_size_mb(heroku=True) == 256
 
 
+def test_get_exp_max_size_mb_rejects_non_integer_env(monkeypatch):
+    monkeypatch.setenv("EXP_MAX_SIZE_MB", "1GB")
+    with pytest.raises(ValueError, match="integer number of megabytes"):
+        get_exp_max_size_mb()
+
+
 def test_get_exp_max_size_mb_heroku_caps_at_slug_limit(monkeypatch):
     monkeypatch.delenv("EXP_MAX_SIZE_MB", raising=False)
     assert get_exp_max_size_mb(heroku=True) == HEROKU_MAX_SLUG_MB
@@ -58,9 +64,12 @@ def test_heroku_size_check_rejects_packages_over_slug_limit(tmp_path, monkeypatc
         Experiment.check_size()
         with pytest.raises(RuntimeError, match="Heroku"):
             Experiment.check_size(heroku=True)
+        assert os.environ["EXP_MAX_SIZE_MB"] == str(DEFAULT_EXP_MAX_SIZE_MB)
 
 
 def test_heroku_size_error_mentions_deployment_files_list():
     message = package_size_limit_error(600, 500, heroku=True)
     assert "dallinger deployment-files list" in message
     assert "500 MB" in message
+    assert "deployment-plan" in message
+    assert "built slug" in message

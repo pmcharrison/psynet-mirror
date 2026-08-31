@@ -2169,8 +2169,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Reject deployment plans that exceed the configured package limit."""
         from dallinger.utils import ExperimentFileSource
 
-        from .package_size import get_exp_max_size_mb, package_size_limit_error
+        from .package_size import (
+            apply_default_exp_max_size_mb,
+            get_exp_max_size_mb,
+            package_size_limit_error,
+        )
 
+        apply_default_exp_max_size_mb()
         size_in_mb = ExperimentFileSource(os.getcwd()).size / (1024**2)
         logger.info("Experiment deployment size: %.3f MB.", size_in_mb)
         max_size_in_mb = get_exp_max_size_mb(heroku=heroku)

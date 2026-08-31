@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from typing import Type
 
 from psynet.static_media import static_url_for
@@ -94,24 +94,35 @@ def _compile_nodes_from_directory(
 ):
     static_url_for(input_dir)
     nodes = []
-    participant_groups = [(f.name, f.path) for f in os.scandir(input_dir) if f.is_dir()]
-    for participant_group, group_path in participant_groups:
-        blocks = [(f.name, f.path) for f in os.scandir(group_path) if f.is_dir()]
-        for block, block_path in blocks:
-            media_files = [
-                (f.name, f.path)
-                for f in os.scandir(block_path)
-                if f.is_file() and f.path.endswith(media_ext)
-            ]
-            for media_name, media_path in media_files:
+    input_path = Path(input_dir)
+    suffix = media_ext.lower()
+    if not suffix.startswith("."):
+        suffix = f".{suffix}"
+    for group_dir in sorted(
+        (path for path in input_path.iterdir() if path.is_dir()),
+        key=lambda path: path.name,
+    ):
+        for block_dir in sorted(
+            (path for path in group_dir.iterdir() if path.is_dir()),
+            key=lambda path: path.name,
+        ):
+            media_files = sorted(
+                (
+                    path
+                    for path in block_dir.iterdir()
+                    if path.is_file() and path.suffix.lower() == suffix
+                ),
+                key=lambda path: path.name,
+            )
+            for media_path in media_files:
                 nodes.append(
                     node_class(
                         definition={
-                            "name": media_name,
+                            "name": media_path.name,
                             url_key: static_url_for(media_path),
                         },
-                        participant_group=participant_group,
-                        block=block,
+                        participant_group=group_dir.name,
+                        block=block_dir.name,
                     )
                 )
     return nodes

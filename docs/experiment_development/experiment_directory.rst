@@ -50,6 +50,9 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     ``EXP_MAX_SIZE_MB`` further, and exclude anything that should stay local in
     ``deploy.toml``. Heroku deploys are capped at 500 MB even if
     ``EXP_MAX_SIZE_MB`` is higher; host larger media on S3 or use Docker/SSH.
+    PsyNet debug, test, and deploy commands apply the 1024 MB default;
+    ``dallinger verify`` alone still uses Dallinger's 256 MB default unless
+    ``EXP_MAX_SIZE_MB`` is set.
     Sets well above 1 GB, or files you regenerate often, are still a better
     fit for S3 or assets; see :doc:`/tutorials/large_stimulus_sets`.
 

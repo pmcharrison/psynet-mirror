@@ -137,3 +137,6 @@ class Exp(psynet.experiment.Experiment):
         assert (
             StaticNode.query.count() == comb(len(list_stimuli()), 2) * 2
         )  # we see each combination twice, once in each order
+        for node in StaticNode.query:
+            assert node.definition["url_a"].startswith("/static/")
+            assert node.definition["url_b"].startswith("/static/")

@@ -4,6 +4,10 @@ The default ceiling is sized so authors can bake public audiovisual stimuli
 into ``static/`` without hitting the old 256 MB tripwire. It is not a
 Heroku-slug guarantee: Heroku remains capped at 500 MB. Raise
 ``EXP_MAX_SIZE_MB`` only after reviewing ``dallinger deployment-files list``.
+
+``dallinger verify`` still uses Dallinger's 256 MB default unless this
+process has already called :func:`apply_default_exp_max_size_mb` (PsyNet
+debug, test, and deploy commands do) or ``EXP_MAX_SIZE_MB`` is set.
 """
 
 from __future__ import annotations
@@ -28,7 +32,16 @@ def get_exp_max_size_mb(*, heroku: bool = False) -> int:
     sees the same default.
     """
     raw = os.environ.get(EXP_MAX_SIZE_MB_ENV)
-    configured = DEFAULT_EXP_MAX_SIZE_MB if raw is None else int(raw)
+    if raw is None:
+        configured = DEFAULT_EXP_MAX_SIZE_MB
+    else:
+        try:
+            configured = int(raw)
+        except ValueError as exc:
+            raise ValueError(
+                f"{EXP_MAX_SIZE_MB_ENV} must be an integer number of megabytes "
+                f"(got {raw!r})."
+            ) from exc
     if heroku:
         return min(configured, HEROKU_MAX_SLUG_MB)
     return configured
@@ -41,7 +54,9 @@ def package_size_limit_error(
     if heroku:
         return (
             f"Your experiment deployment plan is {size_in_mb:.1f} MB, which "
-            f"exceeds Heroku's {HEROKU_MAX_SLUG_MB} MB slug limit. Run "
+            f"exceeds Heroku's {HEROKU_MAX_SLUG_MB} MB slug limit. This is a "
+            "pre-check of the deployment-plan size (what deploy.toml would "
+            "copy), not a measurement of the built slug. Run "
             "'dallinger deployment-files list' and exclude files in "
             "deploy.toml, host large public media on S3, or deploy with "
             "Docker/SSH."

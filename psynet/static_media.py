@@ -27,14 +27,15 @@ def static_url_for(
     """
     root = Path(experiment_root or Path.cwd()).resolve()
     static_root = (root / "static").resolve()
-    resolved = Path(path)
-    if not resolved.is_absolute():
-        resolved = (root / resolved).resolve()
+    candidate = Path(path)
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    resolved = candidate.resolve()
     try:
         relative = resolved.relative_to(static_root)
     except ValueError as exc:
         raise ValueError(
-            f"{path} is not inside {static_root}. Put pregenerated media in "
+            f"{resolved} is not inside {static_root}. Put pregenerated media in "
             "static/ so it can be served as /static/..., or register the file "
             "as a PsyNet asset if it is generated or lives outside the experiment."
         ) from exc
