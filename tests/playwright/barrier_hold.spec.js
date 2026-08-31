@@ -75,6 +75,9 @@ test("default barriers hold the current page until websocket release", { tag: "@
       )
     ]);
 
+    const pageErrors = [];
+    firstParticipant.on("pageerror", (error) => pageErrors.push(error.message));
+    secondParticipant.on("pageerror", (error) => pageErrors.push(error.message));
     const firstResponses = startResponseSubmitTracker(firstParticipant);
     const firstReleases = startBarrierReleaseTracker(firstParticipant);
     await firstParticipant.getByRole("button", { name: "rock" }).click();
@@ -122,6 +125,7 @@ test("default barriers hold the current page until websocket release", { tag: "@
     firstResponses.stop();
     await assertNoBackendError(firstParticipant);
     await assertNoBackendError(secondParticipant);
+    expect(pageErrors).toEqual([]);
   } finally {
     await firstContext.close();
     await secondContext.close();
