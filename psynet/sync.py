@@ -78,6 +78,9 @@ from sqlalchemy import (
     String,
 )
 from sqlalchemy import inspect as sa_inspect
+from sqlalchemy import (
+    update as sa_update,
+)
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import (
     Session,
@@ -1131,47 +1134,34 @@ class BarrierRecord(SQLBase, SQLMixin):
 
     @classmethod
     def ensure_exists(cls, barrier_id: str, barrier_class, barrier=None):
-        with db.session.no_autoflush:
-            record = cls.query.get(barrier_id)
-            if record is not None:
-                if barrier is not None:
-                    if isinstance(barrier, Barrier):
-                        barrier = barrier.for_registry()
-                    record.barrier = barrier
-                return
+        registry_barrier = (
+            barrier.for_registry() if isinstance(barrier, Barrier) else barrier
+        )
+        record = cls(
+            id=barrier_id,
+            barrier_class=barrier_class,
+            created_at=timenow(),
+            barrier=registry_barrier,
+        )
+        values = _insert_values_from_state(record)
+        insert_stmt = (
+            pg_insert(cls)
+            .values(**values)
+            .on_conflict_do_nothing(index_elements=["id"])
+        )
 
-            registry_barrier = (
-                barrier.for_registry() if isinstance(barrier, Barrier) else barrier
-            )
-            record = cls(
-                id=barrier_id,
-                barrier_class=barrier_class,
-                created_at=timenow(),
-                barrier=registry_barrier,
-            )
-            values = _insert_values_from_state(record)
-            stmt = (
-                pg_insert(cls)
-                .values(**values)
-                .on_conflict_do_nothing(index_elements=["id"])
-            )
-            # Commit independently of the caller's request transaction.
-            # Holding this unique insert open through Page.render lets a
-            # concurrent participant block on ON CONFLICT and stall both
-            # /timeline requests until the first render finishes.
-            with Session(bind=db.engine) as side_session:
-                result = side_session.execute(stmt)
-                side_session.commit()
-            record = cls.query.get(barrier_id)
-            if record is None:
-                # Side-session insert should always be visible under READ
-                # COMMITTED; fall back to the caller's transaction if not.
-                result = db.session.execute(stmt)
-                record = cls.query.get(barrier_id)
-            if barrier is not None and result.rowcount == 0 and record is not None:
-                if isinstance(barrier, Barrier):
-                    barrier = barrier.for_registry()
-                record.barrier = barrier
+        # Registry metadata is shared across participants. Commit both its
+        # creation and refresh in a short side transaction so request rendering
+        # never holds the registry row or unique-key lock.
+        with Session(bind=db.engine) as side_session:
+            result = side_session.execute(insert_stmt)
+            if result.rowcount == 0 and barrier is not None:
+                side_session.execute(
+                    sa_update(cls)
+                    .where(cls.id == barrier_id)
+                    .values(barrier=registry_barrier)
+                )
+            side_session.commit()
 
 
 @register_table

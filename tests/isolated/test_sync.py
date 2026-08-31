@@ -218,6 +218,61 @@ def test_concurrent_barrier_ensure_exists_does_not_block(
     assert BarrierRecord.query.get(barrier_id) is not None
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_existing_barrier_refresh_does_not_lock_caller_transaction(
+    in_experiment_directory, db_session
+):
+    """Refreshing registry metadata must not lock through request rendering."""
+    import threading
+    import time
+
+    barrier_id = f"existing_{get_random_id()}"
+    barrier = ReleaseAllBarrier(id_=barrier_id)
+    BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
+    holder_ready = threading.Event()
+    release_holder = threading.Event()
+    elapsed = []
+    errors = []
+
+    def holder():
+        try:
+            BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
+            db.session.flush()
+            holder_ready.set()
+            release_holder.wait(timeout=5)
+            db.session.rollback()
+        except Exception as exc:  # pragma: no cover - surfaced via errors
+            errors.append(exc)
+        finally:
+            db.session.remove()
+
+    def peer():
+        try:
+            holder_ready.wait(timeout=5)
+            began = time.perf_counter()
+            BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
+            db.session.flush()
+            elapsed.append(time.perf_counter() - began)
+            db.session.rollback()
+        except Exception as exc:  # pragma: no cover - surfaced via errors
+            errors.append(exc)
+        finally:
+            release_holder.set()
+            db.session.remove()
+
+    threads = [threading.Thread(target=target) for target in [holder, peer]]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=5)
+
+    assert errors == []
+    assert len(elapsed) == 1
+    assert elapsed[0] < 1
+
+
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
     barrier = RecordingTimeoutGroupBarrier(
         id_="group_barrier",

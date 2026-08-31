@@ -37,9 +37,12 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
   await withExperiment(page, context, experimentDir, async (experimentPage) => {
     const responses = startResponseSubmitTracker(experimentPage);
     await experimentPage.addInitScript(() => {
-      window.timelineHoldWakeCount = 0;
+      if (sessionStorage.getItem("timelineHoldWakeCount") === null) {
+        sessionStorage.setItem("timelineHoldWakeCount", "0");
+      }
       window.addEventListener("timelineHoldWakeReceived", () => {
-        window.timelineHoldWakeCount += 1;
+        const count = Number(sessionStorage.getItem("timelineHoldWakeCount"));
+        sessionStorage.setItem("timelineHoldWakeCount", String(count + 1));
       });
     });
     const visiblePageUuid = await startBackgroundHold(experimentPage);
@@ -76,6 +79,36 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     await experimentPage.waitForTimeout(200);
     expect(responses.getCount()).toBe(blockedBaseline);
 
+    const rejectedHoldEffects = await experimentPage.evaluate(async () => {
+      const originalAlert = psynet.alert;
+      const originalResponseEnable = psynet.response.enable;
+      const originalSubmitEnable = psynet.submit.enable;
+      const effects = { alerts: 0, responseEnables: 0, submitEnables: 0 };
+      psynet.alert = () => {
+        effects.alerts += 1;
+      };
+      psynet.response.enable = () => {
+        effects.responseEnables += 1;
+      };
+      psynet.submit.enable = () => {
+        effects.submitEnables += 1;
+      };
+      await psynet.handleRejectedResponse(
+        { message: "Rejected hold check" },
+        undefined,
+        { timelineHoldResume: true }
+      );
+      psynet.alert = originalAlert;
+      psynet.response.enable = originalResponseEnable;
+      psynet.submit.enable = originalSubmitEnable;
+      return effects;
+    });
+    expect(rejectedHoldEffects).toEqual({
+      alerts: 0,
+      responseEnables: 0,
+      submitEnables: 0
+    });
+
     const pendingBaseline = responses.getCount();
     await experimentPage.evaluate(() => {
       psynet.nextPagePending = true;
@@ -103,7 +136,9 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     expect(accounting.credit).toBeLessThanOrEqual(20);
     expect(accounting.metric).toBeCloseTo(accounting.credit, 5);
     expect(
-      await experimentPage.evaluate(() => window.timelineHoldWakeCount)
+      await experimentPage.evaluate(
+        () => Number(sessionStorage.getItem("timelineHoldWakeCount"))
+      )
     ).toBeGreaterThanOrEqual(1);
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")

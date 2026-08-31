@@ -205,7 +205,9 @@ def advance_past_wait_pages(bots: List["BotDriver"], max_iterations=10):
         any_waiting = False
         for bot in bots:
             current_page = bot.get_current_page()
-            if isinstance(current_page, WaitPage) or current_page.is_timeline_hold:
+            if isinstance(current_page, WaitPage) or getattr(
+                current_page, "is_timeline_hold", False
+            ):
                 any_waiting = True
                 bot.take_page()
         if not any_waiting:

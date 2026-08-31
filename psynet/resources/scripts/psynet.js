@@ -858,6 +858,8 @@
       let indicator = document.getElementById(
         "psynet-timeline-hold-indicator",
       );
+      // A server-rendered indicator means this document is already the neutral
+      // fallback. Only preserved participant pages need their main body inert.
       let preservesVisiblePage = !indicator;
       if (!indicator) {
         indicator = document.createElement("div");
@@ -2917,7 +2919,10 @@
       if (blobs === undefined) {
         blobs = psynet.response.staged.blobs;
       }
-      if (psynetTemplateData.flags.lucidRecruitment) {
+      if (
+        psynetTemplateData.flags.lucidRecruitment &&
+        !options.timelineHoldResume
+      ) {
         psynet.removeBeforeUnloadEventListener();
       }
       let passedValidation = await submitGenericResponse(
@@ -2927,6 +2932,7 @@
         onSuccessResponse,
         onErrorResponse,
         onRejection,
+        options,
       );
       if (!passedValidation) {
         psynet.nextPagePending = false;
@@ -3016,24 +3022,38 @@
       return true;
     };
 
-    psynet.handleRejectedResponse = async function (response, onRejection) {
+    psynet.handleRejectedResponse = async function (
+      response,
+      onRejection,
+      options = {},
+    ) {
       psynet.log.debug("Response rejected.");
-      psynet.alert(response.message);
-      psynet.response.enable();
-      psynet.submit.enable();
+      if (options.timelineHoldResume) {
+        psynet.log.warn(
+          "A timeline hold resume check was rejected: " + response.message,
+        );
+      } else {
+        psynet.alert(response.message);
+        psynet.response.enable();
+        psynet.submit.enable();
+      }
       if (onRejection) {
         onRejection(response);
       }
       return false;
     };
 
-    let onSuccessResponse = async function (request, onRejection) {
+    let onSuccessResponse = async function (request, onRejection, options) {
       let response = JSON.parse(request.response);
       if (response.submission === "approved") {
         return await psynet.handleApprovedResponse(response);
       }
       if (response.submission === "rejected") {
-        return await psynet.handleRejectedResponse(response, onRejection);
+        return await psynet.handleRejectedResponse(
+          response,
+          onRejection,
+          options,
+        );
       }
       throw Error("Received a malformed response.");
     };
@@ -3107,6 +3127,7 @@
       onSuccessResponse,
       onErrorResponse,
       onRejection,
+      options,
     ) {
       // rawAnswer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
       // blobs - optional Object, each attribute should be a blob to upload.
@@ -3132,7 +3153,11 @@
             try {
               if (request.status === 200) {
                 psynet.log.debug("Response was successfully received.");
-                passedValidation = await onSuccessResponse(request, onRejection);
+                passedValidation = await onSuccessResponse(
+                  request,
+                  onRejection,
+                  options,
+                );
               } else {
                 psynet.log.debug("Something went wrong.");
                 onErrorResponse(request);

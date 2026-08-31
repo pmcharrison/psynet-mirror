@@ -260,6 +260,11 @@ always submits an idempotent resume check, and the server re-evaluates the
 condition. ``check_interval`` remains the bounded fallback for missed messages
 and arbitrary conditions without a framework event.
 
+Once first used, the shared hold-channel WebSocket remains open for the browser
+document's lifetime so repeated barriers do not churn connections. This adds
+one persistent connection per active participant document, independent of the
+number of hold visits.
+
 Holds emit ``timelineHoldStarted`` and ``timelineHoldEnded`` browser events.
 Their ``detail.holdId`` identifies the wait. Authors that deliberately want a
 separate waiting screen should use :class:`psynet.page.WaitPage` directly or
