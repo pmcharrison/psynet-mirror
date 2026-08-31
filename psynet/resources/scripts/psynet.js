@@ -917,12 +917,20 @@
       }
       if (psynet.nextPagePending || controller.resumeInFlight) {
         controller.resumeRequested = true;
+        if (psynet.nextPagePending) {
+          clearTimeout(controller.queuedResumeTimer);
+          controller.queuedResumeTimer = setTimeout(
+            () => psynet.resumeTimelineHold("queued pending request"),
+            100,
+          );
+        }
         return false;
       }
 
       psynet.log.info("Checking timeline hold after " + reason + ".");
       controller.resumeInFlight = true;
       controller.resumeRequested = false;
+      clearTimeout(controller.queuedResumeTimer);
       clearTimeout(controller.safetyTimer);
       try {
         return await psynet.nextPage(null, {}, {});
@@ -949,6 +957,7 @@
       controller.stopped = true;
       clearTimeout(controller.safetyTimer);
       clearTimeout(controller.timeoutTimer);
+      clearTimeout(controller.queuedResumeTimer);
       if (controller.connection) {
         controller.connection.close();
       }
@@ -988,6 +997,7 @@
         connection: null,
         hold: hold,
         preservesVisiblePage: preservesVisiblePage,
+        queuedResumeTimer: null,
         resumeInFlight: false,
         resumeRequested: false,
         safetyTimer: null,

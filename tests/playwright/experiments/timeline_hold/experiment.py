@@ -6,7 +6,7 @@ from psynet.timeline import AsyncCodeBlock, Timeline
 
 
 def finish_background_work(participant):
-    time.sleep(2)
+    time.sleep(3)
     participant.var.background_work_finished = True
 
 
@@ -14,12 +14,15 @@ class Exp(psynet.experiment.Experiment):
     label = "Timeline hold lifecycle"
 
     timeline = Timeline(
-        InfoPage("Submit this page to start background feedback processing."),
+        InfoPage(
+            "Submit this page to start background feedback processing.",
+            time_estimate=1,
+        ),
         AsyncCodeBlock(
             finish_background_work,
             wait=True,
-            expected_wait=2,
+            expected_wait=3,
             check_interval=5,
         ),
-        InfoPage("Background feedback processing finished."),
+        InfoPage("Background feedback processing finished.", time_estimate=1),
     )

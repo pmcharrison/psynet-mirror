@@ -5,6 +5,7 @@ const {
   assertNoBackendError,
   completeInitialGateway,
   startResponseSubmitTracker,
+  waitForResponseSubmitIncrement,
   withExperiment
 } = require("./psynetHarness");
 
@@ -60,6 +61,21 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     const settledResponseCount = responses.getCount();
     await experimentPage.waitForTimeout(700);
     expect(responses.getCount()).toBe(settledResponseCount);
+
+    const pendingBaseline = responses.getCount();
+    await experimentPage.evaluate(() => {
+      psynet.nextPagePending = true;
+      psynet.resumeTimelineHold("test pending request");
+      setTimeout(() => {
+        psynet.nextPagePending = false;
+      }, 200);
+    });
+    await waitForResponseSubmitIncrement(
+      responses,
+      pendingBaseline,
+      1,
+      1000
+    );
 
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Background feedback processing finished.",
@@ -134,6 +150,87 @@ test("timeline hold uses the authoritative server timeout", { tag: "@both" }, as
       { timeout: 3000 }
     );
     expect(Date.now() - startedAt).toBeGreaterThanOrEqual(800);
+    await assertNoBackendError(experimentPage);
+  });
+});
+
+test("timeline hold preserves a reload-required page until release", { tag: "@both" }, async ({
+  page,
+  context
+}) => {
+  const experimentDir = path.resolve(
+    "tests/playwright/experiments/timeline_hold_reload"
+  );
+
+  await withExperiment(page, context, experimentDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "This page requires a full reload after its hold.",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    const markerPageUuid = await experimentPage.evaluate(
+      () => window.holdReloadMarker.pageUuid
+    );
+    await experimentPage.locator("#next-button").click();
+    await expect(
+      experimentPage.locator("#psynet-timeline-hold-indicator")
+    ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
+    expect(
+      await experimentPage.evaluate(
+        (uuid) =>
+          window.holdReloadMarker.pageUuid === uuid &&
+          window.pageUuid === uuid,
+        markerPageUuid
+      )
+    ).toBe(true);
+
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "The reload-required hold finished.",
+      { timeout: HOLD_WAKE_TIMEOUT_MS }
+    );
+    expect(
+      await experimentPage.evaluate(
+        () => typeof window.holdReloadMarker === "undefined"
+      )
+    ).toBe(true);
+    await assertNoBackendError(experimentPage);
+  });
+});
+
+test("timeline hold preserves same-session page identity", { tag: "@both" }, async ({
+  page,
+  context
+}) => {
+  const experimentDir = path.resolve(
+    "tests/playwright/experiments/timeline_hold_same_session"
+  );
+
+  await withExperiment(page, context, experimentDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await expect(experimentPage.locator("#hold-session-marker")).toHaveText(
+      "First session page",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    await experimentPage.locator("#next-button").click();
+    await expect(
+      experimentPage.locator("#psynet-timeline-hold-indicator")
+    ).toBeVisible({ timeout: STEP_TIMEOUT_MS });
+
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () => psynet.page.contents.step
+          ),
+        { timeout: HOLD_WAKE_TIMEOUT_MS }
+      )
+      .toBe(2);
+    await expect(experimentPage.locator("#hold-session-marker")).toHaveText(
+      "First session page"
+    );
+    await expect(
+      experimentPage.locator("#psynet-timeline-hold-indicator")
+    ).toHaveCount(0);
     await assertNoBackendError(experimentPage);
   });
 });

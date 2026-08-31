@@ -7,7 +7,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Timeline hold timeout"
 
     timeline = Timeline(
-        InfoPage("Start a timeline hold that will time out."),
+        InfoPage("Start a timeline hold that will time out.", time_estimate=1),
         wait_while(
             lambda: True,
             expected_wait=1,
@@ -15,5 +15,5 @@ class Exp(psynet.experiment.Experiment):
             check_interval=5,
             fail_on_timeout=False,
         ),
-        InfoPage("The timeline hold timed out."),
+        InfoPage("The timeline hold timed out.", time_estimate=1),
     )
