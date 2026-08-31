@@ -254,6 +254,56 @@ def test_unlimited_static_nodes_skip_viable_trial_counts(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
+def test_limited_static_nodes_batch_viable_trial_counts(
+    db_session, participant, monkeypatch
+):
+    import psynet.trial.chain as chain_module
+
+    exp = get_experiment()
+    trial_maker = StaticTrialMaker(
+        id_="static_growth_query",
+        trial_class=GrowthQueryStaticTrial,
+        nodes=[StaticNode(definition={"x": 0})],
+        expected_trials_per_participant=1,
+        max_trials_per_participant=None,
+        target_trials_per_node=1,
+    )
+    networks = [
+        create_chain_network(trial_maker, exp, network_class=StaticNetwork)
+        for _ in range(20)
+    ]
+    initialize_trial_maker_state(trial_maker, participant)
+    add_trial(GrowthQueryStaticTrial, networks[0].head, participant)
+
+    original = chain_module._count_viable_trials_for_nodes
+    calls = []
+
+    def count_once(node_ids):
+        node_ids = list(node_ids)
+        calls.append(node_ids)
+        return original(node_ids)
+
+    monkeypatch.setattr(chain_module, "_count_viable_trials_for_nodes", count_once)
+    participant_id = participant.id
+    all_head_ids = {network.head.id for network in networks}
+    expected_node_ids = {network.head.id for network in networks[1:]}
+    db.session.commit()
+    db.session.remove()
+    participant = db.session.get(Participant, participant_id)
+    participant.module_state
+
+    with assert_query_count(min_queries=2, max_queries=6):
+        eligible = trial_maker.find_nodes(participant, exp)
+
+    assert len(calls) == 1
+    assert set(calls[0]) == all_head_ids
+    assert {node.id for node in eligible} == expected_node_ids
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()

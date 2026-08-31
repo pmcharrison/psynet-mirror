@@ -7,6 +7,7 @@ from dallinger import db
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
+from psynet.asset import Asset, ExternalAsset
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.db import transaction
 from psynet.experiment import get_experiment
@@ -125,6 +126,83 @@ def test_cue_callback_failure_rolls_back_trial_and_related_records(
 
     assert CueTrial.query.count() == 0
     assert CueCreationRecord.query.count() == 0
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_cue_adds_assets_before_on_trial_created(
+    db_session,
+    participant_and_node,
+    monkeypatch,
+):
+    experiment, participant, node = participant_and_node
+    monkeypatch.setattr(
+        CueTrial,
+        "get_default_parent_node",
+        classmethod(lambda cls, participant, experiment: node),
+    )
+    stimulus = ExternalAsset("http://example.com/example.mp3")
+
+    def on_trial_created(trial):
+        assert "stimulus" in trial.assets
+        assert trial.assets["stimulus"] is stimulus
+        record = CueCreationRecord()
+        record.trial = trial
+        db.session.add(record)
+
+    logic = CueTrial.cue(
+        definition={},
+        assets={"stimulus": stimulus},
+        on_trial_created=on_trial_created,
+    )
+
+    with transaction():
+        logic[0].consume(experiment, participant)
+
+    trial = CueTrial.query.one()
+    assert trial.assets["stimulus"].url == "http://example.com/example.mp3"
+    assert CueCreationRecord.query.one().trial == trial
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_cue_asset_callback_failure_rolls_back_trial_and_assets(
+    db_session,
+    participant_and_node,
+    monkeypatch,
+):
+    experiment, participant, node = participant_and_node
+    monkeypatch.setattr(
+        CueTrial,
+        "get_default_parent_node",
+        classmethod(lambda cls, participant, experiment: node),
+    )
+    assets_before = Asset.query.count()
+
+    def on_trial_created(trial):
+        assert "stimulus" in trial.assets
+        record = CueCreationRecord()
+        record.trial = trial
+        db.session.add(record)
+        raise RuntimeError("callback failed")
+
+    logic = CueTrial.cue(
+        definition={},
+        assets={"stimulus": ExternalAsset("http://example.com/example.mp3")},
+        on_trial_created=on_trial_created,
+    )
+
+    with pytest.raises(RuntimeError, match="callback failed"):
+        with transaction():
+            logic[0].consume(experiment, participant)
+
+    assert CueTrial.query.count() == 0
+    assert CueCreationRecord.query.count() == 0
+    assert Asset.query.count() == assets_before
 
 
 def test_cue_creation_context_requires_on_trial_created():
