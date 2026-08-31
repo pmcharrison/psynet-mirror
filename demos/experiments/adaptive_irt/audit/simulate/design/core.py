@@ -5,12 +5,12 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import tomllib
 
 EXPERIMENT_ROOT = Path(__file__).resolve().parents[3]
 if str(EXPERIMENT_ROOT) not in sys.path:
