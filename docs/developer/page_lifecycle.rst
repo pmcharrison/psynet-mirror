@@ -68,9 +68,10 @@ Timeline requests separate state mutation from rendering:
 
 ``pre_render()`` is therefore the supported hook for render preparation that
 needs database writes. Calling ``commit()``, flushing ORM mutations, or issuing
-SQL writes from ``render()`` or templates raises an error. The browser receives
-a stale-render response rather than HTML for an obsolete page UUID if another
-request advances the participant between the write commit and render.
+SQL writes from ``render()`` or templates raises an error. If another request
+advances the participant between the write commit and render, HTML requests
+redirect to the current timeline page while JSON/response requests receive a
+stale-state response.
 
 Participant-facing write phases use a bounded PostgreSQL ``lock_timeout`` so
 unexpected contention fails safely instead of occupying a web worker

@@ -138,6 +138,7 @@ from .utils import (
 )
 
 logger = get_logger()
+_TIMELINE_LOCK_TIMEOUT_SECONDS = 5
 
 
 database_template_path = ".deploy/database_template.zip"
@@ -2594,7 +2595,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 event.account_wait(participant, settle=should_resume)
                 if should_resume:
                     self.timeline.advance_page(self, participant)
-                return self.response_approved(participant, include_timeline_fragment)
+                page = self.timeline.get_current_elt(self, participant)
+                participant._response_page = page
+                return self.response_approved(
+                    participant,
+                    include_timeline_fragment,
+                    page=page,
+                )
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -2625,7 +2632,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
-            return self.response_approved(participant, include_timeline_fragment)
+            page = self.timeline.get_current_elt(self, participant)
+            participant._response_page = page
+            return self.response_approved(
+                participant,
+                include_timeline_fragment,
+                page=page,
+            )
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -2647,9 +2660,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             return error_response(participant=participant)
 
-    def response_approved(self, participant, include_timeline_fragment=True):
+    def response_approved(self, participant, include_timeline_fragment=True, page=None):
         logger.debug("The response was approved.")
-        page = self.timeline.get_current_elt(self, participant)
+        if page is None:
+            page = self.timeline.get_current_elt(self, participant)
         payload = {
             "submission": "approved",
             "page": page.__json__(participant),
@@ -4036,11 +4050,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        _set_transaction_lock_timeout(5)
-        participant = cls.get_participant_from_unique_id(unique_id, for_update=True)
-        experiment = get_experiment()
-
-        return cls._route_timeline(experiment, participant, mode)
+        try:
+            _set_transaction_lock_timeout(_TIMELINE_LOCK_TIMEOUT_SECONDS)
+            participant = cls.get_participant_from_unique_id(unique_id, for_update=True)
+            experiment = get_experiment()
+            return cls._route_timeline(experiment, participant, mode)
+        except sqlalchemy.exc.OperationalError as error:
+            if not cls._is_lock_timeout(error):
+                raise
+            db.session.rollback()
+            logger.warning(
+                "Timeline request lock timed out for participant %s.",
+                unique_id,
+                exc_info=True,
+            )
+            with read_only_transaction():
+                return cls.error_page(
+                    error_text=(
+                        "The experiment is temporarily busy. "
+                        "Please refresh this page and try again."
+                    ),
+                    compensate=False,
+                    error_type="database_lock_timeout",
+                )
 
     @experiment_route("/participant_status/<participant_id>", methods=["GET"])
     @classmethod
@@ -4119,6 +4151,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.failure_tags.append(error_type)
         participant.fail(error_type)
 
+    @staticmethod
+    def _is_lock_timeout(error):
+        return getattr(getattr(error, "orig", None), "pgcode", None) == "55P03"
+
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
@@ -4143,6 +4179,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 mode=mode,
             )
         except cls.HandledError as err:
+            # Handled errors own their persisted error state; discard any
+            # uncommitted page preparation before rendering their response.
             db.session.rollback()
             with read_only_transaction():
                 return err.error_page()
@@ -4488,7 +4526,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def route_response(cls):
         exp = get_experiment()
-        _set_transaction_lock_timeout(5)
+        _set_transaction_lock_timeout(_TIMELINE_LOCK_TIMEOUT_SECONDS)
         json_data = json.loads(request.values["json"])
         blobs = request.files.to_dict()
 
@@ -4506,35 +4544,53 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         client_ip_address = cls.get_client_ip_address()
 
-        response = exp.process_response(
-            participant_id,
-            raw_answer,
-            blobs,
-            metadata,
-            page_uuid,
-            client_ip_address,
-            answer,
-            False,
-        )
+        try:
+            response = exp.process_response(
+                participant_id,
+                raw_answer,
+                blobs,
+                metadata,
+                page_uuid,
+                client_ip_address,
+                answer,
+                False,
+            )
+        except sqlalchemy.exc.OperationalError as error:
+            if not cls._is_lock_timeout(error):
+                raise
+            db.session.rollback()
+            logger.warning(
+                "Response lock timed out for participant %s.",
+                participant_id,
+                exc_info=True,
+            )
+            return exp.response_rejected(
+                "The experiment is temporarily busy. Please try again."
+            )
 
-        payload = json.loads(response.get_data(as_text=True))
-        page = None
-        participant = None
-        page_uuid_after_response = None
-        render_fragment = False
-        if (
-            response.status_code == 200
-            and payload.get("submission") == "approved"
-            and "timeline_hold" not in payload
-            and include_timeline_fragment
-            and get_config().get("inplace_timeline_transitions")
-        ):
+        try:
+            payload = json.loads(response.get_data(as_text=True))
             participant = Participant.query.get(participant_id)
-            page = exp.timeline.get_current_elt(exp, participant)
-            render_fragment = not page.requires_full_page_reload
-            if render_fragment:
-                page.pre_render()
-                page_uuid_after_response = participant.page_uuid
+            page = getattr(participant, "_response_page", None)
+            page_uuid_after_response = None
+            render_fragment = False
+            if (
+                response.status_code == 200
+                and payload.get("submission") == "approved"
+                and "timeline_hold" not in payload
+                and include_timeline_fragment
+                and get_config().get("inplace_timeline_transitions")
+            ):
+                if page is None:
+                    raise RuntimeError(
+                        "Approved response did not retain its resolved page."
+                    )
+                render_fragment = not page.requires_full_page_reload
+                if render_fragment:
+                    page.pre_render()
+                    page_uuid_after_response = participant.page_uuid
+        except Exception as err:
+            return cls._handle_response_render_error(exp, participant_id, err)
 
         db.session.commit()
 
@@ -4549,39 +4605,57 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             except Exception as err:
                 if os.getenv("PASSTHROUGH_ERRORS"):
                     raise
-                participant = Participant.query.get(participant_id)
-                if not isinstance(err, exp.HandledError):
-                    exp.handle_error(
-                        err,
-                        participant=participant,
-                        trial=participant.current_trial,
-                        node=(
-                            participant.current_trial.node
-                            if participant.current_trial
-                            else None
-                        ),
-                        network=(
-                            participant.current_trial.network
-                            if participant.current_trial
-                            else None
-                        ),
-                    )
-                cls.fail_participant_on_error(participant, err)
-                db.session.commit()
-                return error_response(participant=participant)
+                return cls._handle_response_render_error(exp, participant_id, err)
             if fragment is None:
-                return error_response(
-                    error_text=(
-                        "Timeline advanced before the response fragment "
-                        "finished rendering. Please refresh the page."
-                    ),
-                    participant=participant,
+                _p = get_translator(context=True)
+                return exp.response_rejected(
+                    message=_p(
+                        "timeline_problem",
+                        "Synchronization problem detected. "
+                        "Are you running the same experiment in multiple browser tabs? "
+                        "Please close all other tabs and refresh the page.",
+                    )
                 )
             payload["timeline_fragment"] = fragment
             payload.pop("status", None)
             return success_response(**payload)
 
         return response
+
+    @classmethod
+    def _handle_response_render_error(cls, experiment, participant_id, error):
+        if os.getenv("PASSTHROUGH_ERRORS"):
+            raise error
+        db.session.rollback()
+        if isinstance(error, sqlalchemy.exc.OperationalError) and cls._is_lock_timeout(
+            error
+        ):
+            logger.warning(
+                "Response preparation lock timed out for participant %s.",
+                participant_id,
+                exc_info=True,
+            )
+            return experiment.response_rejected(
+                "The experiment is temporarily busy. Please try again."
+            )
+        participant = Participant.query.get(participant_id)
+        if not isinstance(error, experiment.HandledError):
+            experiment.handle_error(
+                error,
+                participant=participant,
+                trial=participant.current_trial,
+                node=(
+                    participant.current_trial.node
+                    if participant.current_trial
+                    else None
+                ),
+                network=(
+                    participant.current_trial.network
+                    if participant.current_trial
+                    else None
+                ),
+            )
+        return error_response(participant=participant)
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod

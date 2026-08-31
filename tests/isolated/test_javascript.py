@@ -257,6 +257,32 @@ def test_response_approved_returns_timeline_hold_without_rendering_fragment(
     assert "timeline_fragment" not in payload
 
 
+def test_response_approved_reuses_resolved_page(monkeypatch):
+    from types import SimpleNamespace
+
+    import psynet.experiment as experiment_module
+
+    monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
+    page = SimpleNamespace(
+        is_timeline_hold=False,
+        requires_full_page_reload=False,
+        __json__=lambda participant: {"attributes": {"page_uuid": "resolved"}},
+    )
+    exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
+    exp.timeline = SimpleNamespace(
+        get_current_elt=lambda *args: pytest.fail("Page was resolved twice.")
+    )
+
+    payload = experiment_module.Experiment.response_approved(
+        exp,
+        object(),
+        include_timeline_fragment=False,
+        page=page,
+    )
+
+    assert payload["page"]["attributes"]["page_uuid"] == "resolved"
+
+
 @pytest.mark.parametrize(
     "timeline",
     [

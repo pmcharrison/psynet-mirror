@@ -9,6 +9,14 @@ _transaction_depth = ContextVar("psynet_transaction_depth", default=0)
 _read_only_render_depth = ContextVar("psynet_read_only_render_depth", default=0)
 
 
+def _meaningfully_dirty(session):
+    return [
+        obj
+        for obj in session.dirty
+        if session.is_modified(obj, include_collections=True)
+    ]
+
+
 @event.listens_for(dallinger.db.session, "before_commit")
 def _prevent_render_commit(session):
     if _read_only_render_depth.get() > 0:
@@ -18,7 +26,7 @@ def _prevent_render_commit(session):
 @event.listens_for(dallinger.db.session, "before_flush")
 def _prevent_render_flush(session, flush_context, instances):
     if _read_only_render_depth.get() > 0 and (
-        session.new or session.dirty or session.deleted
+        session.new or _meaningfully_dirty(session) or session.deleted
     ):
         raise RuntimeError("Timeline rendering cannot flush ORM mutations.")
 
@@ -89,7 +97,7 @@ def read_only_transaction():
         yield session
         pending = {
             "new": [type(obj).__name__ for obj in session.new],
-            "dirty": [type(obj).__name__ for obj in session.dirty],
+            "dirty": [type(obj).__name__ for obj in _meaningfully_dirty(session)],
             "deleted": [type(obj).__name__ for obj in session.deleted],
         }
         if any(pending.values()):

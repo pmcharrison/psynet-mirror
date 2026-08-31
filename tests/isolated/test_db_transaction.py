@@ -9,13 +9,36 @@ from psynet.db import (
     read_only_transaction,
     transaction,
 )
+from psynet.experiment import Experiment, get_experiment
+from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.timeline import Page
 
 
 class DummyTransactionModel(SQLBase):
     __tablename__ = "dummy_transaction_model"
 
     id = Column(String, primary_key=True)
+
+
+class MutatingRenderPage(Page):
+    def render(self, experiment, participant, partial_mode=False):
+        participant.worker_id = "mutated-during-render"
+        return "<p>rendered</p>"
+
+
+def new_participant():
+    participant = Participant(
+        experiment=get_experiment(),
+        recruiter_id="hotair",
+        worker_id="original-worker",
+        hit_id="hit",
+        assignment_id="assignment",
+        mode="debug",
+    )
+    participant.page_uuid = "render-page"
+    db.session.add(participant)
+    return participant
 
 
 @pytest.mark.parametrize(
@@ -105,9 +128,63 @@ def test_read_only_transaction_rejects_nested_commit(db_session):
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_read_only_transaction_allows_no_op_assignment(db_session):
+    DummyTransactionModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+
+    with transaction():
+        db.session.add(DummyTransactionModel(id="unchanged"))
+        db.session.commit()
+        with read_only_transaction():
+            obj = DummyTransactionModel.query.get("unchanged")
+            obj.id = "unchanged"
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_transaction_lock_timeout_is_scoped_locally(db_session):
     with transaction():
         _set_transaction_lock_timeout(5)
         timeout = db.session.execute("SHOW lock_timeout").scalar()
 
     assert timeout == "5s"
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_full_timeline_render_rejects_orm_mutation(db_session):
+    participant = new_participant()
+    db_session.commit()
+
+    with pytest.raises(RuntimeError, match="attempted to mutate ORM state"):
+        Experiment._render_timeline_page_read_only(
+            experiment=get_experiment(),
+            participant_id=participant.id,
+            unique_id=participant.unique_id,
+            page_uuid=participant.page_uuid,
+            page=MutatingRenderPage(),
+            mode=None,
+        )
+
+    participant = Participant.query.get(participant.id)
+    assert participant.worker_id == "original-worker"
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_partial_timeline_render_rejects_orm_mutation(db_session):
+    participant = new_participant()
+    db_session.commit()
+
+    with pytest.raises(RuntimeError, match="attempted to mutate ORM state"):
+        Experiment._render_partial_timeline_payload_read_only(
+            experiment=get_experiment(),
+            participant_id=participant.id,
+            page_uuid=participant.page_uuid,
+            page=MutatingRenderPage(),
+        )
+
+    participant = Participant.query.get(participant.id)
+    assert participant.worker_id == "original-worker"
