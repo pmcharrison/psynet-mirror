@@ -3369,6 +3369,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
+    def _get_request_participant_from_unique_id(
+        cls, unique_id: str, for_update: bool = False
+    ):
+        """Load one request participant without unrelated eager relationships."""
+        query = cls._participant_request_query().filter_by(unique_id=unique_id)
+        if for_update:
+            query = query.with_for_update(of=Participant).populate_existing()
+        return query.one()
+
+    @classmethod
     def get_participant_from_assignment_id(
         cls, assignment_id: str, for_update: bool = False
     ):
@@ -3392,7 +3402,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = cls._participant_request_query().filter_by(assignment_id=assignment_id)
+        query = Participant.query.filter_by(assignment_id=assignment_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
@@ -3423,7 +3433,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The corresponding participant object.
         """
         participant_id = int(participant_id)
-        query = cls._participant_request_query().filter_by(id=participant_id)
+        query = Participant.query.filter_by(id=participant_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
@@ -3450,7 +3460,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = cls._participant_request_query().filter_by(worker_id=worker_id)
+        query = Participant.query.filter_by(worker_id=worker_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
@@ -3477,7 +3487,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = cls._participant_request_query().filter_by(unique_id=unique_id)
+        query = Participant.query.filter_by(unique_id=unique_id)
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
         return query.one()
@@ -4047,7 +4057,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
+        participant = cls._get_request_participant_from_unique_id(
+            unique_id, for_update=False
+        )
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)

@@ -42,7 +42,7 @@ def test_participant_request_query_loads_relationships_only_when_used(
     experiment = get_experiment()
 
     with assert_query_count(min_queries=1, max_queries=1):
-        participant = experiment.get_participant_from_unique_id(
+        participant = experiment._get_request_participant_from_unique_id(
             participant_with_module_state
         )
 
@@ -56,6 +56,49 @@ def test_participant_request_query_loads_relationships_only_when_used(
         ]
     with assert_query_count(min_queries=1, max_queries=1):
         assert participant.active_barriers == {}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_public_participant_getter_retains_eager_relationships_when_detached(
+    db_session, participant_with_module_state
+):
+    experiment = get_experiment()
+    participant = experiment.get_participant_from_unique_id(
+        participant_with_module_state
+    )
+    db.session.expunge(participant)
+
+    # Public getters can be used outside request transactions, so preserve
+    # their historical select-in loading behavior.
+    with assert_query_count(max_queries=0):
+        assert participant.module_state.module_id == "navigation"
+        assert [state.module_id for state in participant._module_states] == [
+            "navigation"
+        ]
+        assert participant.active_barriers == {}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_request_participant_query_preserves_row_lock(
+    db_session, participant_with_module_state
+):
+    experiment = get_experiment()
+
+    with assert_query_count(
+        min_queries=1, max_queries=1, capture_stack=True
+    ) as profiler:
+        experiment._get_request_participant_from_unique_id(
+            participant_with_module_state,
+            for_update=True,
+        )
+
+    assert "FOR UPDATE OF participant" in profiler.get_stats(top_n=None)[0].statement
 
 
 @pytest.mark.parametrize(
