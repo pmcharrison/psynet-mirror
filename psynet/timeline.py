@@ -2657,7 +2657,9 @@ def _while_loop_state_key(label, key):
 
 def get_while_loop_start_time(participant, label):
     """Return the authoritative server start time for a while loop."""
-    value = participant.var.get(_while_loop_state_key(label, "loop_start_time"))
+    value = participant.var.get(
+        _while_loop_state_key(label, "loop_start_time"), default=None
+    )
     return None if value is None else unserialise_datetime(value)
 
 

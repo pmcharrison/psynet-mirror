@@ -32,7 +32,7 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="feedback",
             trial_class=FeedbackTrial,
-            nodes=[StaticNode()],
+            nodes=[StaticNode(definition={"condition": "feedback"})],
             expected_trials_per_participant=1,
             max_trials_per_participant=1,
         )
