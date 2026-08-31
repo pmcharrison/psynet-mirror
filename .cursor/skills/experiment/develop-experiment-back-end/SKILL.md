@@ -11,22 +11,32 @@ PsyNet experiments centre on the `Timeline` component,
 which chains together `Page`s, `Module`s, `TrialMaker`s, and `CodeBlock`s.
 Most experiment logic should go through these components.
 
-Prefer `TrialMaker`s for administering sequences of trials, as they provide
-standardized helpers for administration and visualization.
-Use `StaticTrialMaker` when trials come from a fixed bank of authored nodes and
-PsyNet should balance trials across them. Use a chain-based trial maker when a
-later node's content must be derived from a completed earlier trial, as in a
-staircase whose next difficulty level is computed from the last response;
-PsyNet's `GeometricStaircaseTrialMaker` is a `ChainTrialMaker` for that reason.
+A `Trial` typically constitutes the core repeating unit of the experiment.
+It is parametrized by a `definition` attribute, and produces a front-end interface
+via the `show_trial` method.
 
-Use `Trial.cue` when the experiment computes each assignment itself.
-Model-based adaptive selection usually belongs here, especially when the
-adaptive unit is a combination of stored objects such as a pair of items:
-storing every combination as a node does not scale, and scoring code is easier
-to write and simulate against arrays than against database nodes. See
-`make-experiment-adaptive/SKILL.md`.
+There are several ways to organize the presentation of `Trial`s.
+In particular, various forms of `TrialMaker` are available for facilitating 
+certain standard scenarios.
+The `StaticTrialMaker` is appropriate when trials are generated from a fixed bank
+of available sources, called nodes (e.g. a collection of stimuli to evaluate).
+It facilitates a particularly common requirement, to ensure that all 
+stimuli/nodes receive an approximately equal number of responses.
+The `ChainTrialMaker` is a generalization of the `StaticTrialMaker` where the nodes
+evolve through time in response to prior responses; this is used to implement paradigms
+such as serial reproduction and Markov Chain Monte Carlo with People.
+The `GraphTrialMaker` is a generalization of `ChainTrialMaker` that supports causal
+dependencies between nodes.
 
-Inspect the closest PsyNet demo and trial-maker implementation before choosing
+An alternative method is to use `Trial.cue`, which gives direct control over the 
+sequence of trial administration. This is particularly helpful in experiments with 
+complex ordering requirements, or in adaptive experiments where item selection
+is performed by a custom algorithm, or in experiments where the theoretical number
+of possible trial configurations is too large to represent effectively in the database 
+(e.g. experiments where each trial involves presenting the participant with several 
+randomly chosen items from a large item bank).
+
+Inspect relevant PsyNet demos and trial-maker implementations before choosing
 an architecture.
 
 ## Python modules beside ``experiment.py``
