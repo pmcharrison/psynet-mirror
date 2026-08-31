@@ -3,6 +3,7 @@ import uuid
 import pytest
 from dallinger import db
 from sqlalchemy import inspect
+from sqlalchemy.orm.attributes import set_committed_value
 
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
@@ -707,6 +708,33 @@ def test_graph_growth_processes_ready_cycle_as_one_wave(db_session, participant)
         trial_maker.call_grow_network(network, check_readiness=False)
 
     assert {network.head.degree for network in networks} == {1}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_graph_growth_uses_refreshed_locked_head(db_session, participant):
+    trial_maker = make_graph_trial_maker({"vertices": [1], "edges": []})
+    trial_maker.create_networks_across(get_experiment())
+    network = GraphChainNetwork.query.filter_by(trial_maker_id=trial_maker.id).one()
+    old_head = network.head
+    add_trial(GrowthQueryGraphTrial, old_head, participant, finalized=True)
+    db.session.commit()
+
+    assert trial_maker.grow_network(network, get_experiment(), check_readiness=False)
+    refreshed_head = network.head
+    add_trial(GrowthQueryGraphTrial, refreshed_head, participant, finalized=True)
+    db.session.commit()
+
+    # Preserve a stale but clean in-memory head while the database still points
+    # to refreshed_head, as can happen after another request grows the network.
+    set_committed_value(network, "head_id", old_head.id)
+    set_committed_value(network, "head", old_head)
+
+    assert trial_maker.grow_network(network, get_experiment(), check_readiness=True)
+    assert network.head.parent is refreshed_head
+    assert network.head.degree == refreshed_head.degree + 1
 
 
 def reload_participant(participant):

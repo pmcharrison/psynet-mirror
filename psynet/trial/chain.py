@@ -2334,41 +2334,20 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
 
     def network_is_ready_to_grow(self, network):
-        """Return whether ``network`` satisfies the live SQL readiness query.
+        """Return whether the persisted network is currently ready to grow.
 
-        The request-path grow check uses the same predicate as the poller so it
-        does not hydrate every trial on the head.
+        A ready network is locked and refreshed in the current session. The
+        request-path fast check therefore uses the same non-blocking SQL path as
+        the scheduled growth poller.
         """
-        if network.id is None:
-            return False
-        # Keep SQLAlchemy's normal autoflush enabled here. Trial finalization
-        # calls this method before the surrounding request commits, so the
-        # readiness SELECT must first flush that pending trial state.
-        ready_head_id = db.session.execute(
-            self.ready_to_grow_network_id_select([network.id])
-            .with_only_columns(self.network_class.head_id)
-            .limit(1)
-            .with_for_update(of=self.network_class)
-        ).scalar()
-        if ready_head_id is None:
-            return False
+        return self._get_locked_network_if_ready(network) is not None
 
-        # The readiness predicate uses the database's current head. Refresh the
-        # passed object from the locked query so grow_network() cannot
-        # subsequently extend a stale in-memory head. Normal autoflush above
-        # makes these histories clean; fail rather than erase pending state if
-        # a caller explicitly suppressed autoflush.
-        state = inspect(network)
-        if (
-            state.attrs.head_id.history.has_changes()
-            or state.attrs.head.history.has_changes()
-        ):
-            raise RuntimeError(
-                "Cannot refresh network readiness while its head has unflushed changes."
-            )
-        set_committed_value(network, "head_id", ready_head_id)
-        db.session.expire(network, ["head"])
-        return True
+    def _get_locked_network_if_ready(self, network):
+        """Return the locked, refreshed network when it is ready."""
+        if network.id is None:
+            return None
+        ready = self.get_networks_ready_to_grow([network.id])
+        return ready[0] if ready else None
 
     def call_grow_network(self, network, check_readiness=True):
         from psynet.experiment import get_experiment
@@ -2384,34 +2363,36 @@ class ChainTrialMaker(NetworkTrialMaker):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
         participant = None
-        if not check_readiness or self.network_is_ready_to_grow(network):
-            head = network.head
+        if check_readiness:
+            network = self._get_locked_network_if_ready(network)
+            if network is None:
+                return False
 
-            if is_method_overridden(head, ChainNode, "make_next_definition"):
-                # make_next_definition is a more recent interface for creating definitions,
-                # we are going to trial this for a while, and potentially later
-                # deprecate the former interface (create_seed)
-                definition = head.make_next_definition(experiment, participant)
-                seed = None
-            else:
-                # create_seed is the former interface for creating definitions
-                definition = None
-                seed = head.create_seed(experiment, participant)
+        head = network.head
+        if is_method_overridden(head, ChainNode, "make_next_definition"):
+            # make_next_definition is a more recent interface for creating definitions,
+            # we are going to trial this for a while, and potentially later
+            # deprecate the former interface (create_seed)
+            definition = head.make_next_definition(experiment, participant)
+            seed = None
+        else:
+            # create_seed is the former interface for creating definitions
+            definition = None
+            seed = head.create_seed(experiment, participant)
 
-            node = self.node_class(
-                seed=seed,
-                definition=definition,
-                parent=head,
-                network=network,
-                experiment=experiment,
-                propagate_failure=self.propagate_failure,
-                participant=participant,
-            )
-            db.session.add(node)
-            network.add_node(node)
-            node.check_on_deploy()
-            return True
-        return False
+        node = self.node_class(
+            seed=seed,
+            definition=definition,
+            parent=head,
+            network=network,
+            experiment=experiment,
+            propagate_failure=self.propagate_failure,
+            participant=participant,
+        )
+        db.session.add(node)
+        network.add_node(node)
+        node.check_on_deploy()
+        return True
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)

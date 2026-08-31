@@ -571,27 +571,30 @@ class GraphChainTrialMaker(ChainTrialMaker):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
         participant = None
+        if check_readiness:
+            network = self._get_locked_network_if_ready(network)
+            if network is None:
+                return False
+
         head = network.head
-        if not check_readiness or self.network_is_ready_to_grow(network):
-            seed_bundle = self.create_seed_bundle(head, experiment, participant)
-            node = self.node_class(
-                seed_bundle,
-                head.degree + 1,
-                network,
-                experiment,
-                self.propagate_failure,
-                network.vertex_id,
-                participant=participant,
-                block=network.block,
-                participant_group=network.participant_group,
-            )
-            db.session.add(node)
-            network.add_node(node)
-            db.session.commit()
-            node.check_on_deploy()
-            db.session.commit()
-            return True
-        return False
+        seed_bundle = self.create_seed_bundle(head, experiment, participant)
+        node = self.node_class(
+            seed_bundle,
+            head.degree + 1,
+            network,
+            experiment,
+            self.propagate_failure,
+            network.vertex_id,
+            participant=participant,
+            block=network.block,
+            participant_group=network.participant_group,
+        )
+        db.session.add(node)
+        network.add_node(node)
+        db.session.commit()
+        node.check_on_deploy()
+        db.session.commit()
+        return True
 
     def create_seed_bundle(self, head, experiment, participant):
         head_seed = head.create_seed(experiment, participant)
@@ -654,16 +657,6 @@ class GraphChainTrialMaker(ChainTrialMaker):
         return and_(
             super().network_ready_to_grow_condition(network_cls, node_cls),
             ~missing_ready_incoming,
-        )
-
-    def network_is_ready_to_grow(self, network):
-        if not super().network_is_ready_to_grow(network):
-            return False
-
-        incoming_nodes = network.head.get_incoming_nodes()
-        return len(incoming_nodes) == len(network.incoming_vertex_ids) and all(
-            node.reached_target_n_trials and len(node.pending_trials) == 0
-            for node in incoming_nodes
         )
 
     def generate_source_seed_bundles(self):
