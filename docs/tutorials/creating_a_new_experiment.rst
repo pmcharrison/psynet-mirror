@@ -16,9 +16,6 @@ The first step is then to open this directory in your IDE.
 Click File > Open in your IDE, then select your project folder.
 If asked, click New Window.
 
-The next step depends on whether you are using the Docker mode for running PsyNet,
-or whether you are using the *virtual environment* mode.
-
 The PsyNet demo directories contain authored experiment files and an unpinned
 ``psynet`` entry in ``requirements.txt``. Generated boilerplate and
 ``constraints.txt`` are intentionally omitted.
@@ -38,9 +35,8 @@ available on your computer (once per machine):
   See the `uv installation docs <https://docs.astral.sh/uv/getting-started/installation/>`_
   for other options (Homebrew, pip, …).
 
-Then initialize Git and install the thin PsyNet bootstrap package before
-choosing either setup mode (``psynet setup`` then installs the full
-``psynet[experiment]`` runtime):
+Then initialize Git and install the thin PsyNet bootstrap package.
+``psynet setup`` then installs the full ``psynet[experiment]`` runtime:
 
 .. code-block:: bash
 
@@ -50,25 +46,12 @@ choosing either setup mode (``psynet setup`` then installs the full
     uv pip install psynet
 
 
-Docker mode
------------
+Set up the experiment
+---------------------
 
-Both Docker and virtualenv mode need standard experiment files. Docker does not
-need PsyNet to install packages into your local ``.venv``, so use the Docker
-setup flag (same file preparation as ``--no-install``, with Docker next steps):
-
-.. code-block:: bash
-
-    psynet setup --docker
-
-Then follow the generated instructions under ``docker/docs``.
-
-Virtual environment mode
-------------------------
-
-For virtual environment mode, let ``psynet setup`` pin the active PsyNet
-version, generate constraints, scaffold the experiment, install the
-constrained dependencies with ``uv``, and verify the environment:
+Let ``psynet setup`` pin the active PsyNet version, generate constraints,
+scaffold the experiment, install the constrained dependencies with ``uv``,
+and verify the environment:
 
 .. code-block:: bash
 

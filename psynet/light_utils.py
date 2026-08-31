@@ -95,6 +95,18 @@ def git_repository_available() -> bool:
     return result.returncode == 0
 
 
+def git_commit_available() -> bool:
+    """Return whether the current Git work tree has at least one commit."""
+    if not git_repository_available():
+        return False
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", "HEAD"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    return result.returncode == 0
+
+
 # ---------------------------------------------------------------------------
 # PsyNet root and in-repo experiment detection
 # ---------------------------------------------------------------------------
