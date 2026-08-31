@@ -137,7 +137,10 @@ When the demo is running, offer the user to navigate the experiment automaticall
 `names` (basenames in every directory), and `suffixes` (literal endings
 such as `.db`). PsyNet creates it from the template when missing and never
 overwrites a custom copy. Inspect the current plan with
-`dallinger deployment-files list`.
+`dallinger deployment-files list`. Stock excludes include the local
+`audit/` review packet (not needed at runtime). PsyNet never overwrites a
+custom `deploy.toml`; add `audit` to `[exclude].paths` on existing
+experiments that still ship that directory.
 
 `.dockerignore` is no longer supported. Move any custom exclusions into
 `deploy.toml` and remove `.dockerignore` before debug or deployment.

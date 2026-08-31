@@ -68,7 +68,7 @@ After updating ``deploy.toml``:
 #. Run ``dallinger deployment-files list`` and inspect the complete output.
 #. Confirm that authored experiment files are present.
 #. Confirm that credentials, exports, participant data, virtual environments,
-   and generated local files are absent.
+   generated local files, and the ``audit/`` review packet are absent.
 #. Run ``psynet test local``.
 #. Commit the reviewed ``deploy.toml`` before a remote deployment.
 
