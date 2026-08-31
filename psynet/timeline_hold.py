@@ -6,6 +6,7 @@ record and the internal page protocol shared by barriers and ``wait_while``.
 """
 
 import json
+import uuid
 from datetime import timedelta
 
 from dallinger import db
@@ -51,10 +52,10 @@ def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     if active_hold is None:
         return
     wake = {
-        "page_uuid": page_uuid,
+        "wake_token": active_hold.wake_token,
         "reason": reason,
     }
-    key = (page_uuid, reason)
+    key = (active_hold.wake_token, reason)
     db.session.info.setdefault(_PENDING_WAKE_KEY, {})[key] = wake
 
 
@@ -80,11 +81,9 @@ def _publish_timeline_hold_wakes(session):
     if not wakes:
         return
     try:
-        from psynet.experiment import get_experiment
-
-        get_experiment().publish_to_subscribers(
+        db.redis_conn.publish(
+            _TIMELINE_HOLD_CHANNEL,
             json.dumps({"type": "timeline_hold_wake", "targets": wakes}),
-            channel_name=_TIMELINE_HOLD_CHANNEL,
         )
     except Exception:
         logger.warning("Failed to publish timeline hold wake.", exc_info=True)
@@ -106,7 +105,11 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
         "psynet.participant.Participant", backref="timeline_holds"
     )
     page_uuid = Column(String, unique=True, index=True)
+    wake_token = Column(
+        String, unique=True, index=True, default=lambda: str(uuid.uuid4())
+    )
     hold_id = Column(String, index=True)
+    loop_started_at = Column(DateTime, index=True)
     started_at = Column(DateTime)
     deadline_at = Column(DateTime)
     released_at = Column(DateTime)
@@ -188,6 +191,7 @@ class _TimelineHoldPage(Page):
         fix_time_credit,
         check_interval,
         content,
+        message_kind=None,
     ):
         self.hold_id = hold_id
         self.expected_wait = expected_wait
@@ -195,6 +199,7 @@ class _TimelineHoldPage(Page):
         self.fix_time_credit = fix_time_credit
         self.check_interval = check_interval
         self.content = content
+        self.message_kind = message_kind
         super().__init__(
             label="wait",
             time_estimate=expected_wait,
@@ -217,6 +222,7 @@ class _TimelineHoldPage(Page):
             TimelineHoldRecord.query.filter_by(
                 participant_id=participant.id,
                 hold_id=self.hold_id,
+                loop_started_at=loop_started_at,
                 resumed_at=None,
             )
             .order_by(TimelineHoldRecord.id.desc())
@@ -226,7 +232,9 @@ class _TimelineHoldPage(Page):
             record = TimelineHoldRecord(
                 participant=participant,
                 page_uuid=participant.page_uuid,
+                wake_token=str(uuid.uuid4()),
                 hold_id=self.hold_id,
+                loop_started_at=loop_started_at,
                 started_at=now,
                 deadline_at=deadline_at,
                 expected_wait=self.expected_wait,
@@ -288,9 +296,9 @@ class _TimelineHoldPage(Page):
     def translated_content(self):
         """Translate framework-provided hold messages for this participant."""
         _p = get_translator(context=True)
-        if self.content == "Waiting for other participants…":
+        if self.message_kind == "barrier":
             return _p("timeline_hold", "Waiting for other participants…")
-        if self.content == "Please wait, the experiment should continue shortly...":
+        if self.message_kind == "generic":
             return _p(
                 "timeline_hold",
                 "Please wait, the experiment should continue shortly...",
@@ -310,6 +318,7 @@ class _TimelineHoldPage(Page):
             "hold_id": self.hold_id,
             "message": self.translated_content(),
             "page_uuid": participant.page_uuid,
+            "wake_token": record.wake_token,
             "safety_poll_ms": round(self.check_interval * 1000),
             "timeout_ms": remaining_timeout_ms,
         }

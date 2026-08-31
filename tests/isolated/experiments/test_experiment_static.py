@@ -118,6 +118,8 @@ class TestExp:
             # + 9 dollars reward at the end
             # = 9.09
             participant = Participant.query.filter_by(id=1).populate_existing().one()
+            # Match the stock test configuration's $12 hourly wage without
+            # requiring request-local configuration in this test process.
             time_reward = f"${participant.time_credit * 12.0 / 3600:.2f}"
             assert_text(
                 driver,

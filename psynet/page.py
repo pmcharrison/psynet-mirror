@@ -313,6 +313,7 @@ def wait_while(
         from psynet.timeline_hold import _ConditionHoldPage
 
         expected_repetitions = 1
+        default_content = content is None
         _wait_page = _ConditionHoldPage(
             condition=condition,
             hold_id=label,
@@ -320,7 +321,8 @@ def wait_while(
             max_wait_time=max_wait_time,
             fix_time_credit=fix_time_credit,
             check_interval=check_interval,
-            content=content or WaitPage.content,
+            content=WaitPage.content if default_content else content,
+            message_kind="generic" if default_content else None,
         )
     else:
         expected_repetitions = ceil(expected_wait / check_interval)

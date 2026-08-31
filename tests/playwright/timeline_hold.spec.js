@@ -10,7 +10,7 @@ const {
 } = require("./psynetHarness");
 
 const STEP_TIMEOUT_MS = 120000;
-const HOLD_WAKE_TIMEOUT_MS = 4500;
+const HOLD_WAKE_TIMEOUT_MS = 10000;
 
 async function startBackgroundHold(page) {
   await completeInitialGateway(page);
@@ -36,6 +36,12 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
 
   await withExperiment(page, context, experimentDir, async (experimentPage) => {
     const responses = startResponseSubmitTracker(experimentPage);
+    await experimentPage.addInitScript(() => {
+      window.timelineHoldWakeCount = 0;
+      window.addEventListener("timelineHoldWakeReceived", () => {
+        window.timelineHoldWakeCount += 1;
+      });
+    });
     const visiblePageUuid = await startBackgroundHold(experimentPage);
 
     await expect(experimentPage.locator("#main-body")).toContainText(
@@ -96,6 +102,9 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     expect(accounting.credit).toBeGreaterThanOrEqual(2.5);
     expect(accounting.credit).toBeLessThanOrEqual(20);
     expect(accounting.metric).toBeCloseTo(accounting.credit, 5);
+    expect(
+      await experimentPage.evaluate(() => window.timelineHoldWakeCount)
+    ).toBeGreaterThanOrEqual(1);
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);

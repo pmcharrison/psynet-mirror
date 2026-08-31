@@ -20,7 +20,7 @@
   function createChannel(channel) {
     const subscribers = new Set();
     const socket = new ReconnectingWebSocket(buildUrl(channel));
-    const entry = { channel, socket, subscribers };
+    const entry = { channel, keepAlive: false, socket, subscribers };
 
     socket.onopen = function (event) {
       subscribers.forEach((subscriber) => subscriber.onOpen?.(event));
@@ -43,12 +43,23 @@
     return entry;
   }
 
-  function connect({ channel, onOpen, onMessage }) {
+  function closeChannel(entry) {
+    channels.delete(entry.channel);
+    entry.socket.onopen = function () {
+      entry.socket.close();
+    };
+    entry.socket.onmessage = function () {};
+    entry.socket.onclose = function () {};
+    entry.socket.close();
+  }
+
+  function connect({ channel, keepAlive = false, onOpen, onMessage }) {
     if (!channel) {
       throw new Error("A WebSocket channel name is required.");
     }
 
     const entry = channels.get(channel) || createChannel(channel);
+    entry.keepAlive ||= keepAlive;
     let closed = false;
     let subscriber;
     const connection = {
@@ -56,6 +67,9 @@
         if (closed) return;
         closed = true;
         entry.subscribers.delete(subscriber);
+        if (entry.subscribers.size === 0 && !entry.keepAlive) {
+          closeChannel(entry);
+        }
       },
       send(message) {
         if (closed) {

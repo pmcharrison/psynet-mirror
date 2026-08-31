@@ -103,6 +103,7 @@ class _BarrierHoldPage(_TimelineHoldPage):
             fix_time_credit=barrier.fix_time_credit,
             check_interval=2.0,
             content="Waiting for other participants…",
+            message_kind="barrier",
         )
 
     def participant_can_resume(self, experiment, participant):

@@ -578,10 +578,11 @@ def test_check_barriers_publishes_release_after_commit(
     db_session.commit()
     participant_id = participant.id
     barrier_id = barrier.id
+    wake_token = hold.wake_token
 
     publications = []
 
-    def publish(data, channel_name):
+    def publish(channel_name, data):
         with db.engine.connect() as connection:
             released, released_at = connection.execute(
                 text(
@@ -605,7 +606,7 @@ def test_check_barriers_publishes_release_after_commit(
         assert released_at is not None
         publications.append((json.loads(data), channel_name))
 
-    monkeypatch.setattr(exp, "publish_to_subscribers", publish)
+    monkeypatch.setattr(db.redis_conn, "publish", publish)
 
     check_barriers()
 
@@ -615,7 +616,7 @@ def test_check_barriers_publishes_release_after_commit(
                 "type": "timeline_hold_wake",
                 "targets": [
                     {
-                        "page_uuid": "hold-page-uuid",
+                        "wake_token": wake_token,
                         "reason": "barrier_released",
                     }
                 ],
@@ -623,6 +624,7 @@ def test_check_barriers_publishes_release_after_commit(
             _TIMELINE_HOLD_CHANNEL,
         )
     ]
+    assert not db_session().in_transaction()
 
 
 @pytest.mark.parametrize(
@@ -646,8 +648,8 @@ def test_timeline_hold_wake_is_discarded_on_rollback(
     db_session.flush()
     publications = []
     monkeypatch.setattr(
-        get_experiment(),
-        "publish_to_subscribers",
+        db.redis_conn,
+        "publish",
         lambda *args, **kwargs: publications.append((args, kwargs)),
     )
 
@@ -682,17 +684,18 @@ def test_overridden_barrier_check_still_publishes_hold_wake(
     participant.active_barriers[barrier.id].timeline_hold = hold
     db_session.add(hold)
     db_session.commit()
+    wake_token = hold.wake_token
 
     publications = []
     monkeypatch.setattr(
-        exp,
-        "publish_to_subscribers",
-        lambda data, channel_name: publications.append(json.loads(data)),
+        db.redis_conn,
+        "publish",
+        lambda channel_name, data: publications.append(json.loads(data)),
     )
 
     check_barriers()
 
-    assert publications[0]["targets"][0]["page_uuid"] == "override-hold"
+    assert publications[0]["targets"][0]["wake_token"] == wake_token
 
 
 @pytest.mark.parametrize(
@@ -712,20 +715,20 @@ def test_shared_barrier_id_preserves_each_visit_waiting_mode(
     page_barrier = ReleaseAllBarrier(id_="shared", waiting_logic=WaitPage(wait_time=1))
     page_barrier.receive_participant(page_participant)
     db_session.commit()
-    held_page_uuid = held_participant.page_uuid
+    held_wake_token = held_participant.timeline_holds[0].wake_token
 
     publications = []
     monkeypatch.setattr(
-        exp,
-        "publish_to_subscribers",
-        lambda data, channel_name: publications.append(json.loads(data)),
+        db.redis_conn,
+        "publish",
+        lambda channel_name, data: publications.append(json.loads(data)),
     )
 
     check_barriers()
 
     targets = publications[0]["targets"]
-    assert [target["page_uuid"] for target in targets] == [held_page_uuid]
-    assert all("target_participant_id" not in target for target in targets)
+    assert [target["wake_token"] for target in targets] == [held_wake_token]
+    assert all("page_uuid" not in target for target in targets)
 
 
 @pytest.mark.parametrize(
@@ -774,6 +777,29 @@ def test_barrier_hold_reuses_record_when_loop_reenters(
     assert (
         participant.active_barriers[barrier.id].timeline_hold.page_uuid
         == participant.page_uuid
+    )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_hold_does_not_reuse_record_from_earlier_loop(
+    in_experiment_directory, db_session
+):
+    participant = new_participant(get_experiment())
+    participant.status = "working"
+    barrier = ReleaseAllBarrier(id_="new_loop")
+    barrier.receive_participant(participant)
+    key = _while_loop_state_key("barrier:new_loop", "loop_start_time")
+    participant.var.set(key, serialise(timenow()))
+    barrier.waiting_logic.consume(get_experiment(), participant)
+    participant.var.set(key, serialise(timenow() + timedelta(seconds=1)))
+
+    barrier.waiting_logic.consume(get_experiment(), participant)
+    db_session.flush()
+
+    assert (
+        TimelineHoldRecord.query.filter_by(participant_id=participant.id).count() == 2
     )
 
 

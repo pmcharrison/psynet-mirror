@@ -2458,12 +2458,12 @@ msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr ""
 
-#: psynet/timeline_hold.py:268
+#: psynet/timeline_hold.py:298
 msgctxt "timeline_hold"
 msgid "Waiting for other participants…"
 msgstr ""
 
-#: psynet/timeline_hold.py:271
+#: psynet/timeline_hold.py:302
 msgctxt "timeline_hold"
 msgid "Please wait, the experiment should continue shortly..."
 msgstr ""

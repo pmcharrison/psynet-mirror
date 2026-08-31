@@ -1033,6 +1033,7 @@
 
       controller.connection = PsyNetWebSocketChannel.connect({
         channel: hold.channel,
+        keepAlive: true,
         onOpen() {
           if (!controller.stopped) {
             psynet.resumeTimelineHold("websocket connection");
@@ -1043,9 +1044,17 @@
           let matchingTarget = (message.targets || []).find(
             (target) =>
               message.type === "timeline_hold_wake" &&
-              target.page_uuid === hold.page_uuid,
+              target.wake_token === hold.wake_token,
           );
           if (matchingTarget) {
+            window.dispatchEvent(
+              new CustomEvent("timelineHoldWakeReceived", {
+                detail: {
+                  holdId: hold.hold_id,
+                  reason: matchingTarget.reason,
+                },
+              }),
+            );
             psynet.resumeTimelineHold("server notification");
           }
         },
