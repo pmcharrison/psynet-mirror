@@ -1674,11 +1674,10 @@ def generate_text_file(path, text="Lorem ipsum"):
 # ``experiment.py`` more than once per process: Dallinger's config loader
 # imports it to read the experiment's extra parameters, and commands such as
 # ``psynet debug`` and ``psynet deploy`` load it again from the directory staged
-# for the server. Each execution redeclares the same mapped classes. The
-# warnings name PsyNet internals rather than anything an experimenter can act
-# on, and they appear only for experiments that keep a class reachable across
-# the reload, such as those adding a column to Dallinger's shared ``info``
-# table.
+# for the server. Each execution redeclares the same mapped classes, so any
+# experiment that defines a Trial subclass or a custom table sees these
+# warnings. They name PsyNet's own reloading rather than anything an
+# experimenter can act on.
 _EXPERIMENT_REDECLARATION_WARNINGS = (
     "This declarative base already contains a class",
     "Reassigning polymorphic association",
