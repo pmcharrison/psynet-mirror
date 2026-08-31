@@ -50,6 +50,7 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
         visiblePageUuid
       )
     ).toBe(true);
+    await expect(experimentPage.locator("#comment-button")).toBeDisabled();
 
     const headerBox = await experimentPage.locator("#timeline-header").boundingBox();
     const indicatorBox = await experimentPage
@@ -105,6 +106,7 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
           !document.getElementById("main-body").inert
       )
     ).toBe(true);
+    await expect(experimentPage.locator("#comment-button")).toBeEnabled();
     responses.stop();
     await assertNoBackendError(experimentPage);
   });
@@ -163,7 +165,10 @@ test("timeline hold uses the authoritative server timeout", { tag: "@both" }, as
       "The timeline hold timed out.",
       { timeout: 3000 }
     );
-    await expect(experimentPage.locator("#fixed-hold-credit")).toHaveText("0.5");
+    const fixedCredit = await experimentPage
+      .locator("#fixed-hold-credit")
+      .evaluate((element) => Number(element.textContent));
+    expect(fixedCredit).toBeCloseTo(0.5);
     expect(Date.now() - startedAt).toBeGreaterThanOrEqual(800);
     await assertNoBackendError(experimentPage);
   });

@@ -117,8 +117,8 @@ class TestExp:
             # 9 * 1 cent reward for individual trials
             # + 9 dollars reward at the end
             # = 9.09
-            participant = Participant.query.filter_by(id=1).one()
-            time_reward = f"${participant.time_reward:.2f}"
+            participant = Participant.query.filter_by(id=1).populate_existing().one()
+            time_reward = f"${participant.time_credit * 12.0 / 3600:.2f}"
             assert_text(
                 driver,
                 "main-body",

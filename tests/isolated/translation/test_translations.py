@@ -45,6 +45,22 @@ def make_entries(source_text, translated_text):
     )
 
 
+def test_timeline_hold_messages_are_in_translation_template():
+    pot = polib.pofile(
+        os.path.join(get_psynet_root(), "psynet", "locales", "psynet.pot")
+    )
+    entries = {(entry.msgctxt, entry.msgid) for entry in pot}
+
+    assert (
+        "timeline_hold",
+        "Waiting for other participants…",
+    ) in entries
+    assert (
+        "timeline_hold",
+        "Please wait, the experiment should continue shortly...",
+    ) in entries
+
+
 def test_matching_variables():
     """Test that translations with matching variables pass."""
     # Basic variable matching

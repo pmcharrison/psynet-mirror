@@ -85,7 +85,7 @@ from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.timeline_hold import _queue_timeline_hold_wake, _TimelineHoldPage
+from psynet.timeline_hold import _safely_queue_timeline_hold_wake, _TimelineHoldPage
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -160,8 +160,9 @@ class Barrier(EltCollection):
         lightweight waiting indicator.
 
     waiting_logic_expected_repetitions
-        The number of times that the participant is expected to experience the waiting_logic during a given barrier
-        visit. This is used for time estimation.
+        Expected repetitions for explicit ``waiting_logic``. For a default
+        hold, this is used only to derive the legacy ``expected_wait`` when no
+        explicit estimate is supplied.
 
     max_wait_time
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
@@ -409,8 +410,9 @@ class GroupBarrier(Barrier):
         waiting indicator.
 
     waiting_logic_expected_repetitions
-        The number of times that the participant is expected to experience the waiting_logic during a given barrier
-        visit. This is used for time estimation.
+        Expected repetitions for explicit ``waiting_logic``. For a default
+        hold, this is used only to derive the legacy ``expected_wait`` when no
+        explicit estimate is supplied.
 
     max_wait_time
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
@@ -442,6 +444,7 @@ class GroupBarrier(Barrier):
     expected_wait
         Expected duration of a default timeline hold. If omitted, preserves the
         historical default estimate.
+
     """
 
     @staticmethod
@@ -634,8 +637,9 @@ class Grouper(Barrier):
         waiting indicator.
 
     waiting_logic_expected_repetitions
-        The number of times that the participant is expected to experience the waiting_logic during a given barrier
-        visit. This is used for time estimation.
+        Expected repetitions for explicit ``waiting_logic``. For a default
+        hold, this is used only to derive the legacy ``expected_wait`` when no
+        explicit estimate is supplied.
 
     max_wait_time
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
@@ -645,6 +649,10 @@ class Grouper(Barrier):
     expected_wait
         Expected duration of a default timeline hold. If omitted, preserves the
         historical default estimate.
+
+    fix_time_credit
+        If ``True``, award fixed ``expected_wait`` credit instead of actual
+        visible waiting time.
 
     fail_participants_below_min_size
         If ``True`` (default), participants in a group that is below minimum size and does not accept
@@ -661,6 +669,7 @@ class Grouper(Barrier):
         max_wait_time=20,
         fail_participants_below_min_size: bool = True,
         expected_wait=None,
+        fix_time_credit=False,
     ):
         if not id_:
             id_ = group_type + "_" + "grouper"
@@ -670,6 +679,7 @@ class Grouper(Barrier):
             waiting_logic_expected_repetitions=waiting_logic_expected_repetitions,
             max_wait_time=max_wait_time,
             expected_wait=expected_wait,
+            fix_time_credit=fix_time_credit,
         )
         self.group_type = group_type
         self.fail_participants_below_min_size = fail_participants_below_min_size
@@ -1193,7 +1203,7 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         self.released = True
         if self.timeline_hold is not None:
             self.timeline_hold.mark_released(self.participant, timestamp)
-            _queue_timeline_hold_wake(
+            _safely_queue_timeline_hold_wake(
                 self.participant_id,
                 page_uuid=self.timeline_hold.page_uuid,
                 reason="barrier_released",

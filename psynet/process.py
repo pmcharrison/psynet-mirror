@@ -192,20 +192,12 @@ class AsyncProcess(SQLBase, SQLMixin):
         """Wake this participant's active hold after process state commits."""
         if self.participant_id is None:
             return
-        try:
-            from psynet.timeline_hold import _queue_timeline_hold_wake
+        from psynet.timeline_hold import _safely_queue_timeline_hold_wake
 
-            _queue_timeline_hold_wake(
-                self.participant_id,
-                page_uuid=self.participant.page_uuid,
-                reason=reason,
-            )
-        except Exception:
-            logger.warning(
-                "Failed to queue a timeline hold wake for async process %s.",
-                self.id,
-                exc_info=True,
-            )
+        _safely_queue_timeline_hold_wake(
+            self.participant_id,
+            reason=reason,
+        )
 
     @property
     def failure_cascade(self):

@@ -147,6 +147,11 @@ def test_expected_wait_rejects_explicit_waiting_logic():
         )
 
 
+def test_barrier_rejects_negative_expected_wait():
+    with pytest.raises(ValueError, match="expected_wait"):
+        ReleaseAllBarrier(id_="negative_wait", expected_wait=-1)
+
+
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
     barrier = RecordingTimeoutGroupBarrier(
         id_="group_barrier",

@@ -58,6 +58,22 @@ def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     db.session.info.setdefault(_PENDING_WAKE_KEY, {})[key] = wake
 
 
+def _safely_queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
+    """Queue a wake without allowing notification failure to break core work."""
+    try:
+        _queue_timeline_hold_wake(
+            participant_id,
+            page_uuid=page_uuid,
+            reason=reason,
+        )
+    except Exception:
+        logger.warning(
+            "Failed to queue a timeline hold wake for participant %s.",
+            participant_id,
+            exc_info=True,
+        )
+
+
 @event.listens_for(db.session, "after_commit")
 def _publish_timeline_hold_wakes(session):
     wakes = list(session.info.pop(_PENDING_WAKE_KEY, {}).values())
@@ -92,6 +108,7 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
     page_uuid = Column(String, unique=True, index=True)
     hold_id = Column(String, index=True)
     started_at = Column(DateTime)
+    deadline_at = Column(DateTime)
     released_at = Column(DateTime)
     resumed_at = Column(DateTime)
     expected_wait = Column(Float, default=0.0)
@@ -152,7 +169,9 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
         """Return the authoritative timeout deadline, if configured."""
         if self.max_wait_time is None:
             return None
-        return self.started_at + timedelta(seconds=self.max_wait_time)
+        return self.deadline_at or (
+            self.started_at + timedelta(seconds=self.max_wait_time)
+        )
 
 
 class _TimelineHoldPage(Page):
@@ -187,12 +206,17 @@ class _TimelineHoldPage(Page):
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
-        started_at = _get_while_loop_start_time(participant, self.hold_id) or timenow()
+        now = timenow()
+        loop_started_at = _get_while_loop_start_time(participant, self.hold_id) or now
+        deadline_at = (
+            None
+            if self.max_wait_time is None
+            else loop_started_at + timedelta(seconds=self.max_wait_time)
+        )
         record = (
             TimelineHoldRecord.query.filter_by(
                 participant_id=participant.id,
                 hold_id=self.hold_id,
-                started_at=started_at,
                 resumed_at=None,
             )
             .order_by(TimelineHoldRecord.id.desc())
@@ -203,7 +227,8 @@ class _TimelineHoldPage(Page):
                 participant=participant,
                 page_uuid=participant.page_uuid,
                 hold_id=self.hold_id,
-                started_at=started_at,
+                started_at=now,
+                deadline_at=deadline_at,
                 expected_wait=self.expected_wait,
                 max_wait_time=self.max_wait_time,
                 fix_time_credit=self.fix_time_credit,
@@ -262,11 +287,11 @@ class _TimelineHoldPage(Page):
 
     def translated_content(self):
         """Translate framework-provided hold messages for this participant."""
-        pgettext = get_translator(context=True)
+        _p = get_translator(context=True)
         if self.content == "Waiting for other participants…":
-            return pgettext("timeline_hold", "Waiting for other participants…")
+            return _p("timeline_hold", "Waiting for other participants…")
         if self.content == "Please wait, the experiment should continue shortly...":
-            return pgettext(
+            return _p(
                 "timeline_hold",
                 "Please wait, the experiment should continue shortly...",
             )

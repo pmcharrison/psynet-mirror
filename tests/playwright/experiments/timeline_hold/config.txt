@@ -8,3 +8,4 @@ recruiter = generic
 currency = $
 wage_per_hour = 12.0
 inplace_timeline_transitions = true
+leave_comments_on_every_page = true

@@ -95,6 +95,18 @@ test("default barriers hold the current page until websocket release", { tag: "@
       firstParticipant.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);
 
+    const chatMessage = "Barrier hold chatroom regression";
+    await firstParticipant.locator("#chatroom-chat-input").fill(chatMessage);
+    await firstParticipant.locator("#chatroom-send-btn").click();
+    await Promise.all([
+      expect(firstParticipant.locator("#chatroom-messages")).toContainText(
+        chatMessage
+      ),
+      expect(secondParticipant.locator("#chatroom-messages")).toContainText(
+        chatMessage
+      )
+    ]);
+
     firstResponses.stop();
     await assertNoBackendError(firstParticipant);
     await assertNoBackendError(secondParticipant);

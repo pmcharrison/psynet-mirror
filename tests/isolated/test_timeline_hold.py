@@ -9,7 +9,7 @@ from psynet.timeline import (
     _while_loop_state_key,
     _while_loop_timed_out,
 )
-from psynet.timeline_hold import TimelineHoldRecord
+from psynet.timeline_hold import TimelineHoldRecord, _safely_queue_timeline_hold_wake
 from psynet.utils import serialise
 
 
@@ -85,6 +85,29 @@ def test_fixed_timeline_hold_records_expected_credit():
     assert p.total_wait_page_time == pytest.approx(7)
 
 
+def test_separate_hold_visits_do_not_recredit_earlier_waiting():
+    start = datetime(2026, 1, 1)
+    p = participant()
+    first = TimelineHoldRecord(
+        started_at=start,
+        expected_wait=1,
+        max_wait_time=10,
+        fix_time_credit=False,
+    )
+    second = TimelineHoldRecord(
+        started_at=start + timedelta(seconds=2),
+        expected_wait=1,
+        max_wait_time=10,
+        fix_time_credit=False,
+    )
+
+    first.settle(p, start + timedelta(seconds=1))
+    second.settle(p, start + timedelta(seconds=3))
+
+    assert p.time_credit == pytest.approx(2)
+    assert p.total_wait_page_time == pytest.approx(2)
+
+
 def test_while_loop_timeout_uses_exact_elapsed_time():
     start = datetime(2026, 1, 1)
     key = _while_loop_state_key("wait_while", "loop_start_time")
@@ -127,3 +150,28 @@ def test_wait_while_can_fix_timeline_hold_credit():
 
     assert any(getattr(elt, "is_timeline_hold", False) for elt in logic)
     assert any(isinstance(elt, StartFixTimeCredit) for elt in logic)
+
+
+def test_wait_while_accepts_custom_hold_content():
+    logic = wait_while(
+        lambda: True,
+        expected_wait=1,
+        content="Custom hold message",
+    )
+    hold = next(elt for elt in logic if getattr(elt, "is_timeline_hold", False))
+
+    assert hold.content == "Custom hold message"
+
+
+def test_safe_hold_wake_does_not_propagate_notification_errors(monkeypatch, caplog):
+    def fail(*args, **kwargs):
+        raise RuntimeError("wake failed")
+
+    monkeypatch.setattr(
+        "psynet.timeline_hold._queue_timeline_hold_wake",
+        fail,
+    )
+
+    _safely_queue_timeline_hold_wake(1)
+
+    assert "Failed to queue a timeline hold wake" in caplog.text
