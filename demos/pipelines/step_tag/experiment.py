@@ -49,9 +49,8 @@ def get_timeline():
 
 
 def list_stimuli():
-    # StepTag still expects Asset objects (it reads ``extension`` and deposits
-    # them on nodes). ExternalAsset points at the public static URL so the
-    # files are not re-uploaded; they ship with the experiment image.
+    # TODO: pass static_url_for(path) once psynet-step accepts URLs instead of
+    # Asset objects (it currently reads extension and deposits assets on nodes).
     return {
         path.stem: ExternalAsset(
             url=static_url_for(path),

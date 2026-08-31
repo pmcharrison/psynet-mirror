@@ -6,4 +6,4 @@ with the experiment when you deploy.
 
 This demo's StepTag control still expects PsyNet Asset objects. The experiment
 wraps each static URL in `ExternalAsset` so playback uses `/static/...`
-without uploading a second copy.
+without uploading a second copy. See the TODO in `experiment.py`.
