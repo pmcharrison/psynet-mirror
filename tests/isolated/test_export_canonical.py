@@ -222,6 +222,18 @@ def test_analysis_helpers_round_trip(tmp_path):
     assert merged.iloc[0]["worker_id"] == "worker-1"
 
 
+def test_analysis_helpers_accept_path_objects(tmp_path):
+    database = tmp_path / "database"
+    database.mkdir()
+    (database / "trial.csv").write_text("id,participant_id\n1,1\n")
+    identifiers = tmp_path / "participant_identifiers.csv"
+    identifiers.write_text("participant_id,worker_id\n1,worker-1\n")
+
+    trials = load_export_table(tmp_path, "trial")
+    merged = merge_participant_identifiers(trials, identifiers)
+    assert merged.iloc[0]["worker_id"] == "worker-1"
+
+
 def test_empty_lucid_table_omits_sidecar(tmp_path):
     raw_dir = tmp_path / "raw"
     export_path = tmp_path / "export"
@@ -251,6 +263,7 @@ def test_write_export_manifest_records_git_provenance(tmp_path, monkeypatch):
 
     experiment = Mock()
     experiment.deployment_id = "demo__export"
+    experiment.label = "demo"
     experiment.var.get.side_effect = lambda name, default=None: {
         "git_commit_sha": "abc123def",
         "git_dirty": True,
@@ -266,6 +279,7 @@ def test_write_export_manifest_records_git_provenance(tmp_path, monkeypatch):
     assert manifest["git_commit_sha"] == "abc123def"
     assert manifest["git_dirty"] is True
     assert manifest["deployment_id"] == "demo__export"
+    assert manifest["experiment_label"] == "demo"
     assert "source_code.zip" not in manifest.get("files", {})
 
 

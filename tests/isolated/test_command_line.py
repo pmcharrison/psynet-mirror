@@ -1,9 +1,7 @@
 import hashlib
-import io
 import json
 import subprocess
 import tempfile
-import zipfile
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -670,84 +668,45 @@ class TestExport:
         with patch("psynet.command_line.export_data") as mock_export_data:
             yield mock_export_data
 
-    def test_export_logs_success(self, tmp_path):
-        """Test successful log file export."""
-        from unittest.mock import Mock, patch
 
-        from psynet.command_line import export_logs
+@pytest.fixture
+def stub_ssh_log_transfer():
+    """Stub the SSH machinery used to fetch a deployment's logs.jsonl."""
+    from unittest.mock import Mock, patch
 
-        mock_executor = Mock()
-        mock_sftp = Mock()
-        mock_server_info = {"host": "test-host", "user": "test-user"}
-        mock_spinner = Mock()
+    sftp = Mock()
+    executor = Mock()
+    executor.run.return_value = "/home/testuser\n"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
+            {"test-server": {"host": "test-host", "user": "test-user"}},
+        ),
+        patch("dallinger.command_line.docker_ssh.get_sftp", return_value=sftp),
+        patch("dallinger.command_line.docker_ssh.Executor", return_value=executor),
+    ):
+        yield sftp
 
-        with (
-            patch(
-                "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
-                {"test-server": mock_server_info},
-            ),
-            patch("dallinger.command_line.docker_ssh.get_sftp", return_value=mock_sftp),
-            patch(
-                "dallinger.command_line.docker_ssh.Executor", return_value=mock_executor
-            ),
-            patch("psynet.command_line.log") as mock_log,
-            patch("psynet.command_line.yaspin") as mock_yaspin,
-        ):
-            mock_yaspin.return_value.__enter__.return_value = mock_spinner
-            mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
-            # Test log file export
-            export_logs("test-app", "test-server", str(tmp_path))
+def test_fetch_logs_copies_the_deployment_log_file(tmp_path, stub_ssh_log_transfer):
+    from psynet.export.client import fetch_logs
 
-            # Verify the call was made
-            assert mock_sftp.get.call_count == 1
+    assert fetch_logs(str(tmp_path), app="test-app", server="test-server") == str(
+        tmp_path / "logs.jsonl"
+    )
+    stub_ssh_log_transfer.get.assert_called_once_with(
+        "/home/testuser/dallinger/test-app/logs.jsonl", str(tmp_path / "logs.jsonl")
+    )
 
-            # Verify correct path
-            mock_sftp.get.assert_called_with(
-                "/home/testuser/dallinger/test-app/logs.jsonl",
-                str(tmp_path / "logs.jsonl"),
-            )
 
-            # Verify log message
-            mock_log.assert_called_with(f"Exporting logs to {tmp_path}/logs.jsonl")
+def test_fetch_logs_warns_instead_of_failing_the_export(
+    tmp_path, stub_ssh_log_transfer
+):
+    from psynet.export.client import fetch_logs
 
-            # Verify success spinner was shown (function ran to completion)
-            assert mock_yaspin.call_count == 1
-            mock_yaspin.assert_called_with(text="Logs exported.", color="green")
-            assert mock_spinner.ok.call_count == 1
+    stub_ssh_log_transfer.get.side_effect = Exception("Permission denied")
 
-    def test_export_logs_error_handling(self, tmp_path):
-        """Test error handling in log file export."""
-        from unittest.mock import Mock, patch
-
-        from psynet.command_line import export_logs
-
-        mock_executor = Mock()
-        mock_sftp = Mock()
-        mock_server_info = {"host": "test-host", "user": "test-user"}
-
-        # Test SFTP failure
-        mock_sftp.get.side_effect = Exception("Permission denied")
-
-        with (
-            patch(
-                "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
-                {"test-server": mock_server_info},
-            ),
-            patch("dallinger.command_line.docker_ssh.get_sftp", return_value=mock_sftp),
-            patch(
-                "dallinger.command_line.docker_ssh.Executor", return_value=mock_executor
-            ),
-            patch("psynet.command_line.log") as mock_log,
-        ):
-            mock_executor.run.return_value.strip.return_value = "/home/testuser"
-
-            export_logs("test-app", "test-server", str(tmp_path))
-
-            # Verify the error message includes the specific path
-            mock_log.assert_called_with(
-                "Warning: Failed to export logs from /home/testuser/dallinger/test-app/logs.jsonl: Permission denied"
-            )
+    assert fetch_logs(str(tmp_path), app="test-app", server="test-server") is None
 
 
 def _setup_basic_data_export(monkeypatch, basic_data):
@@ -764,12 +723,12 @@ def _setup_basic_data_export(monkeypatch, basic_data):
 
 @pytest.fixture
 def run_basic_data_export(tmp_path):
-    from psynet.command_line import export_basic_data
+    from psynet.export.service import write_basic_data
 
     def _run():
         export_path = tmp_path / "export"
         export_path.mkdir()
-        export_basic_data(str(export_path))
+        write_basic_data(str(export_path))
         return export_path
 
     return _run
@@ -850,6 +809,78 @@ def test_export_data_avoids_suffix_filename_collisions(
         "trial_2.csv",
         "trial_3.csv",
     ]
+
+
+class _FakeChannel:
+    """Minimal paramiko channel stand-in for remote command execution."""
+
+    def __init__(self, exit_status, stdout=b"", stderr=b""):
+        self.exit_status = exit_status
+        self.stdout = stdout
+        self.stderr = stderr
+        self.command = None
+
+    def exec_command(self, command):
+        self.command = command
+
+    def recv_ready(self):
+        return bool(self.stdout)
+
+    def recv_stderr_ready(self):
+        return bool(self.stderr)
+
+    def recv(self, _size):
+        stdout, self.stdout = self.stdout, b""
+        return stdout
+
+    def recv_stderr(self, _size):
+        stderr, self.stderr = self.stderr, b""
+        return stderr
+
+    def exit_status_ready(self):
+        return True
+
+    def recv_exit_status(self):
+        return self.exit_status
+
+
+def _executor_for(channel):
+    executor = Mock()
+    executor.client.get_transport.return_value.open_session.return_value = channel
+    return executor
+
+
+def test_remote_experiment_commands_disable_tty_allocation():
+    from psynet.command_line import build_remote_experiment_command
+
+    command = build_remote_experiment_command("my-app", "psynet test local --existing")
+    assert command == (
+        "cd ~/dallinger/my-app && docker compose exec -T web "
+        "psynet test local --existing"
+    )
+
+
+def test_remote_experiment_command_echoes_output_and_reports_failure(capsys):
+    from psynet.command_line import run_remote_experiment_command
+
+    channel = _FakeChannel(0, stdout=b"all good\n")
+    assert (
+        run_remote_experiment_command(
+            _executor_for(channel), "my-app", "psynet test local"
+        )
+        == 0
+    )
+    assert channel.command.startswith(
+        "cd ~/dallinger/my-app && docker compose exec -T web"
+    )
+    assert "all good" in capsys.readouterr().out
+
+    with pytest.raises(click.Abort):
+        run_remote_experiment_command(
+            _executor_for(_FakeChannel(1, stderr=b"boom\n")),
+            "my-app",
+            "psynet test local",
+        )
 
 
 def test_check_constraints():
@@ -3629,7 +3660,12 @@ def test_load_runtime_server_config_loads_launch_info_when_runtime_dir_is_missin
     )
 
 
-def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
+def test_export_local_builds_directly_from_the_runtime_configuration(
+    tmp_path, monkeypatch
+):
+    """A local export reads the local database instead of its own dashboard."""
+    import requests
+
     from psynet.command_line import export_
 
     deployment_id = "timeline-demo__mode=debug__launch=test"
@@ -3648,29 +3684,20 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
     config = Mock()
     config.ready = True
     config.values = {}
-
-    def get_config_value(key, default=None):
-        if key in config.values:
-            return config.values[key]
-        if key == "base_port":
-            return 5000
-        if default is not None:
-            return default
-        raise KeyError(key)
-
-    def extend_config(values):
-        config.values.update(values)
-
-    data_zip = io.BytesIO()
-    with zipfile.ZipFile(data_zip, "w") as archive:
-        archive.writestr("manifest.json", "{}")
-        archive.writestr("source_code.zip", b"stale")
-    data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
-    experiment_class = Mock(label="Timeline demo")
-    experiment_class.export_path.return_value = str(tmp_path)
-    config.extend.side_effect = extend_config
-    config.get.side_effect = get_config_value
+    config.extend.side_effect = config.values.update
+    config.get.side_effect = lambda key, default=None: config.values.get(key, default)
     monkeypatch.setenv("HOME", str(tmp_path))
+
+    experiment_class = Mock(label="Timeline demo")
+    destination = tmp_path / "exports" / "latest"
+
+    def fake_build(export_path, **kwargs):
+        Path(export_path).mkdir(parents=True, exist_ok=True)
+        (Path(export_path) / "manifest.json").write_text("{}")
+        return export_path
+
+    def refuse_http(*args, **kwargs):
+        raise AssertionError("a local export must not call its own dashboard")
 
     with (
         patch(
@@ -3679,23 +3706,17 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
         ),
         patch("psynet.command_line.get_config", return_value=config),
         patch("psynet.command_line.redis_vars.get", return_value=None),
-        patch(
-            "psynet.command_line.get_experiment_url",
-            side_effect=KeyError,
-        ),
-        patch(
-            "psynet.command_line.requests.get",
-            return_value=data_response,
-        ) as request_get,
+        patch("psynet.export.service.build_export_tree", side_effect=fake_build),
+        patch.object(requests, "get", side_effect=refuse_http),
     ):
         export_(
             ctx=Mock(),
-            exp_variables={
+            get_exp_variables=lambda: {
                 "deployment_id": deployment_id,
                 "label": "Timeline demo",
             },
             local=True,
-            path=str(tmp_path),
+            path=str(destination),
             assets="collected",
         )
 
@@ -3705,13 +3726,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             "dashboard_password": "generated-password",
         }
     )
-    request_get.assert_called_once()
-    data_request = request_get.call_args
-    assert data_request.args[0].startswith(
-        "http://127.0.0.1:5000/dashboard/export/download?"
-    )
-    assert data_request.kwargs["auth"] == ("admin", "generated-password")
-    assert not (tmp_path / "source_code.zip").exists()
+    assert (destination / "manifest.json").exists()
 
 
 def test_removed_source_export_options_remain_hidden_and_accepted():

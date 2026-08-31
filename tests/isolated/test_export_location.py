@@ -1,35 +1,305 @@
-"""Tests for experiment-local export directory rotation."""
+"""Tests for export transport, publication, and export directory rotation."""
 
+import io
+import json
+import zipfile
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
+import click
+import pytest
 from flask import Flask
 
+from psynet.command_line import export_
 from psynet.experiment import Experiment
 
 
 def test_export_path_uses_experiment_exports_latest(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
-    path = Path(Experiment.export_path("unused-deployment-id"))
+    path = Path(Experiment.export_path())
 
     assert path == tmp_path / "exports" / "latest"
     assert not path.exists()
 
 
-def test_export_path_moves_previous_latest_to_history(tmp_path, monkeypatch):
+def test_rotate_export_history_moves_previous_latest_to_history(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     latest = tmp_path / "exports" / "latest"
     latest.mkdir(parents=True)
     (latest / "manifest.json").write_text("{}\n")
 
-    path = Path(Experiment.export_path("unused-deployment-id"))
+    archived = Path(Experiment.rotate_export_history(Experiment.export_path()))
 
-    assert path == latest
     assert not latest.exists()
     history = list((tmp_path / "exports" / "history").iterdir())
-    assert len(history) == 1
-    assert (history[0] / "manifest.json").read_text() == "{}\n"
+    assert history == [archived]
+    assert (archived / "manifest.json").read_text() == "{}\n"
+
+
+def test_rotate_export_history_is_a_no_op_without_a_previous_export(
+    tmp_path, monkeypatch
+):
+    monkeypatch.chdir(tmp_path)
+
+    assert Experiment.rotate_export_history(Experiment.export_path()) is None
+    assert not (tmp_path / "exports").exists()
+
+
+def _export_zip(experiment_label="timeline-demo", export_format_version=1):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr(
+            "manifest.json",
+            json.dumps(
+                {
+                    "experiment_label": experiment_label,
+                    "export_format_version": export_format_version,
+                }
+            ),
+        )
+        archive.writestr("database/participant.csv", "id\n1\n")
+    return buffer.getvalue()
+
+
+class _StreamedResponse:
+    """Minimal stand-in for a streamed ``requests`` response."""
+
+    def __init__(self, status_code=200, reason="OK", content=b"", payload=None):
+        self.status_code = status_code
+        self.reason = reason
+        self._content = content
+        self._payload = payload
+
+    def iter_content(self, chunk_size=None):
+        yield self._content
+
+    def json(self):
+        if self._payload is None:
+            raise ValueError("no JSON payload")
+        return self._payload
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+
+def _run_remote_export(
+    get_exp_variables,
+    download_response,
+    *,
+    preflight=None,
+    assets="none",
+):
+    """Run a server-built SSH export against stubbed dashboard responses."""
+    experiment_class = Mock(
+        label="timeline-demo",
+        export_path=Experiment.export_path,
+        rotate_export_history=Experiment.rotate_export_history,
+    )
+    config = Mock(ready=True)
+    config.get.side_effect = lambda key, default=None: {
+        "dashboard_user": "admin",
+        "dashboard_password": "secret",
+    }.get(key, default)
+
+    if preflight is None:
+        preflight = {
+            "experiment_label": "timeline-demo",
+            "export_format_version": 1,
+            "incremental_asset_modes": ["none"],
+        }
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.get_experiment_url",
+            return_value="https://example.test",
+        ),
+        patch("psynet.export.client.fetch_preflight", return_value=preflight),
+        patch("psynet.export.client.fetch_logs", return_value=None),
+        patch("requests.get", return_value=download_response),
+    ):
+        export_(
+            ctx=Mock(),
+            get_exp_variables=get_exp_variables,
+            app="psynet-02",
+            server="example.test",
+            docker_ssh=True,
+            assets=assets,
+        )
+
+
+def test_remote_export_does_not_read_the_experiment_database(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    def refuse():
+        raise AssertionError(
+            "the server-built export should not need experiment variables"
+        )
+
+    _run_remote_export(refuse, _StreamedResponse(content=_export_zip()))
+
+    latest = tmp_path / "exports" / "latest"
+    assert json.loads((latest / "manifest.json").read_text())["experiment_label"] == (
+        "timeline-demo"
+    )
+    assert (latest / "database" / "participant.csv").exists()
+
+
+def test_remote_export_streams_without_buffering_the_whole_archive(
+    tmp_path, monkeypatch
+):
+    monkeypatch.chdir(tmp_path)
+
+    class _ExplodingContent(_StreamedResponse):
+        @property
+        def content(self):
+            raise AssertionError("the export download must not read response.content")
+
+    _run_remote_export(Mock(), _ExplodingContent(content=_export_zip()))
+
+    assert (tmp_path / "exports" / "latest" / "manifest.json").exists()
+
+
+def test_failed_remote_export_keeps_the_previous_export(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    latest = tmp_path / "exports" / "latest"
+    latest.mkdir(parents=True)
+    (latest / "manifest.json").write_text('{"kept": true}')
+
+    with pytest.raises(click.Abort):
+        _run_remote_export(
+            Mock(),
+            _StreamedResponse(
+                status_code=502,
+                reason="Bad Gateway",
+                payload={"message": "dashboard unavailable"},
+            ),
+        )
+
+    assert json.loads((latest / "manifest.json").read_text()) == {"kept": True}
+    assert not (tmp_path / "exports" / "history").exists()
+    assert list((tmp_path / "exports").iterdir()) == [latest]
+
+
+def test_corrupt_download_keeps_the_previous_export(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    latest = tmp_path / "exports" / "latest"
+    latest.mkdir(parents=True)
+    (latest / "manifest.json").write_text('{"kept": true}')
+
+    with pytest.raises(click.Abort):
+        _run_remote_export(Mock(), _StreamedResponse(content=b"not a zip file"))
+
+    assert json.loads((latest / "manifest.json").read_text()) == {"kept": True}
+    assert not (tmp_path / "exports" / "history").exists()
+
+
+def test_remote_export_from_the_wrong_experiment_is_refused(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    latest = tmp_path / "exports" / "latest"
+    latest.mkdir(parents=True)
+    (latest / "manifest.json").write_text('{"kept": true}')
+
+    with pytest.raises(click.Abort):
+        _run_remote_export(
+            Mock(),
+            _StreamedResponse(content=_export_zip()),
+            preflight={
+                "experiment_label": "some-other-demo",
+                "export_format_version": 1,
+            },
+        )
+
+    assert json.loads((latest / "manifest.json").read_text()) == {"kept": True}
+    assert not (tmp_path / "exports" / "history").exists()
+
+
+def test_remote_export_refuses_an_unreadable_export_format(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(click.Abort):
+        _run_remote_export(
+            Mock(),
+            _StreamedResponse(content=_export_zip()),
+            preflight={
+                "experiment_label": "timeline-demo",
+                "export_format_version": 99,
+            },
+        )
+
+    assert not (tmp_path / "exports").exists()
+
+
+def test_successful_remote_export_rotates_the_previous_export(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    latest = tmp_path / "exports" / "latest"
+    latest.mkdir(parents=True)
+    (latest / "manifest.json").write_text('{"previous": true}')
+
+    _run_remote_export(Mock(), _StreamedResponse(content=_export_zip()))
+
+    (archived,) = list((tmp_path / "exports" / "history").iterdir())
+    assert json.loads((archived / "manifest.json").read_text()) == {"previous": True}
+    assert (latest / "database" / "participant.csv").exists()
+
+
+def test_legacy_export_still_works_but_warns_about_its_side_effects(
+    tmp_path, monkeypatch, capsys
+):
+    monkeypatch.chdir(tmp_path)
+    latest = tmp_path / "exports" / "latest"
+    latest.mkdir(parents=True)
+    (latest / "manifest.json").write_text('{"previous": true}')
+
+    experiment_class = Mock(
+        label="timeline-demo",
+        export_path=Experiment.export_path,
+        rotate_export_history=Experiment.rotate_export_history,
+    )
+    built = {}
+
+    def fake_build(ctx, app, local, export_path, assets, **kwargs):
+        built["export_path"] = export_path
+        Path(export_path).mkdir(parents=True, exist_ok=True)
+        (Path(export_path) / "manifest.json").write_text('{"legacy": true}')
+        return export_path
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=Mock(ready=True)),
+        patch(
+            "psynet.command_line.check_core_dependency_versions_match_requirements"
+        ) as version_check,
+        patch("psynet.export.legacy.build_export_locally", side_effect=fake_build),
+    ):
+        export_(
+            ctx=Mock(),
+            get_exp_variables=lambda: {"label": "timeline-demo"},
+            app="psynet-02",
+            server="example.test",
+            docker_ssh=True,
+            assets="none",
+            legacy=True,
+        )
+
+    assert "--legacy is deprecated" in capsys.readouterr().err
+    version_check.assert_called_once()
+    # The build happens in staging, not in the live export directory.
+    assert Path(built["export_path"]) != latest
+    assert json.loads((latest / "manifest.json").read_text()) == {"legacy": True}
+    (archived,) = list((tmp_path / "exports" / "history").iterdir())
+    assert json.loads((archived / "manifest.json").read_text()) == {"previous": True}
 
 
 def test_dashboard_export_writes_zip_beside_tree_not_cwd(tmp_path, monkeypatch):
@@ -38,11 +308,11 @@ def test_dashboard_export_writes_zip_beside_tree_not_cwd(tmp_path, monkeypatch):
     export_dir = root / "export"
     export_dir.mkdir(parents=True)
 
-    def fake_invoke(self, command, **kwargs):
-        dest = Path(kwargs["path"])
-        (dest / "manifest.json").write_text("{}\n")
+    def fake_build_tree(path, **kwargs):
+        (Path(path) / "manifest.json").write_text("{}\n")
+        return path
 
-    monkeypatch.setattr("click.core.Context.invoke", fake_invoke)
+    monkeypatch.setattr("psynet.export.service.build_export_tree", fake_build_tree)
 
     storage = Mock()
     experiment = Mock()
@@ -59,8 +329,7 @@ def test_dashboard_export_writes_zip_beside_tree_not_cwd(tmp_path, monkeypatch):
     assert zip_path.is_file()
     assert not (tmp_path / "export.zip").exists()
     storage.upload_export.assert_called_once()
-    uploaded = Path(storage.upload_export.call_args.args[0])
-    assert uploaded == zip_path
+    assert Path(storage.upload_export.call_args.args[0]) == zip_path
 
 
 def test_download_export_sends_zip_bytes_after_tempdir_would_have_closed(
@@ -68,14 +337,17 @@ def test_download_export_sends_zip_bytes_after_tempdir_would_have_closed(
 ):
     payload = b"PK\x03\x04export-bytes"
 
-    def fake_export(export_dir, **kwargs):
+    def fake_build(export_dir, **kwargs):
         zip_path = Path(export_dir).parent / "export.zip"
         zip_path.write_bytes(payload)
         return str(zip_path)
 
     experiment = Mock()
-    experiment._export.side_effect = fake_export
+    experiment.build_export_archive.side_effect = fake_build
     monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
+    monkeypatch.setattr(
+        "psynet.export.service.store_latest_archive", lambda zip_path: None
+    )
 
     app = Flask(__name__)
 
@@ -88,3 +360,33 @@ def test_download_export_sends_zip_bytes_after_tempdir_would_have_closed(
         assert response.status_code == 200
         assert response.data == payload
         response.close()
+
+
+def test_manifest_only_download_does_not_replace_the_stored_artifact(
+    tmp_path, monkeypatch
+):
+    """A core snapshot is incomplete, so it must not become the latest artifact."""
+    stored = []
+
+    def fake_build(export_dir, **kwargs):
+        zip_path = Path(export_dir).parent / "export.zip"
+        zip_path.write_bytes(b"PK\x03\x04core")
+        return str(zip_path)
+
+    experiment = Mock()
+    experiment.build_export_archive.side_effect = fake_build
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
+    monkeypatch.setattr(
+        "psynet.export.service.store_latest_archive", lambda zip_path: stored.append(1)
+    )
+
+    app = Flask(__name__)
+
+    @app.route("/download")
+    def download():
+        return Experiment._download_export(assets="collected", asset_bytes="manifest")
+
+    with app.test_client() as client:
+        client.get("/download").close()
+
+    assert stored == []

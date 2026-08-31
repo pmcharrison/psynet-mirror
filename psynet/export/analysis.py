@@ -95,7 +95,7 @@ def unpack_json_column(
 
 def merge_participant_identifiers(
     data_frame: pd.DataFrame,
-    identifiers: Union[str, pd.DataFrame],
+    identifiers: Union[str, os.PathLike, pd.DataFrame],
     *,
     on: str = "participant_id",
     suffixes: tuple[str, str] = ("", "_identifier"),
@@ -107,10 +107,11 @@ def merge_participant_identifiers(
     data_frame :
         Table that contains ``participant_id`` (or another join key).
     identifiers :
-        Path to ``participant_identifiers.csv`` or an already-loaded frame.
+        Path to ``participant_identifiers.csv`` (``str`` or :class:`pathlib.Path`)
+        or an already-loaded frame.
     on :
         Join column name.
     """
-    if isinstance(identifiers, str):
-        identifiers = pd.read_csv(identifiers)
+    if not isinstance(identifiers, pd.DataFrame):
+        identifiers = pd.read_csv(os.path.expanduser(os.fspath(identifiers)))
     return data_frame.merge(identifiers, on=on, how="left", suffixes=suffixes)

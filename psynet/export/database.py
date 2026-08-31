@@ -98,17 +98,28 @@ def _file_entry(path: str) -> dict:
     return {"sha256": sha256_file(path), "bytes": os.path.getsize(path)}
 
 
-def _git_provenance_for_manifest():
-    """Return launch git SHA and dirty flag for ``manifest.json``."""
-    git_commit_sha = None
-    git_dirty = None
+def _provenance_for_manifest() -> dict:
+    """Return deployment, experiment label, and git provenance for ``manifest.json``.
+
+    ``experiment_label`` lets a client verify after the fact that an export came
+    from the experiment it thinks it did, without querying the experiment
+    database separately.
+    """
+    provenance = {
+        "deployment_id": None,
+        "experiment_label": None,
+        "git_commit_sha": None,
+        "git_dirty": None,
+    }
     try:
         from psynet.experiment import get_experiment
 
         experiment = get_experiment()
-        git_commit_sha = experiment.var.get("git_commit_sha", None)
-        git_dirty = experiment.var.get("git_dirty", None)
-        return experiment.deployment_id, git_commit_sha, git_dirty
+        provenance["deployment_id"] = experiment.deployment_id
+        provenance["experiment_label"] = experiment.label
+        provenance["git_commit_sha"] = experiment.var.get("git_commit_sha", None)
+        provenance["git_dirty"] = experiment.var.get("git_dirty", None)
+        return provenance
     except Exception:
         logger.warning(
             "Could not resolve experiment git provenance for export manifest.",
@@ -118,14 +129,14 @@ def _git_provenance_for_manifest():
         from psynet import deployment_info
 
         if deployment_info.is_available():
-            git_commit_sha = deployment_info.read("git_commit_sha")
-            git_dirty = deployment_info.read("git_dirty")
+            provenance["git_commit_sha"] = deployment_info.read("git_commit_sha")
+            provenance["git_dirty"] = deployment_info.read("git_dirty")
     except Exception:
         logger.warning(
             "Could not read deployment_info git provenance for export manifest.",
             exc_info=True,
         )
-    return None, git_commit_sha, git_dirty
+    return provenance
 
 
 def write_export_manifest(
@@ -162,13 +173,17 @@ def write_export_manifest(
             if os.path.exists(path):
                 files[name] = _file_entry(path)
 
-    deployment_id, git_commit_sha, git_dirty = _git_provenance_for_manifest()
+    from .service import EXPORT_FORMAT_VERSION
+
+    provenance = _provenance_for_manifest()
 
     manifest = {
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "deployment_id": deployment_id,
-        "git_commit_sha": git_commit_sha,
-        "git_dirty": git_dirty,
+        "export_format_version": EXPORT_FORMAT_VERSION,
+        "deployment_id": provenance["deployment_id"],
+        "experiment_label": provenance["experiment_label"],
+        "git_commit_sha": provenance["git_commit_sha"],
+        "git_dirty": provenance["git_dirty"],
         "psynet_version": psynet_version,
         "dallinger_version": dallinger_version,
         "table_row_counts": row_counts,

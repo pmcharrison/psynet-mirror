@@ -5,14 +5,27 @@ The shareable export uses pseudonymous participant identifiers in
 directory in sidecar CSV files. This is identifier separation, not
 anonymization.
 
+Module map
+----------
+* :mod:`psynet.export.service` — what the deployed experiment does: build the
+  export tree, archive it, store it, serve it.
+* :mod:`psynet.export.client` — what the experimenter's machine does: preflight,
+  choose a transport, stream, hydrate assets, publish atomically.
+* :mod:`psynet.export.identity` — project identity and export-format checks made
+  before any bytes move.
+* :mod:`psynet.export.legacy` — the deprecated local-database-ingest engine.
+* :mod:`psynet.export.database`, :mod:`psynet.export.identifiers` — the
+  canonical table snapshot and identifier separation.
+
 Asset cache
 -----------
 :mod:`psynet.export.asset_cache` implements a persistent local cache at
 ``~/psynet-data/cache/assets`` that stores content-addressed objects in
 ``objects/sha256/<digest>``. Export archives materialize those bytes under
 semantic ``export_path`` trees. SSH command-line exports fill missing cache
-objects with one ``rsync --files-from`` from the remote LocalStorage tree.
-If ``rsync`` is missing, export stops after a warning; there is no SFTP fallback.
+objects with one ``rsync --files-from`` from the remote LocalStorage tree. If
+``rsync`` is unavailable, the export falls back to a complete server-built
+archive; there is no per-asset SFTP fallback.
 """
 
 from .analysis import (

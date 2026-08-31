@@ -17,9 +17,9 @@ Design constraints
 * ``-r`` is passed explicitly. Since rsync 3.0, ``-a`` does not imply
   ``--recursive`` when ``--files-from`` is used, so folder objects would
   otherwise arrive empty.
-* Callers must abort SSH asset export when rsync is missing or the remote
-  copy fails. SFTP is not used as a fallback. S3-backed assets are not
-  transferred this way.
+* Callers must not fall back to per-asset SFTP when rsync is missing or the
+  remote copy fails; they either stop or switch to a complete server-built
+  archive. S3-backed assets are not transferred this way.
 
 This module does not import SQLAlchemy models so it can be unit-tested
 without a running experiment.

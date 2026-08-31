@@ -10,11 +10,13 @@ from benchmarks.fast.debug_launch import (
 )
 from benchmarks.fast.export_benchmarks import (
     _ASSET_EXPORT_PROFILES,
-    LegacyLocalExport,
+    IncrementalAssetTransfer,
     LocalAssetExport,
+    LocalExport,
     _AssetExportProfile,
     _count_csv_rows,
     _deterministic_bytes,
+    _run_incremental_transfer_benchmark,
     _summarize_asset_export,
     _summarize_export,
     _write_asset_payloads,
@@ -141,7 +143,7 @@ def test_export_benchmark_counts_csv_data_rows(tmp_path):
     assert _count_csv_rows(csv_path) == 2
 
 
-def test_export_benchmark_summarizes_legacy_export(tmp_path):
+def test_export_benchmark_summarizes_the_canonical_export(tmp_path):
     database_dir = tmp_path / "database"
     database_dir.mkdir()
     (database_dir / "participant.csv").write_text("id,worker_id\n1,w1\n")
@@ -161,7 +163,7 @@ def test_export_benchmark_summarizes_legacy_export(tmp_path):
         "export_time_s": 1.25,
         "data_csv_count": 2,
         "data_row_count": 3,
-        "database_zip_size_bytes": database_size,
+        "database_size_bytes": database_size,
     }
 
 
@@ -178,20 +180,60 @@ def test_export_benchmark_rejects_changed_fixture_shape(tmp_path):
         )
 
 
-def test_legacy_local_export_tracks_metrics():
-    benchmark = LegacyLocalExport()
+def test_local_export_tracks_metrics():
+    benchmark = LocalExport()
     profile = benchmark.params[0]
     results = {
         profile: {
             "export_time_s": 2.5,
             "data_row_count": 42,
-            "database_zip_size_bytes": 1024,
+            "database_size_bytes": 1024,
         }
     }
 
     assert benchmark.track_export_time_s(results, profile) == 2.5
     assert benchmark.track_data_row_count(results, profile) == 42
-    assert benchmark.track_database_zip_size_bytes(results, profile) == 1024
+    assert benchmark.track_database_size_bytes(results, profile) == 1024
+
+
+def test_incremental_transfer_benchmark_measures_cold_and_warm_caches(monkeypatch):
+    """The warm run must reuse the cache instead of transferring again."""
+    import shutil
+    import subprocess
+    from pathlib import Path
+
+    calls = []
+
+    def copying_rsync(cmd, check=False, **kwargs):
+        calls.append(cmd)
+        files_from = Path(cmd[cmd.index("--files-from") + 1])
+        source = Path(str(cmd[-2]).rstrip("/"))
+        dest = Path(str(cmd[-1]).rstrip("/"))
+        for relative in files_from.read_text().splitlines():
+            if not relative:
+                continue
+            target = dest / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source / relative, target)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr("psynet.export.ssh_rsync.subprocess.run", copying_rsync)
+
+    metrics = _run_incremental_transfer_benchmark(_tiny_asset_profile())
+
+    assert metrics["asset_file_count"] == 2
+    assert metrics["cold_transfer_time_s"] >= 0
+    assert metrics["warm_transfer_time_s"] >= 0
+    assert len(calls) == 1
+
+
+def test_incremental_transfer_tracks_metrics():
+    benchmark = IncrementalAssetTransfer()
+    profile = benchmark.params[0]
+    results = {profile: {"cold_transfer_time_s": 3.0, "warm_transfer_time_s": 0.2}}
+
+    assert benchmark.track_cold_transfer_time_s(results, profile) == 3.0
+    assert benchmark.track_warm_transfer_time_s(results, profile) == 0.2
 
 
 def test_asset_benchmark_payloads_are_deterministic():

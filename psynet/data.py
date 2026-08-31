@@ -777,13 +777,27 @@ dallinger.data.ingest_zip = ingest_zip
 dallinger.data.ingest_to_model = ingest_to_model
 
 
+def populate_db_from_zip_file(zip_path):
+    """Replace the contents of the local database with an exported archive.
+
+    This drops every table first, so it must only be used where losing the
+    current local database is the point (``psynet load``, and the deprecated
+    ``--legacy`` export engine).
+    """
+    from dallinger import data as dallinger_data
+
+    db.session.commit()  # The process can freeze without this
+    init_db(drop_all=True)
+    dallinger_data.ingest_zip(zip_path)
+
+
 def export_assets(
     path,
     collected_assets_only: bool,
     include_on_demand_assets: bool,
-    n_parallel=None,
     server=None,
     local=False,
+    manifest_only: bool = False,
 ):
     """
     Export selected assets into ``path`` using semantic ``export_path`` trees.
@@ -799,8 +813,13 @@ def export_assets(
     Bytes are still fetched via the content-addressed local cache; the export
     tree itself uses human-readable paths from :attr:`Asset.export_path`.
     SSH command-line exports prefetch missing LocalStorage objects with one
-    ``rsync --files-from`` into that cache. If rsync is missing or the copy
-    fails, export stops; there is no per-asset SFTP fallback.
+    ``rsync --files-from`` into that cache. There is no per-asset SFTP fallback:
+    if rsync cannot supply the bytes, the caller stops or switches to a complete
+    server-built archive.
+
+    ``manifest_only`` writes ``manifest.csv`` without copying any bytes. The
+    incremental SSH transport uses this so the server can describe the asset
+    selection cheaply while the client fetches the bytes over rsync.
     """
     from .asset import ExternalAsset, OnDemandAsset
 
@@ -841,6 +860,7 @@ def export_assets(
             "node_id": asset.node_id,
             "network_id": asset.network_id,
             "description": asset.description,
+            "storage": _asset_storage_kind(asset),
         }
         if isinstance(asset, ExternalAsset):
             # External assets are URL-only in the manifest.
@@ -852,17 +872,12 @@ def export_assets(
             asset_ids_needing_bytes.append(asset.id)
         manifest_rows.append(row)
 
-    # TODO: restore parallelism once SSH/export deadlock is fixed.
-    if server is not None:
+    if server is not None and not manifest_only:
         _prefetch_ssh_local_objects(assets, server, logger)
-    if n_parallel and n_parallel > 1:
-        logger.warning(
-            "Asset export parallelism is currently disabled (sequential export) "
-            "to avoid a known deadlock; ignoring requested n_parallel=%s.",
-            n_parallel,
-        )
-    n_assets = len(asset_ids_needing_bytes)
     exported_meta = {}
+    if manifest_only:
+        asset_ids_needing_bytes = []
+    n_assets = len(asset_ids_needing_bytes)
     for index, asset_id in enumerate(asset_ids_needing_bytes, start=1):
         if n_assets > 1 and (index == 1 or index == n_assets or index % 25 == 0):
             logger.info("Exporting asset %s/%s (id=%s).", index, n_assets, asset_id)
@@ -901,12 +916,40 @@ def export_assets(
         "node_id",
         "network_id",
         "description",
+        "storage",
     ]
     with open(manifest_path, "w", newline="") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for row in manifest_rows:
             writer.writerow(row)
+
+
+def _asset_storage_kind(asset) -> str:
+    """Return the class name of the storage backend holding an asset's bytes.
+
+    Recorded in ``assets/manifest.csv`` so a client can decide whether the
+    selection is eligible for incremental transfer without querying the
+    experiment database.
+    """
+    from .asset import ExternalAsset
+
+    if isinstance(asset, ExternalAsset):
+        return "ExternalAsset"
+    storage = getattr(asset, "storage", None)
+    if storage is None:
+        try:
+            from .experiment import get_experiment
+
+            storage = get_experiment().asset_storage
+        except Exception:
+            logger.warning(
+                "Could not resolve the storage backend for asset %s.",
+                getattr(asset, "id", None),
+                exc_info=True,
+            )
+            return "unknown"
+    return type(storage).__name__
 
 
 def _prefetch_ssh_local_objects(assets, server, logger):

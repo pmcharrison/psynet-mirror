@@ -28,7 +28,6 @@ import flask
 import psutil
 import rpdb
 import sqlalchemy.orm.exc
-from click import Context
 from dallinger import db
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
@@ -1304,13 +1303,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def backup_database(cls):
+        """Store a fresh complete export as the deployment's latest artifact."""
         with tempfile.TemporaryDirectory() as tempdir:
             export_dir = os.path.join(tempdir, "export")
             os.makedirs(export_dir)
-            input_path = cls._export(export_dir)
-            cls.artifact_storage.upload_export(
-                input_path, deployment_id=cls.deployment_id
-            )
+            cls._export(export_dir)
 
     @classmethod
     def get_basic_data(
@@ -1829,16 +1826,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return get_config().get("label")
 
     @staticmethod
-    def export_path(deployment_id):
-        """Return ``exports/latest``, archiving the previous export if present."""
-        export_root = Path.cwd() / "exports"
-        latest = export_root / "latest"
-        if latest.exists():
-            history_root = export_root / "history"
-            history_root.mkdir(parents=True, exist_ok=True)
-            timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S-%f")
-            latest.rename(history_root / timestamp)
-        return str(latest)
+    def export_path():
+        """Return the default export destination, ``exports/latest``."""
+        return str(Path.cwd() / "exports" / "latest")
+
+    @staticmethod
+    def rotate_export_history(export_path):
+        """Archive a previous export under ``exports/history``.
+
+        Callers must invoke this only once the new export is known to be
+        available, so that a failed export cannot discard the previous one.
+        Returns the archive directory, or ``None`` if there was nothing to
+        archive.
+        """
+        latest = Path(export_path)
+        if not latest.exists():
+            return None
+        history_root = latest.parent / "history"
+        history_root.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S-%f")
+        archived = history_root / timestamp
+        latest.rename(archived)
+        return str(archived)
 
     @property
     def var(self):
@@ -3612,50 +3621,52 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def _export(
-        cls,
-        export_dir,
-        n_parallel=None,
-        **kwargs,
+    def build_export_archive(
+        cls, export_dir, *, assets="collected", asset_bytes="include"
     ):
-        from .command_line import export__local
-        from .export.paths import EXPORT_ZIP_NAME, dashboard_export_zip_path
+        """Build the canonical export in ``export_dir`` and zip it beside that tree.
 
-        ctx = Context(export__local)
-        ctx.invoke(
-            export__local,
-            path=export_dir,
-            n_parallel=n_parallel,
-            assets=kwargs.get("assets") or "collected",
-            legacy=True,
+        ``asset_bytes="manifest"`` describes the selected assets without copying
+        their bytes, for clients that fetch the bytes themselves.
+        """
+        from .export.service import build_export_archive, build_export_tree
+
+        build_export_tree(
+            export_dir,
+            assets=assets or "collected",
+            local=True,
+            manifest_only_assets=asset_bytes == "manifest",
         )
-        from .export.zip_utils import build_zip_from_dir
+        return build_export_archive(export_dir)
 
-        zip_path = dashboard_export_zip_path(export_dir)
-        zip_name = build_zip_from_dir(export_dir, zip_path)
-        exp = get_experiment()
-        storage = exp.artifact_storage
-        try:
-            storage.upload_export(zip_name, exp.deployment_id)
-            url = exp.get_artifact_url(exp.deployment_id, EXPORT_ZIP_NAME)
-            cls.notifier.notify(
-                f"A fresh data export has been created, it can be accessed {cls.notifier.url('here', url)}."
-            )
-        except Exception as e:
-            logger.error(f"Failed to save backup: {e}")
-        return zip_name
+    @classmethod
+    def _export(cls, export_dir, **kwargs):
+        """Build a complete export archive and store it as the latest artifact."""
+        from .export.service import store_latest_archive
+
+        zip_path = cls.build_export_archive(
+            export_dir, assets=kwargs.get("assets") or "collected"
+        )
+        store_latest_archive(zip_path)
+        return zip_path
 
     @staticmethod
-    def _download_export(**kwargs):
+    def _download_export(assets="collected", asset_bytes="include"):
+        """Build an export, store it if complete, and send it to the caller."""
+        from .export.service import store_latest_archive
+
         exp = get_experiment()
         tempdir = tempfile.mkdtemp(prefix="psynet-export-")
         try:
             export_dir = os.path.join(tempdir, "export")
             os.makedirs(export_dir)
-            zip_filepath = exp._export(
-                export_dir,
-                **kwargs,
+            zip_filepath = exp.build_export_archive(
+                export_dir, assets=assets, asset_bytes=asset_bytes
             )
+            # A manifest-only snapshot is not a usable export on its own, so it
+            # must not replace the deployment's stored artifact.
+            if asset_bytes != "manifest":
+                store_latest_archive(zip_filepath)
             return _send_file_then_delete_dir(zip_filepath, tempdir, mimetype="zip")
         except Exception:
             shutil.rmtree(tempdir, ignore_errors=True)
@@ -3688,6 +3699,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             shutil.rmtree(tempdir, ignore_errors=True)
             raise
 
+    @dashboard.route("/export/preflight", methods=["GET"])
+    @staticmethod
+    @with_transaction
+    def export_preflight():
+        """Describe this deployment so a client can validate it before downloading."""
+        from flask_login import current_user
+
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
+            return error_response(error_text="Invalid credentials", simple=True)
+
+        from .export.identity import server_project_identity
+
+        return jsonify(server_project_identity())
+
     @dashboard.route("/export/download", methods=["GET"])
     @staticmethod
     @with_transaction
@@ -3697,31 +3722,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
 
-        kwargs = dict(request.args)
-        kwargs.pop("anonymize", None)  # deprecated
-        kwargs.pop("type", None)  # deprecated; single export product
-
         exp = get_experiment()
-        return exp._download_export(**kwargs)
+        return exp._download_export(
+            assets=request.args.get("assets", "collected"),
+            asset_bytes=request.args.get("asset_bytes", "include"),
+        )
 
     @dashboard.route("/export/trigger", methods=["GET"])
     @staticmethod
     @with_transaction
     def trigger_export():
-        kwargs = dict(request.args)
-        kwargs.pop("anonymize", None)  # deprecated
-        kwargs.pop("type", None)  # deprecated; single export product
-        assets = kwargs.get("assets", "none")
+        """Build a complete export and store it, without sending it anywhere."""
+        from .export.service import store_latest_archive
 
-        # We just call _download_export for the side effect of uploading the export to the storage service.
+        assets = request.args.get("assets", "none")
         exp = get_experiment()
-        exp._download_export(
-            assets=assets,
-        )
+        with tempfile.TemporaryDirectory() as tempdir:
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            store_latest_archive(exp.build_export_archive(export_dir, assets=assets))
 
-        return success_response(
-            assets=assets,
-        )
+        return success_response(assets=assets)
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod

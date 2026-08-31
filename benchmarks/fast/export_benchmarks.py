@@ -107,7 +107,7 @@ def _populate_local_experiment(n_bots: int = 1) -> None:
 
 
 def _time_local_export(export_path: Path) -> float:
-    """Run the local legacy export and return elapsed seconds."""
+    """Run the canonical local export and return elapsed seconds."""
 
     started_at = time.perf_counter()
     _run_checked(
@@ -115,7 +115,6 @@ def _time_local_export(export_path: Path) -> float:
             "psynet",
             "export",
             "local",
-            "--legacy",
             "--assets",
             "none",
             "--path",
@@ -155,9 +154,7 @@ def _database_table_row_counts(export_path: Path) -> dict[str, int]:
         for member in archive.namelist():
             if not member.endswith(".csv"):
                 continue
-            if not (
-                member.startswith("data/") or member.startswith("database/")
-            ):
+            if not (member.startswith("data/") or member.startswith("database/")):
                 continue
             table = Path(member).stem
             with archive.open(member) as handle:
@@ -197,7 +194,7 @@ def _summarize_export(
         "export_time_s": export_time_s,
         "data_csv_count": len(table_row_counts),
         "data_row_count": sum(table_row_counts.values()),
-        "database_zip_size_bytes": database_size_bytes,
+        "database_size_bytes": database_size_bytes,
     }
 
 
@@ -329,13 +326,13 @@ def _run_asset_export_benchmark(
         return _summarize_asset_export(export_path, asset_export_time_s, manifest)
 
 
-class LegacyLocalExport:
-    """Benchmark legacy local export after a small reproducible population run."""
+class LocalExport:
+    """Benchmark the canonical local export after a reproducible population run."""
 
     params = list(_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 2
+    version = 3
 
     def setup_cache(self):
         """Run each export profile once and cache scalar metrics."""
@@ -346,28 +343,146 @@ class LegacyLocalExport:
         }
 
     def track_export_time_s(self, results, profile):
-        """Return wall time for the legacy local export command."""
+        """Return wall time for the local export command."""
 
         return results[profile]["export_time_s"]
 
     track_export_time_s.unit = "s"
-    track_export_time_s.pretty_name = "Legacy local export time"
+    track_export_time_s.pretty_name = "Local export time"
 
     def track_data_row_count(self, results, profile):
-        """Return the number of rows written to class-based CSV exports."""
+        """Return the number of table rows written under ``database/``."""
 
         return results[profile]["data_row_count"]
 
     track_data_row_count.unit = "rows"
-    track_data_row_count.pretty_name = "Legacy local export rows"
+    track_data_row_count.pretty_name = "Local export rows"
 
-    def track_database_zip_size_bytes(self, results, profile):
-        """Return the size of the raw Dallinger database snapshot."""
+    def track_database_size_bytes(self, results, profile):
+        """Return the size of the exported table CSVs."""
 
-        return results[profile]["database_zip_size_bytes"]
+        return results[profile]["database_size_bytes"]
 
-    track_database_zip_size_bytes.unit = "bytes"
-    track_database_zip_size_bytes.pretty_name = "Legacy local database.zip size"
+    track_database_size_bytes.unit = "bytes"
+    track_database_size_bytes.pretty_name = "Local export database size"
+
+
+def _write_incremental_fixture(
+    remote_root: Path, export_dir: Path, profile: _AssetExportProfile
+) -> None:
+    """Write a remote content-addressed store plus a manifest-only export tree."""
+
+    import csv as _csv
+
+    objects = remote_root / "objects" / "sha256"
+    objects.mkdir(parents=True, exist_ok=True)
+    assets = export_dir / "assets"
+    assets.mkdir(parents=True, exist_ok=True)
+
+    width = max(3, len(str(profile.file_count - 1)))
+    fieldnames = [
+        "id",
+        "type",
+        "export_path",
+        "sha256_contents",
+        "is_folder",
+        "storage",
+    ]
+    with (assets / "manifest.csv").open("w", newline="") as handle:
+        writer = _csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for index in range(profile.file_count):
+            key = f"{profile.key_prefix}_{index:0{width}d}"
+            payload = _deterministic_bytes(key, profile.file_size_bytes)
+            digest = hashlib.sha256(payload).hexdigest()
+            (objects / digest).write_bytes(payload)
+            writer.writerow(
+                {
+                    "id": index,
+                    "type": "experiment_asset",
+                    "export_path": f"asset_benchmark/{key}.bin",
+                    "sha256_contents": digest,
+                    "is_folder": "False",
+                    "storage": "LocalStorage",
+                }
+            )
+
+
+def _run_incremental_transfer_benchmark(
+    profile: _AssetExportProfile,
+) -> dict[str, float | int]:
+    """Time a cold and then a warm incremental asset transfer into an export tree."""
+
+    from psynet.export.client import hydrate_assets, plan_asset_transfer
+
+    with (
+        tempfile.TemporaryDirectory(prefix="psynet-incremental-remote-") as remote_dir,
+        tempfile.TemporaryDirectory(prefix="psynet-incremental-cache-") as cache_dir,
+        tempfile.TemporaryDirectory(prefix="psynet-incremental-export-") as export_root,
+    ):
+        remote_root = Path(remote_dir)
+        cache_root = Path(cache_dir)
+        cold_export = Path(export_root) / "cold"
+        warm_export = Path(export_root) / "warm"
+
+        _write_incremental_fixture(remote_root, cold_export, profile)
+        _write_incremental_fixture(remote_root, warm_export, profile)
+
+        timings = {}
+        for name, export_dir in (("cold", cold_export), ("warm", warm_export)):
+            plan = plan_asset_transfer(str(export_dir))
+            started_at = time.perf_counter()
+            materialized = hydrate_assets(
+                str(export_dir),
+                plan,
+                rsync_source=str(remote_root),
+                cache_root=cache_root,
+            )
+            timings[name] = time.perf_counter() - started_at
+            if materialized != profile.file_count:
+                raise RuntimeError(
+                    "Incremental transfer benchmark fixture shape changed. "
+                    f"Expected {profile.file_count} assets, got {materialized}."
+                )
+
+        return {
+            "cold_transfer_time_s": timings["cold"],
+            "warm_transfer_time_s": timings["warm"],
+            "asset_file_count": profile.file_count,
+        }
+
+
+class IncrementalAssetTransfer:
+    """Benchmark client-side incremental asset transfer with a cold and warm cache."""
+
+    params = list(_ASSET_EXPORT_PROFILES)
+    param_names = ["profile"]
+    timeout = 300
+    version = 1
+
+    def setup_cache(self):
+        """Run each transfer profile once and cache scalar metrics."""
+
+        return {
+            name: _run_incremental_transfer_benchmark(profile)
+            for name, profile in _ASSET_EXPORT_PROFILES.items()
+        }
+
+    def track_cold_transfer_time_s(self, results, profile):
+        """Return wall time to hydrate an export with an empty asset cache."""
+
+        return results[profile]["cold_transfer_time_s"]
+
+    track_cold_transfer_time_s.unit = "s"
+    track_cold_transfer_time_s.pretty_name = "Incremental transfer time (cold cache)"
+
+    def track_warm_transfer_time_s(self, results, profile):
+        """Return wall time to hydrate an export whose objects are already cached."""
+
+        return results[profile]["warm_transfer_time_s"]
+
+    track_warm_transfer_time_s.unit = "s"
+    track_warm_transfer_time_s.pretty_name = "Incremental transfer time (warm cache)"
 
 
 class LocalAssetExport:

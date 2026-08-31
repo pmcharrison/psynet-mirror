@@ -21,6 +21,9 @@ Exporting data from the dashboard
 
 The 'export' section of the dashboard downloads ``export.zip``.
 You choose whether to include assets (none, collected during the run, or all).
+Dashboard downloads also store the archive as the deployment's latest export
+artifact, so the most recent complete export stays available on the server.
+Only one ``export.zip`` is kept per deployment; earlier versions are replaced.
 
 Exports use *identifier separation*: table CSVs under ``database/`` contain
 pseudonymous participant identifiers so the archive remains loadable, while
@@ -42,10 +45,12 @@ using a virtual environment with the same dependencies as the deployed experimen
     psynet export heroku --app my-app-name
 
 The latest export is saved to ``exports/latest/`` in the experiment directory.
-Before a new export starts, the previous ``latest/`` directory is moved to
-``exports/history/<timestamp>/``. The ``exports/`` path is listed in
-``deploy.toml`` so it is not uploaded on deploy, and the experiment
-``.gitignore`` template ignores it.
+A new export is assembled in a temporary staging directory and only moved into
+place once it is complete and validated, at which point the previous
+``latest/`` directory is moved to ``exports/history/<timestamp>/``. A failed or
+interrupted export therefore always leaves your previous export intact. The
+``exports/`` path is listed in ``deploy.toml`` so it is not uploaded on deploy,
+and the experiment ``.gitignore`` template ignores it.
 
 A typical export directory looks like this:
 
@@ -85,17 +90,58 @@ external URLs) and to materialize on-demand assets. Treat exported media as
 potentially identifying.
 
 ``manifest.json`` records the git commit SHA that was deployed
-(``git_commit_sha``) and whether the working tree was dirty
-(``git_dirty``). Exports do not include a source-code zip; check out that
-commit to recover the experiment code.
+(``git_commit_sha``), whether the working tree was dirty (``git_dirty``), the
+experiment label, and an ``export_format_version``. Exports do not include a
+source-code zip; check out that commit to recover the experiment code.
 
-The ``--legacy`` argument processes the export locally instead of downloading from the
-dashboard (which also saves a backup). This can be useful if you encounter troubles with
-the default export method:
+How the export gets to your computer
+------------------------------------
+
+Exports are always built by the deployed experiment itself, against its own
+database. Your computer never runs the experiment's code and never ingests the
+data into a local database. PsyNet then picks the cheapest way to transfer the
+result, and tells you which one it used:
+
+* **Complete archive.** The server builds ``export.zip`` and streams it to your
+  computer. This is used for Heroku, for ``--assets all``, and for any
+  deployment whose asset bytes PsyNet cannot copy directly (for example
+  S3-backed storage).
+* **Incremental transfer.** For SSH deployments whose assets live in
+  ``LocalStorage``, the server streams a small core snapshot (tables,
+  identifiers, ``manifest.json``, and an asset manifest), and your computer
+  fetches only the asset objects it does not already have with one
+  ``rsync --files-from``. Re-exporting a deployment whose recordings have not
+  changed therefore transfers almost nothing.
+
+``psynet export local`` builds the export directly from your local
+deployment's database, without going through its own dashboard.
+
+Before anything is transferred, PsyNet asks the deployment to identify itself
+and compares it with your experiment directory. If the experiment labels do not
+match, the export stops: you are almost certainly in the wrong folder. If the
+deployed Git commit differs from your checkout, or either side has uncommitted
+changes, PsyNet warns and asks for confirmation. In a non-interactive shell you
+must pass ``--allow-project-mismatch`` to continue. These checks apply even when
+you supply ``--path``.
+
+.. code:: bash
+
+    psynet export ssh --app my-app-name --allow-project-mismatch
+
+Legacy export (deprecated)
+--------------------------
+
+The ``--legacy`` argument uses the old export engine: it downloads the raw
+database, **replaces the contents of your local database** with the
+deployment's data, and rebuilds the export locally using your local experiment
+code. It is retained for one release as a fallback and will be removed:
 
 .. code:: bash
 
     psynet export ssh --app my-app-name --legacy
+
+Because it runs local experiment code, ``--legacy`` requires your local PsyNet
+and Dallinger versions to match the deployment's ``requirements.txt``.
 
 
 Identifier separation
@@ -151,16 +197,16 @@ Command-line exports reuse a persistent local cache under
     psynet assets cache list
     psynet assets cache prune --all
 
-SSH command-line exports (``psynet export ssh --legacy``) copy missing
-managed-asset objects from the server with one ``rsync --files-from`` into
-that cache, instead of one SFTP download per file. Repeat exports on the same
-machine transfer only new objects. ``rsync`` must be installed both locally
-and on the SSH host. If it is missing, PsyNet prints a warning with install
-commands (``sudo apt install rsync``, or ``brew install rsync`` on macOS)
-and stops; there is no per-asset SFTP fallback. If rsync exits successfully
-but some objects are still missing from the cache, export stops immediately
-rather than failing later per asset. S3-backed assets are still
-fetched from S3. Warm-cache repeat exports do not need rsync.
+SSH command-line exports copy missing managed-asset objects from the server
+with one ``rsync --files-from`` into that cache, instead of one download per
+file. Repeat exports on the same machine transfer only new objects. If
+``rsync`` is missing locally or on the SSH host, PsyNet prints install
+commands (``sudo apt install rsync``, or ``brew install rsync`` on macOS) and
+falls back to a complete server-built archive, so the export still succeeds. If
+rsync exits successfully but some objects are still missing from the cache, the
+export stops immediately rather than publishing an incomplete result. S3-backed
+assets and ``--assets all`` always use the complete archive. Warm-cache repeat
+exports do not need rsync at all.
 
 If the cache grows past a soft limit (50 GiB by default), PsyNet warns after
 export but does **not** fail or delete objects. A single large experiment may

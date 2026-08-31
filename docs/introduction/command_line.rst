@@ -94,14 +94,21 @@ Export data from an experiment (``export``)
 
 This command exports data from an experiment. By default the latest export is
 saved to ``exports/latest/`` in the experiment directory, and the previous
-export is moved to ``exports/history/<timestamp>/``. Use ``--path`` to choose a
-different location. See :ref:`data` for the archive layout and asset options.
+export is moved to ``exports/history/<timestamp>/`` once the new export has
+completed successfully. Use ``--path`` to choose a different location.
 
 .. code:: bash
 
     psynet export local
     psynet export ssh --app my-app-name
     psynet export heroku --app my-app-name
+
+Remote exports are built by the deployed experiment and downloaded to your
+computer; the command chooses automatically between streaming a complete
+archive and streaming a core snapshot plus only the asset bytes you are
+missing. It also checks that the deployment matches your experiment directory
+before transferring anything. See :ref:`data` for the archive layout, asset
+options, transport selection, and the deprecated ``--legacy`` fallback.
 
 To see further options for the export command (e.g. if you want to control the export of assets),
 append ``--help`` to these commands:
@@ -112,7 +119,7 @@ append ``--help`` to these commands:
     psynet export ssh --help
     psynet export heroku --help
 
-For more information on PsyNet data export see `Data <../deploy/data.html>`_.
+For more information on PsyNet data export see :ref:`data`.
 
 
 .. _experiment_setup_commands:
