@@ -98,7 +98,7 @@ class _BarrierHoldPage(Page):
         self.max_wait_time = barrier.max_wait_time
         self.content = "Waiting for other participants…"
         super().__init__(
-            label="barrier_hold",
+            label="wait",
             time_estimate=0,
             save_answer=False,
             template_str=get_template("barrier-hold-page.html"),
