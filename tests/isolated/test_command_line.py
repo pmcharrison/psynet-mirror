@@ -3705,48 +3705,100 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             "dashboard_password": "generated-password",
         }
     )
-    request_get.assert_called_once()
-    data_request = request_get.call_args
+    assert request_get.call_count == 2
+    data_request = request_get.call_args_list[0]
     assert data_request.args[0].startswith(
         "http://127.0.0.1:5000/dashboard/export/download?"
     )
     assert data_request.kwargs["auth"] == ("admin", "generated-password")
+    source_request = request_get.call_args_list[1]
+    assert source_request.args[0] == "http://127.0.0.1:5000/download_source"
+    assert source_request.kwargs["auth"] == ("admin", "generated-password")
 
 
-def test_removed_source_export_options_remain_hidden_and_accepted():
+def test_source_export_options_are_documented():
     from psynet.command_line import export__local
 
-    result = CliRunner().invoke(
-        export__local,
-        [
-            "--no-source",
-            "--username",
-            "legacy-user",
-            "--password",
-            "legacy-password",
-            "--help",
-        ],
-    )
+    result = CliRunner().invoke(export__local, ["--help"])
 
     assert result.exit_code == 0, result.output
-    assert "--no-source" not in result.output
-    assert "--username" not in result.output
-    assert "--password" not in result.output
+    assert "--no-source" in result.output
+    assert "--username" in result.output
+    assert "--password" in result.output
 
 
-def test_removed_source_export_options_warn_when_used(capsys):
-    from psynet.command_line import _warn_deprecated_export_options
+def test_no_source_skips_source_download(tmp_path, monkeypatch):
+    from psynet.command_line import export_
 
-    _warn_deprecated_export_options(
-        no_source=True,
-        username="legacy-user",
-        password="legacy-password",
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
     )
 
-    warning = capsys.readouterr().err
-    assert "--no-source, --username, --password" in warning
-    assert "have no effect" in warning
-    assert "legacy" not in warning
+    config = Mock()
+    config.ready = True
+    config.values = {}
+
+    def get_config_value(key, default=None):
+        if key in config.values:
+            return config.values[key]
+        if key == "base_port":
+            return 5000
+        if default is not None:
+            return default
+        raise KeyError(key)
+
+    def extend_config(values):
+        config.values.update(values)
+
+    data_zip = io.BytesIO()
+    with zipfile.ZipFile(data_zip, "w") as archive:
+        archive.writestr("source_code.zip", b"bundled")
+    data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
+    experiment_class = Mock(label="Timeline demo")
+    experiment_class.export_path.return_value = str(tmp_path)
+    config.extend.side_effect = extend_config
+    config.get.side_effect = get_config_value
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.command_line.redis_vars.get", return_value=None),
+        patch(
+            "psynet.command_line.get_experiment_url",
+            side_effect=KeyError,
+        ),
+        patch(
+            "psynet.command_line.requests.get",
+            return_value=data_response,
+        ) as request_get,
+    ):
+        export_(
+            ctx=Mock(),
+            exp_variables={
+                "deployment_id": deployment_id,
+                "label": "Timeline demo",
+            },
+            local=True,
+            path=str(tmp_path),
+            no_source=True,
+            assets="collected",
+        )
+
+    request_get.assert_called_once()
+    assert not (tmp_path / "source_code.zip").exists()
 
 
 def test_run_performance_test_with_new_server_loads_runtime_server_config():

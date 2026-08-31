@@ -430,6 +430,8 @@ def content_object_path(digest: str) -> str:
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
     """Recursively update *hash* with all non-hidden files under *directory*."""
     return _update_hash_from_dir(directory, hash)
+
+
 def serialise_datetime(x):
     if x is None:
         return None

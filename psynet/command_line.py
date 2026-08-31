@@ -2338,20 +2338,17 @@ def export_arguments(func):
             "--no-source",
             is_flag=True,
             default=False,
-            hidden=True,
-            help="Deprecated compatibility option with no effect",
+            help="Skip exporting the experiment's source code",
         ),
         click.option(
             "--username",
             default=None,
-            hidden=True,
-            help="Deprecated compatibility option with no effect",
+            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
         ),
         click.option(
             "--password",
             default=None,
-            hidden=True,
-            help="Deprecated compatibility option with no effect",
+            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
         ),
     ]
     for arg in args:
