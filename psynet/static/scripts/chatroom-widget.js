@@ -11,27 +11,25 @@ export async function activate({root, vars}) {
     var SHOW_HISTORY = CONFIG.show_history;
     var MY_ID        = String(dallinger.identity.participantId);
 
-    var chatSocket = null;
-    var leftChat   = false;
-    var firstOpen  = true;
-    var sendButton = null;
-    var input = null;
+    var chatConnection = null;
+    var leftChat       = false;
+    var firstOpen      = true;
+    var sendButton     = null;
+    var input          = null;
 
     function leaveChat() {
         if (leftChat) return;
         leftChat = true;
-        if (!chatSocket) return;
+        if (!chatConnection) return;
         try {
-            chatSocket.send(GLOBAL_CH + ":" + JSON.stringify({
+            chatConnection.send({
                 type: "leave_room",
                 room_id: ROOM_ID,
                 sender: MY_ID,
-            }));
+            });
         } catch (e) {}
         try {
-            if (typeof chatSocket.close === "function") {
-                chatSocket.close();
-            }
+            chatConnection.close();
         } catch (e) {}
     }
 
@@ -42,12 +40,12 @@ export async function activate({root, vars}) {
     function sendMessage() {
         var text  = input.value.trim();
         if (!text) return;
-        chatSocket.send(GLOBAL_CH + ":" + JSON.stringify({
+        chatConnection.send({
             type: "message",
             room_id: ROOM_ID,
             content: text,
             sender: MY_ID,
-        }));
+        });
         input.value = "";
         input.focus();
     }
@@ -97,54 +95,43 @@ export async function activate({root, vars}) {
     }
 
     try {
-        var wsScheme = location.protocol === "https:" ? "wss://" : "ws://";
-        chatSocket = new ReconnectingWebSocket(
-            wsScheme + location.host + "/chat?channel=" + GLOBAL_CH
-            + "&worker_id=" + dallinger.identity.workerId
-            + "&participant_id=" + MY_ID
-        );
-
-        chatSocket.onopen = function () {
-            if (leftChat) return;
-            chatSocket.send(GLOBAL_CH + ":" + JSON.stringify({
-                type: "join_room",
-                room_id: ROOM_ID,
-                sender: MY_ID,
-            }));
-            if (firstOpen) {
-                if (SHOW_HISTORY) {
-                    chatSocket.send(GLOBAL_CH + ":" + JSON.stringify({
-                        type: "request_state",
-                        room_id: ROOM_ID,
-                        sender: MY_ID,
-                    }));
+        chatConnection = PsyNetWebSocketChannel.connect({
+            channel: GLOBAL_CH,
+            onOpen: function () {
+                if (leftChat) return;
+                chatConnection.send({
+                    type: "join_room",
+                    room_id: ROOM_ID,
+                    sender: MY_ID,
+                });
+                if (firstOpen) {
+                    if (SHOW_HISTORY) {
+                        chatConnection.send({
+                            type: "request_state",
+                            room_id: ROOM_ID,
+                            sender: MY_ID,
+                        });
+                    }
+                    firstOpen = false;
                 }
-                firstOpen = false;
-            }
-        };
+            },
+            onMessage: function (msg) {
+                if (leftChat) return;
+                if (String(msg.room_id) !== String(ROOM_ID)) return;
 
-        chatSocket.onmessage = function (event) {
-            if (leftChat) return;
-            if (event.data.indexOf(GLOBAL_CH + ":") !== 0) return;
-            var msg;
-            try {
-                msg = JSON.parse(event.data.slice(GLOBAL_CH.length + 1));
-            } catch (e) { return; }
-
-            if (String(msg.room_id) !== String(ROOM_ID)) return;
-
-            if (msg.type === "message") {
-                renderMessage(msg);
-            } else if (msg.type === "occupancy_update") {
-                if (SHOW_PARTS) rebuildParticipantList(msg.participants || []);
-            } else if (msg.type === "history") {
-                if (SHOW_HISTORY && String(msg.target_participant_id) === MY_ID) {
-                    // Clear before re-rendering to avoid duplicates on reconnect.
-                    root.querySelector("#chatroom-messages").innerHTML = "";
-                    (msg.messages || []).forEach(renderMessage);
+                if (msg.type === "message") {
+                    renderMessage(msg);
+                } else if (msg.type === "occupancy_update") {
+                    if (SHOW_PARTS) rebuildParticipantList(msg.participants || []);
+                } else if (msg.type === "history") {
+                    if (SHOW_HISTORY && String(msg.target_participant_id) === MY_ID) {
+                        // Clear before re-rendering to avoid duplicates on reconnect.
+                        root.querySelector("#chatroom-messages").innerHTML = "";
+                        (msg.messages || []).forEach(renderMessage);
+                    }
                 }
-            }
-        };
+            },
+        });
 
         sendButton = root.querySelector("#chatroom-send-btn");
         input = root.querySelector("#chatroom-chat-input");

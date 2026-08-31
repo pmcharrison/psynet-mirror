@@ -286,6 +286,7 @@
     {% if not partial_mode %}
         {{ template_data_script() }}
     {% endif %}
+    <script src="{{ url_for('static', filename='scripts/websocket-channel.js') }}"></script>
     <script src="{{ url_for('static', filename='scripts/psynet.js') }}"></script>
 
 

@@ -953,13 +953,8 @@
       controller.stopped = true;
       clearTimeout(controller.safetyTimer);
       clearTimeout(controller.timeoutTimer);
-      if (controller.socket) {
-        controller.socket.onopen = function () {
-          controller.socket.close();
-        };
-        controller.socket.onmessage = function () {};
-        controller.socket.onclose = function () {};
-        controller.socket.close();
+      if (controller.connection) {
+        controller.connection.close();
       }
 
       let indicator = document.getElementById(
@@ -994,11 +989,11 @@
       psynet.stopTimelineHold();
       psynet.showTimelineHoldIndicator(hold.message);
       let controller = {
+        connection: null,
         hold: hold,
         resumeInFlight: false,
         resumeRequested: false,
         safetyTimer: null,
-        socket: null,
         stopped: false,
         timeoutTimer: null,
       };
@@ -1006,43 +1001,24 @@
       psynet.scheduleTimelineHoldCheck(controller);
       psynet.scheduleTimelineHoldTimeout(controller);
 
-      let wsScheme = location.protocol === "https:" ? "wss://" : "ws://";
-      let socketUrl =
-        wsScheme +
-        location.host +
-        "/chat?channel=" +
-        encodeURIComponent(hold.channel) +
-        "&worker_id=" +
-        encodeURIComponent(dallinger.identity.workerId) +
-        "&participant_id=" +
-        encodeURIComponent(dallinger.identity.participantId);
-      controller.socket = new ReconnectingWebSocket(socketUrl);
-      controller.socket.onopen = function () {
-        if (!controller.stopped) {
-          psynet.resumeTimelineHold("websocket connection");
-        }
-      };
-      controller.socket.onmessage = function (event) {
-        if (
-          controller.stopped ||
-          event.data.indexOf(hold.channel + ":") !== 0
-        ) {
-          return;
-        }
-        let message;
-        try {
-          message = JSON.parse(event.data.slice(hold.channel.length + 1));
-        } catch (error) {
-          return;
-        }
-        if (
-          message.type === "barrier_released" &&
-          message.barrier_id === hold.barrier_id &&
-          message.page_uuid === hold.page_uuid
-        ) {
-          psynet.resumeTimelineHold("barrier release");
-        }
-      };
+      controller.connection = PsyNetWebSocketChannel.connect({
+        channel: hold.channel,
+        onOpen() {
+          if (!controller.stopped) {
+            psynet.resumeTimelineHold("websocket connection");
+          }
+        },
+        onMessage(message) {
+          if (controller.stopped) return;
+          if (
+            message.type === "barrier_released" &&
+            message.barrier_id === hold.barrier_id &&
+            message.page_uuid === hold.page_uuid
+          ) {
+            psynet.resumeTimelineHold("barrier release");
+          }
+        },
+      });
       window.dispatchEvent(
         new CustomEvent("timelineHoldStarted", {
           detail: {barrierId: hold.barrier_id},
