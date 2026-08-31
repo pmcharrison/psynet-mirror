@@ -96,5 +96,6 @@ you set ``EXP_MAX_SIZE_MB``.
 ``compile_nodes_from_directory`` now requires the media
 directory to live under ``static/`` and stores ``/static/...`` URLs on each
 node definition (default key ``url``) instead of creating ``CachedAsset``
-objects. Move files out of ``data/`` and pass ``self.definition["url"]`` to
-prompts.
+objects. Move files out of ``data/`` (or any directory outside ``static/``)
+and pass ``self.definition["url"]`` to prompts. Nodes are compiled in
+alphabetical order by participant group, block, and filename.

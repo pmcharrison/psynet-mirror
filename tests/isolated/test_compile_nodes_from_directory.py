@@ -108,3 +108,26 @@ def test_compile_nodes_from_directory_rejects_data_directory(tmp_path):
 
     with working_directory(tmp_path), pytest.raises(ValueError, match="static"):
         compile_nodes_from_directory("data/practice", ".wav", _FakeNode)()
+
+
+def test_compile_nodes_from_directory_orders_nodes_alphabetically(tmp_path):
+    later = tmp_path / "static" / "practice" / "group-z" / "block-2" / "zebra.wav"
+    earlier = tmp_path / "static" / "practice" / "group-a" / "block-1" / "apple.wav"
+    later.parent.mkdir(parents=True)
+    later.write_bytes(b"RIFF")
+    earlier.parent.mkdir(parents=True)
+    earlier.write_bytes(b"RIFF")
+
+    with working_directory(tmp_path):
+        nodes = compile_nodes_from_directory(
+            "static/practice",
+            ".wav",
+            _FakeNode,
+        )()
+
+    assert [
+        (node.participant_group, node.block, node.definition["name"]) for node in nodes
+    ] == [
+        ("group-a", "block-1", "apple.wav"),
+        ("group-z", "block-2", "zebra.wav"),
+    ]

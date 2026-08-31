@@ -59,8 +59,11 @@ def compile_nodes_from_directory(
 
     Place ``input_dir`` under the experiment ``static/`` directory so the files
     are copied with the deployment plan and served as ``/static/...`` URLs.
-    Each node definition stores that URL under ``url_key`` (default ``"url"``).
-    Pass ``self.definition["url"]`` to ``AudioPrompt``.
+    Paths outside ``static/`` (including directories outside the experiment)
+    are not supported. Each node definition stores that URL under ``url_key``
+    (default ``"url"``). Pass ``self.definition["url"]`` to ``AudioPrompt``.
+    Participant groups, blocks, and files are visited in alphabetical order
+    by name.
 
     Parameters
     ----------
