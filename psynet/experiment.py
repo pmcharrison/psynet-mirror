@@ -72,7 +72,7 @@ from psynet.utils import (
 from . import deployment_info
 from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
 from .bot import Bot, BotDriver, BotResponse
-from .command_line import export_launch_data, log
+from .command_line import export_launch_data
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import transaction, with_transaction
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
@@ -163,6 +163,31 @@ def json_serial(obj):
     raise TypeError("Type not serializable")
 
 
+def _reject_overridden_fail_participant(cls):
+    """Reject PsyNet Experiment subclasses that replace fail_participant."""
+    if cls.__name__ == "Experiment" and cls.__module__ == "psynet.experiment":
+        return
+
+    psy_experiment = None
+    for base in cls.__mro__:
+        if (
+            base.__name__ == "Experiment"
+            and getattr(base, "__module__", "") == "psynet.experiment"
+        ):
+            psy_experiment = base
+            break
+    if (
+        psy_experiment is not None
+        and cls.fail_participant is not psy_experiment.fail_participant
+    ):
+        raise RuntimeError(
+            "Do not override Experiment.fail_participant. "
+            "That Dallinger hook is not part of PsyNet's failure contract "
+            "and used to fail owned nodes. Call Participant.fail() "
+            "or register a ParticipantFailRoutine instead."
+        )
+
+
 class ExperimentMeta(type):
     def __init__(cls, name, bases, dct):
         cls.assets = AssetRegistry(storage=cls.asset_storage)
@@ -206,6 +231,8 @@ def __init__(self, session=None):
     self.initial_recruitment_size = 1
             """
             )
+
+        _reject_overridden_fail_participant(cls)
 
 
 @register_table
@@ -851,6 +878,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         redis_vars.set("server_working_directory", os.getcwd())
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
+        self.var.git_commit_sha = deployment_info.read("git_commit_sha")
+        self.var.git_dirty = deployment_info.read("git_dirty")
         if deployment_info.read("is_local_deployment"):
             # This is necessary because the local deployment command is blocking and therefore we can't
             # get the launch data from the command-line invocation.
@@ -2101,31 +2130,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.assets.prepare_for_deployment()
             self.create_database_snapshot()
 
-        self.create_source_code_zip_file()
-
-    @classmethod
-    def create_source_code_zip_file(cls):
-        from dallinger.command_line.utils import ExperimentFileSource
-
-        # The config.txt file in the deployment package by default includes sensitive keys
-        # (e.g. AWS API keys), so we don't allow this method to be run there
-        assert not in_deployment_package()
-
-        # We also need to check that the user hasn't left any sensitive keys in the
-        # config.txt in their experiment directory.
-        assert_config_txt_does_not_contain_sensitive_values()
-
-        base_name = "source_code"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            cwd = os.getcwd()
-            ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
-            # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
-            # so we need to copy this manually.
-            shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
-            # Delete static/assets directory to exclude them from the source code zip file
-            shutil.rmtree(f"{temp_dir}/static/assets", ignore_errors=True)
-            shutil.make_archive(base_name, "zip", temp_dir)
-
     @classmethod
     def update_deployment_id(cls):
         deployment_id = cls.generate_deployment_id()
@@ -2162,24 +2166,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def check_size(cls):
-        from dallinger.command_line.utils import ExperimentFileSource
+        """Reject deployment plans that exceed the configured package limit."""
+        from dallinger.utils import ExperimentFileSource
 
         size_in_mb = ExperimentFileSource(os.getcwd()).size / (1024**2)
-        log(f"Experiment directory size: {round(size_in_mb, 3)} MB.")
-
-        exp_max_size_in_mb = int(os.environ.get("EXP_MAX_SIZE_MB", "256"))
-
-        if size_in_mb > exp_max_size_in_mb:
+        logger.info("Experiment deployment size: %.3f MB.", size_in_mb)
+        max_size_in_mb = int(os.environ.get("EXP_MAX_SIZE_MB", "256"))
+        if size_in_mb > max_size_in_mb:
             raise RuntimeError(
-                f"Your experiment source package exceeds the {exp_max_size_in_mb} MB limit. "
-                "Large packages are discouraged because they make deployment slow. You can override "
-                "this limit by setting the EXP_MAX_SIZE_MB environment variable. "
-                "However, the recommended approach (assuming your large files are "
-                "assets, such as audio or video files) is to use PsyNet's asset management system; "
-                "see https://psynetdev.gitlab.io/PsyNet/tutorials/assets.html for a tutorial. "
-                "Importantly, you should either move your large files outside the experiment folder, "
-                "or add them to `.gitignore`, once they are registered as `Asset` objects; that way "
-                "they will not count towards your source package limit."
+                f"Your experiment deployment plan exceeds the {max_size_in_mb} MB "
+                "limit. Large packages make deployment slow. Exclude local files "
+                "in deploy.toml or use PsyNet's asset management system. Set "
+                "EXP_MAX_SIZE_MB to override this limit when the package size is "
+                "intentional."
             )
 
     @classmethod
@@ -2406,16 +2405,77 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return (not self.need_more_participants) and self.num_working_participants == 0
 
     def assignment_abandoned(self, participant):
-        participant.append_failure_tags("assignment_abandoned", "premature_exit")
-        super().assignment_abandoned(participant)
+        self._handle_premature_exit(participant, "assignment_abandoned")
 
     def assignment_returned(self, participant):
-        participant.append_failure_tags("assignment_returned", "premature_exit")
-        super().assignment_returned(participant)
+        self._handle_premature_exit(participant, "assignment_returned")
 
     def assignment_reassigned(self, participant):
-        participant.append_failure_tags("assignment_reassigned", "premature_exit")
-        super().assignment_reassigned(participant)
+        self._handle_premature_exit(participant, "assignment_reassigned")
+
+    def _handle_premature_exit(self, participant, cause_tag):
+        """Fail a still-working participant after a recruiter exit event.
+
+        Recruiter abandonment, return, and reassignment are premature exits.
+        See :doc:`/tutorials/participant_and_trial_failure`.
+        """
+        if participant.complete:
+            logger.info(
+                "Ignoring recruiter event %s for participant %i; they already completed.",
+                cause_tag,
+                participant.id,
+            )
+            return
+
+        if participant.failed:
+            participant.append_failure_tags(cause_tag)
+            return
+
+        participant.append_failure_tags(cause_tag, "premature_exit")
+        participant.fail()
+
+    def fail_participant(self, participant):
+        """Fail a participant using PsyNet's participant-failure contract.
+
+        This Dallinger compatibility shim calls
+        :meth:`~psynet.participant.Participant.fail` and does not fail owned
+        nodes. Do not override it; PsyNet rejects subclasses that do.
+        Recruiter premature-exit handling stays on
+        :meth:`_handle_premature_exit`.
+        """
+        participant.fail()
+
+    def data_check_failed(self, participant):
+        """Ignore Dallinger's post-submission data check.
+
+        PsyNet quality screening happens during the timeline via
+        :meth:`~psynet.trial.main.TrialMaker.performance_check`. Dallinger's
+        ``data_check`` runs after the participant has already submitted.
+        To fail a participant after they have finished, call
+        :meth:`~psynet.participant.Participant.fail`.
+        """
+        self._warn_unsupported_dallinger_submission_check("data_check", participant)
+
+    def attention_check_failed(self, participant):
+        """Ignore Dallinger's post-submission attention check.
+
+        See :meth:`data_check_failed`.
+        """
+        self._warn_unsupported_dallinger_submission_check(
+            "attention_check", participant
+        )
+
+    def _warn_unsupported_dallinger_submission_check(self, hook_name, participant):
+        logger.warning(
+            "PsyNet does not use Dallinger's %s hook for participant %i. "
+            "That check runs after the participant has already submitted. "
+            "Use TrialMaker.performance_check for in-experiment quality "
+            "screening, or Participant.fail() to fail someone after they "
+            "have finished. This method does not fail the participant or "
+            "their nodes.",
+            hook_name,
+            participant.id,
+        )
 
     def bonus(self, participant: Participant) -> float:
         """Calculate the reward the participant gets when completing the experiment.
@@ -2838,16 +2898,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "DEPLOYMENT_PACKAGE",
                 ),
                 (
-                    "config.txt",
-                    ".config.backup",
-                ),
-                (
                     ".deploy",
                     ".deploy",
-                ),
-                (
-                    "source_code.zip",
-                    "source_code.zip",
                 ),
             ]
         )
@@ -3498,18 +3550,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return Experiment.error_page(
             recruiter=recruiter, external_submit_url=external_submit_url
         )
-
-    @experiment_route("/download_source", methods=["GET"])
-    @classmethod
-    def download_source(cls):
-        config = get_config()
-
-        if not authenticate(request.authorization, config):
-            return jsonify({"message": "Invalid credentials"}), 401
-
-        filename = "source_code.zip"
-        logger.info(f"Downloading experiment source code from {os.getcwd()}/{filename}")
-        return send_file(filename, mimetype="zip")
 
     @classmethod
     def _export(
@@ -4586,18 +4626,6 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
     return exp.timeline.get_trial_maker(trial_maker_id)
 
 
-def assert_config_txt_does_not_contain_sensitive_values():
-    config = get_config()
-    with open("config.txt", "r") as f:
-        for line in f.readlines():
-            for var in config.sensitive:
-                if var in line:
-                    raise ValueError(
-                        f"Sensitive key '{var}' found in config.txt. Please move all sensitive "
-                        "keys to `.dallingerconfig` and try again."
-                    )
-
-
 def in_deployment_package():
     return os.path.exists("DEPLOYMENT_PACKAGE")
 
@@ -4608,14 +4636,6 @@ def _identify_config_override_source(key):
         return "an environment variable"
 
     return "another configuration source"
-
-
-def authenticate(auth, config):
-    return (
-        auth
-        and auth.username == config.get("dashboard_user")
-        and auth.password == config.get("dashboard_password")
-    )
 
 
 # Dallinger defines various HTTP routes that provide access to database content.

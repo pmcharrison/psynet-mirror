@@ -112,14 +112,70 @@ show up in ``psynet test local`` / ``psynet debug local``. See
 
 Details: :doc:`/tutorials/writing_custom_frontends`.
 
-9. Validate
------------
+9. Migrate trial-selection hooks
+--------------------------------
+
+Search custom trial makers for ``find_networks``, ``find_node``,
+``prioritize_networks``, and ``custom_network_filter``.
+
+* :class:`~psynet.trial.chain.ChainTrialMaker` subclasses now discover,
+  filter, and select chains with ``find_chains``, ``custom_chain_filter``,
+  and ``select_chain``. PsyNet resolves the selected chain to ``chain.head``.
+* :class:`~psynet.trial.static.StaticTrialMaker` subclasses use the
+  node-specific ``find_nodes``, ``custom_node_filter``, and ``select_node``
+  hooks instead.
+* ``custom_network_filter`` is still honoured, but construction emits a
+  ``DeprecationWarning``. Replace it with ``custom_chain_filter`` on chain
+  trial makers or ``custom_node_filter`` on static trial makers.
+* Selection hooks may return their selected value directly or wrap it in
+  :class:`~psynet.trial.main.Selection` to pass request-local context to
+  ``on_trial_created``. Returning ``None`` from ``select_chain`` or
+  ``select_node`` raises ``TypeError``. Return the selected object from the
+  supplied ``chains`` or ``nodes`` list; a newly queried copy with the same
+  id raises ``ValueError``. ``find_chains`` and ``find_nodes`` must return a
+  list, ``"wait"``, or ``"exit"``; ``None`` raises ``TypeError``.
+* ``select_chain`` and ``select_node`` replace ranking in
+  ``prioritize_networks``. They receive a nonempty eligible list and cannot
+  return ``None``, ``[]``, ``"wait"``, or ``"exit"``. Logic that emptied the
+  candidate set or chose to wait belongs in ``find_chains`` or
+  ``find_nodes``: call ``super()``, then filter or return ``"wait"`` /
+  ``"exit"``.
+* ``get_trial_class`` must return a concrete trial class. Remove unavailable
+  chains or nodes in the corresponding custom filter instead of returning
+  ``None``. Synchronized follower trials reuse the leader's concrete trial
+  class without calling ``get_trial_class`` again.
+* ``CreateAndRateTrialMakerMixin.get_non_failed_creations`` has been removed.
+  Classify nodes with
+  :meth:`~psynet.trial.create_and_rate.CreateAndRateTrialMakerMixin.get_creation_phases`
+  and load finalized creations with
+  :meth:`~psynet.trial.create_and_rate.CreateAndRateTrialMakerMixin.get_finished_creations`.
+* Create-and-rate experiments with fixed creator and rater groups should
+  override
+  :meth:`~psynet.trial.create_and_rate.CreateAndRateTrialMakerMixin.get_participant_role`.
+  The mixin then uses that role for both chain eligibility and the final phase
+  check. Do not override ``get_trial_class`` from participant role alone.
+  Creators only receive heads that still need creators. Raters receive heads
+  that are ready for raters, and they wait or exit on heads whose creator
+  slots are filled but not yet finalized. Heads that still need creators are
+  not rater-eligible. A selected head that later becomes incompatible waits
+  or exits instead of assigning the opposite role's trial class.
+* :attr:`~psynet.trial.main.Trial.position` is now stored when the trial is
+  created and counts across all concrete trial classes in a participant's trial
+  maker. Previously it was calculated within each concrete trial class. Trials
+  constructed outside a trial-maker state may have ``position=None``; code that
+  performs arithmetic with ``position`` should handle that case explicitly.
+
+PsyNet raises an actionable ``TypeError`` when a removed or wrong-paradigm
+hook is still overridden.
+
+10. Validate
+------------
 
 From a complete experiment directory. At minimum you typically need:
 
 * ``experiment.py``, ``test.py``, ``constraints.txt``
 * ``config.txt``, ``requirements.txt``
-* ``.gitignore`` (must include ``source_code.zip``) and ``.python-version``
+* ``.gitignore``, ``deploy.toml``, and ``.python-version``
 
 If you are scaffolding from scratch, see
 :doc:`/tutorials/creating_a_new_experiment` or run ``psynet update-scripts``

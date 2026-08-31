@@ -2,8 +2,11 @@
 
 import datetime
 import random
+import sys
+import warnings
+from dataclasses import dataclass
 from math import isnan
-from typing import List, Literal, Optional, Union
+from typing import Any, List, Literal, Optional, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -72,11 +75,28 @@ from ..utils import (
     get_logger,
     is_method_overridden,
     log_time_taken,
+    psynet_source_prefixes,
 )
 
 logger = get_logger()
 
 N_PARTICIPANTS_COMPLETION_MODES = ("experiment", "trial_maker")
+
+
+def _warn_ignored_fail_trials_on_premature_exit(trial_maker_id):
+    message = (
+        f"fail_trials_on_premature_exit is ignored in trial maker {trial_maker_id!r}. "
+        "Premature exit no longer fails completed trials; incomplete "
+        "trials are always failed when the participant exits or fails."
+    )
+    if sys.version_info >= (3, 12):
+        warnings.warn(
+            message,
+            DeprecationWarning,
+            skip_file_prefixes=psynet_source_prefixes(),
+        )
+        return
+    warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
@@ -196,6 +216,10 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         The user should not typically change this directly.
         Stored in ``property1`` in the database.
 
+    position : int
+        Zero-based position within this participant's current trial maker.
+        Stored when the trial is created.
+
     node
         The :class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
         belongs.
@@ -293,6 +317,14 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     module_state_id = Column(Integer, ForeignKey("module_state.id"), index=True)
     module_state = relationship("ModuleState", foreign_keys=[module_state_id])
     trial_maker_id = Column(String, index=True)
+    position = Column(
+        Integer,
+        nullable=True,
+        doc=(
+            "Zero-based creation position among all trials from this trial maker "
+            "for the participant."
+        ),
+    )
     definition = Column(PythonObject)
 
     @declared_attr
@@ -420,18 +452,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     def var(self):
         return VarStore(self)
 
-    @property
-    def position(self):
-        """
-        Returns the position of the current trial within that participant's current trial maker (0-indexed).
-        This can be used, for example, to display how many trials the participant has taken so far.
-        """
-        trials = self.get_for_participant(
-            self.participant_id, self.network.trial_maker_id
-        )
-        trial_ids = [t.id for t in trials]
-        return trial_ids.index(self.id)
-
     @classmethod
     def get_for_participant(cls, participant_id: int, trial_maker_id: int = None):
         """
@@ -500,6 +520,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         n_repeat_trials=None,  # Only relevant if the trial is a repeat trial
         assets=None,
         definition=NoArgumentProvided,  # If provided, overrides make definition
+        position=None,
     ):
         super().__init__(origin=node)
         db.session.add(self)
@@ -519,6 +540,15 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         self.time_taken = None
         self.trial_maker_id = node.trial_maker_id
         self.module_state = participant.module_state
+        self.position = (
+            position
+            if position is not None
+            else self._next_position(
+                participant=participant,
+                is_repeat_trial=is_repeat_trial,
+                repeat_trial_index=repeat_trial_index,
+            )
+        )
         self.vars = {}
 
         self.async_post_trial_required = is_method_overridden(
@@ -553,6 +583,25 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
                 assert self.definition is not None
             else:
                 self.definition = definition
+
+        if (
+            not is_repeat_trial
+            and participant.module_state is not None
+            and hasattr(participant.module_state, "n_created_trials")
+        ):
+            participant.module_state.n_created_trials += 1
+
+    def _next_position(self, participant, is_repeat_trial, repeat_trial_index):
+        """Return the next zero-based position in this participant's trial maker."""
+        if participant.module_state is None or not hasattr(
+            participant.module_state, "n_created_trials"
+        ):
+            return None
+
+        position = participant.module_state.n_created_trials
+        if is_repeat_trial:
+            position += repeat_trial_index
+        return position
 
     def to_dict(self):
         x = super().to_dict()
@@ -1137,6 +1186,18 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             logger.info("Calling _finalize_trial.")
 
             trial = participant.current_trial
+            if participant.failed:
+                # Race guard: a background fail() can land after
+                # pending_redirect was already consumed at the start of
+                # advance_page. The normal fail() path redirects before this
+                # CodeBlock runs.
+                logger.info(
+                    "Not completing trial %s; the participant was already failed "
+                    "(for example participant.fail() while this page was open).",
+                    getattr(trial, "id", None),
+                )
+                return
+
             answer = participant.answer
 
             trial.answer = trial.format_answer(answer)
@@ -1223,7 +1284,7 @@ class TrialMakerState(ModuleState):
     performance_check = Column(PythonDict)
     trials_to_repeat = Column(PythonObject)
     repeat_trial_index = Column(Integer)
-    n_created_trials = Column(Integer)
+    n_created_trials = Column(Integer, default=0, nullable=False)
     n_completed_trials = Column(Integer)
     trial_maker_initialized = Column(Boolean)
 
@@ -1321,12 +1382,17 @@ class TrialMaker(Module):
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
+        Deprecated. Premature exit no longer fails completed trials.
+        Incomplete trials are always failed when the participant fails or
+        exits. This argument is accepted for backwards compatibility and
+        ignored. It is not stored on the trial maker.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
+        If ``True``, a participant's completed trials for this TrialMaker are
+        marked as failed when the participant fails a performance check,
+        because those responses are treated as unusable. Incomplete trials are
+        always failed on any participant failure, regardless of this setting.
+        Subclasses document their own defaults.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
@@ -1428,18 +1494,19 @@ class TrialMaker(Module):
 
     def __init__(
         self,
+        *,
         id_: str,
         trial_class,
         expected_trials_per_participant: Union[int, float],
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
-        fail_trials_on_premature_exit: bool,
         fail_trials_on_participant_performance_check: bool,
         propagate_failure: bool,
         recruit_mode: str,
         target_n_participants: Optional[int],
         n_repeat_trials: int,
         assets: List,
+        fail_trials_on_premature_exit: bool = False,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
@@ -1472,7 +1539,8 @@ class TrialMaker(Module):
         self.expected_trials_per_participant = expected_trials_per_participant
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
-        self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
+        if fail_trials_on_premature_exit:
+            _warn_ignored_fail_trials_on_premature_exit(id_)
         self.fail_trials_on_participant_performance_check = (
             fail_trials_on_participant_performance_check
         )
@@ -1723,16 +1791,12 @@ class TrialMaker(Module):
     end_performance_check_waits = True
 
     def participant_fail_routine(self, participant, experiment):
-        if (
-            self.fail_trials_on_participant_performance_check
-            and "performance_check" in participant.failure_tags
-        ) or (
-            self.fail_trials_on_premature_exit
-            and "premature_exit" in participant.failure_tags
-        ):
-            self.fail_participant_trials(
-                participant, reason=", ".join(participant.failure_tags)
-            )
+        if "performance_check" not in participant.failure_tags:
+            return
+        if not self.fail_trials_on_participant_performance_check:
+            return
+        reason = ", ".join(participant.failure_tags)
+        self.fail_participant_trials(participant, reason=reason)
 
     @property
     def check_timeout_task(self):
@@ -1911,6 +1975,7 @@ class TrialMaker(Module):
         trials_to_fail = (
             self.trial_class.query.filter_by(complete=False, failed=False)
             .filter(self.trial_class.creation_time < time_threshold)
+            .order_by(self.trial_class.id)
             .with_for_update(of=self.trial_class)
             .populate_existing()
             .all()
@@ -1938,7 +2003,6 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
         participant.select_module(self.id)
-        participant.module_state.n_created_trials = 0
         participant.module_state.n_completed_trials = 0
         participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
@@ -2056,12 +2120,22 @@ class TrialMaker(Module):
         return with_trial_maker_namespace(self.id, x=x)
 
     def fail_participant_trials(self, participant, reason=None):
+        """Fail this TrialMaker's non-failed trials for a participant.
+
+        Parameters
+        ----------
+        participant
+            The participant whose trials should be failed.
+        reason
+            Optional failure reason stored on each trial.
+        """
         trials_to_fail = (
             Trial.query.filter_by(participant_id=participant.id, failed=False)
-            .with_for_update(of=Trial)
-            .populate_existing()
             .join(TrialNetwork)
             .filter_by(trial_maker_id=self.id)
+            .order_by(Trial.id)
+            .with_for_update(of=Trial)
+            .populate_existing()
         )
         for trial in trials_to_fail:
             trial.fail(reason=reason)
@@ -2187,9 +2261,6 @@ class TrialMaker(Module):
             trial, trial_status = self._prepare_repeat_trial(
                 experiment=experiment, participant=participant
             )
-
-        if trial_status == "available":
-            assert trial is not None
 
         return trial, trial_status
 
@@ -2348,6 +2419,14 @@ class NetworkTrialMakerState(TrialMakerState):
     pass
 
 
+@dataclass(frozen=True)
+class Selection:
+    """A selected value together with optional request-local context."""
+
+    value: Any
+    context: Any = None
+
+
 class NetworkTrialMaker(TrialMaker):
     """
     Trial maker for network-based experiments.
@@ -2367,23 +2446,11 @@ class NetworkTrialMaker(TrialMaker):
     over time. This typically involves adding new nodes that somehow
     respond to the trials that have been submitted previously.
 
-    The present class facilitates this behaviour by providing
-    a built-in :meth:`~psynet.trial.main.TrialMaker.prepare_trial`
-    implementation that comprises the following steps:
-
-    1. Find the available networks from which to source the next trial,
-       ordered by preference
-       (:meth:`~psynet.trial.main.NetworkTrialMaker.find_networks`).
-       These may be created on demand, or alternatively pre-created by
-       :meth:`~psynet.trial.main.NetworkTrialMaker.pre_deploy_routine`.
-    2. Give these networks an opportunity to grow (i.e. update their structure
-       based on the trials that they've received so far)
-       (:meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`).
-    3. Iterate through these networks, and find the first network that has a
-       node available for the participant to attach to.
-       (:meth:`~psynet.trial.main.NetworkTrialMaker.find_node`).
-    4. Create a trial from this node
-       (:meth:`psynet.trial.main.Trial.__init__`).
+    This is an infrastructure base class. Concrete trial makers implement
+    domain-specific discovery and selection hooks, then return the final node
+    from :meth:`~psynet.trial.main.NetworkTrialMaker._select_trial_node`.
+    The managed :meth:`~psynet.trial.main.NetworkTrialMaker.prepare_trial`
+    implementation creates exactly one trial from that node.
 
     The trial is then administered to the participant, and a response elicited.
     Once the trial is finished, the network is given another opportunity to grow.
@@ -2397,25 +2464,10 @@ class NetworkTrialMaker(TrialMaker):
     and likewise a trial won't contribute to a growing network if
     it is still pending the outcome of an asynchronous process.
 
-    The user is expected to override the following abstract methods/attributes:
-
-    * :meth:`~psynet.trial.main.NetworkTrialMaker.pre_deploy_routine`,
-      (optional), which defines a routine that sets up the experiment
-      (for example initialising and seeding networks).
-
-    * :meth:`~psynet.trial.main.NetworkTrialMaker.find_networks`,
-      which finds the available networks from which to source the next trial,
-      ordered by preference.
-
-    * :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`,
-      which give these networks an opportunity to grow (i.e. update their structure
-      based on the trials that they've received so far).
-
-    * :meth:`~psynet.trial.main.NetworkTrialMaker.find_node`,
-      which takes a given network and finds a node which the participant can
-      be attached to, if one exists.
-
-    Do not override prepare_trial.
+    Experiment authors should use the public hooks on concrete classes such as
+    :class:`~psynet.trial.static.StaticTrialMaker` and
+    :class:`~psynet.trial.chain.ChainTrialMaker`, and should not override
+    ``prepare_trial``.
 
     Parameters
     ----------
@@ -2441,12 +2493,10 @@ class NetworkTrialMaker(TrialMaker):
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
-        If ``True``, a participant's trials are marked as failed
-        if they leave the experiment prematurely.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     fail_trials_on_participant_performance_check
-        If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.
+        See :class:`~psynet.trial.main.TrialMaker`.
 
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
@@ -2555,13 +2605,13 @@ class NetworkTrialMaker(TrialMaker):
 
     def __init__(
         self,
+        *,
         id_,
         trial_class,
         network_class,
         expected_trials_per_participant,
         check_performance_at_end,
         check_performance_every_trial,
-        fail_trials_on_premature_exit,
         fail_trials_on_participant_performance_check,
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
@@ -2569,6 +2619,7 @@ class NetworkTrialMaker(TrialMaker):
         target_n_participants,
         n_repeat_trials: int,
         wait_for_networks: bool,
+        fail_trials_on_premature_exit: bool = False,
         assets=None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
@@ -2622,51 +2673,154 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
+    def _generic_removed_selection_hooks(
+        self, find_networks_instruction, find_node_instruction
+    ):
+        """Return TypeError hooks shared by chain and static trial makers."""
+        return [
+            (
+                NetworkTrialMaker,
+                "find_networks",
+                find_networks_instruction,
+            ),
+            (
+                NetworkTrialMaker,
+                "find_node",
+                find_node_instruction,
+            ),
+        ]
+
+    def _raise_unsupported_selection_hook(self, method_name):
+        """Raise the configured error for an unsupported selection hook."""
+        for _, configured_name, instruction in self._selection_hook_overrides():
+            if configured_name == method_name:
+                raise TypeError(
+                    f"{self.__class__.__name__} called {method_name}, which is "
+                    f"not supported by this trial maker. {instruction}"
+                )
+        raise TypeError(
+            f"{self.__class__.__name__} called unsupported hook {method_name}."
+        )
+
+    def _apply_deprecated_network_filter(
+        self,
+        candidates,
+        participant,
+        *,
+        replacement_method,
+    ):
+        """Apply and validate the deprecated network eligibility filter."""
+        return self._validate_selection_subset(
+            self.custom_network_filter(
+                candidates=candidates,
+                participant=participant,
+            ),
+            allowed_values=candidates,
+            method_name=(f"custom_network_filter (replace with {replacement_method})"),
+        )
+
+    def check_initialization(self):
+        """Validate trial-maker hooks after construction."""
+        for ancestor, method_name, instruction in self._selection_hook_overrides():
+            if is_method_overridden(self, ancestor, method_name):
+                raise TypeError(
+                    f"{self.__class__.__name__} overrides {method_name}, which is "
+                    f"not supported by this trial maker. {instruction}"
+                )
+        for ancestor, method_name, instruction in self._deprecated_selection_hooks():
+            if is_method_overridden(self, ancestor, method_name):
+                message = (
+                    f"{method_name} is deprecated: {self.__class__.__name__} still "
+                    f"overrides it. {instruction}"
+                )
+                if sys.version_info >= (3, 12):
+                    warnings.warn(
+                        message,
+                        DeprecationWarning,
+                        skip_file_prefixes=psynet_source_prefixes(),
+                    )
+                else:
+                    warnings.warn(message, DeprecationWarning, stacklevel=2)
+
+    def _selection_hook_overrides(self):
+        """Return obsolete or wrong-paradigm hooks and their replacements."""
+        return []
+
+    def _deprecated_selection_hooks(self):
+        """Return still-honoured hooks that should be migrated."""
+        return []
+
     @log_time_taken
     def prepare_trial(self, experiment, participant: Participant):
         logger.info("Preparing trial for participant %i.", participant.id)
 
-        networks = self.find_networks(participant=participant, experiment=experiment)
-
-        if networks in ["wait", "exit"]:
-            logger.info("Outcome of find_networks: %s", networks)
-            trial = None
-            trial_status = networks
-            return trial, trial_status
-
-        logger.info(
-            "Outcome: found %i candidate network(s) for participant %i.",
-            len(networks),
-            participant.id,
-        )
-
-        assert len(networks) > 0
-
-        for network in networks:
-            node = self.find_node(
-                network=network, participant=participant, experiment=experiment
+        selection = self._select_trial_node(participant, experiment)
+        if isinstance(selection, str):
+            if selection not in ["wait", "exit"]:
+                raise ValueError(
+                    "_select_trial_node must return Selection, 'wait', or 'exit'"
+                )
+            logger.info("Outcome of trial selection: %s", selection)
+            return None, selection
+        if not isinstance(selection, Selection):
+            raise TypeError(
+                "_select_trial_node must return Selection, 'wait', or 'exit'"
             )
-            if node is not None:
-                logger.info(
-                    "Selected node %i from network %i to give to participant %i.",
-                    node.id,
-                    node.network.id,
-                    participant.id,
-                )
-                trial = self._create_trial(
-                    node=node, participant=participant, experiment=experiment
-                )
-                if trial is None:
-                    continue
-                trial_status = "available"
-                return trial, trial_status
+
+        node = selection.value
         logger.info(
-            "Failed to create any nodes from these networks for participant %i, exiting.",
+            "Selected node %i from network %i to give to participant %i.",
+            node.id,
+            node.network.id,
             participant.id,
         )
-        trial = None
-        trial_status = "exit"
-        return trial, trial_status
+        trial = self._create_trial(
+            node=node,
+            participant=participant,
+            experiment=experiment,
+        )
+        self.on_trial_created(
+            trial=trial,
+            experiment=experiment,
+            participant=participant,
+            selection_context=selection.context,
+        )
+        return trial, "available"
+
+    def on_trial_created(
+        self,
+        trial,
+        experiment,
+        participant,
+        selection_context=None,
+    ):
+        """Run after a selected network trial is fully prepared.
+
+        Override this hook to create records that must correspond to the exact
+        trial assignment, such as an adaptive-selection decision. The trial and
+        any related records are committed in the same transaction; its database
+        ID may therefore remain unset until the session is flushed. This hook
+        runs for primary trials created through the managed network-selection
+        pipeline, not for repeat trials or synchronized follower copies.
+
+        Trial-specific definition and assets belong in
+        :meth:`~psynet.trial.main.Trial.finalize_definition`. Those assets are
+        deposited and snapshotted before this hook runs.
+
+        Parameters
+        ----------
+        trial
+            The newly created :class:`~psynet.trial.main.Trial`.
+        experiment
+            The current :class:`~psynet.experiment.Experiment`.
+        participant
+            The participant to whom the trial was assigned.
+        selection_context
+            Request-local information returned with a
+            :class:`~psynet.trial.main.Selection`, or ``None`` when the
+            selection hook returned its value directly.
+        """
+        pass
 
     def prepare_follower_trial(
         self, experiment, participant: Participant, leader: Participant
@@ -2680,31 +2834,85 @@ class NetworkTrialMaker(TrialMaker):
         else:
             node = leader.current_trial.node
             trial = self._create_trial(
-                node=node, participant=participant, experiment=experiment
+                node=node,
+                participant=participant,
+                experiment=experiment,
+                trial_class=leader.current_trial.__class__,
             )
-            assert trial is not None
             trial_status = "available"
         return trial, trial_status
 
     ####
 
-    def find_networks(self, participant, experiment):
-        """
-        Returns a list of all available networks for the participant's next trial, ordered
-        in preference (most preferred to least preferred).
-
-        Parameters
-        ----------
-
-        participant
-            An instantiation of :class:`psynet.participant.Participant`,
-            corresponding to the current participant.
-
-        experiment
-            An instantiation of :class:`psynet.experiment.Experiment`,
-            corresponding to the current experiment.
-        """
+    def _select_trial_node(self, participant, experiment):
+        """Return ``Selection(node)``, ``"wait"``, or ``"exit"``."""
         raise NotImplementedError
+
+    def _select_from_discovered(
+        self, discovered, participant, experiment, select_hook, method_name
+    ):
+        """Select from a discovered list, or pass through ``wait`` / ``exit``."""
+        if isinstance(discovered, str):
+            return discovered
+        if not isinstance(discovered, list):
+            raise TypeError(
+                "find_chains / find_nodes must return a list of eligible values, "
+                "'wait', or 'exit'; it must not return None"
+            )
+        if not discovered:
+            return "exit"
+        return self._coerce_selection(
+            select_hook(discovered, participant, experiment),
+            allowed_values=discovered,
+            method_name=method_name,
+        )
+
+    @staticmethod
+    def _coerce_selection(selection, allowed_values, method_name):
+        """Normalize and validate a public selection-hook result.
+
+        The selected value must be one of ``allowed_values`` by object
+        identity, not a re-queried copy with the same id.
+        """
+        if selection is None:
+            raise TypeError(
+                f"{method_name} must return one of the supplied eligible values "
+                "or Selection(value, context); it must not return None"
+            )
+        if not isinstance(selection, Selection):
+            selection = Selection(value=selection)
+        if not any(selection.value is value for value in allowed_values):
+            raise ValueError(
+                f"{method_name} must select one of the supplied eligible values "
+                "(same object identity, not a re-queried copy with the same id)"
+            )
+        return selection
+
+    @staticmethod
+    def _validate_selection_subset(values, allowed_values, method_name):
+        """Validate values returned by a public eligibility filter."""
+        if not isinstance(values, list):
+            raise TypeError(f"{method_name} must return a list")
+        allowed_ids = {id(value) for value in allowed_values}
+        if any(id(value) not in allowed_ids for value in values):
+            raise ValueError(f"{method_name} must return only supplied eligible values")
+        if len({id(value) for value in values}) != len(values):
+            raise ValueError(f"{method_name} must not return duplicate values")
+        return values
+
+    def find_networks(self, participant, experiment):
+        """Removed selection hook.
+
+        :meta private:
+        """
+        self._raise_unsupported_selection_hook("find_networks")
+
+    def find_node(self, network, participant, experiment):
+        """Removed selection hook.
+
+        :meta private:
+        """
+        self._raise_unsupported_selection_hook("find_node")
 
     def grow_network(self, network, experiment):
         """
@@ -2726,34 +2934,30 @@ class NetworkTrialMaker(TrialMaker):
     def get_trial_class(self, node, participant, experiment):
         """
         Returns the class of trial to be used for this trial maker.
+
+        This must return a trial class for every eligible selection. Filter
+        unavailable values in the concrete trial maker's eligibility hooks
+        instead of returning ``None`` here. Synchronized follower trials reuse
+        the leader trial's concrete class and do not call this hook again.
         """
         return self.trial_class
 
-    def find_node(self, network, participant, experiment):
-        """
-        Finds the node to which the participant should be attached for the next trial.
-
-        Parameters
-        ----------
-
-        network
-            The network to be potentially extended.
-
-        participant
-            An instantiation of :class:`psynet.participant.Participant`,
-            corresponding to the current participant.
-
-        experiment
-            An instantiation of :class:`psynet.experiment.Experiment`,
-            corresponding to the current experiment.
-        """
-        raise NotImplementedError
-
     @log_time_taken
-    def _create_trial(self, node, participant, experiment):
-        trial_class = self.get_trial_class(node, participant, experiment)
+    def _create_trial(
+        self,
+        node,
+        participant,
+        experiment,
+        trial_class=None,
+    ):
         if trial_class is None:
-            return None
+            trial_class = self.get_trial_class(node, participant, experiment)
+        if trial_class is None:
+            raise TypeError(
+                f"{self.__class__.__name__}.get_trial_class returned None for node {node.id}. "
+                "Filter unavailable values before selection; get_trial_class must "
+                "return a trial class."
+            )
         trial = trial_class(
             experiment=experiment,
             node=node,
@@ -2761,11 +2965,15 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=self.propagate_failure,
             is_repeat_trial=False,
         )
+        self._finalize_created_trial(trial)
+        db.session.add(trial)
+        return trial
+
+    @staticmethod
+    def _finalize_created_trial(trial):
+        """Finalize assets and snapshot them for later repeat trials."""
         trial.finalize_assets()
         trial._initial_assets = dict(trial.assets)
-        db.session.add(trial)
-        participant.module_state.n_created_trials += 1
-        return trial
 
     def call_grow_network(self, network):
         # pylint: disable=no-member
