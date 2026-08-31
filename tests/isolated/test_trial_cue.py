@@ -125,3 +125,10 @@ def test_cue_callback_failure_rolls_back_trial_and_related_records(
 
     assert CueTrial.query.count() == 0
     assert CueCreationRecord.query.count() == 0
+
+
+def test_cue_creation_context_requires_on_trial_created():
+    with pytest.raises(
+        ValueError, match="creation_context requires an on_trial_created callback"
+    ):
+        CueTrial.cue(definition={}, creation_context={"snapshot_id": 12})

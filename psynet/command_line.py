@@ -3444,7 +3444,7 @@ def _run_simulate(ctx):
             path=staging.as_posix(),
         )
         if not artifact_path_is_ready(staging, allow_directory=True):
-            raise click.ClickException(f"Simulate produced no files in {export_path}.")
+            raise click.ClickException(f"Simulate produced no files in {staging}.")
         _replace_directory(staging, export_path)
     finally:
         shutil.rmtree(staging, ignore_errors=True)

@@ -104,7 +104,9 @@ def test_run_simulate_rejects_an_empty_export(tmp_path, monkeypatch):
         def invoke(self, cmd, **kwargs):
             pass
 
-    with pytest.raises(click.ClickException, match="produced no files"):
+    with pytest.raises(
+        click.ClickException, match=r"produced no files in .+\.simulated_export"
+    ):
         _run_simulate(DummyCtx())
 
 
