@@ -2583,9 +2583,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     )
                 )
             if getattr(event, "is_timeline_hold", False):
-                if event.participant_can_resume(
-                    participant
-                ) or event.participant_timed_out(participant):
+                should_resume = event.should_resume(self, participant)
+                event.account_wait(participant, settle=should_resume)
+                if should_resume:
                     self.timeline.advance_page(self, participant)
                 return self.response_approved(participant, include_timeline_fragment)
             response = event.process_response(

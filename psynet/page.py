@@ -239,9 +239,11 @@ def wait_while(
     expected_wait: float,
     check_interval: float = 2.0,
     max_wait_time: float = 20.0,
-    wait_page=WaitPage,
+    wait_page=None,
     log_message: Optional[str] = None,
     fail_on_timeout=True,
+    fix_time_credit: Optional[bool] = None,
+    content: Optional[str] = None,
 ):
     """
     Displays the participant a waiting page while a given condition
@@ -270,7 +272,9 @@ def wait_while(
 
     wait_page
         The wait page that should be displayed to the participant;
-        defaults to :class:`~psynet.page.WaitPage`.
+        by default the current page is preserved with a lightweight waiting
+        indicator. Pass :class:`~psynet.page.WaitPage` or another page factory
+        to opt into page-based waiting.
 
     log_message
         Optional message to display in the log.
@@ -280,6 +284,15 @@ def wait_while(
         Setting this to ``False`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
         but allow them to proceed to the next page.
 
+    fix_time_credit
+        Whether to award the fixed ``expected_wait`` rather than actual visible
+        waiting time. Defaults to ``False`` for timeline holds and ``True`` for
+        explicit page-based waiting.
+
+    content
+        Message displayed by the timeline hold. Only used when ``wait_page`` is
+        omitted.
+
     Returns
     -------
 
@@ -288,9 +301,27 @@ def wait_while(
     """
     assert expected_wait >= 0
     assert check_interval > 0
-    expected_repetitions = ceil(expected_wait / check_interval)
+    label = "wait_while"
+    uses_timeline_hold = wait_page is None
+    if fix_time_credit is None:
+        fix_time_credit = not uses_timeline_hold
 
-    _wait_page = wait_page(wait_time=check_interval)
+    if uses_timeline_hold:
+        from psynet.timeline_hold import _ConditionHoldPage
+
+        expected_repetitions = 1
+        _wait_page = _ConditionHoldPage(
+            condition=condition,
+            hold_id=label,
+            expected_wait=expected_wait,
+            max_wait_time=max_wait_time,
+            fix_time_credit=fix_time_credit,
+            check_interval=check_interval,
+            content=content or WaitPage.content,
+        )
+    else:
+        expected_repetitions = ceil(expected_wait / check_interval)
+        _wait_page = wait_page(wait_time=check_interval)
 
     def log(participant):
         logger.info(f"Participant {participant.id}: {log_message}")
@@ -300,8 +331,6 @@ def wait_while(
     else:
         logic = join(CodeBlock(log), _wait_page)
 
-    label = "wait_while"
-
     return join(
         while_loop(
             label,
@@ -310,6 +339,7 @@ def wait_while(
             expected_repetitions=expected_repetitions,
             max_loop_time=max_wait_time,
             fail_on_timeout=fail_on_timeout,
+            fix_time_credit=fix_time_credit,
         ),
     )
 

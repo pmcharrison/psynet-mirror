@@ -1211,6 +1211,7 @@ class Page(Elt):
     """
 
     returns_time_credit = True
+    is_timeline_hold = False
     dynamically_update_progress_bar_and_reward = False
     is_unity_page = False
     requires_full_page_reload = False

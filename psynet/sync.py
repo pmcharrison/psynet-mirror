@@ -80,69 +80,39 @@ from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
-from psynet.timeline import CodeBlock, EltCollection, Page, conditional, get_template
+from psynet.timeline import CodeBlock, EltCollection, conditional
+from psynet.timeline_hold import _TimelineHoldPage
 from psynet.utils import get_logger
 
 logger = get_logger()
 
-_BARRIER_HOLD_CHANNEL_PREFIX = "psynet_barrier_hold_"
-
-
-class _BarrierHoldPage(Page):
+class _BarrierHoldPage(_TimelineHoldPage):
     """Internal timeline checkpoint that preserves the preceding browser page."""
 
-    is_timeline_hold = True
-
     def __init__(self, barrier):
+        self.barrier = barrier
         self.barrier_id = barrier.id
-        self.max_wait_time = barrier.max_wait_time
-        self.content = "Waiting for other participants…"
         super().__init__(
-            label="wait",
-            time_estimate=0,
-            save_answer=False,
-            template_str=get_template("barrier-hold-page.html"),
-            template_arg={"content": self.content},
-            framework_owned_template=True,
+            hold_id=f"barrier:{barrier.id}",
+            expected_wait=barrier.expected_wait,
+            max_wait_time=barrier.max_wait_time,
+            fix_time_credit=barrier.fix_time_credit,
+            check_interval=2.0,
+            content="Waiting for other participants…",
         )
 
-    def participant_can_resume(self, participant):
+    def participant_can_resume(self, experiment, participant):
         """Return whether the barrier released this participant."""
         return self.barrier_id not in participant.active_barriers
 
-    def participant_timed_out(self, participant):
-        """Return whether a resume check should run the barrier timeout logic."""
-        if self.max_wait_time is None:
-            return False
+    def on_hold_record_created(self, participant, record):
         link = participant.active_barriers.get(self.barrier_id)
         if link is None:
-            return False
-        elapsed = (timenow() - link.arrival_time).total_seconds()
-        return elapsed > self.max_wait_time + 1
-
-    def timeline_hold_payload(self, participant):
-        """Return browser configuration for this barrier visit."""
-        timeout_ms = None
-        link = participant.active_barriers.get(self.barrier_id)
-        if self.max_wait_time is not None and link is not None:
-            elapsed = (timenow() - link.arrival_time).total_seconds()
-            timeout_ms = max(0, round((self.max_wait_time + 1.1 - elapsed) * 1000))
-        return {
-            "barrier_id": self.barrier_id,
-            "channel": f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant.id}",
-            "message": self.content,
-            "page_uuid": participant.page_uuid,
-            "safety_poll_ms": 10_000,
-            "timeout_ms": timeout_ms,
-        }
-
-    def attributes(self, participant):
-        attributes = super().attributes(participant)
-        attributes["timeline_hold"] = self.timeline_hold_payload(participant)
-        return attributes
-
-    def get_bot_response(self, experiment, bot):
-        return None
+            raise RuntimeError(
+                f"Participant {participant.id} has no active link for barrier "
+                f"'{self.barrier_id}'."
+            )
+        link.timeline_hold = record
 
 
 class _ReadOnlyParticipantList(list):
@@ -190,6 +160,11 @@ class Barrier(EltCollection):
     fix_time_credit
         If set to ``True``, then the amount of time 'credit' that the participant receives will be capped
         according to the estimate derived from ``waiting_logic`` and ``waiting_logic_expected_repetitions``.
+
+    expected_wait
+        Expected duration of a default timeline hold. If omitted, preserves the
+        historical default estimate of 0.5 seconds multiplied by
+        ``waiting_logic_expected_repetitions``.
     """
 
     def __init__(
@@ -199,17 +174,23 @@ class Barrier(EltCollection):
         waiting_logic_expected_repetitions=3,
         max_wait_time=20,
         fix_time_credit=False,
+        expected_wait=None,
     ):
         self.id = id_
         self.max_wait_time = max_wait_time
+        self.fix_time_credit = fix_time_credit
+        self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
         self._uses_timeline_hold = waiting_logic is None
+        self.expected_wait = (
+            0.5 * waiting_logic_expected_repetitions
+            if expected_wait is None
+            else expected_wait
+        )
         if waiting_logic is None:
             waiting_logic = _BarrierHoldPage(self)
 
         self.waiting_logic = waiting_logic
-        self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
         self.max_wait_action = "fail"
-        self.fix_time_credit = fix_time_credit
 
     def for_registry(self):
         """Return a registry-safe copy of the barrier."""
@@ -252,7 +233,11 @@ class Barrier(EltCollection):
                     not self.can_participant_exit(participant)
                 ),
                 logic=self.waiting_logic,
-                expected_repetitions=self.waiting_logic_expected_repetitions,
+                expected_repetitions=(
+                    1
+                    if self._uses_timeline_hold
+                    else self.waiting_logic_expected_repetitions
+                ),
                 max_loop_time=self.max_wait_time,
                 fix_time_credit=self.fix_time_credit,
                 fail_on_timeout=(self.max_wait_action == "fail"),
@@ -286,6 +271,7 @@ class Barrier(EltCollection):
             participant=participant,
             barrier_id=self.id,
             arrival_time=timenow(),
+            uses_timeline_hold=self._uses_timeline_hold,
         )
         participant.active_barriers[self.id] = link
 
@@ -1184,6 +1170,9 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     arrival_time = Column(DateTime)
     departure_time = Column(DateTime)
     released = Column(Boolean, default=False)
+    uses_timeline_hold = Column(Boolean, default=False)
+    timeline_hold_id = Column(Integer, ForeignKey("timeline_hold.id"), index=True)
+    timeline_hold = relationship("TimelineHoldRecord", backref="barrier_link")
 
     barrier_record = relationship("BarrierRecord", back_populates="participant_links")
 
@@ -1196,8 +1185,11 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         return barrier_record.barrier
 
     def release(self):
-        self.departure_time = timenow()
+        timestamp = timenow()
+        self.departure_time = timestamp
         self.released = True
+        if self.timeline_hold is not None:
+            self.timeline_hold.mark_released(self.participant, timestamp)
 
     def get_waiting_participants(self, for_update: bool = False):
         barrier = self.get_barrier()
