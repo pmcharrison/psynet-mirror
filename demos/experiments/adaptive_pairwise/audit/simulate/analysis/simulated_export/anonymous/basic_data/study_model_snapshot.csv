@@ -1,3 +1,0 @@
-study_fit_id,status,model_version,data_version,observation_count,observation_fingerprint,diagnostics,random_seed,error
-1,ready,bradley-terry-bootstrap-v1,0,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,"{'data_loading_seconds': 0.0, 'fit_seconds': 0.0, 'bootstrap_replicates': 0}",20260830,
-2,ready,bradley-terry-bootstrap-v1,41,41,ec7266bd0738ba39a00fbb9cc8c293a50426fe99666dfc5b80b170c5fc436c1a,"{'fit_seconds': 2.210982063999836, 'bootstrap_replicates': 2048, 'n_observations': 41, 'optimizer_success': True, 'data_loading_seconds': 0.0025211680003849324}",20260871,
