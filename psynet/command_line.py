@@ -3306,7 +3306,9 @@ _test_options["duration_minutes"] = click.option(
     help="""
     Total performance-test measurement window in minutes. This includes
     first-bot initialization and ramp-up towards 'n-bots', so the test may spend
-    less than 'duration-minutes' at the target concurrency.
+    less than 'duration-minutes' at the target concurrency. A short first pass
+    (default 1 minute) is fine; use a longer window when finalizing, and at
+    least the estimated experiment duration if you want bots to finish.
     If not specified, defaults to Experiment.test_duration_minutes (1 minute)""",
 )
 

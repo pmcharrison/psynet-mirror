@@ -35,6 +35,8 @@ From your experiment directory, run:
 By default this starts a fresh local experiment server for you, attempts to keep
 ``Experiment.test_n_bots`` bots active for one minute, prints a report, and then
 shuts the server down again. You don't need to launch a server beforehand.
+That short default is a good first pass. Lengthen the run when the experiment
+is nearing finalizing, especially if you want some bots to finish.
 
 To simulate a heavier load, ask for more bots and a longer run:
 
@@ -58,7 +60,13 @@ The behavior of the test is governed by a handful of options:
     initializes, so this includes initialization and ramp-up rather than
     guaranteeing the full duration at target concurrency. Choose a run long
     enough for the target number of bots to become active. Defaults to
-    ``Experiment.test_duration_minutes`` (``1`` minute).
+    ``Experiment.test_duration_minutes`` (``1`` minute). A short first pass is
+    enough to see whether HTTP times look healthy. When the experiment is
+    nearing finalizing, use a longer window. If you want bots to finish, the
+    window needs to be at least on the order of the estimated experiment
+    duration (with ``--time-factor 1``, that is roughly wall-clock participant
+    time). Otherwise treat completion counts as uninformative: a multi-minute
+    timeline will often show zero finished bots on a one-minute smoke run.
 
 ``--stagger``
     The average delay, in seconds, between starting successive bots. Real
@@ -119,6 +127,8 @@ Each individual test also prints:
 
 * **Bot outcomes** — how many bots were started, completed successfully,
   completed with an error, or were still running when time ran out.
+  Zero successful completions is normal when the window is shorter than the
+  experiment.
 * **Bot runtimes** — how long bots took, broken down by outcome, along with
   initialization times.
 * **Request metrics** — total requests, request errors, and throughput.

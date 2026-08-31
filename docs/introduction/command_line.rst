@@ -348,8 +348,10 @@ latency and throughput statistics.
   psynet performance-test ssh --app my-app-name --n-bots 50 --duration-minutes 10
 
 Unlike ``psynet test``, which checks correctness, ``performance-test`` is about
-performance under load. For a full guide, including how to sweep several
-concurrency levels and how to interpret the results, see the
+performance under load. A short first pass is enough to inspect HTTP times;
+lengthen the window when finalizing if you want bots to finish. For a full
+guide, including how to sweep several concurrency levels and how to interpret
+the results, see the
 :ref:`testing experiment performance tutorial <performance_testing>`.
 Use ``psynet audit performance-test`` when the result should become
 canonical audit evidence.
