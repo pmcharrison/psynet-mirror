@@ -280,6 +280,20 @@ class Barrier(EltCollection):
             self.release(participant)
 
     def receive_participant(self, participant: Participant):
+        # #region agent log
+        from psynet.db import _agent_dbg
+
+        _agent_dbg(
+            "B",
+            "sync.py:receive_participant",
+            "enter",
+            {
+                "barrier_id": self.id,
+                "participant_id": getattr(participant, "id", None),
+                "session_id": id(db.session()),
+            },
+        )
+        # #endregion
         if object_session(participant) is None:
             db.session.add(participant)
 
@@ -291,6 +305,17 @@ class Barrier(EltCollection):
             arrival_time=timenow(),
         )
         participant.active_barriers[self.id] = link
+        # #region agent log
+        _agent_dbg(
+            "B",
+            "sync.py:receive_participant",
+            "exit",
+            {
+                "barrier_id": self.id,
+                "participant_id": getattr(participant, "id", None),
+            },
+        )
+        # #endregion
 
     def get_waiting_participants(self, for_update: bool = False):
         return self.get_waiting_participants_from_barrier_id(
@@ -1121,9 +1146,27 @@ class BarrierRecord(SQLBase, SQLMixin):
 
     @classmethod
     def ensure_exists(cls, barrier_id: str, barrier_class, barrier=None):
+        # #region agent log
+        from psynet.db import _agent_dbg
+
+        _agent_dbg(
+            "B",
+            "sync.py:BarrierRecord.ensure_exists",
+            "enter",
+            {"barrier_id": barrier_id, "session_id": id(db.session())},
+        )
+        # #endregion
         with db.session.no_autoflush:
             record = cls.query.get(barrier_id)
             if record is not None:
+                # #region agent log
+                _agent_dbg(
+                    "B",
+                    "sync.py:BarrierRecord.ensure_exists",
+                    "found_existing",
+                    {"barrier_id": barrier_id},
+                )
+                # #endregion
                 if barrier is not None:
                     if isinstance(barrier, Barrier):
                         barrier = barrier.for_registry()
@@ -1144,7 +1187,98 @@ class BarrierRecord(SQLBase, SQLMixin):
                 .values(**values)
                 .on_conflict_do_nothing(index_elements=["id"])
             )
-            result = db.session.execute(stmt)
+            # #region agent log
+            _agent_dbg(
+                "B",
+                "sync.py:BarrierRecord.ensure_exists",
+                "before_insert",
+                {"barrier_id": barrier_id, "session_id": id(db.session())},
+            )
+            import threading
+
+            _insert_state = {"done": False}
+
+            def _dump_locks_if_stuck(barrier_id=barrier_id, state=_insert_state):
+                import time
+
+                time.sleep(2.0)
+                if state["done"]:
+                    return
+                try:
+                    from sqlalchemy import text
+
+                    with db.engine.connect() as conn:
+                        rows = conn.execute(
+                            text(
+                                """
+                                SELECT a.pid, a.state, a.wait_event_type, a.wait_event,
+                                       left(a.query, 180) AS query,
+                                       now() - a.xact_start AS xact_age
+                                FROM pg_stat_activity a
+                                WHERE a.datname = current_database()
+                                  AND a.state <> 'idle'
+                                ORDER BY a.xact_start NULLS LAST
+                                """
+                            )
+                        ).mappings().all()
+                        lock_rows = conn.execute(
+                            text(
+                                """
+                                SELECT l.locktype, l.mode, l.granted,
+                                       l.relation::regclass::text AS rel,
+                                       l.pid, a.state, left(a.query, 120) AS query
+                                FROM pg_locks l
+                                LEFT JOIN pg_stat_activity a ON a.pid = l.pid
+                                WHERE l.database = (
+                                    SELECT oid FROM pg_database
+                                    WHERE datname = current_database()
+                                )
+                                  AND l.relation::regclass::text IN
+                                      ('barrier','participant_link_barrier',
+                                       'timeline_hold','participant','experiment')
+                                """
+                            )
+                        ).mappings().all()
+                    _agent_dbg(
+                        "B",
+                        "sync.py:BarrierRecord.ensure_exists",
+                        "lock_dump_after_2s",
+                        {
+                            "barrier_id": barrier_id,
+                            "activity": [dict(r) for r in rows],
+                            "locks": [dict(r) for r in lock_rows],
+                        },
+                    )
+                except Exception as exc:
+                    _agent_dbg(
+                        "B",
+                        "sync.py:BarrierRecord.ensure_exists",
+                        "lock_dump_failed",
+                        {"error": repr(exc)},
+                    )
+
+            threading.Thread(
+                target=_dump_locks_if_stuck, daemon=True, name="agent-lock-dump"
+            ).start()
+            # #endregion
+            try:
+                result = db.session.execute(stmt)
+            finally:
+                # #region agent log
+                _insert_state["done"] = True
+                # #endregion
+            # #region agent log
+            _agent_dbg(
+                "B",
+                "sync.py:BarrierRecord.ensure_exists",
+                "after_insert",
+                {
+                    "barrier_id": barrier_id,
+                    "rowcount": result.rowcount,
+                    "session_id": id(db.session()),
+                },
+            )
+            # #endregion
             if barrier is not None and result.rowcount == 0:
                 record = cls.query.get(barrier_id)
                 if record is not None:

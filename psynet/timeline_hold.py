@@ -80,6 +80,16 @@ def _publish_timeline_hold_wakes(session):
     wakes = list(session.info.pop(_PENDING_WAKE_KEY, {}).values())
     if not wakes:
         return
+    # #region agent log
+    from psynet.db import _agent_dbg
+
+    _agent_dbg(
+        "D",
+        "timeline_hold.py:_publish_timeline_hold_wakes",
+        "publish",
+        {"wake_count": len(wakes), "session_id": id(session)},
+    )
+    # #endregion
     try:
         db.redis_conn.publish(
             _TIMELINE_HOLD_CHANNEL,
@@ -244,6 +254,21 @@ class _TimelineHoldPage(Page):
                 credited_wait_seconds=0.0,
             )
             db.session.add(record)
+            # #region agent log
+            from psynet.db import _agent_dbg
+
+            _agent_dbg(
+                "C",
+                "timeline_hold.py:consume",
+                "hold_inserted",
+                {
+                    "hold_id": self.hold_id,
+                    "participant_id": participant.id,
+                    "page_uuid": participant.page_uuid,
+                    "session_id": id(db.session()),
+                },
+            )
+            # #endregion
         else:
             record.page_uuid = participant.page_uuid
         participant._timeline_hold_record = record
