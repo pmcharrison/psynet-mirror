@@ -2725,7 +2725,7 @@ class NetworkTrialMaker(TrialMaker):
         logger.info(
             "Selected node %i from network %i to give to participant %i.",
             node.id,
-            node.network.id,
+            node.network_id,
             participant.id,
         )
         trial = self._create_trial(

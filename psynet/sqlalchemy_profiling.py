@@ -511,8 +511,51 @@ def assert_query_count(
     if profiler.total_count < min_queries or profiler.total_count > max_queries:
         raise AssertionError(
             f"Expected between {min_queries} and {max_queries} queries, "
-            f"but saw {profiler.total_count}."
+            f"but saw {profiler.total_count}.\n"
+            f"{profiler.format_summary(top_n=20, sort_by='count')}"
         )
+
+
+def assert_no_n_plus_one(
+    profiler: SQLAlchemyQueryProfiler,
+    n_objects: int,
+    *,
+    min_repeats: Optional[int] = None,
+) -> None:
+    """Fail if any captured statement ran once per object.
+
+    Parameters
+    ----------
+    profiler :
+        Profiler that has already captured the block under test.
+    n_objects :
+        Number of candidate objects in the block. Must be at least 2.
+    min_repeats :
+        Statement-count threshold treated as N+1. Defaults to ``n_objects``.
+    """
+    if n_objects < 2:
+        raise ValueError("n_objects must be >= 2 to detect N+1 queries.")
+    threshold = n_objects if min_repeats is None else min_repeats
+    offenders = [
+        stat
+        for stat in profiler.get_stats(top_n=None, sort_by="count")
+        if stat.count >= threshold
+    ]
+    if not offenders:
+        return
+
+    def _format_offender(stat: QueryStats) -> str:
+        line = f"{stat.count} x {stat.statement}"
+        if stat.callsite_counts:
+            line += f" callsites={stat.callsite_counts}"
+        return line
+
+    details = "\n".join(_format_offender(stat) for stat in offenders)
+    raise AssertionError(
+        f"Expected no statement to execute {threshold} or more times "
+        f"for {n_objects} objects, but found:\n{details}\n"
+        f"{profiler.format_summary(top_n=20, sort_by='count')}"
+    )
 
 
 @contextmanager

@@ -77,3 +77,12 @@ If you want to keep the per-process JSON files, provide ``--sql-profile-dir``:
 When no directory is provided, PsyNet uses a temporary directory. The directory
 is cleaned up only when no persistent output is requested (for example,
 text-only output); it is kept when writing HTML or JSON reports.
+
+Asserting query budgets in tests
+--------------------------------
+
+Use :func:`~psynet.sqlalchemy_profiling.assert_query_count` to bound the number
+of statements in a block, and
+:func:`~psynet.sqlalchemy_profiling.assert_no_n_plus_one` to fail when any
+statement ran once per candidate object. The latter is the usual signature of a
+lazy-load N+1, such as following ``node.network`` for every static candidate.

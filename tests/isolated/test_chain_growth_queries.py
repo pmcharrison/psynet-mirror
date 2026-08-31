@@ -1,3 +1,4 @@
+import re
 import uuid
 
 import pytest
@@ -7,7 +8,11 @@ from sqlalchemy import inspect
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sqlalchemy_profiling import assert_query_count
+from psynet.sqlalchemy_profiling import (
+    assert_no_n_plus_one,
+    assert_query_count,
+    sqlalchemy_profile,
+)
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 from psynet.trial.create_and_rate import (
     CreateAndRateAssignmentPending,
@@ -669,3 +674,199 @@ def test_graph_growth_processes_ready_cycle_as_one_wave(db_session, participant)
         trial_maker.call_grow_network(network, check_readiness=False)
 
     assert {network.head.degree for network in networks} == {1}
+
+
+def reload_participant(participant):
+    participant_id = participant.id
+    db.session.commit()
+    db.session.remove()
+    participant = db.session.get(Participant, participant_id)
+    participant.module_state
+    return participant
+
+
+def make_static_trial_maker(id_, *, target_trials_per_node=None, **kwargs):
+    args = dict(
+        id_=id_,
+        trial_class=GrowthQueryStaticTrial,
+        nodes=[StaticNode(definition={"x": 0})],
+        expected_trials_per_participant=1,
+        max_trials_per_participant=None,
+        target_trials_per_node=target_trials_per_node,
+        balance_across_nodes=False,
+    )
+    args.update(kwargs)
+    return StaticTrialMaker(**args)
+
+
+def create_static_networks(trial_maker, experiment, n):
+    return [
+        create_chain_network(trial_maker, experiment, network_class=StaticNetwork)
+        for _ in range(n)
+    ]
+
+
+def _network_select_statements(profiler):
+    return [
+        stat
+        for stat in profiler.get_stats(top_n=None)
+        if re.search(r"\bfrom\s+network\b", stat.statement, re.I)
+        and stat.statement.lstrip().lower().startswith("select")
+    ]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_static_author_hooks_do_not_n_plus_one_on_node_network(db_session, participant):
+    n_nodes = 20
+    exp = get_experiment()
+    trial_maker = make_static_trial_maker("static_author_hooks")
+    create_static_networks(trial_maker, exp, n_nodes)
+    initialize_trial_maker_state(trial_maker, participant)
+
+    def custom_node_filter(nodes, participant, experiment):
+        return [node for node in nodes if node.network.failed is False]
+
+    def select_node(nodes, participant, experiment):
+        return max(nodes, key=lambda node: node.network.id)
+
+    trial_maker.custom_node_filter = custom_node_filter
+    trial_maker.select_node = select_node
+    participant = reload_participant(participant)
+
+    with assert_query_count(
+        min_queries=2, max_queries=8, capture_stack=True
+    ) as profiler:
+        selection = trial_maker._select_trial_node(participant, exp)
+
+    assert_no_n_plus_one(profiler, n_nodes)
+    assert selection.value.network.failed is False
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_static_prepare_trial_query_count_is_bounded(db_session, participant):
+    n_nodes = 20
+    exp = get_experiment()
+    trial_maker = make_static_trial_maker("static_prepare_trial")
+    create_static_networks(trial_maker, exp, n_nodes)
+    initialize_trial_maker_state(trial_maker, participant)
+    participant = reload_participant(participant)
+
+    with assert_query_count(
+        min_queries=3, max_queries=25, capture_stack=True
+    ) as profiler:
+        trial, status = trial_maker.prepare_trial(exp, participant)
+
+    assert status == "available"
+    assert trial is not None
+    assert_no_n_plus_one(profiler, n_nodes)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_static_discovery_query_count_does_not_scale_with_nodes(
+    db_session, participant
+):
+    participant_id = participant.id
+    exp = get_experiment()
+
+    def profile_find_nodes(n, maker_id):
+        live = db.session.get(Participant, participant_id)
+        trial_maker = make_static_trial_maker(maker_id)
+        create_static_networks(trial_maker, exp, n)
+        initialize_trial_maker_state(trial_maker, live)
+        live = reload_participant(live)
+        with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
+            eligible = trial_maker.find_nodes(live, exp)
+        assert len(eligible) == n
+        return profiler
+
+    small = profile_find_nodes(10, "static_scale_10")
+    large = profile_find_nodes(40, "static_scale_40")
+    assert large.total_count <= small.total_count + 1
+    assert_no_n_plus_one(large, 40)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_static_discovery_omits_mapped_network_count_subqueries(
+    db_session, participant
+):
+    exp = get_experiment()
+    trial_maker = make_static_trial_maker("static_count_subqueries")
+    create_static_networks(trial_maker, exp, 20)
+    initialize_trial_maker_state(trial_maker, participant)
+    participant = reload_participant(participant)
+
+    with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
+        trial_maker.find_nodes(participant, exp)
+
+    network_selects = _network_select_statements(profiler)
+    assert network_selects
+    for stat in network_selects:
+        assert stat.statement.lower().count("count(") == 0, stat.statement
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_chain_author_hooks_do_not_n_plus_one_on_head_network(db_session, participant):
+    n_chains = 20
+    exp = get_experiment()
+    trial_maker = chain_trial_maker(
+        id_="chain_author_hooks",
+        chains_per_experiment=n_chains,
+        max_trials_per_participant=None,
+    )
+    for _ in range(n_chains):
+        create_chain_network(trial_maker, exp)
+    initialize_trial_maker_state(trial_maker, participant)
+
+    def custom_chain_filter(chains, participant, experiment):
+        return [chain for chain in chains if chain.head.network.failed is False]
+
+    trial_maker.custom_chain_filter = custom_chain_filter
+    participant = reload_participant(participant)
+
+    with assert_query_count(
+        min_queries=3, max_queries=8, capture_stack=True
+    ) as profiler:
+        eligible = trial_maker.find_chains(participant, exp)
+
+    assert_no_n_plus_one(profiler, n_chains)
+    assert len(eligible) == n_chains
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_grow_readiness_does_not_load_trial_rows(db_session, participant):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker(id_="grow_readiness_rows")
+    network = create_chain_network(trial_maker, exp)
+    for _ in range(20):
+        add_trial(GrowthQueryTrial, network.head, participant, finalized=True)
+    db.session.commit()
+
+    with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
+        assert trial_maker.network_is_ready_to_grow(network) is True
+
+    assert profiler.total_count <= 2
+    for stat in profiler.get_stats(top_n=None):
+        sql = stat.statement.lower()
+        if "from info" in sql and "count(" not in sql and "exists" not in sql:
+            raise AssertionError(
+                "Readiness check loaded trial rows instead of counting them: "
+                f"{stat.statement}"
+            )
