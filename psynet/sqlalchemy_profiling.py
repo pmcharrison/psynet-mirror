@@ -536,21 +536,34 @@ def assert_no_n_plus_one(
     if n_objects < 2:
         raise ValueError("n_objects must be >= 2 to detect N+1 queries.")
     threshold = n_objects if min_repeats is None else min_repeats
+    if threshold < 1:
+        raise ValueError("min_repeats must be >= 1.")
+
+    # Stack capture deliberately splits QueryStats by (statement, stack). N+1
+    # detection is about how often SQL executes regardless of which Python
+    # paths reached it, so combine those buckets before applying the threshold.
+    stats_by_statement: Dict[str, List[QueryStats]] = {}
+    for stat in profiler.get_stats(top_n=None, sort_by="count"):
+        stats_by_statement.setdefault(stat.statement, []).append(stat)
     offenders = [
-        stat
-        for stat in profiler.get_stats(top_n=None, sort_by="count")
-        if stat.count >= threshold
+        (statement, sum(stat.count for stat in stats), stats)
+        for statement, stats in stats_by_statement.items()
+        if sum(stat.count for stat in stats) >= threshold
     ]
     if not offenders:
         return
 
-    def _format_offender(stat: QueryStats) -> str:
-        line = f"{stat.count} x {stat.statement}"
-        if stat.callsite_counts:
-            line += f" callsites={stat.callsite_counts}"
+    def _format_offender(statement: str, count: int, stats: List[QueryStats]) -> str:
+        callsites: Dict[str, int] = {}
+        for stat in stats:
+            for callsite, callsite_count in stat.callsite_counts.items():
+                callsites[callsite] = callsites.get(callsite, 0) + callsite_count
+        line = f"{count} x {statement}"
+        if callsites:
+            line += f" callsites={callsites}"
         return line
 
-    details = "\n".join(_format_offender(stat) for stat in offenders)
+    details = "\n".join(_format_offender(*offender) for offender in offenders)
     raise AssertionError(
         f"Expected no statement to execute {threshold} or more times "
         f"for {n_objects} objects, but found:\n{details}\n"
