@@ -56,7 +56,7 @@ In the ``simple_rating`` experiment, ``get_nodes`` constructs a list comprehensi
 .. code-block:: python
 
     from pathlib import Path
-    from psynet.trial import static_url_for
+    from psynet.media import static_url_for
     from psynet.trial.static import StaticNode
 
     STIMULUS_DIR = Path("static/instrument_sounds")

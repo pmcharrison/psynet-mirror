@@ -80,7 +80,8 @@ Pregenerated stimuli
 --------------------
 
 Put public audio, images, and video in ``static/`` and link them with
-``/static/...`` URLs. Gitignored files under ``static/`` are still deployed
+:func:`~psynet.media.static_url_for` (or a literal ``/static/...`` URL).
+Gitignored files under ``static/`` are still deployed
 unless you exclude them. Generated ``static/assets`` stays excluded.
 
 The default package-size limit is 1024 MB so a typical stimulus set can ship

@@ -8,10 +8,10 @@ from pathlib import Path
 from markupsafe import Markup
 
 import psynet.experiment
+from psynet.media import static_url_for
 from psynet.modular_page import AudioPrompt, ModularPage, TextControl
 from psynet.page import InfoPage
 from psynet.timeline import PageMaker, Timeline, join
-from psynet.trial import static_url_for
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 from .control import SingleTimedPushButtonControl

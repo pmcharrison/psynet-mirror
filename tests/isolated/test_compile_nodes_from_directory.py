@@ -1,6 +1,7 @@
 import pytest
 
-from psynet.trial import compile_nodes_from_directory, static_url_for
+from psynet.media import static_url_for
+from psynet.trial import compile_nodes_from_directory
 from psynet.utils import working_directory
 
 

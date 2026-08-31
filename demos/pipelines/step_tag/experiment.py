@@ -7,9 +7,9 @@ from pathlib import Path
 
 import psynet.experiment
 from psynet.asset import ExternalAsset
+from psynet.media import static_url_for
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
-from psynet.trial import static_url_for
 from psynet.trial.main import TrialNetwork
 
 from .audio_step_tag import AudioStepTag

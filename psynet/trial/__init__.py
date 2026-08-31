@@ -1,13 +1,11 @@
 from pathlib import Path
 from typing import Type
 
-from psynet.static_media import static_url_for
 from psynet.trial.chain import ChainNode, ChainTrial
 
 __all__ = [
     "Trial",
     "Node",
-    "static_url_for",
     "compile_nodes_from_directory",
 ]
 
@@ -92,6 +90,8 @@ def _compile_nodes_from_directory(
     node_class: Type[ChainNode],
     url_key: str = "url",
 ):
+    from psynet.media import static_url_for
+
     static_url_for(input_dir)
     nodes = []
     input_path = Path(input_dir)

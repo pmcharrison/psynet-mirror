@@ -8,11 +8,11 @@ from math import comb
 from pathlib import Path
 
 import psynet.experiment
+from psynet.media import static_url_for
 from psynet.modular_page import ModularPage, RatingControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.timeline import Event, MediaSpec, ProgressDisplay, Timeline
-from psynet.trial import static_url_for
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 N_TRIALS_PER_PARTICIPANT = 10

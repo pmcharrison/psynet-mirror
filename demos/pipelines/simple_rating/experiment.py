@@ -7,6 +7,7 @@ from pathlib import Path
 
 import psynet.experiment
 from psynet.bot import Bot
+from psynet.media import static_url_for
 from psynet.modular_page import (
     AudioPrompt,
     ModularPage,
@@ -15,7 +16,6 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage
 from psynet.timeline import Event, Timeline
-from psynet.trial import static_url_for
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 STIMULUS_DIR = Path("static/instrument_sounds")

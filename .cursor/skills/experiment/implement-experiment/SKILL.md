@@ -159,7 +159,8 @@ PsyNet. Do not treat `scripts update` as a substitute for first-time setup.
   use the `realtime-synchronous-experiments` skill alongside this general
   implementation workflow.
 - Put pregenerated public media in `static/` and pass `/static/...` URLs to
-  prompts. Use PsyNet assets for recordings and generated files.
+  prompts (`psynet.media.static_url_for`). Use PsyNet assets for recordings
+  and generated files.
 
 ### Run simulations
 

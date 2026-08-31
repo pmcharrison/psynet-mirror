@@ -50,8 +50,8 @@ If something seems very hard to achieve, stop and ask the user rather than devia
   should read the manifest rather than sampling or hardcoding all stimuli in
   `experiment.py`.
 - Put pregenerated public audio, images, and video in `static/` and pass
-  `/static/...` URLs to prompts. Use PsyNet assets for recordings and other
-  files created during the experiment.
+  `/static/...` URLs to prompts (`psynet.media.static_url_for`). Use PsyNet
+  assets for recordings and other files created during the experiment.
 - In audio experiments, make sure you start with a volume calibration page,
   and generally you should only activate the 'Next' button when the participant
   has finished listening to the trial stimulus.

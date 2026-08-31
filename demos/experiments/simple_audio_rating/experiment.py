@@ -7,6 +7,7 @@ This is a simple experiment that allows participants to rate sounds on a scale o
 from pathlib import Path
 
 import psynet.experiment
+from psynet.media import static_url_for
 from psynet.modular_page import (
     AudioPrompt,
     ModularPage,
@@ -15,7 +16,6 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage
 from psynet.timeline import Event, Timeline
-from psynet.trial import static_url_for
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 N_TRIALS_PER_PARTICIPANT = 6
