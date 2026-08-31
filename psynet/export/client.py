@@ -39,6 +39,7 @@ import csv
 import json
 import os
 import shutil
+import subprocess
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -387,7 +388,11 @@ def hydrate_assets(
         Number of asset entries materialized in the export tree.
     """
     from .asset_cache import link_or_copy, object_cache_path
-    from .ssh_rsync import missing_object_digests, prefetch_missing_objects
+    from .ssh_rsync import (
+        RsyncRequiredError,
+        missing_object_digests,
+        prefetch_missing_objects,
+    )
 
     if not plan.eligible:
         raise TransferError(
@@ -395,12 +400,22 @@ def hydrate_assets(
             "incrementally."
         )
     if plan.digests:
-        prefetch_missing_objects(
-            plan.digests,
-            source=rsync_source,
-            ssh_command=ssh_command,
-            cache_root=cache_root,
-        )
+        try:
+            prefetch_missing_objects(
+                plan.digests,
+                source=rsync_source,
+                ssh_command=ssh_command,
+                cache_root=cache_root,
+            )
+        except subprocess.CalledProcessError as exc:
+            # Exit 23 in particular means rsync could not read some of the
+            # requested objects, which the server itself can still read.
+            raise TransferError(
+                f"rsync failed with exit code {exc.returncode} while copying "
+                "asset objects from the server."
+            ) from exc
+        except RsyncRequiredError as exc:
+            raise TransferError(str(exc)) from exc
         remaining = missing_object_digests(plan.digests, cache_root=cache_root)
         if remaining:
             raise TransferError(

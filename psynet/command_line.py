@@ -10,7 +10,6 @@ import subprocess
 import sys
 import tempfile
 import threading
-import time
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -2670,6 +2669,7 @@ def _fetch_remote_export(
     """Download a server-built export, choosing the cheapest available transport."""
     from .export.client import (
         DashboardEndpoint,
+        TransferError,
         choose_transport,
         download_archive,
         extract_archive,
@@ -2720,35 +2720,50 @@ def _fetch_remote_export(
             "transfer is not available for this deployment or asset selection."
         )
 
-    download_dir = tempfile.mkdtemp(prefix="psynet-export-download-")
-    try:
-        archive_path = os.path.join(download_dir, "export.zip")
-        with yaspin(text="Downloading export", color="green") as spinner:
-            download_archive(
-                endpoint,
-                archive_path,
-                assets=assets,
-                asset_bytes="manifest" if chosen == "incremental" else "include",
-            )
-            spinner.ok("✔")
-        extract_archive(archive_path, export_path)
-    finally:
-        shutil.rmtree(download_dir, ignore_errors=True)
+    def download_into_staging(asset_bytes):
+        download_dir = tempfile.mkdtemp(prefix="psynet-export-download-")
+        try:
+            archive_path = os.path.join(download_dir, "export.zip")
+            with yaspin(text="Downloading export", color="green") as spinner:
+                download_archive(
+                    endpoint, archive_path, assets=assets, asset_bytes=asset_bytes
+                )
+                spinner.ok("✔")
+            extract_archive(archive_path, export_path)
+        finally:
+            shutil.rmtree(download_dir, ignore_errors=True)
 
     if chosen == "incremental" and assets != "none":
-        plan = plan_asset_transfer(export_path)
-        rsync_source, ssh_command = ssh_rsync_source(server)
-        with yaspin(text="Fetching missing asset bytes", color="green") as spinner:
-            materialized = hydrate_assets(
-                export_path, plan, rsync_source=rsync_source, ssh_command=ssh_command
+        download_into_staging("manifest")
+        try:
+            plan = plan_asset_transfer(export_path)
+            rsync_source, ssh_command = ssh_rsync_source(server)
+            with yaspin(text="Fetching missing asset bytes", color="green") as spinner:
+                materialized = hydrate_assets(
+                    export_path,
+                    plan,
+                    rsync_source=rsync_source,
+                    ssh_command=ssh_command,
+                )
+                spinner.ok("✔")
+        except TransferError as exc:
+            # The server can always read its own asset files, so an archive is
+            # still worth trying before giving up on the export entirely.
+            log(
+                f"Incremental asset transfer failed: {exc}\n"
+                "Falling back to a complete server-built archive."
             )
-            spinner.ok("✔")
-        log(f"Materialized {materialized} asset(s) from the local cache.")
-        from .export.asset_cache import warn_if_cache_oversized
+            shutil.rmtree(export_path, ignore_errors=True)
+            download_into_staging("include")
+        else:
+            log(f"Materialized {materialized} asset(s) from the local cache.")
+            from .export.asset_cache import warn_if_cache_oversized
 
-        oversized = warn_if_cache_oversized()
-        if oversized:
-            log(oversized)
+            oversized = warn_if_cache_oversized()
+            if oversized:
+                log(oversized)
+    else:
+        download_into_staging("include")
 
     if docker_ssh and server:
         fetch_logs(export_path, app=app, server=server)
@@ -3259,7 +3274,12 @@ def test__local(
         exp.test_time_factor = time_factor
 
     if existing:
+        # Unlike the pytest path below, this reports nothing on its own, which
+        # previously made a remote `psynet test ssh` look like it had done
+        # nothing at all.
+        click.echo(f"Running {exp.test_n_bots} bot(s) against the existing server...")
         exp.test_experiment()
+        click.echo(f"Bot test passed ({exp.test_n_bots} bot(s)).")
         return
 
     import pytest
@@ -3288,28 +3308,23 @@ def run_remote_experiment_command(executor, app, cmd):
     or not a terminal, which silently truncates long-running remote tests. This
     helper only reads the remote channel, and raises ``click.Abort`` if the remote
     command fails.
+
+    Output is read to end-of-file rather than until the remote exit status is
+    available. The exit status arrives before the last of the output, so polling
+    on it drops whatever is still in flight -- typically the test summary, which
+    is the part worth reading.
     """
     remote_cmd = build_remote_experiment_command(app, cmd)
     channel = executor.client.get_transport().open_session()
+    # Interleaving two streams without threads risks reordering the output, and
+    # the caller only wants to read it, so merge stderr into stdout.
+    channel.set_combine_stderr(True)
     channel.exec_command(remote_cmd)
 
-    def drain():
-        wrote = False
-        if channel.recv_ready():
-            sys.stdout.write(channel.recv(2**16).decode("utf-8", "replace"))
-            sys.stdout.flush()
-            wrote = True
-        if channel.recv_stderr_ready():
-            sys.stderr.write(channel.recv_stderr(2**16).decode("utf-8", "replace"))
-            sys.stderr.flush()
-            wrote = True
-        return wrote
-
-    while not channel.exit_status_ready():
-        if not drain():
-            time.sleep(0.05)
-    while drain():
-        pass
+    stream = channel.makefile("rb", 0)
+    for line in iter(stream.readline, b""):
+        sys.stdout.write(line.decode("utf-8", "replace"))
+        sys.stdout.flush()
 
     status = channel.recv_exit_status()
     if status != 0:

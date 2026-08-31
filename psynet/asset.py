@@ -2071,6 +2071,26 @@ class NoStorage(AssetStorage):
         pass
 
 
+#: Modes applied to folder assets stored in local storage. Single-file assets
+#: already end up readable because ``shutil.copyfile`` creates a fresh file, but
+#: ``shutil.copytree`` copies the source directory's mode. A folder deposited
+#: from a ``tempfile.TemporaryDirectory`` would therefore be stored as ``0700``,
+#: which stops anything running as another user -- notably the web server and
+#: ``rsync`` during export -- from reading it.
+_STORED_DIR_MODE = 0o755
+_STORED_FILE_MODE = 0o644
+
+
+def _normalize_stored_permissions(path):
+    """Make a stored asset readable regardless of the source's permissions."""
+    os.chmod(path, _STORED_DIR_MODE)
+    for dirpath, dirnames, filenames in os.walk(path):
+        for dirname in dirnames:
+            os.chmod(os.path.join(dirpath, dirname), _STORED_DIR_MODE)
+        for filename in filenames:
+            os.chmod(os.path.join(dirpath, filename), _STORED_FILE_MODE)
+
+
 class LocalStorage(AssetStorage):
     """
     Stores assets in a local folder on the same computer that is running your Python code.
@@ -2197,6 +2217,7 @@ class LocalStorage(AssetStorage):
                     os.path.expanduser(file_system_path),
                     dirs_exist_ok=True,
                 )
+                _normalize_stored_permissions(os.path.expanduser(file_system_path))
             else:
                 shutil.copyfile(asset.input_path, os.path.expanduser(file_system_path))
         else:

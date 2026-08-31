@@ -1,4 +1,5 @@
 import hashlib
+import io
 import json
 import subprocess
 import tempfile
@@ -812,30 +813,27 @@ def test_export_data_avoids_suffix_filename_collisions(
 
 
 class _FakeChannel:
-    """Minimal paramiko channel stand-in for remote command execution."""
+    """Minimal paramiko channel stand-in for remote command execution.
 
-    def __init__(self, exit_status, stdout=b"", stderr=b""):
+    The exit status is reported as ready straight away, while the output is only
+    readable line by line. This mirrors the real ordering, where the remote exit
+    status can arrive before the tail of the output.
+    """
+
+    def __init__(self, exit_status, output=b""):
         self.exit_status = exit_status
-        self.stdout = stdout
-        self.stderr = stderr
+        self.output = io.BytesIO(output)
         self.command = None
+        self.combine_stderr = False
+
+    def set_combine_stderr(self, value):
+        self.combine_stderr = value
 
     def exec_command(self, command):
         self.command = command
 
-    def recv_ready(self):
-        return bool(self.stdout)
-
-    def recv_stderr_ready(self):
-        return bool(self.stderr)
-
-    def recv(self, _size):
-        stdout, self.stdout = self.stdout, b""
-        return stdout
-
-    def recv_stderr(self, _size):
-        stderr, self.stderr = self.stderr, b""
-        return stderr
+    def makefile(self, _mode="rb", _bufsize=0):
+        return self.output
 
     def exit_status_ready(self):
         return True
@@ -860,10 +858,10 @@ def test_remote_experiment_commands_disable_tty_allocation():
     )
 
 
-def test_remote_experiment_command_echoes_output_and_reports_failure(capsys):
+def test_remote_experiment_command_echoes_all_output_and_reports_failure(capsys):
     from psynet.command_line import run_remote_experiment_command
 
-    channel = _FakeChannel(0, stdout=b"all good\n")
+    channel = _FakeChannel(0, output=b"running bots\n" + b"=== 1 passed ===\n")
     assert (
         run_remote_experiment_command(
             _executor_for(channel), "my-app", "psynet test local"
@@ -873,11 +871,15 @@ def test_remote_experiment_command_echoes_output_and_reports_failure(capsys):
     assert channel.command.startswith(
         "cd ~/dallinger/my-app && docker compose exec -T web"
     )
-    assert "all good" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "running bots" in output
+    # The test summary is the last thing the remote command prints, so it is what
+    # gets lost if we stop reading as soon as the exit status is available.
+    assert "1 passed" in output
 
     with pytest.raises(click.Abort):
         run_remote_experiment_command(
-            _executor_for(_FakeChannel(1, stderr=b"boom\n")),
+            _executor_for(_FakeChannel(1, output=b"boom\n")),
             "my-app",
             "psynet test local",
         )

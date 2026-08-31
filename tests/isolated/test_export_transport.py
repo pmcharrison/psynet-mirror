@@ -164,6 +164,43 @@ def test_asset_plan_excludes_assets_rsync_cannot_supply(tmp_path):
     assert not plan.eligible
 
 
+def test_hydration_reports_a_failed_rsync_as_a_transfer_error(
+    tmp_path, cache_root, monkeypatch
+):
+    """A failed rsync must be recoverable, so the caller can fall back."""
+    remote = tmp_path / "remote"
+    digest = _write_remote_object(remote, b"recording-bytes")
+
+    def run(cmd, check=False, **kwargs):
+        # Exit 23 is what rsync returns when it cannot read some source files,
+        # for example an asset folder the SSH user has no permission on.
+        raise subprocess.CalledProcessError(23, cmd)
+
+    monkeypatch.setattr("psynet.export.ssh_rsync.subprocess.run", run)
+
+    export_dir = tmp_path / "export"
+    _write_asset_manifest(
+        export_dir,
+        [
+            {
+                "id": 1,
+                "type": "experiment_asset",
+                "export_path": "a.wav",
+                "sha256_contents": digest,
+                "storage": "LocalStorage",
+            }
+        ],
+    )
+
+    with pytest.raises(TransferError, match="exit code 23"):
+        hydrate_assets(
+            str(export_dir),
+            plan_asset_transfer(str(export_dir)),
+            rsync_source=str(remote),
+            cache_root=cache_root,
+        )
+
+
 def test_hydration_fetches_missing_objects_once_and_reuses_the_cache(
     tmp_path, cache_root, monkeypatch
 ):

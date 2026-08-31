@@ -154,10 +154,12 @@ def write_export_manifest(
     from psynet import __version__ as psynet_version
 
     try:
-        import dallinger
-
-        dallinger_version = getattr(dallinger, "__version__", None)
+        from dallinger.version import __version__ as dallinger_version
     except Exception:
+        logger.warning(
+            "Could not determine the Dallinger version for the export manifest.",
+            exc_info=True,
+        )
         dallinger_version = None
 
     row_counts = {}

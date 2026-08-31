@@ -202,11 +202,12 @@ with one ``rsync --files-from`` into that cache, instead of one download per
 file. Repeat exports on the same machine transfer only new objects. If
 ``rsync`` is missing locally or on the SSH host, PsyNet prints install
 commands (``sudo apt install rsync``, or ``brew install rsync`` on macOS) and
-falls back to a complete server-built archive, so the export still succeeds. If
-rsync exits successfully but some objects are still missing from the cache, the
-export stops immediately rather than publishing an incomplete result. S3-backed
-assets and ``--assets all`` always use the complete archive. Warm-cache repeat
-exports do not need rsync at all.
+falls back to a complete server-built archive, so the export still succeeds.
+The same fallback applies if rsync fails, or exits successfully without
+supplying every requested object: because the server can always read its own
+files, PsyNet retries with a complete archive rather than publishing an
+incomplete export. S3-backed assets and ``--assets all`` always use the complete
+archive. Warm-cache repeat exports do not need rsync at all.
 
 If the cache grows past a soft limit (50 GiB by default), PsyNet warns after
 export but does **not** fail or delete objects. A single large experiment may
