@@ -1235,10 +1235,13 @@ def _publish_barrier_releases(releases):
 
     experiment = get_experiment()
     for release in releases:
-        participant_id = release.pop("participant_id")
+        participant_id = release["participant_id"]
+        payload = {
+            key: value for key, value in release.items() if key != "participant_id"
+        }
         try:
             experiment.publish_to_subscribers(
-                json.dumps({"type": "barrier_released", **release}),
+                json.dumps({"type": "barrier_released", **payload}),
                 channel_name=f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant_id}",
             )
         except Exception:

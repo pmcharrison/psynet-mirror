@@ -885,6 +885,7 @@
       document.body.classList.add("timeline-held");
       let mainBody = document.getElementById("main-body");
       if (mainBody) {
+        mainBody.inert = true;
         mainBody.setAttribute("aria-busy", "true");
       }
     };
@@ -913,22 +914,34 @@
       if (
         !controller ||
         controller.stopped ||
-        controller.resumeInFlight ||
         !psynet.pageReady ||
         psynet.nextPagePending
       ) {
         return false;
       }
+      if (controller.resumeInFlight) {
+        controller.resumeRequested = true;
+        return false;
+      }
 
       psynet.log.info("Checking timeline hold after " + reason + ".");
       controller.resumeInFlight = true;
+      controller.resumeRequested = false;
       clearTimeout(controller.safetyTimer);
       try {
         return await psynet.nextPage(null, {}, {});
       } finally {
         if (psynet.timelineHold === controller) {
           controller.resumeInFlight = false;
-          psynet.scheduleTimelineHoldCheck(controller);
+          if (controller.resumeRequested) {
+            controller.resumeRequested = false;
+            setTimeout(
+              () => psynet.resumeTimelineHold("queued barrier release"),
+              0,
+            );
+          } else {
+            psynet.scheduleTimelineHoldCheck(controller);
+          }
         }
       }
     };
@@ -941,7 +954,9 @@
       clearTimeout(controller.safetyTimer);
       clearTimeout(controller.timeoutTimer);
       if (controller.socket) {
-        controller.socket.onopen = function () {};
+        controller.socket.onopen = function () {
+          controller.socket.close();
+        };
         controller.socket.onmessage = function () {};
         controller.socket.onclose = function () {};
         controller.socket.close();
@@ -956,6 +971,7 @@
       document.body.classList.remove("timeline-held");
       let mainBody = document.getElementById("main-body");
       if (mainBody) {
+        mainBody.inert = false;
         mainBody.setAttribute("aria-busy", "false");
       }
       psynet.timelineHold = null;
@@ -970,7 +986,6 @@
       let active = psynet.timelineHold;
       if (active?.hold.page_uuid === hold.page_uuid) {
         active.hold = hold;
-        active.resumeInFlight = false;
         psynet.scheduleTimelineHoldCheck(active);
         psynet.scheduleTimelineHoldTimeout(active);
         return;
@@ -981,6 +996,7 @@
       let controller = {
         hold: hold,
         resumeInFlight: false,
+        resumeRequested: false,
         safetyTimer: null,
         socket: null,
         stopped: false,
