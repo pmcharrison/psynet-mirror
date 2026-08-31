@@ -56,3 +56,15 @@ def test_participant_request_query_loads_relationships_only_when_used(
         ]
     with assert_query_count(min_queries=1, max_queries=1):
         assert participant.active_barriers == {}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_experiment_var_loads_config_and_deferred_vars_together(db_session):
+    experiment = get_experiment()
+    db.session.commit()
+
+    with assert_query_count(min_queries=1, max_queries=1):
+        assert isinstance(dict(experiment.var.items()), dict)

@@ -57,7 +57,7 @@ from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import lazyload, with_polymorphic
+from sqlalchemy.orm import lazyload, undefer, with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
@@ -1784,8 +1784,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def var(self):
-        if self.experiment_config:
-            return self.experiment_config.var
+        # ``vars`` is deferred on general SQL-backed objects because it can be
+        # large. This property necessarily needs it, so load the config row and
+        # its JSON in one query rather than loading the row and then issuing a
+        # second deferred-column query on every participant request.
+        self._experiment_config = ExperimentConfig.query.options(
+            undefer(ExperimentConfig.vars)
+        ).get(1)
+        if self._experiment_config:
+            return self._experiment_config.var
         else:
             return ImmutableVarStore(self.variables_initial_values)
 
