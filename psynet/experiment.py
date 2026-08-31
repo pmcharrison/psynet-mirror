@@ -1784,15 +1784,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def var(self):
-        # ``vars`` is deferred on general SQL-backed objects because it can be
-        # large. This property necessarily needs it, so load the config row and
-        # its JSON in one query rather than loading the row and then issuing a
-        # second deferred-column query on every participant request.
-        self._experiment_config = ExperimentConfig.query.options(
-            undefer(ExperimentConfig.vars)
-        ).get(1)
-        if self._experiment_config:
-            return self._experiment_config.var
+        config = self.experiment_config
+        if config:
+            return config.var
         else:
             return ImmutableVarStore(self.variables_initial_values)
 
@@ -1801,7 +1795,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def experiment_config(self):
-        self._experiment_config = ExperimentConfig.query.get(1)
+        # ExperimentConfig is a singleton and its primary purpose is exposing
+        # vars. Loading the deferred JSON with the row avoids a second query and
+        # keeps this accessor as the single loading strategy used by var.
+        self._experiment_config = ExperimentConfig.query.options(
+            undefer(ExperimentConfig.vars)
+        ).get(1)
         return self._experiment_config
 
     def register_participant_fail_routine(self, routine):
