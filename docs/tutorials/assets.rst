@@ -5,9 +5,18 @@ Assets
 Overview
 --------
 
+Pregenerated public stimuli (audio, video, images) should usually live in the
+experiment ``static/`` directory and be linked by URL, for example
+``AudioPrompt("/static/stimuli/piano.mp3", ...)``.
+You do not need the asset system for that. Assets are for files that are
+**created or managed at runtime**: participant recordings
+(:class:`~psynet.modular_page.AudioRecordControl` and
+:class:`~psynet.modular_page.VideoRecordControl` do this for you),
+synthesized or on-demand media, imitation-chain generations, and files you
+want to export through ``psynet export --assets``.
+
 In PsyNet terminology, an :class:`~psynet.asset.Asset` is some kind of file (or collection of files) that
-is referenced during an experiment. These might for example be video files that we play
-to the participant, or perhaps audio recordings that we collect from the participant.
+is referenced during an experiment. These might for example be audio recordings that we collect from the participant.
 
 Working within PsyNet's :class:`~psynet.asset.Asset` framework brings various advantages. It abstracts away
 the notion of file storage, meaning that you can switch between storage backends
@@ -27,8 +36,9 @@ See the :class:`~psynet.asset.S3Storage` class for more details.
 
 .. warning::
     PsyNet's asset management system currently has some performance overhead that can make it slow
-    to deploy large experiments (e.g. 1000s of files). For an alternative manual approach, see
-    :ref:`large_stimulus_sets`.
+    to deploy large experiments (e.g. 1000s of files). Prefer ``static/`` URLs for
+    ordinary pregenerated sets. For corpora larger than about 1 GB, or when you
+    want a CDN, see :ref:`large_stimulus_sets`.
 
 Creating an asset
 -----------------
@@ -50,10 +60,9 @@ but we could also have it located elsewhere:
     logo_asset = asset("/Users/sherlock/desktop/logo.svg")
 
 .. note::
-    If you do want to keep large (collections of) assets in your experiment directory,
-    we recommend adding them to your ``.gitignore`` file. If you don't add them to ``.gitignore``,
-    PsyNet will include them as part of the source code package that is sent to the server,
-    which can lead to long upload times.
+    Large pregenerated files that you ship from ``static/`` can stay gitignored;
+    ``deploy.toml`` still copies them. Generated ``static/assets`` is excluded.
+    Use the asset system when the file should *not* be baked into the image.
 
 
 The idea is that, when we deploy the experiment, PsyNet will automatically upload the asset's file to
@@ -340,9 +349,9 @@ of the experiment, for example recordings from a singer, or stimuli generated on
 participant responses.
 
 2. A :class:`~psynet.asset.CachedAsset` is an asset that is reused over multiple experiment
-deployments. The classic use of a ``CachedAsset`` would be to represent some kind of stimulus
-that is pre-defined in advance of experiment launch. In the standard case, the :class:`~psynet.asset.CachedAsset`
-refers to a file on the local computer that is uploaded to a remote server on deployment.
+deployments. Use this when a generated or externally stored file should persist
+across launches. Pregenerated public playback files should usually live in
+``static/`` instead.
 
 3. An :class:`~psynet.asset.ExternalAsset` is an asset that is not managed by PsyNet. This would typically mean
 some kind of file that is hosted on a remote web server and is accessible by a URL. We don't generally recommend

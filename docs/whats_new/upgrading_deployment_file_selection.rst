@@ -75,3 +75,15 @@ After updating ``deploy.toml``:
 Git provenance records the commit and whether deployment-selected files contain
 uncommitted changes. Remote deployments require at least one Git commit; local
 debug and test runs may use a newly initialized repository.
+
+Pregenerated stimuli
+--------------------
+
+Put public audio, images, and video in ``static/`` and link them with
+``/static/...`` URLs. Gitignored files under ``static/`` are still deployed
+unless you exclude them. Generated ``static/assets`` stays excluded.
+
+The default package-size limit is 1024 MB so a typical stimulus set can ship
+in the image. That ceiling is meant for ``static/`` media. Before setting
+``EXP_MAX_SIZE_MB`` higher, run ``dallinger deployment-files list`` and
+exclude anything that should stay local. Heroku slugs cannot exceed 500 MB.

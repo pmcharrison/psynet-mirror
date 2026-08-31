@@ -8,15 +8,15 @@ from pathlib import Path
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import asset  # noqa
 from psynet.modular_page import AudioPrompt, ModularPage, TextControl
 from psynet.page import InfoPage
 from psynet.timeline import PageMaker, Timeline, join
+from psynet.trial import static_url_for
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 from .control import SingleTimedPushButtonControl
 
-STIMULUS_DIR = "data/global_music"
+STIMULUS_DIR = Path("static/global_music")
 STIMULUS_PATTERN = "*.mp3"
 TRIALS_PER_PARTICIPANT = 2
 
@@ -41,12 +41,12 @@ def get_timeline():
 def get_nodes():
     return [
         StaticNode(
-            definition={"stimulus_name": path.stem},
-            assets={
-                "stimulus_audio": asset(path, cache=False),
+            definition={
+                "stimulus_name": path.stem,
+                "url": static_url_for(path),
             },
         )
-        for path in Path(STIMULUS_DIR).glob(STIMULUS_PATTERN)
+        for path in STIMULUS_DIR.glob(STIMULUS_PATTERN)
     ]
 
 
@@ -64,7 +64,7 @@ class AudioTimedButtonTrial(StaticTrial):
         return ModularPage(
             "event_times",
             prompt=AudioPrompt(
-                audio=self.assets["stimulus_audio"],
+                audio=self.definition["url"],
                 text=Markup(
                     "<div style='text-align: center;'>Listen to the music and press the button when it's <strong>interesting</strong><br><br></div>"
                 ),
@@ -82,7 +82,7 @@ class AudioTimedButtonTrial(StaticTrial):
             ModularPage(
                 f"event_description_{i}",
                 AudioPrompt(
-                    self.assets["stimulus_audio"],
+                    self.definition["url"],
                     Markup(f"""<div style='text-align: center;'>
                            You indicated that at {event_time} seconds you found the music interesting.<br>
                            Can you tell us why? We'll play that moment again for you.

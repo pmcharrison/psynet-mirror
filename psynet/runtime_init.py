@@ -91,6 +91,9 @@ def _initialize_runtime() -> None:
 
     import os
 
+    from psynet.package_size import apply_default_exp_max_size_mb
+
     os.environ["GEVENT_SUPPORT"] = "True"
+    apply_default_exp_max_size_mb()
 
     patch_yaspin_jupyter_detection()

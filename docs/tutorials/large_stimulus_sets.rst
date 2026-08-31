@@ -5,16 +5,31 @@ Large stimulus sets
 ===================
 
 PsyNet users often want to run experiments that involve a large number of pregenerated
-multimedia files (e.g. images, audio, or video). It is possible to implement such experiments
-using PsyNet's asset management system, but this system currently has some performance overhead
-that can make such experiments slow to deploy.
+multimedia files (e.g. images, audio, or video).
 
-This tutorial explains an alternative approach that sidesteps these problems. Here the files
-are instead hosted on Amazon Web Service's S3 Storage service, and linked into the experiment
-using custom code.
+The default approach is to put those files in the experiment ``static/`` directory
+and pass URLs such as ``/static/stimuli/item_01.wav`` to
+:class:`~psynet.modular_page.AudioPrompt` or
+:class:`~psynet.modular_page.VideoPrompt`.
+``deploy.toml`` copies ``static/`` into the experiment image
+(except generated ``static/assets``). You can gitignore the binaries;
+they still deploy after you review the plan with
+``dallinger deployment-files list``.
 
-Getting started
----------------
+The default package-size limit is 1024 MB, which is meant for this workflow.
+If you need to raise ``EXP_MAX_SIZE_MB``, inspect the deployment-files list
+first so you are not shipping ``exports/``, virtualenvs, or private data.
+Heroku slugs cannot exceed 500 MB.
+
+Use PsyNet assets when the file is created during the experiment
+(recordings, synthesis, chain nodes) or must live on a storage backend.
+See :doc:`assets`.
+
+Very large corpora (well above 1 GB), thousands of video files, or media you
+want on a CDN can still be hosted on Amazon S3 and linked by URL, as below.
+
+Getting started with S3
+-----------------------
 
 1. The first step is to install the `AWS client <https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html>`_
 2. Now check it's installed properly by running ``aws --version`` in your terminal.

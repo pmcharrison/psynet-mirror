@@ -1,7 +1,7 @@
 import os
-from typing import Type
+from pathlib import Path
+from typing import Type, Union
 
-from psynet.asset import CachedAsset
 from psynet.trial.chain import ChainNode, ChainTrial
 
 
@@ -19,14 +19,44 @@ class Node(ChainNode):
         return None
 
 
+def static_url_for(
+    path: Union[str, Path],
+    *,
+    experiment_root: Union[str, Path, None] = None,
+) -> str:
+    """Return the public ``/static/...`` URL for a file under ``static/``.
+
+    Parameters
+    ----------
+    path
+        File path, absolute or relative to the experiment directory.
+    experiment_root
+        Experiment directory. Defaults to the current working directory.
+    """
+    root = Path(experiment_root or Path.cwd()).resolve()
+    static_root = (root / "static").resolve()
+    resolved = Path(path)
+    if not resolved.is_absolute():
+        resolved = (root / resolved).resolve()
+    try:
+        relative = resolved.relative_to(static_root)
+    except ValueError as exc:
+        raise ValueError(
+            f"{path} is not inside {static_root}. Put pregenerated media in "
+            "static/ so it can be served as /static/..., or register the file "
+            "as a PsyNet asset if it is generated or lives outside the experiment."
+        ) from exc
+    return "/static/" + relative.as_posix()
+
+
 def compile_nodes_from_directory(
     input_dir: str,
     media_ext: str,
     node_class: Type[ChainNode],
     asset_label: str = "prompt",
 ):
-    """
-    This function is used to compile nodes from a directory of media files.
+    """Compile trial nodes from a directory of media files under ``static/``.
+
     This directory is expected to be structured in the following kind of way:
 
     input_dir/
@@ -49,15 +79,13 @@ def compile_nodes_from_directory(
     |   |   |-- media_file_10.wav
     |   |-- block_3/
 
-    etc.
-
     You can name the participant groups, blocks and files whatever you want; the important
     thing is their position in the hierarchy.
 
-    If you want to have this input directory inside your experiment directory,
-    you should place it in the ``data`` directory.
-
-    Otherwise, you can place it anywhere you want outside the experiment directory.
+    Place ``input_dir`` under the experiment ``static/`` directory so the files
+    are copied with the deployment plan and served as ``/static/...`` URLs.
+    Each node definition stores that URL under ``asset_label`` (default
+    ``"prompt"``). Pass ``self.definition["prompt"]`` to ``AudioPrompt``.
 
     Parameters
     ----------
@@ -68,7 +96,7 @@ def compile_nodes_from_directory(
     node_class : type
         The class of the node to compile.
     asset_label : str, optional
-        The label of the asset to use for the media files.
+        Definition key that stores the media URL.
 
     Returns
     -------
@@ -102,12 +130,7 @@ def _compile_nodes_from_directory(
                     node_class(
                         definition={
                             "name": media_name,
-                        },
-                        assets={
-                            asset_label: CachedAsset(
-                                input_path=media_path,
-                                extension=media_ext,
-                            )
+                            asset_label: static_url_for(media_path),
                         },
                         participant_group=participant_group,
                         block=block,

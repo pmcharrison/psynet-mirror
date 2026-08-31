@@ -550,6 +550,39 @@ def test_package_size_check_uses_deployment_plan(tmp_path, monkeypatch):
             Experiment.check_size()
 
 
+def test_package_size_check_default_allows_static_stimuli_under_1gb(
+    tmp_path, monkeypatch
+):
+    monkeypatch.delenv("EXP_MAX_SIZE_MB", raising=False)
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        Path("included.bin").write_bytes(b"x" * (2 * 1024**2))
+        Experiment.check_size()
+
+
+def test_package_size_check_error_points_at_static_and_deployment_files_list(
+    tmp_path, monkeypatch
+):
+    (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+
+    with working_directory(tmp_path):
+        scaffold_experiment_directory()
+        Path("included.bin").write_bytes(b"x" * (2 * 1024**2))
+        monkeypatch.setenv("EXP_MAX_SIZE_MB", "1")
+
+        with pytest.raises(RuntimeError, match="static/") as exc_info:
+            Experiment.check_size()
+
+    message = str(exc_info.value)
+    assert "dallinger deployment-files list" in message
+    assert "EXP_MAX_SIZE_MB" in message
+    assert "1024 MB" in message
+
+
 def test_package_size_check_ignores_policy_exclusions(tmp_path, monkeypatch):
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")

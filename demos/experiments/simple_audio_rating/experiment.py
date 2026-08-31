@@ -7,7 +7,6 @@ This is a simple experiment that allows participants to rate sounds on a scale o
 from pathlib import Path
 
 import psynet.experiment
-from psynet.asset import asset  # noqa
 from psynet.modular_page import (
     AudioPrompt,
     ModularPage,
@@ -16,24 +15,23 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage
 from psynet.timeline import Event, Timeline
+from psynet.trial import static_url_for
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 N_TRIALS_PER_PARTICIPANT = 6
+STIMULUS_DIR = Path("static/instrument_sounds")
+STIMULUS_PATTERN = "*.mp3"
 
 
-# Note: for a more automatic approach, one could use the `audio_stimulus_set_from_dir` function
+# Note: for a more automatic approach, one could use compile_nodes_from_directory
 # to generate the nodes from a structured directory of audio files.
 # See the `audio_stimulus_set_from_dir` demo for an example.
 def get_nodes():
     return [
         StaticNode(
-            definition={"stimulus_name": stimulus["name"]},
-            assets={
-                "stimulus_audio": asset(
-                    stimulus["path"],
-                    extension=".mp3",
-                    cache=True,  # reuse the uploaded file between deployments
-                )
+            definition={
+                "stimulus_name": stimulus["name"],
+                "url": stimulus["url"],
             },
         )
         for stimulus in list_stimuli()
@@ -41,13 +39,12 @@ def get_nodes():
 
 
 def list_stimuli():
-    stimulus_dir = Path("data/instrument_sounds")
     return [
         {
             "name": path.stem,
-            "path": path,
+            "url": static_url_for(path),
         }
-        for path in list(stimulus_dir.glob("*.mp3"))
+        for path in list(STIMULUS_DIR.glob(STIMULUS_PATTERN))
     ]
 
 
@@ -66,7 +63,7 @@ class CustomTrial(StaticTrial):
         return ModularPage(
             "ratings",
             AudioPrompt(
-                self.assets["stimulus_audio"],
+                self.definition["url"],
                 "Please rate the sound. You can replay it as many times as you like.",
                 controls={"Play from start": "Replay"},
             ),

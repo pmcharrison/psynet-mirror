@@ -134,6 +134,12 @@ such as `.db`). PsyNet creates it from the template when missing and never
 overwrites a custom copy. Inspect the current plan with
 `dallinger deployment-files list`.
 
+Pregenerated public stimuli belong in `static/` (served as `/static/...`).
+They are included in the deployment plan. Generated `static/assets` is
+excluded. The default package-size limit is 1024 MB; raise `EXP_MAX_SIZE_MB`
+only after reviewing the file list. Use PsyNet assets for recordings and
+other files created during the experiment.
+
 `.dockerignore` is no longer supported. Move any custom exclusions into
 `deploy.toml` and remove `.dockerignore` before debug or deployment.
 

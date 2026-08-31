@@ -442,9 +442,10 @@ Modules are also useful for managing Assets, as described below.
 Asset
 ^^^^^
 
-An :class:`~psynet.asset.Asset` is some kind of file (or collection of files) that
-is referenced during an experiment. These might for example be video files that we play
-to the participant, or perhaps audio recordings that we collect from the participant.
+An :class:`~psynet.asset.Asset` is a file the experiment manages at runtime
+(for example a participant recording). Pregenerated public playback files
+should usually live in ``static/`` and be linked by URL; see
+:doc:`/tutorials/assets`.
 
 The API for Assets is powerful but complex. PsyNet provides many patterns for creating Assets
 and for accessing them within an experiment. These are documented in detail in the

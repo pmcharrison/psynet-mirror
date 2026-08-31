@@ -31,8 +31,9 @@ The implementation of static experiments in PsyNet relies on a collection of bas
   provide a response.
 - :class:`~psynet.trial.static.StaticTrialMaker` --
   The trial maker determines the logic in which trials are presented to the participant.
-- :class:`~psynet.asset.Asset` --
-  Assets are used to represent media files.
+
+Pregenerated media usually live in ``static/`` and are linked by URL. Use
+:class:`~psynet.asset.Asset` for recordings and other files created during the experiment.
 
 Experimenters customize these classes in various ways to define their experiment.
 In this chapter, we will talk through each of these classes in detail,
@@ -42,33 +43,31 @@ Nodes
 -----
 
 Nodes specify the stimuli that will be presented to the participant.
-Each node contains two key attributes:
-
-- ``definition`` --
-  A dictionary of information about the stimulus, e.g. ``{"instrument": "clarinet"}``.
-- ``assets`` --
-  An optional dictionary of assets (i.e. media files).
+Each node contains a ``definition`` dictionary of information about the stimulus,
+e.g. ``{"instrument": "clarinet", "url": "/static/instrument_sounds/clarinet.mp3"}``.
+Optional ``assets`` are for files the asset system manages (typically recordings
+or generated media), not for ordinary playback files in ``static/``.
 
 In a static experiment, the nodes are typically specified by defining a ``get_nodes`` function
 that returns a list of nodes.
 In the ``simple_rating`` experiment, ``get_nodes`` constructs a list comprehension over the
-``.mp3`` files in ``data/instrument_sounds``:
+``.mp3`` files in ``static/instrument_sounds``:
 
 .. code-block:: python
 
     from pathlib import Path
-    from psynet.asset import asset
+    from psynet.trial import static_url_for
     from psynet.trial.static import StaticNode
 
-    STIMULUS_DIR = Path("data/instrument_sounds")
+    STIMULUS_DIR = Path("static/instrument_sounds")
     STIMULUS_PATTERN = "*.mp3"
 
     def get_nodes():
         return [
             StaticNode(
-                definition={"stimulus_name": path.stem},
-                assets={
-                    "stimulus_audio": asset(path, cache=True),
+                definition={
+                    "stimulus_name": path.stem,
+                    "url": static_url_for(path),
                 },
             )
             for path in STIMULUS_DIR.glob(STIMULUS_PATTERN)
@@ -148,7 +147,7 @@ implemented. Here's how it's done:
             return ModularPage(
                 "ratings",
                 AudioPrompt(
-                    self.assets["stimulus_audio"],
+                    self.definition["url"],
                     "Please rate the sound. You can replay it as many times as you like.",
                     controls="Play",
                 ),
@@ -231,13 +230,10 @@ There are four compulsory parameters for instantiating a static trial maker:
 
 .. warning::
 
-    If ``get_nodes`` relies on listing audio files, make sure you write ``nodes=get_nodes``
-    rather than ``nodes=get_nodes()``.
-    The latter would fail when the app is deployed,
-    because the app would try to list files that are excluded from the deployment package.
-    Instead, you should defer evaluation by providing ``get_nodes`` as a function,
-    which allows PsyNet to only evaluate it on the local machine while the deployment package is
-    being prepared.
+    If ``get_nodes`` lists files, pass ``nodes=get_nodes`` rather than
+    ``nodes=get_nodes()``. Files under ``static/`` are part of the deployment
+    plan, so the listing also works on the server; passing the function still
+    avoids import-time work and matches other trial-maker patterns.
 
 There are many other optional parameters available too. See in particular:
 
@@ -307,7 +303,11 @@ maker with the following code:
 Assets
 ------
 
-Assets are PsyNet's way of representing and managing media files.
+Pregenerated public audio, images, and video should live in ``static/`` and be
+linked by URL, as in ``get_nodes`` above. PsyNet's asset system is for files
+that are created or managed at runtime: participant recordings, synthesized
+media, and files you want to export through ``psynet export --assets``.
+
 There are two main types of assets:
 assets created from local files, and assets created from functions.
 Both kinds are subclasses of :class:`~psynet.asset.Asset`,
