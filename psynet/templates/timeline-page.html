@@ -59,6 +59,37 @@
         </style>
     {% endif %}
 
+    <style>
+        body.timeline-held #main-body {
+            pointer-events: none;
+        }
+
+        #psynet-timeline-hold-indicator {
+            align-items: center;
+            background: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: 999px;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.12);
+            color: var(--bs-body-color);
+            display: flex;
+            gap: 0.6rem;
+            left: 50%;
+            max-width: calc(100vw - 2rem);
+            padding: 0.65rem 1rem;
+            position: fixed;
+            top: 1rem;
+            transform: translateX(-50%);
+            z-index: 1080;
+        }
+
+        #psynet-timeline-hold-indicator.psynet-timeline-hold-fallback {
+            margin: 20vh auto 0;
+            position: static;
+            transform: none;
+            width: fit-content;
+        }
+    </style>
+
     {% for x in css %}
         <style data-psynet-fragment-style="true">
             {{ x }}

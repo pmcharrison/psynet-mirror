@@ -846,10 +846,202 @@
       }
     };
 
+    psynet.timelineHold = null;
+
+    psynet.updatePageForTimelineHold = function (page) {
+      psynet.page = {
+        ...psynet.page,
+        attributes: page.attributes,
+        contents: page.contents,
+      };
+      let pageUuid = page.attributes.page_uuid;
+      psynet.var.pageUuid = pageUuid;
+      window.pageUuid = pageUuid;
+    };
+
+    psynet.showTimelineHoldIndicator = function (message) {
+      let indicator = document.getElementById(
+        "psynet-timeline-hold-indicator",
+      );
+      if (!indicator) {
+        indicator = document.createElement("div");
+        indicator.id = "psynet-timeline-hold-indicator";
+        indicator.setAttribute("role", "status");
+        indicator.setAttribute("aria-live", "polite");
+        indicator.dataset.timelineHoldDynamic = "true";
+
+        let spinner = document.createElement("span");
+        spinner.className = "spinner-border spinner-border-sm";
+        spinner.setAttribute("aria-hidden", "true");
+        indicator.appendChild(spinner);
+
+        let messageElement = document.createElement("span");
+        messageElement.className = "psynet-timeline-hold-message";
+        indicator.appendChild(messageElement);
+        document.body.appendChild(indicator);
+      }
+      indicator.querySelector(".psynet-timeline-hold-message").textContent =
+        message;
+      document.body.classList.add("timeline-held");
+      let mainBody = document.getElementById("main-body");
+      if (mainBody) {
+        mainBody.setAttribute("aria-busy", "true");
+      }
+    };
+
+    psynet.scheduleTimelineHoldCheck = function (controller) {
+      if (controller.stopped) return;
+      clearTimeout(controller.safetyTimer);
+      let jitterMs = Math.random() * 1000;
+      controller.safetyTimer = setTimeout(
+        () => psynet.resumeTimelineHold("safety poll"),
+        controller.hold.safety_poll_ms + jitterMs,
+      );
+    };
+
+    psynet.scheduleTimelineHoldTimeout = function (controller) {
+      clearTimeout(controller.timeoutTimer);
+      if (controller.hold.timeout_ms === null) return;
+      controller.timeoutTimer = setTimeout(
+        () => psynet.resumeTimelineHold("barrier timeout"),
+        controller.hold.timeout_ms,
+      );
+    };
+
+    psynet.resumeTimelineHold = async function (reason) {
+      let controller = psynet.timelineHold;
+      if (
+        !controller ||
+        controller.stopped ||
+        controller.resumeInFlight ||
+        !psynet.pageReady ||
+        psynet.nextPagePending
+      ) {
+        return false;
+      }
+
+      psynet.log.info("Checking timeline hold after " + reason + ".");
+      controller.resumeInFlight = true;
+      clearTimeout(controller.safetyTimer);
+      try {
+        return await psynet.nextPage(null, {}, {});
+      } finally {
+        if (psynet.timelineHold === controller) {
+          controller.resumeInFlight = false;
+          psynet.scheduleTimelineHoldCheck(controller);
+        }
+      }
+    };
+
+    psynet.stopTimelineHold = function () {
+      let controller = psynet.timelineHold;
+      if (!controller) return;
+
+      controller.stopped = true;
+      clearTimeout(controller.safetyTimer);
+      clearTimeout(controller.timeoutTimer);
+      if (controller.socket) {
+        controller.socket.onopen = null;
+        controller.socket.onmessage = null;
+        controller.socket.onclose = null;
+        controller.socket.close();
+      }
+
+      let indicator = document.getElementById(
+        "psynet-timeline-hold-indicator",
+      );
+      if (indicator?.dataset.timelineHoldDynamic === "true") {
+        indicator.remove();
+      }
+      document.body.classList.remove("timeline-held");
+      let mainBody = document.getElementById("main-body");
+      if (mainBody) {
+        mainBody.setAttribute("aria-busy", "false");
+      }
+      psynet.timelineHold = null;
+      window.dispatchEvent(
+        new CustomEvent("timelineHoldEnded", {
+          detail: {barrierId: controller.hold.barrier_id},
+        }),
+      );
+    };
+
+    psynet.beginTimelineHold = function (hold) {
+      let active = psynet.timelineHold;
+      if (active?.hold.page_uuid === hold.page_uuid) {
+        active.hold = hold;
+        active.resumeInFlight = false;
+        psynet.scheduleTimelineHoldCheck(active);
+        psynet.scheduleTimelineHoldTimeout(active);
+        return;
+      }
+
+      psynet.stopTimelineHold();
+      psynet.showTimelineHoldIndicator(hold.message);
+      let controller = {
+        hold: hold,
+        resumeInFlight: false,
+        safetyTimer: null,
+        socket: null,
+        stopped: false,
+        timeoutTimer: null,
+      };
+      psynet.timelineHold = controller;
+      psynet.scheduleTimelineHoldCheck(controller);
+      psynet.scheduleTimelineHoldTimeout(controller);
+
+      let wsScheme = location.protocol === "https:" ? "wss://" : "ws://";
+      let socketUrl =
+        wsScheme +
+        location.host +
+        "/chat?channel=" +
+        encodeURIComponent(hold.channel) +
+        "&worker_id=" +
+        encodeURIComponent(dallinger.identity.workerId) +
+        "&participant_id=" +
+        encodeURIComponent(dallinger.identity.participantId);
+      controller.socket = new ReconnectingWebSocket(socketUrl);
+      controller.socket.onopen = function () {
+        if (!controller.stopped) {
+          psynet.resumeTimelineHold("websocket connection");
+        }
+      };
+      controller.socket.onmessage = function (event) {
+        if (
+          controller.stopped ||
+          event.data.indexOf(hold.channel + ":") !== 0
+        ) {
+          return;
+        }
+        let message;
+        try {
+          message = JSON.parse(event.data.slice(hold.channel.length + 1));
+        } catch (error) {
+          return;
+        }
+        if (
+          message.type === "barrier_released" &&
+          message.barrier_id === hold.barrier_id &&
+          message.page_uuid === hold.page_uuid
+        ) {
+          psynet.resumeTimelineHold("barrier release");
+        }
+      };
+      window.dispatchEvent(
+        new CustomEvent("timelineHoldStarted", {
+          detail: {barrierId: hold.barrier_id},
+        }),
+      );
+    };
+
     psynet.finalizePageReady = async function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
       psynet.setPageReady(true);
       await psynet.trial.registerEvent("pageReady");
+      let hold = psynet.page.attributes?.timeline_hold;
+      if (hold) {
+        psynet.beginTimelineHold(hold);
+      }
     };
 
     psynet.prepareTimelineFragment = function (payload) {
@@ -2745,6 +2937,15 @@
 
     psynet.handleApprovedResponse = async function (response) {
       psynet.log.debug("Response received successfully.");
+
+      if (response.timeline_hold) {
+        psynet.updatePageForTimelineHold(response.page);
+        psynet.nextPagePending = false;
+        psynet.beginTimelineHold(response.timeline_hold);
+        return true;
+      }
+
+      psynet.stopTimelineHold();
 
       if (psynet.isSameSessionPageUpdate(response)) {
         psynet.page = response.page;

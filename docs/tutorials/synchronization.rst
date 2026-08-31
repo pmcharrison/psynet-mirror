@@ -98,6 +98,12 @@ When participants reach this barrier, they will be told to wait until all partic
 are also waiting at that barrier. An optional ``on_release`` function can be provided to the barrier,
 which will be executed on the group of participants at the point when they leave the barrier.
 
+By default, a barrier keeps the participant's current page visible, disables
+interaction, and displays a small waiting indicator. The browser receives a
+WebSocket notification when the barrier releases and performs only occasional
+HTTP checks as a fallback. To display dedicated pages or filler tasks while
+participants wait, pass them explicitly with ``waiting_logic``.
+
 
 Synchronization in trial makers
 -------------------------------

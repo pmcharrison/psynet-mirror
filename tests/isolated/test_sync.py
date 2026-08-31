@@ -22,7 +22,7 @@ from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
 from psynet.sync import (
-    BARRIER_HOLD_CHANNEL_PREFIX,
+    _BARRIER_HOLD_CHANNEL_PREFIX,
     Barrier,
     BarrierRecord,
     GroupBarrier,
@@ -560,7 +560,7 @@ def test_check_barriers_publishes_release_after_commit(
                 "barrier_id": "release_all",
                 "page_uuid": "hold-page-uuid",
             },
-            f"{BARRIER_HOLD_CHANNEL_PREFIX}{participant.id}",
+            f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant.id}",
         )
     ]
 

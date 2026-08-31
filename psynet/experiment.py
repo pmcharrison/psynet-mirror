@@ -2582,6 +2582,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         "Please close all other tabs and refresh the page.",
                     )
                 )
+            if getattr(event, "is_timeline_hold", False):
+                if event.participant_can_resume(
+                    participant
+                ) or event.participant_timed_out(participant):
+                    self.timeline.advance_page(self, participant)
+                return self.response_approved(
+                    participant, include_timeline_fragment
+                )
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -2641,6 +2649,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "submission": "approved",
             "page": page.__json__(participant),
         }
+        if getattr(page, "is_timeline_hold", False):
+            payload["timeline_hold"] = page.timeline_hold_payload(participant)
+            return success_response(**payload)
         config = get_config()
         # In inplace mode, the same /response round-trip both advances the
         # participant state and returns the next timeline fragment. Skip the

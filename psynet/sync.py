@@ -12,8 +12,8 @@ Glossary
 Barrier
     A timeline element that pauses participants until some release condition is
     satisfied (for example, "wait until two participants arrive"). Barriers are
-    subclasses of ``Barrier``/``GroupBarrier``. In a timeline they usually wrap
-    a ``WaitPage`` loop so participants see a waiting screen while they wait.
+    subclasses of ``Barrier``/``GroupBarrier``. By default the browser preserves
+    the current page and shows a lightweight hold indicator while it waits.
 
 Grouper and sync group
     A ``SimpleGrouper`` (or other grouper) is a timeline element that forms
@@ -55,6 +55,7 @@ Callable attributes on barriers (e.g., ``on_release``) are serialized via
 """
 
 import copy
+import json
 import random
 from math import floor
 from typing import Callable, List, Literal, Optional, Union
@@ -76,13 +77,72 @@ from sqlalchemy.orm import backref, deferred, joinedload, object_session, relati
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.db import transaction
 from psynet.field import PythonClass, PythonObject
-from psynet.page import UnsuccessfulEndPage, WaitPage
+from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
-from psynet.timeline import CodeBlock, EltCollection, conditional
+from psynet.timeline import CodeBlock, EltCollection, Page, conditional, get_template
 from psynet.utils import get_logger
 
 logger = get_logger()
+
+_BARRIER_HOLD_CHANNEL_PREFIX = "psynet_barrier_hold_"
+
+
+class _BarrierHoldPage(Page):
+    """Internal timeline checkpoint that preserves the preceding browser page."""
+
+    is_timeline_hold = True
+
+    def __init__(self, barrier):
+        self.barrier_id = barrier.id
+        self.max_wait_time = barrier.max_wait_time
+        self.content = "Waiting for other participants…"
+        super().__init__(
+            label="barrier_hold",
+            time_estimate=0,
+            save_answer=False,
+            template_str=get_template("barrier-hold-page.html"),
+            template_arg={"content": self.content},
+            framework_owned_template=True,
+        )
+
+    def participant_can_resume(self, participant):
+        """Return whether the barrier released this participant."""
+        return self.barrier_id not in participant.active_barriers
+
+    def participant_timed_out(self, participant):
+        """Return whether a resume check should run the barrier timeout logic."""
+        if self.max_wait_time is None:
+            return False
+        link = participant.active_barriers.get(self.barrier_id)
+        if link is None:
+            return False
+        elapsed = (timenow() - link.arrival_time).total_seconds()
+        return elapsed > self.max_wait_time + 1
+
+    def timeline_hold_payload(self, participant):
+        """Return browser configuration for this barrier visit."""
+        timeout_ms = None
+        link = participant.active_barriers.get(self.barrier_id)
+        if self.max_wait_time is not None and link is not None:
+            elapsed = (timenow() - link.arrival_time).total_seconds()
+            timeout_ms = max(0, round((self.max_wait_time + 1.1 - elapsed) * 1000))
+        return {
+            "barrier_id": self.barrier_id,
+            "channel": f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant.id}",
+            "message": self.content,
+            "page_uuid": participant.page_uuid,
+            "safety_poll_ms": 10_000,
+            "timeout_ms": timeout_ms,
+        }
+
+    def attributes(self, participant):
+        attributes = super().attributes(participant)
+        attributes["timeline_hold"] = self.timeline_hold_payload(participant)
+        return attributes
+
+    def get_bot_response(self, experiment, bot):
+        return None
 
 
 class _ReadOnlyParticipantList(list):
@@ -115,8 +175,9 @@ class Barrier(EltCollection):
 
     waiting_logic
         Either a single timeline element or a list of timeline elements (created by ``join``) that is to be displayed
-        to the participant while they are waiting at the barrier. If left at the default value of ``None``
-        then the participant will be shown a default waiting page.
+        to the participant while they are waiting at the barrier. If left at the
+        default value of ``None``, the current page remains visible beneath a
+        lightweight waiting indicator.
 
     waiting_logic_expected_repetitions
         The number of times that the participant is expected to experience the waiting_logic during a given barrier
@@ -139,13 +200,14 @@ class Barrier(EltCollection):
         max_wait_time=20,
         fix_time_credit=False,
     ):
-        if waiting_logic is None:
-            waiting_logic = WaitPage(wait_time=0.5)
-
         self.id = id_
+        self.max_wait_time = max_wait_time
+        self._uses_timeline_hold = waiting_logic is None
+        if waiting_logic is None:
+            waiting_logic = _BarrierHoldPage(self)
+
         self.waiting_logic = waiting_logic
         self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
-        self.max_wait_time = max_wait_time
         self.max_wait_action = "fail"
         self.fix_time_credit = fix_time_credit
 
@@ -318,6 +380,16 @@ class Barrier(EltCollection):
 
             for participant in participants_to_release:
                 self.release(participant)
+
+        return [
+            {
+                "participant_id": participant.id,
+                "page_uuid": participant.page_uuid,
+                "barrier_id": self.id,
+            }
+            for participant in participants_to_release
+            if self._uses_timeline_hold
+        ]
 
 
 class GroupBarrier(Barrier):
@@ -1157,12 +1229,33 @@ def _next_waiting_barrier(excluded_ids):
     )
 
 
+def _publish_barrier_releases(releases):
+    """Notify browsers after barrier releases have committed."""
+    from psynet.experiment import get_experiment
+
+    experiment = get_experiment()
+    for release in releases:
+        participant_id = release.pop("participant_id")
+        try:
+            experiment.publish_to_subscribers(
+                json.dumps({"type": "barrier_released", **release}),
+                channel_name=f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant_id}",
+            )
+        except Exception:
+            logger.warning(
+                "Failed to publish barrier release for participant %s.",
+                participant_id,
+                exc_info=True,
+            )
+
+
 def check_barriers():
     """Process waiting barriers, isolating failures to individual barriers."""
     excluded_ids = set()
 
     while True:
         barrier_id = None
+        releases = []
         try:
             with transaction():
                 barrier_record = _next_waiting_barrier(excluded_ids)
@@ -1174,7 +1267,8 @@ def check_barriers():
                     raise RuntimeError(
                         f"Barrier '{barrier_record.id}' is missing or invalid."
                     )
-                barrier.check()
+                releases = barrier.check() or []
+            _publish_barrier_releases(releases)
         except Exception:
             if barrier_id is None:
                 raise
