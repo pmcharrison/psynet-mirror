@@ -39,6 +39,9 @@ How processing works
 When a participant reaches a barrier, ``Barrier.receive_participant``:
 
 - Ensures a ``BarrierRecord`` exists (storing a lightweight copy of the barrier).
+  The registry insert commits on its own connection so concurrent participants are
+  not blocked on the unique ``barrier.id`` lock while the request keeps its
+  transaction open through HTML rendering.
 - Inserts a ``ParticipantLinkBarrier`` row marking the participant as waiting.
 
 A scheduled task in ``Experiment._check_barriers`` calls ``check_barriers`` in
@@ -1173,13 +1176,14 @@ class BarrierRecord(SQLBase, SQLMixin):
                     record.barrier = barrier
                 return
 
+            registry_barrier = (
+                barrier.for_registry() if isinstance(barrier, Barrier) else barrier
+            )
             record = cls(
                 id=barrier_id,
                 barrier_class=barrier_class,
                 created_at=timenow(),
-                barrier=(
-                    barrier.for_registry() if isinstance(barrier, Barrier) else barrier
-                ),
+                barrier=registry_barrier,
             )
             values = _insert_values_from_state(record)
             stmt = (
@@ -1192,7 +1196,11 @@ class BarrierRecord(SQLBase, SQLMixin):
                 "B",
                 "sync.py:BarrierRecord.ensure_exists",
                 "before_insert",
-                {"barrier_id": barrier_id, "session_id": id(db.session())},
+                {
+                    "barrier_id": barrier_id,
+                    "session_id": id(db.session()),
+                    "autonomous": True,
+                },
             )
             import threading
 
@@ -1208,9 +1216,10 @@ class BarrierRecord(SQLBase, SQLMixin):
                     from sqlalchemy import text
 
                     with db.engine.connect() as conn:
-                        rows = conn.execute(
-                            text(
-                                """
+                        rows = (
+                            conn.execute(
+                                text(
+                                    """
                                 SELECT a.pid, a.state, a.wait_event_type, a.wait_event,
                                        left(a.query, 180) AS query,
                                        now() - a.xact_start AS xact_age
@@ -1219,11 +1228,15 @@ class BarrierRecord(SQLBase, SQLMixin):
                                   AND a.state <> 'idle'
                                 ORDER BY a.xact_start NULLS LAST
                                 """
+                                )
                             )
-                        ).mappings().all()
-                        lock_rows = conn.execute(
-                            text(
-                                """
+                            .mappings()
+                            .all()
+                        )
+                        lock_rows = (
+                            conn.execute(
+                                text(
+                                    """
                                 SELECT l.locktype, l.mode, l.granted,
                                        l.relation::regclass::text AS rel,
                                        l.pid, a.state, left(a.query, 120) AS query
@@ -1237,8 +1250,11 @@ class BarrierRecord(SQLBase, SQLMixin):
                                       ('barrier','participant_link_barrier',
                                        'timeline_hold','participant','experiment')
                                 """
+                                )
                             )
-                        ).mappings().all()
+                            .mappings()
+                            .all()
+                        )
                     _agent_dbg(
                         "B",
                         "sync.py:BarrierRecord.ensure_exists",
@@ -1262,7 +1278,15 @@ class BarrierRecord(SQLBase, SQLMixin):
             ).start()
             # #endregion
             try:
-                result = db.session.execute(stmt)
+                # Commit independently of the caller's request transaction.
+                # Holding this unique insert open through Page.render lets a
+                # concurrent participant block on ON CONFLICT and stall both
+                # /timeline requests until the first render finishes.
+                from sqlalchemy.orm import Session
+
+                with Session(bind=db.engine) as side_session:
+                    result = side_session.execute(stmt)
+                    side_session.commit()
             finally:
                 # #region agent log
                 _insert_state["done"] = True
@@ -1276,15 +1300,20 @@ class BarrierRecord(SQLBase, SQLMixin):
                     "barrier_id": barrier_id,
                     "rowcount": result.rowcount,
                     "session_id": id(db.session()),
+                    "autonomous": True,
                 },
             )
             # #endregion
-            if barrier is not None and result.rowcount == 0:
+            record = cls.query.get(barrier_id)
+            if record is None:
+                # Side-session insert should always be visible under READ
+                # COMMITTED; fall back to the caller's transaction if not.
+                result = db.session.execute(stmt)
                 record = cls.query.get(barrier_id)
-                if record is not None:
-                    if isinstance(barrier, Barrier):
-                        barrier = barrier.for_registry()
-                    record.barrier = barrier
+            if barrier is not None and result.rowcount == 0 and record is not None:
+                if isinstance(barrier, Barrier):
+                    barrier = barrier.for_registry()
+                record.barrier = barrier
 
 
 @register_table

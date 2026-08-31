@@ -152,6 +152,72 @@ def test_barrier_rejects_negative_expected_wait():
         ReleaseAllBarrier(id_="negative_wait", expected_wait=-1)
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_record_ensure_exists_commits_independently(
+    in_experiment_directory, db_session
+):
+    """Registry inserts must be visible before the caller's transaction commits.
+
+    Concurrent /timeline requests previously blocked on ``barrier.id`` while the
+    first participant kept the insert open through HTML rendering.
+    """
+    barrier_id = f"autonomous_{get_random_id()}"
+    barrier = ReleaseAllBarrier(id_=barrier_id)
+
+    BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
+
+    # Another connection must see the row even if this session rolls back.
+    with db.engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT id FROM barrier WHERE id = :id"),
+            {"id": barrier_id},
+        ).first()
+    assert row is not None
+
+    db.session.rollback()
+    db.session.expire_all()
+    assert BarrierRecord.query.get(barrier_id) is not None
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_concurrent_barrier_ensure_exists_does_not_block(
+    in_experiment_directory, db_session
+):
+    """Two threads inserting the same barrier id must both finish promptly."""
+    import threading
+    import time
+
+    barrier_id = f"concurrent_{get_random_id()}"
+    barrier = ReleaseAllBarrier(id_=barrier_id)
+    start = threading.Barrier(2)
+    errors = []
+    elapsed_ms = []
+
+    def worker():
+        try:
+            start.wait(timeout=5)
+            began = time.perf_counter()
+            BarrierRecord.ensure_exists(barrier_id, type(barrier), barrier)
+            elapsed_ms.append((time.perf_counter() - began) * 1000)
+        except Exception as exc:  # pragma: no cover - surfaced via errors
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker, daemon=True) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=5)
+
+    assert errors == []
+    assert len(elapsed_ms) == 2
+    assert max(elapsed_ms) < 1000
+    assert BarrierRecord.query.get(barrier_id) is not None
+
+
 def test_group_barrier_resolved_timeout_uses_overridden_handler():
     barrier = RecordingTimeoutGroupBarrier(
         id_="group_barrier",
