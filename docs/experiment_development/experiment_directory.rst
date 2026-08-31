@@ -67,9 +67,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     Dallinger's
     `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_.
     Stock ``[exclude]`` ``paths`` include ``audit`` (the local review packet),
-    ``data``, and ``.cursor/skills/psynet``. Existing experiments keep their
-    current ``deploy.toml`` until they add those entries themselves; PsyNet
-    never overwrites a custom copy.
+    ``data``, and ``.cursor/skills/psynet``.
     Existing experiments should follow
     :doc:`/whats_new/upgrading_deployment_file_selection`.
     Inspect the current plan with ``dallinger deployment-files list``.

@@ -28,9 +28,7 @@ Check that the experiment folder has:
 - `deploy.toml` with reviewed `[exclude]` rules; if PsyNet just created it,
   the first debug/test/deploy command stops once so you can review. Then run
   `dallinger deployment-files list` to inspect every file that PsyNet will copy.
-  Git-ignored files may still be deployed after that review. Confirm `audit/`
-  is excluded (stock template) and that runtime modules beside `experiment.py`
-  are included.
+  Git-ignored files may still be deployed after that review.
 - `.gitignore` excluding `.venv/`, `.deploy/`, `.pytest_cache/`, `exports/`,
   `deploy_logs/`, source archives, generated logs, and the managed
   `.cursor/skills/psynet/` bundle
