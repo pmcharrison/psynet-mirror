@@ -609,6 +609,9 @@ flushes:
         creation_context={"snapshot_id": 12},
     )
 
+See ``demos/features/trial_cue_adaptive`` for a complete participant-level
+staircase that uses this pattern with ``while_loop``.
+
 
 Node
 ^^^^

@@ -213,6 +213,12 @@ We generally recommend constructing adaptive paradigms using `Trial.cue`.
 This gives more flexibility than the classic `TrialMaker` options,
 such as `StaticTrialMaker` and `ChainTrialMaker`.
 
+A runnable participant-level example is
+``demos/features/trial_cue_adaptive``: a 1-up/1-down staircase with
+``while_loop``, ``Trial.cue``, and a decision table. Use that layout when
+you do not need study-level snapshots or media. The example below is the
+same wiring with module-level audio assets.
+
 ### Cue the selected candidate
 
 Selection is an ordinary function in the timeline. Keep one cached file per
