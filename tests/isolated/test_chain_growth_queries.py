@@ -943,7 +943,8 @@ def test_grow_readiness_does_not_load_trial_rows(db_session, participant):
     with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
         assert trial_maker.network_is_ready_to_grow(network) is True
 
-    assert profiler.total_count <= 2
+    # One readiness/lock query plus at most two polymorphic network refreshes.
+    assert profiler.total_count <= 3
     for stat in profiler.get_stats(top_n=None):
         sql = stat.statement.lower()
         if "from info" in sql and "count(" not in sql and "exists" not in sql:
