@@ -1,0 +1,327 @@
+"""Tests for bulk SSH rsync of content-addressed asset objects."""
+
+import hashlib
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+from psynet.export.ssh_rsync import (
+    build_rsync_command,
+    default_ssh_command,
+    missing_object_digests,
+    object_relative_path,
+    prefetch_missing_objects,
+    remote_assets_source,
+)
+from psynet.utils import sha256_directory, sha256_file
+
+
+@pytest.fixture()
+def cache_root(tmp_path):
+    return tmp_path / "cache"
+
+
+@pytest.fixture()
+def remote_assets(tmp_path):
+    return tmp_path / "remote_assets"
+
+
+def _write_object(root: Path, payload: bytes) -> str:
+    digest = hashlib.sha256(payload).hexdigest()
+    dest = root / "objects" / "sha256" / digest
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(payload)
+    return digest
+
+
+def _make_rsync_double(remote_root: Path):
+    """Copy ``--files-from`` paths without requiring an ``rsync`` binary."""
+
+    def run(cmd, check=False, **kwargs):
+        files_from = Path(cmd[cmd.index("--files-from") + 1])
+        dest = Path(str(cmd[-1]).rstrip("/"))
+        for rel in files_from.read_text().splitlines():
+            if not rel:
+                continue
+            src = remote_root / rel
+            if not src.exists():
+                continue
+            dst = dest / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if src.is_dir():
+                shutil.copytree(src, dst, dirs_exist_ok=True)
+            else:
+                shutil.copy2(src, dst)
+        result = subprocess.CompletedProcess(cmd, 0)
+        if check and result.returncode != 0:
+            raise subprocess.CalledProcessError(result.returncode, cmd)
+        return result
+
+    return run
+
+
+def _write_folder_object(root: Path, files: dict[str, bytes]) -> str:
+    staging = root / "_folder_src"
+    staging.mkdir(parents=True)
+    for name, payload in files.items():
+        (staging / name).write_bytes(payload)
+    digest = sha256_directory(staging)
+    dest = root / "objects" / "sha256" / digest
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(staging, dest)
+    shutil.rmtree(staging)
+    return digest
+
+
+def test_object_relative_path_accepts_hex_digest():
+    digest = "a" * 64
+    assert object_relative_path(digest) == f"objects/sha256/{digest}"
+
+
+def test_object_relative_path_rejects_traversal():
+    with pytest.raises(ValueError, match="digest"):
+        object_relative_path("../etc/passwd")
+    with pytest.raises(ValueError, match="digest"):
+        object_relative_path("objects/sha256/" + "a" * 64)
+
+
+def test_missing_object_digests_skips_cached(cache_root, remote_assets):
+    present = _write_object(cache_root, b"already here")
+    absent = hashlib.sha256(b"not here").hexdigest()
+    missing = missing_object_digests([present, absent, present], cache_root=cache_root)
+    assert missing == [absent]
+
+
+def test_remote_assets_source_uses_home_and_user():
+    assert (
+        remote_assets_source("example.com", "alice", "/home/alice")
+        == "alice@example.com:/home/alice/psynet-data/assets/"
+    )
+    assert (
+        remote_assets_source("example.com", None, "/home/alice")
+        == "example.com:/home/alice/psynet-data/assets/"
+    )
+
+
+def test_default_ssh_command_includes_identity_and_batch_mode(tmp_path):
+    pem = tmp_path / "key.pem"
+    pem.write_text("dummy")
+    cmd = default_ssh_command(pem)
+    assert cmd[0] == "ssh"
+    assert "-i" in cmd
+    assert str(pem) in cmd
+    assert "BatchMode=yes" in cmd
+    assert "IdentitiesOnly=yes" in cmd
+
+
+def test_build_rsync_command_uses_files_from_and_ssh():
+    cmd = build_rsync_command(
+        files_from="/tmp/list.txt",
+        source="alice@host:/home/alice/psynet-data/assets/",
+        dest="/tmp/cache/",
+        ssh_command=["ssh", "-i", "/tmp/key.pem", "-o", "BatchMode=yes"],
+    )
+    assert cmd[0] == "rsync"
+    assert "-r" in cmd
+    assert "--files-from" in cmd
+    assert cmd[cmd.index("--files-from") + 1] == "/tmp/list.txt"
+    assert "-e" in cmd
+    assert cmd[-2].endswith("/")
+    assert cmd[-1].endswith("/")
+
+
+def test_prefetch_missing_objects_rsyncs_only_absent_files(cache_root, remote_assets):
+    cached = _write_object(cache_root, b"cached-bytes")
+    missing = _write_object(remote_assets, b"remote-bytes")
+    extra_remote = _write_object(remote_assets, b"should-not-copy")
+
+    written = prefetch_missing_objects(
+        [cached, missing],
+        source=str(remote_assets),
+        cache_root=cache_root,
+        run=_make_rsync_double(remote_assets),
+    )
+
+    assert written == [missing]
+    cached_path = cache_root / "objects" / "sha256" / cached
+    missing_path = cache_root / "objects" / "sha256" / missing
+    extra_path = cache_root / "objects" / "sha256" / extra_remote
+    assert cached_path.read_bytes() == b"cached-bytes"
+    assert missing_path.read_bytes() == b"remote-bytes"
+    assert not extra_path.exists()
+    assert sha256_file(missing_path) == missing
+
+
+def test_prefetch_missing_objects_copies_folder_objects(cache_root, remote_assets):
+    digest = _write_folder_object(remote_assets, {"a.txt": b"alpha", "b.txt": b"beta"})
+
+    written = prefetch_missing_objects(
+        [digest],
+        source=str(remote_assets),
+        cache_root=cache_root,
+        run=_make_rsync_double(remote_assets),
+    )
+
+    assert written == [digest]
+    dest = cache_root / "objects" / "sha256" / digest
+    assert dest.is_dir()
+    assert (dest / "a.txt").read_bytes() == b"alpha"
+    assert (dest / "b.txt").read_bytes() == b"beta"
+    assert sha256_directory(dest) == digest
+
+
+def test_prefetch_missing_objects_is_noop_when_cache_complete(
+    cache_root, remote_assets
+):
+    digest = _write_object(cache_root, b"done")
+    calls = []
+
+    def tracking_run(*args, **kwargs):
+        calls.append(args)
+        raise AssertionError("rsync should not run when every object is cached")
+
+    written = prefetch_missing_objects(
+        [digest],
+        source=str(remote_assets),
+        cache_root=cache_root,
+        run=tracking_run,
+    )
+    assert written == []
+    assert calls == []
+
+
+def test_prefetch_rejects_mismatched_bytes(cache_root, remote_assets):
+    digest = "0" * 64
+    dest = remote_assets / "objects" / "sha256" / digest
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(b"not the advertised digest")
+
+    written = prefetch_missing_objects(
+        [digest],
+        source=str(remote_assets),
+        cache_root=cache_root,
+        run=_make_rsync_double(remote_assets),
+    )
+
+    assert written == []
+    assert not (cache_root / "objects" / "sha256" / digest).exists()
+
+
+def test_prefetch_invokes_rsync_once_with_all_missing_paths(cache_root, remote_assets):
+    first = _write_object(remote_assets, b"one")
+    second = _write_object(remote_assets, b"two")
+    recorded = []
+    listed = []
+    fake = _make_rsync_double(remote_assets)
+
+    def wrapping_run(cmd, *args, **kwargs):
+        recorded.append(list(cmd))
+        files_from = Path(cmd[cmd.index("--files-from") + 1])
+        listed.extend(files_from.read_text().splitlines())
+        return fake(cmd, *args, **kwargs)
+
+    written = prefetch_missing_objects(
+        [first, second],
+        source=str(remote_assets),
+        cache_root=cache_root,
+        run=wrapping_run,
+    )
+
+    assert sorted(written) == sorted([first, second])
+    assert len(recorded) == 1
+    assert listed == [
+        f"objects/sha256/{first}",
+        f"objects/sha256/{second}",
+    ]
+
+
+@pytest.mark.skipif(shutil.which("rsync") is None, reason="rsync is not installed")
+def test_prefetch_with_real_rsync_copies_file_and_folder(cache_root, remote_assets):
+    file_digest = _write_object(remote_assets, b"real-rsync-file")
+    folder_digest = _write_folder_object(remote_assets, {"n.txt": b"nested"})
+
+    written = prefetch_missing_objects(
+        [file_digest, folder_digest],
+        source=str(remote_assets),
+        cache_root=cache_root,
+    )
+
+    assert sorted(written) == sorted([file_digest, folder_digest])
+    file_path = cache_root / "objects" / "sha256" / file_digest
+    folder_path = cache_root / "objects" / "sha256" / folder_digest
+    assert file_path.read_bytes() == b"real-rsync-file"
+    assert (folder_path / "n.txt").read_bytes() == b"nested"
+
+
+def test_prefetch_ssh_local_objects_rsyncs_only_localstorage(monkeypatch):
+    from types import SimpleNamespace
+
+    from psynet.asset import LocalStorage
+    from psynet.data import _prefetch_ssh_local_objects
+
+    local = LocalStorage()
+    local_digest = "a" * 64
+    skipped_digest = "b" * 64
+    captured = {}
+
+    local_asset = SimpleNamespace(sha256_contents=local_digest, storage=local)
+    s3_asset = SimpleNamespace(sha256_contents=skipped_digest, storage=object())
+
+    import importlib
+
+    docker_ssh = importlib.import_module("dallinger.command_line.docker_ssh")
+    monkeypatch.setattr(
+        docker_ssh,
+        "CONFIGURED_HOSTS",
+        {"demo": {"host": "example.com", "user": "alice"}},
+    )
+
+    class FakeExecutor:
+        def __init__(self, host, user=None):
+            self.host = host
+            self.user = user
+
+        def run(self, command):
+            assert command == "echo $HOME"
+            return "/home/alice\n"
+
+    monkeypatch.setattr(docker_ssh, "Executor", FakeExecutor)
+    monkeypatch.setattr(
+        "dallinger.command_line.utils.get_server_pem_path",
+        lambda: "/tmp/key.pem",
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.import_local_experiment",
+        lambda: {"class": SimpleNamespace(asset_storage=local)},
+    )
+
+    def fake_prefetch(digests, **kwargs):
+        captured["digests"] = list(digests)
+        captured["source"] = kwargs["source"]
+        captured["ssh_command"] = kwargs["ssh_command"]
+        return list(digests)
+
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.prefetch_missing_objects",
+        fake_prefetch,
+    )
+
+    class Logger:
+        def info(self, *args, **kwargs):
+            pass
+
+        def warning(self, *args, **kwargs):
+            pass
+
+    _prefetch_ssh_local_objects(
+        [local_asset, s3_asset],
+        "demo",
+        Logger(),
+    )
+
+    assert captured["digests"] == [local_digest]
+    assert captured["source"] == "alice@example.com:/home/alice/psynet-data/assets/"
+    assert "-i" in captured["ssh_command"]
+    assert "/tmp/key.pem" in captured["ssh_command"]

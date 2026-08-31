@@ -10,7 +10,9 @@ Asset cache
 :mod:`psynet.export.asset_cache` implements a persistent local cache at
 ``~/psynet-data/cache/assets`` that stores content-addressed objects in
 ``objects/sha256/<digest>``. Export archives materialize those bytes under
-semantic ``export_path`` trees.
+semantic ``export_path`` trees. SSH command-line exports fill missing cache
+objects with one ``rsync --files-from`` from the remote LocalStorage tree
+when ``rsync`` is available.
 """
 
 from .analysis import (

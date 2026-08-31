@@ -810,6 +810,9 @@ def export_assets(
 
     Bytes are still fetched via the content-addressed local cache; the export
     tree itself uses human-readable paths from :attr:`Asset.export_path`.
+    SSH command-line exports prefetch missing LocalStorage objects with one
+    ``rsync --files-from`` into that cache, then fall back to per-asset SFTP
+    for anything still missing.
     """
     from .asset import ExternalAsset, OnDemandAsset
 
@@ -865,6 +868,8 @@ def export_assets(
     from .utils import get_logger
 
     logger = get_logger()
+    if server is not None:
+        _prefetch_ssh_local_objects(assets, server, logger)
     if n_parallel and n_parallel > 1:
         logger.warning(
             "Asset export parallelism is currently disabled (sequential export) "
@@ -917,6 +922,99 @@ def export_assets(
         writer.writeheader()
         for row in manifest_rows:
             writer.writerow(row)
+
+
+def _prefetch_ssh_local_objects(assets, server, logger):
+    """Fill the local object cache from SSH LocalStorage using one rsync.
+
+    Failures are logged and ignored so the existing per-asset SFTP/HTTP path
+    remains the fallback. This never mutates Asset database rows.
+    """
+    import subprocess
+
+    from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS, Executor
+    from dallinger.command_line.utils import get_server_pem_path
+
+    from .asset import ExternalAsset, LocalStorage, OnDemandAsset
+    from .experiment import import_local_experiment
+    from .export.ssh_rsync import (
+        default_ssh_command,
+        prefetch_missing_objects,
+        remote_assets_source,
+    )
+
+    try:
+        experiment_storage = import_local_experiment()["class"].asset_storage
+    except Exception:
+        logger.warning(
+            "Could not resolve experiment asset storage; skipping rsync prefetch.",
+            exc_info=True,
+        )
+        return
+
+    digests = []
+    seen = set()
+    for asset in assets:
+        if isinstance(asset, (ExternalAsset, OnDemandAsset)):
+            continue
+        digest = getattr(asset, "sha256_contents", None)
+        if not digest:
+            continue
+        storage = getattr(asset, "storage", None) or experiment_storage
+        if not isinstance(storage, LocalStorage):
+            continue
+        if digest in seen:
+            continue
+        seen.add(digest)
+        digests.append(digest)
+
+    if not digests:
+        return
+
+    try:
+        server_info = CONFIGURED_HOSTS[server]
+    except KeyError:
+        logger.warning(
+            "Unknown SSH server %r; skipping rsync prefetch.",
+            server,
+        )
+        return
+
+    ssh_host = server_info["host"]
+    ssh_user = server_info.get("user")
+    try:
+        home_dir = Executor(ssh_host, user=ssh_user).run("echo $HOME").strip()
+        pem_path = get_server_pem_path()
+        written = prefetch_missing_objects(
+            digests,
+            source=remote_assets_source(ssh_host, ssh_user, home_dir),
+            ssh_command=default_ssh_command(pem_path),
+        )
+    except FileNotFoundError as exc:
+        logger.warning(
+            "Skipping rsync asset prefetch (%s); falling back to per-asset SFTP.",
+            exc,
+        )
+        return
+    except subprocess.CalledProcessError as exc:
+        logger.warning(
+            "Rsync asset prefetch failed; falling back to per-asset SFTP. %s",
+            exc,
+        )
+        return
+    except Exception:
+        logger.warning(
+            "Rsync asset prefetch failed; falling back to per-asset SFTP.",
+            exc_info=True,
+        )
+        return
+
+    logger.info(
+        "Rsynced %s of %s missing LocalStorage asset object(s) from %s.",
+        len(written),
+        len(digests),
+        ssh_host,
+    )
 
 
 def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
