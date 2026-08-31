@@ -120,6 +120,7 @@ class TestExp:
             participant = Participant.query.filter_by(id=1).populate_existing().one()
             # Match the stock test configuration's $12 hourly wage without
             # requiring request-local configuration in this test process.
+            assert 33 <= participant.time_credit <= 53
             time_reward = f"${participant.time_credit * 12.0 / 3600:.2f}"
             assert_text(
                 driver,

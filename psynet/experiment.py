@@ -2596,7 +2596,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if should_resume:
                     self.timeline.advance_page(self, participant)
                 page = self.timeline.get_current_elt(self, participant)
-                participant._response_page = page
+                if flask.has_request_context():
+                    flask_app_globals.response_page = page
                 return self.response_approved(
                     participant,
                     include_timeline_fragment,
@@ -2633,7 +2634,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             self.timeline.advance_page(self, participant)
             page = self.timeline.get_current_elt(self, participant)
-            participant._response_page = page
+            if flask.has_request_context():
+                flask_app_globals.response_page = page
             return self.response_approved(
                 participant,
                 include_timeline_fragment,
@@ -4185,6 +4187,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             with read_only_transaction():
                 return err.error_page()
         except Exception as err:
+            if isinstance(
+                err, sqlalchemy.exc.OperationalError
+            ) and cls._is_lock_timeout(err):
+                raise
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
             handled_error = cls.handle_error(
@@ -4571,7 +4577,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             payload = json.loads(response.get_data(as_text=True))
             participant = Participant.query.get(participant_id)
-            page = getattr(participant, "_response_page", None)
+            page = getattr(flask_app_globals, "response_page", None)
             page_uuid_after_response = None
             render_fragment = False
             if (

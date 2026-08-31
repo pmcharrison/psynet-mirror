@@ -92,7 +92,7 @@ from sqlalchemy.orm import (
 )
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.db import transaction
+from psynet.db import _set_transaction_lock_timeout, transaction
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
@@ -102,6 +102,7 @@ from psynet.timeline_hold import _safely_queue_timeline_hold_wake, _TimelineHold
 from psynet.utils import get_logger
 
 logger = get_logger()
+_BARRIER_REGISTRY_LOCK_TIMEOUT_SECONDS = 5
 
 
 class _BarrierHoldPage(_TimelineHoldPage):
@@ -1154,6 +1155,10 @@ class BarrierRecord(SQLBase, SQLMixin):
         # creation and refresh in a short side transaction so request rendering
         # never holds the registry row or unique-key lock.
         with Session(bind=db.engine) as side_session:
+            _set_transaction_lock_timeout(
+                _BARRIER_REGISTRY_LOCK_TIMEOUT_SECONDS,
+                session=side_session,
+            )
             result = side_session.execute(insert_stmt)
             if result.rowcount == 0 and barrier is not None:
                 side_session.execute(
