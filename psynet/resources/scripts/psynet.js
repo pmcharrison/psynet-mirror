@@ -941,9 +941,9 @@
       clearTimeout(controller.safetyTimer);
       clearTimeout(controller.timeoutTimer);
       if (controller.socket) {
-        controller.socket.onopen = null;
-        controller.socket.onmessage = null;
-        controller.socket.onclose = null;
+        controller.socket.onopen = function () {};
+        controller.socket.onmessage = function () {};
+        controller.socket.onclose = function () {};
         controller.socket.close();
       }
 
