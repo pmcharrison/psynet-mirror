@@ -206,8 +206,16 @@ falls back to a complete server-built archive, so the export still succeeds.
 The same fallback applies if rsync fails, or exits successfully without
 supplying every requested object: because the server can always read its own
 files, PsyNet retries with a complete archive rather than publishing an
-incomplete export. S3-backed assets and ``--assets all`` always use the complete
-archive. Warm-cache repeat exports do not need rsync at all.
+incomplete export. Warm-cache repeat exports do not need rsync at all.
+
+Incremental transfer is currently offered for ``--assets collected`` on
+deployments using ``LocalStorage``. ``--assets all`` always uses the complete
+archive, because it can include on-demand assets, which have no bytes on disk
+and no content digest until the server generates them. The practical
+consequence is that ``--assets all`` re-downloads pre-existing stimuli on every
+export, even though those are cached and unchanged; prefer ``--assets
+collected`` for repeat exports of large stimulus sets. S3-backed assets also
+always use the complete archive.
 
 If the cache grows past a soft limit (50 GiB by default), PsyNet warns after
 export but does **not** fail or delete objects. A single large experiment may

@@ -3668,9 +3668,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if asset_bytes != "manifest":
                 store_latest_archive(zip_filepath)
             return _send_file_then_delete_dir(zip_filepath, tempdir, mimetype="zip")
-        except Exception:
+        except Exception as exc:
             shutil.rmtree(tempdir, ignore_errors=True)
-            raise
+            # Without this the experimenter only sees a bare 500 and has to go
+            # reading server logs to find out that, say, generating an on-demand
+            # asset failed.
+            logger.error("Failed to build the export archive.", exc_info=True)
+            return error_response(
+                error_text=(
+                    f"The experiment could not build the export: "
+                    f"{type(exc).__name__}: {exc}"
+                ),
+                status=500,
+                simple=True,
+            )
 
     @dashboard.route("/artifact/<deployment_id>/<filename>", methods=["GET"])
     @staticmethod
