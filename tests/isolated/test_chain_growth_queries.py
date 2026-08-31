@@ -1,4 +1,3 @@
-import re
 import uuid
 
 import pytest
@@ -13,7 +12,13 @@ from psynet.sqlalchemy_profiling import (
     assert_query_count,
     sqlalchemy_profile,
 )
-from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
+from psynet.trial.chain import (
+    ChainNetwork,
+    ChainNode,
+    ChainTrial,
+    ChainTrialMaker,
+    _bind_heads_to_loaded_networks,
+)
 from psynet.trial.create_and_rate import (
     CreateAndRateAssignmentPending,
     CreateAndRateTrialMakerMixin,
@@ -734,15 +739,6 @@ def create_static_networks(trial_maker, experiment, n):
     ]
 
 
-def _network_select_statements(profiler):
-    return [
-        stat
-        for stat in profiler.get_stats(top_n=None)
-        if re.search(r"\bfrom\s+network\b", stat.statement, re.I)
-        and stat.statement.lstrip().lower().startswith("select")
-    ]
-
-
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
@@ -826,44 +822,51 @@ def test_static_discovery_query_count_does_not_scale_with_nodes(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_static_discovery_omits_mapped_network_count_subqueries(
-    db_session, participant
-):
+def test_static_discovery_keeps_public_network_counts_loaded(db_session, participant):
     exp = get_experiment()
-    trial_maker = make_static_trial_maker("static_count_subqueries")
-    create_static_networks(trial_maker, exp, 20)
+    trial_maker = make_static_trial_maker("static_loaded_counts")
+    networks = create_static_networks(trial_maker, exp, 20)
+    add_trial(GrowthQueryStaticTrial, networks[0].head, participant)
     initialize_trial_maker_state(trial_maker, participant)
     participant = reload_participant(participant)
 
-    with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
-        trial_maker.find_nodes(participant, exp)
+    nodes = trial_maker.find_nodes(participant, exp)
 
-    network_selects = _network_select_statements(profiler)
-    assert network_selects
-    for stat in network_selects:
-        assert stat.statement.lower().count("count(") == 0, stat.statement
+    # Selection hooks receive ORM objects and may inspect these public count
+    # attributes in a loop, so discovery must not defer them into an N+1.
+    with assert_query_count(max_queries=0):
+        assert sorted(node.network.n_all_trials for node in nodes) == [0] * 19 + [1]
 
 
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_deferred_network_counts_remain_available_after_discovery(
-    db_session, participant
-):
+def test_bind_heads_rejects_mismatched_network_id(db_session, participant):
     exp = get_experiment()
-    trial_maker = make_static_trial_maker("static_deferred_counts")
-    network = create_static_networks(trial_maker, exp, 1)[0]
-    add_trial(GrowthQueryStaticTrial, network.head, participant)
-    initialize_trial_maker_state(trial_maker, participant)
-    participant = reload_participant(participant)
+    trial_maker = make_static_trial_maker("static_mismatched_head")
+    first, second = create_static_networks(trial_maker, exp, 2)
+    first.head.network_id = second.id
 
-    node = trial_maker.find_nodes(participant, exp)[0]
+    with pytest.raises(RuntimeError, match="belongs to network"):
+        _bind_heads_to_loaded_networks([first])
 
-    # Discovery defers this correlated count for performance, but the public
-    # attribute must still lazy-load correctly when experiment code requests it.
-    with assert_query_count(min_queries=1, max_queries=1):
-        assert node.network.n_all_trials == 1
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_bind_heads_does_not_overwrite_dirty_relationship(db_session, participant):
+    exp = get_experiment()
+    trial_maker = make_static_trial_maker("static_dirty_head")
+    first, second = create_static_networks(trial_maker, exp, 2)
+    first.head.network = second
+
+    with db.session.no_autoflush:
+        with pytest.raises(RuntimeError, match="loaded network inconsistent"):
+            _bind_heads_to_loaded_networks([first])
+    assert first.head.network is second
+    assert inspect(first.head).attrs.network.history.has_changes()
 
 
 @pytest.mark.parametrize(

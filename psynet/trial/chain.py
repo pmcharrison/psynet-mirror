@@ -7,9 +7,8 @@ to nodes before filtering and selection.
 
 Discovery is a hot path: it must stay a constant number of SQL statements as
 the candidate pool grows. Heads are subquery-loaded, viable-trial counts are
-batched, mapped network row-count properties are deferred, and each head is
-bound to its already-loaded network so author hooks can read ``node.network``
-without polymorphic lazy loads.
+batched, and each head is bound to its already-loaded network so author hooks
+can read ``node.network`` without polymorphic lazy loads.
 """
 
 import random
@@ -27,12 +26,13 @@ from sqlalchemy import (
     UniqueConstraint,
     and_,
     func,
+    inspect,
     or_,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property, defer, relationship, subqueryload
-from sqlalchemy.orm.attributes import set_committed_value
+from sqlalchemy.orm import column_property, relationship, subqueryload
+from sqlalchemy.orm.attributes import NO_VALUE, set_committed_value
 from sqlalchemy.sql.expression import not_, select
 from tqdm import tqdm
 
@@ -114,31 +114,6 @@ def _viable_trial_count_expression(node_id):
     )
 
 
-_NETWORK_COUNT_ATTRS = (
-    "n_all_trials",
-    "n_alive_trials",
-    "n_failed_trials",
-    "n_completed_trials",
-    "n_all_nodes",
-    "n_alive_nodes",
-    "n_failed_nodes",
-    "n_pending_infos",
-    "n_completed_infos",
-    "n_failed_infos",
-)
-
-
-def _deferred_network_count_options(network_cls):
-    """Omit mapped row-count properties from network SELECTs.
-
-    These ``column_property`` counts are correlated subqueries. Loading them
-    with every candidate network makes discovery cost grow with the pool even
-    though assignment uses batched viable-trial counts instead.
-    """
-
-    return tuple(defer(getattr(network_cls, attr)) for attr in _NETWORK_COUNT_ATTRS)
-
-
 def _bind_heads_to_loaded_networks(chains):
     """Populate each loaded head's ``Node.network`` relationship without SQL.
 
@@ -161,8 +136,25 @@ def _bind_heads_to_loaded_networks(chains):
 
     for chain in chains:
         head = chain.head
-        if head is not None:
+        if head is None:
+            continue
+        if head.network_id != chain.id:
+            raise RuntimeError(
+                f"Chain {chain.id} has head node {head.id}, but that node belongs "
+                f"to network {head.network_id}."
+            )
+
+        loaded_network = inspect(head).attrs.network.loaded_value
+        if loaded_network is NO_VALUE:
             set_committed_value(head, "network", chain)
+        elif loaded_network is not chain:
+            # Never overwrite a pending relationship assignment. In particular,
+            # set_committed_value() would clear that attribute's change history
+            # and could prevent SQLAlchemy from persisting the author's update.
+            raise RuntimeError(
+                f"Head node {head.id} has a loaded network inconsistent with "
+                f"chain {chain.id}."
+            )
 
 
 # class HasSeed:
@@ -1979,7 +1971,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             trial_maker_id=self.id, full=False, failed=False
         ).options(
             subqueryload(self.network_class.head),
-            *_deferred_network_count_options(self.network_class),
         )
 
         if self.chain_type == "within":
@@ -2228,10 +2219,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         return chains.filter_by(participant_id=participant.id)
 
     def exclude_participated(self, chains, participant):
-        participated = participant.module_state.participated_networks
-        if not participated:
-            return chains
-        return chains.filter(not_(self.network_class.id.in_(participated)))
+        return chains.filter(
+            not_(
+                self.network_class.id.in_(
+                    participant.module_state.participated_networks
+                )
+            )
+        )
 
     @staticmethod
     def _completed_trial_count_for_node(node_cls):
@@ -2317,15 +2311,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         The scheduler uses the corresponding ID select as the authoritative
         growth check for both within- and across-chain networks.
         """
-        return (
-            self.network_class.query.filter(
-                self.network_class.id.in_(
-                    self.ready_to_grow_network_id_select(network_ids)
-                )
-            )
-            .options(*_deferred_network_count_options(self.network_class))
-            .populate_existing()
-        )
+        return self.network_class.query.filter(
+            self.network_class.id.in_(self.ready_to_grow_network_id_select(network_ids))
+        ).populate_existing()
 
     def get_networks_ready_to_grow(self, network_ids: Optional[Iterable[int]] = None):
         # Lock only the network IDs first. Loading full polymorphic network
@@ -2341,7 +2329,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             return []
         return (
             self.network_class.query.filter(self.network_class.id.in_(network_ids))
-            .options(*_deferred_network_count_options(self.network_class))
             .populate_existing()
             .all()
         )
