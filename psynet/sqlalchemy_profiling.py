@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 import traceback
+from collections import Counter, defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from time import perf_counter
@@ -548,25 +549,24 @@ def assert_no_n_plus_one(
     # Stack capture deliberately splits QueryStats by (statement, stack). N+1
     # detection is about how often SQL executes regardless of which Python
     # paths reached it, so combine those buckets before applying the threshold.
-    stats_by_statement: Dict[str, List[QueryStats]] = {}
+    statement_counts: Counter[str] = Counter()
+    callsites_by_statement: Dict[str, Counter[str]] = defaultdict(Counter)
     for stat in profiler.get_stats(top_n=None, sort_by="count"):
-        stats_by_statement.setdefault(stat.statement, []).append(stat)
+        statement_counts[stat.statement] += stat.count
+        callsites_by_statement[stat.statement].update(stat.callsite_counts)
     offenders = [
-        (statement, sum(stat.count for stat in stats), stats)
-        for statement, stats in stats_by_statement.items()
-        if sum(stat.count for stat in stats) >= threshold
+        (statement, count)
+        for statement, count in statement_counts.items()
+        if count >= threshold
     ]
     if not offenders:
         return
 
-    def _format_offender(statement: str, count: int, stats: List[QueryStats]) -> str:
-        callsites: Dict[str, int] = {}
-        for stat in stats:
-            for callsite, callsite_count in stat.callsite_counts.items():
-                callsites[callsite] = callsites.get(callsite, 0) + callsite_count
+    def _format_offender(statement: str, count: int) -> str:
         line = f"{count} x {statement}"
+        callsites = callsites_by_statement[statement]
         if callsites:
-            line += f" callsites={callsites}"
+            line += f" callsites={dict(callsites)}"
         return line
 
     details = "\n".join(_format_offender(*offender) for offender in offenders)
