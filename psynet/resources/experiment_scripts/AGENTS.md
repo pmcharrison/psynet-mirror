@@ -126,6 +126,17 @@ http://127.0.0.1:5000/ad?generate_tokens=true&recruiter=hotair.
 
 When the demo is running, offer the user to navigate the experiment automatically.
 
+## Deployment files
+
+`deploy.toml` uses an `[exclude]` table: `paths` (root-relative prefixes),
+`names` (basenames in every directory), and `suffixes` (literal endings
+such as `.db`). PsyNet creates it from the template when missing and never
+overwrites a custom copy. Inspect the current plan with
+`dallinger deployment-files list`.
+
+`.dockerignore` is no longer supported. Move any custom exclusions into
+`deploy.toml` and remove `.dockerignore` before debug or deployment.
+
 ## Navigating experiments
 
 Cursor's browser extension can be used to interact with experiments programmatically:

@@ -176,6 +176,7 @@ dump.rdb
 /demos/**/__init__.py
 /demos/**/config.txt
 /demos/**/constraints.txt
+/demos/**/deploy.toml
 /demos/**/docker/
 /demos/**/pytest.ini
 /demos/**/test.py
@@ -195,6 +196,7 @@ dump.rdb
 /tests/experiments/**/__init__.py
 /tests/experiments/**/config.txt
 /tests/experiments/**/constraints.txt
+/tests/experiments/**/deploy.toml
 /tests/experiments/**/docker/
 /tests/experiments/**/pytest.ini
 /tests/experiments/**/test.py
@@ -209,6 +211,7 @@ dump.rdb
 /tests/playwright/experiments/**/__init__.py
 /tests/playwright/experiments/**/config.txt
 /tests/playwright/experiments/**/constraints.txt
+/tests/playwright/experiments/**/deploy.toml
 /tests/playwright/experiments/**/docker/
 /tests/playwright/experiments/**/pytest.ini
 /tests/playwright/experiments/**/test.py
@@ -225,6 +228,7 @@ dump.rdb
 /tests/deployment/**/__init__.py
 /tests/deployment/**/config.txt
 /tests/deployment/**/constraints.txt
+/tests/deployment/**/deploy.toml
 /tests/deployment/**/docker/
 /tests/deployment/**/pytest.ini
 /tests/deployment/**/test.py
