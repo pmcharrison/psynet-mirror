@@ -6,8 +6,8 @@ import pytest
 from psynet.page import WaitPage, wait_while
 from psynet.timeline import (
     StartFixTimeCredit,
-    _while_loop_timed_out,
     _while_loop_state_key,
+    _while_loop_timed_out,
 )
 from psynet.timeline_hold import TimelineHoldRecord
 from psynet.utils import serialise
@@ -97,9 +97,7 @@ def test_while_loop_timeout_uses_exact_elapsed_time():
     assert not _while_loop_timed_out(
         p, "wait_while", 2, now=start + timedelta(seconds=1.999)
     )
-    assert _while_loop_timed_out(
-        p, "wait_while", 2, now=start + timedelta(seconds=2)
-    )
+    assert _while_loop_timed_out(p, "wait_while", 2, now=start + timedelta(seconds=2))
 
 
 def test_wait_while_defaults_to_timeline_hold():

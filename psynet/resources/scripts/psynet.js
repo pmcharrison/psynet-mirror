@@ -884,7 +884,6 @@
         mainBody.inert = preservesVisiblePage;
         mainBody.setAttribute("aria-busy", "true");
       }
-      return preservesVisiblePage;
     };
 
     psynet.scheduleTimelineHoldCheck = function (controller) {
@@ -940,7 +939,7 @@
           if (controller.resumeRequested) {
             controller.resumeRequested = false;
             setTimeout(
-              () => psynet.resumeTimelineHold("queued barrier release"),
+              () => psynet.resumeTimelineHold("queued hold wake"),
               0,
             );
           } else {
@@ -992,11 +991,10 @@
       }
 
       psynet.stopTimelineHold();
-      let preservesVisiblePage = psynet.showTimelineHoldIndicator(hold.message);
+      psynet.showTimelineHoldIndicator(hold.message);
       let controller = {
         connection: null,
         hold: hold,
-        preservesVisiblePage: preservesVisiblePage,
         queuedResumeTimer: null,
         resumeInFlight: false,
         resumeRequested: false,

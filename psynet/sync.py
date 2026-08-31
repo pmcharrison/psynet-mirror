@@ -85,10 +85,11 @@ from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.timeline_hold import _TimelineHoldPage, _queue_timeline_hold_wake
+from psynet.timeline_hold import _queue_timeline_hold_wake, _TimelineHoldPage
 from psynet.utils import get_logger
 
 logger = get_logger()
+
 
 class _BarrierHoldPage(_TimelineHoldPage):
     """Internal timeline checkpoint that preserves the preceding browser page."""
@@ -605,6 +606,7 @@ class GroupBarrier(Barrier):
                     participant.id,
                 )
                 participant.fail("timeout between barriers")
+
 
 class Grouper(Barrier):
     """

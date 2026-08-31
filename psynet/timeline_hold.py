@@ -100,9 +100,9 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
         if elapsed <= previous_actual:
             return
 
-        participant.total_wait_page_time = (
-            participant.total_wait_page_time or 0.0
-        ) + (elapsed - previous_actual)
+        participant.total_wait_page_time = (participant.total_wait_page_time or 0.0) + (
+            elapsed - previous_actual
+        )
         self.actual_wait_seconds = elapsed
 
         if not self.fix_time_credit:
@@ -175,9 +175,7 @@ class _TimelineHoldPage(Page):
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
-        started_at = (
-            _get_while_loop_start_time(participant, self.hold_id) or timenow()
-        )
+        started_at = _get_while_loop_start_time(participant, self.hold_id) or timenow()
         record = TimelineHoldRecord(
             participant=participant,
             page_uuid=participant.page_uuid,
@@ -190,6 +188,7 @@ class _TimelineHoldPage(Page):
             credited_wait_seconds=0.0,
         )
         db.session.add(record)
+        participant._timeline_hold_record = record
         self.on_hold_record_created(participant, record)
 
     def on_hold_record_created(self, participant, record):
@@ -197,10 +196,15 @@ class _TimelineHoldPage(Page):
 
     def get_hold_record(self, participant):
         """Return the record belonging to the participant's current hold page."""
-        return TimelineHoldRecord.query.filter_by(
+        cached = getattr(participant, "_timeline_hold_record", None)
+        if cached is not None and cached.page_uuid == participant.page_uuid:
+            return cached
+        record = TimelineHoldRecord.query.filter_by(
             participant_id=participant.id,
             page_uuid=participant.page_uuid,
         ).one()
+        participant._timeline_hold_record = record
+        return record
 
     def participant_can_resume(self, experiment, participant):
         """Return whether the authoritative waiting condition has cleared."""

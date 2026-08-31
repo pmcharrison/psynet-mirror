@@ -25,16 +25,15 @@ from psynet.sync import (
     Barrier,
     BarrierRecord,
     GroupBarrier,
-    ParticipantLinkBarrier,
     SimpleGrouper,
     SimpleSyncGroup,
     check_barriers,
 )
 from psynet.timeline import CodeBlock, GoTo
 from psynet.timeline_hold import (
+    _TIMELINE_HOLD_CHANNEL,
     TimelineHoldRecord,
     _queue_timeline_hold_wake,
-    _TIMELINE_HOLD_CHANNEL,
 )
 
 
@@ -685,9 +684,7 @@ def test_shared_barrier_id_preserves_each_visit_waiting_mode(
     held_barrier = ReleaseAllBarrier(id_="shared")
     held_barrier.receive_participant(held_participant)
     held_barrier.waiting_logic.consume(exp, held_participant)
-    page_barrier = ReleaseAllBarrier(
-        id_="shared", waiting_logic=WaitPage(wait_time=1)
-    )
+    page_barrier = ReleaseAllBarrier(id_="shared", waiting_logic=WaitPage(wait_time=1))
     page_barrier.receive_participant(page_participant)
     db_session.commit()
     held_participant_id = held_participant.id

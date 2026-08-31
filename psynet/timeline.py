@@ -2671,8 +2671,7 @@ def _while_loop_timed_out(participant, label, max_loop_time, now=None):
         now = datetime.now()
     started_at = _get_while_loop_start_time(participant, label)
     return (
-        started_at is not None
-        and (now - started_at).total_seconds() >= max_loop_time
+        started_at is not None and (now - started_at).total_seconds() >= max_loop_time
     )
 
 

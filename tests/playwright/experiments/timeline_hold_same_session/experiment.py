@@ -1,8 +1,8 @@
 import time
 
-import psynet.experiment
 from markupsafe import Markup
 
+import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import AsyncCodeBlock, Timeline
 
