@@ -124,6 +124,7 @@ from .utils import (
     get_logger,
     get_translator,
     is_in_repo_experiment,
+    loading_experiment_classes,
     log_time_taken,
     render_template_with_translations,
     safe,
@@ -4596,23 +4597,24 @@ def import_local_experiment():
 
     import dallinger.experiment
 
-    dallinger.experiment.load()
+    with loading_experiment_classes():
+        dallinger.experiment.load()
 
-    dallinger_experiment = sys.modules.get("dallinger_experiment")
+        dallinger_experiment = sys.modules.get("dallinger_experiment")
 
-    try:
-        module = dallinger_experiment.experiment
-    except AttributeError as e:
-        raise Exception(
-            f"Possible ModuleNotFoundError in your experiment's experiment.py file. "
-            f'Please check your imports!\nOriginal error was "AttributeError: {e}"'
-        )
+        try:
+            module = dallinger_experiment.experiment
+        except AttributeError as e:
+            raise Exception(
+                f"Possible ModuleNotFoundError in your experiment's experiment.py file. "
+                f'Please check your imports!\nOriginal error was "AttributeError: {e}"'
+            )
 
-    return {
-        "package": dallinger_experiment,
-        "module": module,
-        "class": dallinger.experiment.load(),  # TODO - use the class as loaded above instead?
-    }
+        return {
+            "package": dallinger_experiment,
+            "module": module,
+            "class": dallinger.experiment.load(),  # TODO - use the class as loaded above instead?
+        }
 
 
 @cache
