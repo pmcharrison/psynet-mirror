@@ -118,15 +118,14 @@ class TestExp:
             # + 9 dollars reward at the end
             # = 9.09
             participant = Participant.query.filter_by(id=1).populate_existing().one()
-            # Match the stock test configuration's $12 hourly wage without
-            # requiring request-local configuration in this test process.
-            assert 33 <= participant.time_credit <= 53
-            time_reward = f"${participant.time_credit * 12.0 / 3600:.2f}"
+            # The end-processing condition is already clear, so its default
+            # hold credits no waiting time under the actual-time policy.
+            assert participant.time_credit == 32
             assert_text(
                 driver,
                 "main-body",
-                f"""
-                That\'s the end of the experiment! You will receive a reward of {time_reward}
+                """
+                That\'s the end of the experiment! You will receive a reward of $0.11
                 for the time you spent on the experiment. You have also been awarded a performance reward of $9.09!
                 Thank you for taking part.
                 Please click "Finish" to finalize the session. Finish

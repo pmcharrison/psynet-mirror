@@ -257,6 +257,11 @@ General
 ``show_progress_bar`` *bool* |psynet-icon|
     If ``True`` (default), then a progress bar is displayed at the top of the page.
 
+``timeline_lock_timeout_seconds`` *float* |psynet-icon|
+    Maximum time participant-facing timeline writes wait for a database lock
+    before returning a temporary-busy response. Set to ``0`` to disable the
+    timeout. Default: ``5.0``.
+
 ``whimsical`` *bool* |dlgr-icon|
     When set to True, this config variable enables 'whimsical' tone on Dallinger email notifications
     to the experimenter. When ``False`` (default), the notifications have a matter-of-fact tone.

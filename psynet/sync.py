@@ -99,10 +99,9 @@ from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.timeline_hold import _safely_queue_timeline_hold_wake, _TimelineHoldPage
-from psynet.utils import get_logger
+from psynet.utils import get_config, get_logger
 
 logger = get_logger()
-_BARRIER_REGISTRY_LOCK_TIMEOUT_SECONDS = 5
 
 
 class _BarrierHoldPage(_TimelineHoldPage):
@@ -1156,7 +1155,7 @@ class BarrierRecord(SQLBase, SQLMixin):
         # never holds the registry row or unique-key lock.
         with Session(bind=db.engine) as side_session:
             _set_transaction_lock_timeout(
-                _BARRIER_REGISTRY_LOCK_TIMEOUT_SECONDS,
+                get_config().get("timeline_lock_timeout_seconds"),
                 session=side_session,
             )
             result = side_session.execute(insert_stmt)

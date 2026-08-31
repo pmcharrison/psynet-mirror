@@ -138,7 +138,7 @@ from .utils import (
 )
 
 logger = get_logger()
-_TIMELINE_LOCK_TIMEOUT_SECONDS = 5
+_TRANSIENT_TRANSACTION_PGCODES = {"40001", "40P01", "55P03"}
 
 
 database_template_path = ".deploy/database_template.zip"
@@ -1902,6 +1902,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_progress_bar": True,
             "show_reward": True,
             "inplace_timeline_transitions": True,
+            "timeline_lock_timeout_seconds": 5.0,
             "legacy_js_var_globals": "warn",
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
@@ -2664,6 +2665,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def response_approved(self, participant, include_timeline_fragment=True, page=None):
         logger.debug("The response was approved.")
+        _ = include_timeline_fragment
         if page is None:
             page = self.timeline.get_current_elt(self, participant)
         payload = {
@@ -2673,19 +2675,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if page.is_timeline_hold:
             payload["timeline_hold"] = page.timeline_hold_payload(participant)
             return success_response(**payload)
-        config = get_config()
-        # In inplace mode, the same /response round-trip both advances the
-        # participant state and returns the next timeline fragment. Skip the
-        # fragment when the next page forces a full reload; the client will
-        # navigate via /timeline instead.
-        if (
-            include_timeline_fragment
-            and config.get("inplace_timeline_transitions")
-            and not page.requires_full_page_reload
-        ):
-            payload["timeline_fragment"] = self.render_partial_timeline_payload(
-                page, self, participant
-            )
         return success_response(**payload)
 
     def response_rejected(self, message):
@@ -2991,6 +2980,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
         config.register("inplace_timeline_transitions", bool)
+        config.register("timeline_lock_timeout_seconds", float)
         config.register(
             "legacy_js_var_globals",
             str,
@@ -4053,16 +4043,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
         try:
-            _set_transaction_lock_timeout(_TIMELINE_LOCK_TIMEOUT_SECONDS)
+            _set_transaction_lock_timeout(
+                get_config().get("timeline_lock_timeout_seconds")
+            )
             participant = cls.get_participant_from_unique_id(unique_id, for_update=True)
             experiment = get_experiment()
             return cls._route_timeline(experiment, participant, mode)
         except sqlalchemy.exc.OperationalError as error:
-            if not cls._is_lock_timeout(error):
+            if not cls._is_transient_transaction_error(error):
                 raise
             db.session.rollback()
             logger.warning(
-                "Timeline request lock timed out for participant %s.",
+                "Timeline request hit transient database contention for participant %s.",
                 unique_id,
                 exc_info=True,
             )
@@ -4154,8 +4146,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.fail(error_type)
 
     @staticmethod
-    def _is_lock_timeout(error):
-        return getattr(getattr(error, "orig", None), "pgcode", None) == "55P03"
+    def _is_transient_transaction_error(error):
+        return (
+            getattr(getattr(error, "orig", None), "pgcode", None)
+            in _TRANSIENT_TRANSACTION_PGCODES
+        )
 
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
@@ -4189,7 +4184,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except Exception as err:
             if isinstance(
                 err, sqlalchemy.exc.OperationalError
-            ) and cls._is_lock_timeout(err):
+            ) and cls._is_transient_transaction_error(err):
                 raise
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -4465,29 +4460,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             if participant.page_uuid != page_uuid:
                 return None
-            return cls.render_partial_timeline_payload(
+            return cls._render_prepared_partial_timeline_payload(
                 page,
                 experiment,
                 participant,
-                run_pre_render=False,
             )
 
     @staticmethod
-    def render_partial_timeline_payload(
-        page, experiment, participant, *, run_pre_render=True
-    ):
+    def _render_prepared_partial_timeline_payload(page, experiment, participant):
         """
-        Render the current timeline page as the internal inplace fragment payload.
+        Render a prepared page as the internal inplace fragment payload.
 
-        This helper is the shared render authority for inplace fragment output
-        returned directly from /response.
+        ``pre_render()`` must already have run in the committed write phase.
         """
-        # Mirror the full-page /timeline path (see get_current_page), which
-        # calls pre_render() before rendering. Without this, pages advanced via
-        # an inplace transition would skip pre_render() hooks (e.g. prompt/control
-        # setup such as S3 presigned URL preparation).
-        if run_pre_render:
-            page.pre_render()
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,
@@ -4532,7 +4517,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def route_response(cls):
         exp = get_experiment()
-        _set_transaction_lock_timeout(_TIMELINE_LOCK_TIMEOUT_SECONDS)
+        _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
         json_data = json.loads(request.values["json"])
         blobs = request.files.to_dict()
 
@@ -4562,11 +4547,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 False,
             )
         except sqlalchemy.exc.OperationalError as error:
-            if not cls._is_lock_timeout(error):
+            if not cls._is_transient_transaction_error(error):
                 raise
             db.session.rollback()
             logger.warning(
-                "Response lock timed out for participant %s.",
+                "Response hit transient database contention for participant %s.",
                 participant_id,
                 exc_info=True,
             )
@@ -4633,11 +4618,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if os.getenv("PASSTHROUGH_ERRORS"):
             raise error
         db.session.rollback()
-        if isinstance(error, sqlalchemy.exc.OperationalError) and cls._is_lock_timeout(
-            error
-        ):
+        if isinstance(
+            error, sqlalchemy.exc.OperationalError
+        ) and cls._is_transient_transaction_error(error):
             logger.warning(
-                "Response preparation lock timed out for participant %s.",
+                "Response preparation hit transient database contention for participant %s.",
                 participant_id,
                 exc_info=True,
             )

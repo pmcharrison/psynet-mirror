@@ -1,6 +1,6 @@
 import pytest
 from dallinger import db
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, text
 from sqlalchemy.orm import object_session
 
 from psynet.data import SQLBase
@@ -151,7 +151,7 @@ def test_read_only_transaction_allows_no_op_assignment(db_session):
 def test_transaction_lock_timeout_is_scoped_locally(db_session):
     with transaction():
         _set_transaction_lock_timeout(5)
-        timeout = db.session.execute("SHOW lock_timeout").scalar()
+        timeout = db.session.execute(text("SHOW lock_timeout")).scalar()
 
     assert timeout == "5s"
 
@@ -203,3 +203,23 @@ def test_partial_timeline_render_rejects_orm_mutation(db_session):
 
     participant = Participant.query.get(participant_id)
     assert participant.worker_id == "original-worker"
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_partial_timeline_render_rejects_stale_page_uuid(db_session):
+    participant = new_participant()
+    db_session.flush()
+    participant_id = participant.id
+    experiment = get_experiment()
+    db_session.commit()
+
+    fragment = Experiment._render_partial_timeline_payload_read_only(
+        experiment=experiment,
+        participant_id=participant_id,
+        page_uuid="stale-page",
+        page=MutatingRenderPage(),
+    )
+
+    assert fragment is None

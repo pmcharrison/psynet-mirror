@@ -185,22 +185,20 @@ def test_partial_body_extraction_requires_named_fragment_wrapper():
         Page._extract_partial_body("<div id='main-body'></div>")
 
 
-def test_partial_fragment_rendering_calls_pre_render_before_render():
-    # The inplace /response path must run pre_render() before rendering, mirroring
-    # the full /timeline path (get_current_page). Otherwise prompt/control
-    # pre_render() hooks are skipped when a page is reached via an inplace
-    # transition, which is now the default behavior.
+def test_prepared_partial_fragment_rendering_does_not_repeat_pre_render():
+    # /response runs pre_render() before committing its write phase. The
+    # read-only render helper must not execute author preparation twice.
     calls = []
     page = MagicMock()
     page.pre_render.side_effect = lambda: calls.append("pre_render")
     page.render.side_effect = lambda *args, **kwargs: calls.append("render") or "<html>"
     participant = SimpleNamespace(page_uuid="uuid-123")
 
-    payload = Experiment.render_partial_timeline_payload(
+    payload = Experiment._render_prepared_partial_timeline_payload(
         page, experiment=MagicMock(), participant=participant
     )
 
-    assert calls == ["pre_render", "render"]
+    assert calls == ["render"]
     assert payload == {"html": "<html>", "page_uuid": "uuid-123"}
 
 

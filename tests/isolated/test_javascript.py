@@ -177,37 +177,19 @@ def test_wait_page_gates_auto_advance_on_page_ready():
     assert "setTimer" not in page.template_str
 
 
-@pytest.mark.parametrize(
-    "requires_reload, include_timeline_fragment, expect_fragment",
-    [
-        (False, True, True),
-        (True, True, False),
-        (False, False, False),
-    ],
-)
-def test_response_approved_skips_fragment_for_reload_pages(
-    monkeypatch, requires_reload, include_timeline_fragment, expect_fragment
+@pytest.mark.parametrize("include_timeline_fragment", [True, False])
+def test_response_approved_defers_fragment_rendering(
+    monkeypatch, include_timeline_fragment
 ):
     from types import SimpleNamespace
 
     import psynet.experiment as experiment_module
 
-    rendered = {"html": "<div>fragment</div>"}
-    monkeypatch.setattr(
-        experiment_module.Experiment,
-        "render_partial_timeline_payload",
-        staticmethod(lambda *args: rendered),
-    )
-    monkeypatch.setattr(
-        experiment_module,
-        "get_config",
-        lambda: SimpleNamespace(get=lambda key, default=None: True),
-    )
     monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
 
     page = SimpleNamespace(
         is_timeline_hold=False,
-        requires_full_page_reload=requires_reload,
+        requires_full_page_reload=False,
         __json__=lambda participant: {},
     )
     exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
@@ -216,9 +198,7 @@ def test_response_approved_skips_fragment_for_reload_pages(
         exp, object(), include_timeline_fragment=include_timeline_fragment
     )
 
-    assert ("timeline_fragment" in payload) is expect_fragment
-    if expect_fragment:
-        assert payload["timeline_fragment"] == rendered
+    assert "timeline_fragment" not in payload
 
 
 def test_response_approved_returns_timeline_hold_without_rendering_fragment(
@@ -228,16 +208,6 @@ def test_response_approved_returns_timeline_hold_without_rendering_fragment(
 
     import psynet.experiment as experiment_module
 
-    monkeypatch.setattr(
-        experiment_module.Experiment,
-        "render_partial_timeline_payload",
-        staticmethod(lambda *args: pytest.fail("Timeline holds must not be rendered.")),
-    )
-    monkeypatch.setattr(
-        experiment_module,
-        "get_config",
-        lambda: SimpleNamespace(get=lambda key, default=None: True),
-    )
     monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
 
     hold = {"barrier_id": "round", "message": "Waiting for your partner…"}
@@ -281,6 +251,25 @@ def test_response_approved_reuses_resolved_page(monkeypatch):
     )
 
     assert payload["page"]["attributes"]["page_uuid"] == "resolved"
+
+
+@pytest.mark.parametrize("pgcode", ["40001", "40P01", "55P03"])
+def test_transient_transaction_errors_are_retryable(pgcode):
+    from types import SimpleNamespace
+
+    from psynet.experiment import Experiment
+
+    error = SimpleNamespace(orig=SimpleNamespace(pgcode=pgcode))
+    assert Experiment._is_transient_transaction_error(error)
+
+
+def test_other_database_errors_are_not_retryable():
+    from types import SimpleNamespace
+
+    from psynet.experiment import Experiment
+
+    error = SimpleNamespace(orig=SimpleNamespace(pgcode="23505"))
+    assert not Experiment._is_transient_transaction_error(error)
 
 
 @pytest.mark.parametrize(
