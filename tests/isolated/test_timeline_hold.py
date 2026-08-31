@@ -88,7 +88,11 @@ def test_fixed_timeline_hold_records_expected_credit():
 def test_while_loop_timeout_uses_exact_elapsed_time():
     start = datetime(2026, 1, 1)
     key = _while_loop_state_key("wait_while", "loop_start_time")
-    p = SimpleNamespace(var=SimpleNamespace(get=lambda name: {key: serialise(start)}[name]))
+    p = SimpleNamespace(
+        var=SimpleNamespace(
+            get=lambda name, default=None: {key: serialise(start)}.get(name, default)
+        )
+    )
 
     assert not _while_loop_timed_out(
         p, "wait_while", 2, now=start + timedelta(seconds=1.999)
