@@ -538,13 +538,15 @@ def test_check_barriers_publishes_release_after_commit(
     barrier = ReleaseAllBarrier(id_="release_all")
     barrier.receive_participant(participant)
     db_session.commit()
+    participant_id = participant.id
+    barrier_id = barrier.id
 
     publications = []
 
     def publish(data, channel_name):
         link = ParticipantLinkBarrier.query.filter_by(
-            participant_id=participant.id,
-            barrier_id=barrier.id,
+            participant_id=participant_id,
+            barrier_id=barrier_id,
         ).one()
         assert link.released
         publications.append((json.loads(data), channel_name))
@@ -560,7 +562,7 @@ def test_check_barriers_publishes_release_after_commit(
                 "barrier_id": "release_all",
                 "page_uuid": "hold-page-uuid",
             },
-            f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant.id}",
+            f"{_BARRIER_HOLD_CHANNEL_PREFIX}{participant_id}",
         )
     ]
 
