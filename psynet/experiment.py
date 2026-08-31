@@ -74,7 +74,12 @@ from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
 from .bot import Bot, BotDriver, BotResponse
 from .command_line import export_launch_data
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
-from .db import transaction, with_transaction
+from .db import (
+    _set_transaction_lock_timeout,
+    read_only_transaction,
+    transaction,
+    with_transaction,
+)
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
@@ -4031,7 +4036,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
+        _set_transaction_lock_timeout(5)
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=True)
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
@@ -4116,22 +4122,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
-            if not isinstance(participant, Bot):
-                participant.client_ip_address = cls.get_client_ip_address()
-            page = cls.get_current_page(experiment, participant)
-            if mode == "json":
-                return jsonify(page.__json__(participant))
-            if mode is not None:
+            if mode not in (None, "json"):
                 raise ValueError(
                     f"Unsupported /timeline mode '{mode}'. "
                     "Only mode=json remains supported on this route."
                 )
-            # Full timeline renders still happen here for initial page loads and
-            # for the legacy reload-based mode. Inplace fragment rendering is an
-            # internal helper reached from /response instead.
-            return page.render(experiment, participant)
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = cls.get_client_ip_address()
+            page = cls.get_current_page(experiment, participant)
+            participant_id = participant.id
+            unique_id = participant.unique_id
+            page_uuid = participant.page_uuid
+            db.session.commit()
+            return cls._render_timeline_page_read_only(
+                experiment=experiment,
+                participant_id=participant_id,
+                unique_id=unique_id,
+                page_uuid=page_uuid,
+                page=page,
+                mode=mode,
+            )
         except cls.HandledError as err:
-            return err.error_page()
+            db.session.rollback()
+            with read_only_transaction():
+                return err.error_page()
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -4151,7 +4165,47 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
             )
             cls.fail_participant_on_error(participant, err)
-            return handled_error.error_page()
+            db.session.commit()
+            with read_only_transaction():
+                return handled_error.error_page()
+
+    @classmethod
+    def _render_timeline_page_read_only(
+        cls,
+        *,
+        experiment,
+        participant_id,
+        unique_id,
+        page_uuid,
+        page,
+        mode,
+    ):
+        stale = False
+        with read_only_transaction():
+            participant = (
+                Participant.query.filter_by(id=participant_id).populate_existing().one()
+            )
+            if participant.page_uuid != page_uuid:
+                stale = True
+                response = None
+            elif mode == "json":
+                response = jsonify(page.__json__(participant))
+            else:
+                # Full timeline renders happen here for initial page loads and
+                # legacy reloads. Inplace fragments use the same read-only
+                # boundary after /response.
+                response = page.render(experiment, participant)
+
+        if stale:
+            if mode == "json":
+                return jsonify(
+                    {
+                        "status": "stale",
+                        "message": "Timeline advanced before rendering completed.",
+                    }
+                ), 409
+            return redirect(f"/timeline?unique_id={unique_id}")
+        return response
 
     @classmethod
     def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
@@ -4357,8 +4411,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return page
 
+    @classmethod
+    def _render_partial_timeline_payload_read_only(
+        cls, *, page, experiment, participant_id, page_uuid
+    ):
+        with read_only_transaction():
+            participant = (
+                Participant.query.filter_by(id=participant_id).populate_existing().one()
+            )
+            if participant.page_uuid != page_uuid:
+                return None
+            return cls.render_partial_timeline_payload(
+                page,
+                experiment,
+                participant,
+                run_pre_render=False,
+            )
+
     @staticmethod
-    def render_partial_timeline_payload(page, experiment, participant):
+    def render_partial_timeline_payload(
+        page, experiment, participant, *, run_pre_render=True
+    ):
         """
         Render the current timeline page as the internal inplace fragment payload.
 
@@ -4369,7 +4442,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # calls pre_render() before rendering. Without this, pages advanced via
         # an inplace transition would skip pre_render() hooks (e.g. prompt/control
         # setup such as S3 presigned URL preparation).
-        page.pre_render()
+        if run_pre_render:
+            page.pre_render()
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,
@@ -4414,6 +4488,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def route_response(cls):
         exp = get_experiment()
+        _set_transaction_lock_timeout(5)
         json_data = json.loads(request.values["json"])
         blobs = request.files.to_dict()
 
@@ -4431,7 +4506,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         client_ip_address = cls.get_client_ip_address()
 
-        res = exp.process_response(
+        response = exp.process_response(
             participant_id,
             raw_answer,
             blobs,
@@ -4439,10 +4514,74 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
             answer,
-            include_timeline_fragment,
+            False,
         )
 
-        return res
+        payload = json.loads(response.get_data(as_text=True))
+        page = None
+        participant = None
+        page_uuid_after_response = None
+        render_fragment = False
+        if (
+            response.status_code == 200
+            and payload.get("submission") == "approved"
+            and "timeline_hold" not in payload
+            and include_timeline_fragment
+            and get_config().get("inplace_timeline_transitions")
+        ):
+            participant = Participant.query.get(participant_id)
+            page = exp.timeline.get_current_elt(exp, participant)
+            render_fragment = not page.requires_full_page_reload
+            if render_fragment:
+                page.pre_render()
+                page_uuid_after_response = participant.page_uuid
+
+        db.session.commit()
+
+        if render_fragment:
+            try:
+                fragment = cls._render_partial_timeline_payload_read_only(
+                    page=page,
+                    experiment=exp,
+                    participant_id=participant_id,
+                    page_uuid=page_uuid_after_response,
+                )
+            except Exception as err:
+                if os.getenv("PASSTHROUGH_ERRORS"):
+                    raise
+                participant = Participant.query.get(participant_id)
+                if not isinstance(err, exp.HandledError):
+                    exp.handle_error(
+                        err,
+                        participant=participant,
+                        trial=participant.current_trial,
+                        node=(
+                            participant.current_trial.node
+                            if participant.current_trial
+                            else None
+                        ),
+                        network=(
+                            participant.current_trial.network
+                            if participant.current_trial
+                            else None
+                        ),
+                    )
+                cls.fail_participant_on_error(participant, err)
+                db.session.commit()
+                return error_response(participant=participant)
+            if fragment is None:
+                return error_response(
+                    error_text=(
+                        "Timeline advanced before the response fragment "
+                        "finished rendering. Please refresh the page."
+                    ),
+                    participant=participant,
+                )
+            payload["timeline_fragment"] = fragment
+            payload.pop("status", None)
+            return success_response(**payload)
+
+        return response
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod

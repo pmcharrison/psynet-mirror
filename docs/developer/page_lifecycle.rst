@@ -55,6 +55,31 @@ Full-page renders apply the same contract check. They also emit
 ``js_dependencies`` as blocking head scripts so first-page body markup can use
 those libraries before managed page JavaScript activates.
 
+Timeline requests separate state mutation from rendering:
+
+1. A short write transaction locks the participant, advances or records the
+   timeline state, resolves the page, and runs ``pre_render()``.
+2. PsyNet commits that transaction, releasing participant and coordination
+   locks and publishing any queued hold wakes.
+3. HTML, JSON, or an inplace fragment is rendered in a fresh PostgreSQL
+   read-only transaction with SQLAlchemy autoflush disabled.
+4. PsyNet verifies that rendering created no new, dirty, or deleted ORM
+   objects, then rolls back the read transaction.
+
+``pre_render()`` is therefore the supported hook for render preparation that
+needs database writes. Calling ``commit()``, flushing ORM mutations, or issuing
+SQL writes from ``render()`` or templates raises an error. The browser receives
+a stale-render response rather than HTML for an obsolete page UUID if another
+request advances the participant between the write commit and render.
+
+Participant-facing write phases use a bounded PostgreSQL ``lock_timeout`` so
+unexpected contention fails safely instead of occupying a web worker
+indefinitely. Whole timeline requests are not retried automatically because
+author code blocks may contain non-idempotent external side effects. Shared
+coordination metadata, such as barrier registry rows, must likewise be created
+or refreshed in short transactions rather than remaining uncommitted through
+rendering.
+
 The fragment must contain the elements the persistent document replaces:
 
 * ``#timeline-header``
