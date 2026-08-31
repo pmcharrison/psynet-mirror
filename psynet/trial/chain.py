@@ -4,11 +4,6 @@ Chain trial makers discover available networks, apply chain eligibility rules,
 then select one chain and resolve its head to the node used for trial creation.
 Static trial makers reuse the availability checks but adapt candidate networks
 to nodes before filtering and selection.
-
-Discovery is a hot path: it must stay a constant number of SQL statements as
-the candidate pool grows. Heads are subquery-loaded, viable-trial counts are
-batched, and each head is bound to its already-loaded network so author hooks
-can read ``node.network`` without polymorphic lazy loads.
 """
 
 import random
@@ -26,13 +21,11 @@ from sqlalchemy import (
     UniqueConstraint,
     and_,
     func,
-    inspect,
     or_,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship, subqueryload
-from sqlalchemy.orm.attributes import NO_VALUE, set_committed_value
 from sqlalchemy.sql.expression import not_, select
 from tqdm import tqdm
 
@@ -112,46 +105,6 @@ def _viable_trial_count_expression(node_id):
         )
         .scalar_subquery()
     )
-
-
-def _bind_heads_to_loaded_networks(chains):
-    """Populate each loaded head's ``Node.network`` relationship without SQL.
-
-    Loading ``ChainNetwork.head`` does not automatically populate
-    ``head.network`` because the relationships use different foreign keys:
-
-    ``ChainNetwork.head``: ``network.head_id -> node.id``
-    ``Node.network``:     ``node.network_id -> network.id``
-
-    They are therefore not SQLAlchemy ``back_populates`` counterparts. Without
-    this binding, later code such as ``Trial(node=head, ...)`` may issue another
-    query when Dallinger's ``Info`` constructor reads ``head.network``.
-
-    Discovery already loaded both objects, and PsyNet maintains the invariant
-    that a chain's head belongs to that chain. ``set_committed_value`` records
-    the known relationship as loaded without marking ``head`` dirty or
-    scheduling a database update. This is intentionally different from
-    ``head.network = chain``, which participates in ORM change tracking.
-    """
-
-    for chain in chains:
-        head = chain.head
-        if head is None:
-            continue
-        if head.network_id != chain.id:
-            raise RuntimeError(
-                f"Chain {chain.id} has head node {head.id}, but that node belongs "
-                f"to network {head.network_id}."
-            )
-
-        loaded_network = inspect(head).attrs.network.loaded_value
-        if loaded_network is NO_VALUE:
-            set_committed_value(head, "network", chain)
-        elif loaded_network is not chain:
-            # Leave pending relationship changes alone. set_committed_value()
-            # would clear their history and prevent SQLAlchemy from persisting
-            # the author's assignment.
-            continue
 
 
 # class HasSeed:
@@ -1987,7 +1940,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         chain_query = chain_query.filter_by(participant_group=participant_group)
 
         discovered_chains = chain_query.all()
-        _bind_heads_to_loaded_networks(discovered_chains)
         # Candidate records let the shared pipeline work with either chains or
         # static nodes while retaining the network objects loaded by the query.
         candidates = self._build_candidates(
@@ -2331,20 +2283,17 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
 
     def network_is_ready_to_grow(self, network):
-        """Return whether the persisted network is currently ready to grow.
-
-        A ready network is locked and refreshed in the current session. The
-        request-path fast check therefore uses the same non-blocking SQL path as
-        the scheduled growth poller.
-        """
-        return self._get_locked_network_if_ready(network) is not None
-
-    def _get_locked_network_if_ready(self, network):
-        """Return the locked, refreshed network when it is ready."""
-        if network.id is None:
-            return None
-        ready = self.get_networks_ready_to_grow([network.id])
-        return ready[0] if ready else None
+        head = network.head
+        return (
+            not network.failed
+            and not network.full
+            and not network.async_post_grow_network_pending
+            and head is not None
+            and head.can_spawn
+            and not head.async_on_deploy_pending
+            and head.reached_target_n_trials
+            and len(head.pending_trials) == 0
+        )
 
     def call_grow_network(self, network, check_readiness=True):
         from psynet.experiment import get_experiment
@@ -2360,36 +2309,34 @@ class ChainTrialMaker(NetworkTrialMaker):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
         participant = None
-        if check_readiness:
-            network = self._get_locked_network_if_ready(network)
-            if network is None:
-                return False
+        if not check_readiness or self.network_is_ready_to_grow(network):
+            head = network.head
 
-        head = network.head
-        if is_method_overridden(head, ChainNode, "make_next_definition"):
-            # make_next_definition is a more recent interface for creating definitions,
-            # we are going to trial this for a while, and potentially later
-            # deprecate the former interface (create_seed)
-            definition = head.make_next_definition(experiment, participant)
-            seed = None
-        else:
-            # create_seed is the former interface for creating definitions
-            definition = None
-            seed = head.create_seed(experiment, participant)
+            if is_method_overridden(head, ChainNode, "make_next_definition"):
+                # make_next_definition is a more recent interface for creating definitions,
+                # we are going to trial this for a while, and potentially later
+                # deprecate the former interface (create_seed)
+                definition = head.make_next_definition(experiment, participant)
+                seed = None
+            else:
+                # create_seed is the former interface for creating definitions
+                definition = None
+                seed = head.create_seed(experiment, participant)
 
-        node = self.node_class(
-            seed=seed,
-            definition=definition,
-            parent=head,
-            network=network,
-            experiment=experiment,
-            propagate_failure=self.propagate_failure,
-            participant=participant,
-        )
-        db.session.add(node)
-        network.add_node(node)
-        node.check_on_deploy()
-        return True
+            node = self.node_class(
+                seed=seed,
+                definition=definition,
+                parent=head,
+                network=network,
+                experiment=experiment,
+                propagate_failure=self.propagate_failure,
+                participant=participant,
+            )
+            db.session.add(node)
+            network.add_node(node)
+            node.check_on_deploy()
+            return True
+        return False
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)

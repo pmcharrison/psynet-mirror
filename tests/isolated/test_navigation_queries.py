@@ -80,22 +80,3 @@ def test_public_participant_getter_retains_eager_relationships_when_detached(
             "navigation"
         ]
         assert participant.active_barriers == {}
-
-
-def test_experiment_var_loads_config_and_deferred_vars_together(db_session):
-    experiment = get_experiment()
-    db.session.commit()
-
-    with assert_query_count(min_queries=1, max_queries=1):
-        assert isinstance(dict(experiment.var.items()), dict)
-
-
-def test_experiment_var_reuses_loaded_config_vars(db_session):
-    experiment = get_experiment()
-    experiment.setup_experiment_config()
-    db.session.commit()
-
-    with assert_query_count(min_queries=1, max_queries=1):
-        config = experiment.experiment_config
-    with assert_query_count(max_queries=0):
-        assert dict(experiment.var.items()) == dict(config.var.items())

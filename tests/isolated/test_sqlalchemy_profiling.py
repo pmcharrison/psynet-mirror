@@ -7,7 +7,6 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from psynet.sqlalchemy_profiling import (
     _parse_bool,
     aggregate_sqlalchemy_profiles,
-    assert_no_n_plus_one,
     assert_query_count,
     assert_query_duration,
     format_aggregated_html,
@@ -33,14 +32,6 @@ def make_session_factory(engine):
 
 def commit_in_helper(session):
     session.commit()
-
-
-def select_one_from_first_callsite(connection):
-    connection.execute(text("SELECT 1"))
-
-
-def select_one_from_second_callsite(connection):
-    connection.execute(text("SELECT 1"))
 
 
 @pytest.fixture
@@ -316,52 +307,6 @@ def test_assert_query_count_raises_when_below_minimum(sqlite_engine):
     with pytest.raises(AssertionError, match="Expected between 1 and 2 queries"):
         with assert_query_count(max_queries=2, min_queries=1, engine=engine):
             pass
-
-
-def test_assert_no_n_plus_one_passes_for_distinct_statements(sqlite_engine):
-    engine = sqlite_engine
-    with sqlalchemy_profile(engine) as profiler:
-        with engine.begin() as conn:
-            conn.execute(text("SELECT 1"))
-            conn.execute(text("SELECT 2"))
-    assert_no_n_plus_one(profiler, 5)
-
-
-def test_assert_no_n_plus_one_detects_repeated_statement(sqlite_engine):
-    engine = sqlite_engine
-    with sqlalchemy_profile(engine) as profiler:
-        with engine.begin() as conn:
-            for _ in range(3):
-                conn.execute(text("SELECT 1"))
-    with pytest.raises(AssertionError, match="3 or more times"):
-        assert_no_n_plus_one(profiler, 3)
-
-
-def test_assert_no_n_plus_one_combines_stack_buckets(sqlite_engine):
-    engine = sqlite_engine
-    with sqlalchemy_profile(engine, capture_stack=True, stack_depth=1) as profiler:
-        with engine.begin() as conn:
-            select_one_from_first_callsite(conn)
-            select_one_from_first_callsite(conn)
-            select_one_from_second_callsite(conn)
-            select_one_from_second_callsite(conn)
-
-    assert len(profiler.get_stats(top_n=None)) == 2
-    with pytest.raises(AssertionError, match="4 or more times"):
-        assert_no_n_plus_one(profiler, 4)
-
-
-def test_assert_no_n_plus_one_requires_multiple_objects():
-    with pytest.raises(ValueError, match="n_objects must be >= 2"):
-        assert_no_n_plus_one(None, 1)
-
-
-@pytest.mark.parametrize("min_repeats", [0, 1])
-def test_assert_no_n_plus_one_rejects_small_min_repeats(sqlite_engine, min_repeats):
-    with sqlalchemy_profile(sqlite_engine) as profiler:
-        pass
-    with pytest.raises(ValueError, match="min_repeats must be >= 2"):
-        assert_no_n_plus_one(profiler, 2, min_repeats=min_repeats)
 
 
 def test_assert_query_duration_passes_with_high_limit(sqlite_engine):

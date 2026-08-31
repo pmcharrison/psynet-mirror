@@ -57,7 +57,7 @@ from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import lazyload, undefer, with_polymorphic
+from sqlalchemy.orm import lazyload, with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
@@ -1784,9 +1784,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def var(self):
-        config = self.experiment_config
-        if config:
-            return config.var
+        if self.experiment_config:
+            return self.experiment_config.var
         else:
             return ImmutableVarStore(self.variables_initial_values)
 
@@ -1795,12 +1794,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def experiment_config(self):
-        # ExperimentConfig is a singleton and its primary purpose is exposing
-        # vars. Loading the deferred JSON with the row avoids a second query and
-        # keeps this accessor as the single loading strategy used by var.
-        self._experiment_config = ExperimentConfig.query.options(
-            undefer(ExperimentConfig.vars)
-        ).get(1)
+        self._experiment_config = ExperimentConfig.query.get(1)
         return self._experiment_config
 
     def register_participant_fail_routine(self, routine):

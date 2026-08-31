@@ -7,7 +7,6 @@ import sys
 import threading
 import time
 import traceback
-from collections import Counter, defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from time import perf_counter
@@ -512,69 +511,8 @@ def assert_query_count(
     if profiler.total_count < min_queries or profiler.total_count > max_queries:
         raise AssertionError(
             f"Expected between {min_queries} and {max_queries} queries, "
-            f"but saw {profiler.total_count}.\n"
-            f"{profiler.format_summary(top_n=20, sort_by='count')}"
+            f"but saw {profiler.total_count}."
         )
-
-
-def assert_no_n_plus_one(
-    profiler: SQLAlchemyQueryProfiler,
-    n_objects: int,
-    *,
-    min_repeats: Optional[int] = None,
-) -> None:
-    """Fail if any captured statement ran once per object.
-
-    Parameters
-    ----------
-    profiler :
-        Profiler that has already captured the block under test.
-    n_objects :
-        Number of candidate objects in the block. Must be at least 2.
-    min_repeats :
-        Statement-count threshold treated as N+1. Defaults to ``n_objects``.
-        Values below 2 are rejected because they would flag every query.
-
-    Notes
-    -----
-    This is a heuristic for blocks that process enough objects to distinguish
-    per-object SQL from the block's small, constant query budget.
-    """
-    if n_objects < 2:
-        raise ValueError("n_objects must be >= 2 to detect N+1 queries.")
-    threshold = n_objects if min_repeats is None else min_repeats
-    if threshold < 2:
-        raise ValueError("min_repeats must be >= 2.")
-
-    # Stack capture deliberately splits QueryStats by (statement, stack). N+1
-    # detection is about how often SQL executes regardless of which Python
-    # paths reached it, so combine those buckets before applying the threshold.
-    statement_counts: Counter[str] = Counter()
-    callsites_by_statement: Dict[str, Counter[str]] = defaultdict(Counter)
-    for stat in profiler.get_stats(top_n=None, sort_by="count"):
-        statement_counts[stat.statement] += stat.count
-        callsites_by_statement[stat.statement].update(stat.callsite_counts)
-    offenders = [
-        (statement, count)
-        for statement, count in statement_counts.items()
-        if count >= threshold
-    ]
-    if not offenders:
-        return
-
-    def _format_offender(statement: str, count: int) -> str:
-        line = f"{count} x {statement}"
-        callsites = callsites_by_statement[statement]
-        if callsites:
-            line += f" callsites={dict(callsites)}"
-        return line
-
-    details = "\n".join(_format_offender(*offender) for offender in offenders)
-    raise AssertionError(
-        f"Expected no statement to execute {threshold} or more times "
-        f"for {n_objects} objects, but found:\n{details}\n"
-        f"{profiler.format_summary(top_n=20, sort_by='count')}"
-    )
 
 
 @contextmanager

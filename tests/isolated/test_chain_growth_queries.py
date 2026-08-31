@@ -3,23 +3,12 @@ import uuid
 import pytest
 from dallinger import db
 from sqlalchemy import inspect
-from sqlalchemy.orm.attributes import set_committed_value
 
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sqlalchemy_profiling import (
-    assert_no_n_plus_one,
-    assert_query_count,
-    sqlalchemy_profile,
-)
-from psynet.trial.chain import (
-    ChainNetwork,
-    ChainNode,
-    ChainTrial,
-    ChainTrialMaker,
-    _bind_heads_to_loaded_networks,
-)
+from psynet.sqlalchemy_profiling import assert_query_count, sqlalchemy_profile
+from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 from psynet.trial.create_and_rate import (
     CreateAndRateAssignmentPending,
     CreateAndRateTrialMakerMixin,
@@ -33,15 +22,6 @@ from psynet.trial.graph import (
     GraphChainVertex,
 )
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTrialMaker
-
-pytestmark = [
-    pytest.mark.parametrize(
-        "experiment_directory",
-        [path_to_test_experiment("timeline")],
-        indirect=True,
-    ),
-    pytest.mark.usefixtures("in_experiment_directory"),
-]
 
 
 class GrowthQueryTrial(ChainTrial):
@@ -179,6 +159,10 @@ def add_trial(
     return trial
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_find_chains_keeps_query_count_bounded(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker(
@@ -195,6 +179,10 @@ def test_find_chains_keeps_query_count_bounded(db_session, participant):
     assert {chain.id for chain in eligible} == {chain.id for chain in networks}
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_find_chains_batches_viable_trial_counts(db_session, participant, monkeypatch):
     import psynet.trial.chain as chain_module
 
@@ -224,6 +212,10 @@ def test_find_chains_batches_viable_trial_counts(db_session, participant, monkey
     assert networks[0] not in eligible
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_unlimited_static_nodes_skip_viable_trial_counts(
     db_session, participant, monkeypatch
 ):
@@ -258,6 +250,10 @@ def test_unlimited_static_nodes_skip_viable_trial_counts(
     )
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_limited_static_nodes_batch_viable_trial_counts(
     db_session, participant, monkeypatch
 ):
@@ -304,6 +300,10 @@ def test_limited_static_nodes_batch_viable_trial_counts(
     assert {node.id for node in eligible} == expected_node_ids
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()
@@ -340,6 +340,10 @@ def test_create_and_rate_phase_queries_are_bounded(db_session, participant):
     )
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_performance_check_filters_trials_by_maker_in_sql(db_session, participant):
     exp = get_experiment()
     selected_maker = chain_trial_maker(id_="selected_performance")
@@ -354,7 +358,7 @@ def test_performance_check_filters_trials_by_maker_in_sql(db_session, participan
     for _ in range(20):
         add_trial(GrowthQueryTrial, other_network.head, participant)
 
-    with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
+    with sqlalchemy_profile(db.engine) as profiler:
         trials = selected_maker.get_participant_trials(participant)
 
     assert trials == [selected_trial]
@@ -364,6 +368,10 @@ def test_performance_check_filters_trials_by_maker_in_sql(db_session, participan
     assert "trial_maker_id" in where_clause
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_ready_to_grow_query_uses_live_trial_state(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()
@@ -380,6 +388,10 @@ def test_ready_to_grow_query_uses_live_trial_state(db_session, participant):
     assert pending_network.id not in ready_ids
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_can_spawn_excludes_static_networks_from_growth(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()
@@ -391,6 +403,10 @@ def test_can_spawn_excludes_static_networks_from_growth(db_session, participant)
     assert trial_maker.get_networks_ready_to_grow() == []
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_grow_network_uses_live_readiness_not_cached_flag(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()
@@ -402,6 +418,10 @@ def test_grow_network_uses_live_readiness_not_cached_flag(db_session, participan
     assert network.head.degree == 1
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_ready_to_spawn_access_has_migration_error(db_session):
     exp = get_experiment()
     trial_maker = chain_trial_maker()
@@ -414,6 +434,10 @@ def test_ready_to_spawn_access_has_migration_error(db_session):
         network.head.check_ready_to_spawn()
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_assignment_returned_does_not_fail_within_chain_start_node(
     db_session, participant
 ):
@@ -449,6 +473,10 @@ def test_assignment_returned_does_not_fail_within_chain_start_node(
     assert incomplete.failed
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_incomplete_trial_does_not_fail_child_node(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()
@@ -478,6 +506,10 @@ def test_incomplete_trial_does_not_fail_child_node(db_session, participant):
     assert not network.failed
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_finalized_trial_fails_child_node(db_session, participant):
     exp = get_experiment()
     trial_maker = chain_trial_maker()
@@ -537,6 +569,10 @@ def make_graph_trial_maker(network_structure):
     )
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_graph_topology_is_stored_in_normalized_tables(db_session):
     trial_maker = graph_trial_maker()
     trial_maker.create_networks_across(get_experiment())
@@ -551,6 +587,10 @@ def test_graph_topology_is_stored_in_normalized_tables(db_session):
     assert network.outgoing_vertex_ids == []
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_graph_readiness_waits_for_all_incoming_heads(db_session, participant):
     trial_maker = graph_trial_maker()
     trial_maker.create_networks_across(get_experiment())
@@ -575,6 +615,10 @@ def test_graph_readiness_waits_for_all_incoming_heads(db_session, participant):
     assert networks[3].id in ready_ids
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_graph_finalization_fast_path_is_scoped(db_session, participant, monkeypatch):
     trial_maker = make_graph_trial_maker(
         {
@@ -623,6 +667,10 @@ def test_graph_finalization_fast_path_is_scoped(db_session, participant, monkeyp
     assert checked_network_ids == [{networks[2].id, networks[3].id}]
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_graph_growth_processes_ready_cycle_as_one_wave(db_session, participant):
     trial_maker = make_graph_trial_maker(
         {
@@ -649,259 +697,3 @@ def test_graph_growth_processes_ready_cycle_as_one_wave(db_session, participant)
         trial_maker.call_grow_network(network, check_readiness=False)
 
     assert {network.head.degree for network in networks} == {1}
-
-
-def test_graph_growth_uses_refreshed_locked_head(db_session, participant):
-    trial_maker = make_graph_trial_maker({"vertices": [1], "edges": []})
-    trial_maker.create_networks_across(get_experiment())
-    network = GraphChainNetwork.query.filter_by(trial_maker_id=trial_maker.id).one()
-    old_head = network.head
-    add_trial(GrowthQueryGraphTrial, old_head, participant, finalized=True)
-    db.session.commit()
-
-    assert trial_maker.grow_network(network, get_experiment(), check_readiness=False)
-    refreshed_head = network.head
-    add_trial(GrowthQueryGraphTrial, refreshed_head, participant, finalized=True)
-    db.session.commit()
-
-    # Preserve a stale but clean in-memory head while the database still points
-    # to refreshed_head, as can happen after another request grows the network.
-    set_committed_value(network, "head_id", old_head.id)
-    set_committed_value(network, "head", old_head)
-
-    assert trial_maker.grow_network(network, get_experiment(), check_readiness=True)
-    assert network.head.parent is refreshed_head
-    assert network.head.degree == refreshed_head.degree + 1
-
-
-def _reload_participant(participant):
-    participant_id = participant.id
-    db.session.commit()
-    db.session.remove()
-    participant = db.session.get(Participant, participant_id)
-    participant.module_state
-    return participant
-
-
-def _make_static_trial_maker(id_, *, target_trials_per_node=None, **kwargs):
-    args = dict(
-        id_=id_,
-        trial_class=GrowthQueryStaticTrial,
-        nodes=[StaticNode(definition={"x": 0})],
-        expected_trials_per_participant=1,
-        max_trials_per_participant=None,
-        target_trials_per_node=target_trials_per_node,
-        balance_across_nodes=False,
-    )
-    args.update(kwargs)
-    return StaticTrialMaker(**args)
-
-
-def _create_static_networks(trial_maker, experiment, n):
-    return [
-        create_chain_network(trial_maker, experiment, network_class=StaticNetwork)
-        for _ in range(n)
-    ]
-
-
-def test_static_author_hooks_do_not_n_plus_one_on_node_network(db_session, participant):
-    n_nodes = 20
-    exp = get_experiment()
-    trial_maker = _make_static_trial_maker("static_author_hooks")
-    _create_static_networks(trial_maker, exp, n_nodes)
-    initialize_trial_maker_state(trial_maker, participant)
-
-    def custom_node_filter(nodes, participant, experiment):
-        return [node for node in nodes if node.network.failed is False]
-
-    def select_node(nodes, participant, experiment):
-        return max(nodes, key=lambda node: node.network.id)
-
-    trial_maker.custom_node_filter = custom_node_filter
-    trial_maker.select_node = select_node
-    participant = _reload_participant(participant)
-
-    with assert_query_count(
-        min_queries=2, max_queries=8, capture_stack=True
-    ) as profiler:
-        selection = trial_maker._select_trial_node(participant, exp)
-
-    assert_no_n_plus_one(profiler, n_nodes)
-    assert selection.value.network.failed is False
-
-
-def test_static_prepare_trial_query_count_is_bounded(db_session, participant):
-    n_nodes = 20
-    exp = get_experiment()
-    trial_maker = _make_static_trial_maker("static_prepare_trial")
-    _create_static_networks(trial_maker, exp, n_nodes)
-    initialize_trial_maker_state(trial_maker, participant)
-    participant = _reload_participant(participant)
-
-    with assert_query_count(
-        min_queries=3, max_queries=25, capture_stack=True
-    ) as profiler:
-        trial, status = trial_maker.prepare_trial(exp, participant)
-
-    assert status == "available"
-    assert trial is not None
-    assert_no_n_plus_one(profiler, n_nodes)
-
-
-def test_static_discovery_query_count_does_not_scale_with_nodes(
-    db_session, participant
-):
-    participant_id = participant.id
-    exp = get_experiment()
-
-    def profile_find_nodes(n, maker_id):
-        live = db.session.get(Participant, participant_id)
-        trial_maker = _make_static_trial_maker(maker_id)
-        _create_static_networks(trial_maker, exp, n)
-        initialize_trial_maker_state(trial_maker, live)
-        live = _reload_participant(live)
-        with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
-            eligible = trial_maker.find_nodes(live, exp)
-        assert len(eligible) == n
-        return profiler
-
-    small = profile_find_nodes(10, "static_scale_10")
-    large = profile_find_nodes(40, "static_scale_40")
-    assert large.total_count <= small.total_count + 1
-    assert_no_n_plus_one(large, 40)
-
-
-def test_static_discovery_keeps_public_network_counts_loaded(db_session, participant):
-    exp = get_experiment()
-    trial_maker = _make_static_trial_maker("static_loaded_counts")
-    networks = _create_static_networks(trial_maker, exp, 20)
-    add_trial(GrowthQueryStaticTrial, networks[0].head, participant)
-    initialize_trial_maker_state(trial_maker, participant)
-    participant = _reload_participant(participant)
-
-    nodes = trial_maker.find_nodes(participant, exp)
-
-    # Selection hooks receive ORM objects and may inspect these public count
-    # attributes in a loop, so discovery must not defer them into an N+1.
-    with assert_query_count(max_queries=0):
-        assert sorted(node.network.n_all_trials for node in nodes) == [0] * 19 + [1]
-
-
-def test_bind_heads_rejects_mismatched_network_id(db_session, participant):
-    exp = get_experiment()
-    trial_maker = _make_static_trial_maker("static_mismatched_head")
-    first, second = _create_static_networks(trial_maker, exp, 2)
-    first.head.network_id = second.id
-
-    with pytest.raises(RuntimeError, match="belongs to network"):
-        _bind_heads_to_loaded_networks([first])
-
-
-def test_bind_heads_does_not_overwrite_dirty_relationship(db_session, participant):
-    exp = get_experiment()
-    trial_maker = _make_static_trial_maker("static_dirty_head")
-    first, second = _create_static_networks(trial_maker, exp, 2)
-    first.head.network = second
-
-    with db.session.no_autoflush:
-        _bind_heads_to_loaded_networks([first])
-    assert first.head.network is second
-    assert inspect(first.head).attrs.network.history.has_changes()
-
-
-def test_chain_author_hooks_do_not_n_plus_one_on_head_network(db_session, participant):
-    n_chains = 20
-    exp = get_experiment()
-    trial_maker = chain_trial_maker(
-        id_="chain_author_hooks",
-        chains_per_experiment=n_chains,
-        max_trials_per_participant=None,
-    )
-    for _ in range(n_chains):
-        create_chain_network(trial_maker, exp)
-    initialize_trial_maker_state(trial_maker, participant)
-
-    def custom_chain_filter(chains, participant, experiment):
-        return [chain for chain in chains if chain.head.network.failed is False]
-
-    trial_maker.custom_chain_filter = custom_chain_filter
-    participant = _reload_participant(participant)
-
-    with assert_query_count(
-        min_queries=3, max_queries=8, capture_stack=True
-    ) as profiler:
-        eligible = trial_maker.find_chains(participant, exp)
-
-    assert_no_n_plus_one(profiler, n_chains)
-    assert len(eligible) == n_chains
-
-
-def test_grow_readiness_does_not_load_trial_rows(db_session, participant):
-    exp = get_experiment()
-    trial_maker = chain_trial_maker(id_="grow_readiness_rows")
-    network = create_chain_network(trial_maker, exp)
-    for _ in range(20):
-        add_trial(GrowthQueryTrial, network.head, participant, finalized=True)
-    db.session.commit()
-
-    with sqlalchemy_profile(db.engine, capture_stack=True) as profiler:
-        assert trial_maker.network_is_ready_to_grow(network) is True
-
-    # One readiness/lock query plus at most two polymorphic network refreshes.
-    assert profiler.total_count <= 3
-    for stat in profiler.get_stats(top_n=None):
-        sql = stat.statement.lower()
-        if "from info" in sql and "count(" not in sql and "exists" not in sql:
-            raise AssertionError(
-                "Readiness check loaded trial rows instead of counting them: "
-                f"{stat.statement}"
-            )
-
-
-def test_grow_readiness_autoflushes_uncommitted_trial_state(db_session, participant):
-    exp = get_experiment()
-    trial_maker = chain_trial_maker(id_="grow_readiness_autoflush")
-    network = create_chain_network(trial_maker, exp)
-    trial = add_trial(
-        GrowthQueryTrial,
-        network.head,
-        participant,
-        finalized=False,
-    )
-    trial.complete = True
-    trial.finalized = True
-
-    assert inspect(trial).attrs.finalized.history.has_changes()
-    assert trial_maker.network_is_ready_to_grow(network) is True
-    # The SQL readiness predicate relies intentionally on normal autoflush so
-    # it sees finalization changes made earlier in the same request.
-    assert not inspect(trial).attrs.finalized.history.has_changes()
-
-
-def test_grow_readiness_refreshes_stale_head_while_locked(db_session, participant):
-    exp = get_experiment()
-    trial_maker = chain_trial_maker(id_="grow_readiness_stale_head")
-    network = create_chain_network(trial_maker, exp)
-    old_head = network.head
-    replacement = GrowthQueryNode(
-        definition={"x": 1},
-        parent=old_head,
-        network=network,
-        experiment=exp,
-    )
-    replacement.can_spawn = True
-    db.session.add(replacement)
-    db.session.flush()
-    add_trial(GrowthQueryTrial, replacement, participant, finalized=True)
-
-    # Simulate another transaction advancing the network without refreshing
-    # this session's already-loaded Network.head relationship.
-    db.session.execute(
-        ChainNetwork.__table__.update()
-        .where(ChainNetwork.__table__.c.id == network.id)
-        .values(head_id=replacement.id)
-    )
-    assert network.head is old_head
-
-    assert trial_maker.network_is_ready_to_grow(network) is True
-    assert network.head is replacement
