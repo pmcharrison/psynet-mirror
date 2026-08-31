@@ -110,6 +110,52 @@ def default_ssh_command(identity_path: Optional[Union[str, Path]]) -> List[str]:
     return cmd
 
 
+def local_rsync_available(rsync_bin: str = "rsync") -> bool:
+    """Return whether ``rsync`` is on the local ``PATH``."""
+    return shutil.which(rsync_bin) is not None
+
+
+def rsync_missing_warning_text(*, location: str, host: Optional[str] = None) -> str:
+    """Return the user-facing warning for a missing ``rsync`` binary.
+
+    Parameters
+    ----------
+    location :
+        ``"local"`` when this computer lacks rsync, ``"remote"`` when the
+        SSH host lacks it.
+    host :
+        SSH hostname, used only for the remote warning.
+    """
+    if location == "local":
+        return (
+            "WARNING: rsync is not installed on this computer.\n"
+            "SSH asset export will use slower per-file SFTP instead of one bulk transfer.\n"
+            "\n"
+            "Install rsync, then re-run the export:\n"
+            "  Ubuntu/Debian:  sudo apt install rsync\n"
+            "  macOS:          brew install rsync"
+        )
+    host_label = host or "the SSH host"
+    return (
+        f"WARNING: rsync is not installed on the SSH host ({host_label}).\n"
+        "SSH asset export will use slower per-file SFTP instead of one bulk transfer.\n"
+        "\n"
+        "On the server, run:\n"
+        "  sudo apt install rsync\n"
+        "Then re-run the export."
+    )
+
+
+def emit_rsync_missing_warning(*, location: str, host: Optional[str] = None) -> str:
+    """Print a salient warning that rsync is missing and how to install it."""
+    import click
+
+    text = rsync_missing_warning_text(location=location, host=host)
+    click.secho("\n" + text + "\n", fg="yellow", bold=True, err=True)
+    logger.warning(text.replace("\n", " "))
+    return text
+
+
 def build_rsync_command(
     *,
     files_from: Union[str, Path],

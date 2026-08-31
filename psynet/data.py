@@ -939,6 +939,9 @@ def _prefetch_ssh_local_objects(assets, server, logger):
     from .experiment import import_local_experiment
     from .export.ssh_rsync import (
         default_ssh_command,
+        emit_rsync_missing_warning,
+        local_rsync_available,
+        missing_object_digests,
         prefetch_missing_objects,
         remote_assets_source,
     )
@@ -982,8 +985,17 @@ def _prefetch_ssh_local_objects(assets, server, logger):
 
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
+    if not missing_object_digests(digests):
+        return
+    if not local_rsync_available():
+        emit_rsync_missing_warning(location="local")
+        return
     try:
-        home_dir = Executor(ssh_host, user=ssh_user).run("echo $HOME").strip()
+        executor = Executor(ssh_host, user=ssh_user)
+        if not executor.run("command -v rsync", raise_=False).strip():
+            emit_rsync_missing_warning(location="remote", host=ssh_host)
+            return
+        home_dir = executor.run("echo $HOME").strip()
         pem_path = get_server_pem_path()
         written = prefetch_missing_objects(
             digests,
@@ -991,10 +1003,8 @@ def _prefetch_ssh_local_objects(assets, server, logger):
             ssh_command=default_ssh_command(pem_path),
         )
     except FileNotFoundError as exc:
-        logger.warning(
-            "Skipping rsync asset prefetch (%s); falling back to per-asset SFTP.",
-            exc,
-        )
+        emit_rsync_missing_warning(location="local")
+        logger.warning("rsync executable was not found (%s).", exc)
         return
     except subprocess.CalledProcessError as exc:
         logger.warning(

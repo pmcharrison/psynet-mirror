@@ -152,8 +152,9 @@ SSH command-line exports (``psynet export ssh --legacy``) copy missing
 managed-asset objects from the server with one ``rsync --files-from`` into
 that cache, instead of one SFTP download per file. Repeat exports on the same
 machine transfer only new objects. ``rsync`` must be installed both locally
-and on the SSH host. If it is missing or the remote copy fails, PsyNet falls
-back to per-asset SFTP. S3-backed assets are still fetched from S3.
+and on the SSH host. If it is missing, PsyNet prints a warning with install
+commands (``sudo apt install rsync``, or ``brew install rsync`` on macOS)
+and falls back to per-asset SFTP. S3-backed assets are still fetched from S3.
 
 If the cache grows past a soft limit (50 GiB by default), PsyNet warns after
 export but does **not** fail or delete objects. A single large experiment may

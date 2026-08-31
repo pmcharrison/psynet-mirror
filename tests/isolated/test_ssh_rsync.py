@@ -10,10 +10,12 @@ import pytest
 from psynet.export.ssh_rsync import (
     build_rsync_command,
     default_ssh_command,
+    emit_rsync_missing_warning,
     missing_object_digests,
     object_relative_path,
     prefetch_missing_objects,
     remote_assets_source,
+    rsync_missing_warning_text,
 )
 from psynet.utils import sha256_directory, sha256_file
 
@@ -283,11 +285,22 @@ def test_prefetch_ssh_local_objects_rsyncs_only_localstorage(monkeypatch):
             self.host = host
             self.user = user
 
-        def run(self, command):
-            assert command == "echo $HOME"
-            return "/home/alice\n"
+        def run(self, command, raise_=True):
+            if command == "command -v rsync":
+                return "/usr/bin/rsync\n"
+            if command == "echo $HOME":
+                return "/home/alice\n"
+            raise AssertionError(command)
 
     monkeypatch.setattr(docker_ssh, "Executor", FakeExecutor)
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.local_rsync_available",
+        lambda: True,
+    )
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.missing_object_digests",
+        lambda digests, cache_root=None: list(digests),
+    )
     monkeypatch.setattr(
         "dallinger.command_line.utils.get_server_pem_path",
         lambda: "/tmp/key.pem",
@@ -325,3 +338,140 @@ def test_prefetch_ssh_local_objects_rsyncs_only_localstorage(monkeypatch):
     assert captured["source"] == "alice@example.com:/home/alice/psynet-data/assets/"
     assert "-i" in captured["ssh_command"]
     assert "/tmp/key.pem" in captured["ssh_command"]
+
+
+def test_rsync_missing_warning_text_tells_user_how_to_install():
+    local = rsync_missing_warning_text(location="local")
+    assert local.startswith("WARNING:")
+    assert "this computer" in local
+    assert "sudo apt install rsync" in local
+    assert "brew install rsync" in local
+    assert "SFTP" in local
+
+    remote = rsync_missing_warning_text(location="remote", host="example.com")
+    assert remote.startswith("WARNING:")
+    assert "example.com" in remote
+    assert "sudo apt install rsync" in remote
+    assert "On the server" in remote
+
+
+def test_emit_rsync_missing_warning_prints_to_stderr(capsys):
+    emit_rsync_missing_warning(location="remote", host="example.com")
+    captured = capsys.readouterr()
+    assert "WARNING:" in captured.err
+    assert "example.com" in captured.err
+    assert "sudo apt install rsync" in captured.err
+    assert captured.out == ""
+
+
+def _prefetch_test_assets():
+    from types import SimpleNamespace
+
+    from psynet.asset import LocalStorage
+
+    local = LocalStorage()
+    asset = SimpleNamespace(sha256_contents="a" * 64, storage=local)
+    return local, asset
+
+
+def _patch_prefetch_ssh_host(monkeypatch, executor_cls):
+    import importlib
+    from types import SimpleNamespace
+
+    docker_ssh = importlib.import_module("dallinger.command_line.docker_ssh")
+    monkeypatch.setattr(
+        docker_ssh,
+        "CONFIGURED_HOSTS",
+        {"demo": {"host": "example.com", "user": "alice"}},
+    )
+    monkeypatch.setattr(docker_ssh, "Executor", executor_cls)
+    monkeypatch.setattr(
+        "dallinger.command_line.utils.get_server_pem_path",
+        lambda: "/tmp/key.pem",
+    )
+    local, asset = _prefetch_test_assets()
+    monkeypatch.setattr(
+        "psynet.experiment.import_local_experiment",
+        lambda: {"class": SimpleNamespace(asset_storage=local)},
+    )
+    return asset
+
+
+def test_prefetch_warns_when_local_rsync_missing(monkeypatch):
+    from psynet.data import _prefetch_ssh_local_objects
+
+    warnings = []
+    monkeypatch.setattr("psynet.export.ssh_rsync.local_rsync_available", lambda: False)
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.emit_rsync_missing_warning",
+        lambda **kwargs: warnings.append(kwargs) or "warned",
+    )
+    called = {"executor": 0, "prefetch": 0}
+
+    class BoomExecutor:
+        def __init__(self, *args, **kwargs):
+            called["executor"] += 1
+
+    asset = _patch_prefetch_ssh_host(monkeypatch, BoomExecutor)
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.prefetch_missing_objects",
+        lambda *a, **k: called.__setitem__("prefetch", called["prefetch"] + 1),
+    )
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.missing_object_digests",
+        lambda digests, cache_root=None: list(digests),
+    )
+
+    class Logger:
+        def info(self, *args, **kwargs):
+            pass
+
+        def warning(self, *args, **kwargs):
+            pass
+
+    _prefetch_ssh_local_objects([asset], "demo", Logger())
+    assert warnings == [{"location": "local"}]
+    assert called["executor"] == 0
+    assert called["prefetch"] == 0
+
+
+def test_prefetch_warns_when_remote_rsync_missing(monkeypatch):
+    from psynet.data import _prefetch_ssh_local_objects
+
+    warnings = []
+    monkeypatch.setattr("psynet.export.ssh_rsync.local_rsync_available", lambda: True)
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.emit_rsync_missing_warning",
+        lambda **kwargs: warnings.append(kwargs) or "warned",
+    )
+    called = {"prefetch": 0}
+
+    class RemoteMissingExecutor:
+        def __init__(self, host, user=None):
+            self.host = host
+
+        def run(self, command, raise_=True):
+            if command == "command -v rsync":
+                return ""
+            raise AssertionError(command)
+
+    asset = _patch_prefetch_ssh_host(monkeypatch, RemoteMissingExecutor)
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.prefetch_missing_objects",
+        lambda *a, **k: called.__setitem__("prefetch", called["prefetch"] + 1),
+    )
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.missing_object_digests",
+        lambda digests, cache_root=None: list(digests),
+    )
+
+    class Logger:
+        def info(self, *args, **kwargs):
+            pass
+
+        def warning(self, *args, **kwargs):
+            pass
+
+    _prefetch_ssh_local_objects([asset], "demo", Logger())
+    assert warnings == [{"location": "remote", "host": "example.com"}]
+    assert called["prefetch"] == 0

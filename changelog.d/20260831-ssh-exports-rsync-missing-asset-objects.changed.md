@@ -1,1 +1,1 @@
-SSH command-line exports copy missing LocalStorage asset objects with one rsync into the local cache.
+SSH command-line exports copy missing LocalStorage asset objects with one rsync into the local cache. If rsync is missing locally or on the SSH host, PsyNet warns with install instructions and falls back to per-asset SFTP.
