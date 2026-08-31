@@ -2302,6 +2302,26 @@ def _resolve_ssh_app(ctx, app, server):
     return resolved_app
 
 
+def _warn_deprecated_export_options(no_source, username, password):
+    """Warn when removed source-export options are explicitly supplied."""
+    deprecated_options = [
+        option
+        for option, used in (
+            ("--no-source", no_source),
+            ("--username", username is not None),
+            ("--password", password is not None),
+        )
+        if used
+    ]
+    if deprecated_options:
+        click.echo(
+            "WARNING: Deprecated export option(s) "
+            + ", ".join(deprecated_options)
+            + " are accepted for compatibility but have no effect.",
+            err=True,
+        )
+
+
 def _get_local_export_url(config):
     try:
         port = config.get("base_port")
@@ -2338,17 +2358,20 @@ def export_arguments(func):
             "--no-source",
             is_flag=True,
             default=False,
-            help="Skip exporting the experiment's source code",
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
         ),
         click.option(
             "--username",
             default=None,
-            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
         ),
         click.option(
             "--password",
             default=None,
-            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
         ),
     ]
     for arg in args:
@@ -2458,18 +2481,20 @@ def export_(
         ├── assets/                         # omitted when --assets none
         │   ├── manifest.csv
         │   └── <semantic export paths>
-        ├── source_code.zip                 # optional
         └── logs.jsonl                      # SSH exports when available
 
     Table CSVs under ``database/`` use pseudonymous participant identifiers so
     the archive remains loadable. Original recruiter identifiers are written to
     the sidecar CSV files. This is identifier separation, not anonymization.
+    ``manifest.json`` records the deployment git commit instead of bundling
+    source code.
 
     ``--archive`` (debug/deploy) accepts ``export.zip``, a ``database/``
     directory, or an extracted export directory containing ``database/``.
     """
     # Ignore deprecated anonymize kwargs from older callers.
     kwargs.pop("anonymize", None)
+    _warn_deprecated_export_options(no_source, username, password)
 
     from .experiment import import_local_experiment
 
@@ -2540,20 +2565,9 @@ def export_(
                     zip_ref.extractall(path)
             finally:
                 os.unlink(zip_path)
-            if no_source:
-                bundled_source = os.path.join(path, "source_code.zip")
-                if os.path.exists(bundled_source):
-                    os.remove(bundled_source)
-            else:
-                _export_source_code(
-                    app,
-                    local,
-                    server,
-                    path,
-                    username,
-                    password,
-                    experiment_url=experiment_url,
-                )
+            leftover_source = os.path.join(path, "source_code.zip")
+            if os.path.exists(leftover_source):
+                os.remove(leftover_source)
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -2576,13 +2590,10 @@ def export_(
             local,
             path,
             assets,
-            not no_source,
             n_parallel,
             docker_ssh,
             server,
             dns_host,
-            username,
-            password,
         )
 
 
@@ -2592,13 +2603,10 @@ def _export_(
     local,
     export_path,
     assets,
-    export_source_code: bool,
     n_parallel=None,
     docker_ssh=False,
     server=None,
     dns_host=None,
-    username=None,
-    password=None,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
@@ -2634,9 +2642,6 @@ def _export_(
             local,
         )
 
-    if export_source_code:
-        _export_source_code(app, local, server, export_path, username, password)
-
     # Export logs.jsonl file for SSH exports
     if docker_ssh and server:
         export_logs(app, server, export_path)
@@ -2670,102 +2675,6 @@ def export_logs(app, server, export_path):
 
     except Exception as e:
         log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
-
-
-def _export_source_code(
-    app, local, server, export_path, username, password, experiment_url=None
-):
-    import requests
-
-    config = get_config()
-    if not config.ready:
-        config.load()
-
-    username = username or config.get("dashboard_user", None)
-    password = password or config.get("dashboard_password", None)
-
-    if not all([username, password]):
-        if not click.confirm(
-            "\nPsyNet failed to find dashboard credentials in your local config files. "
-            "These dashboard credentials are needed to authenticate to the remote server "
-            "in order to download the experiment's source code. "
-            "You can provide these credentials now in a follow-up dialog; you can find these "
-            "credentials printed to your console as part of the experiment deployment command. "
-            "Alternatively, you can choose to skip downloading the source code. "
-            "\nDo you want to proceed with entering username and password now? "
-            "Enter 'y', or 'n' to skip downloading the source code.",
-            default=True,
-            abort=False,
-        ):
-            log("WARNING: Experiment source code could not be downloaded.")
-            return
-
-    log(
-        "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
-    )
-    if experiment_url:
-        url = experiment_url.rstrip("/")
-    elif local:
-        url = "http://localhost:5000"
-    else:
-        if server:
-            url = f"https://{app}.{server}"
-        else:
-            url = HerokuApp(app).url
-
-    url += "/download_source"
-    source_code_zip_path = os.path.join(export_path, "source_code.zip")
-
-    while True:
-        if not all([username, password]):
-            username = click.prompt("Enter dashboard username")
-            password = click.prompt("Enter dashboard password", hide_input=True)
-
-        with yaspin(
-            text=f"Requesting source code from {url}", color="green"
-        ) as spinner:
-            response = requests.get(url, auth=(username, password))
-
-        if response.status_code == 200:
-            with open(source_code_zip_path, "wb") as f:
-                f.write(response.content)
-            spinner.ok("✔")
-            log(f"Experiment source code saved to {source_code_zip_path}")
-            break
-        elif response.status_code == 401:
-            try_again = click.confirm(
-                "Authentication failed.\nPress ENTER to try again or 'n' to skip downloading the source code.",
-                default=True,
-                abort=False,
-            )
-            if not try_again:
-                log("Skipped downloading the source code.")
-                break
-            # Reset the credentials so the user gets another chance to enter them correctly
-            username, password = None, None
-        else:
-            spinner.color = "red"
-            spinner.fail("✘")
-            click.confirm(
-                "Experiment source code could not be downloaded."
-                "\nPress ENTER to continue with the remainder of data export, ignoring the source code."
-                "\nNote: To skip exporting the source code in the future, add `--no-source` option to your `psynet export` command.",
-                default=True,
-                prompt_suffix="",
-                show_default=False,
-            )
-            log(
-                f"WARNING: Failed to download experiment source code. Response: {response.reason} ({response.status_code})"
-            )
-            try:
-                message = response.json().get("message")
-                log(f"\nReason: {message}.")
-            except json.JSONDecodeError as e:
-                log(
-                    f"\nAdditionally, decoding JSON data from the response failed with '{str(e)}'"
-                    f"\nResponse content: {response.content}"
-                )
-            break
 
 
 def _download_raw_database_zip(ctx, app, docker_ssh, server, dns_host):

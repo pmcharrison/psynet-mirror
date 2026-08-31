@@ -63,7 +63,6 @@ class TestExpWithExport:
             assets="none",
             n_parallel=None,
             legacy=True,
-            no_source=True,
         )
 
 

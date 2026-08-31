@@ -118,7 +118,6 @@ def _time_local_export(export_path: Path) -> float:
             "--legacy",
             "--assets",
             "none",
-            "--no-source",
             "--path",
             str(export_path),
         ],

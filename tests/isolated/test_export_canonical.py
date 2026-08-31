@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import csv
+import json
 import zipfile
 from pathlib import Path
+from unittest.mock import Mock
 
 import pandas as pd
 
@@ -205,6 +207,56 @@ def test_empty_lucid_table_omits_sidecar(tmp_path):
     sidecars = write_identifier_sidecars_from_csv_dir(str(raw_dir), str(export_path))
     assert "lucid_entrant_identifiers" not in sidecars
     assert not (export_path / "lucid_entrant_identifiers.csv").exists()
+
+
+def test_write_export_manifest_records_git_provenance(tmp_path, monkeypatch):
+    from psynet.export.database import write_export_manifest
+
+    csv_dir = tmp_path / "database"
+    csv_dir.mkdir()
+    (csv_dir / "trial.csv").write_text("id\n1\n")
+
+    experiment = Mock()
+    experiment.deployment_id = "demo__export"
+    experiment.var.get.side_effect = lambda name, default=None: {
+        "git_commit_sha": "abc123def",
+        "git_dirty": True,
+    }.get(name, default)
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
+
+    manifest_path = write_export_manifest(
+        str(tmp_path),
+        table_names=["trial"],
+        csv_dir=str(csv_dir),
+    )
+    manifest = json.loads(Path(manifest_path).read_text())
+    assert manifest["git_commit_sha"] == "abc123def"
+    assert manifest["git_dirty"] is True
+    assert manifest["deployment_id"] == "demo__export"
+    assert "source_code.zip" not in manifest.get("files", {})
+
+
+def test_write_export_manifest_allows_missing_git_provenance(tmp_path, monkeypatch):
+    from psynet.export.database import write_export_manifest
+
+    csv_dir = tmp_path / "database"
+    csv_dir.mkdir()
+    (csv_dir / "trial.csv").write_text("id\n")
+
+    monkeypatch.setattr(
+        "psynet.experiment.get_experiment",
+        Mock(side_effect=RuntimeError("no experiment")),
+    )
+    monkeypatch.setattr("psynet.deployment_info.is_available", lambda: False)
+
+    manifest_path = write_export_manifest(
+        str(tmp_path),
+        table_names=["trial"],
+        csv_dir=str(csv_dir),
+    )
+    manifest = json.loads(Path(manifest_path).read_text())
+    assert manifest["git_commit_sha"] is None
+    assert manifest["git_dirty"] is None
 
 
 def test_unpack_json_column_does_not_overwrite_unless_requested():

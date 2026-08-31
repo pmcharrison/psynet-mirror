@@ -62,7 +62,6 @@ A typical export directory looks like this:
     ├── assets/                         # omitted when --assets none
     │   ├── manifest.csv
     │   └── <semantic export paths>
-    ├── source_code.zip                 # optional
     └── logs.jsonl                      # SSH exports when available
 
 If you want to choose your own export location, use the ``--path`` argument:
@@ -84,12 +83,10 @@ Use ``--assets all`` to also include pre-existing assets (cached stimuli,
 external URLs) and to materialize on-demand assets. Treat exported media as
 potentially identifying.
 
-By default the export command will also try to export the experiment's source code.
-If you experience an error during source code exporting, we recommend using the ``--no-source`` argument:
-
-.. code:: bash
-
-    psynet export ssh --app my-app-name --no-source
+``manifest.json`` records the git commit SHA that was deployed
+(``git_commit_sha``) and whether the working tree was dirty
+(``git_dirty``). Exports do not include a source-code zip; check out that
+commit to recover the experiment code.
 
 The ``--legacy`` argument processes the export locally instead of downloading from the
 dashboard (which also saves a backup). This can be useful if you encounter troubles with
@@ -103,7 +100,7 @@ the default export method:
 Identifier separation
 =====================
 
-``database.zip`` replaces direct recruiter identifiers with pseudonyms so that database
+Table CSVs under ``database/`` replace direct recruiter identifiers with pseudonyms so that database
 constraints remain satisfied and the archive can be loaded with ``psynet load``.
 Original identifiers are available in ``participant_identifiers.csv``, keyed by
 ``participant_id``. That sidecar includes ``worker_id``, ``assignment_id``,

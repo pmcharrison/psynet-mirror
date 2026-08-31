@@ -3,7 +3,7 @@
 These fields identify a person to a recruiter or marketplace. The live
 ``Participant`` table (and ``LucidRID`` for Lucid ghost entrants) remain the
 sole owners while an experiment runs. Export separates them into sidecar files
-and writes pseudonyms into ``database.zip``.
+and writes pseudonyms into table CSVs under ``database/``.
 
 ``entry_information`` is included in the participant sidecar because it often
 carries recruiter-specific signup metadata; it is blanked in the pseudonymous

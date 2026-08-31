@@ -3601,8 +3601,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         n_parallel=None,
         **kwargs,
     ):
-        if config is None:
-            config = get_config()
         from .command_line import export__local
         from .export.paths import EXPORT_ZIP_NAME
 
@@ -3611,11 +3609,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             export__local,
             path=export_dir,
             n_parallel=n_parallel,
-            username=config.get("dashboard_user"),
-            password=config.get("dashboard_password"),
             assets=kwargs.get("assets") or "collected",
             legacy=True,
-            no_source=kwargs.get("no_source", False),
         )
         from .export.zip_utils import build_zip_from_dir
 

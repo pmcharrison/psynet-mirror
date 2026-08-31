@@ -54,3 +54,6 @@ def test_pre_deploy_archive_deployment():
 
 def test_source_code_archive_functionality_is_removed():
     assert not hasattr(Experiment, "create_source_code_zip_file")
+    import psynet.command_line as command_line
+
+    assert not hasattr(command_line, "_export_source_code")

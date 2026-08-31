@@ -109,9 +109,8 @@ The planned output is:
 .. code-block:: text
 
     export/
-    ├── database.zip
+    ├── database/
     ├── participant_identifiers.csv
-    ├── source_code.zip
     ├── manifest.json
     ├── assets/
     │   ├── manifest.csv
@@ -122,15 +121,16 @@ The planned output is:
     ├── basic_data.json          # optional alternative
     └── logs.jsonl               # when available
 
-The exact database snapshot consists of ``database.zip`` together with
-``participant_identifiers.csv``. The database archive contains pseudonymous
+The exact database snapshot consists of table CSVs under ``database/`` together with
+``participant_identifiers.csv``. The database directory contains pseudonymous
 participant identifiers and can be loaded independently for analysis or
 redeployment. The identifier file supplies the original recruiter identifiers
 when those are needed.
 
 The top-level manifest will describe the snapshot identity, creation time,
-deployment ID, PsyNet and Dallinger versions, table row counts, and checksums.
-It will not attempt to certify the export as anonymous.
+deployment ID, git commit SHA, PsyNet and Dallinger versions, table row counts, and checksums.
+It will not attempt to certify the export as anonymous. Experiment source is recovered from
+the recorded git commit rather than a bundled zip.
 
 Database snapshot
 =================

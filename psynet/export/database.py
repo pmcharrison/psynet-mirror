@@ -98,6 +98,36 @@ def _file_entry(path: str) -> dict:
     return {"sha256": sha256_file(path), "bytes": os.path.getsize(path)}
 
 
+def _git_provenance_for_manifest():
+    """Return launch git SHA and dirty flag for ``manifest.json``."""
+    git_commit_sha = None
+    git_dirty = None
+    try:
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+        git_commit_sha = experiment.var.get("git_commit_sha", None)
+        git_dirty = experiment.var.get("git_dirty", None)
+        return experiment.deployment_id, git_commit_sha, git_dirty
+    except Exception:
+        logger.warning(
+            "Could not resolve experiment git provenance for export manifest.",
+            exc_info=True,
+        )
+    try:
+        from psynet import deployment_info
+
+        if deployment_info.is_available():
+            git_commit_sha = deployment_info.read("git_commit_sha")
+            git_dirty = deployment_info.read("git_dirty")
+    except Exception:
+        logger.warning(
+            "Could not read deployment_info git provenance for export manifest.",
+            exc_info=True,
+        )
+    return None, git_commit_sha, git_dirty
+
+
 def write_export_manifest(
     export_path: str,
     *,
@@ -105,7 +135,11 @@ def write_export_manifest(
     csv_dir: str,
     extra_files: Optional[dict[str, str]] = None,
 ) -> str:
-    """Write ``manifest.json`` describing the export."""
+    """Write ``manifest.json`` describing the export.
+
+    The manifest records ``git_commit_sha`` and ``git_dirty`` from launch
+    provenance. Exports do not bundle experiment source code.
+    """
     from psynet import __version__ as psynet_version
 
     try:
@@ -128,19 +162,13 @@ def write_export_manifest(
             if os.path.exists(path):
                 files[name] = _file_entry(path)
 
-    deployment_id = None
-    try:
-        from psynet.experiment import get_experiment
-
-        deployment_id = get_experiment().deployment_id
-    except Exception:
-        logger.warning(
-            "Could not resolve deployment_id for export manifest.", exc_info=True
-        )
+    deployment_id, git_commit_sha, git_dirty = _git_provenance_for_manifest()
 
     manifest = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "deployment_id": deployment_id,
+        "git_commit_sha": git_commit_sha,
+        "git_dirty": git_dirty,
         "psynet_version": psynet_version,
         "dallinger_version": dallinger_version,
         "table_row_counts": row_counts,
