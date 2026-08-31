@@ -31,7 +31,11 @@ from psynet.sync import (
     check_barriers,
 )
 from psynet.timeline import CodeBlock, GoTo
-from psynet.timeline_hold import TIMELINE_HOLD_CHANNEL, TimelineHoldRecord
+from psynet.timeline_hold import (
+    TIMELINE_HOLD_CHANNEL,
+    TimelineHoldRecord,
+    queue_timeline_hold_wake,
+)
 
 
 def get_random_id():
@@ -67,6 +71,12 @@ class RecordingBarrier(Barrier):
 class ReleaseAllBarrier(Barrier):
     def choose_who_to_release(self, waiting_participants):
         return waiting_participants
+
+
+class OverridingReleaseBarrier(Barrier):
+    def check(self):
+        for participant in self.get_waiting_participants(for_update=True):
+            self.release(participant)
 
 
 class RecordingTimeoutGroupBarrier(GroupBarrier):
@@ -117,6 +127,7 @@ def test_default_barrier_uses_timeline_hold():
 
     assert barrier.waiting_logic.is_timeline_hold
     assert barrier.waiting_logic.barrier_id == barrier.id
+    assert barrier.waiting_logic.time_estimate == 1.5
     assert not isinstance(barrier.waiting_logic, WaitPage)
 
 
@@ -600,6 +611,63 @@ def test_check_barriers_publishes_release_after_commit(
             TIMELINE_HOLD_CHANNEL,
         )
     ]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_timeline_hold_wake_is_discarded_on_rollback(
+    in_experiment_directory, db_session, monkeypatch
+):
+    publications = []
+    monkeypatch.setattr(
+        get_experiment(),
+        "publish_to_subscribers",
+        lambda *args, **kwargs: publications.append((args, kwargs)),
+    )
+
+    queue_timeline_hold_wake(1, page_uuid="rolled-back")
+    db_session.rollback()
+    db_session.commit()
+
+    assert publications == []
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_overridden_barrier_check_still_publishes_hold_wake(
+    in_experiment_directory, db_session, monkeypatch
+):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    participant.status = "working"
+    participant.page_uuid = "override-hold"
+    barrier = OverridingReleaseBarrier(id_="override")
+    barrier.receive_participant(participant)
+    hold = TimelineHoldRecord(
+        participant=participant,
+        page_uuid=participant.page_uuid,
+        hold_id="barrier:override",
+        started_at=timenow(),
+        expected_wait=1.5,
+        max_wait_time=20,
+        fix_time_credit=False,
+    )
+    participant.active_barriers[barrier.id].timeline_hold = hold
+    db_session.add(hold)
+    db_session.commit()
+
+    publications = []
+    monkeypatch.setattr(
+        exp,
+        "publish_to_subscribers",
+        lambda data, channel_name: publications.append(json.loads(data)),
+    )
+
+    check_barriers()
+
+    assert publications[0]["targets"][0]["page_uuid"] == "override-hold"
 
 
 def test_group_barrier_rejects_bound_method():

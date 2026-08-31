@@ -219,12 +219,13 @@ test("timeline hold preserves same-session page identity", { tag: "@both" }, asy
     await expect
       .poll(
         () =>
-          experimentPage.evaluate(
-            () => psynet.page.contents.step
-          ),
+          experimentPage.evaluate(() => ({
+            messageCount: window.holdSessionMessages.length,
+            step: psynet.page.contents.step
+          })),
         { timeout: HOLD_WAKE_TIMEOUT_MS }
       )
-      .toBe(2);
+      .toEqual({ messageCount: 1, step: 2 });
     await expect(experimentPage.locator("#hold-session-marker")).toHaveText(
       "First session page"
     );

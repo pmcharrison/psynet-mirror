@@ -4,7 +4,12 @@ from types import SimpleNamespace
 import pytest
 
 from psynet.page import WaitPage, wait_while
-from psynet.timeline import StartFixTimeCredit
+from psynet.serialize import serialise
+from psynet.timeline import (
+    StartFixTimeCredit,
+    _while_loop_state_key,
+    while_loop_timed_out,
+)
 from psynet.timeline_hold import TimelineHoldRecord
 
 
@@ -78,6 +83,19 @@ def test_fixed_timeline_hold_records_expected_credit():
     assert record.credited_wait_seconds == pytest.approx(2)
     assert p.time_credit == 0
     assert p.total_wait_page_time == pytest.approx(7)
+
+
+def test_while_loop_timeout_uses_exact_elapsed_time():
+    start = datetime(2026, 1, 1)
+    key = _while_loop_state_key("wait_while", "loop_start_time")
+    p = SimpleNamespace(var=SimpleNamespace(get=lambda name: {key: serialise(start)}[name]))
+
+    assert not while_loop_timed_out(
+        p, "wait_while", 2, now=start + timedelta(seconds=1.999)
+    )
+    assert while_loop_timed_out(
+        p, "wait_while", 2, now=start + timedelta(seconds=2)
+    )
 
 
 def test_wait_while_defaults_to_timeline_hold():

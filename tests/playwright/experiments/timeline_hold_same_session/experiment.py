@@ -21,6 +21,18 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=1,
             session_id="hold-session",
             contents={"step": 1},
+            js_page_code="""
+                window.holdSessionMessages = [];
+                window.unityInstance = {
+                    SendMessage: function (objectName, methodName, payload) {
+                        window.holdSessionMessages.push({
+                            objectName: objectName,
+                            methodName: methodName,
+                            payload: JSON.parse(payload),
+                        });
+                    },
+                };
+            """,
         ),
         AsyncCodeBlock(
             finish_background_work,
