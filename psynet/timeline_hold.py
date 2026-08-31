@@ -23,15 +23,15 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.timeline import Page, get_template, get_while_loop_start_time
+from psynet.timeline import Page, _get_while_loop_start_time, get_template
 from psynet.utils import call_function_with_context, get_logger
 
-TIMELINE_HOLD_CHANNEL = "psynet_timeline_hold"
+_TIMELINE_HOLD_CHANNEL = "psynet_timeline_hold"
 _PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
 logger = get_logger()
 
 
-def queue_timeline_hold_wake(
+def _queue_timeline_hold_wake(
     participant_id, *, page_uuid=None, reason=None, hold_id=None
 ):
     """Queue a targeted hold wake for publication after the next commit."""
@@ -55,7 +55,7 @@ def _publish_timeline_hold_wakes(session):
 
         get_experiment().publish_to_subscribers(
             json.dumps({"type": "timeline_hold_wake", "targets": wakes}),
-            channel_name=TIMELINE_HOLD_CHANNEL,
+            channel_name=_TIMELINE_HOLD_CHANNEL,
         )
     except Exception:
         logger.warning("Failed to publish timeline hold wake.", exc_info=True)
@@ -175,7 +175,9 @@ class _TimelineHoldPage(Page):
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
-        started_at = get_while_loop_start_time(participant, self.hold_id) or timenow()
+        started_at = (
+            _get_while_loop_start_time(participant, self.hold_id) or timenow()
+        )
         record = TimelineHoldRecord(
             participant=participant,
             page_uuid=participant.page_uuid,
@@ -238,7 +240,7 @@ class _TimelineHoldPage(Page):
                 0, round((record.deadline - timenow()).total_seconds() * 1000)
             )
         return {
-            "channel": TIMELINE_HOLD_CHANNEL,
+            "channel": _TIMELINE_HOLD_CHANNEL,
             "hold_id": self.hold_id,
             "message": self.content,
             "page_uuid": participant.page_uuid,

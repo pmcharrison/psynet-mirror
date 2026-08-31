@@ -58,6 +58,7 @@ those libraries before managed page JavaScript activates.
 The fragment must contain the elements the persistent document replaces:
 
 * ``#timeline-header``
+* ``#timeline-hold-region``
 * ``#main-body``
 * ``#footer``
 * ``#psynet-template-data``
@@ -236,6 +237,34 @@ rendering a fragment for the next reload page. Same-session handling takes
 precedence, so Unity pages sharing a ``session_id`` can still update their
 persistent session without reloading.
 
+Timeline holds
+~~~~~~~~~~~~~~
+
+Timeline holds pause server-side advancement without replacing the visible
+page. They are used by default barriers and by :func:`psynet.page.wait_while`.
+The server advances to an internal hold checkpoint and returns ``timeline_hold``
+metadata instead of a timeline fragment. The browser updates only its
+submission UUID, makes the visible controls inert, and renders a compact status
+indicator in ``#timeline-hold-region``.
+
+The visible page retains its own ``window.pageUuid``, ``session_id``,
+``requires_full_page_reload``, media, timers, and managed JavaScript until the
+hold finishes. Consequently, release can still perform a same-session update
+or honor the visible page's full-reload requirement. Refreshing during a hold
+loads a neutral fallback page and reconnects to the same durable hold record.
+
+Workers and barriers queue participant-targeted wake messages in the current
+database transaction. PsyNet publishes the messages on one shared channel only
+after commit. Delivery is an optimization rather than authority: the browser
+always submits an idempotent resume check, and the server re-evaluates the
+condition. ``check_interval`` remains the bounded fallback for missed messages
+and arbitrary conditions without a framework event.
+
+Holds emit ``timelineHoldStarted`` and ``timelineHoldEnded`` browser events.
+Their ``detail.holdId`` identifies the wait. Authors that deliberately want a
+separate waiting screen should use :class:`psynet.page.WaitPage` directly or
+pass it explicitly as ``wait_page``/``waiting_logic``.
+
 Bots
 ~~~~
 
@@ -283,6 +312,10 @@ Key implementation and test locations
 * ``psynet/timeline.py`` — Page rendering and fragment extraction.
 * ``psynet/templates/timeline-page.html`` — full and partial timeline shapes.
 * ``psynet/resources/scripts/psynet.js`` — browser lifecycle orchestration.
+* ``psynet/resources/scripts/websocket-channel.js`` — shared WebSocket channel
+  framing and reconnect lifecycle.
+* ``psynet/timeline_hold.py`` — durable hold state, accounting, and wake
+  publication.
 * ``tests/isolated/test_timeline.py`` — render/fragment contracts.
 * ``tests/playwright/inplace_timeline_transitions.spec.js`` — browser lifecycle
   and failure boundaries.
@@ -290,3 +323,5 @@ Key implementation and test locations
   both transition modes.
 * ``tests/playwright/legacy_page_javascript.spec.js`` — deprecated ``scripts``
   and ``js_links`` force full reloads with classic globals.
+* ``tests/playwright/timeline_hold.spec.js`` — condition, timeout, refresh,
+  feedback, reload, and same-session hold behavior.

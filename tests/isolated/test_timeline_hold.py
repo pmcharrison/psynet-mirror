@@ -6,8 +6,8 @@ import pytest
 from psynet.page import WaitPage, wait_while
 from psynet.timeline import (
     StartFixTimeCredit,
+    _while_loop_timed_out,
     _while_loop_state_key,
-    while_loop_timed_out,
 )
 from psynet.timeline_hold import TimelineHoldRecord
 from psynet.utils import serialise
@@ -90,10 +90,10 @@ def test_while_loop_timeout_uses_exact_elapsed_time():
     key = _while_loop_state_key("wait_while", "loop_start_time")
     p = SimpleNamespace(var=SimpleNamespace(get=lambda name: {key: serialise(start)}[name]))
 
-    assert not while_loop_timed_out(
+    assert not _while_loop_timed_out(
         p, "wait_while", 2, now=start + timedelta(seconds=1.999)
     )
-    assert while_loop_timed_out(
+    assert _while_loop_timed_out(
         p, "wait_while", 2, now=start + timedelta(seconds=2)
     )
 
@@ -113,4 +113,15 @@ def test_wait_while_preserves_explicit_wait_page_behavior():
 
     assert any(isinstance(elt, WaitPage) for elt in logic)
     assert not any(getattr(elt, "is_timeline_hold", False) for elt in logic)
+    assert any(isinstance(elt, StartFixTimeCredit) for elt in logic)
+
+
+def test_wait_while_can_fix_timeline_hold_credit():
+    logic = wait_while(
+        lambda: True,
+        expected_wait=3,
+        fix_time_credit=True,
+    )
+
+    assert any(getattr(elt, "is_timeline_hold", False) for elt in logic)
     assert any(isinstance(elt, StartFixTimeCredit) for elt in logic)

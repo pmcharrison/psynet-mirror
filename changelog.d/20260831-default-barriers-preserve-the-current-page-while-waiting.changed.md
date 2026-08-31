@@ -1,1 +1,1 @@
-Default barriers now preserve the current page and use WebSocket release notifications while participants wait.
+Conditional waits and default barriers now preserve the current page, use shared wake notifications when available, and credit actual visible waiting time; pass an explicit ``WaitPage`` or custom waiting logic to retain a dedicated waiting screen.

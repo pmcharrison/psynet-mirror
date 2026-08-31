@@ -104,6 +104,15 @@ WebSocket notification when the barrier releases and performs only occasional
 HTTP checks as a fallback. To display dedicated pages or filler tasks while
 participants wait, pass them explicitly with ``waiting_logic``.
 
+Default holds credit the participant's actual visible waiting time, including
+the interval between server release and browser resumption, up to
+``max_wait_time``. Progress continues to use the estimated duration so early
+arrivals do not appear further through the experiment. Set
+``fix_time_credit=True`` to give every participant the fixed ``expected_wait``
+credit instead. If ``expected_wait`` is omitted, barriers preserve the
+historical 1.5-second estimate. Dedicated :class:`~psynet.page.WaitPage`
+waiting logic retains its page-based accounting.
+
 
 Synchronization in trial makers
 -------------------------------

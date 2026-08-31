@@ -32,9 +32,9 @@ from psynet.sync import (
 )
 from psynet.timeline import CodeBlock, GoTo
 from psynet.timeline_hold import (
-    TIMELINE_HOLD_CHANNEL,
     TimelineHoldRecord,
-    queue_timeline_hold_wake,
+    _queue_timeline_hold_wake,
+    _TIMELINE_HOLD_CHANNEL,
 )
 
 
@@ -608,7 +608,7 @@ def test_check_barriers_publishes_release_after_commit(
                     }
                 ],
             },
-            TIMELINE_HOLD_CHANNEL,
+            _TIMELINE_HOLD_CHANNEL,
         )
     ]
 
@@ -627,7 +627,7 @@ def test_timeline_hold_wake_is_discarded_on_rollback(
     )
 
     db_session.execute(text("SELECT 1"))
-    queue_timeline_hold_wake(1, page_uuid="rolled-back")
+    _queue_timeline_hold_wake(1, page_uuid="rolled-back")
     db_session.rollback()
     db_session.commit()
 
@@ -669,6 +669,42 @@ def test_overridden_barrier_check_still_publishes_hold_wake(
     check_barriers()
 
     assert publications[0]["targets"][0]["page_uuid"] == "override-hold"
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_shared_barrier_id_preserves_each_visit_waiting_mode(
+    in_experiment_directory, db_session, monkeypatch
+):
+    exp = get_experiment()
+    held_participant, page_participant = [new_participant(exp) for _ in range(2)]
+    for participant in [held_participant, page_participant]:
+        participant.status = "working"
+
+    held_barrier = ReleaseAllBarrier(id_="shared")
+    held_barrier.receive_participant(held_participant)
+    held_barrier.waiting_logic.consume(exp, held_participant)
+    page_barrier = ReleaseAllBarrier(
+        id_="shared", waiting_logic=WaitPage(wait_time=1)
+    )
+    page_barrier.receive_participant(page_participant)
+    db_session.commit()
+    held_participant_id = held_participant.id
+
+    publications = []
+    monkeypatch.setattr(
+        exp,
+        "publish_to_subscribers",
+        lambda data, channel_name: publications.append(json.loads(data)),
+    )
+
+    check_barriers()
+
+    targets = publications[0]["targets"]
+    assert [target["target_participant_id"] for target in targets] == [
+        str(held_participant_id)
+    ]
 
 
 @pytest.mark.parametrize(

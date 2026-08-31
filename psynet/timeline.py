@@ -2655,7 +2655,7 @@ def _while_loop_state_key(label, key):
     return f"{prefix}__{key}"
 
 
-def get_while_loop_start_time(participant, label):
+def _get_while_loop_start_time(participant, label):
     """Return the authoritative server start time for a while loop."""
     value = participant.var.get(
         _while_loop_state_key(label, "loop_start_time"), default=None
@@ -2663,13 +2663,13 @@ def get_while_loop_start_time(participant, label):
     return None if value is None else unserialise_datetime(value)
 
 
-def while_loop_timed_out(participant, label, max_loop_time, now=None):
+def _while_loop_timed_out(participant, label, max_loop_time, now=None):
     """Return whether a while loop has reached its maximum duration."""
     if max_loop_time is None:
         return False
     if now is None:
         now = datetime.now()
-    started_at = get_while_loop_start_time(participant, label)
+    started_at = _get_while_loop_start_time(participant, label)
     return (
         started_at is not None
         and (now - started_at).total_seconds() >= max_loop_time
@@ -2751,7 +2751,7 @@ def while_loop(
     if max_loop_time is not None:
 
         def max_loop_time_condition(participant, experiment):
-            return while_loop_timed_out(participant, label, max_loop_time)
+            return _while_loop_timed_out(participant, label, max_loop_time)
 
     else:
 

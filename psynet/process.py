@@ -188,6 +188,18 @@ class AsyncProcess(SQLBase, SQLMixin):
                 self.trial_maker_id = obj.trial_maker_id
                 return
 
+    def queue_timeline_hold_wake(self, reason):
+        """Wake this participant's active hold after process state commits."""
+        if self.participant_id is None:
+            return
+        from psynet.timeline_hold import _queue_timeline_hold_wake
+
+        _queue_timeline_hold_wake(
+            self.participant_id,
+            page_uuid=self.participant.page_uuid,
+            reason=reason,
+        )
+
     @property
     def failure_cascade(self):
         """
@@ -280,14 +292,8 @@ class AsyncProcess(SQLBase, SQLMixin):
                 process.fail(f"Exception in asynchronous process: {repr(err)}")
 
         finally:
-            if process is not None and process.participant_id is not None:
-                from psynet.timeline_hold import queue_timeline_hold_wake
-
-                queue_timeline_hold_wake(
-                    process.participant_id,
-                    page_uuid=process.participant.page_uuid,
-                    reason="async_process_finished",
-                )
+            if process is not None:
+                process.queue_timeline_hold_wake("async_process_finished")
             db.session.commit()
 
     @classmethod
@@ -437,6 +443,7 @@ class WorkerAsyncProcess(AsyncProcess):
             p.fail(
                 "Asynchronous process timed out",
             )
+            p.queue_timeline_hold_wake("async_process_timed_out")
             db.session.commit()
 
     @property
@@ -448,6 +455,7 @@ class WorkerAsyncProcess(AsyncProcess):
         self.pending = False
         self.fail("Cancelled asynchronous process")
         self.redis_job.cancel()
+        self.queue_timeline_hold_wake("async_process_cancelled")
         db.session.commit()
 
     # @classmethod

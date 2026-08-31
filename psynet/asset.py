@@ -1163,9 +1163,9 @@ class ManagedAsset(Asset):
             self.trial.check_if_can_run_async_post_trial()
             self.trial.check_if_can_mark_as_finalized()
         if self.participant_id is not None:
-            from psynet.timeline_hold import queue_timeline_hold_wake
+            from psynet.timeline_hold import _queue_timeline_hold_wake
 
-            queue_timeline_hold_wake(
+            _queue_timeline_hold_wake(
                 self.participant_id,
                 reason="asset_deposited",
             )

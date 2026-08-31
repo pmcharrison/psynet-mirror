@@ -50,6 +50,11 @@ this module. That loop:
 - Calls ``Barrier.check`` in an isolated transaction.
 - Logs and skips failures per barrier so one bad barrier does not stall others.
 
+Each default barrier visit links to a durable ``TimelineHoldRecord``. Releasing
+the link accounts waiting through the release time and queues a targeted browser
+wake. The shared hold channel publishes that wake only after the database
+transaction commits; the browser then rechecks the authoritative link state.
+
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.
 """
@@ -80,7 +85,7 @@ from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.timeline_hold import _TimelineHoldPage, queue_timeline_hold_wake
+from psynet.timeline_hold import _TimelineHoldPage, _queue_timeline_hold_wake
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -163,8 +168,8 @@ class Barrier(EltCollection):
         if this time is exceeded then the participant will be failed and sent to the end of the experiment.
 
     fix_time_credit
-        If set to ``True``, then the amount of time 'credit' that the participant receives will be capped
-        according to the estimate derived from ``waiting_logic`` and ``waiting_logic_expected_repetitions``.
+        If set to ``True``, award fixed expected time credit. Otherwise default
+        holds credit actual visible waiting time up to ``max_wait_time``.
 
     expected_wait
         Expected duration of a default timeline hold. If omitted, preserves the
@@ -191,6 +196,8 @@ class Barrier(EltCollection):
             if expected_wait is None
             else expected_wait
         )
+        if self.expected_wait < 0:
+            raise ValueError("expected_wait must be non-negative.")
         if waiting_logic is None:
             waiting_logic = _BarrierHoldPage(self)
 
@@ -394,8 +401,9 @@ class GroupBarrier(Barrier):
 
     waiting_logic
         Either a single timeline element or a list of timeline elements (created by ``join``) that is to be displayed
-        to the participant while they are waiting at the barrier. If left at the default value of ``None``
-        then the participant will be shown a default waiting page.
+        to the participant while they are waiting at the barrier. If left at
+        ``None``, the current page remains visible beneath a lightweight
+        waiting indicator.
 
     waiting_logic_expected_repetitions
         The number of times that the participant is expected to experience the waiting_logic during a given barrier
@@ -424,14 +432,13 @@ class GroupBarrier(Barrier):
         Must be a module-level function, ``@staticmethod``/``@classmethod``,
         or a bound method on a TrialMaker or ORM instance with a primary key.
 
-    on_release
-        Optional callable invoked when the barrier releases participants.
-        Must be a module-level function, ``@staticmethod``/``@classmethod``,
-        or a bound method on a TrialMaker or ORM instance with a primary key.
-
     fix_time_credit
-        If set to ``True``, then the amount of time 'credit' that the participant receives will be fixed
-        according to the estimate derived from ``waiting_logic`` and ``waiting_logic_expected_repetitions``.
+        If set to ``True``, award fixed expected time credit. Otherwise default
+        holds credit actual visible waiting time up to ``max_wait_time``.
+
+    expected_wait
+        Expected duration of a default timeline hold. If omitted, preserves the
+        historical default estimate.
     """
 
     @staticmethod
@@ -458,6 +465,7 @@ class GroupBarrier(Barrier):
         max_wait_action: Literal["fail", "kick"] = "fail",
         on_release: Optional[Callable] = None,
         fix_time_credit=False,
+        expected_wait=None,
         timeout_between_barriers_time: Optional[float] = None,
         timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
     ):
@@ -468,6 +476,7 @@ class GroupBarrier(Barrier):
             waiting_logic_expected_repetitions=waiting_logic_expected_repetitions,
             max_wait_time=max_wait_time,
             fix_time_credit=fix_time_credit,
+            expected_wait=expected_wait,
         )
         self.max_wait_action = max_wait_action
         self.group_type = group_type
@@ -616,8 +625,9 @@ class Grouper(Barrier):
 
     waiting_logic
         Either a single timeline element or a list of timeline elements (created by ``join``) that is to be displayed
-        to the participant while they are waiting at the barrier. If left at the default value of ``None``
-        then the participant will be shown a default waiting page.
+        to the participant while they are waiting at the barrier. If left at
+        ``None``, the current page remains visible beneath a lightweight
+        waiting indicator.
 
     waiting_logic_expected_repetitions
         The number of times that the participant is expected to experience the waiting_logic during a given barrier
@@ -627,6 +637,10 @@ class Grouper(Barrier):
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
         if this time is exceeded and the participant is still not released, then the participant will be failed
         and sent to the end of the experiment.
+
+    expected_wait
+        Expected duration of a default timeline hold. If omitted, preserves the
+        historical default estimate.
 
     fail_participants_below_min_size
         If ``True`` (default), participants in a group that is below minimum size and does not accept
@@ -642,6 +656,7 @@ class Grouper(Barrier):
         waiting_logic_expected_repetitions=3,
         max_wait_time=20,
         fail_participants_below_min_size: bool = True,
+        expected_wait=None,
     ):
         if not id_:
             id_ = group_type + "_" + "grouper"
@@ -650,6 +665,7 @@ class Grouper(Barrier):
             waiting_logic=waiting_logic,
             waiting_logic_expected_repetitions=waiting_logic_expected_repetitions,
             max_wait_time=max_wait_time,
+            expected_wait=expected_wait,
         )
         self.group_type = group_type
         self.fail_participants_below_min_size = fail_participants_below_min_size
@@ -1174,7 +1190,7 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         self.released = True
         if self.timeline_hold is not None:
             self.timeline_hold.mark_released(self.participant, timestamp)
-            queue_timeline_hold_wake(
+            _queue_timeline_hold_wake(
                 self.participant_id,
                 page_uuid=self.timeline_hold.page_uuid,
                 reason="barrier_released",

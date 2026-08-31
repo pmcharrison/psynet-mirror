@@ -977,7 +977,7 @@
       psynet.timelineHold = null;
       window.dispatchEvent(
         new CustomEvent("timelineHoldEnded", {
-          detail: {barrierId: controller.hold.barrier_id},
+          detail: {holdId: controller.hold.hold_id},
         }),
       );
     };
@@ -1032,7 +1032,7 @@
       });
       window.dispatchEvent(
         new CustomEvent("timelineHoldStarted", {
-          detail: {barrierId: hold.barrier_id},
+          detail: {holdId: hold.hold_id},
         }),
       );
     };

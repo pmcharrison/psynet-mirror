@@ -262,10 +262,13 @@ def wait_while(
         argument list.
 
     expected_wait
-        How long the participant is likely to wait, in seconds.
+        How long the participant is likely to wait, in seconds. This controls
+        progress estimation and fixed time credit; actual visible waiting time
+        is credited when ``fix_time_credit`` is false.
 
     check_interval
-        How often should the browser check the condition, in seconds.
+        How often the browser should check the condition if no framework wake
+        notification arrives, in seconds.
 
     max_wait_time
         The participant's maximum waiting time in seconds. Default: 20.0.
