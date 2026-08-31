@@ -4,13 +4,13 @@ from types import SimpleNamespace
 import pytest
 
 from psynet.page import WaitPage, wait_while
-from psynet.serialize import serialise
 from psynet.timeline import (
     StartFixTimeCredit,
     _while_loop_state_key,
     while_loop_timed_out,
 )
 from psynet.timeline_hold import TimelineHoldRecord
+from psynet.utils import serialise
 
 
 def participant():

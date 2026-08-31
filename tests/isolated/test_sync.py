@@ -626,6 +626,7 @@ def test_timeline_hold_wake_is_discarded_on_rollback(
         lambda *args, **kwargs: publications.append((args, kwargs)),
     )
 
+    db_session.execute(text("SELECT 1"))
     queue_timeline_hold_wake(1, page_uuid="rolled-back")
     db_session.rollback()
     db_session.commit()

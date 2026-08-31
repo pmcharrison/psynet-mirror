@@ -168,6 +168,15 @@ test("timeline hold preserves a reload-required page until release", { tag: "@bo
       "This page requires a full reload after its hold.",
       { timeout: STEP_TIMEOUT_MS }
     );
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () => typeof window.holdReloadMarker
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe("object");
     const markerPageUuid = await experimentPage.evaluate(
       () => window.holdReloadMarker.pageUuid
     );
