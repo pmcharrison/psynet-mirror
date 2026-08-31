@@ -80,7 +80,7 @@ staircase = Module(
             select_and_cue,
             time_estimate=StaircaseTrial.time_estimate,
         ),
-        expected_repetitions=adaptive_logic.EXPECTED_TRIALS,
+        expected_repetitions=adaptive_logic.MAX_TRIALS,
     ),
 )
 

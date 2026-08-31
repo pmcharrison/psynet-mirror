@@ -4,7 +4,6 @@ ITEMS = (1, 2, 3, 4, 5, 6, 7)
 START = 4
 MAX_TRIALS = 8
 MAX_REVERSALS = 2
-EXPECTED_TRIALS = 5
 
 
 def select_difficulty(history):

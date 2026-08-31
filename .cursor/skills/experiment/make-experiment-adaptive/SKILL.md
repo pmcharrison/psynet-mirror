@@ -231,7 +231,23 @@ sound; the trial only receives the two it needs.
 
 ```python
 from psynet.asset import asset
+from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.timeline import Module, for_loop
+from psynet.trial.main import Trial
+
+from . import adaptive_logic
+
+
+class AdaptiveTrial(Trial):
+    time_estimate = 5
+
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "pair",
+            AudioPrompt(self.assets["stimulusA"], "Which sound do you prefer?"),
+            PushButtonControl(["First", "Second"]),
+            time_estimate=self.time_estimate,
+        )
 
 
 def get_assets():
@@ -274,9 +290,10 @@ pairwise = Module(
 )
 ```
 
-`for_loop` passes the iterated value as the first argument and supplies
-`participant` and `experiment` by name. Do not upload a new asset for the pair
-itself.
+`select_and_cue_pair` runs after the module exists, so it can look up cached
+files on `pairwise`. `for_loop` passes the iterated value as the first argument
+and supplies `participant` and `experiment` by name. Do not upload a new asset
+for the pair itself.
 
 `on_trial_created` runs inside the trial-creation transaction, so the decision
 row and the assignment commit or roll back together. Follow
@@ -317,7 +334,7 @@ while_loop(
         ),
         time_estimate=AdaptiveTrial.time_estimate,
     ),
-    expected_repetitions=EXPECTED_TRIALS,
+    expected_repetitions=MAX_TRIALS,
 )
 ```
 
@@ -328,7 +345,8 @@ participant's trial count.
 
 Always cap the loop, either with a hard maximum inside the condition or with
 `max_loop_time`. A precision criterion can fail to trigger on unusual response
-patterns. `expected_repetitions` only informs progress and reward estimates.
+patterns. `expected_repetitions` only informs progress and reward estimates;
+use the same cap as the stopping rule so those estimates are not too low.
 
 Avoid fitting the participant model twice for stopping and selection when that
 cost is material; share a fit keyed by the finalized observation set.
