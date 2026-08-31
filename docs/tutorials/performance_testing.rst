@@ -168,9 +168,10 @@ A few things to keep in mind for SSH tests:
   bots you want to run.
 * If the app is being used by anyone else during the test, the results will not
   be reliable.
-* ``--json-output`` / ``--audit`` (see below) are not currently supported
-  over SSH; use ``performance-test local`` with those options for
-  machine-readable results.
+* ``--json-output`` is not currently supported over SSH; use
+  ``performance-test local --json-output`` for machine-readable results.
+  Audit evidence collection is local-only via
+  ``psynet audit performance-test``.
 
 Reusing an already-running local server
 ---------------------------------------

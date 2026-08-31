@@ -245,6 +245,9 @@ def test_unlimited_static_nodes_skip_viable_trial_counts(
 
     assert {node.id for node in eligible} == expected_node_ids
     assert "n_viable_trials" not in inspect(StaticNode).attrs
+    assert StaticNode.query.filter(StaticNode.n_viable_trials == 0).count() == len(
+        expected_node_ids
+    )
 
 
 @pytest.mark.parametrize(

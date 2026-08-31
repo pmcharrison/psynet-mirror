@@ -93,10 +93,18 @@ def _count_viable_trials_for_nodes(node_ids: Iterable[int]) -> dict[int, int]:
     return {node_id: count for node_id, count in rows}
 
 
-def _count_viable_trials_for_node(node_id: int) -> int:
-    """Return the viable trial count for one node."""
+def _viable_trial_count_expression(node_id):
+    """Return a correlated expression counting viable trials for a node ID."""
 
-    return _count_viable_trials_for_nodes([node_id]).get(node_id, 0)
+    return (
+        select(func.count(Trial.id))
+        .where(
+            Trial.node_id == node_id,
+            Trial.is_repeat_trial.is_(False),
+            Trial.failed.is_(False),
+        )
+        .scalar_subquery()
+    )
 
 
 # class HasSeed:
@@ -453,19 +461,11 @@ class ChainNetwork(TrialNetwork):
     def n_viable_trials_at_head(self):
         if self.head is None:
             return 0
-        return _count_viable_trials_for_node(self.head.id)
+        return _count_viable_trials_for_nodes([self.head.id]).get(self.head.id, 0)
 
     @n_viable_trials_at_head.expression
     def n_viable_trials_at_head(cls):
-        return (
-            select(func.count(Trial.id))
-            .where(
-                Trial.node_id == cls.head_id,
-                Trial.is_repeat_trial.is_(False),
-                Trial.failed.is_(False),
-            )
-            .scalar_subquery()
-        )
+        return _viable_trial_count_expression(cls.head_id)
 
 
 class ChainNode(TrialNode):
@@ -901,30 +901,17 @@ class ChainNode(TrialNode):
                 to_fail.append(lambda: [self.child])
         return to_fail
 
-    # @hybrid_property
-    # def n_viable_trials(self):
-    #     return len(self.viable_trials)
-    #
-    # @n_viable_trials.expression
-    # def n_viable_trials(cls):
-    #     return (
-    #         select(func.count(Trial.id))
-    #         .where(
-    #             Trial.node_id == cls.id,
-    #             ~ Trial.is_repeat_trial,
-    #             ~ Trial.failed,
-    #         )
-    #         .scalar_subquery()
-    #     )
-
 
 def _n_viable_trials(node):
     """Return the current viable-trial count for a node."""
 
-    return _count_viable_trials_for_node(node.id)
+    return _count_viable_trials_for_nodes([node.id]).get(node.id, 0)
 
 
-TrialNode.n_viable_trials = property(_n_viable_trials)
+TrialNode.n_viable_trials = hybrid_property(
+    _n_viable_trials,
+    expr=lambda cls: _viable_trial_count_expression(cls.id),
+)
 
 
 UniqueConstraint(ChainNode.module_id, ChainNode.key)
