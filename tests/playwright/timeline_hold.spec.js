@@ -37,6 +37,7 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
   await withExperiment(page, context, experimentDir, async (experimentPage) => {
     const responses = startResponseSubmitTracker(experimentPage);
     await experimentPage.addInitScript(() => {
+      if (!["http:", "https:"].includes(location.protocol)) return;
       if (sessionStorage.getItem("timelineHoldWakeCount") === null) {
         sessionStorage.setItem("timelineHoldWakeCount", "0");
       }
