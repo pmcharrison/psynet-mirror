@@ -32,6 +32,8 @@ Keep the adaptive models and selection policy outside `experiment.py`:
 experiment.py
 adaptive_logic.py
 simulate_procedure.py
+item_bank/
+└── items.csv
 response_model/
 ├── __init__.py
 └── core.py
@@ -48,8 +50,9 @@ audit/
 `adaptive_logic.py` contains the fitting and selection functions used by both
 PsyNet and the standalone simulation. It must not import PsyNet or SQLAlchemy.
 From ``experiment.py`` import it with ``from . import adaptive_logic``.
-Standalone ``simulate_procedure.py`` and ``audit/simulate/design/core.py`` use
-ordinary top-level imports.
+Standalone ``simulate_procedure.py`` and ``python -m audit.simulate.design.core``
+use ordinary top-level imports. Run the design command from the experiment
+root so those imports resolve.
 
 `simulate_procedure.py` runs one complete adaptive experiment without starting
 PsyNet. It maintains the observation, participant, item, and decision tables;
@@ -100,8 +103,10 @@ when fitting or selection is stochastic.
 
 When item parameters are already calibrated, load the immutable item table once
 per server process and retain its stable item-ID mapping. Put the file in
-``stimuli/`` (not ``data/``, which Dallinger excludes from the copied package)
-and commit it so verification and deploy copies include it:
+``item_bank/`` and commit it so verification and deploy copies include it.
+Stock ``deploy.toml`` omits ``data/``, ``audit/``, and ``exports/``; those
+directories are for local data, the review packet, and generated exports,
+not for runtime tables.
 
 ```python
 from pathlib import Path
@@ -109,7 +114,7 @@ from pathlib import Path
 import pandas as pd
 
 ITEMS = pd.read_csv(
-    Path(__file__).resolve().parent / "stimuli" / "item_bank.csv"
+    Path(__file__).resolve().parent / "item_bank" / "items.csv"
 ).set_index("item_id", drop=False)
 ```
 

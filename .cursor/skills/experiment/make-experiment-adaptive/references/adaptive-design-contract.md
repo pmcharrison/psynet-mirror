@@ -42,9 +42,9 @@ the simulation response model is only a testing assumption.
   ``info`` table, so a shared column name must have one type. Use a dedicated
   observation table when the same schema is shared with standalone simulation
   code.
-- Put calibrated item banks in ``stimuli/`` (or another non-excluded folder)
-  and commit them. Stock ``deploy.toml`` omits the experiment-root ``data/``
-  and ``audit/`` directories. Keep inference and selection code such as
+- Put calibrated item banks in ``item_bank/`` and commit them. Stock
+  ``deploy.toml`` omits the experiment-root ``data/``, ``audit/``, and
+  ``exports/`` directories. Keep inference and selection code such as
   ``adaptive_logic.py`` beside ``experiment.py`` so it still deploys.
 - Record candidate IDs, chosen ID, objective components, model snapshot, data
   cutoff, and optimizer version for every adaptive decision.
@@ -108,8 +108,13 @@ Choose one strategy explicitly:
   data access or inference.
 - Storing core adaptive state only in unqueryable JSON variables.
 - Using online learning without concurrency protection.
+- Storing the item bank under ``data/``, ``audit/``, or ``exports/``.
+
+When wiring selection with a trial maker rather than ``Trial.cue``:
+
 - Re-querying a selected node or chain instead of returning the exact candidate
   object supplied by PsyNet.
-- Storing the item bank under ``data/``.
 - Overriding managed trial preparation rather than the relevant discovery,
   eligibility, or selection hook.
+- Naming the trial-maker callback parameter ``creation_context``; the maker
+  hook is ``on_trial_created(..., selection_context=...)``.

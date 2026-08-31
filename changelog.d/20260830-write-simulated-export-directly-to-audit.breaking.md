@@ -1,5 +1,6 @@
 Moved audit evidence collection to ``psynet audit simulate`` and
-``psynet audit performance-test``. These commands require an initialized
+``psynet audit performance-test``. Top-level ``psynet simulate`` is removed;
+use ``psynet audit simulate``. These commands require an initialized
 audit packet, write canonical evidence paths, and update ``audit.json``.
 The audit performance-test command runs locally; remote SSH collection is
 not part of this command. Top-level ``psynet performance-test`` remains

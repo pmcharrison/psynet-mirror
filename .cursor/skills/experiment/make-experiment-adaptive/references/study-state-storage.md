@@ -114,8 +114,9 @@ transaction flushes; do not flush merely to obtain the trial ID. If the callback
 raises, the trial and the decision roll back together, so a decision never
 survives an assignment the participant did not receive.
 
-A trial maker's `on_trial_created` method is the same hook, with provenance in
-`Selection.context` instead of `creation_context`. It runs for primary
+A trial maker's `on_trial_created` method is the same kind of hook. Pass
+provenance as the `selection_context` parameter (the `context` attribute of
+the returned `Selection`), not `creation_context`. It runs for primary
 assignments only: repeat trials and synchronized follower copies do not call it.
 
 Use explicit columns for routine queries and exports. Keep `details` small

@@ -81,7 +81,8 @@ experiment/
   passing evidence.
 - Keep custom or production credentials out of audit artifacts and logs.
 - Stock ``deploy.toml`` excludes the whole ``audit/`` directory from deployment
-  and debug staging. Keep runtime helpers beside ``experiment.py``, not only
-  under ``audit/``.
+  and debug staging. Existing experiments keep their current ``deploy.toml``;
+  add ``audit`` to ``[exclude].paths`` if it is missing. Keep runtime helpers
+  beside ``experiment.py``, not only under ``audit/``.
 - Repository-specific wrapper skills may add conventions (for example extra
   metadata or review checklists); do not invent workshop layouts here.
