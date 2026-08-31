@@ -300,18 +300,14 @@ seen_item_ids = decisions.loc[
 candidate_items = items[~items["item_id"].isin(seen_item_ids)]
 ```
 
-### Rank an existing node bank
+If a `StaticTrialMaker` is already in place because the experiment needs
+balanced collection across an authored bank, you can rank its eligible nodes
+with `select_node`. That is a trial-maker customization, documented on
+`StaticTrialMaker`, not a second adaptive architecture.
 
-`StaticTrialMaker` is still the better choice for a fixed authored bank when you
-want PsyNet's balancing, blocks, and participant groups, and adaptation only
-reorders that bank. Override `select_node` to rank the eligible nodes and
-`custom_node_filter` to remove ineligible ones. The hooks impose strict rules
-about what you may return, and they cannot express waiting; follow
-[references/static-node-bank-selection.md](references/static-node-bank-selection.md).
-
-Either architecture selects stimuli. Adaptive recruitment or participant
-selection instead needs an experiment recruitment criterion or scheduler, and a
-combined policy can have both call the same `adaptive_logic.py`.
+Either approach selects stimuli. Adaptive recruitment or participant selection
+instead needs an experiment recruitment criterion or scheduler, and a combined
+policy can have both call the same `adaptive_logic.py`.
 
 ## Implement a custom stopping rule
 
@@ -350,9 +346,8 @@ Always cap the loop, either with a hard maximum inside the condition or with
 patterns. `expected_repetitions` only informs progress and reward estimates.
 
 Avoid fitting the participant model twice for stopping and selection when that
-cost is material; share a fit keyed by the finalized observation set. For a
-`StaticTrialMaker`, adapt `should_finish_block` instead, following
-[references/static-node-bank-selection.md](references/static-node-bank-selection.md).
+cost is material; share a fit keyed by the finalized observation set. On a
+`StaticTrialMaker`, the same criterion goes in `should_finish_block`.
 
 ## Store observations and decisions
 
