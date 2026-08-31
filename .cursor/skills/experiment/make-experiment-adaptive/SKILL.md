@@ -233,7 +233,6 @@ def select_and_cue_item(trial_index, participant, experiment):
 
     return AdaptiveTrial.cue(
         definition={"item_id": selected_item_id},
-        assets={"stimulus": adaptive_items.assets[selected_item_id]},
         on_trial_created=record_decision,
         creation_context={
             "selected_candidate_id": selected_item_id,
@@ -253,14 +252,41 @@ adaptive_items = Module(
         logic=select_and_cue_item,
         time_estimate_per_iteration=AdaptiveTrial.time_estimate,
     ),
-    assets=get_item_assets,
 )
 ```
 
 Here `utilities` is a Series indexed by `item_id`. `for_loop` passes the
 iterated value as the first argument and supplies `participant` and
-`experiment` by name. Key assets by item rather than by assignment: one cached
-asset per item is reused by every trial that presents it.
+`experiment` by name.
+
+Assets follow the same grain as the item bank. The audio similarity demo
+(`demos/experiments/audio_similarity`) keeps one cached file per sound and
+looks up Sound A and Sound B by name. Copy that for cued pairs: pass
+`assets=get_assets` to the `Module`, then hand the two files this trial needs
+to `Trial.cue`. Do not upload a new asset for the pair itself.
+
+```python
+def get_assets():
+    return {
+        stimulus["name"]: asset(stimulus["path"], extension=".mp3", cache=True)
+        for stimulus in list_stimuli()
+    }
+
+
+return AdaptiveTrial.cue(
+    definition={"stimulus_a": a, "stimulus_b": b},
+    assets={
+        "stimulusA": module.assets[a],
+        "stimulusB": module.assets[b],
+    },
+    on_trial_created=record_decision,
+    creation_context=creation_context,
+)
+```
+
+The similarity demo still builds one node per pair, which is fine for a small
+bank. Once the pair list is large, keep the asset lookup and drop the pair
+nodes.
 
 `on_trial_created` runs inside the trial-creation transaction, so the decision
 row and the assignment commit or roll back together. Follow
