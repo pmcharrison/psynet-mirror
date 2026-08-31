@@ -5,3 +5,5 @@ Removed duplicated participant identifiers from ``ErrorRecord`` and ``Response``
 a foreign key on ``worker_id``. Export remaps recruiter identifier columns on
 copied tables (for example ``notification.assignment_id``) to participant
 pseudonyms, and blanks unmatched values plus ``request.params``.
+``SQLMixin.scrub_pii`` is removed; shareable archives use identifier
+separation rather than in-place JSON scrubbing.

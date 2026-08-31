@@ -157,7 +157,9 @@ that cache, instead of one SFTP download per file. Repeat exports on the same
 machine transfer only new objects. ``rsync`` must be installed both locally
 and on the SSH host. If it is missing, PsyNet prints a warning with install
 commands (``sudo apt install rsync``, or ``brew install rsync`` on macOS)
-and stops; there is no per-asset SFTP fallback. S3-backed assets are still
+and stops; there is no per-asset SFTP fallback. If rsync exits successfully
+but some objects are still missing from the cache, export stops immediately
+rather than failing later per asset. S3-backed assets are still
 fetched from S3. Warm-cache repeat exports do not need rsync.
 
 If the cache grows past a soft limit (50 GiB by default), PsyNet warns after

@@ -3,6 +3,8 @@
 from pathlib import Path
 from unittest.mock import Mock
 
+from flask import Flask
+
 from psynet.experiment import Experiment
 
 
@@ -59,3 +61,30 @@ def test_dashboard_export_writes_zip_beside_tree_not_cwd(tmp_path, monkeypatch):
     storage.upload_export.assert_called_once()
     uploaded = Path(storage.upload_export.call_args.args[0])
     assert uploaded == zip_path
+
+
+def test_download_export_sends_zip_bytes_after_tempdir_would_have_closed(
+    tmp_path, monkeypatch
+):
+    payload = b"PK\x03\x04export-bytes"
+
+    def fake_export(export_dir, **kwargs):
+        zip_path = Path(export_dir).parent / "export.zip"
+        zip_path.write_bytes(payload)
+        return str(zip_path)
+
+    experiment = Mock()
+    experiment._export.side_effect = fake_export
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
+
+    app = Flask(__name__)
+
+    @app.route("/download")
+    def download():
+        return Experiment._download_export(assets="none")
+
+    with app.test_client() as client:
+        response = client.get("/download")
+        assert response.status_code == 200
+        assert response.data == payload
+        response.close()

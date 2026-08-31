@@ -53,7 +53,14 @@ from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
-from flask import jsonify, redirect, render_template, request, send_file, url_for
+from flask import (
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import with_polymorphic
@@ -272,6 +279,17 @@ def _redacted_asset_request_path(path: str) -> str:
         parts[2] = "<access_token>"
         return "/".join(parts)
     return path
+
+
+def _send_file_then_delete_dir(path: str, cleanup_dir: str, mimetype: str):
+    """Return a Flask file response and delete ``cleanup_dir`` after it is sent.
+
+    Cleanup is registered on the response with ``call_on_close`` so the file
+    remains on disk until Flask finishes streaming it.
+    """
+    response = send_file(path, mimetype=mimetype)
+    response.call_on_close(lambda: shutil.rmtree(cleanup_dir, ignore_errors=True))
+    return response
 
 
 def _trials_as_network_monitor_infos(trial_rows: list) -> list:
@@ -3630,15 +3648,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def _download_export(**kwargs):
         exp = get_experiment()
-
-        with tempfile.TemporaryDirectory() as tempdir:
+        tempdir = tempfile.mkdtemp(prefix="psynet-export-")
+        try:
             export_dir = os.path.join(tempdir, "export")
             os.makedirs(export_dir)
             zip_filepath = exp._export(
                 export_dir,
                 **kwargs,
             )
-            return send_file(zip_filepath, mimetype="zip")
+            return _send_file_then_delete_dir(zip_filepath, tempdir, mimetype="zip")
+        except Exception:
+            shutil.rmtree(tempdir, ignore_errors=True)
+            raise
 
     @dashboard.route("/artifact/<deployment_id>/<filename>", methods=["GET"])
     @staticmethod
@@ -3649,16 +3670,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
         exp = get_experiment()
-        with tempfile.TemporaryDirectory() as tempdir:
+        tempdir = tempfile.mkdtemp(prefix="psynet-artifact-")
+        try:
             storage = exp.artifact_storage
             path = storage.prepare_path(deployment_id, filename)
             destination = os.path.join(tempdir, os.path.basename(path))
             storage.download(path, destination)
             if not os.path.exists(destination):
+                shutil.rmtree(tempdir, ignore_errors=True)
                 return error_response(
                     error_text=f"Artifact {deployment_id}/{filename} not found."
                 )
-            return send_file(destination, mimetype="application/octet-stream")
+            return _send_file_then_delete_dir(
+                destination, tempdir, mimetype="application/octet-stream"
+            )
+        except Exception:
+            shutil.rmtree(tempdir, ignore_errors=True)
+            raise
 
     @dashboard.route("/export/download", methods=["GET"])
     @staticmethod

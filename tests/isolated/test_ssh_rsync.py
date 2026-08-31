@@ -299,10 +299,6 @@ def test_prefetch_ssh_local_objects_rsyncs_only_localstorage(monkeypatch):
         lambda: True,
     )
     monkeypatch.setattr(
-        "psynet.export.ssh_rsync.missing_object_digests",
-        lambda digests, cache_root=None: list(digests),
-    )
-    monkeypatch.setattr(
         "dallinger.command_line.utils.get_server_pem_path",
         lambda: "/tmp/key.pem",
     )
@@ -320,6 +316,10 @@ def test_prefetch_ssh_local_objects_rsyncs_only_localstorage(monkeypatch):
     monkeypatch.setattr(
         "psynet.export.ssh_rsync.prefetch_missing_objects",
         fake_prefetch,
+    )
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.missing_object_digests",
+        _missing_once_then_empty(),
     )
 
     class Logger:
@@ -397,6 +397,19 @@ def _patch_prefetch_ssh_host(monkeypatch, executor_cls):
         lambda: {"class": SimpleNamespace(asset_storage=local)},
     )
     return asset
+
+
+def _missing_once_then_empty():
+    """Pretend objects are missing before rsync and cached after it."""
+    calls = {"n": 0}
+
+    def fake(digests, cache_root=None):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return list(digests)
+        return []
+
+    return fake
 
 
 def test_prefetch_warns_when_local_rsync_missing(monkeypatch):
@@ -479,6 +492,43 @@ def test_prefetch_warns_when_remote_rsync_missing(monkeypatch):
         _prefetch_ssh_local_objects([asset], "demo", Logger())
     assert warnings == [{"location": "remote", "host": "example.com"}]
     assert called["prefetch"] == 0
+
+
+def test_prefetch_raises_when_rsync_leaves_objects_uncached(monkeypatch):
+    from psynet.data import _prefetch_ssh_local_objects
+
+    class FakeExecutor:
+        def __init__(self, host, user=None):
+            self.host = host
+            self.user = user
+
+        def run(self, command, raise_=True):
+            if command == "command -v rsync":
+                return "/usr/bin/rsync\n"
+            if command == "echo $HOME":
+                return "/home/alice\n"
+            raise AssertionError(command)
+
+    asset = _patch_prefetch_ssh_host(monkeypatch, FakeExecutor)
+    monkeypatch.setattr("psynet.export.ssh_rsync.local_rsync_available", lambda: True)
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.prefetch_missing_objects",
+        lambda *a, **k: [],
+    )
+    monkeypatch.setattr(
+        "psynet.export.ssh_rsync.missing_object_digests",
+        lambda digests, cache_root=None: list(digests),
+    )
+
+    class Logger:
+        def info(self, *args, **kwargs):
+            pass
+
+        def warning(self, *args, **kwargs):
+            pass
+
+    with pytest.raises(RsyncRequiredError, match="still missing"):
+        _prefetch_ssh_local_objects([asset], "demo", Logger())
 
 
 def test_ssh_asset_export_does_not_use_sftp(tmp_path):

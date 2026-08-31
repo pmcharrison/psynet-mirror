@@ -45,7 +45,9 @@ from sqlalchemy.schema import (
 
 from . import field
 from .field import PythonDict, is_basic_type
-from .utils import organize_by_key
+from .utils import get_logger, organize_by_key
+
+logger = get_logger()
 
 
 def get_db_tables():
@@ -355,20 +357,6 @@ class SQLMixinDallinger(SharedMixin):
         #     return True
         #
         # return False
-
-    def scrub_pii(self, json):
-        """
-        Removes personally identifying information from the object's JSON representation.
-        This is a destructive operation (it changes the input object).
-        """
-        to_scrub = ["client_ip_address", "worker_id"]
-        for key in to_scrub:
-            try:
-                del json[key]
-            except KeyError:
-                pass
-
-        return json
 
 
 #
@@ -865,9 +853,6 @@ def export_assets(
         manifest_rows.append(row)
 
     # TODO: restore parallelism once SSH/export deadlock is fixed.
-    from .utils import get_logger
-
-    logger = get_logger()
     if server is not None:
         _prefetch_ssh_local_objects(assets, server, logger)
     if n_parallel and n_parallel > 1:
@@ -1017,6 +1002,13 @@ def _prefetch_ssh_local_objects(assets, server, logger):
             "then re-run the export."
         ) from exc
 
+    remaining = missing_object_digests(digests)
+    if remaining:
+        raise RsyncRequiredError(
+            f"Rsync finished but {len(remaining)} LocalStorage object(s) are still "
+            "missing from the local cache. Confirm the remote objects exist and "
+            "re-run the export."
+        )
     logger.info(
         "Rsynced %s of %s missing LocalStorage asset object(s) from %s.",
         len(written),
@@ -1129,7 +1121,10 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
                 "object_path": a.object_path,
             }
     except Exception:
-        print(f"An error occurred when trying to export the asset with id: {asset_id}")
+        logger.exception(
+            "An error occurred when trying to export the asset with id: %s",
+            asset_id,
+        )
         raise
 
 

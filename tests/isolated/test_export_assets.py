@@ -7,7 +7,7 @@ from click import Context
 from dallinger import db
 
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, OnDemandAsset
-from psynet.bot import Bot, BotDriver
+from psynet.bot import BotDriver
 from psynet.command_line import export__local
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import generate_text_file
@@ -96,15 +96,6 @@ class TestAssetExport:
 
         bot_driver = BotDriver()
         bot_driver.take_experiment()
-
-        bot = Bot.query.one()
-
-        json_full = bot.to_dict()
-        json_anon = bot.scrub_pii(bot.to_dict())
-
-        for key in ["client_ip_address", "worker_id"]:
-            assert key in json_full
-            assert key not in json_anon
 
         with tempfile.TemporaryDirectory() as tempdir:
             with pytest.raises(ValueError) as e:

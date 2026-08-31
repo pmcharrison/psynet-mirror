@@ -292,9 +292,7 @@ def _promote_staged_object(
 ) -> bool:
     staged = staging_root / object_relative_path(digest)
     if not staged.exists():
-        logger.warning(
-            "Rsync did not produce object %s; leaving it for fallback.", digest
-        )
+        logger.warning("Rsync did not produce object %s.", digest)
         return False
 
     actual = sha256_directory(staged) if staged.is_dir() else sha256_file(staged)
