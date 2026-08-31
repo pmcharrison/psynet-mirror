@@ -1,6 +1,6 @@
 import pytest
 
-from psynet.trial import _compile_nodes_from_directory, static_url_for
+from psynet.trial import compile_nodes_from_directory, static_url_for
 from psynet.utils import working_directory
 
 
@@ -36,19 +36,42 @@ def test_compile_nodes_from_directory_uses_static_urls(tmp_path):
     media.write_bytes(b"RIFF")
 
     with working_directory(tmp_path):
-        nodes = _compile_nodes_from_directory(
+        nodes = compile_nodes_from_directory(
             "static/practice",
             ".wav",
             _FakeNode,
-        )
+        )()
 
     assert len(nodes) == 1
     node = nodes[0]
     assert node.participant_group == "group-a"
     assert node.block == "block-1"
     assert node.definition["name"] == "tone.wav"
-    assert node.definition["prompt"] == "/static/practice/group-a/block-1/tone.wav"
-    assert not hasattr(node, "assets") or getattr(node, "assets", None) in (
-        None,
-        {},
+    assert node.definition["url"] == "/static/practice/group-a/block-1/tone.wav"
+
+
+def test_compile_nodes_from_directory_honors_url_key(tmp_path):
+    media = tmp_path / "static" / "practice" / "group-a" / "block-1" / "tone.wav"
+    media.parent.mkdir(parents=True)
+    media.write_bytes(b"RIFF")
+
+    with working_directory(tmp_path):
+        nodes = compile_nodes_from_directory(
+            "static/practice",
+            ".wav",
+            _FakeNode,
+            url_key="stimulus",
+        )()
+
+    assert nodes[0].definition["stimulus"] == (
+        "/static/practice/group-a/block-1/tone.wav"
     )
+
+
+def test_compile_nodes_from_directory_rejects_data_directory(tmp_path):
+    media = tmp_path / "data" / "practice" / "group-a" / "block-1" / "tone.wav"
+    media.parent.mkdir(parents=True)
+    media.write_bytes(b"RIFF")
+
+    with working_directory(tmp_path), pytest.raises(ValueError, match="static"):
+        compile_nodes_from_directory("data/practice", ".wav", _FakeNode)()

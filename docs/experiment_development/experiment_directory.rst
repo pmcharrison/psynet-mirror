@@ -48,10 +48,10 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     so a typical audiovisual corpus in ``static/`` can ship with the experiment.
     Run ``dallinger deployment-files list`` before raising
     ``EXP_MAX_SIZE_MB`` further, and exclude anything that should stay local in
-    ``deploy.toml``. Heroku slugs cannot exceed 500 MB; use Docker/SSH or host
-    larger media outside the package. Sets well above 1 GB, or files you
-    regenerate often, are still a better fit for S3 or assets; see
-    :doc:`/tutorials/large_stimulus_sets`.
+    ``deploy.toml``. Heroku deploys are capped at 500 MB even if
+    ``EXP_MAX_SIZE_MB`` is higher; host larger media on S3 or use Docker/SSH.
+    Sets well above 1 GB, or files you regenerate often, are still a better
+    fit for S3 or assets; see :doc:`/tutorials/large_stimulus_sets`.
 
 -   ``templates`` is used for customising PsyNet’s front-end. It contains
     `Jinja2 templates <https://jinja.palletsprojects.com/en/2.11.x/>`_; Jinja2 is a popular templating library for Python.

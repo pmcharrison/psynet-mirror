@@ -137,8 +137,8 @@ overwrites a custom copy. Inspect the current plan with
 Pregenerated public stimuli belong in `static/` (served as `/static/...`).
 They are included in the deployment plan. Generated `static/assets` is
 excluded. The default package-size limit is 1024 MB; raise `EXP_MAX_SIZE_MB`
-only after reviewing the file list. Use PsyNet assets for recordings and
-other files created during the experiment.
+only after reviewing the file list. Heroku deploys are capped at 500 MB.
+Use PsyNet assets for recordings and other files created during the experiment.
 
 `.dockerignore` is no longer supported. Move any custom exclusions into
 `deploy.toml` and remove `.dockerignore` before debug or deployment.

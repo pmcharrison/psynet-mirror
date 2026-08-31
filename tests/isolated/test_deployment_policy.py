@@ -550,9 +550,9 @@ def test_package_size_check_uses_deployment_plan(tmp_path, monkeypatch):
             Experiment.check_size()
 
 
-def test_package_size_check_default_allows_static_stimuli_under_1gb(
-    tmp_path, monkeypatch
-):
+def test_package_size_check_default_is_1024_mb(tmp_path, monkeypatch):
+    from psynet.package_size import DEFAULT_EXP_MAX_SIZE_MB, get_exp_max_size_mb
+
     monkeypatch.delenv("EXP_MAX_SIZE_MB", raising=False)
     (tmp_path / "experiment.py").write_text("class Exp:\n    pass\n")
     (tmp_path / "requirements.txt").write_text("psynet\n")
@@ -561,6 +561,9 @@ def test_package_size_check_default_allows_static_stimuli_under_1gb(
         scaffold_experiment_directory()
         Path("included.bin").write_bytes(b"x" * (2 * 1024**2))
         Experiment.check_size()
+
+    assert get_exp_max_size_mb() == DEFAULT_EXP_MAX_SIZE_MB
+    assert DEFAULT_EXP_MAX_SIZE_MB == 1024
 
 
 def test_package_size_check_error_points_at_static_and_deployment_files_list(

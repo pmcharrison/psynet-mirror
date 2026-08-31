@@ -19,7 +19,7 @@ they still deploy after you review the plan with
 The default package-size limit is 1024 MB, which is meant for this workflow.
 If you need to raise ``EXP_MAX_SIZE_MB``, inspect the deployment-files list
 first so you are not shipping ``exports/``, virtualenvs, or private data.
-Heroku slugs cannot exceed 500 MB.
+Heroku deploys are capped at 500 MB even if that variable is higher.
 
 Use PsyNet assets when the file is created during the experiment
 (recordings, synthesis, chain nodes) or must live on a storage backend.
