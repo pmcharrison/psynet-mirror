@@ -357,18 +357,16 @@ concurrency levels and how to interpret the results, see the
 Simulate data for an experiment
 -------------------------------
 
-This command generates simulated data for an experiment by running the experiment's regression test
-and exporting the resulting data to ``data/simulated_data/``.
+This command runs the experiment's regression test and writes the resulting
+export directly to ``audit/artifacts/simulated_data.zip``. It marks the
+``simulation_export`` audit artifact present and does not leave a second
+dataset under ``data/`` or ``exports/``.
 
 .. code:: bash
 
-  psynet simulate
-  psynet simulate --audit
+  psynet audit simulate
 
-``--audit`` also zips that directory to ``./audit/artifacts/simulated_data.zip``
-and marks ``simulation_export`` present. Use ``--no-mark-present`` to write the
-zip without updating ``audit.json``. Iterate without ``--audit`` when you do
-not want the packet's evidence updated.
+Use ``--no-mark-present`` to write the zip without updating ``audit.json``.
 
 
 .. _install:

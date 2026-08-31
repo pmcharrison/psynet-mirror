@@ -24,7 +24,7 @@ description: Design, implement, and validate simulated participants for PsyNet e
 ## Choose the simulation type
 
 - PsyNet bots: framework-driven local participants run by `psynet test local` or
-  `psynet simulate`; use them for default trial flow, export, and performance
+  `psynet audit simulate`; use them for default trial flow, export, and performance
   validation.
 - Deterministic scripted profiles: fixed answers, timings, checks, and metadata;
   use them for reproducible edge cases and regression tests.
@@ -98,8 +98,8 @@ participants whenever possible.
 
 - Run `psynet test local` with enough bots to cover each required group, profile,
   condition, prescreener branch, and check failure path.
-- Run `psynet simulate --audit` and inspect `data/simulated_data/` plus
-  `artifacts/simulated_data.zip`. Verify trial answers, trial data,
+- Run `psynet audit simulate` and inspect
+  `audit/artifacts/simulated_data.zip`. Verify trial answers, trial data,
   participant vars, profile metadata, telemetry fields, and analysis inputs are
   present and typed as expected.
 - Run `psynet performance-test local --audit` when profile logic changes timing,

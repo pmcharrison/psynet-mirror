@@ -177,18 +177,17 @@ blocker (or replace it with an N/A note in `REPORT.md`), then re-validate.
 
 ### Simulation export packaging
 
-`psynet simulate` writes `data/simulated_data/` (a directory). Prefer `--audit`
-so PsyNet also zips that tree to the canonical audit path. From the experiment
-root:
+`psynet audit simulate` runs bots and writes their export directly to the
+canonical audit path. From the experiment root:
 
 ```bash
-psynet simulate --audit
+psynet audit simulate
 ```
 
-`--audit` writes `<experiment>/audit/artifacts/simulated_data.zip`
-and marks `simulation_export` present. Use `--no-mark-present` to write the zip
-without updating `audit.json`. Overwrite the same zip when a later simulation
-supersedes an interim run.
+The command writes `<experiment>/audit/artifacts/simulated_data.zip`, marks
+`simulation_export` present, and leaves no second export under `data/` or
+`exports/`. Use `--no-mark-present` to write the zip without updating
+`audit.json`.
 
 ### Performance evidence
 

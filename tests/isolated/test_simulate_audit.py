@@ -1,4 +1,4 @@
-"""Isolated tests for ``psynet simulate --audit`` packaging."""
+"""Isolated tests for ``psynet audit simulate`` packaging."""
 
 from pathlib import Path
 from zipfile import ZipFile
@@ -7,9 +7,8 @@ import click
 import pytest
 
 
-def _write_export_tree(root: Path) -> Path:
-    export_dir = root / "data" / "simulated_data"
-    csv_dir = export_dir / "regular" / "data"
+def _write_export_tree(export_dir: Path) -> Path:
+    csv_dir = export_dir / "database"
     csv_dir.mkdir(parents=True)
     (csv_dir / "AnimalTrial.csv").write_text("id\n1\n", encoding="utf-8")
     return export_dir
@@ -51,32 +50,30 @@ def test_resolve_audit_artifact_path_autodetects_nested_audit(tmp_path, monkeypa
     )
 
 
-def test_write_directory_zip_preserves_data_prefix(tmp_path, monkeypatch):
+def test_write_directory_zip_uses_export_root(tmp_path):
     from psynet.command_line import write_directory_zip
 
-    monkeypatch.chdir(tmp_path)
-    export_dir = _write_export_tree(tmp_path)
+    export_dir = _write_export_tree(tmp_path / "generated-export")
     zip_path = tmp_path / "out" / "simulated_data.zip"
 
     write_directory_zip(export_dir, zip_path)
 
     with ZipFile(zip_path) as archive:
         names = set(archive.namelist())
-    assert "data/simulated_data/regular/data/AnimalTrial.csv" in names
+    assert "database/AnimalTrial.csv" in names
 
 
-def test_write_directory_zip_overwrites_existing_archive(tmp_path, monkeypatch):
+def test_write_directory_zip_overwrites_existing_archive(tmp_path):
     from psynet.command_line import write_directory_zip
 
-    monkeypatch.chdir(tmp_path)
-    export_dir = _write_export_tree(tmp_path)
+    export_dir = _write_export_tree(tmp_path / "generated-export")
     zip_path = tmp_path / "simulated_data.zip"
     zip_path.write_bytes(b"stale")
 
     write_directory_zip(export_dir, zip_path)
 
     with ZipFile(zip_path) as archive:
-        assert "data/simulated_data/regular/data/AnimalTrial.csv" in archive.namelist()
+        assert "database/AnimalTrial.csv" in archive.namelist()
 
 
 def test_write_directory_zip_requires_directory(tmp_path):
@@ -90,9 +87,9 @@ def test_write_directory_zip_rejects_empty_tree(tmp_path, monkeypatch):
     from psynet.command_line import write_directory_zip
 
     monkeypatch.chdir(tmp_path)
-    empty = tmp_path / "data" / "simulated_data"
+    empty = tmp_path / "generated-export"
     empty.mkdir(parents=True)
-    (empty / "regular").mkdir()
+    (empty / "database").mkdir()
     zip_path = tmp_path / "artifacts" / "simulated_data.zip"
 
     with pytest.raises(click.UsageError, match="contains no files"):
@@ -102,8 +99,8 @@ def test_write_directory_zip_rejects_empty_tree(tmp_path, monkeypatch):
     assert not zip_path.with_name(zip_path.name + ".partial").exists()
 
 
-def test_run_simulate_audit_requires_packet_before_test(tmp_path, monkeypatch):
-    from psynet.command_line import _run_simulate
+def test_audit_simulate_requires_packet_before_test(tmp_path, monkeypatch):
+    from psynet.command_line import _run_audit_simulate
 
     monkeypatch.chdir(tmp_path)
     calls = []
@@ -113,7 +110,7 @@ def test_run_simulate_audit_requires_packet_before_test(tmp_path, monkeypatch):
             calls.append(cmd)
 
     with pytest.raises(click.UsageError, match="No audit packet found"):
-        _run_simulate(DummyCtx(), audit=True)
+        _run_audit_simulate(DummyCtx())
 
     assert calls == []
 
@@ -130,33 +127,11 @@ def test_resolve_audit_root_from_inside_audit_errors(tmp_path, monkeypatch):
         resolve_audit_root()
 
 
-def test_run_simulate_without_audit_does_not_zip(tmp_path, monkeypatch):
-    from psynet.command_line import (
-        _run_simulate,
-        export__local,
-        test__local,
-    )
-
-    monkeypatch.chdir(tmp_path)
-    calls = []
-
-    class DummyCtx:
-        def invoke(self, cmd, **kwargs):
-            calls.append((cmd, kwargs))
-            if cmd is export__local:
-                _write_export_tree(tmp_path)
-
-    _run_simulate(DummyCtx(), audit=False)
-
-    assert [cmd for cmd, _ in calls] == [test__local, export__local]
-    assert not list(tmp_path.glob("**/*.zip"))
-
-
-def test_run_simulate_audit_zips_export_and_marks_present(tmp_path, monkeypatch):
+def test_audit_simulate_writes_only_zip_and_marks_present(tmp_path, monkeypatch):
     import json
 
     from psynet.audit.cli import init_audit
-    from psynet.command_line import _run_simulate, export__local
+    from psynet.command_line import _run_audit_simulate, export__local
 
     experiment = tmp_path / "exp"
     audit_dir = experiment / "audit"
@@ -166,28 +141,27 @@ def test_run_simulate_audit_zips_export_and_marks_present(tmp_path, monkeypatch)
     class DummyCtx:
         def invoke(self, cmd, **kwargs):
             if cmd is export__local:
-                _write_export_tree(experiment)
+                _write_export_tree(Path(kwargs["path"]))
 
-    _run_simulate(DummyCtx(), audit=True)
+    _run_audit_simulate(DummyCtx())
 
     zip_path = audit_dir / "artifacts" / "simulated_data.zip"
     assert zip_path.is_file()
     with ZipFile(zip_path) as archive:
-        assert "data/simulated_data/regular/data/AnimalTrial.csv" in archive.namelist()
-    assert (
-        experiment / "data" / "simulated_data" / "regular" / "data" / "AnimalTrial.csv"
-    ).is_file()
+        assert "database/AnimalTrial.csv" in archive.namelist()
+    assert not (experiment / "data").exists()
+    assert not (experiment / "exports").exists()
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     artifact = next(a for a in manifest["artifacts"] if a["id"] == "simulation_export")
     assert artifact["status"] == "present"
     assert all(b["artifact_id"] != "simulation_export" for b in manifest["blockers"])
 
 
-def test_run_simulate_audit_can_skip_mark_present(tmp_path, monkeypatch):
+def test_audit_simulate_can_skip_mark_present(tmp_path, monkeypatch):
     import json
 
     from psynet.audit.cli import init_audit
-    from psynet.command_line import _run_simulate, export__local
+    from psynet.command_line import _run_audit_simulate, export__local
 
     experiment = tmp_path / "exp"
     audit_dir = experiment / "audit"
@@ -197,9 +171,9 @@ def test_run_simulate_audit_can_skip_mark_present(tmp_path, monkeypatch):
     class DummyCtx:
         def invoke(self, cmd, **kwargs):
             if cmd is export__local:
-                _write_export_tree(experiment)
+                _write_export_tree(Path(kwargs["path"]))
 
-    _run_simulate(DummyCtx(), audit=True, mark_present=False)
+    _run_audit_simulate(DummyCtx(), mark_present=False)
 
     assert (audit_dir / "artifacts" / "simulated_data.zip").is_file()
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
@@ -270,20 +244,23 @@ def test_no_mark_present_requires_audit():
         require_audit_when_skipping_mark_present(False, True)
 
 
-def test_simulate_no_mark_present_without_audit_errors(monkeypatch):
+def test_audit_simulate_no_mark_present_is_supported(monkeypatch):
     from click.testing import CliRunner
 
-    from psynet.command_line import simulate
+    from psynet.command_line import audit_simulate
 
     monkeypatch.setattr("psynet.utils.experiment_available", lambda: True)
     monkeypatch.setattr(
         "psynet.utils.ensure_experiment_directory_name_does_not_conflict",
         lambda: None,
     )
+    monkeypatch.setattr(
+        "psynet.command_line._run_audit_simulate",
+        lambda ctx, mark_present: None,
+    )
 
-    result = CliRunner().invoke(simulate, ["--no-mark-present"])
-    assert result.exit_code != 0
-    assert "requires --audit" in result.output
+    result = CliRunner().invoke(audit_simulate, ["--no-mark-present"])
+    assert result.exit_code == 0
 
 
 def test_performance_results_have_successful_bots():
@@ -327,17 +304,25 @@ def test_maybe_mark_performance_result_skips_zero_success(
     assert artifact["status"] == "blocked"
 
 
-def test_simulate_help_documents_audit_option():
+def test_audit_simulate_help_documents_artifact():
     from click.testing import CliRunner
 
-    from psynet.command_line import simulate
+    from psynet.command_line import audit_simulate
 
-    result = CliRunner().invoke(simulate, ["--help"])
+    result = CliRunner().invoke(audit_simulate, ["--help"])
     assert result.exit_code == 0
-    assert "--audit" in result.output
     assert "simulated_data.zip" in result.output
     assert "--no-mark-present" in result.output
-    assert "simulation_export" in result.output
+
+
+def test_top_level_simulate_command_is_removed():
+    from click.testing import CliRunner
+
+    from psynet.command_line import psynet
+
+    result = CliRunner().invoke(psynet, ["simulate"])
+    assert result.exit_code != 0
+    assert "No such command 'simulate'" in result.output
 
 
 def test_performance_test_ssh_help_documents_no_mark_present(monkeypatch):

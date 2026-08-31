@@ -2,7 +2,6 @@ import configparser
 import inspect
 import json
 import os
-import re
 import shutil
 import signal
 import sys
@@ -1811,17 +1810,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def export_path(deployment_id):
-        export_root = "~/psynet-data/export"
-
-        return os.path.join(
-            export_root,
-            deployment_id,
-            re.sub(
-                "__launch.*", "", deployment_id
-            )  # Strip the launch date from the path to keep things short
-            + "__export="
-            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
-        )
+        """Return ``exports/latest``, archiving the previous export if present."""
+        export_root = Path.cwd() / "exports"
+        latest = export_root / "latest"
+        if latest.exists():
+            history_root = export_root / "history"
+            history_root.mkdir(parents=True, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S-%f")
+            latest.rename(history_root / timestamp)
+        return str(latest)
 
     @property
     def var(self):
@@ -3597,7 +3594,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _export(
         cls,
         export_dir,
-        config=None,
         n_parallel=None,
         **kwargs,
     ):
@@ -3633,10 +3629,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
 
         with tempfile.TemporaryDirectory() as tempdir:
-            config = get_config()
             zip_filepath = exp._export(
                 tempdir,
-                config=config,
                 **kwargs,
             )
             return send_file(zip_filepath, mimetype="zip")

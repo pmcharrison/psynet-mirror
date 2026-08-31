@@ -14,11 +14,11 @@ Run functional checks from the experiment directory:
 ```bash
 python experiment.py
 psynet test local
-psynet simulate --audit
+psynet audit simulate
 ```
 
-`psynet simulate --audit` still writes `data/simulated_data/` and also zips it
-to `audit/artifacts/simulated_data.zip`, then marks `simulation_export` present.
+`psynet audit simulate` writes `audit/artifacts/simulated_data.zip` directly
+and marks `simulation_export` present.
 
 ## Performance evidence
 

@@ -3490,24 +3490,15 @@ _test_options["performance_audit"] = _audit_flag_option(
     file without updating audit.json."""
 )
 
-_test_options["simulate_audit"] = _audit_flag_option(
-    """
-    After exporting data/simulated_data/, zip it to
-    ./audit/artifacts/simulated_data.zip and mark simulation_export present.
-    Run from the experiment directory. Use --no-mark-present to write the zip
-    without updating audit.json."""
-)
-
 _test_options["audit_no_mark_present"] = click.option(
     "--no-mark-present",
     is_flag=True,
     default=False,
-    help="With --audit, write the artifact file but do not update audit.json.",
+    help="Write the artifact file but do not update audit.json.",
 )
 
 AUDIT_PERFORMANCE_JSON = Path("artifacts") / "performance.json"
 AUDIT_SIMULATED_DATA_ZIP = Path("artifacts") / "simulated_data.zip"
-SIMULATED_DATA_EXPORT_PATH = Path("data") / "simulated_data"
 AUDIT_ARTIFACT_IDS = {
     AUDIT_PERFORMANCE_JSON: "performance_result",
     AUDIT_SIMULATED_DATA_ZIP: "simulation_export",
@@ -3638,12 +3629,7 @@ def resolve_performance_json_output(json_output=None, audit=False):
 
 
 def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
-    """Zip files under ``source_dir``.
-
-    When ``source_dir`` is under the current working directory, archive members
-    keep that relative prefix (for example ``data/simulated_data/...``).
-    Directory entries are omitted; empty trees are rejected.
-    """
+    """Zip files under ``source_dir`` relative to that directory."""
     source_dir = Path(source_dir)
     if not source_dir.is_dir():
         raise click.UsageError(
@@ -3652,13 +3638,7 @@ def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
 
     zip_path = Path(zip_path)
     zip_path.parent.mkdir(parents=True, exist_ok=True)
-    cwd = Path.cwd().resolve()
     resolved_source = source_dir.resolve()
-    try:
-        resolved_source.relative_to(cwd)
-        archive_root = cwd
-    except ValueError:
-        archive_root = resolved_source.parent
 
     partial = zip_path.with_name(zip_path.name + ".partial")
     if partial.exists():
@@ -3671,7 +3651,7 @@ def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
                     continue
                 if path.resolve() == partial_resolved:
                     continue
-                archive.write(path, path.relative_to(archive_root).as_posix())
+                archive.write(path, path.relative_to(resolved_source).as_posix())
             if not archive.namelist():
                 raise click.UsageError(
                     f"Cannot write audit zip: {source_dir} contains no files."
@@ -3683,32 +3663,28 @@ def write_directory_zip(source_dir: Path, zip_path: Path) -> None:
         raise
 
 
-def package_simulated_data_for_audit(
-    export_path: Path = SIMULATED_DATA_EXPORT_PATH,
-) -> Path:
+def package_simulated_data_for_audit(export_path: Path) -> Path:
     """Zip a simulate export into the audit packet's simulated-data artifact."""
     zip_path = resolve_audit_artifact_path(AUDIT_SIMULATED_DATA_ZIP)
     write_directory_zip(export_path, zip_path)
     return zip_path
 
 
-def _run_simulate(ctx, audit=False, mark_present=True):
-    """Run the experiment test, export simulated data, and optionally zip it."""
-    if audit:
-        resolve_audit_root()
+def _run_audit_simulate(ctx, mark_present=True):
+    """Run bots and write their export directly into the audit packet."""
+    resolve_audit_root()
     ctx.invoke(test__local)
-    ctx.invoke(
-        export__local,
-        # TODO - maybe legacy is not the best name for this parameter...
-        legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
-        path=SIMULATED_DATA_EXPORT_PATH.as_posix(),
-    )
-    if not audit:
-        return
-    zip_path = package_simulated_data_for_audit()
+    with tempfile.TemporaryDirectory() as export_path:
+        ctx.invoke(
+            export__local,
+            # The server has stopped, so export directly from the local database.
+            legacy=True,
+            path=export_path,
+        )
+        zip_path = package_simulated_data_for_audit(Path(export_path))
     click.echo(f"Simulated data (audit zip): {zip_path}")
     maybe_mark_audit_artifact_present(
-        audit, AUDIT_SIMULATED_DATA_ZIP, mark_present=mark_present
+        True, AUDIT_SIMULATED_DATA_ZIP, mark_present=mark_present
     )
 
 
@@ -4190,26 +4166,6 @@ def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minut
     return cmd
 
 
-@psynet.command()
-@_test_options["simulate_audit"]
-@_test_options["audit_no_mark_present"]
-@click.pass_context
-@require_exp_directory
-def simulate(ctx, audit=False, no_mark_present=False):
-    """
-    Generates simulated data for an experiment by running the experiment's regression test
-    and exporting the resulting data.
-
-    Writes ``data/simulated_data/``. Pass ``--audit`` to also zip that directory
-    to ``./audit/artifacts/simulated_data.zip`` and mark
-    ``simulation_export`` present.
-    """
-    # No need to catch the exit code here, because test__local now uses sys.exit()
-    # if an error occurs.
-    require_audit_when_skipping_mark_present(audit, no_mark_present)
-    _run_simulate(ctx, audit=audit, mark_present=not no_mark_present)
-
-
 @psynet.command(name="list-experiment-dirs")
 @click.option("--for-ci-tests", is_flag=True)
 @click.option("--ci-node-total", default=None, type=int)
@@ -4256,14 +4212,23 @@ def _cli_resolve_audit_dir(*, require_manifest=False):
 @click.pass_context
 def audit(ctx):
     """
-    Package experiment readiness evidence (does not run tests).
+    Collect and package experiment readiness evidence.
 
     An audit records artifacts, checks, and blockers for human inspection.
-    It does not run tests or collect evidence for you. Audits always live in
-    ./audit/ inside the experiment directory. Run these commands from the
-    experiment directory.
+    Most subcommands manage the packet; ``simulate`` also runs experiment bots.
+    Audits always live in ./audit/ inside the experiment directory. Run these
+    commands from the experiment directory.
     """
     pass
+
+
+@audit.command("simulate")
+@_test_options["audit_no_mark_present"]
+@click.pass_context
+@require_exp_directory
+def audit_simulate(ctx, no_mark_present=False):
+    """Run bots and write ``artifacts/simulated_data.zip`` into the audit."""
+    _run_audit_simulate(ctx, mark_present=not no_mark_present)
 
 
 @audit.command("init")

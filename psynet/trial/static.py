@@ -11,7 +11,7 @@ from typing import List, Literal, Optional, Union
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 from ..utils import get_logger, is_method_overridden
-from .main import Selection, Trial
+from .main import Selection
 
 logger = get_logger()
 

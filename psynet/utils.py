@@ -38,6 +38,8 @@ from psynet.light_utils import (  # noqa: F401 – re-exported for backwards com
     ExperimentDirectoryNameError,
     _md5_update_from_dir,
     _md5_update_from_file,
+    _update_hash_from_dir,
+    _update_hash_from_file,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
     git_command_available,
@@ -377,20 +379,10 @@ def sha256_object(x):
     return hashlib.sha256(string).hexdigest()
 
 
-# Hash update helpers (algorithm-agnostic):
-# https://stackoverflow.com/a/54477583/8454486
-def _update_hash_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
-    if not Path(filename).is_file():
-        raise FileNotFoundError(f"File not found: {filename}")
-    with open(str(filename), "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash.update(chunk)
-    return hash
-
-
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
     """Update *hash* with the contents of *filename* and return it."""
-    return _update_hash_from_file(filename, hash)
+    _update_hash_from_file(filename, hash)
+    return hash
 
 
 def md5_file(filename: Union[str, Path]) -> str:
@@ -401,20 +393,6 @@ def md5_file(filename: Union[str, Path]) -> str:
 def sha256_file(filename: Union[str, Path]) -> str:
     """Return a SHA-256 hex digest of a file's contents."""
     return str(_update_hash_from_file(filename, hashlib.sha256()).hexdigest())
-
-
-def _update_hash_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
-    assert Path(directory).is_dir()
-    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
-        # Skip hidden files and directories (those starting with '.')
-        if path.name.startswith("."):
-            continue
-        hash.update(path.name.encode())
-        if path.is_file():
-            hash = _update_hash_from_file(path, hash)
-        elif path.is_dir():
-            hash = _update_hash_from_dir(path, hash)
-    return hash
 
 
 def sha256_directory(directory: Union[str, Path]) -> str:
@@ -429,7 +407,8 @@ def content_object_path(digest: str) -> str:
 
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
     """Recursively update *hash* with all non-hidden files under *directory*."""
-    return _update_hash_from_dir(directory, hash)
+    _update_hash_from_dir(directory, hash)
+    return hash
 
 
 def serialise_datetime(x):

@@ -129,7 +129,7 @@ def audit_manifest() -> dict[str, object]:
                 "artifact_id": "analysis_notebook",
                 "severity": "warning",
                 "reason": "No simulated export has been produced yet.",
-                "next_step": "Run psynet simulate and execute the notebook.",
+                "next_step": "Run psynet audit simulate and execute the notebook.",
             },
         ],
     }

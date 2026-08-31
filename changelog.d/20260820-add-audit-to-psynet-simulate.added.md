@@ -1,4 +1,4 @@
-Added ``psynet simulate --audit``, which zips ``data/simulated_data/`` to
-``./audit/artifacts/simulated_data.zip`` after the usual simulate export and
-marks ``simulation_export`` present. Use ``--no-mark-present`` to write the
-zip without updating ``audit.json``.
+Added ``psynet audit simulate``, which runs experiment bots, writes their export
+directly to ``./audit/artifacts/simulated_data.zip``, and marks
+``simulation_export`` present. Use ``--no-mark-present`` to write the zip
+without updating ``audit.json``.

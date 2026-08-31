@@ -476,13 +476,6 @@ class ChainNetwork(TrialNetwork):
             "ready_to_grow_network_query() helper instead."
         )
 
-    @property
-    def n_viable_trials_at_head(self):
-        """Viable trial count at the current head node."""
-        if self.head is None:
-            return 0
-        return count_viable_trials_for_node(self.head.id)
-
 
 class ChainNode(TrialNode):
     """

@@ -41,10 +41,11 @@ using a virtual environment with the same dependencies as the deployed experimen
     psynet export ssh --app my-app-name
     psynet export heroku --app my-app-name
 
-The data is saved by default to ``~/psynet-data/export``.
-If you export into the experiment directory, put results under ``exports/``:
-that path is listed in ``deploy.toml`` so it is not uploaded on deploy, and
-the experiment ``.gitignore`` template ignores it.
+The latest export is saved to ``exports/latest/`` in the experiment directory.
+Before a new export starts, the previous ``latest/`` directory is moved to
+``exports/history/<timestamp>/``. The ``exports/`` path is listed in
+``deploy.toml`` so it is not uploaded on deploy, and the experiment
+``.gitignore`` template ignores it.
 
 A typical export directory looks like this:
 
