@@ -2587,9 +2587,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     participant
                 ) or event.participant_timed_out(participant):
                     self.timeline.advance_page(self, participant)
-                return self.response_approved(
-                    participant, include_timeline_fragment
-                )
+                return self.response_approved(participant, include_timeline_fragment)
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
