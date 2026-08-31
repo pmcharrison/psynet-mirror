@@ -11,15 +11,21 @@ PsyNet experiments centre on the `Timeline` component,
 which chains together `Page`s, `Module`s, `TrialMaker`s, and `CodeBlock`s.
 Most experiment logic should go through these components.
 
-Prefer `TrialMaker`s where possible for administering sequences of trials,
-as they provide standardized helpers for administration and visualization.
-Use `StaticTrialMaker` when selecting among a fixed bank of nodes, including
-adaptive policies that reprioritize that bank. Adaptive testing over an
-authored item bank belongs here, because adaptation changes which item is
-chosen rather than what the items are. Use a chain-based trial maker when a
+Prefer `TrialMaker`s for administering sequences of trials, as they provide
+standardized helpers for administration and visualization.
+Use `StaticTrialMaker` when trials come from a fixed bank of authored nodes and
+PsyNet should balance trials across them. Use a chain-based trial maker when a
 later node's content must be derived from a completed earlier trial, as in a
 staircase whose next difficulty level is computed from the last response;
 PsyNet's `GeometricStaircaseTrialMaker` is a `ChainTrialMaker` for that reason.
+
+Use `Trial.cue` when the experiment computes each assignment itself.
+Model-based adaptive selection usually belongs here, especially when the
+adaptive unit is a combination of stored objects such as a pair of items:
+storing every combination as a node does not scale, and scoring code is easier
+to write and simulate against arrays than against database nodes. See
+`make-experiment-adaptive/SKILL.md`.
+
 Inspect the closest PsyNet demo and trial-maker implementation before choosing
 an architecture.
 
@@ -87,7 +93,8 @@ If something seems very hard to achieve, stop and ask the user rather than devia
   `markupsafe.Markup` only for trusted, static HTML snippets passed directly as
   page content; do not nest raw markup strings inside `dominate` containers.
   Avoid interpolating participant- or user-provided data into `Markup`.
-- For repeated tasks, choose the trial maker with the rule under "Approach"
-  above. Adaptive selection does not on its own require a chain. Read
+- For repeated tasks, choose between a trial maker and `Trial.cue` with the rule
+  under "Approach" above. Adaptive selection on its own requires neither a chain
+  nor a trial maker. Read
   `synchronous-experiments/SKILL.md` as well when participant
   grouping, barriers, cohorts, or waiting rooms are involved.

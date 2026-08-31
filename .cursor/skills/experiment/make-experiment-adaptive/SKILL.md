@@ -209,91 +209,88 @@ should be reproduced separately in simulation.
 
 ## Connect the policy to PsyNet
 
-Choose the trial-maker architecture using
-`develop-experiment-back-end/SKILL.md`. `StaticTrialMaker` represents each item
-internally as the head of a network. Preserve its eligibility and allocation
-logic by overriding `select_node`, then immediately translate the eligible
-nodes into a candidate item table. Return the chosen node, or wrap it in
-`Selection` when the decision record needs request-local context:
+An adaptive policy is usually a short piece of array code: load the
+observations, score the candidate actions, take the best one. `Trial.cue`
+delivers that directly, so start there. Use a trial maker when you need what it
+provides: balanced collection across an authored bank, chain-structured state,
+or its dashboard views.
+
+| The adaptive unit is | Use |
+| --- | --- |
+| a combination of stored objects, such as a pair of items or an item-by-condition cell | `Trial.cue` |
+| one row of an authored bank, and PsyNet should also balance trials across that bank | `StaticTrialMaker` |
+| derived from a completed earlier trial, as in staircases, transmission chains, or Gibbs sampling | `ChainTrialMaker` |
+
+Do not store combinations as nodes. A 100-item pairwise design has 4,950 pairs,
+and one node per pair means the server loads that whole pool on every
+assignment. Store the 100 items and build the pair when you need it.
+
+### Cue the selected candidate
+
+Selection is an ordinary function in the timeline:
 
 ```python
-from psynet.trial.main import Selection
+from psynet.timeline import Module, for_loop
 
-class AdaptiveTrialMaker(StaticTrialMaker):
-    def select_node(self, nodes, participant, experiment):
-        observations = load_observation_table()
-        nodes_by_item_id = {node.definition["item_id"]: node for node in nodes}
-        candidate_items = ITEMS.loc[list(nodes_by_item_id)]
-        utilities = adaptive_logic.score_available_items(
-            observations=observations,
-            participants=load_participant_table(),
-            items=ITEMS,
-            candidate_items=candidate_items,
-            participant_id=participant.id,
-        )
-        selected_item_id = utilities.idxmax()
-        selected_node = nodes_by_item_id[selected_item_id]
-        return Selection(
-            value=selected_node,
-            context={
-                "selected_candidate_id": selected_item_id,
-                "participant_history_count": int(
-                    (observations["participant_id"] == participant.id).sum()
-                ),
-                "study_fit_id": current_study_fit_id(),
-                "candidate_pool_version": ITEM_BANK_VERSION,
-                "selected_utility": float(utilities.loc[selected_item_id]),
-                "details": {"n_candidates": len(candidate_items)},
-            },
-        )
+
+def select_and_cue_item(trial_index, participant, experiment):
+    snapshot = latest_ready_snapshot()
+    candidate_items = ITEMS[~ITEMS["item_id"].isin(items_seen_by(participant))]
+    utilities = adaptive_logic.score_available_items(
+        study_state=snapshot.state,
+        candidate_items=candidate_items,
+        participant=participant_row(participant),
+    )
+    selected_item_id = utilities.idxmax()
+
+    return AdaptiveTrial.cue(
+        definition={"item_id": selected_item_id},
+        assets={"stimulus": adaptive_items.assets[selected_item_id]},
+        on_trial_created=record_decision,
+        creation_context={
+            "selected_candidate_id": selected_item_id,
+            "selected_utility": float(utilities.loc[selected_item_id]),
+            "study_fit_id": snapshot.id,
+            "data_version": snapshot.data_version,
+            "eligible_candidate_count": len(candidate_items),
+        },
+    )
+
+
+adaptive_items = Module(
+    "adaptive_items",
+    for_loop(
+        label="adaptive items",
+        iterate_over=range(N_TRIALS),
+        logic=select_and_cue_item,
+        time_estimate_per_iteration=AdaptiveTrial.time_estimate,
+    ),
+    assets=get_item_assets,
+)
 ```
 
-Here `utilities` is a Series indexed by `item_id`. Returning the node itself is
-enough when you are not writing a decision row; PsyNet then calls
-`on_trial_created` with `selection_context=None`. If you persist an
-`AdaptiveDecision`, return `Selection` with that context. `current_study_fit_id()`
-returns `None` for participant-level adaptation. `Selection.context`
-travels only through the current trial-construction call; it is not stored in
-participant or module state. PsyNet calls `select_node` only when at least one
-eligible node exists.
+Here `utilities` is a Series indexed by `item_id`. `for_loop` passes the
+iterated value as the first argument and supplies `participant` and
+`experiment` by name. Key assets by item rather than by assignment: one cached
+asset per item is reused by every trial that presents it.
 
-Return the exact node object from the `nodes` argument (or wrap that same object
-in `Selection`). PsyNet validates object identity; re-querying a node with the
-same database ID and returning the new Python object raises `ValueError`. The
-same rule applies to `select_chain`.
+`on_trial_created` runs inside the trial-creation transaction, so the decision
+row and the assignment commit or roll back together. Follow
+[references/study-state-storage.md](references/study-state-storage.md).
 
-`StaticTrialMaker` excludes previously visited nodes before calling
-`select_node` when `allow_repeated_nodes=False`, which is the default.
-Set it explicitly and keep `n_repeat_trials=0` when the participant must never
-see an item twice. If several nodes represent the same logical item, use
-`custom_node_filter` with a stable item identifier so every copy becomes
-ineligible after the first assignment.
+Features that a trial maker would have provided become explicit lines:
 
-Use `custom_node_filter` only when the policy changes item eligibility rather
-than priority; ordinary repeat suppression is already provided by
-`allow_repeated_nodes=False`. For candidate ranking on `StaticTrialMaker`,
-override `select_node`, not `find_nodes`; temporary wait/exit is the exception
-described below. Chain-based adaptation instead chooses among evolving chains
-with `select_chain`; it may likewise return
-`Selection(value=selected_chain, context=...)`. Do not override the managed
-`prepare_trial` of a `NetworkTrialMaker`.
+| Trial-maker feature | Cue equivalent |
+| --- | --- |
+| `allow_repeated_nodes=False` | exclude IDs already recorded for this participant |
+| `custom_node_filter` | filter the candidate table before scoring |
+| `Selection(value, context)` | `creation_context` |
+| `find_nodes` returning `"wait"` | a wait page or `conditional` in the timeline |
+| `should_finish_block` | the `while_loop` condition described below |
 
-`select_node` and `select_chain` cannot express temporary unavailability: they
-must return one of the supplied objects (directly or in `Selection`), and
-returning `None` raises `TypeError`. If the policy must wait for a model refresh,
-override `find_nodes` or `find_chains` and return `"wait"` before selection.
-Return `"exit"` only when the trial maker should end. Otherwise delegate normal
-candidate discovery to `super()` and return its list unchanged. Keep ordinary
-eligibility in the filter that matches the maker: `custom_node_filter` on
-`StaticTrialMaker`, `custom_chain_filter` on chain-based makers.
-
-Item selection belongs in the trial maker. Adaptive recruitment or participant
-selection instead needs an experiment recruitment criterion or scheduler. A
-combined policy may have both adapters call the same table-based
-`adaptive_logic.py`.
-
-The standalone simulation must apply the same eligibility rule to its decision
-table rather than inferring exposure only from successful observations:
+Each row is a few lines of Python over IDs, and the same expression works in
+`simulate_procedure.py`, which has no nodes at all. Apply the exclusion rule to
+the decision table rather than inferring exposure from successful observations:
 
 ```python
 seen_item_ids = decisions.loc[
@@ -303,6 +300,19 @@ seen_item_ids = decisions.loc[
 candidate_items = items[~items["item_id"].isin(seen_item_ids)]
 ```
 
+### Rank an existing node bank
+
+`StaticTrialMaker` is still the better choice for a fixed authored bank when you
+want PsyNet's balancing, blocks, and participant groups, and adaptation only
+reorders that bank. Override `select_node` to rank the eligible nodes and
+`custom_node_filter` to remove ineligible ones. The hooks impose strict rules
+about what you may return, and they cannot express waiting; follow
+[references/static-node-bank-selection.md](references/static-node-bank-selection.md).
+
+Either architecture selects stimuli. Adaptive recruitment or participant
+selection instead needs an experiment recruitment criterion or scheduler, and a
+combined policy can have both call the same `adaptive_logic.py`.
+
 ## Implement a custom stopping rule
 
 Put participant-level stopping logic in `adaptive_logic.py` so PsyNet and
@@ -310,48 +320,39 @@ Put participant-level stopping logic in `adaptive_logic.py` so PsyNet and
 minimum amount of data with a required precision; the exact inputs and return
 criterion should use domain-specific names.
 
-For a `StaticTrialMaker`, adapt PsyNet's `should_finish_block` hook:
+A fixed `range(N_TRIALS)` is right for a fixed test length. When the length
+depends on the responses, replace `for_loop` with `while_loop`:
 
 ```python
-class AdaptiveTrialMaker(StaticTrialMaker):
-    def should_finish_block(
-        self,
-        participant,
-        block,
-        block_position,
-        n_participant_trials_in_block,
-        n_participant_trials_in_trial_maker,
-    ):
-        if super().should_finish_block(
-            participant,
-            block,
-            block_position,
-            n_participant_trials_in_block,
-            n_participant_trials_in_trial_maker,
-        ):
-            return True
-
-        participant_fit = adaptive_logic.fit_participant_model(
-            observations=load_participant_observations(participant),
-            participant=participant_to_row(participant),
-            items=ITEMS,
-        )
-        return adaptive_logic.should_stop_participant(
-            participant_fit=participant_fit,
-            n_administered=n_participant_trials_in_trial_maker,
-        )
+while_loop(
+    label="adaptive items",
+    condition=lambda participant: not adaptive_logic.should_stop_participant(
+        participant_fit=current_participant_fit(participant),
+        n_administered=n_trials_so_far(participant),
+    ),
+    logic=PageMaker(
+        lambda participant, experiment: select_and_cue_item(
+            n_trials_so_far(participant), participant, experiment
+        ),
+        time_estimate=AdaptiveTrial.time_estimate,
+    ),
+    expected_repetitions=EXPECTED_TRIALS,
+)
 ```
 
-Calling `super()` preserves PsyNet's configured maximums. Set
-`max_trials_per_participant` as a hard cap even when the scientific rule would
-normally stop earlier. `expected_trials_per_participant` only controls timing
-and progress estimates; it is not a stopping rule.
+`while_loop` takes elts rather than a callable, so wrap the selection function
+in a `PageMaker`, which resolves to the cued trial each iteration. Unlike
+`for_loop` it passes no iteration value, so derive the trial index from the
+participant's trial count.
 
-With one adaptive block, returning `True` ends the trial maker. With several
-blocks, it ends the current block and advances to the next one, so define the
-criterion accordingly. Exhausting all eligible items also ends the trial maker.
+Always cap the loop, either with a hard maximum inside the condition or with
+`max_loop_time`. A precision criterion can fail to trigger on unusual response
+patterns. `expected_repetitions` only informs progress and reward estimates.
+
 Avoid fitting the participant model twice for stopping and selection when that
-cost is material; share a fit keyed by the finalized observation set.
+cost is material; share a fit keyed by the finalized observation set. For a
+`StaticTrialMaker`, adapt `should_finish_block` instead, following
+[references/static-node-bank-selection.md](references/static-node-bank-selection.md).
 
 ## Store observations and decisions
 

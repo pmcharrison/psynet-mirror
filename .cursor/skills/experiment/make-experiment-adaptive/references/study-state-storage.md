@@ -83,9 +83,38 @@ version.
 
 ## Create decisions transactionally
 
-Create the decision row in the trial maker's `on_trial_created` hook. PsyNet
-calls this after the exact primary assignment exists but before the participant
-sees it. Repeat trials and synchronized follower copies do not call this hook.
+Create the decision row when the assignment is created, in the same
+transaction. With `Trial.cue`, pass provenance through `creation_context` and
+write the row in an `on_trial_created` callback:
+
+```python
+def record_decision(trial, participant, creation_context):
+    decision = AdaptiveDecision(
+        participant_id=participant.id,
+        selected_candidate_id=creation_context["selected_candidate_id"],
+        participant_history_count=creation_context["participant_history_count"],
+        study_fit_id=creation_context["study_fit_id"],
+        candidate_pool_version=creation_context["candidate_pool_version"],
+        selected_utility=creation_context["selected_utility"],
+        details=creation_context["details"],
+    )
+    decision.trial = trial
+    db.session.add(decision)
+
+
+AdaptiveTrial.cue(
+    definition={"item_id": selected_item_id},
+    on_trial_created=record_decision,
+    creation_context=creation_context,
+)
+```
+
+Assigning the relationship lets SQLAlchemy populate `trial_id` when the
+transaction flushes; do not flush merely to obtain the trial ID. If the callback
+raises, the trial and the decision roll back together, so a decision never
+survives an assignment the participant did not receive.
+
+A trial maker exposes the same hook as a method, fed by `Selection.context`:
 
 ```python
 class AdaptiveTrialMaker(StaticTrialMaker):
@@ -95,26 +124,16 @@ class AdaptiveTrialMaker(StaticTrialMaker):
         selected_item_id = trial.definition["item_id"]
         if selection_context["selected_candidate_id"] != selected_item_id:
             raise RuntimeError("Adaptive decision does not match the trial.")
-        decision = AdaptiveDecision(
-            participant_id=participant.id,
-            selected_candidate_id=selected_item_id,
-            participant_history_count=selection_context["participant_history_count"],
-            study_fit_id=selection_context["study_fit_id"],
-            candidate_pool_version=selection_context["candidate_pool_version"],
-            selected_utility=selection_context["selected_utility"],
-            details=selection_context["details"],
-        )
-        decision.trial = trial
-        db.session.add(decision)
+        ...
 ```
 
-Assigning the relationship lets SQLAlchemy populate `trial_id` when the
-transaction flushes. The `selection_context is None` return covers a
-`select_node` that returned a bare node instead of `Selection`. The trial and
-decision commit or roll back together; do not flush merely to obtain the
-trial ID. Use explicit columns for routine queries and exports. Keep
-`details` small unless the complete candidate and utility set is needed to
-reconstruct the policy.
+`selection_context` is `None` when the selection hook returned a bare node
+rather than a `Selection`. The method runs for primary assignments only: repeat
+trials and synchronized follower copies do not call it.
+
+Use explicit columns for routine queries and exports. Keep `details` small
+unless the complete candidate and utility set is needed to reconstruct the
+policy.
 
 ## Publish a snapshot
 
