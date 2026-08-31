@@ -9,11 +9,11 @@ authors customize node eligibility with ``custom_node_filter`` and ranking with
 from typing import List, Literal, Optional, Union
 
 from psynet.trial.chain import (
+    Candidate,
     ChainNetwork,
     ChainNode,
     ChainTrial,
     ChainTrialMaker,
-    _Candidate,
 )
 
 from ..utils import get_logger, is_method_overridden
@@ -453,6 +453,8 @@ class StaticTrialMaker(ChainTrialMaker):
             ChainTrialMaker,
             "custom_network_filter",
         ):
+            # This helper validates what the deprecated filter returned, and
+            # names custom_network_filter in any error it raises.
             filtered_networks = self._apply_deprecated_network_filter(
                 chains,
                 participant,
@@ -484,7 +486,7 @@ class StaticTrialMaker(ChainTrialMaker):
         }
         try:
             return [
-                _Candidate(value=node, network=networks_by_head_id[node.id])
+                Candidate(value=node, network=networks_by_head_id[node.id])
                 for node in nodes
             ]
         except KeyError as error:

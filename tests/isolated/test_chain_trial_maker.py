@@ -836,6 +836,23 @@ def test_deprecated_network_filter_still_filters_static_networks():
     ) == [kept.head]
 
 
+def test_deprecated_static_network_filter_errors_name_that_method():
+    class LegacyStaticMaker(StaticTrialMaker):
+        def custom_network_filter(self, candidates, participant):
+            return [SimpleNamespace(id=99)]
+
+    with pytest.warns(DeprecationWarning, match="custom_node_filter"):
+        trial_maker = make_static_trial_maker(LegacyStaticMaker)
+    (chain,) = _headed_chains(1)
+
+    with pytest.raises(ValueError, match="custom_network_filter"):
+        trial_maker._filter_eligible_candidates(
+            [chain],
+            participant=SimpleNamespace(),
+            experiment=SimpleNamespace(),
+        )
+
+
 def test_custom_chain_filter_takes_precedence_over_deprecated_network_filter():
     class BothFilters(ChainTrialMaker):
         def custom_chain_filter(self, chains, participant, experiment):

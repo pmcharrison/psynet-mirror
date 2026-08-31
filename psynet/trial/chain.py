@@ -56,7 +56,7 @@ logger = get_logger()
 
 
 @dataclass(frozen=True)
-class _Candidate:
+class Candidate:
     """Connect a selection-hook value to its already-loaded network.
 
     ``value`` is the paradigm-specific object exposed to experiment authors:
@@ -2052,7 +2052,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             participant=participant,
             experiment=experiment,
         )
-        return [_Candidate(value=chain, network=chain) for chain in chains]
+        return [Candidate(value=chain, network=chain) for chain in chains]
 
     def _select_trial_node(self, participant, experiment):
         selection = self._select_from_discovered(
