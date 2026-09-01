@@ -11,6 +11,7 @@ Contributing to PsyNet
    package_static_resources
    prescreening_tasks
    updating_documentation
+   future_work
    ../tutorials/internationalization
    running_tests
    asv_performance_tests
