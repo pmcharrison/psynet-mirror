@@ -262,16 +262,17 @@ class _TimelineHoldPage(Page):
 
     def prepare_resume_if_ready(self, experiment, participant):
         """Prepare a cleared or timed-out hold and return whether it can resume."""
-        forced_resume = participant.pending_redirect is not None or participant.failed
-        can_resume = self.participant_can_resume(experiment, participant)
-        timed_out = self.participant_timed_out(participant)
-        if not (forced_resume or can_resume or timed_out):
-            return False
-
-        self.prepare_to_resume(participant)
-        if timed_out and not forced_resume and not can_resume:
+        if participant.pending_redirect is not None or participant.failed:
+            self.prepare_to_resume(participant)
+            return True
+        if self.participant_can_resume(experiment, participant):
+            self.prepare_to_resume(participant)
+            return True
+        if self.participant_timed_out(participant):
+            self.prepare_to_resume(participant)
             self.apply_timeout(participant)
-        return True
+            return True
+        return False
 
     def prepare_to_resume(self, participant):
         """Run subclass-specific cleanup immediately before settlement."""

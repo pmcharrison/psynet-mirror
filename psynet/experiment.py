@@ -4630,7 +4630,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     )
                 )
             payload["timeline_fragment"] = fragment
-            payload.pop("status", None)
             return success_response(**payload)
 
         if payload.get("submission") == "rejected":

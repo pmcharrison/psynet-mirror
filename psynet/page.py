@@ -25,7 +25,7 @@ from .timeline import (
     join,
     while_loop,
 )
-from .utils import get_logger
+from .utils import call_function_with_context, get_logger
 
 logger = get_logger()
 warnings.simplefilter("always", DeprecationWarning)
@@ -315,6 +315,19 @@ def wait_while(
     if uses_timeline_hold:
         from psynet.timeline_hold import _ConditionHoldPage
 
+        def entry_condition(participant, experiment):
+            result = call_function_with_context(
+                condition,
+                participant=participant,
+                experiment=experiment,
+            )
+            logger.info(
+                "Evaluating timeline hold (%s) condition: result = %s",
+                label,
+                result,
+            )
+            return result
+
         hold = _ConditionHoldPage(
             condition=condition,
             hold_id=label,
@@ -330,7 +343,7 @@ def wait_while(
         return join(
             conditional(
                 label,
-                condition,
+                entry_condition,
                 logic_if_true=hold_logic,
                 fix_time_credit=fix_time_credit,
                 log_chosen_branch=False,

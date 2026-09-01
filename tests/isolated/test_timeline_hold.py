@@ -13,6 +13,7 @@ from psynet.timeline import (
 )
 from psynet.timeline_hold import (
     TimelineHoldRecord,
+    _ConditionHoldPage,
     _queue_timeline_hold_wake,
     _TimelineHoldPage,
 )
@@ -231,6 +232,20 @@ def test_released_hold_wins_over_simultaneous_timeout():
     assert hold.prepare_resume_if_ready(object(), participant)
     assert hold.prepared
     assert not hold.timeout_applied
+
+
+def test_forced_resume_does_not_evaluate_author_condition():
+    hold = _ConditionHoldPage(
+        condition=lambda: pytest.fail("condition should not be evaluated"),
+        hold_id="test",
+        expected_wait=1,
+        max_wait_time=2,
+        fix_time_credit=False,
+        check_interval=1,
+    )
+    participant = SimpleNamespace(pending_redirect="unsuccessful_end", failed=True)
+
+    assert hold.prepare_resume_if_ready(object(), participant)
 
 
 def test_uncleared_timed_out_hold_applies_timeout():
