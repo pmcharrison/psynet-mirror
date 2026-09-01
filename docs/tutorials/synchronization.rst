@@ -23,11 +23,14 @@ It may be included in the timeline as follows:
     SimpleGrouper(
         group_type="rock_paper_scissors",
         initial_group_size=2,
+        content="Waiting for another participant",
     ),
 
 This ``SimpleGrouper`` organizes participants into groups of 2. By default it will create a new
 group of 2 each time 2 participants are ready and waiting, but an optional ``batch_size``
 parameter can be used to delay group formation until more participants are waiting.
+Like ``GroupBarrier``, it accepts ``content`` to customize the default in-place
+waiting indicator.
 Set ``fail_participants_below_min_size=False`` to release the remaining members without failing
 them if a group that cannot accept top-ups drops below its minimum size.
 
@@ -103,6 +106,8 @@ By default, a barrier keeps the participant's current page visible, disables
 interaction, and displays a small waiting indicator. Pass ``content`` to
 customize that overlay (for example ``"Waiting for your partner"``).
 If ``content`` is omitted, the overlay says "Waiting for other participants…".
+For localized experiments, mark custom ``content`` for translation as described
+in :doc:`internationalization`.
 The browser receives a WebSocket notification when the barrier releases and
 performs only occasional HTTP checks as a fallback. To display dedicated pages
 or filler tasks while participants wait, pass them explicitly with
@@ -116,6 +121,10 @@ arrivals do not appear further through the experiment. Set
 credit instead. If ``expected_wait`` is omitted, barriers preserve the
 historical 1.5-second estimate. Dedicated :class:`~psynet.page.WaitPage`
 waiting logic retains its page-based accounting.
+
+Existing experiments that require the former predictable wait credit should
+set ``fix_time_credit=True``. Use explicit ``waiting_logic`` only when the
+participant should navigate to a dedicated waiting page or filler task.
 
 
 Synchronization in trial makers

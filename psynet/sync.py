@@ -93,7 +93,6 @@ from sqlalchemy.orm import (
     joinedload,
     object_session,
     relationship,
-    with_polymorphic,
 )
 
 from psynet.data import SQLBase, SQLMixin, register_table
@@ -1384,28 +1383,19 @@ def check_barriers():
 def check_sync_groups():
     """Recount active membership, skipping groups locked by another request.
 
-    Uses a single ``SKIP LOCKED`` query so locked groups are omitted without an
-    O(n^2) excluded-id scan. Dedicated sessions keep these maintenance commits
-    separate from any transaction owned by the caller. Each group's recount
-    runs in its own transaction so a failure cannot roll back sibling groups
-    already processed.
+    Dedicated sessions keep these maintenance commits separate from any
+    transaction owned by the caller. Each group's recount runs in its own
+    transaction so a failure cannot roll back sibling groups already processed.
     """
     with Session(bind=db.engine) as session:
-        _set_transaction_lock_timeout(
-            get_config().get("timeline_lock_timeout_seconds"),
-            session=session,
-        )
-        entity = with_polymorphic(SyncGroup, "*")
-        groups = (
-            session.query(entity)
-            .filter(entity.active.is_(True))
-            .order_by(entity.id)
-            .with_for_update(of=SyncGroup, skip_locked=True)
-            .populate_existing()
-            .all()
-        )
-        group_ids = [group.id for group in groups]
-        session.commit()
+        group_ids = [
+            group_id
+            for (group_id,) in (
+                session.query(SyncGroup.id)
+                .filter(SyncGroup.active.is_(True))
+                .order_by(SyncGroup.id)
+            )
+        ]
 
     for group_id in group_ids:
         try:

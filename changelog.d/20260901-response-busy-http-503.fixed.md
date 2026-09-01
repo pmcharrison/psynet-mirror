@@ -1,1 +1,1 @@
-``POST /response`` now returns HTTP 503 with a ``busy`` payload on transient database contention, matching JSON ``/timeline``, so the browser can retry instead of treating the wait as a rejected answer.
+Participant-facing timeline and response requests now return translated temporary-busy responses for transient database contention. ``POST /response`` and JSON ``/timeline`` use HTTP 503 so the browser can retry before a response commits, while render failures after a committed response remain fatal to avoid duplicate submissions.

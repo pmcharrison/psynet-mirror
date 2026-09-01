@@ -70,8 +70,31 @@ Timeline requests separate state mutation from rendering:
 needs database writes. Calling ``commit()``, flushing ORM mutations, or issuing
 SQL writes from ``render()`` or templates raises an error. If another request
 advances the participant between the write commit and render, HTML requests
-redirect to the current timeline page while JSON/response requests receive a
-stale-state response.
+redirect to the current timeline page. ``GET /timeline?mode=json`` returns
+HTTP 409 with ``{"status": "stale", ...}``; an already committed
+``POST /response`` returns a synchronization rejection so the participant can
+refresh without submitting the answer twice.
+
+Custom response processing
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Overrides of :meth:`~psynet.experiment.Experiment.process_response` run in the
+write phase and must return :class:`~psynet.experiment.ResponseResult`.
+``ResponseResult.payload`` contains the response data, ``page`` retains the
+resolved page for post-commit rendering, and ``flask_response`` can bypass the
+normal payload path. For example::
+
+    from psynet.experiment import ResponseResult
+
+    def process_response(self, *args, **kwargs) -> ResponseResult:
+        result = super().process_response(*args, **kwargs)
+        result.payload["custom_status"] = "ready"
+        return result
+
+The former ``response_approved`` and ``render_partial_timeline_payload`` hooks
+are no longer part of this pipeline. Put database preparation in
+``pre_render()``, customize response data through ``ResponseResult``, and keep
+``render()`` read-only.
 
 Participant-facing write phases use a bounded PostgreSQL ``lock_timeout`` so
 unexpected contention fails safely instead of occupying a web worker
@@ -315,6 +338,12 @@ feedback/asset-processing waits because they use
 :func:`psynet.page.wait_while`.
 Timeout failures use ``timeline_hold:<hold_id>`` and ``fail_on_timeout`` failure
 tags.
+
+Timeline-hold resume checks use the durable hold record directly. They do not
+create :class:`~psynet.timeline.Response` rows or call the internal hold page's
+``process_response()``, validation, or ``on_complete()`` hooks. Analyze waiting
+through ``TimelineHoldRecord`` and participant wait-time fields rather than by
+counting response rows.
 
 Bots
 ~~~~
