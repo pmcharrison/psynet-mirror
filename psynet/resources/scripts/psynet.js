@@ -573,9 +573,7 @@
     // Dependencies load once per document. Page code and page modules share
     // one activation/cleanup lifecycle and run for every hosting page.
     psynet.activeJSPageBehaviors = [];
-    psynet.AsyncFunction = Object.getPrototypeOf(
-      async function () {},
-    ).constructor;
+    psynet.AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
     psynet.loadJSDependencies = async function () {
       psynet.rememberLoadedDocumentScripts();
@@ -650,10 +648,7 @@
             );
           }
           let cleanup = await module.activate(context);
-          psynet.validatePageCleanup(
-            cleanup,
-            `JS page module ${normalizedSrc}`,
-          );
+          psynet.validatePageCleanup(cleanup, `JS page module ${normalizedSrc}`);
           activated.push({ source: normalizedSrc, cleanup });
         }
       } catch (error) {
@@ -865,7 +860,9 @@
     };
 
     psynet.showTimelineHoldIndicator = function (message) {
-      let indicator = document.getElementById("psynet-timeline-hold-indicator");
+      let indicator = document.getElementById(
+        "psynet-timeline-hold-indicator",
+      );
       // A server-rendered indicator means this document is already the neutral
       // fallback. Only preserved participant pages need their main body inert.
       let preservesVisiblePage = !indicator;
@@ -955,7 +952,10 @@
           controller.resumeInFlight = false;
           if (controller.resumeRequested) {
             controller.resumeRequested = false;
-            setTimeout(() => psynet.resumeTimelineHold("queued hold wake"), 0);
+            setTimeout(
+              () => psynet.resumeTimelineHold("queued hold wake"),
+              0,
+            );
           } else {
             psynet.scheduleTimelineHoldCheck(controller);
           }
@@ -974,7 +974,9 @@
         controller.connection.close();
       }
 
-      let indicator = document.getElementById("psynet-timeline-hold-indicator");
+      let indicator = document.getElementById(
+        "psynet-timeline-hold-indicator",
+      );
       if (indicator?.dataset.timelineHoldDynamic === "true") {
         indicator.remove();
       }
@@ -995,7 +997,7 @@
       psynet.timelineHold = null;
       window.dispatchEvent(
         new CustomEvent("timelineHoldEnded", {
-          detail: { holdId: controller.hold.hold_id },
+          detail: {holdId: controller.hold.hold_id},
         }),
       );
     };
@@ -1054,7 +1056,7 @@
       });
       window.dispatchEvent(
         new CustomEvent("timelineHoldStarted", {
-          detail: { holdId: hold.hold_id },
+          detail: {holdId: hold.hold_id},
         }),
       );
     };
@@ -1090,9 +1092,7 @@
         let currentElement = document.getElementById(id);
         if (!nextElement || !currentElement) {
           throw new Error(
-            "Failed to apply timeline fragment payload: missing element #" +
-              id +
-              ".",
+            "Failed to apply timeline fragment payload: missing element #" + id + ".",
           );
         }
         return { currentElement, nextElement };
@@ -1151,9 +1151,7 @@
     };
 
     psynet.loadNextTimelinePageFromResponse = async function (payload) {
-      psynet.log.info(
-        "Applying next timeline fragment directly from /response.",
-      );
+      psynet.log.info("Applying next timeline fragment directly from /response.");
       psynet.setPageReady(false);
       psynet.setTimelineTransitionBusy(true);
       // Failure presentation belongs to the response boundary, which catches
@@ -1854,8 +1852,7 @@
         URL.revokeObjectURL(url);
       } catch (error) {
         psynet.log.warn(
-          "Failed to revoke object URL: " +
-            (error && error.message ? error.message : String(error)),
+          "Failed to revoke object URL: " + (error && error.message ? error.message : String(error)),
         );
       } finally {
         psynet.media.objectUrls.delete(url);
@@ -1874,9 +1871,7 @@
     };
 
     psynet.cleanupPageResources = async function () {
-      psynet.log.info(
-        "Cleaning page resources before swapped-page activation.",
-      );
+      psynet.log.info("Cleaning page resources before swapped-page activation.");
       psynet.media.invalidateActiveLoads();
       await psynet.media.stopAllAudio({ fadeOut: 0 });
 
@@ -2177,7 +2172,11 @@
         request.onerror = function () {
           finishRequest();
           reject(
-            Error("Failed to load media asset at " + url + " (network error)."),
+            Error(
+              "Failed to load media asset at " +
+                url +
+                " (network error).",
+            ),
           );
         };
 
@@ -2382,17 +2381,14 @@
               );
             }
 
-            completionTimer = psynet.trial.setTimer(
-              () => {
-                psynet.log.warn(
-                  "Audio ended event did not fire for " +
-                    sound.stimulusId +
-                    "; using timed fallback completion.",
-                );
-                completeSound();
-              },
-              1000 * (options.startDelay + sound.duration + 0.1),
-            );
+            completionTimer = psynet.trial.setTimer(() => {
+              psynet.log.warn(
+                "Audio ended event did not fire for " +
+                  sound.stimulusId +
+                  "; using timed fallback completion.",
+              );
+              completeSound();
+            }, 1000 * (options.startDelay + sound.duration + 0.1));
 
             sound.stop = function (providedOptions) {
               let options = {
@@ -2776,14 +2772,14 @@
       $("#send-comment")
         .off("click.psynetComment")
         .on("click.psynetComment", function () {
-          var text = $("#comment-text");
-          var textValue = text.val();
+        var text = $("#comment-text");
+        var textValue = text.val();
 
-          if (textValue !== "") {
-            psynet.comments.push(textValue);
-            text.val("");
-            psynet.alert(psynetTemplateData.strings.commentStored);
-          }
+        if (textValue !== "") {
+          psynet.comments.push(textValue);
+          text.val("");
+          psynet.alert(psynetTemplateData.strings.commentStored);
+        }
         });
     };
 
@@ -3002,7 +2998,7 @@
     psynet.requiresFullPageReloadTransition = function (response) {
       return Boolean(
         psynet.page.attributes?.requires_full_page_reload ||
-        response.page.attributes?.requires_full_page_reload,
+          response.page.attributes?.requires_full_page_reload,
       );
     };
 
@@ -3175,8 +3171,8 @@
         unique_id: psynet.uniqueId,
         raw_answer: rawAnswer,
         metadata: allMetadata,
-        include_timeline_fragment:
-          !psynet.page.attributes?.requires_full_page_reload,
+        include_timeline_fragment: !psynet.page.attributes
+          ?.requires_full_page_reload,
       });
     };
 
@@ -3484,10 +3480,7 @@
 
     if (psynet.lucidTerminationEvents && psynet.lucidTerminationResetHandler) {
       psynet.lucidTerminationEvents.forEach((eventName) => {
-        window.removeEventListener(
-          eventName,
-          psynet.lucidTerminationResetHandler,
-        );
+        window.removeEventListener(eventName, psynet.lucidTerminationResetHandler);
       });
     }
     psynet.lucidTerminationEvents = [];
@@ -3593,19 +3586,15 @@
       clockIntervalID,
     ];
 
-    $(document).on(
-      "click.psynetLucidTermination",
-      ".btn, .sd-btn",
-      function () {
-        psynet.removeBeforeUnloadEventListener();
-      },
-    );
+    $(document).on("click.psynetLucidTermination", ".btn, .sd-btn", function () {
+      psynet.removeBeforeUnloadEventListener();
+    });
 
     $(document).on(
       "click.psynetLucidTermination",
       "#terminate-button",
       function () {
-        terminateParticipant("terminate-button");
+      terminateParticipant("terminate-button");
       },
     );
 
@@ -3619,7 +3608,7 @@
     ];
     psynet.lucidTerminationEvents = events;
     psynet.lucidTerminationResetHandler = function () {
-      noActivitySince = 0;
+        noActivitySince = 0;
     };
     events.forEach((eventName) => {
       window.addEventListener(eventName, psynet.lucidTerminationResetHandler);
