@@ -102,7 +102,7 @@ class TestAssetExport:
                 ctx.invoke(export__local, path=tempdir, assets="asdasdoj")
             assert str(e.value) == "--assets must be either none, collected, or all."
 
-            ctx.invoke(export__local, path=tempdir, assets="all", legacy=True)
+            ctx.invoke(export__local, path=tempdir, assets="all")
 
             self.assert_database_dir(os.path.join(tempdir, "database"))
             self.assert_identifier_sidecar(
@@ -118,59 +118,54 @@ class TestAssetExport:
     def _test_asset_export_modes(self, ctx):
         import csv
 
-        for legacy in [True, False]:
-            with tempfile.TemporaryDirectory() as tempdir:
-                ctx.invoke(export__local, path=tempdir, assets="none", legacy=legacy)
+        with tempfile.TemporaryDirectory() as tempdir:
+            ctx.invoke(export__local, path=tempdir, assets="none")
 
-                assert os.path.isdir(os.path.join(tempdir, "database"))
-                assert not os.path.exists(os.path.join(tempdir, "assets"))
-                assert not os.path.exists(os.path.join(tempdir, "data.zip"))
+            assert os.path.isdir(os.path.join(tempdir, "database"))
+            assert not os.path.exists(os.path.join(tempdir, "assets"))
+            assert not os.path.exists(os.path.join(tempdir, "data.zip"))
 
-            with tempfile.TemporaryDirectory() as tempdir:
-                ctx.invoke(
-                    export__local, path=tempdir, assets="collected", legacy=legacy
-                )
+        with tempfile.TemporaryDirectory() as tempdir:
+            ctx.invoke(export__local, path=tempdir, assets="collected")
 
-                path = os.path.join(tempdir, "assets")
-                assert os.path.exists(path) and os.path.isdir(path)
-                assert os.path.exists(os.path.join(path, "manifest.csv"))
-                assert not os.path.exists(os.path.join(path, "objects"))
+            path = os.path.join(tempdir, "assets")
+            assert os.path.exists(path) and os.path.isdir(path)
+            assert os.path.exists(os.path.join(path, "manifest.csv"))
+            assert not os.path.exists(os.path.join(path, "objects"))
 
-                with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
-                    rows = list(csv.DictReader(csv_file))
-                labels = {row["local_key"] for row in rows}
-                assert "test_marked_asset" in labels
-                assert "test_public_asset" in labels
-                assert "test_external_asset" not in labels
-                assert "test_on_demand_asset" not in labels
-                for row in rows:
-                    export_path = row["export_path"]
-                    assert export_path
-                    assert os.path.exists(os.path.join(path, export_path))
+            with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
+                rows = list(csv.DictReader(csv_file))
+            labels = {row["local_key"] for row in rows}
+            assert "test_marked_asset" in labels
+            assert "test_public_asset" in labels
+            assert "test_external_asset" not in labels
+            assert "test_on_demand_asset" not in labels
+            for row in rows:
+                export_path = row["export_path"]
+                assert export_path
+                assert os.path.exists(os.path.join(path, export_path))
 
-            with tempfile.TemporaryDirectory() as tempdir:
-                ctx.invoke(export__local, path=tempdir, assets="all", legacy=legacy)
-                path = os.path.join(tempdir, "assets")
-                with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
-                    rows = list(csv.DictReader(csv_file))
-                labels = {row["local_key"] for row in rows}
-                assert "test_marked_asset" in labels
-                assert "test_external_asset" in labels
-                assert "test_on_demand_asset" in labels
-                external_rows = [
-                    row for row in rows if row["local_key"] == "test_external_asset"
-                ]
-                assert len(external_rows) == 1
-                assert not external_rows[0]["object_path"]
-                assert external_rows[0]["url"].startswith("https://")
-                on_demand_rows = [
-                    row for row in rows if row["local_key"] == "test_on_demand_asset"
-                ]
-                assert len(on_demand_rows) == 1
-                assert on_demand_rows[0]["export_path"]
-                assert os.path.exists(
-                    os.path.join(path, on_demand_rows[0]["export_path"])
-                )
+        with tempfile.TemporaryDirectory() as tempdir:
+            ctx.invoke(export__local, path=tempdir, assets="all")
+            path = os.path.join(tempdir, "assets")
+            with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
+                rows = list(csv.DictReader(csv_file))
+            labels = {row["local_key"] for row in rows}
+            assert "test_marked_asset" in labels
+            assert "test_external_asset" in labels
+            assert "test_on_demand_asset" in labels
+            external_rows = [
+                row for row in rows if row["local_key"] == "test_external_asset"
+            ]
+            assert len(external_rows) == 1
+            assert not external_rows[0]["object_path"]
+            assert external_rows[0]["url"].startswith("https://")
+            on_demand_rows = [
+                row for row in rows if row["local_key"] == "test_on_demand_asset"
+            ]
+            assert len(on_demand_rows) == 1
+            assert on_demand_rows[0]["export_path"]
+            assert os.path.exists(os.path.join(path, on_demand_rows[0]["export_path"]))
 
     def assert_database_dir(self, path):
         import pandas as pd

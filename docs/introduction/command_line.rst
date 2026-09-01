@@ -108,7 +108,7 @@ computer; the command chooses automatically between streaming a complete
 archive and streaming a core snapshot plus only the asset bytes you are
 missing. It also checks that the deployment matches your experiment directory
 before transferring anything. See :ref:`data` for the archive layout, asset
-options, transport selection, and the deprecated ``--legacy`` fallback.
+options, and transport selection.
 
 To see further options for the export command (e.g. if you want to control the export of assets),
 append ``--help`` to these commands:

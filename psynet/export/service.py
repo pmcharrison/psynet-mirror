@@ -3,10 +3,9 @@
 Why this module exists
 ----------------------
 Export used to be orchestrated by Click commands that re-invoked each other,
-with the dashboard route calling ``psynet export local --legacy`` through a
-synthetic Click context. That made it impossible to reason about which side of
-the wire did the work, and it coupled a Flask route to command-line argument
-parsing.
+with the dashboard route calling the CLI through a synthetic Click context.
+That made it impossible to reason about which side of the wire did the work,
+and it coupled a Flask route to command-line argument parsing.
 
 Everything here runs *inside the deployed experiment*, against the live
 database, and never touches the experimenter's machine. The client-side

@@ -145,21 +145,6 @@ the export to ``exports/latest``.
 
     psynet export ssh --app my-app-name --allow-project-mismatch
 
-Legacy export (deprecated)
---------------------------
-
-The ``--legacy`` argument uses the old export engine: it downloads the raw
-database, **replaces the contents of your local database** with the
-deployment's data, and rebuilds the export locally using your local experiment
-code. It is retained for one release as a fallback and will be removed:
-
-.. code:: bash
-
-    psynet export ssh --app my-app-name --legacy
-
-Because it runs local experiment code, ``--legacy`` requires your local PsyNet
-and Dallinger versions to match the deployment's ``requirements.txt``.
-
 
 Identifier separation
 =====================

@@ -19,10 +19,8 @@ Design constraints
   only warns, and asks for confirmation when a terminal is attached.
 * An unreadable ``export_format_version`` is a hard error: silently downloading
   an archive we cannot parse is worse than failing.
-* PsyNet and Dallinger version differences are recorded, not enforced, for the
-  canonical server-built export, because no local ORM or experiment code takes
-  part in building it. The deprecated ``--legacy`` engine keeps the strict
-  dependency checks, since it ingests into a local database.
+* PsyNet and Dallinger version differences are recorded, not enforced, because
+  no local ORM or experiment code takes part in building a remote export.
 * Old deployments predate the preflight endpoint. Missing identity is a warning
   plus a fallback, never a crash: the point is to protect experimenters from
   losing data, not to lock them out of it.

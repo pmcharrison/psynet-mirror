@@ -2363,15 +2363,6 @@ def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
         click.option(
-            "--legacy",
-            is_flag=True,
-            help=(
-                "Deprecated. Rebuild the export locally by replacing your local "
-                "database with the deployment's data. Kept as a fallback for one "
-                "release; prefer the default server-built export."
-            ),
-        ),
-        click.option(
             "--assets",
             default="collected",
             help=(
@@ -2513,7 +2504,6 @@ def export_(
     app=None,
     local=False,
     path=None,
-    legacy=False,
     assets="collected",
     n_parallel=None,
     no_source=False,
@@ -2596,11 +2586,6 @@ def export_(
         deployment_id = exp_variables["deployment_id"]
         assert len(deployment_id) > 0
         _load_runtime_server_config(config, deployment_id=deployment_id)
-    elif legacy:
-        exp_variables = get_exp_variables()
-        _confirm_matching_experiment_label(
-            exp_variables["label"], experiment_class.label
-        )
 
     # Only the default location keeps a rotating history of previous exports.
     rotate_history = experiment_class.rotate_export_history if path is None else None
@@ -2611,11 +2596,7 @@ def export_(
     staging = staging_path_for(path)
     shutil.rmtree(staging, ignore_errors=True)
     try:
-        if legacy:
-            _run_legacy_export(
-                ctx, app, local, str(staging), assets, docker_ssh, server
-            )
-        elif local:
+        if local:
             _build_local_export(str(staging), assets)
         else:
             _fetch_remote_export(
@@ -2647,31 +2628,6 @@ def _build_local_export(export_path, assets):
 
     log(f"Building export in {export_path}")
     build_export_tree(export_path, assets=assets, local=True)
-
-
-def _run_legacy_export(ctx, app, local, export_path, assets, docker_ssh, server):
-    """Run the deprecated local-ingest engine, warning about its side effects."""
-    from .export.legacy import build_export_locally
-
-    click.secho(
-        "WARNING: --legacy is deprecated and will be removed in a future release. "
-        "It replaces the contents of your local database with the deployment's "
-        "data.",
-        fg="yellow",
-        bold=True,
-        err=True,
-    )
-    if not local:
-        check_core_dependency_versions_match_requirements()
-    build_export_locally(
-        ctx,
-        app,
-        local,
-        export_path,
-        assets,
-        docker_ssh=docker_ssh,
-        server=server,
-    )
 
 
 def _fetch_remote_export(

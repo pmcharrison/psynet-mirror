@@ -318,57 +318,6 @@ def test_export_falls_back_to_an_archive_when_asset_transfer_fails(
     assert (tmp_path / "exports" / "latest" / "database" / "participant.csv").exists()
 
 
-def test_legacy_export_still_works_but_warns_about_its_side_effects(
-    tmp_path, monkeypatch, capsys
-):
-    monkeypatch.chdir(tmp_path)
-    latest = tmp_path / "exports" / "latest"
-    latest.mkdir(parents=True)
-    (latest / "manifest.json").write_text('{"previous": true}')
-
-    experiment_class = Mock(
-        label="timeline-demo",
-        export_path=Experiment.export_path,
-        rotate_export_history=Experiment.rotate_export_history,
-    )
-    built = {}
-
-    def fake_build(ctx, app, local, export_path, assets, **kwargs):
-        built["export_path"] = export_path
-        Path(export_path).mkdir(parents=True, exist_ok=True)
-        (Path(export_path) / "manifest.json").write_text('{"legacy": true}')
-        return export_path
-
-    with (
-        patch(
-            "psynet.experiment.import_local_experiment",
-            return_value={"class": experiment_class},
-        ),
-        patch("psynet.command_line.get_config", return_value=Mock(ready=True)),
-        patch(
-            "psynet.command_line.check_core_dependency_versions_match_requirements"
-        ) as version_check,
-        patch("psynet.export.legacy.build_export_locally", side_effect=fake_build),
-    ):
-        export_(
-            ctx=Mock(),
-            get_exp_variables=lambda: {"label": "timeline-demo"},
-            app="psynet-02",
-            server="example.test",
-            docker_ssh=True,
-            assets="none",
-            legacy=True,
-        )
-
-    assert "--legacy is deprecated" in capsys.readouterr().err
-    version_check.assert_called_once()
-    # The build happens in staging, not in the live export directory.
-    assert Path(built["export_path"]) != latest
-    assert json.loads((latest / "manifest.json").read_text()) == {"legacy": True}
-    (archived,) = list((tmp_path / "exports" / "history").iterdir())
-    assert json.loads((archived / "manifest.json").read_text()) == {"previous": True}
-
-
 def test_dashboard_export_writes_zip_beside_tree_not_cwd(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     root = tmp_path / "scratch"

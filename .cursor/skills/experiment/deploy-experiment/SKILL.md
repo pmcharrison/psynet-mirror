@@ -133,8 +133,6 @@ dallinger ec2 teardown --name <server-name> --region <region> --dns-host <server
 - Export exists for one app but teardown is being planned for another.
 - SSL/TLS errors during first launch can be transient cold-start issues; retry
   after a short wait before changing code.
-- Concurrent legacy exports can interfere with local Postgres state; prefer
-  sequential exports unless the workflow has been tested.
 - Relative export paths are easy to lose track of; prefer absolute `--path`
   values in export commands and logs.
 - Large asset exports may fail even when anonymized tabular exports are usable;

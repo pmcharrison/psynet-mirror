@@ -316,8 +316,8 @@ or ``--assets none`` to skip asset files. See :ref:`data` for the export layout.
 
 .. warning::
     Large experiments can still take a while to export when many collected
-    assets are included. SSH command-line exports (``psynet export ssh --legacy``)
-    reuse a local object cache and copy missing files with ``rsync``. You can
+    assets are included. SSH command-line exports reuse a local object cache
+    and copy missing files with ``rsync``. You can
     also export with ``--assets none`` and download selected files from storage.
     If you are using an SSH server, you can do this using the
     ``scp`` command, for example:

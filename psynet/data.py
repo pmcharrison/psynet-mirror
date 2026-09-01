@@ -781,8 +781,7 @@ def populate_db_from_zip_file(zip_path):
     """Replace the contents of the local database with an exported archive.
 
     This drops every table first, so it must only be used where losing the
-    current local database is the point (``psynet load``, and the deprecated
-    ``--legacy`` export engine).
+    current local database is the point (``psynet load``).
     """
     from dallinger import data as dallinger_data
 

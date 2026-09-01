@@ -13,7 +13,6 @@ Module map
   choose a transport, stream, hydrate assets, publish atomically.
 * :mod:`psynet.export.identity` — project identity and export-format checks made
   before any bytes move.
-* :mod:`psynet.export.legacy` — the deprecated local-database-ingest engine.
 * :mod:`psynet.export.database`, :mod:`psynet.export.identifiers` — the
   canonical table snapshot and identifier separation.
 
