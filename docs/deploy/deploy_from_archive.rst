@@ -15,12 +15,6 @@ would, but pass the path to this file using the ``--archive`` option:
 
     psynet deploy ssh --app my-experiment --archive database.zip
 
-.. note::
-
-    Prepend ``docker/`` to these commands if you are running PsyNet within Docker.
-    In this case you will need to put your ``database.zip`` file inside your experiment directory
-    so that Docker can see it properly.
-
 When you deploy an experiment in this way, PsyNet will use the latest version of the code that you
 have in your current experiment directory. This means that you can use this opportunity to address small
 bugs in your code. Note that the database structure is, however, sensitive to what PsyNet version you use.

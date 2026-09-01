@@ -13,7 +13,7 @@ To keep Docker builds reproducible and less sensitive to transient GitHub
 timeouts, PsyNet vendors the relevant Dallinger ``dev-requirements.txt`` snapshot
 in ``ci/dallinger-dev-requirements.txt``. Docker copies this local file and runs
 ``uv pip compile`` against it. The file has a PsyNet-specific provenance header
-recording the Dallinger release tag it came from.
+recording the Dallinger git ref it came from (a release tag or commit SHA).
 
 When PsyNet upgrades its Dallinger dependency, maintainers should run
 ``psynet dev ci update-dallinger-constraints`` from the repository root. This
@@ -27,23 +27,23 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-from psynet.dallinger_dependency import dallinger_lower_bound_from_pyproject
+from psynet.dallinger_dependency import dallinger_constraints_github_ref
+from psynet.version import supported_python_major_minor_versions
 
 PYPROJECT_PATH = Path("pyproject.toml")
 DOCKERFILE_PATH = Path("Dockerfile")
 DALLINGER_CONSTRAINTS_PATH = Path("ci/dallinger-dev-requirements.txt")
 DALLINGER_CONSTRAINTS_URL_TEMPLATE = (
-    "https://raw.githubusercontent.com/Dallinger/Dallinger/v{version}/"
-    "dev-requirements.txt"
+    "https://raw.githubusercontent.com/Dallinger/Dallinger/{ref}/dev-requirements.txt"
 )
 
 
 def update_dallinger_constraints_command(check_compile: bool = True) -> int:
     """Refresh the vendored Dallinger constraints snapshot."""
-    version = _get_dallinger_dependency_version(PYPROJECT_PATH)
-    url = DALLINGER_CONSTRAINTS_URL_TEMPLATE.format(version=version)
+    ref = dallinger_constraints_github_ref(PYPROJECT_PATH)
+    url = DALLINGER_CONSTRAINTS_URL_TEMPLATE.format(ref=ref)
     content = _download_text(url)
-    rendered = _render_dallinger_constraints_snapshot(version, content)
+    rendered = _render_dallinger_constraints_snapshot(ref, content)
     DALLINGER_CONSTRAINTS_PATH.write_text(rendered, encoding="utf-8")
 
     if check_compile:
@@ -53,11 +53,6 @@ def update_dallinger_constraints_command(check_compile: bool = True) -> int:
 
     print(f"Updated {DALLINGER_CONSTRAINTS_PATH} from {url}")
     return 0
-
-
-def _get_dallinger_dependency_version(pyproject_path: Path) -> str:
-    """Return the Dallinger lower-bound version declared by PsyNet."""
-    return dallinger_lower_bound_from_pyproject(pyproject_path)
 
 
 def _download_text(url: str) -> str:
@@ -75,14 +70,14 @@ def _get_docker_python_version(dockerfile_path: Path) -> str:
     return match.group(1)
 
 
-def _render_dallinger_constraints_snapshot(version: str, content: str) -> str:
+def _render_dallinger_constraints_snapshot(ref: str, content: str) -> str:
     """Prepend PsyNet provenance metadata to Dallinger's constraints content."""
     content = _strip_psynet_snapshot_header(content)
-    url = DALLINGER_CONSTRAINTS_URL_TEMPLATE.format(version=version)
+    url = DALLINGER_CONSTRAINTS_URL_TEMPLATE.format(ref=ref)
     header = (
-        f"# PsyNet CI snapshot for Dallinger release: v{version}\n"
+        f"# PsyNet CI snapshot for Dallinger ref: {ref}\n"
         f"# Source: {url}\n"
-        "# Keep this version aligned with PsyNet's Dallinger dependency in pyproject.toml.\n"
+        "# Keep this aligned with PsyNet's Dallinger dependency in pyproject.toml.\n"
         "#\n"
     )
     return header + content.lstrip()
@@ -92,47 +87,57 @@ def _strip_psynet_snapshot_header(content: str) -> str:
     """Remove an existing PsyNet snapshot header if present."""
     pattern = re.compile(
         r"\A"
-        r"# PsyNet CI snapshot for Dallinger release: v\d+\.\d+\.\d+\n"
+        r"# PsyNet CI snapshot for Dallinger (?:release: v\d+\.\d+\.\d+|ref: \S+)\n"
         r"# Source: https://raw\.githubusercontent\.com/Dallinger/Dallinger/"
-        r"v\d+\.\d+\.\d+/dev-requirements\.txt\n"
-        r"# Keep this version aligned with PsyNet's Dallinger dependency in pyproject\.toml\.\n"
+        r"\S+/dev-requirements\.txt\n"
+        r"# Keep this (?:version )?aligned with PsyNet's Dallinger dependency in "
+        r"pyproject\.toml\.\n"
         r"#\n"
     )
     return pattern.sub("", content, count=1)
 
 
 def _check_docker_constraints_compile(
-    pyproject_path: Path, dallinger_constraints_path: Path, dockerfile_path: Path
+    pyproject_path: Path,
+    dallinger_constraints_path: Path,
+    dockerfile_path: Path,
+    python_versions=supported_python_major_minor_versions,
 ) -> None:
-    """Validate the vendored constraints with Docker's compile command shape."""
-    python_version = _get_docker_python_version(dockerfile_path)
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-        (tmp_path / "pyproject.toml").write_text(
-            pyproject_path.read_text(encoding="utf-8"),
-            encoding="utf-8",
+    """Validate the vendored constraints for every supported Python version."""
+    default_python_version = _get_docker_python_version(dockerfile_path)
+    if default_python_version not in python_versions:
+        raise ValueError(
+            f"Docker's default Python {default_python_version} is not supported."
         )
-        (tmp_path / "dallinger-dev-requirements.txt").write_text(
-            dallinger_constraints_path.read_text(encoding="utf-8"),
-            encoding="utf-8",
-        )
-        subprocess.run(
-            [
-                "uv",
-                "pip",
-                "compile",
-                "--python-version",
-                python_version,
-                "pyproject.toml",
-                "--extra",
-                "experiment",
-                "--extra",
-                "demos",
-                "--constraint",
-                "dallinger-dev-requirements.txt",
-                "--output-file",
-                "constraints.txt",
-            ],
-            cwd=tmp_path,
-            check=True,
-        )
+
+    for python_version in python_versions:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            (tmp_path / "pyproject.toml").write_text(
+                pyproject_path.read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            (tmp_path / "dallinger-dev-requirements.txt").write_text(
+                dallinger_constraints_path.read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            subprocess.run(
+                [
+                    "uv",
+                    "pip",
+                    "compile",
+                    "--python-version",
+                    python_version,
+                    "pyproject.toml",
+                    "--extra",
+                    "experiment",
+                    "--extra",
+                    "demos",
+                    "--constraint",
+                    "dallinger-dev-requirements.txt",
+                    "--output-file",
+                    "constraints.txt",
+                ],
+                cwd=tmp_path,
+                check=True,
+            )
