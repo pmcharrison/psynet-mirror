@@ -12,65 +12,24 @@ Use the app name to filter Dozzle containers and to identify related logs.
 
 ## Credentials
 
-Look these up locally. Do not ask the user to paste passwords, tokens, or
-API keys unless the sources below are missing or login fails. Never print the
-values, put them in `analysis.md`, or commit them.
+Look these up locally; ask the user only if the sources below are missing or
+login fails. Never print the values, put them in `analysis.md`, or commit them
+(presence-check with `set` / `MISSING` output only).
 
-### Dashboard
-
-The experimenter dashboard uses HTTP basic auth. The username and password
-are the deployer's `dashboard_user` and `dashboard_password`.
-
-1. Read `~/.dallingerconfig`, section `[Dashboard]`, keys `dashboard_user`
-   and `dashboard_password`. Check presence only:
-
-```bash
-python - <<'PY'
-import configparser
-from pathlib import Path
-
-cfg = configparser.ConfigParser()
-path = Path.home() / ".dallingerconfig"
-cfg.read(path)
-section = "Dashboard" if cfg.has_section("Dashboard") else "DEFAULT"
-user = cfg.get(section, "dashboard_user", fallback="")
-password = cfg.get(section, "dashboard_password", fallback="")
-print(f"dashboard_user: {'set' if user else 'MISSING'}")
-print(f"dashboard_password: {'set' if password else 'MISSING'}")
-PY
-```
-
-2. If that file has no Dashboard section, use the same keys from
-   `dallinger.config.get_config()` after `config.load()`, still printing
-   only `set` / `MISSING`.
-3. The same pair is also printed at the end of `psynet deploy ssh` on the
-   line that starts `You can now log in to the console at` and includes
-   `(user = ..., password = ...)`. Prefer the config file; use the deploy
-   terminal only as a fallback for that app.
-
-Those values are what the live app was launched with. Use them for
-`<experiment-url>/dashboard/` and for authenticated HTTP checks.
-
-### Dozzle
-
-Dozzle is host-level (`https://logs.experiments1.cococo-lab.cornell.edu/`),
-not per-app, and is **not** stored in `~/.dallingerconfig` by default.
-
-Read the credentials from the same `psynet deploy ssh` output: the line
-`To view the logs for this experiment go to https://logs.... (user = ..., password = ...)`.
-Any successful deploy to that server prints the host Dozzle pair. Extract
-the values in a script and pass them to `/api/token` or the login form; do
-not echo the line into chat.
-
-If no deploy terminal is available, SSH to the server and inspect how
-Dozzle is configured there (compose or reverse-proxy auth). Ask the user
-only if that also fails.
-
-### Recruiter tokens
-
-Prolific and Lucid keys also live in `~/.dallingerconfig`. Presence-check
-them as in `references/deploy-from-test-branch.md` (`prolific_api_token`,
-`lucid_api_key`, `lucid_sha1_hashing_key`) without printing values.
+- **Dashboard** (HTTP basic auth on `<experiment-url>/dashboard/`):
+  `dashboard_user` / `dashboard_password` from `~/.dallingerconfig`
+  (section `[Dashboard]`), falling back to `dallinger.config.get_config()`
+  after `config.load()`, or to the `psynet deploy ssh` output line
+  `You can now log in to the console at ... (user = ..., password = ...)`.
+- **Dozzle** (host-level at `https://logs.experiments1.cococo-lab.cornell.edu/`,
+  not in `~/.dallingerconfig`): read the deploy output line
+  `To view the logs for this experiment go to https://logs.... (user = ..., password = ...)`;
+  extract the pair in a script for `/api/token` or the login form without
+  echoing it. If no deploy terminal is available, SSH to the server and
+  inspect the Dozzle setup (compose or reverse-proxy auth).
+- **Recruiter tokens**: `prolific_api_token`, `lucid_api_key`, and
+  `lucid_sha1_hashing_key` in `~/.dallingerconfig`; presence-check as in
+  `references/deploy-from-test-branch.md`.
 
 ## Browser Workflow
 
