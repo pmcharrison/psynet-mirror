@@ -310,9 +310,13 @@ def test_response_render_error_after_commit_does_not_return_busy(monkeypatch):
         def handle_error(self, error, **kwargs):
             handled["error"] = error
 
+    class Query:
+        def get(self, participant_id):
+            return SimpleNamespace(current_trial=None, id=participant_id)
+
     monkeypatch.setattr(
-        "psynet.experiment.Participant.query.get",
-        lambda participant_id: SimpleNamespace(current_trial=None, id=participant_id),
+        "psynet.experiment.Participant.query",
+        Query(),
     )
     monkeypatch.setattr(
         "psynet.experiment.error_response",

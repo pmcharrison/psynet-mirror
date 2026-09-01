@@ -12,6 +12,28 @@ const {
 const STEP_TIMEOUT_MS = 120000;
 const HOLD_WAKE_TIMEOUT_MS = 10000;
 
+async function installBeforeUnloadTracking(page) {
+  await page.evaluate(() => {
+    window.beforeUnloadOperations = [];
+    if (window.beforeUnloadTrackingInstalled) return;
+
+    window.beforeUnloadTrackingInstalled = true;
+    const originalAddEventListener = window.addEventListener.bind(window);
+    const originalRemoveEventListener =
+      window.removeEventListener.bind(window);
+    window.addEventListener = function (type, ...args) {
+      if (type === "beforeunload") window.beforeUnloadOperations.push("add");
+      return originalAddEventListener(type, ...args);
+    };
+    window.removeEventListener = function (type, ...args) {
+      if (type === "beforeunload") {
+        window.beforeUnloadOperations.push("remove");
+      }
+      return originalRemoveEventListener(type, ...args);
+    };
+  });
+}
+
 async function startBackgroundHold(page, { trackLucidUnload = false } = {}) {
   await completeInitialGateway(page);
   await expect(page.locator("#main-body")).toContainText(
@@ -19,21 +41,8 @@ async function startBackgroundHold(page, { trackLucidUnload = false } = {}) {
     { timeout: STEP_TIMEOUT_MS }
   );
   if (trackLucidUnload) {
+    await installBeforeUnloadTracking(page);
     await page.evaluate(() => {
-      window.beforeUnloadOperations = [];
-      const originalAddEventListener = window.addEventListener.bind(window);
-      const originalRemoveEventListener =
-        window.removeEventListener.bind(window);
-      window.addEventListener = function (type, ...args) {
-        if (type === "beforeunload") window.beforeUnloadOperations.push("add");
-        return originalAddEventListener(type, ...args);
-      };
-      window.removeEventListener = function (type, ...args) {
-        if (type === "beforeunload") {
-          window.beforeUnloadOperations.push("remove");
-        }
-        return originalRemoveEventListener(type, ...args);
-      };
       psynetTemplateData.flags.lucidRecruitment = true;
       Object.assign(psynetTemplateData.lucid, {
         inactivityTimeoutMs: 600000,
@@ -248,6 +257,7 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     ).toBe(true);
     await expect(experimentPage.locator("#comment-button")).toBeEnabled();
 
+    await installBeforeUnloadTracking(experimentPage);
     const compileFailureCleanup = await experimentPage.evaluate(async () => {
       const originalCompileResponse = psynet.compileResponse;
       psynetTemplateData.flags.lucidRecruitment = true;
@@ -271,6 +281,58 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     expect(compileFailureCleanup).toEqual({
       controlStateCleared: true,
       lastBeforeUnloadOperation: "add"
+    });
+
+    const holdTransitionRecovery = await experimentPage.evaluate(async () => {
+      const originals = {
+        inplaceTransitions:
+          psynetTemplateData.flags.inplaceTimelineTransitions,
+        loadFragment: psynet.loadNextTimelinePageFromResponse,
+        loadReload: psynet.loadNextTimelinePageWithReload,
+        logError: psynet.log.error,
+        stopHold: psynet.stopTimelineHold,
+        timelineHold: psynet.timelineHold
+      };
+      const calls = { reload: 0, stop: 0 };
+      psynetTemplateData.flags.inplaceTimelineTransitions = true;
+      psynet.timelineHold = {};
+      psynet.log.error = () => {};
+      psynet.stopTimelineHold = () => {
+        calls.stop += 1;
+        psynet.timelineHold = null;
+      };
+      psynet.loadNextTimelinePageFromResponse = async () => {
+        throw new Error("synthetic hold fragment failure");
+      };
+      psynet.loadNextTimelinePageWithReload = () => {
+        calls.reload += 1;
+      };
+      try {
+        const result = await psynet.handleApprovedResponse({
+          page: {
+            attributes: {
+              page_uuid: "recovered-page",
+              requires_full_page_reload: false,
+              session_id: null
+            }
+          },
+          timeline_fragment: { html: "<div>unused</div>" }
+        });
+        return { ...calls, result };
+      } finally {
+        psynetTemplateData.flags.inplaceTimelineTransitions =
+          originals.inplaceTransitions;
+        psynet.loadNextTimelinePageFromResponse = originals.loadFragment;
+        psynet.loadNextTimelinePageWithReload = originals.loadReload;
+        psynet.log.error = originals.logError;
+        psynet.stopTimelineHold = originals.stopHold;
+        psynet.timelineHold = originals.timelineHold;
+      }
+    });
+    expect(holdTransitionRecovery).toEqual({
+      reload: 1,
+      stop: 1,
+      result: true
     });
     responses.stop();
     await assertNoBackendError(experimentPage);

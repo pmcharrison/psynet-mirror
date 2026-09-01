@@ -3067,6 +3067,7 @@
         return true;
       }
 
+      let resumingTimelineHold = psynet.timelineHold !== null;
       psynet.stopTimelineHold();
 
       if (psynet.isSameSessionPageUpdate(response)) {
@@ -3088,9 +3089,18 @@
       }
 
       if (psynetTemplateData.flags.inplaceTimelineTransitions) {
-        await psynet.loadNextTimelinePageFromResponse(
-          psynet.requireTimelineFragmentPayload(response),
-        );
+        try {
+          await psynet.loadNextTimelinePageFromResponse(
+            psynet.requireTimelineFragmentPayload(response),
+          );
+        } catch (error) {
+          if (!resumingTimelineHold) throw error;
+
+          // The response write has already committed, so the preserved page
+          // cannot safely resume. Reload the authoritative server page instead.
+          psynet.log.error(error.stack || String(error));
+          psynet.loadNextTimelinePageWithReload();
+        }
       } else {
         psynet.loadNextTimelinePageWithReload();
       }
