@@ -126,7 +126,22 @@ def test_default_barrier_uses_timeline_hold():
     assert barrier.waiting_logic.is_timeline_hold
     assert barrier.waiting_logic.barrier_id == barrier.id
     assert barrier.waiting_logic.time_estimate == 1.5
+    assert barrier.waiting_logic.content is None
+    assert barrier.waiting_logic.message_kind == "barrier"
     assert not isinstance(barrier.waiting_logic, WaitPage)
+
+
+def test_barrier_accepts_custom_hold_content():
+    barrier = GroupBarrier(
+        id_="wait_for_partner",
+        group_type="pair",
+        content="Waiting for your partner",
+    )
+    hold = barrier.waiting_logic
+
+    assert hold.content == "Waiting for your partner"
+    assert hold.message_kind is None
+    assert hold.translated_content() == "Waiting for your partner"
 
 
 def test_explicit_barrier_waiting_logic_is_preserved():
@@ -142,6 +157,15 @@ def test_expected_wait_rejects_explicit_waiting_logic():
             id_="page_wait",
             waiting_logic=WaitPage(wait_time=1),
             expected_wait=2,
+        )
+
+
+def test_content_rejects_explicit_waiting_logic():
+    with pytest.raises(ValueError, match="content"):
+        ReleaseAllBarrier(
+            id_="page_wait",
+            waiting_logic=WaitPage(wait_time=1),
+            content="Waiting for your partner",
         )
 
 

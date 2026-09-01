@@ -116,7 +116,8 @@ class _BarrierHoldPage(_TimelineHoldPage):
             max_wait_time=barrier.max_wait_time,
             fix_time_credit=barrier.fix_time_credit,
             check_interval=2.0,
-            message_kind="barrier",
+            content=barrier.content,
+            message_kind="barrier" if barrier.content is None else None,
             on_timeout=barrier.handle_max_wait_timeout,
         )
 
@@ -195,6 +196,11 @@ class Barrier(EltCollection):
         Expected duration of a default timeline hold. If omitted, preserves the
         historical default estimate of 0.5 seconds multiplied by
         ``waiting_logic_expected_repetitions``.
+
+    content
+        Message displayed by the default timeline hold overlay. Only used when
+        ``waiting_logic`` is omitted. If omitted, participants see
+        "Waiting for other participants…".
     """
 
     def __init__(
@@ -205,16 +211,20 @@ class Barrier(EltCollection):
         max_wait_time=20,
         fix_time_credit=False,
         expected_wait=None,
+        content=None,
     ):
         self.id = id_
         self.max_wait_time = max_wait_time
         self.fix_time_credit = fix_time_credit
         self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
+        self.content = content
         self._uses_timeline_hold = waiting_logic is None
         if waiting_logic is not None and expected_wait is not None:
             raise ValueError(
                 "expected_wait only applies when waiting_logic is omitted."
             )
+        if waiting_logic is not None and content is not None:
+            raise ValueError("content only applies when waiting_logic is omitted.")
         self.expected_wait = (
             0.5 * waiting_logic_expected_repetitions
             if expected_wait is None
@@ -427,7 +437,8 @@ class GroupBarrier(Barrier):
         Either a single timeline element or a list of timeline elements (created by ``join``) that is to be displayed
         to the participant while they are waiting at the barrier. If left at
         ``None``, the current page remains visible beneath a lightweight
-        waiting indicator.
+        waiting indicator. Pass ``content`` to customize that indicator's
+        message.
 
     waiting_logic_expected_repetitions
         Expected repetitions for explicit ``waiting_logic``. For a default
@@ -465,6 +476,11 @@ class GroupBarrier(Barrier):
         Expected duration of a default timeline hold. If omitted, preserves the
         historical default estimate.
 
+    content
+        Message displayed by the default timeline hold overlay. Only used when
+        ``waiting_logic`` is omitted. If omitted, participants see
+        "Waiting for other participants…".
+
     """
 
     @staticmethod
@@ -494,6 +510,7 @@ class GroupBarrier(Barrier):
         expected_wait=None,
         timeout_between_barriers_time: Optional[float] = None,
         timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
+        content=None,
     ):
         self._validate_max_wait_action(max_wait_action)
         super().__init__(
@@ -503,6 +520,7 @@ class GroupBarrier(Barrier):
             max_wait_time=max_wait_time,
             fix_time_credit=fix_time_credit,
             expected_wait=expected_wait,
+            content=content,
         )
         self.max_wait_action = max_wait_action
         self.group_type = group_type
@@ -670,6 +688,10 @@ class Grouper(Barrier):
         Expected duration of a default timeline hold. If omitted, preserves the
         historical default estimate.
 
+    content
+        Message displayed by the default timeline hold overlay. Only used when
+        ``waiting_logic`` is omitted.
+
     fix_time_credit
         If ``True``, award fixed ``expected_wait`` credit instead of actual
         visible waiting time.
@@ -690,6 +712,7 @@ class Grouper(Barrier):
         fail_participants_below_min_size: bool = True,
         expected_wait=None,
         fix_time_credit=False,
+        content=None,
     ):
         if not id_:
             id_ = group_type + "_" + "grouper"
@@ -700,6 +723,7 @@ class Grouper(Barrier):
             max_wait_time=max_wait_time,
             expected_wait=expected_wait,
             fix_time_credit=fix_time_credit,
+            content=content,
         )
         self.group_type = group_type
         self.fail_participants_below_min_size = fail_participants_below_min_size

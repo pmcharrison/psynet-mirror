@@ -45,7 +45,9 @@ If participants exchange live actions or messages within a trial, also read
 - Prefer `TrialMaker`s for organizing rounds. For choosing `StaticTrialMaker`
   vs chain-based makers, read `develop-experiment-back-end/SKILL.md`.
 - Use `SimpleGrouper(group_type=..., initial_group_size=...)` to create cohorts
-  and `GroupBarrier(id_=..., group_type=...)` to release group members together.
+  and `GroupBarrier(id_=..., group_type=..., content=...)` to release group
+  members together. Pass `content` to customize the hold overlay; omit
+  `waiting_logic` unless you need a full wait page or filler task.
 - Use `GroupBarrier(on_release=...)` for atomic shared updates such as role
   assignment, scoring, aggregation, or recording round outcomes.
 - Sort `sync_group.participants` by participant ID before deterministic role

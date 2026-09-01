@@ -183,6 +183,7 @@ class Exp(psynet.experiment.Experiment):
             initial_group_size=3,
             join_existing_groups=True,
             join_criterion=is_group_joinable,
+            content="Waiting for more people to join your group",
         ),
         trial_maker,
     )

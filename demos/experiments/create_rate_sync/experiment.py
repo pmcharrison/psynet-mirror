@@ -31,11 +31,16 @@ class CreateRateTrial(StaticTrial):
     def show_trial(self, experiment, participant):
         return join(
             PageMaker(self.create, time_estimate=5),
-            GroupBarrier(id_="finished_creating", group_type="create_rate"),
+            GroupBarrier(
+                id_="finished_creating",
+                group_type="create_rate",
+                content="Waiting for the rest of your group",
+            ),
             PageMaker(self.rate, time_estimate=5),
             GroupBarrier(
                 id_="finished_rating",
                 group_type="create_rate",
+                content="Waiting for the rest of your group",
                 on_release=self.save_ratings,
             ),
             PageMaker(self.show_ratings, time_estimate=5),
@@ -110,6 +115,7 @@ class Exp(psynet.experiment.Experiment):
         SimpleGrouper(
             group_type="create_rate",
             initial_group_size=3,
+            content="Waiting for the rest of your group",
         ),
         CreateRateTrialMaker(
             id_="create_rate",

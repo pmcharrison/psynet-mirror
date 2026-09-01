@@ -90,19 +90,23 @@ A Group Barrier may be included in the timeline as follows:
     GroupBarrier(
         id_="finished_trial",
         group_type="rock_paper_scissors",
+        content="Waiting for your partner",
         on_release=self.score_trial,
     )
 
 
-When participants reach this barrier, they will be told to wait until all participants in their group
+When participants reach this barrier, they will wait until all participants in their group
 are also waiting at that barrier. An optional ``on_release`` function can be provided to the barrier,
 which will be executed on the group of participants at the point when they leave the barrier.
 
 By default, a barrier keeps the participant's current page visible, disables
-interaction, and displays a small waiting indicator. The browser receives a
-WebSocket notification when the barrier releases and performs only occasional
-HTTP checks as a fallback. To display dedicated pages or filler tasks while
-participants wait, pass them explicitly with ``waiting_logic``.
+interaction, and displays a small waiting indicator. Pass ``content`` to
+customize that overlay (for example ``"Waiting for your partner"``).
+If ``content`` is omitted, the overlay says "Waiting for other participants…".
+The browser receives a WebSocket notification when the barrier releases and
+performs only occasional HTTP checks as a fallback. To display dedicated pages
+or filler tasks while participants wait, pass them explicitly with
+``waiting_logic``.
 
 Default holds credit the participant's actual visible waiting time, including
 the interval between server release and browser resumption, up to
@@ -152,11 +156,13 @@ GroupBarriers within the trial, for example:
             GroupBarrier(
                 id_="wait_for_trial",
                 group_type="rock_paper_scissors",
+                content="Waiting for your partner",
             ),
             self.choose_action(color=self.definition["color"]),
             GroupBarrier(
                 id_="finished_trial",
                 group_type="rock_paper_scissors",
+                content="Waiting for your partner",
                 on_release=self.score_trial,
             ),
         )

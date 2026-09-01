@@ -28,11 +28,13 @@ class RockPaperScissorsTrial(StaticTrial):
             GroupBarrier(
                 id_="wait_for_trial",
                 group_type="rock_paper_scissors",
+                content="Waiting for your partner",
             ),
             self.choose_action(color=self.definition["color"]),
             GroupBarrier(
                 id_="finished_trial",
                 group_type="rock_paper_scissors",
+                content="Waiting for your partner",
                 on_release=self.score_trial,
             ),
         )
@@ -122,6 +124,7 @@ class Exp(psynet.experiment.Experiment):
         SimpleGrouper(
             group_type="rock_paper_scissors",
             initial_group_size=2,
+            content="Waiting for your partner",
         ),
         RockPaperScissorsTrialMaker(
             id_="rock_paper_scissors",

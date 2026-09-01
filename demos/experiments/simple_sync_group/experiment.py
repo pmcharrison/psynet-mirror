@@ -82,6 +82,7 @@ class Exp(psynet.experiment.Experiment):
         GroupBarrier(
             id_="assign_roles_first",
             group_type="main",
+            content="Waiting for everyone in your group",
             on_release=assign_roles,
         ),
         show_current_group(),
@@ -95,6 +96,7 @@ class Exp(psynet.experiment.Experiment):
         GroupBarrier(
             id_="assign_roles_second",
             group_type="main",
+            content="Waiting for everyone in your group",
             on_release=assign_roles,
         ),
         show_current_group(),
