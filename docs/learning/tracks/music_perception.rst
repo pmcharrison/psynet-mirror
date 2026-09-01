@@ -21,7 +21,7 @@ You should approach each demo in the following way:
 
 - Copy and paste the demo from the PsyNet source code location into another location on your computer.
 - Open the demo as a new project in your IDE.
-- Run the demo following the standard approach (``psynet local debug``, or ``docker/psynet local debug``).
+- Run the demo following the standard approach (``psynet debug local``).
 - Read the source code in the demo and relate it to the behavior of the demo.
 - Try making some changes to the demo and see how they change the experiment. Note that minor changes will be
   reflected if you just save the code and refresh the page, but major changes (e.g. adding pages) may require

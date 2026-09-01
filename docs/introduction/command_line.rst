@@ -120,14 +120,15 @@ Recommended commands by goal:
 
 * **Run a bundled demo inside the PsyNet repo:** activate the repository
   ``.venv``, then ``psynet debug local`` (boilerplate is prepared automatically).
-* **Start a standalone experiment (virtualenv mode):** in a dedicated project
+* **Start a standalone experiment:** in a dedicated project
   ``.venv``, run ``uv pip install psynet`` (thin bootstrap install), then
   ``psynet setup`` (installs the full ``psynet[experiment]`` runtime via
   ``constraints.txt``).
-* **Start a standalone experiment (Docker mode):** ``psynet setup --docker``,
-  then follow ``docker/docs``.
+* **Run or deploy that experiment with Docker:** after ``psynet setup``, use
+  ``psynet debug local --docker`` or a Docker deploy command.
 * **Refresh template files only:** ``psynet scripts update`` (overwrites
-  scaffold-managed files; preserves ``config.txt`` / ``README.md``).
+  scaffold-managed files; preserves ``config.txt``, ``README.md``, and
+  ``deploy.toml``).
 * **Refresh dependency locks only:** ``psynet generate-constraints``.
 * **Upgrade the installed PsyNet/Dallinger packages:**
   ``psynet installation update`` (not the same as ``psynet scripts update``).
@@ -174,9 +175,9 @@ it:
 Useful flags:
 
 * ``--no-install`` — do steps 1–2 only (write files and pin; ensure
-  constraints when missing or stale; do not install packages).
-* ``--docker`` — same as ``--no-install``, then print Docker next steps
-  (follow ``docker/docs``). Prefer this for Docker-mode bootstraps.
+  constraints when missing or stale; do not install packages). After a
+  full ``psynet setup``, use ``psynet debug local --docker`` or a Docker
+  deploy command when you want Docker.
 * ``--force-shared-env`` — allow installing into the PsyNet repository's
   development ``.venv`` (rarely what you want; can remove packages other
   PsyNet work depends on).
@@ -238,9 +239,9 @@ Manage experiment boilerplate (``scripts``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``psynet scripts`` group is for **file-level** control of standard
-boilerplate (Dockerfile, ``docker/`` helpers, ``pytest.ini``, ``test.py``, and
-related templates). Prefer ``psynet setup`` when you also need a dedicated
-constrained environment.
+boilerplate (Dockerfile, ``deploy.toml``, ``pytest.ini``,
+``test.py``, and related templates). Prefer ``psynet setup`` when you also need
+a dedicated constrained environment.
 
 .. code:: bash
 
@@ -262,8 +263,13 @@ generates ``constraints.txt`` when needed (unless ``--skip-constraints``).
 ^^^^^^^^^^
 
 Overwrite scaffold-managed boilerplate with the latest templates from the
-installed PsyNet version. Existing ``config.txt`` and ``README.md`` files are
-preserved. This is **not** ``psynet installation update``.
+installed PsyNet version. Existing ``config.txt``, ``README.md``, and
+``deploy.toml`` files are preserved. PsyNet-managed Agent Skills under
+``.cursor/skills/psynet`` are refreshed; other skill directories under
+``.cursor/skills/`` are preserved. Recognized generated ``docker/`` helper
+scripts (``docker/psynet``, ``docker/run``, and related files) are deleted;
+customized helpers and other files under ``docker/`` are kept. This is **not**
+``psynet installation update``.
 
 .. code:: bash
 
@@ -279,11 +285,12 @@ Remove scaffold-managed boilerplate and generated leftovers
 such as ``experiment.py`` and ``requirements.txt``.
 
 By default only unmodified, untracked scaffold paths are removed. Git-tracked
-managed paths are kept (a directory such as ``docker/`` is kept if any nested
-path is tracked). ``--include-modified`` also removes divergent untracked
+managed paths are kept. ``--include-modified`` also removes divergent untracked
 scaffold paths. ``--include-tracked`` also removes git-tracked managed paths.
 If this directory is a git work tree but tracked files cannot be listed, the
 command errors unless ``--include-tracked`` is passed.
+Recognized generated ``docker/`` helper scripts are deleted even if they are
+git-tracked. Customized copies are preserved.
 
 .. code:: bash
 
@@ -298,8 +305,8 @@ Generate the constraints.txt file (``generate-constraints``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Standalone experiments need a ``constraints.txt`` lockfile so installs and
-deploys are reproducible. Prefer ``psynet setup`` (or ``psynet setup --docker``)
-when bootstrapping an experiment; that command creates the lockfile for you.
+deploys are reproducible. Prefer ``psynet setup`` when bootstrapping an
+experiment; that command creates the lockfile for you.
 
 Use ``psynet generate-constraints`` when you only need to refresh an existing
 lockfile after changing ``requirements.txt`` (for example after bumping the
@@ -350,11 +357,17 @@ Simulate data for an experiment
 -------------------------------
 
 This command generates simulated data for an experiment by running the experiment's regression test
-and exporting the resulting data.
+and exporting the resulting data to ``data/simulated_data/``.
 
 .. code:: bash
 
   psynet simulate
+  psynet simulate --audit
+
+``--audit`` also zips that directory to ``./audit/artifacts/simulated_data.zip``
+and marks ``simulation_export`` present. Use ``--no-mark-present`` to write the
+zip without updating ``audit.json``. Iterate without ``--audit`` when you do
+not want the packet's evidence updated.
 
 
 .. _install:
