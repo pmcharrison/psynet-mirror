@@ -1,4 +1,3 @@
-const fs = require("fs");
 const path = require("path");
 const { test, expect } = require("./fixtures");
 
@@ -12,11 +11,6 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 const HOLD_WAKE_TIMEOUT_MS = 10000;
-const DEBUG_LOG_PATH = "/opt/cursor/logs/debug.log";
-
-function writeAgentDebugLog(payload) {
-  fs.appendFileSync(DEBUG_LOG_PATH, `${JSON.stringify(payload)}\n`);
-}
 
 async function startBackgroundHold(page, { trackLucidUnload = false } = {}) {
   await completeInitialGateway(page);
@@ -386,107 +380,6 @@ test("timeline hold preserves same-session page identity", { tag: "@both" }, asy
       "First session page",
       { timeout: STEP_TIMEOUT_MS }
     );
-    await experimentPage.exposeFunction("__agentWriteDebugLog", (payload) => {
-      writeAgentDebugLog(payload);
-    });
-    await experimentPage.evaluate(() => {
-      const controlState = () =>
-        Array.from(
-          document.querySelectorAll(
-            ".response, .submit, .sd-navigation__complete-btn"
-          ),
-          (element) => ({
-            id: element.id,
-            disabled: element.disabled,
-            connected: element.isConnected
-          })
-        );
-      const storedState = () =>
-        psynet.submissionControlState?.map(({ element, disabled }) => ({
-          id: element.id,
-          disabled,
-          currentDisabled: element.disabled,
-          connected: element.isConnected
-        })) ?? null;
-      const originalCapture = psynet.captureSubmissionControlState;
-      psynet.captureSubmissionControlState = function () {
-        // #region agent log
-        void window.__agentWriteDebugLog({
-          hypothesisId: "H1",
-          location: "timeline_hold.spec.js:capture-entry",
-          message: "Control state when capture begins",
-          data: { controls: controlState() },
-          timestamp: Date.now()
-        });
-        // #endregion
-        const result = originalCapture.apply(this, arguments);
-        // #region agent log
-        void window.__agentWriteDebugLog({
-          hypothesisId: "H1",
-          location: "timeline_hold.spec.js:capture-exit",
-          message: "Stored submission control state",
-          data: { stored: storedState() },
-          timestamp: Date.now()
-        });
-        // #endregion
-        return result;
-      };
-      const originalRestore = psynet.restoreSubmissionControlState;
-      psynet.restoreSubmissionControlState = function () {
-        // #region agent log
-        void window.__agentWriteDebugLog({
-          hypothesisId: "H3",
-          location: "timeline_hold.spec.js:restore-entry",
-          message: "State before restore",
-          data: { controls: controlState(), stored: storedState() },
-          timestamp: Date.now()
-        });
-        // #endregion
-        const result = originalRestore.apply(this, arguments);
-        // #region agent log
-        void window.__agentWriteDebugLog({
-          hypothesisId: "H4",
-          location: "timeline_hold.spec.js:restore-exit",
-          message: "State immediately after restore",
-          data: { controls: controlState(), stored: storedState() },
-          timestamp: Date.now()
-        });
-        // #endregion
-        return result;
-      };
-      const originalApproved = psynet.handleApprovedResponse;
-      psynet.handleApprovedResponse = async function (response) {
-        // #region agent log
-        void window.__agentWriteDebugLog({
-          hypothesisId: "H2",
-          location: "timeline_hold.spec.js:approved-entry",
-          message: "Approved response branch",
-          data: {
-            hasTimelineHold: Boolean(response.timeline_hold),
-            sameSession: psynet.isSameSessionPageUpdate(response),
-            controls: controlState(),
-            stored: storedState()
-          },
-          timestamp: Date.now()
-        });
-        // #endregion
-        return await originalApproved.apply(this, arguments);
-      };
-    });
-    // #region agent log
-    writeAgentDebugLog({
-      hypothesisId: "H1",
-      location: "timeline_hold.spec.js:before-click",
-      message: "Control state before participant click",
-      data: await experimentPage.evaluate(() => ({
-        nextDisabled: document.querySelector("#next-button")?.disabled ?? null,
-        responseDisabled:
-          document.querySelector("#intentionally-disabled-response")
-            ?.disabled ?? null
-      })),
-      timestamp: Date.now()
-    });
-    // #endregion
     await experimentPage.locator("#next-button").click();
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
@@ -508,27 +401,6 @@ test("timeline hold preserves same-session page identity", { tag: "@both" }, asy
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);
-    // #region agent log
-    writeAgentDebugLog({
-      hypothesisId: "H4",
-      location: "timeline_hold.spec.js:hold-ended",
-      message: "Control state after hold indicator is removed",
-      data: await experimentPage.evaluate(() => ({
-        nextDisabled: document.querySelector("#next-button")?.disabled ?? null,
-        responseDisabled:
-          document.querySelector("#intentionally-disabled-response")
-            ?.disabled ?? null,
-        storedState:
-          psynet.submissionControlState?.map(({ element, disabled }) => ({
-            id: element.id,
-            disabled,
-            currentDisabled: element.disabled,
-            connected: element.isConnected
-          })) ?? null
-      })),
-      timestamp: Date.now()
-    });
-    // #endregion
     // Same-session updates keep the existing DOM; hold resume must re-enable
     // controls (Unity listens for pageUpdated; HTML Next is for non-Unity use).
     await expect(experimentPage.locator("#next-button")).toBeEnabled();
