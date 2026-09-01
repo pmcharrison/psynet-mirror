@@ -1,4 +1,6 @@
 import json
+from contextlib import ExitStack
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, PropertyMock, patch
 
@@ -23,7 +25,13 @@ from psynet.participant import (
     review_bonus_pay_in_progress,
 )
 from psynet.recruiters import (
+    PROLIFIC_PAYMENT_CHECK_VAR,
+    PROLIFIC_PAYMENT_COMPENSATED,
+    PROLIFIC_PAYMENT_NEEDS_REVIEW,
+    PROLIFIC_PAYMENT_NOT_NEEDED,
+    PROLIFIC_PAYMENT_PENDING,
     PROLIFIC_SCREEN_OUT_ACTION,
+    PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     BaseLabRecruiter,
     PaymentDecision,
@@ -1848,6 +1856,122 @@ def test_prolific_platform_view_keeps_full_total_for_non_screened_out():
     assert view.bonus == 0.50
 
 
+class _Var:
+    def __init__(self, **values):
+        self.values = dict(values)
+
+    def get(self, name, default=None):
+        return self.values.get(name, default)
+
+    def set(self, name, value):
+        self.values[name] = value
+
+
+def _approved_participant(payment_check=None, seen_minutes=30, **attrs):
+    values = {}
+    if payment_check is not None:
+        values[PROLIFIC_PAYMENT_CHECK_VAR] = payment_check
+    if seen_minutes is not None:
+        values[PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR] = (
+            datetime.now() - timedelta(minutes=seen_minutes)
+        ).isoformat()
+    participant = MagicMock(
+        id=24,
+        failed=False,
+        status="approved",
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        base_pay=0.50,
+        base_payment=0.50,
+        issued_completion_code_type="DEFAULT",
+        **attrs,
+    )
+    participant.var = _Var(**values)
+    return participant
+
+
+def _timed_out_platform_view(bonus_payments, participant):
+    recruiter = make_prolific_recruiter(make_config())
+    recruiter.prolificservice = _mock_prolific_service()
+    response = MagicMock(ok=True, status_code=200)
+    response.json.return_value = {
+        "bonus_payments": bonus_payments,
+        "status": "TIMED-OUT",
+    }
+    with patch("psynet.recruiters.requests.get", return_value=response):
+        return recruiter.platform_payment_view(participant)
+
+
+def _pay_after_compensation(bonus_payments, planned=0.35):
+    recruiter = make_prolific_recruiter(make_config())
+    recruiter.prolificservice = _mock_prolific_service()
+    recruiter.reward_bonus = MagicMock(return_value=True)
+    recruiter.report_submission_outcome = MagicMock(
+        side_effect=lambda participant, amount, reason: recruiter.reward_bonus(
+            participant, amount, reason
+        )
+    )
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(make_config(), failed=False, status="approved")
+    )
+    participant.recruiter = recruiter
+    participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+    participant.planned_bonus = planned
+    participant.base_pay = participant.base_payment = 0.50
+    participant.var = _Var(**{PROLIFIC_PAYMENT_CHECK_VAR: PROLIFIC_PAYMENT_COMPENSATED})
+    response = MagicMock(ok=True, status_code=200)
+    response.json.return_value = {
+        "bonus_payments": bonus_payments,
+        "status": "TIMED-OUT",
+    }
+    with patch("psynet.recruiters.requests.get", return_value=response):
+        category, message = PaymentHarness().pay_review_bonus(participant)
+    return recruiter, participant, category, message
+
+
+@pytest.mark.parametrize(
+    "payment_check",
+    [
+        PROLIFIC_PAYMENT_COMPENSATED,
+        PROLIFIC_PAYMENT_PENDING,
+        PROLIFIC_PAYMENT_NEEDS_REVIEW,
+    ],
+)
+def test_prolific_platform_view_excludes_timed_out_compensation(payment_check):
+    view = _timed_out_platform_view(
+        [35, 50], _approved_participant(payment_check, seen_minutes=None)
+    )
+    assert view.bonus == 0.35
+
+
+def test_prolific_platform_view_reports_zero_when_only_timed_out_compensation_present():
+    view = _timed_out_platform_view(
+        [50], _approved_participant(PROLIFIC_PAYMENT_COMPENSATED, seen_minutes=None)
+    )
+    assert view.bonus == 0.0
+
+
+def test_prolific_platform_view_keeps_full_total_before_timed_out_compensation():
+    view = _timed_out_platform_view([35, 50], _approved_participant(seen_minutes=None))
+    assert view.bonus == 0.85
+
+
+def test_pay_review_bonus_still_posts_topup_after_timed_out_compensation():
+    recruiter, participant, category, _ = _pay_after_compensation([50])
+    assert category == "success"
+    recruiter.reward_bonus.assert_called_once()
+    assert recruiter.reward_bonus.call_args.args[1] == 0.35
+    assert participant.bonus == 0.35
+
+
+def test_pay_review_bonus_does_not_repost_when_topup_and_compensation_are_on_platform():
+    recruiter, participant, category, message = _pay_after_compensation([35, 50])
+    assert category == "success"
+    recruiter.reward_bonus.assert_not_called()
+    assert participant.bonus == 0.35
+    assert "already reports" in message
+
+
 def test_prolific_apparent_bonus_paid_returns_none_when_lookup_fails():
     recruiter = make_prolific_recruiter(make_config())
     recruiter.prolificservice = _mock_prolific_service()
@@ -2619,3 +2743,158 @@ def test_rejected_consent_dispatches_recruiter_hook():
 
     participant.fail.assert_called_once_with()
     recruiter.after_rejected_consent.assert_called_once_with(experiment, participant)
+
+
+def _verify_status_of(recruiter, participants, experiment=None, config=None):
+    with ExitStack() as stack:
+        stack.enter_context(
+            patch.object(
+                ProlificRecruiter,
+                "current_study_id",
+                new_callable=PropertyMock,
+                return_value="study-1",
+            )
+        )
+        stack.enter_context(
+            patch.object(dallinger.recruiters.ProlificRecruiter, "verify_status_of")
+        )
+        stack.enter_context(
+            patch(
+                "psynet.experiment.get_experiment",
+                return_value=experiment or MagicMock(),
+            )
+        )
+        stack.enter_context(patch("psynet.recruiters.session"))
+        stack.enter_context(
+            patch("psynet.recruiters.get_config", return_value=config or make_config())
+        )
+        PsyNetProlificRecruiterMixin.verify_status_of(recruiter, participants)
+
+
+def _recruiter_with_submission(status):
+    recruiter = make_prolific_recruiter(make_config())
+    recruiter.prolificservice = MagicMock()
+    recruiter.prolificservice.get_assignments_for_study.return_value = {
+        "assignment-1": {"status": status}
+    }
+    return recruiter
+
+
+def test_timed_out_participant_is_paid_base_payment_as_bonus():
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant()
+    experiment = MagicMock()
+    _verify_status_of(recruiter, [participant], experiment)
+    recruiter.prolificservice.pay_session_bonus.assert_called_once_with(
+        study_id="study-1", worker_id="worker-1", amount=0.50
+    )
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_COMPENSATED
+    )
+    assert "timed out" in experiment.notifier.notify.call_args.args[0]
+
+
+def test_approved_submission_is_not_paid_and_stops_further_checks():
+    recruiter = _recruiter_with_submission("APPROVED")
+    participant = _approved_participant()
+    _verify_status_of(recruiter, [participant])
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_NOT_NEEDED
+    )
+    recruiter.prolificservice.get_assignments_for_study.reset_mock()
+    _verify_status_of(recruiter, [participant])
+    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
+
+
+def test_first_timed_out_observation_starts_the_grace_period_without_paying():
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant(seen_minutes=None)
+    _verify_status_of(recruiter, [participant])
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert participant.var.get(PROLIFIC_TIMED_OUT_FIRST_SEEN_VAR) is not None
+
+
+def test_submission_within_the_grace_period_is_not_compensated_yet():
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant(seen_minutes=1)
+    _verify_status_of(recruiter, [participant])
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) is None
+
+
+def test_participant_is_not_compensated_twice():
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant(PROLIFIC_PAYMENT_COMPENSATED)
+    _verify_status_of(recruiter, [participant])
+    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+def test_unresolved_attempt_is_not_retried_and_notifies_researcher(caplog):
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant(PROLIFIC_PAYMENT_PENDING)
+    experiment = MagicMock()
+    _verify_status_of(recruiter, [participant], experiment)
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_NEEDS_REVIEW
+    )
+    experiment.notifier.notify.assert_called_once()
+    assert "will not retry" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "attribute,value",
+    [("failed", True), ("status", "working"), ("status", "screened_out")],
+)
+def test_participants_outside_the_target_case_are_not_compensated(attribute, value):
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant()
+    setattr(participant, attribute, value)
+    _verify_status_of(recruiter, [participant])
+    recruiter.prolificservice.get_assignments_for_study.assert_not_called()
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+
+
+def test_unrecorded_base_pay_falls_back_to_the_configured_amount():
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant()
+    participant.base_pay = None
+    _verify_status_of(recruiter, [participant], config=make_config(base_payment=0.80))
+    recruiter.prolificservice.pay_session_bonus.assert_called_once_with(
+        study_id="study-1", worker_id="worker-1", amount=0.80
+    )
+
+
+def test_zero_amount_bonus_is_never_sent(caplog):
+    recruiter = _recruiter_with_submission("TIMED-OUT")
+    participant = _approved_participant()
+    participant.base_pay = None
+    _verify_status_of(recruiter, [participant], config=make_config(base_payment=0))
+    recruiter.prolificservice.pay_session_bonus.assert_not_called()
+    assert (
+        participant.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_NOT_NEEDED
+    )
+    assert "no base payment is recorded" in caplog.text
+
+
+def test_one_failed_payment_does_not_block_the_others(caplog):
+    recruiter = make_prolific_recruiter(make_config())
+    recruiter.prolificservice = MagicMock()
+    first, second = _approved_participant(), _approved_participant()
+    second.id = 25
+    second.assignment_id = "assignment-2"
+    recruiter.prolificservice.get_assignments_for_study.return_value = {
+        "assignment-1": {"status": "TIMED-OUT"},
+        "assignment-2": {"status": "TIMED-OUT"},
+    }
+    recruiter.prolificservice.pay_session_bonus.side_effect = [
+        ProlificServiceException("Prolific is down"),
+        None,
+    ]
+    _verify_status_of(recruiter, [first, second])
+    assert recruiter.prolificservice.pay_session_bonus.call_count == 2
+    assert first.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_PENDING
+    assert second.var.get(PROLIFIC_PAYMENT_CHECK_VAR) == PROLIFIC_PAYMENT_COMPENSATED
+    assert "Error while compensating participant 24" in caplog.text
