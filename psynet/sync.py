@@ -58,8 +58,9 @@ this module. That loop:
 
 Each default barrier visit links to a durable ``TimelineHoldRecord``. Releasing
 the link accounts waiting through the release time and queues a targeted browser
-wake. The shared hold channel publishes that wake only after the database
-transaction commits; the browser then rechecks the authoritative link state.
+wake. Each participant's hold channel (`psynet_timeline_hold:<id>`) publishes
+that wake only after the database transaction commits; the browser then
+rechecks the authoritative link state.
 
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.

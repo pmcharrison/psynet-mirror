@@ -240,6 +240,51 @@ def test_response_prepare_error_returns_busy_for_transient_lock(monkeypatch):
     assert response.get_json()["submission"] == "busy"
 
 
+def test_process_response_reraises_transient_lock_errors(monkeypatch):
+    from types import SimpleNamespace
+
+    import sqlalchemy
+
+    from psynet.experiment import Experiment
+
+    orig = SimpleNamespace(pgcode="55P03")
+    err = sqlalchemy.exc.OperationalError("stmt", {}, orig)
+    handled = {}
+
+    class Query:
+        def with_for_update(self, **kwargs):
+            return self
+
+        def populate_existing(self):
+            return self
+
+        def get(self, participant_id):
+            return SimpleNamespace(
+                id=participant_id,
+                page_uuid="page",
+                current_trial=None,
+            )
+
+    def raise_lock(*args, **kwargs):
+        raise err
+
+    exp = Experiment.__new__(Experiment)
+    exp.timeline = SimpleNamespace(get_current_elt=raise_lock)
+    exp.handle_error = lambda *args, **kwargs: handled.setdefault("called", True)
+    monkeypatch.setattr("psynet.experiment.Participant.query", Query())
+
+    with pytest.raises(sqlalchemy.exc.OperationalError):
+        exp.process_response(
+            participant_id=1,
+            raw_answer=None,
+            blobs={},
+            metadata={},
+            page_uuid="page",
+            client_ip_address="127.0.0.1",
+        )
+    assert "called" not in handled
+
+
 def test_response_render_error_after_commit_does_not_return_busy(monkeypatch):
     from types import SimpleNamespace
 

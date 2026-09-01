@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
+from markupsafe import Markup, escape
 
 from psynet.page import WaitPage, wait_while
 from psynet.timeline import (
+    AsyncCodeBlock,
     StartFixProgress,
     StartFixTimeCredit,
     StartSwitch,
@@ -182,6 +184,57 @@ def test_wait_while_accepts_custom_hold_content():
     hold = next(elt for elt in logic if getattr(elt, "is_timeline_hold", False))
 
     assert hold.content == "Custom hold message"
+
+
+def test_wait_while_rejects_content_with_wait_page():
+    with pytest.raises(
+        ValueError, match="content only applies when wait_page is omitted"
+    ):
+        wait_while(
+            lambda: True,
+            expected_wait=1,
+            wait_page=WaitPage,
+            content="Waiting…",
+        )
+
+
+def _async_placeholder(participant):
+    return None
+
+
+def test_async_code_block_passes_content_to_hold():
+    block = AsyncCodeBlock(
+        _async_placeholder,
+        wait=True,
+        expected_wait=1,
+        content="Working…",
+    )
+    hold = next(
+        elt for elt in block.resolve() if getattr(elt, "is_timeline_hold", False)
+    )
+    assert hold.content == "Working…"
+
+
+def test_hold_overlay_html_matches_markup_and_plain_text():
+    plain = next(
+        elt
+        for elt in wait_while(
+            lambda: True, expected_wait=1, content="<strong>Waiting</strong>"
+        )
+        if getattr(elt, "is_timeline_hold", False)
+    )
+    trusted = next(
+        elt
+        for elt in wait_while(
+            lambda: True,
+            expected_wait=1,
+            content=Markup("<strong>Waiting</strong>"),
+        )
+        if getattr(elt, "is_timeline_hold", False)
+    )
+
+    assert plain.overlay_html() == str(escape("<strong>Waiting</strong>"))
+    assert trusted.overlay_html() == "<strong>Waiting</strong>"
 
 
 def test_safe_hold_wake_does_not_propagate_notification_errors(monkeypatch, caplog):

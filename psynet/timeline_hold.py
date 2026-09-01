@@ -11,6 +11,7 @@ from datetime import timedelta
 
 from dallinger import db
 from dallinger.models import timenow
+from markupsafe import Markup, escape
 from sqlalchemy import (
     Boolean,
     Column,
@@ -333,6 +334,19 @@ class _TimelineHoldPage(Page):
             )
         return self.content
 
+    def overlay_html(self):
+        """Return hold copy as HTML for both Jinja and the dynamic overlay.
+
+        Trusted ``Markup`` is preserved; plain strings are escaped so a refresh
+        and an in-place overlay show the same text.
+        """
+        content = self.translated_content()
+        if content is None:
+            return ""
+        if isinstance(content, Markup):
+            return str(content)
+        return str(escape(content))
+
     def timeline_hold_payload(self, participant):
         """Return browser configuration for this hold visit."""
         record = self.get_hold_record(participant)
@@ -344,7 +358,7 @@ class _TimelineHoldPage(Page):
         return {
             "channel": _timeline_hold_channel(participant.id),
             "hold_id": self.hold_id,
-            "message": self.translated_content(),
+            "message": self.overlay_html(),
             "page_uuid": participant.page_uuid,
             "wake_token": record.wake_token,
             "safety_poll_ms": round(self.check_interval * 1000),

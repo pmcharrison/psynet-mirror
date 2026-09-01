@@ -306,6 +306,8 @@ def wait_while(
     assert check_interval > 0
     label = "wait_while"
     uses_timeline_hold = wait_page is None
+    if wait_page is not None and content is not None:
+        raise ValueError("content only applies when wait_page is omitted.")
     if fix_time_credit is None:
         fix_time_credit = not uses_timeline_hold
 

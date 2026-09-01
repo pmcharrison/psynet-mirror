@@ -2651,6 +2651,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
+            if self._is_transient_transaction_error(err):
+                raise
             if not isinstance(err, self.HandledError):
                 self.handle_error(
                     err,
@@ -4554,7 +4556,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 client_ip_address,
                 answer,
             )
-        except sqlalchemy.exc.OperationalError as error:
+        except Exception as error:
             if not cls._is_transient_transaction_error(error):
                 raise
             db.session.rollback()
@@ -4588,10 +4590,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if render_fragment:
                     page.pre_render()
                     page_uuid_after_response = participant.page_uuid
+            db.session.commit()
         except Exception as err:
             return cls._handle_response_prepare_error(exp, participant_id, err)
-
-        db.session.commit()
 
         if render_fragment:
             try:

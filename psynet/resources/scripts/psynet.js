@@ -878,8 +878,8 @@
         indicator.appendChild(messageElement);
         document.getElementById("timeline-hold-region").appendChild(indicator);
       }
-      indicator.querySelector(".psynet-timeline-hold-message").textContent =
-        message;
+      indicator.querySelector(".psynet-timeline-hold-message").innerHTML =
+        message || "";
       document.body.classList.add("timeline-held");
       let mainBody = document.getElementById("main-body");
       if (mainBody) {

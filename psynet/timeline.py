@@ -448,6 +448,10 @@ class AsyncCodeBlock(EltCollection):
     check_interval:
         Only relevant if ``wait=True``; corresponds to the fallback interval
         between checks when no completion wake arrives. Default: 2.0 seconds.
+
+    content:
+        Only relevant if ``wait=True``; overlay message while waiting.
+        Markup is allowed. Omit to keep the stock wait copy.
     """
 
     def __init__(
@@ -456,6 +460,7 @@ class AsyncCodeBlock(EltCollection):
         wait: bool = True,
         expected_wait: Optional[float] = None,
         check_interval: float = 2.0,
+        content: Optional[str] = None,
     ):
         if is_lambda_function(function):
             raise ValueError(
@@ -477,6 +482,7 @@ class AsyncCodeBlock(EltCollection):
         self.wait = wait
         self.expected_wait = expected_wait
         self.check_interval = check_interval
+        self.content = content
 
     def resolve(self):
         return join(
@@ -556,6 +562,7 @@ class AsyncCodeBlock(EltCollection):
                 expected_wait=self.expected_wait,
                 check_interval=self.check_interval,
                 log_message="Waiting for async code block to finish.",
+                content=self.content,
             ),
             CodeBlock(lambda: logger.info("Finished waiting for async code block.")),
         )
