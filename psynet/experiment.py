@@ -58,7 +58,6 @@ from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
@@ -140,6 +139,8 @@ from .utils import (
 )
 
 logger = get_logger()
+
+_TRANSIENT_BUSY_MESSAGE = "The experiment is temporarily busy. Please try again."
 
 
 database_template_path = ".deploy/database_template.zip"
@@ -1743,30 +1744,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken
     @staticmethod
-    @with_transaction
     def _check_sync_groups():
         if not is_experiment_launched():
             return
-        exp = get_experiment()
-        exp.check_sync_groups()
+        from .sync import check_sync_groups
+
+        check_sync_groups()
 
     @staticmethod
     def check_sync_groups():
-        from .sync import SyncGroup
+        from .sync import check_sync_groups
 
-        groups = (
-            # Eagerly load all polymorphic subclasses to avoid lazy loading in the loop
-            db.session.query(with_polymorphic(SyncGroup, "*"))
-            .filter(SyncGroup.active)
-            # TODO - see if we can introduce this locking once the transaction managemnet in the tests is fixed
-            # .with_for_update(of=[SyncGroup, Participant])
-            .with_for_update(of=[SyncGroup])
-            .populate_existing()
-            .all()
-        )
-
-        for group in groups:
-            group.check_numbers()
+        check_sync_groups()
 
     @property
     def base_payment(self):
@@ -2696,6 +2685,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "The response was rejected with the following message: '%s'.", message
         )
         return success_response(submission="rejected", message=message)
+
+    @classmethod
+    def busy_response(cls):
+        """Return a retryable busy payload for transient database contention."""
+        return (
+            jsonify(
+                {
+                    "status": "busy",
+                    "submission": "busy",
+                    "message": _TRANSIENT_BUSY_MESSAGE,
+                }
+            ),
+            503,
+        )
 
     def render_exit_message(self, participant):
         """
@@ -4073,14 +4076,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 exc_info=True,
             )
             if mode == "json":
-                return jsonify(
-                    {
-                        "status": "busy",
-                        "message": (
-                            "The experiment is temporarily busy. Please try again."
-                        ),
-                    }
-                ), 503
+                return cls.busy_response()
             with read_only_transaction():
                 return cls.error_page(
                     error_text=(
@@ -4571,9 +4567,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant_id,
                 exc_info=True,
             )
-            return exp.response_rejected(
-                "The experiment is temporarily busy. Please try again."
-            )
+            return cls.busy_response()
 
         if result.flask_response is not None:
             return result.flask_response
@@ -4646,9 +4640,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant_id,
                 exc_info=True,
             )
-            return experiment.response_rejected(
-                "The experiment is temporarily busy. Please try again."
-            )
+            return cls.busy_response()
         participant = Participant.query.get(participant_id)
         if not isinstance(error, experiment.HandledError):
             experiment.handle_error(

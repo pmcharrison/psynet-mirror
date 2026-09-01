@@ -3031,6 +3031,36 @@
       return false;
     };
 
+    psynet.isBusyResponse = function (request) {
+      if (request.status !== 503) return false;
+      try {
+        let body = JSON.parse(request.response);
+        return body.status === "busy" || body.submission === "busy";
+      } catch (error) {
+        return false;
+      }
+    };
+
+    psynet.handleBusyResponse = async function (request, options = {}) {
+      let body = {};
+      try {
+        body = JSON.parse(request.response);
+      } catch (error) {
+        body = {};
+      }
+      let message =
+        body.message || "The experiment is temporarily busy. Please try again.";
+      if (options.timelineHoldResume) {
+        psynet.log.warn("A timeline hold resume check was busy: " + message);
+        return false;
+      }
+      psynet.log.warn("The experiment was busy: " + message);
+      psynet.alert(message);
+      psynet.response.enable();
+      psynet.submit.enable();
+      return false;
+    };
+
     let onSuccessResponse = async function (request, onRejection, options) {
       let response = JSON.parse(request.response);
       if (response.submission === "approved") {
@@ -3134,10 +3164,25 @@
       }
 
       return new Promise((resolve) => {
-        let request = new XMLHttpRequest();
-        request.onreadystatechange = async function () {
-          if (request.readyState === 4) {
-            let passedValidation;
+        let attempt = 0;
+        let send = function () {
+          let request = new XMLHttpRequest();
+          request.onreadystatechange = async function () {
+            if (request.readyState !== 4) return;
+            if (
+              psynet.isBusyResponse(request) &&
+              !options.timelineHoldResume &&
+              attempt === 0
+            ) {
+              attempt += 1;
+              psynet.log.warn(
+                "The experiment was busy; retrying the submission.",
+              );
+              await new Promise((retry) => setTimeout(retry, 250));
+              send();
+              return;
+            }
+            let passedValidation = false;
             try {
               if (request.status === 200) {
                 psynet.log.debug("Response was successfully received.");
@@ -3146,10 +3191,14 @@
                   onRejection,
                   options,
                 );
+              } else if (psynet.isBusyResponse(request)) {
+                passedValidation = await psynet.handleBusyResponse(
+                  request,
+                  options,
+                );
               } else {
                 psynet.log.debug("Something went wrong.");
                 onErrorResponse(request);
-                passedValidation = false;
               }
             } catch (error) {
               if (psynetTemplateData.flags.inplaceTimelineTransitions) {
@@ -3158,14 +3207,14 @@
                 psynet.log.error(error.stack || String(error));
                 onErrorResponse(request);
               }
-              passedValidation = false;
             } finally {
               resolve(passedValidation);
             }
-          }
+          };
+          request.open("POST", "/response");
+          request.send(formData);
         };
-        request.open("POST", "/response");
-        request.send(formData);
+        send();
       });
     };
 

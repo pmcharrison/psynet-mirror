@@ -28,6 +28,7 @@ from psynet.sync import (
     SimpleGrouper,
     SimpleSyncGroup,
     check_barriers,
+    check_sync_groups,
 )
 from psynet.timeline_hold import (
     _TIMELINE_HOLD_CHANNEL,
@@ -747,6 +748,70 @@ def test_waiting_participants_nowait_requires_for_update():
         Barrier.get_waiting_participants_from_barrier_id(
             "x", for_update=False, nowait=True
         )
+
+
+def _group_n_active(group_id):
+    with db.engine.connect() as conn:
+        return conn.execute(
+            text("SELECT n_active_participants FROM sync_group WHERE id = :id"),
+            {"id": group_id},
+        ).scalar()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_sync_groups_skips_locked_group_and_continues(
+    in_experiment_directory, db_session
+):
+    """A participant write that holds a group must not stall recounting others."""
+    exp = get_experiment()
+    locked_participant = new_participant(exp)
+    free_participant = new_participant(exp)
+    locked_participant.status = "working"
+    free_participant.status = "working"
+
+    locked_group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=1,
+        min_group_size=1,
+        n_active_participants=99,
+        accepts_top_ups=False,
+    )
+    free_group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=1,
+        min_group_size=1,
+        n_active_participants=99,
+        accepts_top_ups=False,
+    )
+    db_session.add_all([locked_group, free_group])
+    locked_group.add_participant(locked_participant)
+    free_group.add_participant(free_participant)
+    locked_group.leader = locked_participant
+    free_group.leader = free_participant
+    db_session.commit()
+    locked_id = locked_group.id
+    free_id = free_group.id
+
+    with db.engine.connect() as conn:
+        trans = conn.begin()
+        conn.execute(
+            text("SELECT id FROM sync_group WHERE id = :id FOR UPDATE"),
+            {"id": locked_id},
+        )
+        check_sync_groups()
+        locked_count = _group_n_active(locked_id)
+        free_count = _group_n_active(free_id)
+        trans.rollback()
+
+    assert locked_count == 99
+    assert free_count == 1
+
+    check_sync_groups()
+    assert _group_n_active(locked_id) == 1
 
 
 @pytest.mark.parametrize(

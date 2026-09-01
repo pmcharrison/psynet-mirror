@@ -266,6 +266,22 @@ def test_other_database_errors_are_not_retryable():
     assert not Experiment._is_transient_transaction_error(error)
 
 
+def test_busy_response_is_retryable_http_503():
+    from flask import Flask
+
+    from psynet.experiment import Experiment
+
+    app = Flask(__name__)
+    with app.app_context():
+        response, status = Experiment.busy_response()
+
+    assert status == 503
+    data = response.get_json()
+    assert data["status"] == "busy"
+    assert data["submission"] == "busy"
+    assert "temporarily busy" in data["message"]
+
+
 @pytest.mark.parametrize(
     "timeline",
     [

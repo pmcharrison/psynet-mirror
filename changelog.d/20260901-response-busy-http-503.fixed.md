@@ -1,0 +1,1 @@
+``POST /response`` now returns HTTP 503 with a ``busy`` payload on transient database contention, matching JSON ``/timeline``, so the browser can retry instead of treating the wait as a rejected answer.

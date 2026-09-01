@@ -92,6 +92,7 @@ from sqlalchemy.orm import (
     joinedload,
     object_session,
     relationship,
+    with_polymorphic,
 )
 
 from psynet.data import SQLBase, SQLMixin, register_table
@@ -1336,6 +1337,51 @@ def check_barriers():
         finally:
             if barrier_id is not None:
                 excluded_ids.add(barrier_id)
+
+
+def _next_active_sync_group(excluded_ids):
+    """Return the next active sync group that is not locked by another transaction."""
+    entity = with_polymorphic(SyncGroup, "*")
+    query = db.session.query(entity).filter(entity.active.is_(True))
+    if excluded_ids:
+        query = query.filter(~entity.id.in_(excluded_ids))
+    return (
+        query.order_by(entity.id)
+        .with_for_update(of=SyncGroup, skip_locked=True)
+        .populate_existing()
+        .first()
+    )
+
+
+def check_sync_groups():
+    """Recount active membership, skipping groups locked by another request."""
+    excluded_ids = set()
+
+    while True:
+        group_id = None
+        try:
+            with transaction():
+                _set_transaction_lock_timeout(
+                    get_config().get("timeline_lock_timeout_seconds")
+                )
+                group = _next_active_sync_group(excluded_ids)
+                if group is None:
+                    return
+                group_id = group.id
+                group.check_numbers()
+        except Exception as err:
+            if group_id is None:
+                raise
+            if is_transient_transaction_error(err):
+                logger.debug(
+                    "Sync group %s skipped this tick because it is locked.",
+                    group_id,
+                )
+            else:
+                logger.exception("Failed to process sync group %s.", group_id)
+        finally:
+            if group_id is not None:
+                excluded_ids.add(group_id)
 
 
 Participant.sync_group_links = relationship(

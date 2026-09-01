@@ -131,6 +131,42 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       submitEnables: 0
     });
 
+    const busyHoldEffects = await experimentPage.evaluate(async () => {
+      const originalAlert = psynet.alert;
+      const originalResponseEnable = psynet.response.enable;
+      const originalSubmitEnable = psynet.submit.enable;
+      const effects = { alerts: 0, responseEnables: 0, submitEnables: 0 };
+      psynet.alert = () => {
+        effects.alerts += 1;
+      };
+      psynet.response.enable = () => {
+        effects.responseEnables += 1;
+      };
+      psynet.submit.enable = () => {
+        effects.submitEnables += 1;
+      };
+      const request = {
+        status: 503,
+        response: JSON.stringify({
+          status: "busy",
+          submission: "busy",
+          message: "The experiment is temporarily busy. Please try again."
+        })
+      };
+      const isBusy = psynet.isBusyResponse(request);
+      await psynet.handleBusyResponse(request, { timelineHoldResume: true });
+      psynet.alert = originalAlert;
+      psynet.response.enable = originalResponseEnable;
+      psynet.submit.enable = originalSubmitEnable;
+      return { isBusy, ...effects };
+    });
+    expect(busyHoldEffects).toEqual({
+      isBusy: true,
+      alerts: 0,
+      responseEnables: 0,
+      submitEnables: 0
+    });
+
     const pendingBaseline = responses.getCount();
     await experimentPage.evaluate(() => {
       psynet.timelineHold.hold.safety_poll_ms = 100;

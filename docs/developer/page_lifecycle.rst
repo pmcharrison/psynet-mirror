@@ -75,13 +75,17 @@ stale-state response.
 
 Participant-facing write phases use a bounded PostgreSQL ``lock_timeout`` so
 unexpected contention fails safely instead of occupying a web worker
-indefinitely. Whole timeline requests are not retried automatically because
-author code blocks may contain non-idempotent external side effects. Shared
+indefinitely. ``GET /timeline?mode=json`` and ``POST /response`` return HTTP
+503 with a ``busy`` payload so the browser can retry; HTML ``/timeline``
+requests show a refresh prompt. Whole timeline requests are not retried
+automatically on the server because author code blocks may contain
+non-idempotent external side effects. Shared
 coordination metadata, such as barrier registry rows, must likewise be created
 or refreshed in short transactions rather than remaining uncommitted through
 rendering. The barrier poller locks waiters with ``FOR UPDATE NOWAIT`` so a
 participant write cannot stall other groups; if any waiter is busy, that
-barrier is skipped until the next tick.
+barrier is skipped until the next tick. The sync-group recount job likewise
+skip-locks one group at a time.
 
 The fragment must contain the elements the persistent document replaces:
 
