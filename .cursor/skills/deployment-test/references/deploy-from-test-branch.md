@@ -188,7 +188,7 @@ uv pip install -e ".[dev,slack]"
 7. Prepare deployable experiment boilerplate from the installed PsyNet (which
    matches the base after step 6). In-repo experiments under
    `tests/deployment/` track authored files only, so the deployment branch must
-   materialize scaffold templates (Dockerfile, `docker/` helpers, `pytest.ini`,
+   materialize scaffold templates (Dockerfile, `deploy.toml`, `pytest.ini`,
    etc.) before deploy. Run this in **each** experiment directory being
    deployed:
 

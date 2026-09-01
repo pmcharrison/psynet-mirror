@@ -109,6 +109,12 @@ def bonus_transfer_already_claimed(participant) -> bool:
 
 
 NO_BONUS_ATTEMPT_RESULT = "No result recorded from the pay request."
+BONUS_PAY_IN_PROGRESS = "Bonus pay is in progress."
+
+
+def review_bonus_pay_in_progress(participant) -> bool:
+    """True when dashboard Pay has claimed this retry and not yet finished."""
+    return getattr(participant, "bonus_attempt_detail", None) == BONUS_PAY_IN_PROGRESS
 
 
 def record_bonus_attempt_detail(participant, detail: str) -> None:

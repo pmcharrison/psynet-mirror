@@ -48,7 +48,13 @@ from . import deployment_info
 from .bootstrap_commands import register_bootstrap_commands
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .experiment_scaffold import (
+    _clear_deployment_policy_review_marker,
+    _deployment_policy_needs_review,
+    _remove_obsolete_generated_docker_scripts,
+    _remove_obsolete_generated_dockerignore,
+    _without_deployment_policy_review,
     dockertag_contents,
+    ensure_deployment_policy,
     get_psynet_requirement,
     is_unambiguous_psynet_requirement,
     missing_scaffold_paths_required_for_local_run,
@@ -711,7 +717,7 @@ def _cleanup_exp_directory():
     """
     Cleans up temporary files that are sometimes left behind by the experiment.
     """
-    for file in ["source_code.zip", "server.log", "logs.jsonl"]:
+    for file in ["server.log", "logs.jsonl"]:
         try:
             os.remove(file)
         except FileNotFoundError:
@@ -1083,7 +1089,7 @@ def _pre_launch(
 
     # Scaffold/git checks before Redis so missing-boilerplate guidance is visible
     # even when Redis is not running.
-    _check_experiment_directory(mode)
+    _check_experiment_directory(mode, require_git_commit=not local_)
 
     from .services import ensure_local_services
 
@@ -1384,21 +1390,42 @@ def _prepare_in_repo_experiment():
     """Generate ignored boilerplate when running an in-repo experiment."""
     if not is_in_repo_experiment():
         return False
-    scaffold_experiment_directory()
+    with _without_deployment_policy_review():
+        scaffold_experiment_directory()
     return True
 
 
-def _check_experiment_directory(mode):
+def _check_experiment_directory(mode, *, require_git_commit=False):
     """
     Fail fast on missing scaffold or git before Redis or other heavy I/O.
 
     In-repo experiments are auto-scaffolded first so their missing-boilerplate
-    check does not falsely fail. These checks must run before ``redis_vars.clear()``
-    so users without Redis still see actionable guidance.
+    check does not falsely fail. A missing ``deploy.toml`` is created from the
+    PsyNet template and never overwritten. Auto-created policies leave a local
+    review marker so the next debug, test, or deploy command stops once when
+    setup or scaffold wrote the file on an author machine; that pause runs
+    after the Git checks so the message can list Git-ignored selected files.
+    Temporary pytest scaffolds and in-repo auto-prepare skip the pause so first
+    launch can run. Remote deployments additionally
+    require a Git commit for provenance; local debug and test runs may use a
+    repository with no commits. Leftover generated ``.dockerignore`` files and
+    ``docker/`` helper scripts are removed (custom copies are preserved with a
+    warning). These checks must run before ``redis_vars.clear()`` so users
+    without Redis still see actionable guidance.
     """
-    _prepare_in_repo_experiment()
+    prepared = _prepare_in_repo_experiment()
+    ensure_deployment_policy()
+    missing_after_policy_creation = missing_scaffold_paths_required_for_local_run()
+    if not prepared:
+        _remove_obsolete_generated_dockerignore()
+        _remove_obsolete_generated_docker_scripts()
+    if Path(".dockerignore").exists() or Path(".dockerignore").is_symlink():
+        raise click.ClickException(
+            "Custom .dockerignore files are no longer supported. Move any "
+            "deployment exclusions to deploy.toml, then remove .dockerignore."
+        )
 
-    missing_boilerplate = missing_scaffold_paths_required_for_local_run()
+    missing_boilerplate = missing_after_policy_creation
     if missing_boilerplate:
         missing_paths = ", ".join(missing_boilerplate)
         raise click.ClickException(
@@ -1406,8 +1433,7 @@ def _check_experiment_directory(mode):
             f"({missing_paths}). "
             f"{_missing_boilerplate_fix(mode=mode, missing_paths=missing_boilerplate)}"
         )
-
-    # We need an active git repository for Dallinger to recognize .gitignore properly
+    # Git provenance (commit SHA and dirty state) is recorded for deployments.
     if not git_repository_available():
         from .light_utils import git_command_available
 
@@ -1423,6 +1449,54 @@ def _check_experiment_directory(mode):
             "'git init'. If you copied a demo into a new directory, run "
             "'git init' before 'psynet debug local' or 'psynet test local'."
         )
+    from .experiment_setup import _containing_worktree_ignores_experiment
+
+    if _containing_worktree_ignores_experiment():
+        raise click.ClickException(
+            "The containing Git repository ignores this experiment directory, "
+            "so its commit cannot identify the experiment's source state. Run "
+            "'psynet setup' to create a dedicated Git repository before continuing."
+        )
+
+    # Runs after the Git checks so 'git check-ignore' can report which
+    # deployment-selected files the old .gitignore used to keep local.
+    if _deployment_policy_needs_review():
+        ignored_paths = deployment_info._git_ignored_deployment_paths()
+        ignored_summary = ""
+        if ignored_paths:
+            preview_limit = 10
+            preview = "\n".join(f"  {path}" for path in ignored_paths[:preview_limit])
+            remaining = len(ignored_paths) - preview_limit
+            if remaining > 0:
+                preview += f"\n  ... and {remaining} more"
+            ignored_summary = (
+                "\n\nYour existing .gitignore covered the following files, but "
+                "your new deploy.toml does not:\n" + preview
+            )
+        _clear_deployment_policy_review_marker()
+        raise click.ClickException(
+            "PsyNet now requires experiments to provide a deploy.toml file to "
+            "specify which files to include in the deployed experiment. Previously "
+            ".gitignore was used for this purpose.\n\nPsyNet created a new "
+            "deploy.toml file for this experiment."
+            f"{ignored_summary}\n\nBefore continuing:\n"
+            "  1. Run 'dallinger deployment-files list'. This only prints the files "
+            "that PsyNet would copy; it does not start or deploy the experiment.\n"
+            "  2. Check the list for credentials, private data, large files, and "
+            "generated files that should stay local.\n"
+            "  3. Add anything that should stay local to [exclude] in deploy.toml.\n"
+            "  4. Rerun this command."
+        )
+    if require_git_commit:
+        from .light_utils import git_commit_available
+
+        if not git_commit_available():
+            raise click.ClickException(
+                "This Git repository has no commits yet. Remote deployments need "
+                "a commit so PsyNet can record exactly which source version was "
+                "deployed. Review 'git status', commit the experiment files you "
+                "want to keep, then rerun this command."
+            )
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
@@ -1439,24 +1513,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     exp.check_size()
     exp.check_consents()
     exp.check_python_dependencies()
-
-    # Make sure source_code.zip is in .gitignore
-    try:
-        with open(".gitignore", "r") as f:
-            source_code_zip_found = False
-            for line in f.readlines():
-                if "source_code.zip" in line:
-                    source_code_zip_found = True
-                    break
-            if not source_code_zip_found:
-                raise click.ClickException(
-                    "Please add source_code.zip to .gitignore and try again."
-                )
-    except FileNotFoundError:
-        raise click.ClickException(
-            f".gitignore is missing from your experiment directory ({os.getcwd()}). "
-            + _missing_boilerplate_fix()
-        )
 
     try:
         with open("requirements.txt", "r") as f:
@@ -1475,25 +1531,15 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             f"requirements.txt is missing from your experiment directory ({os.getcwd()})."
         )
 
-    if heroku:
-        if docker and not user_confirms(
+    if (
+        heroku
+        and docker
+        and not user_confirms(
             "Heroku deployment with Docker hasn't been working well recently; experiments have been failing to launch "
             "and returning a psutil version error. Are you sure you want to continue?"
-        ):
-            raise click.Abort
-
-        try:
-            with open(".gitignore", "r") as f:
-                for line in f.readlines():
-                    if line.startswith(".deploy"):
-                        if not user_confirms(
-                            "The .gitignore file contains '.deploy'; "
-                            "in order to deploy on Heroku without Docker this line must ordinarily be removed. "
-                            "Are you sure you want to continue?"
-                        ):
-                            raise click.Abort
-        except FileNotFoundError:
-            pass
+        )
+    ):
+        raise click.Abort
 
     if docker:
         check_dockerfile()
@@ -2254,17 +2300,20 @@ def export_arguments(func):
             "--no-source",
             is_flag=True,
             default=False,
-            help="Skip exporting the experiment's source code",
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
         ),
         click.option(
             "--username",
             default=None,
-            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
         ),
         click.option(
             "--password",
             default=None,
-            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
         ),
     ]
     for arg in args:
@@ -2338,6 +2387,26 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     )
 
 
+def _warn_deprecated_export_options(no_source, username, password):
+    """Warn when removed source-export options are explicitly supplied."""
+    deprecated_options = [
+        option
+        for option, used in (
+            ("--no-source", no_source),
+            ("--username", username is not None),
+            ("--password", password is not None),
+        )
+        if used
+    ]
+    if deprecated_options:
+        click.echo(
+            "WARNING: Deprecated export option(s) "
+            + ", ".join(deprecated_options)
+            + " are accepted for compatibility but have no effect.",
+            err=True,
+        )
+
+
 def export_(
     ctx,
     exp_variables,
@@ -2364,7 +2433,6 @@ def export_(
 
         export_path/
         ├── logs.jsonl
-        ├── source_code.zip
         ├── regular/
         │   ├── database.zip
         │   ├── basic_data.json OR basic_data/
@@ -2378,8 +2446,6 @@ def export_(
 
     logs.jsonl:
         Contains the experiment logs exported from the remote server.
-    source_code.zip:
-        Contains a snapshot of the experiment source code at the time of deployment.
     regular/:
         Contains non-anonymized data:
             - the database.zip file generated by the default Dallinger export command
@@ -2395,6 +2461,8 @@ def export_(
             - experiment data in CSV format
             - assets
     """
+    _warn_deprecated_export_options(no_source, username, password)
+
     from .experiment import import_local_experiment
 
     deployment_id = exp_variables["deployment_id"]
@@ -2443,7 +2511,6 @@ def export_(
     else:
         anonymize_modes = ["yes", "no"]
 
-    source_code_exported = False
     if not legacy:
         try:
             experiment_url = get_experiment_url(app, server)
@@ -2473,17 +2540,6 @@ def export_(
             # unzip the file
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 zip_ref.extractall(path)
-            # Download source code unless --no-source was passed
-            if not no_source:
-                _export_source_code(
-                    app,
-                    local,
-                    server,
-                    path,
-                    username,
-                    password,
-                    experiment_url=experiment_url,
-                )
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -2501,7 +2557,6 @@ def export_(
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
-            should_export_source_code = not (source_code_exported or no_source)
             _export_(
                 ctx,
                 app,
@@ -2509,16 +2564,11 @@ def export_(
                 path,
                 assets,
                 _anonymize,
-                should_export_source_code,
                 n_parallel,
                 docker_ssh,
                 server,
                 dns_host,
-                username,
-                password,
             )
-            if should_export_source_code:
-                source_code_exported = True
 
 
 def _export_(
@@ -2528,13 +2578,10 @@ def _export_(
     export_path,
     assets,
     anonymize: bool,
-    export_source_code: bool,
     n_parallel=None,
     docker_ssh=False,
     server=None,
     dns_host=None,
-    username=None,
-    password=None,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
@@ -2556,9 +2603,6 @@ def _export_(
             server,
             local,
         )
-
-    if export_source_code:
-        _export_source_code(app, local, server, export_path, username, password)
 
     # Export logs.jsonl file for SSH exports
     if docker_ssh and server:
@@ -2593,102 +2637,6 @@ def export_logs(app, server, export_path):
 
     except Exception as e:
         log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
-
-
-def _export_source_code(
-    app, local, server, export_path, username, password, experiment_url=None
-):
-    import requests
-
-    config = get_config()
-    if not config.ready:
-        config.load()
-
-    username = username or config.get("dashboard_user", None)
-    password = password or config.get("dashboard_password", None)
-
-    if not all([username, password]):
-        if not click.confirm(
-            "\nPsyNet failed to find dashboard credentials in your local config files. "
-            "These dashboard credentials are needed to authenticate to the remote server "
-            "in order to download the experiment's source code. "
-            "You can provide these credentials now in a follow-up dialog; you can find these "
-            "credentials printed to your console as part of the experiment deployment command. "
-            "Alternatively, you can choose to skip downloading the source code. "
-            "\nDo you want to proceed with entering username and password now? "
-            "Enter 'y', or 'n' to skip downloading the source code.",
-            default=True,
-            abort=False,
-        ):
-            log("WARNING: Experiment source code could not be downloaded.")
-            return
-
-    log(
-        "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
-    )
-    if experiment_url:
-        url = experiment_url.rstrip("/")
-    elif local:
-        url = "http://localhost:5000"
-    else:
-        if server:
-            url = f"https://{app}.{server}"
-        else:
-            url = HerokuApp(app).url
-
-    url += "/download_source"
-    source_code_zip_path = os.path.join(export_path, "source_code.zip")
-
-    while True:
-        if not all([username, password]):
-            username = click.prompt("Enter dashboard username")
-            password = click.prompt("Enter dashboard password", hide_input=True)
-
-        with yaspin(
-            text=f"Requesting source code from {url}", color="green"
-        ) as spinner:
-            response = requests.get(url, auth=(username, password))
-
-        if response.status_code == 200:
-            with open(source_code_zip_path, "wb") as f:
-                f.write(response.content)
-            spinner.ok("✔")
-            log(f"Experiment source code saved to {source_code_zip_path}")
-            break
-        elif response.status_code == 401:
-            try_again = click.confirm(
-                "Authentication failed.\nPress ENTER to try again or 'n' to skip downloading the source code.",
-                default=True,
-                abort=False,
-            )
-            if not try_again:
-                log("Skipped downloading the source code.")
-                break
-            # Reset the credentials so the user gets another chance to enter them correctly
-            username, password = None, None
-        else:
-            spinner.color = "red"
-            spinner.fail("✘")
-            click.confirm(
-                "Experiment source code could not be downloaded."
-                "\nPress ENTER to continue with the remainder of data export, ignoring the source code."
-                "\nNote: To skip exporting the source code in the future, add `--no-source` option to your `psynet export` command.",
-                default=True,
-                prompt_suffix="",
-                show_default=False,
-            )
-            log(
-                f"WARNING: Failed to download experiment source code. Response: {response.reason} ({response.status_code})"
-            )
-            try:
-                message = response.json().get("message")
-                log(f"\nReason: {message}.")
-            except json.JSONDecodeError as e:
-                log(
-                    f"\nAdditionally, decoding JSON data from the response failed with '{str(e)}'"
-                    f"\nResponse content: {response.content}"
-                )
-            break
 
 
 def export_database(
@@ -3607,7 +3555,6 @@ def _run_simulate(ctx, audit=False, mark_present=True):
         export__local,
         # TODO - maybe legacy is not the best name for this parameter...
         legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
-        no_source=True,
         path=SIMULATED_DATA_EXPORT_PATH.as_posix(),
     )
     if not audit:

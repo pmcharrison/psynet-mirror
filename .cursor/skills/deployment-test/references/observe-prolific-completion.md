@@ -122,8 +122,9 @@ psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
   --path <psynet-root>/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/export
 ```
 
-   This saves the database dump (`regular/database.zip`), per-table CSVs
-   (`regular/data/`), and the deployed source code (`source_code.zip`).
+   This saves the database dump (`regular/database.zip`) and per-table CSVs
+   (`regular/data/`). Deployment provenance, including the Git commit and
+   working-tree state, is recorded in the exported experiment configuration.
 
 3. **Raw Prolific data**: save the full study object and all submissions as
    JSON (run the `prolific_service_from_config()` snippet above with

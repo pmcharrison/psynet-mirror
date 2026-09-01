@@ -38,7 +38,7 @@ like budget overruns by recruiter or experimenter.
 
 The table includes the following columns:
 
-- **Study**: Shows the experiment’s label and current status (indicated by a traffic light icon). Click the experiment name to view more details such as repository URL, title, and description.
+- **Study**: Shows the experiment’s label and current status (indicated by a traffic light icon). Click the experiment name to view more details such as repository URL, deployed Git commit, clean or dirty working-tree state, title, and description.
 - **Recruitment**: Displays the recruitment status (e.g., "Published", "Draft", "Completed"). Click to view recruitment details, including the number of participants recruited and completed, and recruiter costs.
 - **Experimenter**: The name of the experimenter who created the experiment. We recommend setting this in your ``.dallingerconfig`` file, see `Slack integration <../tutorials/setting_up_slack.html>`_.
 - **Runtime**: Indicates how long the experiment has been running (relevant for the provisioning cost) and the start time. Click for more details.
