@@ -2199,10 +2199,17 @@ class TrialMaker(Module):
         # Performance checks may run after every trial. Filtering in Python
         # would repeatedly hydrate trials from the participant's other trial
         # makers, making long multi-module experiments increasingly expensive.
-        return self.trial_class.query.filter_by(
-            participant_id=participant.id,
-            trial_maker_id=self.id,
-        ).all()
+        # Order explicitly: callers such as performance_check and repeat-trial
+        # sampling are sensitive to ordering, which the database does not
+        # otherwise guarantee.
+        return (
+            self.trial_class.query.filter_by(
+                participant_id=participant.id,
+                trial_maker_id=self.id,
+            )
+            .order_by(self.trial_class.id)
+            .all()
+        )
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):

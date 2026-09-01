@@ -202,8 +202,10 @@ were not committed, so treat them as motivation rather than reproducible
 benchmarks:
 
 * In one matched timeline flow, request-scoped participant loading reduced the
-  participant-load statements from about four per request to one. End-to-end
-  request latency improved modestly.
+  participant lookup from about four statements to one. Some of that work
+  returns later in requests that genuinely read the relationships, so the
+  saving is largest for pages that use none of them. End-to-end request latency
+  improved modestly.
 * In a synthetic comparison with ten trial makers and 200 trials per maker,
   filtering by trial maker in SQL hydrated 200 rows instead of 2,000 and
   substantially reduced lookup time.

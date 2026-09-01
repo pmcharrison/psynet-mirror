@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 from dallinger import db
+from sqlalchemy import inspect
 
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
@@ -61,6 +62,35 @@ def test_participant_request_query_loads_relationships_only_when_used(
         ]
     with assert_query_count(min_queries=1, max_queries=1):
         assert participant.active_barriers == {}
+
+
+def test_locked_request_query_keeps_relationships_unloaded(
+    db_session, participant_with_module_state
+):
+    """Cover the locking participant load used by ``/response``."""
+    experiment = get_experiment()
+    participant_id = (
+        experiment._get_request_participant_from_unique_id(
+            participant_with_module_state
+        )
+    ).id
+
+    # ``process_response`` combines the request query with row locking and
+    # ``populate_existing()``. Loader options are not always honored by
+    # ``Query.get()``, so assert this construct keeps them.
+    with assert_query_count(min_queries=1, max_queries=1):
+        participant = (
+            experiment._participant_request_query()
+            .with_for_update(of=Participant)
+            .populate_existing()
+            .get(participant_id)
+        )
+
+    unloaded = inspect(participant).unloaded
+    assert {"module_state", "_module_states", "active_barriers"} <= unloaded
+
+    with assert_query_count(min_queries=1, max_queries=1):
+        assert participant.module_state.module_id == "navigation"
 
 
 def test_public_participant_getter_retains_eager_relationships_when_detached(

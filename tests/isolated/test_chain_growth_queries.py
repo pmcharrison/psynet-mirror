@@ -7,7 +7,7 @@ from sqlalchemy import inspect
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sqlalchemy_profiling import assert_query_count, sqlalchemy_profile
+from psynet.sqlalchemy_profiling import assert_query_count
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 from psynet.trial.create_and_rate import (
     CreateAndRateAssignmentPending,
@@ -350,22 +350,22 @@ def test_performance_check_filters_trials_by_maker_in_sql(db_session, participan
     other_maker = chain_trial_maker(id_="other_performance")
     selected_network = create_chain_network(selected_maker, exp)
     other_network = create_chain_network(other_maker, exp)
-    selected_trial = add_trial(
-        GrowthQueryTrial,
-        selected_network.head,
-        participant,
-    )
+    selected_trials = [
+        add_trial(GrowthQueryTrial, selected_network.head, participant)
+        for _ in range(2)
+    ]
     for _ in range(20):
         add_trial(GrowthQueryTrial, other_network.head, participant)
 
-    with sqlalchemy_profile(db.engine) as profiler:
+    with assert_query_count(min_queries=1, max_queries=1) as profiler:
         trials = selected_maker.get_participant_trials(participant)
 
-    assert trials == [selected_trial]
-    statements = profiler.get_stats(top_n=None)
-    assert len(statements) == 1
-    where_clause = statements[0].statement.lower().split(" where ", maxsplit=1)[1]
-    assert "trial_maker_id" in where_clause
+    # The other trial maker's rows must be excluded by the database rather than
+    # hydrated and discarded, and the result must keep a deterministic order.
+    assert trials == selected_trials
+    statement = profiler.get_stats(top_n=None)[0].statement.lower()
+    assert "trial_maker_id" in statement
+    assert "order by" in statement
 
 
 @pytest.mark.parametrize(

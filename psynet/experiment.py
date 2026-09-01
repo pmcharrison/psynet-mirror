@@ -3346,12 +3346,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         is efficient for dashboards and other queries that load many
         participants. A timeline request loads exactly one participant, and
         unconditional select-in loading would issue separate queries for the
-        current module, all module states, and active barriers even when the
-        current page does not use them.
+        current module, all module states, and active barriers.
 
         Overriding those relationships to ordinary lazy loading preserves their
-        public behavior: the first access still loads the relationship. It only
-        avoids fetching relationships that this particular request never reads.
+        public behavior: the first access still loads the relationship. Pages
+        inside a module still load the current module state, but the remaining
+        relationships are fetched only by the requests that read them, such as
+        module transitions and synchronized barriers.
         ``_current_trial`` deliberately keeps its joined-loading configuration
         because response handling commonly needs it.
         """
@@ -3363,7 +3364,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def _get_request_participant_from_unique_id(cls, unique_id: str):
-        """Load one request participant without unrelated eager relationships."""
+        """Load one request participant without unrelated eager relationships.
+
+        This deliberately does not call
+        :meth:`~psynet.experiment.Experiment.get_participant_from_unique_id`,
+        whose eager loading suits callers that may use the participant after
+        its session closes. Lookup semantics are otherwise identical.
+        """
         return cls._participant_request_query().filter_by(unique_id=unique_id).one()
 
     @classmethod
