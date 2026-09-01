@@ -271,7 +271,9 @@ page. They are used by default barriers and by :func:`psynet.page.wait_while`.
 The server advances to an internal hold checkpoint and returns ``timeline_hold``
 metadata instead of a timeline fragment. The browser updates only its
 submission UUID, makes the visible controls inert, and renders a compact status
-indicator in ``#timeline-hold-region``.
+indicator in ``#timeline-hold-region``. That region is fixed-position, so the
+indicator floats above the participant's content instead of reflowing it when a
+hold starts or ends.
 
 The visible page retains its own ``window.pageUuid``, ``session_id``,
 ``requires_full_page_reload``, media, timers, and managed JavaScript until the

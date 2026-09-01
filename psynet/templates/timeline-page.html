@@ -64,11 +64,20 @@
             pointer-events: none;
         }
 
+        /* The indicator floats over the page so that starting or ending a hold
+           never reflows the participant's content. It clears the progress bar
+           and sits inside the top margin of #main-body when unscrolled. */
         #timeline-hold-region {
             align-items: center;
             display: flex;
             justify-content: center;
-            padding: 0.75rem 1rem 0;
+            left: 0;
+            padding: 0 1rem;
+            pointer-events: none;
+            position: fixed;
+            right: 0;
+            top: {% if config.show_progress_bar %}1.5rem{% else %}0.5rem{% endif %};
+            z-index: 1080;
         }
 
         #timeline-hold-region:empty {
@@ -86,6 +95,7 @@
             gap: 0.6rem;
             max-width: 100%;
             padding: 0.65rem 1rem;
+            pointer-events: auto;
         }
     </style>
 

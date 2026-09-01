@@ -19,11 +19,14 @@ async function startBackgroundHold(page) {
     { timeout: STEP_TIMEOUT_MS }
   );
   const visiblePageUuid = await page.evaluate(() => window.pageUuid);
+  const mainBodyTop = await page
+    .locator("#main-body")
+    .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
   await page.locator("#next-button").click();
   await expect(page.locator("#psynet-timeline-hold-indicator")).toBeVisible({
     timeout: STEP_TIMEOUT_MS
   });
-  return visiblePageUuid;
+  return { visiblePageUuid, mainBodyTop };
 }
 
 test("wait_while preserves the submitted page and wakes after async work", { tag: "@both" }, async ({
@@ -46,7 +49,9 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
         sessionStorage.setItem("timelineHoldWakeCount", String(count + 1));
       });
     });
-    const visiblePageUuid = await startBackgroundHold(experimentPage);
+    const { visiblePageUuid, mainBodyTop } = await startBackgroundHold(
+      experimentPage
+    );
 
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Submit this page to start background feedback processing."
@@ -62,11 +67,25 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     ).toBe(true);
     await expect(experimentPage.locator("#comment-button")).toBeDisabled();
 
-    const headerBox = await experimentPage.locator("#timeline-header").boundingBox();
-    const indicatorBox = await experimentPage
-      .locator("#psynet-timeline-hold-indicator")
-      .boundingBox();
-    expect(indicatorBox.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height);
+    // The indicator floats, so the preserved page must not shift when it appears.
+    const holdLayout = await experimentPage.evaluate(() => {
+      const mainBody = document.getElementById("main-body");
+      const header = document.getElementById("timeline-header");
+      const region = document.getElementById("timeline-hold-region");
+      return {
+        mainBodyTop: mainBody.getBoundingClientRect().top + window.scrollY,
+        regionPosition: getComputedStyle(region).position,
+        indicatorTop: document
+          .getElementById("psynet-timeline-hold-indicator")
+          .getBoundingClientRect().top,
+        headerBottom: header.getBoundingClientRect().bottom
+      };
+    });
+    expect(holdLayout.mainBodyTop).toBeCloseTo(mainBodyTop, 1);
+    expect(holdLayout.regionPosition).toBe("fixed");
+    expect(holdLayout.indicatorTop).toBeGreaterThanOrEqual(
+      holdLayout.headerBottom
+    );
 
     await experimentPage.waitForTimeout(500);
     const settledResponseCount = responses.getCount();
