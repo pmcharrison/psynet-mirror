@@ -3,9 +3,11 @@
 Live tables keep recruiter identifiers on ``Participant`` (and Lucid ghost
 entrants). Export writes those values to sidecar CSVs and replaces them with
 participant-id pseudonyms in ``database/`` so the archive remains loadable.
-Copied tables that still carry recruiter columns (``worker_id``,
-``assignment_id``, ``unique_id``, ``hit_id``, ``client_ip_address``,
-``entry_information``) are remapped or blanked the same way.
+``participant.entry_information`` is written as ``{}`` rather than left blank,
+because that column is NOT NULL. Copied tables that still carry recruiter
+columns (``worker_id``, ``assignment_id``, ``unique_id``, ``hit_id``,
+``client_ip_address``, ``entry_information``) are remapped or blanked the same
+way.
 """
 
 from __future__ import annotations
@@ -47,7 +49,9 @@ def _participant_pseudonyms(row: dict) -> dict:
         "hit_id": str(participant_id),
         "unique_id": f"{participant_id}:{assignment_pseudo}",
         "client_ip_address": "",
-        "entry_information": "",
+        # Empty JSON object, not a blank field: participant.entry_information
+        # is NOT NULL, so a loadable archive cannot use COPY's NULL.
+        "entry_information": "{}",
     }
 
 

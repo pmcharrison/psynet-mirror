@@ -164,7 +164,10 @@ constraints remain satisfied and the archive can be loaded with ``psynet load``.
 Original identifiers are available in ``participant_identifiers.csv``, keyed by
 ``participant_id``. That sidecar includes ``worker_id``, ``assignment_id``,
 ``hit_id``, ``unique_id``, ``client_ip_address``, and ``entry_information``
-(serialized as in the database). Lucid experiments also write
+(serialized as in the database). In ``database/participant.csv`` the identifier
+columns are replaced with participant-id pseudonyms and ``entry_information``
+is an empty JSON object (``{}``), so the NOT NULL constraint still holds on
+``psynet load``. Lucid experiments also write
 ``lucid_entrant_identifiers.csv``. Recruiter identifier columns on other copied
 tables are remapped to the same participant pseudonyms when they match a known
 participant (for example Dallinger ``notification.assignment_id``), or blanked

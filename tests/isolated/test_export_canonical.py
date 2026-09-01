@@ -147,7 +147,7 @@ def test_identifier_separation_writes_sidecars_and_pseudonyms(tmp_path):
     assert str(row["hit_id"]) == "7"
     assert row["unique_id"] == "7:7"
     assert pd.isna(row["client_ip_address"]) or row["client_ip_address"] == ""
-    assert pd.isna(row["entry_information"]) or row["entry_information"] == ""
+    assert row["entry_information"] == "{}"
 
     request = pd.read_csv(out_dir / "request.csv")
     assert request.iloc[0]["unique_id"] == "7:7"
@@ -252,6 +252,51 @@ def test_empty_lucid_table_omits_sidecar(tmp_path):
     sidecars = write_identifier_sidecars_from_csv_dir(str(raw_dir), str(export_path))
     assert "lucid_entrant_identifiers" not in sidecars
     assert not (export_path / "lucid_entrant_identifiers.csv").exists()
+
+
+def test_ingest_zip_skips_tables_without_csv_files(tmp_path, monkeypatch):
+    from psynet.data import ingest_zip
+
+    export_dir = tmp_path / "export"
+    csv_dir = export_dir / "database"
+    csv_dir.mkdir(parents=True)
+    (csv_dir / "trial.csv").write_text("id\n1\n")
+
+    ingested = []
+
+    class _Inspector:
+        def get_table_names(self):
+            return ["trial", "chat_message"]
+
+    monkeypatch.setattr("psynet.data.sqlalchemy.inspect", lambda engine: _Inspector())
+    monkeypatch.setattr(
+        "psynet.data.sql_base_classes",
+        lambda: {
+            "trial": type("Trial", (), {"__tablename__": "trial"}),
+            "chat_message": type("ChatMessage", (), {"__tablename__": "chat_message"}),
+        },
+    )
+    monkeypatch.setattr(
+        "psynet.data.ingest_to_model",
+        lambda file, model, engine: ingested.append(model.__tablename__),
+    )
+
+    ingest_zip(str(export_dir), engine=object())
+    assert ingested == ["trial"]
+
+
+def test_archive_template_only_packs_present_table_csvs(tmp_path):
+    from psynet.command_line import _install_archive_template
+
+    database_dir = tmp_path / "database"
+    database_dir.mkdir()
+    (database_dir / "trial.csv").write_text("id\n1\n")
+    archive = tmp_path / "database_template.zip"
+
+    _install_archive_template(str(tmp_path), str(archive))
+
+    with zipfile.ZipFile(archive) as handle:
+        assert handle.namelist() == ["database/trial.csv"]
 
 
 def test_empty_table_csvs_are_omitted_from_the_export(tmp_path, monkeypatch):
