@@ -191,8 +191,15 @@ Route-level regression coverage
 
 Focused ORM tests are fast and useful, but they do not guarantee that
 ``/timeline`` and ``/response`` continue using the intended query construction.
-A small HTTP-level query-budget test would provide stronger coverage if it can
-isolate the server process's profiler without becoming timing-sensitive.
+``tests/isolated/test_navigation_queries.py`` therefore also calls those route
+methods inside a Flask request context and asserts a query budget. The
+``/timeline`` check profiles a page reload so unused module-state and barrier
+relationships stay unloaded. The ``/response`` check submits consent without
+requesting a timeline fragment, which keeps render noise out of the budget.
+
+These in-process tests do not capture request telemetry or gunicorn-worker
+SQL from a launched debug server. Treat them as a pin on route query
+construction, not as a substitute for a full-server profile.
 
 Evidence from the investigation
 ===============================
@@ -210,9 +217,10 @@ benchmarks:
   filtering by trial maker in SQL hydrated 200 rows instead of 2,000 and
   substantially reduced lookup time.
 
-These observations, together with focused regression tests, support the
-retained changes. Production impact still depends on database size,
-concurrency, experiment structure, and authored callbacks.
+These observations, together with focused regression tests and in-process
+route query budgets, support the retained changes. Production impact still
+depends on database size, concurrency, experiment structure, and authored
+callbacks.
 
 Checklist for future investigations
 ===================================

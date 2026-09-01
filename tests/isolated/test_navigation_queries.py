@@ -1,8 +1,10 @@
+import json
 import uuid
 from types import SimpleNamespace
 
 import pytest
 from dallinger import db
+from flask import Flask
 from sqlalchemy import inspect
 
 from psynet.experiment import get_experiment
@@ -110,3 +112,107 @@ def test_public_participant_getter_retains_eager_relationships_when_detached(
             "navigation"
         ]
         assert participant.active_barriers == {}
+
+
+@pytest.fixture
+def request_participant(db_session):
+    experiment = get_experiment()
+    participant = Participant(
+        experiment=experiment,
+        recruiter_id="hotair",
+        worker_id=str(uuid.uuid4()),
+        hit_id=str(uuid.uuid4()),
+        assignment_id=str(uuid.uuid4()),
+        mode="debug",
+    )
+    db.session.add(participant)
+    db.session.commit()
+    unique_id = participant.unique_id
+    db.session.remove()
+    return unique_id
+
+
+_REQUEST_APP = Flask(__name__)
+
+
+def _timeline_request(unique_id):
+    return _REQUEST_APP.test_request_context(
+        f"/timeline?unique_id={unique_id}&mode=json",
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    )
+
+
+def _response_request(payload):
+    return _REQUEST_APP.test_request_context(
+        "/response",
+        method="POST",
+        data={"json": json.dumps(payload)},
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    )
+
+
+def _query_count_containing(profiler, fragment):
+    fragment = fragment.lower()
+    return sum(
+        stat.count
+        for stat in profiler.get_stats(top_n=None)
+        if fragment in stat.statement.lower()
+    )
+
+
+def test_timeline_route_skips_unused_participant_relationships(
+    db_session, request_participant
+):
+    """Reload ``/timeline`` without select-in loading unused relationships.
+
+    The first request advances onto consent and may create a module state.
+    The reload is the regression check: a public participant getter would still
+    issue select-in queries for barriers and the full module-state collection.
+    """
+    experiment = get_experiment()
+    unique_id = request_participant
+
+    with _timeline_request(unique_id):
+        first = experiment.route_timeline()
+    assert first.status_code == 200
+    db.session.remove()
+
+    with _timeline_request(unique_id):
+        with assert_query_count(min_queries=1, max_queries=2) as profiler:
+            second = experiment.route_timeline()
+    assert second.status_code == 200
+    assert json.loads(second.get_data())["attributes"]["unique_id"] == unique_id
+    assert _query_count_containing(profiler, "from participant_link_barrier") == 0
+    assert _query_count_containing(profiler, "from module_state") == 0
+
+
+def test_response_route_skips_unused_participant_relationships(
+    db_session, request_participant
+):
+    """POST ``/response`` should keep unused participant relationships lazy."""
+    experiment = get_experiment()
+    unique_id = request_participant
+
+    with _timeline_request(unique_id):
+        first = experiment.route_timeline()
+    assert first.status_code == 200
+
+    participant = Participant.query.filter_by(unique_id=unique_id).one()
+    payload = {
+        "participant_id": participant.id,
+        "page_uuid": participant.page_uuid,
+        "raw_answer": True,
+        "metadata": {"time_taken": 1},
+        "include_timeline_fragment": False,
+    }
+    db.session.remove()
+
+    with _response_request(payload):
+        with assert_query_count(min_queries=8, max_queries=15) as profiler:
+            result = experiment.route_response()
+    assert result.status_code == 200
+    body = json.loads(result.get_data())
+    assert body["status"] == "success"
+    assert body["submission"] == "approved"
+    assert _query_count_containing(profiler, "from participant_link_barrier") == 0
+    assert _query_count_containing(profiler, "from module_state") <= 2
