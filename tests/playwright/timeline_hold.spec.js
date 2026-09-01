@@ -250,6 +250,7 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
 
     const compileFailureCleanup = await experimentPage.evaluate(async () => {
       const originalCompileResponse = psynet.compileResponse;
+      psynetTemplateData.flags.lucidRecruitment = true;
       psynet.captureSubmissionControlState();
       psynet.removeBeforeUnloadEventListener();
       psynet.compileResponse = async () => {
