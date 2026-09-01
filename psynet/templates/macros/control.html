@@ -40,12 +40,12 @@
         });
 
         nextButtonState.handleClick = function() {
+            psynet.captureSubmissionControlState();
             let width = $("#next-button").width();
             let height = $("#next-button").height();
             $("#next-button").width(width); // Locks the button width to the current width
             $("#next-button").height(height);
 
-            psynet.captureSubmissionControlState();
             nextButtonState.disable();
 
             function onRejection() {
