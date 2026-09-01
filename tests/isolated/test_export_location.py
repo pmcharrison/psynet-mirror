@@ -5,6 +5,7 @@ import json
 import zipfile
 from pathlib import Path
 from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, urlparse
 
 import click
 import pytest
@@ -249,6 +250,72 @@ def test_successful_remote_export_rotates_the_previous_export(tmp_path, monkeypa
     (archived,) = list((tmp_path / "exports" / "history").iterdir())
     assert json.loads((archived / "manifest.json").read_text()) == {"previous": True}
     assert (latest / "database" / "participant.csv").exists()
+
+
+def test_export_falls_back_to_an_archive_when_asset_transfer_fails(
+    tmp_path, monkeypatch
+):
+    """A failed rsync must not lose the export: the server can still send it all."""
+    from psynet.export.client import TransferError
+
+    monkeypatch.chdir(tmp_path)
+    experiment_class = Mock(
+        label="timeline-demo",
+        export_path=Experiment.export_path,
+        rotate_export_history=Experiment.rotate_export_history,
+    )
+    config = Mock(ready=True)
+    config.get.side_effect = lambda key, default=None: {
+        "dashboard_user": "admin",
+        "dashboard_password": "secret",
+    }.get(key, default)
+    downloads = []
+
+    def record_download(url, **kwargs):
+        downloads.append(parse_qs(urlparse(url).query).get("asset_bytes", [None])[0])
+        return _StreamedResponse(content=_export_zip())
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.get_experiment_url",
+            return_value="https://example.test",
+        ),
+        patch(
+            "psynet.export.client.fetch_preflight",
+            return_value={
+                "experiment_label": "timeline-demo",
+                "export_format_version": 1,
+                "incremental_asset_modes": ["none", "collected"],
+            },
+        ),
+        patch("psynet.export.client.fetch_logs", return_value=None),
+        patch("psynet.export.client.ssh_rsync_available", return_value=True),
+        patch(
+            "psynet.export.client.ssh_rsync_source", return_value=("remote:/src/", [])
+        ),
+        patch("psynet.export.client.plan_asset_transfer", return_value=Mock()),
+        patch(
+            "psynet.export.client.hydrate_assets",
+            side_effect=TransferError("rsync exited with status 23"),
+        ),
+        patch("requests.get", side_effect=record_download),
+    ):
+        export_(
+            ctx=Mock(),
+            get_exp_variables=Mock(),
+            app="psynet-02",
+            server="example.test",
+            docker_ssh=True,
+            assets="collected",
+        )
+
+    assert downloads == ["manifest", "include"]
+    assert (tmp_path / "exports" / "latest" / "database" / "participant.csv").exists()
 
 
 def test_legacy_export_still_works_but_warns_about_its_side_effects(
