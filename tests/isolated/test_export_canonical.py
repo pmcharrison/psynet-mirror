@@ -299,6 +299,33 @@ def test_archive_template_only_packs_present_table_csvs(tmp_path):
         assert handle.namelist() == ["database/trial.csv"]
 
 
+def test_boolean_csv_values_are_rewritten_to_true_false(tmp_path):
+    from psynet.export.database import rewrite_boolean_csv_values
+
+    path = tmp_path / "network.csv"
+    path.write_text("id,failed,label\n1,t,keep-t\n2,f,\n3,,x\n")
+    rewrite_boolean_csv_values(str(path), ["failed"])
+    assert path.read_text().splitlines() == [
+        "id,failed,label",
+        "1,True,keep-t",
+        "2,False,",
+        "3,,x",
+    ]
+    rewrite_boolean_csv_values(str(path), ["failed"])
+    assert "True" in path.read_text() and "t," not in path.read_text()
+
+
+def test_load_export_table_parses_copy_and_python_booleans(tmp_path):
+    database_dir = tmp_path / "database"
+    database_dir.mkdir()
+    (database_dir / "network.csv").write_text(
+        "id,failed,complete\n1,t,True\n2,f,False\n"
+    )
+    networks = load_export_table(str(database_dir), "network")
+    assert list(networks.failed) == [True, False]
+    assert list(networks.complete) == [True, False]
+
+
 def test_empty_table_csvs_are_omitted_from_the_export(tmp_path, monkeypatch):
     from psynet.export.database import omit_empty_table_csvs, write_export_manifest
 

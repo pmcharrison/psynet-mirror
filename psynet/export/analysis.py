@@ -16,6 +16,20 @@ from .paths import (
     table_csv_path,
 )
 
+# Postgres COPY writes t/f; we rewrite those to True/False on export.
+# Keep both spellings so older archives still load as booleans.
+_CSV_TRUE_VALUES = ["True", "true", "TRUE", "t", "T"]
+_CSV_FALSE_VALUES = ["False", "false", "FALSE", "f", "F"]
+
+
+def _read_table_csv(handle) -> pd.DataFrame:
+    """Read a table CSV, treating COPY and Python boolean spellings as bool."""
+    return pd.read_csv(
+        handle,
+        true_values=_CSV_TRUE_VALUES,
+        false_values=_CSV_FALSE_VALUES,
+    )
+
 
 def load_export_table(
     archive: str,
@@ -31,6 +45,11 @@ def load_export_table(
         members as ``data/<table>.csv`` are also accepted.
     table :
         Physical table name (for example ``trial`` or ``participant``).
+
+    Notes
+    -----
+    Boolean cells are parsed as bool, whether the CSV uses ``True`` / ``False``
+    (current exports) or PostgreSQL COPY's ``t`` / ``f`` (older archives).
     """
     archive = os.path.expanduser(archive)
     if is_zip_path(archive):
@@ -39,13 +58,13 @@ def load_export_table(
             if member is None:
                 raise KeyError(f"Table CSV for {table!r} not found in {archive}")
             with zip_file.open(member) as handle:
-                return pd.read_csv(handle)
+                return _read_table_csv(handle)
 
     database_dir = resolve_database_dir(archive)
     path = table_csv_path(database_dir, table)
     if not os.path.exists(path):
         raise KeyError(f"Table CSV for {table!r} not found in {database_dir}")
-    return pd.read_csv(path)
+    return _read_table_csv(path)
 
 
 def unpack_json_column(

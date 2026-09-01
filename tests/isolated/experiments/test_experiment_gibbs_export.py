@@ -85,7 +85,7 @@ class TestExpWithExport:
         nodes = load_export_table(database_dir, "node")
 
         assert networks.shape[0] == 8
-        assert set(networks.failed.astype(str).str.lower()) <= {"f", "false", "0"}
+        assert not networks.failed.any()
 
         network_node_counts = Counter(nodes.network_id)
         for network_id in networks.id:

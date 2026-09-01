@@ -15,6 +15,7 @@ from typing import Iterable, Optional
 import psycopg2
 from dallinger import db
 from psycopg2 import sql
+from sqlalchemy import Boolean
 from sqlalchemy import inspect as sa_inspect
 
 from psynet.utils import get_logger, make_parents, sha256_file
@@ -82,9 +83,76 @@ def copy_database_to_csv_dir(
                     sql.Identifier(table)
                 )
                 cur.copy_expert(query, handle)
+            rewrite_boolean_csv_values(path, _boolean_column_names(table))
     finally:
         conn.close()
     return tables
+
+
+_TRUE_TOKENS = frozenset({"t", "true", "1", "yes", "y", "on"})
+_FALSE_TOKENS = frozenset({"f", "false", "0", "no", "n", "off"})
+
+
+def _is_boolean_type(col_type) -> bool:
+    """Return whether a SQLAlchemy column type is a scalar boolean."""
+    return isinstance(col_type, Boolean)
+
+
+def _boolean_column_names(table: str) -> list[str]:
+    """Return boolean column names for ``table`` from the live schema."""
+    inspector = sa_inspect(db.engine)
+    return [
+        col["name"]
+        for col in inspector.get_columns(table)
+        if _is_boolean_type(col["type"])
+    ]
+
+
+def _as_export_boolean(value: Optional[str]) -> str:
+    """Map Postgres COPY tokens to ``True`` / ``False``, leaving blanks empty."""
+    if value is None or value == "":
+        return ""
+    lowered = value.strip().lower()
+    if lowered in _TRUE_TOKENS:
+        return "True"
+    if lowered in _FALSE_TOKENS:
+        return "False"
+    return value
+
+
+def rewrite_boolean_csv_values(path: str, boolean_columns: Iterable[str]) -> None:
+    """Rewrite boolean cells in a COPY CSV from ``t`` / ``f`` to ``True`` / ``False``.
+
+    Empty cells stay empty (NULL). Non-boolean columns are left unchanged, so a
+    text value ``t`` is not rewritten. ``COPY FROM`` still accepts ``True`` /
+    ``False`` on reload.
+    """
+    wanted = set(boolean_columns)
+    if not wanted:
+        return
+
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    fd, tmp_path = tempfile.mkstemp(prefix=".bool-", suffix=".csv", dir=directory)
+    os.close(fd)
+    replaced = False
+    try:
+        with open(path, newline="") as src, open(tmp_path, "w", newline="") as dst:
+            reader = csv.DictReader(src)
+            fieldnames = list(reader.fieldnames or [])
+            columns = [name for name in fieldnames if name in wanted]
+            if not columns:
+                return
+            writer = csv.DictWriter(dst, fieldnames=fieldnames, extrasaction="ignore")
+            writer.writeheader()
+            for row in reader:
+                for name in columns:
+                    row[name] = _as_export_boolean(row.get(name, ""))
+                writer.writerow(row)
+        os.replace(tmp_path, path)
+        replaced = True
+    finally:
+        if not replaced and os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
 
 def _count_csv_rows(path: str) -> int:

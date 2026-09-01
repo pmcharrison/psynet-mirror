@@ -2534,7 +2534,8 @@ def export_(
     the archive remains loadable. Original recruiter identifiers are written to
     the sidecar CSV files. This is identifier separation, not anonymization.
     Empty tables are omitted from ``database/``; ``manifest.json`` still records
-    a row count of zero for them.
+    a row count of zero for them. Boolean columns are written as ``True`` /
+    ``False`` rather than PostgreSQL ``t`` / ``f``.
     ``manifest.json`` records the deployment git commit instead of bundling
     source code.
 

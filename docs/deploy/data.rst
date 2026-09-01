@@ -80,7 +80,9 @@ A typical export directory looks like this:
 ``database/`` contains a CSV only for tables that have at least one row, so a
 typical experiment does not include unused tables such as ``chat_message.csv``.
 ``manifest.json`` still lists every table under ``table_row_counts``, with a
-count of ``0`` for omitted files.
+count of ``0`` for omitted files. Boolean columns are written as ``True`` /
+``False`` (not PostgreSQL's raw ``t`` / ``f``) so analysis tools can treat them
+as logical values; ``psynet load`` still accepts that spelling.
 
 If you want to choose your own export location, use the ``--path`` argument:
 
