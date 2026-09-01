@@ -1,0 +1,1 @@
+Stock ``README.md`` files generated while running test experiments are now gitignored, matching the other scaffold files under ``tests/experiments``, ``tests/playwright/experiments``, and ``tests/deployment``.
