@@ -12,6 +12,7 @@ import traceback
 import uuid
 import zipfile
 from collections import Counter, OrderedDict
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import cache, cached_property
 from importlib import resources
@@ -2551,6 +2552,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def with_prolific_recruitment(self):
         return issubclass(self.recruiter.__class__, ProlificRecruiter)
 
+    @dataclass
+    class ResponseResult:
+        payload: dict
+        page: object = None
+        flask_response: object = None
+
+    def _approved_payload(self, participant, page):
+        payload = {
+            "submission": "approved",
+            "page": page.__json__(participant),
+        }
+        if page.is_timeline_hold:
+            payload["timeline_hold"] = page.timeline_hold_payload(participant)
+        return payload
+
     def process_response(
         self,
         participant_id,
@@ -2580,26 +2596,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
-                return self.response_rejected(
-                    message=_p(
-                        "timeline_problem",
-                        "Synchronization problem detected. "
-                        "Are you running the same experiment in multiple browser tabs? "
-                        "Please close all other tabs and refresh the page.",
-                    )
+                return self.ResponseResult(
+                    payload={
+                        "submission": "rejected",
+                        "message": _p(
+                            "timeline_problem",
+                            "Synchronization problem detected. "
+                            "Are you running the same experiment in multiple browser tabs? "
+                            "Please close all other tabs and refresh the page.",
+                        ),
+                    }
                 )
             if event.is_timeline_hold:
                 should_resume = event.should_resume(self, participant)
                 if should_resume:
                     event.prepare_to_resume(participant)
+                    if event.participant_timed_out(participant):
+                        event.apply_timeout(participant)
                 event.account_wait(participant, settle=should_resume)
                 if should_resume:
+                    participant.inc_progress(event.time_estimate)
                     self.timeline.advance_page(self, participant)
                 page = self.timeline.get_current_elt(self, participant)
-                if flask.has_request_context():
-                    flask_app_globals.response_page = page
-                return self.response_approved(
-                    participant,
+                return self.ResponseResult(
+                    payload=self._approved_payload(participant, page),
                     page=page,
                 )
             response = event.process_response(
@@ -2626,17 +2646,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 validation, FailedValidation
             )
             if not response.successful_validation:
-                return self.response_rejected(message=validation.message)
+                return self.ResponseResult(
+                    payload={
+                        "submission": "rejected",
+                        "message": validation.message,
+                    }
+                )
 
             participant.inc_time_credit(event.time_estimate)
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
             page = self.timeline.get_current_elt(self, participant)
-            if flask.has_request_context():
-                flask_app_globals.response_page = page
-            return self.response_approved(
-                participant,
+            return self.ResponseResult(
+                payload=self._approved_payload(participant, page),
                 page=page,
             )
         except Exception as err:
@@ -2658,20 +2681,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         else None
                     ),
                 )
-            return error_response(participant=participant)
+            return self.ResponseResult(
+                payload={},
+                flask_response=error_response(participant=participant),
+            )
 
     def response_approved(self, participant, page=None):
         logger.debug("The response was approved.")
         if page is None:
             page = self.timeline.get_current_elt(self, participant)
-        payload = {
-            "submission": "approved",
-            "page": page.__json__(participant),
-        }
-        if page.is_timeline_hold:
-            payload["timeline_hold"] = page.timeline_hold_payload(participant)
-            return success_response(**payload)
-        return success_response(**payload)
+        return success_response(**self._approved_payload(participant, page))
 
     def response_rejected(self, message):
         logger.warning(
@@ -4214,6 +4233,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return handled_error.error_page()
 
     @classmethod
+    def _render_page_read_only(
+        cls, *, page, experiment, participant_id, page_uuid, kind
+    ):
+        with read_only_transaction():
+            participant = (
+                Participant.query.filter_by(id=participant_id).populate_existing().one()
+            )
+            if participant.page_uuid != page_uuid:
+                return None
+            if kind == "json":
+                return jsonify(page.__json__(participant))
+            if kind == "fragment":
+                return cls._render_prepared_partial_timeline_payload(
+                    page,
+                    experiment,
+                    participant,
+                )
+            return page.render(experiment, participant)
+
+    @classmethod
     def _render_timeline_page_read_only(
         cls,
         *,
@@ -4224,23 +4263,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page,
         mode,
     ):
-        stale = False
-        with read_only_transaction():
-            participant = (
-                Participant.query.filter_by(id=participant_id).populate_existing().one()
-            )
-            if participant.page_uuid != page_uuid:
-                stale = True
-                response = None
-            elif mode == "json":
-                response = jsonify(page.__json__(participant))
-            else:
-                # Full timeline renders happen here for initial page loads and
-                # legacy reloads. Inplace fragments use the same read-only
-                # boundary after /response.
-                response = page.render(experiment, participant)
-
-        if stale:
+        rendered = cls._render_page_read_only(
+            page=page,
+            experiment=experiment,
+            participant_id=participant_id,
+            page_uuid=page_uuid,
+            kind="json" if mode == "json" else "full",
+        )
+        if rendered is None:
             if mode == "json":
                 return jsonify(
                     {
@@ -4249,7 +4279,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     }
                 ), 409
             return redirect(f"/timeline?unique_id={unique_id}")
-        return response
+        return rendered
 
     @classmethod
     def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
@@ -4459,17 +4489,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _render_partial_timeline_payload_read_only(
         cls, *, page, experiment, participant_id, page_uuid
     ):
-        with read_only_transaction():
-            participant = (
-                Participant.query.filter_by(id=participant_id).populate_existing().one()
-            )
-            if participant.page_uuid != page_uuid:
-                return None
-            return cls._render_prepared_partial_timeline_payload(
-                page,
-                experiment,
-                participant,
-            )
+        return cls._render_page_read_only(
+            page=page,
+            experiment=experiment,
+            participant_id=participant_id,
+            page_uuid=page_uuid,
+            kind="fragment",
+        )
 
     @staticmethod
     def _render_prepared_partial_timeline_payload(page, experiment, participant):
@@ -4541,7 +4567,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         client_ip_address = cls.get_client_ip_address()
 
         try:
-            response = exp.process_response(
+            result = exp.process_response(
                 participant_id,
                 raw_answer,
                 blobs,
@@ -4563,15 +4589,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "The experiment is temporarily busy. Please try again."
             )
 
+        if result.flask_response is not None:
+            return result.flask_response
+
         try:
-            payload = json.loads(response.get_data(as_text=True))
+            payload = result.payload
             participant = Participant.query.get(participant_id)
-            page = getattr(flask_app_globals, "response_page", None)
+            page = result.page
             page_uuid_after_response = None
             render_fragment = False
             if (
-                response.status_code == 200
-                and payload.get("submission") == "approved"
+                payload.get("submission") == "approved"
                 and "timeline_hold" not in payload
                 and include_timeline_fragment
                 and get_config().get("inplace_timeline_transitions")
@@ -4591,11 +4619,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if render_fragment:
             try:
-                fragment = cls._render_partial_timeline_payload_read_only(
+                fragment = cls._render_page_read_only(
                     page=page,
                     experiment=exp,
                     participant_id=participant_id,
                     page_uuid=page_uuid_after_response,
+                    kind="fragment",
                 )
             except Exception as err:
                 if os.getenv("PASSTHROUGH_ERRORS"):
@@ -4615,7 +4644,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             payload.pop("status", None)
             return success_response(**payload)
 
-        return response
+        if payload.get("submission") == "rejected":
+            return exp.response_rejected(payload["message"])
+        return success_response(**payload)
 
     @classmethod
     def _handle_response_render_error(cls, experiment, participant_id, error):

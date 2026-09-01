@@ -24,7 +24,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.timeline import Page, _get_while_loop_start_time, get_template
+from psynet.timeline import Page, get_template
 from psynet.utils import call_function_with_context, get_logger, get_translator
 
 _TIMELINE_HOLD_CHANNEL = "psynet_timeline_hold"
@@ -32,7 +32,7 @@ _PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
 logger = get_logger()
 
 
-def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
+def _enqueue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     """Queue a targeted hold wake for publication after the next commit."""
     if page_uuid is None:
         from psynet.participant import Participant
@@ -59,10 +59,10 @@ def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     db.session.info.setdefault(_PENDING_WAKE_KEY, {})[key] = wake
 
 
-def _safely_queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
+def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     """Queue a wake without allowing notification failure to break core work."""
     try:
-        _queue_timeline_hold_wake(
+        _enqueue_timeline_hold_wake(
             participant_id,
             page_uuid=page_uuid,
             reason=reason,
@@ -165,16 +165,16 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
         self.account_until(participant, timestamp)
         self.resumed_at = timestamp
         if self.fix_time_credit:
-            self.credited_wait_seconds = self.expected_wait
+            previous_credit = self.credited_wait_seconds or 0.0
+            target_credit = self.expected_wait or 0.0
+            if target_credit > previous_credit:
+                participant.inc_time_credit(target_credit - previous_credit)
+            self.credited_wait_seconds = target_credit
 
     @property
     def deadline(self):
         """Return the authoritative timeout deadline, if configured."""
-        if self.max_wait_time is None:
-            return None
-        return self.deadline_at or (
-            self.started_at + timedelta(seconds=self.max_wait_time)
-        )
+        return self.deadline_at
 
 
 class _TimelineHoldPage(Page):
@@ -190,8 +190,10 @@ class _TimelineHoldPage(Page):
         max_wait_time,
         fix_time_credit,
         check_interval,
-        content,
+        content=None,
         message_kind=None,
+        fail_on_timeout=True,
+        on_timeout=None,
     ):
         self.hold_id = hold_id
         self.expected_wait = expected_wait
@@ -200,6 +202,8 @@ class _TimelineHoldPage(Page):
         self.check_interval = check_interval
         self.content = content
         self.message_kind = message_kind
+        self._fail_on_timeout = fail_on_timeout
+        self.on_timeout = on_timeout
         super().__init__(
             label="wait",
             time_estimate=expected_wait,
@@ -212,17 +216,15 @@ class _TimelineHoldPage(Page):
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
         now = timenow()
-        loop_started_at = _get_while_loop_start_time(participant, self.hold_id) or now
         deadline_at = (
             None
             if self.max_wait_time is None
-            else loop_started_at + timedelta(seconds=self.max_wait_time)
+            else now + timedelta(seconds=self.max_wait_time)
         )
         record = (
             TimelineHoldRecord.query.filter_by(
                 participant_id=participant.id,
                 hold_id=self.hold_id,
-                loop_started_at=loop_started_at,
                 resumed_at=None,
             )
             .order_by(TimelineHoldRecord.id.desc())
@@ -234,7 +236,7 @@ class _TimelineHoldPage(Page):
                 page_uuid=participant.page_uuid,
                 wake_token=str(uuid.uuid4()),
                 hold_id=self.hold_id,
-                loop_started_at=loop_started_at,
+                loop_started_at=now,
                 started_at=now,
                 deadline_at=deadline_at,
                 expected_wait=self.expected_wait,
@@ -284,6 +286,22 @@ class _TimelineHoldPage(Page):
 
     def prepare_to_resume(self, participant):
         """Run subclass-specific cleanup immediately before settlement."""
+
+    @property
+    def fail_on_timeout(self):
+        """Return whether exceeding the deadline should fail the participant."""
+        return self._fail_on_timeout
+
+    def apply_timeout(self, participant):
+        """Run timeout side effects and optionally fail the participant."""
+        if self.on_timeout is not None:
+            call_function_with_context(self.on_timeout, participant=participant)
+        if self.fail_on_timeout:
+            participant.append_failure_tags(
+                f"timeline_hold:{self.hold_id}",
+                "fail_on_timeout",
+            )
+            participant.fail()
 
     def account_wait(self, participant, settle=False):
         """Update actual wait diagnostics and compensation."""

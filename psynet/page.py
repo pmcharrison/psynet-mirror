@@ -283,9 +283,8 @@ def wait_while(
         Optional message to display in the log.
 
     fail_on_timeout
-        Whether the participants should be failed when the ``max_loop_time`` is reached.
-        Setting this to ``False`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
-        but allow them to proceed to the next page.
+        Whether the participant should be failed when ``max_wait_time`` is reached.
+        Setting this to ``False`` allows them to proceed to the next page instead.
 
     fix_time_credit
         Whether to award the fixed ``expected_wait`` rather than actual visible
@@ -309,28 +308,29 @@ def wait_while(
     if fix_time_credit is None:
         fix_time_credit = not uses_timeline_hold
 
+    def log(participant):
+        logger.info(f"Participant {participant.id}: {log_message}")
+
     if uses_timeline_hold:
         from psynet.timeline_hold import _ConditionHoldPage
 
-        expected_repetitions = 1
-        default_content = content is None
-        _wait_page = _ConditionHoldPage(
+        hold = _ConditionHoldPage(
             condition=condition,
             hold_id=label,
             expected_wait=expected_wait,
             max_wait_time=max_wait_time,
             fix_time_credit=fix_time_credit,
             check_interval=check_interval,
-            content=WaitPage.content if default_content else content,
-            message_kind="generic" if default_content else None,
+            content=None if content is None else content,
+            message_kind="generic" if content is None else None,
+            fail_on_timeout=fail_on_timeout,
         )
-    else:
-        expected_repetitions = ceil(expected_wait / check_interval)
-        _wait_page = wait_page(wait_time=check_interval)
+        if log_message is None:
+            return join(hold)
+        return join(CodeBlock(log), hold)
 
-    def log(participant):
-        logger.info(f"Participant {participant.id}: {log_message}")
-
+    expected_repetitions = ceil(expected_wait / check_interval)
+    _wait_page = wait_page(wait_time=check_interval)
     if log_message is None:
         logic = _wait_page
     else:

@@ -137,6 +137,7 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       psynet.resumeTimelineHold("test pending request");
       setTimeout(() => {
         psynet.nextPagePending = false;
+        psynet.resumeTimelineHold("queued pending request");
       }, 200);
     });
     await waitForResponseSubmitIncrement(

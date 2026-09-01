@@ -909,7 +909,7 @@
       clearTimeout(controller.timeoutTimer);
       if (controller.hold.timeout_ms === null) return;
       controller.timeoutTimer = setTimeout(
-        () => psynet.resumeTimelineHold("barrier timeout"),
+        () => psynet.resumeTimelineHold("hold timeout"),
         controller.hold.timeout_ms,
       );
     };
@@ -919,33 +919,23 @@
       if (!controller || controller.stopped) {
         return false;
       }
+      if (controller.resumeInFlight) {
+        controller.resumeRequested = true;
+        return false;
+      }
       if (!psynet.pageReady) {
+        controller.resumeRequested = true;
         psynet.scheduleTimelineHoldCheck(controller);
         return false;
       }
-      if (psynet.nextPagePending || controller.resumeInFlight) {
+      if (psynet.nextPagePending) {
         controller.resumeRequested = true;
-        if (psynet.nextPagePending) {
-          controller.queuedResumeAttempts += 1;
-          if (controller.queuedResumeAttempts <= 50) {
-            clearTimeout(controller.queuedResumeTimer);
-            controller.queuedResumeTimer = setTimeout(
-              () => psynet.resumeTimelineHold("queued pending request"),
-              100,
-            );
-          } else {
-            controller.queuedResumeAttempts = 0;
-            psynet.scheduleTimelineHoldCheck(controller);
-          }
-        }
         return false;
       }
 
       psynet.log.info("Checking timeline hold after " + reason + ".");
       controller.resumeInFlight = true;
       controller.resumeRequested = false;
-      controller.queuedResumeAttempts = 0;
-      clearTimeout(controller.queuedResumeTimer);
       clearTimeout(controller.safetyTimer);
       try {
         return await psynet.nextPage(null, {}, {}, undefined, {
@@ -974,7 +964,6 @@
       controller.stopped = true;
       clearTimeout(controller.safetyTimer);
       clearTimeout(controller.timeoutTimer);
-      clearTimeout(controller.queuedResumeTimer);
       if (controller.connection) {
         controller.connection.close();
       }
@@ -1021,8 +1010,6 @@
       let controller = {
         connection: null,
         hold: hold,
-        queuedResumeAttempts: 0,
-        queuedResumeTimer: null,
         resumeInFlight: false,
         resumeRequested: false,
         safetyTimer: null,

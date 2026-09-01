@@ -98,7 +98,7 @@ from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
 from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.timeline_hold import _safely_queue_timeline_hold_wake, _TimelineHoldPage
+from psynet.timeline_hold import _queue_timeline_hold_wake, _TimelineHoldPage
 from psynet.utils import get_config, get_logger
 
 logger = get_logger()
@@ -108,6 +108,7 @@ class _BarrierHoldPage(_TimelineHoldPage):
     """Internal timeline checkpoint that preserves the preceding browser page."""
 
     def __init__(self, barrier):
+        self.barrier = barrier
         self.barrier_id = barrier.id
         super().__init__(
             hold_id=f"barrier:{barrier.id}",
@@ -115,9 +116,13 @@ class _BarrierHoldPage(_TimelineHoldPage):
             max_wait_time=barrier.max_wait_time,
             fix_time_credit=barrier.fix_time_credit,
             check_interval=2.0,
-            content="Waiting for other participants…",
             message_kind="barrier",
+            on_timeout=barrier.handle_max_wait_timeout,
         )
+
+    @property
+    def fail_on_timeout(self):
+        return self.barrier.max_wait_action == "fail"
 
     def participant_can_resume(self, experiment, participant):
         """Return whether the barrier released this participant."""
@@ -256,24 +261,25 @@ class Barrier(EltCollection):
     def resolve(self):
         from psynet.timeline import join, while_loop
 
-        elts = join(
-            CodeBlock(lambda participant: self.receive_participant(participant)),
-            while_loop(
+        if self._uses_timeline_hold:
+            waiting_elts = self.waiting_logic
+        else:
+            waiting_elts = while_loop(
                 label=f"barrier:{self.id}",
                 condition=lambda participant: (
                     not self.can_participant_exit(participant)
                 ),
                 logic=self.waiting_logic,
-                expected_repetitions=(
-                    1
-                    if self._uses_timeline_hold
-                    else self.waiting_logic_expected_repetitions
-                ),
+                expected_repetitions=self.waiting_logic_expected_repetitions,
                 max_loop_time=self.max_wait_time,
                 fix_time_credit=self.fix_time_credit,
                 fail_on_timeout=(self.max_wait_action == "fail"),
                 on_timeout=self.handle_max_wait_timeout,
-            ),
+            )
+
+        elts = join(
+            CodeBlock(lambda participant: self.receive_participant(participant)),
+            waiting_elts,
             conditional(
                 "participant_failed",
                 condition=lambda participant: participant.failed,
@@ -1219,7 +1225,7 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         self.released = True
         if self.timeline_hold is not None:
             self.timeline_hold.mark_released(self.participant, timestamp)
-            _safely_queue_timeline_hold_wake(
+            _queue_timeline_hold_wake(
                 self.participant_id,
                 page_uuid=self.timeline_hold.page_uuid,
                 reason="barrier_released",

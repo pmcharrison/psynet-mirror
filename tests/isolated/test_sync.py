@@ -29,13 +29,11 @@ from psynet.sync import (
     SimpleSyncGroup,
     check_barriers,
 )
-from psynet.timeline import CodeBlock, GoTo, _while_loop_state_key
 from psynet.timeline_hold import (
     _TIMELINE_HOLD_CHANNEL,
     TimelineHoldRecord,
-    _queue_timeline_hold_wake,
+    _enqueue_timeline_hold_wake,
 )
-from psynet.utils import serialise
 
 
 def get_random_id():
@@ -280,15 +278,11 @@ def test_group_barrier_resolved_timeout_uses_overridden_handler():
         max_wait_action="kick",
     )
     elts = barrier.resolve()
-    timeout_callbacks = [
-        elt
-        for elt, next_elt in zip(elts, elts[1:])
-        if isinstance(elt, CodeBlock) and isinstance(next_elt, GoTo)
-    ]
+    hold = next(elt for elt in elts if getattr(elt, "is_timeline_hold", False))
     participant = SimpleNamespace(timeout_callback_ran=False, module_state=None)
 
-    assert len(timeout_callbacks) == 1
-    timeout_callbacks[0].consume(experiment=None, participant=participant)
+    assert hold.fail_on_timeout is False
+    hold.apply_timeout(participant)
     assert participant.timeout_callback_ran
 
 
@@ -774,7 +768,7 @@ def test_timeline_hold_wake_is_discarded_on_rollback(
         lambda *args, **kwargs: publications.append((args, kwargs)),
     )
 
-    _queue_timeline_hold_wake(participant.id, page_uuid="rolled-back")
+    _enqueue_timeline_hold_wake(participant.id, page_uuid="rolled-back")
     db_session.rollback()
     db_session.commit()
 
@@ -876,17 +870,11 @@ def test_barrier_hold_releases_link_before_pending_redirect(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_barrier_hold_reuses_record_when_loop_reenters(
-    in_experiment_directory, db_session
-):
+def test_barrier_hold_reuses_unresumed_record(in_experiment_directory, db_session):
     participant = new_participant(get_experiment())
     participant.status = "working"
     barrier = ReleaseAllBarrier(id_="reentry")
     barrier.receive_participant(participant)
-    participant.var.set(
-        _while_loop_state_key("barrier:reentry", "loop_start_time"),
-        serialise(timenow()),
-    )
 
     barrier.waiting_logic.consume(get_experiment(), participant)
     barrier.waiting_logic.consume(get_experiment(), participant)
@@ -904,19 +892,18 @@ def test_barrier_hold_reuses_record_when_loop_reenters(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_barrier_hold_does_not_reuse_record_from_earlier_loop(
+def test_barrier_hold_creates_new_record_after_resume(
     in_experiment_directory, db_session
 ):
     participant = new_participant(get_experiment())
     participant.status = "working"
     barrier = ReleaseAllBarrier(id_="new_loop")
     barrier.receive_participant(participant)
-    key = _while_loop_state_key("barrier:new_loop", "loop_start_time")
-    participant.var.set(key, serialise(timenow()))
-    barrier.waiting_logic.consume(get_experiment(), participant)
-    participant.var.set(key, serialise(timenow() + timedelta(seconds=1)))
+    hold_page = barrier.waiting_logic
+    hold_page.consume(get_experiment(), participant)
+    hold_page.account_wait(participant, settle=True)
 
-    barrier.waiting_logic.consume(get_experiment(), participant)
+    hold_page.consume(get_experiment(), participant)
     db_session.flush()
 
     assert (

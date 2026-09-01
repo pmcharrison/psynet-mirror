@@ -9,7 +9,7 @@ from psynet.timeline import (
     _while_loop_state_key,
     _while_loop_timed_out,
 )
-from psynet.timeline_hold import TimelineHoldRecord, _safely_queue_timeline_hold_wake
+from psynet.timeline_hold import TimelineHoldRecord, _queue_timeline_hold_wake
 from psynet.utils import serialise
 
 
@@ -81,7 +81,7 @@ def test_fixed_timeline_hold_records_expected_credit():
 
     assert record.actual_wait_seconds == pytest.approx(7)
     assert record.credited_wait_seconds == pytest.approx(2)
-    assert p.time_credit == 0
+    assert p.time_credit == pytest.approx(2)
     assert p.total_wait_page_time == pytest.approx(7)
 
 
@@ -147,9 +147,10 @@ def test_wait_while_can_fix_timeline_hold_credit():
         expected_wait=3,
         fix_time_credit=True,
     )
+    hold = next(elt for elt in logic if getattr(elt, "is_timeline_hold", False))
 
-    assert any(getattr(elt, "is_timeline_hold", False) for elt in logic)
-    assert any(isinstance(elt, StartFixTimeCredit) for elt in logic)
+    assert hold.fix_time_credit
+    assert not any(isinstance(elt, StartFixTimeCredit) for elt in logic)
 
 
 def test_wait_while_accepts_custom_hold_content():
@@ -168,10 +169,10 @@ def test_safe_hold_wake_does_not_propagate_notification_errors(monkeypatch, capl
         raise RuntimeError("wake failed")
 
     monkeypatch.setattr(
-        "psynet.timeline_hold._queue_timeline_hold_wake",
+        "psynet.timeline_hold._enqueue_timeline_hold_wake",
         fail,
     )
 
-    _safely_queue_timeline_hold_wake(1)
+    _queue_timeline_hold_wake(1)
 
     assert "Failed to queue a timeline hold wake" in caplog.text
