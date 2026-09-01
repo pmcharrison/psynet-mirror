@@ -327,7 +327,7 @@ def test_static_selection_carries_context_to_on_trial_created(monkeypatch):
     participant = DummyParticipant()
     participant.module_state = DummyModuleState()
     network = SimpleNamespace(id=3, block="default")
-    node = SimpleNamespace(id=2, network=network, block="default")
+    node = SimpleNamespace(id=2, network=network, network_id=3, block="default")
     trial = SimpleNamespace()
     calls = []
 

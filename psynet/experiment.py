@@ -57,7 +57,7 @@ from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import with_polymorphic
+from sqlalchemy.orm import lazyload, with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
@@ -2561,7 +2561,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
         participant = (
-            Participant.query.with_for_update(of=Participant)
+            self._participant_request_query()
+            .with_for_update(of=Participant)
             .populate_existing()
             .get(participant_id)
         )
@@ -3338,6 +3339,41 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
+    def _participant_request_query(cls):
+        """Return a participant query suited to one-participant HTTP requests.
+
+        Several participant relationships use ``lazy="selectin"`` because that
+        is efficient for dashboards and other queries that load many
+        participants. A timeline request loads exactly one participant, and
+        unconditional select-in loading would issue separate queries for the
+        current module, all module states, and active barriers.
+
+        Overriding those relationships to ordinary lazy loading preserves their
+        public behavior: the first access still loads the relationship. Pages
+        inside a module still load the current module state, but the remaining
+        relationships are fetched only by the requests that read them, such as
+        module transitions and synchronized barriers.
+        ``_current_trial`` deliberately keeps its joined-loading configuration
+        because response handling commonly needs it.
+        """
+        return Participant.query.options(
+            lazyload(Participant.module_state),
+            lazyload(Participant._module_states),
+            lazyload(Participant.active_barriers),
+        )
+
+    @classmethod
+    def _get_request_participant_from_unique_id(cls, unique_id: str):
+        """Load one request participant without unrelated eager relationships.
+
+        This deliberately does not call
+        :meth:`~psynet.experiment.Experiment.get_participant_from_unique_id`,
+        whose eager loading suits callers that may use the participant after
+        its session closes. Lookup semantics are otherwise identical.
+        """
+        return cls._participant_request_query().filter_by(unique_id=unique_id).one()
+
+    @classmethod
     def get_participant_from_assignment_id(
         cls, assignment_id: str, for_update: bool = False
     ):
@@ -4016,7 +4052,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
+        participant = cls._get_request_participant_from_unique_id(unique_id)
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
