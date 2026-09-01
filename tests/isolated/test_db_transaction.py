@@ -46,9 +46,7 @@ class ConcurrentAdvanceRenderPage(Page):
     def render(self, experiment, participant, partial_mode=False):
         with db.engine.begin() as connection:
             connection.execute(
-                text(
-                    "UPDATE participant SET page_uuid = :page_uuid WHERE id = :id"
-                ),
+                text("UPDATE participant SET page_uuid = :page_uuid WHERE id = :id"),
                 {"page_uuid": "advanced-during-render", "id": self.participant_id},
             )
         return "<p>rendered</p>"
@@ -273,9 +271,7 @@ def test_timeline_render_discards_page_advanced_during_render(db_session):
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_response_write_retries_cleanly_after_commit_failure(
-    db_session, monkeypatch
-):
+def test_response_write_retries_cleanly_after_commit_failure(db_session, monkeypatch):
     experiment = get_experiment()
     monkeypatch.setattr(
         experiment,
