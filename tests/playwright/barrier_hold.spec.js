@@ -69,7 +69,9 @@ test("default barriers hold the current page until websocket release", { tag: "@
     // wait should not produce the old twice-per-second response polling.
     await firstParticipant.waitForTimeout(1000);
     const settledResponseCount = firstResponses.getCount();
-    await firstParticipant.waitForTimeout(2500);
+    // The minimum safety-poll interval is 2000 ms, so this bounded window can
+    // contain at most one fallback check regardless of jitter.
+    await firstParticipant.waitForTimeout(1500);
     expect(firstResponses.getCount()).toBeLessThanOrEqual(
       settledResponseCount + 1
     );

@@ -870,28 +870,6 @@ def test_barrier_hold_releases_link_before_pending_redirect(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_barrier_hold_reuses_unresumed_record(in_experiment_directory, db_session):
-    participant = new_participant(get_experiment())
-    participant.status = "working"
-    barrier = ReleaseAllBarrier(id_="reentry")
-    barrier.receive_participant(participant)
-
-    barrier.waiting_logic.consume(get_experiment(), participant)
-    barrier.waiting_logic.consume(get_experiment(), participant)
-    db_session.flush()
-
-    assert (
-        TimelineHoldRecord.query.filter_by(participant_id=participant.id).count() == 1
-    )
-    assert (
-        participant.active_barriers[barrier.id].timeline_hold.page_uuid
-        == participant.page_uuid
-    )
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
-)
 def test_barrier_hold_creates_new_record_after_resume(
     in_experiment_directory, db_session
 ):
@@ -901,6 +879,8 @@ def test_barrier_hold_creates_new_record_after_resume(
     barrier.receive_participant(participant)
     hold_page = barrier.waiting_logic
     hold_page.consume(get_experiment(), participant)
+    first_record = participant.active_barriers[barrier.id].timeline_hold
+    assert first_record.deadline_at is not None
     hold_page.account_wait(participant, settle=True)
 
     hold_page.consume(get_experiment(), participant)
@@ -909,6 +889,7 @@ def test_barrier_hold_creates_new_record_after_resume(
     assert (
         TimelineHoldRecord.query.filter_by(participant_id=participant.id).count() == 2
     )
+    assert participant.active_barriers[barrier.id].timeline_hold is not first_record
 
 
 def test_group_barrier_rejects_bound_method():

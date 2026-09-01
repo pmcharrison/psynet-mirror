@@ -22,7 +22,7 @@ from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from statistics import median
-from typing import List, Optional, Type, Union
+from typing import Any, List, Optional, Type, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -147,6 +147,15 @@ database_template_path = ".deploy/database_template.zip"
 
 DEFAULT_LOCALE = "en"
 INITIAL_RECRUITMENT_SIZE = 1
+
+
+@dataclass
+class ResponseResult:
+    """Carry response state from the write phase to HTTP rendering."""
+
+    payload: dict
+    page: Optional[Any] = None
+    flask_response: Optional[Any] = None
 
 
 def error_response(*args, **kwargs):
@@ -2552,12 +2561,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def with_prolific_recruitment(self):
         return issubclass(self.recruiter.__class__, ProlificRecruiter)
 
-    @dataclass
-    class ResponseResult:
-        payload: dict
-        page: object = None
-        flask_response: object = None
-
     def _approved_payload(self, participant, page):
         payload = {
             "submission": "approved",
@@ -2596,7 +2599,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
-                return self.ResponseResult(
+                return ResponseResult(
                     payload={
                         "submission": "rejected",
                         "message": _p(
@@ -2608,17 +2611,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     }
                 )
             if event.is_timeline_hold:
-                should_resume = event.should_resume(self, participant)
-                if should_resume:
-                    event.prepare_to_resume(participant)
-                    if event.participant_timed_out(participant):
-                        event.apply_timeout(participant)
+                should_resume = event.prepare_resume_if_ready(self, participant)
                 event.account_wait(participant, settle=should_resume)
                 if should_resume:
                     participant.inc_progress(event.time_estimate)
                     self.timeline.advance_page(self, participant)
                 page = self.timeline.get_current_elt(self, participant)
-                return self.ResponseResult(
+                return ResponseResult(
                     payload=self._approved_payload(participant, page),
                     page=page,
                 )
@@ -2646,7 +2645,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 validation, FailedValidation
             )
             if not response.successful_validation:
-                return self.ResponseResult(
+                return ResponseResult(
                     payload={
                         "submission": "rejected",
                         "message": validation.message,
@@ -2658,7 +2657,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             self.timeline.advance_page(self, participant)
             page = self.timeline.get_current_elt(self, participant)
-            return self.ResponseResult(
+            return ResponseResult(
                 payload=self._approved_payload(participant, page),
                 page=page,
             )
@@ -2681,7 +2680,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         else None
                     ),
                 )
-            return self.ResponseResult(
+            return ResponseResult(
                 payload={},
                 flask_response=error_response(participant=participant),
             )
@@ -4250,7 +4249,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     experiment,
                     participant,
                 )
-            return page.render(experiment, participant)
+            if kind == "full":
+                return page.render(experiment, participant)
+            raise ValueError(f"Unknown read-only render kind: {kind!r}.")
 
     @classmethod
     def _render_timeline_page_read_only(
@@ -4484,18 +4485,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page.pre_render()
 
         return page
-
-    @classmethod
-    def _render_partial_timeline_payload_read_only(
-        cls, *, page, experiment, participant_id, page_uuid
-    ):
-        return cls._render_page_read_only(
-            page=page,
-            experiment=experiment,
-            participant_id=participant_id,
-            page_uuid=page_uuid,
-            kind="fragment",
-        )
 
     @staticmethod
     def _render_prepared_partial_timeline_payload(page, experiment, participant):

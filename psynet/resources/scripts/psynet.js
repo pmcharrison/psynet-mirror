@@ -930,6 +930,7 @@
       }
       if (psynet.nextPagePending) {
         controller.resumeRequested = true;
+        psynet.scheduleTimelineHoldCheck(controller);
         return false;
       }
 

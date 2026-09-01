@@ -133,18 +133,18 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
 
     const pendingBaseline = responses.getCount();
     await experimentPage.evaluate(() => {
+      psynet.timelineHold.hold.safety_poll_ms = 100;
       psynet.nextPagePending = true;
       psynet.resumeTimelineHold("test pending request");
       setTimeout(() => {
         psynet.nextPagePending = false;
-        psynet.resumeTimelineHold("queued pending request");
       }, 200);
     });
     await waitForResponseSubmitIncrement(
       responses,
       pendingBaseline,
       1,
-      1000
+      2000
     );
 
     await expect(experimentPage.locator("#main-body")).toContainText(

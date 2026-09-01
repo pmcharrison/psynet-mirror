@@ -5,11 +5,17 @@ import pytest
 
 from psynet.page import WaitPage, wait_while
 from psynet.timeline import (
+    StartFixProgress,
     StartFixTimeCredit,
+    StartSwitch,
     _while_loop_state_key,
     _while_loop_timed_out,
 )
-from psynet.timeline_hold import TimelineHoldRecord, _queue_timeline_hold_wake
+from psynet.timeline_hold import (
+    TimelineHoldRecord,
+    _queue_timeline_hold_wake,
+    _TimelineHoldPage,
+)
 from psynet.utils import serialise
 
 
@@ -131,6 +137,19 @@ def test_wait_while_defaults_to_timeline_hold():
     assert holds[0].time_estimate == 3
     assert not any(isinstance(elt, WaitPage) for elt in logic)
     assert not any(isinstance(elt, StartFixTimeCredit) for elt in logic)
+    assert any(isinstance(elt, StartFixProgress) for elt in logic)
+
+
+def test_wait_while_skips_hold_when_condition_is_already_false():
+    logic = wait_while(lambda: False, expected_wait=3)
+    switch = next(elt for elt in logic if isinstance(elt, StartSwitch))
+
+    target = switch.get_target(
+        experiment=object(),
+        participant=SimpleNamespace(module_state=None),
+    )
+
+    assert target.name is False
 
 
 def test_wait_while_preserves_explicit_wait_page_behavior():
@@ -150,7 +169,7 @@ def test_wait_while_can_fix_timeline_hold_credit():
     hold = next(elt for elt in logic if getattr(elt, "is_timeline_hold", False))
 
     assert hold.fix_time_credit
-    assert not any(isinstance(elt, StartFixTimeCredit) for elt in logic)
+    assert any(isinstance(elt, StartFixTimeCredit) for elt in logic)
 
 
 def test_wait_while_accepts_custom_hold_content():
@@ -176,3 +195,61 @@ def test_safe_hold_wake_does_not_propagate_notification_errors(monkeypatch, capl
     _queue_timeline_hold_wake(1)
 
     assert "Failed to queue a timeline hold wake" in caplog.text
+
+
+class ResumeTestHold(_TimelineHoldPage):
+    def __init__(self, *, can_resume, timed_out):
+        self._can_resume = can_resume
+        self._timed_out = timed_out
+        self.prepared = False
+        self.timeout_applied = False
+        super().__init__(
+            hold_id="test",
+            expected_wait=1,
+            max_wait_time=2,
+            fix_time_credit=False,
+            check_interval=1,
+        )
+
+    def participant_can_resume(self, experiment, participant):
+        return self._can_resume
+
+    def participant_timed_out(self, participant):
+        return self._timed_out
+
+    def prepare_to_resume(self, participant):
+        self.prepared = True
+
+    def apply_timeout(self, participant):
+        self.timeout_applied = True
+
+
+def test_released_hold_wins_over_simultaneous_timeout():
+    hold = ResumeTestHold(can_resume=True, timed_out=True)
+    participant = SimpleNamespace(pending_redirect=None, failed=False)
+
+    assert hold.prepare_resume_if_ready(object(), participant)
+    assert hold.prepared
+    assert not hold.timeout_applied
+
+
+def test_uncleared_timed_out_hold_applies_timeout():
+    hold = ResumeTestHold(can_resume=False, timed_out=True)
+    participant = SimpleNamespace(pending_redirect=None, failed=False)
+
+    assert hold.prepare_resume_if_ready(object(), participant)
+    assert hold.prepared
+    assert hold.timeout_applied
+
+
+def test_hold_timeout_fails_participant_with_hold_tags():
+    tags = []
+    participant = SimpleNamespace(
+        append_failure_tags=lambda *values: tags.extend(values),
+        fail=lambda: tags.append("failed"),
+    )
+    hold = ResumeTestHold(can_resume=False, timed_out=True)
+
+    _TimelineHoldPage.apply_timeout(hold, participant)
+
+    assert tags == ["timeline_hold:test", "fail_on_timeout", "failed"]

@@ -194,11 +194,12 @@ def test_partial_timeline_render_rejects_orm_mutation(db_session):
     db_session.commit()
 
     with pytest.raises(RuntimeError, match="attempted to mutate ORM state"):
-        Experiment._render_partial_timeline_payload_read_only(
+        Experiment._render_page_read_only(
             experiment=experiment,
             participant_id=participant_id,
             page_uuid=page_uuid,
             page=MutatingRenderPage(),
+            kind="fragment",
         )
 
     participant = Participant.query.get(participant_id)
@@ -215,11 +216,12 @@ def test_partial_timeline_render_rejects_stale_page_uuid(db_session):
     experiment = get_experiment()
     db_session.commit()
 
-    fragment = Experiment._render_partial_timeline_payload_read_only(
+    fragment = Experiment._render_page_read_only(
         experiment=experiment,
         participant_id=participant_id,
         page_uuid="stale-page",
         page=MutatingRenderPage(),
+        kind="fragment",
     )
 
     assert fragment is None

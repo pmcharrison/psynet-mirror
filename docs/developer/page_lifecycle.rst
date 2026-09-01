@@ -268,6 +268,8 @@ Timeline holds
 
 Timeline holds pause server-side advancement without replacing the visible
 page. They are used by default barriers and by :func:`psynet.page.wait_while`.
+Condition holds first evaluate their condition and are skipped entirely when
+there is nothing to wait for.
 The server advances to an internal hold checkpoint and returns ``timeline_hold``
 metadata instead of a timeline fragment. The browser updates only its
 submission UUID, makes the visible controls inert, and renders a compact status
@@ -305,6 +307,8 @@ fixed expected credit when predictable per-participant payment is preferred.
 This policy also applies to ``AsyncCodeBlock(wait=True)`` and framework
 feedback/asset-processing waits because they use
 :func:`psynet.page.wait_while`.
+Timeout failures use ``timeline_hold:<hold_id>`` and ``fail_on_timeout`` failure
+tags.
 
 Bots
 ~~~~

@@ -20,6 +20,7 @@ from .timeline import (
     Page,
     PageMaker,
     _normalize_js_page_code,
+    conditional,
     get_template,
     join,
     while_loop,
@@ -321,13 +322,21 @@ def wait_while(
             max_wait_time=max_wait_time,
             fix_time_credit=fix_time_credit,
             check_interval=check_interval,
-            content=None if content is None else content,
+            content=content,
             message_kind="generic" if content is None else None,
             fail_on_timeout=fail_on_timeout,
         )
-        if log_message is None:
-            return join(hold)
-        return join(CodeBlock(log), hold)
+        hold_logic = hold if log_message is None else join(CodeBlock(log), hold)
+        return join(
+            conditional(
+                label,
+                condition,
+                logic_if_true=hold_logic,
+                fix_time_credit=fix_time_credit,
+                log_chosen_branch=False,
+                time_estimate=expected_wait,
+            )
+        )
 
     expected_repetitions = ceil(expected_wait / check_interval)
     _wait_page = wait_page(wait_time=check_interval)

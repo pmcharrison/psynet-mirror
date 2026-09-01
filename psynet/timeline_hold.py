@@ -55,8 +55,7 @@ def _enqueue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
         "wake_token": active_hold.wake_token,
         "reason": reason,
     }
-    key = (active_hold.wake_token, reason)
-    db.session.info.setdefault(_PENDING_WAKE_KEY, {})[key] = wake
+    db.session.info.setdefault(_PENDING_WAKE_KEY, {})[active_hold.wake_token] = wake
 
 
 def _queue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
@@ -109,7 +108,6 @@ class TimelineHoldRecord(SQLBase, SQLMixin):
         String, unique=True, index=True, default=lambda: str(uuid.uuid4())
     )
     hold_id = Column(String, index=True)
-    loop_started_at = Column(DateTime, index=True)
     started_at = Column(DateTime)
     deadline_at = Column(DateTime)
     released_at = Column(DateTime)
@@ -221,33 +219,20 @@ class _TimelineHoldPage(Page):
             if self.max_wait_time is None
             else now + timedelta(seconds=self.max_wait_time)
         )
-        record = (
-            TimelineHoldRecord.query.filter_by(
-                participant_id=participant.id,
-                hold_id=self.hold_id,
-                resumed_at=None,
-            )
-            .order_by(TimelineHoldRecord.id.desc())
-            .first()
+        record = TimelineHoldRecord(
+            participant=participant,
+            page_uuid=participant.page_uuid,
+            wake_token=str(uuid.uuid4()),
+            hold_id=self.hold_id,
+            started_at=now,
+            deadline_at=deadline_at,
+            expected_wait=self.expected_wait,
+            max_wait_time=self.max_wait_time,
+            fix_time_credit=self.fix_time_credit,
+            actual_wait_seconds=0.0,
+            credited_wait_seconds=0.0,
         )
-        if record is None:
-            record = TimelineHoldRecord(
-                participant=participant,
-                page_uuid=participant.page_uuid,
-                wake_token=str(uuid.uuid4()),
-                hold_id=self.hold_id,
-                loop_started_at=now,
-                started_at=now,
-                deadline_at=deadline_at,
-                expected_wait=self.expected_wait,
-                max_wait_time=self.max_wait_time,
-                fix_time_credit=self.fix_time_credit,
-                actual_wait_seconds=0.0,
-                credited_wait_seconds=0.0,
-            )
-            db.session.add(record)
-        else:
-            record.page_uuid = participant.page_uuid
+        db.session.add(record)
         participant._timeline_hold_record = record
         self.on_hold_record_created(participant, record)
 
@@ -275,14 +260,18 @@ class _TimelineHoldPage(Page):
         deadline = self.get_hold_record(participant).deadline
         return deadline is not None and timenow() >= deadline
 
-    def should_resume(self, experiment, participant):
-        """Return whether this hold should advance or follow a redirect."""
-        return (
-            participant.pending_redirect is not None
-            or participant.failed
-            or self.participant_can_resume(experiment, participant)
-            or self.participant_timed_out(participant)
-        )
+    def prepare_resume_if_ready(self, experiment, participant):
+        """Prepare a cleared or timed-out hold and return whether it can resume."""
+        forced_resume = participant.pending_redirect is not None or participant.failed
+        can_resume = self.participant_can_resume(experiment, participant)
+        timed_out = self.participant_timed_out(participant)
+        if not (forced_resume or can_resume or timed_out):
+            return False
+
+        self.prepare_to_resume(participant)
+        if timed_out and not forced_resume and not can_resume:
+            self.apply_timeout(participant)
+        return True
 
     def prepare_to_resume(self, participant):
         """Run subclass-specific cleanup immediately before settlement."""
