@@ -16,8 +16,8 @@ from .paths import (
     table_csv_path,
 )
 
-# Postgres COPY writes t/f; we rewrite those to True/False on export.
-# Keep both spellings so older archives still load as booleans.
+# Current exports spell booleans True/False inside COPY. Older archives still
+# use PostgreSQL's t/f, so loaders accept both.
 _CSV_TRUE_VALUES = ["True", "true", "TRUE", "t", "T"]
 _CSV_FALSE_VALUES = ["False", "false", "FALSE", "f", "F"]
 

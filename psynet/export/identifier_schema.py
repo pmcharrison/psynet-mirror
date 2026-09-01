@@ -50,7 +50,6 @@ class IdentifierSchema:
     """Validated identifier columns keyed by ``(table, column)``."""
 
     columns: dict[tuple[str, str], IdentifierColumn]
-    tables_with_id: frozenset[str]
 
     def get(self, table: str, name: str) -> Optional[IdentifierColumn]:
         """Return the policy for ``table.name``, if it is an identifier."""
@@ -158,14 +157,11 @@ def validate_identifier_schema(
         else sorted(inspector.get_table_names())
     )
     columns: dict[tuple[str, str], IdentifierColumn] = {}
-    tables_with_id: set[str] = set()
     problems: list[str] = []
 
     for table in tables:
         reflected = inspector.get_columns(table)
         has_id = _table_has_id(reflected)
-        if has_id:
-            tables_with_id.add(table)
         unique_names = _unique_column_names(inspector, table)
         not_null = {column["name"] for column in reflected if not column["nullable"]}
 
@@ -198,7 +194,7 @@ def validate_identifier_schema(
             "identifier separation. Recruiter-identifier columns must be "
             f"unconstrained text or JSON. {details}"
         )
-    return IdentifierSchema(columns=columns, tables_with_id=frozenset(tables_with_id))
+    return IdentifierSchema(columns=columns)
 
 
 def _column_problem(

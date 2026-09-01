@@ -455,6 +455,42 @@ def test_extract_archive_rejects_zip_slip(tmp_path):
     assert not (tmp_path / "outside.txt").exists()
 
 
+def test_extract_archive_rejects_mixed_layouts_before_unpack(tmp_path):
+    archive = tmp_path / "export.zip"
+    staging = tmp_path / "staging"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr("manifest.json", '{"export_format_version": 1}')
+        handle.writestr("database/trial.csv", "id\n1\n")
+        handle.writestr("data/participant.csv", "id\n2\n")
+    with pytest.raises(TransferError, match="ambiguous table layout"):
+        extract_archive(str(archive), str(staging))
+    assert not (staging / "database" / "trial.csv").exists()
+    assert not (staging / "data" / "participant.csv").exists()
+
+
+def test_extract_archive_rejects_duplicate_members_before_unpack(tmp_path):
+    archive = tmp_path / "export.zip"
+    staging = tmp_path / "staging"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr("manifest.json", '{"export_format_version": 1}')
+        handle.writestr("database/trial.csv", "id\n1\n")
+        handle.writestr("database/trial.csv", "id\n2\n")
+    with pytest.raises(TransferError, match="ambiguous table layout"):
+        extract_archive(str(archive), str(staging))
+    assert not (staging / "database" / "trial.csv").exists()
+
+
+def test_extract_archive_rejects_legacy_data_layout(tmp_path):
+    archive = tmp_path / "export.zip"
+    staging = tmp_path / "staging"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr("manifest.json", '{"export_format_version": 1}')
+        handle.writestr("data/trial.csv", "id\n1\n")
+    with pytest.raises(TransferError, match="under data/"):
+        extract_archive(str(archive), str(staging))
+    assert not (staging / "data" / "trial.csv").exists()
+
+
 def test_hydration_rejects_an_escaping_export_path(tmp_path, cache_root):
     digest = write_remote_object(tmp_path / "remote", b"bytes")
     export_dir = tmp_path / "export"

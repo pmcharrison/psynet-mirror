@@ -2664,6 +2664,7 @@ def _fetch_remote_export(
     from .export.identity import (
         ProjectIdentity,
         ProjectMismatch,
+        check_export_format_version,
         confirm_project_identity,
         identity_changed,
         identity_from_manifest,
@@ -2772,15 +2773,20 @@ def _fetch_remote_export(
         # redeployment, and older servers have no preflight at all.
         if manifest:
             downloaded_identity = identity_from_manifest(manifest)
-            if remote_identity is not None and identity_changed(
-                remote_identity, downloaded_identity
-            ):
+            if remote_identity is None:
+                check_identity(downloaded_identity)
+            elif identity_changed(remote_identity, downloaded_identity):
                 raise TransferError(
                     "The downloaded export does not match the deployment that "
                     "answered preflight. The experiment may have been replaced "
                     "during transfer; retry the export."
                 )
-            check_identity(downloaded_identity)
+            else:
+                try:
+                    check_export_format_version(downloaded_identity)
+                except ProjectMismatch as exc:
+                    log(str(exc))
+                    raise click.Abort from exc
 
         if ssh_session is not None:
             fetch_logs(export_path, app=app, server=server, session=ssh_session)

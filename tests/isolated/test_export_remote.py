@@ -107,6 +107,44 @@ def test_downloaded_manifest_is_checked_even_after_preflight(tmp_path, monkeypat
         )
 
 
+def test_matching_downloaded_manifest_does_not_reprompt_identity(tmp_path, monkeypatch):
+    identity = {
+        "experiment_label": "demo",
+        "deployment_id": "one",
+        "export_format_version": 1,
+    }
+    _fetch_remote_export, experiment_class, config, export_path = _remote_export_env(
+        tmp_path,
+        monkeypatch,
+        preflight=identity,
+        manifest=identity,
+        docker_ssh=False,
+    )
+    prompts = []
+
+    def tracking_confirm(*args, **kwargs):
+        prompts.append(args[1] if len(args) > 1 else kwargs.get("remote"))
+
+    monkeypatch.setattr(
+        "psynet.export.identity.confirm_project_identity", tracking_confirm
+    )
+    monkeypatch.setattr("psynet.export.client.fetch_logs", lambda *a, **k: None)
+
+    _fetch_remote_export(
+        experiment_class,
+        export_path,
+        app="app",
+        server=None,
+        docker_ssh=False,
+        config=config,
+        assets="none",
+        transfer="archive",
+        allow_project_mismatch=False,
+    )
+
+    assert len(prompts) == 1
+
+
 def test_incremental_oserror_falls_back_to_the_complete_archive(
     tmp_path, monkeypatch, stub_ssh_connection
 ):

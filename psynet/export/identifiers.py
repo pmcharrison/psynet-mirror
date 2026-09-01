@@ -52,6 +52,11 @@ _JSON_IDENTIFIER_FIELDS = frozenset({"entry_information"})
 
 _PARTICIPANT_TABLE = "participant"
 _LUCID_TABLE = "lucid_rid"
+_PARTICIPANT_PSEUDONYM_FIELDS = frozenset(
+    {"worker_id", "assignment_id", "hit_id", "unique_id"}
+)
+_LUCID_PSEUDONYM_FIELDS = frozenset({"rid"})
+_LUCID_REDACTED_FIELDS = frozenset({"lucid_panelist_id", "lucid_respondent_id"})
 
 
 def identifier_role(table: str, column: str) -> Optional[str]:
@@ -61,15 +66,15 @@ def identifier_role(table: str, column: str) -> Optional[str]:
     validator uses this so unsupported custom columns fail closed before COPY.
     """
     if table == _PARTICIPANT_TABLE:
-        if column in ("worker_id", "assignment_id", "hit_id", "unique_id"):
+        if column in _PARTICIPANT_PSEUDONYM_FIELDS:
             return "pseudonym"
         if column in REDACTED_IDENTIFIER_FIELDS:
             return "redact"
         return None
     if table == _LUCID_TABLE:
-        if column == "rid":
+        if column in _LUCID_PSEUDONYM_FIELDS:
             return "pseudonym"
-        if column in ("lucid_panelist_id", "lucid_respondent_id"):
+        if column in _LUCID_REDACTED_FIELDS:
             return "redact"
         return None
     if column in MAPPED_IDENTIFIER_FIELDS:
@@ -127,38 +132,6 @@ def _pseudonym_lookup(table: str, column: str) -> sql.Composable:
     )
 
 
-def _participant_override(
-    column: str, not_null: set, *, kind: str
-) -> Optional[sql.Composable]:
-    """Return the pseudonym expression for a column of ``participant``."""
-    if column in ("worker_id", "assignment_id", "hit_id"):
-        return _participant_id_text()
-    if column == "unique_id":
-        return sql.SQL("{id} || ':' || {id}").format(id=_participant_id_text())
-    if column in REDACTED_IDENTIFIER_FIELDS:
-        return _redaction(_PARTICIPANT_TABLE, column, not_null, has_id=True, kind=kind)
-    return None
-
-
-def _lucid_override(
-    column: str, not_null: set, *, kind: str
-) -> Optional[sql.Composable]:
-    """Return the pseudonym expression for a column of ``lucid_rid``.
-
-    A Lucid ghost entrant has no participant, so its ``rid`` falls back to a
-    placeholder derived from the row id.
-    """
-    if column == "rid":
-        return sql.SQL("COALESCE({participant}::text, {prefix} || {id})").format(
-            participant=sql.Identifier("participant_id"),
-            prefix=sql.Literal("entrant-"),
-            id=_participant_id_text(),
-        )
-    if column in ("lucid_panelist_id", "lucid_respondent_id"):
-        return _redaction(_LUCID_TABLE, column, not_null, has_id=True, kind=kind)
-    return None
-
-
 def identifier_override(
     table: str,
     column: str,
@@ -179,15 +152,24 @@ def identifier_override(
     if role is None:
         return None
     if table == _PARTICIPANT_TABLE:
-        return _participant_override(column, not_null, kind=kind)
+        if column == "unique_id":
+            return sql.SQL("{id} || ':' || {id}").format(id=_participant_id_text())
+        if column in _PARTICIPANT_PSEUDONYM_FIELDS:
+            return _participant_id_text()
+        return _redaction(_PARTICIPANT_TABLE, column, not_null, has_id=True, kind=kind)
     if table == _LUCID_TABLE:
-        return _lucid_override(column, not_null, kind=kind)
+        if column in _LUCID_PSEUDONYM_FIELDS:
+            return sql.SQL("COALESCE({participant}::text, {prefix} || {id})").format(
+                participant=sql.Identifier("participant_id"),
+                prefix=sql.Literal("entrant-"),
+                id=_participant_id_text(),
+            )
+        return _redaction(_LUCID_TABLE, column, not_null, has_id=True, kind=kind)
     if role == "pseudonym":
         return sql.SQL("COALESCE({lookup}, {fallback})").format(
             lookup=_pseudonym_lookup(table, column),
             fallback=_redaction(table, column, not_null, has_id, kind=kind),
         )
-    # Request parameters can echo recruiter query strings back to us.
     return _redaction(table, column, not_null, has_id, kind=kind)
 
 

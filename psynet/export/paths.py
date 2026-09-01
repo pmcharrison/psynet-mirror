@@ -15,15 +15,23 @@ are still accepted for ``--archive`` and analysis.
 from __future__ import annotations
 
 import os
-import zipfile
 
-from .path_safety import (
-    find_table_member,
-    table_csv_member_map,
-)
-from .path_safety import (
-    table_csv_members as safe_table_csv_members,
-)
+from .path_safety import find_table_member as find_table_member_in_zip
+from .path_safety import table_csv_member_map as table_csv_members_by_table
+from .path_safety import table_csv_members
+
+__all__ = [
+    "DATABASE_DIRNAME",
+    "EXPORT_FORMAT_VERSION",
+    "EXPORT_ZIP_NAME",
+    "dashboard_export_zip_path",
+    "find_table_member_in_zip",
+    "is_zip_path",
+    "resolve_database_dir",
+    "table_csv_members",
+    "table_csv_members_by_table",
+    "table_csv_path",
+]
 
 DATABASE_DIRNAME = "database"
 EXPORT_ZIP_NAME = "export.zip"
@@ -128,27 +136,3 @@ def _dir_has_csv(directory: str) -> bool:
 def table_csv_path(database_dir: str, table: str) -> str:
     """Return ``database_dir/<table>.csv``."""
     return os.path.join(database_dir, f"{table}.csv")
-
-
-def find_table_member_in_zip(archive: zipfile.ZipFile, table: str) -> str | None:
-    """Return the zip member path for ``table``, or ``None``.
-
-    Prefers ``database/<table>.csv``, then legacy ``data/<table>.csv``.
-    Nested lookalikes and mixed layouts are rejected rather than flattened.
-    """
-    return find_table_member(archive, table)
-
-
-def table_csv_members(archive: zipfile.ZipFile) -> list[str]:
-    """Return the zip members that hold table CSVs.
-
-    Used when re-packing an export archive for deployment, so that only
-    exact ``database/`` (or legacy ``data/``) table CSVs travel to the server
-    and identifier sidecars and assets stay behind.
-    """
-    return safe_table_csv_members(archive)
-
-
-def table_csv_members_by_table(archive: zipfile.ZipFile) -> dict[str, str]:
-    """Return table CSV members keyed by table after one layout validation."""
-    return table_csv_member_map(archive)

@@ -50,9 +50,12 @@ from psynet.utils import get_logger
 
 from .identity import ProjectIdentity
 from .path_safety import (
+    DATABASE_LAYOUT,
+    AmbiguousArchiveLayoutError,
     UnsafePathError,
     assert_semantic_asset_path,
     extract_zip_contained,
+    table_csv_members,
 )
 
 logger = get_logger()
@@ -220,17 +223,33 @@ def _describe_failed_response(response) -> str:
 def extract_archive(zip_path: str, staging_dir: str) -> dict:
     """Extract a downloaded archive into ``staging_dir`` and return its manifest.
 
+    Layout is classified before any members are unpacked, so mixed
+    ``database/`` + ``data/`` zips and duplicate table members fail closed.
+    Legacy ``data/`` table CSVs are for ``psynet load`` and ``--archive``, not
+    for ``psynet export``.
+
     Raises
     ------
     TransferError
-        If the archive is corrupt or does not look like a PsyNet export.
+        If the archive is corrupt, ambiguous, or not a PsyNet export.
     """
     staging = Path(staging_dir)
     staging.mkdir(parents=True, exist_ok=True)
     try:
         with zipfile.ZipFile(zip_path, "r") as archive:
             manifest = _read_manifest_member(archive)
+            members = table_csv_members(archive)
+            if members and not members[0].startswith(f"{DATABASE_LAYOUT}/"):
+                raise TransferError(
+                    "The downloaded archive stores table CSVs under data/, which "
+                    "psynet export no longer publishes. Use psynet load or "
+                    "--archive to read a legacy database.zip."
+                )
             extract_zip_contained(archive, str(staging))
+    except AmbiguousArchiveLayoutError as exc:
+        raise TransferError(
+            f"The downloaded export archive has an ambiguous table layout: {exc}"
+        ) from exc
     except (zipfile.BadZipFile, OSError, UnsafePathError) as exc:
         raise TransferError(
             f"The downloaded export archive is not readable: {exc}"
