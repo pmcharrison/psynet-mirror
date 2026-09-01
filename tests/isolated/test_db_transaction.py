@@ -1,4 +1,5 @@
 import pytest
+import sqlalchemy
 from dallinger import db
 from sqlalchemy import Column, String, text
 from sqlalchemy.orm import object_session
@@ -10,9 +11,10 @@ from psynet.db import (
     transaction,
 )
 from psynet.experiment import Experiment, get_experiment
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.timeline import Page
+from psynet.timeline import Page, Response, Timeline
 
 
 class DummyTransactionModel(SQLBase):
@@ -30,6 +32,25 @@ class MutatingRenderPage(Page):
 
     def render(self, experiment, participant, partial_mode=False):
         participant.worker_id = "mutated-during-render"
+        return "<p>rendered</p>"
+
+
+class ConcurrentAdvanceRenderPage(Page):
+    def __init__(self, participant_id):
+        super().__init__(
+            template_fragment_str="<p>Rendered</p>",
+            time_estimate=0,
+        )
+        self.participant_id = participant_id
+
+    def render(self, experiment, participant, partial_mode=False):
+        with db.engine.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE participant SET page_uuid = :page_uuid WHERE id = :id"
+                ),
+                {"page_uuid": "advanced-during-render", "id": self.participant_id},
+            )
         return "<p>rendered</p>"
 
 
@@ -225,3 +246,93 @@ def test_partial_timeline_render_rejects_stale_page_uuid(db_session):
     )
 
     assert fragment is None
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_timeline_render_discards_page_advanced_during_render(db_session):
+    participant = new_participant()
+    db_session.flush()
+    participant_id = participant.id
+    page_uuid = participant.page_uuid
+    experiment = get_experiment()
+    db_session.commit()
+
+    rendered = Experiment._render_page_read_only(
+        experiment=experiment,
+        participant_id=participant_id,
+        page_uuid=page_uuid,
+        page=ConcurrentAdvanceRenderPage(participant_id),
+        kind="full",
+    )
+
+    assert rendered is None
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_response_write_retries_cleanly_after_commit_failure(
+    db_session, monkeypatch
+):
+    experiment = get_experiment()
+    monkeypatch.setattr(
+        experiment,
+        "timeline",
+        Timeline(
+            InfoPage("First page", time_estimate=1),
+            InfoPage("Second page", time_estimate=1),
+        ),
+    )
+    participant = new_participant()
+    experiment.timeline.advance_page(experiment, participant)
+    db_session.commit()
+    participant_id = participant.id
+    original_page_uuid = participant.page_uuid
+
+    real_commit = db.session.commit
+    commit_attempts = 0
+
+    def fail_first_commit():
+        nonlocal commit_attempts
+        commit_attempts += 1
+        if commit_attempts == 1:
+            raise sqlalchemy.exc.OperationalError(
+                "COMMIT", {}, type("SerializationFailure", (), {"pgcode": "40001"})()
+            )
+        return real_commit()
+
+    monkeypatch.setattr(db.session, "commit", fail_first_commit)
+
+    with pytest.raises(sqlalchemy.exc.OperationalError):
+        with transaction():
+            experiment.process_response(
+                participant_id=participant_id,
+                raw_answer=None,
+                blobs={},
+                metadata={"time_taken": 0},
+                page_uuid=original_page_uuid,
+                client_ip_address="127.0.0.1",
+            )
+
+    assert Response.query.filter_by(participant_id=participant_id).count() == 0
+    participant = Participant.query.get(participant_id)
+    assert participant.page_uuid == original_page_uuid
+    assert participant.progress == 0
+
+    with transaction():
+        result = experiment.process_response(
+            participant_id=participant_id,
+            raw_answer=None,
+            blobs={},
+            metadata={"time_taken": 0},
+            page_uuid=original_page_uuid,
+            client_ip_address="127.0.0.1",
+        )
+
+    assert result.payload["submission"] == "approved"
+    assert Response.query.filter_by(participant_id=participant_id).count() == 1
+    participant = Participant.query.get(participant_id)
+    assert participant.page_uuid != original_page_uuid
+    assert participant.progress > 0

@@ -1745,9 +1745,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_sync_groups():
         if not is_experiment_launched():
             return
-        from .sync import check_sync_groups
-
-        check_sync_groups()
+        get_experiment().check_sync_groups()
 
     @staticmethod
     def check_sync_groups():
@@ -4233,16 +4231,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if participant.page_uuid != page_uuid:
                 return None
             if kind == "json":
-                return jsonify(page.__json__(participant))
-            if kind == "fragment":
-                return cls._render_prepared_partial_timeline_payload(
+                rendered = jsonify(page.__json__(participant))
+            elif kind == "fragment":
+                rendered = cls._render_prepared_partial_timeline_payload(
                     page,
                     experiment,
                     participant,
                 )
-            if kind == "full":
-                return page.render(experiment, participant)
-            raise ValueError(f"Unknown read-only render kind: {kind!r}.")
+            elif kind == "full":
+                rendered = page.render(experiment, participant)
+            else:
+                raise ValueError(f"Unknown read-only render kind: {kind!r}.")
+            current_page_uuid = (
+                db.session.query(Participant.page_uuid)
+                .filter_by(id=participant_id)
+                .scalar()
+            )
+            if current_page_uuid != page_uuid:
+                return None
+            return rendered
 
     @classmethod
     def _render_timeline_page_read_only(

@@ -526,9 +526,9 @@ class GroupBarrier(Barrier):
         max_wait_action: Literal["fail", "kick"] = "fail",
         on_release: Optional[Callable] = None,
         fix_time_credit=False,
-        expected_wait=None,
         timeout_between_barriers_time: Optional[float] = None,
         timeout_between_barriers_action: Literal["kick", "fail"] = "fail",
+        expected_wait=None,
         content=None,
     ):
         self._validate_max_wait_action(max_wait_action)
@@ -1385,14 +1385,19 @@ def check_sync_groups():
     """Recount active membership, skipping groups locked by another request.
 
     Uses a single ``SKIP LOCKED`` query so locked groups are omitted without an
-    O(n^2) excluded-id scan. Each group's recount runs in its own transaction so
-    a failure cannot roll back sibling groups already processed.
+    O(n^2) excluded-id scan. Dedicated sessions keep these maintenance commits
+    separate from any transaction owned by the caller. Each group's recount
+    runs in its own transaction so a failure cannot roll back sibling groups
+    already processed.
     """
-    with transaction():
-        _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
+    with Session(bind=db.engine) as session:
+        _set_transaction_lock_timeout(
+            get_config().get("timeline_lock_timeout_seconds"),
+            session=session,
+        )
         entity = with_polymorphic(SyncGroup, "*")
         groups = (
-            db.session.query(entity)
+            session.query(entity)
             .filter(entity.active.is_(True))
             .order_by(entity.id)
             .with_for_update(of=SyncGroup, skip_locked=True)
@@ -1400,15 +1405,17 @@ def check_sync_groups():
             .all()
         )
         group_ids = [group.id for group in groups]
+        session.commit()
 
     for group_id in group_ids:
         try:
-            with transaction():
+            with Session(bind=db.engine) as session:
                 _set_transaction_lock_timeout(
-                    get_config().get("timeline_lock_timeout_seconds")
+                    get_config().get("timeline_lock_timeout_seconds"),
+                    session=session,
                 )
                 group = (
-                    db.session.query(SyncGroup)
+                    session.query(SyncGroup)
                     .filter_by(id=group_id)
                     .with_for_update(of=SyncGroup, skip_locked=True)
                     .populate_existing()
@@ -1417,6 +1424,7 @@ def check_sync_groups():
                 if group is None:
                     continue
                 group.check_numbers()
+                session.commit()
         except Exception as err:
             if is_transient_transaction_error(err):
                 logger.debug(

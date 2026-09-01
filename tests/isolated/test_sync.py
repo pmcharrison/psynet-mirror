@@ -16,7 +16,8 @@ from psynet.dashboard.sync_groups import (
     _summarize_waiting_at_barriers,
 )
 from psynet.data import SQLBase
-from psynet.experiment import get_experiment
+from psynet.db import transaction
+from psynet.experiment import Experiment, get_experiment
 from psynet.page import WaitPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
@@ -119,6 +120,25 @@ def test_max_wait_action_kick_requires_group_barrier():
         max_wait_action="kick",
     )
     assert barrier.max_wait_action == "kick"
+
+
+def test_group_barrier_preserves_positional_timeout_arguments():
+    barrier = GroupBarrier(
+        "group_barrier",
+        "main",
+        None,
+        3,
+        20,
+        "fail",
+        None,
+        False,
+        5,
+        "kick",
+    )
+
+    assert barrier.timeout_between_barriers_time == 5
+    assert barrier.timeout_between_barriers_action == "kick"
+    assert barrier.expected_wait == 1.5
 
 
 def test_default_barrier_uses_timeline_hold():
@@ -756,6 +776,37 @@ def _group_n_active(group_id):
             text("SELECT n_active_participants FROM sync_group WHERE id = :id"),
             {"id": group_id},
         ).scalar()
+
+
+def test_scheduled_check_sync_groups_uses_experiment_override(monkeypatch):
+    calls = []
+    experiment = SimpleNamespace(
+        check_sync_groups=lambda: calls.append("experiment override")
+    )
+    monkeypatch.setattr("psynet.experiment.is_experiment_launched", lambda: True)
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
+    monkeypatch.setattr(
+        "psynet.sync.check_sync_groups", lambda: calls.append("module default")
+    )
+
+    Experiment._check_sync_groups()
+
+    assert calls == ["experiment override"]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_sync_groups_does_not_commit_callers_transaction(
+    in_experiment_directory, db_session
+):
+    DummyModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+
+    with transaction(commit=False):
+        db_session.add(DummyModel(id="unrelated-write"))
+        Experiment.check_sync_groups()
+
+    assert DummyModel.query.get("unrelated-write") is None
 
 
 @pytest.mark.parametrize(

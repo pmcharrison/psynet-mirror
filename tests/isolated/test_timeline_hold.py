@@ -310,6 +310,20 @@ def test_uncleared_timed_out_hold_applies_timeout():
     assert hold.timeout_applied
 
 
+def test_timed_out_hold_survives_condition_error():
+    hold = ResumeTestHold(can_resume=False, timed_out=True)
+    participant = SimpleNamespace(pending_redirect=None, failed=False)
+
+    def raise_condition_error(experiment, participant):
+        raise RuntimeError("condition failed")
+
+    hold.participant_can_resume = raise_condition_error
+
+    assert hold.prepare_resume_if_ready(object(), participant)
+    assert hold.prepared
+    assert hold.timeout_applied
+
+
 def test_hold_timeout_fails_participant_with_hold_tags():
     tags = []
     participant = SimpleNamespace(

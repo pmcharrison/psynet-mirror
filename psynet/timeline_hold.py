@@ -286,10 +286,21 @@ class _TimelineHoldPage(Page):
         if participant.pending_redirect is not None or participant.failed:
             self.prepare_to_resume(participant)
             return True
-        if self.participant_can_resume(experiment, participant):
+        timed_out = self.participant_timed_out(participant)
+        try:
+            can_resume = self.participant_can_resume(experiment, participant)
+        except Exception:
+            if not timed_out:
+                raise
+            logger.warning(
+                "Timeline hold condition failed after its deadline; applying timeout.",
+                exc_info=True,
+            )
+            can_resume = False
+        if can_resume:
             self.prepare_to_resume(participant)
             return True
-        if self.participant_timed_out(participant):
+        if timed_out:
             self.prepare_to_resume(participant)
             self.apply_timeout(participant)
             return True
