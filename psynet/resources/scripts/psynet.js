@@ -1689,12 +1689,24 @@
 
     psynet.captureSubmissionControlState = function () {
       if (psynet.submissionControlState !== null) return;
-      psynet.submissionControlState = Array.from(
-        document.querySelectorAll(
-          ".response, .submit, .sd-navigation__complete-btn",
+      let nextButton = document.getElementById("next-button");
+      let nextButtonSpinner = document.getElementById("next-button-spinner");
+      let nextButtonText = document.getElementById("next-button-text");
+      psynet.submissionControlState = {
+        controls: Array.from(
+          document.querySelectorAll(
+            ".response, .submit, .sd-navigation__complete-btn",
+          ),
+          (element) => ({ element, disabled: element.disabled }),
         ),
-        (element) => ({ element, disabled: element.disabled }),
-      );
+        nextButtonPresentation: nextButton
+          ? {
+              buttonStyle: nextButton.getAttribute("style"),
+              spinnerStyle: nextButtonSpinner?.getAttribute("style"),
+              textStyle: nextButtonText?.getAttribute("style"),
+            }
+          : null,
+      };
     };
 
     psynet.restoreSubmissionControlState = function () {
@@ -1703,9 +1715,32 @@
         psynet.submit.enable();
         return;
       }
-      psynet.submissionControlState.forEach(({ element, disabled }) => {
+      psynet.submissionControlState.controls.forEach(({ element, disabled }) => {
         if (element.isConnected) element.disabled = disabled;
       });
+      let presentation = psynet.submissionControlState.nextButtonPresentation;
+      if (presentation) {
+        let restoreStyle = function (element, style) {
+          if (!element) return;
+          if (style === null) {
+            element.removeAttribute("style");
+          } else {
+            element.setAttribute("style", style);
+          }
+        };
+        restoreStyle(
+          document.getElementById("next-button"),
+          presentation.buttonStyle,
+        );
+        restoreStyle(
+          document.getElementById("next-button-spinner"),
+          presentation.spinnerStyle,
+        );
+        restoreStyle(
+          document.getElementById("next-button-text"),
+          presentation.textStyle,
+        );
+      }
       psynet.submissionControlState = null;
     };
 
@@ -2957,6 +2992,12 @@
       );
       if (!passedValidation) {
         psynet.nextPagePending = false;
+        if (
+          psynetTemplateData.flags.lucidRecruitment &&
+          !options.timelineHoldResume
+        ) {
+          psynet.addBeforeUnloadEventListener();
+        }
       }
       return passedValidation;
     };

@@ -176,6 +176,7 @@
                     buttonHighlightDuration * 1000,
                 );
             {% else %}
+                psynet.captureSubmissionControlState();
                 psynet.response.disable();
                 psynet.submit.disable();
                 psynet.nextPage(id);

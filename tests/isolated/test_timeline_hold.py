@@ -278,13 +278,13 @@ class ResumeTestHold(_TimelineHoldPage):
         self.timeout_applied = True
 
 
-def test_released_hold_wins_over_simultaneous_timeout():
+def test_timeout_wins_over_simultaneous_release():
     hold = ResumeTestHold(can_resume=True, timed_out=True)
     participant = SimpleNamespace(pending_redirect=None, failed=False)
 
     assert hold.prepare_resume_if_ready(object(), participant)
     assert hold.prepared
-    assert not hold.timeout_applied
+    assert hold.timeout_applied
 
 
 def test_forced_resume_does_not_evaluate_author_condition():
@@ -310,12 +310,12 @@ def test_uncleared_timed_out_hold_applies_timeout():
     assert hold.timeout_applied
 
 
-def test_timed_out_hold_survives_condition_error():
+def test_timed_out_hold_does_not_evaluate_condition():
     hold = ResumeTestHold(can_resume=False, timed_out=True)
     participant = SimpleNamespace(pending_redirect=None, failed=False)
 
     def raise_condition_error(experiment, participant):
-        raise RuntimeError("condition failed")
+        pytest.fail("expired hold condition should not be evaluated")
 
     hold.participant_can_resume = raise_condition_error
 
