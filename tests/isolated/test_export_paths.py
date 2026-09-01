@@ -35,13 +35,46 @@ def test_resolve_database_dir_rejects_zip(tmp_path: Path):
         resolve_database_dir(str(archive))
 
 
+def test_resolve_database_dir_rejects_mixed_extracted_layouts(tmp_path: Path):
+    database = tmp_path / "database"
+    database.mkdir()
+    (database / "trial.csv").write_text("id\n1\n")
+    legacy = tmp_path / "data"
+    legacy.mkdir()
+    (legacy / "participant.csv").write_text("id\n1\n")
+
+    with pytest.raises(ValueError, match="mixes database/ and data/"):
+        resolve_database_dir(str(tmp_path))
+
+
 def test_find_table_member_prefers_database_layout(tmp_path: Path):
+    archive_path = tmp_path / "canonical.zip"
+    with zipfile.ZipFile(archive_path, "w") as zf:
+        zf.writestr("database/trial.csv", "id\nnew\n")
+        zf.writestr("assets/database/private.csv", "secret\n")
+    with zipfile.ZipFile(archive_path, "r") as archive:
+        assert find_table_member_in_zip(archive, "trial") == "database/trial.csv"
+        assert find_table_member_in_zip(archive, "private") is None
+
+
+def test_find_table_member_accepts_legacy_data_layout(tmp_path: Path):
+    archive_path = tmp_path / "legacy.zip"
+    with zipfile.ZipFile(archive_path, "w") as zf:
+        zf.writestr("data/trial.csv", "id\nlegacy\n")
+    with zipfile.ZipFile(archive_path, "r") as archive:
+        assert find_table_member_in_zip(archive, "trial") == "data/trial.csv"
+
+
+def test_find_table_member_rejects_mixed_layouts(tmp_path: Path):
+    from psynet.export.path_safety import AmbiguousArchiveLayoutError
+
     archive_path = tmp_path / "mixed.zip"
     with zipfile.ZipFile(archive_path, "w") as zf:
         zf.writestr("data/trial.csv", "id\nlegacy\n")
         zf.writestr("database/trial.csv", "id\nnew\n")
     with zipfile.ZipFile(archive_path, "r") as archive:
-        assert find_table_member_in_zip(archive, "trial") == "database/trial.csv"
+        with pytest.raises(AmbiguousArchiveLayoutError):
+            find_table_member_in_zip(archive, "trial")
 
 
 def test_dashboard_export_zip_path_is_sibling_of_export_tree(

@@ -1,10 +1,11 @@
 """Tests for client-side export transport, hydration, and identity checks."""
 
-import csv
 import hashlib
-import shutil
 import subprocess
+import sys
+import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -12,6 +13,7 @@ from psynet.export.client import (
     AssetTransferPlan,
     TransferError,
     choose_transport,
+    extract_archive,
     hydrate_assets,
     plan_asset_transfer,
     publish_export,
@@ -20,8 +22,18 @@ from psynet.export.identity import (
     ProjectIdentity,
     ProjectMismatch,
     confirm_project_identity,
+    identity_changed,
 )
-from psynet.utils import sha256_directory
+
+_ISOLATED_DIR = Path(__file__).resolve().parent
+if str(_ISOLATED_DIR) not in sys.path:
+    sys.path.insert(0, str(_ISOLATED_DIR))
+from export_test_helpers import (  # noqa: E402
+    rsync_files_from_double,
+    write_asset_manifest,
+    write_remote_folder,
+    write_remote_object,
+)
 
 
 @pytest.fixture()
@@ -30,66 +42,19 @@ def cache_root(tmp_path):
 
 
 def _write_remote_object(root: Path, payload: bytes) -> str:
-    digest = hashlib.sha256(payload).hexdigest()
-    dest = root / "objects" / "sha256" / digest
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(payload)
-    return digest
+    return write_remote_object(root, payload)
 
 
 def _write_remote_folder(root: Path, files: dict[str, bytes]) -> str:
-    staging = root / "_src"
-    staging.mkdir(parents=True)
-    for name, payload in files.items():
-        (staging / name).write_bytes(payload)
-    digest = sha256_directory(staging)
-    dest = root / "objects" / "sha256" / digest
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(staging, dest)
-    shutil.rmtree(staging)
-    return digest
+    return write_remote_folder(root, files)
 
 
 def _rsync_double(remote_root: Path, calls: list):
-    """Copy ``--files-from`` paths without requiring an ``rsync`` binary."""
-
-    def run(cmd, check=False, **kwargs):
-        calls.append(cmd)
-        files_from = Path(cmd[cmd.index("--files-from") + 1])
-        dest = Path(str(cmd[-1]).rstrip("/"))
-        for rel in files_from.read_text().splitlines():
-            if not rel:
-                continue
-            src = remote_root / rel
-            if not src.exists():
-                continue
-            target = dest / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            if src.is_dir():
-                shutil.copytree(src, target, dirs_exist_ok=True)
-            else:
-                shutil.copy2(src, target)
-        return subprocess.CompletedProcess(cmd, 0)
-
-    return run
+    return rsync_files_from_double(remote_root, calls)
 
 
 def _write_asset_manifest(export_dir: Path, rows: list[dict]) -> None:
-    assets = export_dir / "assets"
-    assets.mkdir(parents=True, exist_ok=True)
-    fieldnames = [
-        "id",
-        "type",
-        "export_path",
-        "sha256_contents",
-        "is_folder",
-        "storage",
-    ]
-    with (assets / "manifest.csv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({name: row.get(name, "") for name in fieldnames})
+    write_asset_manifest(export_dir, rows)
 
 
 ###############
@@ -426,3 +391,89 @@ def test_matching_identity_requires_no_confirmation():
         raise AssertionError("a matching identity must not prompt")
 
     confirm_project_identity(identity, identity, confirm=refuse, emit=refuse)
+
+
+def test_publishing_keeps_the_previous_export_if_restore_also_fails(tmp_path):
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    (staging / "manifest.json").write_text("new")
+    destination = tmp_path / "latest"
+    destination.mkdir()
+    (destination / "manifest.json").write_text("old")
+
+    def fail_replace(src, dst):
+        raise OSError("publish failed")
+
+    original_rename = Path.rename
+
+    def fail_restore(self, target):
+        if self.name.startswith(".latest.superseded"):
+            raise OSError("restore failed")
+        return original_rename(self, target)
+
+    with (
+        patch("psynet.export.client.os.replace", side_effect=fail_replace),
+        patch.object(Path, "rename", fail_restore),
+    ):
+        with pytest.raises(TransferError, match="kept at") as exc:
+            publish_export(str(staging), str(destination))
+
+    displaced = list(tmp_path.glob(".latest.superseded-*"))
+    assert len(displaced) == 1
+    assert (displaced[0] / "manifest.json").read_text() == "old"
+    assert str(displaced[0]) in str(exc.value)
+    # Publication never completed, so the incoming tree is still staging.
+    assert (staging / "manifest.json").read_text() == "new"
+
+
+def test_identity_changed_detects_a_post_preflight_mismatch():
+    preflight = ProjectIdentity(
+        experiment_label="demo", deployment_id="a", export_format_version=1
+    )
+    downloaded = ProjectIdentity(
+        experiment_label="demo", deployment_id="b", export_format_version=1
+    )
+    assert identity_changed(preflight, downloaded)
+    assert not identity_changed(preflight, preflight)
+
+
+def test_identity_changed_detects_missing_downloaded_fields():
+    preflight = ProjectIdentity(
+        experiment_label="demo", deployment_id="a", export_format_version=1
+    )
+
+    assert identity_changed(preflight, ProjectIdentity())
+
+
+def test_extract_archive_rejects_zip_slip(tmp_path):
+    archive = tmp_path / "export.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr("manifest.json", '{"export_format_version": 1}')
+        handle.writestr("../outside.txt", "nope")
+    with pytest.raises(TransferError):
+        extract_archive(str(archive), str(tmp_path / "staging"))
+    assert not (tmp_path / "outside.txt").exists()
+
+
+def test_hydration_rejects_an_escaping_export_path(tmp_path, cache_root):
+    digest = write_remote_object(tmp_path / "remote", b"bytes")
+    export_dir = tmp_path / "export"
+    write_asset_manifest(
+        export_dir,
+        [
+            {
+                "id": 1,
+                "type": "experiment_asset",
+                "export_path": "../secret.wav",
+                "sha256_contents": digest,
+                "storage": "LocalStorage",
+            }
+        ],
+    )
+    with pytest.raises(TransferError, match="not contained"):
+        hydrate_assets(
+            str(export_dir),
+            plan_asset_transfer(str(export_dir)),
+            rsync_source=str(tmp_path / "remote"),
+            cache_root=cache_root,
+        )

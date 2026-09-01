@@ -56,23 +56,29 @@ def coin_class(experiment_module):
     return experiment_module.Coin
 
 
+def _build_canonical_gibbs_export(data_root_dir):
+    """Populate the Gibbs demo and write the canonical export tree."""
+    time.sleep(1)
+    for _ in range(6):
+        BotDriver().take_experiment()
+    Context(export__local).invoke(
+        export__local,
+        path=data_root_dir,
+        assets="none",
+    )
+
+
+@pytest.fixture(scope="class")
+def canonical_gibbs_export(data_root_dir, launched_experiment):
+    _build_canonical_gibbs_export(data_root_dir)
+    return data_root_dir
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("gibbs")], indirect=True
 )
-@pytest.mark.usefixtures("launched_experiment")
+@pytest.mark.usefixtures("launched_experiment", "canonical_gibbs_export")
 class TestExpWithExport:
-    @classmethod
-    @pytest.fixture(scope="class", autouse=True)
-    def _canonical_export(cls, data_root_dir, launched_experiment):
-        time.sleep(1)
-        for _ in range(6):
-            BotDriver().take_experiment()
-        Context(export__local).invoke(
-            export__local,
-            path=data_root_dir,
-            assets="none",
-        )
-
     def test_participants_file(self, database_dir):
         participants = load_export_table(database_dir, "participant")
         assert participants.shape[0] == 6
@@ -175,19 +181,14 @@ class TestExpWithExport:
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("gibbs")], indirect=True
 )
-@pytest.mark.usefixtures("db_session")
-def test_populate_db_from_canonical_export_archive(database_dir, coin_class, tmp_path):
+def test_populate_db_from_canonical_export_archive(
+    canonical_gibbs_export, database_dir, coin_class, tmp_path
+):
     """Reload a canonical export zip whose empty table CSVs have been omitted."""
     from psynet.chatroom import ChatMessage
     from psynet.command_line import _install_archive_template
 
-    participant_csv = Path(database_dir) / "participant.csv"
-    if not participant_csv.exists():
-        pytest.fail(
-            "Canonical export did not run first; run this module as a whole "
-            "so TestExpWithExport can populate database_dir."
-        )
-
+    assert (Path(database_dir) / "participant.csv").exists()
     assert not (Path(database_dir) / "chat_message.csv").exists()
 
     archive = tmp_path / "export.zip"

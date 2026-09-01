@@ -303,3 +303,18 @@ def confirm_project_identity(
 def identity_from_manifest(manifest: dict) -> ProjectIdentity:
     """Build an identity from a downloaded export's ``manifest.json``."""
     return ProjectIdentity.from_dict(manifest)
+
+
+def identity_changed(preflight: ProjectIdentity, downloaded: ProjectIdentity) -> bool:
+    """Return whether download identity disagrees with a successful preflight."""
+    for name in (
+        "experiment_label",
+        "deployment_id",
+        "git_commit_sha",
+        "export_format_version",
+    ):
+        before = getattr(preflight, name)
+        after = getattr(downloaded, name)
+        if before is not None and before != after:
+            return True
+    return False

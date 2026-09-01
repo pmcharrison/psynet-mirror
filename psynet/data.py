@@ -714,13 +714,14 @@ def ingest_zip(path, engine=None):
     * a ``database/`` directory of table CSVs;
     * an extracted export directory containing ``database/``.
 
-    This patches Dallinger's ``ingest_zip`` with support for custom PsyNet
-    tables and the flat ``database/`` export layout.
+    Nested lookalikes and mixed ``database/`` plus ``data/`` layouts are
+    rejected. This patches Dallinger's ``ingest_zip`` with support for custom
+    PsyNet tables and the flat ``database/`` export layout.
     """
     from .export.paths import (
-        find_table_member_in_zip,
         is_zip_path,
         resolve_database_dir,
+        table_csv_members_by_table,
         table_csv_path,
     )
 
@@ -753,8 +754,9 @@ def ingest_zip(path, engine=None):
 
     if is_zip_path(path):
         with ZipFile(path, "r") as archive:
+            members = table_csv_members_by_table(archive)
             for tablename in import_order:
-                member = find_table_member_in_zip(archive, tablename)
+                member = members.get(tablename)
                 if member is None:
                     continue
                 model = sql_base_classes()[tablename]
@@ -821,6 +823,7 @@ def export_assets(
     selection cheaply while the client fetches the bytes over rsync.
     """
     from .asset import ExternalAsset, OnDemandAsset
+    from .export.path_safety import UnsafePathError, assert_semantic_asset_path
 
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
@@ -843,11 +846,19 @@ def export_assets(
     manifest_rows = []
     asset_ids_needing_bytes = []
     for asset in assets:
+        export_path = asset.export_path
+        if export_path:
+            try:
+                export_path = assert_semantic_asset_path(str(export_path).lstrip("/"))
+            except UnsafePathError as exc:
+                raise ValueError(
+                    f"Asset {asset.id} has an unsafe export path: {exc}"
+                ) from exc
         row = {
             "id": asset.id,
             "type": getattr(asset, "type", type(asset).__name__),
             "local_key": asset.local_key,
-            "export_path": asset.export_path,
+            "export_path": export_path,
             "sha256_contents": asset.sha256_contents,
             "object_path": asset.object_path,
             "extension": asset.extension,
@@ -1172,6 +1183,8 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
 
 def _semantic_export_path(asset) -> str:
     """Return a relative semantic path for an asset inside the export tree."""
+    from .export.path_safety import UnsafePathError, assert_semantic_asset_path
+
     path = asset.export_path
     if not path:
         path = (
@@ -1182,7 +1195,12 @@ def _semantic_export_path(asset) -> str:
     if not path:
         extension = asset.extension or ""
         path = f"asset_{asset.id}{extension}"
-    return path.lstrip("/")
+    try:
+        return assert_semantic_asset_path(str(path).lstrip("/"))
+    except UnsafePathError as exc:
+        raise ValueError(
+            f"Asset {getattr(asset, 'id', None)} has an unsafe export path: {exc}"
+        ) from exc
 
 
 def _cache_and_link_into_export(
@@ -1196,10 +1214,11 @@ def _cache_and_link_into_export(
         Relative semantic path under the assets root.
     """
     from .export.asset_cache import ensure_object_in_cache, link_or_copy
+    from .export.path_safety import contained_destination
     from .utils import make_parents
 
     cache_path = ensure_object_in_cache(digest, fetch_fn, is_folder=is_folder)
-    dest = os.path.join(assets_root, semantic_path)
+    dest = str(contained_destination(assets_root, semantic_path))
     if not os.path.exists(dest):
         make_parents(dest)
         link_or_copy(cache_path, dest, is_folder=is_folder)

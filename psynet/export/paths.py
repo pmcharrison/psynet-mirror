@@ -16,7 +16,14 @@ from __future__ import annotations
 
 import os
 import zipfile
-from typing import Optional
+
+from .path_safety import (
+    find_table_member,
+    table_csv_member_map,
+)
+from .path_safety import (
+    table_csv_members as safe_table_csv_members,
+)
 
 DATABASE_DIRNAME = "database"
 EXPORT_ZIP_NAME = "export.zip"
@@ -88,6 +95,16 @@ def resolve_database_dir(path: str) -> str:
 
     if os.path.isdir(path):
         nested = os.path.join(path, DATABASE_DIRNAME)
+        legacy = os.path.join(path, "data")
+        if (
+            os.path.isdir(nested)
+            and _dir_has_csv(nested)
+            and os.path.isdir(legacy)
+            and _dir_has_csv(legacy)
+        ):
+            raise ValueError(
+                f"{path} mixes database/ and data/ table CSVs. Use one layout."
+            )
         if os.path.isdir(nested) and _dir_has_csv(nested):
             return nested
         if _dir_has_csv(path):
@@ -113,49 +130,25 @@ def table_csv_path(database_dir: str, table: str) -> str:
     return os.path.join(database_dir, f"{table}.csv")
 
 
-def find_table_member_in_zip(archive: zipfile.ZipFile, table: str) -> Optional[str]:
+def find_table_member_in_zip(archive: zipfile.ZipFile, table: str) -> str | None:
     """Return the zip member path for ``table``, or ``None``.
 
     Prefers ``database/<table>.csv``, then legacy ``data/<table>.csv``.
+    Nested lookalikes and mixed layouts are rejected rather than flattened.
     """
-    candidates = [
-        f"{DATABASE_DIRNAME}/{table}.csv",
-        f"data/{table}.csv",
-    ]
-    names = set(archive.namelist())
-    for candidate in candidates:
-        if candidate in names:
-            return candidate
-    # Tolerate accidental absolute-style or prefixed members.
-    suffix_new = f"/{DATABASE_DIRNAME}/{table}.csv"
-    suffix_legacy = f"/data/{table}.csv"
-    matches = [
-        name
-        for name in names
-        if name.endswith(f"{DATABASE_DIRNAME}/{table}.csv")
-        or name.endswith(f"data/{table}.csv")
-        or name.endswith(suffix_new)
-        or name.endswith(suffix_legacy)
-    ]
-    # Prefer exact database/ over data/ when both somehow match.
-    for preferred in candidates:
-        for name in matches:
-            if name.endswith(preferred):
-                return name
-    return matches[0] if matches else None
+    return find_table_member(archive, table)
 
 
 def table_csv_members(archive: zipfile.ZipFile) -> list[str]:
     """Return the zip members that hold table CSVs.
 
     Used when re-packing an export archive for deployment, so that only
-    ``database/`` (or legacy ``data/``) table CSVs travel to the server and
-    identifier sidecars and assets stay behind.
+    exact ``database/`` (or legacy ``data/``) table CSVs travel to the server
+    and identifier sidecars and assets stay behind.
     """
-    members = []
-    for name in archive.namelist():
-        if name.endswith("/") or not name.endswith(".csv"):
-            continue
-        if os.path.basename(os.path.dirname(name)) in (DATABASE_DIRNAME, "data"):
-            members.append(name)
-    return sorted(members)
+    return safe_table_csv_members(archive)
+
+
+def table_csv_members_by_table(archive: zipfile.ZipFile) -> dict[str, str]:
+    """Return table CSV members keyed by table after one layout validation."""
+    return table_csv_member_map(archive)

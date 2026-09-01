@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import inspect
 import os
 import subprocess
 import tempfile
@@ -61,9 +62,32 @@ _ASSET_EXPORT_PROFILES = {
 }
 
 
+def _canonical_export_supported() -> bool:
+    """Return whether the installed PsyNet can run these export benchmarks.
+
+    ASV compares the current tree against a merge-base install. Older commits
+    have no ``psynet.export`` package and a different ``export_assets()``
+    signature, so the benchmark must skip rather than import removed APIs.
+    """
+    try:
+        from psynet.data import export_assets
+        from psynet.export.client import hydrate_assets
+    except ImportError:
+        return False
+    params = inspect.signature(export_assets).parameters
+    return "collected_assets_only" in params and callable(hydrate_assets)
+
+
+def _skip_unless_canonical_export_supported() -> None:
+    """Skip this benchmark when the compared revision predates the API."""
+    if not _canonical_export_supported():
+        raise NotImplementedError(
+            "Installed PsyNet predates the canonical export API."
+        )
+
+
 def _repo_root() -> Path:
     """Return the PsyNet repository root."""
-
     return Path(__file__).parents[2]
 
 
@@ -336,6 +360,7 @@ class LocalExport:
 
     def setup_cache(self):
         """Run each export profile once and cache scalar metrics."""
+        _skip_unless_canonical_export_supported()
 
         return {
             name: _run_local_export_benchmark(profile)
@@ -462,6 +487,7 @@ class IncrementalAssetTransfer:
 
     def setup_cache(self):
         """Run each transfer profile once and cache scalar metrics."""
+        _skip_unless_canonical_export_supported()
 
         return {
             name: _run_incremental_transfer_benchmark(profile)
@@ -495,6 +521,7 @@ class LocalAssetExport:
 
     def setup_cache(self):
         """Run each asset-export profile once and cache scalar metrics."""
+        _skip_unless_canonical_export_supported()
 
         return {
             name: _run_asset_export_benchmark(profile)

@@ -6,6 +6,7 @@ benchmark prepares deterministic input files and validates the exported output;
 this module only deposits those files and times the asset export operation.
 """
 
+import inspect
 import json
 import sys
 import time
@@ -45,6 +46,12 @@ def run(
 
     from psynet.asset import ExperimentAsset, LocalStorage
     from psynet.data import export_assets
+
+    params = inspect.signature(export_assets).parameters
+    if "collected_assets_only" not in params:
+        raise NotImplementedError(
+            "Installed PsyNet predates the canonical export_assets() signature."
+        )
 
     _initialize_experiment()
     storage = LocalStorage(root=str(storage_root))

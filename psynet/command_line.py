@@ -11,7 +11,7 @@ import sys
 import tempfile
 import threading
 import zipfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 
 import click
@@ -203,6 +203,7 @@ def _install_archive_template(archive: str, template_path: str) -> None:
     because the template is deployed to the server, while an export archive
     also contains identifier sidecars and asset bytes that must stay local.
     """
+    from .export.path_safety import AmbiguousArchiveLayoutError, UnsafePathError
     from .export.paths import (
         DATABASE_DIRNAME,
         is_zip_path,
@@ -219,7 +220,10 @@ def _install_archive_template(archive: str, template_path: str) -> None:
         # Re-pack rather than copy: an export.zip also holds identifier
         # sidecars and asset bytes, and .deploy travels to the server.
         with zipfile.ZipFile(archive) as source:
-            members = table_csv_members(source)
+            try:
+                members = table_csv_members(source)
+            except (AmbiguousArchiveLayoutError, UnsafePathError) as exc:
+                raise click.UsageError(str(exc)) from exc
             if not members:
                 raise click.UsageError(
                     f"{archive} contains no table CSVs under database/, so it "
@@ -2661,6 +2665,7 @@ def _fetch_remote_export(
         ProjectIdentity,
         ProjectMismatch,
         confirm_project_identity,
+        identity_changed,
         identity_from_manifest,
         local_project_identity,
     )
@@ -2690,8 +2695,8 @@ def _fetch_remote_export(
     if remote_identity is not None:
         check_identity(remote_identity)
 
-    ssh_session = SshSession(server) if docker_ssh and server else None
-    try:
+    session_cm = SshSession(server) if docker_ssh and server else nullcontext()
+    with session_cm as ssh_session:
         over_ssh = ssh_session is not None and (
             assets == "none" or ssh_rsync_available(server, ssh_session)
         )
@@ -2746,6 +2751,13 @@ def _fetch_remote_export(
                 )
                 shutil.rmtree(export_path, ignore_errors=True)
                 manifest = download_into_staging("include")
+            except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+                log(
+                    f"Incremental asset transfer failed: {exc}\n"
+                    "Falling back to a complete server-built archive."
+                )
+                shutil.rmtree(export_path, ignore_errors=True)
+                manifest = download_into_staging("include")
             else:
                 log(f"Materialized {materialized} asset(s) from the local cache.")
                 from .export.asset_cache import warn_if_cache_oversized
@@ -2756,18 +2768,22 @@ def _fetch_remote_export(
         else:
             manifest = download_into_staging("include")
 
-        # A deployment older than the preflight route cannot be checked before
-        # transfer, but its archive still declares what it is. Checking now,
-        # before the export is published, keeps a wrong archive out of
-        # exports/latest.
-        if remote_identity is None and manifest:
-            check_identity(identity_from_manifest(manifest))
+        # Always re-check the downloaded manifest. Preflight can race with a
+        # redeployment, and older servers have no preflight at all.
+        if manifest:
+            downloaded_identity = identity_from_manifest(manifest)
+            if remote_identity is not None and identity_changed(
+                remote_identity, downloaded_identity
+            ):
+                raise TransferError(
+                    "The downloaded export does not match the deployment that "
+                    "answered preflight. The experiment may have been replaced "
+                    "during transfer; retry the export."
+                )
+            check_identity(downloaded_identity)
 
         if ssh_session is not None:
             fetch_logs(export_path, app=app, server=server, session=ssh_session)
-    finally:
-        if ssh_session is not None:
-            ssh_session.close()
 
 
 def _confirm_matching_experiment_label(exported_label, local_label):

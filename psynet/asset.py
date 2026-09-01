@@ -29,6 +29,7 @@ from psynet.timeline import NullElt
 
 from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
+from .export.path_safety import UnsafePathError, normalize_relative_path
 from .field import PythonDict, PythonObject
 from .media import (
     get_aws_credentials,
@@ -85,12 +86,13 @@ def _safe_asset_subpath(subpath: Optional[str]) -> Optional[str]:
     """Normalize and reject unsafe folder subpaths for asset serving."""
     if not subpath:
         return None
-    normalized = os.path.normpath(subpath).lstrip("/")
-    if normalized in (".", ""):
+    stripped = str(subpath).replace("\\", "/").lstrip("/")
+    if not stripped or stripped == ".":
         return None
-    if normalized.startswith("..") or "/../" in f"/{normalized}/":
-        raise ValueError(f"Unsafe asset subpath: {subpath!r}")
-    return normalized
+    try:
+        return normalize_relative_path(subpath, strip_leading_slash=True)
+    except UnsafePathError as exc:
+        raise ValueError(f"Unsafe asset subpath: {subpath!r}") from exc
 
 
 def filter_botocore_deprecation_warnings():

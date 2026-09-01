@@ -49,6 +49,11 @@ from urllib.parse import urlencode
 from psynet.utils import get_logger
 
 from .identity import ProjectIdentity
+from .path_safety import (
+    UnsafePathError,
+    assert_semantic_asset_path,
+    extract_zip_contained,
+)
 
 logger = get_logger()
 
@@ -225,8 +230,8 @@ def extract_archive(zip_path: str, staging_dir: str) -> dict:
     try:
         with zipfile.ZipFile(zip_path, "r") as archive:
             manifest = _read_manifest_member(archive)
-            archive.extractall(staging)
-    except (zipfile.BadZipFile, OSError) as exc:
+            extract_zip_contained(archive, str(staging))
+    except (zipfile.BadZipFile, OSError, UnsafePathError) as exc:
         raise TransferError(
             f"The downloaded export archive is not readable: {exc}"
         ) from exc
@@ -292,7 +297,8 @@ def publish_export(
     -----
     Either way the previous export survives a failure: on error it is moved
     back to ``destination``, whether it was displaced to a temporary sibling or
-    rotated into the history directory.
+    rotated into the history directory. If that restoration also fails, the
+    previous tree is left at its recovery path and both locations are reported.
     """
     staging = Path(staging_dir)
     target = Path(os.path.expanduser(destination)).absolute()
@@ -314,9 +320,11 @@ def publish_export(
         os.replace(str(staging), str(target))
     except OSError as exc:
         previous = displaced or (Path(rotated) if rotated else None)
+        restored = False
         if previous is not None and previous.exists() and not target.exists():
             try:
                 previous.rename(target)
+                restored = True
                 displaced = None
             except OSError:
                 logger.warning(
@@ -324,10 +332,14 @@ def publish_export(
                     target,
                     previous,
                 )
+        if previous is not None and not restored:
+            raise TransferError(
+                f"Could not publish the export to {target}: {exc} "
+                f"The previous export was kept at {previous}."
+            ) from exc
         raise TransferError(f"Could not publish the export to {target}: {exc}") from exc
-    finally:
-        if displaced is not None:
-            shutil.rmtree(displaced, ignore_errors=True)
+    if displaced is not None:
+        shutil.rmtree(displaced, ignore_errors=True)
     return str(target)
 
 
@@ -426,6 +438,10 @@ def hydrate_assets(
             ) from exc
         except RsyncRequiredError as exc:
             raise TransferError(str(exc)) from exc
+        except (OSError, ValueError) as exc:
+            raise TransferError(
+                f"Incremental asset transfer could not copy objects: {exc}"
+            ) from exc
         remaining = missing_object_digests(plan.digests, cache_root=cache_root)
         if remaining:
             raise TransferError(
@@ -440,6 +456,12 @@ def hydrate_assets(
         export_path = row.get("export_path")
         if not digest or not export_path:
             continue
+        try:
+            export_path = assert_semantic_asset_path(export_path)
+        except UnsafePathError as exc:
+            raise TransferError(
+                f"Asset export path is not contained in the export tree: {exc}"
+            ) from exc
         destination = assets_root / export_path
         if destination.exists():
             continue

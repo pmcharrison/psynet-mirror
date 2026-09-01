@@ -741,7 +741,13 @@ def test_ssh_export_steps_share_one_connection(tmp_path, stub_ssh_connection):
     )
 
     executor, connect = stub_ssh_connection
-    with SshSession("test-server") as session:
+    with (
+        patch(
+            "psynet.export.ssh_rsync.local_rsync_available",
+            return_value=True,
+        ),
+        SshSession("test-server") as session,
+    ):
         executor.run.return_value = "/usr/bin/rsync\n"
         assert ssh_rsync_available("test-server", session)
         executor.run.return_value = "/home/testuser\n"
@@ -752,6 +758,20 @@ def test_ssh_export_steps_share_one_connection(tmp_path, stub_ssh_connection):
         assert connect.call_count == 1
 
     executor.client.close.assert_called_once()
+
+
+def test_export_does_not_offer_a_legacy_flag():
+    from psynet.command_line import debug__local, deploy__local, export__local
+
+    export_help = CliRunner().invoke(export__local, ["--help"])
+    debug_help = CliRunner().invoke(debug__local, ["--help"])
+    deploy_help = CliRunner().invoke(deploy__local, ["--help"])
+    assert export_help.exit_code == 0, export_help.output
+    assert debug_help.exit_code == 0, debug_help.output
+    assert deploy_help.exit_code == 0, deploy_help.output
+    assert "--legacy" not in export_help.output
+    assert "--legacy" in debug_help.output
+    assert "--legacy" in deploy_help.output
 
 
 def _setup_basic_data_export(monkeypatch, basic_data):

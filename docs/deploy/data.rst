@@ -29,7 +29,10 @@ Exports use *identifier separation*: table CSVs under ``database/`` contain
 pseudonymous participant identifiers so the archive remains loadable, while
 original recruiter identifiers are written beside them in
 ``participant_identifiers.csv``. This is not anonymization of assets,
-free text, logs, or experiment-defined basic data.
+free text, logs, or experiment-defined basic data. Recruiter-identifier
+columns must be unconstrained text or JSON; unsupported custom types fail
+the export with an error rather than leaking identifiers or writing an
+archive that cannot be reloaded.
 
 Exporting data from the command line
 ====================================
@@ -48,7 +51,9 @@ The latest export is saved to ``exports/latest/`` in the experiment directory.
 A new export is assembled in a temporary staging directory and only moved into
 place once it is complete and validated, at which point the previous
 ``latest/`` directory is moved to ``exports/history/<timestamp>/``. A failed or
-interrupted export therefore always leaves your previous export intact. The
+interrupted export therefore always leaves your previous export intact. If
+both publication and restoration fail, the previous tree is kept at its
+recovery path and the error names both locations. The
 ``exports/`` path is listed in ``deploy.toml`` so it is not uploaded on deploy,
 and the experiment ``.gitignore`` template ignores it.
 
@@ -136,10 +141,11 @@ match, the export stops: you are almost certainly in the wrong folder. If the
 deployed Git commit differs from your checkout, or either side has uncommitted
 changes, PsyNet warns and asks for confirmation. In a non-interactive shell you
 must pass ``--allow-project-mismatch`` to continue. These checks apply even when
-you supply ``--path``. A deployment running a PsyNet version that predates this
-check cannot answer the question, so PsyNet instead reads the identity recorded
-in the downloaded ``manifest.json`` and applies the same rules before publishing
-the export to ``exports/latest``.
+you supply ``--path``. PsyNet checks the downloaded ``manifest.json`` too,
+including after a successful preflight, so a deployment replaced during the
+transfer cannot publish the wrong archive. Missing downloaded identity fields
+are treated as a mismatch when preflight supplied them. A deployment running a
+PsyNet version that predates preflight is checked from its manifest alone.
 
 .. code:: bash
 

@@ -1,4 +1,5 @@
-Exports from deployments that are too old to answer the project-identity
-preflight are now checked against the identity recorded in the downloaded
-`manifest.json` before the export is published, so an archive from the wrong
-experiment cannot replace a good `exports/latest`.
+Downloaded exports are checked against the identity recorded during preflight
+before publication, so replacing a deployment during transfer cannot publish
+the wrong archive. Missing manifest identity fields count as a mismatch when
+preflight supplied them; deployments too old for preflight are checked from
+their manifest alone.

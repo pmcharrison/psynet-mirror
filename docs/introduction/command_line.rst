@@ -66,7 +66,9 @@ This command deploys an experiment, and enable the recruiter so you can collect 
 (Experimental): It is possible to deploy an experiment that resurrects the state of a previous
 experiment deployment. To do this you add ``--archive path/to/export.zip`` (or a
 ``database/`` directory, or an extracted export directory containing ``database/``).
-Legacy ``database.zip`` archives with ``data/*.csv`` members are still accepted.
+Legacy ``database.zip`` archives with exact ``data/<table>.csv`` members are
+still accepted. Nested lookalikes and archive inputs (zip or extracted) that
+mix ``database/`` with ``data/`` table CSVs are rejected.
 
 
 .. _estimate:

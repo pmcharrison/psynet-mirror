@@ -2,7 +2,7 @@
 
 import hashlib
 import shutil
-import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -20,6 +20,15 @@ from psynet.export.ssh_rsync import (
 )
 from psynet.utils import sha256_directory, sha256_file
 
+_ISOLATED_DIR = Path(__file__).resolve().parent
+if str(_ISOLATED_DIR) not in sys.path:
+    sys.path.insert(0, str(_ISOLATED_DIR))
+from export_test_helpers import (  # noqa: E402
+    rsync_files_from_double,
+    write_remote_folder,
+    write_remote_object,
+)
+
 
 @pytest.fixture()
 def cache_root(tmp_path):
@@ -32,50 +41,16 @@ def remote_assets(tmp_path):
 
 
 def _write_object(root: Path, payload: bytes) -> str:
-    digest = hashlib.sha256(payload).hexdigest()
-    dest = root / "objects" / "sha256" / digest
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(payload)
-    return digest
+    return write_remote_object(root, payload)
 
 
 def _make_rsync_double(remote_root: Path):
     """Copy ``--files-from`` paths without requiring an ``rsync`` binary."""
-
-    def run(cmd, check=False, **kwargs):
-        files_from = Path(cmd[cmd.index("--files-from") + 1])
-        dest = Path(str(cmd[-1]).rstrip("/"))
-        for rel in files_from.read_text().splitlines():
-            if not rel:
-                continue
-            src = remote_root / rel
-            if not src.exists():
-                continue
-            dst = dest / rel
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            if src.is_dir():
-                shutil.copytree(src, dst, dirs_exist_ok=True)
-            else:
-                shutil.copy2(src, dst)
-        result = subprocess.CompletedProcess(cmd, 0)
-        if check and result.returncode != 0:
-            raise subprocess.CalledProcessError(result.returncode, cmd)
-        return result
-
-    return run
+    return rsync_files_from_double(remote_root)
 
 
 def _write_folder_object(root: Path, files: dict[str, bytes]) -> str:
-    staging = root / "_folder_src"
-    staging.mkdir(parents=True)
-    for name, payload in files.items():
-        (staging / name).write_bytes(payload)
-    digest = sha256_directory(staging)
-    dest = root / "objects" / "sha256" / digest
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(staging, dest)
-    shutil.rmtree(staging)
-    return digest
+    return write_remote_folder(root, files)
 
 
 def test_object_relative_path_accepts_hex_digest():

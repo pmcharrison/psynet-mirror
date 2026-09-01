@@ -8,13 +8,16 @@ from live tables and, where it matters, loads the result straight back.
 """
 
 import csv
+import uuid
 
 import pytest
 from dallinger import db
-from sqlalchemy import Boolean, Column, Integer, Text, text
+from sqlalchemy import Boolean, Column, Integer, String, Text, text
+from sqlalchemy.dialects.postgresql import UUID
 
 from psynet.data import SQLBase, ingest_to_model
 from psynet.export.database import copy_database_to_csv_dir, write_identifier_sidecars
+from psynet.export.identifier_schema import UnsupportedIdentifierSchemaError
 from psynet.pytest_psynet import path_to_test_experiment
 
 SCRATCH_TABLE = "export_reload_model"
@@ -222,3 +225,121 @@ def test_empty_lucid_table_omits_its_sidecar(db_session, tmp_path):
     assert "lucid_entrant_identifiers" not in paths
     assert not (tmp_path / "lucid_entrant_identifiers.csv").exists()
     assert (tmp_path / "participant_identifiers.csv").exists()
+
+
+class IntegerIdentifierModel(SQLBase):
+    __tablename__ = "export_int_ident"
+
+    id = Column(Integer, primary_key=True)
+    assignment_id = Column(Integer, nullable=False)
+
+
+class ShortIdentifierModel(SQLBase):
+    __tablename__ = "export_short_ident"
+
+    id = Column(Integer, primary_key=True)
+    assignment_id = Column(String(8), nullable=False)
+
+
+class NullableShortIdentifierModel(SQLBase):
+    __tablename__ = "export_nullable_short_ident"
+
+    id = Column(Integer, primary_key=True)
+    assignment_id = Column(String(8), nullable=True)
+
+
+class UUIDIdentifierModel(SQLBase):
+    __tablename__ = "export_uuid_ident"
+
+    id = Column(Integer, primary_key=True)
+    assignment_id = Column(UUID(as_uuid=True), nullable=True)
+
+
+class NullableShortRedactedModel(SQLBase):
+    __tablename__ = "export_nullable_short_redacted"
+
+    id = Column(Integer, primary_key=True)
+    client_ip_address = Column(String(1), nullable=True)
+
+
+class NoIdIdentifierModel(SQLBase):
+    __tablename__ = "export_noid_ident"
+
+    code = Column(Integer, primary_key=True)
+    assignment_id = Column(Text, nullable=False)
+
+
+@in_consents_experiment
+def test_integer_identifier_columns_are_rejected(db_session, tmp_path):
+    IntegerIdentifierModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.add(IntegerIdentifierModel(id=1, assignment_id=99))
+    db_session.commit()
+
+    with pytest.raises(UnsupportedIdentifierSchemaError, match="export_int_ident"):
+        copy_database_to_csv_dir(str(tmp_path), ["export_int_ident"], pseudonymize=True)
+
+
+@in_consents_experiment
+def test_short_varchar_identifier_columns_are_rejected(db_session, tmp_path):
+    ShortIdentifierModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.add(ShortIdentifierModel(id=1, assignment_id="abc"))
+    db_session.commit()
+
+    with pytest.raises(UnsupportedIdentifierSchemaError, match="VARCHAR"):
+        copy_database_to_csv_dir(
+            str(tmp_path), ["export_short_ident"], pseudonymize=True
+        )
+
+
+@in_consents_experiment
+def test_nullable_short_varchar_identifier_columns_are_rejected(db_session, tmp_path):
+    NullableShortIdentifierModel.__table__.create(
+        bind=db_session.get_bind(), checkfirst=True
+    )
+    db_session.add(NullableShortIdentifierModel(id=1, assignment_id="abc"))
+    db_session.commit()
+
+    with pytest.raises(UnsupportedIdentifierSchemaError, match="VARCHAR"):
+        copy_database_to_csv_dir(
+            str(tmp_path), ["export_nullable_short_ident"], pseudonymize=True
+        )
+
+
+@in_consents_experiment
+def test_uuid_identifier_columns_are_rejected(db_session, tmp_path):
+    UUIDIdentifierModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.add(UUIDIdentifierModel(id=1, assignment_id=uuid.uuid4()))
+    db_session.commit()
+
+    with pytest.raises(UnsupportedIdentifierSchemaError, match="UUID"):
+        copy_database_to_csv_dir(
+            str(tmp_path), ["export_uuid_ident"], pseudonymize=True
+        )
+
+
+@in_consents_experiment
+def test_nullable_short_redacted_columns_are_safe(db_session, tmp_path):
+    NullableShortRedactedModel.__table__.create(
+        bind=db_session.get_bind(), checkfirst=True
+    )
+    db_session.add(NullableShortRedactedModel(id=1, client_ip_address="x"))
+    db_session.commit()
+
+    copy_database_to_csv_dir(
+        str(tmp_path), ["export_nullable_short_redacted"], pseudonymize=True
+    )
+
+    row = _read_rows(tmp_path / "export_nullable_short_redacted.csv")["1"]
+    assert row["client_ip_address"] == ""
+
+
+@in_consents_experiment
+def test_identifier_tables_without_id_are_rejected(db_session, tmp_path):
+    NoIdIdentifierModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.add(NoIdIdentifierModel(code=1, assignment_id="a1"))
+    db_session.commit()
+
+    with pytest.raises(UnsupportedIdentifierSchemaError, match="no id column"):
+        copy_database_to_csv_dir(
+            str(tmp_path), ["export_noid_ident"], pseudonymize=True
+        )

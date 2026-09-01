@@ -25,6 +25,7 @@ from sqlalchemy import inspect as sa_inspect
 
 from psynet.utils import get_logger, make_parents, sha256_file
 
+from .identifier_schema import validate_identifier_schema
 from .identifiers import identifier_override, sidecar_specs
 from .paths import DATABASE_DIRNAME, EXPORT_FORMAT_VERSION
 
@@ -77,13 +78,21 @@ def _boolean_expression(name: str) -> sql.Composable:
 
 
 def _select_column(
-    table: str, column: dict, *, not_null: set, has_id: bool, pseudonymize: bool
+    table: str,
+    column: dict,
+    *,
+    not_null: set,
+    has_id: bool,
+    kind: str,
+    pseudonymize: bool,
 ) -> sql.Composable:
     """Return the SELECT expression used to export one column."""
     name = column["name"]
     expression = None
     if pseudonymize:
-        expression = identifier_override(table, name, not_null=not_null, has_id=has_id)
+        expression = identifier_override(
+            table, name, not_null=not_null, has_id=has_id, kind=kind
+        )
     if expression is None:
         if not isinstance(column["type"], Boolean):
             return sql.Identifier(name)
@@ -118,6 +127,7 @@ def copy_database_to_csv_dir(
     tables = (
         list(table_names) if table_names is not None else _export_table_order(inspector)
     )
+    schema = validate_identifier_schema(inspector, tables) if pseudonymize else None
     conn = psycopg2.connect(dsn=_db_dsn())
     try:
         cur = conn.cursor()
@@ -131,6 +141,11 @@ def copy_database_to_csv_dir(
                     column,
                     not_null=not_null,
                     has_id=has_id,
+                    kind=(
+                        schema.get(table, column["name"]).kind
+                        if schema is not None and schema.get(table, column["name"])
+                        else "text"
+                    ),
                     pseudonymize=pseudonymize,
                 )
                 for column in columns

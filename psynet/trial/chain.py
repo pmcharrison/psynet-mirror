@@ -1723,12 +1723,39 @@ class ChainTrialMaker(NetworkTrialMaker):
         #     if trial.block_position == block_position
         # ]
 
+        uses_default_policy = (
+            type(self).should_finish_block is ChainTrialMaker.should_finish_block
+        )
+        if uses_default_policy:
+            if (
+                self.max_trials_per_block is None
+                and self.max_trials_per_participant is None
+            ):
+                return False
+            needs_block_count = self.max_trials_per_block is not None
+            needs_trial_maker_count = self.max_trials_per_participant is not None
+        else:
+            # Custom policies historically received both real counts regardless
+            # of which built-in limits were configured.
+            needs_block_count = True
+            needs_trial_maker_count = True
+
+        n_in_block = (
+            count_participant_trials_in_block(state.id, state.block_position)
+            if needs_block_count
+            else 0
+        )
+        n_in_trial_maker = (
+            count_participant_trials_in_trial_maker(state.id)
+            if needs_trial_maker_count
+            else 0
+        )
         return self.should_finish_block(
             participant,
             state.block,
             state.block_position,
-            count_participant_trials_in_block(state.id, state.block_position),
-            count_participant_trials_in_trial_maker(state.id),
+            n_in_block,
+            n_in_trial_maker,
         )
 
     def should_finish_block(
