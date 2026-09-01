@@ -247,6 +247,30 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       )
     ).toBe(true);
     await expect(experimentPage.locator("#comment-button")).toBeEnabled();
+
+    const compileFailureCleanup = await experimentPage.evaluate(async () => {
+      const originalCompileResponse = psynet.compileResponse;
+      psynet.captureSubmissionControlState();
+      psynet.removeBeforeUnloadEventListener();
+      psynet.compileResponse = async () => {
+        throw new Error("synthetic compile failure");
+      };
+      try {
+        await psynet.submitResponse(() => {});
+      } catch (error) {
+        // Expected synthetic failure.
+      } finally {
+        psynet.compileResponse = originalCompileResponse;
+      }
+      return {
+        controlStateCleared: psynet.submissionControlState === null,
+        lastBeforeUnloadOperation: window.beforeUnloadOperations.at(-1)
+      };
+    });
+    expect(compileFailureCleanup).toEqual({
+      controlStateCleared: true,
+      lastBeforeUnloadOperation: "add"
+    });
     responses.stop();
     await assertNoBackendError(experimentPage);
   });

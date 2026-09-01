@@ -2898,7 +2898,13 @@
       try {
         response = await psynet.compileResponse();
       } catch (error) {
-        onRejection();
+        onRejection?.();
+        if (psynet.submissionControlState !== null) {
+          psynet.restoreSubmissionControlState();
+        }
+        if (psynetTemplateData.flags.lucidRecruitment) {
+          psynet.addBeforeUnloadEventListener();
+        }
         throw error;
       }
       if (response === psynet.SUBMISSION_HANDLED) {
