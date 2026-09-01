@@ -533,6 +533,8 @@ def _make_consent_page(label: str, html: str, time_estimate: int):
         template_str=_CONSENT_TEMPLATE,
         template_arg={"consent_html": html},
         time_estimate=time_estimate,
+        # Extends timeline-page.html and injects consent.css; not SPA-safe.
+        requires_full_page_reload=True,
     )
 
 

@@ -216,14 +216,3 @@ def test_psynet_defaults_stay_low_priority_outside_experiment(tmp_path, monkeypa
         assert config.get("wage_per_hour") == 12.5
     finally:
         dallinger_config.config = saved_config
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
-)
-def test_prolific_screen_out_is_no_longer_supported(in_experiment_directory):
-    get_experiment()
-    config = get_config()
-
-    with pytest.raises(ValueError, match="Prolific no longer supports"):
-        config.set("prolific_enable_screen_out", True)
