@@ -14,6 +14,9 @@ marker = object()
 
 
 class PythonObject(TypeDecorator):
+    # SQLAlchemy 2 requires an explicit cache_ok for TypeDecorator keys.
+    # Serialization is deterministic for a given value, so statement caching
+    # is safe.
     cache_ok = True
 
     @property
@@ -503,7 +506,7 @@ def json_format_vars(x):
 
 
 class _PythonDict(PythonObject):
-    cache_ok = True
+    cache_ok = True  # inherited semantics; see PythonObject
 
     @classmethod
     def serialize(cls, value):

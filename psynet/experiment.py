@@ -140,8 +140,6 @@ from .utils import (
 
 logger = get_logger()
 
-_TRANSIENT_BUSY_MESSAGE = "The experiment is temporarily busy. Please try again."
-
 
 database_template_path = ".deploy/database_template.zip"
 
@@ -2674,12 +2672,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 flask_response=error_response(participant=participant),
             )
 
-    def response_approved(self, participant, page=None):
-        logger.debug("The response was approved.")
-        if page is None:
-            page = self.timeline.get_current_elt(self, participant)
-        return success_response(**self._approved_payload(participant, page))
-
     def response_rejected(self, message):
         logger.warning(
             "The response was rejected with the following message: '%s'.", message
@@ -2689,12 +2681,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def busy_response(cls):
         """Return a retryable busy payload for transient database contention."""
+        _ = get_translator()
         return (
             jsonify(
                 {
                     "status": "busy",
                     "submission": "busy",
-                    "message": _TRANSIENT_BUSY_MESSAGE,
+                    "message": _(
+                        "The experiment is temporarily busy. Please try again."
+                    ),
                 }
             ),
             503,
@@ -4078,8 +4073,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if mode == "json":
                 return cls.busy_response()
             with read_only_transaction():
+                _ = get_translator()
                 return cls.error_page(
-                    error_text=(
+                    error_text=_(
                         "The experiment is temporarily busy. "
                         "Please refresh this page and try again."
                     ),
@@ -4593,7 +4589,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     page.pre_render()
                     page_uuid_after_response = participant.page_uuid
         except Exception as err:
-            return cls._handle_response_render_error(exp, participant_id, err)
+            return cls._handle_response_prepare_error(exp, participant_id, err)
 
         db.session.commit()
 
@@ -4628,7 +4624,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return success_response(**payload)
 
     @classmethod
-    def _handle_response_render_error(cls, experiment, participant_id, error):
+    def _handle_response_prepare_error(cls, experiment, participant_id, error):
+        """Handle errors before the response write is committed.
+
+        Transient database contention is retryable because the participant
+        state has not advanced yet.
+        """
         if os.getenv("PASSTHROUGH_ERRORS"):
             raise error
         db.session.rollback()
@@ -4641,6 +4642,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 exc_info=True,
             )
             return cls.busy_response()
+        return cls._handle_response_fatal_error(experiment, participant_id, error)
+
+    @classmethod
+    def _handle_response_render_error(cls, experiment, participant_id, error):
+        """Handle errors after the response write is committed.
+
+        Never returns busy/503 here: the page_uuid has already advanced, so a
+        client retry would look like a multi-tab conflict. Fall through to a
+        fatal error page instead.
+        """
+        if os.getenv("PASSTHROUGH_ERRORS"):
+            raise error
+        logger.exception(
+            "Response rendering failed after commit for participant %s.",
+            participant_id,
+        )
+        return cls._handle_response_fatal_error(experiment, participant_id, error)
+
+    @classmethod
+    def _handle_response_fatal_error(cls, experiment, participant_id, error):
         participant = Participant.query.get(participant_id)
         if not isinstance(error, experiment.HandledError):
             experiment.handle_error(

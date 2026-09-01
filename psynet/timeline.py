@@ -12,6 +12,7 @@ import json
 import random
 import re
 import time
+import uuid
 import warnings
 from collections import Counter
 from datetime import datetime
@@ -1513,7 +1514,9 @@ class Page(Elt):
         return ""
 
     def consume(self, experiment, participant):
-        participant.page_uuid = experiment.make_uuid()
+        # Use a real UUID4 so seeded ``random`` (bots/tests) cannot collide
+        # with the global unique constraint on timeline hold page_uuid.
+        participant.page_uuid = str(uuid.uuid4())
         participant.page_count += 1
 
     def on_complete(self, experiment, participant):

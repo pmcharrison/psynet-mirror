@@ -177,76 +177,6 @@ def test_wait_page_gates_auto_advance_on_page_ready():
     assert "setTimer" not in page.template_str
 
 
-def test_response_approved_defers_fragment_rendering(monkeypatch):
-    from types import SimpleNamespace
-
-    import psynet.experiment as experiment_module
-
-    monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
-
-    page = SimpleNamespace(
-        is_timeline_hold=False,
-        requires_full_page_reload=False,
-        __json__=lambda participant: {},
-    )
-    exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
-    exp.timeline = SimpleNamespace(get_current_elt=lambda *args: page)
-    payload = experiment_module.Experiment.response_approved(exp, object())
-
-    assert "timeline_fragment" not in payload
-
-
-def test_response_approved_returns_timeline_hold_without_rendering_fragment(
-    monkeypatch,
-):
-    from types import SimpleNamespace
-
-    import psynet.experiment as experiment_module
-
-    monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
-
-    hold = {"barrier_id": "round", "message": "Waiting for your partner…"}
-    page = SimpleNamespace(
-        is_timeline_hold=True,
-        requires_full_page_reload=False,
-        timeline_hold_payload=lambda participant: hold,
-        __json__=lambda participant: {"attributes": {"page_uuid": "hold-uuid"}},
-    )
-    exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
-    exp.timeline = SimpleNamespace(get_current_elt=lambda *args: page)
-
-    payload = experiment_module.Experiment.response_approved(exp, object())
-
-    assert payload["submission"] == "approved"
-    assert payload["timeline_hold"] == hold
-    assert "timeline_fragment" not in payload
-
-
-def test_response_approved_reuses_resolved_page(monkeypatch):
-    from types import SimpleNamespace
-
-    import psynet.experiment as experiment_module
-
-    monkeypatch.setattr(experiment_module, "success_response", lambda **kwargs: kwargs)
-    page = SimpleNamespace(
-        is_timeline_hold=False,
-        requires_full_page_reload=False,
-        __json__=lambda participant: {"attributes": {"page_uuid": "resolved"}},
-    )
-    exp = experiment_module.Experiment.__new__(experiment_module.Experiment)
-    exp.timeline = SimpleNamespace(
-        get_current_elt=lambda *args: pytest.fail("Page was resolved twice.")
-    )
-
-    payload = experiment_module.Experiment.response_approved(
-        exp,
-        object(),
-        page=page,
-    )
-
-    assert payload["page"]["attributes"]["page_uuid"] == "resolved"
-
-
 @pytest.mark.parametrize("pgcode", ["40001", "40P01", "55P03"])
 def test_transient_transaction_errors_are_retryable(pgcode):
     from types import SimpleNamespace
@@ -280,6 +210,76 @@ def test_busy_response_is_retryable_http_503():
     assert data["status"] == "busy"
     assert data["submission"] == "busy"
     assert "temporarily busy" in data["message"]
+
+
+def test_response_prepare_error_returns_busy_for_transient_lock(monkeypatch):
+
+    import sqlalchemy
+    from flask import Flask
+    from psycopg2.errors import LockNotAvailable
+
+    from psynet.experiment import Experiment
+
+    class FakeOperationalError(sqlalchemy.exc.OperationalError):
+        pass
+
+    err = FakeOperationalError("stmt", {}, LockNotAvailable())
+    monkeypatch.setattr(
+        Experiment,
+        "_is_transient_transaction_error",
+        classmethod(lambda cls, error: True),
+    )
+    app = Flask(__name__)
+    with app.app_context():
+        response, status = Experiment._handle_response_prepare_error(
+            Experiment.__new__(Experiment),
+            participant_id=1,
+            error=err,
+        )
+    assert status == 503
+    assert response.get_json()["submission"] == "busy"
+
+
+def test_response_render_error_after_commit_does_not_return_busy(monkeypatch):
+    from types import SimpleNamespace
+
+    import sqlalchemy
+    from psycopg2.errors import LockNotAvailable
+
+    from psynet.experiment import Experiment
+
+    class FakeOperationalError(sqlalchemy.exc.OperationalError):
+        pass
+
+    err = FakeOperationalError("stmt", {}, LockNotAvailable())
+    monkeypatch.setattr(
+        Experiment,
+        "_is_transient_transaction_error",
+        classmethod(lambda cls, error: True),
+    )
+    handled = {}
+
+    class FakeExperiment:
+        HandledError = type("HandledError", (Exception,), {})
+
+        def handle_error(self, error, **kwargs):
+            handled["error"] = error
+
+    monkeypatch.setattr(
+        "psynet.experiment.Participant.query.get",
+        lambda participant_id: SimpleNamespace(current_trial=None, id=participant_id),
+    )
+    monkeypatch.setattr(
+        "psynet.experiment.error_response",
+        lambda **kwargs: ("error-page", 500),
+    )
+    result = Experiment._handle_response_render_error(
+        FakeExperiment(),
+        participant_id=1,
+        error=err,
+    )
+    assert result == ("error-page", 500)
+    assert "error" in handled
 
 
 @pytest.mark.parametrize(

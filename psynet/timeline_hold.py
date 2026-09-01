@@ -28,6 +28,13 @@ from psynet.timeline import Page, get_template
 from psynet.utils import call_function_with_context, get_logger, get_translator
 
 _TIMELINE_HOLD_CHANNEL = "psynet_timeline_hold"
+
+
+def _timeline_hold_channel(participant_id):
+    """Return the Redis/Websocket channel for one participant's holds."""
+    return f"{_TIMELINE_HOLD_CHANNEL}:{participant_id}"
+
+
 _PENDING_WAKE_KEY = "psynet_timeline_hold_wakes"
 logger = get_logger()
 
@@ -54,6 +61,7 @@ def _enqueue_timeline_hold_wake(participant_id, *, page_uuid=None, reason=None):
     wake = {
         "wake_token": active_hold.wake_token,
         "reason": reason,
+        "participant_id": participant_id,
     }
     db.session.info.setdefault(_PENDING_WAKE_KEY, {})[active_hold.wake_token] = wake
 
@@ -80,10 +88,22 @@ def _publish_timeline_hold_wakes(session):
     if not wakes:
         return
     try:
-        db.redis_conn.publish(
-            _TIMELINE_HOLD_CHANNEL,
-            json.dumps({"type": "timeline_hold_wake", "targets": wakes}),
-        )
+        from collections import defaultdict
+
+        by_channel = defaultdict(list)
+        for wake in wakes:
+            participant_id = wake.pop("participant_id", None)
+            channel = (
+                _timeline_hold_channel(participant_id)
+                if participant_id is not None
+                else _TIMELINE_HOLD_CHANNEL
+            )
+            by_channel[channel].append(wake)
+        for channel, targets in by_channel.items():
+            db.redis_conn.publish(
+                channel,
+                json.dumps({"type": "timeline_hold_wake", "targets": targets}),
+            )
     except Exception:
         logger.warning("Failed to publish timeline hold wake.", exc_info=True)
 
@@ -322,7 +342,7 @@ class _TimelineHoldPage(Page):
                 0, round((record.deadline - timenow()).total_seconds() * 1000)
             )
         return {
-            "channel": _TIMELINE_HOLD_CHANNEL,
+            "channel": _timeline_hold_channel(participant.id),
             "hold_id": self.hold_id,
             "message": self.translated_content(),
             "page_uuid": participant.page_uuid,

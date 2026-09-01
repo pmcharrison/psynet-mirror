@@ -4682,3 +4682,11 @@ msgstr ""
 msgctxt "language_name"
 msgid "Zulu"
 msgstr ""
+
+#: psynet/experiment.py
+msgid "The experiment is temporarily busy. Please try again."
+msgstr ""
+
+#: psynet/experiment.py
+msgid "The experiment is temporarily busy. Please refresh this page and try again."
+msgstr ""

@@ -2991,6 +2991,8 @@
         psynet.submissionPageUuid = response.page.attributes.page_uuid;
         psynet.trial.registerEvent("pageUpdated");
         psynet.nextPagePending = false;
+        psynet.response.enable();
+        psynet.submit.enable();
         return true;
       }
 

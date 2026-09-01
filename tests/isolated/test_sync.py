@@ -31,9 +31,9 @@ from psynet.sync import (
     check_sync_groups,
 )
 from psynet.timeline_hold import (
-    _TIMELINE_HOLD_CHANNEL,
     TimelineHoldRecord,
     _enqueue_timeline_hold_wake,
+    _timeline_hold_channel,
 )
 
 
@@ -885,7 +885,7 @@ def test_check_barriers_publishes_release_after_commit(
                     }
                 ],
             },
-            _TIMELINE_HOLD_CHANNEL,
+            _timeline_hold_channel(participant_id),
         )
     ]
     assert not db_session().in_transaction()

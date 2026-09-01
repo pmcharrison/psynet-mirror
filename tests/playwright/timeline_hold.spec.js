@@ -364,6 +364,14 @@ test("timeline hold preserves same-session page identity", { tag: "@both" }, asy
     await expect(
       experimentPage.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);
+    // Same-session updates keep the existing DOM; hold resume must re-enable
+    // controls (Unity listens for pageUpdated; HTML Next is for non-Unity use).
+    await expect(experimentPage.locator("#next-button")).toBeEnabled();
+    const controlsDisabled = await experimentPage.evaluate(() => ({
+      next: document.querySelector("#next-button")?.disabled ?? null,
+      response: document.querySelector(".response")?.disabled ?? null,
+    }));
+    expect(controlsDisabled.next).toBe(false);
     await assertNoBackendError(experimentPage);
   });
 });

@@ -1215,6 +1215,12 @@ class BarrierRecord(SQLBase, SQLMixin):
                 )
             side_session.commit()
 
+        # Side session committed independently. Expire any cached registry row
+        # so later reads in this session see the committed barrier payload.
+        cached = db.session.get(cls, barrier_id)
+        if cached is not None:
+            db.session.expire(cached)
+
 
 @register_table
 class ParticipantLinkSyncGroup(SQLBase, SQLMixin):
@@ -1304,8 +1310,13 @@ def _next_waiting_barrier(excluded_ids):
 
 
 def check_barriers():
-    """Process waiting barriers, isolating failures to individual barriers."""
+    """Process waiting barriers, isolating failures to individual barriers.
+
+    When waiter rows are locked (``NOWAIT``), the barrier is deferred and
+    retried once at the end of the sweep in case the lock has cleared.
+    """
     excluded_ids = set()
+    deferred_ids = set()
 
     while True:
         barrier_id = None
@@ -1316,7 +1327,7 @@ def check_barriers():
                 )
                 barrier_record = _next_waiting_barrier(excluded_ids)
                 if barrier_record is None:
-                    return
+                    break
                 barrier_id = barrier_record.id
                 barrier = barrier_record.barrier
                 if not isinstance(barrier, Barrier):
@@ -1328,8 +1339,9 @@ def check_barriers():
             if barrier_id is None:
                 raise
             if is_transient_transaction_error(err):
+                deferred_ids.add(barrier_id)
                 logger.debug(
-                    "Barrier '%s' skipped this tick because a waiter is locked.",
+                    "Barrier '%s' deferred this tick because a waiter is locked.",
                     barrier_id,
                 )
             else:
@@ -1338,40 +1350,73 @@ def check_barriers():
             if barrier_id is not None:
                 excluded_ids.add(barrier_id)
 
-
-def _next_active_sync_group(excluded_ids):
-    """Return the next active sync group that is not locked by another transaction."""
-    entity = with_polymorphic(SyncGroup, "*")
-    query = db.session.query(entity).filter(entity.active.is_(True))
-    if excluded_ids:
-        query = query.filter(~entity.id.in_(excluded_ids))
-    return (
-        query.order_by(entity.id)
-        .with_for_update(of=SyncGroup, skip_locked=True)
-        .populate_existing()
-        .first()
-    )
-
-
-def check_sync_groups():
-    """Recount active membership, skipping groups locked by another request."""
-    excluded_ids = set()
-
-    while True:
-        group_id = None
+    for barrier_id in sorted(deferred_ids):
         try:
             with transaction():
                 _set_transaction_lock_timeout(
                     get_config().get("timeline_lock_timeout_seconds")
                 )
-                group = _next_active_sync_group(excluded_ids)
+                barrier_record = (
+                    BarrierRecord.query.filter_by(id=barrier_id)
+                    .with_for_update(skip_locked=True)
+                    .populate_existing()
+                    .first()
+                )
+                if barrier_record is None:
+                    continue
+                barrier = barrier_record.barrier
+                if not isinstance(barrier, Barrier):
+                    raise RuntimeError(
+                        f"Barrier '{barrier_record.id}' is missing or invalid."
+                    )
+                barrier.check()
+        except Exception as err:
+            if is_transient_transaction_error(err):
+                logger.debug(
+                    "Barrier '%s' still locked on retry; leaving for the next tick.",
+                    barrier_id,
+                )
+            else:
+                logger.exception("Failed to process barrier '%s' on retry.", barrier_id)
+
+
+def check_sync_groups():
+    """Recount active membership, skipping groups locked by another request.
+
+    Uses a single ``SKIP LOCKED`` query so locked groups are omitted without an
+    O(n^2) excluded-id scan. Each group's recount runs in its own transaction so
+    a failure cannot roll back sibling groups already processed.
+    """
+    with transaction():
+        _set_transaction_lock_timeout(get_config().get("timeline_lock_timeout_seconds"))
+        entity = with_polymorphic(SyncGroup, "*")
+        groups = (
+            db.session.query(entity)
+            .filter(entity.active.is_(True))
+            .order_by(entity.id)
+            .with_for_update(of=SyncGroup, skip_locked=True)
+            .populate_existing()
+            .all()
+        )
+        group_ids = [group.id for group in groups]
+
+    for group_id in group_ids:
+        try:
+            with transaction():
+                _set_transaction_lock_timeout(
+                    get_config().get("timeline_lock_timeout_seconds")
+                )
+                group = (
+                    db.session.query(SyncGroup)
+                    .filter_by(id=group_id)
+                    .with_for_update(of=SyncGroup, skip_locked=True)
+                    .populate_existing()
+                    .first()
+                )
                 if group is None:
-                    return
-                group_id = group.id
+                    continue
                 group.check_numbers()
         except Exception as err:
-            if group_id is None:
-                raise
             if is_transient_transaction_error(err):
                 logger.debug(
                     "Sync group %s skipped this tick because it is locked.",
@@ -1379,9 +1424,6 @@ def check_sync_groups():
                 )
             else:
                 logger.exception("Failed to process sync group %s.", group_id)
-        finally:
-            if group_id is not None:
-                excluded_ids.add(group_id)
 
 
 Participant.sync_group_links = relationship(
