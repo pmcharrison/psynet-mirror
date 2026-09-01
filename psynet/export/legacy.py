@@ -17,6 +17,11 @@ It is isolated in its own module for two reasons:
   data, so it needs strict local/remote dependency agreement — a constraint the
   canonical builder deliberately does not have.
 
+Only the *ingest* half is legacy: once the remote rows are in the local
+database, this module builds the export with the canonical
+:func:`psynet.export.service.build_export_tree`, so an archive produced with
+``--legacy`` has the same layout and contents as any other.
+
 Do not add features here. New behaviour belongs in
 :mod:`psynet.export.service` (server side) and :mod:`psynet.export.client`
 (client side).

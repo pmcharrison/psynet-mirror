@@ -36,6 +36,8 @@ from typing import Optional
 
 from psynet.utils import get_logger
 
+from .paths import EXPORT_FORMAT_VERSION
+
 logger = get_logger()
 
 #: Export-format versions this client knows how to read.
@@ -110,8 +112,6 @@ def server_project_identity() -> dict:
     """
     from psynet import __version__ as psynet_version
     from psynet.experiment import get_experiment
-
-    from .service import EXPORT_FORMAT_VERSION
 
     try:
         from dallinger.version import __version__ as dallinger_version

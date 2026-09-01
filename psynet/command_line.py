@@ -196,12 +196,19 @@ def prepare(archive):
 
 
 def _install_archive_template(archive: str, template_path: str) -> None:
-    """Copy or normalize an archive into the deploy template zip path.
+    """Normalize an archive into the deploy template zip path.
 
-    Zip inputs are copied as-is (``export.zip`` or legacy ``database.zip``).
-    Directory inputs are packed into a zip containing ``database/<table>.csv``.
+    Only ``database/<table>.csv`` members are kept, whether the input is a zip
+    (``export.zip`` or legacy ``database.zip``) or a directory. This matters
+    because the template is deployed to the server, while an export archive
+    also contains identifier sidecars and asset bytes that must stay local.
     """
-    from .export.paths import DATABASE_DIRNAME, is_zip_path, resolve_database_dir
+    from .export.paths import (
+        DATABASE_DIRNAME,
+        is_zip_path,
+        resolve_database_dir,
+        table_csv_members,
+    )
 
     archive = os.path.abspath(os.path.expanduser(archive))
     make_parents(template_path)
@@ -209,7 +216,21 @@ def _install_archive_template(archive: str, template_path: str) -> None:
         os.remove(template_path)
 
     if is_zip_path(archive):
-        shutil.copyfile(archive, template_path)
+        # Re-pack rather than copy: an export.zip also holds identifier
+        # sidecars and asset bytes, and .deploy travels to the server.
+        with zipfile.ZipFile(archive) as source:
+            members = table_csv_members(source)
+            if not members:
+                raise click.UsageError(
+                    f"{archive} contains no table CSVs under database/, so it "
+                    "cannot be used as a deployment archive."
+                )
+            with zipfile.ZipFile(
+                template_path, "w", compression=zipfile.ZIP_DEFLATED
+            ) as zf:
+                for member in members:
+                    name = os.path.basename(member)
+                    zf.writestr(f"{DATABASE_DIRNAME}/{name}", source.read(member))
         return
 
     database_dir = resolve_database_dir(archive)
@@ -2314,7 +2335,11 @@ def _resolve_ssh_app(ctx, app, server):
 
 
 def _warn_deprecated_export_options(no_source, username, password, n_parallel=None):
-    """Warn when removed export options are explicitly supplied."""
+    """Warn when deprecated export options are explicitly supplied.
+
+    The options are still accepted so that older scripts keep running; they
+    simply have no effect.
+    """
     deprecated_options = [
         option
         for option, used in (
@@ -2332,14 +2357,6 @@ def _warn_deprecated_export_options(no_source, username, password, n_parallel=No
             + " are accepted for compatibility but have no effect.",
             err=True,
         )
-
-
-def _get_local_export_url(config):
-    try:
-        port = config.get("base_port")
-    except KeyError:
-        port = 5000
-    return f"http://127.0.0.1:{port}"
 
 
 def export_arguments(func):
@@ -2672,6 +2689,7 @@ def _fetch_remote_export(
     """Download a server-built export, choosing the cheapest available transport."""
     from .export.client import (
         DashboardEndpoint,
+        SshSession,
         TransferError,
         choose_transport,
         download_archive,
@@ -2687,6 +2705,7 @@ def _fetch_remote_export(
         ProjectIdentity,
         ProjectMismatch,
         confirm_project_identity,
+        identity_from_manifest,
         local_project_identity,
     )
 
@@ -2694,16 +2713,13 @@ def _fetch_remote_export(
         base_url=get_experiment_url(app, server),
         auth=(config.get("dashboard_user"), config.get("dashboard_password")),
     )
+    local_identity = local_project_identity(experiment_class)
 
-    preflight = fetch_preflight(endpoint)
-    remote_identity = (
-        ProjectIdentity.from_dict(preflight) if preflight is not None else None
-    )
-    if remote_identity is not None:
+    def check_identity(remote):
         try:
             confirm_project_identity(
-                local_project_identity(experiment_class),
-                remote_identity,
+                local_identity,
+                remote,
                 allow_mismatch=allow_project_mismatch,
                 emit=log,
             )
@@ -2711,65 +2727,91 @@ def _fetch_remote_export(
             log(str(exc))
             raise click.Abort from exc
 
-    over_ssh = bool(docker_ssh and server) and (
-        assets == "none" or ssh_rsync_available(server)
+    preflight = fetch_preflight(endpoint)
+    remote_identity = (
+        ProjectIdentity.from_dict(preflight) if preflight is not None else None
     )
-    chosen = choose_transport(
-        remote_identity, assets=assets, over_ssh=over_ssh, requested=transfer
-    )
-    if chosen == "archive" and transfer == "auto" and docker_ssh and assets != "none":
-        log(
-            "Transferring a complete server-built archive; incremental asset "
-            "transfer is not available for this deployment or asset selection."
+    if remote_identity is not None:
+        check_identity(remote_identity)
+
+    ssh_session = SshSession(server) if docker_ssh and server else None
+    try:
+        over_ssh = ssh_session is not None and (
+            assets == "none" or ssh_rsync_available(server, ssh_session)
         )
-
-    def download_into_staging(asset_bytes):
-        download_dir = tempfile.mkdtemp(prefix="psynet-export-download-")
-        try:
-            archive_path = os.path.join(download_dir, "export.zip")
-            with yaspin(text="Downloading export", color="green") as spinner:
-                download_archive(
-                    endpoint, archive_path, assets=assets, asset_bytes=asset_bytes
-                )
-                spinner.ok("✔")
-            extract_archive(archive_path, export_path)
-        finally:
-            shutil.rmtree(download_dir, ignore_errors=True)
-
-    if chosen == "incremental" and assets != "none":
-        download_into_staging("manifest")
-        try:
-            plan = plan_asset_transfer(export_path)
-            rsync_source, ssh_command = ssh_rsync_source(server)
-            with yaspin(text="Fetching missing asset bytes", color="green") as spinner:
-                materialized = hydrate_assets(
-                    export_path,
-                    plan,
-                    rsync_source=rsync_source,
-                    ssh_command=ssh_command,
-                )
-                spinner.ok("✔")
-        except TransferError as exc:
-            # The server can always read its own asset files, so an archive is
-            # still worth trying before giving up on the export entirely.
+        chosen = choose_transport(
+            remote_identity, assets=assets, over_ssh=over_ssh, requested=transfer
+        )
+        if (
+            chosen == "archive"
+            and transfer == "auto"
+            and docker_ssh
+            and assets != "none"
+        ):
             log(
-                f"Incremental asset transfer failed: {exc}\n"
-                "Falling back to a complete server-built archive."
+                "Transferring a complete server-built archive; incremental asset "
+                "transfer is not available for this deployment or asset selection."
             )
-            shutil.rmtree(export_path, ignore_errors=True)
-            download_into_staging("include")
+
+        def download_into_staging(asset_bytes):
+            download_dir = tempfile.mkdtemp(prefix="psynet-export-download-")
+            try:
+                archive_path = os.path.join(download_dir, "export.zip")
+                with yaspin(text="Downloading export", color="green") as spinner:
+                    download_archive(
+                        endpoint, archive_path, assets=assets, asset_bytes=asset_bytes
+                    )
+                    spinner.ok("✔")
+                return extract_archive(archive_path, export_path)
+            finally:
+                shutil.rmtree(download_dir, ignore_errors=True)
+
+        if chosen == "incremental" and assets != "none":
+            manifest = download_into_staging("manifest")
+            try:
+                plan = plan_asset_transfer(export_path)
+                rsync_source, ssh_command = ssh_rsync_source(server, ssh_session)
+                with yaspin(
+                    text="Fetching missing asset bytes", color="green"
+                ) as spinner:
+                    materialized = hydrate_assets(
+                        export_path,
+                        plan,
+                        rsync_source=rsync_source,
+                        ssh_command=ssh_command,
+                    )
+                    spinner.ok("✔")
+            except TransferError as exc:
+                # The server can always read its own asset files, so an archive
+                # is still worth trying before giving up on the export.
+                log(
+                    f"Incremental asset transfer failed: {exc}\n"
+                    "Falling back to a complete server-built archive."
+                )
+                shutil.rmtree(export_path, ignore_errors=True)
+                manifest = download_into_staging("include")
+            else:
+                log(f"Materialized {materialized} asset(s) from the local cache.")
+                from .export.asset_cache import warn_if_cache_oversized
+
+                oversized = warn_if_cache_oversized()
+                if oversized:
+                    log(oversized)
         else:
-            log(f"Materialized {materialized} asset(s) from the local cache.")
-            from .export.asset_cache import warn_if_cache_oversized
+            manifest = download_into_staging("include")
 
-            oversized = warn_if_cache_oversized()
-            if oversized:
-                log(oversized)
-    else:
-        download_into_staging("include")
+        # A deployment older than the preflight route cannot be checked before
+        # transfer, but its archive still declares what it is. Checking now,
+        # before the export is published, keeps a wrong archive out of
+        # exports/latest.
+        if remote_identity is None and manifest:
+            check_identity(identity_from_manifest(manifest))
 
-    if docker_ssh and server:
-        fetch_logs(export_path, app=app, server=server)
+        if ssh_session is not None:
+            fetch_logs(export_path, app=app, server=server, session=ssh_session)
+    finally:
+        if ssh_session is not None:
+            ssh_session.close()
 
 
 def _confirm_matching_experiment_label(exported_label, local_label):

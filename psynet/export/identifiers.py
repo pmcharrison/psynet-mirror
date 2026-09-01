@@ -1,218 +1,194 @@
 """Identifier separation for exported database snapshots.
 
-Live tables keep recruiter identifiers on ``Participant`` (and Lucid ghost
-entrants). Export writes those values to sidecar CSVs and replaces them with
-participant-id pseudonyms in ``database/`` so the archive remains loadable.
-``participant.entry_information`` is written as ``{}`` rather than left blank,
-because that column is NOT NULL. Copied tables that still carry recruiter
-columns (``worker_id``, ``assignment_id``, ``unique_id``, ``hit_id``,
-``client_ip_address``, ``entry_information``) are remapped or blanked the same
-way.
+Live tables keep recruiter identifiers on ``Participant`` (and ``LucidRID`` for
+Lucid ghost entrants). Export writes those values to sidecar CSVs and replaces
+them with participant-id pseudonyms in ``database/`` so the archive stays
+loadable.
+
+Why this module builds SQL rather than rewriting CSVs
+----------------------------------------------------
+Separation is expressed as SQL expressions that :mod:`psynet.export.database`
+splices into its ``COPY (SELECT …)`` queries. It used to work by exporting raw
+CSVs and rewriting them in Python, which was wrong in a way that was hard to
+see: PostgreSQL's ``COPY`` writes an empty string as ``""`` and NULL as an
+empty field, and Python's ``csv`` reader maps both to ``''``. Re-serializing a
+table therefore turned every empty string into NULL, which made the archive
+unloadable wherever the column was ``NOT NULL``. Doing the work in the query
+removes that failure mode entirely, and removes a full-table Python pass.
+
+Design constraints
+------------------
+* A redacted column must never become NULL when the schema says ``NOT NULL``,
+  or the export cannot be reloaded with ``psynet load``. Nullability is read
+  from the live schema rather than hard-coded, so a new ``NOT NULL`` recruiter
+  column cannot reintroduce that bug.
+* An identifier that belongs to no exported participant cannot be
+  pseudonymized. It is replaced by a stable, non-identifying placeholder rather
+  than leaked or blanked.
+* Every literal goes through :class:`psycopg2.sql.Literal`, so table and column
+  names from the live schema cannot be spliced into SQL unsafely.
 """
 
 from __future__ import annotations
 
-import csv
-import os
-import shutil
+from typing import Optional
+
+from psycopg2 import sql
 
 from psynet.identifiers import (
     LUCID_ENTRANT_IDENTIFIER_FIELDS,
     PARTICIPANT_IDENTIFIER_FIELDS,
 )
-from psynet.utils import make_parents
+
+#: Recruiter identifiers that are mapped to a participant pseudonym wherever
+#: they appear on a table other than ``participant``.
+MAPPED_IDENTIFIER_FIELDS = ("unique_id", "worker_id", "assignment_id")
+
+#: Recruiter columns that carry no analysable information and are redacted.
+REDACTED_IDENTIFIER_FIELDS = ("client_ip_address", "entry_information", "hit_id")
+
+#: Columns whose redacted placeholder must remain valid JSON.
+_JSON_IDENTIFIER_FIELDS = frozenset({"entry_information"})
+
+_PARTICIPANT_TABLE = "participant"
+_LUCID_TABLE = "lucid_rid"
 
 
-def _read_csv(path: str) -> tuple[list[str], list[dict]]:
-    with open(path, newline="") as handle:
-        reader = csv.DictReader(handle)
-        rows = list(reader)
-        fieldnames = list(reader.fieldnames or [])
-    return fieldnames, rows
+def _participant_id_text() -> sql.Composable:
+    return sql.SQL("{}::text").format(sql.Identifier("id"))
 
 
-def _write_csv(path: str, fieldnames: list[str], rows: list[dict]) -> None:
-    make_parents(path)
-    with open(path, "w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({key: row.get(key, "") for key in fieldnames})
+def _redaction(table: str, column: str, not_null: set, has_id: bool) -> sql.Composable:
+    """Return the expression used when a recruiter identifier must be removed.
 
-
-def _participant_pseudonyms(row: dict) -> dict:
-    participant_id = row["id"]
-    assignment_pseudo = str(participant_id)
-    return {
-        "worker_id": str(participant_id),
-        "assignment_id": assignment_pseudo,
-        "hit_id": str(participant_id),
-        "unique_id": f"{participant_id}:{assignment_pseudo}",
-        "client_ip_address": "",
-        # Empty JSON object, not a blank field: participant.entry_information
-        # is NOT NULL, so a loadable archive cannot use COPY's NULL.
-        "entry_information": "{}",
-    }
-
-
-def write_identifier_sidecars_from_csv_dir(csv_dir: str, export_path: str) -> dict:
-    """Write participant and Lucid entrant identifier sidecars from raw CSVs."""
-    paths = {}
-
-    participant_path = os.path.join(csv_dir, "participant.csv")
-    if os.path.exists(participant_path):
-        _, rows = _read_csv(participant_path)
-        sidecar_rows = [_participant_sidecar_row(row) for row in rows]
-        out = os.path.join(export_path, "participant_identifiers.csv")
-        _write_csv(out, list(PARTICIPANT_IDENTIFIER_FIELDS), sidecar_rows)
-        paths["participant_identifiers"] = out
-
-    lucid_path = os.path.join(csv_dir, "lucid_rid.csv")
-    if os.path.exists(lucid_path):
-        _, rows = _read_csv(lucid_path)
-        if rows:
-            # Include participant_id for join convenience even though it is not
-            # a recruiter identifier; keep documented identifier fields first.
-            ordered = list(LUCID_ENTRANT_IDENTIFIER_FIELDS) + ["participant_id"]
-            sidecar_rows = [_lucid_sidecar_row(row) for row in rows]
-            out = os.path.join(export_path, "lucid_entrant_identifiers.csv")
-            _write_csv(out, ordered, sidecar_rows)
-            paths["lucid_entrant_identifiers"] = out
-
-    return paths
-
-
-def _participant_sidecar_row(row: dict) -> dict:
-    """Build one participant sidecar row from a participant CSV row."""
-    out = {}
-    for field in PARTICIPANT_IDENTIFIER_FIELDS:
-        if field == "participant_id":
-            out[field] = row.get("id", "")
-        else:
-            out[field] = row.get(field, "")
-    return out
-
-
-def _lucid_sidecar_row(row: dict) -> dict:
-    """Build one Lucid entrant sidecar row from a lucid_rid CSV row."""
-    out = {}
-    for field in LUCID_ENTRANT_IDENTIFIER_FIELDS:
-        if field == "lucid_rid_id":
-            out[field] = row.get("id", "")
-        else:
-            out[field] = row.get(field, "")
-    out["participant_id"] = row.get("participant_id", "")
-    return out
-
-
-def apply_identifier_separation_to_csv_dir(
-    raw_dir: str, out_dir: str, table_names: list[str]
-) -> None:
-    """Copy CSVs to ``out_dir``, rewriting identifier columns to pseudonyms."""
-    os.makedirs(out_dir, exist_ok=True)
-
-    unique_id_map: dict[str, str] = {}
-    worker_id_map: dict[str, str] = {}
-    assignment_id_map: dict[str, str] = {}
-    if os.path.exists(os.path.join(raw_dir, "participant.csv")):
-        _, participant_rows = _read_csv(os.path.join(raw_dir, "participant.csv"))
-        for row in participant_rows:
-            pseudonyms = _participant_pseudonyms(row)
-            old_unique = row.get("unique_id", "")
-            if old_unique:
-                unique_id_map[old_unique] = pseudonyms["unique_id"]
-            old_worker = row.get("worker_id", "")
-            if old_worker:
-                worker_id_map[old_worker] = pseudonyms["worker_id"]
-            old_assignment = row.get("assignment_id", "")
-            if old_assignment:
-                assignment_id_map[old_assignment] = pseudonyms["assignment_id"]
-
-    maps = {
-        "unique_id": unique_id_map,
-        "worker_id": worker_id_map,
-        "assignment_id": assignment_id_map,
-    }
-
-    for table in table_names:
-        src = os.path.join(raw_dir, f"{table}.csv")
-        dst = os.path.join(out_dir, f"{table}.csv")
-        if not os.path.exists(src):
-            continue
-
-        if table == "participant":
-            fieldnames, rows = _read_csv(src)
-            rewritten = []
-            for row in rows:
-                row = dict(row)
-                row.update(_participant_pseudonyms(row))
-                rewritten.append(row)
-            _write_csv(dst, fieldnames, rewritten)
-            continue
-
-        if table == "lucid_rid":
-            fieldnames, rows = _read_csv(src)
-            rewritten = []
-            for row in rows:
-                row = dict(row)
-                participant_id = row.get("participant_id") or ""
-                lucid_id = row.get("id") or ""
-                if participant_id:
-                    row["rid"] = str(participant_id)
-                else:
-                    row["rid"] = f"entrant-{lucid_id}"
-                row["lucid_panelist_id"] = ""
-                row["lucid_respondent_id"] = ""
-                rewritten.append(row)
-            _write_csv(dst, fieldnames, rewritten)
-            continue
-
-        fieldnames, rows = _read_csv(src)
-        if not _table_needs_identifier_rewrite(table, fieldnames):
-            shutil.copyfile(src, dst)
-            continue
-
-        rewritten = [
-            _rewrite_copied_row(row, maps, blank_params=(table == "request"))
-            for row in rows
-        ]
-        _write_csv(dst, fieldnames, rewritten)
-
-
-_COPIED_IDENTIFIER_MAP_FIELDS = ("unique_id", "worker_id", "assignment_id")
-_COPIED_IDENTIFIER_BLANK_FIELDS = (
-    "client_ip_address",
-    "entry_information",
-    "hit_id",
-)
-
-
-def _table_needs_identifier_rewrite(table: str, fieldnames: list[str]) -> bool:
-    """Return True when a copied table has recruiter identifiers or request params."""
-    if table == "request":
-        return True
-    names = set(fieldnames)
-    return any(
-        name in names
-        for name in _COPIED_IDENTIFIER_MAP_FIELDS + _COPIED_IDENTIFIER_BLANK_FIELDS
+    Nullable columns become NULL. ``NOT NULL`` columns get a stable,
+    non-identifying placeholder, because NULL would violate the constraint when
+    the archive is reloaded.
+    """
+    if column not in not_null:
+        return sql.SQL("NULL")
+    if column in _JSON_IDENTIFIER_FIELDS:
+        return sql.Literal("{}")
+    if not has_id:
+        return sql.Literal(f"redacted-{table}")
+    return sql.SQL("{prefix} || {id}").format(
+        prefix=sql.Literal(f"redacted-{table}-"), id=_participant_id_text()
     )
 
 
-def _rewrite_copied_row(
-    row: dict, maps: dict[str, dict[str, str]], *, blank_params: bool
-) -> dict:
-    """Replace recruiter identifiers on a non-participant, non-Lucid row."""
-    row = dict(row)
-    for field in _COPIED_IDENTIFIER_BLANK_FIELDS:
-        if field in row:
-            row[field] = ""
-    for field in _COPIED_IDENTIFIER_MAP_FIELDS:
-        if field not in row:
-            continue
-        old = row.get(field) or ""
-        if not old:
-            continue
-        row[field] = maps.get(field, {}).get(old, "")
-    if blank_params and "params" in row:
-        row["params"] = ""
-    return row
+def _pseudonym_lookup(table: str, column: str) -> sql.Composable:
+    """Return a scalar subquery mapping a recruiter identifier to a pseudonym.
+
+    ``worker_id`` is not unique (one worker may hold several assignments), so
+    the lookup takes the lowest matching participant id to stay deterministic.
+    """
+    pseudonym = (
+        sql.SQL("{id} || ':' || {id}").format(id=sql.SQL("p.id::text"))
+        if column == "unique_id"
+        else sql.SQL("p.id::text")
+    )
+    return sql.SQL(
+        "(SELECT {pseudonym} FROM {participant} p "
+        "WHERE p.{column} = {qualified} ORDER BY p.id LIMIT 1)"
+    ).format(
+        pseudonym=pseudonym,
+        participant=sql.Identifier(_PARTICIPANT_TABLE),
+        column=sql.Identifier(column),
+        qualified=sql.Identifier(table, column),
+    )
+
+
+def _participant_override(column: str, not_null: set) -> Optional[sql.Composable]:
+    """Return the pseudonym expression for a column of ``participant``."""
+    if column in ("worker_id", "assignment_id", "hit_id"):
+        return _participant_id_text()
+    if column == "unique_id":
+        return sql.SQL("{id} || ':' || {id}").format(id=_participant_id_text())
+    if column in REDACTED_IDENTIFIER_FIELDS:
+        return _redaction(_PARTICIPANT_TABLE, column, not_null, has_id=True)
+    return None
+
+
+def _lucid_override(column: str, not_null: set) -> Optional[sql.Composable]:
+    """Return the pseudonym expression for a column of ``lucid_rid``.
+
+    A Lucid ghost entrant has no participant, so its ``rid`` falls back to a
+    placeholder derived from the row id.
+    """
+    if column == "rid":
+        return sql.SQL("COALESCE({participant}::text, {prefix} || {id})").format(
+            participant=sql.Identifier("participant_id"),
+            prefix=sql.Literal("entrant-"),
+            id=_participant_id_text(),
+        )
+    if column in ("lucid_panelist_id", "lucid_respondent_id"):
+        return _redaction(_LUCID_TABLE, column, not_null, has_id=True)
+    return None
+
+
+def identifier_override(
+    table: str, column: str, *, not_null: set, has_id: bool
+) -> Optional[sql.Composable]:
+    """Return the SELECT expression that pseudonymizes ``table.column``.
+
+    Returns ``None`` when the column carries no recruiter identifier and should
+    be exported unchanged.
+    """
+    if table == _PARTICIPANT_TABLE:
+        return _participant_override(column, not_null)
+    if table == _LUCID_TABLE:
+        return _lucid_override(column, not_null)
+    if column in MAPPED_IDENTIFIER_FIELDS:
+        return sql.SQL("COALESCE({lookup}, {fallback})").format(
+            lookup=_pseudonym_lookup(table, column),
+            fallback=_redaction(table, column, not_null, has_id),
+        )
+    if column in REDACTED_IDENTIFIER_FIELDS:
+        return _redaction(table, column, not_null, has_id)
+    if table == "request" and column == "params":
+        # Request parameters can echo recruiter query strings back to us.
+        return _redaction(table, column, not_null, has_id)
+    return None
+
+
+def _sidecar_query(table: str, fields: tuple, id_alias: str) -> sql.Composable:
+    """Build a COPY query for one identifier sidecar."""
+    selected = []
+    for field in fields:
+        source = "id" if field == id_alias else field
+        selected.append(
+            sql.SQL("{col} AS {alias}").format(
+                col=sql.Identifier(source), alias=sql.Identifier(field)
+            )
+        )
+    return sql.SQL(
+        "COPY (SELECT {fields} FROM {table}) TO STDOUT WITH CSV HEADER"
+    ).format(fields=sql.SQL(", ").join(selected), table=sql.Identifier(table))
+
+
+def sidecar_specs(available_tables: set) -> dict[str, tuple[str, sql.Composable]]:
+    """Return ``key -> (filename, copy_query)`` for the identifier sidecars.
+
+    The Lucid sidecar is only meaningful for Lucid deployments; callers drop it
+    when the table turns out to be empty.
+    """
+    specs = {}
+    if _PARTICIPANT_TABLE in available_tables:
+        specs["participant_identifiers"] = (
+            "participant_identifiers.csv",
+            _sidecar_query(
+                _PARTICIPANT_TABLE, PARTICIPANT_IDENTIFIER_FIELDS, "participant_id"
+            ),
+        )
+    if _LUCID_TABLE in available_tables:
+        specs["lucid_entrant_identifiers"] = (
+            "lucid_entrant_identifiers.csv",
+            _sidecar_query(
+                _LUCID_TABLE,
+                # participant_id is not a recruiter identifier, but including it
+                # makes the sidecar joinable to the pseudonymous tables.
+                LUCID_ENTRANT_IDENTIFIER_FIELDS + ("participant_id",),
+                "lucid_rid_id",
+            ),
+        )
+    return specs

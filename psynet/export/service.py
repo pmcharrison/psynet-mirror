@@ -17,19 +17,19 @@ Design constraints
 * Each operation does one thing: :func:`build_export_tree` produces the
   canonical export product, :func:`build_export_archive` zips it,
   :func:`store_latest_archive` persists it as the deployment's single latest
-  artifact, and :func:`send_archive` streams it to an HTTP client. Callers
-  compose these explicitly, so a download no longer stores an artifact as a
-  side effect and a backup no longer builds an unused Flask response.
-* ``EXPORT_FORMAT_VERSION`` is the contract between server and client. Bump it
-  only for changes that an older client cannot read, and record it in
-  ``manifest.json`` so clients can refuse an archive they do not understand.
+  artifact. Callers compose these explicitly, so a download no longer stores
+  an artifact as a side effect and a backup no longer builds an unused Flask
+  response.
+* ``EXPORT_FORMAT_VERSION`` in :mod:`psynet.export.paths` is the contract
+  between server and client. Bump it only for changes that an older client
+  cannot read; it is recorded in ``manifest.json`` so clients can refuse an
+  archive they do not understand.
 * Nothing here imports Click. Operations raise ordinary exceptions and let the
   caller decide how to report them.
 """
 
 from __future__ import annotations
 
-import csv
 import json
 import os
 import re
@@ -40,9 +40,6 @@ from psynet.utils import get_logger, make_parents
 from .paths import EXPORT_ZIP_NAME, dashboard_export_zip_path
 
 logger = get_logger()
-
-#: Version of the canonical export product. See the module docstring.
-EXPORT_FORMAT_VERSION = 1
 
 #: Asset selections accepted by :func:`build_export_tree`.
 ASSET_MODES = ("none", "collected", "all")
@@ -152,13 +149,6 @@ def store_latest_archive(zip_path: str) -> Optional[str]:
     return url
 
 
-def send_archive(zip_path: str, tempdir: str):
-    """Return a Flask response that sends ``zip_path`` and then removes ``tempdir``."""
-    from psynet.experiment import _send_file_then_delete_dir
-
-    return _send_file_then_delete_dir(zip_path, tempdir, mimetype="zip")
-
-
 def export_selected_assets(
     export_path: str,
     *,
@@ -192,15 +182,6 @@ def export_selected_assets(
         if oversized_message:
             logger.warning(oversized_message)
     return asset_path
-
-
-def read_asset_manifest(export_path: str) -> list[dict]:
-    """Read ``assets/manifest.csv`` from an export tree, or return an empty list."""
-    manifest_path = os.path.join(export_path, "assets", "manifest.csv")
-    if not os.path.exists(manifest_path):
-        return []
-    with open(manifest_path, newline="") as handle:
-        return list(csv.DictReader(handle))
 
 
 ###############

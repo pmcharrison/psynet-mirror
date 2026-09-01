@@ -49,7 +49,10 @@ def load_export_table(
     Notes
     -----
     Boolean cells are parsed as bool, whether the CSV uses ``True`` / ``False``
-    (current exports) or PostgreSQL COPY's ``t`` / ``f`` (older archives).
+    (current exports) or PostgreSQL COPY's ``t`` / ``f`` (archives from PsyNet
+    14 and earlier). Accepting the short spellings means a *text* column whose
+    every value happens to be ``t`` or ``f`` is also read as boolean; pass such
+    a column through :func:`pandas.read_csv` yourself if that matters.
     """
     archive = os.path.expanduser(archive)
     if is_zip_path(archive):

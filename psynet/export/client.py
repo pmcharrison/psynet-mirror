@@ -42,7 +42,6 @@ import shutil
 import subprocess
 import zipfile
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Optional
 from urllib.parse import urlencode
@@ -54,9 +53,6 @@ from .identity import ProjectIdentity
 logger = get_logger()
 
 _DOWNLOAD_CHUNK_BYTES = 1024 * 1024
-
-#: Asset selections that need no bytes transferred at all.
-_NO_BYTES_MODES = ("none",)
 
 #: Manifest ``type`` values whose bytes cannot come from remote LocalStorage.
 _INELIGIBLE_ASSET_TYPES = ("on_demand_asset", "external_asset")
@@ -153,9 +149,6 @@ def choose_transport(
         return "archive"
     if identity is None:
         return "archive"
-    if assets in _NO_BYTES_MODES:
-        # There are no asset bytes, so the core snapshot *is* the whole export.
-        return "incremental"
     if assets in identity.incremental_asset_modes:
         return "incremental"
     if requested == "incremental":
@@ -290,9 +283,16 @@ def publish_export(
     ----------
     rotate_history :
         Optional callable that archives an existing export at ``destination``
-        (see :meth:`psynet.experiment.Experiment.rotate_export_history`). When
+        and returns where it was moved to (see
+        :meth:`psynet.experiment.Experiment.rotate_export_history`). When
         omitted, an existing destination is displaced to a temporary sibling and
         removed only once the new export is in place.
+
+    Notes
+    -----
+    Either way the previous export survives a failure: on error it is moved
+    back to ``destination``, whether it was displaced to a temporary sibling or
+    rotated into the history directory.
     """
     staging = Path(staging_dir)
     target = Path(os.path.expanduser(destination)).absolute()
@@ -301,9 +301,10 @@ def publish_export(
     target.parent.mkdir(parents=True, exist_ok=True)
 
     displaced = None
+    rotated = None
     if target.exists():
         if rotate_history is not None:
-            rotate_history(str(target))
+            rotated = rotate_history(str(target))
         else:
             displaced = target.with_name(f".{target.name}.superseded-{os.getpid()}")
             shutil.rmtree(displaced, ignore_errors=True)
@@ -312,9 +313,17 @@ def publish_export(
     try:
         os.replace(str(staging), str(target))
     except OSError as exc:
-        if displaced is not None and not target.exists():
-            displaced.rename(target)
-            displaced = None
+        previous = displaced or (Path(rotated) if rotated else None)
+        if previous is not None and previous.exists() and not target.exists():
+            try:
+                previous.rename(target)
+                displaced = None
+            except OSError:
+                logger.warning(
+                    "Could not restore the previous export to %s; it remains at %s.",
+                    target,
+                    previous,
+                )
         raise TransferError(f"Could not publish the export to {target}: {exc}") from exc
     finally:
         if displaced is not None:
@@ -449,22 +458,49 @@ def _server_address(server: str) -> tuple[str, Optional[str]]:
     return server_info["host"], server_info.get("user")
 
 
-@lru_cache(maxsize=None)
-def ssh_executor(server: str):
-    """Return a shared SSH connection to ``server``.
+class SshSession:
+    """One SSH connection, reused across the steps of a single export.
 
-    One export probes for rsync, asks for the remote home directory, and fetches
-    ``logs.jsonl``. Opening a connection per step made a small export pay several
-    SSH handshakes, which dominated the runtime once the payload was cached, so
-    the connection is established once per process and reused.
+    One export probes for rsync, asks for the remote home directory, and
+    fetches ``logs.jsonl``. Opening a connection per step made a small export
+    pay several SSH handshakes, which dominated the runtime once the payload
+    was cached. The connection is therefore opened lazily and shared, but its
+    lifetime is bounded by this object rather than by the process, so a dead
+    connection is not served to later exports and sockets are always closed.
     """
-    from dallinger.command_line.docker_ssh import Executor
 
-    ssh_host, ssh_user = _server_address(server)
-    return Executor(ssh_host, user=ssh_user)
+    def __init__(self, server: str):
+        self.server = server
+        self._executor = None
+
+    @property
+    def executor(self):
+        if self._executor is None:
+            from dallinger.command_line.docker_ssh import Executor
+
+            ssh_host, ssh_user = _server_address(self.server)
+            self._executor = Executor(ssh_host, user=ssh_user)
+        return self._executor
+
+    def close(self) -> None:
+        executor, self._executor = self._executor, None
+        if executor is None:
+            return
+        try:
+            executor.client.close()
+        except Exception as exc:
+            logger.warning("Could not close the SSH connection: %s", exc)
+
+    def __enter__(self) -> "SshSession":
+        return self
+
+    def __exit__(self, *exc_info) -> None:
+        self.close()
 
 
-def fetch_logs(staging_dir: str, *, app: str, server: str) -> Optional[str]:
+def fetch_logs(
+    staging_dir: str, *, app: str, server: str, session: SshSession
+) -> Optional[str]:
     """Copy the deployment's ``logs.jsonl`` into the staging export tree.
 
     Logs are a convenience, so a failure here warns rather than aborting the
@@ -472,7 +508,7 @@ def fetch_logs(staging_dir: str, *, app: str, server: str) -> Optional[str]:
     """
     local_path = os.path.join(staging_dir, "logs.jsonl")
     try:
-        executor = ssh_executor(server)
+        executor = session.executor
         home = executor.run("echo $HOME", raise_=False).strip()
         # Opening SFTP on the existing client reuses the transport rather than
         # negotiating a second connection.
@@ -487,21 +523,21 @@ def fetch_logs(staging_dir: str, *, app: str, server: str) -> Optional[str]:
     return local_path
 
 
-def ssh_rsync_source(server: str) -> tuple[str, list]:
+def ssh_rsync_source(server: str, session: SshSession) -> tuple[str, list]:
     """Return the rsync source spec and ssh options for a configured SSH server."""
     from dallinger.command_line.utils import get_server_pem_path
 
     from .ssh_rsync import default_ssh_command, remote_assets_source
 
     ssh_host, ssh_user = _server_address(server)
-    home = ssh_executor(server).run("echo $HOME").strip()
+    home = session.executor.run("echo $HOME").strip()
     return (
         remote_assets_source(ssh_host, ssh_user, home),
         default_ssh_command(get_server_pem_path()),
     )
 
 
-def ssh_rsync_available(server: str) -> bool:
+def ssh_rsync_available(server: str, session: SshSession) -> bool:
     """Return whether both ends of the SSH connection have ``rsync``."""
     from .ssh_rsync import (
         emit_rsync_missing_warning,
@@ -513,7 +549,7 @@ def ssh_rsync_available(server: str) -> bool:
         return False
     ssh_host, _ = _server_address(server)
     try:
-        if not ssh_executor(server).run("command -v rsync", raise_=False).strip():
+        if not session.executor.run("command -v rsync", raise_=False).strip():
             emit_rsync_missing_warning(location="remote", host=ssh_host)
             return False
     except Exception as exc:

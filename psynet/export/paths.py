@@ -21,6 +21,14 @@ from typing import Optional
 DATABASE_DIRNAME = "database"
 EXPORT_ZIP_NAME = "export.zip"
 
+#: Version of the canonical export product, and the contract between the
+#: server that builds an export and the client that reads it. Bump it only for
+#: changes an older client cannot read. It is recorded in ``manifest.json`` so
+#: a client can refuse an archive it does not understand. This lives here,
+#: rather than in :mod:`psynet.export.service`, because both sides of the wire
+#: need it and the client must not import server-side code.
+EXPORT_FORMAT_VERSION = 1
+
 
 def dashboard_export_zip_path(export_dir: str) -> str:
     """Return the ``export.zip`` path beside a dashboard/backup export tree.
@@ -137,17 +145,17 @@ def find_table_member_in_zip(archive: zipfile.ZipFile, table: str) -> Optional[s
     return matches[0] if matches else None
 
 
-def list_table_names_in_zip(archive: zipfile.ZipFile) -> list[str]:
-    """Return table names discovered in a zip archive."""
-    tables = []
+def table_csv_members(archive: zipfile.ZipFile) -> list[str]:
+    """Return the zip members that hold table CSVs.
+
+    Used when re-packing an export archive for deployment, so that only
+    ``database/`` (or legacy ``data/``) table CSVs travel to the server and
+    identifier sidecars and assets stay behind.
+    """
+    members = []
     for name in archive.namelist():
-        if name.endswith("/"):
+        if name.endswith("/") or not name.endswith(".csv"):
             continue
-        base = os.path.basename(name)
-        if not base.endswith(".csv"):
-            continue
-        parent = os.path.basename(os.path.dirname(name))
-        if parent in (DATABASE_DIRNAME, "data"):
-            tables.append(base[: -len(".csv")])
-    # Prefer database/ names if both layouts somehow appear.
-    return sorted(set(tables))
+        if os.path.basename(os.path.dirname(name)) in (DATABASE_DIRNAME, "data"):
+            members.append(name)
+    return sorted(members)

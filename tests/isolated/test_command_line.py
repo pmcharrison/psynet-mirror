@@ -675,11 +675,8 @@ def stub_ssh_connection():
     """Stub the SSH machinery used by export, sharing one connection."""
     from unittest.mock import Mock, patch
 
-    from psynet.export.client import ssh_executor
-
     executor = Mock()
     executor.run.return_value = "/home/testuser\n"
-    ssh_executor.cache_clear()
     with (
         patch(
             "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
@@ -690,24 +687,35 @@ def stub_ssh_connection():
         ) as connect,
     ):
         yield executor, connect
-    ssh_executor.cache_clear()
 
 
-def test_fetch_logs_copies_the_deployment_log_file(tmp_path, stub_ssh_connection):
+@pytest.fixture
+def ssh_session():
+    from psynet.export.client import SshSession
+
+    with SshSession("test-server") as session:
+        yield session
+
+
+def test_fetch_logs_copies_the_deployment_log_file(
+    tmp_path, stub_ssh_connection, ssh_session
+):
     from psynet.export.client import fetch_logs
 
     executor, _ = stub_ssh_connection
     sftp = executor.client.open_sftp.return_value
 
-    assert fetch_logs(str(tmp_path), app="test-app", server="test-server") == str(
-        tmp_path / "logs.jsonl"
-    )
+    assert fetch_logs(
+        str(tmp_path), app="test-app", server="test-server", session=ssh_session
+    ) == str(tmp_path / "logs.jsonl")
     sftp.get.assert_called_once_with(
         "/home/testuser/dallinger/test-app/logs.jsonl", str(tmp_path / "logs.jsonl")
     )
 
 
-def test_fetch_logs_warns_instead_of_failing_the_export(tmp_path, stub_ssh_connection):
+def test_fetch_logs_warns_instead_of_failing_the_export(
+    tmp_path, stub_ssh_connection, ssh_session
+):
     from psynet.export.client import fetch_logs
 
     executor, _ = stub_ssh_connection
@@ -715,22 +723,35 @@ def test_fetch_logs_warns_instead_of_failing_the_export(tmp_path, stub_ssh_conne
         "Permission denied"
     )
 
-    assert fetch_logs(str(tmp_path), app="test-app", server="test-server") is None
+    assert (
+        fetch_logs(
+            str(tmp_path), app="test-app", server="test-server", session=ssh_session
+        )
+        is None
+    )
 
 
 def test_ssh_export_steps_share_one_connection(tmp_path, stub_ssh_connection):
     """Each SSH handshake costs seconds, so the export must only make one."""
-    from psynet.export.client import fetch_logs, ssh_rsync_available, ssh_rsync_source
+    from psynet.export.client import (
+        SshSession,
+        fetch_logs,
+        ssh_rsync_available,
+        ssh_rsync_source,
+    )
 
     executor, connect = stub_ssh_connection
-    executor.run.return_value = "/usr/bin/rsync\n"
-    assert ssh_rsync_available("test-server")
-    executor.run.return_value = "/home/testuser\n"
-    source, _ = ssh_rsync_source("test-server")
-    fetch_logs(str(tmp_path), app="test-app", server="test-server")
+    with SshSession("test-server") as session:
+        executor.run.return_value = "/usr/bin/rsync\n"
+        assert ssh_rsync_available("test-server", session)
+        executor.run.return_value = "/home/testuser\n"
+        source, _ = ssh_rsync_source("test-server", session)
+        fetch_logs(str(tmp_path), app="test-app", server="test-server", session=session)
 
-    assert source == "test-user@test-host:/home/testuser/psynet-data/assets/"
-    assert connect.call_count == 1
+        assert source == "test-user@test-host:/home/testuser/psynet-data/assets/"
+        assert connect.call_count == 1
+
+    executor.client.close.assert_called_once()
 
 
 def _setup_basic_data_export(monkeypatch, basic_data):

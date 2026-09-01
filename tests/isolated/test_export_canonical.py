@@ -15,10 +15,6 @@ from psynet.export.analysis import (
     merge_participant_identifiers,
     unpack_json_column,
 )
-from psynet.export.identifiers import (
-    apply_identifier_separation_to_csv_dir,
-    write_identifier_sidecars_from_csv_dir,
-)
 
 
 def _write_csv(path: Path, fieldnames: list[str], rows: list[dict]) -> None:
@@ -27,153 +23,6 @@ def _write_csv(path: Path, fieldnames: list[str], rows: list[dict]) -> None:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
-
-
-def test_identifier_separation_writes_sidecars_and_pseudonyms(tmp_path):
-    raw_dir = tmp_path / "raw"
-    out_dir = tmp_path / "out"
-    export_path = tmp_path / "export"
-    export_path.mkdir()
-
-    _write_csv(
-        raw_dir / "participant.csv",
-        [
-            "id",
-            "worker_id",
-            "assignment_id",
-            "hit_id",
-            "unique_id",
-            "client_ip_address",
-            "entry_information",
-        ],
-        [
-            {
-                "id": "7",
-                "worker_id": "worker-abc",
-                "assignment_id": "assignment-1",
-                "hit_id": "hit-1",
-                "unique_id": "worker-abc:assignment-1",
-                "client_ip_address": "1.2.3.4",
-                "entry_information": '{"email": "a@b.c"}',
-            }
-        ],
-    )
-    _write_csv(
-        raw_dir / "request.csv",
-        ["id", "unique_id", "params"],
-        [{"id": "1", "unique_id": "worker-abc:assignment-1", "params": "secret"}],
-    )
-    _write_csv(
-        raw_dir / "lucid_rid.csv",
-        [
-            "id",
-            "rid",
-            "lucid_panelist_id",
-            "lucid_respondent_id",
-            "participant_id",
-        ],
-        [
-            {
-                "id": "3",
-                "rid": "lucid-rid",
-                "lucid_panelist_id": "panel-1",
-                "lucid_respondent_id": "resp-1",
-                "participant_id": "7",
-            },
-            {
-                "id": "4",
-                "rid": "ghost-rid",
-                "lucid_panelist_id": "panel-2",
-                "lucid_respondent_id": "resp-2",
-                "participant_id": "",
-            },
-        ],
-    )
-    _write_csv(
-        raw_dir / "trial.csv",
-        ["id", "participant_id"],
-        [{"id": "1", "participant_id": "7"}],
-    )
-    _write_csv(
-        raw_dir / "notification.csv",
-        ["id", "assignment_id", "event_type"],
-        [
-            {
-                "id": "1",
-                "assignment_id": "assignment-1",
-                "event_type": "AssignmentAccepted",
-            },
-            {
-                "id": "2",
-                "assignment_id": "unknown-assignment",
-                "event_type": "AssignmentAbandoned",
-            },
-        ],
-    )
-    _write_csv(
-        raw_dir / "response.csv",
-        ["id", "participant_id", "client_ip_address"],
-        [{"id": "1", "participant_id": "7", "client_ip_address": "9.9.9.9"}],
-    )
-
-    sidecars = write_identifier_sidecars_from_csv_dir(str(raw_dir), str(export_path))
-    apply_identifier_separation_to_csv_dir(
-        str(raw_dir),
-        str(out_dir),
-        ["participant", "request", "lucid_rid", "trial", "notification", "response"],
-    )
-
-    participant_sidecar = pd.read_csv(sidecars["participant_identifiers"])
-    assert list(participant_sidecar.columns) == [
-        "participant_id",
-        "worker_id",
-        "assignment_id",
-        "hit_id",
-        "unique_id",
-        "client_ip_address",
-        "entry_information",
-    ]
-    assert participant_sidecar.iloc[0]["worker_id"] == "worker-abc"
-    assert participant_sidecar.iloc[0]["entry_information"] == '{"email": "a@b.c"}'
-
-    lucid_sidecar = pd.read_csv(sidecars["lucid_entrant_identifiers"])
-    assert lucid_sidecar.shape[0] == 2
-    assert set(lucid_sidecar["rid"]) == {"lucid-rid", "ghost-rid"}
-
-    participant = pd.read_csv(out_dir / "participant.csv")
-    row = participant.iloc[0]
-    assert str(row["worker_id"]) == "7"
-    assert str(row["assignment_id"]) == "7"
-    assert str(row["hit_id"]) == "7"
-    assert row["unique_id"] == "7:7"
-    assert pd.isna(row["client_ip_address"]) or row["client_ip_address"] == ""
-    assert row["entry_information"] == "{}"
-
-    request = pd.read_csv(out_dir / "request.csv")
-    assert request.iloc[0]["unique_id"] == "7:7"
-    assert pd.isna(request.iloc[0]["params"]) or request.iloc[0]["params"] == ""
-
-    lucid = pd.read_csv(out_dir / "lucid_rid.csv")
-    linked = lucid.set_index("id").loc[3]
-    ghost = lucid.set_index("id").loc[4]
-    assert str(linked["rid"]) == "7"
-    assert ghost["rid"] == "entrant-4"
-    assert pd.isna(linked["lucid_panelist_id"]) or linked["lucid_panelist_id"] == ""
-
-    trial = pd.read_csv(out_dir / "trial.csv")
-    assert trial.iloc[0]["participant_id"] == 7
-
-    notification = pd.read_csv(out_dir / "notification.csv")
-    accepted = notification.set_index("id").loc[1]
-    abandoned = notification.set_index("id").loc[2]
-    assert str(int(accepted["assignment_id"])) == "7"
-    assert pd.isna(abandoned["assignment_id"]) or abandoned["assignment_id"] == ""
-
-    response = pd.read_csv(out_dir / "response.csv")
-    assert (
-        pd.isna(response.iloc[0]["client_ip_address"])
-        or response.iloc[0]["client_ip_address"] == ""
-    )
 
 
 def test_analysis_helpers_round_trip(tmp_path):
@@ -234,26 +83,6 @@ def test_analysis_helpers_accept_path_objects(tmp_path):
     assert merged.iloc[0]["worker_id"] == "worker-1"
 
 
-def test_empty_lucid_table_omits_sidecar(tmp_path):
-    raw_dir = tmp_path / "raw"
-    export_path = tmp_path / "export"
-    export_path.mkdir()
-    _write_csv(
-        raw_dir / "lucid_rid.csv",
-        [
-            "id",
-            "rid",
-            "lucid_panelist_id",
-            "lucid_respondent_id",
-            "participant_id",
-        ],
-        [],
-    )
-    sidecars = write_identifier_sidecars_from_csv_dir(str(raw_dir), str(export_path))
-    assert "lucid_entrant_identifiers" not in sidecars
-    assert not (export_path / "lucid_entrant_identifiers.csv").exists()
-
-
 def test_ingest_zip_skips_tables_without_csv_files(tmp_path, monkeypatch):
     from psynet.data import ingest_zip
 
@@ -299,20 +128,24 @@ def test_archive_template_only_packs_present_table_csvs(tmp_path):
         assert handle.namelist() == ["database/trial.csv"]
 
 
-def test_boolean_csv_values_are_rewritten_to_true_false(tmp_path):
-    from psynet.export.database import rewrite_boolean_csv_values
+def test_archive_template_keeps_only_table_csvs_from_a_zip(tmp_path):
+    """An export.zip is deployed to the server, so sidecars must not travel."""
+    from psynet.command_line import _install_archive_template
 
-    path = tmp_path / "network.csv"
-    path.write_text("id,failed,label\n1,t,keep-t\n2,f,\n3,,x\n")
-    rewrite_boolean_csv_values(str(path), ["failed"])
-    assert path.read_text().splitlines() == [
-        "id,failed,label",
-        "1,True,keep-t",
-        "2,False,",
-        "3,,x",
-    ]
-    rewrite_boolean_csv_values(str(path), ["failed"])
-    assert "True" in path.read_text() and "t," not in path.read_text()
+    export_zip = tmp_path / "export.zip"
+    with zipfile.ZipFile(export_zip, "w") as archive:
+        archive.writestr("database/trial.csv", "id\n1\n")
+        archive.writestr(
+            "participant_identifiers.csv", "participant_id,worker_id\n1,w\n"
+        )
+        archive.writestr("assets/manifest.csv", "id\n1\n")
+        archive.writestr("manifest.json", "{}")
+
+    template = tmp_path / "database_template.zip"
+    _install_archive_template(str(export_zip), str(template))
+
+    with zipfile.ZipFile(template) as handle:
+        assert handle.namelist() == ["database/trial.csv"]
 
 
 def test_load_export_table_parses_copy_and_python_booleans(tmp_path):

@@ -1,14 +1,19 @@
-"""COPY-based database table export into a flat ``database/`` directory."""
+"""COPY-based database table export into a flat ``database/`` directory.
+
+Every table is written by a single ``COPY (SELECT …) TO STDOUT WITH CSV HEADER``
+that already applies both value transformations the export needs: boolean
+columns are spelled ``True``/``False``, and recruiter identifiers are replaced
+with pseudonyms by :mod:`psynet.export.identifiers`. Doing this in the query
+rather than by rewriting the CSVs afterwards is deliberate — see that module for
+why re-serializing a ``COPY`` CSV in Python silently corrupts empty strings.
+"""
 
 from __future__ import annotations
 
 import csv
-import io
 import json
 import os
 import shutil
-import tempfile
-import zipfile
 from datetime import datetime, timezone
 from typing import Iterable, Optional
 
@@ -20,18 +25,15 @@ from sqlalchemy import inspect as sa_inspect
 
 from psynet.utils import get_logger, make_parents, sha256_file
 
-from .identifiers import (
-    apply_identifier_separation_to_csv_dir,
-    write_identifier_sidecars_from_csv_dir,
-)
-from .paths import DATABASE_DIRNAME, find_table_member_in_zip, is_zip_path
+from .identifiers import identifier_override, sidecar_specs
+from .paths import DATABASE_DIRNAME, EXPORT_FORMAT_VERSION
 
 logger = get_logger()
 
 
-def _export_table_order() -> list[str]:
+def _export_table_order(inspector=None) -> list[str]:
     """Return physical table names in a stable export order."""
-    inspector = sa_inspect(db.engine)
+    inspector = inspector if inspector is not None else sa_inspect(db.engine)
     names = sorted(inspector.get_table_names())
     preferred = [
         "network",
@@ -61,10 +63,50 @@ def _db_dsn() -> str:
     return db.db_url
 
 
+def _boolean_expression(name: str) -> sql.Composable:
+    """Spell a boolean as ``True`` / ``False`` rather than PostgreSQL's ``t`` / ``f``.
+
+    Analysis tools read the long form as a logical value, and ``COPY FROM``
+    still accepts it on reload. The explicit NULL branch matters because
+    ``CASE WHEN col THEN … ELSE …`` would otherwise fold NULL into the false
+    branch.
+    """
+    return sql.SQL(
+        "CASE WHEN {col} IS NULL THEN NULL WHEN {col} THEN 'True' ELSE 'False' END"
+    ).format(col=sql.Identifier(name))
+
+
+def _select_column(
+    table: str, column: dict, *, not_null: set, has_id: bool, pseudonymize: bool
+) -> sql.Composable:
+    """Return the SELECT expression used to export one column."""
+    name = column["name"]
+    expression = None
+    if pseudonymize:
+        expression = identifier_override(table, name, not_null=not_null, has_id=has_id)
+    if expression is None:
+        if not isinstance(column["type"], Boolean):
+            return sql.Identifier(name)
+        expression = _boolean_expression(name)
+    return sql.SQL("{expression} AS {alias}").format(
+        expression=expression, alias=sql.Identifier(name)
+    )
+
+
 def copy_database_to_csv_dir(
-    csv_dir: str, table_names: Optional[Iterable[str]] = None
+    csv_dir: str,
+    table_names: Optional[Iterable[str]] = None,
+    *,
+    pseudonymize: bool = False,
 ) -> list[str]:
     """Copy each physical table to ``csv_dir/<table>.csv`` via PostgreSQL COPY.
+
+    Parameters
+    ----------
+    pseudonymize :
+        Replace recruiter identifiers with participant-id pseudonyms, as
+        :mod:`psynet.export.identifiers` defines. Exports always do this; it is
+        optional so that a caller can obtain the unmodified tables.
 
     Returns
     -------
@@ -72,87 +114,61 @@ def copy_database_to_csv_dir(
         Table names that were copied from the database, including empty tables.
     """
     os.makedirs(csv_dir, exist_ok=True)
-    tables = list(table_names) if table_names is not None else _export_table_order()
+    inspector = sa_inspect(db.engine)
+    tables = (
+        list(table_names) if table_names is not None else _export_table_order(inspector)
+    )
     conn = psycopg2.connect(dsn=_db_dsn())
     try:
         cur = conn.cursor()
         for table in tables:
+            columns = inspector.get_columns(table)
+            not_null = {col["name"] for col in columns if not col["nullable"]}
+            has_id = any(col["name"] == "id" for col in columns)
+            fields = sql.SQL(", ").join(
+                _select_column(
+                    table,
+                    column,
+                    not_null=not_null,
+                    has_id=has_id,
+                    pseudonymize=pseudonymize,
+                )
+                for column in columns
+            )
+            query = sql.SQL(
+                "COPY (SELECT {fields} FROM {table}) TO STDOUT WITH CSV HEADER"
+            ).format(fields=fields, table=sql.Identifier(table))
             path = os.path.join(csv_dir, f"{table}.csv")
             with open(path, "w", newline="") as handle:
-                query = sql.SQL("COPY {} TO STDOUT WITH CSV HEADER").format(
-                    sql.Identifier(table)
-                )
                 cur.copy_expert(query, handle)
-            rewrite_boolean_csv_values(path, _boolean_column_names(table))
     finally:
         conn.close()
     return tables
 
 
-_TRUE_TOKENS = frozenset({"t", "true", "1", "yes", "y", "on"})
-_FALSE_TOKENS = frozenset({"f", "false", "0", "no", "n", "off"})
+def write_identifier_sidecars(export_path: str, table_names: Iterable[str]) -> dict:
+    """Write the recruiter-identifier sidecar CSVs beside ``database/``.
 
-
-def _is_boolean_type(col_type) -> bool:
-    """Return whether a SQLAlchemy column type is a scalar boolean."""
-    return isinstance(col_type, Boolean)
-
-
-def _boolean_column_names(table: str) -> list[str]:
-    """Return boolean column names for ``table`` from the live schema."""
-    inspector = sa_inspect(db.engine)
-    return [
-        col["name"]
-        for col in inspector.get_columns(table)
-        if _is_boolean_type(col["type"])
-    ]
-
-
-def _as_export_boolean(value: Optional[str]) -> str:
-    """Map Postgres COPY tokens to ``True`` / ``False``, leaving blanks empty."""
-    if value is None or value == "":
-        return ""
-    lowered = value.strip().lower()
-    if lowered in _TRUE_TOKENS:
-        return "True"
-    if lowered in _FALSE_TOKENS:
-        return "False"
-    return value
-
-
-def rewrite_boolean_csv_values(path: str, boolean_columns: Iterable[str]) -> None:
-    """Rewrite boolean cells in a COPY CSV from ``t`` / ``f`` to ``True`` / ``False``.
-
-    Empty cells stay empty (NULL). Non-boolean columns are left unchanged, so a
-    text value ``t`` is not rewritten. ``COPY FROM`` still accepts ``True`` /
-    ``False`` on reload.
+    Returns ``key -> path`` for the sidecars that were written. An empty Lucid
+    sidecar is dropped, since it only applies to Lucid deployments.
     """
-    wanted = set(boolean_columns)
-    if not wanted:
-        return
-
-    directory = os.path.dirname(os.path.abspath(path)) or "."
-    fd, tmp_path = tempfile.mkstemp(prefix=".bool-", suffix=".csv", dir=directory)
-    os.close(fd)
-    replaced = False
+    os.makedirs(export_path, exist_ok=True)
+    specs = sidecar_specs(set(table_names))
+    paths = {}
+    conn = psycopg2.connect(dsn=_db_dsn())
     try:
-        with open(path, newline="") as src, open(tmp_path, "w", newline="") as dst:
-            reader = csv.DictReader(src)
-            fieldnames = list(reader.fieldnames or [])
-            columns = [name for name in fieldnames if name in wanted]
-            if not columns:
-                return
-            writer = csv.DictWriter(dst, fieldnames=fieldnames, extrasaction="ignore")
-            writer.writeheader()
-            for row in reader:
-                for name in columns:
-                    row[name] = _as_export_boolean(row.get(name, ""))
-                writer.writerow(row)
-        os.replace(tmp_path, path)
-        replaced = True
+        cur = conn.cursor()
+        for key, (filename, query) in specs.items():
+            path = os.path.join(export_path, filename)
+            with open(path, "w", newline="") as handle:
+                cur.copy_expert(query, handle)
+            if key == "lucid_entrant_identifiers" and _count_csv_rows(path) == 0:
+                os.remove(path)
+                continue
+            paths[key] = path
     finally:
-        if not replaced and os.path.exists(tmp_path):
-            os.remove(tmp_path)
+        conn.close()
+    return paths
 
 
 def _count_csv_rows(path: str) -> int:
@@ -162,7 +178,7 @@ def _count_csv_rows(path: str) -> int:
         return sum(1 for _ in reader)
 
 
-def omit_empty_table_csvs(csv_dir: str, table_names: Iterable[str]) -> list[str]:
+def omit_empty_table_csvs(csv_dir: str, table_names: Iterable[str]) -> dict[str, int]:
     """Remove header-only table CSVs so unused tables do not appear in the export.
 
     Parameters
@@ -174,18 +190,20 @@ def omit_empty_table_csvs(csv_dir: str, table_names: Iterable[str]) -> list[str]
 
     Returns
     -------
-    list of str
-        Table names whose files were removed.
+    dict
+        Row count per table, including the removed (zero-row) ones. Returning
+        the counts here saves re-reading every CSV to build ``manifest.json``.
     """
-    omitted = []
+    row_counts = {}
     for table in table_names:
         path = os.path.join(csv_dir, f"{table}.csv")
         if not os.path.exists(path):
+            row_counts[table] = 0
             continue
-        if _count_csv_rows(path) == 0:
+        row_counts[table] = _count_csv_rows(path)
+        if row_counts[table] == 0:
             os.remove(path)
-            omitted.append(table)
-    return omitted
+    return row_counts
 
 
 def _file_entry(path: str) -> dict:
@@ -239,6 +257,7 @@ def write_export_manifest(
     table_names: list[str],
     csv_dir: str,
     extra_files: Optional[dict[str, str]] = None,
+    row_counts: Optional[dict[str, int]] = None,
 ) -> str:
     """Write ``manifest.json`` describing the export.
 
@@ -246,6 +265,12 @@ def write_export_manifest(
     provenance. Exports do not bundle experiment source code. Empty table CSVs
     are omitted from ``database/``; ``table_row_counts`` still includes those
     tables with a count of ``0``.
+
+    Parameters
+    ----------
+    row_counts :
+        Row counts already computed by :func:`omit_empty_table_csvs`. When
+        omitted, counts are read from the CSVs that are still present.
     """
     from psynet import __version__ as psynet_version
 
@@ -258,22 +283,20 @@ def write_export_manifest(
         )
         dallinger_version = None
 
-    row_counts = {}
+    counts = dict(row_counts or {})
     files = {}
     for table in table_names:
         path = os.path.join(csv_dir, f"{table}.csv")
         if os.path.exists(path):
-            row_counts[table] = _count_csv_rows(path)
+            counts.setdefault(table, _count_csv_rows(path))
             files[f"{DATABASE_DIRNAME}/{table}.csv"] = _file_entry(path)
         else:
-            row_counts[table] = 0
+            counts.setdefault(table, 0)
 
     if extra_files:
         for name, path in extra_files.items():
             if os.path.exists(path):
                 files[name] = _file_entry(path)
-
-    from .service import EXPORT_FORMAT_VERSION
 
     provenance = _provenance_for_manifest()
 
@@ -286,7 +309,7 @@ def write_export_manifest(
         "git_dirty": provenance["git_dirty"],
         "psynet_version": psynet_version,
         "dallinger_version": dallinger_version,
-        "table_row_counts": row_counts,
+        "table_row_counts": counts,
         "files": files,
         "identifier_separation": True,
     }
@@ -316,37 +339,20 @@ def export_database_snapshot(export_path: str) -> dict:
     if os.path.exists(database_dir):
         shutil.rmtree(database_dir)
 
-    with tempfile.TemporaryDirectory() as tempdir:
-        raw_dir = os.path.join(tempdir, "raw")
-        separated_dir = os.path.join(tempdir, "separated")
-        table_names = copy_database_to_csv_dir(raw_dir)
+    table_names = copy_database_to_csv_dir(database_dir, pseudonymize=True)
+    sidecar_paths = write_identifier_sidecars(export_path, table_names)
+    row_counts = omit_empty_table_csvs(database_dir, table_names)
 
-        sidecar_paths = write_identifier_sidecars_from_csv_dir(raw_dir, export_path)
-        apply_identifier_separation_to_csv_dir(raw_dir, separated_dir, table_names)
-        shutil.copytree(separated_dir, database_dir)
-        omit_empty_table_csvs(database_dir, table_names)
-
-        manifest_path = write_export_manifest(
-            export_path,
-            table_names=table_names,
-            csv_dir=database_dir,
-            extra_files=sidecar_paths,
-        )
+    manifest_path = write_export_manifest(
+        export_path,
+        table_names=table_names,
+        csv_dir=database_dir,
+        extra_files=sidecar_paths,
+        row_counts=row_counts,
+    )
 
     return {
         "database_dir": database_dir,
         "manifest": manifest_path,
         **sidecar_paths,
     }
-
-
-def load_zip_table_to_stringio(archive_path: str, table: str) -> io.StringIO:
-    """Return a text buffer for ``table`` from an export or legacy zip."""
-    if not is_zip_path(archive_path):
-        raise ValueError(f"Expected a zip archive, got {archive_path}")
-    with zipfile.ZipFile(archive_path, "r") as archive:
-        member = find_table_member_in_zip(archive, table)
-        if member is None:
-            raise KeyError(f"Table CSV for {table!r} not found in {archive_path}")
-        with archive.open(member) as handle:
-            return io.StringIO(handle.read().decode("utf-8"))

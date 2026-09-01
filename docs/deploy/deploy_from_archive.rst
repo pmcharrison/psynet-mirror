@@ -24,6 +24,11 @@ the ``--archive`` option:
     In this case you will need to put your archive inside your experiment directory
     so that Docker can see it properly.
 
+Only the table CSVs under ``database/`` are sent to the server. PsyNet re-packs
+whatever you pass to ``--archive`` before deploying it, so the recruiter
+identifier sidecars and any exported asset files in an ``export.zip`` stay on
+your computer.
+
 When you deploy an experiment in this way, PsyNet will use the latest version of the code that you
 have in your current experiment directory. This means that you can use this opportunity to address small
 bugs in your code. Note that the database structure is, however, sensitive to what PsyNet version you use.

@@ -136,7 +136,10 @@ match, the export stops: you are almost certainly in the wrong folder. If the
 deployed Git commit differs from your checkout, or either side has uncommitted
 changes, PsyNet warns and asks for confirmation. In a non-interactive shell you
 must pass ``--allow-project-mismatch`` to continue. These checks apply even when
-you supply ``--path``.
+you supply ``--path``. A deployment running a PsyNet version that predates this
+check cannot answer the question, so PsyNet instead reads the identity recorded
+in the downloaded ``manifest.json`` and applies the same rules before publishing
+the export to ``exports/latest``.
 
 .. code:: bash
 
@@ -172,8 +175,19 @@ is an empty JSON object (``{}``), so the NOT NULL constraint still holds on
 ``psynet load``. Lucid experiments also write
 ``lucid_entrant_identifiers.csv``. Recruiter identifier columns on other copied
 tables are remapped to the same participant pseudonyms when they match a known
-participant (for example Dallinger ``notification.assignment_id``), or blanked
-when they do not. ``request.params`` is always blanked.
+participant (for example Dallinger ``notification.assignment_id``).
+``request.params`` is always redacted.
+
+An identifier that matches no exported participant cannot be pseudonymized.
+Dallinger, for instance, records an experiment error against the literal
+assignment ``unknown``. Such a value is removed, but *how* it is removed depends
+on the column: a nullable column becomes empty, while a ``NOT NULL`` column
+receives a placeholder of the form ``redacted-<table>-<row id>``. The
+distinction matters because ``COPY`` reads an empty CSV field as NULL, so
+blanking a ``NOT NULL`` column would produce an archive that
+``psynet load`` cannot read. Nullability is taken from the live schema, so the
+same rule applies automatically to identifier columns on experiment-defined
+tables.
 
 PsyNet does not inspect assets, free-text answers, logs, serialized variables, or
 experiment-defined basic data for identifying content. Treat those as potentially
