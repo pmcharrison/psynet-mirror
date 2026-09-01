@@ -2196,10 +2196,20 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        all_participant_trials = self.trial_class.query.filter_by(
-            participant_id=participant.id
-        ).all()
-        return [t for t in all_participant_trials if t.trial_maker_id == self.id]
+        # Performance checks may run after every trial. Filtering in Python
+        # would repeatedly hydrate trials from the participant's other trial
+        # makers, making long multi-module experiments increasingly expensive.
+        # Order explicitly: callers such as performance_check and repeat-trial
+        # sampling are sensitive to ordering, which the database does not
+        # otherwise guarantee.
+        return (
+            self.trial_class.query.filter_by(
+                participant_id=participant.id,
+                trial_maker_id=self.id,
+            )
+            .order_by(self.trial_class.id)
+            .all()
+        )
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):
@@ -2725,7 +2735,7 @@ class NetworkTrialMaker(TrialMaker):
         logger.info(
             "Selected node %i from network %i to give to participant %i.",
             node.id,
-            node.network.id,
+            node.network_id,
             participant.id,
         )
         trial = self._create_trial(
