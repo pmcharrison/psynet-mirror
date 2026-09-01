@@ -290,8 +290,10 @@ Payment
 
 ``hard_max_experiment_payment`` *float* |psynet-icon|
     Guarantees that in an experiment no more is spent than the value assigned.
-    Bonuses are not paid from the point this value is reached and a record of the amount
-    of unpaid bonus is kept in the participant's ``unpaid_bonus`` variable. Default: ``1100.0``.
+    A bonus that would exceed this value is clipped to remaining room (or not
+    paid if that remainder is below $0.01). ``planned_bonus`` stays the
+    decided amount, delivered ``bonus`` is what was sent, and
+    ``bonus_status = capped``. Default: ``1100.0``.
 
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
@@ -300,8 +302,10 @@ Payment
     The threshold of reward accumulated, in the currency set via the ``currency`` config variable, for the participant to be able to receive compensation when aborting an experiment using the `Abort experiment` button. Default: ``0.20``.
 
 ``soft_max_experiment_payment`` *float* |psynet-icon|
-    The recruiting process stops if the amount of accumulated payments
-    (incl. time and performance rewards), in the currency set via the ``currency`` config variable, exceedes this value. Default: ``1000.0``.
+    The recruiting process stops if ``amount_spent()`` (recorded
+    ``base_payment`` + ``bonus`` for every participant, including those
+    still in progress) exceeds this value, in the currency set via the
+    ``currency`` config variable. Default: ``1000.0``.
 
 ``wage_per_hour`` *float* |psynet-icon|
     The payment in currency the participant gets per hour. Default: ``9.0``.
@@ -463,6 +467,15 @@ Lab Recruiter
 
 ``lab_recruiter_auth_token`` *str* |psynet-icon| |sensitive-icon|
     Authentication token for communication with the API of the Lab Recruiter web application.
+    Store the raw key from ``drf_create_token`` (not the ``Token `` prefix) in
+    ``~/.dallingerconfig``. PsyNet sends it as ``Authorization: Token <value>``
+    when posting completion or failure. Deploying with the lab recruiter fails
+    if it is unset; local debug still starts without it. In debug without a
+    token, completion posts are skipped and treated as successful so
+    participants are not left in payment review. Do not put this key in
+    ``config.txt``; it is marked sensitive and would fail the experiment config
+    check. As with any config key, an environment variable of the same name
+    (``lab_recruiter_auth_token``) overrides ``~/.dallingerconfig``.
 
 ``lab_recruiter_external_submission_url`` *str* |psynet-icon|
     Override the default external submission URL (where completion/failure outcomes are posted).
@@ -472,6 +485,9 @@ Lab Recruiter
     * ``lab-recruiter``: ``https://recruiter.cococo-lab.cornell.edu/tasks``
     * ``staging-lab-recruiter``: ``https://recruiter-staging.cococo-lab.cornell.edu/tasks``
     * ``dev-lab-recruiter``: ``http://localhost:8000/tasks``
+
+    ``psynet debug local`` uses ``dev-lab-recruiter`` when
+    ``debug_recruiter = dev-lab-recruiter``.
 
 Lucid
 -----
@@ -552,12 +568,67 @@ Prolific
 Partial payment
 ...............
 
-The following variable concerns the situation in Prolific experiments where participants cannot
-proceed to a successful completion, for example because they fail a pre-screening test. This setting
-does not apply to participants who reach a successful end page; successful participants are approved
-and receive the base payment even if their accumulated reward is lower than the base payment.
+The following variables concern the situation in Prolific experiments where participants cannot
+proceed to a successful completion, for example because they fail a pre-screening test or hit an
+error. These settings do not apply to participants who reach a successful end page; successful
+participants are approved and receive the base payment even if their accumulated reward is lower
+than the base payment.
 
-PsyNet will check if ``prolific_enable_return_for_bonus`` is ``True`` (default). If so, the
+By default (``prolific_pay_unsuccessful = true``), PsyNet registers an additional Prolific
+completion code (of type ``UNSUCCESSFUL``) with a fixed screen-out payment action. Unsuccessful
+participants submit their study normally and Prolific automatically pays them this fixed amount;
+PsyNet additionally pays a bonus topping them up to their accumulated reward (see
+``prolific_unsuccessful_topup``). Participants who hit an error page are offered a button that
+submits their study with the same completion code. Because this feature spends money
+automatically, Prolific deployments must set ``prolific_screen_out_slots`` explicitly (see below);
+deployment fails with an explanatory error otherwise.
+
+.. note::
+
+    Prolific documents the fixed screen-out payment feature as only available to selected
+    workspaces (in our testing it was available across all workspaces of our account). If your
+    workspace lacks it, Prolific rejects study creation; in that case ask Prolific support to
+    enable custom screening for your workspace, or set ``prolific_pay_unsuccessful = false`` to
+    disable the feature and fall back to the return-for-bonus flow below.
+
+``prolific_pay_unsuccessful`` *bool* |psynet-icon|
+    If ``True`` (default), unsuccessful participants are paid automatically via the screen-out
+    completion code described above. Set to ``False`` to restore the previous return-for-bonus
+    behavior (see ``prolific_enable_return_for_bonus`` below).
+
+``prolific_unsuccessful_base_payment`` *float* |psynet-icon|
+    The fixed amount (in the currency of your Prolific account) that Prolific automatically pays
+    participants who fail or error out of the experiment. Must be positive and less than
+    ``base_payment`` (a Prolific requirement). Defaults to ``0.25``; studies with
+    ``base_payment <= 0.25`` must set it explicitly (or disable the feature).
+
+``prolific_unsuccessful_topup`` *bool* |psynet-icon|
+    If ``True`` (default), unsuccessful participants additionally receive a bonus equal to their
+    accumulated reward minus ``prolific_unsuccessful_base_payment`` (never negative). If ``False``,
+    only their performance reward is paid as a bonus on top of the fixed payment.
+
+``prolific_screen_out_slots`` *int* |psynet-icon|
+    The maximum number of screen-out payments Prolific will make before automatically pausing the
+    study (a budgeting safeguard imposed by Prolific). **Required** for Prolific deployments when
+    ``prolific_pay_unsuccessful`` is enabled, since ``prolific_screen_out_slots x
+    prolific_unsuccessful_base_payment`` bounds the study's worst-case screen-out spend; a common
+    choice is 10 times ``initial_recruitment_size``. If the limit is reached, the study pauses and
+    can be resumed by increasing the slot count via the Prolific interface or API.
+
+.. warning::
+
+    Screened-out submissions do not count towards the study's places on Prolific: each screen-out
+    releases its place and Prolific recruits a replacement participant. A study therefore only
+    completes once enough participants finish *successfully*. If your experiment screens out a
+    large proportion of participants, recruitment (and screen-out payments) will continue until
+    the places are filled by successful participants or ``prolific_screen_out_slots`` is
+    exhausted — this slot limit is the only budget backstop in the extreme case where almost all
+    participants are screened out. Size ``prolific_screen_out_slots`` deliberately if you expect
+    a high screen-out rate, and monitor the study's spending via the Prolific interface.
+
+If ``prolific_pay_unsuccessful`` is ``False`` (or the workspace does not support screen-out
+payments), PsyNet falls back to the older return-for-bonus flow: PsyNet will check if
+``prolific_enable_return_for_bonus`` is ``True`` (default). If so, the
 participant will be asked to return the submission in order to receive their payment.
 PsyNet will wait for the submission return to be registered and only then make the payment.
 Note: The experiment server has to be online still for the payment to be made.
@@ -567,14 +638,8 @@ to return the submission and contact the experimenter for their bonus.
 ``prolific_enable_return_for_bonus`` *bool* |psynet-icon|
     If ``True``, participants are eligible for a bonus and are asked to return their submission for bonus payment.
     If ``False``, they are asked to return the submission and message the experimenter for their payment.
-    Default: ``True``.
-
-.. note::
-
-    PsyNet used to provide a ``prolific_enable_screen_out`` parameter for Prolific's former
-    screen-out API route. Prolific no longer supports this route, so the parameter should no
-    longer be used. If it is set to ``True``, PsyNet will raise an error explaining that the
-    option is unsupported.
+    Default: ``True``. Only relevant when the screen-out payment flow is disabled
+    (``prolific_pay_unsuccessful = false``) or unavailable for your workspace.
 
 .. note::
 
