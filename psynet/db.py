@@ -5,6 +5,17 @@ from functools import wraps
 import dallinger.db
 from sqlalchemy import event, text
 
+TRANSIENT_TRANSACTION_PGCODES = {"40001", "40P01", "55P03"}
+
+
+def is_transient_transaction_error(error):
+    """Return whether a database error is lock timeout, deadlock, or serialization failure."""
+    return (
+        getattr(getattr(error, "orig", None), "pgcode", None)
+        in TRANSIENT_TRANSACTION_PGCODES
+    )
+
+
 _transaction_depth = ContextVar("psynet_transaction_depth", default=0)
 _read_only_render_depth = ContextVar("psynet_read_only_render_depth", default=0)
 

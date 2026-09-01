@@ -689,6 +689,66 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     assert "b_good" in processed_barriers
 
 
+def _barrier_link_released(participant_id, barrier_id):
+    with db.engine.connect() as conn:
+        return conn.execute(
+            text(
+                """
+                SELECT released
+                FROM participant_link_barrier
+                WHERE participant_id = :participant_id
+                  AND barrier_id = :barrier_id
+                """
+            ),
+            {"participant_id": participant_id, "barrier_id": barrier_id},
+        ).scalar()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_barriers_skips_locked_waiters_and_continues(
+    in_experiment_directory, db_session
+):
+    """A participant write must not block other barriers in the same poller sweep."""
+    exp = get_experiment()
+    locked_barrier = ReleaseAllBarrier(id_="a_locked")
+    free_barrier = ReleaseAllBarrier(id_="b_free")
+    locked_participant = new_participant(exp)
+    free_participant = new_participant(exp)
+    locked_participant.status = "working"
+    free_participant.status = "working"
+    locked_barrier.receive_participant(locked_participant)
+    free_barrier.receive_participant(free_participant)
+    db.session.commit()
+    locked_id = locked_participant.id
+    free_id = free_participant.id
+
+    with db.engine.connect() as conn:
+        trans = conn.begin()
+        conn.execute(
+            text("SELECT id FROM participant WHERE id = :id FOR UPDATE"),
+            {"id": locked_id},
+        )
+        check_barriers()
+        locked_released = _barrier_link_released(locked_id, "a_locked")
+        free_released = _barrier_link_released(free_id, "b_free")
+        trans.rollback()
+
+    assert locked_released is False
+    assert free_released is True
+
+    check_barriers()
+    assert _barrier_link_released(locked_id, "a_locked") is True
+
+
+def test_waiting_participants_nowait_requires_for_update():
+    with pytest.raises(ValueError, match="nowait"):
+        Barrier.get_waiting_participants_from_barrier_id(
+            "x", for_update=False, nowait=True
+        )
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )

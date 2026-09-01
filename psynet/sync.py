@@ -50,6 +50,9 @@ this module. That loop:
 - Finds the next waiting barrier record.
 - Locks it using ``SELECT ... FOR UPDATE SKIP LOCKED`` so only one worker
   processes a barrier at a time.
+- Locks waiters with ``FOR UPDATE NOWAIT``. If any waiter is already locked
+  (for example by ``POST /response``), it skips that barrier this tick instead
+  of blocking the poller.
 - Calls ``Barrier.check`` in an isolated transaction.
 - Logs and skips failures per barrier so one bad barrier does not stall others.
 
@@ -92,7 +95,11 @@ from sqlalchemy.orm import (
 )
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.db import _set_transaction_lock_timeout, transaction
+from psynet.db import (
+    _set_transaction_lock_timeout,
+    is_transient_transaction_error,
+    transaction,
+)
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage
 from psynet.participant import Participant
@@ -321,14 +328,14 @@ class Barrier(EltCollection):
         )
         participant.active_barriers[self.id] = link
 
-    def get_waiting_participants(self, for_update: bool = False):
+    def get_waiting_participants(self, for_update: bool = False, nowait: bool = False):
         return self.get_waiting_participants_from_barrier_id(
-            self.id, for_update=for_update
+            self.id, for_update=for_update, nowait=nowait
         )
 
     @classmethod
     def get_waiting_participants_from_barrier_id(
-        cls, barrier_id: str, for_update: bool = False
+        cls, barrier_id: str, for_update: bool = False, nowait: bool = False
     ) -> List[Participant]:
         """
         Gets the participants currently waiting at a barrier.
@@ -343,12 +350,19 @@ class Barrier(EltCollection):
             The objects will be locked for update in the database
             and only released at the end of the transaction.
 
+        nowait
+            If ``True`` (with ``for_update``), fail immediately when any waiter
+            is locked by another transaction instead of blocking. Used by the
+            barrier poller so a participant write cannot stall other groups.
+
         Returns
         -------
 
         A list of waiting participants. Note that this only includes currently active participants
         (not participants who failed and left the experiment).
         """
+        if nowait and not for_update:
+            raise ValueError("nowait requires for_update=True.")
         query = (
             ParticipantLinkBarrier.query.join(Participant)
             .filter(
@@ -363,7 +377,8 @@ class Barrier(EltCollection):
 
         if for_update:
             query = query.with_for_update(
-                of=[ParticipantLinkBarrier, Participant]
+                of=[ParticipantLinkBarrier, Participant],
+                nowait=nowait,
             ).populate_existing()
 
         links = query.all()
@@ -388,7 +403,9 @@ class Barrier(EltCollection):
         """Run any side-effecting checks before deciding who to release."""
 
     def check(self):
-        waiting_participants = self.get_waiting_participants(for_update=True)
+        waiting_participants = self.get_waiting_participants(
+            for_update=True, nowait=True
+        )
         waiting_participants.sort(key=lambda p: p.id)
 
         logger.info(
@@ -1255,9 +1272,9 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
                 reason="barrier_released",
             )
 
-    def get_waiting_participants(self, for_update: bool = False):
+    def get_waiting_participants(self, for_update: bool = False, nowait: bool = False):
         barrier = self.get_barrier()
-        return barrier.get_waiting_participants(for_update=for_update)
+        return barrier.get_waiting_participants(for_update=for_update, nowait=nowait)
 
 
 def _next_waiting_barrier(excluded_ids):
@@ -1293,6 +1310,9 @@ def check_barriers():
         barrier_id = None
         try:
             with transaction():
+                _set_transaction_lock_timeout(
+                    get_config().get("timeline_lock_timeout_seconds")
+                )
                 barrier_record = _next_waiting_barrier(excluded_ids)
                 if barrier_record is None:
                     return
@@ -1303,10 +1323,16 @@ def check_barriers():
                         f"Barrier '{barrier_record.id}' is missing or invalid."
                     )
                 barrier.check()
-        except Exception:
+        except Exception as err:
             if barrier_id is None:
                 raise
-            logger.exception("Failed to process barrier '%s'.", barrier_id)
+            if is_transient_transaction_error(err):
+                logger.debug(
+                    "Barrier '%s' skipped this tick because a waiter is locked.",
+                    barrier_id,
+                )
+            else:
+                logger.exception("Failed to process barrier '%s'.", barrier_id)
         finally:
             if barrier_id is not None:
                 excluded_ids.add(barrier_id)

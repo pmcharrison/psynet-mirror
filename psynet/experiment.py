@@ -77,6 +77,7 @@ from .command_line import export_launch_data
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import (
     _set_transaction_lock_timeout,
+    is_transient_transaction_error,
     read_only_transaction,
     transaction,
     with_transaction,
@@ -139,7 +140,6 @@ from .utils import (
 )
 
 logger = get_logger()
-_TRANSIENT_TRANSACTION_PGCODES = {"40001", "40P01", "55P03"}
 
 
 database_template_path = ".deploy/database_template.zip"
@@ -4170,10 +4170,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def _is_transient_transaction_error(error):
-        return (
-            getattr(getattr(error, "orig", None), "pgcode", None)
-            in _TRANSIENT_TRANSACTION_PGCODES
-        )
+        return is_transient_transaction_error(error)
 
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):

@@ -79,7 +79,9 @@ indefinitely. Whole timeline requests are not retried automatically because
 author code blocks may contain non-idempotent external side effects. Shared
 coordination metadata, such as barrier registry rows, must likewise be created
 or refreshed in short transactions rather than remaining uncommitted through
-rendering.
+rendering. The barrier poller locks waiters with ``FOR UPDATE NOWAIT`` so a
+participant write cannot stall other groups; if any waiter is busy, that
+barrier is skipped until the next tick.
 
 The fragment must contain the elements the persistent document replaces:
 
