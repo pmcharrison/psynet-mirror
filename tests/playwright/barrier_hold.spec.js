@@ -13,6 +13,65 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
+function deferred() {
+  let resolve;
+  const promise = new Promise((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
+async function delayChatSocketOpen(context) {
+  let currentSocket;
+  let socketCount = 0;
+  const attempts = Array.from({ length: 2 }, () => ({
+    created: deferred(),
+    opened: deferred(),
+    release: deferred()
+  }));
+
+  await context.routeWebSocket(
+    (url) =>
+      url.pathname === "/chat" &&
+      url.searchParams.get("channel") === "modular_page_chat",
+    async (socket) => {
+      const attempt = socketCount;
+      socketCount += 1;
+      attempts[attempt]?.created.resolve();
+      await attempts[attempt]?.release.promise;
+      currentSocket = socket;
+      const server = socket.connectToServer();
+      socket.onMessage((message) => {
+        if (String(message).includes('"type":"join_room"')) {
+          attempts[attempt]?.opened.resolve();
+        }
+        server.send(message);
+      });
+    }
+  );
+
+  return {
+    initial: {
+      created: attempts[0].created.promise,
+      opened: attempts[0].opened.promise,
+      release: attempts[0].release.resolve
+    },
+    reconnect: {
+      created: attempts[1].created.promise,
+      opened: attempts[1].opened.promise,
+      release: attempts[1].release.resolve
+    },
+    disconnect: () => {
+      void currentSocket.close({
+        code: 1012,
+        reason: "Exercise chat reconnect"
+      });
+    },
+    releaseAll: () =>
+      attempts.forEach((attempt) => attempt.release.resolve())
+  };
+}
+
 test("default barriers hold the current page until websocket release", { tag: "@inplace-only" }, async ({
   browser
 }) => {
@@ -21,6 +80,7 @@ test("default barriers hold the current page until websocket release", { tag: "@
   );
   const firstContext = await browser.newContext();
   const secondContext = await browser.newContext();
+  const delayedChatSocket = await delayChatSocketOpen(firstContext);
   let firstParticipant;
   let secondParticipant;
 
@@ -97,9 +157,29 @@ test("default barriers hold the current page until websocket release", { tag: "@
       firstParticipant.locator("#psynet-timeline-hold-indicator")
     ).toHaveCount(0);
 
+    // The first participant's chat transport is still CONNECTING here. Hold
+    // channels are not routed, so both participants must already have reached
+    // the round results before the chat transport is released.
+    await delayedChatSocket.initial.created;
     const chatMessage = "Barrier hold chatroom regression";
-    await firstParticipant.locator("#chatroom-chat-input").fill(chatMessage);
-    await firstParticipant.locator("#chatroom-send-btn").click();
+    const chatInput = firstParticipant.locator("#chatroom-chat-input");
+    const sendButton = firstParticipant.locator("#chatroom-send-btn");
+    await chatInput.fill(chatMessage);
+    await expect(sendButton).toBeDisabled();
+
+    // Exercise the close-after-enable race directly. A rejected send must
+    // restore the disabled state and retain the participant's draft.
+    await sendButton.evaluate((button) => {
+      button.disabled = false;
+      button.click();
+    });
+    await expect(sendButton).toBeDisabled();
+    await expect(chatInput).toHaveValue(chatMessage);
+
+    delayedChatSocket.initial.release();
+    await delayedChatSocket.initial.opened;
+    await expect(sendButton).toBeEnabled();
+    await sendButton.click();
     await Promise.all([
       expect(firstParticipant.locator("#chatroom-messages")).toContainText(
         chatMessage,
@@ -111,11 +191,33 @@ test("default barriers hold the current page until websocket release", { tag: "@
       )
     ]);
 
+    delayedChatSocket.disconnect();
+    await delayedChatSocket.reconnect.created;
+    await expect(sendButton).toBeDisabled();
+
+    const reconnectMessage = "Chat still works after reconnect";
+    await chatInput.fill(reconnectMessage);
+    delayedChatSocket.reconnect.release();
+    await delayedChatSocket.reconnect.opened;
+    await expect(sendButton).toBeEnabled();
+    await sendButton.click();
+    await Promise.all([
+      expect(firstParticipant.locator("#chatroom-messages")).toContainText(
+        reconnectMessage,
+        { timeout: STEP_TIMEOUT_MS }
+      ),
+      expect(secondParticipant.locator("#chatroom-messages")).toContainText(
+        reconnectMessage,
+        { timeout: STEP_TIMEOUT_MS }
+      )
+    ]);
+
     firstResponses.stop();
     await assertNoBackendError(firstParticipant);
     await assertNoBackendError(secondParticipant);
     expect(pageErrors).toEqual([]);
   } finally {
+    delayedChatSocket.releaseAll();
     await firstContext.close();
     await secondContext.close();
     await stopExperiment(experiment.proc);

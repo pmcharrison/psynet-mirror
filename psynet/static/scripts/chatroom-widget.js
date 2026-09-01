@@ -20,17 +20,24 @@ export async function activate({root, vars}) {
     function leaveChat() {
         if (leftChat) return;
         leftChat = true;
+        if (sendButton) sendButton.disabled = true;
         if (!chatConnection) return;
-        try {
-            chatConnection.send({
-                type: "leave_room",
-                room_id: ROOM_ID,
-                sender: MY_ID,
-            });
-        } catch (e) {}
+        if (chatConnection.isOpen()) {
+            try {
+                chatConnection.send({
+                    type: "leave_room",
+                    room_id: ROOM_ID,
+                    sender: MY_ID,
+                });
+            } catch (error) {
+                console.warn("Could not notify the chatroom before leaving.", error);
+            }
+        }
         try {
             chatConnection.close();
-        } catch (e) {}
+        } catch (error) {
+            console.warn("Could not close the chatroom connection cleanly.", error);
+        }
     }
 
     function handleBeforeUnload() {
@@ -40,12 +47,18 @@ export async function activate({root, vars}) {
     function sendMessage() {
         var text  = input.value.trim();
         if (!text) return;
-        chatConnection.send({
-            type: "message",
-            room_id: ROOM_ID,
-            content: text,
-            sender: MY_ID,
-        });
+        try {
+            chatConnection.send({
+                type: "message",
+                room_id: ROOM_ID,
+                content: text,
+                sender: MY_ID,
+            });
+        } catch (error) {
+            sendButton.disabled = true;
+            console.warn("Chat message was not sent; the draft was retained.", error);
+            return;
+        }
         input.value = "";
         input.focus();
     }
@@ -95,25 +108,43 @@ export async function activate({root, vars}) {
     }
 
     try {
+        sendButton = root.querySelector("#chatroom-send-btn");
+        input = root.querySelector("#chatroom-chat-input");
+        if (!sendButton || !input) {
+            throw new Error(
+                "Chatroom widget requires #chatroom-send-btn and #chatroom-chat-input."
+            );
+        }
+        sendButton.disabled = true;
+
         chatConnection = PsyNetWebSocketChannel.connect({
             channel: GLOBAL_CH,
             onOpen: function () {
                 if (leftChat) return;
-                chatConnection.send({
-                    type: "join_room",
-                    room_id: ROOM_ID,
-                    sender: MY_ID,
-                });
-                if (firstOpen) {
-                    if (SHOW_HISTORY) {
-                        chatConnection.send({
-                            type: "request_state",
-                            room_id: ROOM_ID,
-                            sender: MY_ID,
-                        });
+                try {
+                    chatConnection.send({
+                        type: "join_room",
+                        room_id: ROOM_ID,
+                        sender: MY_ID,
+                    });
+                    if (firstOpen) {
+                        if (SHOW_HISTORY) {
+                            chatConnection.send({
+                                type: "request_state",
+                                room_id: ROOM_ID,
+                                sender: MY_ID,
+                            });
+                        }
+                        firstOpen = false;
                     }
-                    firstOpen = false;
+                    sendButton.disabled = false;
+                } catch (error) {
+                    sendButton.disabled = true;
+                    console.warn("Chatroom connection closed while joining.", error);
                 }
+            },
+            onClose: function () {
+                if (!leftChat) sendButton.disabled = true;
             },
             onMessage: function (msg) {
                 if (leftChat) return;
@@ -132,14 +163,6 @@ export async function activate({root, vars}) {
                 }
             },
         });
-
-        sendButton = root.querySelector("#chatroom-send-btn");
-        input = root.querySelector("#chatroom-chat-input");
-        if (!sendButton || !input) {
-            throw new Error(
-                "Chatroom widget requires #chatroom-send-btn and #chatroom-chat-input."
-            );
-        }
 
         window.addEventListener("beforeunload", handleBeforeUnload);
         sendButton.addEventListener("click", sendMessage);

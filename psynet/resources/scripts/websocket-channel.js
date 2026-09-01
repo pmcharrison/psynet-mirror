@@ -38,6 +38,9 @@
       }
       subscribers.forEach((subscriber) => subscriber.onMessage?.(message));
     };
+    socket.onclose = function (event) {
+      subscribers.forEach((subscriber) => subscriber.onClose?.(event));
+    };
 
     channels.set(channel, entry);
     return entry;
@@ -53,7 +56,7 @@
     entry.socket.close();
   }
 
-  function connect({ channel, keepAlive = false, onOpen, onMessage }) {
+  function connect({ channel, keepAlive = false, onOpen, onMessage, onClose }) {
     if (!channel) {
       throw new Error("A WebSocket channel name is required.");
     }
@@ -71,9 +74,15 @@
           closeChannel(entry);
         }
       },
+      isOpen() {
+        return !closed && entry.socket.readyState === WebSocket.OPEN;
+      },
       send(message) {
         if (closed) {
           throw new Error(`WebSocket channel "${channel}" is closed.`);
+        }
+        if (entry.socket.readyState !== WebSocket.OPEN) {
+          throw new Error(`WebSocket channel "${channel}" is not open.`);
         }
         entry.socket.send(channel + ":" + JSON.stringify(message));
       },
@@ -84,6 +93,9 @@
       },
       onMessage: (message) => {
         if (!closed && onMessage) onMessage(message, connection);
+      },
+      onClose: (event) => {
+        if (!closed && onClose) onClose(event, connection);
       },
     };
     entry.subscribers.add(subscriber);
