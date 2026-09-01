@@ -12,12 +12,41 @@ const {
 const STEP_TIMEOUT_MS = 120000;
 const HOLD_WAKE_TIMEOUT_MS = 10000;
 
-async function startBackgroundHold(page) {
+async function startBackgroundHold(page, { trackLucidUnload = false } = {}) {
   await completeInitialGateway(page);
   await expect(page.locator("#main-body")).toContainText(
     "Submit this page to start background feedback processing.",
     { timeout: STEP_TIMEOUT_MS }
   );
+  if (trackLucidUnload) {
+    await page.evaluate(() => {
+      window.beforeUnloadOperations = [];
+      const originalAddEventListener = window.addEventListener.bind(window);
+      const originalRemoveEventListener =
+        window.removeEventListener.bind(window);
+      window.addEventListener = function (type, ...args) {
+        if (type === "beforeunload") window.beforeUnloadOperations.push("add");
+        return originalAddEventListener(type, ...args);
+      };
+      window.removeEventListener = function (type, ...args) {
+        if (type === "beforeunload") {
+          window.beforeUnloadOperations.push("remove");
+        }
+        return originalRemoveEventListener(type, ...args);
+      };
+      psynetTemplateData.flags.lucidRecruitment = true;
+      Object.assign(psynetTemplateData.lucid, {
+        inactivityTimeoutMs: 600000,
+        inactivityTimeoutS: 600,
+        noFocusTimeoutMs: 600000,
+        noFocusTimeoutReason: "no-focus-",
+        overallTimeoutS: 600,
+        secondsLeft: 600,
+        shouldWarnOnBeforeUnload: true
+      });
+      psynet.initLucidTermination();
+    });
+  }
   const visiblePageUuid = await page.evaluate(() => window.pageUuid);
   const mainBodyTop = await page
     .locator("#main-body")
@@ -50,12 +79,20 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       });
     });
     const { visiblePageUuid, mainBodyTop } = await startBackgroundHold(
-      experimentPage
+      experimentPage,
+      { trackLucidUnload: true }
     );
 
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Submit this page to start background feedback processing."
     );
+    await expect
+      .poll(() =>
+        experimentPage.evaluate(
+          () => window.beforeUnloadOperations.at(-1)
+        )
+      )
+      .toBe("add");
     expect(
       await experimentPage.evaluate(
         (uuid) =>
@@ -372,6 +409,9 @@ test("timeline hold preserves same-session page identity", { tag: "@both" }, asy
       response: document.querySelector(".response")?.disabled ?? null,
     }));
     expect(controlsDisabled.next).toBe(false);
+    await expect(
+      experimentPage.locator("#intentionally-disabled-response")
+    ).toBeDisabled();
     await assertNoBackendError(experimentPage);
   });
 });

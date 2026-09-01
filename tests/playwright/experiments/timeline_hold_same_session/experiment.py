@@ -17,7 +17,11 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         InfoPage(
-            Markup("<p id='hold-session-marker'>First session page</p>"),
+            Markup(
+                "<p id='hold-session-marker'>First session page</p>"
+                "<button id='intentionally-disabled-response' "
+                "class='response' disabled>Unavailable choice</button>"
+            ),
             time_estimate=1,
             session_id="hold-session",
             contents={"step": 1},

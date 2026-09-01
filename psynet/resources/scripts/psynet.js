@@ -301,6 +301,11 @@
       window.removeEventListener("beforeunload", beforeunloadFunction);
     };
 
+    psynet.addBeforeUnloadEventListener = function () {
+      psynet.removeBeforeUnloadEventListener();
+      window.addEventListener("beforeunload", beforeunloadFunction);
+    };
+
     // ---- Template data bootstrap / refresh ---------------------------------
     // In inplace mode we keep one persistent document and replace only the
     // timeline fragment. After each swap we must refresh the bootstrap payload
@@ -1680,6 +1685,33 @@
       disable: () => $(".response").attr("disabled", "disabled"),
     };
 
+    psynet.submissionControlState = null;
+
+    psynet.captureSubmissionControlState = function () {
+      psynet.submissionControlState = Array.from(
+        document.querySelectorAll(
+          ".response, .submit, .sd-navigation__complete-btn",
+        ),
+        (element) => ({ element, disabled: element.disabled }),
+      );
+    };
+
+    psynet.restoreSubmissionControlState = function () {
+      if (psynet.submissionControlState === null) {
+        psynet.response.enable();
+        psynet.submit.enable();
+        return;
+      }
+      psynet.submissionControlState.forEach(({ element, disabled }) => {
+        if (element.isConnected) element.disabled = disabled;
+      });
+      psynet.submissionControlState = null;
+    };
+
+    psynet.clearSubmissionControlState = function () {
+      psynet.submissionControlState = null;
+    };
+
     psynet.rebuildTrial = async function () {
       if (psynet.trial) {
         await psynet.trial.stop({ force: true });
@@ -2981,6 +3013,9 @@
         psynet.updatePageForTimelineHold(response.page);
         psynet.nextPagePending = false;
         psynet.beginTimelineHold(response.timeline_hold);
+        if (psynetTemplateData.flags.lucidRecruitment) {
+          psynet.addBeforeUnloadEventListener();
+        }
         return true;
       }
 
@@ -2991,11 +3026,14 @@
         psynet.submissionPageUuid = response.page.attributes.page_uuid;
         psynet.trial.registerEvent("pageUpdated");
         psynet.nextPagePending = false;
-        psynet.response.enable();
-        psynet.submit.enable();
+        psynet.restoreSubmissionControlState();
+        if (psynetTemplateData.flags.lucidRecruitment) {
+          psynet.addBeforeUnloadEventListener();
+        }
         return true;
       }
 
+      psynet.clearSubmissionControlState();
       if (psynet.requiresFullPageReloadTransition(response)) {
         psynet.loadNextTimelinePageWithReload();
         return true;
@@ -3024,8 +3062,7 @@
         );
       } else {
         psynet.alert(response.message);
-        psynet.response.enable();
-        psynet.submit.enable();
+        psynet.restoreSubmissionControlState();
       }
       if (onRejection) {
         onRejection(response);
@@ -3058,8 +3095,7 @@
       }
       psynet.log.warn("The experiment was busy: " + message);
       psynet.alert(message);
-      psynet.response.enable();
-      psynet.submit.enable();
+      psynet.restoreSubmissionControlState();
       return false;
     };
 
@@ -3154,6 +3190,9 @@
       //       - Note that 'json' is not a permitted name for an attribute
       //
       // Returns true if the answer passed validation checks, false otherwise.
+      if (!options.timelineHoldResume) {
+        psynet.captureSubmissionControlState();
+      }
       $(" .response, .submit ").prop("disabled", true);
 
       const json = prepareJsonSubmission(rawAnswer, metadata);
@@ -3533,7 +3572,7 @@
       }
     };
 
-    window.addEventListener("beforeunload", beforeunloadFunction);
+    psynet.addBeforeUnloadEventListener();
     window.beforeunloadFunction = beforeunloadFunction;
 
     const checkTriedToLeaveIntervalID = setInterval(
