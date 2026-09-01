@@ -36,6 +36,11 @@ class Exp(psynet.experiment.Experiment):
                         });
                     },
                 };
+                psynet.trial.onEvent("responseEnable", function () {
+                    document.getElementById(
+                        "intentionally-disabled-response"
+                    ).disabled = true;
+                }, {priority: -1});
             """,
         ),
         AsyncCodeBlock(

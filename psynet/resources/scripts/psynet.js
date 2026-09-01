@@ -1688,6 +1688,7 @@
     psynet.submissionControlState = null;
 
     psynet.captureSubmissionControlState = function () {
+      if (psynet.submissionControlState !== null) return;
       psynet.submissionControlState = Array.from(
         document.querySelectorAll(
           ".response, .submit, .sd-navigation__complete-btn",
