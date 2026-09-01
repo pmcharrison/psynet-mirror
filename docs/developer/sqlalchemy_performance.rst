@@ -186,20 +186,21 @@ Local profiling observed a small per-request cost, but changing this path
 affects metric durability and transaction boundaries. Revisit it only with a
 clear durability policy and concurrent-load evidence.
 
-Route-level regression coverage
--------------------------------
+Handler-level regression coverage
+---------------------------------
 
 Focused ORM tests are fast and useful, but they do not guarantee that
 ``/timeline`` and ``/response`` continue using the intended query construction.
 ``tests/isolated/test_navigation_queries.py`` therefore also calls those route
-methods inside a Flask request context and asserts a query budget. The
+handlers inside a Flask request context and asserts a query budget. The
 ``/timeline`` check profiles a page reload so unused module-state and barrier
 relationships stay unloaded. The ``/response`` check submits consent without
 requesting a timeline fragment, which keeps render noise out of the budget.
 
 These in-process tests do not capture request telemetry or gunicorn-worker
-SQL from a launched debug server. Treat them as a pin on route query
-construction, not as a substitute for a full-server profile.
+SQL from a launched debug server, and they bypass Flask dispatch and
+application hooks. Treat them as a pin on handler query construction, not as a
+substitute for a full-server profile.
 
 Evidence from the investigation
 ===============================
@@ -218,7 +219,7 @@ benchmarks:
   substantially reduced lookup time.
 
 These observations, together with focused regression tests and in-process
-route query budgets, support the retained changes. Production impact still
+handler query budgets, support the retained changes. Production impact still
 depends on database size, concurrency, experiment structure, and authored
 callbacks.
 

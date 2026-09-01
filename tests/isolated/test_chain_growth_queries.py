@@ -364,7 +364,9 @@ def test_performance_check_filters_trials_by_maker_in_sql(db_session, participan
     # hydrated and discarded, and the result must keep a deterministic order.
     assert trials == selected_trials
     statement = profiler.get_stats(top_n=None)[0].statement.lower()
-    assert "trial_maker_id" in statement
+    where_clause = statement.partition(" where ")[2].partition(" order by ")[0]
+    assert "participant_id" in where_clause
+    assert "trial_maker_id" in where_clause
     assert "order by" in statement
 
 

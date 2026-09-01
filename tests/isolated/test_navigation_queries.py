@@ -1,4 +1,5 @@
 import json
+import re
 import uuid
 from types import SimpleNamespace
 
@@ -151,16 +152,19 @@ def _response_request(payload):
     )
 
 
-def _query_count_containing(profiler, fragment):
-    fragment = fragment.lower()
+def _table_query_count(profiler, table):
+    table_pattern = re.compile(
+        rf'\b(?:from|join)\s+(?:"?\w+"?\.)?"?{re.escape(table)}"?\b',
+        re.IGNORECASE,
+    )
     return sum(
         stat.count
         for stat in profiler.get_stats(top_n=None)
-        if fragment in stat.statement.lower()
+        if table_pattern.search(stat.statement)
     )
 
 
-def test_timeline_route_skips_unused_participant_relationships(
+def test_timeline_handler_skips_unused_participant_relationships(
     db_session, request_participant
 ):
     """Reload ``/timeline`` without select-in loading unused relationships.
@@ -182,11 +186,11 @@ def test_timeline_route_skips_unused_participant_relationships(
             second = experiment.route_timeline()
     assert second.status_code == 200
     assert json.loads(second.get_data())["attributes"]["unique_id"] == unique_id
-    assert _query_count_containing(profiler, "from participant_link_barrier") == 0
-    assert _query_count_containing(profiler, "from module_state") == 0
+    assert _table_query_count(profiler, "participant_link_barrier") == 0
+    assert _table_query_count(profiler, "module_state") == 0
 
 
-def test_response_route_skips_unused_participant_relationships(
+def test_response_handler_skips_unused_participant_relationships(
     db_session, request_participant
 ):
     """POST ``/response`` should keep unused participant relationships lazy."""
@@ -208,11 +212,11 @@ def test_response_route_skips_unused_participant_relationships(
     db.session.remove()
 
     with _response_request(payload):
-        with assert_query_count(min_queries=8, max_queries=15) as profiler:
+        with assert_query_count(max_queries=12) as profiler:
             result = experiment.route_response()
     assert result.status_code == 200
     body = json.loads(result.get_data())
     assert body["status"] == "success"
     assert body["submission"] == "approved"
-    assert _query_count_containing(profiler, "from participant_link_barrier") == 0
-    assert _query_count_containing(profiler, "from module_state") <= 2
+    assert _table_query_count(profiler, "participant_link_barrier") == 0
+    assert _table_query_count(profiler, "module_state") <= 2
