@@ -12,10 +12,16 @@
             border-width: {{ params.border_width }};
             /* viewport_width is documented as a fraction of the browser window,
                so it is expressed in vw rather than as a percentage of the
-               parent. The height follows from the blueprint aspect ratio; a
-               percentage height would collapse against an auto-height parent. */
-            width: min(100%, {{ params.viewport_width * 100 }}vw);
+               parent. Sizing by height rather than width keeps the blueprint
+               aspect ratio exact when the height cap binds, which is what stops
+               a tall graphic from pushing the response controls off screen.
+               A percentage height would collapse against an auto-height parent. */
             aspect-ratio: {{ params.dimensions[0] }} / {{ params.dimensions[1] }};
+            height: min(
+                {{ (params.viewport_width * 100 * params.dimensions[1] / params.dimensions[0]) | round(4) }}vw,
+                {{ params.max_viewport_height * 100 }}vh
+            );
+            max-width: 100%;
         }
     </style>
 

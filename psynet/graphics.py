@@ -32,6 +32,8 @@ class GraphicMixin:
     viewport_width
         The width of the graphic display, expressed as a fraction of the browser window's width.
         The default value (0.6) means that the graphic occupies 60% of the window's width.
+        The graphic is additionally capped at ``max_viewport_height`` of the window's height,
+        so that tall graphics do not push the response controls off screen.
 
     loop
         Whether the graphic should loop back to the first frame once the last frame has finished.
@@ -55,6 +57,14 @@ class GraphicMixin:
 
     border_width: str = "1px"
     "CSS border-width property for the graphic panel."
+
+    max_viewport_height: float = 0.6
+    """
+    Upper bound on the graphic's height, expressed as a fraction of the browser
+    window's height. This stops a wide graphic from pushing the response
+    controls underneath the footer on short screens. The blueprint aspect ratio
+    is always preserved, so reaching this bound reduces the width too.
+    """
 
     def __init__(
         self,
