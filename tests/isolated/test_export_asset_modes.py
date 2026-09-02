@@ -32,7 +32,9 @@ def test_validate_asset_mode_rejects_unknown_values():
         validate_asset_mode("experiment")
 
 
-def test_build_export_tree_rejects_all_before_touching_the_database(tmp_path, monkeypatch):
+def test_build_export_tree_rejects_all_before_touching_the_database(
+    tmp_path, monkeypatch
+):
     def fail_if_called(*args, **kwargs):
         raise AssertionError("database export must not run for an invalid asset mode")
 

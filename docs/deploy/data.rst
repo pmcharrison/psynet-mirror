@@ -187,6 +187,17 @@ PsyNet does not inspect assets, free-text answers, logs, serialized variables, o
 experiment-defined basic data for identifying content. Treat those as potentially
 identifying unless you have scrubbed them yourself.
 
+.. _export_asset_tokens:
+
+Physical table dumps are complete. ``database/asset.csv`` includes
+``access_token`` and ``url``, which are the same live browser capabilities the
+running experiment uses (``/asset/<access_token>`` for local and on-demand
+assets). Identifier separation does not rewrite those columns. That is
+intentional: the export is for the experimenter, like
+``participant_identifiers.csv``, not a shareable public dataset. Keep the
+archive private while the deployment is running if you do not want those URLs
+used; stopping the app or rotating tokens on the server ends live access.
+
 .. _export_assets:
 
 Assets
@@ -207,7 +218,8 @@ bytes under semantic paths from each asset's ``export_path`` (for example
 module and participant folders). The ``assets/manifest.csv`` file maps semantic
 metadata (asset id, local key, associations, extension, sha256, and so on) onto
 those files. External and on-demand assets are omitted from the export tree;
-their metadata remains in ``database/asset.csv``.
+their metadata remains in ``database/asset.csv``, including live ``access_token``
+and ``url`` values (see :ref:`export_asset_tokens`).
 
 Live browser access for local and on-demand assets uses a permanent access
 token at ``/asset/<access_token>``. S3-backed managed assets use a direct public

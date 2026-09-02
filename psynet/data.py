@@ -1145,6 +1145,19 @@ def _asset_storage_kind(asset) -> str:
     return type(storage).__name__
 
 
+def _close_ssh_executor(executor) -> None:
+    """Close a docker-ssh Executor if it opened a client."""
+    if executor is None:
+        return
+    client = getattr(executor, "client", None)
+    if client is None:
+        return
+    try:
+        client.close()
+    except Exception as exc:
+        logger.warning("Could not close the SSH connection: %s", exc)
+
+
 def _prefetch_ssh_local_objects(assets, server, logger):
     """Fill the local object cache from SSH LocalStorage using one rsync.
 
@@ -1210,6 +1223,7 @@ def _prefetch_ssh_local_objects(assets, server, logger):
     if not local_rsync_available():
         emit_rsync_missing_warning(location="local")
         raise RsyncRequiredError()
+    executor = None
     try:
         executor = Executor(ssh_host, user=ssh_user)
         if not executor.run("command -v rsync", raise_=False).strip():
@@ -1237,6 +1251,8 @@ def _prefetch_ssh_local_objects(assets, server, logger):
             "Rsync asset copy failed. Install rsync locally and on the SSH host, "
             "then re-run the export."
         ) from exc
+    finally:
+        _close_ssh_executor(executor)
 
     remaining = missing_object_digests(digests)
     if remaining:

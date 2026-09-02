@@ -362,9 +362,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         class Exp(psynet.experiment.Experiment):
 
-    Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
-    when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
-
     Config variables can be set here, amongst other places (see online documentation for details):
 
     ::
@@ -550,7 +547,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
-    export_classes_to_skip = ["ExperimentStatus"]
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
