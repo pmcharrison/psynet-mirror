@@ -544,4 +544,12 @@ textarea:focus-visible,
         transition-duration: 0.001ms !important;
         scroll-behavior: auto !important;
     }
+
+    /* A frozen loading indicator conveys the opposite of what it is for, so
+       spinners keep animating. */
+    .spinner-border,
+    .spinner-grow {
+        animation-duration: 0.75s !important;
+        animation-iteration-count: infinite !important;
+    }
 }

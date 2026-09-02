@@ -3,26 +3,46 @@
 {% block stylesheets %}
     {{ super() }}
     <style>
+        /* This page has no footer, so it does not need the clearance that the
+           theme reserves for one. */
+        body {
+            padding-bottom: 0;
+        }
 
-    div {
-        width: 100%;
-        height: 100vh;
-    }
-    p {
-        font-size: 3em;
-        font-weight: 600;
-        text-align: center;
-        top: 50%;
-        width: 100%;
-        position: absolute;
-    }
+        /* Selectors are scoped: bare `div` and `p` rules previously also matched
+           the layout's spinner element, which gave the page a stray empty
+           screen below the fold. */
+        #starting-experiment {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        #starting-experiment p {
+            margin: 0;
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            font-weight: 600;
+            letter-spacing: -0.015em;
+        }
+
+        #starting-experiment .spinner-border {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-width: 0.25rem;
+            color: var(--psynet-accent);
+        }
     </style>
 {% endblock %}
 
 {% block body %}
     {{super()}}
 
-    <div class="colorfadeanim">
+    <div id="starting-experiment">
+        <div class="spinner-border" role="status" aria-hidden="true"></div>
         <p>
             {{ pgettext("start", "Starting experiment...") }}
         </p>
