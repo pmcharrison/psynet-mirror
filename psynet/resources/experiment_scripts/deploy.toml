@@ -6,6 +6,7 @@ version = 1
 paths = [
     ".cursor/skills/psynet",
     ".deploy",
+    "audit",
     "data",
     "deploy",
     "deploy_logs",

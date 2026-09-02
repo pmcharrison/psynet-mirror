@@ -1019,7 +1019,13 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         self._allocate_performance_reward()
 
     @classmethod
-    def cue(cls, definition, assets=None):
+    def cue(
+        cls,
+        definition,
+        assets=None,
+        on_trial_created=None,
+        creation_context=None,
+    ):
         """
         Use this method to add a trial directly into a timeline,
         without needing to create a corresponding trial maker.
@@ -1036,8 +1042,24 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         assets :
             Optional dictionary of assets to add to the trial (in addition to any provided by
             providing a ``Source`` containing assets to the ``definition`` parameter).
+
+        on_trial_created :
+            Optional callback executed after the trial and its assets have been
+            created. The callback runs in the same transaction as trial creation
+            and may accept ``trial``, ``experiment``, ``participant``, and
+            ``creation_context`` arguments. It should add related records to the
+            current session without committing. Prefer a module-level function
+            so the callback remains straightforward to serialize.
+
+        creation_context :
+            Optional request-local value passed to ``on_trial_created``. This is
+            useful for recording adaptive-selection provenance without adding it
+            to the participant-facing trial definition.
         """
         from psynet.trial.chain import ChainNode
+
+        if creation_context is not None and on_trial_created is None:
+            raise ValueError("creation_context requires an on_trial_created callback.")
 
         if isinstance(definition, ChainNode):
             use_default_node = False
@@ -1069,6 +1091,18 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
             if assets:
                 trial.add_assets(assets)
+
+            if on_trial_created is not None:
+                # The surrounding timeline request owns the transaction. The
+                # callback should link related objects through ORM relationships
+                # because ``trial.id`` may not exist until that transaction flushes.
+                call_function_with_context(
+                    on_trial_created,
+                    trial=trial,
+                    experiment=experiment,
+                    participant=participant,
+                    creation_context=creation_context,
+                )
 
         return join(
             CodeBlock(_register_trial),
@@ -2162,10 +2196,20 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        all_participant_trials = self.trial_class.query.filter_by(
-            participant_id=participant.id
-        ).all()
-        return [t for t in all_participant_trials if t.trial_maker_id == self.id]
+        # Performance checks may run after every trial. Filtering in Python
+        # would repeatedly hydrate trials from the participant's other trial
+        # makers, making long multi-module experiments increasingly expensive.
+        # Order explicitly: callers such as performance_check and repeat-trial
+        # sampling are sensitive to ordering, which the database does not
+        # otherwise guarantee.
+        return (
+            self.trial_class.query.filter_by(
+                participant_id=participant.id,
+                trial_maker_id=self.id,
+            )
+            .order_by(self.trial_class.id)
+            .all()
+        )
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):
@@ -2691,7 +2735,7 @@ class NetworkTrialMaker(TrialMaker):
         logger.info(
             "Selected node %i from network %i to give to participant %i.",
             node.id,
-            node.network.id,
+            node.network_id,
             participant.id,
         )
         trial = self._create_trial(
