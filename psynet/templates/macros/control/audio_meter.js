@@ -163,10 +163,22 @@ audioMeterControl.dispose = function() {
     this.mediaStream = null;
 }
 
+audioMeterControl.applyColor = function(color) {
+    let resolved = psynet.theme
+        ? psynet.theme.resolveColor(color)
+        : color;
+    let computed = psynet.theme
+        ? psynet.theme.computedColor(color)
+        : color;
+    this.audioMeterText.style.color = resolved;
+    if (this.canvasContext) {
+        this.canvasContext.fillStyle = computed;
+    }
+}
+
 audioMeterControl.showMessage = function(message, color) {
     this.audioMeterText.innerHTML = message;
-    this.audioMeterText.style.color = color;
-    this.canvasContext.fillStyle = color;
+    this.applyColor(color);
 
     clearTimeout(this.messageTimer);
 
@@ -178,8 +190,7 @@ audioMeterControl.showMessage = function(message, color) {
 
 audioMeterControl.resetMessage = function() {
     this.audioMeterText.innerHTML = "Just right.";
-    this.audioMeterText.style.color = "green";
-    this.canvasContext.fillStyle = "green";
+    this.applyColor("green");
 }
 
 audioMeterControl.onLevelChange = function(time) {

@@ -62,6 +62,17 @@ experiment by redefining a handful of tokens rather than overriding rules.
    * - ``--psynet-accent-contrast``
      - ``#ffffff``
      - Text drawn on the accent, for example primary-button labels.
+   * - ``--psynet-danger``
+     - ``#c0454c``
+     - Recording, warnings, and "too loud" audio-meter states. Named
+       colour ``red`` resolves here.
+   * - ``--psynet-success``
+     - ``#2f7d5b``
+     - Completed stages and "just right" audio-meter states. Named
+       colour ``green`` resolves here.
+   * - ``--psynet-warning``
+     - ``#9a6700``
+     - Get-ready stages. Named colour ``orange`` resolves here.
    * - ``--psynet-content-width``
      - ``900px``
      - Maximum width of the content surface.
@@ -129,6 +140,11 @@ the accent so that no saturated colour appears near your stimuli:
 ::
 
     Exp.css.append(":root { --psynet-accent: #44556b; --psynet-accent-rgb: 68, 85, 107; }")
+
+Named colours on trial progress stages (``red``, ``green``, ``blue``)
+follow ``--psynet-danger``, ``--psynet-success``, and ``--psynet-accent``
+rather than the browser's primary colours; override those tokens the same
+way, or pass a hex value to :class:`~psynet.timeline.ProgressStage`.
 
 Dark mode
 ---------

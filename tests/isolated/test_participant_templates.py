@@ -80,6 +80,14 @@ def test_focus_ring_follows_accent_token():
     assert "--psynet-focus-ring: 3px solid var(--psynet-accent)" in css
 
 
+def test_status_colour_tokens_are_defined():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    for token in ("--psynet-danger:", "--psynet-success:", "--psynet-warning:"):
+        assert token in css
+
+
 def test_graphic_vertical_chrome_token_is_defined():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"

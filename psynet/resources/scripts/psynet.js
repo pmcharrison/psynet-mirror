@@ -233,6 +233,46 @@
     };
     psynet.SUBMISSION_HANDLED = Symbol("psynet.SUBMISSION_HANDLED");
 
+    // Named CSS colours (red, green, blue, ...) resolve to theme tokens so
+    // trial progress, event captions, and the audio meter follow the
+    // participant palette instead of the browser's primary colours.
+    psynet.theme = {
+      namedColors: {
+        red: "var(--psynet-danger)",
+        green: "var(--psynet-success)",
+        blue: "var(--psynet-accent)",
+        orange: "var(--psynet-warning)",
+        grey: "var(--psynet-text-muted)",
+        gray: "var(--psynet-text-muted)",
+        black: "var(--psynet-text)",
+        white: "var(--psynet-surface)",
+      },
+      computedCache: {},
+      resolveColor: function (color) {
+        if (color == null || color === "") {
+          return color;
+        }
+        let mapped = this.namedColors[String(color).trim().toLowerCase()];
+        return mapped || color;
+      },
+      computedColor: function (color) {
+        let css = this.resolveColor(color);
+        if (!css) {
+          return css;
+        }
+        if (this.computedCache[css]) {
+          return this.computedCache[css];
+        }
+        let probe = document.createElement("span");
+        probe.style.color = css;
+        document.body.appendChild(probe);
+        let value = getComputedStyle(probe).color;
+        probe.remove();
+        this.computedCache[css] = value;
+        return value;
+      },
+    };
+
     psynet.utils.shallowCopy = function (x) {
       return Object.assign({}, x);
     };
@@ -2966,7 +3006,7 @@
             "width: 0%; opacity: " +
             opacity +
             "; background-color: " +
-            color +
+            psynet.theme.resolveColor(color) +
             ";",
           "aria-valuenow": "0",
           "aria-valuemin": "0",
@@ -2999,7 +3039,7 @@
           let text = $("#trial-progress-caption-contents");
           text.text(content);
           if (color) {
-            text.css("color", color);
+            text.css("color", psynet.theme.resolveColor(color));
           }
         }
       };

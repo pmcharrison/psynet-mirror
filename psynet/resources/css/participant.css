@@ -84,6 +84,15 @@
     --psynet-accent-soft: #eaf1fb;
     --psynet-accent-contrast: #ffffff;
 
+    /* Status colours for trial progress stages, event captions, and the
+       audio meter. Named CSS colours such as red/green/blue resolve to
+       these, so they stay in the same family as the accent instead of
+       using the browser's primary red, green, and blue. Contrast with
+       the surface is ~5:1, matching the accent. */
+    --psynet-danger: #c0454c;
+    --psynet-success: #2f7d5b;
+    --psynet-warning: #9a6700;
+
     /* Shape and rhythm */
     --psynet-radius: 14px;
     --psynet-radius-sm: 10px;
@@ -134,6 +143,10 @@
     --psynet-accent-hover-rgb: 125, 178, 242;
     --psynet-accent-soft: #253449;
     --psynet-accent-contrast: #0d1218;
+
+    --psynet-danger: #e08084;
+    --psynet-success: #5aaa84;
+    --psynet-warning: #c4963d;
 
     --psynet-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 45%);
 }
@@ -481,6 +494,10 @@ textarea:focus-visible,
 .progress,
 .progress-stacked {
     border-radius: 0;
+}
+
+#trial-progress-bar.progress {
+    background-color: var(--psynet-surface-sunken);
 }
 
 .trial-progress-bar-segment {

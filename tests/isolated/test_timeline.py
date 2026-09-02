@@ -14,9 +14,11 @@ from psynet.timeline import (
     CodeBlock,
     CreditEstimate,
     Elt,
+    Event,
     MediaSpec,
     Page,
     PageMaker,
+    ProgressStage,
     Timeline,
     join,
     switch,
@@ -246,6 +248,26 @@ def test_expect_scrolling_constructor_overrides_class_default():
         LongPage("short", time_estimate=1, expect_scrolling=False).expect_scrolling
         is False
     )
+
+
+def test_named_progress_colours_follow_the_theme():
+    assert ProgressStage(1, "x", "red")["color"] == "var(--psynet-danger)"
+    assert ProgressStage(1, "x", "Green")["color"] == "var(--psynet-success)"
+    assert ProgressStage(1, "x", "blue")["color"] == "var(--psynet-accent)"
+    assert ProgressStage(1, "x", "orange")["color"] == "var(--psynet-warning)"
+    assert ProgressStage(1, "x", "grey")["color"] == "var(--psynet-text-muted)"
+    assert ProgressStage(1, "x", "gray")["color"] == "var(--psynet-text-muted)"
+    assert ProgressStage(1, "x", "#ff00aa")["color"] == "#ff00aa"
+    assert (
+        ProgressStage(1, "x", "var(--psynet-accent)")["color"] == "var(--psynet-accent)"
+    )
+
+
+def test_named_event_message_colours_follow_the_theme():
+    event = Event(is_triggered_by="trialStart", message="Hi", message_color="red")
+    assert event["message_color"] == "var(--psynet-danger)"
+    default = Event(is_triggered_by="trialStart", message="Hi")
+    assert default["message_color"] == "var(--psynet-text)"
 
 
 def test_js_vars_window_collisions_warn_at_construction():

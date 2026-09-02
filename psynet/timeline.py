@@ -152,6 +152,28 @@ def _warn_js_var_window_collisions(js_vars):
     )
 
 
+# Named CSS colours that experiments pass to ProgressStage and Event.
+# Mapped to theme tokens so they follow the participant palette and dark
+# mode instead of the browser's primary red, green, and blue.
+_PARTICIPANT_NAMED_COLORS = {
+    "red": "var(--psynet-danger)",
+    "green": "var(--psynet-success)",
+    "blue": "var(--psynet-accent)",
+    "orange": "var(--psynet-warning)",
+    "grey": "var(--psynet-text-muted)",
+    "gray": "var(--psynet-text-muted)",
+    "black": "var(--psynet-text)",
+    "white": "var(--psynet-surface)",
+}
+
+
+def _resolve_participant_color(color):
+    """Map a named CSS colour onto a participant-theme token when one exists."""
+    if not isinstance(color, str):
+        return color
+    return _PARTICIPANT_NAMED_COLORS.get(color.strip().lower(), color)
+
+
 class Event(dict):
     """
     Defines an event that occurs on the front-end for a given page.
@@ -207,7 +229,11 @@ class Event(dict):
         Optional message to display when this event occurs (default = ``""``).
 
     message_color:
-        CSS color specification for the message (default = ``"black"``).
+        CSS colour for the message. Named colours such as ``red``,
+        ``green``, ``blue``, ``orange``, ``grey``, and ``black`` are
+        mapped to participant-theme tokens so they follow the palette
+        and dark mode. Other values (hex, ``var(...)``) are used as-is.
+        Default ``"black"``, which resolves to ``--psynet-text``.
 
     js:
         Optional Javascript code to execute when the event occurs (default = ``None``).
@@ -239,7 +265,7 @@ class Event(dict):
             delay=delay,
             once=once,
             message=message,
-            message_color=message_color,
+            message_color=_resolve_participant_color(message_color),
             js=js,
         )
 
@@ -872,6 +898,15 @@ class MediaSpec:
 
 
 class ProgressStage(dict):
+    """A timed segment of a :class:`~psynet.timeline.ProgressDisplay`.
+
+    ``color`` is a CSS colour for the bar segment and caption. Named
+    colours such as ``red``, ``green``, ``blue``, ``orange``, and
+    ``grey`` are mapped to participant-theme tokens so they follow the
+    palette and dark mode. Other values (hex, ``var(...)``) are used
+    as-is. The default is ``var(--psynet-accent)``.
+    """
+
     def __init__(
         self,
         time: Union[float, int, List],
@@ -889,7 +924,7 @@ class ProgressStage(dict):
         self["time"] = time
         self["duration"] = duration
         self["caption"] = caption
-        self["color"] = color
+        self["color"] = _resolve_participant_color(color)
         self["persistent"] = persistent
 
 
