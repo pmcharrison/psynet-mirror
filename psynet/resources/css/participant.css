@@ -419,6 +419,48 @@ textarea:focus-visible,
     outline-offset: 2px;
 }
 
+/*
+ * Audio meter: canvas plus a coloured status message. The previous 500px
+ * table (300px canvas + gap + text) overflowed a typical phone viewport.
+ * Wrapping lets the message sit beside the bar when there is room, and
+ * drop underneath when there is not.
+ */
+.audio-meter-block {
+    margin-block: 1.25rem;
+    max-width: 100%;
+}
+
+.audio-meter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    max-width: 100%;
+}
+
+.audio-meter__canvas-wrap {
+    flex: 0 1 300px;
+    width: min(300px, 100%);
+    max-width: 100%;
+}
+
+#audio-meter {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 6 / 1;
+    background-color: var(--bs-secondary-bg);
+}
+
+.audio-meter__text {
+    flex: 1 1 10rem;
+    min-width: 0;
+    margin: 0;
+    font-weight: 700;
+    overflow-wrap: break-word;
+    display: none;
+}
+
 /* ------------------------------------------------------------------ */
 /* Chrome: progress bar, footer, modals                                */
 /* ------------------------------------------------------------------ */

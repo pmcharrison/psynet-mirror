@@ -1039,28 +1039,13 @@
 {% endmacro %}
 
 {% macro audio_meter(params) %}
-    <style>
-        .audio-meter-block {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-    </style>
     <div class="audio-meter-block">
-        <table style="width: 500px; padding: 10px">
-            <tbody>
-                <tr align="left" valign="middle">
-                    <td width="300px">
-                        <div style="width: 300px; height: 50px">
-                            <canvas style=" background-color: var(--bs-secondary-bg);" id="audio-meter" width="300" height="50"></canvas>
-                        </div>
-                    </td>
-                    <td width="20px"></td>
-                    <td align="left">
-                        <p id="audio-meter-text" style="font-weight: bold; margin: 0px; display: none;"></p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="audio-meter">
+            <div class="audio-meter__canvas-wrap">
+                <canvas id="audio-meter" width="300" height="50"></canvas>
+            </div>
+            <p id="audio-meter-text" class="audio-meter__text"></p>
+        </div>
 
         {% if params.calibrate %}
             {{ audio_meter_calibrate(params) }}
