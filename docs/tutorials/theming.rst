@@ -201,9 +201,10 @@ instead.
 
 :class:`~psynet.modular_page.PushButtonControl` groups choices in
 ``.push-button-container``. Vertical lists (``arrange_vertically=True``)
-stay in a single column. The panel grows with its buttons, so a long
-list scrolls the page rather than a nested scrollbar inside the
-control. Mark that page with ``expect_scrolling=True``.
+stay in a single column. The buttons sit on the content surface (no
+nested well), and the list grows with them, so a long list scrolls the
+page rather than a nested scrollbar inside the control. Mark that page
+with ``expect_scrolling=True``.
 
 Next and Reset sit in ``.psynet-actions``. If you previously selected
 those buttons as a direct child of ``#trial-stage``, target

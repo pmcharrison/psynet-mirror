@@ -137,6 +137,8 @@ def test_push_button_container_grows_with_its_buttons():
     block = css[start:end]
     assert "max-height" not in block
     assert "overflow-y" not in block
+    assert "background-color" not in block
+    assert "border:" not in block
 
 
 def test_timeline_omits_footer_when_hidden():

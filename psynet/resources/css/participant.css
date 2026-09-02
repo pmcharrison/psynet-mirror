@@ -364,9 +364,9 @@ h1, h2, h3, h4, h5, h6,
     border-radius: 6px;
 }
 
-/* Push buttons share the sunken panel but keep their own sizing. The
-   panel grows with its buttons; a long list scrolls the page rather
-   than introducing a second scrollbar inside the control. */
+/* Push buttons sit directly on the content surface. The list grows with
+   its buttons; a long list scrolls the page rather than introducing a
+   second scrollbar inside the control. */
 .push-button-container {
     display: flex;
     flex-wrap: wrap;
@@ -374,10 +374,6 @@ h1, h2, h3, h4, h5, h6,
     justify-content: center;
     max-width: min(100%, 720px);
     margin-inline: auto;
-    padding: 1rem;
-    background-color: var(--psynet-surface-sunken);
-    border: 1px solid var(--psynet-border);
-    border-radius: var(--psynet-radius-sm);
 }
 
 .push-button-container--vertical {
@@ -385,14 +381,6 @@ h1, h2, h3, h4, h5, h6,
     flex-wrap: nowrap;
     align-items: center;
     max-width: 460px;
-}
-
-/* A single button is an action, not a choice between options, so it does not
-   need the panel around it. */
-.push-button-container:has(> .push-button:only-child) {
-    background: none;
-    border: none;
-    padding: 0;
 }
 
 /* Agree / decline actions. Side by side when there is room, stacked otherwise. */
