@@ -663,6 +663,19 @@ table td {
   max-width: 100%;
 }
 
+.notebook-plotly {
+  min-height: 20rem;
+  width: 100%;
+}
+
+.notebook-plotly-target {
+  width: 100%;
+}
+
+.notebook-plotly-error {
+  color: var(--danger);
+}
+
 .notebook-error {
   background: var(--danger-background);
 }

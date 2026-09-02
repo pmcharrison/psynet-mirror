@@ -348,26 +348,28 @@ latency and throughput statistics.
   psynet performance-test ssh --app my-app-name --n-bots 50 --duration-minutes 10
 
 Unlike ``psynet test``, which checks correctness, ``performance-test`` is about
-performance under load. For a full guide, including how to sweep several
-concurrency levels and how to interpret the results, see the
+performance under load. A short first pass is enough to inspect HTTP times;
+lengthen the window when finalizing if you want bots to finish. For a full
+guide, including how to sweep several concurrency levels and how to interpret
+the results, see the
 :ref:`testing experiment performance tutorial <performance_testing>`.
+Use ``psynet audit performance-test`` when the result should become
+canonical audit evidence.
 
 
-Simulate data for an experiment
--------------------------------
+Simulate audit data for an experiment
+-------------------------------------
 
-This command generates simulated data for an experiment by running the experiment's regression test
-and exporting the resulting data to ``data/simulated_data/``.
+``psynet audit simulate`` generates simulated data by running the experiment's
+regression test and exporting the result to
+``audit/simulate/analysis/simulated_export/``.
 
 .. code:: bash
 
-  psynet simulate
-  psynet simulate --audit
+  psynet audit simulate
 
-``--audit`` also zips that directory to ``./audit/artifacts/simulated_data.zip``
-and marks ``simulation_export`` present. Use ``--no-mark-present`` to write the
-zip without updating ``audit.json``. Iterate without ``--audit`` when you do
-not want the packet's evidence updated.
+The command requires an initialized audit packet and marks ``simulate_export``
+present in ``audit.json``.
 
 
 .. _install:

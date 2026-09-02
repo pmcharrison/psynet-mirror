@@ -1,6 +1,6 @@
 ---
 name: create-skill
-description: Create or update a PsyNet Agent Skill and validate its package.
+description: Create or update a PsyNet Agent Skill, validate its package, and reread the result for writing problems.
 ---
 
 # Create a skill
@@ -34,3 +34,16 @@ The validator checks that:
 
 After changing experiment skills, run `psynet scripts update` in any experiment
 checkout that should receive the new version.
+
+## After writing
+
+Read the edited skill as a finished page. Show the correct pattern with a
+short code example. State a rule once and link to it. Headings should match
+how someone will look up the next step.
+
+Watch for verbosity, LLM-style jargon, bullet lists of vague constructs
+instead of prose, missing concrete examples, long explanations of bad
+practice, duplicated content, a reader who cannot find the next step from
+the title and first heading, shapeless structure, and files that have grown
+too long to read. Use the same pass when you edit Sphinx docs in the same
+change.

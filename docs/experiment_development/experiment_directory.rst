@@ -66,8 +66,11 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     Format, auto-omitted paths, and inspection commands are documented in
     Dallinger's
     `deploy.toml guide <https://dallinger.readthedocs.io/en/latest/deploy_toml.html>`_.
-    Existing experiments should follow
-    :doc:`/whats_new/upgrading_deployment_file_selection`.
+    Stock ``[exclude]`` ``paths`` include ``audit`` (the local review packet),
+    ``data``, and ``.cursor/skills/psynet``.
+    Existing experiments keep their current ``deploy.toml`` until they add
+    those entries themselves; PsyNet never overwrites a custom copy.
+    Follow :doc:`/whats_new/upgrading_deployment_file_selection`.
     Inspect the current plan with ``dallinger deployment-files list``.
     ``.dockerignore`` is no longer supported. PsyNet removes recognized
     generated copies; a custom copy blocks debug and deployment until its rules
@@ -117,6 +120,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     environment.
 
 -   ``experiment.py`` is a Python file that defines the primary experiment logic.
+    Split substantial helpers into sibling modules and import them with
+    relative imports (see :ref:`experiment_python_modules`).
 
 -   ``instructions.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
@@ -152,3 +157,27 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     If this file is missing, you can regenerate it with ``psynet scripts scaffold``.
 
     ``volume_calibration.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
+
+
+.. _experiment_python_modules:
+
+Importing other Python files
+----------------------------
+
+You can split experiment code across several ``.py`` files in the experiment
+directory. Dallinger imports that directory as the package
+``dallinger_experiment``, so siblings of ``experiment.py`` must use relative
+imports. Do not run ``python experiment.py`` as a syntax or import check;
+use ``psynet test local``.
+
+.. code-block:: python
+
+    from . import adaptive_logic
+
+    def choose_next_item(state):
+        return adaptive_logic.select_item(state)
+
+Standalone scripts such as ``python -m audit.simulate.design.core`` use ordinary
+top-level imports of the same helpers. Run that command from the experiment
+root so those imports resolve. Put calibrated item banks in ``item_bank/``;
+stock ``deploy.toml`` omits ``data/``, ``audit/``, and ``exports/``.
