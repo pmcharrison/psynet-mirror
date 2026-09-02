@@ -37,7 +37,7 @@ from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, extra_var
+from .field import PythonList, PythonObject
 from .utils import (
     NoArgumentProvided,
     call_function_with_context,
@@ -297,7 +297,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     # We set the polymorphic_identity manually to differentiate the class
     # from the Dallinger Participant class.
-    __extra_vars__ = {}
 
     _in_advance_page = False
 
@@ -348,7 +347,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     module_state = relationship(
         "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="selectin"
     )
-    current_trial_id = Column(Integer, ForeignKey("info.id"))
+    current_trial_id = Column(Integer, ForeignKey("trial.id"))
     _current_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[current_trial_id], lazy="joined"
     )
@@ -446,8 +445,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # )
 
     # current_trial_id = Column(
-    #     Integer, ForeignKey("info.id")
-    # )  # 'info.id' because trials are stored in the info table
+    #     Integer, ForeignKey("trial.id")
+    # )  # trials are stored in the trial table
 
     # This should work but it's buggy, don't know why.
     # current_trial = relationship(
@@ -563,7 +562,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
 
     @property
-    @extra_var(__extra_vars__)
     def aborted_modules(self):
         return [
             log.module_id
@@ -572,7 +570,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ]
 
     @property
-    @extra_var(__extra_vars__)
     def started_modules(self):
         return [
             log.module_id
@@ -581,7 +578,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ]
 
     @property
-    @extra_var(__extra_vars__)
     def finished_modules(self):
         return [
             log.module_id
@@ -645,7 +641,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return self.module_state is not None
 
     @property
-    @extra_var(__extra_vars__)
     def module_id(self):
         if self.module_state:
             return self.module_state.module_id

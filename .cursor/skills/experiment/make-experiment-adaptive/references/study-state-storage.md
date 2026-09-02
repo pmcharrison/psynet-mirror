@@ -57,7 +57,7 @@ class AdaptiveDecision(SQLBase, SQLMixin):
     )
     trial_id = Column(
         Integer,
-        ForeignKey("info.id"),
+        ForeignKey("trial.id"),
         nullable=True,
         unique=True,
         index=True,

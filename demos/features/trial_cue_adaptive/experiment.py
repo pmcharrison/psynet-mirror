@@ -17,7 +17,7 @@ class AdaptiveDecision(SQLBase, SQLMixin):
     __tablename__ = "adaptive_decision"
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
-    trial_id = Column(Integer, ForeignKey("info.id"), unique=True, index=True)
+    trial_id = Column(Integer, ForeignKey("trial.id"), unique=True, index=True)
     selected_candidate_id = Column(String)
     trial = relationship(Trial, foreign_keys=[trial_id])
 
