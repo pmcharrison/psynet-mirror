@@ -364,20 +364,20 @@ h1, h2, h3, h4, h5, h6,
     border-radius: 6px;
 }
 
-/* Push buttons share the sunken panel but keep their own sizing. */
+/* Push buttons share the sunken panel but keep their own sizing. The
+   panel grows with its buttons; a long list scrolls the page rather
+   than introducing a second scrollbar inside the control. */
 .push-button-container {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
     justify-content: center;
     max-width: min(100%, 720px);
-    max-height: 420px;
     margin-inline: auto;
     padding: 1rem;
     background-color: var(--psynet-surface-sunken);
     border: 1px solid var(--psynet-border);
     border-radius: var(--psynet-radius-sm);
-    overflow-y: auto;
 }
 
 .push-button-container--vertical {

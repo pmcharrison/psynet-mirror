@@ -113,6 +113,17 @@ def test_vertical_push_buttons_do_not_wrap():
     assert "flex-wrap: nowrap" in block
 
 
+def test_push_button_container_grows_with_its_buttons():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index(".push-button-container {")
+    end = css.index(".push-button-container--vertical")
+    block = css[start:end]
+    assert "max-height" not in block
+    assert "overflow-y" not in block
+
+
 def test_timeline_omits_footer_when_hidden():
     source = (resources.files("psynet") / "templates" / "timeline-page.html").read_text(
         encoding="utf-8"

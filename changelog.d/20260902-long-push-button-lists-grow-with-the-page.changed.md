@@ -1,0 +1,1 @@
+Long `PushButtonControl` lists grow with the page instead of scrolling inside a 420px panel. Vertical lists still stay in one column; mark the page with `expect_scrolling=True` when it is meant to be taller than the window.

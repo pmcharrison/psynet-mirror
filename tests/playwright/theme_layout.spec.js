@@ -67,7 +67,7 @@ test(
 );
 
 test(
-  "vertical push-button lists stay in one scrolling column",
+  "vertical push-button lists stay in one column and grow the page",
   { tag: "@both" },
   async ({ page }) => {
     const buttons = Array.from(
@@ -83,18 +83,24 @@ test(
     const metrics = await page.evaluate(() => {
       const container = document.querySelector(".push-button-container");
       const buttons = [...document.querySelectorAll(".push-button")];
-      const lefts = buttons.map((button) => Math.round(button.getBoundingClientRect().left));
+      const lefts = buttons.map((button) =>
+        Math.round(button.getBoundingClientRect().left)
+      );
+      const last = buttons[buttons.length - 1].getBoundingClientRect();
       return {
         uniqueLefts: [...new Set(lefts)].length,
-        scrollHeight: container.scrollHeight,
-        clientHeight: container.clientHeight,
+        containerScroll: container.scrollHeight - container.clientHeight,
+        pageScroll: document.documentElement.scrollHeight - window.innerHeight,
+        lastBottom: last.bottom,
         count: buttons.length
       };
     });
 
     expect(metrics.count).toBe(20);
     expect(metrics.uniqueLefts).toBe(1);
-    expect(metrics.scrollHeight).toBeGreaterThan(metrics.clientHeight);
+    expect(metrics.containerScroll).toBeLessThanOrEqual(1);
+    expect(metrics.pageScroll).toBeGreaterThan(1);
+    expect(metrics.lastBottom).toBeGreaterThan(720);
   }
 );
 
