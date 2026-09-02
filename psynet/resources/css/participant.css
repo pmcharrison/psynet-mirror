@@ -91,7 +91,9 @@
     /* Wide enough for stimuli; prose is separately bounded to --psynet-measure. */
     --psynet-content-width: 900px;
     --psynet-measure: 62ch;
-    --psynet-focus-ring: 3px solid rgb(48 112 200 / 50%);
+    --psynet-focus-ring: 3px solid var(--psynet-accent);
+    --psynet-progress-height: 6px;
+    --psynet-footer-clearance: 5rem;
 
     /* Bootstrap integration */
     --bs-body-font-family: var(--psynet-font-sans);
@@ -129,7 +131,6 @@
     --psynet-accent-contrast: #0d1218;
 
     --psynet-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 45%);
-    --psynet-focus-ring: 3px solid rgb(125 178 242 / 55%);
 }
 
 /* ------------------------------------------------------------------ */
@@ -158,7 +159,7 @@ body {
      * page does) silently lost it and could leave content permanently behind
      * the footer.
      */
-    padding-bottom: 5rem;
+    padding-bottom: var(--psynet-footer-clearance);
 }
 
 /*
@@ -418,7 +419,7 @@ textarea:focus-visible,
 /* ------------------------------------------------------------------ */
 
 #timeline-header .progress {
-    height: 6px;
+    height: var(--psynet-progress-height);
     border-radius: 0;
     background-color: var(--psynet-border);
 }
@@ -552,6 +553,7 @@ textarea:focus-visible,
         animation: none;
         background-image: none;
         background-color: var(--psynet-accent);
+        color: var(--psynet-accent-contrast);
     }
 
     *,

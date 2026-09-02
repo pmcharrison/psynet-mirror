@@ -32,8 +32,13 @@ class GraphicMixin:
     viewport_width
         The width of the graphic display, expressed as a fraction of the browser window's width.
         The default value (0.6) means that the graphic occupies 60% of the window's width.
-        The graphic is additionally capped at ``max_viewport_height`` of the window's height,
-        so that tall graphics do not push the response controls off screen.
+        The used width is the minimum of that fraction, the content surface, and the
+        width implied by ``max_viewport_height``, so the blueprint aspect ratio is
+        preserved when any of those caps bind.
+
+    max_viewport_height
+        Upper bound on the graphic's height, expressed as a fraction of the browser
+        window's height. Default: ``0.6``. Reaching this bound reduces the width too.
 
     loop
         Whether the graphic should loop back to the first frame once the last frame has finished.
@@ -72,6 +77,7 @@ class GraphicMixin:
         frames: "List[Frame]",
         dimensions: List,
         viewport_width: float = 0.6,
+        max_viewport_height: Optional[float] = None,
         loop: bool = False,
         media: Optional[MediaSpec] = None,
         *args,
@@ -82,11 +88,28 @@ class GraphicMixin:
         self.frames = frames
         self.dimensions = dimensions
         self.viewport_width = viewport_width
+        if max_viewport_height is not None:
+            self.max_viewport_height = max_viewport_height
         self.loop = loop
         self._media = media
         self.validate_id(id_)
         self.validate_frames(frames)
         self.validate_media(media)
+
+    def css_box_width(self) -> str:
+        """Return a CSS ``width`` that keeps the blueprint aspect ratio.
+
+        All three caps are applied as width constraints: the requested window
+        fraction, the parent content surface (``100%``), and the width implied
+        by ``max_viewport_height``. Height then follows from ``aspect-ratio``,
+        so a landscape graphic on a wide window cannot outgrow the surface
+        and leave a too-tall box.
+        """
+        aspect = self.dimensions[0] / self.dimensions[1]
+        return (
+            f"min({self.viewport_width * 100:.4f}vw, 100%, "
+            f"calc({self.max_viewport_height * 100:.4f}vh * {aspect:.6f}))"
+        )
 
     def validate_media(self, media):
         if not (media is None or isinstance(media, MediaSpec)):
@@ -154,6 +177,7 @@ class GraphicMixin:
             **super().metadata,
             "dimensions": self.dimensions,
             "viewport_width": self.viewport_width,
+            "max_viewport_height": self.max_viewport_height,
             "loop": self.loop,
             "n_frames": len(self.frames),
         }

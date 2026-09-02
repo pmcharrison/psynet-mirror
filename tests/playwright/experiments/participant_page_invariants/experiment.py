@@ -1,10 +1,8 @@
 """
 Exercises the participant-facing layout primitives that the structural
-invariants check: plain prose, option rows, push buttons, and a tall graphic.
-
-The graphic is deliberately large. Before ``GraphicPrompt.max_viewport_height``
-existed it grew tall enough to push the Next button underneath the fixed footer,
-which is the regression the ``action_not_occluded`` invariant guards against.
+invariants check: plain prose, option rows, push buttons, a tall graphic,
+and a landscape graphic that would outgrow the content surface if sized
+only against the window.
 """
 
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
@@ -12,7 +10,7 @@ which is the regression the ``action_not_occluded`` invariant guards against.
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.graphics import Circle, Frame, GraphicPrompt, Path
+from psynet.graphics import Circle, Frame, GraphicPrompt, Path, Rectangle
 from psynet.modular_page import (
     ModularPage,
     PushButtonControl,
@@ -76,6 +74,29 @@ class Exp(psynet.experiment.Experiment):
                                 radius=5,
                                 attributes={"fill": "blue"},
                             ),
+                        ]
+                    )
+                ],
+            ),
+            time_estimate=1,
+        ),
+        ModularPage(
+            "landscape_graphic",
+            prompt=GraphicPrompt(
+                text="Invariant check: landscape graphic.",
+                dimensions=[16, 9],
+                viewport_width=0.9,
+                frames=[
+                    Frame(
+                        [
+                            Rectangle(
+                                "panel",
+                                0,
+                                0,
+                                width=16,
+                                height=9,
+                                attributes={"fill": "#dfe5ee"},
+                            )
                         ]
                     )
                 ],

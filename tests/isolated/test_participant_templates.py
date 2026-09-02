@@ -71,3 +71,17 @@ def test_stylesheets_block_preserves_theme(template):
             f"{template.name} overrides the stylesheets block without calling "
             "super(), which drops participant.css for that page."
         )
+
+
+def test_focus_ring_follows_accent_token():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    assert "--psynet-focus-ring: 3px solid var(--psynet-accent)" in css
+
+
+def test_abort_pages_use_content_surface():
+    templates = resources.files("psynet") / "templates"
+    for name in ("abort_possible.html", "abort_not_possible.html"):
+        source = (templates / name).read_text(encoding="utf-8")
+        assert "psynet-surface" in source, f"{name} is missing the content surface"

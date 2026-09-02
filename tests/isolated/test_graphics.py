@@ -1,3 +1,5 @@
+from importlib import resources
+
 import pytest
 
 from psynet.graphics import Frame, GraphicObject, GraphicPrompt, Image, Text
@@ -141,6 +143,34 @@ def test_validate_prompt():
         prevent_control_submit=True,
     )
     assert isinstance(prompt, GraphicPrompt)
+
+
+def test_max_viewport_height_constructor_and_css_width():
+    prompt = GraphicPrompt(
+        dimensions=[16, 9],
+        frames=[Frame([Text("label", "Hi", x=8, y=4)])],
+        viewport_width=0.9,
+        max_viewport_height=0.4,
+    )
+    assert prompt.max_viewport_height == 0.4
+    assert prompt.metadata["max_viewport_height"] == 0.4
+    assert prompt.css_box_width() == "min(90.0000vw, 100%, calc(40.0000vh * 1.777778))"
+
+    default = GraphicPrompt(
+        dimensions=[100, 100],
+        frames=[Frame([Text("label", "Hi", x=50, y=50)])],
+    )
+    assert default.max_viewport_height == 0.6
+    assert "60.0000vw" in default.css_box_width()
+    assert "100%" in default.css_box_width()
+
+
+def test_graphic_template_sizes_from_css_box_width():
+    text = (resources.files("psynet") / "templates/macros/graphics.html").read_text(
+        encoding="utf-8"
+    )
+    assert "params.css_box_width()" in text
+    assert "max-width: 100%" not in text
 
 
 # def test_frame():

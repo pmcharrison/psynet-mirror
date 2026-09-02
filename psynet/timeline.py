@@ -1068,8 +1068,10 @@ class Page(Elt):
         page's response controls to be reachable without scrolling, which
         catches stimuli that grow large enough to push the controls off screen
         or underneath the footer. Set it to ``True`` for pages that legitimately
-        need scrolling, such as long consent forms. It has no effect on how the
-        page behaves for participants.
+        need scrolling, such as long consent forms. Subclasses may also declare
+        it as a class attribute; passing ``True`` or ``False`` to the constructor
+        overrides that default. It has no effect on how the page behaves for
+        participants.
 
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
@@ -1259,7 +1261,7 @@ class Page(Elt):
         validate: Optional[callable] = None,
         framework_owned_template: bool = False,
         requires_full_page_reload: bool = False,
-        expect_scrolling: bool = False,
+        expect_scrolling: Optional[bool] = None,
     ):
         super().__init__()
 
@@ -1367,9 +1369,9 @@ class Page(Elt):
             # Authors may also opt in explicitly via requires_full_page_reload=True.
             self.requires_full_page_reload = True
         # Subclasses may declare this as a class attribute; the constructor
-        # argument opts in for a single page.
-        if expect_scrolling:
-            self.expect_scrolling = True
+        # argument overrides that default when it is passed explicitly.
+        if expect_scrolling is not None:
+            self.expect_scrolling = expect_scrolling
 
         overlapping_javascript = set(self.js_dependencies) & set(self.js_page_modules)
         if overlapping_javascript:

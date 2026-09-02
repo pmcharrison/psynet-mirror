@@ -46,7 +46,20 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - Secondary text, for example the reward footer.
    * - ``--psynet-accent``
      - ``#3070c8``
-     - Primary action, progress fill, selected states.
+     - Primary action, progress fill, selected states, focus ring.
+   * - ``--psynet-accent-rgb``
+     - ``48, 112, 200``
+     - Comma-separated channels of the accent. Bootstrap links and
+       utilities such as ``text-primary`` read this, not the hex token.
+   * - ``--psynet-accent-hover``
+     - ``#275ba4``
+     - Hover state for primary actions and links.
+   * - ``--psynet-accent-hover-rgb``
+     - ``39, 91, 164``
+     - Comma-separated channels of the hover colour, for Bootstrap.
+   * - ``--psynet-accent-contrast``
+     - ``#ffffff``
+     - Text drawn on the accent, for example primary-button labels.
    * - ``--psynet-content-width``
      - ``900px``
      - Maximum width of the content surface.
@@ -54,13 +67,19 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - ``62ch``
      - Maximum width of prose, so long text stays readable.
 
-To recolour an experiment, redefine the tokens in your own stylesheet:
+To recolour an experiment, redefine the tokens in your own stylesheet.
+Buttons, progress, and focus follow ``--psynet-accent``. Links and Bootstrap
+utilities such as ``text-primary`` also need the matching ``-rgb`` tokens,
+because Bootstrap composes those colours from RGB triples:
 
 ::
 
     /* static/theme.css */
     :root {
         --psynet-accent: #7a4fa3;
+        --psynet-accent-rgb: 122, 79, 163;
+        --psynet-accent-hover: #623e84;
+        --psynet-accent-hover-rgb: 98, 62, 132;
         --psynet-page-bg: #f5f2f8;
     }
 
@@ -102,7 +121,7 @@ the accent so that no saturated colour appears near your stimuli:
 
 ::
 
-    Exp.css.append(":root { --psynet-accent: #44556b; }")
+    Exp.css.append(":root { --psynet-accent: #44556b; --psynet-accent-rgb: 68, 85, 107; }")
 
 Dark mode
 ---------
@@ -114,8 +133,14 @@ both schemes:
 
 ::
 
-    :root { --psynet-accent: #7a4fa3; }
-    [data-bs-theme="dark"] { --psynet-accent: #b48ad4; }
+    :root {
+        --psynet-accent: #7a4fa3;
+        --psynet-accent-rgb: 122, 79, 163;
+    }
+    [data-bs-theme="dark"] {
+        --psynet-accent: #b48ad4;
+        --psynet-accent-rgb: 180, 138, 212;
+    }
 
 Response options
 ----------------
@@ -163,5 +188,7 @@ or, for a custom page class:
     class MyLongPage(Page):
         expect_scrolling = True
 
-The bundled consent pages already declare it. The attribute only affects
-testing; it does not change what participants see.
+Passing ``expect_scrolling=False`` to the constructor overrides a class-level
+``True``, which is useful when a normally long page is instantiated in a short
+variant. The bundled consent pages already declare it. The attribute only
+affects testing; it does not change what participants see.

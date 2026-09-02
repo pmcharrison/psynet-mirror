@@ -1,5 +1,5 @@
 const path = require("path");
-const { test } = require("./fixtures");
+const { test, expect } = require("./fixtures");
 
 const {
   beginExperiment,
@@ -81,6 +81,21 @@ test(
       await waitForMainBodyContains(experimentPage, "tall graphic", STEP_TIMEOUT_MS);
       await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
       await assertPageInvariants(experimentPage, "graphic page");
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+      // A 16:9 graphic at 90% of the window would be wider than the 900px
+      // surface. The box must shrink to the surface and keep that aspect
+      // ratio, rather than clamping width independently of height.
+      await waitForMainBodyContains(
+        experimentPage,
+        "landscape graphic",
+        STEP_TIMEOUT_MS
+      );
+      await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
+      await assertPageInvariants(experimentPage, "landscape graphic page");
+      const landscapeBox = await experimentPage.locator("#graphic-prompt").boundingBox();
+      expect(landscapeBox).not.toBeNull();
+      expect(landscapeBox.width / landscapeBox.height).toBeCloseTo(16 / 9, 2);
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
       // A page that declares expect_scrolling=True is exempt from the

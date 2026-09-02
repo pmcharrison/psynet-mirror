@@ -234,6 +234,20 @@ def test_requires_full_page_reload_skips_spa_contract_error():
     page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
+def test_expect_scrolling_constructor_overrides_class_default():
+    assert InfoPage("short", time_estimate=1).expect_scrolling is False
+    assert InfoPage("long", time_estimate=1, expect_scrolling=True).expect_scrolling
+
+    class LongPage(InfoPage):
+        expect_scrolling = True
+
+    assert LongPage("long", time_estimate=1).expect_scrolling is True
+    assert (
+        LongPage("short", time_estimate=1, expect_scrolling=False).expect_scrolling
+        is False
+    )
+
+
 def test_js_vars_window_collisions_warn_at_construction():
     with pytest.warns(UserWarning, match=r"js_vars keys collide.*'status'"):
         page = Page(
