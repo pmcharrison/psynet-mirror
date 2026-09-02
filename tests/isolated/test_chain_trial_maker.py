@@ -914,6 +914,26 @@ def test_create_trial_rejects_none_trial_class():
         )
 
 
+def test_sync_trial_maker_wait_content_is_used_by_internal_barriers():
+    trial_maker = make_trial_maker(
+        sync_group_type="main",
+        sync_group_wait_content="Waiting for your partner",
+    )
+    holds = [
+        elt
+        for elt in trial_maker.elts
+        if getattr(elt, "barrier_id", None) in {"init_participant", "prepare_trial"}
+    ]
+    assert {hold.barrier_id for hold in holds} == {
+        "init_participant",
+        "prepare_trial",
+    }
+    assert all(hold.content == "Waiting for your partner" for hold in holds)
+    assert all(
+        hold.translated_content() == "Waiting for your partner" for hold in holds
+    )
+
+
 def test_sync_trial_maker_prepare_barrier_kick_exits_cleanly(monkeypatch):
     trial_maker = make_trial_maker(
         sync_group_type="main",

@@ -97,6 +97,7 @@ class Exp(psynet.experiment.Experiment):
             expected_trials_per_participant=1,
             max_trials_per_participant=1,
             sync_group_type=GROUP_TYPE,
+            sync_group_wait_content="Waiting for your partner",
         ),
         InfoPage("That's the end of the experiment!", time_estimate=5),
     )

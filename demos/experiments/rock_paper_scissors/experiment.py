@@ -136,6 +136,7 @@ class Exp(psynet.experiment.Experiment):
             expected_trials_per_participant=3,
             max_trials_per_participant=3,
             sync_group_type="rock_paper_scissors",
+            sync_group_wait_content="Waiting for your partner",
         ),
     )
 

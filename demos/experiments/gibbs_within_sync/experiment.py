@@ -151,6 +151,7 @@ trial_maker = GibbsTrialMaker(
     # but if we want to make maximum use of participant trials, we can set propagate_failure=False.
     propagate_failure=False,
     wait_for_networks=True,
+    sync_group_wait_content="Waiting for more people to join your group",
 )
 
 

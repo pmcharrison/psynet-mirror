@@ -146,13 +146,16 @@ for example:
         expected_trials_per_participant=3,
         max_trials_per_participant=3,
         sync_group_type="rock_paper_scissors",
+        sync_group_wait_content="Waiting for your partner",
     )
 
 This tells the trial maker to synchronize the logic of assigning participants to nodes according to their
 SyncGroup. By default, each group has a randomly assigned leader; node allocation is determined
 by standard PsyNet logic for that leader, as if that person were taking that trial maker by themselves;
 the other participants in that group then 'follow' that leader, being assigned to the same nodes as the leader
-on each trial.
+on each trial. Pass ``sync_group_wait_content`` so the trial maker's own waits use the same overlay
+copy as your grouper and :class:`~psynet.sync.GroupBarrier` waits. If omitted, those internal waits
+say "Waiting for other participants…".
 
 Using a ``sync_group_type`` parameter means that the beginning of each trial is synchronized across all participants
 within a given group. It is possible to synchronize other parts of the trial by including further
