@@ -100,7 +100,9 @@ class TestAssetExport:
         with tempfile.TemporaryDirectory() as tempdir:
             with pytest.raises(ValueError, match="must be one of"):
                 ctx.invoke(export__local, path=tempdir, assets="asdasdoj")
-            with pytest.raises(ValueError, match="--assets all has been removed"):
+            with pytest.raises(
+                ValueError, match="asset selection 'all' has been removed"
+            ):
                 ctx.invoke(export__local, path=tempdir, assets="all")
 
             ctx.invoke(export__local, path=tempdir, assets="collected")

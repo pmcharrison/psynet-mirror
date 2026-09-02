@@ -22,14 +22,18 @@ def test_validate_asset_mode_accepts_supported_values():
 
 
 def test_validate_asset_mode_rejects_all_with_a_migration_message():
-    with pytest.raises(ValueError, match="--assets all has been removed") as exc:
+    with pytest.raises(
+        ValueError, match="asset selection 'all' has been removed"
+    ) as exc:
         validate_asset_mode("all")
     assert str(exc.value) == REMOVED_ASSETS_ALL
+    assert "--assets" not in str(exc.value)
 
 
 def test_validate_asset_mode_rejects_unknown_values():
-    with pytest.raises(ValueError, match="must be one of none, collected"):
+    with pytest.raises(ValueError, match="must be one of none, collected") as exc:
         validate_asset_mode("experiment")
+    assert "--assets" not in str(exc.value)
 
 
 def test_build_export_tree_rejects_all_before_touching_the_database(
@@ -43,7 +47,7 @@ def test_build_export_tree_rejects_all_before_touching_the_database(
     )
     monkeypatch.setattr("psynet.export.service.write_basic_data", fail_if_called)
 
-    with pytest.raises(ValueError, match="--assets all has been removed"):
+    with pytest.raises(ValueError, match="asset selection 'all' has been removed"):
         build_export_tree(str(tmp_path / "export"), assets="all")
 
     assert not Path(tmp_path / "export").exists()

@@ -44,8 +44,9 @@ logger = get_logger()
 ASSET_MODES = ("none", "collected")
 
 #: Error when a caller still requests the removed ``all`` selection.
+#: Shared by the CLI (``--assets``) and dashboard routes (``?assets=``).
 REMOVED_ASSETS_ALL = (
-    "--assets all has been removed. Use --assets collected (the default) "
+    "The asset selection 'all' has been removed. Use collected (the default) "
     "for files deposited during the run, such as recordings. Copy cached "
     "stimuli from the experiment directory or storage if you need them for "
     "supplementary materials. On-demand assets are generated live and are "
@@ -56,6 +57,9 @@ REMOVED_ASSETS_ALL = (
 def validate_asset_mode(assets: str) -> str:
     """Return ``assets`` when it is a supported export selection.
 
+    Used by ``psynet export --assets`` and by dashboard download/trigger
+    query parameters (``?assets=``). Keep the message caller-agnostic.
+
     Raises
     ------
     ValueError
@@ -65,7 +69,7 @@ def validate_asset_mode(assets: str) -> str:
         raise ValueError(REMOVED_ASSETS_ALL)
     if assets not in ASSET_MODES:
         raise ValueError(
-            f"--assets must be one of {', '.join(ASSET_MODES)}; got {assets!r}."
+            f"Asset selection must be one of {', '.join(ASSET_MODES)}; got {assets!r}."
         )
     return assets
 
