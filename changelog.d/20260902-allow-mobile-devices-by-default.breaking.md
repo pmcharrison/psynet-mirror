@@ -1,1 +1,1 @@
-Experiments now allow phones and tablets by default (`allow_mobile_devices = True`). Set `allow_mobile_devices = false` in `config.txt` or `Experiment.config` to keep a study desktop-only. Recruiter-specific device filters (Prolific `device_compatibility`, MTurk `browser_exclude_rule`, already-generated Lucid qualification JSON) are unchanged until you update them.
+Experiments now allow phones and tablets by default (`allow_mobile_devices = True`). Set it to `false` to keep a study desktop-only.

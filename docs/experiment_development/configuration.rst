@@ -366,33 +366,8 @@ Allowed browsers and devices
 
 ``allow_mobile_devices`` *bool* |psynet-icon|
     Allows participants to take the experiment on a phone or tablet. If
-    ``False``, the first page shows a warning and asks them to switch to a
-    computer. Default: ``True``.
-
-    Set it in ``config.txt`` or in ``Experiment.config``, not as a class
-    attribute, and not in both places:
-
-    ::
-
-        # config.txt
-        allow_mobile_devices = false
-
-    ::
-
-        class Exp(Experiment):
-            config = {"allow_mobile_devices": False}
-
-    This flag is only PsyNet's own check (and, when you regenerate them, Lucid's
-    ``MS_is_mobile`` / ``MS_is_tablet`` qualifications). Recruiter platforms
-    have separate device filters that do not follow it automatically:
-
-    * Prolific: ``device_compatibility`` in ``prolific_recruitment_config``
-    * Mechanical Turk: ``browser_exclude_rule`` (for example ``mobile,tablet``)
-    * Lucid: already-generated ``lucid_recruitment_config.json`` files, until
-      you regenerate them with ``create_lucid_recruitment_config``
-
-    ``force_google_chrome`` (default ``True``) is independent. iPhone Safari
-    participants are still turned away even when mobiles are allowed.
+    ``False``, they are asked to switch to a computer.
+    Default: ``True``.
 
 ``force_google_chrome`` *bool* |psynet-icon|
     Forces the user to use the Google Chrome browser. If another browser is used, it will give detailed instructions on how to install Google Chrome.
