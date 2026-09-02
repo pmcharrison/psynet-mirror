@@ -85,6 +85,10 @@ def _skip_unless_canonical_export_supported() -> None:
     ASV only treats ``NotImplementedError`` as a skip when it is raised from
     ``setup``. Raised from ``setup_cache`` it aborts the whole run, so classes
     below must call this from ``setup`` and let ``setup_cache`` return ``None``.
+
+    When that cache is ``None``, ASV calls ``setup(profile)`` with no results
+    dict. ``profile`` is therefore optional on these ``setup`` methods. A
+    successful run still receives ``setup(results, profile)``.
     """
     if not _canonical_export_supported():
         raise NotImplementedError("Installed PsyNet predates the canonical export API.")
@@ -378,7 +382,13 @@ class LocalExport:
             }
         )
 
-    def setup(self, results, profile):
+    def setup(self, results, profile=None):
+        """Prepare one parameterized run.
+
+        ``profile`` is optional because ASV omits it from the call when
+        ``setup_cache`` returned ``None``; see
+        ``_skip_unless_canonical_export_supported``.
+        """
         _skip_unless_canonical_export_supported()
 
     def track_export_time_s(self, results, profile):
@@ -508,7 +518,13 @@ class IncrementalAssetTransfer:
             }
         )
 
-    def setup(self, results, profile):
+    def setup(self, results, profile=None):
+        """Prepare one parameterized run.
+
+        ``profile`` is optional because ASV omits it from the call when
+        ``setup_cache`` returned ``None``; see
+        ``_skip_unless_canonical_export_supported``.
+        """
         _skip_unless_canonical_export_supported()
 
     def track_cold_transfer_time_s(self, results, profile):
@@ -545,7 +561,13 @@ class LocalAssetExport:
             }
         )
 
-    def setup(self, results, profile):
+    def setup(self, results, profile=None):
+        """Prepare one parameterized run.
+
+        ``profile`` is optional because ASV omits it from the call when
+        ``setup_cache`` returned ``None``; see
+        ``_skip_unless_canonical_export_supported``.
+        """
         _skip_unless_canonical_export_supported()
 
     def track_asset_export_time_s(self, results, profile):

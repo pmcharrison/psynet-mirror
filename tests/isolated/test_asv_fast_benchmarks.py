@@ -180,6 +180,26 @@ def test_export_benchmark_rejects_changed_fixture_shape(tmp_path):
         )
 
 
+@pytest.mark.parametrize(
+    "benchmark_cls",
+    [LocalExport, IncrementalAssetTransfer, LocalAssetExport],
+)
+def test_export_benchmark_setup_accepts_asv_call_without_cached_results(
+    benchmark_cls,
+):
+    """When setup_cache returns None, ASV calls setup(profile) with no cache dict."""
+    benchmark_cls().setup(benchmark_cls.params[0])
+
+
+def test_export_benchmark_setup_skips_when_the_installed_api_is_missing(monkeypatch):
+    monkeypatch.setattr(
+        "benchmarks.fast.export_benchmarks._canonical_export_supported",
+        lambda: False,
+    )
+    with pytest.raises(NotImplementedError, match="predates"):
+        LocalExport().setup("static_big_single_bot")
+
+
 def test_local_export_tracks_metrics():
     benchmark = LocalExport()
     profile = benchmark.params[0]
