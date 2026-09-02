@@ -260,10 +260,8 @@ db.session.commit()
 ```
 
 Mark the snapshot ready only after a synchronous deposit succeeds. If deposit
-is asynchronous, its completion path must publish the snapshot. Treat the
-fitted object as potentially identifying: collected exports include deposited
-`ExperimentAsset`s, and `database/asset.csv` includes live access tokens. Do
-not put secrets in the snapshot that you would not put in an export.
+is asynchronous, its completion path must publish the snapshot. Do not put
+secrets or unnecessary participant data in the fitted object.
 Depositing an `ExperimentAsset` requires `Experiment.asset_storage` (for local
 work, `LocalStorage`). `module_id="common"` scopes the asset to the shared
 experiment module rather than a participant.

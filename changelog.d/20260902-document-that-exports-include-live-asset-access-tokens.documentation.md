@@ -1,3 +1,3 @@
-Documented that ``database/asset.csv`` includes live ``access_token`` and
-``url`` values. Identifier separation does not rewrite those columns; the
-export is for the experimenter, not a public shareable dataset.
+Documented how to share an export: delete the identifier sidecar CSVs, review
+the rest of the archive for private content, and drop asset ``access_token``
+and ``url`` columns only if the deployment is still running.

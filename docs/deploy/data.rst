@@ -184,19 +184,23 @@ same rule applies automatically to identifier columns on experiment-defined
 tables.
 
 PsyNet does not inspect assets, free-text answers, logs, serialized variables, or
-experiment-defined basic data for identifying content. Treat those as potentially
-identifying unless you have scrubbed them yourself.
+experiment-defined basic data for identifying content.
 
 .. _export_asset_tokens:
 
-Physical table dumps are complete. ``database/asset.csv`` includes
-``access_token`` and ``url``, which are the same live browser capabilities the
-running experiment uses (``/asset/<access_token>`` for local and on-demand
-assets). Identifier separation does not rewrite those columns. That is
-intentional: the export is for the experimenter, like
-``participant_identifiers.csv``, not a shareable public dataset. Keep the
-archive private while the deployment is running if you do not want those URLs
-used; stopping the app or rotating tokens on the server ends live access.
+Sharing an export
+=================
+
+To share a dataset publicly, delete ``participant_identifiers.csv`` (and
+``lucid_entrant_identifiers.csv`` if present). Then look through the rest of
+the archive for anything else you would not want public, for example free-text
+answers, logs, recordings, or experiment-defined basic data.
+
+``database/asset.csv`` includes ``access_token`` and ``url``. Those are the
+same browser capabilities the running experiment uses
+(``/asset/<access_token>``). Once the deployment has finished they are
+harmless. If you share an export while the experiment is still live, delete
+those columns so the tokens cannot be used against the running app.
 
 .. _export_assets:
 
@@ -218,8 +222,8 @@ bytes under semantic paths from each asset's ``export_path`` (for example
 module and participant folders). The ``assets/manifest.csv`` file maps semantic
 metadata (asset id, local key, associations, extension, sha256, and so on) onto
 those files. External and on-demand assets are omitted from the export tree;
-their metadata remains in ``database/asset.csv``, including live ``access_token``
-and ``url`` values (see :ref:`export_asset_tokens`).
+their metadata remains in ``database/asset.csv``, including ``access_token``
+and ``url`` (see :ref:`export_asset_tokens`).
 
 Live browser access for local and on-demand assets uses a permanent access
 token at ``/asset/<access_token>``. S3-backed managed assets use a direct public
