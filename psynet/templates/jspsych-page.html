@@ -2,5 +2,7 @@
 
 {% block main_body %}
     {{ super() }}
-    <div id="js-psych" style="margin: 0px; height: 70%; width: 100%;"></div>
+    {# A percentage height collapses against an auto-height parent, so the
+       jsPsych stage is sized relative to the viewport instead. #}
+    <div id="js-psych" style="margin: 0px; min-height: 70vh; width: 100%;"></div>
 {% endblock main_body %}

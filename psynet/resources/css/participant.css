@@ -84,7 +84,8 @@
     --psynet-radius: 14px;
     --psynet-radius-sm: 10px;
     --psynet-shadow: 0 1px 2px rgb(16 24 40 / 5%), 0 10px 30px rgb(16 24 40 / 8%);
-    --psynet-content-width: 800px;
+    /* Wide enough for stimuli; prose is separately bounded to --psynet-measure. */
+    --psynet-content-width: 900px;
     --psynet-measure: 62ch;
     --psynet-focus-ring: 3px solid rgb(48 112 200 / 50%);
 
@@ -325,6 +326,14 @@ h1, h2, h3, h4, h5, h6,
     flex-direction: column;
     align-items: center;
     max-width: 460px;
+}
+
+/* A single button is an action, not a choice between options, so it does not
+   need the panel around it. Browsers without :has() simply keep the panel. */
+.push-button-container:has(> .push-button:only-child) {
+    background: none;
+    border: none;
+    padding: 0;
 }
 
 /* Agree / decline actions. Side by side when there is room, stacked otherwise. */
