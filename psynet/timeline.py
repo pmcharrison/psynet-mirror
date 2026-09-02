@@ -876,7 +876,9 @@ class ProgressStage(dict):
         self,
         time: Union[float, int, List],
         caption: str = "",
-        color: str = "rgb(49, 124, 246)",
+        # Resolved by the browser, so the default tracks the participant theme
+        # (including dark mode) instead of hard-coding a colour of its own.
+        color: str = "var(--psynet-accent)",
         persistent: bool = False,
     ):
         if isinstance(time, list):
