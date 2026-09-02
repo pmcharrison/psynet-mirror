@@ -58,7 +58,7 @@ class TestExp:
         assert exp.var.soft_max_experiment_payment_email_sent is False
 
         config = get_config()
-        assert config.get("min_browser_version") == "80.0"
+        assert config.get("min_browser_version") == "105.0"
         assert config.get("wage_per_hour") == 12.0
         assert config.get("min_accumulated_reward_for_abort") == 0.2
         assert not config.get("show_abort_button")
