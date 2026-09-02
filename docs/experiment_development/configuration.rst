@@ -575,13 +575,15 @@ participants are approved and receive the base payment even if their accumulated
 than the base payment.
 
 By default (``prolific_pay_unsuccessful = true``), PsyNet registers an additional Prolific
-completion code (of type ``UNSUCCESSFUL``) with a fixed screen-out payment action. Unsuccessful
-participants submit their study normally and Prolific automatically pays them this fixed amount;
-PsyNet additionally pays a bonus topping them up to their accumulated reward (see
-``prolific_unsuccessful_topup``). Participants who hit an error page are offered a button that
-submits their study with the same completion code. Because this feature spends money
-automatically, Prolific deployments must set ``prolific_screen_out_slots`` explicitly (see below);
-deployment fails with an explanatory error otherwise.
+completion code (of type ``UNSUCCESSFUL``) with a fixed screen-out payment action. That code is
+researcher-actor: when the participant clicks Submit, PsyNet completes the submission on Prolific
+on their behalf. Participants do not enter a completion code. Prolific automatically pays them
+this fixed amount; PsyNet additionally pays a bonus topping them up to their accumulated reward
+(see ``prolific_unsuccessful_topup``). Participants who hit an error page are offered a button
+that submits locally the same way. Successful participants are completed with a researcher-actor
+copy of the DEFAULT auto-approve code. Because this feature spends money automatically, Prolific
+deployments must set ``prolific_screen_out_slots`` explicitly (see below); deployment fails with
+an explanatory error otherwise.
 
 .. note::
 
