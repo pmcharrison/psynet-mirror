@@ -1,3 +1,4 @@
+import math
 import random
 import re
 from importlib import resources
@@ -6,6 +7,15 @@ from typing import List, Optional
 from .modular_page import Control, ModularPage, Prompt
 from .timeline import MediaSpec
 from .utils import is_valid_html5_id
+
+
+def _is_positive_finite_number(value) -> bool:
+    """Return whether ``value`` can be used as a graphic axis length."""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(number) and number > 0
 
 
 class GraphicMixin:
@@ -36,6 +46,9 @@ class GraphicMixin:
         width implied by ``max_viewport_height``, and the width implied by
         leaving room for page chrome (``--psynet-graphic-vertical-chrome``), so
         the blueprint aspect ratio is preserved when any of those caps bind.
+        The chrome cap will not shrink the graphic below
+        ``--psynet-graphic-min-size``, so a landscape phone cannot collapse it
+        to zero.
 
     max_viewport_height
         Upper bound on the graphic's height, expressed as a fraction of the browser
@@ -73,7 +86,8 @@ class GraphicMixin:
     controls underneath the footer on short screens. The blueprint aspect ratio
     is always preserved, so reaching this bound reduces the width too. A
     separate page-chrome cap (``--psynet-graphic-vertical-chrome``) shrinks the
-    graphic further when 60% of the window would leave the page able to scroll.
+    graphic further when 60% of the window would leave the page able to scroll,
+    but never below ``--psynet-graphic-min-size``.
     """
 
     def __init__(
@@ -98,6 +112,7 @@ class GraphicMixin:
         self.loop = loop
         self._media = media
         self.validate_id(id_)
+        self.validate_dimensions(dimensions)
         self.validate_frames(frames)
         self.validate_media(media)
 
@@ -107,8 +122,10 @@ class GraphicMixin:
         Four caps are applied as width constraints: the requested window
         fraction, the parent content surface (``100%``), the width implied
         by ``max_viewport_height``, and the width implied by leaving room for
-        page chrome (``--psynet-graphic-vertical-chrome``). Height then follows
-        from ``aspect-ratio``, so a landscape graphic on a wide window cannot
+        page chrome (``--psynet-graphic-vertical-chrome``). The chrome cap
+        is floored at ``--psynet-graphic-min-size`` so a short window cannot
+        collapse the graphic to zero. Height then follows from
+        ``aspect-ratio``, so a landscape graphic on a wide window cannot
         outgrow the surface, and a square graphic on a laptop window cannot
         make the page scroll.
         """
@@ -116,8 +133,17 @@ class GraphicMixin:
         return (
             f"min({self.viewport_width * 100:.4f}vw, 100%, "
             f"calc({self.max_viewport_height * 100:.4f}vh * {aspect:.6f}), "
-            f"max(0px, calc((100vh - var(--psynet-graphic-vertical-chrome)) * {aspect:.6f})))"
+            f"max(var(--psynet-graphic-min-size), "
+            f"calc((100vh - var(--psynet-graphic-vertical-chrome)) * {aspect:.6f})))"
         )
+
+    def validate_dimensions(self, dimensions):
+        """Reject dimensions that would emit invalid CSS or divide by zero."""
+        if not isinstance(dimensions, (list, tuple)) or len(dimensions) != 2:
+            raise ValueError("dimensions must be a pair of positive finite numbers")
+        for value in dimensions:
+            if isinstance(value, bool) or not _is_positive_finite_number(value):
+                raise ValueError("dimensions must be a pair of positive finite numbers")
 
     def validate_media(self, media):
         if not (media is None or isinstance(media, MediaSpec)):

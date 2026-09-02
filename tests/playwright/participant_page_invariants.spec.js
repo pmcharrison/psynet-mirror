@@ -104,6 +104,18 @@ test(
       const landscapeBox = await experimentPage.locator("#graphic-prompt").boundingBox();
       expect(landscapeBox).not.toBeNull();
       expect(landscapeBox.width / landscapeBox.height).toBeCloseTo(16 / 9, 2);
+
+      // A landscape phone is shorter than the laptop chrome allowance. The
+      // graphic must remain visible rather than collapsing to 0px.
+      await experimentPage.setViewportSize({ width: 780, height: 375 });
+      await experimentPage.waitForTimeout(300);
+      const landscapePhoneBox = await experimentPage
+        .locator("#graphic-prompt")
+        .boundingBox();
+      expect(landscapePhoneBox).not.toBeNull();
+      expect(landscapePhoneBox.width).toBeGreaterThan(80);
+      expect(landscapePhoneBox.height).toBeGreaterThan(40);
+      await experimentPage.setViewportSize(DESKTOP_VIEWPORT);
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
       // A page that declares expect_scrolling=True is exempt from the

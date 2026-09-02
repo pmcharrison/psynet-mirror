@@ -236,6 +236,8 @@
     // Named CSS colours (red, green, blue, ...) resolve to theme tokens so
     // trial progress, event captions, and the audio meter follow the
     // participant palette instead of the browser's primary colours.
+    // Keep in sync with _PARTICIPANT_NAMED_COLORS in psynet/timeline.py.
+    // "white" is omitted so it remains CSS white.
     psynet.theme = {
       namedColors: {
         red: "var(--psynet-danger)",
@@ -245,31 +247,13 @@
         grey: "var(--psynet-text-muted)",
         gray: "var(--psynet-text-muted)",
         black: "var(--psynet-text)",
-        white: "var(--psynet-surface)",
       },
-      computedCache: {},
       resolveColor: function (color) {
         if (color == null || color === "") {
           return color;
         }
         let mapped = this.namedColors[String(color).trim().toLowerCase()];
         return mapped || color;
-      },
-      computedColor: function (color) {
-        let css = this.resolveColor(color);
-        if (!css) {
-          return css;
-        }
-        if (this.computedCache[css]) {
-          return this.computedCache[css];
-        }
-        let probe = document.createElement("span");
-        probe.style.color = css;
-        document.body.appendChild(probe);
-        let value = getComputedStyle(probe).color;
-        probe.remove();
-        this.computedCache[css] = value;
-        return value;
       },
     };
 

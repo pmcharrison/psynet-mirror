@@ -83,7 +83,17 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - ``25rem``
      - Height reserved around a ``GraphicPrompt`` so the page still
        fits a typical laptop window. Shrinks the graphic when 60% of
-       the window would make the page scroll.
+       the window would make the page scroll. Short windows (below
+       540px tall) use ``10rem`` instead.
+   * - ``--psynet-graphic-min-size``
+     - ``8rem``
+     - Floor for that chrome cap, so a landscape phone cannot collapse
+       the graphic to zero.
+   * - ``--psynet-footer-clearance``
+     - ``5rem``
+     - Space reserved at the bottom of pages that render ``#footer``.
+       Pages without a footer (the ad, the consent gateway,
+       ``show_footer=False``) do not get this padding.
    * - ``--psynet-audio-meter-height``
      - ``10px``
      - Height of the microphone-level track.
@@ -148,6 +158,7 @@ Named colours on trial progress stages (``red``, ``green``, ``blue``)
 follow ``--psynet-danger``, ``--psynet-success``, and ``--psynet-accent``
 rather than the browser's primary colours; override those tokens the same
 way, or pass a hex value to :class:`~psynet.timeline.ProgressStage`.
+``white`` is left as CSS white so a caption stays visible in dark mode.
 
 Dark mode
 ---------
@@ -188,6 +199,15 @@ If you previously styled these controls by targeting the bare ``label`` or
 ``input`` elements, target ``.psynet-option`` and ``.psynet-option-label``
 instead.
 
+:class:`~psynet.modular_page.PushButtonControl` groups choices in
+``.push-button-container``. Vertical lists (``arrange_vertically=True``)
+stay in a single column and scroll inside the panel when they are long;
+they do not wrap into extra columns.
+
+Next and Reset sit in ``.psynet-actions``. If you previously selected
+those buttons as a direct child of ``#trial-stage``, target
+``.psynet-actions`` instead.
+
 The selected state is styled with ``:has()``, which is why the default
 ``min_browser_version`` is Chrome 105; see
 :doc:`/experiment_development/configuration`.
@@ -195,12 +215,13 @@ The selected state is styled with ``:has()``, which is why the default
 Pages that scroll
 -----------------
 
-The footer is fixed to the bottom of the window, and the page reserves space for
-it so that content is never left permanently underneath. PsyNet's front-end
-tests additionally check that a page which does not declare
-``expect_scrolling`` cannot scroll at all (not merely that the Next button is
-visible), which catches a stimulus that has grown large enough to push content
-off a typical laptop window.
+The footer is fixed to the bottom of the window. Pages that render it
+reserve ``--psynet-footer-clearance`` on ``body`` so that content is never
+left permanently underneath. Pages without a footer do not get that
+padding. PsyNet's front-end tests additionally check that a page which
+does not declare ``expect_scrolling`` cannot scroll at all (not merely
+that the Next button is visible), which catches a stimulus that has grown
+large enough to push content off a typical laptop window.
 
 If a page is genuinely meant to be longer than the window, say so:
 

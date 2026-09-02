@@ -1,4 +1,6 @@
+import re
 import warnings
+from importlib import resources
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -257,6 +259,8 @@ def test_named_progress_colours_follow_the_theme():
     assert ProgressStage(1, "x", "orange")["color"] == "var(--psynet-warning)"
     assert ProgressStage(1, "x", "grey")["color"] == "var(--psynet-text-muted)"
     assert ProgressStage(1, "x", "gray")["color"] == "var(--psynet-text-muted)"
+    assert ProgressStage(1, "x", "black")["color"] == "var(--psynet-text)"
+    assert ProgressStage(1, "x", "white")["color"] == "white"
     assert ProgressStage(1, "x", "#ff00aa")["color"] == "#ff00aa"
     assert (
         ProgressStage(1, "x", "var(--psynet-accent)")["color"] == "var(--psynet-accent)"
@@ -268,6 +272,20 @@ def test_named_event_message_colours_follow_the_theme():
     assert event["message_color"] == "var(--psynet-danger)"
     default = Event(is_triggered_by="trialStart", message="Hi")
     assert default["message_color"] == "var(--psynet-text)"
+    white = Event(is_triggered_by="trialStart", message="Hi", message_color="white")
+    assert white["message_color"] == "white"
+
+
+def test_named_participant_colours_match_javascript():
+    from psynet.timeline import _PARTICIPANT_NAMED_COLORS
+
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    block = re.search(r"namedColors:\s*\{([^}]+)\}", js, re.S).group(1)
+    js_colors = dict(re.findall(r'(\w+):\s*"([^"]+)"', block))
+    assert js_colors == _PARTICIPANT_NAMED_COLORS
+    assert "white" not in js_colors
 
 
 def test_js_vars_window_collisions_warn_at_construction():

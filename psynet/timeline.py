@@ -155,6 +155,9 @@ def _warn_js_var_window_collisions(js_vars):
 # Named CSS colours that experiments pass to ProgressStage and Event.
 # Mapped to theme tokens so they follow the participant palette and dark
 # mode instead of the browser's primary red, green, and blue.
+# Keep in sync with psynet.theme.namedColors in psynet/resources/scripts/psynet.js.
+# "white" is intentionally omitted: it must remain CSS white so captions
+# stay visible against the content surface in dark mode.
 _PARTICIPANT_NAMED_COLORS = {
     "red": "var(--psynet-danger)",
     "green": "var(--psynet-success)",
@@ -163,7 +166,6 @@ _PARTICIPANT_NAMED_COLORS = {
     "grey": "var(--psynet-text-muted)",
     "gray": "var(--psynet-text-muted)",
     "black": "var(--psynet-text)",
-    "white": "var(--psynet-surface)",
 }
 
 
@@ -232,8 +234,9 @@ class Event(dict):
         CSS colour for the message. Named colours such as ``red``,
         ``green``, ``blue``, ``orange``, ``grey``, and ``black`` are
         mapped to participant-theme tokens so they follow the palette
-        and dark mode. Other values (hex, ``var(...)``) are used as-is.
-        Default ``"black"``, which resolves to ``--psynet-text``.
+        and dark mode. ``white`` is left as CSS white. Other values
+        (hex, ``var(...)``) are used as-is. Default ``"black"``, which
+        resolves to ``--psynet-text``.
 
     js:
         Optional Javascript code to execute when the event occurs (default = ``None``).
@@ -903,8 +906,9 @@ class ProgressStage(dict):
     ``color`` is a CSS colour for the bar segment and caption. Named
     colours such as ``red``, ``green``, ``blue``, ``orange``, and
     ``grey`` are mapped to participant-theme tokens so they follow the
-    palette and dark mode. Other values (hex, ``var(...)``) are used
-    as-is. The default is ``var(--psynet-accent)``.
+    palette and dark mode. ``white`` is left as CSS white. Other values
+    (hex, ``var(...)``) are used as-is. The default is
+    ``var(--psynet-accent)``.
     """
 
     def __init__(

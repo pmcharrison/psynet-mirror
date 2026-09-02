@@ -12,10 +12,12 @@
             border-width: {{ params.border_width }};
             /* Caps are expressed as a width: the requested window fraction,
                the parent content surface, the height cap, and the leftover
-               height after page chrome. Height then follows from aspect-ratio,
-               so a landscape graphic cannot outgrow the surface and a square
-               graphic cannot make a laptop page scroll. A percentage height
-               would collapse against an auto-height parent. */
+               height after page chrome, floored at --psynet-graphic-min-size.
+               Height then follows from aspect-ratio, so a landscape graphic
+               cannot outgrow the surface, a square graphic cannot make a
+               laptop page scroll, and a short phone window cannot collapse
+               the graphic to zero. A percentage height would collapse against
+               an auto-height parent. */
             width: {{ params.css_box_width() }};
             aspect-ratio: {{ params.dimensions[0] }} / {{ params.dimensions[1] }};
             height: auto;

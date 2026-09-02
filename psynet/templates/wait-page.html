@@ -3,9 +3,10 @@
 {% block stylesheets %}
     {{ super() }}
     <style data-psynet-fragment-style="true">
-        /* Nothing sits at the bottom of this centred layout, so the page does
-           not need the footer clearance the theme reserves on `body`. */
-        body {
+        /* The waiting animation is full-bleed. This page still has a footer,
+           so the theme would reserve body clearance; put that padding on
+           #wait-page instead so the animation fills the window. */
+        body:has(#footer) {
             padding-bottom: 0;
         }
 

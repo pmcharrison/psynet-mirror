@@ -123,14 +123,11 @@
     {% endmacro %}
 
     {% macro timeline_footer() %}
-        {# Appearance lives in participant.css; only per-render values are set here. #}
+        {# Omit the footer element when it is hidden so body:has(#footer)
+           does not still reserve clearance. Appearance lives in
+           participant.css; only per-render values are set here. #}
+        {% if config.show_footer != false %}
         <style>
-            {% if config.show_footer == false %}
-            #footer {
-                display: none;
-            }
-            {% endif %}
-
             #media-download-progress-bar {
                 width: {{ initial_download_progress }}%;
             }
@@ -166,6 +163,7 @@
                     {% endif %}
                 </div>
         </nav>
+        {% endif %}
     {% endmacro %}
 
     {% if partial_mode %}

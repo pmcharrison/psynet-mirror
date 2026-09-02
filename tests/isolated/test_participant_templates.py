@@ -93,6 +93,36 @@ def test_graphic_vertical_chrome_token_is_defined():
         encoding="utf-8"
     )
     assert "--psynet-graphic-vertical-chrome:" in css
+    assert "--psynet-graphic-min-size:" in css
+
+
+def test_footer_clearance_is_scoped_to_pages_with_a_footer():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    assert "body:has(#footer)" in css
+
+
+def test_vertical_push_buttons_do_not_wrap():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index(".push-button-container--vertical {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "flex-wrap: nowrap" in block
+
+
+def test_timeline_omits_footer_when_hidden():
+    source = (resources.files("psynet") / "templates" / "timeline-page.html").read_text(
+        encoding="utf-8"
+    )
+    start = source.index("{% macro timeline_footer()")
+    end = source.index("{% endmacro %}", start)
+    macro = source[start:end]
+    assert "{% if config.show_footer != false %}" in macro
+    assert 'id="footer"' in macro
+    assert "config.show_footer == false" not in macro
 
 
 def test_abort_pages_use_content_surface():

@@ -3,12 +3,6 @@
 {% block stylesheets %}
     {{ super() }}
     <style>
-        /* This page has no footer, so it does not need the clearance that the
-           theme reserves for one. */
-        body {
-            padding-bottom: 0;
-        }
-
         /* Selectors are scoped: bare `div` and `p` rules previously also matched
            the layout's spinner element, which gave the page a stray empty
            screen below the fold. */

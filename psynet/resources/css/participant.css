@@ -107,8 +107,12 @@
     /* Space reserved around a graphic so the page still fits a 1280×720
        laptop inner viewport: progress, surface margins and padding, prompt,
        graphic margins, Next button, and footer clearance. Graphic width uses
-       this as a fourth cap in css_box_width(). */
+       this as a fourth cap in css_box_width(). Short viewports reduce it
+       below so the graphic stays visible. */
     --psynet-graphic-vertical-chrome: 25rem;
+    /* Floor for the chrome width cap, so 100vh minus chrome cannot collapse
+       a graphic to 0px on a landscape phone. */
+    --psynet-graphic-min-size: 8rem;
 
     /* Bootstrap integration */
     --bs-body-font-family: var(--psynet-font-sans);
@@ -152,6 +156,12 @@
     --psynet-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 45%);
 }
 
+@media (max-height: 540px) {
+    :root {
+        --psynet-graphic-vertical-chrome: 10rem;
+    }
+}
+
 /* ------------------------------------------------------------------ */
 /* Page and content surface                                            */
 /* ------------------------------------------------------------------ */
@@ -172,12 +182,14 @@ body {
     font-variant-ligatures: contextual common-ligatures;
 
     /*
-     * Reserve room for the fixed footer at the document level rather than on
-     * an individual element. Previously the clearance came from #main-body's
-     * bottom margin, which meant any page overriding that margin (the waiting
-     * page does) silently lost it and could leave content permanently behind
-     * the footer.
+     * Reserve room for the fixed footer only when the page actually has one.
+     * Ad, consent-gateway, and show_footer=False pages must not inherit the
+     * 5rem clearance, or a short 90vh layout will grow a stray scrollbar.
      */
+    padding-bottom: 0;
+}
+
+body:has(#footer) {
     padding-bottom: var(--psynet-footer-clearance);
 }
 
@@ -370,6 +382,7 @@ h1, h2, h3, h4, h5, h6,
 
 .push-button-container--vertical {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: center;
     max-width: 460px;
 }

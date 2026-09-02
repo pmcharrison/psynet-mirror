@@ -156,7 +156,8 @@ def test_max_viewport_height_constructor_and_css_width():
     assert prompt.metadata["max_viewport_height"] == 0.4
     assert prompt.css_box_width() == (
         "min(90.0000vw, 100%, calc(40.0000vh * 1.777778), "
-        "max(0px, calc((100vh - var(--psynet-graphic-vertical-chrome)) * 1.777778)))"
+        "max(var(--psynet-graphic-min-size), "
+        "calc((100vh - var(--psynet-graphic-vertical-chrome)) * 1.777778)))"
     )
 
     default = GraphicPrompt(
@@ -167,6 +168,17 @@ def test_max_viewport_height_constructor_and_css_width():
     assert "60.0000vw" in default.css_box_width()
     assert "100%" in default.css_box_width()
     assert "var(--psynet-graphic-vertical-chrome)" in default.css_box_width()
+    assert "var(--psynet-graphic-min-size)" in default.css_box_width()
+    assert "max(0px" not in default.css_box_width()
+
+
+def test_graphic_rejects_non_positive_dimensions():
+    frames = [Frame([Text("label", "Hi", x=1, y=1)])]
+    for dimensions in ([100, 0], [100, -1], [float("inf"), 100], [100], None):
+        with pytest.raises(
+            ValueError, match="dimensions must be a pair of positive finite numbers"
+        ):
+            GraphicPrompt(dimensions=dimensions, frames=frames)
 
 
 def test_graphic_template_sizes_from_css_box_width():
