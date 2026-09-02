@@ -11,9 +11,8 @@ import sys
 import tempfile
 import threading
 import zipfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
-from urllib.parse import urlencode
 
 import click
 import click.shell_completion
@@ -21,7 +20,6 @@ import dallinger.command_line.utils
 import pexpect
 import psutil
 import psycopg2
-import requests
 from dallinger import db
 from dallinger.command_line.docker_ssh import (
     CONFIGURED_HOSTS,
@@ -46,7 +44,12 @@ from psynet.version import (
 
 from . import deployment_info
 from .bootstrap_commands import register_bootstrap_commands
-from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
+from .data import (
+    drop_all_db_tables,
+    ingest_zip,
+    init_db,
+    populate_db_from_zip_file,
+)
 from .experiment_scaffold import (
     _clear_deployment_policy_review_marker,
     _deployment_policy_needs_review,
@@ -66,6 +69,7 @@ from .recruiters import BaseLucidRecruiter, HotAirRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
+    format_bytes,
     get_args,
     get_experiment_url,
     get_logger,
@@ -80,7 +84,6 @@ from .utils import (
     require_exp_directory,
     require_requirements_txt,
     run_subprocess_with_live_output,
-    working_directory,
 )
 
 ensure_runtime()
@@ -180,13 +183,77 @@ def reset_console():
 @click.option(
     "--archive",
     type=click.Path(exists=True),
-    help="Path to database archive for re-deployment",
+    help=(
+        "Path to an export archive for re-deployment. Accepts export.zip, "
+        "a database/ directory, or an extracted export directory containing database/."
+    ),
 )
 def prepare(archive):
     """
     Prepare the experiment for deployment.
     """
     _prepare(archive)
+
+
+def _install_archive_template(archive: str, template_path: str) -> None:
+    """Normalize an archive into the deploy template zip path.
+
+    Only ``database/<table>.csv`` members are kept, whether the input is a zip
+    (``export.zip`` or legacy ``database.zip``) or a directory. This matters
+    because the template is deployed to the server, while an export archive
+    also contains identifier sidecars and asset bytes that must stay local.
+    """
+    from .export.path_safety import AmbiguousArchiveLayoutError, UnsafePathError
+    from .export.paths import (
+        DATABASE_DIRNAME,
+        is_zip_path,
+        resolve_database_dir,
+        table_csv_members,
+    )
+
+    archive = os.path.abspath(os.path.expanduser(archive))
+    template_path = os.path.abspath(os.path.expanduser(template_path))
+    make_parents(template_path)
+    fd, temporary_path = tempfile.mkstemp(
+        prefix=".database-template-", suffix=".zip", dir=os.path.dirname(template_path)
+    )
+    os.close(fd)
+    try:
+        if is_zip_path(archive):
+            # Re-pack rather than copy: an export.zip also holds identifier
+            # sidecars and asset bytes, and .deploy travels to the server.
+            with zipfile.ZipFile(archive) as source:
+                try:
+                    members = table_csv_members(source)
+                except (AmbiguousArchiveLayoutError, UnsafePathError) as exc:
+                    raise click.UsageError(str(exc)) from exc
+                if not members:
+                    raise click.UsageError(
+                        f"{archive} contains no table CSVs under database/, so it "
+                        "cannot be used as a deployment archive."
+                    )
+                with zipfile.ZipFile(
+                    temporary_path, "w", compression=zipfile.ZIP_DEFLATED
+                ) as zf:
+                    for member in members:
+                        name = os.path.basename(member)
+                        zf.writestr(f"{DATABASE_DIRNAME}/{name}", source.read(member))
+        else:
+            database_dir = resolve_database_dir(archive)
+            with zipfile.ZipFile(
+                temporary_path, "w", compression=zipfile.ZIP_DEFLATED
+            ) as zf:
+                for name in sorted(os.listdir(database_dir)):
+                    if not name.endswith(".csv"):
+                        continue
+                    zf.write(
+                        os.path.join(database_dir, name),
+                        f"{DATABASE_DIRNAME}/{name}",
+                    )
+        os.replace(temporary_path, template_path)
+    finally:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
 
 
 def _prepare(archive=None):
@@ -199,7 +266,7 @@ def _prepare(archive=None):
     if archive:
         from psynet.experiment import database_template_path
 
-        shutil.copyfile(archive, database_template_path)
+        _install_archive_template(archive, database_template_path)
 
     db.init_db(drop_all=True)
     experiment = get_experiment()
@@ -269,6 +336,16 @@ def experiment_variables(location, app, server):
     """
     with db_connection(location, app, server) as connection:
         return _experiment_variables(connection, echo=True)
+
+
+def _read_experiment_variables(location, app=None, server=None):
+    """Read an experiment's variables from its database without echoing them.
+
+    For remote locations this opens an SSH tunnel to the experiment's database,
+    so callers should avoid it unless they really need the variables.
+    """
+    with db_connection(location, app, server) as connection:
+        return _experiment_variables(connection)
 
 
 @contextmanager
@@ -2269,32 +2346,70 @@ def _resolve_ssh_app(ctx, app, server):
     return resolved_app
 
 
-def _get_local_export_url(config):
-    try:
-        port = config.get("base_port")
-    except KeyError:
-        port = 5000
-    return f"http://127.0.0.1:{port}"
+def _warn_deprecated_export_options(no_source, username, password, n_parallel=None):
+    """Warn when deprecated export options are explicitly supplied.
+
+    The options are still accepted so that older scripts keep running; they
+    simply have no effect.
+    """
+    deprecated_options = [
+        option
+        for option, used in (
+            ("--no-source", no_source),
+            ("--username", username is not None),
+            ("--password", password is not None),
+            ("--n_parallel", n_parallel is not None),
+        )
+        if used
+    ]
+    if deprecated_options:
+        click.echo(
+            "WARNING: Deprecated export option(s) "
+            + ", ".join(deprecated_options)
+            + " are accepted for compatibility but have no effect.",
+            err=True,
+        )
 
 
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
-        click.option("--legacy", is_flag=True, help="Process the export locally"),
         click.option(
             "--assets",
-            default="experiment",
-            help="Which assets to export; valid values are none, experiment, and all",
+            default="collected",
+            help=(
+                "Which assets to export; valid values are none, collected, and all. "
+                "'collected' exports files uploaded or recorded during this deployment "
+                "(e.g. recordings), excluding stimuli, external URLs, and "
+                "on-demand generation. 'all' includes those stimuli and generated assets. "
+                "'none' omits the assets folder."
+            ),
         ),
         click.option(
-            "--anonymize",
-            default="both",
-            help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
+            "--allow-project-mismatch",
+            is_flag=True,
+            default=False,
+            help=(
+                "Export even though the deployed experiment's code does not match "
+                "this directory exactly."
+            ),
+        ),
+        click.option(
+            "--transfer",
+            type=click.Choice(["auto", "archive", "incremental"]),
+            default="auto",
+            hidden=True,
+            help=(
+                "How to transfer the export: stream a complete server-built "
+                "archive, or stream a core snapshot and fetch missing asset "
+                "bytes over rsync. Defaults to automatic selection."
+            ),
         ),
         click.option(
             "--n_parallel",
             default=None,
-            help="Number of parallel jobs for exporting assets",
+            hidden=True,
+            help="Deprecated compatibility option with no effect",
         ),
         click.option(
             "--no-source",
@@ -2337,8 +2452,12 @@ def export__local(ctx=None, **kwargs):
     """
     Export the experiment locally.
     """
-    exp_variables = ctx.invoke(experiment_variables, location="local")
-    export_(ctx, local=True, exp_variables=exp_variables, **kwargs)
+    export_(
+        ctx,
+        get_exp_variables=lambda: _read_experiment_variables("local"),
+        local=True,
+        **kwargs,
+    )
 
 
 @export.command("heroku")
@@ -2353,8 +2472,13 @@ def export__heroku(ctx, app, **kwargs):
     """
     Export the experiment from Heroku.
     """
-    exp_variables = ctx.invoke(experiment_variables, location="heroku", app=app)
-    export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
+    export_(
+        ctx,
+        get_exp_variables=lambda: _read_experiment_variables("heroku", app=app),
+        app=app,
+        local=False,
+        **kwargs,
+    )
 
 
 @export.command("ssh")
@@ -2373,49 +2497,26 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     Export the experiment from a remote server via Docker and SSH.
     """
     app = _resolve_ssh_app(ctx, app, server)
-    exp_variables = ctx.invoke(
-        experiment_variables, location="ssh", app=app, server=server
-    )
     export_(
         ctx,
+        get_exp_variables=lambda: _read_experiment_variables(
+            "ssh", app=app, server=server
+        ),
         app=app,
         local=False,
         server=server,
-        exp_variables=exp_variables,
         docker_ssh=True,
         **kwargs,
     )
 
 
-def _warn_deprecated_export_options(no_source, username, password):
-    """Warn when removed source-export options are explicitly supplied."""
-    deprecated_options = [
-        option
-        for option, used in (
-            ("--no-source", no_source),
-            ("--username", username is not None),
-            ("--password", password is not None),
-        )
-        if used
-    ]
-    if deprecated_options:
-        click.echo(
-            "WARNING: Deprecated export option(s) "
-            + ", ".join(deprecated_options)
-            + " are accepted for compatibility but have no effect.",
-            err=True,
-        )
-
-
 def export_(
     ctx,
-    exp_variables,
+    get_exp_variables,
     app=None,
     local=False,
     path=None,
-    legacy=False,
-    assets="experiment",
-    anonymize="both",
+    assets="collected",
     n_parallel=None,
     no_source=False,
     docker_ssh=False,
@@ -2423,6 +2524,9 @@ def export_(
     dns_host=None,
     username=None,
     password=None,
+    transfer="auto",
+    allow_project_mismatch=False,
+    **kwargs,
 ):
     """
     Export data from an experiment.
@@ -2432,65 +2536,42 @@ def export_(
     ::
 
         export_path/
-        ├── logs.jsonl
-        ├── regular/
-        │   ├── database.zip
-        │   ├── basic_data.json OR basic_data/
-        │   ├── data/
-        │   └── assets/
-        └── anonymous/
-            ├── database.zip
-            ├── basic_data.json OR basic_data/
-            ├── data/
-            └── assets/
+        ├── database/
+        │   ├── participant.csv
+        │   ├── trial.csv
+        │   └── …
+        ├── participant_identifiers.csv
+        ├── lucid_entrant_identifiers.csv   # Lucid experiments only
+        ├── manifest.json
+        ├── basic_data.json OR basic_data/  # optional
+        ├── assets/                         # omitted when --assets none
+        │   ├── manifest.csv
+        │   └── <semantic export paths>
+        └── logs.jsonl                      # SSH exports when available
 
-    logs.jsonl:
-        Contains the experiment logs exported from the remote server.
-    regular/:
-        Contains non-anonymized data:
-            - the database.zip file generated by the default Dallinger export command
-            - basic_data.json for the experiment (if provided)
-            - basic_data/ if basic data was returned as DataFrames
-            - experiment data in CSV format
-            - assets
-    anonymous/:
-        Contains anonymized data:
-            - the database.zip file generated by the default Dallinger export command
-            - basic_data.json for the experiment (if provided)
-            - basic_data/ if basic data was returned as DataFrames
-            - experiment data in CSV format
-            - assets
+    Table CSVs under ``database/`` use pseudonymous participant identifiers so
+    the archive remains loadable. Original recruiter identifiers are written to
+    the sidecar CSV files. This is identifier separation, not anonymization.
+    Empty tables are omitted from ``database/``; ``manifest.json`` still records
+    a row count of zero for them. Boolean columns are written as ``True`` /
+    ``False`` rather than PostgreSQL ``t`` / ``f``.
+    ``manifest.json`` records the deployment git commit instead of bundling
+    source code.
+
+    ``--archive`` (debug/deploy) accepts ``export.zip``, a ``database/``
+    directory, or an extracted export directory containing ``database/``.
+
+    ``get_exp_variables`` is a zero-argument callable returning the experiment's
+    database variables. It is only called when the export actually needs them,
+    because for remote experiments it opens an SSH tunnel to the experiment
+    database. Server-built exports do not need them: they take the experiment's
+    identity from an authenticated preflight instead.
     """
-    _warn_deprecated_export_options(no_source, username, password)
+    # Ignore deprecated anonymize kwargs from older callers.
+    kwargs.pop("anonymize", None)
+    _warn_deprecated_export_options(no_source, username, password, n_parallel)
 
     from .experiment import import_local_experiment
-
-    deployment_id = exp_variables["deployment_id"]
-    assert len(deployment_id) > 0
-
-    remote_exp_label = exp_variables["label"]
-    experiment_class = import_local_experiment()["class"]
-    local_exp_label = experiment_class.label
-
-    if not remote_exp_label == local_exp_label:
-        if not user_confirms(
-            f"The remote experiment's label ({remote_exp_label}) does not seem consistent with the "
-            f"local experiment's label ({local_exp_label}). Are you sure you are running the export command from "
-            "the right experiment folder? If not, the export process is likely to fail. "
-            "To continue anyway, press Y and Enter, otherwise just press Enter to cancel."
-        ):
-            raise click.Abort
-
-    config = get_config()
-    if not config.ready:
-        config.load()
-    if local:
-        _load_runtime_server_config(config, deployment_id=deployment_id)
-
-    if path is None:
-        path = experiment_class.export_path(deployment_id)
-
-    path = os.path.expanduser(path)
 
     if app is None and not local:
         raise ValueError(
@@ -2500,339 +2581,352 @@ def export_(
     if app is not None and local:
         raise ValueError("You cannot provide both --local and --app arguments.")
 
-    if assets not in ["none", "experiment", "all"]:
-        raise ValueError("--assets must be either none, experiment, or all.")
+    if assets not in ["none", "collected", "all"]:
+        raise ValueError("--assets must be either none, collected, or all.")
 
-    if anonymize not in ["yes", "no", "both"]:
-        raise ValueError("--anonymize must be either yes, no, or both.")
+    experiment_class = import_local_experiment()["class"]
 
-    if anonymize in ["yes", "no"]:
-        anonymize_modes = [anonymize]
-    else:
-        anonymize_modes = ["yes", "no"]
+    config = get_config()
+    if not config.ready:
+        config.load()
 
-    if not legacy:
-        try:
-            experiment_url = get_experiment_url(app, server)
-        except KeyError:
-            if not local:
-                raise
-            experiment_url = _get_local_export_url(config)
-        params = {
-            "type": "psynet",
-            "anonymize": anonymize,
-            "assets": assets,
-        }
-        export_endpoint = f"{experiment_url}/dashboard/export/download?" + urlencode(
-            params
-        )
-        with yaspin(text="Requesting export from dashboard", color="green") as spinner:
-            response = requests.get(
-                export_endpoint,
-                auth=(config.get("dashboard_user"), config.get("dashboard_password")),
-            )
-            spinner.ok("✔")
-        os.makedirs(path, exist_ok=True)
-        zip_path = os.path.join(path, "data.zip")
-        if response.status_code == 200:
-            with open(zip_path, "wb") as f:
-                f.write(response.content)
-            # unzip the file
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(path)
-            log(f"Export complete. You can find your results at: {path}")
-        else:
-            log(
-                f"Failed to export data. Response: {response.reason} ({response.status_code})"
-            )
-            try:
-                message = response.json().get("message")
-                log(f"Reason: {message}.")
-            except json.JSONDecodeError as e:
-                log(
-                    f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
-                    f"\nResponse content: {response.content}"
-                )
-            log("You can add the --legacy flag to retry the export locally.")
-    else:
-        for anonymize_mode in anonymize_modes:
-            _anonymize = anonymize_mode == "yes"
-            _export_(
-                ctx,
-                app,
-                local,
-                path,
-                assets,
-                _anonymize,
-                n_parallel,
-                docker_ssh,
-                server,
-                dns_host,
-            )
-
-
-def _export_(
-    ctx,
-    app,
-    local,
-    export_path,
-    assets,
-    anonymize: bool,
-    n_parallel=None,
-    docker_ssh=False,
-    server=None,
-    dns_host=None,
-):
-    """
-    An internal version of the export version where argument preprocessing has been done already.
-    """
-    database_zip_path = export_database(
-        ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
-    )
-    export_data(local, anonymize, database_zip_path, export_path)
-
-    if assets != "none":
-        experiment_assets_only = assets == "experiment"
-        include_on_demand_assets = assets == "all"
-        export_assets(
-            export_path,
-            anonymize,
-            experiment_assets_only,
-            include_on_demand_assets,
-            n_parallel,
-            server,
-            local,
-        )
-
-    # Export logs.jsonl file for SSH exports
-    if docker_ssh and server:
-        export_logs(app, server, export_path)
-
-    log(f"Export complete. You can find your results at: {export_path}")
-
-
-def export_logs(app, server, export_path):
-    """Export the logs.jsonl file from the remote server."""
-    from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS, Executor, get_sftp
-
-    server_info = CONFIGURED_HOSTS[server]
-    ssh_host = server_info["host"]
-    ssh_user = server_info.get("user")
-
-    local_logs_path = os.path.join(export_path, "logs.jsonl")
-
-    log(f"Exporting logs to {local_logs_path}")
-
-    try:
-        sftp = get_sftp(ssh_host, ssh_user)
-        executor = Executor(ssh_host, ssh_user, app)
-
-        remote_home_path = executor.run("echo $HOME", raise_=False).strip()
-        remote_logs_path = f"{remote_home_path}/dallinger/{app}/logs.jsonl"
-
-        sftp.get(remote_logs_path, local_logs_path)
-
-        with yaspin(text="Logs exported.", color="green") as spinner:
-            spinner.ok("✔")
-
-    except Exception as e:
-        log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
-
-
-def export_database(
-    ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
-):
     if local:
-        app = "local"
+        exp_variables = get_exp_variables()
+        _confirm_matching_experiment_label(
+            exp_variables["label"], experiment_class.label
+        )
+        deployment_id = exp_variables["deployment_id"]
+        assert len(deployment_id) > 0
+        _load_runtime_server_config(config, deployment_id=deployment_id)
 
-    subdir = "anonymous" if anonymize else "regular"
+    # Only the default location keeps a rotating history of previous exports.
+    rotate_history = experiment_class.rotate_export_history if path is None else None
+    path = experiment_class.export_path() if path is None else os.path.expanduser(path)
 
-    database_zip_path = os.path.join(export_path, subdir, "database.zip")
+    from .export.client import TransferError, publish_export, staging_path_for
 
-    log(f"Exporting raw database content to {database_zip_path}")
+    staging = staging_path_for(path)
+    shutil.rmtree(staging, ignore_errors=True)
+    try:
+        if local:
+            _build_local_export(str(staging), assets)
+        else:
+            _fetch_remote_export(
+                experiment_class,
+                str(staging),
+                app=app,
+                server=server,
+                docker_ssh=docker_ssh,
+                config=config,
+                assets=assets,
+                transfer=transfer,
+                allow_project_mismatch=allow_project_mismatch,
+            )
+        published = publish_export(str(staging), path, rotate_history=rotate_history)
+    except TransferError as exc:
+        shutil.rmtree(staging, ignore_errors=True)
+        log(str(exc))
+        raise click.Abort from exc
+    except Exception:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
 
-    from dallinger import data as dallinger_data
-    from dallinger import db as dallinger_db
+    log(f"Export complete. You can find your results at: {published}")
 
-    # if docker_ssh:
-    #     from dallinger.command_line.docker_ssh import export as dallinger_export
-    # else:
-    #     from dallinger.data import export as dallinger_export
-    # Dallinger hard-codes the list of table names, but this list becomes out of date
-    # if we add custom tables, so we have to patch it.
-    dallinger_data.table_names = sorted(dallinger_db.Base.metadata.tables.keys())
 
-    with tempfile.TemporaryDirectory() as tempdir:
-        with working_directory(tempdir):
-            if docker_ssh:
-                from dallinger.command_line.docker_ssh import export
+def _build_local_export(export_path, assets):
+    """Build an export directly from the local deployment's database."""
+    from .export.service import build_export_tree
 
-                ctx.invoke(
-                    export,
-                    server=server,
-                    app=app,
-                    no_scrub=not anonymize,
+    log(f"Building export in {export_path}")
+    build_export_tree(export_path, assets=assets, local=True)
+
+
+def _fetch_remote_export(
+    experiment_class,
+    export_path,
+    *,
+    app,
+    server,
+    docker_ssh,
+    config,
+    assets,
+    transfer,
+    allow_project_mismatch,
+):
+    """Download a server-built export, choosing the cheapest available transport."""
+    from .export.client import (
+        DashboardEndpoint,
+        SshSession,
+        TransferError,
+        choose_transport,
+        download_archive,
+        extract_archive,
+        fetch_logs,
+        fetch_preflight,
+        hydrate_assets,
+        plan_asset_transfer,
+        ssh_rsync_available,
+        ssh_rsync_source,
+    )
+    from .export.identity import (
+        ProjectIdentity,
+        ProjectMismatch,
+        check_export_format_version,
+        confirm_project_identity,
+        identity_changed,
+        identity_from_manifest,
+        local_project_identity,
+    )
+
+    endpoint = DashboardEndpoint(
+        base_url=get_experiment_url(app, server),
+        auth=(config.get("dashboard_user"), config.get("dashboard_password")),
+    )
+    local_identity = local_project_identity(experiment_class)
+
+    def check_identity(remote):
+        try:
+            confirm_project_identity(
+                local_identity,
+                remote,
+                allow_mismatch=allow_project_mismatch,
+                emit=log,
+            )
+        except ProjectMismatch as exc:
+            log(str(exc))
+            raise click.Abort from exc
+
+    remote_identity = ProjectIdentity.from_dict(fetch_preflight(endpoint))
+    check_identity(remote_identity)
+
+    session_cm = SshSession(server) if docker_ssh and server else nullcontext()
+    with session_cm as ssh_session:
+        over_ssh = ssh_session is not None and (
+            assets == "none" or ssh_rsync_available(server, ssh_session)
+        )
+        chosen = choose_transport(
+            remote_identity, assets=assets, over_ssh=over_ssh, requested=transfer
+        )
+        if (
+            chosen == "archive"
+            and transfer == "auto"
+            and docker_ssh
+            and assets != "none"
+        ):
+            log(
+                "Transferring a complete server-built archive; incremental asset "
+                "transfer is not available for this deployment or asset selection."
+            )
+
+        def download_into_staging(asset_bytes):
+            download_dir = tempfile.mkdtemp(prefix="psynet-export-download-")
+            try:
+                archive_path = os.path.join(download_dir, "export.zip")
+                with yaspin(text="Downloading export", color="green") as spinner:
+                    download_archive(
+                        endpoint, archive_path, assets=assets, asset_bytes=asset_bytes
+                    )
+                    spinner.ok("✔")
+                return extract_archive(archive_path, export_path)
+            finally:
+                shutil.rmtree(download_dir, ignore_errors=True)
+
+        if chosen == "incremental" and assets != "none":
+            manifest = download_into_staging("manifest")
+            try:
+                plan = plan_asset_transfer(export_path)
+                rsync_source, ssh_command = ssh_rsync_source(server, ssh_session)
+                with yaspin(
+                    text="Fetching missing asset bytes", color="green"
+                ) as spinner:
+                    materialized = hydrate_assets(
+                        export_path,
+                        plan,
+                        rsync_source=rsync_source,
+                        ssh_command=ssh_command,
+                    )
+                    spinner.ok("✔")
+            except TransferError as exc:
+                # The server can always read its own asset files, so an archive
+                # is still worth trying before giving up on the export.
+                log(
+                    f"Incremental asset transfer failed: {exc}\n"
+                    "Falling back to a complete server-built archive."
+                )
+                shutil.rmtree(export_path, ignore_errors=True)
+                manifest = download_into_staging("include")
+            except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+                log(
+                    f"Incremental asset transfer failed: {exc}\n"
+                    "Falling back to a complete server-built archive."
+                )
+                shutil.rmtree(export_path, ignore_errors=True)
+                manifest = download_into_staging("include")
+            else:
+                log(f"Materialized {materialized} asset(s) from the local cache.")
+                from .export.asset_cache import warn_if_cache_oversized
+
+                oversized = warn_if_cache_oversized()
+                if oversized:
+                    log(oversized)
+        else:
+            manifest = download_into_staging("include")
+
+        # Always re-check the downloaded manifest. Preflight can race with a
+        # redeployment.
+        if manifest:
+            downloaded_identity = identity_from_manifest(manifest)
+            if identity_changed(remote_identity, downloaded_identity):
+                raise TransferError(
+                    "The downloaded export does not match the deployment that "
+                    "answered preflight. The experiment may have been replaced "
+                    "during transfer; retry the export."
                 )
             else:
-                from dallinger.command_line import export
+                try:
+                    check_export_format_version(downloaded_identity)
+                except ProjectMismatch as exc:
+                    log(str(exc))
+                    raise click.Abort from exc
 
-                ctx.invoke(
-                    export,
-                    app=app,
-                    local=local,
-                    no_scrub=not anonymize,
-                )
-
-            shutil.move(
-                os.path.join(tempdir, "data", f"{app}-data.zip"),
-                make_parents(database_zip_path),
-            )
-
-    with yaspin(text="Completed.", color="green") as spinner:
-        spinner.ok("✔")
-
-    return database_zip_path
+        if ssh_session is not None:
+            fetch_logs(export_path, app=app, server=server, session=ssh_session)
 
 
-def export_data(local, anonymize, database_zip_path, export_path):
-    subdir = "anonymous" if anonymize else "regular"
-    data_path = os.path.join(export_path, subdir, "data")
+def _confirm_matching_experiment_label(exported_label, local_label):
+    """Ask the user to confirm an export whose experiment label looks wrong.
 
-    if not local:
-        log("Populating the local database with the downloaded data.")
-        populate_db_from_zip_file(database_zip_path)
+    ``exported_label`` may be ``None`` for exports produced by PsyNet versions
+    that did not record the label, in which case the check is skipped.
+    """
+    if exported_label is None or exported_label == local_label:
+        return
+    if not user_confirms(
+        f"The exported experiment's label ({exported_label}) does not seem consistent with the "
+        f"local experiment's label ({local_label}). Are you sure you are running the export command from "
+        "the right experiment folder? "
+        "To continue anyway, press Y and Enter, otherwise just press Enter to cancel."
+    ):
+        raise click.Abort
 
-    dump_db_to_disk(data_path, scrub_pii=anonymize)
-    export_basic_data(export_path, anonymize)
 
-    with yaspin(text="Completed.", color="green") as spinner:
-        spinner.ok("✔")
+###########
+# assets  #
+###########
 
 
-def export_basic_data(export_path, anonymize):
-    from .experiment import get_experiment
+@psynet.group("assets")
+def assets():
+    """Manage the local asset export cache and related utilities."""
+    pass
 
-    exp = get_experiment()
-    data = exp.get_basic_data(context="export", anonymize=anonymize)
-    if data is None:
+
+@assets.group("cache")
+def assets_cache():
+    """Inspect and prune the local content-addressed asset cache."""
+    pass
+
+
+@assets_cache.command("info")
+@click.option(
+    "--cache-root",
+    default=None,
+    help="Override the default cache root directory.",
+)
+def assets_cache_info(cache_root):
+    """Print statistics about the local asset cache."""
+    from .export.asset_cache import (
+        cache_size_bytes,
+        default_cache_root,
+        list_cached_objects,
+        soft_limit_bytes,
+        warn_if_cache_oversized,
+    )
+
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
+    objects = list_cached_objects(root)
+    total = cache_size_bytes(root)
+    limit = soft_limit_bytes()
+
+    click.echo(f"Cache root:      {root}")
+    click.echo(f"Cached objects:  {len(objects)}")
+    click.echo(f"Total size:      {format_bytes(total)}")
+    click.echo(f"Soft limit:      {format_bytes(limit)}")
+    warning = warn_if_cache_oversized(root, limit_bytes=limit)
+    if warning:
+        click.echo(warning)
+
+
+@assets_cache.command("list")
+@click.option(
+    "--cache-root",
+    default=None,
+    help="Override the default cache root directory.",
+)
+def assets_cache_list(cache_root):
+    """List the SHA-256 digests of all objects currently in the cache."""
+    from .export.asset_cache import default_cache_root, list_cached_objects
+
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
+    objects = list_cached_objects(root)
+
+    if not objects:
+        click.echo("Cache is empty.")
         return
 
-    subdir = "anonymous" if anonymize else "regular"
-    basic_data_path = os.path.join(export_path, subdir)
-    serializer = _select_basic_data_serializer(data)
-    serializer(basic_data_path, data)
+    for digest in objects:
+        click.echo(digest)
 
 
-def _select_basic_data_serializer(data):
-    if _is_dataframe_dict(data):
-        return _write_basic_dataframes
-    return _write_basic_data_json
+@assets_cache.command("prune")
+@click.option(
+    "--all",
+    "prune_all",
+    is_flag=True,
+    help="Remove every cached object.",
+)
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Skip the confirmation prompt.",
+)
+@click.option(
+    "--cache-root",
+    default=None,
+    help="Override the default cache root directory.",
+)
+def assets_cache_prune(prune_all, yes, cache_root):
+    """Remove every object from the local asset cache.
 
-
-def _write_basic_dataframes(export_subdir_path, data):
-    basic_data_dir = os.path.join(export_subdir_path, "basic_data")
-    os.makedirs(basic_data_dir, exist_ok=True)
-    filename_counts = {}
-    used_filenames = set()
-    for key, dataframe in data.items():
-        filename = _make_basic_data_filename(key, filename_counts, used_filenames)
-        csv_path = os.path.join(basic_data_dir, f"{filename}.csv")
-        dataframe.to_csv(csv_path, index=False)
-
-
-def _write_basic_data_json(export_subdir_path, data):
-    basic_data_path = os.path.join(export_subdir_path, "basic_data.json")
-    with open(make_parents(basic_data_path), "w") as file:
-        json.dump(data, file, indent=2)
-
-
-def _make_basic_data_filename(key, counts, used_filenames):
+    Requires ``--all``.
     """
-    Allocate a unique CSV-safe filename stem for one basic-data key.
-
-    Parameters
-    ----------
-    key : Any
-        Original basic-data key from the export payload.
-    counts : dict[str, int]
-        Per-sanitized-key counters used to generate numeric suffixes.
-    used_filenames : set[str]
-        Case-folded filename stems already reserved in this export run.
-
-    Returns
-    -------
-    str
-        A unique filename stem (without extension).
-    """
-    sanitized = _sanitize_basic_data_key(key)
-    counts[sanitized] = counts.get(sanitized, 0)
-
-    while True:
-        counts[sanitized] += 1
-        count = counts[sanitized]
-        filename = sanitized if count == 1 else f"{sanitized}_{count}"
-        # Reserve names case-insensitively to avoid collisions on
-        # case-insensitive filesystems (e.g., default macOS/Windows).
-        reserved_name = filename.casefold()
-        if reserved_name not in used_filenames:
-            used_filenames.add(reserved_name)
-            return filename
-
-
-def _sanitize_basic_data_key(key):
-    filename = str(key).strip()
-    filename = re.sub(r"[\\/]+", "_", filename)
-    filename = re.sub(r"[^A-Za-z0-9._-]+", "_", filename)
-    filename = filename.strip("._")
-    return filename or "data"
-
-
-def _is_dataframe_dict(data):
-    if not isinstance(data, dict) or not data:
-        return False
-    try:
-        import pandas as pd
-    except ImportError:
-        return False
-    return all(isinstance(value, pd.DataFrame) for value in data.values())
-
-
-def populate_db_from_zip_file(zip_path):
-    from dallinger import data as dallinger_data
-
-    db.session.commit()  # The process can freeze without this
-    init_db(drop_all=True)
-    dallinger_data.ingest_zip(zip_path)
-
-
-def export_assets(
-    export_path,
-    anonymize,
-    experiment_assets_only,
-    include_on_demand_assets,
-    n_parallel,
-    server,
-    local,
-):
-    # Assumes we already have loaded the experiment into the local database,
-    # as would be the case if the function is called from psynet export.
-    from .data import export_assets as _export_assets
-
-    log(f"Exporting assets to {export_path}")
-
-    include_private = not anonymize
-    subdir = "anonymous" if anonymize else "regular"
-    asset_path = os.path.join(export_path, subdir, "assets")
-
-    _export_assets(
-        asset_path,
-        include_private,
-        experiment_assets_only,
-        include_on_demand_assets,
-        n_parallel,
-        server,
-        local,
+    from .export.asset_cache import (
+        default_cache_root,
+        list_cached_objects,
+        prune_cached_objects,
     )
+
+    if not prune_all:
+        click.echo(
+            "Specify what to prune.  Currently --all is the only supported mode."
+        )
+        raise click.UsageError("Missing required option: --all")
+
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
+    objects = list_cached_objects(root)
+
+    if not objects:
+        click.echo("Cache is already empty.")
+        return
+
+    click.echo(f"This will remove {len(objects)} cached object(s) from {root}.")
+    if not yes:
+        click.confirm("Continue?", abort=True)
+
+    removed = prune_cached_objects(cache_root=root)
+    click.echo(f"Removed {len(removed)} cached object(s).")
 
 
 @psynet.command()
@@ -3205,7 +3299,12 @@ def test__local(
         exp.test_time_factor = time_factor
 
     if existing:
+        # Unlike the pytest path below, this reports nothing on its own, which
+        # previously made a remote `psynet test ssh` look like it had done
+        # nothing at all.
+        click.echo(f"Running {exp.test_n_bots} bot(s) against the existing server...")
         exp.test_experiment()
+        click.echo(f"Bot test passed ({exp.test_n_bots} bot(s)).")
         return
 
     import pytest
@@ -3215,6 +3314,48 @@ def test__local(
         # Use sys.exit() to ensure that the exit code is propagated to the shell.
         # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
         sys.exit(exit_code)
+
+
+def build_remote_experiment_command(app, cmd):
+    """Build a remote shell command that runs ``cmd`` inside the app's web container.
+
+    ``docker compose exec -T`` disables TTY allocation, which is what makes the
+    command safe to run when the local process has no interactive terminal.
+    """
+    return f"cd ~/dallinger/{app} && docker compose exec -T web {cmd}"
+
+
+def run_remote_experiment_command(executor, app, cmd):
+    """Run ``cmd`` in the app's web container, echoing its output as it arrives.
+
+    Dallinger's ``Executor.run_and_echo`` also watches local stdin so that the user
+    can quit by pressing ``q``; that makes it exit immediately when stdin is closed
+    or not a terminal, which silently truncates long-running remote tests. This
+    helper only reads the remote channel, and raises ``click.Abort`` if the remote
+    command fails.
+
+    Output is read to end-of-file rather than until the remote exit status is
+    available. The exit status arrives before the last of the output, so polling
+    on it drops whatever is still in flight -- typically the test summary, which
+    is the part worth reading.
+    """
+    remote_cmd = build_remote_experiment_command(app, cmd)
+    channel = executor.client.get_transport().open_session()
+    # Interleaving two streams without threads risks reordering the output, and
+    # the caller only wants to read it, so merge stderr into stdout.
+    channel.set_combine_stderr(True)
+    channel.exec_command(remote_cmd)
+
+    stream = channel.makefile("rb", 0)
+    for line in iter(stream.readline, b""):
+        sys.stdout.write(line.decode("utf-8", "replace"))
+        sys.stdout.flush()
+
+    status = channel.recv_exit_status()
+    if status != 0:
+        log(f"The following remote command failed with exit code {status}:\n{cmd}")
+        raise click.Abort
+    return status
 
 
 @test.command("ssh")
@@ -3268,7 +3409,7 @@ def test__docker_ssh(
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
     executor = Executor(ssh_host, user=ssh_user)
-    executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
+    run_remote_experiment_command(executor, app, cmd)
 
 
 _test_options["performance_n_bots"] = click.option(
@@ -3438,8 +3579,7 @@ def _run_simulate(ctx):
     try:
         ctx.invoke(
             export__local,
-            # TODO - maybe legacy is not the best name for this parameter...
-            legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
+            # The experiment server has stopped; export reads the local database.
             no_source=True,
             path=staging.as_posix(),
         )
@@ -3917,7 +4057,7 @@ def performance_test__docker_ssh(
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
     executor = Executor(ssh_host, user=ssh_user)
-    executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
+    run_remote_experiment_command(executor, app, cmd)
 
 
 def _build_ssh_performance_test_cmd(n_bots, stagger, time_factor, duration_minutes):

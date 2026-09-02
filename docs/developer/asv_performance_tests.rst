@@ -40,6 +40,14 @@ Merge requests run the ``asv_regression`` CI job. This job uses
 base and head commits back-to-back on the same GitLab runner. The job exits
 non-zero when ASV detects a regression larger than the configured factor.
 
+Export benchmarks in ``benchmarks/fast/export_benchmarks.py`` skip on a
+merge-base whose installed PsyNet predates ``psynet.export``. Their
+``setup_cache`` returns ``None`` in that case, and ASV then calls
+``setup(profile)`` with no cached results dict, so ``setup`` accepts an
+optional ``profile`` and raises ``NotImplementedError`` to mark the skip.
+Those benchmarks have no baseline to compare against until they exist on
+both sides of the comparison.
+
 Default-branch checks and publishing
 ====================================
 
