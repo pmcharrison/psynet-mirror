@@ -43,9 +43,7 @@ def _top_level_includes(source):
     return found
 
 
-@pytest.mark.parametrize(
-    "template", PARTICIPANT_TEMPLATES, ids=lambda p: p.name
-)
+@pytest.mark.parametrize("template", PARTICIPANT_TEMPLATES, ids=lambda p: p.name)
 def test_no_output_before_doctype(template):
     source = template.read_text(encoding="utf-8")
     if not EXTENDS.search(source):
@@ -59,9 +57,7 @@ def test_no_output_before_doctype(template):
     )
 
 
-@pytest.mark.parametrize(
-    "template", PARTICIPANT_TEMPLATES, ids=lambda p: p.name
-)
+@pytest.mark.parametrize("template", PARTICIPANT_TEMPLATES, ids=lambda p: p.name)
 def test_stylesheets_block_preserves_theme(template):
     source = template.read_text(encoding="utf-8")
     if not EXTENDS.search(source):
