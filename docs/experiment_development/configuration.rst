@@ -391,7 +391,12 @@ Allowed browsers and devices
     Default: ``False``.
 
 ``min_browser_version`` *str* |psynet-icon|
-    The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: ``80.0``.
+    The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: ``105.0``.
+
+    Chrome 105 (August 2022) is the first release supporting CSS ``:has()``, which the
+    default participant theme uses to style selected response options. Lowering this
+    value is supported, but participants on older browsers will not see selected
+    options highlighted.
 
 Recruiters
 ~~~~~~~~~~

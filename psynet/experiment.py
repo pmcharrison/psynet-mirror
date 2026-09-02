@@ -418,7 +418,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     In addition to the config variables in Dallinger, PsyNet adds the following:
 
     min_browser_version : `str`
-        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
+        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `105.0`.
 
     wage_per_hour : `float`
         The payment in currency the participant gets per hour. Default: `9.0`.
@@ -1898,7 +1898,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "loglevel": 1,
             "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
-            "min_browser_version": "80.0",
+            # Chrome 105 is the first release with CSS :has(), which the default
+            # participant theme uses for selected-option styling.
+            "min_browser_version": "105.0",
             "prolific_is_custom_screening": False,
             "prolific_enable_return_for_bonus": True,
             "prolific_pay_unsuccessful": True,

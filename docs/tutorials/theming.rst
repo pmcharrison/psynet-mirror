@@ -136,3 +136,7 @@ row with a minimum height of 46px, so the whole row is clickable. The markup is:
 If you previously styled these controls by targeting the bare ``label`` or
 ``input`` elements, target ``.psynet-option`` and ``.psynet-option-label``
 instead.
+
+The selected state is styled with ``:has()``, which is why the default
+``min_browser_version`` is Chrome 105; see
+:doc:`/experiment_development/configuration`.

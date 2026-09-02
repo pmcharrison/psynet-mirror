@@ -329,7 +329,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* A single button is an action, not a choice between options, so it does not
-   need the panel around it. Browsers without :has() simply keep the panel. */
+   need the panel around it. */
 .push-button-container:has(> .push-button:only-child) {
     background: none;
     border: none;
