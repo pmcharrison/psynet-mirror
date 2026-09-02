@@ -299,8 +299,10 @@ asv_benchmarks:
     - exit "$(cat .asv/asv-benchmarks-status)"
   artifacts:
     when: on_failure
+    optional: true
     paths:
-      - .asv/results/
+      # Snapshot taken before the results worktree is detached.
+      - .asv/ci-artifacts/
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       when: always

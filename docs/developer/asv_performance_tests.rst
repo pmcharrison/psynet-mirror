@@ -52,6 +52,14 @@ the ASV exit status. The job is currently allowed to fail while the benchmark
 suite is being tuned, but it still preserves the data needed for the published
 benchmark history.
 
+ASV reuses one virtualenv across the two commits. ``asv.conf.json`` therefore
+uninstalls both PsyNet and Dallinger before installing the next commit, so a
+newer Dallinger left behind by ``HEAD`` cannot be reused by an older PsyNet
+whose extras still accept that version. Failed ``asv_benchmarks`` jobs upload
+``.asv/ci-artifacts/`` (a copy of the result files taken before the
+``benchmark-results`` worktree is removed) so GitLab does not warn that
+``.asv/results/`` is missing.
+
 ASV command modes
 =================
 
