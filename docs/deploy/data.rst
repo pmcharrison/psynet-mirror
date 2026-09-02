@@ -232,8 +232,11 @@ have been removed.
 Command-line exports reuse a persistent local cache under
 ``~/psynet-data/cache/assets/``. Cached files and their hard-linked export
 copies are read-only so editing an export cannot silently change the bytes
-stored under a content hash. PsyNet revalidates a cache entry if it becomes
-writable. Inspect or clear the cache with:
+stored under a content hash. A **writable** cache entry is re-hashed before
+reuse; a **read-only** hit is trusted without hashing again. If you edited
+files under ``~/psynet-data/cache/assets`` (or suspect they were altered),
+prune the cache rather than relying on the next export to notice. Inspect or
+clear the cache with:
 
 .. code:: bash
 
@@ -267,6 +270,7 @@ Several types of data can be exported during the export process. They each have 
 
 The **database tables** are a portable copy of the physical database at a given time
 (``database/*.csv`` plus identifier sidecars and ``manifest.json``).
+Those files are read in one repeatable-read database transaction.
 They are useful for restoring experiments from a specific state and for analysis that reads
 table CSVs directly. ``psynet debug`` / ``deploy --archive`` accepts ``export.zip``,
 a ``database/`` directory, or an extracted export directory containing ``database/``.
@@ -276,6 +280,8 @@ They are only present if the experimenter has implemented the ``get_basic_data``
 
 The **assets** correspond to heavy files (e.g. audio, video) that are associated with the experiment.
 Not all experiments use assets. Choose ``--assets none`` to omit the assets folder.
+Basic data and assets are built after that table snapshot, from the live experiment,
+so they reflect the moment the export ran rather than the same database instant as the CSVs.
 
 The **server logs** can also be exported when exporting from an SSH server.
 These come in the form of a ``logs.jsonl`` file. Don't share these publicly
