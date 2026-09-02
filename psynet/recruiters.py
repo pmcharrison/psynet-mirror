@@ -1380,7 +1380,19 @@ class ProlificRecruiter(
 class DevProlificRecruiter(
     PsyNetProlificRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
 ):
-    pass
+    def approve_hit(self, assignment_id: str):
+        """Skip server-side Prolific completion in dev mode.
+
+        The mixin's ``approve_hit`` reads the live submission with a raw
+        HTTP GET (bypassing the dev service's log-only ``_req``) and then
+        POSTs ``COMPLETE``. In dev mode there is no real submission, so
+        just log and report success.
+        """
+        logger.info(
+            "Dev mode: skipping Prolific completion for assignment %s.",
+            assignment_id,
+        )
+        return True
 
 
 class MockProlificRecruiter(

@@ -27,6 +27,7 @@ from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     BaseLabRecruiter,
+    DevProlificRecruiter,
     PaymentDecision,
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
@@ -617,6 +618,16 @@ def test_approve_hit_notifies_when_submission_status_cannot_be_read():
     super_approve.assert_not_called()
     recruiter.prolificservice._req.assert_not_called()
     experiment.notifier.notify.assert_called_once()
+
+
+def test_dev_prolific_approve_hit_short_circuits_without_api_calls():
+    """Dev mode has no real Prolific submission: approve_hit must not fetch
+    or COMPLETE anything. The dev service lacks ``api_token``, so any
+    attempt to reach the API would raise ``AttributeError``.
+    """
+    recruiter = object.__new__(DevProlificRecruiter)
+    # No prolificservice / config / DB set up: reaching any of them would fail.
+    assert recruiter.approve_hit("assignment-1") is True
 
 
 def test_exit_response_stays_on_psynet_confirmation_page():
