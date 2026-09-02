@@ -13,12 +13,14 @@ Key design constraints for maintainers:
   Dallinger's via the MRO. Mixin overrides should call ``super()`` where the
   Dallinger implementation is still wanted.
 - End-of-experiment payment flows differ per platform. For Prolific,
-  successful participants are approved (receiving ``base_payment``) and topped
-  up with a bonus; unsuccessful (failed/errored) participants are either paid
-  via a fixed screen-out completion code (when ``prolific_pay_unsuccessful``
-  is enabled, the default; see
-  ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``) or asked to
-  return their submission for a bonus (the legacy fallback when
+  local submit is the success path: PsyNet completes the submission
+  server-side (``COMPLETE`` with a researcher-actor code), Prolific pays
+  ``base_payment`` or the fixed screen-out reward, and PsyNet tops up with
+  a bonus. Unsuccessful (failed/errored) participants use the
+  ``UNSUCCESSFUL`` screen-out code when ``prolific_pay_unsuccessful`` is
+  enabled (the default; see
+  ``PsyNetProlificRecruiterMixin.completion_codes_and_actions``), or are
+  asked to return their submission for a bonus (the legacy fallback when
   ``prolific_pay_unsuccessful = false``).
 - Payment is split into decide / record / transfer. ``decide_payment``
   returns a ``PaymentDecision`` (status, platform base, bonus)
@@ -41,6 +43,8 @@ Key design constraints for maintainers:
   when review is needed. ``reward_bonus`` returns ``False`` if the
   platform rejected the transfer. PsyNet does not call Dallinger's unused
   ``data_check`` / ``attention_check`` hooks.
+- After Submit, Prolific participants stay on a PsyNet confirmation page.
+  They are not redirected to enter a completion code.
 """
 
 import hashlib
@@ -129,12 +133,45 @@ PROLIFIC_SCREEN_OUT_ACTION = "FIXED_SCREEN_OUT_PAYMENT"
 #: ``prolific_unsuccessful_base_payment`` explicitly (or disable the feature).
 PROLIFIC_DEFAULT_UNSUCCESSFUL_BASE_PAYMENT = 0.25
 
+# Researcher-actor copy of the DEFAULT auto-approve code. Prolific's
+# COMPLETE transition only accepts codes created with actor=researcher.
+# The participant-actor DEFAULT code stays on the study but is no longer
+# the exit redirect.
+PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE = "DEFAULT_RESEARCHER"
+
+# Terminal Prolific rows that approve_hit must not COMPLETE or Approve.
+PROLIFIC_SETTLED_SUBMISSION_STATUSES = (
+    "APPROVED",
+    "REJECTED",
+    "RETURNED",
+    "SCREENED OUT",
+)
+# Rows PsyNet can COMPLETE on the participant's behalf after local submit.
+PROLIFIC_COMPLETABLE_SUBMISSION_STATUSES = ("ACTIVE", "TIMED-OUT")
+
 
 def _bonus_payments_total(bonus_payments) -> float:
     """Convert Prolific ``bonus_payments`` (pence/cents) to currency units."""
     if not bonus_payments:
         return 0.0
     return round(sum(bonus_payments) / 100.0, 2)
+
+
+def _without_matching_bonus_entry(bonus_payments, amount):
+    """Drop one Prolific ``bonus_payments`` entry matching ``amount``.
+
+    ``bonus_payments`` is in subcurrency (pence/cents); ``amount`` is in
+    currency units. Only the first match is removed.
+    """
+    if not bonus_payments or not amount:
+        return bonus_payments
+    match = int(round(float(amount) * 100))
+    remaining = list(bonus_payments)
+    for index, entry in enumerate(remaining):
+        if int(round(entry)) == match:
+            del remaining[index]
+            break
+    return remaining
 
 
 def _fetch_prolific_submission(prolificservice, assignment_id: str) -> dict | None:
@@ -270,8 +307,8 @@ class PsyNetRecruiterMixin:
 
     def submit_assignment(self) -> TimelineLogic:
         # This calls dallinger.submitAssignment, submitting the assignment to
-        # the recruiter. What happens next depends on the recruiter and (for
-        # Prolific) the completion code in the participant's exit URL.
+        # the recruiter. What happens next depends on the recruiter. For
+        # Prolific, ``approve_hit`` completes the submission server-side.
         # ``Experiment.on_recruiter_submission_complete`` then records the
         # payment decision and transfers any bonus.
         from .page import ExecuteFrontEndJS
@@ -495,14 +532,31 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     @property
     def completion_codes_and_actions(self) -> list[dict]:
-        """Extend Dallinger's Prolific completion codes with an UNSUCCESSFUL code.
+        """Extend Dallinger's Prolific completion codes for server-side COMPLETE.
 
-        When ``prolific_pay_unsuccessful`` is enabled (the default), failed or
-        errored participants are sent back to Prolific with this code, which
-        triggers Prolific's fixed screen-out payment instead of the full base
-        payment.
+        Always adds a researcher-actor copy of DEFAULT (``DEFAULT_RESEARCHER``).
+        Prolific's ``COMPLETE`` transition only accepts researcher-actor codes;
+        the participant-actor DEFAULT code stays on the study but is no longer
+        used as an exit redirect.
+
+        When ``prolific_pay_unsuccessful`` is enabled (the default), also adds
+        an ``UNSUCCESSFUL`` screen-out code. That code is researcher-actor
+        only: Prolific allows just one ``FIXED_SCREEN_OUT_PAYMENT`` code per
+        study, so PsyNet submits it server-side rather than via a participant
+        completion-code URL.
         """
         codes = super().completion_codes_and_actions
+        experiment_id = get_config().get("id")
+        codes.append(
+            {
+                "code": alphanumeric_code(
+                    PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE + experiment_id
+                ),
+                "code_type": PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE,
+                "actor": "researcher",
+                "actions": [{"action": "AUTOMATICALLY_APPROVE"}],
+            }
+        )
         if not self.pays_unsuccessful_participants_via_screen_out:
             return codes
         for code in codes:
@@ -518,11 +572,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     )
         codes.append(
             {
-                "code": alphanumeric_code(
-                    self.unsuccessful_code_type + get_config().get("id")
-                ),
+                "code": alphanumeric_code(self.unsuccessful_code_type + experiment_id),
                 "code_type": self.unsuccessful_code_type,
-                "actor": "participant",
+                "actor": "researcher",
                 "actions": [
                     {
                         "action": PROLIFIC_SCREEN_OUT_ACTION,
@@ -557,13 +609,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             participant.fail("error_page")
 
     def exit_code_type(self, participant):
-        """Return the completion-code type for the participant's exit URL.
+        """Return the completion-code type issued at local submit.
 
         Unsuccessful participants get the UNSUCCESSFUL code, which triggers
         Prolific's fixed screen-out payment. ``None`` selects the recruiter's
-        default (auto-approving) code. This decision is based on the
-        participant's state at exit time; ``Experiment.recruiter_exit_info``
-        persists the issued code for later payment.
+        default (auto-approving) code. The issued type is stored for later
+        payment and for the researcher-actor ``COMPLETE`` call; participants
+        are not sent to a completion-code URL.
         """
         if participant.failed and self.pays_unsuccessful_participants_via_screen_out:
             return self.unsuccessful_code_type
@@ -648,11 +700,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
         When unsuccessful participants are paid via the screen-out completion
         code, the page offers a "Submit to Prolific" button that reports the
-        submission to PsyNet and redirects to the UNSUCCESSFUL completion
-        code; otherwise participants are asked to message the experimenter.
+        submission to PsyNet. PsyNet then completes it on Prolific; the
+        participant stays on this page and is not sent to a completion-code
+        URL. Otherwise participants are asked to message the experimenter.
         (``external_submit_url`` is part of the recruiter error-page hook
-        signature but is not used here: the submit URL is derived from the
-        completion code.)
+        signature but is unused: completion is server-side.)
         """
         _p = get_translator(context=True)
 
@@ -685,36 +737,50 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 )
             )
             if can_submit_unsuccessful:
-                submit_url = self.external_submission_url(
-                    code_type=self.unsuccessful_code_type
-                )
                 tags.p(
                     _p(
                         "prolific_error",
-                        "Click the button below to submit your study to Prolific and receive compensation for your time.",
-                    )
+                        "Click the button below to submit your study. Your submission will be recorded and your compensation will be processed by Prolific. You do not need to enter a completion code.",
+                    ),
+                    id="prolific-unsuccessful-instructions",
                 )
                 tags.button(
                     _p("prolific_error", "Submit to Prolific"),
                     id="prolific-unsuccessful-submit",
                     cls="btn btn-primary btn-lg",
                 )
+                tags.p(
+                    _p(
+                        "prolific_error",
+                        "Your submission has been recorded and your compensation will be processed by Prolific. You may now close this window.",
+                    ),
+                    id="prolific-unsuccessful-done",
+                    style="display: none;",
+                )
                 tags.script(
                     raw(
                         """
                         document.getElementById("prolific-unsuccessful-submit").onclick = function () {
-                            this.disabled = true;
+                            const button = this;
+                            button.disabled = true;
                             const data = new URLSearchParams();
                             data.append("assignmentId", %s);
                             data.append("participantId", %s);
                             fetch("/prolific-submission-listener", {method: "POST", body: data})
-                                .finally(() => { window.location = %s; });
+                                .then((response) => {
+                                    if (!response.ok) {
+                                        throw new Error("submission listener failed");
+                                    }
+                                    button.style.display = "none";
+                                    document.getElementById("prolific-unsuccessful-instructions").style.display = "none";
+                                    document.getElementById("prolific-unsuccessful-done").style.display = "block";
+                                })
+                                .catch(() => { button.disabled = false; });
                         };
                         """
                         % (
                             json.dumps(assignment_id),
                             json.dumps(str(error_participant.id)),
-                            json.dumps(submit_url),
                         )
                     )
                 )
@@ -726,6 +792,23 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     )
                 )
         return html
+
+    def exit_response(self, experiment, participant) -> str:
+        """Stay on a PsyNet confirmation page after local submit.
+
+        Local submission is the Prolific success path: the listener completes
+        the submission server-side, so participants are not sent to a
+        completion-code URL. ``recruiter_exit_info`` still stamps the issued
+        code so later payment and ``COMPLETE`` use the right researcher-actor
+        code.
+        """
+        if hasattr(experiment, "recruiter_exit_info"):
+            experiment.recruiter_exit_info(participant)
+        return render_template_with_translations(
+            "exit_recruiter_prolific_submitted.html",
+            assignment_id=participant.assignment_id,
+            participant_id=participant.id,
+        )
 
     def release_participant(
         self, experiment, participant: Participant
@@ -765,36 +848,165 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             raise
 
     def approve_hit(self, assignment_id: str):
-        """Skip Prolific approval when it would be redundant or rejected.
+        """Complete or approve the Prolific submission after local submit.
 
-        Screen-out submissions are never in ``AWAITING REVIEW``; returned
-        submissions are no longer the experimenter's to approve. Attempting
-        either would trigger Dallinger's retry loop and a spurious recruitment
-        error. Likewise, a submission-complete replay (Prolific's listener
-        re-fires after resetting status to ``submitted``) must not approve a
-        submission a second time: the participant's payment was already
-        handled once, and Prolific rejects approving an already-approved
-        submission, which would surface as a spurious recruitment error.
+        Local submission is the Prolific success path. If the row is still
+        ``ACTIVE`` or already ``TIMED-OUT``, POST ``COMPLETE`` with the
+        issued researcher-actor code (DEFAULT or UNSUCCESSFUL). Approve
+        only when the row is already ``AWAITING REVIEW`` (the participant
+        entered a code first). Settled rows and submission-complete replays
+        are left alone. People who never locally submitted are not
+        completed. A failed participant is never completed with DEFAULT
+        unless that successful code was already issued.
+
+        Completing a still-``ACTIVE`` submission should not consume an extra
+        filled place. Completing an already-``TIMED-OUT`` row can, if
+        Prolific already recruited a replacement — the same caveat as
+        clicking Approve in the Prolific UI.
         """
         participant = latest_participant_for_assignment(assignment_id)
-        if participant is not None:
-            if participant.status in ("screened_out", "returned"):
-                logger.info(
-                    "Skipping Prolific approval for assignment %s: status is %s.",
-                    assignment_id,
-                    participant.status,
-                )
-                return True
-            if bonus_transfer_already_claimed(participant):
-                logger.info(
-                    "Skipping Prolific approval for assignment %s: payment was "
-                    "already handled once (bonus_status=%s), so this is a "
-                    "submission-complete replay.",
-                    assignment_id,
-                    participant.bonus_status,
-                )
-                return True
-        return super().approve_hit(assignment_id)
+        if participant is None:
+            logger.info(
+                "Skipping Prolific completion for assignment %s: no local "
+                "participant row, so this is not a local submit.",
+                assignment_id,
+            )
+            return True
+        if participant.status == "returned":
+            logger.info(
+                "Skipping Prolific completion for assignment %s: status is returned.",
+                assignment_id,
+            )
+            return True
+        if bonus_transfer_already_claimed(participant):
+            logger.info(
+                "Skipping Prolific completion for assignment %s: payment was "
+                "already handled once (bonus_status=%s), so this is a "
+                "submission-complete replay.",
+                assignment_id,
+                participant.bonus_status,
+            )
+            return True
+
+        submission = _fetch_prolific_submission(self.prolificservice, assignment_id)
+        if submission is None:
+            self._notify_complete_failed(
+                participant,
+                assignment_id,
+                extra=" PsyNet could not read the submission status.",
+            )
+            return False
+
+        status = submission.get("status")
+        if status in PROLIFIC_SETTLED_SUBMISSION_STATUSES:
+            logger.info(
+                "Skipping Prolific completion for assignment %s: already %s.",
+                assignment_id,
+                status,
+            )
+            return True
+        if status == "AWAITING REVIEW":
+            return super().approve_hit(assignment_id)
+        if status not in PROLIFIC_COMPLETABLE_SUBMISSION_STATUSES:
+            logger.info(
+                "Skipping Prolific completion for assignment %s: status is %s.",
+                assignment_id,
+                status,
+            )
+            return True
+        return self._complete_prolific_submission(participant, assignment_id)
+
+    def _complete_prolific_submission(self, participant, assignment_id: str):
+        """POST COMPLETE with the researcher-actor code for this participant."""
+        spec = self._researcher_completion_for(participant)
+        if spec is None:
+            self._notify_complete_failed(
+                participant,
+                assignment_id,
+                extra=(
+                    " No researcher-actor completion code was available "
+                    "(a failed participant is never completed with DEFAULT)."
+                ),
+            )
+            return False
+        code_type, code = spec
+        try:
+            self.prolificservice._req(
+                method="POST",
+                endpoint=f"/submissions/{assignment_id}/transition/",
+                json={"action": "COMPLETE", "completion_code": code},
+            )
+        except ProlificServiceException as ex:
+            self._notify_complete_failed(
+                participant,
+                assignment_id,
+                extra=f" COMPLETE with {code_type} failed: {ex}",
+            )
+            handle_recruitment_error(ex)
+            return False
+        logger.info(
+            "Completed Prolific submission %s for participant %s with %s.",
+            assignment_id,
+            participant.id,
+            code_type,
+        )
+        return True
+
+    def _researcher_completion_for(self, participant) -> tuple[str, str] | None:
+        """Return the researcher-actor ``(code_type, code)`` for COMPLETE."""
+        code_type = self._researcher_code_type_for(participant)
+        if code_type is None:
+            return None
+        code = self.completion_code_map.get(code_type)
+        if not code:
+            return None
+        return code_type, code
+
+    def _researcher_code_type_for(self, participant) -> str | None:
+        """Choose the researcher-actor code type for a local submit.
+
+        Screened-out / unsuccessful issuances use ``UNSUCCESSFUL``. Successful
+        issuances use ``DEFAULT_RESEARCHER``. A failed participant is never
+        paired with DEFAULT unless they already left with that successful
+        code (first issuance wins).
+        """
+        issued = getattr(participant, "issued_completion_code_type", None)
+        failed = bool(getattr(participant, "failed", False))
+        status = getattr(participant, "status", None)
+        default_types = {
+            None,
+            getattr(self, "default_code_type", "DEFAULT"),
+            PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE,
+        }
+        if issued == self.unsuccessful_code_type or status == "screened_out":
+            if not self.pays_unsuccessful_participants_via_screen_out:
+                return None
+            return self.unsuccessful_code_type
+        if issued in (self.default_code_type, PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE):
+            return PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE
+        if failed:
+            if self.pays_unsuccessful_participants_via_screen_out:
+                return self.unsuccessful_code_type
+            return None
+        if issued in default_types:
+            return PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE
+        return None
+
+    def _notify_complete_failed(self, participant, assignment_id, extra=""):
+        """Ask the researcher to finish the Prolific row by hand."""
+        self._notify_researcher(
+            f"PsyNet could not complete Prolific submission {assignment_id} "
+            f"for participant {participant.id}. Please approve or screen out "
+            f"the row on Prolific.{extra}",
+            level="warning",
+        )
+
+    @staticmethod
+    def _notify_researcher(message, *, level="info"):
+        from .experiment import get_experiment
+
+        getattr(logger, level)(message)
+        get_experiment().notifier.notify(message)
 
     def reward_bonus(self, participant, amount, reason):
         """Pay a Prolific bonus. Return False if Prolific rejected the transfer."""
@@ -876,13 +1088,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             fixed_reward = getattr(participant, "base_payment", None)
         if not fixed_reward:
             return bonus_payments
-        fixed_subcurrency = int(round(fixed_reward * 100))
-        remaining = list(bonus_payments)
-        for index, entry in enumerate(remaining):
-            if int(round(entry)) == fixed_subcurrency:
-                del remaining[index]
-                break
-        return remaining
+        return _without_matching_bonus_entry(bonus_payments, fixed_reward)
 
     def request_return_for_bonus(self, participant) -> TimelineLogic:
         """Ask the participant to return their Prolific submission and pay

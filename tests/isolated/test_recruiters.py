@@ -23,6 +23,7 @@ from psynet.participant import (
     review_bonus_pay_in_progress,
 )
 from psynet.recruiters import (
+    PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE,
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     BaseLabRecruiter,
@@ -250,7 +251,14 @@ def test_completion_codes_unchanged_when_unsuccessful_payment_disabled():
     with patch("psynet.recruiters.get_config", return_value=config):
         codes = recruiter.completion_codes_and_actions
 
-    assert [code["code_type"] for code in codes] == ["DEFAULT"]
+    assert [code["code_type"] for code in codes] == [
+        "DEFAULT",
+        PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE,
+    ]
+    assert codes[0]["actor"] == "participant"
+    assert codes[1]["actor"] == "researcher"
+    assert codes[1]["actions"] == [{"action": "AUTOMATICALLY_APPROVE"}]
+    assert codes[0]["code"] != codes[1]["code"]
 
 
 def test_completion_codes_include_unsuccessful_code_with_default_payment():
@@ -263,6 +271,7 @@ def test_completion_codes_include_unsuccessful_code_with_default_payment():
 
     assert [code["code_type"] for code in codes] == [
         "DEFAULT",
+        PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE,
         PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     ]
     assert codes[-1]["actions"][0]["fixed_screen_out_reward"] == 25
@@ -288,10 +297,11 @@ def test_completion_codes_include_unsuccessful_screen_out_code():
 
     assert [code["code_type"] for code in codes] == [
         "DEFAULT",
+        PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE,
         PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     ]
     unsuccessful = codes[-1]
-    assert unsuccessful["actor"] == "participant"
+    assert unsuccessful["actor"] == "researcher"
     assert unsuccessful["actions"] == [
         {
             "action": PROLIFIC_SCREEN_OUT_ACTION,
@@ -384,68 +394,261 @@ def test_release_participant_branching(failed, payment_configured, expected):
         submit.assert_not_called()
 
 
-@pytest.mark.parametrize(
-    "status,expect_skipped",
-    [
-        ("screened_out", True),
-        ("returned", True),
-        ("approved", False),
-        ("submitted", False),
-    ],
-)
-def test_approve_hit_skips_when_status_is_not_approvable(status, expect_skipped):
-    config = make_config(prolific_unsuccessful_base_payment=0.50)
-    recruiter = make_prolific_recruiter(config)
-    participant = MagicMock(status=status)
+def _approve_hit_participant(**attrs):
+    values = dict(
+        id=24,
+        status="approved",
+        failed=False,
+        complete=True,
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        bonus_status=BONUS_STATUS_NOT_DUE_YET,
+        issued_completion_code_type="DEFAULT",
+    )
+    values.update(attrs)
+    return MagicMock(**values)
 
+
+def _run_approve_hit(
+    participant,
+    submission_status,
+    config=None,
+    *,
+    submission=True,
+    experiment=None,
+):
+    config = config or make_config(prolific_screen_out_slots=70)
+    recruiter = make_prolific_recruiter(config)
+    recruiter.prolificservice = MagicMock()
     query = MagicMock()
     query.filter_by.return_value.order_by.return_value.first.return_value = participant
-
+    fetched = {"status": submission_status} if submission else None
     with patch.object(Participant, "query", query):
-        with patch.object(
-            dallinger.recruiters.ProlificRecruiter, "approve_hit"
-        ) as super_approve:
-            result = recruiter.approve_hit("assignment-1")
+        with patch(
+            "psynet.recruiters._fetch_prolific_submission", return_value=fetched
+        ):
+            with patch("psynet.recruiters.get_config", return_value=config):
+                with patch(
+                    "psynet.experiment.get_experiment",
+                    return_value=experiment or MagicMock(),
+                ):
+                    with patch.object(
+                        dallinger.recruiters.ProlificRecruiter, "approve_hit"
+                    ) as super_approve:
+                        result = recruiter.approve_hit("assignment-1")
+    return recruiter, result, super_approve
 
-    if expect_skipped:
-        super_approve.assert_not_called()
-        assert result is True
-    else:
-        super_approve.assert_called_once_with("assignment-1")
+
+def _complete_payload(recruiter):
+    recruiter.prolificservice._req.assert_called_once()
+    kwargs = recruiter.prolificservice._req.call_args.kwargs
+    assert kwargs["method"] == "POST"
+    assert kwargs["endpoint"] == "/submissions/assignment-1/transition/"
+    return kwargs["json"]
+
+
+def test_approve_hit_completes_active_submission_with_researcher_default():
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(), "ACTIVE", config
+    )
+    assert result is True
+    super_approve.assert_not_called()
+    with patch("psynet.recruiters.get_config", return_value=config):
+        expected = recruiter.completion_code_map[PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE]
+    assert _complete_payload(recruiter) == {
+        "action": "COMPLETE",
+        "completion_code": expected,
+    }
+
+
+def test_approve_hit_completes_timed_out_submission_with_researcher_default():
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(), "TIMED-OUT"
+    )
+    assert result is True
+    super_approve.assert_not_called()
+    assert _complete_payload(recruiter)["action"] == "COMPLETE"
+
+
+def test_approve_hit_completes_screened_out_with_unsuccessful_never_default():
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(
+            status="screened_out",
+            failed=True,
+            issued_completion_code_type=PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
+        ),
+        "ACTIVE",
+        config,
+    )
+    assert result is True
+    super_approve.assert_not_called()
+    with patch("psynet.recruiters.get_config", return_value=config):
+        expected = recruiter.completion_code_map[PROLIFIC_UNSUCCESSFUL_CODE_TYPE]
+        default = recruiter.completion_code_map[PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE]
+    payload = _complete_payload(recruiter)
+    assert payload == {"action": "COMPLETE", "completion_code": expected}
+    assert payload["completion_code"] != default
+
+
+def test_approve_hit_keeps_first_issuance_default_even_if_later_failed():
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter, result, _ = _run_approve_hit(
+        _approve_hit_participant(failed=True, issued_completion_code_type="DEFAULT"),
+        "ACTIVE",
+        config,
+    )
+    assert result is True
+    with patch("psynet.recruiters.get_config", return_value=config):
+        expected = recruiter.completion_code_map[PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE]
+        unsuccessful = recruiter.completion_code_map[PROLIFIC_UNSUCCESSFUL_CODE_TYPE]
+    assert _complete_payload(recruiter)["completion_code"] == expected
+    assert expected != unsuccessful
+
+
+def test_approve_hit_completes_failed_participant_with_unsuccessful():
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter, result, _ = _run_approve_hit(
+        _approve_hit_participant(
+            status="submitted",
+            failed=True,
+            issued_completion_code_type=None,
+        ),
+        "ACTIVE",
+        config,
+    )
+    assert result is True
+    with patch("psynet.recruiters.get_config", return_value=config):
+        expected = recruiter.completion_code_map[PROLIFIC_UNSUCCESSFUL_CODE_TYPE]
+    assert _complete_payload(recruiter)["completion_code"] == expected
+
+
+def test_approve_hit_approves_only_when_awaiting_review():
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(), "AWAITING REVIEW"
+    )
+    assert result is super_approve.return_value
+    super_approve.assert_called_once_with("assignment-1")
+    recruiter.prolificservice._req.assert_not_called()
+
+
+@pytest.mark.parametrize("status", ["APPROVED", "REJECTED", "RETURNED", "SCREENED OUT"])
+def test_approve_hit_skips_settled_rows(status):
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(), status
+    )
+    assert result is True
+    super_approve.assert_not_called()
+    recruiter.prolificservice._req.assert_not_called()
+
+
+def test_approve_hit_skips_returned_local_status():
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(status="returned"), "ACTIVE"
+    )
+    assert result is True
+    super_approve.assert_not_called()
+    recruiter.prolificservice._req.assert_not_called()
 
 
 @pytest.mark.parametrize(
     "bonus_status,expect_skipped",
     [
-        (BONUS_STATUS_NOT_DUE_YET, False),  # first pass: approve normally
-        (BONUS_STATUS_UNCONFIRMED, True),  # replay: payment already handled
+        (BONUS_STATUS_NOT_DUE_YET, False),
+        (BONUS_STATUS_UNCONFIRMED, True),
         (BONUS_STATUS_SUCCESS, True),
         (BONUS_STATUS_CAPPED, True),
         (BONUS_STATUS_DISMISSED, True),
     ],
 )
 def test_approve_hit_skips_submission_complete_replays(bonus_status, expect_skipped):
-    """A submission-complete replay must not approve an already-approved
-    submission: Prolific rejects it, producing spurious recruitment errors.
-    """
-    config = make_config(prolific_unsuccessful_base_payment=0.50)
-    recruiter = make_prolific_recruiter(config)
-    participant = MagicMock(status="submitted", bonus_status=bonus_status)
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(bonus_status=bonus_status), "ACTIVE"
+    )
+    if expect_skipped:
+        assert result is True
+        super_approve.assert_not_called()
+        recruiter.prolificservice._req.assert_not_called()
+    else:
+        assert result is True
+        recruiter.prolificservice._req.assert_called_once()
 
+
+def test_approve_hit_does_not_complete_when_participant_row_is_missing():
+    recruiter, result, super_approve = _run_approve_hit(None, "ACTIVE")
+    assert result is True
+    super_approve.assert_not_called()
+    recruiter.prolificservice._req.assert_not_called()
+
+
+def test_approve_hit_notifies_researcher_when_complete_fails():
+    experiment = MagicMock()
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter = make_prolific_recruiter(config)
+    recruiter.prolificservice = MagicMock()
+    recruiter.prolificservice._req.side_effect = ProlificServiceException("denied")
+    participant = _approve_hit_participant()
     query = MagicMock()
     query.filter_by.return_value.order_by.return_value.first.return_value = participant
-
     with patch.object(Participant, "query", query):
-        with patch.object(
-            dallinger.recruiters.ProlificRecruiter, "approve_hit"
-        ) as super_approve:
-            result = recruiter.approve_hit("assignment-1")
+        with patch(
+            "psynet.recruiters._fetch_prolific_submission",
+            return_value={"status": "ACTIVE"},
+        ):
+            with patch("psynet.recruiters.get_config", return_value=config):
+                with patch("psynet.experiment.get_experiment", return_value=experiment):
+                    with patch.object(
+                        dallinger.recruiters.ProlificRecruiter, "approve_hit"
+                    ) as super_approve:
+                        result = recruiter.approve_hit("assignment-1")
+    assert result is False
+    super_approve.assert_not_called()
+    experiment.notifier.notify.assert_called_once()
+    assert "approve or screen out" in experiment.notifier.notify.call_args.args[0]
 
-    if expect_skipped:
-        super_approve.assert_not_called()
-        assert result is True
-    else:
-        super_approve.assert_called_once_with("assignment-1")
+
+def test_approve_hit_notifies_when_submission_status_cannot_be_read():
+    experiment = MagicMock()
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(), "ACTIVE", submission=False, experiment=experiment
+    )
+    assert result is False
+    super_approve.assert_not_called()
+    recruiter.prolificservice._req.assert_not_called()
+    experiment.notifier.notify.assert_called_once()
+
+
+def test_exit_response_stays_on_psynet_confirmation_page():
+    recruiter = make_prolific_recruiter(make_config())
+    participant = MagicMock(assignment_id="assignment-1", id=7)
+    experiment = MagicMock()
+    with patch(
+        "psynet.recruiters.render_template_with_translations", return_value="html"
+    ) as render:
+        assert recruiter.exit_response(experiment, participant) == "html"
+    experiment.recruiter_exit_info.assert_called_once_with(participant)
+    render.assert_called_once_with(
+        "exit_recruiter_prolific_submitted.html",
+        assignment_id="assignment-1",
+        participant_id=7,
+    )
+
+
+def test_prolific_exit_template_does_not_redirect_to_completion_code():
+    from pathlib import Path
+
+    import psynet
+
+    text = (
+        Path(psynet.__file__).parent
+        / "templates"
+        / "exit_recruiter_prolific_submitted.html"
+    ).read_text()
+    assert "You do not need to enter a completion code" in text
+    assert "window.location" not in text
+    assert "prolific-exit-done" in text
+    assert "/prolific-submission-listener" in text
 
 
 def make_participant_with_recruiter(config, failed=True, status="working"):
@@ -536,10 +739,15 @@ def test_error_page_content_offers_submit_button_when_screen_out_enabled():
     assert "/prolific-submission-listener" in html
     assert "assignment-1" in html
     assert "42" in html
-    assert "https://app.prolific.com/submissions/complete?cc=UNSUCCESSFUL-CODE" in html
+    assert "You do not need to enter a completion code" in html
+    assert 'id="prolific-unsuccessful-done"' in html
+    assert "window.location" not in html
+    assert (
+        "https://app.prolific.com/submissions/complete?cc=UNSUCCESSFUL-CODE" not in html
+    )
     assert "send the researcher a message" not in html
     assert participant.issued_completion_code_type is None
-    external_url.assert_called_once_with(code_type=PROLIFIC_UNSUCCESSFUL_CODE_TYPE)
+    external_url.assert_not_called()
 
 
 def test_error_page_content_asks_to_message_when_screen_out_disabled():

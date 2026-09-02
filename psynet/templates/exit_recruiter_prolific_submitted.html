@@ -1,0 +1,46 @@
+{% extends "psynet_layout.html" %}
+
+{# Exit page for Prolific participants. Local submission is the success
+   path: the Submit button reports the submission to PsyNet, which then
+   completes it on Prolific on the participant's behalf. Participants are
+   not redirected to a Prolific completion-code URL. #}
+
+{% block body %}
+  <div id="container">
+    <div class="well">
+      <h1>{{ pgettext("exit_recruiter_prolific", "Prolific Study Submission") }}</h1>
+      <hr>
+      <p id="prolific-exit-instructions">
+        {{ pgettext("exit_recruiter_prolific", "To complete your Prolific study, click the button below. Your submission will be recorded and your compensation will be processed by Prolific. You do not need to enter a completion code.") }}
+      </p>
+      <button id="js-exit-button" class="btn btn-success btn-large">
+        {{ pgettext("exit_recruiter_prolific", "Submit Study") }}
+      </button>
+      <p id="prolific-exit-done" style="display: none;">
+        {{ pgettext("exit_recruiter_prolific", "Your submission has been recorded and your compensation will be processed by Prolific. You may now close this window.") }}
+      </p>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.getElementById("js-exit-button").onclick = function () {
+      const button = this;
+      button.disabled = true;
+      const data = new URLSearchParams();
+      data.append("assignmentId", "{{ assignment_id }}");
+      data.append("participantId", "{{ participant_id }}");
+      fetch("/prolific-submission-listener", {method: "POST", body: data})
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("submission listener failed");
+          }
+          button.style.display = "none";
+          document.getElementById("prolific-exit-instructions").style.display = "none";
+          document.getElementById("prolific-exit-done").style.display = "block";
+        })
+        .catch(() => { button.disabled = false; });
+    };
+  </script>
+{% endblock %}

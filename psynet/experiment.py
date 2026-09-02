@@ -2996,8 +2996,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The code actually issued is stored on
         ``participant.issued_completion_code_type`` so later payment
-        decisions match what the platform paid, even if the participant
-        is failed afterwards.
+        decisions and the Prolific ``COMPLETE`` call match what the
+        platform should pay, even if the participant is failed afterwards.
         """
         exit_code_type = getattr(participant.recruiter, "exit_code_type", None)
         if exit_code_type is None:
@@ -3011,7 +3011,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return code_type
 
     def on_recruiter_submission_complete(self, participant, event):
-        """Record payment fields, approve, pay the bonus, and recruit.
+        """Record payment fields, complete or approve on the platform, pay the bonus, and recruit.
 
         PsyNet owns this handler rather than calling Dallinger's
         implementation. Status and platform base are always re-recorded
