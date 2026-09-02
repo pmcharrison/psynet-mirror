@@ -1065,13 +1065,12 @@ class Page(Elt):
     expect_scrolling:
         Declares whether the page is expected to be taller than the browser
         window. When ``False`` (default), PsyNet's front-end tests require the
-        page's response controls to be reachable without scrolling, which
-        catches stimuli that grow large enough to push the controls off screen
-        or underneath the footer. Set it to ``True`` for pages that legitimately
-        need scrolling, such as long consent forms. Subclasses may also declare
-        it as a class attribute; passing ``True`` or ``False`` to the constructor
-        overrides that default. It has no effect on how the page behaves for
-        participants.
+        page not to scroll at all, which catches stimuli that grow large enough
+        to push content off screen or underneath the footer. Set it to ``True``
+        for pages that legitimately need scrolling, such as long consent forms.
+        Subclasses may also declare it as a class attribute; passing ``True`` or
+        ``False`` to the constructor overrides that default. It has no effect on
+        how the page behaves for participants.
 
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.

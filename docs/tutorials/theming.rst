@@ -66,6 +66,11 @@ experiment by redefining a handful of tokens rather than overriding rules.
    * - ``--psynet-measure``
      - ``62ch``
      - Maximum width of prose, so long text stays readable.
+   * - ``--psynet-graphic-vertical-chrome``
+     - ``25rem``
+     - Height reserved around a ``GraphicPrompt`` so the page still
+       fits a typical laptop window. Shrinks the graphic when 60% of
+       the window would make the page scroll.
 
 To recolour an experiment, redefine the tokens in your own stylesheet.
 Buttons, progress, and focus follow ``--psynet-accent``. Links and Bootstrap
@@ -171,9 +176,10 @@ Pages that scroll
 
 The footer is fixed to the bottom of the window, and the page reserves space for
 it so that content is never left permanently underneath. PsyNet's front-end
-tests additionally check that a page's response controls are reachable without
-scrolling, which catches a stimulus that has grown large enough to push the
-Next button off screen.
+tests additionally check that a page which does not declare
+``expect_scrolling`` cannot scroll at all (not merely that the Next button is
+visible), which catches a stimulus that has grown large enough to push content
+off a typical laptop window.
 
 If a page is genuinely meant to be longer than the window, say so:
 

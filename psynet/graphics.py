@@ -32,13 +32,16 @@ class GraphicMixin:
     viewport_width
         The width of the graphic display, expressed as a fraction of the browser window's width.
         The default value (0.6) means that the graphic occupies 60% of the window's width.
-        The used width is the minimum of that fraction, the content surface, and the
-        width implied by ``max_viewport_height``, so the blueprint aspect ratio is
-        preserved when any of those caps bind.
+        The used width is the minimum of that fraction, the content surface, the
+        width implied by ``max_viewport_height``, and the width implied by
+        leaving room for page chrome (``--psynet-graphic-vertical-chrome``), so
+        the blueprint aspect ratio is preserved when any of those caps bind.
 
     max_viewport_height
         Upper bound on the graphic's height, expressed as a fraction of the browser
         window's height. Default: ``0.6``. Reaching this bound reduces the width too.
+        On short windows the page-chrome cap usually binds first, so the graphic
+        shrinks further and the prompt, Next button and footer still fit.
 
     loop
         Whether the graphic should loop back to the first frame once the last frame has finished.
@@ -68,7 +71,9 @@ class GraphicMixin:
     Upper bound on the graphic's height, expressed as a fraction of the browser
     window's height. This stops a wide graphic from pushing the response
     controls underneath the footer on short screens. The blueprint aspect ratio
-    is always preserved, so reaching this bound reduces the width too.
+    is always preserved, so reaching this bound reduces the width too. A
+    separate page-chrome cap (``--psynet-graphic-vertical-chrome``) shrinks the
+    graphic further when 60% of the window would leave the page able to scroll.
     """
 
     def __init__(
@@ -99,16 +104,19 @@ class GraphicMixin:
     def css_box_width(self) -> str:
         """Return a CSS ``width`` that keeps the blueprint aspect ratio.
 
-        All three caps are applied as width constraints: the requested window
-        fraction, the parent content surface (``100%``), and the width implied
-        by ``max_viewport_height``. Height then follows from ``aspect-ratio``,
-        so a landscape graphic on a wide window cannot outgrow the surface
-        and leave a too-tall box.
+        Four caps are applied as width constraints: the requested window
+        fraction, the parent content surface (``100%``), the width implied
+        by ``max_viewport_height``, and the width implied by leaving room for
+        page chrome (``--psynet-graphic-vertical-chrome``). Height then follows
+        from ``aspect-ratio``, so a landscape graphic on a wide window cannot
+        outgrow the surface, and a square graphic on a laptop window cannot
+        make the page scroll.
         """
         aspect = self.dimensions[0] / self.dimensions[1]
         return (
             f"min({self.viewport_width * 100:.4f}vw, 100%, "
-            f"calc({self.max_viewport_height * 100:.4f}vh * {aspect:.6f}))"
+            f"calc({self.max_viewport_height * 100:.4f}vh * {aspect:.6f}), "
+            f"max(0px, calc((100vh - var(--psynet-graphic-vertical-chrome)) * {aspect:.6f})))"
         )
 
     def validate_media(self, media):

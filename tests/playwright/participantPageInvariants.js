@@ -18,6 +18,9 @@
  *   controls_reachable_without_scrolling  A stimulus grew large enough to push
  *                                        the response control off screen on a
  *                                        page that was meant to fit.
+ *   no_vertical_overflow                 A page that was meant to fit can
+ *                                        still scroll, even if the control
+ *                                        happens to peek above the footer.
  *   nothing_permanently_occluded         Content left behind the fixed footer
  *                                        even at the end of the scroll.
  *   no_horizontal_overflow               Content wider than the viewport.
@@ -85,6 +88,23 @@ const collectViolations = () => {
             "fit, or pass expect_scrolling=True to the page if it is meant to scroll",
         });
       }
+    }
+
+    // Reachability alone is not enough: a Next button can sit just above the
+    // footer while the content surface still extends a few centimetres below
+    // the fold, which is the scrollbar participants notice on a laptop.
+    const scrollHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.body ? document.body.scrollHeight : 0
+    );
+    if (scrollHeight > window.innerHeight + 1) {
+      violations.push({
+        check: "no_vertical_overflow",
+        detail:
+          `document scrollHeight ${round(scrollHeight)} exceeds viewport height ` +
+          `${window.innerHeight}px, so the page can scroll. Either make the page ` +
+          "fit, or pass expect_scrolling=True to the page if it is meant to scroll",
+      });
     }
   }
 

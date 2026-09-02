@@ -154,7 +154,10 @@ def test_max_viewport_height_constructor_and_css_width():
     )
     assert prompt.max_viewport_height == 0.4
     assert prompt.metadata["max_viewport_height"] == 0.4
-    assert prompt.css_box_width() == "min(90.0000vw, 100%, calc(40.0000vh * 1.777778))"
+    assert prompt.css_box_width() == (
+        "min(90.0000vw, 100%, calc(40.0000vh * 1.777778), "
+        "max(0px, calc((100vh - var(--psynet-graphic-vertical-chrome)) * 1.777778)))"
+    )
 
     default = GraphicPrompt(
         dimensions=[100, 100],
@@ -163,6 +166,7 @@ def test_max_viewport_height_constructor_and_css_width():
     assert default.max_viewport_height == 0.6
     assert "60.0000vw" in default.css_box_width()
     assert "100%" in default.css_box_width()
+    assert "var(--psynet-graphic-vertical-chrome)" in default.css_box_width()
 
 
 def test_graphic_template_sizes_from_css_box_width():

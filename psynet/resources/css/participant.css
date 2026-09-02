@@ -94,6 +94,11 @@
     --psynet-focus-ring: 3px solid var(--psynet-accent);
     --psynet-progress-height: 6px;
     --psynet-footer-clearance: 5rem;
+    /* Space reserved around a graphic so the page still fits a 1280×720
+       laptop inner viewport: progress, surface margins and padding, prompt,
+       graphic margins, Next button, and footer clearance. Graphic width uses
+       this as a fourth cap in css_box_width(). */
+    --psynet-graphic-vertical-chrome: 25rem;
 
     /* Bootstrap integration */
     --bs-body-font-family: var(--psynet-font-sans);

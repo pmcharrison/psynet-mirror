@@ -15,10 +15,9 @@ const { assertPageInvariants } = require("./participantPageInvariants");
 
 const STEP_TIMEOUT_MS = 120000;
 
-// A representative desktop viewport. The reachability invariant is viewport-
-// relative: a control that falls entirely below the fold is treated as ordinary
-// scrolling, so a very short viewport would silently weaken the check.
-const DESKTOP_VIEWPORT = { width: 1280, height: 900 };
+// Inner viewport of a typical 13–14" laptop. A taller size (for example
+// 1280×900) hides a centimetre of overflow that still produces a scrollbar.
+const DESKTOP_VIEWPORT = { width: 1280, height: 720 };
 
 // A narrow viewport exercises the mobile branch of the theme, where horizontal
 // overflow is the failure that matters.

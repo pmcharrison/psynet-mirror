@@ -80,6 +80,13 @@ def test_focus_ring_follows_accent_token():
     assert "--psynet-focus-ring: 3px solid var(--psynet-accent)" in css
 
 
+def test_graphic_vertical_chrome_token_is_defined():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    assert "--psynet-graphic-vertical-chrome:" in css
+
+
 def test_abort_pages_use_content_surface():
     templates = resources.files("psynet") / "templates"
     for name in ("abort_possible.html", "abort_not_possible.html"):
