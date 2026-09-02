@@ -134,8 +134,7 @@ def _incremental_asset_modes(experiment) -> tuple[str, ...]:
 
     ``none`` needs no asset bytes at all, so it is always eligible. ``collected``
     is eligible only when the deployment's asset storage keeps bytes in a local
-    directory that rsync can read. ``all`` is never eligible in this release
-    because it may require on-demand materialization on the server.
+    directory that rsync can read.
     """
     from psynet.asset import LocalStorage
 

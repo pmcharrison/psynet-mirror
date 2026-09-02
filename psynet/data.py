@@ -994,14 +994,12 @@ def populate_db_from_zip_file(zip_path):
 
 def export_assets(
     path,
-    collected_assets_only: bool,
-    include_on_demand_assets: bool,
     server=None,
     local=False,
     manifest_only: bool = False,
 ):
     """
-    Export selected assets into ``path`` using semantic ``export_path`` trees.
+    Export collected assets into ``path`` using semantic ``export_path`` trees.
 
     Callers typically pass ``<export_dir>/assets``. Layout:
 
@@ -1022,26 +1020,20 @@ def export_assets(
     incremental SSH transport uses this so the server can describe the asset
     selection cheaply while the client fetches the bytes over rsync.
     """
-    from .asset import ExternalAsset, OnDemandAsset
+    from .asset import ExperimentAsset, OnDemandAsset
     from .export.path_safety import UnsafePathError, assert_semantic_asset_path
 
-    # Assumes we already have loaded the experiment into the local database,
-    # as would be the case if the function is called from psynet export.
-    if collected_assets_only:
-        # ExperimentAsset covers deposits for this deployment. CachedAsset and
-        # ExternalAsset are pre-existing and only included with --assets all.
-        # OnDemandAsset subclasses ExperimentAsset but is skipped unless all.
-        from .asset import ExperimentAsset as base_class
-    else:
-        from .asset import Asset as base_class
-
+    # ExperimentAsset covers deposits for this deployment. CachedAsset and
+    # ExternalAsset are omitted. OnDemandAsset subclasses ExperimentAsset
+    # but is generated live and is not written into the archive.
     assets_root = path
     os.makedirs(assets_root, exist_ok=True)
 
-    # Selected assets are always exported when requested.
-    assets = list(db.session.query(base_class).order_by(base_class.id))
-    if not include_on_demand_assets:
-        assets = [a for a in assets if not isinstance(a, OnDemandAsset)]
+    assets = [
+        asset
+        for asset in db.session.query(ExperimentAsset).order_by(ExperimentAsset.id)
+        if not isinstance(asset, OnDemandAsset)
+    ]
 
     manifest_rows = []
     asset_ids_needing_bytes = []
@@ -1072,14 +1064,7 @@ def export_assets(
             "description": asset.description,
             "storage": _asset_storage_kind(asset),
         }
-        if isinstance(asset, ExternalAsset):
-            # External assets are URL-only in the manifest.
-            row["object_path"] = None
-            row["sha256_contents"] = None
-        else:
-            # OnDemand assets are already excluded when include_on_demand_assets
-            # is false (see filter above).
-            asset_ids_needing_bytes.append(asset.id)
+        asset_ids_needing_bytes.append(asset.id)
         manifest_rows.append(row)
 
     if server is not None and not manifest_only:
@@ -1091,9 +1076,7 @@ def export_assets(
     for index, asset_id in enumerate(asset_ids_needing_bytes, start=1):
         if n_assets > 1 and (index == 1 or index == n_assets or index % 25 == 0):
             logger.info("Exporting asset %s/%s (id=%s).", index, n_assets, asset_id)
-        meta = export_asset(
-            asset_id, assets_root, include_on_demand_assets, server, local
-        )
+        meta = export_asset(asset_id, assets_root, server, local)
         if meta:
             exported_meta[asset_id] = meta
 
@@ -1270,7 +1253,7 @@ def _prefetch_ssh_local_objects(assets, server, logger):
     )
 
 
-def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
+def export_asset(asset_id, assets_root, server, local):
     """Export one asset's bytes into the semantic export tree.
 
     For managed assets with a known SHA-256 digest the local cache at
@@ -1300,40 +1283,12 @@ def export_asset(asset_id, assets_root, include_on_demand_assets, server, local)
     import_local_experiment()
     a = Asset.query.filter_by(id=asset_id).one()
 
-    if isinstance(a, ExternalAsset):
-        return None
-    if not include_on_demand_assets and isinstance(a, OnDemandAsset):
+    if isinstance(a, ExternalAsset) or isinstance(a, OnDemandAsset):
         return None
 
     semantic_path = _semantic_export_path(a)
 
     try:
-        if isinstance(a, OnDemandAsset):
-            with tempfile.TemporaryDirectory() as tempdir:
-                suffix = a.extension if a.extension else ""
-                if a.is_folder:
-                    temp_path = os.path.join(tempdir, "folder")
-                    os.makedirs(temp_path)
-                    a.export(temp_path)
-                    digest = sha256_directory(temp_path)
-                else:
-                    temp_path = os.path.join(tempdir, f"asset{suffix}")
-                    a.export(temp_path)
-                    digest = sha256_file(temp_path)
-
-                _cache_and_link_into_export(
-                    digest,
-                    _make_copy_fn(temp_path, a.is_folder),
-                    assets_root,
-                    semantic_path,
-                    is_folder=a.is_folder,
-                )
-                return {
-                    "sha256_contents": digest,
-                    "export_path": semantic_path,
-                    "object_path": a.object_path,
-                }
-
         if a.sha256_contents:
             # Fast path: digest is known; consult the cache before fetching.
             digest = a.sha256_contents

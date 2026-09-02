@@ -4238,8 +4238,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except Exception as exc:
             shutil.rmtree(tempdir, ignore_errors=True)
             # Without this the experimenter only sees a bare 500 and has to go
-            # reading server logs to find out that, say, generating an on-demand
-            # asset failed.
+            # reading server logs to find out why the archive could not be built.
             logger.error("Failed to build the export archive.", exc_info=True)
             return error_response(
                 error_text=(
@@ -4300,9 +4299,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
 
+        from .export.service import validate_asset_mode
+
+        try:
+            assets = validate_asset_mode(request.args.get("assets", "collected"))
+        except ValueError as exc:
+            return error_response(error_text=str(exc), status=400, simple=True)
+
         exp = get_experiment()
         return exp._download_export(
-            assets=request.args.get("assets", "collected"),
+            assets=assets,
             asset_bytes=request.args.get("asset_bytes", "include"),
         )
 
@@ -4311,9 +4317,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def trigger_export():
         """Build a complete export and store it, without sending it anywhere."""
-        from .export.service import store_latest_archive
+        from .export.service import store_latest_archive, validate_asset_mode
 
-        assets = request.args.get("assets", "none")
+        try:
+            assets = validate_asset_mode(request.args.get("assets", "none"))
+        except ValueError as exc:
+            return error_response(error_text=str(exc), status=400, simple=True)
+
         exp = get_experiment()
         with tempfile.TemporaryDirectory() as tempdir:
             export_dir = os.path.join(tempdir, "export")

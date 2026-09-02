@@ -76,7 +76,7 @@ def _canonical_export_supported() -> bool:
     except ImportError:
         return False
     params = inspect.signature(export_assets).parameters
-    return "collected_assets_only" in params and callable(hydrate_assets)
+    return "manifest_only" in params and callable(hydrate_assets)
 
 
 def _skip_unless_canonical_export_supported() -> None:

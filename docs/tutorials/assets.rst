@@ -302,8 +302,8 @@ deployment. However, there are some limitations of working with this format:
 
 - Server-side managed assets use content-addressed ``objects/sha256/<digest>``
   paths. Exported archives instead use each asset's semantic ``export_path``.
-- Cached files are omitted from the default export, so a full set of stimuli
-  for supplementary materials needs ``--assets all`` or a separate copy from
+- Cached files are omitted from the export. If you need a full set of stimuli
+  for supplementary materials, copy them from the experiment directory or from
   storage.
 
 PsyNet therefore provides an additional workflow for exporting assets.
@@ -311,8 +311,8 @@ This workflow is accessed via the standard ``psynet export`` command
 that is responsible for exporting the database contents once an experiment is finished.
 By default (``--assets collected``), PsyNet exports managed assets deposited
 during the experiment — for example recordings. Cached stimuli, external URLs,
-and on-demand assets are omitted. Use ``--assets all`` for a fuller archive,
-or ``--assets none`` to skip asset files. See :ref:`data` for the export layout.
+and on-demand assets are omitted. Use ``--assets none`` to skip asset files.
+See :ref:`data` for the export layout.
 
 .. warning::
     Large experiments can still take a while to export when many collected

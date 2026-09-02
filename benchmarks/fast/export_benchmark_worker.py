@@ -48,7 +48,7 @@ def run(
     from psynet.data import export_assets
 
     params = inspect.signature(export_assets).parameters
-    if "collected_assets_only" not in params:
+    if "manifest_only" not in params:
         raise NotImplementedError(
             "Installed PsyNet predates the canonical export_assets() signature."
         )
@@ -70,8 +70,6 @@ def run(
     assets_dir.mkdir(parents=True, exist_ok=True)
     export_assets(
         str(assets_dir),
-        collected_assets_only=True,
-        include_on_demand_assets=False,
         local=True,
     )
     result_path.write_text(
