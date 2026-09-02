@@ -38,11 +38,12 @@ audioMeterControl.init = function(json) {
     this.audioMeter = null;
     this.audioMeterText = document.getElementById("audio-meter-text");
     this.audioMeterDeviceName = document.getElementById("audio-meter-device-name");
-    this.canvasContext = null;
+    this.track = document.getElementById("audio-meter");
+    this.fill = this.track
+        ? this.track.querySelector(".audio-meter__fill")
+        : null;
     this.mediaStream = null;
     this.mediaStreamSource = null;
-    this.audioMeterMaxWidth=300;
-    this.audioMeterMaxHeight=50;
     this.rafID = null;
 
     this.timeLastTooLow = -1e20;
@@ -57,7 +58,10 @@ audioMeterControl.init = function(json) {
 
     var audioMeterControl = this;
     psynet.trial.onEvent("trialConstruct",function() {
-        audioMeterControl.canvasContext = document.getElementById("audio-meter").getContext("2d");
+        audioMeterControl.track = document.getElementById("audio-meter");
+        audioMeterControl.fill = audioMeterControl.track
+            ? audioMeterControl.track.querySelector(".audio-meter__fill")
+            : null;
         audioMeterControl.audioContext = psynet.media.audioContext;
         psynet.trial.setTimer(function() {
             audioMeterControl.audioMeterText.style.display = "block";
@@ -167,12 +171,21 @@ audioMeterControl.applyColor = function(color) {
     let resolved = psynet.theme
         ? psynet.theme.resolveColor(color)
         : color;
-    let computed = psynet.theme
-        ? psynet.theme.computedColor(color)
-        : color;
-    this.audioMeterText.style.color = resolved;
-    if (this.canvasContext) {
-        this.canvasContext.fillStyle = computed;
+    if (this.audioMeterText) {
+        this.audioMeterText.style.color = resolved;
+    }
+    if (this.track) {
+        this.track.style.setProperty("--audio-meter-fill", resolved);
+    }
+}
+
+audioMeterControl.setLevel = function(proportion) {
+    let pct = Math.max(0, Math.min(1, proportion)) * 100;
+    if (this.fill) {
+        this.fill.style.width = pct + "%";
+    }
+    if (this.track) {
+        this.track.setAttribute("aria-valuenow", String(Math.round(pct)));
     }
 }
 
@@ -194,7 +207,9 @@ audioMeterControl.resetMessage = function() {
 }
 
 audioMeterControl.onLevelChange = function(time) {
-    this.canvasContext.clearRect(0, 0, this.audioMeterMaxWidth, this.audioMeterMaxHeight);
+    if (!this.audioMeter) {
+        return;
+    }
 
     if (this.audioMeter.volume.high >= this.threshold.high) {
         this.timeLastTooHigh = time;
@@ -217,7 +232,6 @@ audioMeterControl.onLevelChange = function(time) {
         this.showMessage("Too quiet!", "red")
     }
 
-    // draw a bar based on the current volume
     var proportion;
     if (this.audioMeter.volume.display <= this.displayRange.min) {
         proportion = 0.0;
@@ -227,9 +241,8 @@ audioMeterControl.onLevelChange = function(time) {
         proportion = (this.audioMeter.volume.display - this.displayRange.min) / (this.displayRange.max - this.displayRange.min);
     }
 
-    this.canvasContext.fillRect(0, 0, proportion * this.audioMeterMaxWidth, this.audioMeterMaxHeight);
+    this.setLevel(proportion);
 
-    // set up the next visual callback
     var audioMeterControl = this;
     this.rafID = window.requestAnimationFrame(function(time) {
         audioMeterControl.onLevelChange(time);

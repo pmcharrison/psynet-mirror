@@ -1041,10 +1041,19 @@
 {% macro audio_meter(params) %}
     <div class="audio-meter-block">
         <div class="audio-meter">
-            <div class="audio-meter__canvas-wrap">
-                <canvas id="audio-meter" width="300" height="50"></canvas>
+            <div
+                id="audio-meter"
+                class="audio-meter__track"
+                role="meter"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                aria-label="{{ pgettext('audio_meter', 'Microphone level') }}"
+            >
+                <div class="audio-meter__fill"></div>
             </div>
-            <p id="audio-meter-text" class="audio-meter__text"></p>
+            <p id="audio-meter-text" class="audio-meter__text" aria-live="polite"></p>
+            <p id="audio-meter-device-name" class="audio-meter__device"></p>
         </div>
 
         {% if params.calibrate %}

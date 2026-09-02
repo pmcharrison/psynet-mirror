@@ -84,6 +84,9 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - Height reserved around a ``GraphicPrompt`` so the page still
        fits a typical laptop window. Shrinks the graphic when 60% of
        the window would make the page scroll.
+   * - ``--psynet-audio-meter-height``
+     - ``10px``
+     - Height of the microphone-level track.
 
 To recolour an experiment, redefine the tokens in your own stylesheet.
 Buttons, progress, and focus follow ``--psynet-accent``. Links and Bootstrap

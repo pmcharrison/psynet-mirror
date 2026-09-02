@@ -115,7 +115,10 @@ def test_audio_meter_layout_is_fluid():
     """A 500px table put the coloured status text off the edge of phones."""
     macro = _audio_meter_macro()
     assert "500px" not in macro
+    assert "<canvas" not in macro
     assert 'class="audio-meter"' in macro
+    assert 'class="audio-meter__track"' in macro
+    assert 'class="audio-meter__fill"' in macro
     assert 'id="audio-meter-text"' in macro
     assert 'class="audio-meter__text"' in macro
 
@@ -125,7 +128,9 @@ def test_audio_meter_theme_wraps_inside_the_viewport():
         encoding="utf-8"
     )
     start = css.index(".audio-meter {")
-    end = css.index(".audio-meter__canvas-wrap")
+    end = css.index(".audio-meter__track")
     block = css[start:end]
     assert "flex-wrap: wrap" in block
     assert "max-width: 100%" in block
+    assert "--psynet-audio-meter-height:" in css
+    assert ".audio-meter__fill" in css

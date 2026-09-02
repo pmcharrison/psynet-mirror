@@ -102,6 +102,7 @@
     --psynet-measure: 62ch;
     --psynet-focus-ring: 3px solid var(--psynet-accent);
     --psynet-progress-height: 6px;
+    --psynet-audio-meter-height: 10px;
     --psynet-footer-clearance: 5rem;
     /* Space reserved around a graphic so the page still fits a 1280×720
        laptop inner viewport: progress, surface margins and padding, prompt,
@@ -433,10 +434,11 @@ textarea:focus-visible,
 }
 
 /*
- * Audio meter: canvas plus a coloured status message. The previous 500px
- * table (300px canvas + gap + text) overflowed a typical phone viewport.
- * Wrapping lets the message sit beside the bar when there is room, and
- * drop underneath when there is not.
+ * Audio meter: a quiet track with a status-coloured fill, plus a caption.
+ * The previous 500px table overflowed phones; the previous 50px canvas
+ * sat as a solid brick that did not follow the theme. Wrapping keeps the
+ * caption inside the viewport; the track uses the same sunken surface
+ * and square corners as the trial progress bar.
  */
 .audio-meter-block {
     margin-block: 1.25rem;
@@ -447,30 +449,45 @@ textarea:focus-visible,
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.75rem 1.25rem;
+    gap: 0.65rem 1.25rem;
     max-width: 100%;
 }
 
-.audio-meter__canvas-wrap {
-    flex: 0 1 300px;
-    width: min(300px, 100%);
+.audio-meter__track {
+    flex: 1 1 12rem;
+    width: min(20rem, 100%);
     max-width: 100%;
+    min-width: 0;
+    height: var(--psynet-audio-meter-height);
+    background-color: var(--psynet-surface-sunken);
+    border: 1px solid var(--psynet-border);
+    border-radius: 0;
+    overflow: hidden;
 }
 
-#audio-meter {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 6 / 1;
-    background-color: var(--bs-secondary-bg);
+.audio-meter__fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--audio-meter-fill, var(--psynet-accent));
 }
 
 .audio-meter__text {
-    flex: 1 1 10rem;
+    flex: 1 1 8rem;
     min-width: 0;
     margin: 0;
-    font-weight: 700;
+    font-weight: 500;
     overflow-wrap: break-word;
+    display: none;
+}
+
+.audio-meter__device {
+    flex: 1 1 100%;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--psynet-text-muted);
+}
+
+.audio-meter__device:empty {
     display: none;
 }
 
