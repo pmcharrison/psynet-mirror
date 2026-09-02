@@ -183,9 +183,6 @@ blanking a ``NOT NULL`` column would produce an archive that
 same rule applies automatically to identifier columns on experiment-defined
 tables.
 
-PsyNet does not inspect assets, free-text answers, logs, serialized variables, or
-experiment-defined basic data for identifying content.
-
 .. _export_asset_tokens:
 
 Sharing an export
@@ -193,8 +190,9 @@ Sharing an export
 
 To share a dataset publicly, delete ``participant_identifiers.csv`` (and
 ``lucid_entrant_identifiers.csv`` if present). Then look through the rest of
-the archive for anything else you would not want public, for example free-text
-answers, logs, recordings, or experiment-defined basic data.
+the archive for anything else you would not want public. PsyNet does not
+inspect assets, free-text answers, logs, serialized variables, or
+experiment-defined basic data.
 
 ``database/asset.csv`` includes ``access_token`` and ``url``. Those are the
 same browser capabilities the running experiment uses
