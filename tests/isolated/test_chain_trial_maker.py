@@ -87,6 +87,14 @@ def make_static_trial_maker(trial_maker_class=StaticTrialMaker, **kwargs):
     return trial_maker_class(**{**args, **kwargs})
 
 
+@pytest.mark.parametrize("target_trials_per_node", [0, -1])
+def test_static_trial_maker_rejects_non_positive_target_trials_per_node(
+    target_trials_per_node,
+):
+    with pytest.raises(ValueError, match="positive"):
+        make_static_trial_maker(target_trials_per_node=target_trials_per_node)
+
+
 def test_failure_policy_constructor_defaults():
     chain = inspect.signature(ChainTrialMaker.__init__).parameters
     static = inspect.signature(StaticTrialMaker.__init__).parameters
@@ -319,7 +327,7 @@ def test_static_selection_carries_context_to_on_trial_created(monkeypatch):
     participant = DummyParticipant()
     participant.module_state = DummyModuleState()
     network = SimpleNamespace(id=3, block="default")
-    node = SimpleNamespace(id=2, network=network, block="default")
+    node = SimpleNamespace(id=2, network=network, network_id=3, block="default")
     trial = SimpleNamespace()
     calls = []
 
@@ -834,6 +842,23 @@ def test_deprecated_network_filter_still_filters_static_networks():
         participant=SimpleNamespace(),
         experiment=SimpleNamespace(),
     ) == [kept.head]
+
+
+def test_deprecated_static_network_filter_errors_name_that_method():
+    class LegacyStaticMaker(StaticTrialMaker):
+        def custom_network_filter(self, candidates, participant):
+            return [SimpleNamespace(id=99)]
+
+    with pytest.warns(DeprecationWarning, match="custom_node_filter"):
+        trial_maker = make_static_trial_maker(LegacyStaticMaker)
+    (chain,) = _headed_chains(1)
+
+    with pytest.raises(ValueError, match="custom_network_filter"):
+        trial_maker._filter_eligible_candidates(
+            [chain],
+            participant=SimpleNamespace(),
+            experiment=SimpleNamespace(),
+        )
 
 
 def test_custom_chain_filter_takes_precedence_over_deprecated_network_filter():

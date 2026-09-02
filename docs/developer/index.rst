@@ -15,4 +15,5 @@ Contributing to PsyNet
    ../tutorials/internationalization
    running_tests
    asv_performance_tests
+   sqlalchemy_performance
    making_a_release
