@@ -271,7 +271,11 @@ def test_process_response_reraises_transient_lock_errors(monkeypatch):
     exp = Experiment.__new__(Experiment)
     exp.timeline = SimpleNamespace(get_current_elt=raise_lock)
     exp.handle_error = lambda *args, **kwargs: handled.setdefault("called", True)
-    monkeypatch.setattr("psynet.experiment.Participant.query", Query())
+    monkeypatch.setattr(
+        Experiment,
+        "_participant_request_query",
+        classmethod(lambda cls: Query()),
+    )
 
     with pytest.raises(sqlalchemy.exc.OperationalError):
         exp.process_response(

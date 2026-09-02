@@ -38,6 +38,8 @@ from psynet.light_utils import (  # noqa: F401 – re-exported for backwards com
     ExperimentDirectoryNameError,
     _md5_update_from_dir,
     _md5_update_from_file,
+    _update_hash_from_dir,
+    _update_hash_from_file,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
     git_command_available,
@@ -371,24 +373,41 @@ def md5_object(x):
     return str(hashed.hexdigest())
 
 
-# MD5 hashing code:
-# https://stackoverflow.com/a/54477583/8454486
+def sha256_object(x):
+    """Return a SHA-256 hex digest of a JSON-pickled object."""
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
+    return hashlib.sha256(string).hexdigest()
+
+
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
     """Update *hash* with the contents of *filename* and return it."""
-    _md5_update_from_file(filename, hash)
+    _update_hash_from_file(filename, hash)
     return hash
 
 
 def md5_file(filename: Union[str, Path]) -> str:
     """Return the MD5 hex digest of a single file."""
-    h = hashlib.md5()
-    _md5_update_from_file(filename, h)
-    return h.hexdigest()
+    return str(_update_hash_from_file(filename, hashlib.md5()).hexdigest())
+
+
+def sha256_file(filename: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a file's contents."""
+    return str(_update_hash_from_file(filename, hashlib.sha256()).hexdigest())
+
+
+def sha256_directory(directory: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a directory's names and file contents."""
+    return str(_update_hash_from_dir(directory, hashlib.sha256()).hexdigest())
+
+
+def content_object_path(digest: str) -> str:
+    """Return the canonical relative object path for a content digest."""
+    return f"objects/sha256/{digest}"
 
 
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
     """Recursively update *hash* with all non-hidden files under *directory*."""
-    _md5_update_from_dir(directory, hash)
+    _update_hash_from_dir(directory, hash)
     return hash
 
 
@@ -1240,7 +1259,9 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         isolated_tests_features,
         isolated_tests_translation,
     ]:
-        tests.extend(glob.glob(str(directory / "*.py")))
+        # Only pytest-discoverable modules; shared helper modules live
+        # alongside the tests and must not be run as empty test files.
+        tests.extend(glob.glob(str(directory / "test_*.py")))
 
     if ci_node_total is not None and ci_node_index is not None:
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)
@@ -1667,6 +1688,50 @@ def get_experiment_url(app=None, server=None):
 def generate_text_file(path, text="Lorem ipsum"):
     with open(path, "w") as file:
         file.write(text)
+
+
+# SQLAlchemy warns whenever a mapped class is registered under a name it has
+# registered before. PsyNet provokes this deliberately, because it executes
+# ``experiment.py`` more than once per process: Dallinger's config loader
+# imports it to read the experiment's extra parameters, and commands such as
+# ``psynet debug`` and ``psynet deploy`` load it again from the directory staged
+# for the server. Each execution redeclares the same mapped classes, so any
+# experiment that defines a Trial subclass or a custom table sees these
+# warnings. They name PsyNet's own reloading rather than anything an
+# experimenter can act on.
+#
+# Retiring the previous entries instead, through ``registry._dispose_cls`` and
+# the base mapper's ``polymorphic_map``, does not work: a load boundary cannot
+# tell whether the module is about to be executed again, because ``sys.modules``
+# often already holds it. Removing entries up front therefore unregisters
+# classes that stay live, which breaks string-based ``relationship()`` targets
+# and makes loading a row fail with "No such polymorphic_identity is defined".
+_EXPERIMENT_REDECLARATION_WARNINGS = (
+    "This declarative base already contains a class",
+    "Reassigning polymorphic association",
+)
+
+
+@contextlib.contextmanager
+def loading_experiment_classes():
+    """Suppress SQLAlchemy warnings about redeclaring the experiment's classes.
+
+    Wrap any call that may execute ``experiment.py``. Other warnings raised
+    while loading the experiment are left alone.
+    """
+
+    import warnings
+
+    from sqlalchemy.exc import SAWarning
+
+    with warnings.catch_warnings():
+        for message in _EXPERIMENT_REDECLARATION_WARNINGS:
+            warnings.filterwarnings(
+                "ignore",
+                message=f"{re.escape(message)}.*",
+                category=SAWarning,
+            )
+        yield
 
 
 def patch_yaspin_jupyter_detection():

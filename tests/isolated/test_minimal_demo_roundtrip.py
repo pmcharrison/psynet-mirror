@@ -121,6 +121,7 @@ AUTHORED_TEST_EXPERIMENT_FILENAMES = {
     "experiment.py",
     "requirements.txt",
     "utils.py",
+    "local_helper.py",
     "test_imports.py",
     "debug.sh",
     "shell.sh",
