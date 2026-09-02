@@ -8,7 +8,13 @@ authors customize node eligibility with ``custom_node_filter`` and ranking with
 
 from typing import List, Literal, Optional, Union
 
-from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
+from psynet.trial.chain import (
+    Candidate,
+    ChainNetwork,
+    ChainNode,
+    ChainTrial,
+    ChainTrialMaker,
+)
 
 from ..utils import get_logger, is_method_overridden
 from .main import Selection
@@ -149,7 +155,9 @@ class StaticTrialMaker(ChainTrialMaker):
         ``recruit_mode="n_participants"``.
 
     target_trials_per_node
-        Target number of trials to recruit for each node in the experiment. This target is only relevant if
+        Target number of trials to recruit for each node. ``None`` (the
+        default) means unlimited. When set, it must be a positive number;
+        ``0`` is rejected. This target is only relevant if
         ``recruit_mode="n_trials"``.
 
     max_trials_per_block
@@ -331,6 +339,11 @@ class StaticTrialMaker(ChainTrialMaker):
             # set chains_per_experiment at all if start_nodes is being provided explicitly.
             # chains_per_experiment = len(nodes)
 
+        if target_trials_per_node is not None and target_trials_per_node <= 0:
+            raise ValueError(
+                "target_trials_per_node must be a positive number, or None for unlimited."
+            )
+
         chains_per_experiment = None
 
         if allow_repeated_nodes:
@@ -354,7 +367,11 @@ class StaticTrialMaker(ChainTrialMaker):
             chains_per_participant=None,
             chains_per_experiment=chains_per_experiment,
             max_nodes_per_chain=1,
-            trials_per_node=target_trials_per_node if target_trials_per_node else 1e6,
+            trials_per_node=(
+                target_trials_per_node
+                if target_trials_per_node is not None
+                else 1_000_000
+            ),
             balance_across_chains=balance_across_nodes,
             # balance_strategy=balance_strategy,
             allow_revisiting_networks_in_across_chains=allow_repeated_nodes,
@@ -371,6 +388,7 @@ class StaticTrialMaker(ChainTrialMaker):
             sync_group_timeout_between_barriers_time=sync_group_timeout_between_barriers_time,
             sync_group_timeout_between_barriers_action=sync_group_timeout_between_barriers_action,
         )
+        self._node_capacity_is_unlimited = target_trials_per_node is None
 
     def _selection_hook_overrides(self):
         return [
@@ -431,33 +449,66 @@ class StaticTrialMaker(ChainTrialMaker):
                 headless_chain_ids,
             )
         nodes = [chain.head for chain in chains if chain.head is not None]
+        if not is_method_overridden(
+            self,
+            StaticTrialMaker,
+            "custom_node_filter",
+        ) and is_method_overridden(
+            self,
+            ChainTrialMaker,
+            "custom_network_filter",
+        ):
+            # This helper validates what the deprecated filter returned, and
+            # names custom_network_filter in any error it raises.
+            filtered_networks = self._apply_deprecated_network_filter(
+                chains,
+                participant,
+                replacement_method="custom_node_filter",
+            )
+            filtered_nodes = [
+                network.head
+                for network in filtered_networks
+                if network.head is not None
+            ]
+        else:
+            filtered_nodes = self.custom_node_filter(nodes, participant, experiment)
         return self._validate_selection_subset(
-            self.custom_node_filter(nodes, participant, experiment),
+            filtered_nodes,
             allowed_values=nodes,
             method_name="custom_node_filter",
         )
 
-    @staticmethod
-    def _candidate_network(candidate):
-        """Return the one-node network backing a static candidate."""
-        return candidate.network
+    def _build_candidates(self, discovered_chains, participant, experiment):
+        """Build internal records exposing nodes without losing their networks."""
+
+        nodes = self._filter_eligible_candidates(
+            discovered_chains,
+            participant=participant,
+            experiment=experiment,
+        )
+        networks_by_head_id = {
+            chain.head_id: chain for chain in discovered_chains if chain.head_id
+        }
+        try:
+            return [
+                Candidate(value=node, network=networks_by_head_id[node.id])
+                for node in nodes
+            ]
+        except KeyError as error:
+            raise RuntimeError(
+                f"Static candidate node {error.args[0]} has no discovered network."
+            ) from error
 
     def custom_node_filter(self, nodes, participant, experiment):
         """Filter eligible static nodes before selection.
 
         Override this to remove nodes the participant must not receive.
-        The default returns the original list, or applies a deprecated
-        ``custom_network_filter`` override when that is the only filter present.
-        Ranking among eligible nodes belongs in ``select_node``.
+        The default returns ``nodes`` unchanged. Ranking among eligible
+        nodes belongs in ``select_node``.
+
+        If you override this method, a deprecated ``custom_network_filter``
+        on the same maker is not applied.
         """
-        if is_method_overridden(self, ChainTrialMaker, "custom_network_filter"):
-            networks = [node.network for node in nodes]
-            eligible_networks = self._apply_deprecated_network_filter(
-                networks,
-                participant,
-                replacement_method="custom_node_filter",
-            )
-            return [network.head for network in eligible_networks]
         return nodes
 
     def select_node(self, nodes, participant, experiment):

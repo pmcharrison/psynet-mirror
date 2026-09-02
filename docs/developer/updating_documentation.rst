@@ -69,3 +69,5 @@ It deletes ``docs/_build`` first by default. For faster local reruns, pass
 The generated HTML is written to ``docs/_build/html/index.html``.
 
 On completion of updating the documentation commit the corresponding `rst` files only. The compiled `html` files in the ``_build`` directory should be left ignored by Git.
+
+Unconfirmed ideas for later (not a roadmap) live in :doc:`future_work`.

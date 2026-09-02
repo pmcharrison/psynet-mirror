@@ -7,7 +7,8 @@ to nodes before filtering and selection.
 """
 
 import random
-from typing import Iterable, List, Literal, Optional, Type, Union
+from dataclasses import dataclass
+from typing import Any, Iterable, List, Literal, Optional, Type, Union
 
 from dallinger import db
 from dallinger.models import Vector
@@ -54,20 +55,37 @@ from .main import (
 logger = get_logger()
 
 
-def count_viable_trials_for_nodes(node_ids: Iterable[int]) -> dict[int, int]:
-    """Return viable trial counts keyed by node id.
+@dataclass(frozen=True)
+class Candidate:
+    """Connect a selection-hook value to its already-loaded network.
 
-    A viable trial is non-failed and not a repeat trial.
+    ``value`` is the paradigm-specific object exposed to experiment authors:
+    a network for chain trial makers and a node for static trial makers.
+    ``network`` is the backing object used internally for capacity, asynchronous
+    state, and block checks.
+
+    Keeping both references together is intentional. In particular, static
+    discovery must not recover the network through ``node.network``: that
+    reverse ORM relationship is not populated when ``network.head`` is loaded
+    and would issue lazy queries for every candidate.
     """
-    ids = [node_id for node_id in node_ids if node_id is not None]
+
+    value: Any
+    network: "ChainNetwork"
+
+
+def _count_viable_trials_for_nodes(node_ids: Iterable[int]) -> dict[int, int]:
+    """Return viable trial counts keyed by node ID."""
+
+    ids = list(dict.fromkeys(node_id for node_id in node_ids if node_id is not None))
     if not ids:
         return {}
     rows = (
         db.session.query(Trial.node_id, func.count(Trial.id))
         .filter(
             Trial.node_id.in_(ids),
-            ~Trial.is_repeat_trial,
-            ~Trial.failed,
+            Trial.is_repeat_trial.is_(False),
+            Trial.failed.is_(False),
         )
         .group_by(Trial.node_id)
         .all()
@@ -75,9 +93,31 @@ def count_viable_trials_for_nodes(node_ids: Iterable[int]) -> dict[int, int]:
     return {node_id: count for node_id, count in rows}
 
 
+def count_viable_trials_for_nodes(node_ids: Iterable[int]) -> dict[int, int]:
+    """Return viable trial counts keyed by node id.
+
+    A viable trial is non-failed and not a repeat trial.
+    """
+    return _count_viable_trials_for_nodes(node_ids)
+
+
+def _viable_trial_count_expression(node_id):
+    """Return a correlated expression counting viable trials for a node ID."""
+
+    return (
+        select(func.count(Trial.id))
+        .where(
+            Trial.node_id == node_id,
+            Trial.is_repeat_trial.is_(False),
+            Trial.failed.is_(False),
+        )
+        .scalar_subquery()
+    )
+
+
 def count_viable_trials_for_node(node_id: int) -> int:
     """Return the number of viable trials for one node."""
-    return count_viable_trials_for_nodes([node_id]).get(node_id, 0)
+    return _count_viable_trials_for_nodes([node_id]).get(node_id, 0)
 
 
 def count_completed_trials_for_networks(
@@ -94,9 +134,9 @@ def count_completed_trials_for_networks(
         db.session.query(Trial.network_id, func.count(Trial.id))
         .filter(
             Trial.network_id.in_(ids),
-            ~Trial.failed,
-            Trial.complete,
-            ~Trial.is_repeat_trial,
+            Trial.failed.is_(False),
+            Trial.complete.is_(True),
+            Trial.is_repeat_trial.is_(False),
         )
         .group_by(Trial.network_id)
         .all()
@@ -475,6 +515,16 @@ class ChainNetwork(TrialNetwork):
             "uses live readiness queries; use the trial maker's "
             "ready_to_grow_network_query() helper instead."
         )
+
+    @hybrid_property
+    def n_viable_trials_at_head(self):
+        if self.head is None:
+            return 0
+        return _count_viable_trials_for_nodes([self.head.id]).get(self.head.id, 0)
+
+    @n_viable_trials_at_head.expression
+    def n_viable_trials_at_head(cls):
+        return _viable_trial_count_expression(cls.head_id)
 
 
 class ChainNode(TrialNode):
@@ -908,29 +958,17 @@ class ChainNode(TrialNode):
                 to_fail.append(lambda: [self.child])
         return to_fail
 
-    # @hybrid_property
-    # def n_viable_trials(self):
-    #     return len(self.viable_trials)
-    #
-    # @n_viable_trials.expression
-    # def n_viable_trials(cls):
-    #     return (
-    #         select(func.count(Trial.id))
-    #         .where(
-    #             Trial.node_id == cls.id,
-    #             ~ Trial.is_repeat_trial,
-    #             ~ Trial.failed,
-    #         )
-    #         .scalar_subquery()
-    #     )
+
+def _n_viable_trials(node):
+    """Return the current viable-trial count for a node."""
+
+    return _count_viable_trials_for_nodes([node.id]).get(node.id, 0)
 
 
-def _n_viable_trials(self):
-    """Count non-failed, non-repeat trials for this node."""
-    return count_viable_trials_for_node(self.id)
-
-
-TrialNode.n_viable_trials = property(_n_viable_trials)
+TrialNode.n_viable_trials = hybrid_property(
+    _n_viable_trials,
+    expr=lambda cls: _viable_trial_count_expression(cls.id),
+)
 
 
 UniqueConstraint(ChainNode.module_id, ChainNode.key)
@@ -1513,6 +1551,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.chains_per_experiment = chains_per_experiment
         self.max_nodes_per_chain = max_nodes_per_chain
         self.trials_per_node = trials_per_node
+        self._node_capacity_is_unlimited = False
         self.balance_across_chains = balance_across_chains
         # self.balance_strategy = balance_strategy
         self.check_performance_at_end = check_performance_at_end
@@ -1986,8 +2025,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant_group = participant.module_state.participant_group
         chain_query = chain_query.filter_by(participant_group=participant_group)
 
-        candidates = self._filter_eligible_candidates(
-            chain_query.all(),
+        discovered_chains = chain_query.all()
+        # Candidate records let the shared pipeline work with either chains or
+        # static nodes while retaining the network objects loaded by the query.
+        candidates = self._build_candidates(
+            discovered_chains,
             participant=participant,
             experiment=experiment,
         )
@@ -1996,56 +2038,60 @@ class ChainTrialMaker(NetworkTrialMaker):
             len(candidates),
             candidate_plural,
         )
-        candidate_networks = [
-            (candidate, self._candidate_network(candidate)) for candidate in candidates
-        ]
 
         def has_pending_process(network):
             return network.async_post_grow_network_pending or (
                 network.head and network.head.async_on_deploy_pending
             )
 
-        available_candidate_networks = [
-            pair for pair in candidate_networks if not has_pending_process(pair[1])
+        available_candidates = [
+            candidate
+            for candidate in candidates
+            if not has_pending_process(candidate.network)
         ]
 
         logger.info(
             "%i out of %i eligible %s await asynchronous processing.",
-            len(candidate_networks) - len(available_candidate_networks),
-            len(candidate_networks),
+            len(candidates) - len(available_candidates),
+            len(candidates),
             candidate_plural,
         )
 
         if (
-            len(available_candidate_networks) == 0
-            and len(candidate_networks) > 0
+            len(available_candidates) == 0
+            and len(candidates) > 0
             and self.wait_for_networks
         ):
             logger.info("Will wait for an eligible %s.", self._candidate_label)
             return "wait"
 
-        # find_chains normally takes place in a participant's 'response' call.
-        # This means that the previous trial will exist in the database,
-        # but it might not have been marked as finalized yet.
-        # Counting viable trials at each head includes that previous trial.
-        head_ids = [
-            pair[1].head.id
-            for pair in available_candidate_networks
-            if pair[1].head is not None
+        # Discovery normally runs in the response that submits the previous trial.
+        # Counting all viable trials, rather than only finalized trials, includes
+        # that newly submitted trial and prevents over-allocation.
+        needs_viable_counts = (
+            not self._node_capacity_is_unlimited or self.balance_across_chains
+        )
+        viable_counts = (
+            _count_viable_trials_for_nodes(
+                candidate.network.head.id
+                for candidate in available_candidates
+                if candidate.network.head is not None
+            )
+            if needs_viable_counts
+            else {}
+        )
+        candidates_with_head_space = [
+            candidate
+            for candidate in available_candidates
+            if candidate.network.head
+            and (
+                self._node_capacity_is_unlimited
+                or viable_counts.get(candidate.network.head.id, 0)
+                < self.trials_per_node
+            )
         ]
-        viable_counts = count_viable_trials_for_nodes(head_ids)
 
-        candidate_networks_with_head_space = [
-            pair
-            for pair in available_candidate_networks
-            if pair[1].head
-            and viable_counts.get(pair[1].head.id, 0) < self.trials_per_node
-        ]
-
-        if (
-            len(available_candidate_networks) > 0
-            and len(candidate_networks_with_head_space) == 0
-        ):
+        if len(available_candidates) > 0 and len(candidates_with_head_space) == 0:
             logger.info(
                 "All eligible %s have exhausted their current trial capacity.",
                 candidate_plural,
@@ -2055,32 +2101,44 @@ class ChainTrialMaker(NetworkTrialMaker):
             else:
                 return "exit"
 
-        candidate_networks = candidate_networks_with_head_space
-        if len(candidate_networks) == 0:
+        candidates = candidates_with_head_space
+        if len(candidates) == 0:
             return "exit"
 
-        random.shuffle(candidate_networks)
+        random.shuffle(candidates)
 
         if self.balance_across_chains:
-            # Sort by ascending degree (primary), then ascending viable-trial
-            # count (secondary). Python's stable sort makes the last key primary.
-            candidate_networks.sort(
-                key=lambda pair: viable_counts.get(pair[1].head.id, 0)
+            # We used to sort by n_completed_trials, but this is likely to be out of date
+            # because the completion of the latest trial might not have been committed yet.
+            candidates.sort(
+                key=lambda candidate: viable_counts.get(
+                    candidate.network.head.id,
+                    0,
+                )
             )
-            candidate_networks.sort(key=lambda pair: pair[1].head.degree)
+            candidates.sort(key=lambda candidate: candidate.network.head.degree)
 
         remaining_blocks = participant.module_state.remaining_blocks
-        candidate_networks = [
-            pair for pair in candidate_networks if pair[1].block in remaining_blocks
+        candidates = [
+            candidate
+            for candidate in candidates
+            if candidate.network.block in remaining_blocks
         ]
-        candidate_networks.sort(key=lambda pair: remaining_blocks.index(pair[1].block))
+        candidates.sort(
+            key=lambda candidate: remaining_blocks.index(candidate.network.block)
+        )
 
-        return [candidate for candidate, _ in candidate_networks]
+        return [candidate.value for candidate in candidates]
 
-    @staticmethod
-    def _candidate_network(candidate):
-        """Return the network used for candidate availability checks."""
-        return candidate
+    def _build_candidates(self, discovered_chains, participant, experiment):
+        """Build internal records for chain selection candidates."""
+
+        chains = self._filter_eligible_candidates(
+            discovered_chains,
+            participant=participant,
+            experiment=experiment,
+        )
+        return [Candidate(value=chain, network=chain) for chain in chains]
 
     def _select_trial_node(self, participant, experiment):
         selection = self._select_from_discovered(

@@ -64,11 +64,8 @@ This command deploys an experiment, and enable the recruiter so you can collect 
     psynet deploy heroku --app my-app-name  # for deploying via Heroku
 
 (Experimental): It is possible to deploy an experiment that resurrects the state of a previous
-experiment deployment. To do this you add ``--archive path/to/export.zip`` (or a
-``database/`` directory, or an extracted export directory containing ``database/``).
-Legacy ``database.zip`` archives with exact ``data/<table>.csv`` members are
-still accepted. Nested lookalikes and archive inputs (zip or extracted) that
-mix ``database/`` with ``data/`` table CSVs are rejected.
+experiment deployment. To do this you add ``--archive path/to/database.zip`` where
+``path/to/database.zip`` is the path to the ``database.zip`` file created by a previous PsyNet export.
 
 
 .. _estimate:
@@ -94,23 +91,13 @@ and how much they need to be paid as a result.
 Export data from an experiment (``export``)
 -------------------------------------------
 
-This command exports data from an experiment. By default the latest export is
-saved to ``exports/latest/`` in the experiment directory, and the previous
-export is moved to ``exports/history/<timestamp>/`` once the new export has
-completed successfully. Use ``--path`` to choose a different location.
+This command export data from an experiment. The data is saved by default to ``~/PsyNet-data/export``.
 
 .. code:: bash
 
     psynet export local
     psynet export ssh --app my-app-name
     psynet export heroku --app my-app-name
-
-Remote exports are built by the deployed experiment and downloaded to your
-computer; the command chooses automatically between streaming a complete
-archive and streaming a core snapshot plus only the asset bytes you are
-missing. It also checks that the deployment matches your experiment directory
-before transferring anything. See :ref:`data` for the archive layout, asset
-options, and transport selection.
 
 To see further options for the export command (e.g. if you want to control the export of assets),
 append ``--help`` to these commands:
@@ -121,7 +108,7 @@ append ``--help`` to these commands:
     psynet export ssh --help
     psynet export heroku --help
 
-For more information on PsyNet data export see :ref:`data`.
+For more information on PsyNet data export see `Data <../deploy/data.html>`_.
 
 
 .. _experiment_setup_commands:
@@ -361,24 +348,28 @@ latency and throughput statistics.
   psynet performance-test ssh --app my-app-name --n-bots 50 --duration-minutes 10
 
 Unlike ``psynet test``, which checks correctness, ``performance-test`` is about
-performance under load. For a full guide, including how to sweep several
-concurrency levels and how to interpret the results, see the
+performance under load. A short first pass is enough to inspect HTTP times;
+lengthen the window when finalizing if you want bots to finish. For a full
+guide, including how to sweep several concurrency levels and how to interpret
+the results, see the
 :ref:`testing experiment performance tutorial <performance_testing>`.
+Use ``psynet audit performance-test`` when the result should become
+canonical audit evidence.
 
 
-Simulate data for an experiment
--------------------------------
+Simulate audit data for an experiment
+-------------------------------------
 
-This command runs the experiment's regression test and writes the resulting
-export directly to ``audit/artifacts/simulated_data.zip``. It marks the
-``simulation_export`` audit artifact present and does not leave a second
-dataset under ``data/`` or ``exports/``.
+``psynet audit simulate`` generates simulated data by running the experiment's
+regression test and exporting the result to
+``audit/simulate/analysis/simulated_export/``.
 
 .. code:: bash
 
   psynet audit simulate
 
-Use ``--no-mark-present`` to write the zip without updating ``audit.json``.
+The command requires an initialized audit packet and marks ``simulate_export``
+present in ``audit.json``.
 
 
 .. _install:

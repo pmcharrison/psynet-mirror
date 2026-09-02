@@ -857,8 +857,10 @@ and implement the following changes:
 5. Add a performance check at the end of the trial maker,
    where participants fail if they score less than 50%.
 
-6. Use ``psynet audit simulate`` to run automated bots through your experiment.
-   Explore the exported dataset at ``audit/artifacts/simulated_data.zip``.
+6. Initialize an audit with ``psynet audit init``, then use
+   ``psynet audit simulate`` to run automated bots through your experiment.
+   Explore the exported dataset at
+   ``audit/simulate/analysis/simulated_export``.
    Can you find the csv file containing your trial data?
    Can you find all you'd need to do a proper analysis?
 

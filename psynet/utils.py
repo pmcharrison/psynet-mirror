@@ -1690,6 +1690,50 @@ def generate_text_file(path, text="Lorem ipsum"):
         file.write(text)
 
 
+# SQLAlchemy warns whenever a mapped class is registered under a name it has
+# registered before. PsyNet provokes this deliberately, because it executes
+# ``experiment.py`` more than once per process: Dallinger's config loader
+# imports it to read the experiment's extra parameters, and commands such as
+# ``psynet debug`` and ``psynet deploy`` load it again from the directory staged
+# for the server. Each execution redeclares the same mapped classes, so any
+# experiment that defines a Trial subclass or a custom table sees these
+# warnings. They name PsyNet's own reloading rather than anything an
+# experimenter can act on.
+#
+# Retiring the previous entries instead, through ``registry._dispose_cls`` and
+# the base mapper's ``polymorphic_map``, does not work: a load boundary cannot
+# tell whether the module is about to be executed again, because ``sys.modules``
+# often already holds it. Removing entries up front therefore unregisters
+# classes that stay live, which breaks string-based ``relationship()`` targets
+# and makes loading a row fail with "No such polymorphic_identity is defined".
+_EXPERIMENT_REDECLARATION_WARNINGS = (
+    "This declarative base already contains a class",
+    "Reassigning polymorphic association",
+)
+
+
+@contextlib.contextmanager
+def loading_experiment_classes():
+    """Suppress SQLAlchemy warnings about redeclaring the experiment's classes.
+
+    Wrap any call that may execute ``experiment.py``. Other warnings raised
+    while loading the experiment are left alone.
+    """
+
+    import warnings
+
+    from sqlalchemy.exc import SAWarning
+
+    with warnings.catch_warnings():
+        for message in _EXPERIMENT_REDECLARATION_WARNINGS:
+            warnings.filterwarnings(
+                "ignore",
+                message=f"{re.escape(message)}.*",
+                category=SAWarning,
+            )
+        yield
+
+
 def patch_yaspin_jupyter_detection():
     """
     Patch yaspin's is_jupyter detection to be more accurate.
