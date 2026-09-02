@@ -9,7 +9,9 @@ not compete with your stimuli.
 
 The default layout places page content on a white surface over a lightly tinted
 page background. This gives the content a visible boundary, which makes it
-obvious where a page ends and whether it needs scrolling.
+obvious where a page ends and whether it needs scrolling. Below 720px wide the
+surface padding tightens so the same pages fit a phone without horizontal
+overflow.
 
 Design tokens
 -------------

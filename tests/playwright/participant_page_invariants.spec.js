@@ -23,6 +23,15 @@ const DESKTOP_VIEWPORT = { width: 1280, height: 720 };
 // overflow is the failure that matters.
 const MOBILE_VIEWPORT = { width: 375, height: 780 };
 
+async function assertLaptopAndPhoneInvariants(page, label) {
+  await page.setViewportSize(DESKTOP_VIEWPORT);
+  await assertPageInvariants(page, `${label} (laptop)`);
+  await page.setViewportSize(MOBILE_VIEWPORT);
+  await page.waitForTimeout(300);
+  await assertPageInvariants(page, `${label} (phone)`);
+  await page.setViewportSize(DESKTOP_VIEWPORT);
+}
+
 /**
  * Walks the participant flow of a purpose-built experiment and asserts the
  * structural invariants on every page, including the pre-timeline pages.
@@ -51,10 +60,10 @@ test(
       await page.waitForSelector("#begin-button, button.btn-primary", {
         timeout: 30000
       });
-      await assertPageInvariants(page, "ad page");
+      await assertLaptopAndPhoneInvariants(page, "ad page");
 
       const experimentPage = await beginExperiment(page, context, url);
-      await assertPageInvariants(experimentPage, "consent gateway");
+      await assertLaptopAndPhoneInvariants(experimentPage, "consent gateway");
 
       await completeInitialGateway(experimentPage);
 
@@ -64,22 +73,22 @@ test(
         "plain information page",
         STEP_TIMEOUT_MS
       );
-      await assertPageInvariants(experimentPage, "information page");
+      await assertLaptopAndPhoneInvariants(experimentPage, "information page");
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
       await waitForMainBodyContains(experimentPage, "radio options", STEP_TIMEOUT_MS);
-      await assertPageInvariants(experimentPage, "radio page (nothing selected)");
+      await assertLaptopAndPhoneInvariants(experimentPage, "radio page (nothing selected)");
       await experimentPage.locator("#alpha").check();
-      await assertPageInvariants(experimentPage, "radio page (option selected)");
+      await assertLaptopAndPhoneInvariants(experimentPage, "radio page (option selected)");
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
       await waitForMainBodyContains(experimentPage, "push buttons", STEP_TIMEOUT_MS);
-      await assertPageInvariants(experimentPage, "push button page");
+      await assertLaptopAndPhoneInvariants(experimentPage, "push button page");
       await experimentPage.locator("#left").click();
 
       await waitForMainBodyContains(experimentPage, "tall graphic", STEP_TIMEOUT_MS);
       await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
-      await assertPageInvariants(experimentPage, "graphic page");
+      await assertLaptopAndPhoneInvariants(experimentPage, "graphic page");
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
       // A 16:9 graphic at 90% of the window would be wider than the 900px
@@ -91,7 +100,7 @@ test(
         STEP_TIMEOUT_MS
       );
       await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
-      await assertPageInvariants(experimentPage, "landscape graphic page");
+      await assertLaptopAndPhoneInvariants(experimentPage, "landscape graphic page");
       const landscapeBox = await experimentPage.locator("#graphic-prompt").boundingBox();
       expect(landscapeBox).not.toBeNull();
       expect(landscapeBox.width / landscapeBox.height).toBeCloseTo(16 / 9, 2);

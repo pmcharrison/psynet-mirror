@@ -52,7 +52,8 @@ you and tell you which psynet translate command to run later.
 
 2. Qualifications
    A qualification is a Cint/Lucid screening rule. Some rules are technical
-   defaults, like blocking mobile/tablet devices or warning about timeouts.
+   defaults, like blocking mobile/tablet devices when
+   `allow_mobile_devices` is false, or warning about timeouts.
    Custom qualifications ask participants extra eligibility questions. More
    filters can improve sample fit, but they can reduce the number of eligible
    participants and change the expected incidence rate.

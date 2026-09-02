@@ -59,6 +59,7 @@ class TestExp:
 
         config = get_config()
         assert config.get("min_browser_version") == "105.0"
+        assert config.get("allow_mobile_devices") is True
         assert config.get("wage_per_hour") == 12.0
         assert config.get("min_accumulated_reward_for_abort") == 0.2
         assert not config.get("show_abort_button")

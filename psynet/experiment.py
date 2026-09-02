@@ -497,7 +497,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     allow_mobile_devices : ``bool``
         Allows the user to use mobile devices. If it is set to false it will tell the user to open the experiment on
         their computer.
-        Default: ``False``.
+        Default: ``True``.
 
 
     needs_internet_access: ``bool``
@@ -1873,7 +1873,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config = {
             **super().config_defaults(),
-            "allow_mobile_devices": False,
+            "allow_mobile_devices": True,
             "base_payment": 0.10,
             "big_base_payment": False,
             "check_dallinger_version": False,

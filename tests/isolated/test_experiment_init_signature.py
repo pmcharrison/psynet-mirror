@@ -76,3 +76,11 @@ def test_mixin_fail_participant_override_raises():
 
         class MixinOverride(FailParticipantMixin, Experiment):
             pass
+
+
+def test_default_allows_mobile_devices():
+    try:
+        Experiment.extra_parameters()
+    except KeyError:
+        pass
+    assert Experiment.config_defaults()["allow_mobile_devices"] is True
