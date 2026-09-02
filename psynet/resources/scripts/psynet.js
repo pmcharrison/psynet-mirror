@@ -3142,6 +3142,9 @@
   }
 
   window.psynet = psynet;
+  if (window.psynetLayout) {
+    psynet.layout = window.psynetLayout;
+  }
 
   psynet.clearLucidTermination = function () {
     psynet.removeBeforeUnloadEventListener();

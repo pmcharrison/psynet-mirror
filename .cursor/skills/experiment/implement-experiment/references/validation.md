@@ -19,6 +19,12 @@ psynet audit simulate
 Do not run ``python experiment.py`` as an import or syntax check.
 See `develop-experiment-back-end/SKILL.md`.
 
+`psynet test local` is the **logic** gate: bots walk the timeline and check
+answers, but they never render a layout. Participant-flow Playwright is the
+**layout** gate: after each page is ready, call `psynetLayout.check()` as in
+`develop-experiment-front-end/SKILL.md`. Do not treat a green bot run as
+evidence that pages fit the window.
+
 `psynet audit simulate` writes `audit/simulate/analysis/simulated_export/` and marks
 `simulate_export` present.
 

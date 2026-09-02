@@ -2,7 +2,8 @@
  * Layout contracts from the default-theme review that can be checked without
  * a running experiment: graphic size on a short landscape phone, vertical
  * push-button columns, footer clearance on pages without a footer, caption
- * contrast for color "white", and audio-meter setLevel/applyColor.
+ * contrast for color "white", audio-meter setLevel/applyColor, and the
+ * in-page `psynetLayout.check()` API.
  */
 const fs = require("fs");
 const path = require("path");
@@ -212,5 +213,83 @@ test(
     expect(result.ariaNow).toBe("40");
     expect(result.fillToken).toBe("var(--psynet-danger)");
     expect(result.textColor).toBe("var(--psynet-danger)");
+  }
+);
+
+const LAYOUT_JS_PATH = path.resolve("psynet/resources/scripts/psynet.layout.js");
+
+async function renderLayoutFixture(page, html, viewport = { width: 1280, height: 720 }) {
+  await page.setViewportSize(viewport);
+  await page.setContent(`<!doctype html>
+<html>
+<body>
+${html}
+</body>
+</html>`);
+  await page.addScriptTag({ path: LAYOUT_JS_PATH });
+}
+
+test(
+  "layout check reports overflow on a tall page that does not expect scrolling",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderLayoutFixture(
+      page,
+      `<div id="main-body" style="height: 2000px">tall</div>`
+    );
+    const violations = await page.evaluate(async () => window.psynetLayout.check());
+    expect(violations.map((item) => item.check)).toContain("no_vertical_overflow");
+  }
+);
+
+test(
+  "layout check skips overflow when expect_scrolling is set",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderLayoutFixture(
+      page,
+      `<div id="main-body" data-expect-scrolling="true" style="height: 2000px">tall</div>`
+    );
+    const violations = await page.evaluate(async () => window.psynetLayout.check());
+    expect(violations.map((item) => item.check)).not.toContain("no_vertical_overflow");
+    expect(violations.map((item) => item.check)).not.toContain(
+      "controls_reachable_without_scrolling"
+    );
+  }
+);
+
+test(
+  "layout check is empty on a short page",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderLayoutFixture(page, `<div id="main-body"><p>short</p></div>`);
+    const violations = await page.evaluate(async () => window.psynetLayout.check());
+    expect(violations).toEqual([]);
+  }
+);
+
+test(
+  "layout API attaches to an existing psynet object",
+  { tag: "@both" },
+  async ({ page }) => {
+    await page.setContent("<!doctype html><body></body>");
+    await page.addScriptTag({ content: "window.psynet = {};" });
+    await page.addScriptTag({ path: LAYOUT_JS_PATH });
+    const attached = await page.evaluate(
+      () => window.psynet.layout === window.psynetLayout
+    );
+    expect(attached).toBe(true);
+  }
+);
+
+test(
+  "layout helper fails when the page API is missing",
+  { tag: "@both" },
+  async ({ page }) => {
+    const { assertPageInvariants } = require("./participantPageInvariants");
+    await page.setContent("<!doctype html><p>bare</p>");
+    await expect(assertPageInvariants(page, "bare page")).rejects.toThrow(
+      /psynetLayout/
+    );
   }
 );

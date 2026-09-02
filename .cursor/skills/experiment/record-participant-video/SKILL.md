@@ -48,9 +48,21 @@ errors, completion pages, and edge-case states. Save targeted screenshots under
 `audit/artifacts/screenshots/`, using ordered descriptive names such as
 `01-instructions.png` or `03-masked-trial.png`.
 Capture the participant viewport only. In Playwright, set `fullPage: false`
-explicitly so the image matches what fits on screen:
+explicitly so the image matches what fits on screen.
+
+After each timeline page is ready, and **before** the screenshot, run the
+layout check from `develop-experiment-front-end/SKILL.md` (`psynetLayout.check()`).
+Bot tests do not catch overflow or footer occlusion.
 
 ```js
+await page.waitForSelector("#main-body[data-page-ready='true']");
+const violations = await page.evaluate(async () => {
+  if (!window.psynetLayout?.check) {
+    throw new Error("psynetLayout.check is not available on this page");
+  }
+  return await window.psynetLayout.check();
+});
+expect(violations, "instructions page").toEqual([]);
 await page.screenshot({
   path: "audit/artifacts/screenshots/01-instructions.png",
   fullPage: false,
@@ -108,7 +120,9 @@ For Playwright evidence scripts:
 1. Start the PsyNet experiment and capture the generated ad page URL.
 2. Write or reuse a Playwright runner that completes the participant path and
    captures the targeted screenshots needed for review.
-3. Confirm the browser viewport is sized reasonably, usually 1280x720 or larger.
+3. Confirm the browser viewport is 1280×720. Larger sizes hide overflow that
+   still produces a scrollbar on a typical laptop. If the experiment allows
+   mobile devices, also check 375×780.
 4. For multi-participant flows, use separate browser profiles or Playwright
    contexts for each participant, for example separate Chrome `--user-data-dir`
    directories. Do not rely on multiple windows from one shared profile; shared

@@ -188,3 +188,18 @@ def test_experiment_stages_registered_static_packages():
     assert os.path.isdir(os.fspath(source))
     assert source.joinpath("scripts/music-notation-prompt.js").is_file()
     assert destination == "/static/packages/psynet"
+
+
+def test_psynet_layout_script_is_staged():
+    from psynet.experiment import Experiment
+
+    staged = [
+        (source, destination)
+        for source, destination in Experiment.extra_files()
+        if destination == "/static/scripts/psynet.layout.js"
+    ]
+
+    assert len(staged) == 1
+    source, destination = staged[0]
+    assert Path(os.fspath(source)).is_file()
+    assert Path(os.fspath(source)).name == "psynet.layout.js"

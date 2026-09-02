@@ -206,18 +206,34 @@ Then you invoke ``psynet test``, similar to before but with ``ssh`` instead of `
 Front-end tests
 ---------------
 
-The tests described above focus on testing the back-end logic of your
-PsyNet experiment. They catch errors to do with the instantiation of pages,
-the running of code blocks, the growing of networks, and so on.
-They do not catch logic to do with the front-end display of your
-experiment. Writing such tests is more complicated, and we haven't
-provided a tutorial for this yet; however, if you are interested in writing
-your own such tests, please have a look at corresponding tests in the
-PsyNet source code, for example ``test_demo_timeline.py`` and
-``test_demo_static.py``.
+``psynet test local`` runs bots. They catch errors in page instantiation,
+code blocks, networks, and recorded answers. They do not render a browser
+layout, so they cannot tell you whether a page scrolls, whether a control
+sits behind the footer, or whether content is wider than the window.
 
-The front-end testing patterns mentioned above (e.g. ``test_demo_timeline.py`` and ``test_demo_static.py``)
-have certain restrictions, most notably that they do not test concurrency.
+Every participant page loads ``/static/scripts/psynet.layout.js``, which
+exposes ``psynetLayout.check()``. After a page is ready, call it from a
+Playwright walk and expect an empty list of violations:
+
+.. code-block:: javascript
+
+    await page.waitForSelector("#main-body[data-page-ready='true']");
+    const violations = await page.evaluate(async () => {
+        if (!window.psynetLayout || typeof window.psynetLayout.check !== "function") {
+            throw new Error("psynetLayout.check is not available on this page");
+        }
+        return await window.psynetLayout.check();
+    });
+    expect(violations, "radio page").toEqual([]);
+
+Use a 1280×720 viewport. If the experiment allows mobile devices (the
+default), also check 375×780. Pages that are meant to be taller than the
+window must set ``expect_scrolling=True``; see :doc:`theming`. Store the
+walk with the experiment, typically as ``tests/participant-flow.spec.js``.
+
+The older Selenium-style tests in the PsyNet source
+(``test_demo_timeline.py``, ``test_demo_static.py``) also drive a browser,
+but they do not test concurrency.
 To bypass these restrictions, some PsyNet users have found it useful to write custom Selenium tests.
 Here is a minimal example of a custom Selenium test (provided without warranty) that could be extended
 to test multiple concurrent users, which you would run by executing ``python3 bot.py --app test-app``.

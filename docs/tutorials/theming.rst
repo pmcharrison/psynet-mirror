@@ -219,10 +219,13 @@ Pages that scroll
 The footer is fixed to the bottom of the window. Pages that render it
 reserve ``--psynet-footer-clearance`` on ``body`` so that content is never
 left permanently underneath. Pages without a footer do not get that
-padding. PsyNet's front-end tests additionally check that a page which
-does not declare ``expect_scrolling`` cannot scroll at all (not merely
-that the Next button is visible), which catches a stimulus that has grown
-large enough to push content off a typical laptop window.
+padding.
+
+A page that does not declare ``expect_scrolling`` should fit a typical
+laptop window (1280×720) without scrolling. Experiment Playwright tests
+check this with ``psynetLayout.check()`` after each page is ready; see
+:doc:`tests`. Bot tests (``psynet test local``) do not render a layout,
+so a green bot run is not evidence that the page fits.
 
 If a page is genuinely meant to be longer than the window, say so:
 

@@ -96,6 +96,21 @@ def test_graphic_vertical_chrome_token_is_defined():
     assert "--psynet-graphic-min-size:" in css
 
 
+def test_theme_loads_layout_script():
+    source = (resources.files("psynet") / "templates" / "theme.html").read_text(
+        encoding="utf-8"
+    )
+    assert "scripts/psynet.layout.js" in source
+
+
+def test_psynet_js_attaches_layout_api():
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    assert "window.psynet = psynet" in js
+    assert "psynet.layout = window.psynetLayout" in js
+
+
 def test_footer_clearance_is_scoped_to_pages_with_a_footer():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
