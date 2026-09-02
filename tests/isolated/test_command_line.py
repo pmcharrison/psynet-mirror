@@ -746,6 +746,10 @@ def test_ssh_export_steps_share_one_connection(tmp_path, stub_ssh_connection):
             "psynet.export.ssh_rsync.local_rsync_available",
             return_value=True,
         ),
+        patch(
+            "dallinger.command_line.utils.get_server_pem_path",
+            return_value="/tmp/test-server.pem",
+        ),
         SshSession("test-server") as session,
     ):
         executor.run.return_value = "/usr/bin/rsync\n"

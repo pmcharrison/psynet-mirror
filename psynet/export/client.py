@@ -440,6 +440,22 @@ def hydrate_assets(
             f"{len(plan.ineligible)} selected asset(s) cannot be transferred "
             "incrementally."
         )
+
+    # Validate every semantic path before transferring anything, so a manifest
+    # that would write outside the export tree fails closed even when the
+    # transfer itself cannot run (for example when rsync is unavailable).
+    safe_export_paths = {}
+    for row in plan.rows:
+        export_path = row.get("export_path")
+        if not row.get("sha256_contents") or not export_path:
+            continue
+        try:
+            safe_export_paths[export_path] = assert_semantic_asset_path(export_path)
+        except UnsafePathError as exc:
+            raise TransferError(
+                f"Asset export path is not contained in the export tree: {exc}"
+            ) from exc
+
     if plan.digests:
         try:
             prefetch_missing_objects(
@@ -475,13 +491,7 @@ def hydrate_assets(
         export_path = row.get("export_path")
         if not digest or not export_path:
             continue
-        try:
-            export_path = assert_semantic_asset_path(export_path)
-        except UnsafePathError as exc:
-            raise TransferError(
-                f"Asset export path is not contained in the export tree: {exc}"
-            ) from exc
-        destination = assets_root / export_path
+        destination = assets_root / safe_export_paths[export_path]
         if destination.exists():
             continue
         is_folder = str(row.get("is_folder", "")).lower() in ("true", "1")

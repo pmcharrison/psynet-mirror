@@ -33,6 +33,7 @@ from export_test_helpers import (  # noqa: E402
     write_asset_manifest,
     write_remote_folder,
     write_remote_object,
+    write_zip_with_duplicate_member,
 )
 
 
@@ -471,10 +472,14 @@ def test_extract_archive_rejects_mixed_layouts_before_unpack(tmp_path):
 def test_extract_archive_rejects_duplicate_members_before_unpack(tmp_path):
     archive = tmp_path / "export.zip"
     staging = tmp_path / "staging"
-    with zipfile.ZipFile(archive, "w") as handle:
-        handle.writestr("manifest.json", '{"export_format_version": 1}')
-        handle.writestr("database/trial.csv", "id\n1\n")
-        handle.writestr("database/trial.csv", "id\n2\n")
+    write_zip_with_duplicate_member(
+        archive,
+        [
+            ("manifest.json", '{"export_format_version": 1}'),
+            ("database/trial.csv", "id\n1\n"),
+            ("database/trial.csv", "id\n2\n"),
+        ],
+    )
     with pytest.raises(TransferError, match="ambiguous table layout"):
         extract_archive(str(archive), str(staging))
     assert not (staging / "database" / "trial.csv").exists()

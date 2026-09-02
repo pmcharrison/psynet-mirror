@@ -1259,7 +1259,9 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         isolated_tests_features,
         isolated_tests_translation,
     ]:
-        tests.extend(glob.glob(str(directory / "*.py")))
+        # Only pytest-discoverable modules; shared helper modules live
+        # alongside the tests and must not be run as empty test files.
+        tests.extend(glob.glob(str(directory / "test_*.py")))
 
     if ci_node_total is not None and ci_node_index is not None:
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)

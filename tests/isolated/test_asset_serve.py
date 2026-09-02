@@ -71,9 +71,14 @@ def test_local_storage_serve_file(tmp_path):
     app = Flask("test-local-storage-serve")
     with app.test_request_context("/"):
         response = storage.serve(_Asset())
-        assert response.status_code == 200
-        response.direct_passthrough = False
-        assert response.get_data() == b"payload"
+        try:
+            assert response.status_code == 200
+            response.direct_passthrough = False
+            assert response.get_data() == b"payload"
+        finally:
+            # A real WSGI server closes the response; without this the file
+            # handle opened by send_file leaks into pytest's teardown.
+            response.close()
 
 
 def test_local_storage_serve_rejects_subpath_on_file(tmp_path):

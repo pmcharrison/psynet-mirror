@@ -6,9 +6,26 @@ import csv
 import hashlib
 import shutil
 import subprocess
+import warnings
+import zipfile
 from pathlib import Path
 
 from psynet.utils import sha256_directory
+
+
+def write_zip_with_duplicate_member(path: Path, members: list[tuple[str, str]]) -> Path:
+    """Write a zip that intentionally repeats a member name.
+
+    ``ZipFile.writestr`` warns on duplicates, and CI runs tests with
+    ``-Werror``, so the warning is suppressed while building this
+    deliberately malformed fixture.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="Duplicate name:")
+        with zipfile.ZipFile(path, "w") as handle:
+            for name, payload in members:
+                handle.writestr(name, payload)
+    return path
 
 
 def write_remote_object(root: Path, payload: bytes) -> str:

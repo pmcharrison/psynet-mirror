@@ -12,6 +12,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 _DEMO_RELATIVE_PATH = Path("tests/experiments/static_big")
 
@@ -79,11 +80,21 @@ def _canonical_export_supported() -> bool:
 
 
 def _skip_unless_canonical_export_supported() -> None:
-    """Skip this benchmark when the compared revision predates the API."""
+    """Skip this benchmark when the compared revision predates the API.
+
+    ASV only treats ``NotImplementedError`` as a skip when it is raised from
+    ``setup``. Raised from ``setup_cache`` it aborts the whole run, so classes
+    below must call this from ``setup`` and let ``setup_cache`` return ``None``.
+    """
     if not _canonical_export_supported():
-        raise NotImplementedError(
-            "Installed PsyNet predates the canonical export API."
-        )
+        raise NotImplementedError("Installed PsyNet predates the canonical export API.")
+
+
+def _export_benchmark_cache(builder) -> Optional[dict]:
+    """Build a benchmark cache, or return None on revisions without the API."""
+    if not _canonical_export_supported():
+        return None
+    return builder()
 
 
 def _repo_root() -> Path:
@@ -360,12 +371,15 @@ class LocalExport:
 
     def setup_cache(self):
         """Run each export profile once and cache scalar metrics."""
-        _skip_unless_canonical_export_supported()
+        return _export_benchmark_cache(
+            lambda: {
+                name: _run_local_export_benchmark(profile)
+                for name, profile in _EXPORT_PROFILES.items()
+            }
+        )
 
-        return {
-            name: _run_local_export_benchmark(profile)
-            for name, profile in _EXPORT_PROFILES.items()
-        }
+    def setup(self, results, profile):
+        _skip_unless_canonical_export_supported()
 
     def track_export_time_s(self, results, profile):
         """Return wall time for the local export command."""
@@ -487,12 +501,15 @@ class IncrementalAssetTransfer:
 
     def setup_cache(self):
         """Run each transfer profile once and cache scalar metrics."""
-        _skip_unless_canonical_export_supported()
+        return _export_benchmark_cache(
+            lambda: {
+                name: _run_incremental_transfer_benchmark(profile)
+                for name, profile in _ASSET_EXPORT_PROFILES.items()
+            }
+        )
 
-        return {
-            name: _run_incremental_transfer_benchmark(profile)
-            for name, profile in _ASSET_EXPORT_PROFILES.items()
-        }
+    def setup(self, results, profile):
+        _skip_unless_canonical_export_supported()
 
     def track_cold_transfer_time_s(self, results, profile):
         """Return wall time to hydrate an export with an empty asset cache."""
@@ -521,12 +538,15 @@ class LocalAssetExport:
 
     def setup_cache(self):
         """Run each asset-export profile once and cache scalar metrics."""
-        _skip_unless_canonical_export_supported()
+        return _export_benchmark_cache(
+            lambda: {
+                name: _run_asset_export_benchmark(profile)
+                for name, profile in _ASSET_EXPORT_PROFILES.items()
+            }
+        )
 
-        return {
-            name: _run_asset_export_benchmark(profile)
-            for name, profile in _ASSET_EXPORT_PROFILES.items()
-        }
+    def setup(self, results, profile):
+        _skip_unless_canonical_export_supported()
 
     def track_asset_export_time_s(self, results, profile):
         """Return wall time for the local asset export phase."""

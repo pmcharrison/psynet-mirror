@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+import sys
 import zipfile
 from pathlib import Path
 from unittest.mock import patch
@@ -18,6 +19,11 @@ from psynet.export.path_safety import (
     find_table_member,
     table_csv_members,
 )
+
+_ISOLATED_DIR = Path(__file__).resolve().parent
+if str(_ISOLATED_DIR) not in sys.path:
+    sys.path.insert(0, str(_ISOLATED_DIR))
+from export_test_helpers import write_zip_with_duplicate_member  # noqa: E402
 
 
 def _archive(tmp_path: Path, members: dict[str, str]) -> zipfile.ZipFile:
@@ -61,10 +67,13 @@ def test_mixed_canonical_and_legacy_layouts_are_rejected(tmp_path):
 
 
 def test_duplicate_table_members_are_rejected(tmp_path):
-    path = tmp_path / "dup.zip"
-    with zipfile.ZipFile(path, "w") as handle:
-        handle.writestr("database/trial.csv", "id\n1\n")
-        handle.writestr("database/trial.csv", "id\n2\n")
+    path = write_zip_with_duplicate_member(
+        tmp_path / "dup.zip",
+        [
+            ("database/trial.csv", "id\n1\n"),
+            ("database/trial.csv", "id\n2\n"),
+        ],
+    )
     with zipfile.ZipFile(path, "r") as archive:
         with pytest.raises(AmbiguousArchiveLayoutError, match="more than once"):
             table_csv_members(archive)
