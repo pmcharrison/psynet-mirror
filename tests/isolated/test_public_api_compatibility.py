@@ -7,7 +7,6 @@ import pytest
 
 from psynet.artifact import ArtifactStorage
 from psynet.experiment import Experiment
-from psynet.participant import Participant
 
 
 @pytest.mark.parametrize(
@@ -64,7 +63,7 @@ def test_experiment_passes_client_ip_to_legacy_page_response_override(monkeypatc
     monkeypatch.setenv("PASSTHROUGH_ERRORS", "1")
 
     with (
-        patch.object(Participant, "query", query),
+        patch.object(Experiment, "_participant_request_query", return_value=query),
         patch("psynet.experiment.get_translator", return_value=lambda *args: args[-1]),
         pytest.raises(ResponseReached),
     ):

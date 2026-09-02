@@ -20,7 +20,7 @@ from psynet.trial.main import GenericTrialNode, Trial
 class CueCreationRecord(SQLBase, SQLMixin):
     __tablename__ = "cue_creation_record"
 
-    trial_id = Column(Integer, ForeignKey("info.id"), unique=True)
+    trial_id = Column(Integer, ForeignKey("trial.id"), unique=True)
     trial = relationship(Trial, foreign_keys=[trial_id])
 
 

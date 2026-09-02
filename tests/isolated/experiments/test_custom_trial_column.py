@@ -15,12 +15,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import deferred
 
-from psynet.command_line import clean_sys_modules, working_directory
+from psynet.command_line import clean_sys_modules
 from psynet.data import InvalidDefinitionError
 from psynet.experiment import get_experiment, import_local_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.trial.static import StaticNode, StaticTrial
+from psynet.utils import working_directory
 
 pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
 
