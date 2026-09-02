@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import dallinger.experiment
 import dallinger.recruiters
 import pytest
-from dallinger.prolific import ProlificServiceException
+from dallinger.prolific import DevProlificService, ProlificServiceException
 
 from psynet.participant import (
     BONUS_PAY_IN_PROGRESS,
@@ -620,14 +620,62 @@ def test_approve_hit_notifies_when_submission_status_cannot_be_read():
     experiment.notifier.notify.assert_called_once()
 
 
-def test_dev_prolific_approve_hit_short_circuits_without_api_calls():
-    """Dev mode has no real Prolific submission: approve_hit must not fetch
-    or COMPLETE anything. The dev service lacks ``api_token``, so any
-    attempt to reach the API would raise ``AttributeError``.
+def test_dev_prolific_reports_active_without_reading_the_api():
+    """Dev mode must report the status a local submit really sees.
+
+    ``ACTIVE`` is the production state at local submit, so dev mode
+    exercises the COMPLETE path rather than the Approve path. The dev
+    service's canned submission GET still says ``AWAITING REVIEW``, which
+    describes the superseded redirect-and-enter-a-code design.
     """
     recruiter = object.__new__(DevProlificRecruiter)
-    # No prolificservice / config / DB set up: reaching any of them would fail.
-    assert recruiter.approve_hit("assignment-1") is True
+    # No prolificservice set: an API read would raise AttributeError.
+    assert recruiter._live_submission_status("assignment-1") == "ACTIVE"
+
+
+def test_dev_prolific_approve_hit_completes_without_http_calls():
+    """Dev mode issues COMPLETE through the dev service, sending nothing.
+
+    This covers the completion-code choice end to end while asserting no
+    HTTP request leaves the process.
+    """
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter = object.__new__(DevProlificRecruiter)
+    recruiter.config = config
+    recruiter.prolificservice = MagicMock()
+    participant = _approve_hit_participant()
+    query = MagicMock()
+    query.filter_by.return_value.order_by.return_value.first.return_value = participant
+
+    with patch.object(Participant, "query", query):
+        with patch("psynet.recruiters.get_config", return_value=config):
+            with patch("psynet.recruiters.requests") as http:
+                result = recruiter.approve_hit("assignment-1")
+
+    assert result is True
+    assert http.mock_calls == []
+    with patch("psynet.recruiters.get_config", return_value=config):
+        expected = recruiter.completion_code_map[PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE]
+    assert _complete_payload(recruiter) == {
+        "action": "COMPLETE",
+        "completion_code": expected,
+    }
+
+
+def test_dev_prolific_payment_view_reports_no_platform_data():
+    """The dashboard must not crash under the dev recruiter.
+
+    ``_fetch_prolific_submission`` bypasses the dev service's log-only
+    ``_req`` with a raw GET, and the dev service never sets ``api_token``,
+    so an unguarded fetch raises ``AttributeError`` mid-request.
+    """
+    recruiter = object.__new__(DevProlificRecruiter)
+    recruiter.prolificservice = object.__new__(DevProlificService)
+    with patch("psynet.recruiters.requests.get") as get:
+        view = recruiter.platform_payment_view(MagicMock(assignment_id="assignment-1"))
+    get.assert_not_called()
+    assert view.supported is True
+    assert view.submission_status is None
 
 
 def test_exit_response_stays_on_psynet_confirmation_page():

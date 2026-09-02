@@ -180,13 +180,27 @@ def _fetch_prolific_submission(prolificservice, assignment_id: str) -> dict | No
     Dashboard polling is expected to miss (for example 404) when an assignment
     id is unknown or still propagating. Dallinger's ``ProlificService._req``
     would log those as recruitment errors.
+
+    Returns ``None`` when the service carries no API credentials. This raw GET
+    deliberately bypasses ``_req``, so it also bypasses ``DevProlificService``,
+    which mocks the REST API and never sets ``api_token``/``api_version``.
+    Dev mode has no live submission to read, so there is nothing to report.
     """
+    api_token = getattr(prolificservice, "api_token", None)
+    api_root = getattr(prolificservice, "api_root", None)
+    if not api_token or not api_root:
+        logger.debug(
+            "Not reading Prolific submission %s: this Prolific service has no "
+            "API credentials (expected when running with the dev recruiter).",
+            assignment_id,
+        )
+        return None
     try:
         headers = {
-            "Authorization": f"Token {prolificservice.api_token}",
+            "Authorization": f"Token {api_token}",
             "Referer": getattr(prolificservice, "referer_header", "") or "",
         }
-        url = f"{prolificservice.api_root}/submissions/{assignment_id}/"
+        url = f"{api_root}/submissions/{assignment_id}/"
         response = requests.get(url, headers=headers, timeout=15)
     except requests.RequestException:
         logger.warning(
@@ -888,8 +902,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return True
 
-        submission = _fetch_prolific_submission(self.prolificservice, assignment_id)
-        if submission is None:
+        status = self._live_submission_status(assignment_id)
+        if status is None:
             self._notify_complete_failed(
                 participant,
                 assignment_id,
@@ -897,7 +911,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return False
 
-        status = submission.get("status")
         if status in PROLIFIC_SETTLED_SUBMISSION_STATUSES:
             logger.info(
                 "Skipping Prolific completion for assignment %s: already %s.",
@@ -915,6 +928,19 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return True
         return self._complete_prolific_submission(participant, assignment_id)
+
+    def _live_submission_status(self, assignment_id: str) -> str | None:
+        """Return the current Prolific submission status, or ``None`` if unreadable.
+
+        Separated from ``approve_hit`` so the dev recruiter can report a
+        status without an API call: this read deliberately bypasses
+        ``ProlificService._req`` and therefore also bypasses the dev
+        service's log-only stub.
+        """
+        submission = _fetch_prolific_submission(self.prolificservice, assignment_id)
+        if submission is None:
+            return None
+        return submission.get("status")
 
     def _complete_prolific_submission(self, participant, assignment_id: str):
         """POST COMPLETE with the researcher-actor code for this participant."""
@@ -1380,19 +1406,21 @@ class ProlificRecruiter(
 class DevProlificRecruiter(
     PsyNetProlificRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
 ):
-    def approve_hit(self, assignment_id: str):
-        """Skip server-side Prolific completion in dev mode.
+    def _live_submission_status(self, assignment_id: str) -> str:
+        """Report the submission status a local submit really sees, without an API call.
 
-        The mixin's ``approve_hit`` reads the live submission with a raw
-        HTTP GET (bypassing the dev service's log-only ``_req``) and then
-        POSTs ``COMPLETE``. In dev mode there is no real submission, so
-        just log and report success.
+        There is no live Prolific submission in dev mode, and the mixin's
+        read bypasses the dev service's log-only ``_req``, so it cannot be
+        stubbed. Report ``ACTIVE``: that is the state a participant's
+        submission is actually in when they finish locally, because PsyNet
+        no longer sends them to Prolific to enter a completion code.
+
+        Reporting ``ACTIVE`` (rather than skipping completion outright)
+        keeps the completion-code choice and the ``COMPLETE`` request
+        itself under test in dev mode. The request goes through
+        ``DevProlificService._req``, which logs it instead of sending it.
         """
-        logger.info(
-            "Dev mode: skipping Prolific completion for assignment %s.",
-            assignment_id,
-        )
-        return True
+        return "ACTIVE"
 
 
 class MockProlificRecruiter(
