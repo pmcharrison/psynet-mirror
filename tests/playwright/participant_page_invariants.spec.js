@@ -15,10 +15,14 @@ const { assertPageInvariants } = require("./participantPageInvariants");
 
 const STEP_TIMEOUT_MS = 120000;
 
-// A representative desktop viewport. The occlusion invariant is viewport-
+// A representative desktop viewport. The reachability invariant is viewport-
 // relative: a control that falls entirely below the fold is treated as ordinary
 // scrolling, so a very short viewport would silently weaken the check.
-test.use({ viewport: { width: 1280, height: 900 } });
+const DESKTOP_VIEWPORT = { width: 1280, height: 900 };
+
+// A narrow viewport exercises the mobile branch of the theme, where horizontal
+// overflow is the failure that matters.
+const MOBILE_VIEWPORT = { width: 375, height: 780 };
 
 /**
  * Walks the participant flow of a purpose-built experiment and asserts the
@@ -43,6 +47,7 @@ test(
     try {
       const url = await urlPromise;
 
+      await page.setViewportSize(DESKTOP_VIEWPORT);
       await page.goto(url);
       await page.waitForSelector("#begin-button, button.btn-primary", {
         timeout: 30000
@@ -87,6 +92,13 @@ test(
         STEP_TIMEOUT_MS
       );
       await assertPageInvariants(experimentPage, "long page (expect_scrolling)");
+
+      // Re-check the same page narrow. The mobile branch of the theme changes
+      // the surface's margins and padding, where horizontal overflow is the
+      // failure that matters.
+      await experimentPage.setViewportSize(MOBILE_VIEWPORT);
+      await experimentPage.waitForTimeout(300);
+      await assertPageInvariants(experimentPage, "long page (mobile viewport)");
     } finally {
       await stopExperiment(proc);
     }

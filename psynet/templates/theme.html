@@ -23,10 +23,8 @@
 <link rel="preload" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Medium.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/participant.css') }}">
 
-<div style="display: none" class="hidden_logos">
-    {{ logo("logo", "mr-3") }}
-</div>
-
+{# Everything below must be valid inside <head>: a stray element here would end
+   the head early and push the page's own stylesheets into the body. #}
 <script>
     // replace logos
     document.addEventListener("DOMContentLoaded", function (event) {

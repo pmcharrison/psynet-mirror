@@ -3,6 +3,12 @@
 {% block stylesheets %}
     {{ super() }}
     <style data-psynet-fragment-style="true">
+        /* Nothing sits at the bottom of this centred layout, so the page does
+           not need the footer clearance the theme reserves on `body`. */
+        body {
+            padding-bottom: 0;
+        }
+
         /* The waiting animation is full-bleed, so opt out of the content surface. */
         #main-body {
             padding: 0 !important;
@@ -15,12 +21,14 @@
         }
 
         /* A percentage height would collapse here because the ancestors are
-           auto-height, so the fill is expressed relative to the viewport. */
+           auto-height, so the fill is expressed relative to the viewport. The
+           animation runs from below the progress bar down to the footer, which
+           leaves enough slack that the page never gains a scrollbar. */
         #wait-page {
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: calc(100vh - 3rem);
+            min-height: calc(100vh - 3.5rem);
             padding: 2rem;
             text-align: center;
         }

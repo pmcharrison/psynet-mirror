@@ -76,7 +76,11 @@
 
     /* Accent. White text on this colour is 4.9:1, comfortably above WCAG AA. */
     --psynet-accent: #3070c8;
+    /* Channel form, because Bootstrap composes link and utility colours from
+       rgb triples rather than from the hex variables. */
+    --psynet-accent-rgb: 48, 112, 200;
     --psynet-accent-hover: #275ba4;
+    --psynet-accent-hover-rgb: 39, 91, 164;
     --psynet-accent-soft: #eaf1fb;
     --psynet-accent-contrast: #ffffff;
 
@@ -98,8 +102,11 @@
     --bs-secondary-color: var(--psynet-text-muted);
     --bs-border-color: var(--psynet-border);
     --bs-link-color: var(--psynet-accent);
+    --bs-link-color-rgb: var(--psynet-accent-rgb);
     --bs-link-hover-color: var(--psynet-accent-hover);
+    --bs-link-hover-color-rgb: var(--psynet-accent-hover-rgb);
     --bs-primary: var(--psynet-accent);
+    --bs-primary-rgb: var(--psynet-accent-rgb);
 }
 
 [data-bs-theme="dark"] {
@@ -115,7 +122,9 @@
     --psynet-text-muted: #a5b1c2;
 
     --psynet-accent: #5b9bea;
+    --psynet-accent-rgb: 91, 155, 234;
     --psynet-accent-hover: #7db2f2;
+    --psynet-accent-hover-rgb: 125, 178, 242;
     --psynet-accent-soft: #253449;
     --psynet-accent-contrast: #0d1218;
 
@@ -176,6 +185,9 @@ body {
         padding: 1.5rem 1.25rem 1.75rem;
         border-radius: var(--psynet-radius-sm);
         margin-inline: 0.75rem;
+        /* Bootstrap's .container sets width:100%, which would add to the
+           margins above and overflow the viewport horizontally. */
+        width: auto;
     }
 
     #main-body.psynet-surface {
@@ -247,6 +259,11 @@ h1, h2, h3, h4, h5, h6,
     align-items: stretch;
     gap: 0.35rem;
     max-width: 460px;
+    /* Matches the cap the control macros used before this stylesheet existed,
+       so a long list of options scrolls within its panel rather than pushing
+       the response controls off screen. */
+    max-height: 420px;
+    overflow-y: auto;
     margin-inline: auto;
     padding: 0.9rem 1rem;
     background-color: var(--psynet-surface-sunken);
@@ -322,6 +339,7 @@ h1, h2, h3, h4, h5, h6,
     gap: 0.6rem;
     justify-content: center;
     max-width: min(100%, 720px);
+    max-height: 420px;
     margin-inline: auto;
     padding: 1rem;
     background-color: var(--psynet-surface-sunken);

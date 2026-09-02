@@ -1,0 +1,1 @@
+Fixed several issues in the refreshed participant theme: the content surface no longer overflows narrow viewports horizontally, links and Bootstrap's `text-primary` utility now follow the theme accent rather than staying Bootstrap blue, long lists of response options keep the scrollable height cap they had previously, and the waiting page no longer gains a stray scrollbar.
