@@ -1524,8 +1524,11 @@
         bar.style.width = Math.round(progress) + "%";
         if (progress === 100) {
           bar.classList.remove("colorfadeanim");
-          // You could do something here once loading is complete,
-          // e.g. delete progress bar text
+          // Hide the bar once there is nothing left to report, so that a
+          // completed download does not leave a permanent rule on the footer.
+          bar.classList.add("psynet-download-complete");
+        } else {
+          bar.classList.remove("psynet-download-complete");
         }
       }
     };

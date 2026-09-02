@@ -3,7 +3,13 @@
 {# We therefore have to give this base template a different name. We should investigate this bug further. #}
 
 {% extends "base/layout.html" %}
-{% include "theme.html" %}
+
+{# Includes must live inside a block. A top-level include in a child template is
+   emitted before <!doctype html>, which puts the whole document into quirks mode. #}
+{% block stylesheets %}
+    {{ super() }}
+    {% include "theme.html" %}
+{% endblock %}
 
 {% block scripts %}
     {{ super() }}

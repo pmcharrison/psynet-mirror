@@ -1,5 +1,5 @@
 {% extends "macros.html" %}
-{% include "macros/browser-detect.html" %}
+{% import "macros/browser-detect.html" as browser_detect with context %}
 
 {% macro template_data_script() %}
     {# Shared bootstrap payload for both full-page loads and inplace fragment swaps. #}
@@ -47,8 +47,8 @@
 {% endmacro %}
 
 {% block stylesheets %}
+    {# theme.html arrives via psynet_layout.html's stylesheets block. #}
     {{ super() }}
-    {% include "theme.html" %}
 
     {% if inplace_timeline_transitions %}
         <style>
@@ -85,7 +85,7 @@
     {% endmacro %}
 
     {% macro timeline_main_body() %}
-        <div id="main-body" class="my-5 container" style="clear: both;" data-page-ready="false">
+        <div id="main-body" class="container psynet-surface" style="clear: both;" data-page-ready="false">
             {% block main_body %}
                 {{ media.media_container() }}
                 {{ progress.trial_progress_display(trial_progress_display_config) }}
@@ -121,32 +121,22 @@
     {% endmacro %}
 
     {% macro timeline_footer() %}
+        {# Appearance lives in participant.css; only per-render values are set here. #}
         <style>
+            {% if config.show_footer == false %}
             #footer {
-                background-color: rgb(49, 124, 246);
-                color: white;
-                margin: 0px;
-                padding: 0px;
-                line-height: 33px;
-                border-style: none;
-                {% if config.show_footer == false %} display: none; {% endif %}
+                display: none;
             }
+            {% endif %}
 
             #media-download-progress-bar {
                 width: {{ initial_download_progress }}%;
-                height: 6px;
-                background-color: black;
             }
-
-            .footer-text {
-                margin: 0px;
-            }
-
         </style>
 
         <nav id="footer" class="navbar fixed-bottom">
-            <div id="media-download-progress-bar"></div>
-                <div class="container py-2">
+            <div id="media-download-progress-bar"{% if initial_download_progress >= 100 %} class="psynet-download-complete"{% endif %}></div>
+                <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
                     {% if config.show_reward %}
                         <div class="footer-text">
                             {{ pgettext("timeline", "Reward") }}:
@@ -185,7 +175,10 @@
             {{ template_data_script() }}
         </div>
     {% else %}
-        {# Full-page render used for initial loads and for the legacy reload path. #}
+        {# Full-page render used for initial loads and for the legacy reload path.
+           The browser-detect markup stays outside the fragment so that in-place
+           transitions do not duplicate it. #}
+        {{ browser_detect.body() }}
         <div id="timeline-root">
             {{ timeline_header() }}
             {{ timeline_main_body() }}
@@ -257,7 +250,8 @@
     {% endif %}
     <script src="{{ url_for('static', filename='scripts/psynet.js') }}"></script>
 
-
+    {# Last in the head block: everything it emits is valid head content. #}
+    {{ browser_detect.head() }}
 {% endblock %}
 
 {% block libs %}

@@ -1165,7 +1165,7 @@ class PushButtonControl(OptionControl):
         which the participant will see instead of ``choices``. Default: ``None``.
 
     style:
-        CSS styles to apply to the buttons. Default: ``"min-width: 100px; margin: 10px"``.
+        CSS styles to apply to the buttons. Default: ``"min-width: 100px"``.
 
     arrange_vertically:
         Whether to arrange the buttons vertically. Default: ``True``.
@@ -1175,7 +1175,7 @@ class PushButtonControl(OptionControl):
         self,
         choices: List[Union[str, float, int]],
         labels: Optional[List[str]] = None,
-        style: str = "min-width: 100px; margin: 10px",
+        style: str = "min-width: 100px",
         arrange_vertically: bool = True,
         show_next_button: bool = False,
         **kwargs,
@@ -1303,7 +1303,7 @@ class TimedPushButtonControl(PushButtonControl):
         Defaults to 0.75 s.
 
     style:
-        CSS styles to apply to the buttons. Default: ``"min-width: 100px; margin: 10px"``.
+        CSS styles to apply to the buttons. Default: ``"min-width: 100px"``.
 
     arrange_vertically:
         Whether to arrange the buttons vertically. Default: ``True``.
@@ -2169,10 +2169,14 @@ class ModularPage(Page):
         return self.import_internal_templates + self.import_external_templates
 
     def render_buttons(self):
-        logic = []
+        if not self.buttons:
+            return ""
+
+        logic = ['<div class="psynet-actions">']
         for i, button in enumerate(self.buttons):
             logic.append(f"{{% set button_params = buttons[{i}] %}}")
             logic.append(button.render())
+        logic.append("</div>")
 
         return "\n".join(logic)
 
@@ -4060,14 +4064,18 @@ class SurveyJSControl(Control):
                 with the different button types and the rollover effects.
                 It doesn't seem the worst thing to leave it as is though. */
                 /* background-color: #0d6efd !important; */
-                font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif !important;
+                font-family: var(--psynet-font-sans) !important;
                 font-size: 20px !important;
                 font-weight: 400 !important;
                 max-width: 250px !important;
             }
-            /* This removes the grey background from the survey container. */
+            /* The survey sits on the PsyNet content surface, so it should not
+            paint its own background. */
             .sd-container-modern {
-                background-color: #FFFFFF !important;
+                background-color: transparent !important;
+            }
+            .sd-root-modern {
+                --sjs-general-backcolor: transparent;
             }
             /* This removes the shadow from the survey elements. */
             .sd-element--with-frame:not(.sd-element--collapsed) {

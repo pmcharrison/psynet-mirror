@@ -3266,6 +3266,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/css/consent.css",
                 ),
                 (
+                    resources.files("psynet") / "resources/css/participant.css",
+                    "/static/css/participant.css",
+                ),
+                (
                     resources.files("psynet") / "resources/css/dashboard_timeline.css",
                     "/static/css/dashboard_timeline.css",
                 ),

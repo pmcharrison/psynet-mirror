@@ -1,5 +1,10 @@
 {% extends "base/consent.html" %}
-{% include "macros/browser-detect.html" %}
+{% import "macros/browser-detect.html" as browser_detect with context %}
+
+{% block head %}
+    {{ super() }}
+    {{ browser_detect.head() }}
+{% endblock %}
 
 {% block stylesheets %}
     {{ super() }}
@@ -12,9 +17,10 @@
 {% endblock %}
 
 {% block body %}
+    {{ browser_detect.body() }}
     {% if not experiment.with_lucid_recruitment() %}
-        <div class="container d-flex align-items-center justify-content-center" style="height: 95%">
-            <div>
+        <div class="container d-flex align-items-center justify-content-center" style="min-height: 90vh">
+            <div class="psynet-surface">
                 <div class="row overflow-hidden mb-3" style="height: 73px;">
                     <img id="adlogo" style="display: none" alt="Lab Logo" />
                 </div>

@@ -11,9 +11,15 @@
             text-align: center;
         }
 
+        /* The waiting animation is full-bleed, so opt out of the content surface. */
         #main-body {
             padding: 0 !important;
-            margin:0 !important;
+            margin: 0 !important;
+            max-width: none;
+            background: none;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
         }
 
         #wait-page p {
