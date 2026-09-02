@@ -1060,6 +1060,15 @@ class Page(Elt):
         older custom frontends. Deprecated ``js_links`` / ``scripts`` also set
         this automatically. Default: ``False``.
 
+    expect_scrolling:
+        Declares whether the page is expected to be taller than the browser
+        window. When ``False`` (default), PsyNet's front-end tests require the
+        page's response controls to be reachable without scrolling, which
+        catches stimuli that grow large enough to push the controls off screen
+        or underneath the footer. Set it to ``True`` for pages that legitimately
+        need scrolling, such as long consent forms. It has no effect on how the
+        page behaves for participants.
+
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
 
@@ -1214,6 +1223,7 @@ class Page(Elt):
     dynamically_update_progress_bar_and_reward = False
     is_unity_page = False
     requires_full_page_reload = False
+    expect_scrolling = False
     skip_beforeunload = False
 
     def __init__(
@@ -1247,6 +1257,7 @@ class Page(Elt):
         validate: Optional[callable] = None,
         framework_owned_template: bool = False,
         requires_full_page_reload: bool = False,
+        expect_scrolling: bool = False,
     ):
         super().__init__()
 
@@ -1353,6 +1364,11 @@ class Page(Elt):
             # emulated across in-place transitions; force a clean document instead.
             # Authors may also opt in explicitly via requires_full_page_reload=True.
             self.requires_full_page_reload = True
+        # Subclasses may declare this as a class attribute; the constructor
+        # argument opts in for a single page.
+        if expect_scrolling:
+            self.expect_scrolling = True
+
         overlapping_javascript = set(self.js_dependencies) & set(self.js_page_modules)
         if overlapping_javascript:
             raise ValueError(
@@ -1490,6 +1506,7 @@ class Page(Elt):
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
             "requires_full_page_reload": self.requires_full_page_reload,
+            "expect_scrolling": self.expect_scrolling,
         }
 
     @property

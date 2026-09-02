@@ -9,6 +9,8 @@ which is the regression the ``action_not_occluded`` invariant guards against.
 
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
+from markupsafe import Markup
+
 import psynet.experiment
 from psynet.graphics import Circle, Frame, GraphicPrompt, Path
 from psynet.modular_page import (
@@ -18,6 +20,15 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
+
+LONG_TEXT = Markup(
+    "<p>Invariant check: deliberately long page.</p>"
+    + "".join(
+        f"<p>Filler paragraph {i} used to push the page well beyond the "
+        "height of the browser window.</p>"
+        for i in range(1, 25)
+    )
+)
 
 
 class Exp(psynet.experiment.Experiment):
@@ -71,4 +82,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=1,
         ),
+        # Declares that scrolling is expected, so the reachability check is
+        # waived; the permanent-occlusion check still applies.
+        InfoPage(LONG_TEXT, time_estimate=1, expect_scrolling=True),
     )

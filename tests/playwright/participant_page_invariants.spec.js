@@ -11,10 +11,7 @@ const {
   waitForTimelinePageReady
 } = require("./psynetHarness");
 
-const {
-  assertPageInvariants,
-  assertPrimaryActionVisibleWithoutScrolling
-} = require("./participantPageInvariants");
+const { assertPageInvariants } = require("./participantPageInvariants");
 
 const STEP_TIMEOUT_MS = 120000;
 
@@ -79,14 +76,17 @@ test(
       await waitForMainBodyContains(experimentPage, "tall graphic", STEP_TIMEOUT_MS);
       await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
       await assertPageInvariants(experimentPage, "graphic page");
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
-      // A stimulus sized in viewport units must still leave room for the
-      // response control; this is what GraphicPrompt.max_viewport_height
-      // guarantees.
-      await assertPrimaryActionVisibleWithoutScrolling(
+      // A page that declares expect_scrolling=True is exempt from the
+      // reachability check but must still keep its controls reachable at the
+      // end of the scroll.
+      await waitForMainBodyContains(
         experimentPage,
-        "graphic page"
+        "deliberately long page",
+        STEP_TIMEOUT_MS
       );
+      await assertPageInvariants(experimentPage, "long page (expect_scrolling)");
     } finally {
       await stopExperiment(proc);
     }

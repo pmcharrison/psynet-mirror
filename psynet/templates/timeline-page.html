@@ -85,7 +85,9 @@
     {% endmacro %}
 
     {% macro timeline_main_body() %}
-        <div id="main-body" class="container psynet-surface" style="clear: both;" data-page-ready="false">
+        <div id="main-body" class="container psynet-surface" style="clear: both;"
+             data-page-ready="false"
+             data-expect-scrolling="{{ page.expect_scrolling | tojson }}">
             {% block main_body %}
                 {{ media.media_container() }}
                 {{ progress.trial_progress_display(trial_progress_display_config) }}

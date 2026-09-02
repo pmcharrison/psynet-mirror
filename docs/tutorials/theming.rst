@@ -140,3 +140,28 @@ instead.
 The selected state is styled with ``:has()``, which is why the default
 ``min_browser_version`` is Chrome 105; see
 :doc:`/experiment_development/configuration`.
+
+Pages that scroll
+-----------------
+
+The footer is fixed to the bottom of the window, and the page reserves space for
+it so that content is never left permanently underneath. PsyNet's front-end
+tests additionally check that a page's response controls are reachable without
+scrolling, which catches a stimulus that has grown large enough to push the
+Next button off screen.
+
+If a page is genuinely meant to be longer than the window, say so:
+
+::
+
+    InfoPage(long_briefing_text, time_estimate=60, expect_scrolling=True)
+
+or, for a custom page class:
+
+::
+
+    class MyLongPage(Page):
+        expect_scrolling = True
+
+The bundled consent pages already declare it. The attribute only affects
+testing; it does not change what participants see.

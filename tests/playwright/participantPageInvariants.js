@@ -9,15 +9,21 @@
  * Each check corresponds to a defect that reached the default theme at least
  * once:
  *
- *   standards_mode                 Template output emitted before
- *                                  `<!doctype html>` put every participant page
- *                                  into quirks mode.
- *   percentage_height_ineffective  Layouts declared percentage heights against
- *                                  auto-height parents, which only resolved
- *                                  because of quirks mode.
- *   action_not_occluded            A response control was partly hidden behind
- *                                  the fixed footer.
- *   no_horizontal_overflow         Content wider than the viewport.
+ *   standards_mode                       Template output emitted before
+ *                                        `<!doctype html>` put every
+ *                                        participant page into quirks mode.
+ *   percentage_height_ineffective        Layouts declared percentage heights
+ *                                        against auto-height parents, which
+ *                                        only resolved because of quirks mode.
+ *   controls_reachable_without_scrolling  A stimulus grew large enough to push
+ *                                        the response control off screen on a
+ *                                        page that was meant to fit.
+ *   nothing_permanently_occluded         Content left behind the fixed footer
+ *                                        even at the end of the scroll.
+ *   no_horizontal_overflow               Content wider than the viewport.
+ *
+ * Pages that are genuinely meant to scroll, such as consent forms, declare it
+ * with `expect_scrolling=True`; see `Page` in psynet/timeline.py.
  *
  * Usage:
  *
@@ -46,17 +52,21 @@ const collectViolations = () => {
     });
   }
 
-  // A response control that starts above the fold must not be partly hidden
-  // behind the fixed footer. A control entirely below the fold is fine: that
-  // is ordinary scrolling, not occlusion.
-  //
-  // This check is therefore viewport-relative, and callers should pin a
-  // representative desktop viewport. On a very short viewport the control falls
-  // below the fold and the check has nothing to say; on a very tall one the
-  // page never reaches the footer.
+  // Unless the page declares that it expects scrolling, its response controls
+  // must be reachable without scrolling. Declaring intent is the only reliable
+  // way to tell a stimulus page that has outgrown the window from a consent
+  // form that is meant to be long: the geometry looks identical.
+  const mainBody = document.querySelector("#main-body");
+  const expectsScrolling = mainBody
+    ? mainBody.dataset.expectScrolling === "true"
+    : false;
+
   const footer = document.querySelector("#footer");
-  if (footer && getComputedStyle(footer).display !== "none") {
-    const footerRect = footer.getBoundingClientRect();
+  const footerVisible = footer && getComputedStyle(footer).display !== "none";
+  const footerRect = footerVisible ? footer.getBoundingClientRect() : null;
+  const usableBottom = footerRect ? footerRect.top : window.innerHeight;
+
+  if (mainBody && !expectsScrolling) {
     const selectors = ["#next-button", "#reset-button", ".push-button", "#consent"];
     for (const selector of selectors) {
       for (const element of document.querySelectorAll(selector)) {
@@ -64,17 +74,16 @@ const collectViolations = () => {
         if (style.display === "none" || style.visibility === "hidden") continue;
         const rect = element.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) continue;
-        const startsAboveFold = rect.top < window.innerHeight;
-        const intersectsFooter =
-          rect.bottom > footerRect.top && rect.top < footerRect.bottom;
-        if (startsAboveFold && intersectsFooter) {
-          violations.push({
-            check: "action_not_occluded",
-            detail:
-              `${selector} spans y=${round(rect.top)}-${round(rect.bottom)} but the ` +
-              `fixed footer starts at y=${round(footerRect.top)}`,
-          });
-        }
+        if (rect.top >= 0 && rect.bottom <= usableBottom) continue;
+        violations.push({
+          check: "controls_reachable_without_scrolling",
+          detail:
+            `${selector} spans y=${round(rect.top)}-${round(rect.bottom)} but the ` +
+            `usable area is 0-${round(usableBottom)} ` +
+            `(viewport ${window.innerHeight}px, document ` +
+            `${round(document.documentElement.scrollHeight)}px). Either make the page ` +
+            "fit, or pass expect_scrolling=True to the page if it is meant to scroll",
+        });
       }
     }
   }
@@ -168,6 +177,54 @@ const collectViolations = () => {
   return violations;
 };
 
+/**
+ * Detect content that stays behind the fixed footer even at the end of the
+ * scroll, which no amount of scrolling can reveal.
+ *
+ * Scrolls to the end, restoring the original position afterwards. The scroll is
+ * repeated until the position stops changing: a single jump can land short
+ * while layout is still settling, which reports occlusion that is not there.
+ */
+const collectScrollViolations = async () => {
+  const footer = document.querySelector("#footer");
+  if (!footer || getComputedStyle(footer).display === "none") return [];
+
+  const scroller = document.scrollingElement || document.documentElement;
+  const originalScrollTop = scroller.scrollTop;
+
+  let previous = -1;
+  for (let i = 0; i < 40 && scroller.scrollTop !== previous; i++) {
+    previous = scroller.scrollTop;
+    scroller.scrollTop = scroller.scrollHeight;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
+  const footerTop = footer.getBoundingClientRect().top;
+  const violations = [];
+  const selectors = ["#next-button", "#reset-button", ".push-button", "#consent"];
+  for (const selector of selectors) {
+    for (const element of document.querySelectorAll(selector)) {
+      const style = getComputedStyle(element);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+      if (style.position === "fixed") continue; // pinned on purpose
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      if (rect.bottom > footerTop && rect.top < footer.getBoundingClientRect().bottom) {
+        violations.push({
+          check: "nothing_permanently_occluded",
+          detail:
+            `${selector} is still behind the fixed footer at the end of the scroll ` +
+            `(spans y=${Math.round(rect.top)}-${Math.round(rect.bottom)}, footer starts ` +
+            `at y=${Math.round(footerTop)}), so it can never be fully seen`,
+        });
+      }
+    }
+  }
+
+  scroller.scrollTop = originalScrollTop;
+  return violations;
+};
+
 function formatViolations(label, violations) {
   const lines = violations.map((v) => `  - [${v.check}] ${v.detail}`);
   return `Participant page invariants failed on ${label}:\n${lines.join("\n")}`;
@@ -183,51 +240,15 @@ function formatViolations(label, violations) {
 async function assertPageInvariants(page, label) {
   // Park the pointer so hover styling cannot influence geometry.
   await page.mouse.move(0, 0).catch(() => {});
-  const violations = await page.evaluate(collectViolations);
+  const violations = [
+    ...(await page.evaluate(collectViolations)),
+    ...(await page.evaluate(collectScrollViolations)),
+  ];
   expect(violations, formatViolations(label, violations)).toEqual([]);
-}
-
-/**
- * Assert that the page's primary action is fully visible without scrolling.
- *
- * Use this for pages that are meant to fit on screen: a single stimulus and a
- * single response control. It is a stronger statement than the occlusion
- * invariant, which only fires when a control happens to straddle the footer,
- * and it is the contract that `GraphicPrompt.max_viewport_height` exists to
- * uphold. Do not use it for pages that legitimately scroll, such as consent.
- */
-async function assertPrimaryActionVisibleWithoutScrolling(page, label) {
-  const geometry = await page.evaluate(() => {
-    const button = document.querySelector("#next-button");
-    if (!button) return null;
-    const rect = button.getBoundingClientRect();
-    const footer = document.querySelector("#footer");
-    const footerVisible = footer && getComputedStyle(footer).display !== "none";
-    const footerRect = footerVisible ? footer.getBoundingClientRect() : null;
-    return {
-      top: Math.round(rect.top),
-      bottom: Math.round(rect.bottom),
-      scrollY: Math.round(window.scrollY),
-      viewportHeight: window.innerHeight,
-      documentHeight: Math.round(document.documentElement.scrollHeight),
-      limit: Math.round(footerRect ? footerRect.top : window.innerHeight),
-    };
-  });
-
-  expect(geometry, `${label}: expected a #next-button to assert against`).not.toBeNull();
-
-  const visible = geometry.top >= 0 && geometry.bottom <= geometry.limit;
-  expect(
-    visible,
-    `${label}: the primary action should be fully visible without scrolling, but ` +
-      `#next-button spans y=${geometry.top}-${geometry.bottom} while the usable area ` +
-      `ends at y=${geometry.limit} (viewport ${geometry.viewportHeight}px, document ` +
-      `${geometry.documentHeight}px, scrollY ${geometry.scrollY})`
-  ).toBe(true);
 }
 
 module.exports = {
   assertPageInvariants,
-  assertPrimaryActionVisibleWithoutScrolling,
   collectViolations,
+  collectScrollViolations,
 };

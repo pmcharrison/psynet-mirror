@@ -141,6 +141,15 @@ body {
     -webkit-overflow-scrolling: touch;
     font-kerning: normal;
     font-variant-ligatures: contextual common-ligatures;
+
+    /*
+     * Reserve room for the fixed footer at the document level rather than on
+     * an individual element. Previously the clearance came from #main-body's
+     * bottom margin, which meant any page overriding that margin (the waiting
+     * page does) silently lost it and could leave content permanently behind
+     * the footer.
+     */
+    padding-bottom: 5rem;
 }
 
 /*
@@ -159,8 +168,7 @@ body {
 }
 
 #main-body.psynet-surface {
-    /* Clear the fixed footer. */
-    margin-block: 2.25rem 7rem;
+    margin-block: 2.25rem 2.25rem;
 }
 
 @media (max-width: 720px) {
@@ -171,7 +179,7 @@ body {
     }
 
     #main-body.psynet-surface {
-        margin-block: 0.75rem 6.5rem;
+        margin-block: 0.75rem;
     }
 }
 
