@@ -193,6 +193,8 @@ def extract_zip_contained(archive: zipfile.ZipFile, destination: str) -> None:
     """Extract ``archive`` into ``destination`` without leaving that directory."""
     dest = Path(destination).resolve()
     dest.mkdir(parents=True, exist_ok=True)
+    members = []
+    seen = {}
     for info in archive.infolist():
         name = info.filename
         if not name or name.endswith("/"):
@@ -200,6 +202,16 @@ def extract_zip_contained(archive: zipfile.ZipFile, destination: str) -> None:
         relative = zip_member_path(name)
         if relative.endswith("/"):
             continue
+        key = relative.casefold()
+        if key in seen:
+            raise AmbiguousArchiveLayoutError(
+                f"Archive members {seen[key]!r} and {name!r} resolve to the "
+                f"same path ({relative!r})."
+            )
+        seen[key] = name
+        members.append((info, relative))
+
+    for info, relative in members:
         target = contained_destination(dest, relative)
         target.parent.mkdir(parents=True, exist_ok=True)
         with archive.open(info) as source, open(target, "wb") as handle:

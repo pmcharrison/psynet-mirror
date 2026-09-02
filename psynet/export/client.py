@@ -87,11 +87,23 @@ class DashboardEndpoint:
 ###############
 
 
-def fetch_preflight(endpoint: DashboardEndpoint, *, timeout=60) -> Optional[dict]:
+_OLD_DEPLOYMENT_PREFLIGHT_MESSAGE = (
+    "This deployment is running an earlier version of PsyNet, incompatible with "
+    "the one installed in this environment. Please install the earlier version "
+    "(see constraints.txt) and try again, or log in to the dashboard and export "
+    "from there."
+)
+
+
+def fetch_preflight(endpoint: DashboardEndpoint, *, timeout=60) -> dict:
     """Ask the deployment to describe itself.
 
-    Returns ``None`` when the deployment predates the preflight endpoint, so the
-    caller can fall back to the complete-archive transport.
+    Raises
+    ------
+    TransferError
+        If the deployment has no preflight endpoint (it predates this export
+        protocol), or the endpoint cannot be read. This client does not
+        download from deployments it cannot identify.
     """
     import requests
 
@@ -102,28 +114,23 @@ def fetch_preflight(endpoint: DashboardEndpoint, *, timeout=60) -> Optional[dict
             timeout=timeout,
         )
     except requests.RequestException as exc:
-        logger.warning("Could not reach the export preflight endpoint: %s", exc)
-        return None
+        raise TransferError(
+            f"Could not reach the export preflight endpoint: {exc}"
+        ) from exc
 
     if response.status_code == 404:
-        logger.warning(
-            "This deployment does not provide an export preflight endpoint, so "
-            "its exact project identity cannot be established. Falling back to "
-            "a complete server-built archive."
-        )
-        return None
+        raise TransferError(_OLD_DEPLOYMENT_PREFLIGHT_MESSAGE)
     if response.status_code != 200:
-        logger.warning(
-            "The export preflight endpoint returned %s (%s).",
-            response.status_code,
-            response.reason,
+        raise TransferError(
+            "The export preflight endpoint returned "
+            f"{response.reason} ({response.status_code})."
         )
-        return None
     try:
         return response.json()
-    except ValueError:
-        logger.warning("The export preflight response was not valid JSON.")
-        return None
+    except ValueError as exc:
+        raise TransferError(
+            f"The export preflight response was not valid JSON: {exc}"
+        ) from exc
 
 
 def choose_transport(
@@ -138,7 +145,7 @@ def choose_transport(
     Parameters
     ----------
     identity :
-        Preflight identity, or ``None`` for deployments without a preflight.
+        Preflight identity from a deployment that supports this export protocol.
     assets :
         Requested asset selection.
     over_ssh :
@@ -150,12 +157,18 @@ def choose_transport(
     -------
     str
         ``"archive"`` or ``"incremental"``.
+
+    Raises
+    ------
+    TransferError
+        If ``identity`` is missing, or ``requested`` is ``incremental`` for a
+        selection the deployment cannot serve that way.
     """
+    if identity is None:
+        raise TransferError(_OLD_DEPLOYMENT_PREFLIGHT_MESSAGE)
     if requested == "archive":
         return "archive"
     if not over_ssh:
-        return "archive"
-    if identity is None:
         return "archive"
     if assets in identity.incremental_asset_modes:
         return "incremental"
@@ -248,7 +261,7 @@ def extract_archive(zip_path: str, staging_dir: str) -> dict:
             extract_zip_contained(archive, str(staging))
     except AmbiguousArchiveLayoutError as exc:
         raise TransferError(
-            f"The downloaded export archive has an ambiguous table layout: {exc}"
+            f"The downloaded export archive has an ambiguous layout: {exc}"
         ) from exc
     except (zipfile.BadZipFile, OSError, UnsafePathError) as exc:
         raise TransferError(
@@ -337,7 +350,7 @@ def publish_export(
 
     try:
         os.replace(str(staging), str(target))
-    except OSError as exc:
+    except (OSError, KeyboardInterrupt) as exc:
         previous = displaced or (Path(rotated) if rotated else None)
         restored = False
         if previous is not None and previous.exists() and not target.exists():
@@ -356,6 +369,8 @@ def publish_export(
                 f"Could not publish the export to {target}: {exc} "
                 f"The previous export was kept at {previous}."
             ) from exc
+        if isinstance(exc, KeyboardInterrupt):
+            raise
         raise TransferError(f"Could not publish the export to {target}: {exc}") from exc
     if displaced is not None:
         shutil.rmtree(displaced, ignore_errors=True)
@@ -384,7 +399,9 @@ def plan_asset_transfer(staging_dir: str) -> AssetTransferPlan:
     """Read ``assets/manifest.csv`` and decide whether rsync can supply the bytes."""
     manifest_path = Path(staging_dir) / "assets" / "manifest.csv"
     if not manifest_path.exists():
-        return AssetTransferPlan(rows=[], digests=[], ineligible=[])
+        raise TransferError(
+            "The incremental export did not contain assets/manifest.csv."
+        )
 
     with manifest_path.open(newline="") as handle:
         rows = list(csv.DictReader(handle))
@@ -440,7 +457,6 @@ def hydrate_assets(
             f"{len(plan.ineligible)} selected asset(s) cannot be transferred "
             "incrementally."
         )
-
     # Validate every semantic path before transferring anything, so a manifest
     # that would write outside the export tree fails closed even when the
     # transfer itself cannot run (for example when rsync is unavailable).

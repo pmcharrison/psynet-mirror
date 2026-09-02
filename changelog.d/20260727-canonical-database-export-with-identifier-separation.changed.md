@@ -1,5 +1,6 @@
-Changed database export to a single PostgreSQL ``COPY`` snapshot with identifier
-separation.
+Changed database export to one PostgreSQL repeatable-read snapshot with
+identifier separation. All table CSVs and identifier sidecars are read through
+the same database transaction.
 
 ``export.zip`` contains physical table CSVs under ``database/`` with
 pseudonymous participant identifiers. Original recruiter identifiers are written

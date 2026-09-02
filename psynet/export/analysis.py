@@ -87,11 +87,11 @@ def unpack_json_column(
 
     parsed = []
     for value in data_frame[column]:
-        if pd.isna(value) or value == "":
-            parsed.append({})
-            continue
         if isinstance(value, (dict, list)):
             parsed.append(value if isinstance(value, dict) else {"value": value})
+            continue
+        if pd.isna(value) or value == "":
+            parsed.append({})
             continue
         try:
             loaded = json.loads(value)
@@ -135,5 +135,10 @@ def merge_participant_identifiers(
         Join column name.
     """
     if not isinstance(identifiers, pd.DataFrame):
-        identifiers = pd.read_csv(os.path.expanduser(os.fspath(identifiers)))
+        identifiers = pd.read_csv(
+            os.path.expanduser(os.fspath(identifiers)),
+            dtype=str,
+        )
+        if on in identifiers and on in data_frame:
+            identifiers[on] = identifiers[on].astype(data_frame[on].dtype)
     return data_frame.merge(identifiers, on=on, how="left", suffixes=suffixes)

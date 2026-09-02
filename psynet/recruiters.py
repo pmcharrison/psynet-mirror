@@ -1243,7 +1243,6 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 "This should never happen."
             )
         lucid_rid.link_participant(participant)
-        db.session.commit()
 
     def exit_response(self, experiment, participant):
         """

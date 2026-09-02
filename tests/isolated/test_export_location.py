@@ -203,6 +203,56 @@ def test_corrupt_download_keeps_the_previous_export(tmp_path, monkeypatch):
     assert not (tmp_path / "exports" / "history").exists()
 
 
+def test_remote_export_refuses_a_deployment_without_preflight(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    latest = tmp_path / "exports" / "latest"
+    latest.mkdir(parents=True)
+    (latest / "manifest.json").write_text('{"kept": true}')
+
+    experiment_class = Mock(
+        label="timeline-demo",
+        export_path=Experiment.export_path,
+        rotate_export_history=Experiment.rotate_export_history,
+    )
+    config = Mock(ready=True)
+    config.get.side_effect = lambda key, default=None: {
+        "dashboard_user": "admin",
+        "dashboard_password": "secret",
+    }.get(key, default)
+    urls = []
+
+    def record_get(url, **kwargs):
+        urls.append(url)
+        return _StreamedResponse(status_code=404, reason="Not Found")
+
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.get_experiment_url",
+            return_value="https://example.test",
+        ),
+        patch("psynet.export.client.fetch_logs", return_value=None),
+        patch("requests.get", side_effect=record_get),
+    ):
+        with pytest.raises(click.Abort):
+            export_(
+                ctx=Mock(),
+                get_exp_variables=Mock(),
+                app="psynet-02",
+                server="example.test",
+                docker_ssh=True,
+                assets="none",
+            )
+
+    assert any("/dashboard/export/preflight" in url for url in urls)
+    assert not any("/dashboard/export/download" in url for url in urls)
+    assert json.loads((latest / "manifest.json").read_text()) == {"kept": True}
+
+
 def test_remote_export_from_the_wrong_experiment_is_refused(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     latest = tmp_path / "exports" / "latest"

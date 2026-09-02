@@ -11,9 +11,11 @@ import pytest
 
 from psynet.export.client import (
     AssetTransferPlan,
+    DashboardEndpoint,
     TransferError,
     choose_transport,
     extract_archive,
+    fetch_preflight,
     hydrate_assets,
     plan_asset_transfer,
     publish_export,
@@ -72,9 +74,10 @@ def test_incremental_transfer_is_used_only_when_the_deployment_supports_it():
     )
     assert choose_transport(s3_backed, assets="collected", over_ssh=True) == "archive"
     assert choose_transport(eligible, assets="all", over_ssh=True) == "archive"
-    # No SSH access, and deployments without a preflight, use the archive.
+    # No SSH access uses the complete archive.
     assert choose_transport(eligible, assets="collected", over_ssh=False) == "archive"
-    assert choose_transport(None, assets="collected", over_ssh=True) == "archive"
+    with pytest.raises(TransferError, match="earlier version of PsyNet"):
+        choose_transport(None, assets="collected", over_ssh=True)
     # --assets none never needs asset bytes, so the core snapshot suffices.
     assert choose_transport(s3_backed, assets="none", over_ssh=True) == "incremental"
 
@@ -92,6 +95,31 @@ def test_explicit_incremental_request_reports_an_unsupported_selection():
         choose_transport(
             identity, assets="collected", over_ssh=True, requested="incremental"
         )
+
+
+def test_fetch_preflight_rejects_a_deployment_without_the_endpoint(monkeypatch):
+    class _Missing:
+        status_code = 404
+        reason = "Not Found"
+
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: _Missing())
+    endpoint = DashboardEndpoint("https://example.test", ("admin", "secret"))
+
+    with pytest.raises(TransferError, match="earlier version of PsyNet"):
+        fetch_preflight(endpoint)
+
+
+def test_fetch_preflight_rejects_an_unreachable_endpoint(monkeypatch):
+    import requests
+
+    def raise_timeout(*args, **kwargs):
+        raise requests.Timeout("timed out")
+
+    monkeypatch.setattr("requests.get", raise_timeout)
+    endpoint = DashboardEndpoint("https://example.test", ("admin", "secret"))
+
+    with pytest.raises(TransferError, match="Could not reach"):
+        fetch_preflight(endpoint)
 
 
 def test_asset_plan_excludes_assets_rsync_cannot_supply(tmp_path):
@@ -128,6 +156,11 @@ def test_asset_plan_excludes_assets_rsync_cannot_supply(tmp_path):
     assert plan.digests == ["a" * 64]
     assert [row["id"] for row in plan.ineligible] == ["3", "4"]
     assert not plan.eligible
+
+
+def test_asset_plan_requires_the_incremental_manifest(tmp_path):
+    with pytest.raises(TransferError, match="assets/manifest.csv"):
+        plan_asset_transfer(str(tmp_path))
 
 
 def test_hydration_reports_a_failed_rsync_as_a_transfer_error(
@@ -320,6 +353,28 @@ def test_publishing_uses_the_history_rotation_hook_when_provided(tmp_path):
     assert (destination / "manifest.json").read_text() == "new"
 
 
+def test_publishing_restores_latest_when_interrupted(tmp_path):
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    (staging / "manifest.json").write_text("new")
+    destination = tmp_path / "latest"
+    destination.mkdir()
+    (destination / "manifest.json").write_text("old")
+    history = tmp_path / "history"
+
+    def rotate(path):
+        Path(path).rename(history)
+        return str(history)
+
+    with patch("psynet.export.client.os.replace", side_effect=KeyboardInterrupt):
+        with pytest.raises(KeyboardInterrupt):
+            publish_export(str(staging), str(destination), rotate_history=rotate)
+
+    assert (destination / "manifest.json").read_text() == "old"
+    assert not history.exists()
+    assert (staging / "manifest.json").read_text() == "new"
+
+
 def test_publishing_nothing_leaves_the_destination_untouched(tmp_path):
     destination = tmp_path / "latest"
     destination.mkdir()
@@ -463,7 +518,7 @@ def test_extract_archive_rejects_mixed_layouts_before_unpack(tmp_path):
         handle.writestr("manifest.json", '{"export_format_version": 1}')
         handle.writestr("database/trial.csv", "id\n1\n")
         handle.writestr("data/participant.csv", "id\n2\n")
-    with pytest.raises(TransferError, match="ambiguous table layout"):
+    with pytest.raises(TransferError, match="ambiguous layout"):
         extract_archive(str(archive), str(staging))
     assert not (staging / "database" / "trial.csv").exists()
     assert not (staging / "data" / "participant.csv").exists()
@@ -480,7 +535,7 @@ def test_extract_archive_rejects_duplicate_members_before_unpack(tmp_path):
             ("database/trial.csv", "id\n2\n"),
         ],
     )
-    with pytest.raises(TransferError, match="ambiguous table layout"):
+    with pytest.raises(TransferError, match="ambiguous layout"):
         extract_archive(str(archive), str(staging))
     assert not (staging / "database" / "trial.csv").exists()
 

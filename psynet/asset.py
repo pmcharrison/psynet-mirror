@@ -1144,11 +1144,9 @@ class ManagedAsset(Asset):
         )
 
     def get_content_id(self):
-        if self.sha256_contents:
-            return self.sha256_contents
-        if not self.input_path:
-            return None
-        return self.get_sha256_contents()
+        # Managed assets receive their content identity after ``prepare_input``.
+        # In particular, function assets start with an empty temporary file.
+        return self.sha256_contents
 
     def get_md5_contents(self):
         return self._get_md5_contents(self.input_path, self.is_folder)
@@ -1204,6 +1202,9 @@ class ManagedAsset(Asset):
             self.deposit_time_sec = time_end - time_start
         else:
             self.deposited = True
+            self.after_deposit()
+            if delete_input:
+                self.delete_input()
 
     def prepare_input(self):
         pass

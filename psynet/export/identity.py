@@ -21,9 +21,9 @@ Design constraints
   an archive we cannot parse is worse than failing.
 * PsyNet and Dallinger version differences are recorded, not enforced, because
   no local ORM or experiment code takes part in building a remote export.
-* Old deployments predate the preflight endpoint. Missing identity is a warning
-  plus a fallback, never a crash: the point is to protect experimenters from
-  losing data, not to lock them out of it.
+* A deployment without the preflight endpoint is an earlier PsyNet than this
+  environment. Export stops immediately; install that version (see
+  ``constraints.txt``) or export from the dashboard.
 """
 
 from __future__ import annotations

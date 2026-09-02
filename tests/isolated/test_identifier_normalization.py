@@ -1,5 +1,9 @@
 """Identifier ownership lives on Participant (and LucidRID for ghosts)."""
 
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
+
+from dallinger import db
 from sqlalchemy import inspect as sa_inspect
 
 from psynet.error import ErrorRecord
@@ -7,7 +11,7 @@ from psynet.identifiers import (
     LUCID_ENTRANT_IDENTIFIER_FIELDS,
     PARTICIPANT_IDENTIFIER_FIELDS,
 )
-from psynet.recruiters import LucidRID
+from psynet.recruiters import LucidRecruiter, LucidRID
 from psynet.timeline import Response
 
 
@@ -53,3 +57,22 @@ def test_lucid_rid_uses_participant_id_fk():
     participant_fks = list(columns["participant_id"].foreign_keys)
     assert len(participant_fks) == 1
     assert participant_fks[0].column.table.name == "participant"
+
+
+def test_linking_lucid_participant_does_not_commit_the_request_transaction():
+    entrant = SimpleNamespace(participant_id=None)
+    entrant.link_participant = lambda participant: setattr(
+        entrant, "participant_id", participant.id
+    )
+    query = Mock()
+    query.filter_by.return_value.one.return_value = entrant
+    participant = SimpleNamespace(id=42, worker_id="respondent-1")
+
+    with (
+        patch.object(LucidRID, "query", query),
+        patch.object(db.session, "commit") as commit,
+    ):
+        LucidRecruiter.link_lucid_rid_to_participant(object(), participant)
+
+    assert entrant.participant_id == participant.id
+    commit.assert_not_called()

@@ -7,6 +7,7 @@ without requiring a running PsyNet experiment or database connection.
 import hashlib
 import os
 import shutil
+import stat
 
 import pytest
 
@@ -72,6 +73,7 @@ def test_ensure_object_in_cache_file_basic(cache_root, sample_file):
     assert cache_path.exists()
     assert cache_path == object_cache_path(digest, cache_root)
     assert cache_path.read_bytes() == b"hello cache"
+    assert not cache_path.stat().st_mode & stat.S_IWUSR
 
 
 def test_ensure_object_in_cache_file_idempotent(cache_root, sample_file):
@@ -87,6 +89,28 @@ def test_ensure_object_in_cache_file_idempotent(cache_root, sample_file):
     ensure_object_in_cache(digest, fetch_fn, cache_root=cache_root)
 
     assert call_count["n"] == 1
+
+
+def test_ensure_object_in_cache_replaces_a_corrupted_writable_entry(
+    cache_root, sample_file
+):
+    src, digest = sample_file
+    cache_path = ensure_object_in_cache(
+        digest,
+        lambda dest: shutil.copy2(str(src), dest),
+        cache_root=cache_root,
+    )
+    cache_path.chmod(cache_path.stat().st_mode | stat.S_IWUSR)
+    cache_path.write_bytes(b"corrupted")
+
+    ensure_object_in_cache(
+        digest,
+        lambda dest: shutil.copy2(str(src), dest),
+        cache_root=cache_root,
+    )
+
+    assert cache_path.read_bytes() == b"hello cache"
+    assert not cache_path.stat().st_mode & stat.S_IWUSR
 
 
 def test_ensure_object_in_cache_wrong_digest_raises(cache_root, tmp_path):
@@ -173,6 +197,7 @@ def test_link_or_copy_hardlink_same_inode(cache_root, sample_file):
     assert src_ino == dest_ino, (
         "Expected a hardlink (same inode) on the same filesystem"
     )
+    assert not dest.stat().st_mode & stat.S_IWUSR
 
 
 def test_link_or_copy_file_creates_parent(tmp_path):

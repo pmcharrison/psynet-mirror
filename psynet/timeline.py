@@ -1525,6 +1525,7 @@ class Page(Elt):
         metadata,
         experiment,
         participant,
+        client_ip_address=None,
         answer=NoArgumentProvided,
     ):
         from psynet.trial.main import Trial

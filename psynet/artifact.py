@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import urllib.parse
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -384,6 +385,18 @@ class ArtifactStorage:
         export_type : str, optional
             Deprecated. Ignored; exports are always ``export.zip``.
         """
+        if destination in ("psynet", "database") and deployment_id is not None:
+            warnings.warn(
+                "Passing export_type as the first positional argument is "
+                "deprecated; pass destination first.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            destination, deployment_id, export_type = (
+                deployment_id,
+                export_type,
+                destination,
+            )
         if deployment_id is None:
             deployment_id = self.experiment.deployment_id
 

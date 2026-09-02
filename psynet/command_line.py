@@ -212,40 +212,48 @@ def _install_archive_template(archive: str, template_path: str) -> None:
     )
 
     archive = os.path.abspath(os.path.expanduser(archive))
+    template_path = os.path.abspath(os.path.expanduser(template_path))
     make_parents(template_path)
-    if os.path.exists(template_path):
-        os.remove(template_path)
-
-    if is_zip_path(archive):
-        # Re-pack rather than copy: an export.zip also holds identifier
-        # sidecars and asset bytes, and .deploy travels to the server.
-        with zipfile.ZipFile(archive) as source:
-            try:
-                members = table_csv_members(source)
-            except (AmbiguousArchiveLayoutError, UnsafePathError) as exc:
-                raise click.UsageError(str(exc)) from exc
-            if not members:
-                raise click.UsageError(
-                    f"{archive} contains no table CSVs under database/, so it "
-                    "cannot be used as a deployment archive."
-                )
+    fd, temporary_path = tempfile.mkstemp(
+        prefix=".database-template-", suffix=".zip", dir=os.path.dirname(template_path)
+    )
+    os.close(fd)
+    try:
+        if is_zip_path(archive):
+            # Re-pack rather than copy: an export.zip also holds identifier
+            # sidecars and asset bytes, and .deploy travels to the server.
+            with zipfile.ZipFile(archive) as source:
+                try:
+                    members = table_csv_members(source)
+                except (AmbiguousArchiveLayoutError, UnsafePathError) as exc:
+                    raise click.UsageError(str(exc)) from exc
+                if not members:
+                    raise click.UsageError(
+                        f"{archive} contains no table CSVs under database/, so it "
+                        "cannot be used as a deployment archive."
+                    )
+                with zipfile.ZipFile(
+                    temporary_path, "w", compression=zipfile.ZIP_DEFLATED
+                ) as zf:
+                    for member in members:
+                        name = os.path.basename(member)
+                        zf.writestr(f"{DATABASE_DIRNAME}/{name}", source.read(member))
+        else:
+            database_dir = resolve_database_dir(archive)
             with zipfile.ZipFile(
-                template_path, "w", compression=zipfile.ZIP_DEFLATED
+                temporary_path, "w", compression=zipfile.ZIP_DEFLATED
             ) as zf:
-                for member in members:
-                    name = os.path.basename(member)
-                    zf.writestr(f"{DATABASE_DIRNAME}/{name}", source.read(member))
-        return
-
-    database_dir = resolve_database_dir(archive)
-    with zipfile.ZipFile(template_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for name in sorted(os.listdir(database_dir)):
-            if not name.endswith(".csv"):
-                continue
-            zf.write(
-                os.path.join(database_dir, name),
-                f"{DATABASE_DIRNAME}/{name}",
-            )
+                for name in sorted(os.listdir(database_dir)):
+                    if not name.endswith(".csv"):
+                        continue
+                    zf.write(
+                        os.path.join(database_dir, name),
+                        f"{DATABASE_DIRNAME}/{name}",
+                    )
+        os.replace(temporary_path, template_path)
+    finally:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
 
 
 def _prepare(archive=None):
@@ -2689,12 +2697,8 @@ def _fetch_remote_export(
             log(str(exc))
             raise click.Abort from exc
 
-    preflight = fetch_preflight(endpoint)
-    remote_identity = (
-        ProjectIdentity.from_dict(preflight) if preflight is not None else None
-    )
-    if remote_identity is not None:
-        check_identity(remote_identity)
+    remote_identity = ProjectIdentity.from_dict(fetch_preflight(endpoint))
+    check_identity(remote_identity)
 
     session_cm = SshSession(server) if docker_ssh and server else nullcontext()
     with session_cm as ssh_session:
@@ -2770,12 +2774,10 @@ def _fetch_remote_export(
             manifest = download_into_staging("include")
 
         # Always re-check the downloaded manifest. Preflight can race with a
-        # redeployment, and older servers have no preflight at all.
+        # redeployment.
         if manifest:
             downloaded_identity = identity_from_manifest(manifest)
-            if remote_identity is None:
-                check_identity(downloaded_identity)
-            elif identity_changed(remote_identity, downloaded_identity):
+            if identity_changed(remote_identity, downloaded_identity):
                 raise TransferError(
                     "The downloaded export does not match the deployment that "
                     "answered preflight. The experiment may have been replaced "

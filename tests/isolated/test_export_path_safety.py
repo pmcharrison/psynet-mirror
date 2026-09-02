@@ -118,6 +118,20 @@ def test_extract_zip_contained_rejects_zip_slip(tmp_path):
     assert not (tmp_path / "outside.txt").exists()
 
 
+def test_extract_zip_contained_rejects_normalized_aliases_before_writing(tmp_path):
+    dest = tmp_path / "out"
+    with _archive(
+        tmp_path,
+        {
+            "manifest.json": '{"experiment_label": "expected"}',
+            "./manifest.json": '{"experiment_label": "overwritten"}',
+        },
+    ) as archive:
+        with pytest.raises(AmbiguousArchiveLayoutError, match="same path"):
+            extract_zip_contained(archive, str(dest))
+    assert not (dest / "manifest.json").exists()
+
+
 def test_semantic_asset_paths_must_stay_relative():
     assert assert_semantic_asset_path("module/a.wav") == "module/a.wav"
     with pytest.raises(UnsafePathError):

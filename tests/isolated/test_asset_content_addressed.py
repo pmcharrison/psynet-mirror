@@ -1,10 +1,22 @@
 """Tests for content-addressed managed assets and access tokens."""
 
+import hashlib
+from pathlib import Path
+
 import pytest
 
-from psynet.asset import ExperimentAsset, OnDemandAsset, _reject_obfuscate_arg
+from psynet.asset import (
+    CachedFunctionAsset,
+    ExperimentAsset,
+    OnDemandAsset,
+    _reject_obfuscate_arg,
+)
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import content_object_path, sha256_file
+
+
+def _write_generated_asset(path, payload):
+    Path(path).write_bytes(payload.encode())
 
 
 def test_reject_obfuscate_arg_raises():
@@ -56,3 +68,33 @@ def test_managed_asset_uses_sha256_object_path_and_access_token(
     assert asset.access_token
     assert asset.url == f"/asset/{asset.access_token}"
     assert asset.url != asset.object_path
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
+def test_cached_function_assets_hash_the_generated_bytes(launched_experiment):
+    assets = [
+        CachedFunctionAsset(
+            function=_write_generated_asset,
+            arguments={"payload": payload},
+            local_key=f"generated-{payload}",
+            extension=".txt",
+        )
+        for payload in ("first", "second")
+    ]
+
+    for asset in assets:
+        asset.deposit(launched_experiment.asset_storage)
+
+    expected = [
+        hashlib.sha256(value.encode()).hexdigest() for value in ("first", "second")
+    ]
+    assert [asset.sha256_contents for asset in assets] == expected
+    assert assets[0].object_path != assets[1].object_path
+    for asset, payload in zip(assets, ("first", "second")):
+        stored = launched_experiment.asset_storage.get_file_system_path(
+            asset.object_path
+        )
+        assert Path(stored).read_text() == payload

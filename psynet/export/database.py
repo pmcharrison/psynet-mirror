@@ -107,6 +107,7 @@ def copy_database_to_csv_dir(
     table_names: Optional[Iterable[str]] = None,
     *,
     pseudonymize: bool = False,
+    _connection=None,
 ) -> list[str]:
     """Copy each physical table to ``csv_dir/<table>.csv`` via PostgreSQL COPY.
 
@@ -128,7 +129,7 @@ def copy_database_to_csv_dir(
         list(table_names) if table_names is not None else _export_table_order(inspector)
     )
     schema = validate_identifier_schema(inspector, tables) if pseudonymize else None
-    conn = psycopg2.connect(dsn=_db_dsn())
+    conn = _connection or psycopg2.connect(dsn=_db_dsn())
     try:
         cur = conn.cursor()
         for table in tables:
@@ -157,11 +158,17 @@ def copy_database_to_csv_dir(
             with open(path, "w", newline="") as handle:
                 cur.copy_expert(query, handle)
     finally:
-        conn.close()
+        if _connection is None:
+            conn.close()
     return tables
 
 
-def write_identifier_sidecars(export_path: str, table_names: Iterable[str]) -> dict:
+def write_identifier_sidecars(
+    export_path: str,
+    table_names: Iterable[str],
+    *,
+    _connection=None,
+) -> dict:
     """Write the recruiter-identifier sidecar CSVs beside ``database/``.
 
     Returns ``key -> path`` for the sidecars that were written. An empty Lucid
@@ -170,7 +177,7 @@ def write_identifier_sidecars(export_path: str, table_names: Iterable[str]) -> d
     os.makedirs(export_path, exist_ok=True)
     specs = sidecar_specs(set(table_names))
     paths = {}
-    conn = psycopg2.connect(dsn=_db_dsn())
+    conn = _connection or psycopg2.connect(dsn=_db_dsn())
     try:
         cur = conn.cursor()
         for key, (filename, query) in specs.items():
@@ -182,7 +189,8 @@ def write_identifier_sidecars(export_path: str, table_names: Iterable[str]) -> d
                 continue
             paths[key] = path
     finally:
-        conn.close()
+        if _connection is None:
+            conn.close()
     return paths
 
 
@@ -354,8 +362,21 @@ def export_database_snapshot(export_path: str) -> dict:
     if os.path.exists(database_dir):
         shutil.rmtree(database_dir)
 
-    table_names = copy_database_to_csv_dir(database_dir, pseudonymize=True)
-    sidecar_paths = write_identifier_sidecars(export_path, table_names)
+    conn = psycopg2.connect(dsn=_db_dsn())
+    conn.set_session(isolation_level="REPEATABLE READ", readonly=True)
+    try:
+        table_names = copy_database_to_csv_dir(
+            database_dir,
+            pseudonymize=True,
+            _connection=conn,
+        )
+        sidecar_paths = write_identifier_sidecars(
+            export_path,
+            table_names,
+            _connection=conn,
+        )
+    finally:
+        conn.close()
     row_counts = omit_empty_table_csvs(database_dir, table_names)
 
     manifest_path = write_export_manifest(

@@ -6,9 +6,11 @@ import csv
 import json
 import zipfile
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
+import click
 import pandas as pd
+import pytest
 
 from psynet.export.analysis import (
     load_export_table,
@@ -83,6 +85,61 @@ def test_analysis_helpers_accept_path_objects(tmp_path):
     assert merged.iloc[0]["worker_id"] == "worker-1"
 
 
+def test_identifier_merge_preserves_numeric_looking_strings(tmp_path):
+    identifiers = tmp_path / "participant_identifiers.csv"
+    identifiers.write_text("participant_id,worker_id\n1,000123\n")
+    frame = pd.DataFrame([{"participant_id": 1}])
+
+    merged = merge_participant_identifiers(frame, identifiers)
+
+    assert merged.iloc[0]["worker_id"] == "000123"
+
+
+def test_unpack_json_column_accepts_already_parsed_lists():
+    frame = pd.DataFrame({"definition": [["first", "second"]]})
+
+    unpacked = unpack_json_column(frame, "definition")
+
+    assert unpacked.iloc[0]["value"] == ["first", "second"]
+
+
+def test_database_tables_and_identifier_sidecars_share_one_snapshot(tmp_path):
+    from psynet.export.database import export_database_snapshot
+
+    connection = Mock()
+    with (
+        patch(
+            "psynet.export.database.psycopg2.connect",
+            return_value=connection,
+        ),
+        patch(
+            "psynet.export.database.copy_database_to_csv_dir",
+            return_value=["participant"],
+        ) as copy_tables,
+        patch(
+            "psynet.export.database.write_identifier_sidecars",
+            return_value={},
+        ) as write_sidecars,
+        patch(
+            "psynet.export.database.omit_empty_table_csvs",
+            return_value={"participant": 0},
+        ),
+        patch(
+            "psynet.export.database.write_export_manifest",
+            return_value=str(tmp_path / "manifest.json"),
+        ),
+    ):
+        export_database_snapshot(str(tmp_path))
+
+    connection.set_session.assert_called_once_with(
+        isolation_level="REPEATABLE READ",
+        readonly=True,
+    )
+    assert copy_tables.call_args.kwargs["_connection"] is connection
+    assert write_sidecars.call_args.kwargs["_connection"] is connection
+    connection.close.assert_called_once()
+
+
 def test_ingest_zip_skips_tables_without_csv_files(tmp_path, monkeypatch):
     from psynet.data import ingest_zip
 
@@ -146,6 +203,35 @@ def test_archive_template_keeps_only_table_csvs_from_a_zip(tmp_path):
 
     with zipfile.ZipFile(template) as handle:
         assert handle.namelist() == ["database/trial.csv"]
+
+
+def test_archive_template_can_replace_its_source_path(tmp_path):
+    from psynet.command_line import _install_archive_template
+
+    archive = tmp_path / "database_template.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr("database/trial.csv", "id\n1\n")
+        handle.writestr("manifest.json", "{}")
+
+    _install_archive_template(str(archive), str(archive))
+
+    with zipfile.ZipFile(archive) as handle:
+        assert handle.namelist() == ["database/trial.csv"]
+
+
+def test_invalid_archive_does_not_remove_existing_template(tmp_path):
+    from psynet.command_line import _install_archive_template
+
+    source = tmp_path / "invalid.zip"
+    with zipfile.ZipFile(source, "w") as handle:
+        handle.writestr("manifest.json", "{}")
+    template = tmp_path / "database_template.zip"
+    template.write_bytes(b"previous-template")
+
+    with pytest.raises(click.UsageError, match="contains no table CSVs"):
+        _install_archive_template(str(source), str(template))
+
+    assert template.read_bytes() == b"previous-template"
 
 
 def test_load_export_table_parses_copy_and_python_booleans(tmp_path):

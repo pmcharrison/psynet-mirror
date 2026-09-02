@@ -2,6 +2,7 @@
 
 import hashlib
 import shutil
+import stat
 import sys
 from pathlib import Path
 
@@ -70,6 +71,23 @@ def test_missing_object_digests_skips_cached(cache_root, remote_assets):
     absent = hashlib.sha256(b"not here").hexdigest()
     missing = missing_object_digests([present, absent, present], cache_root=cache_root)
     assert missing == [absent]
+
+
+def test_missing_object_digests_discards_corrupted_writable_cache_entry(cache_root):
+    digest = _write_object(cache_root, b"original")
+    path = cache_root / "objects" / "sha256" / digest
+    path.write_bytes(b"corrupted")
+
+    assert missing_object_digests([digest], cache_root=cache_root) == [digest]
+    assert not path.exists()
+
+
+def test_missing_object_digests_marks_valid_cache_entry_read_only(cache_root):
+    digest = _write_object(cache_root, b"original")
+    path = cache_root / "objects" / "sha256" / digest
+
+    assert missing_object_digests([digest], cache_root=cache_root) == []
+    assert not path.stat().st_mode & stat.S_IWUSR
 
 
 def test_remote_assets_source_uses_home_and_user():

@@ -144,8 +144,10 @@ must pass ``--allow-project-mismatch`` to continue. These checks apply even when
 you supply ``--path``. PsyNet checks the downloaded ``manifest.json`` too,
 including after a successful preflight, so a deployment replaced during the
 transfer cannot publish the wrong archive. Missing downloaded identity fields
-are treated as a mismatch when preflight supplied them. A deployment running a
-PsyNet version that predates preflight is checked from its manifest alone.
+are treated as a mismatch when preflight supplied them. A deployment whose
+PsyNet predates the preflight endpoint cannot be exported with this client.
+Install that earlier version (see ``constraints.txt``) and retry, or export
+from the dashboard.
 
 .. code:: bash
 
@@ -213,7 +215,10 @@ used as browser capabilities. The old ``obfuscate`` and ``personal`` asset flags
 have been removed.
 
 Command-line exports reuse a persistent local cache under
-``~/psynet-data/cache/assets/``. Inspect or clear it with:
+``~/psynet-data/cache/assets/``. Cached files and their hard-linked export
+copies are read-only so editing an export cannot silently change the bytes
+stored under a content hash. PsyNet revalidates a cache entry if it becomes
+writable. Inspect or clear the cache with:
 
 .. code:: bash
 

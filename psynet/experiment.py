@@ -2658,6 +2658,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
+                client_ip_address=client_ip_address,
                 answer=answer,
             )
             validation = event.validate(

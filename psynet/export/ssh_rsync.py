@@ -37,7 +37,11 @@ import tempfile
 from pathlib import Path
 from typing import Callable, Iterable, List, Optional, Sequence, Union
 
-from psynet.export.asset_cache import object_cache_path
+from psynet.export.asset_cache import (
+    _cached_object_is_valid,
+    _make_read_only,
+    object_cache_path,
+)
 from psynet.utils import sha256_directory, sha256_file
 
 logger = logging.getLogger(__name__)
@@ -92,7 +96,7 @@ def missing_object_digests(
         if digest in seen:
             continue
         seen.add(digest)
-        if not object_cache_path(digest, cache_root).exists():
+        if not _cached_object_is_valid(digest, object_cache_path(digest, cache_root)):
             missing.append(digest)
     return missing
 
@@ -313,4 +317,5 @@ def _promote_staged_object(
     if dest.exists():
         return False
     os.replace(str(staged), str(dest))
+    _make_read_only(dest)
     return True

@@ -33,6 +33,7 @@ does import hashing helpers from ``psynet.utils``.
 import logging
 import os
 import shutil
+import stat
 import tempfile
 from pathlib import Path
 from typing import Callable, List, Optional, Union
@@ -109,7 +110,7 @@ def ensure_object_in_cache(
         When the fetched content's SHA-256 digest differs from ``digest``.
     """
     cache_path = object_cache_path(digest, cache_root)
-    if cache_path.exists():
+    if _cached_object_is_valid(digest, cache_path):
         return cache_path
 
     cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -119,6 +120,7 @@ def ensure_object_in_cache(
     else:
         _fetch_file_to_cache(digest, fetch_fn, cache_path)
 
+    _make_read_only(cache_path)
     return cache_path
 
 
@@ -147,6 +149,7 @@ def link_or_copy(
     src = Path(src)
     dest = Path(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
+    _make_read_only(src)
 
     if is_folder:
         shutil.copytree(str(src), str(dest))
@@ -318,6 +321,43 @@ def _resolve_root(cache_root: Optional[Union[str, Path]]) -> Path:
     return Path(os.path.expanduser(str(cache_root)))
 
 
+def _cached_object_is_valid(digest: str, path: Path) -> bool:
+    """Return whether a cache entry exists and still matches its content address.
+
+    Newly written cache entries are read-only. Existing writable entries (from
+    older PsyNet versions, or because a hard-linked export was made writable)
+    are hashed once before being trusted and returned to read-only mode.
+    """
+    if not path.exists():
+        return False
+    if not _has_write_bits(path):
+        return True
+
+    actual = sha256_directory(path) if path.is_dir() else sha256_file(path)
+    if actual == digest:
+        _make_read_only(path)
+        return True
+
+    logger.warning("Discarding corrupted cached asset object %s.", digest)
+    if path.is_dir():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+    return False
+
+
+def _has_write_bits(path: Path) -> bool:
+    return bool(path.stat().st_mode & (stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
+
+
+def _make_read_only(path: Path) -> None:
+    """Remove write permissions from a cached object and its contents."""
+    if path.is_dir():
+        for child in path.rglob("*"):
+            child.chmod(child.stat().st_mode & ~0o222)
+    path.chmod(path.stat().st_mode & ~0o222)
+
+
 def _fetch_file_to_cache(
     digest: str,
     fetch_fn: Callable[[str], None],
@@ -346,6 +386,7 @@ def _fetch_file_to_cache(
                 tmp_path.unlink(missing_ok=True)
             else:
                 raise
+        _make_read_only(cache_path)
     except Exception:
         tmp_path.unlink(missing_ok=True)
         raise
@@ -382,6 +423,7 @@ def _fetch_folder_to_cache(
                 shutil.rmtree(str(tmp_dir), ignore_errors=True)
             else:
                 raise
+        _make_read_only(cache_path)
     except Exception:
         shutil.rmtree(str(tmp_dir), ignore_errors=True)
         raise
