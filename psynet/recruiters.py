@@ -781,12 +781,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     id="prolific-unsuccessful-done",
                     style="display: none;",
                 )
+                tags.p(
+                    _p(
+                        "prolific_error",
+                        "Something went wrong. Please click Submit to Prolific again.",
+                    ),
+                    id="prolific-unsuccessful-error",
+                    style="display: none;",
+                )
                 tags.script(
                     raw(
                         """
                         document.getElementById("prolific-unsuccessful-submit").onclick = function () {
                             const button = this;
                             button.disabled = true;
+                            document.getElementById("prolific-unsuccessful-error").style.display = "none";
                             const data = new URLSearchParams();
                             data.append("assignmentId", %s);
                             data.append("participantId", %s);
@@ -799,7 +808,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                                     document.getElementById("prolific-unsuccessful-instructions").style.display = "none";
                                     document.getElementById("prolific-unsuccessful-done").style.display = "block";
                                 })
-                                .catch(() => { button.disabled = false; });
+                                .catch(() => {
+                                    button.disabled = false;
+                                    document.getElementById("prolific-unsuccessful-error").style.display = "block";
+                                });
                         };
                         """
                         % (

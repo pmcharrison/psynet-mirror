@@ -19,6 +19,9 @@
       <p id="prolific-exit-done" style="display: none;">
         {{ pgettext("exit_recruiter_prolific", "Your submission has been recorded and your compensation will be processed by Prolific. You may now close this window.") }}
       </p>
+      <p id="prolific-exit-error" style="display: none;">
+        {{ pgettext("exit_recruiter_prolific", "Something went wrong. Please click Submit Study again.") }}
+      </p>
     </div>
   </div>
 {% endblock %}
@@ -28,6 +31,7 @@
     document.getElementById("js-exit-button").onclick = function () {
       const button = this;
       button.disabled = true;
+      document.getElementById("prolific-exit-error").style.display = "none";
       const data = new URLSearchParams();
       data.append("assignmentId", "{{ assignment_id }}");
       data.append("participantId", "{{ participant_id }}");
@@ -40,7 +44,10 @@
           document.getElementById("prolific-exit-instructions").style.display = "none";
           document.getElementById("prolific-exit-done").style.display = "block";
         })
-        .catch(() => { button.disabled = false; });
+        .catch(() => {
+          button.disabled = false;
+          document.getElementById("prolific-exit-error").style.display = "block";
+        });
     };
   </script>
 {% endblock %}

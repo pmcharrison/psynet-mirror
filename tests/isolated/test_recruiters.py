@@ -895,6 +895,8 @@ def test_prolific_exit_template_does_not_redirect_to_completion_code():
     assert "You do not need to enter a completion code" in text
     assert "window.location" not in text
     assert "prolific-exit-done" in text
+    assert "prolific-exit-error" in text
+    assert "Something went wrong. Please click Submit Study again." in text
     assert "/prolific-submission-listener" in text
 
 
@@ -988,6 +990,8 @@ def test_error_page_content_offers_submit_button_when_screen_out_enabled():
     assert "42" in html
     assert "You do not need to enter a completion code" in html
     assert 'id="prolific-unsuccessful-done"' in html
+    assert 'id="prolific-unsuccessful-error"' in html
+    assert "Something went wrong. Please click Submit to Prolific again." in html
     assert "window.location" not in html
     assert (
         "https://app.prolific.com/submissions/complete?cc=UNSUCCESSFUL-CODE" not in html
