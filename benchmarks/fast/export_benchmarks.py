@@ -1,9 +1,9 @@
 """Benchmarks for local PsyNet export performance.
 
 These classes use ASV ``track_*`` methods, which record a single scalar and do
-not get timed-benchmark warmup. ``asv continuous --split`` can reverse BASE and
-HEAD between rounds, so a cold first I/O sample is not comparable across
-commits.
+not get timed-benchmark warmup. ``asv continuous`` interleaves rounds by
+default, so BASE and HEAD can run in either order and a cold first I/O sample
+is not comparable across commits.
 
 ``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated directory,
 discards a warmup export, and records a later run.

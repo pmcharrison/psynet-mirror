@@ -6,11 +6,11 @@ benchmark prepares deterministic input files and validates the exported output;
 this module only deposits those files and times the asset export operation.
 
 The timed sample is a warmed ``export_assets`` call. ASV ``track_*`` methods
-have no warmup, and ``asv continuous --split`` can measure HEAD before BASE,
-so a single cold export would fill the shared content-addressed cache for
-whichever commit ran second. Each worker therefore sets
-``PSYNET_ASSET_CACHE_ROOT`` to a temporary directory and discards the first
-export.
+have no warmup, and ``asv continuous`` interleaves rounds by default, so it
+can measure HEAD before BASE. A single cold export would fill the shared
+content-addressed cache for whichever commit ran second. Each worker therefore
+sets ``PSYNET_ASSET_CACHE_ROOT`` to a temporary directory and discards the
+first export.
 """
 
 from __future__ import annotations
