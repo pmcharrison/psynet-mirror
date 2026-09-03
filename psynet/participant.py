@@ -153,6 +153,20 @@ def _extract_server_error_details(response_text):
     return None
 
 
+def _retry_busy_http(send, *, delay_s=0.25):
+    """Call ``send`` and retry once after a short delay on HTTP 503.
+
+    Browser submissions retry a busy response once; automated drivers follow
+    the same policy so lock timeouts do not fail the bot on the first hit.
+    """
+    response = send()
+    if response.status_code == 503:
+        time.sleep(delay_s)
+        response = send()
+    _raise_for_status_with_server_details(response)
+    return response
+
+
 def _raise_for_status_with_server_details(response):
     """Like ``Response.raise_for_status``, but include useful server details."""
     try:
@@ -1173,10 +1187,11 @@ class ParticipantDriver:
         directory : str
             Path to a directory for extracting files.
         """
-        response = self.experiment.authenticated_session.get(
-            f"{self.experiment.base_url}/participant_status/{self.id}"
+        response = _retry_busy_http(
+            lambda: self.experiment.authenticated_session.get(
+                f"{self.experiment.base_url}/participant_status/{self.id}"
+            )
         )
-        response.raise_for_status()
 
         self.response_files = {}
 
@@ -1204,11 +1219,12 @@ class ParticipantDriver:
         """
         Render the current page for the participant.
         """
-        response = requests.get(
-            f"{self.experiment.base_url}/timeline",
-            params={"unique_id": self.participant_unique_id},
+        _retry_busy_http(
+            lambda: requests.get(
+                f"{self.experiment.base_url}/timeline",
+                params={"unique_id": self.participant_unique_id},
+            )
         )
-        _raise_for_status_with_server_details(response)
 
     def _simulate_page_time(self, time_factor):
         """
@@ -1279,12 +1295,19 @@ class ParticipantDriver:
             for key, path in response_files.items():
                 file_obj = stack.enter_context(open(path, "rb"))
                 files[key] = (os.path.basename(path), file_obj)
-            response = requests.post(
-                f"{self.experiment.base_url}/response",
-                data={"json": json.dumps(submission_data)},
-                files=files,
-            )
-        _raise_for_status_with_server_details(response)
+
+            def send():
+                for _, file_tuple in files.items():
+                    file_obj = file_tuple[1]
+                    if hasattr(file_obj, "seek"):
+                        file_obj.seek(0)
+                return requests.post(
+                    f"{self.experiment.base_url}/response",
+                    data={"json": json.dumps(submission_data)},
+                    files=files,
+                )
+
+            response = _retry_busy_http(send)
         resp_json = response.json()
         if resp_json.get("submission") != "approved":
             raise RuntimeError(

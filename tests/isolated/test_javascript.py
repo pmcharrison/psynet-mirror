@@ -240,6 +240,27 @@ def test_response_prepare_error_returns_busy_for_transient_lock(monkeypatch):
     assert response.get_json()["submission"] == "busy"
 
 
+def test_response_prepare_error_returns_busy_for_any_transient_error(monkeypatch):
+    from flask import Flask
+
+    from psynet.experiment import Experiment
+
+    monkeypatch.setattr(
+        Experiment,
+        "_is_transient_transaction_error",
+        classmethod(lambda cls, error: True),
+    )
+    app = Flask(__name__)
+    with app.app_context():
+        response, status = Experiment._handle_response_prepare_error(
+            Experiment.__new__(Experiment),
+            participant_id=1,
+            error=RuntimeError("serialization failure"),
+        )
+    assert status == 503
+    assert response.get_json()["submission"] == "busy"
+
+
 def test_process_response_reraises_transient_lock_errors(monkeypatch):
     from types import SimpleNamespace
 

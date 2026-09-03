@@ -153,7 +153,15 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       const originalAlert = psynet.alert;
       const originalResponseEnable = psynet.response.enable;
       const originalSubmitEnable = psynet.submit.enable;
-      const effects = { alerts: 0, responseEnables: 0, submitEnables: 0 };
+      const originalStopHold = psynet.stopTimelineHold;
+      const originalReload = psynet.loadNextTimelinePageWithReload;
+      const effects = {
+        alerts: 0,
+        responseEnables: 0,
+        submitEnables: 0,
+        holdStops: 0,
+        reloads: 0
+      };
       psynet.alert = () => {
         effects.alerts += 1;
       };
@@ -163,6 +171,12 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       psynet.submit.enable = () => {
         effects.submitEnables += 1;
       };
+      psynet.stopTimelineHold = () => {
+        effects.holdStops += 1;
+      };
+      psynet.loadNextTimelinePageWithReload = () => {
+        effects.reloads += 1;
+      };
       await psynet.handleRejectedResponse(
         { message: "Rejected hold check" },
         undefined,
@@ -171,12 +185,16 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       psynet.alert = originalAlert;
       psynet.response.enable = originalResponseEnable;
       psynet.submit.enable = originalSubmitEnable;
+      psynet.stopTimelineHold = originalStopHold;
+      psynet.loadNextTimelinePageWithReload = originalReload;
       return effects;
     });
     expect(rejectedHoldEffects).toEqual({
       alerts: 0,
       responseEnables: 0,
-      submitEnables: 0
+      submitEnables: 0,
+      holdStops: 1,
+      reloads: 1
     });
 
     const busyHoldEffects = await experimentPage.evaluate(async () => {

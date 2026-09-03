@@ -299,8 +299,9 @@ Timeline holds pause server-side advancement without replacing the visible
 page. They are used by default barriers and by :func:`psynet.page.wait_while`.
 Condition holds first evaluate their condition and are skipped entirely when
 there is nothing to wait for.
-The server advances to an internal hold checkpoint and returns ``timeline_hold``
-metadata instead of a timeline fragment. The browser updates only its
+The server advances to an internal hold checkpoint and returns hold
+configuration on the page (``page.attributes.timeline_hold``) instead of a
+timeline fragment. The browser updates only its
 submission UUID, makes the visible controls inert, and renders a compact status
 indicator in ``#timeline-hold-region``. That region is fixed-position, so the
 indicator floats above the participant's content instead of reflowing it when a
@@ -319,10 +320,10 @@ always submits an idempotent resume check, and the server re-evaluates the
 condition. ``check_interval`` remains the bounded fallback for missed messages
 and arbitrary conditions without a framework event.
 
-Once first used, the shared hold-channel WebSocket remains open for the browser
-document's lifetime so repeated barriers do not churn connections. This adds
-one persistent connection per active participant document, independent of the
-number of hold visits.
+When the last hold on a page ends, the browser closes the hold-channel
+WebSocket. The next hold reconnects. A hold-resume check that comes back
+rejected (for example a stale ``page_uuid`` after the server has already
+advanced) reloads ``/timeline`` instead of leaving the overlay in place.
 
 Holds emit ``timelineHoldStarted`` and ``timelineHoldEnded`` browser events.
 Their ``detail.holdId`` identifies the wait. Authors that deliberately want a

@@ -1363,8 +1363,9 @@ class ChainTrialMaker(NetworkTrialMaker):
     sync_group_wait_content
         Message shown by the trial maker's own sync-group waits (initialization and
         trial preparation). If omitted, participants see "Waiting for other
-        participants…". Author-defined :class:`~psynet.sync.GroupBarrier` waits
-        still use their own ``content``.
+        participants…". Author-defined :class:`~psynet.sync.Grouper` and
+        :class:`~psynet.sync.GroupBarrier` waits still use their own ``content``;
+        pass the same string on those constructs if they should match.
 
     Attributes
     ----------

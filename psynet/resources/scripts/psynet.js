@@ -1028,7 +1028,6 @@
 
       controller.connection = PsyNetWebSocketChannel.connect({
         channel: hold.channel,
-        keepAlive: true,
         onOpen() {
           if (!controller.stopped) {
             psynet.resumeTimelineHold("websocket connection");
@@ -1039,13 +1038,13 @@
           let matchingTarget = (message.targets || []).find(
             (target) =>
               message.type === "timeline_hold_wake" &&
-              target.wake_token === hold.wake_token,
+              target.wake_token === controller.hold.wake_token,
           );
           if (matchingTarget) {
             window.dispatchEvent(
               new CustomEvent("timelineHoldWakeReceived", {
                 detail: {
-                  holdId: hold.hold_id,
+                  holdId: controller.hold.hold_id,
                   reason: matchingTarget.reason,
                 },
               }),
@@ -3057,10 +3056,11 @@
     psynet.handleApprovedResponse = async function (response) {
       psynet.log.debug("Response received successfully.");
 
-      if (response.timeline_hold) {
+      let hold = response.page?.attributes?.timeline_hold;
+      if (hold) {
         psynet.updatePageForTimelineHold(response.page);
         psynet.nextPagePending = false;
-        psynet.beginTimelineHold(response.timeline_hold);
+        psynet.beginTimelineHold(hold);
         if (psynetTemplateData.flags.lucidRecruitment) {
           psynet.addBeforeUnloadEventListener();
         }
@@ -3118,6 +3118,11 @@
         psynet.log.warn(
           "A timeline hold resume check was rejected: " + response.message,
         );
+        // The write may already have committed (stale fragment after hold
+        // release). Reload the authoritative timeline instead of polling the
+        // overlay with a rejected page_uuid.
+        psynet.stopTimelineHold();
+        psynet.loadNextTimelinePageWithReload();
       } else {
         psynet.alert(response.message);
         psynet.restoreSubmissionControlState();

@@ -3081,13 +3081,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return issubclass(self.recruiter.__class__, ProlificRecruiter)
 
     def _approved_payload(self, participant, page):
-        payload = {
+        return {
             "submission": "approved",
             "page": page.__json__(participant),
         }
-        if page.is_timeline_hold:
-            payload["timeline_hold"] = page.timeline_hold_payload(participant)
-        return payload
 
     def process_response(
         self,
@@ -4741,7 +4738,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             experiment = get_experiment()
             return cls._route_timeline(experiment, participant, mode)
-        except sqlalchemy.exc.OperationalError as error:
+        except Exception as error:
             if not cls._is_transient_transaction_error(error):
                 raise
             db.session.rollback()
@@ -4845,6 +4842,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return is_transient_transaction_error(error)
 
     @classmethod
+    def _busy_response_after_transient(cls, error, participant_id, context):
+        """Rollback and return HTTP 503 when ``error`` is retryable contention.
+
+        Returns ``None`` when the error is not a lock timeout, deadlock, or
+        serialization failure, so the caller can re-raise or handle it.
+        """
+        if not cls._is_transient_transaction_error(error):
+            return None
+        db.session.rollback()
+        logger.warning(
+            "%s hit transient database contention for participant %s.",
+            context,
+            participant_id,
+            exc_info=True,
+        )
+        return cls.busy_response()
+
+    @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
             if mode not in (None, "json"):
@@ -4874,9 +4889,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             with read_only_transaction():
                 return err.error_page()
         except Exception as err:
-            if isinstance(
-                err, sqlalchemy.exc.OperationalError
-            ) and cls._is_transient_transaction_error(err):
+            if cls._is_transient_transaction_error(err):
                 raise
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -5247,15 +5260,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 answer,
             )
         except Exception as error:
-            if not cls._is_transient_transaction_error(error):
-                raise
-            db.session.rollback()
-            logger.warning(
-                "Response hit transient database contention for participant %s.",
+            busy = cls._busy_response_after_transient(
+                error,
                 participant_id,
-                exc_info=True,
+                "Response",
             )
-            return cls.busy_response()
+            if busy is not None:
+                return busy
+            raise
 
         if result.flask_response is not None:
             return result.flask_response
@@ -5268,7 +5280,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             render_fragment = False
             if (
                 payload.get("submission") == "approved"
-                and "timeline_hold" not in payload
                 and include_timeline_fragment
                 and get_config().get("inplace_timeline_transitions")
             ):
@@ -5276,10 +5287,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     raise RuntimeError(
                         "Approved response did not retain its resolved page."
                     )
-                render_fragment = not page.requires_full_page_reload
-                if render_fragment:
-                    page.pre_render()
-                    page_uuid_after_response = participant.page_uuid
+                if not page.is_timeline_hold:
+                    render_fragment = not page.requires_full_page_reload
+                    if render_fragment:
+                        page.pre_render()
+                        page_uuid_after_response = participant.page_uuid
             db.session.commit()
         except Exception as err:
             return cls._handle_response_prepare_error(exp, participant_id, err)
@@ -5323,16 +5335,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         if os.getenv("PASSTHROUGH_ERRORS"):
             raise error
+        busy = cls._busy_response_after_transient(
+            error,
+            participant_id,
+            "Response preparation",
+        )
+        if busy is not None:
+            return busy
         db.session.rollback()
-        if isinstance(
-            error, sqlalchemy.exc.OperationalError
-        ) and cls._is_transient_transaction_error(error):
-            logger.warning(
-                "Response preparation hit transient database contention for participant %s.",
-                participant_id,
-                exc_info=True,
-            )
-            return cls.busy_response()
         return cls._handle_response_fatal_error(experiment, participant_id, error)
 
     @classmethod

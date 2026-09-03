@@ -497,7 +497,9 @@ class GroupBarrier(Barrier):
     content
         Message displayed by the default timeline hold overlay. Only used when
         ``waiting_logic`` is omitted. If omitted, participants see
-        "Waiting for other participants…".
+        "Waiting for other participants…". Independent of a preceding
+        :class:`~psynet.sync.Grouper`'s ``content`` and of trial-maker
+        ``sync_group_wait_content``.
 
     """
 
@@ -708,7 +710,9 @@ class Grouper(Barrier):
 
     content
         Message displayed by the default timeline hold overlay. Only used when
-        ``waiting_logic`` is omitted.
+        ``waiting_logic`` is omitted. This Grouper's overlay is independent of
+        trial-maker ``sync_group_wait_content``; pass ``content`` here and on
+        later :class:`~psynet.sync.GroupBarrier` waits if they should match.
 
     fix_time_credit
         If ``True``, award fixed ``expected_wait`` credit instead of actual

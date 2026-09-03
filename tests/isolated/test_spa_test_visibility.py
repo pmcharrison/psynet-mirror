@@ -12,6 +12,7 @@ from psynet.modular_page import Control, ModularPage, Prompt
 from psynet.participant import (
     _extract_server_error_details,
     _raise_for_status_with_server_details,
+    _retry_busy_http,
 )
 from psynet.timeline import (
     _SPA_INCOMPATIBILITY_MARKER,
@@ -105,3 +106,36 @@ def test_raise_for_status_includes_server_error_details():
         + re.escape(_SPA_INCOMPATIBILITY_MARKER),
     ):
         _raise_for_status_with_server_details(response)
+
+
+def _http_response(status_code):
+    response = SimpleNamespace(status_code=status_code, text="")
+    response.raise_for_status = lambda: None
+    return response
+
+
+def test_retry_busy_http_retries_once_on_503():
+    responses = [_http_response(503), _http_response(200)]
+    calls = {"n": 0}
+
+    def send():
+        calls["n"] += 1
+        return responses[calls["n"] - 1]
+
+    result = _retry_busy_http(send, delay_s=0)
+
+    assert result.status_code == 200
+    assert calls["n"] == 2
+
+
+def test_retry_busy_http_does_not_retry_success():
+    calls = {"n": 0}
+
+    def send():
+        calls["n"] += 1
+        return _http_response(200)
+
+    result = _retry_busy_http(send, delay_s=0)
+
+    assert result.status_code == 200
+    assert calls["n"] == 1
