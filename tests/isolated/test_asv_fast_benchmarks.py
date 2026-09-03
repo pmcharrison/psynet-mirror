@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from benchmarks.fast.debug_launch import (
@@ -7,10 +9,6 @@ from benchmarks.fast.debug_launch import (
     _prepare_benchmark_experiment,
     _prepared_benchmark_experiment,
     _temporary_static_payload,
-)
-from benchmarks.fast.export_benchmark_worker import (
-    _temporary_default_asset_cache,
-    _time_warmed_asset_export,
 )
 from benchmarks.fast.export_benchmarks import (
     _ASSET_EXPORT_PROFILES,
@@ -23,6 +21,7 @@ from benchmarks.fast.export_benchmarks import (
     _run_incremental_transfer_benchmark,
     _summarize_asset_export,
     _summarize_export,
+    _time_warmed_local_asset_export,
     _write_asset_payloads,
     _write_incremental_export_manifest,
     _write_incremental_remote_store,
@@ -382,61 +381,53 @@ def test_local_asset_export_tracks_metrics():
     assert benchmark.track_asset_total_bytes(results, profile) == 10_240_000
 
 
-def test_asset_export_worker_records_the_second_export(monkeypatch, tmp_path):
+def test_warmed_local_asset_export_records_the_second_cli_export(monkeypatch, tmp_path):
     """``track_*`` has no ASV warmup; the recorded sample must not be the cold run."""
-    from pathlib import Path
 
     export_dirs = []
-    clock = iter([10.0, 10.25])
+    elapsed_times = iter([10.0, 0.25])
 
-    def fake_export(assets_dir):
-        path = Path(assets_dir)
+    def fake_export(export_path, *, assets, env):
+        assert assets == "collected"
+        assert env["PSYNET_ASSET_CACHE_ROOT"] == str(tmp_path / "cache")
+        path = Path(export_path)
         export_dirs.append(path)
         path.mkdir(parents=True, exist_ok=True)
         (path / "marker").write_text("exported")
+        return next(elapsed_times)
 
     monkeypatch.setattr(
-        "benchmarks.fast.export_benchmark_worker._export_collected_assets",
-        fake_export,
-    )
-    monkeypatch.setattr(
-        "benchmarks.fast.export_benchmark_worker.time.perf_counter",
-        lambda: next(clock),
+        "benchmarks.fast.export_benchmarks._time_local_export", fake_export
     )
 
-    assets_dir = tmp_path / "assets"
-    elapsed = _time_warmed_asset_export(assets_dir)
+    export_path, elapsed = _time_warmed_local_asset_export(tmp_path, tmp_path / "cache")
 
     assert elapsed == pytest.approx(0.25)
     assert len(export_dirs) == 2
-    assert export_dirs[0] != assets_dir
-    assert export_dirs[1] == assets_dir
+    assert export_dirs[0].name == "warmup"
+    assert export_dirs[1].name == "timed"
+    assert export_path == export_dirs[1]
     assert not export_dirs[0].exists()
-    assert (assets_dir / "marker").read_text() == "exported"
+    assert (export_path / "marker").read_text() == "exported"
 
 
-def test_asset_export_worker_isolates_the_default_asset_cache(tmp_path):
+def test_warmed_local_asset_export_does_not_mutate_parent_cache_env(
+    monkeypatch, tmp_path
+):
     """ASV commits must not share ``~/psynet-data/cache/assets`` hits."""
-    import hashlib
-    import shutil
 
-    from psynet.export.asset_cache import ensure_object_in_cache, object_cache_path
+    parent_cache = tmp_path / "parent-cache"
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(parent_cache))
 
-    original = default_cache_root()
-    isolated = tmp_path / "export-asset-cache"
-    payload = b"isolated-cache"
-    digest = hashlib.sha256(payload).hexdigest()
-    src = tmp_path / "payload.bin"
-    src.write_bytes(payload)
+    def fake_export(export_path, *, assets, env):
+        assert env["PSYNET_ASSET_CACHE_ROOT"] == str(tmp_path / "isolated-cache")
+        Path(export_path).mkdir(parents=True, exist_ok=True)
+        return 0.1
 
-    def fetch_fn(dest):
-        shutil.copy2(src, dest)
+    monkeypatch.setattr(
+        "benchmarks.fast.export_benchmarks._time_local_export", fake_export
+    )
 
-    with _temporary_default_asset_cache(isolated):
-        assert default_cache_root() == isolated
-        cache_path = ensure_object_in_cache(digest, fetch_fn)
+    _time_warmed_local_asset_export(tmp_path / "exports", tmp_path / "isolated-cache")
 
-    assert default_cache_root() == original
-    assert cache_path == object_cache_path(digest, isolated)
-    assert cache_path.read_bytes() == payload
-    assert not object_cache_path(digest, original).exists()
+    assert default_cache_root() == parent_cache

@@ -50,12 +50,13 @@ both sides of the comparison.
 
 ``track_*`` methods record one scalar and have no ASV warmup. ``asv continuous``
 interleaves rounds by default, so a later round can run HEAD before BASE.
-``--split`` only splits the results table. A cold first ``export_assets`` call
+``--split`` only splits the results table. A cold first asset export
 fills ``~/psynet-data/cache/assets`` for the other commit, so that second
 commit looks faster even when the merge request did not touch export.
 
 ``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated
-directory, discards a warmup export, and records a later run.
+directory, discards one ``psynet export local --assets collected`` run, and
+records a second CLI export.
 ``IncrementalAssetTransfer`` already reports cold vs warm application-cache
 times and discards one transfer first so rsync startup and OS page-cache fill
 are not charged to whichever commit ran first. The merge-request gate keeps

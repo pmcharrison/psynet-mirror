@@ -6,7 +6,8 @@ default, so BASE and HEAD can run in either order and a cold first I/O sample
 is not comparable across commits.
 
 ``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated directory,
-discards a warmup export, and records a later run.
+discards one ``psynet export local --assets collected`` run, and records a
+second CLI export.
 ``IncrementalAssetTransfer`` already reports cold vs warm application-cache
 times; it also discards one transfer first so rsync startup and OS page-cache
 effects are not charged to whichever commit ran first.
@@ -19,6 +20,7 @@ import hashlib
 import json
 import inspect
 import os
+import shutil
 import subprocess
 import tempfile
 import time
@@ -133,10 +135,10 @@ def _benchmark_env() -> dict[str, str]:
     return env
 
 
-def _run_checked(command: list[str], *, cwd: Path) -> None:
+def _run_checked(command: list[str], *, cwd: Path, env: Optional[dict] = None) -> None:
     """Run a benchmark subprocess, raising if it fails."""
 
-    subprocess.run(command, cwd=cwd, env=_benchmark_env(), check=True)
+    subprocess.run(command, cwd=cwd, env=env or _benchmark_env(), check=True)
 
 
 def _populate_local_experiment(n_bots: int = 1) -> None:
@@ -157,7 +159,12 @@ def _populate_local_experiment(n_bots: int = 1) -> None:
     )
 
 
-def _time_local_export(export_path: Path) -> float:
+def _time_local_export(
+    export_path: Path,
+    *,
+    assets: str = "none",
+    env: Optional[dict] = None,
+) -> float:
     """Run the canonical local export and return elapsed seconds."""
 
     started_at = time.perf_counter()
@@ -167,11 +174,12 @@ def _time_local_export(export_path: Path) -> float:
             "export",
             "local",
             "--assets",
-            "none",
+            assets,
             "--path",
             str(export_path),
         ],
         cwd=_demo_dir(),
+        env=env,
     )
     return time.perf_counter() - started_at
 
@@ -296,24 +304,36 @@ def _write_asset_payloads(
 
 def _run_asset_worker(
     manifest_path: Path,
-    export_path: Path,
     storage_root: Path,
-    result_path: Path,
-) -> float:
-    """Run asset deposit and export in a fresh Python process."""
+) -> None:
+    """Deposit benchmark assets in a fresh Python process."""
 
     _run_checked(
         [
             "python",
             str(Path(__file__).with_name("export_benchmark_worker.py")),
             str(manifest_path),
-            str(export_path),
             str(storage_root),
-            str(result_path),
         ],
         cwd=_demo_dir(),
     )
-    return json.loads(result_path.read_text())["asset_export_time_s"]
+
+
+def _time_warmed_local_asset_export(export_root: Path, cache_root: Path) -> tuple[Path, float]:
+    """Export collected assets twice through the CLI and time the second run."""
+
+    env = _benchmark_env()
+    env["PSYNET_ASSET_CACHE_ROOT"] = str(cache_root)
+    warmup_path = export_root / "warmup"
+    timed_path = export_root / "timed"
+
+    try:
+        _time_local_export(warmup_path, assets="collected", env=env)
+    finally:
+        shutil.rmtree(warmup_path, ignore_errors=True)
+
+    elapsed = _time_local_export(timed_path, assets="collected", env=env)
+    return timed_path, elapsed
 
 
 def _summarize_asset_export(
@@ -355,24 +375,26 @@ def _summarize_asset_export(
 def _run_asset_export_benchmark(
     profile: _AssetExportProfile,
 ) -> dict[str, float | int]:
-    """Deposit deterministic assets, export them with a warmup, and return metrics."""
+    """Deposit deterministic assets, export them twice, and return metrics."""
 
     with (
         tempfile.TemporaryDirectory(prefix="psynet-asset-inputs-") as input_dir,
         tempfile.TemporaryDirectory(prefix="psynet-asset-export-") as export_dir,
         tempfile.TemporaryDirectory(prefix="psynet-asset-storage-") as storage_dir,
+        tempfile.TemporaryDirectory(prefix="psynet-asset-cache-") as cache_dir,
     ):
         input_dir = Path(input_dir)
-        export_path = Path(export_dir)
+        export_root = Path(export_dir)
         storage_root = Path(storage_dir)
+        cache_root = Path(cache_dir)
 
         _populate_local_experiment()
         manifest = _write_asset_payloads(input_dir, profile)
         manifest_path = input_dir / "manifest.json"
-        result_path = input_dir / "result.json"
         manifest_path.write_text(json.dumps(manifest))
-        asset_export_time_s = _run_asset_worker(
-            manifest_path, export_path, storage_root, result_path
+        _run_asset_worker(manifest_path, storage_root)
+        export_path, asset_export_time_s = _time_warmed_local_asset_export(
+            export_root, cache_root
         )
         return _summarize_asset_export(export_path, asset_export_time_s, manifest)
 
@@ -590,15 +612,15 @@ class IncrementalAssetTransfer:
 
 
 class LocalAssetExport:
-    """Benchmark local export of deterministic ExperimentAsset files."""
+    """Benchmark the local export CLI with deterministic ExperimentAsset files."""
 
     params = list(_ASSET_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 2
+    version = 3
 
     def setup_cache(self):
-        """Run each asset-export profile after a warmup export and cache scalars."""
+        """Run each profile with a warmup CLI export and cache scalars."""
         return _export_benchmark_cache(
             lambda: {
                 name: _run_asset_export_benchmark(profile)
@@ -616,7 +638,7 @@ class LocalAssetExport:
         _skip_unless_canonical_export_supported()
 
     def track_asset_export_time_s(self, results, profile):
-        """Return wall time for a cache-warmed local asset export."""
+        """Return wall time for a cache-warmed local asset export command."""
 
         return results[profile]["asset_export_time_s"]
 

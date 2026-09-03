@@ -20,6 +20,7 @@ from psynet.export.asset_cache import (
     list_cached_objects,
     object_cache_path,
     prune_cached_objects,
+    resolve_cache_root,
 )
 
 # ---------------------------------------------------------------------------
@@ -70,11 +71,23 @@ def test_default_cache_root_expands_user(monkeypatch):
     assert default_cache_root() == Path.home() / "custom-asset-cache"
 
 
+def test_default_cache_root_strips_and_absolutizes_env(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", " relative-cache ")
+    assert default_cache_root() == tmp_path / "relative-cache"
+
+
 def test_default_cache_root_empty_env_uses_home(monkeypatch):
     monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", "")
     root = default_cache_root()
     assert str(root).startswith(os.path.expanduser("~"))
     assert "psynet-data" in str(root)
+
+
+def test_resolve_cache_root_empty_explicit_value_uses_default(monkeypatch, tmp_path):
+    env_root = tmp_path / "env-cache"
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(env_root))
+    assert resolve_cache_root("") == env_root
 
 
 def test_ensure_object_in_cache_uses_env_root(monkeypatch, tmp_path, sample_file):

@@ -216,7 +216,8 @@ have been removed.
 
 Command-line exports reuse a persistent local cache under
 ``~/psynet-data/cache/assets/``. Override that location with the environment
-variable ``PSYNET_ASSET_CACHE_ROOT``:
+variable ``PSYNET_ASSET_CACHE_ROOT``; PsyNet strips whitespace, expands ``~``,
+and resolves relative paths before using the value:
 
 .. code:: bash
 
@@ -224,8 +225,9 @@ variable ``PSYNET_ASSET_CACHE_ROOT``:
     psynet export local
 
 Cached files and their hard-linked export copies are read-only so editing an
-export cannot silently change the bytes stored under a content hash. PsyNet revalidates a cache entry if it becomes
-writable. Inspect or clear the cache with:
+export cannot silently change the bytes stored under a content hash. PsyNet
+revalidates a cache entry if it becomes writable. Inspect or clear the cache
+with:
 
 .. code:: bash
 
