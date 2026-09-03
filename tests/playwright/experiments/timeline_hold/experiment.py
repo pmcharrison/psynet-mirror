@@ -29,7 +29,7 @@ class Exp(psynet.experiment.Experiment):
             finish_background_work,
             wait=True,
             expected_wait=3,
-            check_interval=5,
+            check_interval=1.0,
         ),
         CodeBlock(
             lambda participant: participant.var.set(

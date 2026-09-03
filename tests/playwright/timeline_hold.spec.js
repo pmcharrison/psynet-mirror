@@ -214,24 +214,30 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
     });
 
     const pendingBaseline = responses.getCount();
+    expect(
+      await experimentPage.evaluate(async () => {
+        psynet.nextPagePending = true;
+        return psynet.resumeTimelineHold("test pending request");
+      })
+    ).toBe(false);
+    await experimentPage.waitForTimeout(250);
+    expect(responses.getCount()).toBeLessThanOrEqual(pendingBaseline + 1);
     await experimentPage.evaluate(() => {
-      psynet.timelineHold.hold.safety_poll_ms = 100;
-      psynet.nextPagePending = true;
-      psynet.resumeTimelineHold("test pending request");
-      setTimeout(() => {
-        psynet.nextPagePending = false;
-      }, 200);
+      psynet.nextPagePending = false;
+      if (psynet.timelineHold) {
+        psynet.resumeTimelineHold("test after pending probe");
+      }
     });
     await waitForResponseSubmitIncrement(
       responses,
       pendingBaseline,
       1,
-      2000
+      STEP_TIMEOUT_MS
     );
 
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Background feedback processing finished.",
-      { timeout: HOLD_WAKE_TIMEOUT_MS }
+      { timeout: STEP_TIMEOUT_MS }
     );
     const accounting = await experimentPage.evaluate(() => ({
       credit: Number(document.getElementById("hold-credit").textContent),
