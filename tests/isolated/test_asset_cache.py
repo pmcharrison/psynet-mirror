@@ -408,3 +408,79 @@ def test_warn_if_cache_oversized_disabled_when_limit_nonpositive(cache_root):
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_bytes(b"data")
     assert warn_if_cache_oversized(cache_root, limit_bytes=0) is None
+
+
+def _put_cached_object(cache_root, payload: bytes) -> str:
+    digest = hashlib.sha256(payload).hexdigest()
+    path = object_cache_path(digest, cache_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(payload)
+    return digest
+
+
+def test_assets_cache_cli_uses_env_root(monkeypatch, tmp_path):
+    from click.testing import CliRunner
+
+    from psynet.command_line import psynet
+
+    env_root = tmp_path / "env-cache"
+    other_root = tmp_path / "other-cache"
+    digest = _put_cached_object(env_root, b"from-env")
+    _put_cached_object(other_root, b"from-other")
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(env_root))
+    runner = CliRunner()
+
+    info = runner.invoke(psynet, ["assets", "cache", "info"], catch_exceptions=False)
+    assert info.exit_code == 0
+    assert str(env_root) in info.output
+    assert "Cached objects:  1" in info.output
+
+    listed = runner.invoke(psynet, ["assets", "cache", "list"], catch_exceptions=False)
+    assert listed.exit_code == 0
+    assert digest in listed.output
+
+    pruned = runner.invoke(
+        psynet, ["assets", "cache", "prune", "--all", "--yes"], catch_exceptions=False
+    )
+    assert pruned.exit_code == 0
+    assert list_cached_objects(env_root) == []
+    assert list_cached_objects(other_root) == [
+        hashlib.sha256(b"from-other").hexdigest()
+    ]
+
+
+def test_assets_cache_cli_cache_root_overrides_env(monkeypatch, tmp_path):
+    from click.testing import CliRunner
+
+    from psynet.command_line import psynet
+
+    env_root = tmp_path / "env-cache"
+    flag_root = tmp_path / "flag-cache"
+    env_digest = _put_cached_object(env_root, b"from-env")
+    flag_digest = _put_cached_object(flag_root, b"from-flag")
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(env_root))
+    runner = CliRunner()
+    flag = ["--cache-root", str(flag_root)]
+
+    info = runner.invoke(
+        psynet, ["assets", "cache", "info", *flag], catch_exceptions=False
+    )
+    assert info.exit_code == 0
+    assert str(flag_root) in info.output
+    assert str(env_root) not in info.output
+
+    listed = runner.invoke(
+        psynet, ["assets", "cache", "list", *flag], catch_exceptions=False
+    )
+    assert listed.exit_code == 0
+    assert flag_digest in listed.output
+    assert env_digest not in listed.output
+
+    pruned = runner.invoke(
+        psynet,
+        ["assets", "cache", "prune", "--all", "--yes", *flag],
+        catch_exceptions=False,
+    )
+    assert pruned.exit_code == 0
+    assert list_cached_objects(flag_root) == []
+    assert list_cached_objects(env_root) == [env_digest]
