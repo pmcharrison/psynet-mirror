@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import Mock
 
 import pytest
@@ -44,9 +45,15 @@ def test_missing_experiment_entry_always_raises(monkeypatch):
 
 
 def test_missing_entry_is_reported_but_tolerated_in_live_experiment(monkeypatch):
-    report_error = Mock()
+    captured = {}
+
+    def report_error(error):
+        captured["error"] = error
+        captured["exc_info"] = sys.exc_info()
+
     experiment = Mock(report_error=report_error)
     monkeypatch.setattr("psynet.experiment.get_experiment", lambda: experiment)
     _check_missing_entry(monkeypatch, "experiment", live=True)
-    report_error.assert_called_once()
-    assert isinstance(report_error.call_args.args[0], TranslationNotFoundError)
+    assert isinstance(captured["error"], TranslationNotFoundError)
+    assert captured["exc_info"][0] is TranslationNotFoundError
+    assert captured["exc_info"][1] is captured["error"]

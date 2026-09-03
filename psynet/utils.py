@@ -682,7 +682,10 @@ def check_translation_is_available(message, context, locale, namespace):
         if is_live_experiment:
             error_message += " Since this is a live experiment, we instead presented the untranslated text."
             logger.warning(error_message)
-            get_experiment().report_error(TranslationNotFoundError(error_message))
+            try:
+                raise TranslationNotFoundError(error_message)
+            except TranslationNotFoundError as e:
+                get_experiment().report_error(e)
         elif _tolerate_missing_translation(namespace):
             error_message += (
                 " The untranslated English text will be shown instead. "
@@ -702,11 +705,12 @@ def check_translation_is_available(message, context, locale, namespace):
 def report_translation_error(message, context, locale):
     from psynet.experiment import get_experiment
 
-    exp = get_experiment()
-    error = TranslationNotFoundError(
-        f"Translation not found for message '{message}' (context: {context}) in locale '{locale}'"
-    )
-    exp.report_error(error)
+    try:
+        raise TranslationNotFoundError(
+            f"Translation not found for message '{message}' (context: {context}) in locale '{locale}'"
+        )
+    except TranslationNotFoundError as e:
+        get_experiment().report_error(e)
 
 
 def get_translator(
