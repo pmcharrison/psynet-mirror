@@ -1,2 +1,2 @@
 dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@42bd7e54fa75975660ca92b6d02ceaacc710f61f
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet.git@fc03cac8f85b23925e8a74dafa44354f94aa1f07
+psynet[experiment] @ git+https://gitlab.com/PsyNetDev/PsyNet.git@fc03cac8f85b23925e8a74dafa44354f94aa1f07
