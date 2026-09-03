@@ -1,9 +1,13 @@
 """Fail launch if this directory's experiment.py was baked into the wrong image.
 
-Dallinger ``<= 12.3.0`` tags images from ``requirements.txt`` and
-``prepare_docker_image.sh`` only. Two recruiter variants can then reuse
-one image. Each ``experiment.py*`` calls this on launch with the recruiter
-that file is written for.
+Dallinger (12.3.x and the current master pin) tags images from
+``requirements.txt`` and ``prepare_docker_image.sh`` only. Two recruiter
+variants can then reuse one image. Each ``experiment.py*`` calls this on
+launch with the recruiter that file is written for.
+
+Fixed upstream by https://github.com/Dallinger/Dallinger/pull/9768 (the tag
+hashes the whole build context). This guard stays as defense-in-depth for
+paid deploys.
 """
 
 _ALLOWED = {

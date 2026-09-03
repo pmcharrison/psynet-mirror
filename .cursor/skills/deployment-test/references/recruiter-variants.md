@@ -22,8 +22,10 @@ git push
    them in separate temporary worktrees on branches off the deployment
    branch; each worktree branch records exactly what was deployed.
 
-   Dallinger `<= 12.3.0` tags the experiment Docker image from a hash of
-   **only** `requirements.txt` and `prepare_docker_image.sh`. The image
+   Dallinger (12.3.x and the current master pin; fixed upstream by
+   [Dallinger#9768](https://github.com/Dallinger/Dallinger/pull/9768), which
+   hashes the whole build context) tags the experiment Docker image from a
+   hash of **only** `requirements.txt` and `prepare_docker_image.sh`. The image
    then `COPY`s the whole experiment directory, including `experiment.py`.
    If both variants keep the same hashed files, the second deploy **reuses
    the first image** and runs the wrong `experiment.py` while taking

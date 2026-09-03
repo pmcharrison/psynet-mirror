@@ -1,6 +1,9 @@
 #!/bin/sh
 # image-variant=audio_gibbs-prolific
-# Dallinger <= 12.3.0 hashes only requirements.txt and this file when
-# tagging the experiment Docker image. Keep this comment distinct from
-# the Lucid sibling so the two variants never reuse one image.
+# Dallinger (12.3.x and the current master pin; fixed upstream by
+# https://github.com/Dallinger/Dallinger/pull/9768) hashes only
+# requirements.txt and this file when tagging the experiment Docker image.
+# Keep this comment distinct from the Lucid sibling so the two variants
+# never reuse one image. Remove these stamps once PsyNet pins a Dallinger
+# that includes that fix.
 true
