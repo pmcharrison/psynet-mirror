@@ -238,6 +238,84 @@ test(
 );
 
 test(
+  "media progress mirrors the timeline bar and follows the footer",
+  { tag: "@both" },
+  async ({ page }) => {
+    const header = `
+      <div id="timeline-header" class="header">
+        <div class="progress">
+          <div id="timeline-progress-bar" class="progress-bar" style="width:12%"></div>
+        </div>
+      </div>`;
+    const bar = `<div id="media-download-progress-bar" style="width: 40%"></div>`;
+    const bootstrapNavbar = `
+      .navbar { --bs-navbar-padding-y: 0.5rem; --bs-navbar-padding-x: 0;
+                position: relative; display: flex; flex-wrap: wrap;
+                align-items: center;
+                padding: var(--bs-navbar-padding-y) var(--bs-navbar-padding-x); }
+      .fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; }
+      .container { width: 100%; padding-inline: 0.75rem; margin-inline: auto; }
+      .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .progress { display: flex; overflow: hidden; }`;
+
+    // No footer: the bar takes the bottom edge, like the top bar takes the top.
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      extraCss: bootstrapNavbar,
+      html: `${header}<div id="main-body" class="psynet-surface"><p>Trial</p></div>${bar}`
+    });
+
+    let geometry = await page.evaluate(() => {
+      const media = document.getElementById("media-download-progress-bar");
+      const top = document.querySelector("#timeline-header .progress");
+      const mediaRect = media.getBoundingClientRect();
+      return {
+        topHeight: getComputedStyle(top).height,
+        mediaHeight: getComputedStyle(media).height,
+        mediaBottom: Math.round(mediaRect.bottom),
+        mediaWidth: Math.round(mediaRect.width),
+        viewport: window.innerHeight,
+        bodyPaddingBottom: getComputedStyle(document.body).paddingBottom
+      };
+    });
+
+    expect(geometry.mediaHeight).toBe(geometry.topHeight);
+    expect(geometry.mediaBottom).toBe(geometry.viewport);
+    // Width still tracks progress rather than filling the page.
+    expect(geometry.mediaWidth).toBe(512);
+    // Room reserved so scrolled content cannot hide under it.
+    expect(geometry.bodyPaddingBottom).toBe(geometry.mediaHeight);
+
+    // With a footer it rides the footer's top edge instead.
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      extraCss: bootstrapNavbar,
+      html: `${header}<div id="main-body" class="psynet-surface"><p>Trial</p></div>
+             <nav id="footer" class="navbar fixed-bottom">${bar}
+               <div class="container py-2"><div class="footer-text">Reward: $0.42</div></div>
+             </nav>`
+    });
+
+    geometry = await page.evaluate(() => {
+      const media = document.getElementById("media-download-progress-bar");
+      const footer = document.getElementById("footer");
+      return {
+        mediaTop: Math.round(media.getBoundingClientRect().top),
+        footerTop: Math.round(footer.getBoundingClientRect().top),
+        footerBorderTop: getComputedStyle(footer).borderTopWidth,
+        mediaHeight: getComputedStyle(media).height
+      };
+    });
+
+    // The bar sits just inside the footer's top border, not over it.
+    expect(geometry.mediaTop - geometry.footerTop).toBe(
+      parseFloat(geometry.footerBorderTop)
+    );
+    expect(geometry.mediaHeight).toBe("6px");
+  }
+);
+
+test(
   "footer text is centred below the progress bar",
   { tag: "@both" },
   async ({ page }) => {

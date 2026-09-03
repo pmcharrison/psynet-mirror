@@ -122,19 +122,23 @@
         </div>
     {% endmacro %}
 
-    {% macro timeline_footer() %}
-        {# Omit the footer element when it is hidden so body:has(#footer)
-           does not still reserve clearance. Appearance lives in
-           participant.css; only per-render values are set here. #}
-        {% if config.show_footer != false %}
-        <style>
-            #media-download-progress-bar {
-                width: {{ initial_download_progress }}%;
-            }
-        </style>
+    {% macro media_download_bar() %}
+        {# Rides the footer's top edge when there is a footer, and the bottom
+           edge of the window when there is not; participant.css owns which.
+           Only the per-render width is set here. #}
+        <div id="media-download-progress-bar" style="width: {{ initial_download_progress }}%"></div>
+    {% endmacro %}
 
+    {% macro timeline_footer() %}
+        {# Omit the footer element when it is hidden, and when it would have
+           nothing in it, so body:has(#footer) does not reserve clearance for an
+           empty bar. Appearance lives in participant.css. #}
+        {% set show_comment_button = config.get("leave_comments_on_every_page") %}
+        {% set show_terminate_button = show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
+        {% set footer_has_content = experiment.show_reward or show_comment_button or show_terminate_button %}
+        {% if config.show_footer != false and footer_has_content %}
         <nav id="footer" class="navbar fixed-bottom">
-            <div id="media-download-progress-bar"></div>
+            {{ media_download_bar() }}
                 <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
                     {% if experiment.show_reward %}
                         <div class="footer-text">
@@ -151,18 +155,20 @@
                         </div>
                     {% endif %}
 
-                    {% if config.get("leave_comments_on_every_page") %}
+                    {% if show_comment_button %}
                         <button type="button" class="btn btn-light"
                                 id="comment-button">{{ pgettext("timeline", "Comment") }}</button>
                     {% endif %}
 
-                    {% if show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
+                    {% if show_terminate_button %}
                         <button id="terminate-button" class="btn btn-danger">
                             {{ pgettext("timeline_problem", "Terminate the experiment early") }}
                         </button>
                     {% endif %}
                 </div>
         </nav>
+        {% else %}
+            {{ media_download_bar() }}
         {% endif %}
     {% endmacro %}
 

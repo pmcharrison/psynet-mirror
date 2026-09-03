@@ -884,12 +884,7 @@
       let template = document.createElement("template");
       template.innerHTML = payload.html.trim();
 
-      let requiredIds = [
-        "timeline-header",
-        "main-body",
-        "footer",
-        "psynet-template-data",
-      ];
+      let requiredIds = ["timeline-header", "main-body", "psynet-template-data"];
 
       let replacements = requiredIds.map((id) => {
         let nextElement = template.content.querySelector("#" + id);
@@ -902,10 +897,32 @@
         return { currentElement, nextElement };
       });
 
+      // The footer is optional and can differ between pages: show_footer =
+      // false omits it, and so does a footer that would have nothing in it.
+      // Insert, remove, or replace it rather than demanding that it exists.
+      let optionalIds = ["footer", "media-download-progress-bar"];
+      let optionalChanges = optionalIds
+        .map((id) => ({
+          id,
+          nextElement: template.content.querySelector("#" + id),
+          currentElement: document.getElementById(id),
+        }))
+        // A footer carries its own progress bar, so skip the bar when the
+        // footer it lives in is already being handled.
+        .filter(({ id, nextElement, currentElement }) => {
+          if (id !== "media-download-progress-bar") return true;
+          let insideNextFooter =
+            nextElement !== null && nextElement.closest("#footer") !== null;
+          let insideCurrentFooter =
+            currentElement !== null && currentElement.closest("#footer") !== null;
+          return !insideNextFooter && !insideCurrentFooter;
+        });
+
       return {
         payload,
         template,
         replacements,
+        optionalChanges,
         stylesheetLinks: psynet.getPageCssLinks(template.content),
       };
     };
@@ -920,6 +937,17 @@
 
       fragment.replacements.forEach(({ currentElement, nextElement }) => {
         currentElement.replaceWith(nextElement);
+      });
+
+      let root = document.getElementById("timeline-root");
+      (fragment.optionalChanges || []).forEach(({ currentElement, nextElement }) => {
+        if (currentElement !== null && nextElement !== null) {
+          currentElement.replaceWith(nextElement);
+        } else if (currentElement !== null) {
+          currentElement.remove();
+        } else if (nextElement !== null && root !== null) {
+          root.appendChild(nextElement);
+        }
       });
 
       if (fragment.payload.page_uuid !== undefined) {

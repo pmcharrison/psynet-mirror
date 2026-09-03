@@ -149,11 +149,29 @@ def test_footer_reserves_the_progress_bar_strip():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    assert "--psynet-footer-progress-height:" in css
     start = css.index("#footer {")
     end = css.index("}", start)
     block = css[start:end]
-    assert "var(--psynet-footer-progress-height)" in block
+    assert "var(--psynet-progress-height)" in block
+
+
+def test_media_bar_mirrors_the_timeline_progress_bar():
+    """Same height as the bar at the top of the page, and pinned to the bottom
+    of the window when there is no footer to ride."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("#media-download-progress-bar {")
+    end = css.index("}", start)
+    assert "height: var(--psynet-progress-height)" in css[start:end]
+
+    start = css.index("body:not(:has(#footer)) #media-download-progress-bar {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "position: fixed" in block
+    assert "bottom: 0" in block
+    # An over-constrained fixed box keeps `top`, so it must be released.
+    assert "top: auto" in block
 
 
 def test_footer_clearance_is_scoped_to_pages_with_a_footer():
@@ -206,9 +224,11 @@ def test_timeline_omits_footer_when_hidden():
     start = source.index("{% macro timeline_footer()")
     end = source.index("{% endmacro %}", start)
     macro = source[start:end]
-    assert "{% if config.show_footer != false %}" in macro
+    assert "{% if config.show_footer != false and footer_has_content %}" in macro
     assert 'id="footer"' in macro
     assert "config.show_footer == false" not in macro
+    # An empty footer is omitted, but the media bar still renders.
+    assert "{% else %}\n            {{ media_download_bar() }}" in macro
 
 
 def test_abort_pages_use_content_surface():

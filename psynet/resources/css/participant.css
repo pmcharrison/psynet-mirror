@@ -103,7 +103,6 @@
     --psynet-focus-ring: 3px solid var(--psynet-accent);
     --psynet-progress-height: 6px;
     --psynet-audio-meter-height: 10px;
-    --psynet-footer-progress-height: 3px;
     --psynet-footer-clearance: 5rem;
     /* Space reserved around a graphic so the page still fits a 1280×720
        laptop inner viewport: progress, surface margins and padding, prompt,
@@ -192,6 +191,12 @@ body {
 
 body:has(#footer) {
     padding-bottom: var(--psynet-footer-clearance);
+}
+
+/* Without a footer the media-download bar pins itself to the bottom edge, so
+   the last few pixels of a scrolled page would otherwise hide underneath it. */
+body:not(:has(#footer)):has(#media-download-progress-bar) {
+    padding-bottom: var(--psynet-progress-height);
 }
 
 /*
@@ -541,7 +546,7 @@ textarea:focus-visible,
        cannot shift the footer, which means the strip it covers would otherwise
        still be counted when the reward text is centred. Reserving its height
        here centres the text in the strip participants actually see. */
-    padding-top: calc(var(--bs-navbar-padding-y) + var(--psynet-footer-progress-height));
+    padding-top: calc(var(--bs-navbar-padding-y) + var(--psynet-progress-height));
 }
 
 #footer .footer-text {
@@ -549,14 +554,27 @@ textarea:focus-visible,
     font-size: 0.9rem;
 }
 
-/* Overlays the top edge of the footer so that changing progress never shifts
-   the footer layout. */
+/*
+ * Media download progress is the bottom counterpart of the timeline progress
+ * bar at the top of the page: same height, same accent. It overlays the
+ * footer's top edge so that changing progress never shifts the footer layout.
+ */
 #media-download-progress-bar {
     position: absolute;
     top: 0;
     left: 0;
-    height: var(--psynet-footer-progress-height);
+    height: var(--psynet-progress-height);
     background-color: var(--psynet-accent);
+}
+
+/* With no footer to ride, it pins to the bottom of the window, mirroring the
+   timeline progress bar. `top` has to be released explicitly: in an
+   over-constrained fixed box, `top` wins over `bottom`. */
+body:not(:has(#footer)) #media-download-progress-bar {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    z-index: 1040;
 }
 
 #comment-button {
