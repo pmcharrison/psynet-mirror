@@ -849,10 +849,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return True
         outcome, _status = self._settle_prolific_submission(participant, assignment_id)
-        return outcome != "failed"
+        # "unpayable" (returned/rejected) and "no_code" cannot succeed later,
+        # but reporting them as unpaid flags the participant so the retry
+        # sweep stops with a reason and notifies the researcher, instead of
+        # leaving a base that looks paid but never will be.
+        return outcome not in ("failed", "unpayable", "no_code")
 
     def _settle_prolific_submission(self, participant, assignment_id: str):
-        """Act on the live Prolific row. Return ``(paid|unpayable|failed|skipped, status)``."""
+        """Act on the live Prolific row.
+
+        Return ``(outcome, status)`` where outcome is one of ``paid``,
+        ``unpayable`` (returned/rejected: Prolific will never pay),
+        ``no_code`` (no researcher-actor completion code exists for this
+        participant, so COMPLETE can never be sent), ``failed`` (worth
+        retrying), or ``skipped`` (a status PsyNet does not act on).
+        """
         status = self._live_submission_status(assignment_id)
         if status in PROLIFIC_PAID_SUBMISSION_STATUSES:
             return "paid", status
@@ -863,9 +874,24 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             paid = result is not None and result is not False
             return ("paid" if paid else "failed"), status
         if status in PROLIFIC_COMPLETABLE_SUBMISSION_STATUSES:
+            code_type = self._researcher_code_type_for(participant)
+            code = self.completion_code_map.get(code_type) if code_type else None
+            if not code:
+                logger.warning(
+                    "No researcher-actor completion code is available to "
+                    "complete Prolific submission %s for participant %s "
+                    "(issued code type %s; is `prolific_pay_unsuccessful` "
+                    "disabled?).",
+                    assignment_id,
+                    participant.id,
+                    getattr(participant, "issued_completion_code_type", None),
+                )
+                return "no_code", status
             return (
                 "paid"
-                if self._complete_prolific_submission(participant, assignment_id)
+                if self._complete_prolific_submission(
+                    participant, assignment_id, code_type, code
+                )
                 else "failed",
                 status,
             )
@@ -878,12 +904,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         submission = _fetch_prolific_submission(self.prolificservice, assignment_id)
         return None if submission is None else submission.get("status")
 
-    def _complete_prolific_submission(self, participant, assignment_id: str) -> bool:
-        """POST COMPLETE with the researcher-actor code for this participant."""
-        code_type = self._researcher_code_type_for(participant)
-        code = self.completion_code_map.get(code_type) if code_type else None
-        if not code:
-            return False
+    def _complete_prolific_submission(
+        self, participant, assignment_id: str, code_type: str, code: str
+    ) -> bool:
+        """POST COMPLETE with the given researcher-actor code."""
         try:
             self.prolificservice._req(
                 method="POST",
@@ -953,6 +977,22 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return
         if outcome == "unpayable":
             extra = f" Status is {status}, which Prolific will not pay."
+            stop_platform_base_retries(
+                participant,
+                (
+                    f"PsyNet could not get Prolific to pay the study base for "
+                    f"participant {participant.id}.{extra} Please settle the "
+                    f"row on Prolific if this person is still owed."
+                ),
+                attempts=PROLIFIC_PLATFORM_BASE_RETRY_LIMIT,
+            )
+            self._notify_complete_failed(participant, assignment_id, extra=extra)
+            return
+        if outcome == "no_code":
+            extra = (
+                " No researcher-actor completion code exists for this "
+                "participant, so PsyNet cannot complete the submission."
+            )
             stop_platform_base_retries(
                 participant,
                 (

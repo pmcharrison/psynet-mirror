@@ -557,14 +557,55 @@ def test_approve_hit_reports_failure_when_awaiting_review_approve_returns_none()
     recruiter.prolificservice._req.assert_not_called()
 
 
-@pytest.mark.parametrize("status", ["APPROVED", "REJECTED", "RETURNED", "SCREENED OUT"])
-def test_approve_hit_skips_settled_rows(status):
+@pytest.mark.parametrize("status", ["APPROVED", "SCREENED OUT"])
+def test_approve_hit_skips_paid_rows(status):
     recruiter, result, super_approve = _run_approve_hit(
         _approve_hit_participant(), status
     )
     assert result is True
     super_approve.assert_not_called()
     recruiter.prolificservice._req.assert_not_called()
+
+
+@pytest.mark.parametrize("status", ["REJECTED", "RETURNED"])
+def test_approve_hit_reports_unpayable_rows_as_unpaid(status):
+    """A returned/rejected row will never pay the base.
+
+    Reporting it as unpaid flags the participant, so the retry sweep stops
+    with a reason and notifies the researcher, instead of the base looking
+    paid forever. No request is sent and no notification fires here: that
+    is the sweep's job.
+    """
+    experiment = MagicMock()
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(), status, experiment=experiment
+    )
+    assert result is False
+    super_approve.assert_not_called()
+    recruiter.prolificservice._req.assert_not_called()
+    experiment.notifier.notify.assert_not_called()
+
+
+def test_approve_hit_reports_missing_researcher_code_as_unpaid():
+    """No usable code (failed participant, screen-out disabled) means no COMPLETE.
+
+    The submission stays unpaid, so this must be reported as a failure and
+    flagged rather than silently looking paid.
+    """
+    experiment = MagicMock()
+    config = make_config(prolific_pay_unsuccessful=False)
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(
+            status="submitted", failed=True, issued_completion_code_type=None
+        ),
+        "ACTIVE",
+        config,
+        experiment=experiment,
+    )
+    assert result is False
+    super_approve.assert_not_called()
+    recruiter.prolificservice._req.assert_not_called()
+    experiment.notifier.notify.assert_not_called()
 
 
 def test_approve_hit_skips_returned_local_status():
@@ -680,8 +721,9 @@ def _run_retry(
     complete_ok=True,
     approve_ok=True,
     experiment=None,
+    config=None,
 ):
-    config = make_config(prolific_screen_out_slots=70)
+    config = config or make_config(prolific_screen_out_slots=70)
     recruiter = make_prolific_recruiter(config)
     recruiter.prolificservice = MagicMock()
     if not complete_ok:
@@ -735,6 +777,23 @@ def test_retry_notifies_and_stops_at_limit():
     _, _, experiment = _run_retry(participant, "ACTIVE", complete_ok=False)
     assert participant.platform_base_retry_count == PROLIFIC_PLATFORM_BASE_RETRY_LIMIT
     assert "after 5 attempts" in participant.platform_base_unpaid_detail
+    experiment.notifier.notify.assert_called_once()
+
+
+def test_retry_stops_immediately_when_no_code_exists():
+    """Retrying cannot help when no researcher code exists for the participant."""
+    participant = _unpaid_participant(
+        failed=True, status="submitted", issued_completion_code_type=None
+    )
+    recruiter, super_approve, experiment = _run_retry(
+        participant, "ACTIVE", config=make_config(prolific_pay_unsuccessful=False)
+    )
+    recruiter.prolificservice._req.assert_not_called()
+    super_approve.assert_not_called()
+    assert participant.platform_base_retry_count == PROLIFIC_PLATFORM_BASE_RETRY_LIMIT
+    assert "No researcher-actor completion code" in (
+        participant.platform_base_unpaid_detail
+    )
     experiment.notifier.notify.assert_called_once()
 
 
