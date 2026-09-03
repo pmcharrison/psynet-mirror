@@ -2832,19 +2832,19 @@ def assets_cache():
 @click.option(
     "--cache-root",
     default=None,
-    help="Override the default cache root (or set PSYNET_ASSET_CACHE_ROOT).",
+    help="Override the default cache root directory.",
 )
 def assets_cache_info(cache_root):
     """Print statistics about the local asset cache."""
     from .export.asset_cache import (
         cache_size_bytes,
+        default_cache_root,
         list_cached_objects,
-        resolve_cache_root,
         soft_limit_bytes,
         warn_if_cache_oversized,
     )
 
-    root = resolve_cache_root(cache_root)
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
     objects = list_cached_objects(root)
     total = cache_size_bytes(root)
     limit = soft_limit_bytes()
@@ -2862,13 +2862,13 @@ def assets_cache_info(cache_root):
 @click.option(
     "--cache-root",
     default=None,
-    help="Override the default cache root (or set PSYNET_ASSET_CACHE_ROOT).",
+    help="Override the default cache root directory.",
 )
 def assets_cache_list(cache_root):
     """List the SHA-256 digests of all objects currently in the cache."""
-    from .export.asset_cache import list_cached_objects, resolve_cache_root
+    from .export.asset_cache import default_cache_root, list_cached_objects
 
-    root = resolve_cache_root(cache_root)
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
     objects = list_cached_objects(root)
 
     if not objects:
@@ -2895,7 +2895,7 @@ def assets_cache_list(cache_root):
 @click.option(
     "--cache-root",
     default=None,
-    help="Override the default cache root (or set PSYNET_ASSET_CACHE_ROOT).",
+    help="Override the default cache root directory.",
 )
 def assets_cache_prune(prune_all, yes, cache_root):
     """Remove every object from the local asset cache.
@@ -2903,9 +2903,9 @@ def assets_cache_prune(prune_all, yes, cache_root):
     Requires ``--all``.
     """
     from .export.asset_cache import (
+        default_cache_root,
         list_cached_objects,
         prune_cached_objects,
-        resolve_cache_root,
     )
 
     if not prune_all:
@@ -2914,7 +2914,7 @@ def assets_cache_prune(prune_all, yes, cache_root):
         )
         raise click.UsageError("Missing required option: --all")
 
-    root = resolve_cache_root(cache_root)
+    root = Path(cache_root).expanduser() if cache_root else default_cache_root()
     objects = list_cached_objects(root)
 
     if not objects:

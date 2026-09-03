@@ -8,7 +8,6 @@ import hashlib
 import os
 import shutil
 import stat
-from pathlib import Path
 
 import pytest
 
@@ -20,7 +19,6 @@ from psynet.export.asset_cache import (
     list_cached_objects,
     object_cache_path,
     prune_cached_objects,
-    resolve_cache_root,
 )
 
 # ---------------------------------------------------------------------------
@@ -53,55 +51,10 @@ def test_object_cache_path_structure(cache_root):
     assert path == cache_root / "objects" / "sha256" / "abc123"
 
 
-def test_default_cache_root_is_under_home(monkeypatch):
-    monkeypatch.delenv("PSYNET_ASSET_CACHE_ROOT", raising=False)
+def test_default_cache_root_is_under_home():
     root = default_cache_root()
     assert str(root).startswith(os.path.expanduser("~"))
     assert "psynet-data" in str(root)
-
-
-def test_default_cache_root_env_override(monkeypatch, tmp_path):
-    isolated = tmp_path / "custom-cache"
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(isolated))
-    assert default_cache_root() == isolated
-
-
-def test_default_cache_root_expands_user(monkeypatch):
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", "~/custom-asset-cache")
-    assert default_cache_root() == Path.home() / "custom-asset-cache"
-
-
-def test_default_cache_root_strips_and_absolutizes_env(monkeypatch, tmp_path):
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", " relative-cache ")
-    assert default_cache_root() == tmp_path / "relative-cache"
-
-
-def test_default_cache_root_empty_env_uses_home(monkeypatch):
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", "")
-    root = default_cache_root()
-    assert str(root).startswith(os.path.expanduser("~"))
-    assert "psynet-data" in str(root)
-
-
-def test_resolve_cache_root_empty_explicit_value_uses_default(monkeypatch, tmp_path):
-    env_root = tmp_path / "env-cache"
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(env_root))
-    assert resolve_cache_root("") == env_root
-
-
-def test_ensure_object_in_cache_uses_env_root(monkeypatch, tmp_path, sample_file):
-    isolated = tmp_path / "env-cache"
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(isolated))
-    src, digest = sample_file
-
-    def fetch_fn(dest):
-        shutil.copy2(str(src), dest)
-
-    cache_path = ensure_object_in_cache(digest, fetch_fn)
-
-    assert cache_path == object_cache_path(digest, isolated)
-    assert cache_path.read_bytes() == b"hello cache"
 
 
 # ---------------------------------------------------------------------------
@@ -421,79 +374,3 @@ def test_warn_if_cache_oversized_disabled_when_limit_nonpositive(cache_root):
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_bytes(b"data")
     assert warn_if_cache_oversized(cache_root, limit_bytes=0) is None
-
-
-def _put_cached_object(cache_root, payload: bytes) -> str:
-    digest = hashlib.sha256(payload).hexdigest()
-    path = object_cache_path(digest, cache_root)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(payload)
-    return digest
-
-
-def test_assets_cache_cli_uses_env_root(monkeypatch, tmp_path):
-    from click.testing import CliRunner
-
-    from psynet.command_line import psynet
-
-    env_root = tmp_path / "env-cache"
-    other_root = tmp_path / "other-cache"
-    digest = _put_cached_object(env_root, b"from-env")
-    _put_cached_object(other_root, b"from-other")
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(env_root))
-    runner = CliRunner()
-
-    info = runner.invoke(psynet, ["assets", "cache", "info"], catch_exceptions=False)
-    assert info.exit_code == 0
-    assert str(env_root) in info.output
-    assert "Cached objects:  1" in info.output
-
-    listed = runner.invoke(psynet, ["assets", "cache", "list"], catch_exceptions=False)
-    assert listed.exit_code == 0
-    assert digest in listed.output
-
-    pruned = runner.invoke(
-        psynet, ["assets", "cache", "prune", "--all", "--yes"], catch_exceptions=False
-    )
-    assert pruned.exit_code == 0
-    assert list_cached_objects(env_root) == []
-    assert list_cached_objects(other_root) == [
-        hashlib.sha256(b"from-other").hexdigest()
-    ]
-
-
-def test_assets_cache_cli_cache_root_overrides_env(monkeypatch, tmp_path):
-    from click.testing import CliRunner
-
-    from psynet.command_line import psynet
-
-    env_root = tmp_path / "env-cache"
-    flag_root = tmp_path / "flag-cache"
-    env_digest = _put_cached_object(env_root, b"from-env")
-    flag_digest = _put_cached_object(flag_root, b"from-flag")
-    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(env_root))
-    runner = CliRunner()
-    flag = ["--cache-root", str(flag_root)]
-
-    info = runner.invoke(
-        psynet, ["assets", "cache", "info", *flag], catch_exceptions=False
-    )
-    assert info.exit_code == 0
-    assert str(flag_root) in info.output
-    assert str(env_root) not in info.output
-
-    listed = runner.invoke(
-        psynet, ["assets", "cache", "list", *flag], catch_exceptions=False
-    )
-    assert listed.exit_code == 0
-    assert flag_digest in listed.output
-    assert env_digest not in listed.output
-
-    pruned = runner.invoke(
-        psynet,
-        ["assets", "cache", "prune", "--all", "--yes", *flag],
-        catch_exceptions=False,
-    )
-    assert pruned.exit_code == 0
-    assert list_cached_objects(flag_root) == []
-    assert list_cached_objects(env_root) == [env_digest]

@@ -40,23 +40,10 @@ Merge requests run the ``asv_regression`` CI job. This job uses
 base and head commits back-to-back on the same GitLab runner. The job exits
 non-zero when ASV detects a regression larger than the configured factor.
 
-Export benchmarks in ``benchmarks/fast/export_benchmarks.py`` skip on a
-merge-base whose installed PsyNet predates ``psynet.export``. Each benchmark's
-``setup(profile)`` raises ``NotImplementedError`` to mark that profile as
-skipped. Those benchmarks have no baseline to compare against until they exist
-on both sides of the comparison.
-
-``asv continuous`` interleaves rounds by default, so a later round can run HEAD
-before BASE. ``--split`` only splits the results table. A cold first asset
-export fills ``~/psynet-data/cache/assets`` for the other commit, so that
-second commit looks faster even when the merge request did not touch export.
-
-``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated
-directory, warms that cache during setup, and then lets ASV time fresh
-``psynet export local --assets collected`` subprocesses.
-Incremental remote asset transfer is covered by functional tests rather than
-ASV metrics, because the warm-cache path is dominated by filesystem noise and
-has produced unstable ratios under the merge-request gate's ``--factor 1.25``.
+Export performance is not included in the ASV suite. End-to-end exports depend
+on mutable database fixtures, filesystem caches, and subprocess startup, which
+do not provide a stable enough signal for the merge-request gate's fixed
+regression threshold. Export correctness remains covered by functional tests.
 
 Default-branch checks and publishing
 ====================================

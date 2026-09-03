@@ -1273,12 +1273,11 @@ def _prefetch_ssh_local_objects(assets, server, logger):
 def export_asset(asset_id, assets_root, include_on_demand_assets, server, local):
     """Export one asset's bytes into the semantic export tree.
 
-    For managed assets with a known SHA-256 digest the local export cache is
-    consulted first; only objects absent from the cache are fetched from
-    storage. The cache defaults to ``~/psynet-data/cache/assets`` and can be
-    overridden with ``PSYNET_ASSET_CACHE_ROOT``. Cached objects are linked into
-    the export directory at the asset's ``export_path`` (hardlink when possible,
-    copy otherwise).
+    For managed assets with a known SHA-256 digest the local cache at
+    ``~/psynet-data/cache/assets`` is consulted first; only objects absent
+    from the cache are fetched from storage. Cached objects are linked into
+    the export directory at the asset's ``export_path`` (hardlink when
+    possible, copy otherwise).
 
     Returns
     -------

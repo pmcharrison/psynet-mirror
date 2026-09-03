@@ -1,12 +1,11 @@
 """Persistent local cache for content-addressed asset objects.
 
-The cache lives at ``~/psynet-data/cache/assets`` by default (override with
-``PSYNET_ASSET_CACHE_ROOT``) and mirrors the ``objects/sha256/<digest>``
-layout used in export archives.  During each export run, managed assets
-whose SHA-256 digest is already known are served from the cache with a
-hardlink (or copy on different filesystems) rather than re-fetched from
-remote storage.  Only objects that are absent from the cache are fetched,
-verified, and placed atomically.
+The cache lives at ``~/psynet-data/cache/assets`` and mirrors the
+``objects/sha256/<digest>`` layout used in export archives.  During each
+export run, managed assets whose SHA-256 digest is already known are
+served from the cache with a hardlink (or copy on different filesystems)
+rather than re-fetched from remote storage.  Only objects that are absent
+from the cache are fetched, verified, and placed atomically.
 
 Layout
 ------
@@ -29,11 +28,6 @@ Maintainer notes
 This module avoids direct PsyNet database / SQLAlchemy model imports so
 its cache helpers can be unit-tested without a running experiment. It
 does import hashing helpers from ``psynet.utils``.
-
-Path resolution lives here rather than in individual commands. Exports,
-incremental hydrates, and ``psynet assets cache`` should all call
-``resolve_cache_root`` / ``default_cache_root`` so an environment override and
-an explicit CLI path mean the same thing everywhere.
 """
 
 import logging
@@ -50,9 +44,6 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_CACHE_ROOT: Path = Path("~/psynet-data/cache/assets").expanduser()
 
-# Override with PSYNET_ASSET_CACHE_ROOT (directory path).
-_ROOT_ENV = "PSYNET_ASSET_CACHE_ROOT"
-
 # Soft size warning only: exports never fail because of this limit.
 # Override with PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES (integer byte count).
 _DEFAULT_SOFT_LIMIT_BYTES = 50 * 1024**3  # 50 GiB
@@ -60,33 +51,8 @@ _SOFT_LIMIT_ENV = "PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES"
 
 
 def default_cache_root() -> Path:
-    """Return the asset cache root.
-
-    Defaults to ``~/psynet-data/cache/assets``. Override with the environment
-    variable ``PSYNET_ASSET_CACHE_ROOT``. The environment value is stripped,
-    ``~`` is expanded, and relative paths are resolved against the current
-    working directory.
-    """
-    raw = os.environ.get(_ROOT_ENV)
-    if raw is None or str(raw).strip() == "":
-        return _DEFAULT_CACHE_ROOT
-    return _cache_root_from_value(raw)
-
-
-def resolve_cache_root(cache_root: Optional[Union[str, Path]] = None) -> Path:
-    """Resolve an explicit or default cache root to an absolute path.
-
-    Parameters
-    ----------
-    cache_root :
-        Explicit cache root. When ``None`` or an empty string, the default
-        cache root is used.
-    """
-    if cache_root is None:
-        return default_cache_root()
-    if str(cache_root).strip() == "":
-        return default_cache_root()
-    return _cache_root_from_value(cache_root)
+    """Return the default asset cache root (``~/psynet-data/cache/assets``)."""
+    return _DEFAULT_CACHE_ROOT
 
 
 def object_cache_path(
@@ -350,13 +316,9 @@ def warn_if_cache_oversized(
 
 def _resolve_root(cache_root: Optional[Union[str, Path]]) -> Path:
     """Resolve a cache root argument to an absolute Path."""
-    return resolve_cache_root(cache_root)
-
-
-def _cache_root_from_value(cache_root: Union[str, Path]) -> Path:
-    """Normalize a user-provided cache root path."""
-    raw = str(cache_root).strip()
-    return Path(os.path.expanduser(raw)).resolve()
+    if cache_root is None:
+        return default_cache_root()
+    return Path(os.path.expanduser(str(cache_root)))
 
 
 def _cached_object_is_valid(digest: str, path: Path) -> bool:
