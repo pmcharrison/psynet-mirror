@@ -438,12 +438,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Default ``False``.
 
     show_reward : `bool`
-        If ``True`` (default), then the participant's current estimated reward is displayed
-        at the bottom of the page.
+        If ``True``, then the participant's current estimated reward is displayed
+        at the bottom of the page, and the end-of-experiment page reports it.
+        If left unset, the recruiter decides: recruiters that pay through a
+        platform show the reward, while generic and local recruitment does not.
+        See :attr:`~psynet.experiment.Experiment.show_reward`.
 
     show_footer : `bool`
         If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
-        and reward information if `show_reward` is set to `True`.
+        and reward information if `show_reward` resolves to `True`.
 
     show_progress_bar : `bool`
         If ``True`` (default), then a progress bar is displayed at the top of the page.
