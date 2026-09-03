@@ -12,19 +12,15 @@ from benchmarks.fast.debug_launch import (
 )
 from benchmarks.fast.export_benchmarks import (
     _ASSET_EXPORT_PROFILES,
-    IncrementalAssetTransfer,
     LocalAssetExport,
     LocalExport,
     _AssetExportProfile,
     _count_csv_rows,
     _deterministic_bytes,
-    _run_incremental_transfer_benchmark,
     _summarize_asset_export,
     _summarize_export,
     _time_warmed_local_asset_export,
     _write_asset_payloads,
-    _write_incremental_export_manifest,
-    _write_incremental_remote_store,
 )
 from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
 from psynet.export.asset_cache import default_cache_root
@@ -188,7 +184,7 @@ def test_export_benchmark_rejects_changed_fixture_shape(tmp_path):
 
 @pytest.mark.parametrize(
     "benchmark_cls",
-    [LocalExport, IncrementalAssetTransfer, LocalAssetExport],
+    [LocalExport, LocalAssetExport],
 )
 def test_export_benchmark_setup_accepts_asv_call_without_cached_results(
     benchmark_cls,
@@ -220,71 +216,6 @@ def test_local_export_tracks_metrics():
     assert benchmark.track_export_time_s(results, profile) == 2.5
     assert benchmark.track_data_row_count(results, profile) == 42
     assert benchmark.track_database_size_bytes(results, profile) == 1024
-
-
-def test_incremental_transfer_benchmark_measures_cold_and_warm_caches(monkeypatch):
-    """The warm run must reuse the cache instead of transferring again."""
-    import shutil
-    import subprocess
-    from pathlib import Path
-
-    calls = []
-
-    def copying_rsync(cmd, check=False, **kwargs):
-        calls.append(cmd)
-        files_from = Path(cmd[cmd.index("--files-from") + 1])
-        source = Path(str(cmd[-2]).rstrip("/"))
-        dest = Path(str(cmd[-1]).rstrip("/"))
-        for relative in files_from.read_text().splitlines():
-            if not relative:
-                continue
-            target = dest / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source / relative, target)
-        return subprocess.CompletedProcess(cmd, 0)
-
-    monkeypatch.setattr("psynet.export.ssh_rsync.subprocess.run", copying_rsync)
-
-    metrics = _run_incremental_transfer_benchmark(_tiny_asset_profile())
-
-    assert metrics["asset_file_count"] == 2
-    assert metrics["cold_transfer_time_s"] >= 0
-    assert metrics["warm_transfer_time_s"] >= 0
-    # One discarded transfer warms rsync and the OS page cache, then the
-    # timed cold transfer copies into an empty application cache. The warm
-    # transfer must still reuse that cache (no third rsync).
-    assert len(calls) == 2
-
-
-def test_incremental_fixture_writes_remote_objects_once(tmp_path):
-    """Export manifests must reuse the remote store instead of rewriting objects."""
-    profile = _tiny_asset_profile()
-    remote_root = tmp_path / "remote"
-    entries = _write_incremental_remote_store(remote_root, profile)
-    objects_dir = remote_root / "objects" / "sha256"
-    object_paths = sorted(objects_dir.iterdir())
-    assert len(object_paths) == profile.file_count
-    fingerprints = {path.name: path.stat().st_mtime_ns for path in object_paths}
-
-    _write_incremental_export_manifest(tmp_path / "discard", entries)
-    _write_incremental_export_manifest(tmp_path / "cold", entries)
-    _write_incremental_export_manifest(tmp_path / "warm", entries)
-
-    assert fingerprints == {path.name: path.stat().st_mtime_ns for path in object_paths}
-    for name in ("discard", "cold", "warm"):
-        manifest = tmp_path / name / "assets" / "manifest.csv"
-        assert manifest.is_file()
-        text = manifest.read_text()
-        assert all(digest in text for _, digest in entries)
-
-
-def test_incremental_transfer_tracks_cold_cache_metric_only():
-    benchmark = IncrementalAssetTransfer()
-    profile = benchmark.params[0]
-    results = {profile: {"cold_transfer_time_s": 3.0, "warm_transfer_time_s": 0.2}}
-
-    assert benchmark.track_cold_transfer_time_s(results, profile) == 3.0
-    assert not hasattr(benchmark, "track_warm_transfer_time_s")
 
 
 def test_asset_benchmark_payloads_are_deterministic():

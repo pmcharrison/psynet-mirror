@@ -5,7 +5,7 @@ not get timed-benchmark warmup. ``asv continuous`` interleaves rounds by
 default, so BASE and HEAD can run in either order and a cold first I/O sample
 is not comparable across commits.
 
-There are three export benchmarks in this module:
+There are two export benchmarks in this module:
 
 ``LocalExport``
     Populates the ``static_big`` demo and measures ``psynet export local
@@ -18,14 +18,9 @@ There are three export benchmarks in this module:
     sample is the second CLI export, so ASV compares the user-facing command
     without charging one commit for a shared cold cache.
 
-``IncrementalAssetTransfer``
-    Exercises the client-side hydrate step used by remote incremental exports.
-    It stays separate from ``LocalAssetExport`` because local exports do not
-    run the rsync/manifest hydrate path. The fixture uses a local fake remote
-    object store to keep the fast ASV gate focused on cold-cache transfer
-    without measuring dashboard, SSH, or network setup. Setup still performs a
-    warm-cache hydrate to verify reuse, but ASV does not track that time because
-    the warm path can be too small and noisy for a 1.25x regression gate.
+Incremental remote asset transfer is intentionally not benchmarked here. That
+path is important, but its warm-cache timings are dominated by filesystem noise
+and should be covered by functional tests rather than the fast ASV gate.
 """
 
 from __future__ import annotations
@@ -105,11 +100,10 @@ def _canonical_export_supported() -> bool:
     """
     try:
         from psynet.data import export_assets
-        from psynet.export.client import hydrate_assets
     except ImportError:
         return False
     params = inspect.signature(export_assets).parameters
-    return "collected_assets_only" in params and callable(hydrate_assets)
+    return "collected_assets_only" in params
 
 
 def _skip_unless_canonical_export_supported() -> None:
@@ -476,169 +470,6 @@ class LocalExport:
     track_database_size_bytes.unit = "bytes"
     track_database_size_bytes.pretty_name = "Local export database size"
 
-
-# ``IncrementalAssetTransfer`` fixture helpers.
-#
-# A real remote ``psynet export`` command would also measure dashboard
-# preflight, archive download, SSH setup, and fallback logic. These helpers
-# build the minimum manifest/object-store layout needed to time the incremental
-# hydrate operation itself while still using the same public transfer functions
-# as the remote export command.
-
-
-def _iter_incremental_assets(profile: _AssetExportProfile):
-    """Yield ``(key, payload, digest)`` for one incremental-transfer profile."""
-    width = max(3, len(str(profile.file_count - 1)))
-    for index in range(profile.file_count):
-        key = f"{profile.key_prefix}_{index:0{width}d}"
-        payload = _deterministic_bytes(key, profile.file_size_bytes)
-        digest = hashlib.sha256(payload).hexdigest()
-        yield key, payload, digest
-
-
-def _write_incremental_remote_store(
-    remote_root: Path, profile: _AssetExportProfile
-) -> list[tuple[str, str]]:
-    """Write remote objects once and return ``(key, digest)`` for manifests."""
-    objects = remote_root / "objects" / "sha256"
-    objects.mkdir(parents=True, exist_ok=True)
-    entries = []
-    for key, payload, digest in _iter_incremental_assets(profile):
-        (objects / digest).write_bytes(payload)
-        entries.append((key, digest))
-    return entries
-
-
-def _write_incremental_export_manifest(
-    export_dir: Path, entries: list[tuple[str, str]]
-) -> None:
-    """Write a manifest-only export tree that points at existing remote objects."""
-    assets = export_dir / "assets"
-    assets.mkdir(parents=True, exist_ok=True)
-    fieldnames = [
-        "id",
-        "type",
-        "export_path",
-        "sha256_contents",
-        "is_folder",
-        "storage",
-    ]
-    with (assets / "manifest.csv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
-        for index, (key, digest) in enumerate(entries):
-            writer.writerow(
-                {
-                    "id": index,
-                    "type": "experiment_asset",
-                    "export_path": f"asset_benchmark/{key}.bin",
-                    "sha256_contents": digest,
-                    "is_folder": "False",
-                    "storage": "LocalStorage",
-                }
-            )
-
-
-def _hydrate_export(
-    export_dir: Path,
-    remote_root: Path,
-    cache_root: Path,
-    profile: _AssetExportProfile,
-) -> float:
-    """Hydrate one export tree and return elapsed seconds."""
-    from psynet.export.client import hydrate_assets, plan_asset_transfer
-
-    plan = plan_asset_transfer(str(export_dir))
-    started_at = time.perf_counter()
-    materialized = hydrate_assets(
-        str(export_dir),
-        plan,
-        rsync_source=str(remote_root),
-        cache_root=cache_root,
-    )
-    elapsed = time.perf_counter() - started_at
-    if materialized != profile.file_count:
-        raise RuntimeError(
-            "Incremental transfer benchmark fixture shape changed. "
-            f"Expected {profile.file_count} assets, got {materialized}."
-        )
-    return elapsed
-
-
-def _run_incremental_transfer_benchmark(
-    profile: _AssetExportProfile,
-) -> dict[str, float | int]:
-    """Time cold transfer and verify a warm hydrate reuses the cache.
-
-    One discarded hydrate runs first so rsync startup and OS page-cache fill are
-    not attributed to whichever commit ``asv continuous`` measured first. The
-    timed cold run still uses an empty application cache. The following warm run
-    is retained as setup validation rather than an ASV-tracked metric, because
-    sub-millisecond warm hydrates produce noisy ratios in ``asv continuous``.
-    """
-
-    with (
-        tempfile.TemporaryDirectory(prefix="psynet-incremental-remote-") as remote_dir,
-        tempfile.TemporaryDirectory(prefix="psynet-incremental-cache-") as cache_dir,
-        tempfile.TemporaryDirectory(prefix="psynet-incremental-export-") as export_root,
-    ):
-        remote_root = Path(remote_dir)
-        cache_root = Path(cache_dir)
-        discard_export = Path(export_root) / "discard"
-        cold_export = Path(export_root) / "cold"
-        warm_export = Path(export_root) / "warm"
-
-        entries = _write_incremental_remote_store(remote_root, profile)
-        for export_dir in (discard_export, cold_export, warm_export):
-            _write_incremental_export_manifest(export_dir, entries)
-        _hydrate_export(
-            discard_export, remote_root, Path(export_root) / "discard-cache", profile
-        )
-
-        return {
-            "cold_transfer_time_s": _hydrate_export(
-                cold_export, remote_root, cache_root, profile
-            ),
-            "warm_transfer_time_s": _hydrate_export(
-                warm_export, remote_root, cache_root, profile
-            ),
-            "asset_file_count": profile.file_count,
-        }
-
-
-class IncrementalAssetTransfer:
-    """Benchmark client-side incremental transfer from an empty cache."""
-
-    params = list(_ASSET_EXPORT_PROFILES)
-    param_names = ["profile"]
-    timeout = 300
-    version = 3
-
-    def setup_cache(self):
-        """Run each transfer profile after a discarded hydrate and cache scalars."""
-        return _export_benchmark_cache(
-            lambda: {
-                name: _run_incremental_transfer_benchmark(profile)
-                for name, profile in _ASSET_EXPORT_PROFILES.items()
-            }
-        )
-
-    def setup(self, results, profile=None):
-        """Prepare one parameterized run.
-
-        ``profile`` is optional because ASV omits it from the call when
-        ``setup_cache`` returned ``None``; see
-        ``_skip_unless_canonical_export_supported``.
-        """
-        _skip_unless_canonical_export_supported()
-
-    def track_cold_transfer_time_s(self, results, profile):
-        """Return wall time to hydrate an export with an empty asset cache."""
-
-        return results[profile]["cold_transfer_time_s"]
-
-    track_cold_transfer_time_s.unit = "s"
-    track_cold_transfer_time_s.pretty_name = "Incremental transfer time (cold cache)"
 
 class LocalAssetExport:
     """Benchmark the local export CLI with deterministic ExperimentAsset files."""
