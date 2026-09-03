@@ -20,7 +20,10 @@ def test_video_module_import_does_not_require_html_dependencies() -> None:
         [
             sys.executable,
             "-c",
-            ("import sys; sys.modules['nh3'] = None; import psynet.audit.video"),
+            (
+                "import sys; sys.modules['markdown_it'] = None; "
+                "import psynet.audit.video"
+            ),
         ],
         capture_output=True,
         text=True,

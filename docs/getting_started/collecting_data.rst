@@ -318,16 +318,13 @@ You can either do this via the admin panel or from the command line:
 
     psynet export ssh --app your-app-name
 
-There are still some issues with the export functionality; if you encounter an error,
-we recommend trying again with the legacy flag:
+The export lands in ``exports/latest/`` inside your experiment directory, and
+your previous export is kept under ``exports/history/``. Run the command from
+the experiment directory that the deployment came from: PsyNet checks this and
+refuses to export if the labels do not match.
 
-.. code:: bash
-
-    psynet export ssh --app your-app-name --legacy
-
-Alternatively, use the admin panel to export the data, disable 'anonymous' export,
-and export only the 'Dallinger' database, not the PsyNet formatted dataset.
-This will still provide all the data you need, just in a less convenient format.
+If the export fails, your previous export is left untouched, so it is always
+safe to retry. See :ref:`data` for asset options.
 
 Once you're done, you can take down the experiment:
 

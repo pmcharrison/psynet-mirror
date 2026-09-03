@@ -40,6 +40,11 @@ Merge requests run the ``asv_regression`` CI job. This job uses
 base and head commits back-to-back on the same GitLab runner. The job exits
 non-zero when ASV detects a regression larger than the configured factor.
 
+Export performance is not included in the ASV suite. End-to-end exports depend
+on mutable database fixtures, filesystem caches, and subprocess startup, which
+do not provide a stable enough signal for the merge-request gate's fixed
+regression threshold. Export correctness remains covered by functional tests.
+
 Default-branch checks and publishing
 ====================================
 

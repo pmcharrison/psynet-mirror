@@ -11,12 +11,61 @@ PsyNet experiments centre on the `Timeline` component,
 which chains together `Page`s, `Module`s, `TrialMaker`s, and `CodeBlock`s.
 Most experiment logic should go through these components.
 
-Prefer `TrialMaker`s where possible for administering sequences of trials,
-as they provide standardized helpers for administration and visualization.
-`StaticTrialMaker`s are suitable for standard, non-adaptive experiments;
-use a chain-based trial maker when later trials depend on state produced by
-completed earlier trials. Inspect the closest PsyNet demo and trial-maker
-implementation before choosing an architecture.
+A `Trial` typically constitutes the core repeating unit of the experiment.
+It is parametrized by a `definition` attribute, and produces a front-end interface
+via the `show_trial` method.
+
+There are several ways to organize the presentation of `Trial`s.
+In particular, various forms of `TrialMaker` are available for facilitating
+certain standard scenarios.
+The `StaticTrialMaker` is appropriate when trials are generated from a fixed bank
+of available sources, called nodes (e.g. a collection of stimuli to evaluate).
+It facilitates a particularly common requirement, to ensure that all
+stimuli/nodes receive an approximately equal number of responses.
+The `ChainTrialMaker` is a generalization of the `StaticTrialMaker` where the nodes
+evolve through time in response to prior responses; this is used to implement paradigms
+such as serial reproduction and Markov Chain Monte Carlo with People.
+The `GraphChainTrialMaker` is a generalization of `ChainTrialMaker` that
+supports causal dependencies between nodes.
+
+An alternative method is to use `Trial.cue`, which gives direct control over the
+sequence of trial administration. This is particularly helpful in experiments with
+complex ordering requirements, or in adaptive experiments where item selection
+is performed by a custom algorithm, or in experiments where the theoretical number
+of possible trial configurations is too large to represent effectively in the database
+(e.g. experiments where each trial involves presenting the participant with several
+randomly chosen items from a large item bank).
+
+Inspect relevant PsyNet demos and trial-maker implementations before choosing
+an architecture.
+
+## Python modules beside ``experiment.py``
+
+Keep ``experiment.py`` as the timeline and experiment class. Put substantial
+helpers in sibling files (for example ``adaptive_logic.py``).
+
+Dallinger imports the experiment directory as the package
+``dallinger_experiment`` and then loads ``experiment.py`` as
+``dallinger_experiment.experiment``. Sibling imports must be relative:
+
+```python
+from . import adaptive_logic
+from .adaptive_logic import select_item
+```
+
+Do not run ``python experiment.py`` to check that this works. That executes the
+file as a script, so there is no parent package and the relative import fails.
+``psynet test local`` and ``psynet debug`` load the experiment the same way
+Dallinger does.
+
+Standalone scripts such as ``simulate_procedure.py`` and
+``python -m audit.simulate.design.core`` are not that package. They import the
+same helpers as top-level names (``from adaptive_logic import select_item``).
+Run the design command from the experiment root. Keep runtime helpers beside
+``experiment.py``; stock ``deploy.toml`` excludes ``audit/``.
+
+See ``docs/experiment_development/experiment_directory.rst``
+("Importing other Python files").
 
 ## Internationalization
 
@@ -66,7 +115,7 @@ If something seems very hard to achieve, stop and ask the user rather than devia
   `markupsafe.Markup` only for trusted, static HTML snippets passed directly as
   page content; do not nest raw markup strings inside `dominate` containers.
   Avoid interpolating participant- or user-provided data into `Markup`.
-- For repeated tasks, use `StaticTrialMaker` when rounds are independent and a
-  chain-based trial maker when later rounds depend on completed earlier rounds.
-  Read `synchronous-experiments/SKILL.md` as well when participant
+- For repeated tasks, choose between a trial maker and `Trial.cue` with the rule
+  under "Approach" above. Read
+  `synchronous-experiments/SKILL.md` as well when participant
   grouping, barriers, cohorts, or waiting rooms are involved.

@@ -138,13 +138,14 @@ Collect the `local/` artifacts as follows:
 
 ```bash
 cd <psynet-root>/tests/deployment/<experiment>  # the app's experiment dir
-psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
+psynet export ssh --app <app-name> --server <ssh-host> \
   --path <psynet-root>/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/export
 ```
 
-   This saves the database dump (`regular/database.zip`) and per-table CSVs
-   (`regular/data/`). Deployment provenance, including the Git commit and
-   working-tree state, is recorded in the exported experiment configuration.
+   This writes `export.zip` (or an extracted tree under `exports/latest/` when
+   using the default path) containing `database/*.csv`, identifier sidecars,
+   `manifest.json`, and optional `assets/`. Deployment provenance, including the
+   Git commit and working-tree state, is recorded in `manifest.json`.
 
 3. **Raw Prolific data**: save the full study object and all submissions as
    JSON (run the `prolific_service_from_config()` snippet above with
