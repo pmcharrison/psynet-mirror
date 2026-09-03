@@ -22,8 +22,10 @@ There are three export benchmarks in this module:
     Exercises the client-side hydrate step used by remote incremental exports.
     It stays separate from ``LocalAssetExport`` because local exports do not
     run the rsync/manifest hydrate path. The fixture uses a local fake remote
-    object store to keep the fast ASV gate focused on cache reuse rather than
-    dashboard, SSH, or network setup.
+    object store to keep the fast ASV gate focused on cold-cache transfer
+    without measuring dashboard, SSH, or network setup. Setup still performs a
+    warm-cache hydrate to verify reuse, but ASV does not track that time because
+    the warm path can be too small and noisy for a 1.25x regression gate.
 """
 
 from __future__ import annotations
@@ -566,11 +568,13 @@ def _hydrate_export(
 def _run_incremental_transfer_benchmark(
     profile: _AssetExportProfile,
 ) -> dict[str, float | int]:
-    """Time a cold and then a warm incremental asset transfer into an export tree.
+    """Time cold transfer and verify a warm hydrate reuses the cache.
 
     One discarded hydrate runs first so rsync startup and OS page-cache fill are
     not attributed to whichever commit ``asv continuous`` measured first. The
-    timed cold run still uses an empty application cache.
+    timed cold run still uses an empty application cache. The following warm run
+    is retained as setup validation rather than an ASV-tracked metric, because
+    sub-millisecond warm hydrates produce noisy ratios in ``asv continuous``.
     """
 
     with (
@@ -603,12 +607,12 @@ def _run_incremental_transfer_benchmark(
 
 
 class IncrementalAssetTransfer:
-    """Benchmark client-side incremental asset transfer with a cold and warm cache."""
+    """Benchmark client-side incremental transfer from an empty cache."""
 
     params = list(_ASSET_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 2
+    version = 3
 
     def setup_cache(self):
         """Run each transfer profile after a discarded hydrate and cache scalars."""
@@ -635,15 +639,6 @@ class IncrementalAssetTransfer:
 
     track_cold_transfer_time_s.unit = "s"
     track_cold_transfer_time_s.pretty_name = "Incremental transfer time (cold cache)"
-
-    def track_warm_transfer_time_s(self, results, profile):
-        """Return wall time to hydrate an export whose objects are already cached."""
-
-        return results[profile]["warm_transfer_time_s"]
-
-    track_warm_transfer_time_s.unit = "s"
-    track_warm_transfer_time_s.pretty_name = "Incremental transfer time (warm cache)"
-
 
 class LocalAssetExport:
     """Benchmark the local export CLI with deterministic ExperimentAsset files."""

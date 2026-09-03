@@ -278,13 +278,13 @@ def test_incremental_fixture_writes_remote_objects_once(tmp_path):
         assert all(digest in text for _, digest in entries)
 
 
-def test_incremental_transfer_tracks_metrics():
+def test_incremental_transfer_tracks_cold_cache_metric_only():
     benchmark = IncrementalAssetTransfer()
     profile = benchmark.params[0]
     results = {profile: {"cold_transfer_time_s": 3.0, "warm_transfer_time_s": 0.2}}
 
     assert benchmark.track_cold_transfer_time_s(results, profile) == 3.0
-    assert benchmark.track_warm_transfer_time_s(results, profile) == 0.2
+    assert not hasattr(benchmark, "track_warm_transfer_time_s")
 
 
 def test_asset_benchmark_payloads_are_deterministic():

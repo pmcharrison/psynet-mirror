@@ -57,10 +57,11 @@ commit looks faster even when the merge request did not touch export.
 ``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated
 directory, discards one ``psynet export local --assets collected`` run, and
 records a second CLI export.
-``IncrementalAssetTransfer`` already reports cold vs warm application-cache
-times and discards one transfer first so rsync startup and OS page-cache fill
-are not charged to whichever commit ran first. The merge-request gate keeps
-``--factor 1.25``.
+``IncrementalAssetTransfer`` tracks the cold application-cache transfer after a
+discarded hydrate, so rsync startup and OS page-cache fill are not charged to
+whichever commit ran first. Its setup still performs a warm-cache hydrate to
+verify cache reuse, but that elapsed time is not tracked because tiny warm-cache
+samples produce noisy ratios under the merge-request gate's ``--factor 1.25``.
 
 Default-branch checks and publishing
 ====================================
