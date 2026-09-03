@@ -1913,6 +1913,16 @@ def test_generic_recruiter_has_no_external_bonus_payment():
     assert recruiter.has_external_bonus_payment() is False
 
 
+def test_exit_message_names_the_platform_when_there_is_one():
+    from psynet.recruiters import GenericRecruiter, ProlificRecruiter
+
+    assert object.__new__(GenericRecruiter).exit_message() == "Finalizing session..."
+    assert (
+        object.__new__(ProlificRecruiter).exit_message()
+        == "Finalizing session with Prolific..."
+    )
+
+
 def _review_participant(apparent=0.0, planned=1.50):
     participant = prepare_payout_participant(
         make_participant_with_recruiter(make_config(), failed=False, status="approved")

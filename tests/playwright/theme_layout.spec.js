@@ -178,6 +178,68 @@ test(
 );
 
 test(
+  "transient page messages appear only if the page lingers",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      html: `<div id="main-body" class="psynet-surface">
+               <p class="psynet-deferred-message">Finalizing session...</p>
+             </div>`
+    });
+
+    const opacity = () =>
+      page
+        .locator(".psynet-deferred-message")
+        .evaluate((element) => parseFloat(getComputedStyle(element).opacity));
+
+    // A hand-off that finishes in a couple of hundred milliseconds, as it
+    // normally does, shows nothing at all.
+    await page.waitForTimeout(250);
+    expect(await opacity()).toBeLessThan(0.05);
+
+    // A slow hand-off reveals the message rather than leaving a blank page.
+    await page.waitForTimeout(1000);
+    expect(await opacity()).toBeGreaterThan(0.95);
+  }
+);
+
+test(
+  "transient page messages still appear under reduced motion",
+  { tag: "@both" },
+  async ({ browser }) => {
+    // The theme collapses animation durations for reduced motion but leaves
+    // delays alone, so the message should still wait and then appear.
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 720 },
+      reducedMotion: "reduce"
+    });
+    const page = await context.newPage();
+    try {
+      await renderTheme(page, {
+        viewport: { width: 1280, height: 720 },
+        html: `<div id="main-body" class="psynet-surface">
+                 <p class="psynet-deferred-message">Finalizing session...</p>
+               </div>`
+      });
+
+      const opacity = () =>
+        page
+          .locator(".psynet-deferred-message")
+          .evaluate((element) => parseFloat(getComputedStyle(element).opacity));
+
+      await page.waitForTimeout(250);
+      expect(await opacity()).toBeLessThan(0.05);
+
+      await page.waitForTimeout(1000);
+      expect(await opacity()).toBeGreaterThan(0.95);
+    } finally {
+      await context.close();
+    }
+  }
+);
+
+test(
   "footer text is centred below the progress bar",
   { tag: "@both" },
   async ({ page }) => {

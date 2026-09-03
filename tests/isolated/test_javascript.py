@@ -2,8 +2,17 @@ import warnings
 
 import pytest
 
-from psynet.page import JsPsychPage, UnityPage
+from psynet.page import ExecuteFrontEndJS, JsPsychPage, UnityPage
 from psynet.timeline import Page
+
+
+def test_execute_front_end_js_defers_its_message():
+    """The message is styled to appear only if the page lingers."""
+    page = ExecuteFrontEndJS("doSomething()", message="Finalizing session...")
+    assert 'class="psynet-deferred-message"' in page.content
+    assert "Finalizing session..." in page.content
+
+    assert ExecuteFrontEndJS("doSomething()").content == ""
 
 
 @pytest.mark.parametrize("argument_name", ["js_dependencies", "js_page_modules"])

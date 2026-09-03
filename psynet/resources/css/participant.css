@@ -629,6 +629,23 @@ textarea:focus-visible,
     );
 }
 
+/*
+ * Status text for a page that is expected to be transient, such as the
+ * recruiter hand-off. That page usually lasts a couple of hundred
+ * milliseconds, so showing text immediately produces an unreadable flash;
+ * waiting means participants only see it if something is actually slow.
+ * Under reduced motion the theme collapses the duration but keeps the delay,
+ * so the message still waits and then appears without fading.
+ */
+.psynet-deferred-message {
+    opacity: 0;
+    animation: psynet-deferred-reveal 150ms ease-out 700ms forwards;
+}
+
+@keyframes psynet-deferred-reveal {
+    to { opacity: 1; }
+}
+
 @keyframes psynet-gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }

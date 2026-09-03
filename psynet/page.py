@@ -547,9 +547,23 @@ class ExecuteFrontEndJS(InfoPage):
 
     def __init__(self, js: str, message: str = ""):
         super().__init__(
-            content=message,
+            content=self._render_message(message),
             time_estimate=0.0,
             js_vars={"execute_front_end_js": js},
             js_page_modules=["/static/scripts/execute-front-end-js.js"],
             show_next_button=False,
         )
+
+    @staticmethod
+    def _render_message(message):
+        """Wrap the message so that it only appears if the page lingers.
+
+        These pages normally last a couple of hundred milliseconds, which is
+        too brief to read; the message is there for the case where the work
+        takes long enough for a blank page to look broken. The delay lives in
+        CSS (``.psynet-deferred-message``) so no timer has to be cancelled when
+        the page navigates away.
+        """
+        if not message:
+            return message
+        return Markup('<p class="psynet-deferred-message">{}</p>').format(message)
