@@ -9,11 +9,6 @@ and with the development of individual PsyNet experiments.
 If the root contains a file called `experiment.py`, assume that we are working on an experiment.
 Otherwise assume we are working on the PsyNet source code.
 
-When changing PsyNet source, do not edit `psynet/locales` on feature branches.
-Feature-branch tests fall back to English for missing catalog entries;
-`psynet debug` still fails. Refresh translations on the release branch with
-`psynet translate`.
-
 From `experiment.py`, import sibling modules with `from . import my_module`.
 Do not run `python experiment.py` to validate imports; use `psynet test local`.
 See `docs/experiment_development/experiment_directory.rst`

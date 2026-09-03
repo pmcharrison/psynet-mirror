@@ -648,8 +648,16 @@ def is_release_branch():
     return os.environ.get("CI_COMMIT_REF_NAME", "").startswith("release-")
 
 
-def _in_non_release_pytest():
-    """Return whether we are inside pytest but not on a release branch."""
+def _tolerate_missing_translation(namespace):
+    """
+    Return whether a missing catalog entry should be downgraded to a warning.
+
+    Package catalogs (e.g. PsyNet's own) are refreshed on the release branch,
+    so feature-branch test runs must not depend on them. Experiment catalogs
+    are owned by the experiment author, so those keep failing loudly.
+    """
+    if namespace == "experiment":
+        return False
     return bool(os.environ.get("PYTEST_CURRENT_TEST")) and not is_release_branch()
 
 
@@ -675,11 +683,12 @@ def check_translation_is_available(message, context, locale, namespace):
             error_message += " Since this is a live experiment, we instead presented the untranslated text."
             logger.warning(error_message)
             get_experiment().report_error(TranslationNotFoundError(error_message))
-        elif _in_non_release_pytest():
+        elif _tolerate_missing_translation(namespace):
             error_message += (
                 " The untranslated English text will be shown instead. "
-                "Package catalogs are refreshed on the release branch with `psynet translate`; "
-                "feature-branch tests do not require up-to-date .po/.pot files."
+                f"Catalogs for the {namespace} package are refreshed on the release branch "
+                "with `psynet translate`, so feature-branch tests do not require them "
+                "to be up to date."
             )
             logger.warning(error_message)
         else:
