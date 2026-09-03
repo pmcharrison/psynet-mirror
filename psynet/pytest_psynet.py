@@ -68,6 +68,17 @@ local_only = pytest.mark.skipif(
 )
 
 
+def is_release_branch():
+    """Return True when CI is running on a ``release-*`` branch."""
+    return os.environ.get("CI_COMMIT_REF_NAME", "").startswith("release-")
+
+
+release_branch_only = pytest.mark.skipif(
+    not is_release_branch(),
+    reason="This test only runs on release branches",
+)
+
+
 def assert_text(driver, element_id, value):
     def get_element():
         try:

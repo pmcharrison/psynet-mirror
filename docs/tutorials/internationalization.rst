@@ -237,7 +237,8 @@ If you do not specify which locales to translate it to, it will default to PsyNe
 Feature merge requests should not update ``psynet/locales``. When a source
 string is missing from a catalog, PsyNet shows the English text and logs a
 warning (in a live experiment it also reports the error). Catalogs are
-refreshed on the release branch with ``psynet translate``.
+refreshed on the release branch with ``psynet translate``. Tests that pin
+translated PsyNet framework copy run only on that branch.
 
 
 Contributing to PsyNet

@@ -278,6 +278,8 @@ When you make changes to the PsyNet codebase:
    edit `psynet/locales` (`.po` / `.pot` files). Missing PsyNet catalog
    entries fall back to English with a warning. Refresh catalogs on the
    release branch with `psynet translate`, where
-   `test_psynet_translations_up_to_date` runs.
+   `test_psynet_translations_up_to_date` runs. Tests that pin translated
+   PsyNet framework copy should use `release_branch_only` or
+   `is_release_branch()` from `psynet.pytest_psynet`.
 
 4. **Commit and push**: Commit all changes including changelog fragments (but not a regenerated `CHANGELOG.md`) and any pre-commit formatting fixes.

@@ -7,6 +7,7 @@ from psynet.pytest_psynet import (
     assert_text,
     bot_class,
     click_finish_button,
+    is_release_branch,
     next_page,
     path_to_demo_experiment,
 )
@@ -60,11 +61,14 @@ class TestExp(object):
             )
             next_page(driver, "Schokolade")
 
-            # Page 5
-            assert_text(
-                driver,
-                "main-body",
-                'Das ist das Ende des Experiments! Vielen Dank für Ihre Teilnahme. Bitte klicken Sie auf "Fertig", um den HIT abzuschließen. Fertig',
-            )
+            # PsyNet end-page copy comes from package catalogs, which feature
+            # MRs do not update. Assert the German framework strings only after
+            # the release-branch ``psynet translate`` pass.
+            if is_release_branch():
+                assert_text(
+                    driver,
+                    "main-body",
+                    'Das ist das Ende des Experiments! Vielen Dank für Ihre Teilnahme. Bitte klicken Sie auf "Fertig", um den HIT abzuschließen. Fertig',
+                )
 
             click_finish_button(driver)

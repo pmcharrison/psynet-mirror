@@ -11,11 +11,10 @@ To check if translations are up to date (only runs on release branches):
 
 """
 
-import os
-
 import polib
 import pytest
 
+from psynet.pytest_psynet import release_branch_only
 from psynet.translation.check import (
     assert_variable_names_match,
     translation_contains_same_variables,
@@ -23,12 +22,6 @@ from psynet.translation.check import (
 from psynet.translation.check import check_translations as check_translations_internal
 from psynet.translation.translate import check_translations
 from psynet.utils import get_psynet_root, working_directory
-
-
-def is_release_branch():
-    """Check if we're running on a release branch in CI."""
-    branch_name = os.environ.get("CI_COMMIT_REF_NAME", "")
-    return branch_name.startswith("release-")
 
 
 def make_entry(msgid="", msgstr=""):
@@ -115,10 +108,7 @@ def test_multiple_entries():
         assert_variable_names_match(pot_entries, po_entries_one_wrong)
 
 
-@pytest.mark.skipif(
-    not is_release_branch(),
-    reason="Translation up-to-date check only runs on release branches",
-)
+@release_branch_only
 def test_psynet_translations_up_to_date():
     """
     Verify all PsyNet package translations are up-to-date with source code.
