@@ -914,10 +914,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
         status = self._live_submission_status(assignment_id)
         if status is None:
-            self._notify_complete_failed(
-                participant,
+            logger.warning(
+                "Could not read Prolific submission %s; the recruiter check "
+                "will retry COMPLETE.",
                 assignment_id,
-                extra=" PsyNet could not read the submission status.",
             )
             return False
 
@@ -937,7 +937,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 status,
             )
             return True
-        return self._complete_prolific_submission(participant, assignment_id)
+        return self._complete_prolific_submission(
+            participant, assignment_id, notify=False
+        )
 
     def _approve_awaiting_review(self, assignment_id: str) -> bool:
         """Approve an AWAITING REVIEW row. Return False if Approve did not succeed.
@@ -967,8 +969,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     ):
         """POST COMPLETE with the researcher-actor code for this participant.
 
-        ``notify=False`` is for the recurring retry, which tells the
-        researcher only when it gives up.
+        ``notify=False`` (the call at local submit and the recurring
+        retry) tells the researcher only when the sweep gives up.
         """
         spec = self._researcher_completion_for(participant)
         if spec is None:

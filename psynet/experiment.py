@@ -2655,16 +2655,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         asked to pay it, so without this flag a refused study base (for
         example a failed Prolific ``COMPLETE``) leaves a participant who
         looks fully paid. The recorded base stays reserved, because the
-        money is still owed and a researcher can still settle the
-        submission on the platform. PsyNet does not pay the missing base as
-        a bonus: the study reward is the platform's to pay.
+        money is still owed. PsyNet retries the native completion on the
+        existing recruiter check and does not pay the missing base as a
+        bonus: the study reward is the platform's to pay.
         """
         record_platform_base_unpaid(
             participant,
             f"The recruitment platform did not pay the decided study base of "
             f"{decision.platform_base}, so the recorded base above is owed "
-            f"rather than paid. PsyNet did not pay it as a bonus. Settle this "
-            f"submission on the platform.",
+            f"rather than paid. PsyNet is retrying the completion and did not "
+            f"pay the study base as a bonus.",
         )
         logger.error(
             "Platform refused the study base of %s for participant %s "

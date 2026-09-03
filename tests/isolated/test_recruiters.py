@@ -606,7 +606,7 @@ def test_approve_hit_does_not_complete_when_participant_row_is_missing():
     recruiter.prolificservice._req.assert_not_called()
 
 
-def test_approve_hit_notifies_researcher_when_complete_fails():
+def test_approve_hit_does_not_notify_when_complete_fails():
     experiment = MagicMock()
     config = make_config(prolific_screen_out_slots=70)
     recruiter = make_prolific_recruiter(config)
@@ -628,8 +628,7 @@ def test_approve_hit_notifies_researcher_when_complete_fails():
                         result = recruiter.approve_hit("assignment-1")
     assert result is False
     super_approve.assert_not_called()
-    experiment.notifier.notify.assert_called_once()
-    assert "approve or screen out" in experiment.notifier.notify.call_args.args[0]
+    experiment.notifier.notify.assert_not_called()
 
 
 def test_approve_hit_reports_failure_when_the_request_cannot_be_sent():
@@ -657,7 +656,7 @@ def test_approve_hit_reports_failure_when_the_request_cannot_be_sent():
                 with patch("psynet.experiment.get_experiment", return_value=experiment):
                     result = recruiter.approve_hit("assignment-1")
     assert result is False
-    experiment.notifier.notify.assert_called_once()
+    experiment.notifier.notify.assert_not_called()
 
 
 def _unpaid_participant(**attrs):
@@ -798,7 +797,7 @@ def test_dev_run_checks_retries_unpaid_bases():
     retry.assert_called_once()
 
 
-def test_approve_hit_notifies_when_submission_status_cannot_be_read():
+def test_approve_hit_does_not_notify_when_submission_status_cannot_be_read():
     experiment = MagicMock()
     recruiter, result, super_approve = _run_approve_hit(
         _approve_hit_participant(), "ACTIVE", submission=False, experiment=experiment
@@ -806,7 +805,7 @@ def test_approve_hit_notifies_when_submission_status_cannot_be_read():
     assert result is False
     super_approve.assert_not_called()
     recruiter.prolificservice._req.assert_not_called()
-    experiment.notifier.notify.assert_called_once()
+    experiment.notifier.notify.assert_not_called()
 
 
 def test_dev_prolific_reports_active_without_reading_the_api():
@@ -1520,6 +1519,7 @@ def test_on_recruiter_submission_complete_flags_refused_platform_base():
     assert "did not pay the decided study base of 1.0" in (
         participant.platform_base_unpaid_detail
     )
+    assert "retrying" in participant.platform_base_unpaid_detail
     # The top-up is still owed and still paid; the base is not reconstructed
     # as a bonus.
     assert participant.bonus == 1.50
