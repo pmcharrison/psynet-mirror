@@ -41,12 +41,10 @@ base and head commits back-to-back on the same GitLab runner. The job exits
 non-zero when ASV detects a regression larger than the configured factor.
 
 Export benchmarks in ``benchmarks/fast/export_benchmarks.py`` skip on a
-merge-base whose installed PsyNet predates ``psynet.export``. Their
-``setup_cache`` returns ``None`` in that case, and ASV then calls
-``setup(profile)`` with no cached results dict, so ``setup`` accepts an
-optional ``profile`` and raises ``NotImplementedError`` to mark the skip.
-Those benchmarks have no baseline to compare against until they exist on
-both sides of the comparison.
+merge-base whose installed PsyNet predates ``psynet.export``. Each benchmark's
+``setup(profile)`` raises ``NotImplementedError`` to mark that profile as
+skipped. Those benchmarks have no baseline to compare against until they exist
+on both sides of the comparison.
 
 ``asv continuous`` interleaves rounds by default, so a later round can run HEAD
 before BASE. ``--split`` only splits the results table. A cold first asset

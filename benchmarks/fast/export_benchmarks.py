@@ -1,10 +1,11 @@
 """Benchmarks for local PsyNet export performance.
 
-ASV ``time_*`` methods measure elapsed export time, while ``track_*`` methods
-report scalar fixture metadata such as row counts and total bytes. The asset
-benchmark still warms an isolated content-addressed cache before timed runs:
-``asv continuous`` interleaves rounds by default, so BASE and HEAD can run in
-either order and a cold first I/O sample is not comparable across commits.
+ASV ``time_*`` methods measure elapsed export time. Each benchmark's
+``setup(profile)`` prepares and validates one profile, and ``teardown(profile)``
+removes its temporary files. The asset benchmark warms an isolated
+content-addressed cache before timed runs: ``asv continuous`` interleaves rounds
+by default, so BASE and HEAD can run in either order and a cold first I/O sample
+is not comparable across commits.
 
 There are two export benchmarks in this module:
 
@@ -110,22 +111,11 @@ def _skip_unless_canonical_export_supported() -> None:
     """Skip this benchmark when the compared revision predates the API.
 
     ASV only treats ``NotImplementedError`` as a skip when it is raised from
-    ``setup``. Raised from ``setup_cache`` it aborts the whole run, so classes
-    below must call this from ``setup`` and let ``setup_cache`` return ``None``.
-
-    When that cache is ``None``, ASV calls ``setup(profile)`` with no results
-    dict. ``profile`` is therefore optional on these ``setup`` methods. A
-    successful run still receives ``setup(results, profile)``.
+    ``setup``, so each benchmark checks the installed revision before preparing
+    its fixture.
     """
     if not _canonical_export_supported():
         raise NotImplementedError("Installed PsyNet predates the canonical export API.")
-
-
-def _export_benchmark_cache(builder) -> Optional[dict]:
-    """Build a benchmark cache, or return None on revisions without the API."""
-    if not _canonical_export_supported():
-        return None
-    return builder()
 
 
 def _repo_root() -> Path:
@@ -241,12 +231,11 @@ def _database_table_row_counts(export_path: Path) -> dict[str, int]:
     return counts
 
 
-def _summarize_export(
+def _validate_export(
     export_path: Path,
-    export_time_s: float,
     expected_table_rows: tuple[tuple[str, int], ...],
-) -> dict[str, float | int]:
-    """Summarize the files created by a canonical export."""
+) -> None:
+    """Validate that a canonical export has the expected table rows."""
 
     table_row_counts = _database_table_row_counts(export_path)
     expected = dict(expected_table_rows)
@@ -257,52 +246,6 @@ def _summarize_export(
             f"Expected table rows {expected}, got {actual}. "
             "Update the fixture expectations and benchmark version if intentional."
         )
-
-    database_dir = export_path / "database"
-    if database_dir.is_dir():
-        database_size_bytes = sum(
-            path.stat().st_size for path in database_dir.rglob("*") if path.is_file()
-        )
-    else:
-        database_size_bytes = (export_path / "database.zip").stat().st_size
-
-    return {
-        "export_time_s": export_time_s,
-        "data_csv_count": len(table_row_counts),
-        "data_row_count": sum(table_row_counts.values()),
-        "database_size_bytes": database_size_bytes,
-    }
-
-
-def _build_local_export_fixture(profile: _ExportProfile) -> dict[str, str | int]:
-    """Populate a local experiment and return reusable export fixture metadata."""
-
-    export_root = Path(tempfile.mkdtemp(prefix="psynet-export-benchmark-"))
-    validation_path = export_root / "validation"
-    _populate_local_experiment(profile.n_bots)
-    _run_local_export(validation_path)
-    summary = _summarize_export(
-        validation_path,
-        export_time_s=0,
-        expected_table_rows=profile.expected_table_rows,
-    )
-    return {
-        "export_root": str(export_root),
-        "data_row_count": summary["data_row_count"],
-        "database_size_bytes": summary["database_size_bytes"],
-    }
-
-
-def _cleanup_fixture_roots(results: dict, *keys: str) -> None:
-    """Remove temporary roots recorded in a ``setup_cache`` result dict."""
-
-    if results is None:
-        return
-    for fixture in results.values():
-        for key in keys:
-            value = fixture.get(key)
-            if value:
-                shutil.rmtree(value, ignore_errors=True)
 
 
 # ``LocalAssetExport`` setup and timing helpers.
@@ -374,35 +317,29 @@ def _warm_asset_export_fixture(
     export_root: Path,
     cache_root: Path,
     manifest: list[dict[str, str | int]],
-) -> dict[str, int]:
-    """Warm the asset cache once and return validated fixture metrics."""
+) -> None:
+    """Warm the asset cache once and validate the exported files."""
 
     validation_path = export_root / "validation"
     try:
         _run_local_export(
             validation_path, assets="collected", env=_asset_export_env(cache_root)
         )
-        summary = _summarize_asset_export(validation_path, export_time_s=0, manifest=manifest)
-        return {
-            "asset_file_count": int(summary["asset_file_count"]),
-            "asset_total_bytes": int(summary["asset_total_bytes"]),
-        }
+        _validate_asset_export(validation_path, manifest)
     finally:
         shutil.rmtree(validation_path, ignore_errors=True)
 
 
-def _summarize_asset_export(
+def _validate_asset_export(
     export_path: Path,
-    export_time_s: float,
     manifest: list[dict[str, str | int]],
-) -> dict[str, float | int]:
-    """Validate and summarize exported benchmark assets."""
+) -> None:
+    """Validate exported benchmark assets against their input manifest."""
 
     assets_root = export_path / "assets"
     if not assets_root.is_dir():
         assets_root = export_path
 
-    exported_files = []
     for item in manifest:
         path = assets_root / str(item["export_path"])
         if not path.is_file():
@@ -410,7 +347,6 @@ def _summarize_asset_export(
                 "Asset export benchmark fixture shape changed. "
                 f"Missing exported file {path}."
             )
-        exported_files.append(path)
         payload = path.read_bytes()
         if len(payload) != item["size_bytes"]:
             raise RuntimeError(
@@ -420,37 +356,6 @@ def _summarize_asset_export(
         if hashlib.sha256(payload).hexdigest() != item["sha256"]:
             raise RuntimeError(f"Unexpected SHA-256 digest for {path}.")
 
-    return {
-        "asset_export_time_s": export_time_s,
-        "asset_file_count": len(exported_files),
-        "asset_total_bytes": sum(path.stat().st_size for path in exported_files),
-    }
-
-
-def _build_asset_export_fixture(
-    profile: _AssetExportProfile,
-) -> dict[str, str | int]:
-    """Deposit deterministic assets and return reusable export fixture metadata."""
-
-    input_dir = Path(tempfile.mkdtemp(prefix="psynet-asset-inputs-"))
-    export_root = Path(tempfile.mkdtemp(prefix="psynet-asset-export-"))
-    storage_root = Path(tempfile.mkdtemp(prefix="psynet-asset-storage-"))
-    cache_root = Path(tempfile.mkdtemp(prefix="psynet-asset-cache-"))
-
-    _populate_local_experiment()
-    manifest = _write_asset_payloads(input_dir, profile)
-    manifest_path = input_dir / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest))
-    _run_asset_worker(manifest_path, storage_root)
-    metrics = _warm_asset_export_fixture(export_root, cache_root, manifest)
-    return {
-        "input_root": str(input_dir),
-        "export_root": str(export_root),
-        "storage_root": str(storage_root),
-        "cache_root": str(cache_root),
-        **metrics,
-    }
-
 
 class LocalExport:
     """Benchmark the canonical local export after a reproducible population run."""
@@ -458,50 +363,37 @@ class LocalExport:
     params = list(_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 4
+    version = 5
 
-    def setup_cache(self):
-        """Build each export profile fixture once and cache scalar metrics."""
-        return _export_benchmark_cache(
-            lambda: {
-                name: _build_local_export_fixture(profile)
-                for name, profile in _EXPORT_PROFILES.items()
-            }
-        )
+    def setup(self, profile):
+        """Populate and validate one database-export profile."""
 
-    def teardown_cache(self, results):
-        """Remove temporary export roots created by ``setup_cache``."""
-        _cleanup_fixture_roots(results, "export_root")
-
-    def setup(self, results, profile=None):
-        """Prepare one parameterized run.
-
-        ``profile`` is optional because ASV omits it from the call when
-        ``setup_cache`` returned ``None``; see
-        ``_skip_unless_canonical_export_supported``.
-        """
         _skip_unless_canonical_export_supported()
+        self._tempdir = tempfile.TemporaryDirectory(
+            prefix="psynet-export-benchmark-"
+        )
+        self._export_root = Path(self._tempdir.name)
 
-    def time_export(self, results, profile):
+        try:
+            fixture = _EXPORT_PROFILES[profile]
+            _populate_local_experiment(fixture.n_bots)
+            validation_path = self._export_root / "validation"
+            _run_local_export(validation_path)
+            _validate_export(validation_path, fixture.expected_table_rows)
+            shutil.rmtree(validation_path, ignore_errors=True)
+        except Exception:
+            self._tempdir.cleanup()
+            raise
+
+    def time_export(self, profile):
         """Run the local export command into a fresh destination."""
 
-        _run_local_export(_fresh_export_path(Path(results[profile]["export_root"])))
+        _run_local_export(_fresh_export_path(self._export_root))
 
-    def track_data_row_count(self, results, profile):
-        """Return the number of table rows written under ``database/``."""
+    def teardown(self, profile):
+        """Remove this profile's temporary files."""
 
-        return results[profile]["data_row_count"]
-
-    track_data_row_count.unit = "rows"
-    track_data_row_count.pretty_name = "Local export rows"
-
-    def track_database_size_bytes(self, results, profile):
-        """Return the size of the exported table CSVs."""
-
-        return results[profile]["database_size_bytes"]
-
-    track_database_size_bytes.unit = "bytes"
-    track_database_size_bytes.pretty_name = "Local export database size"
+        self._tempdir.cleanup()
 
 
 class LocalAssetExport:
@@ -510,58 +402,45 @@ class LocalAssetExport:
     params = list(_ASSET_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 4
+    version = 5
 
-    def setup_cache(self):
-        """Build each asset-export profile fixture and cache scalar metrics."""
-        return _export_benchmark_cache(
-            lambda: {
-                name: _build_asset_export_fixture(profile)
-                for name, profile in _ASSET_EXPORT_PROFILES.items()
-            }
-        )
+    def setup(self, profile):
+        """Deposit and validate one asset-export profile."""
 
-    def teardown_cache(self, results):
-        """Remove temporary roots created by ``setup_cache``."""
-        _cleanup_fixture_roots(
-            results,
-            "input_root",
-            "export_root",
-            "storage_root",
-            "cache_root",
-        )
-
-    def setup(self, results, profile=None):
-        """Prepare one parameterized run.
-
-        ``profile`` is optional because ASV omits it from the call when
-        ``setup_cache`` returned ``None``; see
-        ``_skip_unless_canonical_export_supported``.
-        """
         _skip_unless_canonical_export_supported()
+        self._tempdir = tempfile.TemporaryDirectory(
+            prefix="psynet-asset-export-benchmark-"
+        )
+        root = Path(self._tempdir.name)
+        self._export_root = root / "exports"
+        self._storage_root = root / "storage"
+        self._cache_root = root / "cache"
+        input_root = root / "inputs"
+        input_root.mkdir()
 
-    def time_asset_export(self, results, profile):
+        try:
+            _populate_local_experiment()
+            manifest = _write_asset_payloads(
+                input_root, _ASSET_EXPORT_PROFILES[profile]
+            )
+            manifest_path = input_root / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+            _run_asset_worker(manifest_path, self._storage_root)
+            _warm_asset_export_fixture(self._export_root, self._cache_root, manifest)
+        except Exception:
+            self._tempdir.cleanup()
+            raise
+
+    def time_asset_export(self, profile):
         """Run the cache-warmed local asset export command."""
 
-        fixture = results[profile]
         _run_local_export(
-            _fresh_export_path(Path(fixture["export_root"])),
+            _fresh_export_path(self._export_root),
             assets="collected",
-            env=_asset_export_env(Path(fixture["cache_root"])),
+            env=_asset_export_env(self._cache_root),
         )
 
-    def track_asset_file_count(self, results, profile):
-        """Return the number of files exported by the asset benchmark."""
+    def teardown(self, profile):
+        """Remove this profile's temporary files."""
 
-        return results[profile]["asset_file_count"]
-
-    track_asset_file_count.unit = "files"
-    track_asset_file_count.pretty_name = "Local asset export files"
-
-    def track_asset_total_bytes(self, results, profile):
-        """Return total bytes exported by the asset benchmark."""
-
-        return results[profile]["asset_total_bytes"]
-
-    track_asset_total_bytes.unit = "bytes"
-    track_asset_total_bytes.pretty_name = "Local asset export bytes"
+        self._tempdir.cleanup()
