@@ -29,6 +29,11 @@ Maintainer notes
 This module avoids direct PsyNet database / SQLAlchemy model imports so
 its cache helpers can be unit-tested without a running experiment. It
 does import hashing helpers from ``psynet.utils``.
+
+Path resolution lives here rather than in individual commands. Exports,
+incremental hydrates, and ``psynet assets cache`` should all call
+``resolve_cache_root`` / ``default_cache_root`` so an environment override and
+an explicit CLI path mean the same thing everywhere.
 """
 
 import logging

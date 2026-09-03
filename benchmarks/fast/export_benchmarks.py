@@ -5,12 +5,25 @@ not get timed-benchmark warmup. ``asv continuous`` interleaves rounds by
 default, so BASE and HEAD can run in either order and a cold first I/O sample
 is not comparable across commits.
 
-``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated directory,
-discards one ``psynet export local --assets collected`` run, and records a
-second CLI export.
-``IncrementalAssetTransfer`` already reports cold vs warm application-cache
-times; it also discards one transfer first so rsync startup and OS page-cache
-effects are not charged to whichever commit ran first.
+There are three export benchmarks in this module:
+
+``LocalExport``
+    Populates the ``static_big`` demo and measures ``psynet export local
+    --assets none``. This is the database-only export baseline.
+
+``LocalAssetExport``
+    Adds deterministic ``ExperimentAsset`` files to the same local deployment,
+    then runs ``psynet export local --assets collected`` twice in subprocesses.
+    The first run warms an isolated content-addressed cache. The recorded
+    sample is the second CLI export, so ASV compares the user-facing command
+    without charging one commit for a shared cold cache.
+
+``IncrementalAssetTransfer``
+    Exercises the client-side hydrate step used by remote incremental exports.
+    It stays separate from ``LocalAssetExport`` because local exports do not
+    run the rsync/manifest hydrate path. The fixture uses a local fake remote
+    object store to keep the fast ASV gate focused on cache reuse rather than
+    dashboard, SSH, or network setup.
 """
 
 from __future__ import annotations
@@ -29,6 +42,10 @@ from pathlib import Path
 from typing import Optional
 
 _DEMO_RELATIVE_PATH = Path("tests/experiments/static_big")
+
+# The profiles below intentionally keep data shape separate from timing logic.
+# If the demo changes in a way that alters row or asset counts, the validation
+# helpers fail loudly and the corresponding ASV benchmark version should change.
 
 
 @dataclass(frozen=True)
@@ -269,6 +286,14 @@ def _run_local_export_benchmark(profile: _ExportProfile) -> dict[str, float | in
         )
 
 
+# ``LocalAssetExport`` setup and timing helpers.
+#
+# Depositing ``ExperimentAsset`` rows imports experiment-local SQLAlchemy models
+# and mutates deployment state, so that setup happens in
+# ``export_benchmark_worker.py``. The timed operation remains here and uses the
+# public CLI so the benchmark follows the path experiment authors run.
+
+
 def _deterministic_bytes(key: str, size_bytes: int) -> bytes:
     """Return deterministic binary payload for one benchmark asset."""
 
@@ -448,6 +473,15 @@ class LocalExport:
 
     track_database_size_bytes.unit = "bytes"
     track_database_size_bytes.pretty_name = "Local export database size"
+
+
+# ``IncrementalAssetTransfer`` fixture helpers.
+#
+# A real remote ``psynet export`` command would also measure dashboard
+# preflight, archive download, SSH setup, and fallback logic. These helpers
+# build the minimum manifest/object-store layout needed to time the incremental
+# hydrate operation itself while still using the same public transfer functions
+# as the remote export command.
 
 
 def _iter_incremental_assets(profile: _AssetExportProfile):

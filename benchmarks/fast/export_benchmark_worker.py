@@ -5,6 +5,10 @@ state, so each ASV profile runs this worker in a fresh process. The parent
 benchmark prepares deterministic input files and validates the exported output;
 this module only deposits those files. The timed operation lives in
 ``export_benchmarks.py`` and drives the public ``psynet export local`` command.
+
+Keep this worker setup-only. If timing logic is added here, the benchmark stops
+showing the subprocess command that experiment authors actually run, and it is
+harder to reason about which cache belongs to the timed export.
 """
 
 from __future__ import annotations
