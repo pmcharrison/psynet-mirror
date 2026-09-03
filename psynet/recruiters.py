@@ -929,7 +929,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return True
         if status == "AWAITING REVIEW":
-            return super().approve_hit(assignment_id)
+            return self._approve_awaiting_review(assignment_id)
         if status not in PROLIFIC_COMPLETABLE_SUBMISSION_STATUSES:
             logger.info(
                 "Skipping Prolific completion for assignment %s: status is %s.",
@@ -938,6 +938,16 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return True
         return self._complete_prolific_submission(participant, assignment_id)
+
+    def _approve_awaiting_review(self, assignment_id: str) -> bool:
+        """Approve an AWAITING REVIEW row. Return False if Approve did not succeed.
+
+        Dallinger's ``approve_hit`` returns a payload on success and implicit
+        ``None`` when Prolific rejects the request. Treat ``None`` and
+        ``False`` as unpaid; any other return is success.
+        """
+        result = super().approve_hit(assignment_id)
+        return result is not None and result is not False
 
     def _live_submission_status(self, assignment_id: str) -> str | None:
         """Return the current Prolific submission status, or ``None`` if unreadable.
@@ -1097,7 +1107,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             self._notify_complete_failed(participant, assignment_id, extra=extra)
             return
         if status == "AWAITING REVIEW":
-            if super().approve_hit(assignment_id) is False:
+            if not self._approve_awaiting_review(assignment_id):
                 self._record_platform_base_retry_failure(
                     participant,
                     extra=" Approve of an AWAITING REVIEW row failed.",

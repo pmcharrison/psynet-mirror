@@ -426,6 +426,7 @@ def _run_approve_hit(
     *,
     submission=True,
     experiment=None,
+    super_approve_return=_UNSET,
 ):
     config = config or make_config(prolific_screen_out_slots=70)
     recruiter = make_prolific_recruiter(config)
@@ -445,6 +446,8 @@ def _run_approve_hit(
                     with patch.object(
                         dallinger.recruiters.ProlificRecruiter, "approve_hit"
                     ) as super_approve:
+                        if super_approve_return is not _UNSET:
+                            super_approve.return_value = super_approve_return
                         result = recruiter.approve_hit("assignment-1")
     return recruiter, result, super_approve
 
@@ -536,9 +539,20 @@ def test_approve_hit_completes_failed_participant_with_unsuccessful():
 
 def test_approve_hit_approves_only_when_awaiting_review():
     recruiter, result, super_approve = _run_approve_hit(
-        _approve_hit_participant(), "AWAITING REVIEW"
+        _approve_hit_participant(),
+        "AWAITING REVIEW",
+        super_approve_return={"status": "APPROVED"},
     )
-    assert result is super_approve.return_value
+    assert result is True
+    super_approve.assert_called_once_with("assignment-1")
+    recruiter.prolificservice._req.assert_not_called()
+
+
+def test_approve_hit_reports_failure_when_awaiting_review_approve_returns_none():
+    recruiter, result, super_approve = _run_approve_hit(
+        _approve_hit_participant(), "AWAITING REVIEW", super_approve_return=None
+    )
+    assert result is False
     super_approve.assert_called_once_with("assignment-1")
     recruiter.prolificservice._req.assert_not_called()
 
@@ -660,7 +674,14 @@ def _unpaid_participant(**attrs):
     return MagicMock(**values)
 
 
-def _run_retry(participant, submission_status, *, complete_ok=True, experiment=None):
+def _run_retry(
+    participant,
+    submission_status,
+    *,
+    complete_ok=True,
+    approve_ok=True,
+    experiment=None,
+):
     config = make_config(prolific_screen_out_slots=70)
     recruiter = make_prolific_recruiter(config)
     recruiter.prolificservice = MagicMock()
@@ -674,6 +695,8 @@ def _run_retry(participant, submission_status, *, complete_ok=True, experiment=N
                 with patch.object(
                     dallinger.recruiters.ProlificRecruiter, "approve_hit"
                 ) as super_approve:
+                    if not approve_ok:
+                        super_approve.return_value = None
                     recruiter._retry_unpaid_platform_base(participant)
     return recruiter, super_approve, experiment
 
@@ -732,6 +755,18 @@ def test_retry_approves_awaiting_review():
     super_approve.assert_called_once_with("assignment-1")
     recruiter.prolificservice._req.assert_not_called()
     assert participant.platform_base_unpaid_detail is None
+    experiment.notifier.notify.assert_not_called()
+
+
+def test_retry_does_not_clear_flag_when_awaiting_review_approve_fails():
+    participant = _unpaid_participant()
+    recruiter, super_approve, experiment = _run_retry(
+        participant, "AWAITING REVIEW", approve_ok=False
+    )
+    super_approve.assert_called_once_with("assignment-1")
+    recruiter.prolificservice._req.assert_not_called()
+    assert participant.platform_base_unpaid_detail == "owed"
+    assert participant.platform_base_retry_count == 1
     experiment.notifier.notify.assert_not_called()
 
 
