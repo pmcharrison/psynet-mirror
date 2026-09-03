@@ -428,19 +428,35 @@ class LocalExport:
     track_database_size_bytes.pretty_name = "Local export database size"
 
 
-def _write_incremental_fixture(
-    remote_root: Path, export_dir: Path, profile: _AssetExportProfile
-) -> None:
-    """Write a remote content-addressed store plus a manifest-only export tree."""
+def _iter_incremental_assets(profile: _AssetExportProfile):
+    """Yield ``(key, payload, digest)`` for one incremental-transfer profile."""
+    width = max(3, len(str(profile.file_count - 1)))
+    for index in range(profile.file_count):
+        key = f"{profile.key_prefix}_{index:0{width}d}"
+        payload = _deterministic_bytes(key, profile.file_size_bytes)
+        digest = hashlib.sha256(payload).hexdigest()
+        yield key, payload, digest
 
-    import csv as _csv
 
+def _write_incremental_remote_store(
+    remote_root: Path, profile: _AssetExportProfile
+) -> list[tuple[str, str]]:
+    """Write remote objects once and return ``(key, digest)`` for manifests."""
     objects = remote_root / "objects" / "sha256"
     objects.mkdir(parents=True, exist_ok=True)
+    entries = []
+    for key, payload, digest in _iter_incremental_assets(profile):
+        (objects / digest).write_bytes(payload)
+        entries.append((key, digest))
+    return entries
+
+
+def _write_incremental_export_manifest(
+    export_dir: Path, entries: list[tuple[str, str]]
+) -> None:
+    """Write a manifest-only export tree that points at existing remote objects."""
     assets = export_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-
-    width = max(3, len(str(profile.file_count - 1)))
     fieldnames = [
         "id",
         "type",
@@ -450,13 +466,9 @@ def _write_incremental_fixture(
         "storage",
     ]
     with (assets / "manifest.csv").open("w", newline="") as handle:
-        writer = _csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
-        for index in range(profile.file_count):
-            key = f"{profile.key_prefix}_{index:0{width}d}"
-            payload = _deterministic_bytes(key, profile.file_size_bytes)
-            digest = hashlib.sha256(payload).hexdigest()
-            (objects / digest).write_bytes(payload)
+        for index, (key, digest) in enumerate(entries):
             writer.writerow(
                 {
                     "id": index,
@@ -516,9 +528,9 @@ def _run_incremental_transfer_benchmark(
         cold_export = Path(export_root) / "cold"
         warm_export = Path(export_root) / "warm"
 
-        _write_incremental_fixture(remote_root, discard_export, profile)
-        _write_incremental_fixture(remote_root, cold_export, profile)
-        _write_incremental_fixture(remote_root, warm_export, profile)
+        entries = _write_incremental_remote_store(remote_root, profile)
+        for export_dir in (discard_export, cold_export, warm_export):
+            _write_incremental_export_manifest(export_dir, entries)
         _hydrate_export(
             discard_export, remote_root, Path(export_root) / "discard-cache", profile
         )

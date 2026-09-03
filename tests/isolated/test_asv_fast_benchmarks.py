@@ -24,6 +24,8 @@ from benchmarks.fast.export_benchmarks import (
     _summarize_asset_export,
     _summarize_export,
     _write_asset_payloads,
+    _write_incremental_export_manifest,
+    _write_incremental_remote_store,
 )
 from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
 from psynet.export.asset_cache import default_cache_root
@@ -253,6 +255,28 @@ def test_incremental_transfer_benchmark_measures_cold_and_warm_caches(monkeypatc
     # timed cold transfer copies into an empty application cache. The warm
     # transfer must still reuse that cache (no third rsync).
     assert len(calls) == 2
+
+
+def test_incremental_fixture_writes_remote_objects_once(tmp_path):
+    """Export manifests must reuse the remote store instead of rewriting objects."""
+    profile = _tiny_asset_profile()
+    remote_root = tmp_path / "remote"
+    entries = _write_incremental_remote_store(remote_root, profile)
+    objects_dir = remote_root / "objects" / "sha256"
+    object_paths = sorted(objects_dir.iterdir())
+    assert len(object_paths) == profile.file_count
+    fingerprints = {path.name: path.stat().st_mtime_ns for path in object_paths}
+
+    _write_incremental_export_manifest(tmp_path / "discard", entries)
+    _write_incremental_export_manifest(tmp_path / "cold", entries)
+    _write_incremental_export_manifest(tmp_path / "warm", entries)
+
+    assert fingerprints == {path.name: path.stat().st_mtime_ns for path in object_paths}
+    for name in ("discard", "cold", "warm"):
+        manifest = tmp_path / name / "assets" / "manifest.csv"
+        assert manifest.is_file()
+        text = manifest.read_text()
+        assert all(digest in text for _, digest in entries)
 
 
 def test_incremental_transfer_tracks_metrics():
