@@ -111,6 +111,17 @@ def test_psynet_js_attaches_layout_api():
     assert "psynet.layout = window.psynetLayout" in js
 
 
+def test_inline_code_follows_the_theme():
+    """Bootstrap's default code colour is pink, which reads as an error."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("\ncode {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "color: var(--psynet-text)" in block
+
+
 def test_transient_pages_style_their_spinner():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"

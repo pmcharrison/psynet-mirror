@@ -238,6 +238,16 @@ h1, h2, h3, h4, h5, h6,
     font-weight: 500;
 }
 
+/* Bootstrap renders inline code in pink, which reads as an error next to the
+   theme's accent. Reference codes are the main use on participant pages. */
+code {
+    color: var(--psynet-text);
+    background-color: var(--psynet-surface-sunken);
+    padding: 0.1rem 0.3rem;
+    border: 1px solid var(--psynet-border);
+    border-radius: 4px;
+}
+
 /* Bound the measure so prose stays readable on wide screens. */
 .psynet-measure,
 #prompt-text,
