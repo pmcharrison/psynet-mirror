@@ -48,15 +48,14 @@ optional ``profile`` and raises ``NotImplementedError`` to mark the skip.
 Those benchmarks have no baseline to compare against until they exist on
 both sides of the comparison.
 
-``track_*`` methods record one scalar and have no ASV warmup. ``asv continuous``
-interleaves rounds by default, so a later round can run HEAD before BASE.
-``--split`` only splits the results table. A cold first asset export
-fills ``~/psynet-data/cache/assets`` for the other commit, so that second
-commit looks faster even when the merge request did not touch export.
+``asv continuous`` interleaves rounds by default, so a later round can run HEAD
+before BASE. ``--split`` only splits the results table. A cold first asset
+export fills ``~/psynet-data/cache/assets`` for the other commit, so that
+second commit looks faster even when the merge request did not touch export.
 
 ``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated
-directory, discards one ``psynet export local --assets collected`` run, and
-records a second CLI export.
+directory, warms that cache during setup, and then lets ASV time fresh
+``psynet export local --assets collected`` subprocesses.
 Incremental remote asset transfer is covered by functional tests rather than
 ASV metrics, because the warm-cache path is dominated by filesystem noise and
 has produced unstable ratios under the merge-request gate's ``--factor 1.25``.

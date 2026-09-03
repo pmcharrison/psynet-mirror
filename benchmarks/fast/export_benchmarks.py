@@ -1,9 +1,10 @@
 """Benchmarks for local PsyNet export performance.
 
-These classes use ASV ``track_*`` methods, which record a single scalar and do
-not get timed-benchmark warmup. ``asv continuous`` interleaves rounds by
-default, so BASE and HEAD can run in either order and a cold first I/O sample
-is not comparable across commits.
+ASV ``time_*`` methods measure elapsed export time, while ``track_*`` methods
+report scalar fixture metadata such as row counts and total bytes. The asset
+benchmark still warms an isolated content-addressed cache before timed runs:
+``asv continuous`` interleaves rounds by default, so BASE and HEAD can run in
+either order and a cold first I/O sample is not comparable across commits.
 
 There are two export benchmarks in this module:
 
@@ -13,10 +14,9 @@ There are two export benchmarks in this module:
 
 ``LocalAssetExport``
     Adds deterministic ``ExperimentAsset`` files to the same local deployment,
-    then runs ``psynet export local --assets collected`` twice in subprocesses.
-    The first run warms an isolated content-addressed cache. The recorded
-    sample is the second CLI export, so ASV compares the user-facing command
-    without charging one commit for a shared cold cache.
+    warms an isolated content-addressed cache, then lets ASV time fresh
+    ``psynet export local --assets collected`` subprocesses. This compares the
+    user-facing command without charging one commit for a shared cold cache.
 
 Incremental remote asset transfer is intentionally not benchmarked here. That
 path is important, but its warm-cache timings are dominated by filesystem noise
@@ -33,7 +33,7 @@ import os
 import shutil
 import subprocess
 import tempfile
-import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -172,15 +172,14 @@ def _populate_local_experiment(n_bots: int = 1) -> None:
     )
 
 
-def _time_local_export(
+def _run_local_export(
     export_path: Path,
     *,
     assets: str = "none",
     env: Optional[dict] = None,
-) -> float:
-    """Run the canonical local export and return elapsed seconds."""
+) -> None:
+    """Run the canonical local export command."""
 
-    started_at = time.perf_counter()
     _run_checked(
         [
             "psynet",
@@ -194,7 +193,12 @@ def _time_local_export(
         cwd=_demo_dir(),
         env=env,
     )
-    return time.perf_counter() - started_at
+
+
+def _fresh_export_path(export_root: Path) -> Path:
+    """Return a new export path that does not yet exist."""
+
+    return export_root / f"timed-{uuid.uuid4().hex}"
 
 
 def _count_csv_rows(path: Path) -> int:
@@ -270,16 +274,35 @@ def _summarize_export(
     }
 
 
-def _run_local_export_benchmark(profile: _ExportProfile) -> dict[str, float | int]:
-    """Populate a local experiment, export it, and return performance metrics."""
+def _build_local_export_fixture(profile: _ExportProfile) -> dict[str, str | int]:
+    """Populate a local experiment and return reusable export fixture metadata."""
 
-    with tempfile.TemporaryDirectory(prefix="psynet-export-benchmark-") as export_dir:
-        export_path = Path(export_dir)
-        _populate_local_experiment(profile.n_bots)
-        export_time_s = _time_local_export(export_path)
-        return _summarize_export(
-            export_path, export_time_s, profile.expected_table_rows
-        )
+    export_root = Path(tempfile.mkdtemp(prefix="psynet-export-benchmark-"))
+    validation_path = export_root / "validation"
+    _populate_local_experiment(profile.n_bots)
+    _run_local_export(validation_path)
+    summary = _summarize_export(
+        validation_path,
+        export_time_s=0,
+        expected_table_rows=profile.expected_table_rows,
+    )
+    return {
+        "export_root": str(export_root),
+        "data_row_count": summary["data_row_count"],
+        "database_size_bytes": summary["database_size_bytes"],
+    }
+
+
+def _cleanup_fixture_roots(results: dict, *keys: str) -> None:
+    """Remove temporary roots recorded in a ``setup_cache`` result dict."""
+
+    if results is None:
+        return
+    for fixture in results.values():
+        for key in keys:
+            value = fixture.get(key)
+            if value:
+                shutil.rmtree(value, ignore_errors=True)
 
 
 # ``LocalAssetExport`` setup and timing helpers.
@@ -340,21 +363,32 @@ def _run_asset_worker(
     )
 
 
-def _time_warmed_local_asset_export(export_root: Path, cache_root: Path) -> tuple[Path, float]:
-    """Export collected assets twice through the CLI and time the second run."""
-
+def _asset_export_env(cache_root: Path) -> dict[str, str]:
+    """Return subprocess environment for an isolated asset cache."""
     env = _benchmark_env()
     env["PSYNET_ASSET_CACHE_ROOT"] = str(cache_root)
-    warmup_path = export_root / "warmup"
-    timed_path = export_root / "timed"
+    return env
 
+
+def _warm_asset_export_fixture(
+    export_root: Path,
+    cache_root: Path,
+    manifest: list[dict[str, str | int]],
+) -> dict[str, int]:
+    """Warm the asset cache once and return validated fixture metrics."""
+
+    validation_path = export_root / "validation"
     try:
-        _time_local_export(warmup_path, assets="collected", env=env)
+        _run_local_export(
+            validation_path, assets="collected", env=_asset_export_env(cache_root)
+        )
+        summary = _summarize_asset_export(validation_path, export_time_s=0, manifest=manifest)
+        return {
+            "asset_file_count": int(summary["asset_file_count"]),
+            "asset_total_bytes": int(summary["asset_total_bytes"]),
+        }
     finally:
-        shutil.rmtree(warmup_path, ignore_errors=True)
-
-    elapsed = _time_local_export(timed_path, assets="collected", env=env)
-    return timed_path, elapsed
+        shutil.rmtree(validation_path, ignore_errors=True)
 
 
 def _summarize_asset_export(
@@ -393,31 +427,29 @@ def _summarize_asset_export(
     }
 
 
-def _run_asset_export_benchmark(
+def _build_asset_export_fixture(
     profile: _AssetExportProfile,
-) -> dict[str, float | int]:
-    """Deposit deterministic assets, export them twice, and return metrics."""
+) -> dict[str, str | int]:
+    """Deposit deterministic assets and return reusable export fixture metadata."""
 
-    with (
-        tempfile.TemporaryDirectory(prefix="psynet-asset-inputs-") as input_dir,
-        tempfile.TemporaryDirectory(prefix="psynet-asset-export-") as export_dir,
-        tempfile.TemporaryDirectory(prefix="psynet-asset-storage-") as storage_dir,
-        tempfile.TemporaryDirectory(prefix="psynet-asset-cache-") as cache_dir,
-    ):
-        input_dir = Path(input_dir)
-        export_root = Path(export_dir)
-        storage_root = Path(storage_dir)
-        cache_root = Path(cache_dir)
+    input_dir = Path(tempfile.mkdtemp(prefix="psynet-asset-inputs-"))
+    export_root = Path(tempfile.mkdtemp(prefix="psynet-asset-export-"))
+    storage_root = Path(tempfile.mkdtemp(prefix="psynet-asset-storage-"))
+    cache_root = Path(tempfile.mkdtemp(prefix="psynet-asset-cache-"))
 
-        _populate_local_experiment()
-        manifest = _write_asset_payloads(input_dir, profile)
-        manifest_path = input_dir / "manifest.json"
-        manifest_path.write_text(json.dumps(manifest))
-        _run_asset_worker(manifest_path, storage_root)
-        export_path, asset_export_time_s = _time_warmed_local_asset_export(
-            export_root, cache_root
-        )
-        return _summarize_asset_export(export_path, asset_export_time_s, manifest)
+    _populate_local_experiment()
+    manifest = _write_asset_payloads(input_dir, profile)
+    manifest_path = input_dir / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest))
+    _run_asset_worker(manifest_path, storage_root)
+    metrics = _warm_asset_export_fixture(export_root, cache_root, manifest)
+    return {
+        "input_root": str(input_dir),
+        "export_root": str(export_root),
+        "storage_root": str(storage_root),
+        "cache_root": str(cache_root),
+        **metrics,
+    }
 
 
 class LocalExport:
@@ -426,16 +458,20 @@ class LocalExport:
     params = list(_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 3
+    version = 4
 
     def setup_cache(self):
-        """Run each export profile once and cache scalar metrics."""
+        """Build each export profile fixture once and cache scalar metrics."""
         return _export_benchmark_cache(
             lambda: {
-                name: _run_local_export_benchmark(profile)
+                name: _build_local_export_fixture(profile)
                 for name, profile in _EXPORT_PROFILES.items()
             }
         )
+
+    def teardown_cache(self, results):
+        """Remove temporary export roots created by ``setup_cache``."""
+        _cleanup_fixture_roots(results, "export_root")
 
     def setup(self, results, profile=None):
         """Prepare one parameterized run.
@@ -446,13 +482,10 @@ class LocalExport:
         """
         _skip_unless_canonical_export_supported()
 
-    def track_export_time_s(self, results, profile):
-        """Return wall time for the local export command."""
+    def time_export(self, results, profile):
+        """Run the local export command into a fresh destination."""
 
-        return results[profile]["export_time_s"]
-
-    track_export_time_s.unit = "s"
-    track_export_time_s.pretty_name = "Local export time"
+        _run_local_export(_fresh_export_path(Path(results[profile]["export_root"])))
 
     def track_data_row_count(self, results, profile):
         """Return the number of table rows written under ``database/``."""
@@ -477,15 +510,25 @@ class LocalAssetExport:
     params = list(_ASSET_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 3
+    version = 4
 
     def setup_cache(self):
-        """Run each profile with a warmup CLI export and cache scalars."""
+        """Build each asset-export profile fixture and cache scalar metrics."""
         return _export_benchmark_cache(
             lambda: {
-                name: _run_asset_export_benchmark(profile)
+                name: _build_asset_export_fixture(profile)
                 for name, profile in _ASSET_EXPORT_PROFILES.items()
             }
+        )
+
+    def teardown_cache(self, results):
+        """Remove temporary roots created by ``setup_cache``."""
+        _cleanup_fixture_roots(
+            results,
+            "input_root",
+            "export_root",
+            "storage_root",
+            "cache_root",
         )
 
     def setup(self, results, profile=None):
@@ -497,13 +540,15 @@ class LocalAssetExport:
         """
         _skip_unless_canonical_export_supported()
 
-    def track_asset_export_time_s(self, results, profile):
-        """Return wall time for a cache-warmed local asset export command."""
+    def time_asset_export(self, results, profile):
+        """Run the cache-warmed local asset export command."""
 
-        return results[profile]["asset_export_time_s"]
-
-    track_asset_export_time_s.unit = "s"
-    track_asset_export_time_s.pretty_name = "Local asset export time"
+        fixture = results[profile]
+        _run_local_export(
+            _fresh_export_path(Path(fixture["export_root"])),
+            assets="collected",
+            env=_asset_export_env(Path(fixture["cache_root"])),
+        )
 
     def track_asset_file_count(self, results, profile):
         """Return the number of files exported by the asset benchmark."""

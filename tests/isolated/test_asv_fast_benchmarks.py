@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -19,7 +20,7 @@ from benchmarks.fast.export_benchmarks import (
     _deterministic_bytes,
     _summarize_asset_export,
     _summarize_export,
-    _time_warmed_local_asset_export,
+    _warm_asset_export_fixture,
     _write_asset_payloads,
 )
 from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
@@ -202,18 +203,47 @@ def test_export_benchmark_setup_skips_when_the_installed_api_is_missing(monkeypa
         LocalExport().setup("static_big_single_bot")
 
 
-def test_local_export_tracks_metrics():
+def test_asset_export_teardown_cache_removes_fixture_roots(tmp_path):
+    roots = {
+        key: tmp_path / key
+        for key in ("input_root", "export_root", "storage_root", "cache_root")
+    }
+    for root in roots.values():
+        root.mkdir()
+
+    LocalAssetExport().teardown_cache(
+        {"many_small_files": {key: str(root) for key, root in roots.items()}}
+    )
+
+    assert not any(root.exists() for root in roots.values())
+
+
+def test_local_export_times_command_and_tracks_metadata(monkeypatch, tmp_path):
     benchmark = LocalExport()
     profile = benchmark.params[0]
+    export_root = tmp_path / "exports"
     results = {
         profile: {
-            "export_time_s": 2.5,
+            "export_root": str(export_root),
             "data_row_count": 42,
             "database_size_bytes": 1024,
         }
     }
+    calls = []
 
-    assert benchmark.track_export_time_s(results, profile) == 2.5
+    def fake_export(export_path, *, assets="none", env=None):
+        calls.append((Path(export_path), assets, env))
+
+    monkeypatch.setattr(
+        "benchmarks.fast.export_benchmarks._run_local_export", fake_export
+    )
+
+    benchmark.time_export(results, profile)
+
+    assert len(calls) == 1
+    assert calls[0][0].parent == export_root
+    assert calls[0][1] == "none"
+    assert calls[0][2] is None
     assert benchmark.track_data_row_count(results, profile) == 42
     assert benchmark.track_database_size_bytes(results, profile) == 1024
 
@@ -296,69 +326,77 @@ def test_asset_benchmark_rejects_changed_fixture_shape(tmp_path):
         _summarize_asset_export(export_dir, export_time_s=0.5, manifest=manifest)
 
 
-def test_local_asset_export_tracks_metrics():
+def test_local_asset_export_times_command_and_tracks_metadata(monkeypatch, tmp_path):
     benchmark = LocalAssetExport()
     profile = benchmark.params[0]
+    export_root = tmp_path / "exports"
+    cache_root = tmp_path / "cache"
     results = {
         profile: {
-            "asset_export_time_s": 0.75,
+            "export_root": str(export_root),
+            "cache_root": str(cache_root),
             "asset_file_count": 10_000,
             "asset_total_bytes": 10_240_000,
         }
     }
+    calls = []
 
-    assert benchmark.track_asset_export_time_s(results, profile) == 0.75
+    def fake_export(export_path, *, assets="none", env=None):
+        calls.append((Path(export_path), assets, env))
+
+    monkeypatch.setattr(
+        "benchmarks.fast.export_benchmarks._run_local_export", fake_export
+    )
+
+    benchmark.time_asset_export(results, profile)
+
+    assert len(calls) == 1
+    assert calls[0][0].parent == export_root
+    assert calls[0][1] == "collected"
+    assert calls[0][2]["PSYNET_ASSET_CACHE_ROOT"] == str(cache_root)
     assert benchmark.track_asset_file_count(results, profile) == 10_000
     assert benchmark.track_asset_total_bytes(results, profile) == 10_240_000
 
 
-def test_warmed_local_asset_export_records_the_second_cli_export(monkeypatch, tmp_path):
-    """``track_*`` has no ASV warmup; the recorded sample must not be the cold run."""
+def test_warm_asset_export_fixture_validates_and_cleans_up(monkeypatch, tmp_path):
+    """The setup export warms the cache and validates the fixture shape."""
 
-    export_dirs = []
-    elapsed_times = iter([10.0, 0.25])
+    payload = _deterministic_bytes("asset", 4)
+    manifest = [
+        {
+            "export_path": "asset_benchmark/asset.bin",
+            "size_bytes": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+    ]
 
-    def fake_export(export_path, *, assets, env):
+    def fake_export(export_path, *, assets="none", env=None):
         assert assets == "collected"
         assert env["PSYNET_ASSET_CACHE_ROOT"] == str(tmp_path / "cache")
         path = Path(export_path)
-        export_dirs.append(path)
-        path.mkdir(parents=True, exist_ok=True)
-        (path / "marker").write_text("exported")
-        return next(elapsed_times)
+        target = path / "assets" / "asset_benchmark" / "asset.bin"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(payload)
 
     monkeypatch.setattr(
-        "benchmarks.fast.export_benchmarks._time_local_export", fake_export
+        "benchmarks.fast.export_benchmarks._run_local_export", fake_export
     )
 
-    export_path, elapsed = _time_warmed_local_asset_export(tmp_path, tmp_path / "cache")
+    metrics = _warm_asset_export_fixture(tmp_path, tmp_path / "cache", manifest)
 
-    assert elapsed == pytest.approx(0.25)
-    assert len(export_dirs) == 2
-    assert export_dirs[0].name == "warmup"
-    assert export_dirs[1].name == "timed"
-    assert export_path == export_dirs[1]
-    assert not export_dirs[0].exists()
-    assert (export_path / "marker").read_text() == "exported"
+    assert metrics == {"asset_file_count": 1, "asset_total_bytes": 4}
+    assert not (tmp_path / "validation").exists()
 
 
-def test_warmed_local_asset_export_does_not_mutate_parent_cache_env(
-    monkeypatch, tmp_path
-):
+def test_asset_export_env_does_not_mutate_parent_cache_env(monkeypatch, tmp_path):
     """ASV commits must not share ``~/psynet-data/cache/assets`` hits."""
 
     parent_cache = tmp_path / "parent-cache"
     monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(parent_cache))
 
-    def fake_export(export_path, *, assets, env):
-        assert env["PSYNET_ASSET_CACHE_ROOT"] == str(tmp_path / "isolated-cache")
-        Path(export_path).mkdir(parents=True, exist_ok=True)
-        return 0.1
+    from benchmarks.fast.export_benchmarks import _asset_export_env
 
-    monkeypatch.setattr(
-        "benchmarks.fast.export_benchmarks._time_local_export", fake_export
-    )
+    env = _asset_export_env(tmp_path / "isolated-cache")
 
-    _time_warmed_local_asset_export(tmp_path / "exports", tmp_path / "isolated-cache")
-
+    assert env["PSYNET_ASSET_CACHE_ROOT"] == str(tmp_path / "isolated-cache")
     assert default_cache_root() == parent_cache
