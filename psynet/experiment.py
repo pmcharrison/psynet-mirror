@@ -91,6 +91,7 @@ from .participant import (
     bonus_needs_review,
     bonus_transfer_already_claimed,
     record_bonus_attempt_detail,
+    record_platform_base_unpaid,
     review_bonus_pay_in_progress,
 )
 from .recruiters import (  # noqa: F401
@@ -2647,6 +2648,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         recruiter.record_payment(participant, decision)
         return decision
 
+    def _record_platform_base_refused(self, participant, decision) -> None:
+        """Flag a decided platform base that the platform refused to pay.
+
+        ``record_payment`` writes the decided base before the platform is
+        asked to pay it, so without this flag a refused study base (for
+        example a failed Prolific ``COMPLETE``) leaves a participant who
+        looks fully paid. The recorded base stays reserved, because the
+        money is still owed and a researcher can still settle the
+        submission on the platform. PsyNet does not pay the missing base as
+        a bonus: the study reward is the platform's to pay.
+        """
+        record_platform_base_unpaid(
+            participant,
+            f"The recruitment platform did not pay the decided study base of "
+            f"{decision.platform_base}, so the recorded base above is owed "
+            f"rather than paid. PsyNet did not pay it as a bonus. Settle this "
+            f"submission on the platform.",
+        )
+        logger.error(
+            "Platform refused the study base of %s for participant %s "
+            "(assignment %s); flagged as unpaid for the Participants dashboard.",
+            decision.platform_base,
+            participant.id,
+            participant.assignment_id,
+        )
+
     def commit_payment_state(self):
         """Persist claimed payment fields so a crash cannot replay a POST."""
         db.session.commit()
@@ -3021,6 +3048,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         first bonus transfer fails; a later replay does not recruit again.
         Opening an unconfirmed person polls the platform into
         the participant table and offers Pay bonus or Dismiss.
+        If the platform refuses the decided study base, that is flagged on
+        the participant so they do not silently look fully paid.
         Dallinger's unused ``data_check`` / ``attention_check`` hooks are
         not run.
         """
@@ -3052,7 +3081,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if issue_unsuccessful is not None:
             issue_unsuccessful(participant)
         decision = self.decide_and_record_payment(participant)
-        participant.recruiter.approve_hit(participant.assignment_id)
+        platform_base_paid = participant.recruiter.approve_hit(
+            participant.assignment_id
+        )
+        if platform_base_paid is False:
+            self._record_platform_base_refused(participant, decision)
         if not self.pay_decided_bonus(participant, decision):
             if already_handled:
                 logger.error(

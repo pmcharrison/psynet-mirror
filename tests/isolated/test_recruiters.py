@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import dallinger.experiment
 import dallinger.recruiters
 import pytest
+import requests
 from dallinger.prolific import DevProlificService, ProlificServiceException
 
 from psynet.participant import (
@@ -20,10 +21,12 @@ from psynet.participant import (
     bonus_needs_review,
     bonus_transfer_already_claimed,
     display_bonus_status,
+    platform_base_unpaid,
     review_bonus_pay_in_progress,
 )
 from psynet.recruiters import (
     PROLIFIC_DEFAULT_RESEARCHER_CODE_TYPE,
+    PROLIFIC_PLATFORM_BASE_RETRY_LIMIT,
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     BaseLabRecruiter,
@@ -160,10 +163,13 @@ def test_prolific_run_checks_combines_unread_message_notifications():
         new_callable=PropertyMock,
         return_value="study-1",
     ):
-        with patch("psynet.redis.redis_vars.get", return_value=None):
-            with patch("psynet.redis.redis_vars.set") as mark_seen:
-                with patch("psynet.experiment.get_experiment", return_value=experiment):
-                    recruiter.run_checks()
+        with patch.object(Participant, "needing_platform_base_retry", return_value=[]):
+            with patch("psynet.redis.redis_vars.get", return_value=None):
+                with patch("psynet.redis.redis_vars.set") as mark_seen:
+                    with patch(
+                        "psynet.experiment.get_experiment", return_value=experiment
+                    ):
+                        recruiter.run_checks()
 
     mark_seen.assert_called_once()
     notifier.combine.assert_called_once()
@@ -199,10 +205,13 @@ def test_prolific_run_checks_handles_current_unread_message_shape():
         new_callable=PropertyMock,
         return_value="study-1",
     ):
-        with patch("psynet.redis.redis_vars.get", return_value=None):
-            with patch("psynet.redis.redis_vars.set") as mark_seen:
-                with patch("psynet.experiment.get_experiment", return_value=experiment):
-                    recruiter.run_checks()
+        with patch.object(Participant, "needing_platform_base_retry", return_value=[]):
+            with patch("psynet.redis.redis_vars.get", return_value=None):
+                with patch("psynet.redis.redis_vars.set") as mark_seen:
+                    with patch(
+                        "psynet.experiment.get_experiment", return_value=experiment
+                    ):
+                        recruiter.run_checks()
 
     mark_seen.assert_called_once()
     notifier.combine.assert_called_once()
@@ -607,6 +616,151 @@ def test_approve_hit_notifies_researcher_when_complete_fails():
     super_approve.assert_not_called()
     experiment.notifier.notify.assert_called_once()
     assert "approve or screen out" in experiment.notifier.notify.call_args.args[0]
+
+
+def test_approve_hit_reports_failure_when_the_request_cannot_be_sent():
+    """A transport error means the study reward was not paid.
+
+    ``ProlificService._req`` raises ``ProlificServiceException`` for an
+    error payload but lets transport errors through raw, so this must be
+    reported as a failure rather than escaping and killing the
+    submission-complete worker before the bonus is paid.
+    """
+    experiment = MagicMock()
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter = make_prolific_recruiter(config)
+    recruiter.prolificservice = MagicMock()
+    recruiter.prolificservice._req.side_effect = requests.ConnectionError("no route")
+    participant = _approve_hit_participant()
+    query = MagicMock()
+    query.filter_by.return_value.order_by.return_value.first.return_value = participant
+    with patch.object(Participant, "query", query):
+        with patch(
+            "psynet.recruiters._fetch_prolific_submission",
+            return_value={"status": "ACTIVE"},
+        ):
+            with patch("psynet.recruiters.get_config", return_value=config):
+                with patch("psynet.experiment.get_experiment", return_value=experiment):
+                    result = recruiter.approve_hit("assignment-1")
+    assert result is False
+    experiment.notifier.notify.assert_called_once()
+
+
+def _unpaid_participant(**attrs):
+    values = dict(
+        id=24,
+        assignment_id="assignment-1",
+        platform_base_unpaid_detail="owed",
+        platform_base_retry_count=None,
+        issued_completion_code_type="DEFAULT",
+        failed=False,
+        status="approved",
+    )
+    values.update(attrs)
+    return MagicMock(**values)
+
+
+def _run_retry(participant, submission_status, *, complete_ok=True, experiment=None):
+    config = make_config(prolific_screen_out_slots=70)
+    recruiter = make_prolific_recruiter(config)
+    recruiter.prolificservice = MagicMock()
+    if not complete_ok:
+        recruiter.prolificservice._req.side_effect = ProlificServiceException("denied")
+    fetched = None if submission_status is None else {"status": submission_status}
+    experiment = experiment or MagicMock()
+    with patch("psynet.recruiters._fetch_prolific_submission", return_value=fetched):
+        with patch("psynet.recruiters.get_config", return_value=config):
+            with patch("psynet.experiment.get_experiment", return_value=experiment):
+                with patch.object(
+                    dallinger.recruiters.ProlificRecruiter, "approve_hit"
+                ) as super_approve:
+                    recruiter._retry_unpaid_platform_base(participant)
+    return recruiter, super_approve, experiment
+
+
+def test_retry_clears_flag_when_prolific_already_settled():
+    participant = _unpaid_participant()
+    recruiter, super_approve, experiment = _run_retry(participant, "APPROVED")
+    assert participant.platform_base_unpaid_detail is None
+    assert participant.platform_base_retry_count is None
+    recruiter.prolificservice._req.assert_not_called()
+    super_approve.assert_not_called()
+    experiment.notifier.notify.assert_not_called()
+
+
+def test_retry_completes_active_and_clears_flag():
+    participant = _unpaid_participant()
+    recruiter, super_approve, experiment = _run_retry(participant, "ACTIVE")
+    assert participant.platform_base_unpaid_detail is None
+    assert _complete_payload(recruiter)["action"] == "COMPLETE"
+    super_approve.assert_not_called()
+    experiment.notifier.notify.assert_not_called()
+
+
+def test_retry_increments_count_when_complete_fails():
+    participant = _unpaid_participant()
+    recruiter, _, experiment = _run_retry(participant, "ACTIVE", complete_ok=False)
+    assert participant.platform_base_unpaid_detail == "owed"
+    assert participant.platform_base_retry_count == 1
+    experiment.notifier.notify.assert_not_called()
+    recruiter.prolificservice._req.assert_called_once()
+
+
+def test_retry_notifies_and_stops_at_limit():
+    participant = _unpaid_participant(
+        platform_base_retry_count=PROLIFIC_PLATFORM_BASE_RETRY_LIMIT - 1
+    )
+    _, _, experiment = _run_retry(participant, "ACTIVE", complete_ok=False)
+    assert participant.platform_base_retry_count == PROLIFIC_PLATFORM_BASE_RETRY_LIMIT
+    assert "after 5 attempts" in participant.platform_base_unpaid_detail
+    experiment.notifier.notify.assert_called_once()
+
+
+def test_retry_stops_immediately_on_returned_status():
+    participant = _unpaid_participant()
+    recruiter, super_approve, experiment = _run_retry(participant, "RETURNED")
+    recruiter.prolificservice._req.assert_not_called()
+    super_approve.assert_not_called()
+    assert participant.platform_base_retry_count == PROLIFIC_PLATFORM_BASE_RETRY_LIMIT
+    assert "RETURNED" in participant.platform_base_unpaid_detail
+    experiment.notifier.notify.assert_called_once()
+
+
+def test_retry_approves_awaiting_review():
+    participant = _unpaid_participant()
+    recruiter, super_approve, experiment = _run_retry(participant, "AWAITING REVIEW")
+    super_approve.assert_called_once_with("assignment-1")
+    recruiter.prolificservice._req.assert_not_called()
+    assert participant.platform_base_unpaid_detail is None
+    experiment.notifier.notify.assert_not_called()
+
+
+def test_retry_unpaid_platform_bases_retries_each_flagged_participant():
+    recruiter = make_prolific_recruiter(make_config())
+    first = _unpaid_participant(id=1)
+    second = _unpaid_participant(id=2)
+    with patch.object(
+        Participant, "needing_platform_base_retry", return_value=[first, second]
+    ):
+        with patch.object(recruiter, "_retry_unpaid_platform_base") as retry_one:
+            recruiter.retry_unpaid_platform_bases()
+    assert retry_one.call_args_list == [((first,),), ((second,),)]
+
+
+def test_run_checks_retries_unpaid_bases():
+    recruiter = make_prolific_recruiter(make_config())
+    recruiter.prolificservice = MagicMock()
+    recruiter.prolificservice.get_unread_messages.return_value = []
+    with patch.object(recruiter, "retry_unpaid_platform_bases") as retry:
+        recruiter.run_checks()
+    retry.assert_called_once()
+
+
+def test_dev_run_checks_retries_unpaid_bases():
+    recruiter = object.__new__(DevProlificRecruiter)
+    with patch.object(recruiter, "retry_unpaid_platform_bases") as retry:
+        recruiter.run_checks()
+    retry.assert_called_once()
 
 
 def test_approve_hit_notifies_when_submission_status_cannot_be_read():
@@ -1031,6 +1185,7 @@ class PaymentHarness:
     dismiss_review_bonus = _Experiment.dismiss_review_bonus
     _record_payment_outcome_success = _Experiment._record_payment_outcome_success
     _notify_payment_outcome_failed = _Experiment._notify_payment_outcome_failed
+    _record_platform_base_refused = _Experiment._record_platform_base_refused
     on_recruiter_submission_complete = _Experiment.on_recruiter_submission_complete
 
     def _lock_participant_for_payment(self, participant):
@@ -1085,6 +1240,7 @@ def prepare_payout_participant(participant):
     participant.bonus_status = BONUS_STATUS_NOT_DUE_YET
     participant.planned_bonus = 0.0
     participant.bonus_attempt_detail = None
+    participant.platform_base_unpaid_detail = None
     participant.worker_id = "worker-1"
     participant.recruiter.nickname = "prolific"
     participant.recruiter.approve_hit = MagicMock(return_value=True)
@@ -1308,6 +1464,45 @@ def test_on_recruiter_submission_complete_pays_successful_participant():
     assert participant.bonus_status == BONUS_STATUS_SUCCESS
     assert participant.planned_bonus == 1.50
     participant.recruiter.reward_bonus.assert_called_once()
+
+
+def test_on_recruiter_submission_complete_flags_refused_platform_base():
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="submitted")
+    )
+    participant.recruiter.approve_hit = MagicMock(return_value=False)
+    harness = PaymentHarness()
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        harness.on_recruiter_submission_complete(participant, event=None)
+
+    # The base stays reserved (amount_spent is a reservation figure and the
+    # money is still owed), but it is no longer reported as paid.
+    assert participant.base_payment == 1.00
+    assert participant.base_pay == 1.00
+    assert platform_base_unpaid(participant)
+    assert "did not pay the decided study base of 1.0" in (
+        participant.platform_base_unpaid_detail
+    )
+    # The top-up is still owed and still paid; the base is not reconstructed
+    # as a bonus.
+    assert participant.bonus == 1.50
+
+
+def test_on_recruiter_submission_complete_keeps_base_unflagged_on_success():
+    config = make_config(prolific_unsuccessful_base_payment=0.25)
+    participant = prepare_payout_participant(
+        make_participant_with_recruiter(config, failed=False, status="submitted")
+    )
+    # Dallinger's approve_hit returns None on paths PsyNet treats as success.
+    participant.recruiter.approve_hit = MagicMock(return_value=None)
+
+    with patch("psynet.recruiters.get_config", return_value=config):
+        PaymentHarness().on_recruiter_submission_complete(participant, event=None)
+
+    assert participant.base_payment == 1.00
+    assert not platform_base_unpaid(participant)
 
 
 def test_on_recruiter_submission_complete_skips_unexpected_status():

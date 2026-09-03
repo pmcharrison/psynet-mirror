@@ -112,6 +112,51 @@ NO_BONUS_ATTEMPT_RESULT = "No result recorded from the pay request."
 BONUS_PAY_IN_PROGRESS = "Bonus pay is in progress."
 
 
+def platform_base_unpaid(participant) -> bool:
+    """True when the platform did not pay the study base PsyNet had decided."""
+    return bool(getattr(participant, "platform_base_unpaid_detail", None))
+
+
+def record_platform_base_unpaid(participant, detail: str) -> None:
+    """Record that the platform refused the study base PsyNet had decided.
+
+    The recorded ``base_payment`` is left alone. ``amount_spent()`` is a
+    reservation figure rather than a receipts figure, so keeping the base
+    reserved is the conservative choice for spend caps: the money is still
+    owed, and a researcher may yet settle the submission on the platform.
+    This detail is what tells the experimenter that the recorded base has
+    not actually been paid; it is a diagnostic, not a payment status.
+
+    The flag doubles as the work queue for the recurring retry: see
+    ``needing_platform_base_retry``.
+    """
+    participant.platform_base_unpaid_detail = detail
+
+
+def clear_platform_base_unpaid(participant) -> None:
+    """Record that the platform has paid the study base after all."""
+    participant.platform_base_unpaid_detail = None
+    participant.platform_base_retry_count = None
+
+
+def record_platform_base_retry(participant) -> int:
+    """Count one failed attempt to make the platform pay the study base."""
+    attempts = (participant.platform_base_retry_count or 0) + 1
+    participant.platform_base_retry_count = attempts
+    return attempts
+
+
+def stop_platform_base_retries(participant, detail: str, *, attempts: int) -> None:
+    """Stop retrying an unpaid study base, leaving the reason on the participant.
+
+    ``attempts`` is stored as the retry count so the participant drops out
+    of ``needing_platform_base_retry``. This is how a permanently refused
+    base stops consuming platform requests once a human has to take over.
+    """
+    participant.platform_base_retry_count = attempts
+    participant.platform_base_unpaid_detail = detail
+
+
 def review_bonus_pay_in_progress(participant) -> bool:
     """True when dashboard Pay has claimed this retry and not yet finished."""
     return getattr(participant, "bonus_attempt_detail", None) == BONUS_PAY_IN_PROGRESS
@@ -338,6 +383,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     bonus_status = Column(String)
     # Diagnostic from the last bonus pay attempt; not a payment status.
     bonus_attempt_detail = Column(Text)
+    # Set when the platform refused to pay the decided study base (for
+    # example a failed Prolific COMPLETE). Diagnostic, not a payment status.
+    platform_base_unpaid_detail = Column(Text)
+    # Failed attempts by the recurring check to get that base paid.
+    platform_base_retry_count = Column(Integer)
     issued_completion_code_type = Column(String)
     total_wait_page_time = Column(Float)
     client_ip_address = Column(String, default=lambda: "")
@@ -673,6 +723,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.planned_bonus = 0.0
         self.bonus_status = BONUS_STATUS_NOT_DUE_YET
         self.bonus_attempt_detail = None
+        self.platform_base_unpaid_detail = None
+        self.platform_base_retry_count = None
         self.issued_completion_code_type = None
         self.base_payment = experiment.base_payment
         self.client_ip_address = None
@@ -699,6 +751,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         """True when the automatic bonus POST is unconfirmed on an external recruiter."""
         return bonus_needs_review(self)
 
+    @property
+    def platform_base_unpaid(self):
+        """True when the platform did not pay the study base PsyNet had decided."""
+        return platform_base_unpaid(self)
+
     @classmethod
     def needing_payment_review(cls):
         """Participants whose automatic bonus transfer is unconfirmed.
@@ -718,6 +775,27 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             .all()
             if participant.recruiter.has_external_bonus_payment()
         ]
+
+    @classmethod
+    def needing_platform_base_retry(cls, *, max_attempts: int):
+        """Participants whose unpaid study base the next check should retry.
+
+        A recorded unpaid-base reason plus fewer than ``max_attempts``
+        failed retries. The bound exists so a permanently refused row
+        (wrong code, returned, rejected) eventually stops consuming
+        platform requests and the researcher is asked to take over.
+        """
+        return (
+            cls.query.filter(
+                cls.platform_base_unpaid_detail.isnot(None),
+                (
+                    (cls.platform_base_retry_count.is_(None))
+                    | (cls.platform_base_retry_count < max_attempts)
+                ),
+            )
+            .order_by(cls.id.asc())
+            .all()
+        )
 
     @property
     def locale(self):

@@ -94,7 +94,10 @@ from .participant import (
     bonus_is_settled,
     bonus_needs_review,
     bonus_transfer_already_claimed,
+    clear_platform_base_unpaid,
     record_bonus_attempt_detail,
+    record_platform_base_retry,
+    stop_platform_base_retries,
 )
 from .timeline import (
     AsyncCodeBlock,
@@ -146,8 +149,15 @@ PROLIFIC_SETTLED_SUBMISSION_STATUSES = (
     "RETURNED",
     "SCREENED OUT",
 )
+# Settled rows whose study base (or screen-out reward) was paid.
+PROLIFIC_PAID_SUBMISSION_STATUSES = ("APPROVED", "SCREENED OUT")
+# Settled rows that will never pay the study base.
+PROLIFIC_UNPAYABLE_SUBMISSION_STATUSES = ("REJECTED", "RETURNED")
 # Rows PsyNet can COMPLETE on the participant's behalf after local submit.
 PROLIFIC_COMPLETABLE_SUBMISSION_STATUSES = ("ACTIVE", "TIMED-OUT")
+# Recurring retries of a refused COMPLETE. A permanently refused row
+# (wrong code, returned, rejected) eventually stops consuming requests.
+PROLIFIC_PLATFORM_BASE_RETRY_LIMIT = 5
 
 
 def _bonus_payments_total(bonus_payments) -> float:
@@ -942,18 +952,22 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return None
         return submission.get("status")
 
-    def _complete_prolific_submission(self, participant, assignment_id: str):
-        """POST COMPLETE with the researcher-actor code for this participant."""
+    def _complete_prolific_submission(
+        self, participant, assignment_id: str, *, notify=True
+    ):
+        """POST COMPLETE with the researcher-actor code for this participant.
+
+        ``notify=False`` is for the recurring retry, which tells the
+        researcher only when it gives up.
+        """
         spec = self._researcher_completion_for(participant)
         if spec is None:
-            self._notify_complete_failed(
-                participant,
-                assignment_id,
-                extra=(
-                    " No researcher-actor completion code was available "
-                    "(a failed participant is never completed with DEFAULT)."
-                ),
+            extra = (
+                " No researcher-actor completion code was available "
+                "(a failed participant is never completed with DEFAULT)."
             )
+            if notify:
+                self._notify_complete_failed(participant, assignment_id, extra=extra)
             return False
         code_type, code = spec
         try:
@@ -962,12 +976,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 endpoint=f"/submissions/{assignment_id}/transition/",
                 json={"action": "COMPLETE", "completion_code": code},
             )
-        except ProlificServiceException as ex:
-            self._notify_complete_failed(
-                participant,
-                assignment_id,
-                extra=f" COMPLETE with {code_type} failed: {ex}",
-            )
+        except (ProlificServiceException, requests.RequestException) as ex:
+            # ``_req`` raises ProlificServiceException for an error payload,
+            # but lets transport errors through raw. Both mean the study
+            # reward was not paid, so both must report failure rather than
+            # escape and kill the submission-complete worker.
+            extra = f" COMPLETE with {code_type} failed: {ex}"
+            if notify:
+                self._notify_complete_failed(participant, assignment_id, extra=extra)
             handle_recruitment_error(ex)
             return False
         logger.info(
@@ -1033,6 +1049,94 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
         getattr(logger, level)(message)
         get_experiment().notifier.notify(message)
+
+    def run_checks(self):
+        """Retry refused study bases on the existing once-a-minute trigger."""
+        self.retry_unpaid_platform_bases()
+
+    def retry_unpaid_platform_bases(self) -> None:
+        """Re-read unpaid Prolific rows and retry COMPLETE when they are still open.
+
+        Hooked from the existing once-a-minute ``run_checks``. The
+        submission status is the source of truth: a row that has already
+        settled is recorded as paid, a still-open row is completed with
+        the same researcher-actor code as at local submit, and a
+        permanently refused row (returned, rejected, or a bounded number
+        of failed COMPLETE attempts) is left for the researcher. This
+        does not reconstruct the study base as a bonus.
+        """
+        for participant in Participant.needing_platform_base_retry(
+            max_attempts=PROLIFIC_PLATFORM_BASE_RETRY_LIMIT
+        ):
+            self._retry_unpaid_platform_base(participant)
+
+    def _retry_unpaid_platform_base(self, participant) -> None:
+        assignment_id = participant.assignment_id
+        status = self._live_submission_status(assignment_id)
+        if status in PROLIFIC_PAID_SUBMISSION_STATUSES:
+            logger.info(
+                "Prolific already paid assignment %s as %s; clearing the "
+                "unpaid-base flag for participant %s.",
+                assignment_id,
+                status,
+                participant.id,
+            )
+            clear_platform_base_unpaid(participant)
+            return
+        if status in PROLIFIC_UNPAYABLE_SUBMISSION_STATUSES:
+            extra = f" Status is {status}, which Prolific will not pay."
+            stop_platform_base_retries(
+                participant,
+                (
+                    f"PsyNet could not get Prolific to pay the study base for "
+                    f"participant {participant.id}.{extra} Please settle the "
+                    f"row on Prolific if this person is still owed."
+                ),
+                attempts=PROLIFIC_PLATFORM_BASE_RETRY_LIMIT,
+            )
+            self._notify_complete_failed(participant, assignment_id, extra=extra)
+            return
+        if status == "AWAITING REVIEW":
+            if super().approve_hit(assignment_id) is False:
+                self._record_platform_base_retry_failure(
+                    participant,
+                    extra=" Approve of an AWAITING REVIEW row failed.",
+                )
+                return
+            clear_platform_base_unpaid(participant)
+            return
+        if status not in PROLIFIC_COMPLETABLE_SUBMISSION_STATUSES:
+            extra = (
+                " PsyNet could not read the submission status."
+                if status is None
+                else f" Status is {status}, which PsyNet will not complete."
+            )
+            self._record_platform_base_retry_failure(participant, extra=extra)
+            return
+        if self._complete_prolific_submission(participant, assignment_id, notify=False):
+            clear_platform_base_unpaid(participant)
+            return
+        self._record_platform_base_retry_failure(
+            participant,
+            extra=" COMPLETE was refused again.",
+        )
+
+    def _record_platform_base_retry_failure(self, participant, extra="") -> None:
+        attempts = record_platform_base_retry(participant)
+        if attempts < PROLIFIC_PLATFORM_BASE_RETRY_LIMIT:
+            return
+        stop_platform_base_retries(
+            participant,
+            (
+                f"PsyNet could not get Prolific to pay the study base for "
+                f"participant {participant.id} after {attempts} attempts."
+                f"{extra} Please approve or screen out the row on Prolific."
+            ),
+            attempts=attempts,
+        )
+        self._notify_complete_failed(
+            participant, participant.assignment_id, extra=extra
+        )
 
     def reward_bonus(self, participant, amount, reason):
         """Pay a Prolific bonus. Return False if Prolific rejected the transfer."""
@@ -1351,6 +1455,7 @@ class ProlificRecruiter(
         return response
 
     def run_checks(self):
+        super().run_checks()
         logger.info("Polling Prolific API to check for unread messages")
         unread_messages = self.prolificservice.get_unread_messages()
         relevant_messages = []
