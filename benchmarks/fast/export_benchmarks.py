@@ -1,4 +1,15 @@
-"""Benchmarks for local PsyNet export performance."""
+"""Benchmarks for local PsyNet export performance.
+
+These classes use ASV ``track_*`` methods, which record a single scalar and do
+not get timed-benchmark warmup. ``asv continuous --split`` can reverse BASE and
+HEAD between rounds, so a cold first I/O sample is not comparable across
+commits.
+
+``LocalAssetExport`` discards a warmup export into an isolated asset cache and
+records a later run. ``IncrementalAssetTransfer`` already reports cold vs warm
+application-cache times; it also discards one transfer first so rsync startup
+and OS page-cache effects are not charged to whichever commit ran first.
+"""
 
 from __future__ import annotations
 
@@ -343,7 +354,7 @@ def _summarize_asset_export(
 def _run_asset_export_benchmark(
     profile: _AssetExportProfile,
 ) -> dict[str, float | int]:
-    """Deposit deterministic assets, export them, and return metrics."""
+    """Deposit deterministic assets, export them with a warmup, and return metrics."""
 
     with (
         tempfile.TemporaryDirectory(prefix="psynet-asset-inputs-") as input_dir,
@@ -457,12 +468,41 @@ def _write_incremental_fixture(
             )
 
 
+def _hydrate_export(
+    export_dir: Path,
+    remote_root: Path,
+    cache_root: Path,
+    profile: _AssetExportProfile,
+) -> float:
+    """Hydrate one export tree and return elapsed seconds."""
+    from psynet.export.client import hydrate_assets, plan_asset_transfer
+
+    plan = plan_asset_transfer(str(export_dir))
+    started_at = time.perf_counter()
+    materialized = hydrate_assets(
+        str(export_dir),
+        plan,
+        rsync_source=str(remote_root),
+        cache_root=cache_root,
+    )
+    elapsed = time.perf_counter() - started_at
+    if materialized != profile.file_count:
+        raise RuntimeError(
+            "Incremental transfer benchmark fixture shape changed. "
+            f"Expected {profile.file_count} assets, got {materialized}."
+        )
+    return elapsed
+
+
 def _run_incremental_transfer_benchmark(
     profile: _AssetExportProfile,
 ) -> dict[str, float | int]:
-    """Time a cold and then a warm incremental asset transfer into an export tree."""
+    """Time a cold and then a warm incremental asset transfer into an export tree.
 
-    from psynet.export.client import hydrate_assets, plan_asset_transfer
+    One discarded hydrate runs first so rsync startup and OS page-cache fill are
+    not attributed to whichever commit ``asv continuous`` measured first. The
+    timed cold run still uses an empty application cache.
+    """
 
     with (
         tempfile.TemporaryDirectory(prefix="psynet-incremental-remote-") as remote_dir,
@@ -471,32 +511,24 @@ def _run_incremental_transfer_benchmark(
     ):
         remote_root = Path(remote_dir)
         cache_root = Path(cache_dir)
+        discard_export = Path(export_root) / "discard"
         cold_export = Path(export_root) / "cold"
         warm_export = Path(export_root) / "warm"
 
+        _write_incremental_fixture(remote_root, discard_export, profile)
         _write_incremental_fixture(remote_root, cold_export, profile)
         _write_incremental_fixture(remote_root, warm_export, profile)
-
-        timings = {}
-        for name, export_dir in (("cold", cold_export), ("warm", warm_export)):
-            plan = plan_asset_transfer(str(export_dir))
-            started_at = time.perf_counter()
-            materialized = hydrate_assets(
-                str(export_dir),
-                plan,
-                rsync_source=str(remote_root),
-                cache_root=cache_root,
-            )
-            timings[name] = time.perf_counter() - started_at
-            if materialized != profile.file_count:
-                raise RuntimeError(
-                    "Incremental transfer benchmark fixture shape changed. "
-                    f"Expected {profile.file_count} assets, got {materialized}."
-                )
+        _hydrate_export(
+            discard_export, remote_root, Path(export_root) / "discard-cache", profile
+        )
 
         return {
-            "cold_transfer_time_s": timings["cold"],
-            "warm_transfer_time_s": timings["warm"],
+            "cold_transfer_time_s": _hydrate_export(
+                cold_export, remote_root, cache_root, profile
+            ),
+            "warm_transfer_time_s": _hydrate_export(
+                warm_export, remote_root, cache_root, profile
+            ),
             "asset_file_count": profile.file_count,
         }
 
@@ -507,10 +539,10 @@ class IncrementalAssetTransfer:
     params = list(_ASSET_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 1
+    version = 2
 
     def setup_cache(self):
-        """Run each transfer profile once and cache scalar metrics."""
+        """Run each transfer profile after a discarded hydrate and cache scalars."""
         return _export_benchmark_cache(
             lambda: {
                 name: _run_incremental_transfer_benchmark(profile)
@@ -550,10 +582,10 @@ class LocalAssetExport:
     params = list(_ASSET_EXPORT_PROFILES)
     param_names = ["profile"]
     timeout = 300
-    version = 1
+    version = 2
 
     def setup_cache(self):
-        """Run each asset-export profile once and cache scalar metrics."""
+        """Run each asset-export profile after a warmup export and cache scalars."""
         return _export_benchmark_cache(
             lambda: {
                 name: _run_asset_export_benchmark(profile)
@@ -571,7 +603,7 @@ class LocalAssetExport:
         _skip_unless_canonical_export_supported()
 
     def track_asset_export_time_s(self, results, profile):
-        """Return wall time for the local asset export phase."""
+        """Return wall time for a cache-warmed local asset export."""
 
         return results[profile]["asset_export_time_s"]
 

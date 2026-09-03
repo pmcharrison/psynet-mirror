@@ -4,12 +4,22 @@ Asset setup imports experiment-local SQLAlchemy models and mutates deployment
 state, so each ASV profile runs this worker in a fresh process. The parent
 benchmark prepares deterministic input files and validates the exported output;
 this module only deposits those files and times the asset export operation.
+
+The timed sample is a warmed ``export_assets`` call. ASV ``track_*`` methods
+have no warmup, and ``asv continuous --split`` can measure HEAD before BASE,
+so a single cold export would fill the shared content-addressed cache for
+whichever commit ran second. Each worker therefore points the cache at a
+temporary directory and discards the first export.
 """
+
+from __future__ import annotations
 
 import inspect
 import json
+import shutil
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -34,13 +44,61 @@ def _initialize_experiment() -> None:
     import_local_experiment()
 
 
+@contextmanager
+def _temporary_default_asset_cache(cache_root: Path):
+    """Point ``export_assets`` at an isolated cache for the duration of the block.
+
+    The default cache at ``~/psynet-data/cache/assets`` is content-addressed by
+    SHA-256. These benchmarks use deterministic payloads, so a first commit
+    would otherwise donate cache hits to the second commit in ``asv continuous``.
+    """
+    from psynet.export import asset_cache as asset_cache_module
+
+    previous = asset_cache_module._DEFAULT_CACHE_ROOT
+    asset_cache_module._DEFAULT_CACHE_ROOT = Path(cache_root).expanduser().resolve()
+    try:
+        yield
+    finally:
+        asset_cache_module._DEFAULT_CACHE_ROOT = previous
+
+
+def _export_collected_assets(assets_dir: Path) -> None:
+    """Write collected local assets into ``assets_dir``."""
+    from psynet.data import export_assets
+
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    export_assets(
+        str(assets_dir),
+        collected_assets_only=True,
+        include_on_demand_assets=False,
+        local=True,
+    )
+
+
+def _time_warmed_asset_export(assets_dir: Path) -> float:
+    """Export once to warm caches, then time a second export into ``assets_dir``.
+
+    The warmup destination is a sibling of ``assets_dir`` so the timed run still
+    creates a fresh export tree. Warmup files are deleted afterwards; the
+    isolated object cache from the first export remains for the timed run.
+    """
+    warmup_dir = assets_dir.with_name(f"{assets_dir.name}.warmup")
+    try:
+        _export_collected_assets(warmup_dir)
+    finally:
+        shutil.rmtree(warmup_dir, ignore_errors=True)
+    started_at = time.perf_counter()
+    _export_collected_assets(assets_dir)
+    return time.perf_counter() - started_at
+
+
 def run(
     manifest_path: Path,
     export_path: Path,
     storage_root: Path,
     result_path: Path,
 ) -> None:
-    """Deposit manifest assets and time their local export."""
+    """Deposit manifest assets and time a cache-warmed local export."""
 
     from dallinger import db
 
@@ -65,18 +123,10 @@ def run(
         asset.deposit(storage=storage)
     db.session.commit()
 
-    started_at = time.perf_counter()
     assets_dir = export_path / "assets"
-    assets_dir.mkdir(parents=True, exist_ok=True)
-    export_assets(
-        str(assets_dir),
-        collected_assets_only=True,
-        include_on_demand_assets=False,
-        local=True,
-    )
-    result_path.write_text(
-        json.dumps({"asset_export_time_s": time.perf_counter() - started_at})
-    )
+    with _temporary_default_asset_cache(storage_root / "export-asset-cache"):
+        elapsed = _time_warmed_asset_export(assets_dir)
+    result_path.write_text(json.dumps({"asset_export_time_s": elapsed}))
 
 
 def _main() -> None:

@@ -8,6 +8,10 @@ from benchmarks.fast.debug_launch import (
     _prepared_benchmark_experiment,
     _temporary_static_payload,
 )
+from benchmarks.fast.export_benchmark_worker import (
+    _temporary_default_asset_cache,
+    _time_warmed_asset_export,
+)
 from benchmarks.fast.export_benchmarks import (
     _ASSET_EXPORT_PROFILES,
     IncrementalAssetTransfer,
@@ -22,6 +26,7 @@ from benchmarks.fast.export_benchmarks import (
     _write_asset_payloads,
 )
 from psynet.experiment_scaffold import scaffold_paths_required_for_local_run
+from psynet.export.asset_cache import default_cache_root
 
 
 def test_temporary_static_payload_is_created_and_cleaned_up(tmp_path):
@@ -244,7 +249,10 @@ def test_incremental_transfer_benchmark_measures_cold_and_warm_caches(monkeypatc
     assert metrics["asset_file_count"] == 2
     assert metrics["cold_transfer_time_s"] >= 0
     assert metrics["warm_transfer_time_s"] >= 0
-    assert len(calls) == 1
+    # One discarded transfer warms rsync and the OS page cache, then the
+    # timed cold transfer copies into an empty application cache. The warm
+    # transfer must still reuse that cache (no third rsync).
+    assert len(calls) == 2
 
 
 def test_incremental_transfer_tracks_metrics():
@@ -348,3 +356,63 @@ def test_local_asset_export_tracks_metrics():
     assert benchmark.track_asset_export_time_s(results, profile) == 0.75
     assert benchmark.track_asset_file_count(results, profile) == 10_000
     assert benchmark.track_asset_total_bytes(results, profile) == 10_240_000
+
+
+def test_asset_export_worker_records_the_second_export(monkeypatch, tmp_path):
+    """``track_*`` has no ASV warmup; the recorded sample must not be the cold run."""
+    from pathlib import Path
+
+    export_dirs = []
+    clock = iter([10.0, 10.25])
+
+    def fake_export(assets_dir):
+        path = Path(assets_dir)
+        export_dirs.append(path)
+        path.mkdir(parents=True, exist_ok=True)
+        (path / "marker").write_text("exported")
+
+    monkeypatch.setattr(
+        "benchmarks.fast.export_benchmark_worker._export_collected_assets",
+        fake_export,
+    )
+    monkeypatch.setattr(
+        "benchmarks.fast.export_benchmark_worker.time.perf_counter",
+        lambda: next(clock),
+    )
+
+    assets_dir = tmp_path / "assets"
+    elapsed = _time_warmed_asset_export(assets_dir)
+
+    assert elapsed == pytest.approx(0.25)
+    assert len(export_dirs) == 2
+    assert export_dirs[0] != assets_dir
+    assert export_dirs[1] == assets_dir
+    assert not export_dirs[0].exists()
+    assert (assets_dir / "marker").read_text() == "exported"
+
+
+def test_asset_export_worker_isolates_the_default_asset_cache(tmp_path):
+    """ASV commits must not share ``~/psynet-data/cache/assets`` hits."""
+    import hashlib
+    import shutil
+
+    from psynet.export.asset_cache import ensure_object_in_cache, object_cache_path
+
+    original = default_cache_root()
+    isolated = tmp_path / "export-asset-cache"
+    payload = b"isolated-cache"
+    digest = hashlib.sha256(payload).hexdigest()
+    src = tmp_path / "payload.bin"
+    src.write_bytes(payload)
+
+    def fetch_fn(dest):
+        shutil.copy2(src, dest)
+
+    with _temporary_default_asset_cache(isolated):
+        assert default_cache_root() == isolated.resolve()
+        cache_path = ensure_object_in_cache(digest, fetch_fn)
+
+    assert default_cache_root() == original
+    assert cache_path == object_cache_path(digest, isolated.resolve())
+    assert cache_path.read_bytes() == payload
+    assert not object_cache_path(digest, original).exists()
