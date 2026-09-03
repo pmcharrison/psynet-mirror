@@ -184,7 +184,10 @@ Response options
 
 :class:`~psynet.modular_page.RadioButtonControl` and
 :class:`~psynet.modular_page.CheckboxControl` render each option as a full-width
-row with a minimum height of 46px, so the whole row is clickable. The markup is:
+row with a minimum height of 46px, so the whole row is clickable. The rows sit
+in a panel (``.psynet-options``) that grows with them, so a long list scrolls
+the page rather than a nested scrollbar inside the control. Mark that page with
+``expect_scrolling=True``. The markup is:
 
 ::
 
@@ -201,10 +204,9 @@ instead.
 
 :class:`~psynet.modular_page.PushButtonControl` groups choices in
 ``.push-button-container``. Vertical lists (``arrange_vertically=True``)
-stay in a single column. The buttons sit on the content surface (no
-nested well), and the list grows with them, so a long list scrolls the
-page rather than a nested scrollbar inside the control. Mark that page
-with ``expect_scrolling=True``.
+stay in a single column. Buttons are already distinct objects, so they sit
+directly on the content surface with no panel behind them; the list grows
+with them in the same way as ``.psynet-options``.
 
 Next and Reset sit in ``.psynet-actions``. If you previously selected
 those buttons as a direct child of ``#trial-stage``, target

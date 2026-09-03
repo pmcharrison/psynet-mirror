@@ -134,6 +134,18 @@ test(
       await experimentPage.setViewportSize(MOBILE_VIEWPORT);
       await experimentPage.waitForTimeout(300);
       await assertPageInvariants(experimentPage, "long page (mobile viewport)");
+      await experimentPage.setViewportSize(DESKTOP_VIEWPORT);
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+      // A long option list grows its panel instead of scrolling inside it, so
+      // the rows must stay reachable by scrolling the page.
+      await waitForMainBodyContains(experimentPage, "long radio list", STEP_TIMEOUT_MS);
+      await assertPageInvariants(experimentPage, "long radio list (expect_scrolling)");
+      const optionPanelScroll = await experimentPage.evaluate(() => {
+        const panel = document.querySelector(".psynet-options");
+        return panel.scrollHeight - panel.clientHeight;
+      });
+      expect(optionPanelScroll).toBeLessThanOrEqual(1);
     } finally {
       await stopExperiment(proc);
     }

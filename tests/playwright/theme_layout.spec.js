@@ -106,6 +106,42 @@ test(
 );
 
 test(
+  "long option lists grow their panel and scroll the page",
+  { tag: "@both" },
+  async ({ page }) => {
+    const options = Array.from(
+      { length: 16 },
+      (_, i) =>
+        `<label class="psynet-option">
+           <input type="radio" name="opt" class="response">
+           <span class="psynet-option-label">Option ${i + 1}</span>
+         </label>`
+    ).join("");
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      html: `<div class="control-container psynet-options">${options}</div>`
+    });
+
+    const metrics = await page.evaluate(() => {
+      const panel = document.querySelector(".psynet-options");
+      const style = getComputedStyle(panel);
+      return {
+        panelScroll: panel.scrollHeight - panel.clientHeight,
+        pageScroll: document.documentElement.scrollHeight - window.innerHeight,
+        background: style.backgroundColor,
+        borderWidth: style.borderTopWidth
+      };
+    });
+
+    // The panel behind the rows stays, but it no longer scrolls internally.
+    expect(metrics.panelScroll).toBeLessThanOrEqual(1);
+    expect(metrics.pageScroll).toBeGreaterThan(1);
+    expect(metrics.background).not.toBe("rgba(0, 0, 0, 0)");
+    expect(parseFloat(metrics.borderWidth)).toBeGreaterThan(0);
+  }
+);
+
+test(
   "pages without a footer do not reserve footer clearance",
   { tag: "@both" },
   async ({ page }) => {

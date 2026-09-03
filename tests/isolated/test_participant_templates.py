@@ -141,6 +141,19 @@ def test_push_button_container_grows_with_its_buttons():
     assert "border:" not in block
 
 
+def test_option_panel_grows_with_its_rows_but_keeps_its_surface():
+    """Option rows are white cards, so the panel behind them stays."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index(".psynet-options {")
+    end = css.index(".psynet-options--horizontal")
+    block = css[start:end]
+    assert "max-height" not in block
+    assert "overflow-y" not in block
+    assert "background-color: var(--psynet-surface-sunken)" in block
+
+
 def test_timeline_omits_footer_when_hidden():
     source = (resources.files("psynet") / "templates" / "timeline-page.html").read_text(
         encoding="utf-8"

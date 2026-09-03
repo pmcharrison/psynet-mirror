@@ -106,4 +106,17 @@ class Exp(psynet.experiment.Experiment):
         # Declares that scrolling is expected, so the reachability check is
         # waived; the permanent-occlusion check still applies.
         InfoPage(LONG_TEXT, time_estimate=1, expect_scrolling=True),
+        # Option panels grow with their rows rather than scrolling internally,
+        # so a long list has to declare its scrolling like any other tall page.
+        ModularPage(
+            "long_radio",
+            prompt="Invariant check: long radio list.",
+            control=RadioButtonControl(
+                [f"row_{i}" for i in range(1, 17)],
+                [f"Row {i}" for i in range(1, 17)],
+                name="rows",
+            ),
+            time_estimate=1,
+            expect_scrolling=True,
+        ),
     )

@@ -285,17 +285,16 @@ h1, h2, h3, h4, h5, h6,
  * that the whole row is clickable. Native radios are roughly 21px across, which
  * is well below the 44px recommended minimum for touch targets.
  */
+/* The panel stays: option rows are white cards, so without a background behind
+   them the list has no visible extent. It grows with its rows, though, so a long
+   list scrolls the page rather than introducing a second scrollbar inside the
+   control, matching .push-button-container. */
 .psynet-options {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 0.35rem;
     max-width: 460px;
-    /* Matches the cap the control macros used before this stylesheet existed,
-       so a long list of options scrolls within its panel rather than pushing
-       the response controls off screen. */
-    max-height: 420px;
-    overflow-y: auto;
     margin-inline: auto;
     padding: 0.9rem 1rem;
     background-color: var(--psynet-surface-sunken);
