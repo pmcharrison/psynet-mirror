@@ -177,7 +177,7 @@ looks like:
 
     {% block main_body %}
         That's the end of the experiment!
-        {% if config.show_reward %}
+        {% if experiment.show_reward %}
             {% include "final-page-rewards.html" %}
         {% endif %}
         Thank you for taking part.

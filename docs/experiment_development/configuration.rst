@@ -247,12 +247,16 @@ General
     Default ``False``.
 
 ``show_reward`` *bool* |psynet-icon|
-    If ``True`` (default), then the participant's current estimated reward is displayed
-    at the bottom of the page.
+    If ``True``, then the participant's current estimated reward is displayed
+    at the bottom of the page, and the end-of-experiment page reports it.
+    If left unset, the recruiter decides: recruiters that pay through a
+    platform, such as Prolific and MTurk, show the reward, while generic and
+    local recruitment does not, because PsyNet cannot pay anyone in those
+    cases. Lucid recruitment forbids showing rewards.
 
 ``show_footer`` *bool* |psynet-icon|
     If ``True`` (default), then a footer is displayed at the bottom of the page containing a `Help` button
-    and reward information if ``show_reward`` is set to ``True``.
+    and reward information if ``show_reward`` resolves to ``True``.
 
 ``show_progress_bar`` *bool* |psynet-icon|
     If ``True`` (default), then a progress bar is displayed at the top of the page.
