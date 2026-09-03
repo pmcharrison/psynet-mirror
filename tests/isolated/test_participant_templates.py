@@ -111,6 +111,18 @@ def test_psynet_js_attaches_layout_api():
     assert "psynet.layout = window.psynetLayout" in js
 
 
+def test_footer_reserves_the_progress_bar_strip():
+    """The bar is out of flow, so its height has to be reserved explicitly."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    assert "--psynet-footer-progress-height:" in css
+    start = css.index("#footer {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "var(--psynet-footer-progress-height)" in block
+
+
 def test_footer_clearance_is_scoped_to_pages_with_a_footer():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"

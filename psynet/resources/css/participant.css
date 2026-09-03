@@ -103,6 +103,7 @@
     --psynet-focus-ring: 3px solid var(--psynet-accent);
     --psynet-progress-height: 6px;
     --psynet-audio-meter-height: 10px;
+    --psynet-footer-progress-height: 3px;
     --psynet-footer-clearance: 5rem;
     /* Space reserved around a graphic so the page still fits a 1280×720
        laptop inner viewport: progress, surface margins and padding, prompt,
@@ -526,6 +527,11 @@ textarea:focus-visible,
     border-top: 1px solid var(--psynet-border);
     color: var(--psynet-text-muted);
     box-shadow: 0 -1px 14px rgb(16 24 40 / 6%);
+    /* The download-progress bar is taken out of flow so that progress updates
+       cannot shift the footer, which means the strip it covers would otherwise
+       still be counted when the reward text is centred. Reserving its height
+       here centres the text in the strip participants actually see. */
+    padding-top: calc(var(--bs-navbar-padding-y) + var(--psynet-footer-progress-height));
 }
 
 #footer .footer-text {
@@ -539,7 +545,7 @@ textarea:focus-visible,
     position: absolute;
     top: 0;
     left: 0;
-    height: 3px;
+    height: var(--psynet-footer-progress-height);
     background-color: var(--psynet-accent);
 }
 

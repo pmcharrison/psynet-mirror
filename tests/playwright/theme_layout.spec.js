@@ -178,6 +178,53 @@ test(
 );
 
 test(
+  "footer text is centred below the progress bar",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      // Same markup as timeline-page.html's footer macro, with the progress bar
+      // full width as it is on a page with no media to download.
+      html: `
+        <nav id="footer" class="navbar fixed-bottom">
+          <div id="media-download-progress-bar" style="width: 100%"></div>
+          <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
+            <div class="footer-text">Reward: <strong>$0.00</strong></div>
+          </div>
+        </nav>`,
+      // The theme relies on Bootstrap for .navbar padding and .fixed-bottom.
+      extraCss: `
+        .navbar { --bs-navbar-padding-y: 0.5rem; --bs-navbar-padding-x: 0;
+                  position: relative; display: flex; flex-wrap: wrap;
+                  align-items: center;
+                  padding: var(--bs-navbar-padding-y) var(--bs-navbar-padding-x); }
+        .fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; }
+        .container { width: 100%; padding-inline: 0.75rem; margin-inline: auto; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .d-flex { display: flex; }
+        .align-items-center { align-items: center; }`
+    });
+
+    const offset = await page.evaluate(() => {
+      const footer = document.getElementById("footer");
+      const bar = document.getElementById("media-download-progress-bar");
+      const text = footer.querySelector(".footer-text");
+      const footerRect = footer.getBoundingClientRect();
+      const barRect = bar.getBoundingClientRect();
+      const textRect = text.getBoundingClientRect();
+      // The strip participants see starts below the progress bar.
+      const stripTop = barRect.bottom;
+      return (
+        textRect.top - stripTop - (footerRect.bottom - textRect.bottom)
+      );
+    });
+
+    // Positive means the text sits low, negative means it sits high.
+    expect(Math.abs(offset)).toBeLessThanOrEqual(1);
+  }
+);
+
+test(
   "white captions stay distinct from the dark-mode surface",
   { tag: "@both" },
   async ({ page }) => {
