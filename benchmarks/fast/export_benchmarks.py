@@ -5,10 +5,11 @@ not get timed-benchmark warmup. ``asv continuous --split`` can reverse BASE and
 HEAD between rounds, so a cold first I/O sample is not comparable across
 commits.
 
-``LocalAssetExport`` discards a warmup export into an isolated asset cache and
-records a later run. ``IncrementalAssetTransfer`` already reports cold vs warm
-application-cache times; it also discards one transfer first so rsync startup
-and OS page-cache effects are not charged to whichever commit ran first.
+``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated directory,
+discards a warmup export, and records a later run.
+``IncrementalAssetTransfer`` already reports cold vs warm application-cache
+times; it also discards one transfer first so rsync startup and OS page-cache
+effects are not charged to whichever commit ran first.
 """
 
 from __future__ import annotations

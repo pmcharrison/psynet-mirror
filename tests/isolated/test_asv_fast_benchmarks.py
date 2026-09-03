@@ -409,10 +409,10 @@ def test_asset_export_worker_isolates_the_default_asset_cache(tmp_path):
         shutil.copy2(src, dest)
 
     with _temporary_default_asset_cache(isolated):
-        assert default_cache_root() == isolated.resolve()
+        assert default_cache_root() == isolated
         cache_path = ensure_object_in_cache(digest, fetch_fn)
 
     assert default_cache_root() == original
-    assert cache_path == object_cache_path(digest, isolated.resolve())
+    assert cache_path == object_cache_path(digest, isolated)
     assert cache_path.read_bytes() == payload
     assert not object_cache_path(digest, original).exists()

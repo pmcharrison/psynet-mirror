@@ -2832,7 +2832,7 @@ def assets_cache():
 @click.option(
     "--cache-root",
     default=None,
-    help="Override the default cache root directory.",
+    help="Override the default cache root (or set PSYNET_ASSET_CACHE_ROOT).",
 )
 def assets_cache_info(cache_root):
     """Print statistics about the local asset cache."""
@@ -2862,7 +2862,7 @@ def assets_cache_info(cache_root):
 @click.option(
     "--cache-root",
     default=None,
-    help="Override the default cache root directory.",
+    help="Override the default cache root (or set PSYNET_ASSET_CACHE_ROOT).",
 )
 def assets_cache_list(cache_root):
     """List the SHA-256 digests of all objects currently in the cache."""
@@ -2895,7 +2895,7 @@ def assets_cache_list(cache_root):
 @click.option(
     "--cache-root",
     default=None,
-    help="Override the default cache root directory.",
+    help="Override the default cache root (or set PSYNET_ASSET_CACHE_ROOT).",
 )
 def assets_cache_prune(prune_all, yes, cache_root):
     """Remove every object from the local asset cache.

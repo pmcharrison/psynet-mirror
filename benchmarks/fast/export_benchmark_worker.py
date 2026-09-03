@@ -8,14 +8,16 @@ this module only deposits those files and times the asset export operation.
 The timed sample is a warmed ``export_assets`` call. ASV ``track_*`` methods
 have no warmup, and ``asv continuous --split`` can measure HEAD before BASE,
 so a single cold export would fill the shared content-addressed cache for
-whichever commit ran second. Each worker therefore points the cache at a
-temporary directory and discards the first export.
+whichever commit ran second. Each worker therefore sets
+``PSYNET_ASSET_CACHE_ROOT`` to a temporary directory and discards the first
+export.
 """
 
 from __future__ import annotations
 
 import inspect
 import json
+import os
 import shutil
 import sys
 import time
@@ -52,14 +54,15 @@ def _temporary_default_asset_cache(cache_root: Path):
     SHA-256. These benchmarks use deterministic payloads, so a first commit
     would otherwise donate cache hits to the second commit in ``asv continuous``.
     """
-    from psynet.export import asset_cache as asset_cache_module
-
-    previous = asset_cache_module._DEFAULT_CACHE_ROOT
-    asset_cache_module._DEFAULT_CACHE_ROOT = Path(cache_root).expanduser().resolve()
+    previous = os.environ.get("PSYNET_ASSET_CACHE_ROOT")
+    os.environ["PSYNET_ASSET_CACHE_ROOT"] = str(Path(cache_root).expanduser())
     try:
         yield
     finally:
-        asset_cache_module._DEFAULT_CACHE_ROOT = previous
+        if previous is None:
+            os.environ.pop("PSYNET_ASSET_CACHE_ROOT", None)
+        else:
+            os.environ["PSYNET_ASSET_CACHE_ROOT"] = previous
 
 
 def _export_collected_assets(assets_dir: Path) -> None:

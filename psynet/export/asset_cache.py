@@ -1,11 +1,12 @@
 """Persistent local cache for content-addressed asset objects.
 
-The cache lives at ``~/psynet-data/cache/assets`` and mirrors the
-``objects/sha256/<digest>`` layout used in export archives.  During each
-export run, managed assets whose SHA-256 digest is already known are
-served from the cache with a hardlink (or copy on different filesystems)
-rather than re-fetched from remote storage.  Only objects that are absent
-from the cache are fetched, verified, and placed atomically.
+The cache lives at ``~/psynet-data/cache/assets`` by default (override with
+``PSYNET_ASSET_CACHE_ROOT``) and mirrors the ``objects/sha256/<digest>``
+layout used in export archives.  During each export run, managed assets
+whose SHA-256 digest is already known are served from the cache with a
+hardlink (or copy on different filesystems) rather than re-fetched from
+remote storage.  Only objects that are absent from the cache are fetched,
+verified, and placed atomically.
 
 Layout
 ------
@@ -44,6 +45,9 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_CACHE_ROOT: Path = Path("~/psynet-data/cache/assets").expanduser()
 
+# Override with PSYNET_ASSET_CACHE_ROOT (directory path).
+_ROOT_ENV = "PSYNET_ASSET_CACHE_ROOT"
+
 # Soft size warning only: exports never fail because of this limit.
 # Override with PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES (integer byte count).
 _DEFAULT_SOFT_LIMIT_BYTES = 50 * 1024**3  # 50 GiB
@@ -51,8 +55,15 @@ _SOFT_LIMIT_ENV = "PSYNET_ASSET_CACHE_SOFT_LIMIT_BYTES"
 
 
 def default_cache_root() -> Path:
-    """Return the default asset cache root (``~/psynet-data/cache/assets``)."""
-    return _DEFAULT_CACHE_ROOT
+    """Return the asset cache root.
+
+    Defaults to ``~/psynet-data/cache/assets``. Override with the environment
+    variable ``PSYNET_ASSET_CACHE_ROOT``.
+    """
+    raw = os.environ.get(_ROOT_ENV)
+    if raw is None or raw == "":
+        return _DEFAULT_CACHE_ROOT
+    return Path(os.path.expanduser(raw))
 
 
 def object_cache_path(

@@ -215,9 +215,16 @@ used as browser capabilities. The old ``obfuscate`` and ``personal`` asset flags
 have been removed.
 
 Command-line exports reuse a persistent local cache under
-``~/psynet-data/cache/assets/``. Cached files and their hard-linked export
-copies are read-only so editing an export cannot silently change the bytes
-stored under a content hash. PsyNet revalidates a cache entry if it becomes
+``~/psynet-data/cache/assets/``. Override that location with the environment
+variable ``PSYNET_ASSET_CACHE_ROOT``:
+
+.. code:: bash
+
+    export PSYNET_ASSET_CACHE_ROOT=/tmp/psynet-asset-cache
+    psynet export local
+
+Cached files and their hard-linked export copies are read-only so editing an
+export cannot silently change the bytes stored under a content hash. PsyNet revalidates a cache entry if it becomes
 writable. Inspect or clear the cache with:
 
 .. code:: bash

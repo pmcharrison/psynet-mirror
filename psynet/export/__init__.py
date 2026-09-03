@@ -19,9 +19,10 @@ Module map
 Asset cache
 -----------
 :mod:`psynet.export.asset_cache` implements a persistent local cache at
-``~/psynet-data/cache/assets`` that stores content-addressed objects in
-``objects/sha256/<digest>``. Export archives materialize those bytes under
-semantic ``export_path`` trees. SSH command-line exports fill missing cache
+``~/psynet-data/cache/assets`` (override with ``PSYNET_ASSET_CACHE_ROOT``)
+that stores content-addressed objects in ``objects/sha256/<digest>``.
+Export archives materialize those bytes under semantic ``export_path``
+trees. SSH command-line exports fill missing cache
 objects with one ``rsync --files-from`` from the remote LocalStorage tree. If
 ``rsync`` is unavailable, the export falls back to a complete server-built
 archive; there is no per-asset SFTP fallback.

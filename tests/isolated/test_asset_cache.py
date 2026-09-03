@@ -8,6 +8,7 @@ import hashlib
 import os
 import shutil
 import stat
+from pathlib import Path
 
 import pytest
 
@@ -51,10 +52,43 @@ def test_object_cache_path_structure(cache_root):
     assert path == cache_root / "objects" / "sha256" / "abc123"
 
 
-def test_default_cache_root_is_under_home():
+def test_default_cache_root_is_under_home(monkeypatch):
+    monkeypatch.delenv("PSYNET_ASSET_CACHE_ROOT", raising=False)
     root = default_cache_root()
     assert str(root).startswith(os.path.expanduser("~"))
     assert "psynet-data" in str(root)
+
+
+def test_default_cache_root_env_override(monkeypatch, tmp_path):
+    isolated = tmp_path / "custom-cache"
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(isolated))
+    assert default_cache_root() == isolated
+
+
+def test_default_cache_root_expands_user(monkeypatch):
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", "~/custom-asset-cache")
+    assert default_cache_root() == Path.home() / "custom-asset-cache"
+
+
+def test_default_cache_root_empty_env_uses_home(monkeypatch):
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", "")
+    root = default_cache_root()
+    assert str(root).startswith(os.path.expanduser("~"))
+    assert "psynet-data" in str(root)
+
+
+def test_ensure_object_in_cache_uses_env_root(monkeypatch, tmp_path, sample_file):
+    isolated = tmp_path / "env-cache"
+    monkeypatch.setenv("PSYNET_ASSET_CACHE_ROOT", str(isolated))
+    src, digest = sample_file
+
+    def fetch_fn(dest):
+        shutil.copy2(str(src), dest)
+
+    cache_path = ensure_object_in_cache(digest, fetch_fn)
+
+    assert cache_path == object_cache_path(digest, isolated)
+    assert cache_path.read_bytes() == b"hello cache"
 
 
 # ---------------------------------------------------------------------------

@@ -54,11 +54,12 @@ a cold first ``export_assets`` call fills ``~/psynet-data/cache/assets`` for
 the other commit, so that second commit looks faster even when the merge
 request did not touch export.
 
-``LocalAssetExport`` uses an isolated asset cache, discards a warmup export,
-and records a later run. ``IncrementalAssetTransfer`` already reports cold vs
-warm application-cache times and discards one transfer first so rsync startup
-and OS page-cache fill are not charged to whichever commit ran first. The
-merge-request gate keeps ``--factor 1.25``.
+``LocalAssetExport`` sets ``PSYNET_ASSET_CACHE_ROOT`` to an isolated
+directory, discards a warmup export, and records a later run.
+``IncrementalAssetTransfer`` already reports cold vs warm application-cache
+times and discards one transfer first so rsync startup and OS page-cache fill
+are not charged to whichever commit ran first. The merge-request gate keeps
+``--factor 1.25``.
 
 Default-branch checks and publishing
 ====================================
