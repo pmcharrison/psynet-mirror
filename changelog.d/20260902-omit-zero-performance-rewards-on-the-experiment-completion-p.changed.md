@@ -1,1 +1,1 @@
-The experiment completion page no longer reports a performance reward of $0.00, and the remaining reward sentence now ends with a period.
+The experiment completion page no longer reports a performance reward of $0.00, and the remaining reward sentence now ends with a period. Existing locale catalogs were split so the time-reward and performance-reward sentences can be translated independently.

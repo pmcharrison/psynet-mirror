@@ -434,17 +434,25 @@ msgstr "Jei taip, prašome pateikti keletą žodžių, apibūdinančių problem�
 msgid "Finish"
 msgstr "Baigti"
 
-#: psynet/end.py
+#: psynet/end.py:94
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"the time you spent on the experiment. "
 msgstr ""
 "Jūs gausite <strong>{CURRENCY}{TIME_REWARD}</strong> atlygį už laiką, "
-"praleistą eksperimente. Jums taip pat buvo suteiktas našumo atlygis "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"praleistą eksperimente. "
+
+#: psynet/end.py:104
+#, python-brace-format, fuzzy
+msgctxt "final-page-performance-reward"
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+msgstr ""
+"Jums taip pat buvo suteiktas našumo atlygis "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
 
 #: psynet/end.py
 #, fuzzy

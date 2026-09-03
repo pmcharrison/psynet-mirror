@@ -64,7 +64,7 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                'Das ist das Ende des Experiments! Sie erhalten eine Belohnung von $0.05 für die Zeit, die Sie mit dem Experiment verbracht haben. Sie haben auch eine Leistungsprämie von $0.00 erhalten! Vielen Dank für Ihre Teilnahme. Bitte klicken Sie auf "Fertig", um den HIT abzuschließen. Fertig',
+                'Das ist das Ende des Experiments! Sie erhalten eine Belohnung von $0.05 für die Zeit, die Sie mit dem Experiment verbracht haben. Vielen Dank für Ihre Teilnahme. Bitte klicken Sie auf "Fertig", um den HIT abzuschließen. Fertig',
             )
 
             click_finish_button(driver)

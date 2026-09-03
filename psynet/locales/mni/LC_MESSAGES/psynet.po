@@ -432,18 +432,25 @@ msgstr "Phangbadi, problem gi maru khudong channa pibiyu."
 msgid "Finish"
 msgstr "লোইশিনবা"
 
-#: psynet/end.py
+#: psynet/end.py:94
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"the time you spent on the experiment. "
 msgstr ""
 "Experiment-ta leiba matamdagi nakhoina "
-"<strong>{CURRENCY}{TIME_REWARD}</strong> machatpa piba ngamgani. Aduga "
-"nakhoina performance machatpa "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> piba ngamgani!"
+"<strong>{CURRENCY}{TIME_REWARD}</strong> machatpa piba ngamgani. "
+
+#: psynet/end.py:104
+#, python-brace-format, fuzzy
+msgctxt "final-page-performance-reward"
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+msgstr ""
+"Aduga nakhoina performance machatpa "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> piba ngamgani."
 
 #: psynet/end.py
 #, fuzzy

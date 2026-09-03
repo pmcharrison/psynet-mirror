@@ -431,17 +431,25 @@ msgstr "ئەگەر هەبوو، تکایە چەند وشەیەک دیاری بک
 msgid "Finish"
 msgstr "کۆتایی"
 
-#: psynet/end.py
+#: psynet/end.py:94
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"the time you spent on the experiment. "
 msgstr ""
 "بۆ کاتی تۆماربوونت لە تاقیکردنەوەدا، تۆ پاداشتێکی "
-"<strong>{CURRENCY}{TIME_REWARD}</strong> وەرگریت. هەروەها پاداشتێکی "
-"کاریگەرەشی بەردەستە <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"<strong>{CURRENCY}{TIME_REWARD}</strong> وەرگریت. "
+
+#: psynet/end.py:104
+#, python-brace-format, fuzzy
+msgctxt "final-page-performance-reward"
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+msgstr ""
+"هەروەها پاداشتێکی کاریگەرەشی بەردەستە "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
 
 #: psynet/end.py
 #, fuzzy

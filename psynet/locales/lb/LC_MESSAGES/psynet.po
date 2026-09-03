@@ -435,18 +435,25 @@ msgstr "Wann jo, beschreift w.e.g. kuerz de Problem."
 msgid "Finish"
 msgstr "Ofschléissen"
 
-#: psynet/end.py
+#: psynet/end.py:94
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"the time you spent on the experiment. "
 msgstr ""
 "Dir kritt eng Belounung vun <strong>{CURRENCY}{TIME_REWARD}</strong> fir déi"
-" Zäit, déi Dir um Experiment verbréngt. Dir hutt och eng Leeschtung "
-"Belounung vun <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> ausgezeechent!"
-" "
+" Zäit, déi Dir um Experiment verbréngt. "
+
+#: psynet/end.py:104
+#, python-brace-format, fuzzy
+msgctxt "final-page-performance-reward"
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+msgstr ""
+"Dir hutt och eng Leeschtung Belounung vun "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> ausgezeechent. "
 
 #: psynet/end.py
 #, fuzzy

@@ -435,18 +435,25 @@ msgstr "Zo ja, geef dan een paar woorden ter beschrijving van het probleem."
 msgid "Finish"
 msgstr "Voltooien"
 
-#: psynet/end.py
+#: psynet/end.py:94
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"the time you spent on the experiment. "
 msgstr ""
 "Je ontvangt een beloning van <strong>{CURRENCY}{TIME_REWARD}</strong> voor "
-"de tijd die je aan het experiment hebt besteed. Je hebt ook een "
-"prestatiebeloning van <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> "
-"gekregen!"
+"de tijd die je aan het experiment hebt besteed. "
+
+#: psynet/end.py:104
+#, python-brace-format, fuzzy
+msgctxt "final-page-performance-reward"
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+msgstr ""
+"Je hebt ook een prestatiebeloning van "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> gekregen."
 
 #: psynet/end.py
 #, fuzzy

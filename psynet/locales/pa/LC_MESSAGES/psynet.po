@@ -434,17 +434,25 @@ msgstr "ਜੇਕਰ ਆਈ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਸਮੱਸ
 msgid "Finish"
 msgstr "ਸਮਾਪਤ ਕਰੋ"
 
-#: psynet/end.py
+#: psynet/end.py:94
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+"the time you spent on the experiment. "
 msgstr ""
 "ਤੁਹਾਨੂੰ ਪ੍ਰਯੋਗ 'ਤੇ ਬਿਤਾਏ ਸਮੇਂ ਲਈ <strong>{CURRENCY}{TIME_REWARD}</strong> ਦਾ"
-" ਇਨਾਮ ਮਿਲੇਗਾ। ਤੁਹਾਨੂੰ ਪ੍ਰਦਰਸ਼ਨ ਇਨਾਮ ਦੇ ਤੌਰ 'ਤੇ "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> ਵੀ ਮਿਲਿਆ ਹੈ!"
+" ਇਨਾਮ ਮਿਲੇਗਾ। "
+
+#: psynet/end.py:104
+#, python-brace-format, fuzzy
+msgctxt "final-page-performance-reward"
+msgid ""
+"You have also been awarded a performance reward of "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+msgstr ""
+"ਤੁਹਾਨੂੰ ਪ੍ਰਦਰਸ਼ਨ ਇਨਾਮ ਦੇ ਤੌਰ 'ਤੇ "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> ਵੀ ਮਿਲਿਆ ਹੈ."
 
 #: psynet/end.py
 #, fuzzy
