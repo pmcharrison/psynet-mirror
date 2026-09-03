@@ -54,7 +54,12 @@ from .test_helpers.mock_s3 import (
 from .testing.chrome_driver import create_psynet_chrome_driver
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from .utils import clear_all_caches, is_in_repo_experiment, wait_until
+from .utils import (
+    clear_all_caches,
+    is_in_repo_experiment,
+    is_release_branch,
+    wait_until,
+)
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -66,12 +71,6 @@ ci_only = pytest.mark.skipif(
 local_only = pytest.mark.skipif(
     os.environ.get("CI") is not None, reason="This test only runs in local environment"
 )
-
-
-def is_release_branch():
-    """Return True when CI is running on a ``release-*`` branch."""
-    return os.environ.get("CI_COMMIT_REF_NAME", "").startswith("release-")
-
 
 release_branch_only = pytest.mark.skipif(
     not is_release_branch(),

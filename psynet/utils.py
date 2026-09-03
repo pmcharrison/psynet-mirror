@@ -643,6 +643,16 @@ class TranslationNotFoundError(KeyError):
     pass
 
 
+def is_release_branch():
+    """Return whether the current CI job is on a ``release-*`` branch."""
+    return os.environ.get("CI_COMMIT_REF_NAME", "").startswith("release-")
+
+
+def _in_non_release_pytest():
+    """Return whether we are inside pytest but not on a release branch."""
+    return bool(os.environ.get("PYTEST_CURRENT_TEST")) and not is_release_branch()
+
+
 def check_translation_is_available(message, context, locale, namespace):
     from . import deployment_info
     from .experiment import get_experiment, in_deployment_package
@@ -665,13 +675,19 @@ def check_translation_is_available(message, context, locale, namespace):
             error_message += " Since this is a live experiment, we instead presented the untranslated text."
             logger.warning(error_message)
             get_experiment().report_error(TranslationNotFoundError(error_message))
-        else:
+        elif _in_non_release_pytest():
             error_message += (
                 " The untranslated English text will be shown instead. "
                 "Package catalogs are refreshed on the release branch with `psynet translate`; "
-                "feature merge requests should not update .po/.pot files."
+                "feature-branch tests do not require up-to-date .po/.pot files."
             )
             logger.warning(error_message)
+        else:
+            error_message += (
+                " If this happened in a live experiment, we would default to presenting "
+                "the untranslated text."
+            )
+            raise TranslationNotFoundError(error_message)
 
 
 def report_translation_error(message, context, locale):
