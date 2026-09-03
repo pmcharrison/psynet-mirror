@@ -1,0 +1,4 @@
+To display the logs for this experiment you can run:
+ssh -i /home/frank/.ssh/cap.pem co3@experiments1.cococo-lab.cornell.edu docker compose -f '~/dallinger/test-lab-outcome-8f64f06bf-payment-flows-prolific-1/docker-compose.yml' logs -f
+Or you can head to https://logs.experiments1.cococo-lab.cornell.edu (user = dallinger, password = dallinger)
+You can now log in to the console at https://admin:dallinger@test-lab-outcome-8f64f06bf-payment-flows-prolific-1.experiments1.cococo-lab.cornell.edu/dashboard (user = admin, password = dallinger)
