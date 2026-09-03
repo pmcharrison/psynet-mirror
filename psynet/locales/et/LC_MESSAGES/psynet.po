@@ -433,25 +433,17 @@ msgstr "Kui jah, siis palun kirjeldage probleemi mõne sõnaga."
 msgid "Finish"
 msgstr "Lõpeta"
 
-#: psynet/end.py:94
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
 "Saate tasu <strong>{CURRENCY}{TIME_REWARD}</strong> eksperimendile kulutatud"
-" aja eest. "
-
-#: psynet/end.py:104
-#, python-brace-format, fuzzy
-msgctxt "final-page-performance-reward"
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
-msgstr ""
-"Teile on antud ka soorituse preemia "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+" aja eest. Teile on antud ka soorituse preemia "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy

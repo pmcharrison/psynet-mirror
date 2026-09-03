@@ -234,6 +234,11 @@ the package and running ``psynet translate``. This will create a ``locales`` dir
 source directory and populate it with the translations for the supported locales.
 If you do not specify which locales to translate it to, it will default to PsyNet's own list of supported locales.
 
+Feature merge requests should not update ``psynet/locales``. When a source
+string is missing from a catalog, PsyNet shows the English text and logs a
+warning (in a live experiment it also reports the error). Catalogs are
+refreshed on the release branch with ``psynet translate``.
+
 
 Contributing to PsyNet
 ----------------------

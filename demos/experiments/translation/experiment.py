@@ -20,6 +20,9 @@ class Exp(psynet.experiment.Experiment):
     config = {
         "locale": "de",
         "supported_locales": ["en", "de", "nl"],
+        # The demo is about experiment-authored strings. Framework reward copy
+        # is refreshed on the release branch, so this page should not depend on it.
+        "show_reward": False,
     }
     timeline = Timeline(
         NoConsent(),

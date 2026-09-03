@@ -370,20 +370,13 @@ msgstr ""
 msgid "Finish"
 msgstr ""
 
-#: psynet/end.py:94
+#: psynet/end.py:93
 #, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. "
-msgstr ""
-
-#: psynet/end.py:104
-#, python-brace-format
-msgctxt "final-page-performance-reward"
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
 
 #: psynet/end.py:119

@@ -434,25 +434,17 @@ msgstr "Uma kunjalo, sicela unikeze amagama ambalwa achaza inkinga."
 msgid "Finish"
 msgstr "Qeda"
 
-#: psynet/end.py:94
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
 "Uzothola umvuzo ka-<strong>{CURRENCY}{TIME_REWARD}</strong> ngesikhathi "
-"osichithe kulolu cwaningo. "
-
-#: psynet/end.py:104
-#, python-brace-format, fuzzy
-msgctxt "final-page-performance-reward"
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
-msgstr ""
-"Uphinde wahlonishwa ngomvuzo wokusebenza "
-"ka-<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+"osichithe kulolu cwaningo. Uphinde wahlonishwa ngomvuzo wokusebenza "
+"ka-<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy

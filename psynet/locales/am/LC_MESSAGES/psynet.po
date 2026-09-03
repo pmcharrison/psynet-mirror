@@ -427,21 +427,16 @@ msgstr "ከሆነ ችግሩን በጥቂት ቃላት ይገልጹ።"
 msgid "Finish"
 msgstr "ጨርስ"
 
-#: psynet/end.py:94
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-
-#: psynet/end.py:104
-#, python-brace-format, fuzzy
-msgctxt "final-page-performance-reward"
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
-msgstr ""
+"በሙከራው ላይ ላጠፉት ጊዜ <strong>{CURRENCY}{TIME_REWARD}</strong> ሽልማት ያገኛሉ። እንዲሁም የ"
+" <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> ሽልማት ተሸልመዋል! "
 
 #: psynet/end.py
 #, fuzzy

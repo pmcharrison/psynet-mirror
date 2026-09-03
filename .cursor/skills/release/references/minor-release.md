@@ -31,6 +31,7 @@ Perform the shared steps, in this order:
    `13.2.0a0` → `13.2.0`)
 3. [Update What's new](#update-whats-new) when the release has
    experimenter-facing highlights or breaking changes
+4. [Update package translations](#update-package-translations)
 
 ### 3. Push the release branch
 

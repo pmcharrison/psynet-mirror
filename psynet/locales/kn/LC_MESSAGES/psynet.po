@@ -433,25 +433,18 @@ msgstr "ಹಾಗಿದ್ದರೆ, ದಯವಿಟ್ಟು ಸಮಸ್ಯೆ
 msgid "Finish"
 msgstr "ಮುಗಿಸಿ"
 
-#: psynet/end.py:94
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
 "ನೀವು ಪ್ರಯೋಗದಲ್ಲಿ ಕಳೆದ ಸಮಯಕ್ಕಾಗಿ <strong>{CURRENCY}{TIME_REWARD}</strong> "
-"ಬಹುಮಾನವನ್ನು ಸ್ವೀಕರಿಸುತ್ತೀರಿ. "
-
-#: psynet/end.py:104
-#, python-brace-format, fuzzy
-msgctxt "final-page-performance-reward"
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
-msgstr ""
-"ನಿಮಗೆ <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> ಕಾರ್ಯಕ್ಷಮತೆ "
-"ಬಹುಮಾನವನ್ನು ಸಹ ನೀಡಲಾಗಿದೆ. "
+"ಬಹುಮಾನವನ್ನು ಸ್ವೀಕರಿಸುತ್ತೀರಿ. ನಿಮಗೆ "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> ಕಾರ್ಯಕ್ಷಮತೆ ಬಹುಮಾನವನ್ನು ಸಹ "
+"ನೀಡಲಾಗಿದೆ! "
 
 #: psynet/end.py
 #, fuzzy

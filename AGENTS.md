@@ -274,4 +274,10 @@ When you make changes to the PsyNet codebase:
 
    If pre-commit is not installed, install it first with `pip3 install pre-commit`.
 
-3. **Commit and push**: Commit all changes including changelog fragments (but not a regenerated `CHANGELOG.md`) and any pre-commit formatting fixes.
+3. **Do not update package catalogs**: Feature merge requests should not
+   edit `psynet/locales` (`.po` / `.pot` files). Missing PsyNet catalog
+   entries fall back to English with a warning. Refresh catalogs on the
+   release branch with `psynet translate`, where
+   `test_psynet_translations_up_to_date` runs.
+
+4. **Commit and push**: Commit all changes including changelog fragments (but not a regenerated `CHANGELOG.md`) and any pre-commit formatting fixes.

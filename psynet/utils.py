@@ -647,33 +647,31 @@ def check_translation_is_available(message, context, locale, namespace):
     from . import deployment_info
     from .experiment import get_experiment, in_deployment_package
 
-    args = locals()
-
     is_available = (context, message) in REGISTERED_TRANSLATIONS[namespace][locale]
 
     if not is_available:
-        message = (
-            f"Could not find a translation for message {message!r} in locale = {locale}, context = {context}, namespace = {namespace}. "
+        error_message = (
+            f"Could not find a translation for message {message!r} in locale = {locale}, "
+            f"context = {context}, namespace = {namespace}. "
             "Perhaps the translatable string was not properly captured by `psynet translate`? "
             "To mark a string as translatable, you should write e.g. _('Hello') or _p('welcome message', 'Hello'). "
-            "You cannot rename the functions _ or _p, and you must pass them strings directly, not variables or strings wrapped in parentheses."
+            "You cannot rename the functions _ or _p, and you must pass them strings directly, "
+            "not variables or strings wrapped in parentheses."
         )
         is_live_experiment = (
             in_deployment_package() and deployment_info.read("mode") == "live"
         )
         if is_live_experiment:
-            message += " Since this is a live experiment, we instead presented the untranslated text."
+            error_message += " Since this is a live experiment, we instead presented the untranslated text."
+            logger.warning(error_message)
+            get_experiment().report_error(TranslationNotFoundError(error_message))
         else:
-            message += " If this happened in a live experiment, we would default to presenting the untranslated text."
-
-        # We need to actually raise the TranslationNotFoundError here for it to be treated appropriately by report_error.
-        try:
-            raise TranslationNotFoundError(message)
-        except TranslationNotFoundError as e:
-            if is_live_experiment:
-                get_experiment().report_error(e)
-            else:
-                raise e
+            error_message += (
+                " The untranslated English text will be shown instead. "
+                "Package catalogs are refreshed on the release branch with `psynet translate`; "
+                "feature merge requests should not update .po/.pot files."
+            )
+            logger.warning(error_message)
 
 
 def report_translation_error(message, context, locale):

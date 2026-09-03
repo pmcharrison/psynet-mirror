@@ -434,25 +434,18 @@ msgstr "जर तसे असेल तर, कृपया समस्ये
 msgid "Finish"
 msgstr "समाप्त करा"
 
-#: psynet/end.py:94
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
 "प्रयोगासाठी खर्च केलेल्या वेळेसाठी तुम्हाला "
-"<strong>{CURRENCY}{TIME_REWARD}</strong> चे बक्षीस मिळेल. "
-
-#: psynet/end.py:104
-#, python-brace-format, fuzzy
-msgctxt "final-page-performance-reward"
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
-msgstr ""
-"तुम्हाला कामगिरीच्या बक्षीस म्हणून "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> देखील मिळाले आहे."
+"<strong>{CURRENCY}{TIME_REWARD}</strong> चे बक्षीस मिळेल. तुम्हाला "
+"कामगिरीच्या बक्षीस म्हणून <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> "
+"देखील मिळाले आहे!"
 
 #: psynet/end.py
 #, fuzzy

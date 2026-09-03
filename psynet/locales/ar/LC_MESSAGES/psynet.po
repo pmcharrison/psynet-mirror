@@ -431,25 +431,17 @@ msgstr "إذا كان الأمر كذلك، يرجى تقديم بضع كلما�
 msgid "Finish"
 msgstr "إنهاء"
 
-#: psynet/end.py:94
+#: psynet/end.py
 #, fuzzy, python-brace-format
 msgctxt "final-page-rewards"
 msgid ""
 "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
-"the time you spent on the experiment. "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
 "ستتلقى مكافأة قدرها <strong>{CURRENCY}{TIME_REWARD}</strong> مقابل الوقت "
-"الذي قضيته في التجربة. "
-
-#: psynet/end.py:104
-#, python-brace-format, fuzzy
-msgctxt "final-page-performance-reward"
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
-msgstr ""
-"لقد حصلت أيضًا على مكافأة أداء قدرها "
-"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>. "
+"الذي قضيته في التجربة. لقد حصلت أيضًا على مكافأة أداء قدرها "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
