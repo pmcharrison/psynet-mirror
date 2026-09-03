@@ -39,7 +39,6 @@ from .command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
     stop_local_debug_process,
-    working_directory,
 )
 from .experiment import get_experiment, import_local_experiment
 from .experiment_scaffold import (
@@ -59,6 +58,7 @@ from .utils import (
     is_in_repo_experiment,
     is_release_branch,
     wait_until,
+    working_directory,
 )
 
 logger = logging.getLogger(__file__)

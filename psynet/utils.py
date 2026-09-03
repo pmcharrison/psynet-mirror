@@ -38,6 +38,8 @@ from psynet.light_utils import (  # noqa: F401 – re-exported for backwards com
     ExperimentDirectoryNameError,
     _md5_update_from_dir,
     _md5_update_from_file,
+    _update_hash_from_dir,
+    _update_hash_from_file,
     ensure_experiment_directory_name_does_not_conflict,
     get_psynet_root,
     git_command_available,
@@ -371,24 +373,41 @@ def md5_object(x):
     return str(hashed.hexdigest())
 
 
-# MD5 hashing code:
-# https://stackoverflow.com/a/54477583/8454486
+def sha256_object(x):
+    """Return a SHA-256 hex digest of a JSON-pickled object."""
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
+    return hashlib.sha256(string).hexdigest()
+
+
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
     """Update *hash* with the contents of *filename* and return it."""
-    _md5_update_from_file(filename, hash)
+    _update_hash_from_file(filename, hash)
     return hash
 
 
 def md5_file(filename: Union[str, Path]) -> str:
     """Return the MD5 hex digest of a single file."""
-    h = hashlib.md5()
-    _md5_update_from_file(filename, h)
-    return h.hexdigest()
+    return str(_update_hash_from_file(filename, hashlib.md5()).hexdigest())
+
+
+def sha256_file(filename: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a file's contents."""
+    return str(_update_hash_from_file(filename, hashlib.sha256()).hexdigest())
+
+
+def sha256_directory(directory: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a directory's names and file contents."""
+    return str(_update_hash_from_dir(directory, hashlib.sha256()).hexdigest())
+
+
+def content_object_path(digest: str) -> str:
+    """Return the canonical relative object path for a content digest."""
+    return f"objects/sha256/{digest}"
 
 
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
     """Recursively update *hash* with all non-hidden files under *directory*."""
-    _md5_update_from_dir(directory, hash)
+    _update_hash_from_dir(directory, hash)
     return hash
 
 
@@ -1267,7 +1286,9 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         isolated_tests_features,
         isolated_tests_translation,
     ]:
-        tests.extend(glob.glob(str(directory / "*.py")))
+        # Only pytest-discoverable modules; shared helper modules live
+        # alongside the tests and must not be run as empty test files.
+        tests.extend(glob.glob(str(directory / "test_*.py")))
 
     if ci_node_total is not None and ci_node_index is not None:
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)
