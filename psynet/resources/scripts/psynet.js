@@ -1781,10 +1781,12 @@
       }
       let requests = psynet.media.requests;
       let mediaTypes = Object.keys(requests);
+      // The bar lives in the footer, which show_footer = false omits, so media
+      // loading must not depend on it being present.
       let bar = psynet.media.downloadProgress.bar();
-      bar.classList.add("colorfadeanim");
+      if (bar !== null) bar.classList.add("colorfadeanim");
       await Promise.all(mediaTypes.map((x) => processRequests(x, requests[x])));
-      bar.classList.remove("colorfadeanim");
+      if (bar !== null) bar.classList.remove("colorfadeanim");
     };
 
     let initMediaType = function (mediaType) {

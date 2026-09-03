@@ -133,6 +133,17 @@ def test_transient_pages_style_their_spinner():
     assert "width: 2.5rem" in block
 
 
+def test_media_loading_survives_a_missing_progress_bar():
+    """show_footer = false omits the bar, so media loading must not need it."""
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    for use in re.findall(r"bar\.classList\.(?:add|remove)\([^)]*\)", js):
+        index = js.index(use)
+        preceding = js[max(0, index - 200) : index]
+        assert "if (bar !== null)" in preceding, f"unguarded use: {use}"
+
+
 def test_footer_reserves_the_progress_bar_strip():
     """The bar is out of flow, so its height has to be reserved explicitly."""
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
