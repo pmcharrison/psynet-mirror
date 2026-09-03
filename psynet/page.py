@@ -24,7 +24,7 @@ from .timeline import (
     join,
     while_loop,
 )
-from .utils import get_logger
+from .utils import get_logger, get_translator
 
 logger = get_logger()
 warnings.simplefilter("always", DeprecationWarning)
@@ -545,9 +545,9 @@ class ExecuteFrontEndJS(InfoPage):
     # Skip beforeunload detection since this page is expected to navigate away
     skip_beforeunload = True
 
-    def __init__(self, js: str, message: str = ""):
+    def __init__(self, js: str):
         super().__init__(
-            content=self._render_message(message),
+            content=self._spinner(),
             time_estimate=0.0,
             js_vars={"execute_front_end_js": js},
             js_page_modules=["/static/scripts/execute-front-end-js.js"],
@@ -555,15 +555,20 @@ class ExecuteFrontEndJS(InfoPage):
         )
 
     @staticmethod
-    def _render_message(message):
-        """Wrap the message so that it only appears if the page lingers.
+    def _spinner():
+        """Render a spinner rather than prose.
 
-        These pages normally last a couple of hundred milliseconds, which is
-        too brief to read; the message is there for the case where the work
-        takes long enough for a blank page to look broken. The delay lives in
-        CSS (``.psynet-deferred-message``) so no timer has to be cancelled when
-        the page navigates away.
+        These pages run some JavaScript and then navigate, normally within a
+        couple of hundred milliseconds. That is too brief to read a sentence,
+        but long enough that a blank surface looks broken, and it can stretch
+        out when the network is slow. The spinner reads the same either way.
+        The label is for screen readers, which have nothing else to announce.
         """
-        if not message:
-            return message
-        return Markup('<p class="psynet-deferred-message">{}</p>').format(message)
+        _p = get_translator(context=True)
+
+        return Markup(
+            '<div class="psynet-activity" role="status">'
+            '<span class="spinner-border" aria-hidden="true"></span>'
+            '<span class="visually-hidden">{}</span>'
+            "</div>"
+        ).format(_p("status", "Working..."))

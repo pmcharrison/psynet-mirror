@@ -1913,14 +1913,13 @@ def test_generic_recruiter_has_no_external_bonus_payment():
     assert recruiter.has_external_bonus_payment() is False
 
 
-def test_exit_message_names_the_platform_when_there_is_one():
-    from psynet.recruiters import GenericRecruiter, ProlificRecruiter
+def test_submit_assignment_page_shows_a_spinner():
+    from psynet.recruiters import GenericRecruiter
 
-    assert object.__new__(GenericRecruiter).exit_message() == "Finalizing session..."
-    assert (
-        object.__new__(ProlificRecruiter).exit_message()
-        == "Finalizing session with Prolific..."
-    )
+    page = object.__new__(GenericRecruiter).submit_assignment()
+
+    assert "spinner-border" in page.content
+    assert page.js_vars["execute_front_end_js"] == "dallinger.submitAssignment()"
 
 
 def _review_participant(apparent=0.0, planned=1.50):

@@ -17,14 +17,31 @@ const AUDIO_METER_JS = fs.readFileSync(
   path.resolve("psynet/templates/macros/control/audio_meter.js"),
   "utf8"
 );
+const BOOTSTRAP_CSS = fs.readFileSync(
+  path.resolve("psynet/resources/libraries/bootstrap/bootstrap.min.css"),
+  "utf8"
+);
 
-async function renderTheme(page, { html, extraCss = "", viewport, scripts = [], htmlAttrs = "" }) {
+async function renderTheme(
+  page,
+  {
+    html,
+    extraCss = "",
+    viewport,
+    scripts = [],
+    htmlAttrs = "",
+    // Load Bootstrap before the theme, as participant pages do, for rules the
+    // theme only adjusts rather than defines.
+    includeBootstrap = false
+  }
+) {
   await page.setViewportSize(viewport);
   await page.setContent(`<!doctype html>
 <html ${htmlAttrs}>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+${includeBootstrap ? BOOTSTRAP_CSS : ""}
 ${THEME_CSS}
 body { margin: 0; }
 ${extraCss}
@@ -178,64 +195,45 @@ test(
 );
 
 test(
-  "transient page messages appear only if the page lingers",
+  "transient pages show a spinner immediately",
   { tag: "@both" },
   async ({ page }) => {
     await renderTheme(page, {
       viewport: { width: 1280, height: 720 },
+      includeBootstrap: true,
       html: `<div id="main-body" class="psynet-surface">
-               <p class="psynet-deferred-message">Finalizing session...</p>
+               <div class="psynet-activity" role="status">
+                 <span class="spinner-border" aria-hidden="true"></span>
+                 <span class="visually-hidden">Working...</span>
+               </div>
              </div>`
     });
 
-    const opacity = () =>
-      page
-        .locator(".psynet-deferred-message")
-        .evaluate((element) => parseFloat(getComputedStyle(element).opacity));
+    const spinner = page.locator(".psynet-activity .spinner-border");
+    await expect(spinner).toBeVisible();
 
-    // A hand-off that finishes in a couple of hundred milliseconds, as it
-    // normally does, shows nothing at all.
-    await page.waitForTimeout(250);
-    expect(await opacity()).toBeLessThan(0.05);
-
-    // A slow hand-off reveals the message rather than leaving a blank page.
-    await page.waitForTimeout(1000);
-    expect(await opacity()).toBeGreaterThan(0.95);
-  }
-);
-
-test(
-  "transient page messages still appear under reduced motion",
-  { tag: "@both" },
-  async ({ browser }) => {
-    // The theme collapses animation durations for reduced motion but leaves
-    // delays alone, so the message should still wait and then appear.
-    const context = await browser.newContext({
-      viewport: { width: 1280, height: 720 },
-      reducedMotion: "reduce"
+    const state = await spinner.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        opacity: parseFloat(style.opacity),
+        animationDelay: style.animationDelay,
+        animationName: style.animationName,
+        color: style.color,
+        // Layout size, not getBoundingClientRect: the spinner is rotating, and
+        // a rotated square reports a bounding box up to 1.41x its own size.
+        width: style.width,
+        height: style.height
+      };
     });
-    const page = await context.newPage();
-    try {
-      await renderTheme(page, {
-        viewport: { width: 1280, height: 720 },
-        html: `<div id="main-body" class="psynet-surface">
-                 <p class="psynet-deferred-message">Finalizing session...</p>
-               </div>`
-      });
 
-      const opacity = () =>
-        page
-          .locator(".psynet-deferred-message")
-          .evaluate((element) => parseFloat(getComputedStyle(element).opacity));
-
-      await page.waitForTimeout(250);
-      expect(await opacity()).toBeLessThan(0.05);
-
-      await page.waitForTimeout(1000);
-      expect(await opacity()).toBeGreaterThan(0.95);
-    } finally {
-      await context.close();
-    }
+    // No delayed reveal: the spinner is there from the first frame.
+    expect(state.opacity).toBe(1);
+    expect(state.animationDelay).toBe("0s");
+    expect(state.animationName).toBe("spinner-border");
+    // The theme's sizing and accent colour win over Bootstrap's defaults.
+    expect(state.width).toBe("40px");
+    expect(state.height).toBe("40px");
+    expect(state.color).toBe("rgb(48, 112, 200)");
   }
 );
 

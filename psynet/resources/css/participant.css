@@ -630,20 +630,21 @@ textarea:focus-visible,
 }
 
 /*
- * Status text for a page that is expected to be transient, such as the
- * recruiter hand-off. That page usually lasts a couple of hundred
- * milliseconds, so showing text immediately produces an unreadable flash;
- * waiting means participants only see it if something is actually slow.
- * Under reduced motion the theme collapses the duration but keeps the delay,
- * so the message still waits and then appears without fading.
+ * Pages that only run some JavaScript and then navigate, such as the
+ * recruiter hand-off. They are usually over within a couple of hundred
+ * milliseconds, too brief to read a sentence, so they show a spinner
+ * instead. Sizing matches the spinner on the experiment start page.
  */
-.psynet-deferred-message {
-    opacity: 0;
-    animation: psynet-deferred-reveal 150ms ease-out 700ms forwards;
+.psynet-activity {
+    display: flex;
+    justify-content: center;
 }
 
-@keyframes psynet-deferred-reveal {
-    to { opacity: 1; }
+.psynet-activity .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 0.25rem;
+    color: var(--psynet-accent);
 }
 
 @keyframes psynet-gradient {

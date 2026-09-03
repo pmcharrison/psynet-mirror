@@ -111,18 +111,15 @@ def test_psynet_js_attaches_layout_api():
     assert "psynet.layout = window.psynetLayout" in js
 
 
-def test_transient_page_message_is_revealed_only_after_a_delay():
-    """A hand-off that finishes quickly should not flash unreadable text."""
+def test_transient_pages_style_their_spinner():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    start = css.index(".psynet-deferred-message {")
+    start = css.index(".psynet-activity .spinner-border {")
     end = css.index("}", start)
     block = css[start:end]
-    assert "opacity: 0" in block
-    assert "psynet-deferred-reveal" in block
-    assert "forwards" in block
-    assert "@keyframes psynet-deferred-reveal" in css
+    assert "color: var(--psynet-accent)" in block
+    assert "width: 2.5rem" in block
 
 
 def test_footer_reserves_the_progress_bar_strip():

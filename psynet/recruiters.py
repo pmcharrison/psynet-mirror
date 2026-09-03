@@ -245,13 +245,6 @@ class PsyNetRecruiterMixin:
     show_termination_button = False
     reports_zero_outcomes = False
 
-    #: Participant-facing name of the recruitment platform, for example
-    #: ``"Prolific"``. Leave as ``None`` when there is no platform the
-    #: participant would recognise, as in local or generic recruitment. Only
-    #: proper nouns belong here: the name is substituted into an already
-    #: translated sentence, so a descriptive phrase would stay in English.
-    platform_name = None
-
     def report_submission_outcome(self, participant, amount, reason):
         """Report the terminal outcome, transferring a real bonus if needed.
 
@@ -275,21 +268,6 @@ class PsyNetRecruiterMixin:
     def release_participant(self, experiment, participant) -> TimelineLogic:
         return self.submit_assignment()
 
-    def exit_message(self) -> str:
-        """Message shown to the participant while their assignment is submitted.
-
-        Deliberately says nothing about where the participant goes next: most
-        recruiters land them on a page with a button rather than returning them
-        anywhere automatically.
-        """
-        _p = get_translator(context=True)
-
-        if self.platform_name is None:
-            return _p("exit", "Finalizing session...")
-        return _p("exit", "Finalizing session with {PLATFORM}...").format(
-            PLATFORM=self.platform_name
-        )
-
     def submit_assignment(self) -> TimelineLogic:
         # This calls dallinger.submitAssignment, submitting the assignment to
         # the recruiter. What happens next depends on the recruiter and (for
@@ -298,10 +276,7 @@ class PsyNetRecruiterMixin:
         # payment decision and transfers any bonus.
         from .page import ExecuteFrontEndJS
 
-        return ExecuteFrontEndJS(
-            "dallinger.submitAssignment()",
-            message=self.exit_message(),
-        )
+        return ExecuteFrontEndJS("dallinger.submitAssignment()")
 
     def check_consents(self, consents):
         """
@@ -422,7 +397,6 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
 
 class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     unsuccessful_code_type = PROLIFIC_UNSUCCESSFUL_CODE_TYPE
-    platform_name = "Prolific"
 
     @property
     def unsuccessful_base_payment(self):
@@ -1202,8 +1176,6 @@ class MockProlificRecruiter(
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
-    platform_name = "Amazon Mechanical Turk"
-
     def reward_bonus(self, participant, amount, reason):
         """Pay an MTurk bonus. Return False if MTurk rejected the transfer."""
         from dallinger.mturk import MTurkServiceException
@@ -1584,7 +1556,6 @@ class LucidRecruitmentStatus(RecruitmentStatus):
 
 class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     supports_delayed_publishing = True
-    platform_name = "Lucid Marketplace"
     MARKETPLACE_CODE = "Marketplace codes"
     IN_SURVEY = "Currently in Client Survey or Drop"
     COMPLETED = "Returned as Complete"

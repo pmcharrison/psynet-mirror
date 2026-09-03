@@ -6,13 +6,14 @@ from psynet.page import ExecuteFrontEndJS, JsPsychPage, UnityPage
 from psynet.timeline import Page
 
 
-def test_execute_front_end_js_defers_its_message():
-    """The message is styled to appear only if the page lingers."""
-    page = ExecuteFrontEndJS("doSomething()", message="Finalizing session...")
-    assert 'class="psynet-deferred-message"' in page.content
-    assert "Finalizing session..." in page.content
-
-    assert ExecuteFrontEndJS("doSomething()").content == ""
+def test_execute_front_end_js_shows_a_spinner_not_prose():
+    """The page is too brief to read, so it shows activity rather than text."""
+    content = ExecuteFrontEndJS("doSomething()").content
+    assert 'class="psynet-activity"' in content
+    assert 'class="spinner-border"' in content
+    # Screen readers have nothing else to announce on this page.
+    assert 'role="status"' in content
+    assert 'class="visually-hidden">Working...' in content
 
 
 @pytest.mark.parametrize("argument_name", ["js_dependencies", "js_page_modules"])
