@@ -1969,7 +1969,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_abort_button": False,
             "show_footer": True,
             "show_progress_bar": True,
-            "show_reward": True,
+            # show_reward is deliberately absent: leaving it unset means
+            # "ask the recruiter". See Experiment.show_reward.
             "inplace_timeline_transitions": True,
             "legacy_js_var_globals": "warn",
             "needs_internet_access": True,
@@ -3070,6 +3071,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return
         self.submission_successful(participant=participant)
         self.recruit()
+
+    @property
+    def show_reward(self) -> bool:
+        """Whether participants are shown their accumulated reward.
+
+        The ``show_reward`` config variable wins when the experiment sets it.
+        Otherwise the recruiter decides, through
+        :attr:`~psynet.recruiters.PsyNetRecruiterMixin.shows_reward_by_default`:
+        recruiters that pay through a platform show the reward, while local and
+        generic recruitment does not, since PsyNet cannot pay anyone there.
+
+        This is the only place that decision is made; the footer, the progress
+        endpoint, and the debrief page all read it.
+        """
+        explicit = get_config().get("show_reward", None)
+        if explicit is not None:
+            return explicit
+        return self.recruiter.shows_reward_by_default
 
     def with_lucid_recruitment(self):
         return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
@@ -5052,7 +5071,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        if get_config().get("show_reward"):
+        if get_experiment().show_reward:
             time_reward = participant.time_reward
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()

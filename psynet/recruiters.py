@@ -245,6 +245,13 @@ class PsyNetRecruiterMixin:
     show_termination_button = False
     reports_zero_outcomes = False
 
+    #: Whether participants are shown their accumulated reward when the
+    #: experiment does not say either way. Recruiters that disburse money
+    #: through a platform show it; local and generic recruitment does not,
+    #: because in those cases PsyNet cannot pay anyone and quoting a figure
+    #: promises something the experimenter has to honour by hand.
+    shows_reward_by_default = True
+
     def report_submission_outcome(self, participant, amount, reason):
         """Report the terminal outcome, transferring a real bonus if needed.
 
@@ -387,7 +394,35 @@ class PsyNetRecruiterMixin:
         return view.bonus
 
 
-class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
+class PsyNetExitPageMixin:
+    """PsyNet's final page, for recruiters that have no exit page of their own.
+
+    Dallinger's ``exit_recruiter.html`` is the one participant-facing page that
+    never picked up the participant theme, and it showed the recruiter's Python
+    class name above a table of raw payment fields, including a bare ``None``
+    bonus on recruiters that never pay one. It cannot be replaced by shipping a
+    template of the same name, because Dallinger's ``extra_files`` mechanism
+    does not overwrite templates Dallinger already provides, so PsyNet renders
+    its own template instead.
+
+    Mix this in only for recruiters that would otherwise fall through to
+    Dallinger's generic template. Prolific, MTurk, and Lucid have their own
+    exit pages, which return participants to the platform.
+    """
+
+    def exit_response(self, experiment, participant):
+        return render_template_with_translations(
+            "psynet_exit_recruiter.html",
+            participant_reference=participant.assignment_id,
+        )
+
+
+class HotAirRecruiter(
+    PsyNetRecruiterMixin, PsyNetExitPageMixin, dallinger.recruiters.HotAirRecruiter
+):
+    # Local debug recruitment pays nobody, so there is no reward to report.
+    shows_reward_by_default = False
+
     def has_external_bonus_payment(self) -> bool:
         """HotAir does not pay through an external recruitment platform."""
         return False
@@ -1218,7 +1253,9 @@ class LabRecruitmentStatus(RecruitmentStatus):
     pass
 
 
-class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
+class BaseLabRecruiter(
+    PsyNetRecruiterMixin, PsyNetExitPageMixin, dallinger.recruiters.CLIRecruiter
+):
     """
     The LabRecruiter base class.
 
@@ -1598,6 +1635,8 @@ class LucidRecruitmentStatus(RecruitmentStatus):
 
 class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     supports_delayed_publishing = True
+    # Lucid forbids showing rewards inside the survey.
+    shows_reward_by_default = False
     MARKETPLACE_CODE = "Marketplace codes"
     IN_SURVEY = "Currently in Client Survey or Drop"
     COMPLETED = "Returned as Complete"
@@ -1693,7 +1732,9 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.config = get_config()
-        if self.config.get("show_reward"):
+        # Lucid recruitment already defaults to hiding rewards; only an
+        # explicit opt-in has to be refused.
+        if self.config.get("show_reward", None) is True:
             raise RuntimeError(
                 "Lucid recruitment requires `show_reward` to be set to `False`."
             )
@@ -2519,12 +2560,17 @@ def get_lucid_settings(
     return settings
 
 
-class GenericRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
+class GenericRecruiter(
+    PsyNetRecruiterMixin, PsyNetExitPageMixin, dallinger.recruiters.CLIRecruiter
+):
     """
     An improved version of Dallinger's Hot-Air Recruiter.
     """
 
     nickname = "generic"
+    # Generic recruitment has no platform to pay through, so any figure PsyNet
+    # showed would be one the experimenter has to disburse by hand.
+    shows_reward_by_default = False
 
     def has_external_bonus_payment(self) -> bool:
         """Generic/local recruitment does not pay through an external platform."""

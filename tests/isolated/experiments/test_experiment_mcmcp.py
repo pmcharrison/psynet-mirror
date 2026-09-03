@@ -62,4 +62,5 @@ class TestExp:
         assert config.get("wage_per_hour") == 12.0
         assert config.get("min_accumulated_reward_for_abort") == 0.2
         assert not config.get("show_abort_button")
-        assert config.get("show_reward") is True
+        # Unset by default: Experiment.show_reward asks the recruiter instead.
+        assert config.get("show_reward", None) is None

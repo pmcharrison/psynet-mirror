@@ -1913,6 +1913,76 @@ def test_generic_recruiter_has_no_external_bonus_payment():
     assert recruiter.has_external_bonus_payment() is False
 
 
+def _resolve_show_reward(recruiter_cls, configured):
+    from psynet.experiment import Experiment
+
+    exp = object.__new__(Experiment)
+    # recruiter is a cached_property, so seeding the instance dict is enough.
+    exp.__dict__["recruiter"] = object.__new__(recruiter_cls)
+    config = MagicMock()
+    config.get.side_effect = lambda key, default=None: (
+        configured if key == "show_reward" else default
+    )
+    with patch("psynet.experiment.get_config", return_value=config):
+        return exp.show_reward
+
+
+def test_show_reward_defaults_to_the_recruiter():
+    from psynet.recruiters import GenericRecruiter, HotAirRecruiter, ProlificRecruiter
+
+    # Unset in config: recruiters that cannot pay do not quote a reward.
+    assert _resolve_show_reward(GenericRecruiter, None) is False
+    assert _resolve_show_reward(HotAirRecruiter, None) is False
+    assert _resolve_show_reward(ProlificRecruiter, None) is True
+
+
+def test_explicit_show_reward_config_wins():
+    from psynet.recruiters import GenericRecruiter, ProlificRecruiter
+
+    assert _resolve_show_reward(GenericRecruiter, True) is True
+    assert _resolve_show_reward(ProlificRecruiter, False) is False
+
+
+def test_recruiters_with_a_platform_exit_page_keep_it():
+    """PsyNet's exit page must not shadow the pages that return participants."""
+    from psynet.recruiters import (
+        GenericRecruiter,
+        HotAirRecruiter,
+        LabRecruiter,
+        MTurkRecruiter,
+        ProlificRecruiter,
+        PsyNetExitPageMixin,
+    )
+
+    def owner(cls):
+        return next(c for c in cls.__mro__ if "exit_response" in c.__dict__)
+
+    import dallinger.recruiters
+
+    assert owner(HotAirRecruiter) is PsyNetExitPageMixin
+    assert owner(LabRecruiter) is PsyNetExitPageMixin
+    # Prolific and MTurk keep Dallinger's platform exit pages, which carry the
+    # button that submits the assignment and returns the participant.
+    assert owner(ProlificRecruiter) is dallinger.recruiters.ProlificRecruiter
+    assert owner(MTurkRecruiter) is dallinger.recruiters.MTurkRecruiter
+    # GenericRecruiter checks render_exit_message first, then defers to PsyNet's.
+    assert owner(GenericRecruiter) is GenericRecruiter
+    assert PsyNetExitPageMixin in GenericRecruiter.__mro__
+
+
+def test_psynet_exit_page_says_nothing_about_payment():
+    import re
+    from importlib import resources
+
+    source = (
+        resources.files("psynet") / "templates/psynet_exit_recruiter.html"
+    ).read_text(encoding="utf-8")
+    body = re.sub(r"\{#.*?#\}", "", source, flags=re.DOTALL)
+
+    for term in ("reward", "Bonus", "Base Pay", "currency", "compensation"):
+        assert term not in body, f"exit page should not mention {term!r}"
+
+
 def _review_participant(apparent=0.0, planned=1.50):
     participant = prepare_payout_participant(
         make_participant_with_recruiter(make_config(), failed=False, status="approved")

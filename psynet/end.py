@@ -70,13 +70,14 @@ class EndLogic(EltCollection):
 
     @property
     def should_show_reward(self) -> bool:
+        """See :attr:`psynet.experiment.Experiment.show_reward`.
+
+        Lucid needs no special case here: it hides rewards by default and
+        refuses an explicit opt-in.
+        """
         from psynet.experiment import get_experiment
-        from psynet.utils import get_config
 
-        exp = get_experiment()
-        config = get_config()
-
-        return config.get("show_reward") and not exp.with_lucid_recruitment()
+        return get_experiment().show_reward
 
     def summarize_reward(self, experiment, participant):
         from psynet.utils import get_config
