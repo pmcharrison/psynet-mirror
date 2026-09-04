@@ -33,7 +33,7 @@
                         </div>
                         <script>
                             function abortExperiment() {
-                                let windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
+                                let windowFeatures = "menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,width=840,height=760";
                                 let windowObjectReference = window.open("/abort/" + "{{assignment_id}}", "Abort window", windowFeatures);
                             }
 

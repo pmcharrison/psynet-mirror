@@ -37,6 +37,9 @@ class Exp(psynet.experiment.Experiment):
     config = {
         "min_accumulated_reward_for_abort": 0.15,
         "show_abort_button": True,
+        # Asserted by the end-to-end tests; generic recruitment now hides
+        # rewards unless the experiment opts in.
+        "show_reward": True,
     }
 
     @experiment_route("/custom_route", methods=["POST", "GET"])
