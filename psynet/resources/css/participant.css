@@ -101,7 +101,8 @@
     --psynet-content-width: 900px;
     --psynet-measure: 62ch;
     --psynet-focus-ring: 3px solid var(--psynet-accent);
-    --psynet-progress-height: 6px;
+    /* Tall enough to hold the percentage; the media-download bar mirrors it. */
+    --psynet-progress-height: 1rem;
     --psynet-audio-meter-height: 10px;
     --psynet-footer-clearance: 5rem;
     /* Space reserved around a graphic so the page still fits a 1280×720
@@ -511,14 +512,8 @@ textarea:focus-visible,
 /* Chrome: progress bar, footer, modals                                */
 /* ------------------------------------------------------------------ */
 
-/* The rail stays full-bleed, mirroring the media-download bar at the bottom of
-   the window, with the percentage on its own line underneath. */
-#timeline-header {
-    display: flex;
-    flex-direction: column;
-}
-
 #timeline-header .progress {
+    position: relative;
     height: var(--psynet-progress-height);
     border-radius: 0;
     background-color: var(--psynet-border);
@@ -528,14 +523,40 @@ textarea:focus-visible,
     background-color: var(--psynet-accent);
 }
 
+/*
+ * The percentage is centred on the whole track rather than inside the fill,
+ * where Bootstrap puts it: early in an experiment the fill is too narrow to
+ * hold it. Being centred means it can straddle the boundary between fill and
+ * track, and no single colour is legible on both, so it is drawn twice: once
+ * dark for the track, and once in the contrast colour clipped to the fill.
+ * The label duplicates aria-valuenow on the bar, so it is hidden from
+ * assistive technology.
+ */
 #timeline-progress-label {
-    align-self: flex-end;
-    padding: 0.15rem 0.85rem 0;
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
     font-size: 0.72rem;
     font-weight: 500;
     /* Fixed-width digits so the label does not jitter as it counts up. */
     font-variant-numeric: tabular-nums;
-    color: var(--psynet-text-muted);
+    pointer-events: none;
+}
+
+#timeline-progress-label::before,
+#timeline-progress-label::after {
+    content: attr(data-progress);
+    grid-area: 1 / 1;
+}
+
+#timeline-progress-label::before {
+    color: var(--psynet-text);
+}
+
+#timeline-progress-label::after {
+    color: var(--psynet-accent-contrast);
+    clip-path: inset(0 calc(100% - var(--psynet-progress-fill, 0%)) 0 0);
 }
 
 .progress,

@@ -3098,11 +3098,16 @@
       }).done(function (data) {
         let progressPercentage = data["progressPercentage"];
         let progressPercentageStr = progressPercentage + "%";
-        // The bar carries the width and the accessible value; the readable
-        // percentage lives in its own label beside the rail.
+        // The bar carries the width and the accessible value. The visible
+        // percentage is drawn from the label's data attribute, and the fill
+        // custom property tells CSS where to clip its light-on-accent copy.
         $("#timeline-progress-bar").css("width", progressPercentageStr);
         $("#timeline-progress-bar").attr("aria-valuenow", progressPercentage);
-        $("#timeline-progress-label").text(progressPercentageStr);
+        $("#timeline-progress-label").attr("data-progress", progressPercentageStr);
+        $("#timeline-header .progress").css(
+          "--psynet-progress-fill",
+          progressPercentageStr,
+        );
 
         if (data["reward"] !== undefined) {
           if (data["reward"]["performance"].toFixed(2) > 0) {

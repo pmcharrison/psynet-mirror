@@ -303,7 +303,10 @@ test(
         mediaTop: Math.round(media.getBoundingClientRect().top),
         footerTop: Math.round(footer.getBoundingClientRect().top),
         footerBorderTop: getComputedStyle(footer).borderTopWidth,
-        mediaHeight: getComputedStyle(media).height
+        mediaHeight: getComputedStyle(media).height,
+        railHeight: getComputedStyle(document.documentElement)
+          .getPropertyValue("--psynet-progress-height")
+          .trim()
       };
     });
 
@@ -311,7 +314,11 @@ test(
     expect(geometry.mediaTop - geometry.footerTop).toBe(
       parseFloat(geometry.footerBorderTop)
     );
-    expect(geometry.mediaHeight).toBe("6px");
+    // Still the token height, whatever the theme sets it to.
+    expect(parseFloat(geometry.mediaHeight)).toBe(
+      parseFloat(geometry.railHeight) *
+        (geometry.railHeight.endsWith("rem") ? 16 : 1)
+    );
   }
 );
 

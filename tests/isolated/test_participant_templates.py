@@ -178,8 +178,8 @@ def test_footer_reserves_the_progress_bar_strip():
     assert "var(--psynet-progress-height)" in block
 
 
-def test_progress_percentage_is_readable_beside_the_rail():
-    """Bootstrap draws it inside the fill, where a 6px rail clips it."""
+def test_progress_percentage_is_centred_on_the_track():
+    """Bootstrap draws it inside the fill, which is too narrow early on."""
     source = (resources.files("psynet") / "templates" / "timeline-page.html").read_text(
         encoding="utf-8"
     )
@@ -187,13 +187,15 @@ def test_progress_percentage_is_readable_beside_the_rail():
     end = source.index("{% endmacro %}", start)
     macro = source[start:end]
     assert 'id="timeline-progress-label"' in macro
+    # The label duplicates aria-valuenow, so it is hidden from screen readers.
+    assert 'aria-hidden="true"' in macro
     # The bar itself carries no text.
     assert 'style="width:{{ progress_percentage }}%"></div>' in macro
 
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
     )
-    assert '$("#timeline-progress-label").text(progressPercentageStr)' in js
+    assert '$("#timeline-progress-label").attr("data-progress"' in js
     assert '$("#timeline-progress-bar").text(' not in js
 
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
@@ -202,6 +204,13 @@ def test_progress_percentage_is_readable_beside_the_rail():
     start = css.index("#timeline-progress-label {")
     end = css.index("}", start)
     assert "tabular-nums" in css[start:end]
+    # Two copies: dark over the track, contrast colour clipped to the fill.
+    assert "#timeline-progress-label::before" in css
+    assert (
+        "var(--psynet-accent-contrast)"
+        in css[css.index("#timeline-progress-label::after") :]
+    )
+    assert "clip-path: inset(0 calc(100% - var(--psynet-progress-fill" in css
 
 
 def test_media_bar_mirrors_the_timeline_progress_bar():
