@@ -3163,7 +3163,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         This method is currently only called if the 'generic' recruiter is selected.
         We may propagate it to other recruiter methods eventually too.
-        If left unchanged, the default recruiter exit message from Dallinger will be shown.
+        If left unchanged, PsyNet's themed thank-you page is shown
+        (``psynet_exit_recruiter.html``), with the assignment ID as a reference.
         Otherwise, one can return a custom message in various ways.
         If you return a string, this will be escaped appropriately and presented as text.
         Alternatively, more complex HTML structures can be constructed using the

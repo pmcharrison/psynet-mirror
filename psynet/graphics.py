@@ -113,6 +113,7 @@ class GraphicMixin:
         self._media = media
         self.validate_id(id_)
         self.validate_dimensions(dimensions)
+        self.validate_max_viewport_height(self.max_viewport_height)
         self.validate_frames(frames)
         self.validate_media(media)
 
@@ -136,6 +137,13 @@ class GraphicMixin:
             f"max(var(--psynet-graphic-min-size), "
             f"calc((100vh - var(--psynet-graphic-vertical-chrome)) * {aspect:.6f})))"
         )
+
+    def validate_max_viewport_height(self, max_viewport_height):
+        """Reject a height cap that would collapse the graphic to zero."""
+        if isinstance(max_viewport_height, bool) or not _is_positive_finite_number(
+            max_viewport_height
+        ):
+            raise ValueError("max_viewport_height must be a positive finite number")
 
     def validate_dimensions(self, dimensions):
         """Reject dimensions that would emit invalid CSS or divide by zero."""

@@ -3,9 +3,9 @@
 {% block stylesheets %}
     {{ super() }}
     <style data-psynet-fragment-style="true">
-        /* The waiting animation is full-bleed. This page still has a footer,
-           so the theme would reserve body clearance; put that padding on
-           #wait-page instead so the animation fills the window. */
+        /* The waiting animation is full-bleed. When a footer is present, the
+           theme would reserve body clearance; put that padding on #wait-page
+           instead so the animation fills the window. */
         body:has(#footer) {
             padding-bottom: 0;
         }
@@ -21,16 +21,20 @@
             box-shadow: none;
         }
 
-        /* Fill the viewport below the progress bar. Footer clearance is padding
-           rather than a subtracted magic height, so wrapping footer content
-           cannot create a stray scrollbar. */
+        /* Fill the viewport below the progress bar. Footer clearance is
+           padding on this element only when a footer is present, so generic
+           and local recruitment do not keep a blank band at the bottom. */
         #wait-page {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: calc(100vh - var(--psynet-progress-height));
-            padding: 2rem 2rem var(--psynet-footer-clearance);
+            padding: 2rem;
             text-align: center;
+        }
+
+        body:has(#footer) #wait-page {
+            padding-bottom: var(--psynet-footer-clearance);
         }
 
         #wait-page p {

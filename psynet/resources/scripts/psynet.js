@@ -900,23 +900,15 @@
       // The footer is optional and can differ between pages: show_footer =
       // false omits it, and so does a footer that would have nothing in it.
       // Insert, remove, or replace it rather than demanding that it exists.
-      let optionalIds = ["footer", "media-download-progress-bar"];
-      let optionalChanges = optionalIds
-        .map((id) => ({
-          id,
-          nextElement: template.content.querySelector("#" + id),
-          currentElement: document.getElementById(id),
-        }))
-        // A footer carries its own progress bar, so skip the bar when the
-        // footer it lives in is already being handled.
-        .filter(({ id, nextElement, currentElement }) => {
-          if (id !== "media-download-progress-bar") return true;
-          let insideNextFooter =
-            nextElement !== null && nextElement.closest("#footer") !== null;
-          let insideCurrentFooter =
-            currentElement !== null && currentElement.closest("#footer") !== null;
-          return !insideNextFooter && !insideCurrentFooter;
-        });
+      // The media-download bar is reconciled after the footer swap: it is
+      // nested in the footer on some pages and a sibling on others, so it
+      // cannot share this insert/remove/replace loop.
+      let optionalIds = ["footer"];
+      let optionalChanges = optionalIds.map((id) => ({
+        id,
+        nextElement: template.content.querySelector("#" + id),
+        currentElement: document.getElementById(id),
+      }));
 
       return {
         payload,
@@ -925,6 +917,32 @@
         optionalChanges,
         stylesheetLinks: psynet.getPageCssLinks(template.content),
       };
+    };
+
+    psynet.reconcileMediaDownloadBar = function (template, root) {
+      // After the footer has been swapped, a nested next bar is already in
+      // the document (it travelled with the footer) and a standalone next bar
+      // is still in the template. Mixed pages (Lucid screening without a
+      // terminate button, then a later page with one) used to skip the bar
+      // entirely and leave either two rails or none.
+      const nextStandalone = template.content.querySelector(
+        "#media-download-progress-bar",
+      );
+      const liveBars = Array.from(
+        document.querySelectorAll("#media-download-progress-bar"),
+      );
+      if (nextStandalone !== null) {
+        liveBars.forEach((bar) => {
+          if (bar !== nextStandalone) bar.remove();
+        });
+        if (root !== null && nextStandalone.parentNode !== root) {
+          root.appendChild(nextStandalone);
+        }
+      } else {
+        liveBars.forEach((bar) => {
+          if (bar.closest("#footer") === null) bar.remove();
+        });
+      }
     };
 
     psynet.preloadTimelineFragmentAssets = async function (fragment) {
@@ -949,6 +967,7 @@
           root.appendChild(nextElement);
         }
       });
+      psynet.reconcileMediaDownloadBar(fragment.template, root);
 
       if (fragment.payload.page_uuid !== undefined) {
         window.pageUuid = fragment.payload.page_uuid;

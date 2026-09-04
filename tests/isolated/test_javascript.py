@@ -16,6 +16,11 @@ def test_execute_front_end_js_shows_a_spinner_not_prose():
     assert 'class="visually-hidden">Working...' in content
 
 
+def test_execute_front_end_js_rejects_a_message():
+    with pytest.raises(TypeError, match="message"):
+        ExecuteFrontEndJS("doSomething()", message="Finalizing...")
+
+
 @pytest.mark.parametrize("argument_name", ["js_dependencies", "js_page_modules"])
 @pytest.mark.parametrize(
     "invalid_value, error, match",

@@ -569,6 +569,14 @@ textarea:focus-visible,
     transition: none;
 }
 
+#js-psych {
+    margin: 0;
+    width: 100%;
+    /* Same leftover-viewport budget as GraphicMixin, so an empty stage plus
+       page chrome still fits a 1280×720 laptop window. */
+    min-height: calc(100vh - var(--psynet-graphic-vertical-chrome));
+}
+
 #footer {
     background-color: var(--psynet-surface);
     border-top: 1px solid var(--psynet-border);
@@ -721,22 +729,5 @@ body:not(:has(#footer)) #media-download-progress-bar {
         background-image: none;
         background-color: var(--psynet-accent);
         color: var(--psynet-accent-contrast);
-    }
-
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-    }
-
-    /* A frozen loading indicator conveys the opposite of what it is for, so
-       spinners keep animating. */
-    .spinner-border,
-    .spinner-grow {
-        animation-duration: 0.75s !important;
-        animation-iteration-count: infinite !important;
     }
 }

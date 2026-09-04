@@ -13,6 +13,10 @@ const THEME_CSS = fs.readFileSync(
   path.resolve("psynet/resources/css/participant.css"),
   "utf8"
 );
+const PSYNET_JS = fs.readFileSync(
+  path.resolve("psynet/resources/scripts/psynet.js"),
+  "utf8"
+);
 const AUDIO_METER_JS = fs.readFileSync(
   path.resolve("psynet/templates/macros/control/audio_meter.js"),
   "utf8"
@@ -552,6 +556,158 @@ test(
     await page.setContent("<!doctype html><p>bare</p>");
     await expect(assertPageInvariants(page, "bare page")).rejects.toThrow(
       /psynetLayout/
+    );
+  }
+);
+
+function fragmentRuntime() {
+  const start = PSYNET_JS.indexOf("psynet.prepareTimelineFragment = function");
+  const end = PSYNET_JS.indexOf("psynet.deactivateTimelineFragmentLifecycle");
+  if (start < 0 || end < 0) {
+    throw new Error("Could not extract timeline fragment functions");
+  }
+  return `
+    window.psynet = window.psynet || {};
+    psynet.getPageCssLinks = function () { return []; };
+    psynet.ensureStylesheetLinks = function () {};
+    psynet.applyInlinePageStyles = function () {};
+    ${PSYNET_JS.slice(start, end)}
+  `;
+}
+
+function timelineMarkup({ footer }) {
+  const bar = `<div id="media-download-progress-bar" data-nest="${
+    footer ? "nested" : "standalone"
+  }" style="width:40%"></div>`;
+  const chrome = footer
+    ? `<nav id="footer">${bar}<div class="footer-text">Reward</div></nav>`
+    : bar;
+  return `
+    <div id="timeline-header"></div>
+    <div id="main-body">body</div>
+    ${chrome}
+    <script id="psynet-template-data" type="application/json">{}</script>
+  `;
+}
+
+async function swapTimeline(page, html) {
+  return page.evaluate((nextHtml) => {
+    const fragment = window.psynet.prepareTimelineFragment({ html: nextHtml });
+    window.psynet.commitTimelineFragment(fragment);
+    const bars = [...document.querySelectorAll("#media-download-progress-bar")];
+    return {
+      count: bars.length,
+      nested: bars.length === 1 && bars[0].closest("#footer") !== null,
+      hasFooter: document.getElementById("footer") !== null
+    };
+  }, html);
+}
+
+test(
+  "inplace swaps keep a single media bar when footer presence changes",
+  { tag: "@both" },
+  async ({ page }) => {
+    await page.setContent(`<!doctype html>
+<html><body>
+  <div id="timeline-root">${timelineMarkup({ footer: false })}</div>
+</body></html>`);
+    await page.addScriptTag({ content: fragmentRuntime() });
+
+    let state = await swapTimeline(page, timelineMarkup({ footer: true }));
+    expect(state).toEqual({ count: 1, nested: true, hasFooter: true });
+
+    state = await swapTimeline(page, timelineMarkup({ footer: false }));
+    expect(state).toEqual({ count: 1, nested: false, hasFooter: false });
+
+    state = await swapTimeline(page, timelineMarkup({ footer: false }));
+    expect(state).toEqual({ count: 1, nested: false, hasFooter: false });
+
+    state = await swapTimeline(page, timelineMarkup({ footer: true }));
+    expect(state).toEqual({ count: 1, nested: true, hasFooter: true });
+  }
+);
+
+test(
+  "jsPsych stage fits a laptop window with a footer",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      extraCss: `
+        .navbar { --bs-navbar-padding-y: 0.5rem; --bs-navbar-padding-x: 0;
+                  position: relative; display: flex; flex-wrap: wrap;
+                  align-items: center;
+                  padding: var(--bs-navbar-padding-y) var(--bs-navbar-padding-x); }
+        .fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; }
+        .container { width: 100%; padding-inline: 0.75rem; margin-inline: auto; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }`,
+      html: `
+        <div id="timeline-header" class="header">
+          <div class="progress" style="height: 1rem"></div>
+        </div>
+        <div id="main-body" class="psynet-surface">
+          <div id="js-psych"></div>
+        </div>
+        <nav id="footer" class="navbar fixed-bottom">
+          <div class="container py-2"><div class="footer-text">Reward: $0.42</div></div>
+        </nav>`
+    });
+
+    const overflow = await page.evaluate(() => {
+      const scrollHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight
+      );
+      return {
+        overflow: scrollHeight - window.innerHeight,
+        stageMinHeight: getComputedStyle(document.getElementById("js-psych"))
+          .minHeight
+      };
+    });
+    expect(overflow.overflow).toBeLessThanOrEqual(1);
+    expect(overflow.stageMinHeight).not.toBe("70vh");
+  }
+);
+
+test(
+  "layout check reports a control left behind the footer",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderLayoutFixture(
+      page,
+      `<div id="main-body" data-expect-scrolling="true">
+         <div style="height: 2000px">tall</div>
+         <button id="next-button">Next</button>
+       </div>
+       <nav id="footer" style="position:fixed; bottom:0; left:0; right:0; height:80px; background:#ccc">footer</nav>`
+    );
+    const violations = await page.evaluate(async () => window.psynetLayout.check());
+    expect(violations.map((item) => item.check)).toContain(
+      "nothing_permanently_occluded"
+    );
+  }
+);
+
+test(
+  "layout check is clean when footer clearance keeps the control visible",
+  { tag: "@both" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.setContent(`<!doctype html>
+<html>
+<head><style>body { margin: 0; padding-bottom: 5rem; }</style></head>
+<body>
+  <div id="main-body" data-expect-scrolling="true">
+    <div style="height: 2000px">tall</div>
+    <button id="next-button">Next</button>
+  </div>
+  <nav id="footer" style="position:fixed; bottom:0; left:0; right:0; height:80px; background:#ccc">footer</nav>
+</body>
+</html>`);
+    await page.addScriptTag({ path: LAYOUT_JS_PATH });
+    const violations = await page.evaluate(async () => window.psynetLayout.check());
+    expect(violations.map((item) => item.check)).not.toContain(
+      "nothing_permanently_occluded"
     );
   }
 );

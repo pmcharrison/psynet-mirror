@@ -134,7 +134,11 @@ def test_transient_pages_style_their_spinner():
 
 
 def test_media_loading_survives_a_missing_progress_bar():
-    """show_footer = false omits the bar, so media loading must not need it."""
+    """The bar is optional in the DOM, so media loading must not need it.
+
+    ``show_footer = false`` still emits a standalone bar; a custom template, or
+    an in-place swap that has not yet reconciled, can omit it entirely.
+    """
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
     )
@@ -330,3 +334,58 @@ def test_audio_meter_theme_wraps_inside_the_viewport():
     assert "max-width: 100%" in block
     assert "--psynet-audio-meter-height:" in css
     assert ".audio-meter__fill" in css
+
+
+def test_jspsych_stage_uses_the_graphic_chrome_token():
+    template = (
+        resources.files("psynet") / "templates" / "jspsych-page.html"
+    ).read_text(encoding="utf-8")
+    assert "70vh" not in template
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("#js-psych {")
+    end = css.index("}", start)
+    assert "var(--psynet-graphic-vertical-chrome)" in css[start:end]
+
+
+def test_wait_page_only_pads_for_a_footer():
+    source = (resources.files("psynet") / "templates" / "wait-page.html").read_text(
+        encoding="utf-8"
+    )
+    assert "body:has(#footer) #wait-page" in source
+    assert "2rem 2rem var(--psynet-footer-clearance)" not in source
+
+
+def test_reduced_motion_does_not_freeze_every_animation():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("@media (prefers-reduced-motion: reduce)")
+    block = css[start : start + 600]
+    assert ".colorfadeanim" in block
+    assert "*," not in block
+    assert "*::before" not in block
+    assert "!important" not in block
+
+
+def test_media_bar_is_reconciled_after_the_footer_swap():
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    assert "psynet.reconcileMediaDownloadBar" in js
+    assert "insideNextFooter" not in js
+    assert 'optionalIds = ["footer"]' in js
+
+
+def test_percentage_height_probe_restores_inline_height():
+    source = (
+        resources.files("psynet") / "resources/scripts" / "psynet.layout.js"
+    ).read_text(encoding="utf-8")
+    start = source.index("const savedHeight = element.style.height;")
+    end = source.index("const scrollWidth", start)
+    block = source[start:end]
+    assert "try {" in block
+    assert "finally {" in block
+    assert block.count("element.style.height = savedHeight;") == 1
+    assert "finally" in block[block.index("try") :]

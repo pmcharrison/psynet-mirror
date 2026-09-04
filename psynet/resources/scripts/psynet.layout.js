@@ -165,20 +165,23 @@
       const parentHeight = parent.getBoundingClientRect().height;
       if (parentHeight === 0) continue;
       const savedHeight = element.style.height;
-      element.style.height = "0px";
-      const collapsedParentHeight = parent.getBoundingClientRect().height;
-      element.style.height = savedHeight;
+      try {
+        element.style.height = "0px";
+        const collapsedParentHeight = parent.getBoundingClientRect().height;
 
-      if (collapsedParentHeight < parentHeight - 1) {
-        const label = element.id ? `#${element.id}` : element.tagName.toLowerCase();
-        violations.push({
-          check: "percentage_height_ineffective",
-          detail:
-            `${label} declares height:${height} (${origin}) against an auto-height parent ` +
-            `(collapsing it shrank the parent from ${round(parentHeight)}px to ` +
-            `${round(collapsedParentHeight)}px), so the declared height depends on ` +
-            "quirks-mode behaviour rather than resolving as written",
-        });
+        if (collapsedParentHeight < parentHeight - 1) {
+          const label = element.id ? `#${element.id}` : element.tagName.toLowerCase();
+          violations.push({
+            check: "percentage_height_ineffective",
+            detail:
+              `${label} declares height:${height} (${origin}) against an auto-height parent ` +
+              `(collapsing it shrank the parent from ${round(parentHeight)}px to ` +
+              `${round(collapsedParentHeight)}px), so the declared height depends on ` +
+              "quirks-mode behaviour rather than resolving as written",
+          });
+        }
+      } finally {
+        element.style.height = savedHeight;
       }
     }
 

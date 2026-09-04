@@ -31,7 +31,6 @@ base_payment = 0.34
 # recruiter = lucid
 # debug_recruiter = DevLucidRecruiter
 # lucid_recruitment_config = file:./lucid_recruitment_config.json
-# show_reward = false
 
 [Lab Recruiter]
 # When recruiting with Lab Recruiter set the following:

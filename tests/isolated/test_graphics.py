@@ -172,6 +172,17 @@ def test_max_viewport_height_constructor_and_css_width():
     assert "max(0px" not in default.css_box_width()
 
 
+def test_graphic_rejects_non_positive_max_viewport_height():
+    frames = [Frame([Text("label", "Hi", x=1, y=1)])]
+    for height in (0, -0.1, float("inf"), True):
+        with pytest.raises(
+            ValueError, match="max_viewport_height must be a positive finite number"
+        ):
+            GraphicPrompt(
+                dimensions=[100, 100], frames=frames, max_viewport_height=height
+            )
+
+
 def test_graphic_rejects_non_positive_dimensions():
     frames = [Frame([Text("label", "Hi", x=1, y=1)])]
     for dimensions in ([100, 0], [100, -1], [float("inf"), 100], [100], None):
