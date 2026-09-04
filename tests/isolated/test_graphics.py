@@ -153,6 +153,9 @@ def test_max_viewport_height_constructor_and_css_width():
         max_viewport_height=0.4,
     )
     assert prompt.max_viewport_height == 0.4
+    assert prompt.viewport_width == 0.9
+    assert prompt.dimensions == [16.0, 9.0]
+    assert all(isinstance(value, float) for value in prompt.dimensions)
     assert prompt.metadata["max_viewport_height"] == 0.4
     assert prompt.css_box_width() == (
         "min(90.0000vw, 100%, calc(40.0000vh * 1.777778), "
@@ -181,6 +184,24 @@ def test_graphic_rejects_non_positive_max_viewport_height():
             GraphicPrompt(
                 dimensions=[100, 100], frames=frames, max_viewport_height=height
             )
+
+
+@pytest.mark.parametrize(
+    "kwargs, match",
+    [
+        ({"dimensions": ["16", "9"]}, "dimensions"),
+        ({"dimensions": [16, 9], "viewport_width": "0.4"}, "viewport_width"),
+        ({"dimensions": [16, 9], "viewport_width": 0}, "viewport_width"),
+        (
+            {"dimensions": [16, 9], "max_viewport_height": "0.4"},
+            "max_viewport_height",
+        ),
+    ],
+)
+def test_graphic_rejects_non_numeric_or_non_positive_size_arguments(kwargs, match):
+    frames = [Frame([Text("label", "Hi", x=1, y=1)])]
+    with pytest.raises(ValueError, match=match):
+        GraphicPrompt(frames=frames, **kwargs)
 
 
 def test_graphic_rejects_non_positive_dimensions():

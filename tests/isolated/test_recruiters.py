@@ -1992,6 +1992,72 @@ def test_psynet_exit_page_says_nothing_about_payment():
         assert term not in body, f"exit page should not mention {term!r}"
 
 
+@pytest.mark.parametrize(
+    "recruiter_class_name", ["GenericRecruiter", "HotAirRecruiter", "LabRecruiter"]
+)
+def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
+    recruiter_class_name,
+):
+    """Render the final HTML through each recruiter that owns this page."""
+    from importlib import resources
+
+    from flask import Flask, render_template
+    from jinja2 import ChoiceLoader, DictLoader, FileSystemLoader
+
+    from psynet import recruiters
+
+    app = Flask("psynet_exit_page")
+    app.jinja_env.globals.update(
+        gettext=lambda text: text,
+        pgettext=lambda _context, text: text,
+    )
+    app.jinja_loader = ChoiceLoader(
+        [
+            FileSystemLoader(str(resources.files("psynet") / "templates")),
+            DictLoader(
+                {
+                    "base/layout.html": (
+                        "<!doctype html><html><head>"
+                        "{% block stylesheets %}{% endblock %}"
+                        "{% block scripts %}{% endblock %}"
+                        "</head><body>{% block body %}{% endblock %}</body></html>"
+                    )
+                }
+            ),
+        ]
+    )
+    experiment = MagicMock()
+    experiment.psynet_logo = ""
+    experiment.logos = []
+    experiment.render_exit_message.return_value = "default_exit_message"
+    participant = SimpleNamespace(assignment_id="assignment-123")
+
+    def render_exit_template(template_name, **kwargs):
+        return render_template(
+            template_name,
+            experiment=experiment,
+            config=SimpleNamespace(color_mode="light"),
+            **kwargs,
+        )
+
+    recruiter_class = getattr(recruiters, recruiter_class_name)
+    recruiter = object.__new__(recruiter_class)
+    with app.test_request_context("/recruiter-exit"):
+        with patch(
+            "psynet.recruiters.render_template_with_translations",
+            side_effect=render_exit_template,
+        ):
+            html = recruiter.exit_response(experiment, participant)
+
+    assert html.lstrip().lower().startswith("<!doctype html>")
+    assert "Thank you for taking part." in html
+    assert "responses have been saved" in html
+    assert "Reference" in html
+    assert "assignment-123" in html
+    assert "Bonus" not in html
+    assert "Base Pay" not in html
+
+
 def _review_participant(apparent=0.0, planned=1.50):
     participant = prepare_payout_participant(
         make_participant_with_recruiter(make_config(), failed=False, status="approved")

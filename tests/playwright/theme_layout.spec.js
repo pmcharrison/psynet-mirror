@@ -242,6 +242,33 @@ test(
 );
 
 test(
+  "reduced motion only stills theme chrome, not experiment stimuli",
+  { tag: "@both" },
+  async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await renderTheme(page, {
+      viewport: { width: 800, height: 600 },
+      extraCss: `
+        @keyframes stimulus-pulse {
+          from { opacity: 0.25; }
+          to { opacity: 1; }
+        }
+        #stimulus { animation: stimulus-pulse 2s infinite; }`,
+      html: `
+        <div class="colorfadeanim" id="theme-chrome">Waiting</div>
+        <div id="stimulus">Animated experiment stimulus</div>`
+    });
+
+    const animations = await page.evaluate(() => ({
+      chrome: getComputedStyle(document.getElementById("theme-chrome")).animationName,
+      stimulus: getComputedStyle(document.getElementById("stimulus")).animationName
+    }));
+    expect(animations.chrome).toBe("none");
+    expect(animations.stimulus).toBe("stimulus-pulse");
+  }
+);
+
+test(
   "progress percentage sits on a grey pill matching the track",
   { tag: "@both" },
   async ({ page }) => {
@@ -685,6 +712,53 @@ test(
     expect(violations.map((item) => item.check)).toContain(
       "nothing_permanently_occluded"
     );
+  }
+);
+
+for (const responseMarkup of [
+  '<input class="response" id="text-input">',
+  '<textarea class="response" id="long-text"></textarea>',
+  '<select class="response" id="choice"><option>Choice</option></select>',
+  '<div class="response" id="custom-control" tabindex="0">Custom control</div>'
+]) {
+  test(
+    `layout check reports an occluded ${responseMarkup.match(/^<(\w+)/)[1]} response`,
+    { tag: "@both" },
+    async ({ page }) => {
+      await renderLayoutFixture(
+        page,
+        `<div id="main-body" data-expect-scrolling="true">
+           <div style="height: 2000px">tall</div>
+           ${responseMarkup}
+         </div>
+         <nav id="footer" style="position:fixed; bottom:0; left:0; right:0; height:80px; background:#ccc">footer</nav>`
+      );
+      const violations = await page.evaluate(async () => window.psynetLayout.check());
+      expect(violations.map((item) => item.check)).toContain(
+        "nothing_permanently_occluded"
+      );
+    }
+  );
+}
+
+test(
+  "percentage-height probe restores inline value and priority",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderLayoutFixture(
+      page,
+      `<div><div id="percentage-height" style="height: 50% !important">content</div></div>`
+    );
+
+    const style = await page.evaluate(() => {
+      window.psynetLayout.collectViolations();
+      const element = document.getElementById("percentage-height");
+      return {
+        value: element.style.getPropertyValue("height"),
+        priority: element.style.getPropertyPriority("height")
+      };
+    });
+    expect(style).toEqual({ value: "50%", priority: "important" });
   }
 );
 

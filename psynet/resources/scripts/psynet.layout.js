@@ -38,6 +38,13 @@
 (function (global) {
   "use strict";
 
+  const CONTROL_SELECTORS = [
+    "#next-button",
+    "#reset-button",
+    ".response",
+    "#consent",
+  ];
+
   function collectViolations() {
     const violations = [];
     const round = (n) => Math.round(n);
@@ -66,8 +73,7 @@
     const usableBottom = footerRect ? footerRect.top : window.innerHeight;
 
     if (mainBody && !expectsScrolling) {
-      const selectors = ["#next-button", "#reset-button", ".push-button", "#consent"];
-      for (const selector of selectors) {
+      for (const selector of CONTROL_SELECTORS) {
         for (const element of document.querySelectorAll(selector)) {
           const style = getComputedStyle(element);
           if (style.display === "none" || style.visibility === "hidden") continue;
@@ -164,9 +170,10 @@
       // percentage to resolve against.
       const parentHeight = parent.getBoundingClientRect().height;
       if (parentHeight === 0) continue;
-      const savedHeight = element.style.height;
+      const savedHeight = element.style.getPropertyValue("height");
+      const savedPriority = element.style.getPropertyPriority("height");
       try {
-        element.style.height = "0px";
+        element.style.setProperty("height", "0px", "important");
         const collapsedParentHeight = parent.getBoundingClientRect().height;
 
         if (collapsedParentHeight < parentHeight - 1) {
@@ -181,7 +188,11 @@
           });
         }
       } finally {
-        element.style.height = savedHeight;
+        if (savedHeight) {
+          element.style.setProperty("height", savedHeight, savedPriority);
+        } else {
+          element.style.removeProperty("height");
+        }
       }
     }
 
@@ -220,8 +231,7 @@
 
     const footerTop = footer.getBoundingClientRect().top;
     const violations = [];
-    const selectors = ["#next-button", "#reset-button", ".push-button", "#consent"];
-    for (const selector of selectors) {
+    for (const selector of CONTROL_SELECTORS) {
       for (const element of document.querySelectorAll(selector)) {
         const style = getComputedStyle(element);
         if (style.display === "none" || style.visibility === "hidden") continue;

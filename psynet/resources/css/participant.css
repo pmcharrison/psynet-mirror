@@ -598,8 +598,9 @@ textarea:focus-visible,
 
 /*
  * Media download progress is the bottom counterpart of the timeline progress
- * bar at the top of the page: same height, same accent. It overlays the
- * footer's top edge so that changing progress never shifts the footer layout.
+ * bar at the top of the page: the same accent, but deliberately thinner
+ * because it carries no label. It overlays the footer's top edge so that
+ * changing progress never shifts the footer layout.
  */
 #media-download-progress-bar {
     position: absolute;

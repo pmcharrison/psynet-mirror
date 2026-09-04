@@ -2,6 +2,7 @@ import math
 import random
 import re
 from importlib import resources
+from numbers import Real
 from typing import List, Optional
 
 from .modular_page import Control, ModularPage, Prompt
@@ -9,13 +10,14 @@ from .timeline import MediaSpec
 from .utils import is_valid_html5_id
 
 
-def _is_positive_finite_number(value) -> bool:
-    """Return whether ``value`` can be used as a graphic axis length."""
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return False
-    return math.isfinite(number) and number > 0
+def _positive_finite_float(value, name: str) -> float:
+    """Normalize a real number that can safely be interpolated into CSS."""
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise ValueError(f"{name} must be a positive finite number")
+    number = float(value)
+    if not math.isfinite(number) or number <= 0:
+        raise ValueError(f"{name} must be a positive finite number")
+    return number
 
 
 class GraphicMixin:
@@ -33,7 +35,8 @@ class GraphicMixin:
         These frames will be displayed in sequence to the participant.
 
     dimensions
-        A list containing two numbers, corresponding to the x and y dimensions of the graphic.
+        A list containing two positive finite real numbers, corresponding to the
+        x and y dimensions of the graphic. Strings are not accepted.
         The ratio of these numbers determines the aspect ratio of the graphic.
         They define the coordinate system according to which objects are plotted.
         However, the absolute size of the graphic is independent of the size of these numbers
@@ -42,6 +45,7 @@ class GraphicMixin:
     viewport_width
         The width of the graphic display, expressed as a fraction of the browser window's width.
         The default value (0.6) means that the graphic occupies 60% of the window's width.
+        Must be a positive finite real number.
         The used width is the minimum of that fraction, the content surface, the
         width implied by ``max_viewport_height``, and the width implied by
         leaving room for page chrome (``--psynet-graphic-vertical-chrome``), so
@@ -54,7 +58,8 @@ class GraphicMixin:
         Upper bound on the graphic's height, expressed as a fraction of the browser
         window's height. Default: ``0.6``. Reaching this bound reduces the width too.
         On short windows the page-chrome cap usually binds first, so the graphic
-        shrinks further and the prompt, Next button and footer still fit.
+        shrinks further and the prompt, Next button and footer still fit. Must be
+        a positive finite real number.
 
     loop
         Whether the graphic should loop back to the first frame once the last frame has finished.
@@ -105,15 +110,16 @@ class GraphicMixin:
         super().__init__(*args, **kwargs)
         self.id = id_
         self.frames = frames
-        self.dimensions = dimensions
-        self.viewport_width = viewport_width
-        if max_viewport_height is not None:
-            self.max_viewport_height = max_viewport_height
+        self.dimensions = self.validate_dimensions(dimensions)
+        self.viewport_width = self.validate_viewport_width(viewport_width)
+        self.max_viewport_height = self.validate_max_viewport_height(
+            self.max_viewport_height
+            if max_viewport_height is None
+            else max_viewport_height
+        )
         self.loop = loop
         self._media = media
         self.validate_id(id_)
-        self.validate_dimensions(dimensions)
-        self.validate_max_viewport_height(self.max_viewport_height)
         self.validate_frames(frames)
         self.validate_media(media)
 
@@ -140,18 +146,22 @@ class GraphicMixin:
 
     def validate_max_viewport_height(self, max_viewport_height):
         """Reject a height cap that would collapse the graphic to zero."""
-        if isinstance(max_viewport_height, bool) or not _is_positive_finite_number(
-            max_viewport_height
-        ):
-            raise ValueError("max_viewport_height must be a positive finite number")
+        return _positive_finite_float(max_viewport_height, "max_viewport_height")
+
+    def validate_viewport_width(self, viewport_width):
+        """Reject a viewport width that cannot produce a visible graphic."""
+        return _positive_finite_float(viewport_width, "viewport_width")
 
     def validate_dimensions(self, dimensions):
         """Reject dimensions that would emit invalid CSS or divide by zero."""
         if not isinstance(dimensions, (list, tuple)) or len(dimensions) != 2:
             raise ValueError("dimensions must be a pair of positive finite numbers")
-        for value in dimensions:
-            if isinstance(value, bool) or not _is_positive_finite_number(value):
-                raise ValueError("dimensions must be a pair of positive finite numbers")
+        try:
+            return [_positive_finite_float(value, "dimensions") for value in dimensions]
+        except ValueError:
+            raise ValueError(
+                "dimensions must be a pair of positive finite numbers"
+            ) from None
 
     def validate_media(self, media):
         if not (media is None or isinstance(media, MediaSpec)):

@@ -378,14 +378,28 @@ def test_media_bar_is_reconciled_after_the_footer_swap():
     assert 'optionalIds = ["footer"]' in js
 
 
+def test_scaffold_description_does_not_promise_a_visible_reward():
+    source = (
+        resources.files("psynet") / "resources" / "experiment_scripts" / "config.txt"
+    ).read_text(encoding="utf-8")
+    description = next(
+        line for line in source.splitlines() if line.startswith("description = ")
+    )
+    assert "displayed at the bottom" not in description
+    assert "how much money you earn" not in description
+
+
 def test_percentage_height_probe_restores_inline_height():
     source = (
         resources.files("psynet") / "resources/scripts" / "psynet.layout.js"
     ).read_text(encoding="utf-8")
-    start = source.index("const savedHeight = element.style.height;")
+    start = source.index(
+        'const savedHeight = element.style.getPropertyValue("height");'
+    )
     end = source.index("const scrollWidth", start)
     block = source[start:end]
     assert "try {" in block
     assert "finally {" in block
-    assert block.count("element.style.height = savedHeight;") == 1
+    assert 'getPropertyPriority("height")' in block
+    assert 'setProperty("height", savedHeight, savedPriority)' in block
     assert "finally" in block[block.index("try") :]

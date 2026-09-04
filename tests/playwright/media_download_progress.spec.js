@@ -11,7 +11,7 @@ const {
 
 const STEP_TIMEOUT_MS = 120000;
 
-async function assertMediaDownloadProgressBarVisible(page) {
+async function assertMediaDownloadProgressBarVisible(page, expectedFooter) {
   const bar = page.locator("#media-download-progress-bar");
   await expect(bar).toBeVisible({ timeout: STEP_TIMEOUT_MS });
 
@@ -38,6 +38,7 @@ async function assertMediaDownloadProgressBarVisible(page) {
   } else {
     expect(metrics.atWindowBottom).toBe(true);
   }
+  expect(metrics.hasFooter).toBe(expectedFooter);
   expect(metrics.height).toBeGreaterThan(0);
   expect(metrics.width).toBeGreaterThan(0);
   expect(metrics.display).not.toBe("none");
@@ -79,16 +80,20 @@ test("media download progress bar displays on full load and inplace transition",
     await waitForMainBodyContains(experimentPage, "Intro without media", STEP_TIMEOUT_MS);
 
     // Footer/bar should exist even before media pages.
-    await assertMediaDownloadProgressBarVisible(experimentPage);
+    await assertMediaDownloadProgressBarVisible(experimentPage, false);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(experimentPage, "First media page", STEP_TIMEOUT_MS);
-    await assertMediaDownloadProgressBarVisible(experimentPage);
+    // The first media page adds a termination button, moving the live bar
+    // into the newly inserted footer before download progress reaches 100%.
+    await assertMediaDownloadProgressBarVisible(experimentPage, true);
     await waitForMediaDownloadComplete(experimentPage);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(experimentPage, "Second media page", STEP_TIMEOUT_MS);
-    await assertMediaDownloadProgressBarVisible(experimentPage);
+    // The second removes the footer again. The same lifecycle must keep one
+    // standalone bar and continue updating it.
+    await assertMediaDownloadProgressBarVisible(experimentPage, false);
     await waitForMediaDownloadComplete(experimentPage);
   });
 });
