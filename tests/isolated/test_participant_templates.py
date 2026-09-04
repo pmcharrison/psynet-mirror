@@ -138,10 +138,33 @@ def test_media_loading_survives_a_missing_progress_bar():
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
     )
-    for use in re.findall(r"bar\.classList\.(?:add|remove)\([^)]*\)", js):
+    start = js.index("psynet.media.init = async function")
+    end = js.index("let initMediaType", start)
+    assert "downloadProgress.bar()" not in js[start:end]
+
+    # Everywhere else the element is looked up, the result is checked.
+    for use in re.findall(r"bar\.(?:classList|style)\.[^\n]*", js):
         index = js.index(use)
-        preceding = js[max(0, index - 200) : index]
-        assert "if (bar !== null)" in preceding, f"unguarded use: {use}"
+        assert "if (bar !== null)" in js[max(0, index - 250) : index], (
+            f"unguarded use: {use}"
+        )
+
+
+def test_media_bar_does_not_animate_through_colours():
+    """The gradient splash animation belongs to the wait page, not a 6px bar."""
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    assert "colorfadeanim" not in js
+
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("#media-download-progress-bar {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "background-color: var(--psynet-accent)" in block
+    assert "background-image" not in block
 
 
 def test_footer_reserves_the_progress_bar_strip():

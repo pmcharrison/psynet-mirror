@@ -1572,13 +1572,8 @@
     psynet.media.downloadProgress.updateDisplay = function () {
       let bar = psynet.media.downloadProgress.bar();
       if (bar !== null) {
-        var progress = psynet.media.downloadProgress.getTotal();
-        bar.style.width = Math.round(progress) + "%";
-        if (progress === 100) {
-          bar.classList.remove("colorfadeanim");
-          // You could do something here once loading is complete,
-          // e.g. delete progress bar text
-        }
+        bar.style.width =
+          Math.round(psynet.media.downloadProgress.getTotal()) + "%";
       }
     };
 
@@ -1589,7 +1584,6 @@
       let bar = psynet.media.downloadProgress.bar();
       if (bar !== null) {
         bar.style.width = "0%";
-        bar.classList.remove("colorfadeanim");
       }
     };
 
@@ -1809,12 +1803,10 @@
       }
       let requests = psynet.media.requests;
       let mediaTypes = Object.keys(requests);
-      // The bar lives in the footer, which show_footer = false omits, so media
-      // loading must not depend on it being present.
-      let bar = psynet.media.downloadProgress.bar();
-      if (bar !== null) bar.classList.add("colorfadeanim");
+      // Nothing here touches the progress bar: it may not exist (show_footer =
+      // false omits it), and its appearance belongs to participant.css, which
+      // keeps it a solid accent rather than animating a gradient.
       await Promise.all(mediaTypes.map((x) => processRequests(x, requests[x])));
-      if (bar !== null) bar.classList.remove("colorfadeanim");
     };
 
     let initMediaType = function (mediaType) {
