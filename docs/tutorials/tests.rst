@@ -218,6 +218,6 @@ layout violations it can find on the page as rendered.
 
 For the current recipe, including which viewports to check and how to wait for
 a page to be ready, see the "Layout checks" section of
-``.cursor/skills/psynet/develop-experiment-front-end/SKILL.md``, which
+``.cursor/skills/psynet/playwright-testing/SKILL.md``, which
 ``psynet scripts update`` installs in your experiment directory.
 

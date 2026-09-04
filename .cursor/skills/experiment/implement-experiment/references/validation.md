@@ -3,9 +3,9 @@
 Use this reference before claiming a PsyNet experiment is functionally complete
 or before collecting final participant-flow evidence. It owns final check
 commands, evidence path conventions, and PsyNet-specific validation pitfalls. For
-day-to-day backend or frontend testing strategy, use
-`develop-experiment-back-end/SKILL.md` and
-`develop-experiment-front-end/SKILL.md`.
+day-to-day backend testing strategy, use
+`develop-experiment-back-end/SKILL.md`. For participant-flow Playwright, use
+`playwright-testing/SKILL.md`.
 
 ## Functional checks
 
@@ -21,7 +21,7 @@ See `develop-experiment-back-end/SKILL.md`.
 
 `psynet test local` is the **logic** gate: bots walk the timeline and check
 answers, but they never render a layout. Participant-flow Playwright is the
-**layout** gate; see "Layout checks" in `develop-experiment-front-end/SKILL.md`.
+**layout** gate; see "Layout checks" in `playwright-testing/SKILL.md`.
 Do not treat a green bot run as evidence that pages fit the window.
 
 `psynet audit simulate` writes `audit/simulate/analysis/simulated_export/` and marks
@@ -68,7 +68,8 @@ psynet debug local
 
 Capture the generated ad page URL. Browser control is acceptable for quick
 exploration, but repeatable screenshots, assertions, and participant recordings
-should be Playwright-driven. For canonical participant recordings, follow
+should be Playwright-driven. Write the walk with `playwright-testing/SKILL.md`.
+For canonical participant recordings, follow
 `record-participant-video/SKILL.md`.
 
 For grouped experiments, set explicit `max_wait_time` values on groupers and

@@ -51,9 +51,8 @@ Capture the participant viewport only. In Playwright, set `fullPage: false`
 explicitly so the image matches what fits on screen. Full-page captures stitch
 content below the fold and mislead reviewers about the experimental interface.
 
-Run the layout check described under "Layout checks" in
-`develop-experiment-front-end/SKILL.md` **before** each screenshot, so a
-passing image cannot hide overflow or footer occlusion.
+Run the layout check from `playwright-testing/SKILL.md` **before** each
+screenshot, so a passing image cannot hide overflow or footer occlusion.
 
 When screenshots need review-facing captions, add
 `audit/artifacts/screenshots/manifest.json` with a `captions` object that maps
@@ -67,23 +66,14 @@ trial type rather than analyzing a long full-flow video.
 
 For Playwright evidence scripts:
 
-- Use JavaScript Playwright when practical, because it is easy to install and
-  run locally with the experiment.
+- Write the walk with `playwright-testing/SKILL.md`. Reuse that script for
+  screenshots and the participant recording when possible.
 - When recording video with Playwright's built-in `recordVideo`, install
   Playwright's own ffmpeg binary first with `npx playwright install ffmpeg`. It is
   separate from the system `ffmpeg`; without it the first recorded run fails with
   "Video rendering requires ffmpeg binary". Playwright records `.webm`, so
   re-encode to the canonical `audit/artifacts/participant.mp4` (H.264, ≤1280x720,
   `+faststart`) afterwards.
-- Store the Playwright participant-flow test with the experiment code, typically
-  `tests/participant-flow.spec.js`, and commit the corresponding
-  `package.json`/lockfile when the test depends on npm packages.
-- Reuse one script for screenshots, assertions, and the participant recording
-  when possible.
-- Include behavioral assertions in the Playwright flow. The test should prove
-  important participant behavior such as disabled/enabled controls, trial
-  transitions, validation or feedback text, completion state, and saved response
-  data, not only click through pages.
 - Pace the recording with explicit waits, `slowMo`, or experiment `time_factor`
   settings so the actions remain understandable. Do not blast through the flow,
   but do not wait for agent-speed browser control either.
@@ -101,11 +91,11 @@ For Playwright evidence scripts:
 ## Workflow
 
 1. Start the PsyNet experiment and capture the generated ad page URL.
-2. Write or reuse a Playwright runner that completes the participant path and
-   captures the targeted screenshots needed for review.
-3. Confirm the browser viewport is 1280×720. Larger sizes hide overflow that
-   still produces a scrollbar on a typical laptop. If the experiment allows
-   mobile devices, also check 375×780.
+2. Write or reuse a Playwright runner as in `playwright-testing/SKILL.md` that
+   completes the participant path and captures the targeted screenshots needed
+   for review.
+3. Confirm the viewports from that skill's layout checks. Larger sizes hide
+   overflow that still produces a scrollbar on a typical laptop.
 4. For multi-participant flows, use separate browser profiles or Playwright
    contexts for each participant, for example separate Chrome `--user-data-dir`
    directories. Do not rely on multiple windows from one shared profile; shared

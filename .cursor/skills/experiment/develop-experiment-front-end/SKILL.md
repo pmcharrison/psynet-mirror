@@ -1,14 +1,14 @@
 ---
 name: develop-experiment-front-end
-description: Develop and test PsyNet experiment front-end interfaces with ModularPage, Native Graphics, and Playwright checks. Use when building or validating participant-facing pages, controls, custom prompts, or UI evidence screenshots.
+description: Develop PsyNet experiment front-end interfaces with ModularPage, Native Graphics, and custom pages. Use when building participant-facing pages, controls, or custom prompts.
 ---
 
 # Develop experiment front end
 
 ## Prerequisites
 
-- For Playwright screenshots or participant-flow video evidence, use
-  `record-participant-video/SKILL.md`.
+- For Playwright walks and layout checks, use `playwright-testing/SKILL.md`.
+- For participant-flow video evidence, use `record-participant-video/SKILL.md`.
 
 ## Modular pages
 
@@ -54,9 +54,9 @@ More wholesale customization can be achieved by creating a custom `Page` subclas
 
 Customizations should be tested robustly.
 Construct a minimal experiment timeline to do this,
-and construct a Playwright test for each custom component.
-Use the Playwright test to create screenshots at key moments, and review these screenshots.
-Run the layout check described under "Layout checks" before taking each screenshot.
+and construct a Playwright test for each custom component as described in
+`playwright-testing/SKILL.md`. Use that test to create screenshots at key
+moments, and run the layout check from that skill before each screenshot.
 For canonical participant video evidence, follow `record-participant-video/SKILL.md`.
 Ensure that:
 
@@ -79,41 +79,6 @@ reusing the default `session_id` unless the code explicitly handles PsyNet's
 browser context and update the DOM without rerunning page scripts. Use distinct
 `session_id` values for repeated interactive pages when each trial needs fresh
 handler installation.
-
-## Layout checks
-
-`psynet test local` uses bots, which do not render a browser layout. Overflow,
-footer occlusion, and controls that sit below the fold are checked from a
-Playwright walk instead.
-
-Every participant page loads `psynetLayout`. After the page is ready, call
-`check()` and expect an empty list:
-
-```js
-async function assertPageLayout(page, label) {
-  // Playwright's cursor stays where the last click left it, so a control can be
-  // measured in its hover state unless the pointer is parked away from content.
-  await page.mouse.move(0, 0).catch(() => {});
-  const violations = await page.evaluate(async () => {
-    if (!window.psynetLayout?.check) {
-      throw new Error("psynetLayout.check is not available on this page");
-    }
-    return await window.psynetLayout.check();
-  });
-  expect(violations, label).toEqual([]);
-}
-
-await page.waitForSelector("#main-body[data-page-ready='true']");
-await assertPageLayout(page, "radio page");
-```
-
-On ad or consent pages, wait for that page's own durable control (`#begin-button`
-or `#consent`) instead of `#main-body`. Use a 1280×720 viewport. If the
-experiment allows mobile devices (the default), repeat the check at 375×780.
-Pages that are meant to be taller than the window must set
-`expect_scrolling=True`; otherwise a scrollbar is a failure.
-
-Do not fold these checks into `psynet test local`.
 
 ## Examples
 
