@@ -79,6 +79,7 @@ class EndLogic(EltCollection):
         return config.get("show_reward") and not exp.with_lucid_recruitment()
 
     def summarize_reward(self, experiment, participant):
+        """Return HTML summarizing the participant's time and performance rewards."""
         from psynet.utils import get_config
 
         config = get_config()
@@ -86,19 +87,27 @@ class EndLogic(EltCollection):
 
         # Todo - translation should not have HTML hard-coded.
         # Fix that and then refactor using dominate package.
-        #
-        # Todo - if there is no performance reward, skip reporting it.
+        currency = config.get("currency")
+        performance_reward = participant.performance_reward or 0.0
+
         text = _p(
             "final-page-rewards",
             "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for the time you spent "
-            "on the experiment. You have also been awarded a performance reward of <strong>{CURRENCY}"
-            "{PERFORMANCE_REWARD}</strong>! ",
-        )
-        text = text.format(
-            CURRENCY=config.get("currency"),
+            "on the experiment. ",
+        ).format(
+            CURRENCY=currency,
             TIME_REWARD=f"{participant.time_reward:.2f}",
-            PERFORMANCE_REWARD=f"{participant.performance_reward:.2f}",
         )
+
+        if round(performance_reward, 2) != 0:
+            text += _p(
+                "final-page-performance-reward",
+                "You have also been awarded a performance reward of <strong>{CURRENCY}"
+                "{PERFORMANCE_REWARD}</strong>. ",
+            ).format(
+                CURRENCY=currency,
+                PERFORMANCE_REWARD=f"{performance_reward:.2f}",
+            )
 
         return dominate.util.raw(text)
 

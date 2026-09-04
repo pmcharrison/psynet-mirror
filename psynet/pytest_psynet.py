@@ -56,6 +56,7 @@ from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from .utils import (
     clear_all_caches,
     is_in_repo_experiment,
+    is_release_branch,
     wait_until,
     working_directory,
 )
@@ -69,6 +70,11 @@ ci_only = pytest.mark.skipif(
 
 local_only = pytest.mark.skipif(
     os.environ.get("CI") is not None, reason="This test only runs in local environment"
+)
+
+release_branch_only = pytest.mark.skipif(
+    not is_release_branch(),
+    reason="This test only runs on release branches",
 )
 
 
