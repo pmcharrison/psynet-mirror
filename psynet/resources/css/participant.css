@@ -511,6 +511,13 @@ textarea:focus-visible,
 /* Chrome: progress bar, footer, modals                                */
 /* ------------------------------------------------------------------ */
 
+/* The rail stays full-bleed, mirroring the media-download bar at the bottom of
+   the window, with the percentage on its own line underneath. */
+#timeline-header {
+    display: flex;
+    flex-direction: column;
+}
+
 #timeline-header .progress {
     height: var(--psynet-progress-height);
     border-radius: 0;
@@ -519,9 +526,16 @@ textarea:focus-visible,
 
 #timeline-header .progress-bar {
     background-color: var(--psynet-accent);
-    /* The percentage cannot meet contrast inside a 6px bar; it is exposed to
-       assistive technology through aria-valuenow instead. */
-    font-size: 0;
+}
+
+#timeline-progress-label {
+    align-self: flex-end;
+    padding: 0.15rem 0.85rem 0;
+    font-size: 0.72rem;
+    font-weight: 500;
+    /* Fixed-width digits so the label does not jitter as it counts up. */
+    font-variant-numeric: tabular-nums;
+    color: var(--psynet-text-muted);
 }
 
 .progress,

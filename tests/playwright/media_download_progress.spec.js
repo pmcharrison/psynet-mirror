@@ -21,6 +21,8 @@ async function assertMediaDownloadProgressBarVisible(page) {
     const rect = el.getBoundingClientRect();
     return {
       inFooter: !!el.closest("#footer"),
+      hasFooter: !!document.getElementById("footer"),
+      atWindowBottom: Math.round(rect.bottom) === window.innerHeight,
       height: rect.height,
       width: rect.width,
       display: style.display,
@@ -29,7 +31,13 @@ async function assertMediaDownloadProgressBarVisible(page) {
     };
   });
 
-  expect(metrics.inFooter).toBe(true);
+  // The bar rides the footer's top edge when there is a footer, and the bottom
+  // edge of the window when there is not (rewards hidden, no footer buttons).
+  if (metrics.hasFooter) {
+    expect(metrics.inFooter).toBe(true);
+  } else {
+    expect(metrics.atWindowBottom).toBe(true);
+  }
   expect(metrics.height).toBeGreaterThan(0);
   expect(metrics.width).toBeGreaterThan(0);
   expect(metrics.display).not.toBe("none");

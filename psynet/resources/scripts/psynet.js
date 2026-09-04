@@ -3098,9 +3098,11 @@
       }).done(function (data) {
         let progressPercentage = data["progressPercentage"];
         let progressPercentageStr = progressPercentage + "%";
-        $("#timeline-progress-bar").text(progressPercentageStr);
+        // The bar carries the width and the accessible value; the readable
+        // percentage lives in its own label beside the rail.
         $("#timeline-progress-bar").css("width", progressPercentageStr);
         $("#timeline-progress-bar").attr("aria-valuenow", progressPercentage);
+        $("#timeline-progress-label").text(progressPercentageStr);
 
         if (data["reward"] !== undefined) {
           if (data["reward"]["performance"].toFixed(2) > 0) {

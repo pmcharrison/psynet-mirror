@@ -77,9 +77,12 @@
                 <div class="progress">
                     <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
                          aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
-                         style="width:{{ progress_percentage }}%">{{ progress_percentage }}%
-                    </div>
+                         style="width:{{ progress_percentage }}%"></div>
                 </div>
+                {# The percentage sits outside the bar. Bootstrap draws it inside
+                   the fill, where it is clipped early in the experiment, and it
+                   cannot be legible inside a 6px rail. #}
+                <span id="timeline-progress-label">{{ progress_percentage }}%</span>
             {% endif %}
         </div>
     {% endmacro %}
