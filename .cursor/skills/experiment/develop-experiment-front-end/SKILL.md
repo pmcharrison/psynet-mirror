@@ -56,7 +56,7 @@ Customizations should be tested robustly.
 Construct a minimal experiment timeline to do this,
 and construct a Playwright test for each custom component.
 Use the Playwright test to create screenshots at key moments, and review these screenshots.
-Run the layout check below after each page is ready and **before** taking the screenshot.
+Run the layout check described under "Layout checks" before taking each screenshot.
 For canonical participant video evidence, follow `record-participant-video/SKILL.md`.
 Ensure that:
 
@@ -91,6 +91,8 @@ Every participant page loads `psynetLayout`. After the page is ready, call
 
 ```js
 async function assertPageLayout(page, label) {
+  // Playwright's cursor stays where the last click left it, so a control can be
+  // measured in its hover state unless the pointer is parked away from content.
   await page.mouse.move(0, 0).catch(() => {});
   const violations = await page.evaluate(async () => {
     if (!window.psynetLayout?.check) {

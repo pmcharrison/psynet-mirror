@@ -48,29 +48,12 @@ errors, completion pages, and edge-case states. Save targeted screenshots under
 `audit/artifacts/screenshots/`, using ordered descriptive names such as
 `01-instructions.png` or `03-masked-trial.png`.
 Capture the participant viewport only. In Playwright, set `fullPage: false`
-explicitly so the image matches what fits on screen.
+explicitly so the image matches what fits on screen. Full-page captures stitch
+content below the fold and mislead reviewers about the experimental interface.
 
-After each timeline page is ready, and **before** the screenshot, run the
-layout check from `develop-experiment-front-end/SKILL.md` (`psynetLayout.check()`).
-Bot tests do not catch overflow or footer occlusion.
-
-```js
-await page.waitForSelector("#main-body[data-page-ready='true']");
-const violations = await page.evaluate(async () => {
-  if (!window.psynetLayout?.check) {
-    throw new Error("psynetLayout.check is not available on this page");
-  }
-  return await window.psynetLayout.check();
-});
-expect(violations, "instructions page").toEqual([]);
-await page.screenshot({
-  path: "audit/artifacts/screenshots/01-instructions.png",
-  fullPage: false,
-});
-```
-
-Full-page captures stitch content below the fold and mislead reviewers about
-the experimental interface.
+Run the layout check described under "Layout checks" in
+`develop-experiment-front-end/SKILL.md` **before** each screenshot, so a
+passing image cannot hide overflow or footer occlusion.
 
 When screenshots need review-facing captions, add
 `audit/artifacts/screenshots/manifest.json` with a `captions` object that maps

@@ -226,10 +226,8 @@ left permanently underneath. Pages without a footer do not get that
 padding.
 
 A page that does not declare ``expect_scrolling`` should fit a typical
-laptop window (1280×720) without scrolling. Experiment Playwright tests
-check this with ``psynetLayout.check()`` after each page is ready; see
-:doc:`tests`. Bot tests (``psynet test local``) do not render a layout,
-so a green bot run is not evidence that the page fits.
+laptop window (1280×720) without scrolling. Verify that with the front-end
+layout check in :doc:`tests`; bots do not render a layout.
 
 If a page is genuinely meant to be longer than the window, say so:
 
