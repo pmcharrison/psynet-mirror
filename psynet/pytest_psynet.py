@@ -39,7 +39,6 @@ from .command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
     stop_local_debug_process,
-    working_directory,
 )
 from .experiment import get_experiment, import_local_experiment
 from .experiment_scaffold import (
@@ -54,7 +53,13 @@ from .test_helpers.mock_s3 import (
 from .testing.chrome_driver import create_psynet_chrome_driver
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from .utils import clear_all_caches, is_in_repo_experiment, wait_until
+from .utils import (
+    clear_all_caches,
+    is_in_repo_experiment,
+    is_release_branch,
+    wait_until,
+    working_directory,
+)
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -65,6 +70,11 @@ ci_only = pytest.mark.skipif(
 
 local_only = pytest.mark.skipif(
     os.environ.get("CI") is not None, reason="This test only runs in local environment"
+)
+
+release_branch_only = pytest.mark.skipif(
+    not is_release_branch(),
+    reason="This test only runs on release branches",
 )
 
 

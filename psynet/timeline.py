@@ -1584,7 +1584,7 @@ class Page(Elt):
         metadata,
         experiment,
         participant,
-        client_ip_address,
+        client_ip_address=None,
         answer=NoArgumentProvided,
     ):
         from psynet.trial.main import Trial
@@ -1600,7 +1600,6 @@ class Page(Elt):
             participant=participant,
             label=self.label,
             page_type=type(self).__name__,
-            client_ip_address=client_ip_address,
         )
         db.session.add(resp)
 
@@ -2590,12 +2589,7 @@ class Response(_Response):
     successful_validation: bool
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
-
-    client_ip_address : str
-        The participant's IP address as reported by Flask.
     """
-
-    __extra_vars__ = {}
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
@@ -2608,7 +2602,6 @@ class Response(_Response):
     answer = Column(PythonObject)
     page_type = Column(String)
     successful_validation = Column(Boolean)
-    client_ip_address = Column(String)
 
     # metadata is a protected attribute in SQLAlchemy, hence the underscore
     # and the functional setter/getter.
@@ -2638,7 +2631,6 @@ class Response(_Response):
         participant,
         label,
         page_type,
-        client_ip_address,
         answer=None,
         metadata=None,
     ):
@@ -2646,7 +2638,6 @@ class Response(_Response):
         self.question = label
         self.page_type = page_type
         self.metadata = metadata
-        self.client_ip_address = client_ip_address
         self.answer = answer
         self.metadata = metadata
 

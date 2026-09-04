@@ -3,8 +3,6 @@ import io
 import json
 import subprocess
 import tempfile
-import zipfile
-from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -671,84 +669,113 @@ class TestExport:
         with patch("psynet.command_line.export_data") as mock_export_data:
             yield mock_export_data
 
-    def test_export_logs_success(self, tmp_path):
-        """Test successful log file export."""
-        from unittest.mock import Mock, patch
 
-        from psynet.command_line import export_logs
+@pytest.fixture
+def stub_ssh_connection():
+    """Stub the SSH machinery used by export, sharing one connection."""
+    from unittest.mock import Mock, patch
 
-        mock_executor = Mock()
-        mock_sftp = Mock()
-        mock_server_info = {"host": "test-host", "user": "test-user"}
-        mock_spinner = Mock()
+    executor = Mock()
+    executor.run.return_value = "/home/testuser\n"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
+            {"test-server": {"host": "test-host", "user": "test-user"}},
+        ),
+        patch(
+            "dallinger.command_line.docker_ssh.Executor", return_value=executor
+        ) as connect,
+    ):
+        yield executor, connect
 
-        with (
-            patch(
-                "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
-                {"test-server": mock_server_info},
-            ),
-            patch("dallinger.command_line.docker_ssh.get_sftp", return_value=mock_sftp),
-            patch(
-                "dallinger.command_line.docker_ssh.Executor", return_value=mock_executor
-            ),
-            patch("psynet.command_line.log") as mock_log,
-            patch("psynet.command_line.yaspin") as mock_yaspin,
-        ):
-            mock_yaspin.return_value.__enter__.return_value = mock_spinner
-            mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
-            # Test log file export
-            export_logs("test-app", "test-server", str(tmp_path))
+@pytest.fixture
+def ssh_session():
+    from psynet.export.client import SshSession
 
-            # Verify the call was made
-            assert mock_sftp.get.call_count == 1
+    with SshSession("test-server") as session:
+        yield session
 
-            # Verify correct path
-            mock_sftp.get.assert_called_with(
-                "/home/testuser/dallinger/test-app/logs.jsonl",
-                str(tmp_path / "logs.jsonl"),
-            )
 
-            # Verify log message
-            mock_log.assert_called_with(f"Exporting logs to {tmp_path}/logs.jsonl")
+def test_fetch_logs_copies_the_deployment_log_file(
+    tmp_path, stub_ssh_connection, ssh_session
+):
+    from psynet.export.client import fetch_logs
 
-            # Verify success spinner was shown (function ran to completion)
-            assert mock_yaspin.call_count == 1
-            mock_yaspin.assert_called_with(text="Logs exported.", color="green")
-            assert mock_spinner.ok.call_count == 1
+    executor, _ = stub_ssh_connection
+    sftp = executor.client.open_sftp.return_value
 
-    def test_export_logs_error_handling(self, tmp_path):
-        """Test error handling in log file export."""
-        from unittest.mock import Mock, patch
+    assert fetch_logs(
+        str(tmp_path), app="test-app", server="test-server", session=ssh_session
+    ) == str(tmp_path / "logs.jsonl")
+    sftp.get.assert_called_once_with(
+        "/home/testuser/dallinger/test-app/logs.jsonl", str(tmp_path / "logs.jsonl")
+    )
 
-        from psynet.command_line import export_logs
 
-        mock_executor = Mock()
-        mock_sftp = Mock()
-        mock_server_info = {"host": "test-host", "user": "test-user"}
+def test_fetch_logs_warns_instead_of_failing_the_export(
+    tmp_path, stub_ssh_connection, ssh_session
+):
+    from psynet.export.client import fetch_logs
 
-        # Test SFTP failure
-        mock_sftp.get.side_effect = Exception("Permission denied")
+    executor, _ = stub_ssh_connection
+    executor.client.open_sftp.return_value.get.side_effect = Exception(
+        "Permission denied"
+    )
 
-        with (
-            patch(
-                "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
-                {"test-server": mock_server_info},
-            ),
-            patch("dallinger.command_line.docker_ssh.get_sftp", return_value=mock_sftp),
-            patch(
-                "dallinger.command_line.docker_ssh.Executor", return_value=mock_executor
-            ),
-            patch("psynet.command_line.log") as mock_log,
-        ):
-            mock_executor.run.return_value.strip.return_value = "/home/testuser"
+    assert (
+        fetch_logs(
+            str(tmp_path), app="test-app", server="test-server", session=ssh_session
+        )
+        is None
+    )
 
-            export_logs("test-app", "test-server", str(tmp_path))
 
-            # Verify the error message includes the specific path
-            mock_log.assert_called_with(
-                "Warning: Failed to export logs from /home/testuser/dallinger/test-app/logs.jsonl: Permission denied"
-            )
+def test_ssh_export_steps_share_one_connection(tmp_path, stub_ssh_connection):
+    """Each SSH handshake costs seconds, so the export must only make one."""
+    from psynet.export.client import (
+        SshSession,
+        fetch_logs,
+        ssh_rsync_available,
+        ssh_rsync_source,
+    )
+
+    executor, connect = stub_ssh_connection
+    with (
+        patch(
+            "psynet.export.ssh_rsync.local_rsync_available",
+            return_value=True,
+        ),
+        patch(
+            "dallinger.command_line.utils.get_server_pem_path",
+            return_value="/tmp/test-server.pem",
+        ),
+        SshSession("test-server") as session,
+    ):
+        executor.run.return_value = "/usr/bin/rsync\n"
+        assert ssh_rsync_available("test-server", session)
+        executor.run.return_value = "/home/testuser\n"
+        source, _ = ssh_rsync_source("test-server", session)
+        fetch_logs(str(tmp_path), app="test-app", server="test-server", session=session)
+
+        assert source == "test-user@test-host:/home/testuser/psynet-data/assets/"
+        assert connect.call_count == 1
+
+    executor.client.close.assert_called_once()
+
+
+def test_export_does_not_offer_a_legacy_flag():
+    from psynet.command_line import debug__local, deploy__local, export__local
+
+    export_help = CliRunner().invoke(export__local, ["--help"])
+    debug_help = CliRunner().invoke(debug__local, ["--help"])
+    deploy_help = CliRunner().invoke(deploy__local, ["--help"])
+    assert export_help.exit_code == 0, export_help.output
+    assert debug_help.exit_code == 0, debug_help.output
+    assert deploy_help.exit_code == 0, deploy_help.output
+    assert "--legacy" not in export_help.output
+    assert "--legacy" in debug_help.output
+    assert "--legacy" in deploy_help.output
 
 
 def _setup_basic_data_export(monkeypatch, basic_data):
@@ -760,34 +787,17 @@ def _setup_basic_data_export(monkeypatch, basic_data):
     def fake_get_experiment():
         return DummyExperiment()
 
-    @contextmanager
-    def dummy_spinner(*args, **kwargs):
-        class Spinner:
-            def ok(self, *_args, **_kwargs):
-                return None
-
-        yield Spinner()
-
     monkeypatch.setattr("psynet.experiment.get_experiment", fake_get_experiment)
-    monkeypatch.setattr(
-        "psynet.command_line.dump_db_to_disk", lambda *args, **kwargs: None
-    )
-    monkeypatch.setattr("psynet.command_line.yaspin", dummy_spinner)
 
 
 @pytest.fixture
 def run_basic_data_export(tmp_path):
-    from psynet.command_line import export_data
+    from psynet.export.service import write_basic_data
 
-    def _run(anonymize):
+    def _run():
         export_path = tmp_path / "export"
         export_path.mkdir()
-        export_data(
-            local=True,
-            anonymize=anonymize,
-            database_zip_path=str(tmp_path / "database.zip"),
-            export_path=str(export_path),
-        )
+        write_basic_data(str(export_path))
         return export_path
 
     return _run
@@ -796,9 +806,9 @@ def run_basic_data_export(tmp_path):
 def test_export_data_writes_basic_data_json(monkeypatch, run_basic_data_export):
     basic_data = {"participant": [{"id": 1}]}
     _setup_basic_data_export(monkeypatch, basic_data)
-    export_path = run_basic_data_export(anonymize=True)
+    export_path = run_basic_data_export()
 
-    basic_data_path = export_path / "anonymous" / "basic_data.json"
+    basic_data_path = export_path / "basic_data.json"
     assert basic_data_path.exists()
     with open(basic_data_path, "r") as file:
         assert json.load(file) == basic_data
@@ -806,10 +816,10 @@ def test_export_data_writes_basic_data_json(monkeypatch, run_basic_data_export):
 
 def test_export_data_skips_basic_data_when_none(monkeypatch, run_basic_data_export):
     _setup_basic_data_export(monkeypatch, None)
-    export_path = run_basic_data_export(anonymize=True)
+    export_path = run_basic_data_export()
 
-    basic_data_json = export_path / "anonymous" / "basic_data.json"
-    basic_data_zip = export_path / "anonymous" / "basic_data.zip"
+    basic_data_json = export_path / "basic_data.json"
+    basic_data_zip = export_path / "basic_data.zip"
     assert not basic_data_json.exists()
     assert not basic_data_zip.exists()
 
@@ -822,9 +832,9 @@ def test_export_data_writes_basic_data_folder_for_dataframes(
         "trial": pd.DataFrame([{"id": 2, "answer": "ok"}]),
     }
     _setup_basic_data_export(monkeypatch, basic_data)
-    export_path = run_basic_data_export(anonymize=False)
+    export_path = run_basic_data_export()
 
-    basic_data_dir = export_path / "regular" / "basic_data"
+    basic_data_dir = export_path / "basic_data"
     assert basic_data_dir.exists()
     assert sorted(path.name for path in basic_data_dir.iterdir()) == [
         "participant.csv",
@@ -840,9 +850,9 @@ def test_export_data_sanitizes_basic_data_dataframe_keys(
         "trial results": pd.DataFrame([{"id": 2}]),
     }
     _setup_basic_data_export(monkeypatch, basic_data)
-    export_path = run_basic_data_export(anonymize=False)
+    export_path = run_basic_data_export()
 
-    basic_data_dir = export_path / "regular" / "basic_data"
+    basic_data_dir = export_path / "basic_data"
     assert basic_data_dir.exists()
     assert sorted(path.name for path in basic_data_dir.iterdir()) == [
         "trial_results.csv",
@@ -859,15 +869,88 @@ def test_export_data_avoids_suffix_filename_collisions(
         "trial/": pd.DataFrame([{"id": 3}]),
     }
     _setup_basic_data_export(monkeypatch, basic_data)
-    export_path = run_basic_data_export(anonymize=False)
+    export_path = run_basic_data_export()
 
-    basic_data_dir = export_path / "regular" / "basic_data"
+    basic_data_dir = export_path / "basic_data"
     assert basic_data_dir.exists()
     assert sorted(path.name for path in basic_data_dir.iterdir()) == [
         "trial.csv",
         "trial_2.csv",
         "trial_3.csv",
     ]
+
+
+class _FakeChannel:
+    """Minimal paramiko channel stand-in for remote command execution.
+
+    The exit status is reported as ready straight away, while the output is only
+    readable line by line. This mirrors the real ordering, where the remote exit
+    status can arrive before the tail of the output.
+    """
+
+    def __init__(self, exit_status, output=b""):
+        self.exit_status = exit_status
+        self.output = io.BytesIO(output)
+        self.command = None
+        self.combine_stderr = False
+
+    def set_combine_stderr(self, value):
+        self.combine_stderr = value
+
+    def exec_command(self, command):
+        self.command = command
+
+    def makefile(self, _mode="rb", _bufsize=0):
+        return self.output
+
+    def exit_status_ready(self):
+        return True
+
+    def recv_exit_status(self):
+        return self.exit_status
+
+
+def _executor_for(channel):
+    executor = Mock()
+    executor.client.get_transport.return_value.open_session.return_value = channel
+    return executor
+
+
+def test_remote_experiment_commands_disable_tty_allocation():
+    from psynet.command_line import build_remote_experiment_command
+
+    command = build_remote_experiment_command("my-app", "psynet test local --existing")
+    assert command == (
+        "cd ~/dallinger/my-app && docker compose exec -T web "
+        "psynet test local --existing"
+    )
+
+
+def test_remote_experiment_command_echoes_all_output_and_reports_failure(capsys):
+    from psynet.command_line import run_remote_experiment_command
+
+    channel = _FakeChannel(0, output=b"running bots\n" + b"=== 1 passed ===\n")
+    assert (
+        run_remote_experiment_command(
+            _executor_for(channel), "my-app", "psynet test local"
+        )
+        == 0
+    )
+    assert channel.command.startswith(
+        "cd ~/dallinger/my-app && docker compose exec -T web"
+    )
+    output = capsys.readouterr().out
+    assert "running bots" in output
+    # The test summary is the last thing the remote command prints, so it is what
+    # gets lost if we stop reading as soon as the exit status is available.
+    assert "1 passed" in output
+
+    with pytest.raises(click.Abort):
+        run_remote_experiment_command(
+            _executor_for(_FakeChannel(1, output=b"boom\n")),
+            "my-app",
+            "psynet test local",
+        )
 
 
 def test_check_constraints():
@@ -3648,7 +3731,12 @@ def test_load_runtime_server_config_loads_launch_info_when_runtime_dir_is_missin
     )
 
 
-def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
+def test_export_local_builds_directly_from_the_runtime_configuration(
+    tmp_path, monkeypatch
+):
+    """A local export reads the local database instead of its own dashboard."""
+    import requests
+
     from psynet.command_line import export_
 
     deployment_id = "timeline-demo__mode=debug__launch=test"
@@ -3667,28 +3755,20 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
     config = Mock()
     config.ready = True
     config.values = {}
-
-    def get_config_value(key, default=None):
-        if key in config.values:
-            return config.values[key]
-        if key == "base_port":
-            return 5000
-        if default is not None:
-            return default
-        raise KeyError(key)
-
-    def extend_config(values):
-        config.values.update(values)
-
-    data_zip = io.BytesIO()
-    with zipfile.ZipFile(data_zip, "w"):
-        pass
-    data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
-    experiment_class = Mock(label="Timeline demo")
-    experiment_class.export_path.return_value = str(tmp_path)
-    config.extend.side_effect = extend_config
-    config.get.side_effect = get_config_value
+    config.extend.side_effect = config.values.update
+    config.get.side_effect = lambda key, default=None: config.values.get(key, default)
     monkeypatch.setenv("HOME", str(tmp_path))
+
+    experiment_class = Mock(label="Timeline demo")
+    destination = tmp_path / "exports" / "latest"
+
+    def fake_build(export_path, **kwargs):
+        Path(export_path).mkdir(parents=True, exist_ok=True)
+        (Path(export_path) / "manifest.json").write_text("{}")
+        return export_path
+
+    def refuse_http(*args, **kwargs):
+        raise AssertionError("a local export must not call its own dashboard")
 
     with (
         patch(
@@ -3697,26 +3777,18 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
         ),
         patch("psynet.command_line.get_config", return_value=config),
         patch("psynet.command_line.redis_vars.get", return_value=None),
-        patch(
-            "psynet.command_line.get_experiment_url",
-            side_effect=KeyError,
-        ),
-        patch(
-            "psynet.command_line.requests.get",
-            return_value=data_response,
-        ) as request_get,
+        patch("psynet.export.service.build_export_tree", side_effect=fake_build),
+        patch.object(requests, "get", side_effect=refuse_http),
     ):
         export_(
             ctx=Mock(),
-            exp_variables={
+            get_exp_variables=lambda: {
                 "deployment_id": deployment_id,
                 "label": "Timeline demo",
             },
             local=True,
-            path=str(tmp_path),
-            no_source=False,
-            assets="experiment",
-            anonymize="no",
+            path=str(destination),
+            assets="collected",
         )
 
     config.extend.assert_called_once_with(
@@ -3725,12 +3797,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             "dashboard_password": "generated-password",
         }
     )
-    request_get.assert_called_once()
-    data_request = request_get.call_args
-    assert data_request.args[0].startswith(
-        "http://127.0.0.1:5000/dashboard/export/download?"
-    )
-    assert data_request.kwargs["auth"] == ("admin", "generated-password")
+    assert (destination / "manifest.json").exists()
 
 
 def test_removed_source_export_options_remain_hidden_and_accepted():
@@ -3767,6 +3834,21 @@ def test_removed_source_export_options_warn_when_used(capsys):
     assert "--no-source, --username, --password" in warning
     assert "have no effect" in warning
     assert "legacy" not in warning
+
+
+def test_anonymize_export_kwarg_warns_when_used(capsys):
+    from psynet.command_line import _warn_deprecated_export_options
+
+    _warn_deprecated_export_options(
+        no_source=False,
+        username=None,
+        password=None,
+        anonymize=True,
+    )
+
+    warning = capsys.readouterr().err
+    assert "anonymize=" in warning
+    assert "have no effect" in warning
 
 
 def test_run_performance_test_with_new_server_loads_runtime_server_config():

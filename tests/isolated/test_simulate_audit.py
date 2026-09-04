@@ -8,7 +8,7 @@ import pytest
 
 
 def _write_export_tree(export_dir: Path) -> Path:
-    csv_dir = export_dir / "regular" / "data"
+    csv_dir = export_dir / "database"
     csv_dir.mkdir(parents=True)
     (csv_dir / "AnimalTrial.csv").write_text("id\n1\n", encoding="utf-8")
     return export_dir
@@ -82,7 +82,7 @@ def test_run_simulate_writes_only_audit_export_and_marks_present(tmp_path, monke
     _run_simulate(DummyCtx())
 
     export = audit_dir / "simulate" / "analysis" / "simulated_export"
-    assert (export / "regular" / "data" / "AnimalTrial.csv").is_file()
+    assert (export / "database" / "AnimalTrial.csv").is_file()
     assert not stale.exists()
     assert not (experiment / "data" / "simulated_data").exists()
     assert not list(audit_dir.glob("**/*.zip"))
@@ -129,7 +129,7 @@ def test_run_simulate_keeps_previous_export_when_export_fails(tmp_path, monkeypa
     with pytest.raises(click.ClickException, match="export failed"):
         _run_simulate(DummyCtx())
 
-    assert (previous / "regular" / "data" / "AnimalTrial.csv").is_file()
+    assert (previous / "database" / "AnimalTrial.csv").is_file()
     manifest = json.loads((audit_dir / "audit.json").read_text(encoding="utf-8"))
     artifact = next(a for a in manifest["artifacts"] if a["id"] == "simulate_export")
     assert artifact["status"] == "present"

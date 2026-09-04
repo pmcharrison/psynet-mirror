@@ -17,7 +17,7 @@ from psynet.trial.chain import (
 )
 
 from ..utils import get_logger, is_method_overridden
-from .main import Selection, Trial
+from .main import Selection
 
 logger = get_logger()
 
@@ -66,8 +66,6 @@ class StaticTrial(ChainTrial):
     block
         The block in which the trial is situated.
     """
-
-    __extra_vars__ = Trial.__extra_vars__.copy()
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError

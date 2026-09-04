@@ -60,6 +60,24 @@ class GrowthQueryGraphTrialMaker(GraphChainTrialMaker):
     pass
 
 
+class CustomFinishPolicyTrialMaker(ChainTrialMaker):
+    observed_counts = None
+
+    def should_finish_block(
+        self,
+        participant,
+        block,
+        block_position,
+        n_participant_trials_in_block,
+        n_participant_trials_in_trial_maker,
+    ):
+        self.observed_counts = (
+            n_participant_trials_in_block,
+            n_participant_trials_in_trial_maker,
+        )
+        return False
+
+
 @pytest.fixture
 def participant(db_session):
     exp = get_experiment()
@@ -76,7 +94,7 @@ def participant(db_session):
     return participant
 
 
-def chain_trial_maker(**kwargs):
+def chain_trial_maker(maker_class=ChainTrialMaker, **kwargs):
     args = dict(
         id_="growth_query",
         node_class=GrowthQueryNode,
@@ -89,7 +107,7 @@ def chain_trial_maker(**kwargs):
         trials_per_node=1,
         recruit_mode="n_trials",
     )
-    return ChainTrialMaker(**{**args, **kwargs})
+    return maker_class(**{**args, **kwargs})
 
 
 def create_chain_network(
@@ -177,6 +195,27 @@ def test_find_chains_keeps_query_count_bounded(db_session, participant):
         eligible = trial_maker.find_chains(participant, exp)
 
     assert {chain.id for chain in eligible} == {chain.id for chain in networks}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
+def test_custom_finish_policy_keeps_receiving_real_trial_counts(
+    db_session, participant
+):
+    exp = get_experiment()
+    trial_maker = chain_trial_maker(
+        CustomFinishPolicyTrialMaker,
+        max_trials_per_block=None,
+        max_trials_per_participant=None,
+    )
+    network = create_chain_network(trial_maker, exp)
+    initialize_trial_maker_state(trial_maker, participant)
+    add_trial(GrowthQueryTrial, network.head, participant, finalized=True)
+
+    assert trial_maker._should_finish_block(participant) is False
+    assert trial_maker.observed_counts == (1, 1)
 
 
 @pytest.mark.parametrize(

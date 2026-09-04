@@ -2,7 +2,6 @@ import configparser
 import inspect
 import json
 import os
-import re
 import shutil
 import signal
 import sys
@@ -29,7 +28,6 @@ import flask
 import psutil
 import rpdb
 import sqlalchemy.orm.exc
-from click import Context
 from dallinger import db
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
@@ -281,6 +279,41 @@ class Request(SQLBase, SQLMixin):
         }
 
 
+def _redacted_asset_request_path(path: str) -> str:
+    """Replace ``/asset/<token>...`` with a redacted endpoint for request logs."""
+    parts = path.split("/")
+    # ['', 'asset', '<token>', ...]
+    if len(parts) >= 3 and parts[1] == "asset" and parts[2]:
+        parts[2] = "<access_token>"
+        return "/".join(parts)
+    return path
+
+
+def _send_file_then_delete_dir(path: str, cleanup_dir: str, mimetype: str):
+    """Return a Flask file response and delete ``cleanup_dir`` after it is sent.
+
+    Cleanup is registered on the response with ``call_on_close`` so the file
+    remains on disk until Flask finishes streaming it.
+    """
+    response = send_file(path, mimetype=mimetype)
+    response.call_on_close(lambda: shutil.rmtree(cleanup_dir, ignore_errors=True))
+    return response
+
+
+def _trials_as_network_monitor_infos(trial_rows: list) -> list:
+    """Adapt trial JSON rows for Dallinger's network monitor ``infos`` slot.
+
+    The monitor draws dashed trial nodes and edges using ``origin_id`` (Info's
+    node foreign key). PsyNet trials use ``node_id`` instead, so we alias it.
+    """
+    infos = []
+    for row in trial_rows:
+        info = dict(row)
+        info["origin_id"] = info.get("node_id")
+        infos.append(info)
+    return infos
+
+
 @register_table
 class ExperimentStatus(SQLBase, SQLMixin):
     __tablename__ = "experiment_status"
@@ -328,9 +361,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     ::
 
         class Exp(psynet.experiment.Experiment):
-
-    Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
-    when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
 
     Config variables can be set here, amongst other places (see online documentation for details):
 
@@ -523,7 +553,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
-    export_classes_to_skip = ["ExperimentStatus"]
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
@@ -534,8 +563,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     artifact_storage = LocalArtifactStorage()
     css = []
     css_links = []
-
-    __extra_vars__ = {}
 
     variables = {}
 
@@ -932,18 +959,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "/start",
             "/timeline",
         ]
-        if any([endpoint == request.path for endpoint in relevant_endpoints]):
-            params = dict(request.args)
-            request_obj = Request(
-                unique_id=params.get("unique_id", None),
-                duration=diff,
-                method=request.method,
-                endpoint=request.path,
-                params=params,
-                status_code=response.status_code,
-            )
-            db.session.add(request_obj)
-            db.session.commit()
+        path = request.path
+        if path.startswith("/asset/"):
+            # Media players issue many Range requests while seeking/buffering.
+            # Logging each one floods the request table; keep full-file fetches only.
+            if request.headers.get("Range"):
+                return response
+            endpoint = _redacted_asset_request_path(path)
+        elif path in relevant_endpoints:
+            endpoint = path
+        else:
+            return response
+
+        params = dict(request.args)
+        request_obj = Request(
+            unique_id=params.get("unique_id", None),
+            duration=diff,
+            method=request.method,
+            endpoint=endpoint,
+            params=params,
+            status_code=response.status_code,
+        )
+        db.session.add(request_obj)
+        db.session.commit()
         return response
 
     @staticmethod
@@ -1154,11 +1192,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if is_ssh_deployment:
             logs_url = "https://logs." + deployment_information.get("server")
 
-        def unpack_export(export_type, deployment_id):
-            assert export_type in ["psynet", "database"]
+        def unpack_export(deployment_id):
             exp = get_experiment()
             storage = exp.artifact_storage
-            filename = f"{export_type}.zip"
+            from psynet.artifact import ArtifactStorage
+
+            filename = ArtifactStorage.EXPORT_FILE
             path = storage.prepare_path(deployment_id, filename)
             try:
                 timestamp = (
@@ -1177,8 +1216,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 }
 
         deployment_id = deployment_information["deployment_id"]
-        psynet_export = unpack_export("psynet", deployment_id)
-        database_export = unpack_export("database", deployment_id)
+        export_info = unpack_export(deployment_id)
 
         error_msgs = [
             f"{error.kind}:{error.message}" for error in cls.get_all_error_records()
@@ -1202,10 +1240,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "dashboard_url": cls.dashboard_url,
             "logs_url": logs_url,
             "basic_data_url": cls.basic_data_url,
-            "psynet_export_url": psynet_export["url"],
-            "psynet_export_timestamp": psynet_export["timestamp"],
-            "database_export_url": database_export["url"],
-            "database_export_timestamp": database_export["timestamp"],
+            "export_url": export_info["url"],
+            "export_timestamp": export_info["timestamp"],
+            # Backward-compatible aliases for older dashboard JS.
+            "psynet_export_url": export_info["url"],
+            "psynet_export_timestamp": export_info["timestamp"],
+            "database_export_url": None,
+            "database_export_timestamp": None,
         }
 
     @classmethod
@@ -1276,12 +1317,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def backup_database(cls):
+        """Store a fresh complete export as the deployment's latest artifact."""
         with tempfile.TemporaryDirectory() as tempdir:
-            # TODO: rewrite to avoid this psynet_export argument
-            input_path = cls._export(tempdir, psynet_export=False)
-            cls.artifact_storage.upload_export(
-                input_path, deployment_id=cls.deployment_id
-            )
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            cls._export(export_dir)
 
     @classmethod
     def get_basic_data(
@@ -1384,6 +1424,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
+
+    def create_participant(self, *args, **kwargs):
+        participant = super().create_participant(*args, **kwargs)
+        recruiter = self.recruiter
+        if hasattr(recruiter, "link_lucid_rid_to_participant"):
+            recruiter.link_lucid_rid_to_participant(participant)
+        return participant
 
     def initialize_bot(self, bot):
         """
@@ -1772,18 +1819,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return get_config().get("label")
 
     @staticmethod
-    def export_path(deployment_id):
-        export_root = "~/psynet-data/export"
+    def export_path():
+        """Return the default export destination, ``exports/latest``."""
+        return str(Path.cwd() / "exports" / "latest")
 
-        return os.path.join(
-            export_root,
-            deployment_id,
-            re.sub(
-                "__launch.*", "", deployment_id
-            )  # Strip the launch date from the path to keep things short
-            + "__export="
-            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
-        )
+    @staticmethod
+    def rotate_export_history(export_path):
+        """Archive a previous export under ``exports/history``.
+
+        Callers must invoke this only once the new export is known to be
+        available, so that a failed export cannot discard the previous one.
+        Returns the archive directory, or ``None`` if there was nothing to
+        archive.
+        """
+        latest = Path(export_path)
+        if not latest.exists():
+            return None
+        history_root = latest.parent / "history"
+        history_root.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S-%f")
+        archived = history_root / timestamp
+        latest.rename(archived)
+        return str(archived)
 
     @property
     def var(self):
@@ -3072,6 +3129,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
         try:
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = client_ip_address
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
                 return self.response_rejected(
@@ -3549,7 +3608,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def dashboard_export(cls):
         return render_template(
             "dashboard_export.html",
-            title="Database export",
+            title="Export data",
             automatic_backups=cls.automatic_backups,
         )
 
@@ -4161,81 +4220,66 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def _export(
-        cls,
-        export_dir,
-        config=None,
-        n_parallel=None,
-        psynet_export: bool = True,
-        anonymize: str = "no",
-        **kwargs,
+    def build_export_archive(
+        cls, export_dir, *, assets="collected", asset_bytes="include"
     ):
-        if config is None:
-            config = get_config()
-        if psynet_export:
-            from .command_line import export__local
+        """Build the canonical export in ``export_dir`` and zip it beside that tree.
 
-            ctx = Context(export__local)
-            ctx.invoke(
-                export__local,
-                path=export_dir,
-                n_parallel=n_parallel,
-                username=config.get("dashboard_user"),
-                password=config.get("dashboard_password"),
-                assets=kwargs.get("assets"),
-                anonymize=anonymize,
-                legacy=True,
-            )
-        else:
-            if anonymize == "both":
-                scrub_pii = [True, False]
-            elif anonymize == "yes":
-                scrub_pii = [True]
-            elif anonymize == "no":
-                scrub_pii = [False]
-            else:
-                raise ValueError("anonymize must be 'yes' or 'no' or 'both'")
-            for scrub in scrub_pii:
-                folder_name = "anonymized" if scrub else "regular"
-                sub_dir = os.path.join(export_dir, folder_name)
-                os.makedirs(sub_dir, exist_ok=True)
-                with working_directory(sub_dir):
-                    dallinger.data.export("app", local=True, scrub_pii=scrub)
-        zip_filename = "psynet" if psynet_export else "database"
-        zip_name = shutil.make_archive(zip_filename, "zip", export_dir)
-        exp = get_experiment()
-        storage = exp.artifact_storage
-        try:
-            storage.upload_export(zip_name, exp.deployment_id)
-            if psynet_export:
-                url = exp.get_artifact_url(exp.deployment_id, "psynet.zip")
-                cls.notifier.notify(
-                    f"A fresh data export has been created, it can be accessed {cls.notifier.url('here', url)}."
-                )
-        except Exception as e:
-            logger.error(f"Failed to save backup: {e}")
-        return zip_name
+        ``asset_bytes="manifest"`` describes the selected assets without copying
+        their bytes, for clients that fetch the bytes themselves.
+        """
+        from .export.service import build_export_archive, build_export_tree
+
+        build_export_tree(
+            export_dir,
+            assets=assets or "collected",
+            local=True,
+            manifest_only_assets=asset_bytes == "manifest",
+        )
+        return build_export_archive(export_dir)
+
+    @classmethod
+    def _export(cls, export_dir, **kwargs):
+        """Build a complete export archive and store it as the latest artifact."""
+        from .export.service import store_latest_archive
+
+        zip_path = cls.build_export_archive(
+            export_dir, assets=kwargs.get("assets") or "collected"
+        )
+        store_latest_archive(zip_path)
+        return zip_path
 
     @staticmethod
-    def _download_export(
-        anonymize: str,
-        export_type: str,  # can be "database" or "psynet"
-        **kwargs,
-    ):
-        assert export_type in ("psynet", "database")
-        exp = get_experiment()
+    def _download_export(assets="collected", asset_bytes="include"):
+        """Build an export, store it if complete, and send it to the caller."""
+        from .export.service import store_latest_archive
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            config = get_config()
-            psynet_export = export_type == "psynet"
-            zip_filepath = exp._export(
-                tempdir,
-                config=config,
-                anonymize=anonymize,
-                psynet_export=psynet_export,
-                **kwargs,
+        exp = get_experiment()
+        tempdir = tempfile.mkdtemp(prefix="psynet-export-")
+        try:
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            zip_filepath = exp.build_export_archive(
+                export_dir, assets=assets, asset_bytes=asset_bytes
             )
-            return send_file(zip_filepath, mimetype="zip")
+            # A manifest-only snapshot is not a usable export on its own, so it
+            # must not replace the deployment's stored artifact.
+            if asset_bytes != "manifest":
+                store_latest_archive(zip_filepath)
+            return _send_file_then_delete_dir(zip_filepath, tempdir, mimetype="zip")
+        except Exception as exc:
+            shutil.rmtree(tempdir, ignore_errors=True)
+            # Without this the experimenter only sees a bare 500 and has to go
+            # reading server logs to find out why the archive could not be built.
+            logger.error("Failed to build the export archive.", exc_info=True)
+            return error_response(
+                error_text=(
+                    f"The experiment could not build the export: "
+                    f"{type(exc).__name__}: {exc}"
+                ),
+                status=500,
+                simple=True,
+            )
 
     @dashboard.route("/artifact/<deployment_id>/<filename>", methods=["GET"])
     @staticmethod
@@ -4246,16 +4290,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
         exp = get_experiment()
-        with tempfile.TemporaryDirectory() as tempdir:
+        tempdir = tempfile.mkdtemp(prefix="psynet-artifact-")
+        try:
             storage = exp.artifact_storage
             path = storage.prepare_path(deployment_id, filename)
             destination = os.path.join(tempdir, os.path.basename(path))
             storage.download(path, destination)
             if not os.path.exists(destination):
+                shutil.rmtree(tempdir, ignore_errors=True)
                 return error_response(
                     error_text=f"Artifact {deployment_id}/{filename} not found."
                 )
-            return send_file(destination, mimetype="application/octet-stream")
+            return _send_file_then_delete_dir(
+                destination, tempdir, mimetype="application/octet-stream"
+            )
+        except Exception:
+            shutil.rmtree(tempdir, ignore_errors=True)
+            raise
+
+    @dashboard.route("/export/preflight", methods=["GET"])
+    @staticmethod
+    @with_transaction
+    def export_preflight():
+        """Describe this deployment so a client can validate it before downloading."""
+        from flask_login import current_user
+
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
+            return error_response(error_text="Invalid credentials", simple=True)
+
+        from .export.identity import server_project_identity
+
+        return jsonify(server_project_identity())
 
     @dashboard.route("/export/download", methods=["GET"])
     @staticmethod
@@ -4266,35 +4331,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
 
-        kwargs = dict(request.args)
-        anonymize = kwargs.pop("anonymize", "no")
-        export_type = kwargs.pop("type", "database")
+        from .export.service import validate_asset_mode
+
+        try:
+            assets = validate_asset_mode(request.args.get("assets", "collected"))
+        except ValueError as exc:
+            return error_response(error_text=str(exc), status=400, simple=True)
 
         exp = get_experiment()
-        return exp._download_export(anonymize, export_type, **kwargs)
+        return exp._download_export(
+            assets=assets,
+            asset_bytes=request.args.get("asset_bytes", "include"),
+        )
 
     @dashboard.route("/export/trigger", methods=["GET"])
     @staticmethod
     @with_transaction
     def trigger_export():
-        kwargs = dict(request.args)
-        anonymize = kwargs.pop("anonymize", "no")
-        export_type = kwargs.pop("type", "database")
-        assets = kwargs.get("assets", "none")
+        """Build a complete export and store it, without sending it anywhere."""
+        from .export.service import store_latest_archive, validate_asset_mode
 
-        # We just call _download_export for the side effect of uploading the export to the storage service.
+        try:
+            assets = validate_asset_mode(request.args.get("assets", "none"))
+        except ValueError as exc:
+            return error_response(error_text=str(exc), status=400, simple=True)
+
         exp = get_experiment()
-        exp._download_export(
-            anonymize=anonymize,
-            export_type=export_type,
-            assets=assets,
-        )
+        with tempfile.TemporaryDirectory() as tempdir:
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            store_latest_archive(exp.build_export_archive(export_dir, assets=assets))
 
-        return success_response(
-            anonymize=anonymize,
-            export_type=export_type,
-            assets=assets,
-        )
+        return success_response(assets=assets)
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
@@ -4315,9 +4383,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return json.dumps(json_data, default=serialise)
 
+    @experiment_route("/asset/<access_token>", methods=["GET"])
+    @experiment_route("/asset/<access_token>/<path:subpath>", methods=["GET"])
+    @staticmethod
+    def get_asset_by_access_token(access_token, subpath=None):
+        """Serve a managed or on-demand asset via its permanent access token."""
+        asset = Asset.query.filter_by(access_token=access_token).one_or_none()
+        if asset is None:
+            flask.abort(404)
+        return asset.serve(subpath)
+
     @experiment_route("/on-demand-asset", methods=["GET"])
     @staticmethod
     def get_on_demand_asset():
+        """
+        Legacy on-demand route.
+
+        Prefer ``/asset/<access_token>``. This endpoint remains as a temporary
+        compatibility shim that redirects when the asset has an access token.
+        """
         id = request.args.get("id")
         secret = request.args.get("secret")
 
@@ -4327,11 +4411,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         id = int(id)
 
         asset = OnDemandAsset.query.filter_by(id=id).one()
-        suffix = asset.extension if asset.extension else ""
+        if getattr(asset, "access_token", None):
+            target = asset.access_url()
+            return redirect(target)
 
+        # Fallback for rows that somehow lack a token.
+        suffix = asset.extension if asset.extension else ""
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
             asset.export(temp_file.name)
-
             return send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
@@ -4485,6 +4572,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         info = Info.query.with_for_update(of=Info).populate_existing().get(info_id)
         info.fail(reason="http_fail_route_called")
+        return success_response()
+
+    @experiment_route("/trial/<int:trial_id>/fail", methods=["GET", "POST"])
+    @staticmethod
+    @with_transaction
+    def fail_trial(trial_id):
+        from .trial.main import Trial
+
+        trial = Trial.query.with_for_update(of=Trial).populate_existing().get(trial_id)
+        if trial is None:
+            flask.abort(404)
+        trial.fail(reason="http_fail_route_called")
         return success_response()
 
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
@@ -5105,6 +5204,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         return stats
+
+    def network_structure(
+        self,
+        network_roles=None,
+        network_ids=None,
+        collapsed=False,
+        transformations=False,
+    ):
+        """Return network monitor payload with PsyNet trials in the infos slot.
+
+        Dallinger's network monitor still expects an ``infos`` list linked to
+        nodes via ``origin_id``. PsyNet trials live in the ``trial`` table and
+        use ``node_id``, so we substitute trial rows and alias ``origin_id``.
+        """
+        structure = super().network_structure(
+            network_roles=network_roles,
+            network_ids=network_ids,
+            collapsed=collapsed,
+            transformations=transformations,
+        )
+        if collapsed:
+            return structure
+
+        trials = self.summarize_table("trial", network_roles, network_ids)
+        structure["infos"] = _trials_as_network_monitor_infos(trials)
+        return structure
 
     def check_consents(self):
         if (
