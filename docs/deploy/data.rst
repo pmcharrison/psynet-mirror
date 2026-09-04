@@ -20,7 +20,7 @@ Exporting data from the dashboard
 =================================
 
 The 'export' section of the dashboard downloads ``export.zip``.
-You choose whether to include assets (none, collected during the run, or all).
+You choose whether to include assets (none, or collected during the run).
 Dashboard downloads also store the archive as the deployment's latest export
 artifact, so the most recent complete export stays available on the server.
 Only one ``export.zip`` is kept per deployment; earlier versions are replaced.
@@ -104,9 +104,10 @@ behavior using the ``--assets`` argument:
 
     psynet export ssh --app my-app-name --assets none
 
-Use ``--assets all`` to also include pre-existing assets (cached stimuli,
-external URLs) and to materialize on-demand assets. Treat exported media as
-potentially identifying.
+Treat exported media as potentially identifying. Cached stimuli, external
+URLs, and on-demand assets are not part of the archive; copy stimuli from
+the experiment directory or storage if you need them for supplementary
+materials.
 
 ``manifest.json`` records the git commit SHA that was deployed
 (``git_commit_sha``), whether the working tree was dirty (``git_dirty``), the
@@ -122,7 +123,7 @@ data into a local database. PsyNet then picks the cheapest way to transfer the
 result, and tells you which one it used:
 
 * **Complete archive.** The server builds ``export.zip`` and streams it to your
-  computer. This is used for Heroku, for ``--assets all``, and for any
+  computer. This is used for Heroku and for any
   deployment whose asset bytes PsyNet cannot copy directly (for example
   S3-backed storage).
 * **Incremental transfer.** For SSH deployments whose assets live in
@@ -182,9 +183,22 @@ blanking a ``NOT NULL`` column would produce an archive that
 same rule applies automatically to identifier columns on experiment-defined
 tables.
 
-PsyNet does not inspect assets, free-text answers, logs, serialized variables, or
-experiment-defined basic data for identifying content. Treat those as potentially
-identifying unless you have scrubbed them yourself.
+.. _export_asset_tokens:
+
+Sharing an export
+=================
+
+To share a dataset publicly, delete ``participant_identifiers.csv`` (and
+``lucid_entrant_identifiers.csv`` if present). Then look through the rest of
+the archive for anything else you would not want public. PsyNet does not
+inspect assets, free-text answers, logs, serialized variables, or
+experiment-defined basic data.
+
+``database/asset.csv`` includes ``access_token`` and ``url``. Those are the
+same browser capabilities the running experiment uses
+(``/asset/<access_token>``). Once the deployment has finished they are
+harmless. If you share an export while the experiment is still live, delete
+those columns so the tokens cannot be used against the running app.
 
 .. _export_assets:
 
@@ -194,19 +208,20 @@ Assets
 By default (``--assets collected``), only managed assets deposited during the
 course of the experiment are exported — for example audio recordings.
 Pre-existing assets such as ``CachedAsset`` stimuli and ``ExternalAsset`` URLs
-are omitted, and on-demand assets are not generated.
+are omitted, and on-demand assets are not generated. Use ``--assets none`` to
+skip asset files entirely.
 
-Use ``--assets all`` for a fuller archive that also includes those pre-existing
-assets and materializes on-demand outputs. Use ``--assets none`` to skip asset
-files entirely.
+If you need a stimulus pack for supplementary materials, copy those files from
+the experiment directory or from storage rather than from the data export.
 
 Managed asset bytes are stored on the server under content-addressed paths of the
 form ``objects/sha256/<digest>``. Exported archives instead materialize those
 bytes under semantic paths from each asset's ``export_path`` (for example
 module and participant folders). The ``assets/manifest.csv`` file maps semantic
 metadata (asset id, local key, associations, extension, sha256, and so on) onto
-those files. ``ExternalAsset`` rows appear in the manifest with their raw URL only;
-they are not downloaded into the asset tree.
+those files. External and on-demand assets are omitted from the export tree;
+their metadata remains in ``database/asset.csv``, including ``access_token``
+and ``url`` (see :ref:`export_asset_tokens`).
 
 Live browser access for local and on-demand assets uses a permanent access
 token at ``/asset/<access_token>``. S3-backed managed assets use a direct public
@@ -217,8 +232,11 @@ have been removed.
 Command-line exports reuse a persistent local cache under
 ``~/psynet-data/cache/assets/``. Cached files and their hard-linked export
 copies are read-only so editing an export cannot silently change the bytes
-stored under a content hash. PsyNet revalidates a cache entry if it becomes
-writable. Inspect or clear the cache with:
+stored under a content hash. A **writable** cache entry is re-hashed before
+reuse; a **read-only** hit is trusted without hashing again. If you edited
+files under ``~/psynet-data/cache/assets`` (or suspect they were altered),
+prune the cache rather than relying on the next export to notice. Inspect or
+clear the cache with:
 
 .. code:: bash
 
@@ -237,14 +255,8 @@ supplying every requested object: because the server can always read its own
 files, PsyNet retries with a complete archive rather than publishing an
 incomplete export. Warm-cache repeat exports do not need rsync at all.
 
-Incremental transfer is currently offered for ``--assets collected`` on
-deployments using ``LocalStorage``. ``--assets all`` always uses the complete
-archive, because it can include on-demand assets, which have no bytes on disk
-and no content digest until the server generates them. The practical
-consequence is that ``--assets all`` re-downloads pre-existing stimuli on every
-export, even though those are cached and unchanged; prefer ``--assets
-collected`` for repeat exports of large stimulus sets. S3-backed assets also
-always use the complete archive.
+Incremental transfer is offered for ``--assets collected`` on deployments using
+``LocalStorage``. S3-backed assets always use the complete archive.
 
 If the cache grows past a soft limit (50 GiB by default), PsyNet warns after
 export but does **not** fail or delete objects. A single large experiment may
@@ -258,6 +270,7 @@ Several types of data can be exported during the export process. They each have 
 
 The **database tables** are a portable copy of the physical database at a given time
 (``database/*.csv`` plus identifier sidecars and ``manifest.json``).
+Those files are read in one repeatable-read database transaction.
 They are useful for restoring experiments from a specific state and for analysis that reads
 table CSVs directly. ``psynet debug`` / ``deploy --archive`` accepts ``export.zip``,
 a ``database/`` directory, or an extracted export directory containing ``database/``.
@@ -267,6 +280,8 @@ They are only present if the experimenter has implemented the ``get_basic_data``
 
 The **assets** correspond to heavy files (e.g. audio, video) that are associated with the experiment.
 Not all experiments use assets. Choose ``--assets none`` to omit the assets folder.
+Basic data and assets are built after that table snapshot, from the live experiment,
+so they reflect the moment the export ran rather than the same database instant as the CSVs.
 
 The **server logs** can also be exported when exporting from an SSH server.
 These come in the form of a ``logs.jsonl`` file. Don't share these publicly

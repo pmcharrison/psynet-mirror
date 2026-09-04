@@ -98,11 +98,14 @@ class TestAssetExport:
         bot_driver.take_experiment()
 
         with tempfile.TemporaryDirectory() as tempdir:
-            with pytest.raises(ValueError) as e:
+            with pytest.raises(ValueError, match="must be one of"):
                 ctx.invoke(export__local, path=tempdir, assets="asdasdoj")
-            assert str(e.value) == "--assets must be either none, collected, or all."
+            with pytest.raises(
+                ValueError, match="asset selection 'all' has been removed"
+            ):
+                ctx.invoke(export__local, path=tempdir, assets="all")
 
-            ctx.invoke(export__local, path=tempdir, assets="all")
+            ctx.invoke(export__local, path=tempdir, assets="collected")
 
             self.assert_database_dir(os.path.join(tempdir, "database"))
             self.assert_identifier_sidecar(
@@ -144,28 +147,6 @@ class TestAssetExport:
                 export_path = row["export_path"]
                 assert export_path
                 assert os.path.exists(os.path.join(path, export_path))
-
-        with tempfile.TemporaryDirectory() as tempdir:
-            ctx.invoke(export__local, path=tempdir, assets="all")
-            path = os.path.join(tempdir, "assets")
-            with open(os.path.join(path, "manifest.csv"), newline="") as csv_file:
-                rows = list(csv.DictReader(csv_file))
-            labels = {row["local_key"] for row in rows}
-            assert "test_marked_asset" in labels
-            assert "test_external_asset" in labels
-            assert "test_on_demand_asset" in labels
-            external_rows = [
-                row for row in rows if row["local_key"] == "test_external_asset"
-            ]
-            assert len(external_rows) == 1
-            assert not external_rows[0]["object_path"]
-            assert external_rows[0]["url"].startswith("https://")
-            on_demand_rows = [
-                row for row in rows if row["local_key"] == "test_on_demand_asset"
-            ]
-            assert len(on_demand_rows) == 1
-            assert on_demand_rows[0]["export_path"]
-            assert os.path.exists(os.path.join(path, on_demand_rows[0]["export_path"]))
 
     def assert_database_dir(self, path):
         import pandas as pd

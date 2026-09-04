@@ -59,6 +59,13 @@ def test_lucid_rid_uses_participant_id_fk():
     assert participant_fks[0].column.table.name == "participant"
 
 
+def test_request_params_is_redacted_as_json():
+    from psynet.export.identifiers import _JSON_IDENTIFIER_FIELDS, identifier_role
+
+    assert identifier_role("request", "params") == "redact"
+    assert "params" in _JSON_IDENTIFIER_FIELDS
+
+
 def test_linking_lucid_participant_does_not_commit_the_request_transaction():
     entrant = SimpleNamespace(participant_id=None)
     entrant.link_participant = lambda participant: setattr(
