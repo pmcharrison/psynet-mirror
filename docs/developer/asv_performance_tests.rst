@@ -53,12 +53,14 @@ Commits to ``master`` run the ``asv_benchmarks`` CI job. This job uses
 slow benchmark tiers. It compares the previous ``master`` commit with the new
 commit on the same runner, writes the generated result files, commits those
 results to the ``benchmark-results`` branch, pushes them, and then propagates
-the ASV exit status. The comparison uses ``--factor 2``: the slow
+the ASV exit status. The comparison uses ``--factor 2`` because the slow
 ``psynet performance-test`` medians commonly move by 1.2–1.3× on GitLab
-runners without a code change, so the tighter merge-request factor of 1.25
-would false-positive. The job is currently allowed to fail while the
-benchmark suite is being tuned, but it still preserves the data needed for
-the published benchmark history.
+runners without a code change. ``asv continuous`` applies one factor to
+every benchmark it runs, so the default-branch job is also looser on the
+fast suite; merge requests still gate the fast suite at ``--factor 1.25``.
+The job is currently allowed to fail while the benchmark suite is being
+tuned, but it still preserves the data needed for the published
+benchmark history.
 
 ASV command modes
 =================
