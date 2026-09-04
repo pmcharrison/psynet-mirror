@@ -544,7 +544,9 @@ textarea:focus-visible,
     content: attr(data-progress);
     padding: 0 0.45rem;
     border-radius: 999px;
-    background-color: var(--psynet-surface);
+    /* Same grey as the track, so the pill disappears into the empty rail
+       and only cuts a notch once the fill reaches it. */
+    background-color: var(--psynet-border);
     color: var(--psynet-text);
     font-size: 0.68rem;
     font-weight: 500;

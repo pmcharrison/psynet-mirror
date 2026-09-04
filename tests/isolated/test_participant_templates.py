@@ -201,12 +201,13 @@ def test_progress_percentage_is_centred_on_the_track():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    # One opaque pill, so a single text colour reads over track and fill alike.
+    # One opaque pill, same grey as the track, so a single text colour reads
+    # over track and fill alike.
     start = css.index("#timeline-progress-label::before {")
     end = css.index("}", start)
     block = css[start:end]
     assert "tabular-nums" in block
-    assert "background-color: var(--psynet-surface)" in block
+    assert "background-color: var(--psynet-border)" in block
     assert "border-radius: 999px" in block
     assert "line-height: var(--psynet-progress-height)" in block
     # No clip-path trickery left over from drawing the label twice.

@@ -39,7 +39,8 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - Panels that group response options.
    * - ``--psynet-border``
      - ``#dfe5ee``
-     - Default border colour.
+     - Default border colour, and the progress-bar track (and its
+       percentage pill).
    * - ``--psynet-text``
      - ``#1f2733``
      - Body text.

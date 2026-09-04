@@ -238,6 +238,39 @@ test(
 );
 
 test(
+  "progress percentage sits on a grey pill matching the track",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 200 },
+      extraCss: `.progress { display: flex; overflow: hidden; }`,
+      html: `
+        <div id="timeline-header" class="header">
+          <div class="progress">
+            <div id="timeline-progress-bar" class="progress-bar" style="width:12%"></div>
+            <span id="timeline-progress-label" aria-hidden="true" data-progress="12%"></span>
+          </div>
+        </div>`
+    });
+
+    const colors = await page.evaluate(() => {
+      const rail = document.querySelector("#timeline-header .progress");
+      const label = document.getElementById("timeline-progress-label");
+      return {
+        rail: getComputedStyle(rail).backgroundColor,
+        pill: getComputedStyle(label, "::before").backgroundColor,
+        border: getComputedStyle(document.documentElement)
+          .getPropertyValue("--psynet-border")
+          .trim()
+      };
+    });
+
+    expect(colors.rail).toBe(colors.pill);
+    expect(colors.border).toBe("#dfe5ee");
+  }
+);
+
+test(
   "media progress mirrors the timeline bar and follows the footer",
   { tag: "@both" },
   async ({ page }) => {
