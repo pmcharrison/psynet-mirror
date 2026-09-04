@@ -295,11 +295,17 @@ def test_timeline_omits_footer_when_hidden():
     assert "{% else %}\n            {{ media_download_bar() }}" in macro
 
 
-def test_abort_pages_use_content_surface():
+def test_abort_pages_skip_the_content_surface():
+    """Abort pages open in a small popup; the content surface made them unscrollable."""
     templates = resources.files("psynet") / "templates"
     for name in ("abort_possible.html", "abort_not_possible.html"):
         source = (templates / name).read_text(encoding="utf-8")
-        assert "psynet-surface" in source, f"{name} is missing the content surface"
+        assert "psynet-surface" not in source, (
+            f"{name} should not use the content surface"
+        )
+        assert 'class="container my-4"' in source
+        assert "padding-bottom: 0" in source
+        assert "d-flex" in source
 
 
 def _audio_meter_macro():

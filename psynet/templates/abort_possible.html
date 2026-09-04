@@ -33,9 +33,8 @@
               <tr><th>{{ gettext("Accumulated reward") }}</th><td>{{ participant_abort_info.accumulated_reward }}</td></tr>
             </tbody>
         </table>
-        {# A flex row rather than opposing floats: uncleared floats escape the
-           content surface, which leaves the buttons outside its box and can put
-           them beyond reach of a click in a small popup window. #}
+        {# A flex row rather than opposing floats: uncleared floats can put
+           the buttons beyond reach of a click in a small popup window. #}
         <div class="d-flex flex-wrap justify-content-between gap-2 mt-3">
           <button type="button" id="close-button" class="btn btn-primary btn-lg" onclick="window.close();">
             {{ gettext("Close window") }}

@@ -35,8 +35,8 @@
               <tr><th>{{ gettext("Accumulated reward") }}</th><td>{{ participant_abort_info.accumulated_reward }}</td></tr>
             </tbody>
         </table>
-        {# A flex row rather than a float, so the button stays inside the
-           content surface. See abort_possible.html. #}
+        {# A flex row rather than a float, so the button stays in flow.
+           See abort_possible.html. #}
         <div class="d-flex flex-wrap gap-2 mt-3">
           <button type="button" id="close-button" class="btn btn-primary btn-lg" onclick="window.close();">
             {{ gettext("Close window") }}
