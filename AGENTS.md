@@ -280,6 +280,7 @@ When you make changes to the PsyNet codebase:
    runs. Until then a missing PsyNet catalog entry falls back to English with
    a warning during test runs; `psynet debug` and experiment-owned catalogs
    still raise. Tests that pin translated PsyNet copy should use
-   `release_branch_only` or `is_release_branch()` from `psynet.pytest_psynet`.
+   `is_release_branch()` from `psynet.utils`, or `release_branch_only` from
+   `psynet.pytest_psynet`.
 
 4. **Commit and push**: Commit all changes including changelog fragments (but not a regenerated `CHANGELOG.md`) and any pre-commit formatting fixes.

@@ -14,14 +14,13 @@ To check if translations are up to date (only runs on release branches):
 import polib
 import pytest
 
-from psynet.pytest_psynet import release_branch_only
 from psynet.translation.check import (
     assert_variable_names_match,
     translation_contains_same_variables,
 )
 from psynet.translation.check import check_translations as check_translations_internal
 from psynet.translation.translate import check_translations
-from psynet.utils import get_psynet_root, working_directory
+from psynet.utils import get_psynet_root, is_release_branch, working_directory
 
 
 def make_entry(msgid="", msgstr=""):
@@ -108,7 +107,10 @@ def test_multiple_entries():
         assert_variable_names_match(pot_entries, po_entries_one_wrong)
 
 
-@release_branch_only
+@pytest.mark.skipif(
+    not is_release_branch(),
+    reason="This test only runs on release branches",
+)
 def test_psynet_translations_up_to_date():
     """
     Verify all PsyNet package translations are up-to-date with source code.

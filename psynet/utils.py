@@ -721,17 +721,6 @@ def check_translation_is_available(message, context, locale, namespace):
             raise TranslationNotFoundError(error_message)
 
 
-def report_translation_error(message, context, locale):
-    from psynet.experiment import get_experiment
-
-    try:
-        raise TranslationNotFoundError(
-            f"Translation not found for message '{message}' (context: {context}) in locale '{locale}'"
-        )
-    except TranslationNotFoundError as e:
-        get_experiment().report_error(e)
-
-
 def get_translator(
     context=False,
     locale=None,
