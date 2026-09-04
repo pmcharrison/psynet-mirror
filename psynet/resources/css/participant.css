@@ -101,8 +101,10 @@
     --psynet-content-width: 900px;
     --psynet-measure: 62ch;
     --psynet-focus-ring: 3px solid var(--psynet-accent);
-    /* Tall enough to hold the percentage; the media-download bar mirrors it. */
+    /* Tall enough to hold the percentage pill. */
     --psynet-progress-height: 1rem;
+    /* The media-download bar carries no label, so it stays a thin rail. */
+    --psynet-media-progress-height: 6px;
     --psynet-audio-meter-height: 10px;
     --psynet-footer-clearance: 5rem;
     /* Space reserved around a graphic so the page still fits a 1280×720
@@ -197,7 +199,7 @@ body:has(#footer) {
 /* Without a footer the media-download bar pins itself to the bottom edge, so
    the last few pixels of a scrolled page would otherwise hide underneath it. */
 body:not(:has(#footer)):has(#media-download-progress-bar) {
-    padding-bottom: var(--psynet-progress-height);
+    padding-bottom: var(--psynet-media-progress-height);
 }
 
 /*
@@ -524,39 +526,32 @@ textarea:focus-visible,
 }
 
 /*
- * The percentage is centred on the whole track rather than inside the fill,
- * where Bootstrap puts it: early in an experiment the fill is too narrow to
- * hold it. Being centred means it can straddle the boundary between fill and
- * track, and no single colour is legible on both, so it is drawn twice: once
- * dark for the track, and once in the contrast colour clipped to the fill.
- * The label duplicates aria-valuenow on the bar, so it is hidden from
- * assistive technology.
+ * The percentage rides the middle of the track rather than sitting inside the
+ * fill, where Bootstrap puts it: early in an experiment the fill is too narrow
+ * to hold it. It sits on an opaque pill so that a single text colour stays
+ * legible wherever the fill happens to have reached. The label duplicates
+ * aria-valuenow on the bar, so it is hidden from assistive technology.
  */
 #timeline-progress-label {
     position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
-    font-size: 0.72rem;
-    font-weight: 500;
-    /* Fixed-width digits so the label does not jitter as it counts up. */
-    font-variant-numeric: tabular-nums;
     pointer-events: none;
 }
 
-#timeline-progress-label::before,
-#timeline-progress-label::after {
-    content: attr(data-progress);
-    grid-area: 1 / 1;
-}
-
 #timeline-progress-label::before {
+    content: attr(data-progress);
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background-color: var(--psynet-surface);
     color: var(--psynet-text);
-}
-
-#timeline-progress-label::after {
-    color: var(--psynet-accent-contrast);
-    clip-path: inset(0 calc(100% - var(--psynet-progress-fill, 0%)) 0 0);
+    font-size: 0.68rem;
+    font-weight: 500;
+    /* Exactly the rail height, so the pill never overflows it. */
+    line-height: var(--psynet-progress-height);
+    /* Fixed-width digits so the label does not jitter as it counts up. */
+    font-variant-numeric: tabular-nums;
 }
 
 .progress,
@@ -581,7 +576,9 @@ textarea:focus-visible,
        cannot shift the footer, which means the strip it covers would otherwise
        still be counted when the reward text is centred. Reserving its height
        here centres the text in the strip participants actually see. */
-    padding-top: calc(var(--bs-navbar-padding-y) + var(--psynet-progress-height));
+    padding-top: calc(
+        var(--bs-navbar-padding-y) + var(--psynet-media-progress-height)
+    );
 }
 
 #footer .footer-text {
@@ -598,7 +595,7 @@ textarea:focus-visible,
     position: absolute;
     top: 0;
     left: 0;
-    height: var(--psynet-progress-height);
+    height: var(--psynet-media-progress-height);
     background-color: var(--psynet-accent);
 }
 

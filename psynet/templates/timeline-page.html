@@ -74,13 +74,13 @@
     {% macro timeline_header() %}
         <div id="timeline-header" class="header">
             {% if config.show_progress_bar %}
-                <div class="progress" style="--psynet-progress-fill: {{ progress_percentage }}%">
+                <div class="progress">
                     <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
                          aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
                          style="width:{{ progress_percentage }}%"></div>
                     {# Centred on the track rather than inside the fill, which is
-                       too narrow to hold it early on. participant.css draws it
-                       twice so it stays legible over both. #}
+                       too narrow to hold it early on; participant.css puts it on
+                       a pill so one colour reads over both. #}
                     <span id="timeline-progress-label" aria-hidden="true"
                           data-progress="{{ progress_percentage }}%"></span>
                 </div>

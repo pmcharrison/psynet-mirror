@@ -279,7 +279,11 @@ test(
       };
     });
 
-    expect(geometry.mediaHeight).toBe(geometry.topHeight);
+    // A thinner rail than the labelled bar at the top of the page.
+    expect(parseFloat(geometry.mediaHeight)).toBeGreaterThan(0);
+    expect(parseFloat(geometry.mediaHeight)).toBeLessThan(
+      parseFloat(geometry.topHeight)
+    );
     expect(geometry.mediaBottom).toBe(geometry.viewport);
     // Width still tracks progress rather than filling the page.
     expect(geometry.mediaWidth).toBe(512);
@@ -304,8 +308,8 @@ test(
         footerTop: Math.round(footer.getBoundingClientRect().top),
         footerBorderTop: getComputedStyle(footer).borderTopWidth,
         mediaHeight: getComputedStyle(media).height,
-        railHeight: getComputedStyle(document.documentElement)
-          .getPropertyValue("--psynet-progress-height")
+        mediaToken: getComputedStyle(document.documentElement)
+          .getPropertyValue("--psynet-media-progress-height")
           .trim()
       };
     });
@@ -314,11 +318,8 @@ test(
     expect(geometry.mediaTop - geometry.footerTop).toBe(
       parseFloat(geometry.footerBorderTop)
     );
-    // Still the token height, whatever the theme sets it to.
-    expect(parseFloat(geometry.mediaHeight)).toBe(
-      parseFloat(geometry.railHeight) *
-        (geometry.railHeight.endsWith("rem") ? 16 : 1)
-    );
+    // Still its own token height, whatever the theme sets it to.
+    expect(geometry.mediaHeight).toBe(geometry.mediaToken);
   }
 );
 
