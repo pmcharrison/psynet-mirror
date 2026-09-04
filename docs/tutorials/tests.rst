@@ -211,33 +211,22 @@ code blocks, networks, and recorded answers. They do not render a browser
 layout, so they cannot tell you whether a page scrolls, whether a control
 sits behind the footer, or whether content is wider than the window.
 
-Every participant page loads ``/static/scripts/psynet.layout.js``, which
-exposes ``psynetLayout.check()``. After a page is ready, call it from a
-Playwright walk and expect an empty list of violations:
+Checking those things means driving a real browser, normally with Playwright,
+and keeping the walk with the experiment as ``tests/participant-flow.spec.js``.
+Every participant page exposes ``psynetLayout.check()``, which reports the
+layout violations it can find on the page as rendered.
 
-.. code-block:: javascript
+For the current recipe, including which viewports to check and how to wait for
+a page to be ready, see the "Layout checks" section of
+``.cursor/skills/psynet/develop-experiment-front-end/SKILL.md``, which
+``psynet scripts update`` installs in your experiment directory.
 
-    await page.waitForSelector("#main-body[data-page-ready='true']");
-    const violations = await page.evaluate(async () => {
-        if (!window.psynetLayout || typeof window.psynetLayout.check !== "function") {
-            throw new Error("psynetLayout.check is not available on this page");
-        }
-        return await window.psynetLayout.check();
-    });
-    expect(violations, "radio page").toEqual([]);
-
-Use a 1280×720 viewport. If the experiment allows mobile devices (the
-default), also check 375×780. Pages that are meant to be taller than the
-window must set ``expect_scrolling=True``; see :doc:`theming`. Store the
-walk with the experiment, typically as ``tests/participant-flow.spec.js``.
-
-The older Selenium-style tests in the PsyNet source
-(``test_demo_timeline.py``, ``test_demo_static.py``) also drive a browser,
-but they do not test concurrency.
-To bypass these restrictions, some PsyNet users have found it useful to write custom Selenium tests.
-Here is a minimal example of a custom Selenium test (provided without warranty) that could be extended
-to test multiple concurrent users, which you would run by executing ``python3 bot.py --app test-app``.
-Thanks Pol van Rijn for this example!
+Some PsyNet users have instead written custom Selenium tests, which can be
+extended to drive several concurrent participants. Here is a minimal example
+(provided without warranty), which you would run by executing
+``python3 bot.py --app test-app``. It predates both Playwright and PsyNet's
+current element names, so treat it as a sketch of the approach rather than a
+working script. Thanks Pol van Rijn for this example!
 
 .. code-block:: python
 
