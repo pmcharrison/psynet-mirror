@@ -5,7 +5,10 @@ The cache lives at ``~/psynet-data/cache/assets`` and mirrors the
 export run, managed assets whose SHA-256 digest is already known are
 served from the cache with a hardlink (or copy on different filesystems)
 rather than re-fetched from remote storage.  Only objects that are absent
-from the cache are fetched, verified, and placed atomically.
+from the cache are fetched, verified, and placed atomically.  Read-only
+cache hits are trusted without re-hashing; writable entries are re-hashed
+before reuse.  If cache files were edited while marked read-only, prune
+the cache (``psynet assets cache prune --all``).
 
 Layout
 ------

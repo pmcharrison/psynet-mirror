@@ -88,7 +88,7 @@ def resolve_database_dir(path: str) -> str:
     FileNotFoundError
         If ``path`` does not exist.
     ValueError
-        If ``path`` is an ``export.zip`` (use :func:`iter_table_csv_members`
+        If ``path`` is an ``export.zip`` (use :func:`table_csv_members`
         / zip-aware loaders) or the layout cannot be resolved on disk.
     """
     path = os.path.abspath(os.path.expanduser(path))

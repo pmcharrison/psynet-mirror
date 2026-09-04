@@ -73,7 +73,6 @@ def test_incremental_transfer_is_used_only_when_the_deployment_supports_it():
         choose_transport(eligible, assets="collected", over_ssh=True) == "incremental"
     )
     assert choose_transport(s3_backed, assets="collected", over_ssh=True) == "archive"
-    assert choose_transport(eligible, assets="all", over_ssh=True) == "archive"
     # No SSH access uses the complete archive.
     assert choose_transport(eligible, assets="collected", over_ssh=False) == "archive"
     with pytest.raises(TransferError, match="earlier version of PsyNet"):

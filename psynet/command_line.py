@@ -2346,7 +2346,9 @@ def _resolve_ssh_app(ctx, app, server):
     return resolved_app
 
 
-def _warn_deprecated_export_options(no_source, username, password, n_parallel=None):
+def _warn_deprecated_export_options(
+    no_source, username, password, n_parallel=None, anonymize=False
+):
     """Warn when deprecated export options are explicitly supplied.
 
     The options are still accepted so that older scripts keep running; they
@@ -2359,6 +2361,7 @@ def _warn_deprecated_export_options(no_source, username, password, n_parallel=No
             ("--username", username is not None),
             ("--password", password is not None),
             ("--n_parallel", n_parallel is not None),
+            ("anonymize=", anonymize),
         )
         if used
     ]
@@ -2378,10 +2381,10 @@ def export_arguments(func):
             "--assets",
             default="collected",
             help=(
-                "Which assets to export; valid values are none, collected, and all. "
-                "'collected' exports files uploaded or recorded during this deployment "
-                "(e.g. recordings), excluding stimuli, external URLs, and "
-                "on-demand generation. 'all' includes those stimuli and generated assets. "
+                "Which assets to export; valid values are none and collected. "
+                "'collected' (the default) exports files uploaded or recorded "
+                "during this deployment (e.g. recordings), excluding cached "
+                "stimuli, external URLs, and on-demand generation. "
                 "'none' omits the assets folder."
             ),
         ),
@@ -2567,9 +2570,10 @@ def export_(
     database. Server-built exports do not need them: they take the experiment's
     identity from an authenticated preflight instead.
     """
-    # Ignore deprecated anonymize kwargs from older callers.
-    kwargs.pop("anonymize", None)
-    _warn_deprecated_export_options(no_source, username, password, n_parallel)
+    anonymize = kwargs.pop("anonymize", None)
+    _warn_deprecated_export_options(
+        no_source, username, password, n_parallel, anonymize=bool(anonymize)
+    )
 
     from .experiment import import_local_experiment
 
@@ -2581,8 +2585,9 @@ def export_(
     if app is not None and local:
         raise ValueError("You cannot provide both --local and --app arguments.")
 
-    if assets not in ["none", "collected", "all"]:
-        raise ValueError("--assets must be either none, collected, or all.")
+    from .export.service import validate_asset_mode
+
+    assets = validate_asset_mode(assets)
 
     experiment_class = import_local_experiment()["class"]
 
