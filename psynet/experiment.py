@@ -445,8 +445,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         See :attr:`~psynet.experiment.Experiment.show_reward`.
 
     show_footer : `bool`
-        If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
-        and reward information if `show_reward` resolves to `True`.
+        If ``True`` (default), then a footer may be displayed at the bottom of the page.
+        It holds reward information if `show_reward` resolves to `True`, a 'Comment'
+        button if `leave_comments_on_every_page` is set, and a termination button if
+        `show_termination_button` is set or the recruiter requires one. The footer is
+        omitted when none of these apply, so that an empty bar does not take up space.
 
     show_progress_bar : `bool`
         If ``True`` (default), then a progress bar is displayed at the top of the page.
