@@ -1992,6 +1992,17 @@ def test_psynet_exit_page_says_nothing_about_payment():
         assert term not in body, f"exit page should not mention {term!r}"
 
 
+def test_psynet_exit_page_keeps_back_on_the_thank_you_screen():
+    """Back from exit must not revive /start for a finished assignment."""
+    from importlib import resources
+
+    source = (
+        resources.files("psynet") / "templates/psynet_exit_recruiter.html"
+    ).read_text(encoding="utf-8")
+    assert "history.pushState" in source
+    assert "popstate" in source
+
+
 @pytest.mark.parametrize(
     "recruiter_class_name", ["GenericRecruiter", "HotAirRecruiter", "LabRecruiter"]
 )

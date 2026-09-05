@@ -29,3 +29,16 @@
         {% endif %}
     </div>
 {% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        // Keep Back on this thank-you page. Exit is reached via location.replace,
+        // so the previous history entry is an earlier setup page (often /start)
+        // that cannot usefully resume a finished assignment.
+        history.pushState(null, "", location.href);
+        window.addEventListener("popstate", function () {
+            history.pushState(null, "", location.href);
+        });
+    </script>
+{% endblock %}
