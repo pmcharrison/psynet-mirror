@@ -1,13 +1,10 @@
 /**
- * Participant-page layout: footer clearance, plus the layout checks.
+ * Participant-page layout checks.
  *
  * Loaded on every participant page (ad, consent, timeline, abort, error).
  *
- * The module owns both halves of one contract: nothing may be trapped behind
- * the fixed footer. It enforces that by measuring the footer (see "Footer
- * clearance" below, which runs on load), and it asserts it through
  * `psynetLayout.check()`, which Playwright or the console calls after the page
- * is ready. The checks do not run on their own.
+ * is ready, asserts layout invariants. The checks do not run on their own.
  *
  * These are assertions about how a page is built, not judgements about how it
  * looks. Each check corresponds to a defect that reached the default theme at
@@ -25,8 +22,8 @@
  *   no_vertical_overflow                  A page that was meant to fit can
  *                                         still scroll, even if the control
  *                                         happens to peek above the footer.
- *   nothing_permanently_occluded          Content left behind the fixed footer
- *                                         even at the end of the scroll.
+ *   nothing_permanently_occluded          Content overlaps the footer even at
+ *                                         the end of the scroll.
  *   no_horizontal_overflow                Content wider than the viewport.
  *
  * Pages that are genuinely meant to scroll declare it with
@@ -34,14 +31,9 @@
  * `#main-body`, so the fit / no-scroll checks do not apply; standards mode,
  * percentage heights, horizontal overflow, and footer occlusion still do.
  *
- * Whether the footer is pinned at all is decided in participant.css, by window
- * width alone. Nothing here should reproduce that decision: a layout choice
- * taken after the first paint is one the participant watches being made.
- *
  * Public API: `window.psynetLayout` (`collectViolations`,
- * `collectScrollViolations`, `check`, `refreshFooterClearance`). When
- * `window.psynet` already exists, the same object is also assigned to
- * `psynet.layout`.
+ * `collectScrollViolations`, `check`). When `window.psynet` already exists,
+ * the same object is also assigned to `psynet.layout`.
  */
 (function (global) {
   "use strict";
@@ -52,80 +44,6 @@
     ".response",
     "#consent",
   ];
-
-  // ---- Footer clearance ---------------------------------------------------
-  //
-  // The footer is pinned to the bottom of the viewport, so the page has to
-  // reserve room for it. How much cannot be expressed in CSS: the footer's
-  // height depends on how many rows its controls wrap into, which varies with
-  // viewport width, translated label lengths, and the participant's font size.
-  // A fixed token suited a single-row footer and left the last response
-  // control permanently behind a wrapped one. We therefore measure the
-  // rendered footer and publish it for participant.css, which prefers it over
-  // the --psynet-footer-clearance fallback used before this runs.
-
-  const FOOTER_HEIGHT_PROPERTY = "--psynet-footer-height";
-
-  // Keeps the last line of content clear of the footer's top edge rather than
-  // flush against it.
-  const FOOTER_GAP_PX = 12;
-
-  let trackedFooter = null;
-  let footerResizeObserver = null;
-
-  /**
-   * Publish the rendered footer height for participant.css.
-   *
-   * This is a measurement, not a decision: the stylesheet works out whether the
-   * space is reserved, which on a phone it is not, because there the footer sits
-   * in the document rather than over it.
-   */
-  function publishFooterHeight() {
-    const style = document.documentElement.style;
-    if (trackedFooter === null) {
-      style.removeProperty(FOOTER_HEIGHT_PROPERTY);
-      return;
-    }
-    const height = trackedFooter.getBoundingClientRect().height;
-    style.setProperty(FOOTER_HEIGHT_PROPERTY, `${height + FOOTER_GAP_PX}px`);
-  }
-
-  /**
-   * Point the measurement at the current footer, if it has changed.
-   *
-   * In-place timeline transitions insert, remove, and replace the footer, so
-   * the tracked element goes stale. Identity is checked rather than geometry
-   * because this runs on DOM mutations, and reading geometry there would force
-   * a layout on every trial-driven DOM change. Height changes of a footer that
-   * is already tracked come from the resize observer instead.
-   */
-  function refreshFooterClearance() {
-    const footer = document.getElementById("footer");
-    if (footer === trackedFooter) return;
-    if (footerResizeObserver !== null && trackedFooter !== null) {
-      footerResizeObserver.unobserve(trackedFooter);
-    }
-    trackedFooter = footer;
-    if (footerResizeObserver !== null && footer !== null) {
-      footerResizeObserver.observe(footer);
-    }
-    publishFooterHeight();
-  }
-
-  function initFooterClearance() {
-    if (typeof ResizeObserver === "function") {
-      footerResizeObserver = new ResizeObserver(publishFooterHeight);
-    }
-    refreshFooterClearance();
-    if (typeof MutationObserver === "function" && document.body !== null) {
-      new MutationObserver(refreshFooterClearance).observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
-    }
-    // A narrower window wraps the footer's controls onto more rows.
-    window.addEventListener("resize", publishFooterHeight);
-  }
 
   function collectViolations() {
     const violations = [];
@@ -324,7 +242,7 @@
           violations.push({
             check: "nothing_permanently_occluded",
             detail:
-              `${selector} is still behind the fixed footer at the end of the scroll ` +
+              `${selector} still overlaps the footer at the end of the scroll ` +
               `(spans y=${Math.round(rect.top)}-${Math.round(rect.bottom)}, footer starts ` +
               `at y=${Math.round(footerTop)}), so it can never be fully seen`,
           });
@@ -344,18 +262,10 @@
     collectViolations,
     collectScrollViolations,
     check,
-    refreshFooterClearance,
   };
 
   global.psynetLayout = api;
   if (global.psynet) {
     global.psynet.layout = api;
-  }
-
-  // The script is loaded in <head>, so the body may not exist yet.
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initFooterClearance);
-  } else {
-    initFooterClearance();
   }
 })(window);

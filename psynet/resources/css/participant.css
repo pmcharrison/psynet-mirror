@@ -136,7 +136,6 @@
     /* The media-download bar carries no label, so it stays a thin rail. */
     --psynet-media-progress-height: 6px;
     --psynet-audio-meter-height: 10px;
-    --psynet-footer-clearance: 5rem;
     /* Space reserved around a graphic so the page still fits a 1280×720
        laptop inner viewport: progress, surface margins and padding, prompt,
        graphic margins, Next button, and footer clearance. Graphic width uses
@@ -232,61 +231,26 @@ body {
     font-kerning: normal;
     font-variant-ligatures: contextual common-ligatures;
 
-    /*
-     * Reserve room for the fixed footer only when the page actually has one.
-     * Ad, consent-gateway, and show_footer=False pages must not inherit the
-     * 5rem clearance, or a short 90vh layout will grow a stray scrollbar.
-     */
     padding-bottom: 0;
 }
 
 /*
- * Room a pinned footer needs the page to keep clear. Zero unless the footer
- * actually overlaps the content, so pages without a footer -- and phone pages,
- * where the footer sits in the document instead -- do not grow a stray
- * scrollbar. Templates that pad their own scroll container read this token
- * rather than repeating the fallback chain.
+ * Keep the footer in document flow at every window width. The page is at least
+ * one viewport tall and the footer takes up any remaining space, which puts its
+ * top at max(window bottom, end of content). Long pages therefore give the whole
+ * window to their content, while short pages still finish at the window edge.
  */
-body:has(#footer) {
-    /* psynet.layout.js measures the rendered footer and publishes
-       --psynet-footer-height, because a wrapped footer is taller than any
-       token can predict. The token is the pre-measurement fallback. */
-    --psynet-footer-reserved: var(--psynet-footer-height, var(--psynet-footer-clearance));
-    padding-bottom: var(--psynet-footer-reserved);
+#timeline-root:has(#footer) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 
-/*
- * On a phone a pinned footer costs a fifth of the screen on every page of the
- * experiment, so there the footer follows the content instead. It still comes to
- * rest no higher than the bottom edge of the window: the page box is at least a
- * viewport tall and the footer takes up the slack, which puts its top at
- * max(window bottom, end of content). A short page therefore looks the same as
- * before, and a long one gives the whole window to the content.
- *
- * Expressing this in CSS rather than measuring it in JavaScript matters for more
- * than tidiness: a decision taken after the first paint is a decision the
- * participant watches being made, as a footer that starts pinned and then jumps
- * down the page.
- */
-@media (max-width: 480px) {
-    body:has(#footer) {
-        --psynet-footer-reserved: 0px;
-    }
-
-    #timeline-root:has(#footer) {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        min-height: 100dvh;
-    }
-
-    /* `relative` rather than `static`: the media-download bar inside the footer
-       is absolutely positioned, so a static footer stops being its containing
-       block and the bar escapes to the top of the page. */
-    #footer.fixed-bottom {
-        position: relative;
-        margin-top: auto;
-    }
+/* `relative` makes the footer the containing block for its absolute media bar. */
+#footer {
+    position: relative;
+    margin-top: auto;
 }
 
 /* Without a footer the media-download bar pins itself to the bottom edge, so

@@ -117,17 +117,6 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - ``8rem``
      - Floor for that chrome cap, so a landscape phone cannot collapse
        the graphic to zero.
-   * - ``--psynet-footer-clearance``
-     - ``5rem``
-     - Fallback space reserved at the bottom of pages that render
-       ``#footer``, used until the footer has been measured. Pages without a
-       footer (the ad, the consent gateway, ``show_footer=False``) do not get
-       this padding.
-   * - ``--psynet-footer-reserved``
-     - measured, else ``var(--psynet-footer-clearance)``
-     - Space a page must keep clear for the footer, resolved for the current
-       page: zero without a footer, and zero on a phone, where the footer sits
-       in the document rather than over the content.
    * - ``--psynet-audio-meter-height``
      - ``10px``
      - Height of the microphone-level track.
@@ -253,23 +242,11 @@ The selected state is styled with ``:has()``, which is why the default
 Pages that scroll
 -----------------
 
-On a window wider than 480px the footer is fixed to the bottom, and pages that
-render it reserve room for it on ``body`` so that content is never left
-permanently underneath. How much room cannot be written as a fixed value: the
-footer wraps onto more rows on a narrow phone, with a longer translated label,
-or at a larger font size. PsyNet therefore measures the rendered footer and
-publishes ``--psynet-footer-height``, falling back to
-``--psynet-footer-clearance`` until the measurement runs. The resolved amount is
-available as ``--psynet-footer-reserved``, which a page with its own scroll
-container can use as padding. Pages without a footer reserve nothing.
-
-At 480px and below the footer follows the content instead, coming to rest at the
-bottom edge of the window or at the end of the page, whichever is lower. Pinning
-it on a phone would spend a fifth of the screen on chrome the participant
-scrolls past anyway, and reserving space for it there is unnecessary, so
-``--psynet-footer-reserved`` is zero. This is width-based CSS, not a measurement:
-a page that overflows gives its whole window to the content from the first
-paint, rather than showing a footer that starts pinned and then jumps down.
+The footer is part of the document at every window width. On a short page it
+rests at the bottom edge of the window; on a long page it follows the content.
+It therefore never covers a response control and needs no measured clearance.
+This also leaves the document as the only scroll container, rather than putting
+long timeline content inside a separately scrolling panel.
 
 A page that does not declare ``expect_scrolling`` should fit a typical
 laptop window (1280×720) without scrolling. Verify that with the front-end

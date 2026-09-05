@@ -277,35 +277,28 @@ def test_every_participant_page_declares_the_viewport():
     assert 'name="viewport"' not in browser_detect
 
 
-def test_footer_leaves_the_viewport_on_a_phone_page():
-    """A pinned footer costs a fifth of a phone screen on every page.
-
-    Width alone decides this, in CSS, so it holds from the first paint. Deciding
-    it from measured content, as an earlier version did, showed the participant a
-    footer that started pinned and then jumped down the page.
-    """
+def test_footer_is_in_document_flow_at_every_width():
+    """The footer follows content without a responsive layout fork."""
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    start = css.index("@media (max-width: 480px) {")
-    phone_rules = css[start : css.index("\n}\n", start)]
-    # `relative`, not `static`: the media-download bar inside the footer is
-    # absolutely positioned and needs the footer as its containing block.
-    assert "position: relative" in phone_rules
-    # The footer takes up the slack in a page box at least a window tall, which
-    # puts it at the bottom edge on a short page and after the content on a long
-    # one.
-    assert "margin-top: auto" in phone_rules
-    assert "min-height: 100dvh" in phone_rules
-    # Nothing to reserve once the footer occupies real space.
-    assert "--psynet-footer-reserved: 0px" in phone_rules
+    root_start = css.index("#timeline-root:has(#footer) {")
+    root_rules = css[root_start : css.index("}", root_start)]
+    assert "display: flex" in root_rules
+    assert "flex-direction: column" in root_rules
+    assert "min-height: 100dvh" in root_rules
+
+    footer_start = css.index("#footer {")
+    footer_rules = css[footer_start : css.index("}", footer_start)]
+    assert "position: relative" in footer_rules
+    assert "margin-top: auto" in footer_rules
 
     js = (resources.files("psynet") / "resources/scripts/psynet.layout.js").read_text(
         encoding="utf-8"
     )
-    # The stylesheet owns the decision; JavaScript only measures the height.
-    assert "psynet-footer-in-flow" not in js
-    assert "480" not in js
+    assert "ResizeObserver" not in js
+    assert "MutationObserver" not in js
+    assert "--psynet-footer-height" not in js
 
 
 def test_danger_buttons_follow_the_participant_theme():
@@ -342,25 +335,13 @@ def test_solid_buttons_have_their_own_fill_token():
     assert css.count("--psynet-accent-solid:") == 2
 
 
-def test_footer_clearance_prefers_the_measured_footer_height():
-    """A wrapped footer is taller than any fixed token can predict."""
+def test_footer_needs_no_measured_clearance():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    start = css.index("body:has(#footer) {")
-    end = css.index("}", start)
-    assert (
-        "var(--psynet-footer-height, var(--psynet-footer-clearance))" in css[start:end]
-    )
-
-    js = (resources.files("psynet") / "resources/scripts/psynet.layout.js").read_text(
-        encoding="utf-8"
-    )
-    assert '"--psynet-footer-height"' in js
-    # Re-targeted rather than measured on every mutation, so trial-driven DOM
-    # changes do not force a layout.
-    assert "if (footer === trackedFooter) return;" in js
-    assert "new ResizeObserver(publishFooterHeight)" in js
+    assert "--psynet-footer-height" not in css
+    assert "--psynet-footer-clearance" not in css
+    assert "--psynet-footer-reserved" not in css
 
 
 def test_vertical_push_buttons_do_not_wrap():
@@ -563,15 +544,13 @@ def test_jspsych_stage_uses_the_graphic_chrome_token():
     assert "var(--psynet-graphic-vertical-chrome)" in css[start:end]
 
 
-def test_wait_page_only_pads_for_a_footer():
+def test_wait_page_fills_space_before_the_footer():
     source = (resources.files("psynet") / "templates" / "wait-page.html").read_text(
         encoding="utf-8"
     )
-    assert "body:has(#footer) #wait-page" in source
-    assert "2rem 2rem var(--psynet-footer-clearance)" not in source
-    # Phone footer is in the document; a viewport min-height would overflow.
     assert "#timeline-root:has(#footer) #wait-page" in source
     assert "min-height: 0" in source
+    assert "--psynet-footer-" not in source
 
 
 def test_reduced_motion_does_not_freeze_every_animation():

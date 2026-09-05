@@ -141,7 +141,7 @@
         {% set show_terminate_button = show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
         {% set footer_has_content = experiment.show_reward or show_comment_button or show_terminate_button %}
         {% if config.show_footer != false and footer_has_content %}
-        <nav id="footer" class="navbar fixed-bottom">
+        <nav id="footer" class="navbar">
             {{ media_download_bar() }}
                 <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
                     {% if experiment.show_reward %}

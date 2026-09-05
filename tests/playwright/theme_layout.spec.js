@@ -1,7 +1,7 @@
 /**
  * Layout contracts from the default-theme review that can be checked without
  * a running experiment: graphic size on a short landscape phone, vertical
- * push-button columns, footer clearance on pages without a footer, caption
+ * push-button columns, in-flow footer placement, caption
  * contrast for color "white", audio-meter setLevel/applyColor, and the
  * in-page `psynetLayout.check()` API.
  */
@@ -167,7 +167,7 @@ test(
 );
 
 test(
-  "pages without a footer do not reserve footer clearance",
+  "the footer needs no body clearance",
   { tag: "@both" },
   async ({ page }) => {
     await renderTheme(page, {
@@ -192,13 +192,21 @@ test(
     await renderTheme(page, {
       viewport: { width: 1280, height: 720 },
       html: `
-        <div id="main-body" class="psynet-surface"><p>Timeline content</p></div>
-        <nav id="footer" class="navbar fixed-bottom">Reward</nav>`
+        <div id="timeline-root">
+          <div id="main-body" class="psynet-surface"><p>Timeline content</p></div>
+          <nav id="footer" class="navbar">Reward</nav>
+        </div>`
     });
-    const withFooter = await page.evaluate(
-      () => getComputedStyle(document.body).paddingBottom
-    );
-    expect(parseFloat(withFooter)).toBeGreaterThan(0);
+    const withFooter = await page.evaluate(() => {
+      const footer = document.getElementById("footer").getBoundingClientRect();
+      return {
+        paddingBottom: getComputedStyle(document.body).paddingBottom,
+        footerBottom: footer.bottom,
+        viewport: window.innerHeight
+      };
+    });
+    expect(parseFloat(withFooter.paddingBottom)).toBe(0);
+    expect(withFooter.footerBottom).toBeCloseTo(withFooter.viewport, 0);
   }
 );
 
@@ -321,7 +329,6 @@ test(
                 position: relative; display: flex; flex-wrap: wrap;
                 align-items: center;
                 padding: var(--bs-navbar-padding-y) var(--bs-navbar-padding-x); }
-      .fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; }
       .container { width: 100%; padding-inline: 0.75rem; margin-inline: auto; }
       .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
       .progress { display: flex; overflow: hidden; }`;
@@ -363,7 +370,7 @@ test(
       viewport: { width: 1280, height: 720 },
       extraCss: bootstrapNavbar,
       html: `${header}<div id="main-body" class="psynet-surface"><p>Trial</p></div>
-             <nav id="footer" class="navbar fixed-bottom">${bar}
+             <nav id="footer" class="navbar">${bar}
                <div class="container py-2"><div class="footer-text">Reward: $0.42</div></div>
              </nav>`
     });
@@ -400,19 +407,18 @@ test(
       // Same markup as timeline-page.html's footer macro, with the progress bar
       // full width as it is on a page with no media to download.
       html: `
-        <nav id="footer" class="navbar fixed-bottom">
+        <nav id="footer" class="navbar">
           <div id="media-download-progress-bar" style="width: 100%"></div>
           <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
             <div class="footer-text">Reward: <strong>$0.00</strong></div>
           </div>
         </nav>`,
-      // The theme relies on Bootstrap for .navbar padding and .fixed-bottom.
+      // The theme relies on Bootstrap for .navbar padding.
       extraCss: `
         .navbar { --bs-navbar-padding-y: 0.5rem; --bs-navbar-padding-x: 0;
                   position: relative; display: flex; flex-wrap: wrap;
                   align-items: center;
                   padding: var(--bs-navbar-padding-y) var(--bs-navbar-padding-x); }
-        .fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; }
         .container { width: 100%; padding-inline: 0.75rem; margin-inline: auto; }
         .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
         .d-flex { display: flex; }
@@ -438,13 +444,8 @@ test(
   }
 );
 
-// Just above the width at which the footer joins the document, so it is still
-// pinned but cramped enough for its controls to wrap. The reserved clearance has
-// to follow the footer's real height, or a wrapped footer covers the last
-// control. (Below that width the footer follows the content instead, and that
-// case is covered separately.)
 test(
-  "a wrapped footer on a narrow window still clears the last control",
+  "a wrapped footer stays after the last control",
   { tag: "@both" },
   async ({ page }) => {
     await renderTheme(page, {
@@ -452,34 +453,36 @@ test(
       includeBootstrap: true,
       scripts: [LAYOUT_JS],
       html: `
-        <div id="main-body" class="psynet-surface">
-          <p>A page that fits, so the footer stays pinned.</p>
-          <div class="psynet-actions">
-            <button id="next-button" class="btn btn-primary btn-lg">Next</button>
+        <div id="timeline-root">
+          <div id="main-body" class="psynet-surface">
+            <p>A short experiment page.</p>
+            <div class="psynet-actions">
+              <button id="next-button" class="btn btn-primary btn-lg">Next</button>
+            </div>
           </div>
-        </div>
-        <nav id="footer" class="navbar fixed-bottom">
-          <div id="media-download-progress-bar" style="width: 100%"></div>
-          <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
-            <span class="psynet-tooltip">
-              <span id="reward-summary" class="psynet-tooltip__trigger"
-                    tabindex="0" aria-describedby="reward-tooltip">
-                <strong>$0.42</strong>
+          <nav id="footer" class="navbar">
+            <div id="media-download-progress-bar" style="width: 100%"></div>
+            <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
+              <span class="psynet-tooltip">
+                <span id="reward-summary" class="psynet-tooltip__trigger"
+                      tabindex="0" aria-describedby="reward-tooltip">
+                  <strong>$0.42</strong>
+                </span>
+                <span id="reward-tooltip" class="psynet-tooltip__content"
+                      role="tooltip">
+                  Reward earned so far: $0.30 for time + $0.12 for performance.
+                </span>
               </span>
-              <span id="reward-tooltip" class="psynet-tooltip__content"
-                    role="tooltip">
-                Reward earned so far: $0.30 for time + $0.12 for performance.
+              <button class="btn btn-light">Comment</button>
+              <span class="psynet-tooltip psynet-tooltip--end">
+                <button id="terminate-button" class="btn btn-danger"
+                        aria-describedby="exit-tooltip">Exit</button>
+                <span id="exit-tooltip" class="psynet-tooltip__content"
+                      role="tooltip">Exit the experiment before it is complete.</span>
               </span>
-            </span>
-            <button class="btn btn-light">Comment</button>
-            <span class="psynet-tooltip psynet-tooltip--end">
-              <button id="terminate-button" class="btn btn-danger"
-                      aria-describedby="exit-tooltip">Exit</button>
-              <span id="exit-tooltip" class="psynet-tooltip__content"
-                    role="tooltip">Exit the experiment before it is complete.</span>
-            </span>
-          </div>
-        </nav>`
+            </div>
+          </nav>
+        </div>`
     });
 
     // The reward breakdown moved into a tooltip, so the footer should now fit
@@ -489,22 +492,21 @@ test(
       await page.locator("#terminate-button").evaluate((button, text) => {
         button.textContent = text;
       }, label);
-      // Let the resize observer publish the new height.
-      await page.waitForTimeout(100);
-
       const geometry = await page.evaluate(async () => {
         const footer = document.getElementById("footer");
+        const next = document.getElementById("next-button");
         return {
           footerPosition: getComputedStyle(footer).position,
-          footerHeight: footer.getBoundingClientRect().height,
-          clearance: parseFloat(getComputedStyle(document.body).paddingBottom),
+          footerTop: footer.getBoundingClientRect().top,
+          nextBottom: next.getBoundingClientRect().bottom,
+          clearance: getComputedStyle(document.body).paddingBottom,
           violations: (await window.psynetLayout.check()).map((v) => v.check)
         };
       });
 
-      // Pinned to the viewport, with room reserved for its measured height.
-      expect(geometry.footerPosition).toBe("fixed");
-      expect(geometry.clearance).toBeGreaterThanOrEqual(geometry.footerHeight);
+      expect(geometry.footerPosition).toBe("relative");
+      expect(geometry.clearance).toBe("0px");
+      expect(geometry.footerTop).toBeGreaterThanOrEqual(geometry.nextBottom);
       expect(geometry.violations).not.toContain("nothing_permanently_occluded");
     }
 
@@ -625,7 +627,7 @@ const FOOTER_MARKUP = `
       <button id="next-button" class="btn btn-primary btn-lg">Next</button>
     </div>
   </div>
-  <nav id="footer" class="navbar fixed-bottom">
+  <nav id="footer" class="navbar">
     <div id="media-download-progress-bar" style="width: 100%"></div>
     <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
       <span class="psynet-tooltip">
@@ -806,7 +808,7 @@ for (const scheme of ["light", "dark"]) {
             </div>
           </div>
           <div id="main-body" class="container psynet-surface"><p>Trial</p></div>
-          <nav id="footer" class="navbar fixed-bottom">
+          <nav id="footer" class="navbar">
             <div class="container py-2"><span class="footer-text">Reward</span></div>
           </nav>`
       });
@@ -837,7 +839,7 @@ for (const scheme of ["light", "dark"]) {
 }
 
 test(
-  "on a phone the footer follows the content without rising above the window",
+  "the footer follows content at every window width",
   { tag: "@both" },
   async ({ page }) => {
     const tallPage = (paragraphs) => `
@@ -848,7 +850,7 @@ test(
             <button id="next-button" class="btn btn-primary btn-lg">Next</button>
           </div>
         </div>
-        <nav id="footer" class="navbar fixed-bottom" style="height: 60px">
+        <nav id="footer" class="navbar" style="height: 60px">
           <div id="media-download-progress-bar" style="width: 50%"></div>
           Reward
         </nav>
@@ -875,7 +877,7 @@ test(
         };
       });
 
-    // Phone, page overflows: the footer follows the content past the fold, so
+    // Narrow page overflows: the footer follows the content past the fold, so
     // the window belongs to the page and nothing is reserved.
     await renderTheme(page, {
       viewport: { width: 375, height: 600 },
@@ -895,7 +897,7 @@ test(
       )
     ).not.toContain("nothing_permanently_occluded");
 
-    // Phone, page fits: the footer stops at the bottom edge of the window
+    // Narrow page fits: the footer stops at the bottom edge of the window
     // instead of floating up under the content it follows.
     await renderTheme(page, {
       viewport: { width: 375, height: 600 },
@@ -925,67 +927,64 @@ test(
     expect(g.clearance).toBe("0px");
     expect(g.footerTop).toBeGreaterThan(g.viewportHeight);
 
-    // Wide window: pinned, so the reward and Exit stay in view while scrolling.
+    // Wide windows use the same in-flow behavior.
     await renderTheme(page, {
       viewport: { width: 1280, height: 600 },
       includeBootstrap: true,
       scripts: [LAYOUT_JS],
       html: tallPage(60)
     });
-    await page.waitForTimeout(150);
     g = await geometry();
-    expect(g.position).toBe("fixed");
-    expect(parseFloat(g.clearance)).toBeGreaterThan(0);
+    expect(g.position).toBe("relative");
+    expect(g.clearance).toBe("0px");
+    expect(g.footerTop).toBeGreaterThan(g.viewportHeight);
+    expect(g.footerBelowNext).toBe(true);
 
-    // Rotating a phone into a wide window re-pins without a reload.
+    // Resizing never changes the footer positioning model.
     await page.setViewportSize({ width: 375, height: 600 });
     expect((await geometry()).position).toBe("relative");
     await page.setViewportSize({ width: 900, height: 600 });
-    await page.waitForTimeout(250);
-    expect((await geometry()).position).toBe("fixed");
+    expect((await geometry()).position).toBe("relative");
   }
 );
 
 test(
-  "footer clearance follows the footer through inplace page changes",
+  "inplace footer replacement needs no layout bookkeeping",
   { tag: "@both" },
   async ({ page }) => {
-    // A page with a footer, then one without, then a taller one: the reserved
-    // clearance has to follow, or content is either trapped or left under a
-    // band of empty space.
     await renderTheme(page, {
       viewport: { width: 1280, height: 720 },
       scripts: [LAYOUT_JS],
       html: `
         <div id="timeline-root">
           <div id="main-body" class="psynet-surface"><p>Trial</p></div>
-          <nav id="footer" class="navbar fixed-bottom"
-               style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px">
-            Reward
-          </nav>
+          <nav id="footer" class="navbar" style="height: 60px">Reward</nav>
         </div>`
     });
-
-    const clearance = async () =>
-      parseFloat(
-        await page.evaluate(() => getComputedStyle(document.body).paddingBottom)
-      );
-
-    expect(await clearance()).toBeGreaterThanOrEqual(60);
-
-    await page.evaluate(() => document.getElementById("footer").remove());
-    await page.waitForTimeout(100);
-    expect(await clearance()).toBe(0);
 
     await page.evaluate(() => {
       const footer = document.createElement("nav");
       footer.id = "footer";
-      footer.style.cssText =
-        "position: fixed; bottom: 0; left: 0; right: 0; height: 150px";
-      document.getElementById("timeline-root").appendChild(footer);
+      footer.className = "navbar";
+      footer.style.height = "150px";
+      footer.textContent = "Updated reward";
+      document.getElementById("footer").replaceWith(footer);
     });
-    await page.waitForTimeout(100);
-    expect(await clearance()).toBeGreaterThanOrEqual(150);
+
+    const geometry = await page.evaluate(() => {
+      const footer = document.getElementById("footer");
+      return {
+        position: getComputedStyle(footer).position,
+        height: footer.getBoundingClientRect().height,
+        bottom: footer.getBoundingClientRect().bottom,
+        viewport: window.innerHeight,
+        bodyPadding: getComputedStyle(document.body).paddingBottom
+      };
+    });
+    expect(geometry.position).toBe("relative");
+    expect(geometry.height).toBe(150);
+    expect(geometry.bottom).toBeCloseTo(geometry.viewport, 0);
+    expect(geometry.bodyPadding).toBe("0px");
   }
 );
 
@@ -1143,19 +1142,21 @@ test(
                   position: relative; display: flex; flex-wrap: wrap;
                   align-items: center;
                   padding: var(--bs-navbar-padding-y) var(--bs-navbar-padding-x); }
-        .fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; }
         .container { width: 100%; padding-inline: 0.75rem; margin-inline: auto; }
         .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }`,
       html: `
-        <div id="timeline-header" class="header">
-          <div class="progress" style="height: 1rem"></div>
+        <div id="timeline-root">
+          <div id="timeline-header" class="header">
+            <div class="progress" style="height: 1rem"></div>
+          </div>
+          <div id="main-body" class="psynet-surface">
+            <div id="js-psych"></div>
+          </div>
+          <nav id="footer" class="navbar">
+            <div class="container py-2"><div class="footer-text">Reward: $0.42</div></div>
+          </nav>
         </div>
-        <div id="main-body" class="psynet-surface">
-          <div id="js-psych"></div>
-        </div>
-        <nav id="footer" class="navbar fixed-bottom">
-          <div class="container py-2"><div class="footer-text">Reward: $0.42</div></div>
-        </nav>`
+        `
     });
 
     const overflow = await page.evaluate(() => {
@@ -1241,7 +1242,7 @@ test(
 );
 
 test(
-  "layout check is clean when footer clearance keeps the control visible",
+  "layout check accepts a fixed custom footer when content clears it",
   { tag: "@both" },
   async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });

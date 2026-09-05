@@ -3,17 +3,9 @@
 {% block stylesheets %}
     {{ super() }}
     <style data-psynet-fragment-style="true">
-        /* The waiting animation is full-bleed. When a footer is present, the
-           theme would reserve body clearance; put that padding on #wait-page
-           instead so the animation fills the window. */
-        body:has(#footer) {
-            padding-bottom: 0;
-        }
-
         /* The waiting animation is full-bleed, so opt out of the content surface.
-           On a phone the footer is in the document, so this column has to take
-           the space between the progress bar and the footer rather than claiming
-           a full viewport of its own. */
+           This column takes the space between the progress bar and the footer
+           rather than claiming a full viewport of its own. */
         #main-body {
             padding: 0 !important;
             margin: 0 !important;
@@ -41,18 +33,10 @@
             text-align: center;
         }
 
-        @media (max-width: 480px) {
-            /* The phone footer already occupies layout space, so a viewport
-               min-height here would overflow by about one footer. */
-            #timeline-root:has(#footer) #wait-page {
-                min-height: 0;
-            }
-        }
-
-        body:has(#footer) #wait-page {
-            /* participant.css resolves how much a pinned footer needs kept
-               clear, and zeroes it where the footer sits in the document. */
-            padding-bottom: var(--psynet-footer-reserved, 0px);
+        /* The footer already occupies layout space, so a viewport min-height
+           here would overflow by about one footer. */
+        #timeline-root:has(#footer) #wait-page {
+            min-height: 0;
         }
 
         #wait-page p {
