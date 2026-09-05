@@ -229,15 +229,16 @@ def latest_participant_for_assignment(assignment_id):
     )
 
 
-def _latest_participant_for_worker_id(worker_id):
+def _latest_participant_for_worker_id(worker_id, for_update=False):
     """Return the most recent participant with this worker id, or ``None``."""
     if not worker_id:
         return None
-    return (
-        Participant.query.filter_by(worker_id=worker_id)
-        .order_by(Participant.id.desc())
-        .first()
+    query = Participant.query.filter_by(worker_id=worker_id).order_by(
+        Participant.id.desc()
     )
+    if for_update:
+        query = query.with_for_update(of=Participant).populate_existing()
+    return query.first()
 
 
 def _prolific_error_status(error: ProlificServiceException):

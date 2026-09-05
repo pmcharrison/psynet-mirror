@@ -4092,12 +4092,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = Participant.query.filter_by(worker_id=worker_id).order_by(
-            Participant.id.desc()
+        from psynet.recruiters import _latest_participant_for_worker_id
+
+        participant = _latest_participant_for_worker_id(
+            worker_id, for_update=for_update
         )
-        if for_update:
-            query = query.with_for_update(of=Participant).populate_existing()
-        participant = query.first()
         if participant is None:
             raise sqlalchemy.orm.exc.NoResultFound()
         return participant

@@ -1,4 +1,4 @@
-import re
+import shutil
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -56,31 +56,40 @@ def _wait_for_error_form(driver, message):
 
 
 @pytest.fixture(scope="class")
-def experiment_directory(request):
-    # Chrome tests in one session must share a single experiment directory, so
-    # the repeat-worker class patches the timeline experiment in place and
-    # restores it afterwards.
-    directory = path_to_test_experiment("timeline")
-    experiment_path = Path(directory) / "experiment.py"
-    original = experiment_path.read_text(encoding="utf-8")
-    if getattr(request.cls, "allow_repeat_worker_ids", False):
-        if "allow_repeat_worker_ids" not in original:
-            updated, replacements = re.subn(
-                r"(config\s*=\s*\{)",
-                r'\1\n        "allow_repeat_worker_ids": True,',
-                original,
-                count=1,
-            )
-            if replacements != 1:
-                raise AssertionError(
-                    "Could not enable allow_repeat_worker_ids in the timeline experiment."
-                )
-            experiment_path.write_text(updated, encoding="utf-8")
+def experiment_directory(request, tmp_path_factory):
+    source = Path(getattr(request, "param", path_to_test_experiment("timeline")))
+    if not getattr(request.cls, "allow_repeat_worker_ids", False):
+        yield str(source)
+        return
 
-    try:
-        yield directory
-    finally:
-        experiment_path.write_text(original, encoding="utf-8")
+    # Chrome tests in one session share launched experiments by directory, so
+    # repeat-worker coverage copies the timeline experiment instead of writing
+    # into the shared fixture.
+    dest = tmp_path_factory.mktemp("timeline_repeat") / "experiment"
+    shutil.copytree(
+        source,
+        dest,
+        ignore=shutil.ignore_patterns(
+            ".cursor", "__pycache__", ".git", ".venv", "node_modules"
+        ),
+    )
+    experiment_path = dest / "experiment.py"
+    original = experiment_path.read_text(encoding="utf-8")
+    if '"allow_repeat_worker_ids"' not in original:
+        marker = "    config = {\n"
+        if marker not in original:
+            raise AssertionError(
+                "Could not enable allow_repeat_worker_ids in the timeline experiment."
+            )
+        experiment_path.write_text(
+            original.replace(
+                marker,
+                marker + '        "allow_repeat_worker_ids": True,\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+    yield str(dest)
 
 
 @pytest.mark.parametrize(
