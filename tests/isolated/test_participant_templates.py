@@ -494,7 +494,7 @@ def test_abort_pages_skip_the_content_surface():
             f"{name} should not use the content surface"
         )
         assert 'class="container my-4"' in source
-        assert "padding-bottom: 0" in source
+        assert "padding-bottom" not in source
         assert "d-flex" in source
 
 
@@ -549,7 +549,8 @@ def test_wait_page_fills_space_before_the_footer():
     source = (resources.files("psynet") / "templates" / "wait-page.html").read_text(
         encoding="utf-8"
     )
-    assert "#timeline-root:has(#footer) #wait-page" in source
+    assert "#timeline-root:not(:has(#footer))" in source
+    assert "var(--psynet-media-progress-height)" in source
     assert "min-height: 0" in source
     assert "--psynet-footer-" not in source
 
