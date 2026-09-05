@@ -3835,6 +3835,21 @@ def test_removed_source_export_options_warn_when_used(capsys):
     assert "legacy" not in warning
 
 
+def test_anonymize_export_kwarg_warns_when_used(capsys):
+    from psynet.command_line import _warn_deprecated_export_options
+
+    _warn_deprecated_export_options(
+        no_source=False,
+        username=None,
+        password=None,
+        anonymize=True,
+    )
+
+    warning = capsys.readouterr().err
+    assert "anonymize=" in warning
+    assert "have no effect" in warning
+
+
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
     from psynet.command_line import _run_performance_test_with_new_server
 

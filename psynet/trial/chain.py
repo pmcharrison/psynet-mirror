@@ -995,11 +995,10 @@ class ChainTrial(Trial):
     :meth:`~psynet.trial.chain.ChainTrial.async_post_trial` method
     if they wish to implement asynchronous trial processing.
 
-    This class subclasses the `~psynet.trial.main.Trial` class,
-    which in turn subclasses the :class:`~dallinger.models.Info` class from Dallinger,
-    hence it can be found in the ``Info`` table in the database.
-    It inherits these class's methods, which the user is welcome to use
-    if they seem relevant.
+    This class subclasses :class:`~psynet.trial.main.Trial`.
+    Trials are stored in the physical ``trial`` table, not Dallinger's
+    ``info`` table. Custom trial classes use single-table polymorphism
+    within ``trial``.
 
     Instances can be retrieved using *SQLAlchemy*; for example, the
     following command retrieves the ``ChainTrial`` object with an ID of 1:

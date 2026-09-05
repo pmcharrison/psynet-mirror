@@ -41,7 +41,37 @@ from .paths import EXPORT_ZIP_NAME, dashboard_export_zip_path
 logger = get_logger()
 
 #: Asset selections accepted by :func:`build_export_tree`.
-ASSET_MODES = ("none", "collected", "all")
+ASSET_MODES = ("none", "collected")
+
+#: Error when a caller still requests the removed ``all`` selection.
+#: Shared by the CLI (``--assets``) and dashboard routes (``?assets=``).
+REMOVED_ASSETS_ALL = (
+    "The asset selection 'all' has been removed. Use collected (the default) "
+    "for files deposited during the run, such as recordings. Copy cached "
+    "stimuli from the experiment directory or storage if you need them for "
+    "supplementary materials. On-demand assets are generated live and are "
+    "not written into the archive."
+)
+
+
+def validate_asset_mode(assets: str) -> str:
+    """Return ``assets`` when it is a supported export selection.
+
+    Used by ``psynet export --assets`` and by dashboard download/trigger
+    query parameters (``?assets=``). Keep the message caller-agnostic.
+
+    Raises
+    ------
+    ValueError
+        If ``assets`` is ``all`` or another unsupported value.
+    """
+    if assets == "all":
+        raise ValueError(REMOVED_ASSETS_ALL)
+    if assets not in ASSET_MODES:
+        raise ValueError(
+            f"Asset selection must be one of {', '.join(ASSET_MODES)}; got {assets!r}."
+        )
+    return assets
 
 
 def build_export_tree(
@@ -59,7 +89,7 @@ def build_export_tree(
     export_path :
         Directory to populate. Created if missing.
     assets :
-        One of ``none``, ``collected``, or ``all``.
+        One of ``none`` or ``collected``.
     server :
         SSH server name, when asset bytes must be fetched from a remote host.
     local :
@@ -74,10 +104,7 @@ def build_export_tree(
     str
         ``export_path``.
     """
-    if assets not in ASSET_MODES:
-        raise ValueError(
-            f"--assets must be one of {', '.join(ASSET_MODES)}; got {assets!r}."
-        )
+    assets = validate_asset_mode(assets)
 
     from .database import export_database_snapshot
 
@@ -88,7 +115,6 @@ def build_export_tree(
     if assets != "none":
         export_selected_assets(
             export_path,
-            assets=assets,
             server=server,
             local=local,
             manifest_only=manifest_only_assets,
@@ -151,15 +177,14 @@ def store_latest_archive(zip_path: str) -> Optional[str]:
 def export_selected_assets(
     export_path: str,
     *,
-    assets: str,
     server: Optional[str] = None,
     local: bool = True,
     manifest_only: bool = False,
 ) -> str:
-    """Export the selected assets into ``export_path/assets``.
+    """Export collected assets into ``export_path/assets``.
 
-    ``collected`` limits export to managed assets deposited during this
-    deployment. Treat exported media as potentially identifying: identifier
+    Collected assets are managed files deposited during this deployment.
+    Treat exported media as potentially identifying: identifier
     separation applies to database tables only.
     """
     from psynet.data import export_assets as _export_assets
@@ -170,8 +195,6 @@ def export_selected_assets(
     logger.info("Exporting assets to %s.", asset_path)
     _export_assets(
         asset_path,
-        collected_assets_only=assets == "collected",
-        include_on_demand_assets=assets == "all",
         server=server,
         local=local,
         manifest_only=manifest_only,

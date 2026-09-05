@@ -959,3 +959,46 @@ def test_sync_trial_maker_prepare_barrier_kick_exits_cleanly(monkeypatch):
     assert participant.current_trial is None
     assert participant.trial_status == "exit"
     assert prepare_trial_calls == []
+
+
+def _check_consistency(repeat_answers, parent_answers):
+    class ConsistencyTrialMaker(ChainTrialMaker):
+        performance_check_type = "consistency"
+
+    trials = [
+        SimpleNamespace(
+            is_repeat_trial=True,
+            answer=repeat_answer,
+            parent_trial=SimpleNamespace(is_repeat_trial=False, answer=parent_answer),
+        )
+        for repeat_answer, parent_answer in zip(repeat_answers, parent_answers)
+    ]
+
+    return make_trial_maker(ConsistencyTrialMaker).performance_check(
+        experiment=None,
+        participant=DummyParticipant(),
+        participant_trials=trials,
+    )
+
+
+@pytest.mark.parametrize(
+    "repeat_answers, parent_answers",
+    [
+        ([1.0, 1.0, 1.0], [3.0, 5.0, 8.0]),
+        ([3.0, 5.0, 8.0], [1.0, 1.0, 1.0]),
+    ],
+)
+def test_always_giving_the_same_answer_fails_the_consistency_check(
+    repeat_answers, parent_answers
+):
+    assert _check_consistency(repeat_answers, parent_answers) == {
+        "score": None,
+        "passed": False,
+    }
+
+
+def test_varying_answers_are_scored_by_their_correlation():
+    assert _check_consistency([1.0, 2.0, 3.0], [7.0, 8.0, 9.0]) == {
+        "score": 1.0,
+        "passed": True,
+    }

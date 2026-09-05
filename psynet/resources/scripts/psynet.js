@@ -3050,6 +3050,9 @@
     };
 
     psynet.loadNextTimelinePageWithReload = function () {
+      if (psynetTemplateData.flags.lucidRecruitment) {
+        psynet.removeBeforeUnloadEventListener();
+      }
       window.location = "/timeline?unique_id=" + psynet.uniqueId;
     };
 

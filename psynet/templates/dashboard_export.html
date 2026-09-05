@@ -42,12 +42,6 @@
                     Collected during the run
                 </label>
             </div>
-            <div class="form-check">
-                <input type="radio" id="input-assets-all" class="form-check-input" name="assets" value="all">
-                <label class="form-check-label" for="input-assets-all">
-                    All (including stimuli and participant-generated files)
-                </label>
-            </div>
         </div>
     </div>
     <p class="mt-3 mb-2">
@@ -60,8 +54,8 @@
         instead of bundling source code.
         <br>
         Asset mode <em>Collected during the run</em> includes files uploaded or recorded
-        by participants (e.g. recordings). <em>All</em> also includes stimuli and
-        generates on-demand assets. Choose <em>None</em> to omit the assets folder.
+        by participants (e.g. recordings). Cached stimuli, external URLs, and
+        on-demand assets are omitted. Choose <em>None</em> to omit the assets folder.
     </p>
         <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
     <div class="alert alert-info mt-3">

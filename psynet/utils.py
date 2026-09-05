@@ -662,47 +662,63 @@ class TranslationNotFoundError(KeyError):
     pass
 
 
+def is_release_branch():
+    """Return whether the current CI job is on a ``release-*`` branch."""
+    return os.environ.get("CI_COMMIT_REF_NAME", "").startswith("release-")
+
+
+def _tolerate_missing_translation(namespace):
+    """
+    Return whether a missing catalog entry should be downgraded to a warning.
+
+    Package catalogs (e.g. PsyNet's own) are refreshed on the release branch,
+    so feature-branch test runs must not depend on them. Experiment catalogs
+    are owned by the experiment author, so those keep failing loudly.
+    """
+    if namespace == "experiment":
+        return False
+    return bool(os.environ.get("PYTEST_CURRENT_TEST")) and not is_release_branch()
+
+
 def check_translation_is_available(message, context, locale, namespace):
     from . import deployment_info
     from .experiment import get_experiment, in_deployment_package
 
-    args = locals()
-
     is_available = (context, message) in REGISTERED_TRANSLATIONS[namespace][locale]
 
     if not is_available:
-        message = (
-            f"Could not find a translation for message {message!r} in locale = {locale}, context = {context}, namespace = {namespace}. "
+        error_message = (
+            f"Could not find a translation for message {message!r} in locale = {locale}, "
+            f"context = {context}, namespace = {namespace}. "
             "Perhaps the translatable string was not properly captured by `psynet translate`? "
             "To mark a string as translatable, you should write e.g. _('Hello') or _p('welcome message', 'Hello'). "
-            "You cannot rename the functions _ or _p, and you must pass them strings directly, not variables or strings wrapped in parentheses."
+            "You cannot rename the functions _ or _p, and you must pass them strings directly, "
+            "not variables or strings wrapped in parentheses."
         )
         is_live_experiment = (
             in_deployment_package() and deployment_info.read("mode") == "live"
         )
         if is_live_experiment:
-            message += " Since this is a live experiment, we instead presented the untranslated text."
-        else:
-            message += " If this happened in a live experiment, we would default to presenting the untranslated text."
-
-        # We need to actually raise the TranslationNotFoundError here for it to be treated appropriately by report_error.
-        try:
-            raise TranslationNotFoundError(message)
-        except TranslationNotFoundError as e:
-            if is_live_experiment:
+            error_message += " Since this is a live experiment, we instead presented the untranslated text."
+            logger.warning(error_message)
+            try:
+                raise TranslationNotFoundError(error_message)
+            except TranslationNotFoundError as e:
                 get_experiment().report_error(e)
-            else:
-                raise e
-
-
-def report_translation_error(message, context, locale):
-    from psynet.experiment import get_experiment
-
-    exp = get_experiment()
-    error = TranslationNotFoundError(
-        f"Translation not found for message '{message}' (context: {context}) in locale '{locale}'"
-    )
-    exp.report_error(error)
+        elif _tolerate_missing_translation(namespace):
+            error_message += (
+                " The untranslated English text will be shown instead. "
+                f"Catalogs for the {namespace} package are refreshed on the release branch "
+                "with `psynet translate`, so feature-branch tests do not require them "
+                "to be up to date."
+            )
+            logger.warning(error_message)
+        else:
+            error_message += (
+                " If this happened in a live experiment, we would default to presenting "
+                "the untranslated text."
+            )
+            raise TranslationNotFoundError(error_message)
 
 
 def get_translator(

@@ -126,7 +126,7 @@ class TestExp:
                 "main-body",
                 """
                 That\'s the end of the experiment! You will receive a reward of $0.11
-                for the time you spent on the experiment. You have also been awarded a performance reward of $9.09!
+                for the time you spent on the experiment. You have also been awarded a performance reward of $9.09.
                 Thank you for taking part.
                 Please click "Finish" to finalize the session. Finish
                 """,

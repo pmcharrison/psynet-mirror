@@ -48,7 +48,7 @@ MAPPED_IDENTIFIER_FIELDS = ("unique_id", "worker_id", "assignment_id")
 REDACTED_IDENTIFIER_FIELDS = ("client_ip_address", "entry_information", "hit_id")
 
 #: Columns whose redacted placeholder must remain valid JSON.
-_JSON_IDENTIFIER_FIELDS = frozenset({"entry_information"})
+_JSON_IDENTIFIER_FIELDS = frozenset({"entry_information", "params"})
 
 _PARTICIPANT_TABLE = "participant"
 _LUCID_TABLE = "lucid_rid"
