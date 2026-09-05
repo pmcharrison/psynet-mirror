@@ -51,7 +51,7 @@
         }
 
         function shouldAttemptCreate(resp) {
-            return (
+            return Boolean(
                 resp &&
                 resp.status === 403 &&
                 (resp.errorCode === "participant_not_found" ||
@@ -75,31 +75,13 @@
                 entryInformation = getEntryInformation();
             }
             let fingerprintHash = await getFingerprintHash();
-            let url = "/participant";
-            let data = {};
+            let data = Object.assign(
+                {},
+                entryInformation,
+                {fingerprint_hash: fingerprintHash}
+            );
 
-            if (Object.keys(entryInformation).length > 0) {
-                data = Object.assign(
-                    {},
-                    entryInformation,
-                    {fingerprint_hash: fingerprintHash}
-                );
-            } else {
-                let recruiter = dallinger.getUrlParameter('recruiter');
-                let hitId = dallinger.getUrlParameter('hitId');
-                let workerId = dallinger.getUrlParameter('workerId');
-                let assignmentId = dallinger.getUrlParameter('assignmentId');
-                let mode = dallinger.getUrlParameter('mode');
-
-                url += "/" + workerId;
-                url += "/" + hitId;
-                url += "/" + assignmentId;
-                url += "/" + mode;
-                url += "?fingerprint_hash=" + fingerprintHash;
-                url += '&recruiter=' + recruiter;
-            }
-
-            dallinger.post(url, data).done(function (resp) {
+            dallinger.post("/participant", data).done(function (resp) {
                 window.location = "/timeline?unique_id=" + resp.participant.unique_id;
             }).fail(function(resp) {
                 handleStartError(resp);
@@ -127,9 +109,9 @@
             }
         }
 
-        // Handle browser back/forward navigation: when the page is restored from the
-        // back/forward cache (bfcache), reset the startInProgress flag so the participant
-        // flow can restart properly, then reinitialize the flow.
+        // pageshow runs on first load and when the page is restored (including
+        // bfcache). Reset the in-progress flag after a persisted restore so
+        // /start can run again after back/forward navigation.
         window.addEventListener("pageshow", function (event) {
             if (event.persisted) {
                 startInProgress = false;

@@ -1,4 +1,5 @@
-from pathlib import Path
+import re
+from shutil import copytree
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
@@ -55,29 +56,30 @@ def _wait_for_error_form(driver, message):
 
 
 @pytest.fixture(scope="class")
-def experiment_directory(request):
-    directory = path_to_test_experiment("timeline")
-    experiment_path = Path(directory) / "experiment.py"
+def experiment_directory(request, tmp_path_factory):
+    source = path_to_test_experiment("timeline")
+    if not getattr(request.cls, "allow_repeat_worker_ids", False):
+        yield source
+        return
+
+    directory = tmp_path_factory.mktemp("timeline-repeat")
+    copytree(source, directory, dirs_exist_ok=True)
+    experiment_path = directory / "experiment.py"
     original = experiment_path.read_text(encoding="utf-8")
-    allow_repeat = getattr(request.cls, "allow_repeat_worker_ids", False)
-    if allow_repeat and "allow_repeat_worker_ids" not in original:
-        marker = '"show_abort_button": True,'
-        if marker not in original:
-            raise AssertionError(
-                "Could not enable allow_repeat_worker_ids in the timeline experiment."
-            )
-        experiment_path.write_text(
-            original.replace(
-                marker,
-                marker + '\n        "allow_repeat_worker_ids": True,',
-                1,
-            ),
-            encoding="utf-8",
+    if "allow_repeat_worker_ids" not in original:
+        updated, replacements = re.subn(
+            r"(config\s*=\s*\{)",
+            r'\1\n        "allow_repeat_worker_ids": True,',
+            original,
+            count=1,
         )
+        if replacements != 1:
+            raise AssertionError(
+                "Could not enable allow_repeat_worker_ids in the timeline experiment copy."
+            )
+        experiment_path.write_text(updated, encoding="utf-8")
 
-    yield directory
-
-    experiment_path.write_text(original, encoding="utf-8")
+    yield str(directory)
 
 
 @pytest.mark.parametrize(

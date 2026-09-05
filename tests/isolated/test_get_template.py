@@ -16,7 +16,7 @@ def test_get_template():
     assert get_template(page) == get_template_legacy(page)
 
 
-def test_start_template_only_creates_after_participant_not_found():
+def test_start_template_only_creates_on_structured_lookup_errors():
     template = resources.files("psynet").joinpath("templates/start.html").read_text()
     function = re.search(
         r"function shouldAttemptCreate\(resp\) \{.*?^\s*\}",
@@ -28,7 +28,9 @@ def test_start_template_only_creates_after_participant_not_found():
         {"status": 403, "errorCode": "participant_not_found"},
         {"status": 403, "errorCode": "assignment_id_missing"},
         {"status": 403, "errorCode": "other_forbidden_error"},
+        {"status": 403},
         {"status": 500, "errorCode": "participant_not_found"},
+        None,
     ]
     script = (
         f"{function.group(0)}\n"
@@ -40,4 +42,7 @@ def test_start_template_only_creates_after_participant_not_found():
         ["node", "-e", script], check=True, capture_output=True, text=True
     )
 
-    assert json.loads(result.stdout) == [True, True, False, False]
+    assert json.loads(result.stdout) == [True, True, False, False, False, False]
+    assert "/participant/" not in template
+    assert "pageshow" in template
+    assert "event.persisted" in template
