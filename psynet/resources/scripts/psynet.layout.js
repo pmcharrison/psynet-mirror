@@ -208,8 +208,8 @@
   }
 
   /**
-   * Detect content that stays behind the fixed footer even at the end of the
-   * scroll, which no amount of scrolling can reveal.
+   * Detect content that overlaps a footer even at the end of the scroll.
+   * PsyNet's footer is in flow, but custom experiment CSS can reposition it.
    *
    * Scrolls to the end, restoring the original position afterwards. The scroll is
    * repeated until the position stops changing: a single jump can land short

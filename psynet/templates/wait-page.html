@@ -3,6 +3,18 @@
 {% block stylesheets %}
     {{ super() }}
     <style data-psynet-fragment-style="true">
+        /* Wait pages use the same page column whether or not they have a
+           footer. Without a footer, leave room for the fixed media rail. */
+        #timeline-root {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #timeline-root:not(:has(#footer)) {
+            min-height: calc(100vh - var(--psynet-media-progress-height));
+            min-height: calc(100dvh - var(--psynet-media-progress-height));
+        }
+
         /* The waiting animation is full-bleed, so opt out of the content surface.
            This column takes the space between the progress bar and the footer
            rather than claiming a full viewport of its own. */
@@ -20,23 +32,15 @@
             min-height: 0;
         }
 
-        /* Fill the viewport below the progress bar. Footer clearance is
-           padding on this element only when a footer is present, so generic
-           and local recruitment do not keep a blank band at the bottom. */
+        /* Fill the column below the progress bar. */
         #wait-page {
             display: flex;
             align-items: center;
             justify-content: center;
             flex: 1 1 auto;
-            min-height: calc(100vh - var(--psynet-progress-height));
+            min-height: 0;
             padding: 2rem;
             text-align: center;
-        }
-
-        /* The footer already occupies layout space, so a viewport min-height
-           here would overflow by about one footer. */
-        #timeline-root:has(#footer) #wait-page {
-            min-height: 0;
         }
 
         #wait-page p {

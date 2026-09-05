@@ -134,9 +134,8 @@
     {% endmacro %}
 
     {% macro timeline_footer() %}
-        {# Omit the footer element when it is hidden, and when it would have
-           nothing in it, so body:has(#footer) does not reserve clearance for an
-           empty bar. Appearance lives in participant.css. #}
+        {# Omit the footer element when it is hidden or has no content.
+           Appearance and in-flow placement live in participant.css. #}
         {% set show_comment_button = config.get("leave_comments_on_every_page") %}
         {% set show_terminate_button = show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
         {% set footer_has_content = experiment.show_reward or show_comment_button or show_terminate_button %}

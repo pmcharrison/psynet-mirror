@@ -63,8 +63,7 @@ experiment by redefining a handful of tokens rather than overriding rules.
        colour glares.
    * - ``--psynet-border``
      - ``#dfe5ee``
-     - Default border colour, and the progress-bar track (and its
-       percentage pill).
+     - Default border colour for surfaces and controls.
    * - ``--psynet-text``
      - ``#1f2733``
      - Body text.

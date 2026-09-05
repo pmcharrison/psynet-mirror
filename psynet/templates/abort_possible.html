@@ -1,18 +1,5 @@
 {% extends "psynet_layout.html" %}
 
-{% block stylesheets %}
-    {{ super() }}
-    <style>
-        /* This page is shown in a small popup, so it deliberately does not use
-           the content surface: its padding and margins pushed the buttons below
-           a popup viewport that cannot be scrolled. There is no footer here
-           either, so no clearance is needed. */
-        body {
-            padding-bottom: 0;
-        }
-    </style>
-{% endblock %}
-
 {% block body %}
     <div class="container my-4">
       <div>
