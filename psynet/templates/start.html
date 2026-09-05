@@ -54,7 +54,8 @@
             return (
                 resp &&
                 resp.status === 403 &&
-                resp.errorCode === "participant_not_found"
+                (resp.errorCode === "participant_not_found" ||
+                 resp.errorCode === "assignment_id_missing")
             );
         }
 

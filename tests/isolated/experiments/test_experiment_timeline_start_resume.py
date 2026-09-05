@@ -1,3 +1,4 @@
+from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
@@ -56,34 +57,30 @@ def _wait_for_error_form(driver, message):
 @pytest.fixture(scope="class")
 def experiment_directory(request):
     directory = path_to_test_experiment("timeline")
-    config_path = f"{directory}/config.txt"
-    with open(config_path, "r", encoding="utf-8") as handle:
-        original = handle.read()
+    config_path = Path(directory) / "config.txt"
+    original = config_path.read_text(encoding="utf-8") if config_path.exists() else None
+    created_config = original is None
 
     allow_repeat = getattr(request.cls, "allow_repeat_worker_ids", False)
-    if allow_repeat and "allow_repeat_worker_ids" not in original:
-        if "[Recruiter]" in original:
-            lines = original.splitlines()
-            updated_lines = []
-            for line in lines:
-                updated_lines.append(line)
-                if line.strip() == "[Recruiter]":
-                    updated_lines.append("allow_repeat_worker_ids = true")
-            updated = "\n".join(updated_lines)
-            if original.endswith("\n"):
-                updated += "\n"
-        else:
-            updated = original
-            if not updated.endswith("\n"):
-                updated += "\n"
-            updated += "[Recruiter]\nallow_repeat_worker_ids = true\n"
-        with open(config_path, "w", encoding="utf-8") as handle:
-            handle.write(updated)
+    if allow_repeat:
+        if original is None:
+            config_path.write_text(
+                "[Parameters]\nallow_repeat_worker_ids = true\n",
+                encoding="utf-8",
+            )
+        elif "allow_repeat_worker_ids" not in original:
+            suffix = "" if original.endswith("\n") else "\n"
+            config_path.write_text(
+                original + suffix + "allow_repeat_worker_ids = true\n",
+                encoding="utf-8",
+            )
 
     yield directory
 
-    with open(config_path, "w", encoding="utf-8") as handle:
-        handle.write(original)
+    if created_config:
+        config_path.unlink(missing_ok=True)
+    elif original is not None:
+        config_path.write_text(original, encoding="utf-8")
 
 
 @pytest.mark.parametrize(

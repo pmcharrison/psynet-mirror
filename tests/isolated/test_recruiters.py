@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import dallinger.experiment
 import dallinger.recruiters
 import pytest
-from dallinger import db
 from dallinger.prolific import ProlificServiceException
 
 from psynet.participant import (

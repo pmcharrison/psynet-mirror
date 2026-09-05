@@ -26,6 +26,7 @@ def test_start_template_only_creates_after_participant_not_found():
     assert function is not None
     responses = [
         {"status": 403, "errorCode": "participant_not_found"},
+        {"status": 403, "errorCode": "assignment_id_missing"},
         {"status": 403, "errorCode": "other_forbidden_error"},
         {"status": 500, "errorCode": "participant_not_found"},
     ]
@@ -39,4 +40,4 @@ def test_start_template_only_creates_after_participant_not_found():
         ["node", "-e", script], check=True, capture_output=True, text=True
     )
 
-    assert json.loads(result.stdout) == [True, False, False]
+    assert json.loads(result.stdout) == [True, True, False, False]
