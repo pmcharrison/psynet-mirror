@@ -24,8 +24,9 @@ git push
 
    Dallinger (12.3.x and the current master pin; fixed upstream by
    [Dallinger#9768](https://github.com/Dallinger/Dallinger/pull/9768), which
-   hashes the whole build context) tags the experiment Docker image from a
-   hash of **only** `requirements.txt` and `prepare_docker_image.sh`. The image
+   tags SSH/Heroku-docker deploys with the per-launch UID) tags the
+   experiment Docker image from a hash of **only** `requirements.txt` and
+   `prepare_docker_image.sh`. The image
    then `COPY`s the whole experiment directory, including `experiment.py`.
    If both variants keep the same hashed files, the second deploy **reuses
    the first image** and runs the wrong `experiment.py` while taking

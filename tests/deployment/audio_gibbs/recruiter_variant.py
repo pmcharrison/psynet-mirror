@@ -5,9 +5,10 @@ Dallinger (12.3.x and the current master pin) tags images from
 variants can then reuse one image. Each ``experiment.py*`` calls this on
 launch with the recruiter that file is written for.
 
-Fixed upstream by https://github.com/Dallinger/Dallinger/pull/9768 (the tag
-hashes the whole build context). This guard stays as defense-in-depth for
-paid deploys.
+Fixed upstream by https://github.com/Dallinger/Dallinger/pull/9768 (SSH
+and Heroku-docker deploys tag the image with the per-launch UID). This
+guard stays as defense-in-depth for paid deploys until PsyNet pins that
+Dallinger.
 """
 
 _ALLOWED = {
