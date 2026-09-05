@@ -89,7 +89,7 @@ def experiment_directory(request):
 @pytest.mark.usefixtures("launched_experiment")
 class TestStartResumeDefault:
     # Overview: assignment ID resumes, repeat worker blocks by default, new IDs create new participant.
-    def test_start_resume_scenarios(self, bot_recruits):
+    def test_start_resume_scenarios(self, bot_recruits, db_session):
         for bot in bot_recruits:
             driver = bot.driver
             _wait_for_timeline(driver, "Timeline page never loaded.")
@@ -133,6 +133,24 @@ class TestStartResumeDefault:
                 Participant.query.filter_by(worker_id=new_params["workerId"]).count()
                 == 1
             )
+
+            # Resuming a finished assignment still loads the same participant,
+            # but the timeline route must hand it straight to the exit page
+            # rather than revive a completed consent/trial.
+            db_session.commit()
+            initial_participant = Participant.query.filter_by(
+                unique_id=initial_unique_id
+            ).one()
+            initial_participant.progress = 1
+            db_session.commit()
+
+            driver.get(_start_url(base_url, recruitment_params))
+            wait_until(
+                lambda: "/recruiter-exit" in driver.current_url,
+                max_wait=10,
+                error_message="Finished assignment did not return to the exit page.",
+            )
+            assert not driver.find_elements(By.ID, "consent")
 
 
 @pytest.mark.parametrize(
