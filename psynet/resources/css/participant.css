@@ -87,13 +87,14 @@
     /* Chrome, as opposed to content: the progress rail above the page and the
        footer below it. Both are tinted rather than sharing the content surface,
        and sharing one value ties the top and bottom of the page together.
-       Deliberately deeper than --psynet-page-bg, for two reasons: a tint
+       Deliberately deeper than --psynet-page-bg, for three reasons: a tint
        lighter than the page dissolves into it, since that is what the footer's
-       top edge abuts; and the surface-filled footer controls need to differ
-       from the bar behind them rather than relying on their border alone.
-       Interactive boundaries in the footer are measured against this value,
-       not against the surface. */
-    --psynet-chrome-bg: #e3ebf7;
+       top edge abuts; an empty progress rail has to be legible against the page
+       before any of it is filled; and the surface-filled footer controls need
+       to differ from the bar behind them rather than relying on their border
+       alone. It cannot go much deeper, though: the footer's control borders are
+       measured against this value and must clear 3:1. */
+    --psynet-chrome-bg: #d8e3f4;
     /* Separable so an experiment can retint the footer alone. */
     --psynet-footer-bg: var(--psynet-chrome-bg);
 
@@ -676,15 +677,13 @@ textarea:focus-visible,
 #footer #comment-button {
     --bs-btn-bg: var(--psynet-surface);
     --bs-btn-border-color: var(--psynet-accent);
-    /* The border carries the boundary; the label stays neutral so the footer
-       does not add a second blue element competing with the Next button. */
-    --bs-btn-color: var(--psynet-text);
+    --bs-btn-color: var(--psynet-accent-hover);
     --bs-btn-hover-bg: var(--psynet-accent-soft);
     --bs-btn-hover-border-color: var(--psynet-accent);
-    --bs-btn-hover-color: var(--psynet-text);
+    --bs-btn-hover-color: var(--psynet-accent-hover);
     --bs-btn-active-bg: var(--psynet-accent-soft);
     --bs-btn-active-border-color: var(--psynet-accent);
-    --bs-btn-active-color: var(--psynet-text);
+    --bs-btn-active-color: var(--psynet-accent-hover);
 }
 
 /* Red signals the consequence, but a solid fill made Exit the heaviest thing

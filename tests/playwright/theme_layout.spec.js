@@ -708,10 +708,15 @@ for (const scheme of ["light", "dark"]) {
           },
           // The readout must not look like a third button.
           rewardBorder: styles("#reward-summary").borderTopColor,
-          // Neutral label: the border carries the boundary, so the footer does
-          // not add a second blue element beside the Next button.
-          commentLabel: styles("#comment-button").color,
-          bodyText: styles("#main-body").color,
+          // The label reads on its own fill, not on the bar behind it.
+          commentLabelContrast: window.__contrast(
+            styles("#comment-button").color,
+            styles("#comment-button").backgroundColor
+          ),
+          exitLabelContrast: window.__contrast(
+            styles("#terminate-button").color,
+            styles("#terminate-button").backgroundColor
+          ),
           footerAlignedToContent:
             Math.round(box("#footer > .container").width) <=
             Math.round(box("#main-body").width) + 1
@@ -736,8 +741,9 @@ for (const scheme of ["light", "dark"]) {
       expect(footer.contrast.commentFill).toBeGreaterThan(1.1);
       expect(footer.contrast.footerAgainstPage).toBeGreaterThan(1.03);
 
-      // Comment's label is ordinary text, not a second accent-coloured element.
-      expect(footer.commentLabel).toBe(footer.bodyText);
+      // Coloured labels still have to be readable on the control's own fill.
+      expect(footer.commentLabelContrast).toBeGreaterThanOrEqual(4.5);
+      expect(footer.exitLabelContrast).toBeGreaterThanOrEqual(4.5);
 
       expect(footer.footerAlignedToContent).toBe(true);
       expect(footer.gaps.commentToExit).toBeLessThan(footer.gaps.rewardToComment);
@@ -757,6 +763,54 @@ for (const scheme of ["light", "dark"]) {
       });
       expect(focused.focusVisible).toBe(true);
       expect(focused.outline).toBe(focused.border);
+    }
+  );
+}
+
+for (const scheme of ["light", "dark"]) {
+  test(
+    `the progress rail reads against the page before it is filled (${scheme})`,
+    { tag: "@both" },
+    async ({ page }) => {
+      await renderTheme(page, {
+        viewport: { width: 1280, height: 480 },
+        includeBootstrap: true,
+        htmlAttrs: `data-bs-theme="${scheme}"`,
+        scripts: [contrastHelpers()],
+        html: `
+          <div id="timeline-header" class="header">
+            <div class="progress">
+              <div id="timeline-progress-bar" class="progress-bar" style="width:0%"></div>
+              <span id="timeline-progress-label" aria-hidden="true" data-progress="0%"></span>
+            </div>
+          </div>
+          <div id="main-body" class="container psynet-surface"><p>Trial</p></div>
+          <nav id="footer" class="navbar fixed-bottom">
+            <div class="container py-2"><span class="footer-text">Reward</span></div>
+          </nav>`
+      });
+
+      const rail = await page.evaluate(() => {
+        const cs = (s) => getComputedStyle(document.querySelector(s));
+        const railBg = cs("#timeline-header .progress").backgroundColor;
+        return {
+          railBg,
+          // An empty rail is pure background, so if it matches the page there is
+          // nothing to see until progress starts.
+          againstPage: window.__contrast(railBg, cs("body").backgroundColor),
+          // And the fill has to stand out from the rail once it does.
+          fillAgainstRail: window.__contrast(
+            cs("#timeline-progress-bar").backgroundColor,
+            railBg
+          ),
+          // The rail and footer are one family.
+          matchesFooter: railBg === cs("#footer").backgroundColor
+        };
+      });
+
+      expect(rail.againstPage).toBeGreaterThanOrEqual(1.1);
+      expect(rail.fillAgainstRail).toBeGreaterThanOrEqual(3);
+      expect(rail.matchesFooter).toBe(true);
     }
   );
 }
