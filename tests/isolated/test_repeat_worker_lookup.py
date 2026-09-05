@@ -6,7 +6,7 @@ import sqlalchemy.orm.exc
 
 from psynet.experiment import Experiment
 from psynet.participant import Participant
-from psynet.recruiters import LucidRID, latest_participant_for_worker_id
+from psynet.recruiters import LucidRID, _latest_participant_for_worker_id
 
 
 def _query_returning(participant):
@@ -50,8 +50,8 @@ def test_get_participant_from_worker_id_returns_latest():
 def test_latest_participant_for_worker_id_skips_empty():
     query = MagicMock()
     with patch.object(Participant, "query", query):
-        assert latest_participant_for_worker_id("") is None
-        assert latest_participant_for_worker_id(None) is None
+        assert _latest_participant_for_worker_id("") is None
+        assert _latest_participant_for_worker_id(None) is None
     query.filter_by.assert_not_called()
 
 

@@ -229,7 +229,7 @@ def latest_participant_for_assignment(assignment_id):
     )
 
 
-def latest_participant_for_worker_id(worker_id):
+def _latest_participant_for_worker_id(worker_id):
     """Return the most recent participant with this worker id, or ``None``."""
     if not worker_id:
         return None
@@ -1533,7 +1533,7 @@ class LucidRID(SQLBase, SQLMixin):
         """
         if self.participant_id is not None:
             return self.participant
-        return latest_participant_for_worker_id(self.rid)
+        return _latest_participant_for_worker_id(self.rid)
 
     def to_dict(self):
         return {
