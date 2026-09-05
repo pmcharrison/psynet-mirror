@@ -106,7 +106,7 @@
                 if (attempt !== startAttempt) {
                     return;
                 }
-                window.location = "/timeline?unique_id=" + resp.participant.unique_id;
+                window.location.replace("/timeline?unique_id=" + resp.participant.unique_id);
             }).fail(function(resp) {
                 handleStartError(resp, attempt);
             });
@@ -124,7 +124,7 @@
                     if (attempt !== startAttempt) {
                         return;
                     }
-                    window.location = "/timeline?unique_id=" + resp.participant.unique_id;
+                    window.location.replace("/timeline?unique_id=" + resp.participant.unique_id);
                 }).fail(function(resp) {
                     if (attempt !== startAttempt) {
                         return;

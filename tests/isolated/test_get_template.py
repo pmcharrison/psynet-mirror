@@ -55,3 +55,5 @@ def test_start_template_ignores_stale_async_attempts():
     assert "const attempt = ++startAttempt;" in template
     assert "createParticipant(entryInformation, attempt)" in template
     assert template.count("attempt !== startAttempt") >= 4
+    assert template.count('window.location.replace("/timeline?unique_id="') == 2
+    assert 'window.location = "/timeline' not in template
