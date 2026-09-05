@@ -5,7 +5,6 @@ const {
   assertNoBackendError,
   completeInitialGateway,
   startResponseSubmitTracker,
-  waitForResponseSubmitIncrement,
   withExperiment
 } = require("./psynetHarness");
 
@@ -233,27 +232,38 @@ test("wait_while preserves the submitted page and wakes after async work", { tag
       submitEnables: 0
     });
 
-    const pendingBaseline = responses.getCount();
-    expect(
-      await experimentPage.evaluate(async () => {
+    const pendingEffects = await experimentPage.evaluate(async () => {
+      const controller = psynet.timelineHold;
+      const originalNextPage = psynet.nextPage;
+      const originalSchedule = psynet.scheduleTimelineHoldCheck;
+      const effects = { nextPageCalls: 0, scheduleCalls: 0 };
+      clearTimeout(controller.safetyTimer);
+      psynet.nextPage = () => {
+        effects.nextPageCalls += 1;
+      };
+      psynet.scheduleTimelineHoldCheck = () => {
+        effects.scheduleCalls += 1;
+      };
+      try {
         psynet.nextPagePending = true;
-        return psynet.resumeTimelineHold("test pending request");
-      })
-    ).toBe(false);
-    await experimentPage.waitForTimeout(250);
-    expect(responses.getCount()).toBeLessThanOrEqual(pendingBaseline + 1);
+        effects.result = await psynet.resumeTimelineHold("test pending request");
+      } finally {
+        psynet.nextPagePending = false;
+        psynet.nextPage = originalNextPage;
+        psynet.scheduleTimelineHoldCheck = originalSchedule;
+      }
+      return effects;
+    });
+    expect(pendingEffects).toEqual({
+      nextPageCalls: 0,
+      scheduleCalls: 1,
+      result: false
+    });
     await experimentPage.evaluate(() => {
-      psynet.nextPagePending = false;
       if (psynet.timelineHold) {
         psynet.resumeTimelineHold("test after pending probe");
       }
     });
-    await waitForResponseSubmitIncrement(
-      responses,
-      pendingBaseline,
-      1,
-      STEP_TIMEOUT_MS
-    );
 
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Background feedback processing finished.",
