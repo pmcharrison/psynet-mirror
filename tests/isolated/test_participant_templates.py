@@ -271,38 +271,35 @@ def test_every_participant_page_declares_the_viewport():
     assert 'name="viewport"' not in browser_detect
 
 
-def test_footer_leaves_the_viewport_on_a_scrolling_phone_page():
-    """A pinned footer costs a fifth of a phone screen on every page."""
+def test_footer_leaves_the_viewport_on_a_phone_page():
+    """A pinned footer costs a fifth of a phone screen on every page.
+
+    Width alone decides this, in CSS, so it holds from the first paint. Deciding
+    it from measured content, as an earlier version did, showed the participant a
+    footer that started pinned and then jumped down the page.
+    """
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    assert "body.psynet-footer-in-flow #footer.fixed-bottom {" in css
-    start = css.index("body.psynet-footer-in-flow #footer.fixed-bottom {")
-    end = css.index("}", start)
+    start = css.index("@media (max-width: 480px) {")
+    phone_rules = css[start : css.index("\n}\n", start)]
     # `relative`, not `static`: the media-download bar inside the footer is
     # absolutely positioned and needs the footer as its containing block.
-    assert "position: relative" in css[start:end]
+    assert "position: relative" in phone_rules
+    # The footer takes up the slack in a page box at least a window tall, which
+    # puts it at the bottom edge on a short page and after the content on a long
+    # one.
+    assert "margin-top: auto" in phone_rules
+    assert "min-height: 100dvh" in phone_rules
     # Nothing to reserve once the footer occupies real space.
-    start = css.index("body.psynet-footer-in-flow:has(#footer) {")
-    end = css.index("}", start)
-    assert "padding-bottom: 0" in css[start:end]
-    # Pages that declare expect_scrolling get the same treatment from first
-    # paint on phones, so the footer does not start pinned and then jump.
-    assert 'data-expect-scrolling="true"' in css
-    assert "@media (max-width: 480px)" in css
-
-    timeline = (resources.files("psynet") / "templates/timeline-page.html").read_text(
-        encoding="utf-8"
-    )
-    assert 'data-expect-scrolling="{{ page.expect_scrolling | tojson }}"' in timeline
+    assert "--psynet-footer-reserved: 0px" in phone_rules
 
     js = (resources.files("psynet") / "resources/scripts/psynet.layout.js").read_text(
         encoding="utf-8"
     )
-    assert 'IN_FLOW_CLASS = "psynet-footer-in-flow"' in js
-    # Measured without the footer, so unpinning cannot flip the decision back.
-    assert "function contentBottomExcluding(" in js
-    assert "IN_FLOW_MAX_WIDTH_PX" in js
+    # The stylesheet owns the decision; JavaScript only measures the height.
+    assert "psynet-footer-in-flow" not in js
+    assert "480" not in js
 
 
 def test_danger_buttons_follow_the_participant_theme():

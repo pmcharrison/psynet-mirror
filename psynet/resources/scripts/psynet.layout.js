@@ -30,11 +30,13 @@
  *   no_horizontal_overflow                Content wider than the viewport.
  *
  * Pages that are genuinely meant to scroll declare it with
- * `expect_scrolling=True` (see `Page` in psynet/timeline.py); consent pages
- * do this, and participant.css unpins the footer from first paint on phones
- * when `#main-body` carries that attribute. Ad pages have no `#main-body`, so
- * the fit / no-scroll checks do not apply; standards mode, percentage heights,
- * horizontal overflow, and footer occlusion still do.
+ * `expect_scrolling=True` (see `Page` in psynet/timeline.py). Ad pages have no
+ * `#main-body`, so the fit / no-scroll checks do not apply; standards mode,
+ * percentage heights, horizontal overflow, and footer occlusion still do.
+ *
+ * Whether the footer is pinned at all is decided in participant.css, by window
+ * width alone. Nothing here should reproduce that decision: a layout choice
+ * taken after the first paint is one the participant watches being made.
  *
  * Public API: `window.psynetLayout` (`collectViolations`,
  * `collectScrollViolations`, `check`, `refreshFooterClearance`). When
@@ -68,79 +70,24 @@
   // flush against it.
   const FOOTER_GAP_PX = 12;
 
-  // On a phone a pinned footer costs a fifth of the screen, and it costs it on
-  // every page of the experiment. Where the page already scrolls there is no
-  // reason to pay that: the footer can sit at the end of the content, which the
-  // participant reaches by scrolling anyway. Above this width the footer stays
-  // pinned, because a wide window has room to spare.
-  const IN_FLOW_MAX_WIDTH_PX = 480;
-  const IN_FLOW_CLASS = "psynet-footer-in-flow";
-
   let trackedFooter = null;
   let footerResizeObserver = null;
 
   /**
-   * How far down the document the content reaches, ignoring the footer.
+   * Publish the rendered footer height for participant.css.
    *
-   * The footer is skipped rather than measured, so that unpinning it cannot
-   * change the answer and set up an oscillation. An ancestor of the footer
-   * cannot simply be skipped, though -- the footer normally sits inside
-   * `#timeline-root` alongside the page itself -- so we descend past it.
+   * This is a measurement, not a decision: the stylesheet works out whether the
+   * space is reserved, which on a phone it is not, because there the footer sits
+   * in the document rather than over it.
    */
-  function contentBottomExcluding(element, footer) {
-    if (element === footer) return 0;
-    const style = getComputedStyle(element);
-    if (style.display === "none" || style.position === "fixed") return 0;
-
-    if (element.contains(footer)) {
-      let bottom = 0;
-      for (const child of element.children) {
-        bottom = Math.max(bottom, contentBottomExcluding(child, footer));
-      }
-      return bottom;
-    }
-    return element.getBoundingClientRect().bottom + window.scrollY;
-  }
-
-  /** Decide whether the footer should leave the viewport and follow the content. */
-  function updateFooterFlowMode() {
-    if (document.body === null) return;
-    if (trackedFooter === null) {
-      document.body.classList.remove(IN_FLOW_CLASS);
-      return;
-    }
-
-    const narrow = window.innerWidth <= IN_FLOW_MAX_WIDTH_PX;
-    let contentBottom = 0;
-    for (const child of document.body.children) {
-      contentBottom = Math.max(
-        contentBottom,
-        contentBottomExcluding(child, trackedFooter)
-      );
-    }
-
-    const overflows = contentBottom > window.innerHeight + 1;
-    document.body.classList.toggle(IN_FLOW_CLASS, narrow && overflows);
-  }
-
   function publishFooterHeight() {
     const style = document.documentElement.style;
     if (trackedFooter === null) {
       style.removeProperty(FOOTER_HEIGHT_PROPERTY);
       return;
     }
-    updateFooterFlowMode();
-    if (document.body !== null && document.body.classList.contains(IN_FLOW_CLASS)) {
-      // In flow the footer occupies real space, so reserving more would leave a
-      // band of empty page below it.
-      style.removeProperty(FOOTER_HEIGHT_PROPERTY);
-      return;
-    }
     const height = trackedFooter.getBoundingClientRect().height;
-    style.setProperty(
-      FOOTER_HEIGHT_PROPERTY,
-      `${height + FOOTER_GAP_PX}px`
-    );
+    style.setProperty(FOOTER_HEIGHT_PROPERTY, `${height + FOOTER_GAP_PX}px`);
   }
 
   /**
@@ -168,11 +115,6 @@
   function initFooterClearance() {
     if (typeof ResizeObserver === "function") {
       footerResizeObserver = new ResizeObserver(publishFooterHeight);
-      // Content growing or shrinking changes whether the page overflows, which
-      // is half of the in-flow decision.
-      if (document.body !== null) {
-        new ResizeObserver(publishFooterHeight).observe(document.body);
-      }
     }
     refreshFooterClearance();
     if (typeof MutationObserver === "function" && document.body !== null) {
@@ -181,7 +123,7 @@
         subtree: true,
       });
     }
-    // Rotating a phone changes the other half.
+    // A narrower window wraps the footer's controls onto more rows.
     window.addEventListener("resize", publishFooterHeight);
   }
 

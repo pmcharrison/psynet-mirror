@@ -438,15 +438,17 @@ test(
   }
 );
 
-// A phone page that fits keeps its footer pinned, so the reserved clearance has
-// to follow the footer's real height. (A phone page that scrolls hands the
-// footer back to the document instead; that case is covered separately.)
+// Just above the width at which the footer joins the document, so it is still
+// pinned but cramped enough for its controls to wrap. The reserved clearance has
+// to follow the footer's real height, or a wrapped footer covers the last
+// control. (Below that width the footer follows the content instead, and that
+// case is covered separately.)
 test(
-  "a wrapped footer on a fitting phone page still clears the last control",
+  "a wrapped footer on a narrow window still clears the last control",
   { tag: "@both" },
   async ({ page }) => {
     await renderTheme(page, {
-      viewport: { width: 320, height: 568 },
+      viewport: { width: 520, height: 568 },
       includeBootstrap: true,
       scripts: [LAYOUT_JS],
       html: `
@@ -835,7 +837,7 @@ for (const scheme of ["light", "dark"]) {
 }
 
 test(
-  "a scrolling phone page hands the footer back to the document",
+  "on a phone the footer follows the content without rising above the window",
   { tag: "@both" },
   async ({ page }) => {
     const tallPage = (paragraphs) => `
@@ -852,8 +854,8 @@ test(
         </nav>
       </div>`;
 
-    const state = async () =>
-      await page.evaluate(async () => {
+    const geometry = async () =>
+      await page.evaluate(() => {
         const footer = document.getElementById("footer");
         const next = document.getElementById("next-button");
         const bar = document.getElementById("media-download-progress-bar");
@@ -862,44 +864,68 @@ test(
         return {
           position: getComputedStyle(footer).position,
           clearance: getComputedStyle(document.body).paddingBottom,
+          footerTop: footerBox.top,
+          footerBottom: footerBox.bottom,
+          viewportHeight: window.innerHeight,
           footerBelowNext: footerBox.top >= next.getBoundingClientRect().bottom,
           // An in-flow footer that is not a containing block lets the absolutely
           // positioned media bar escape to the top of the page.
           barInsideFooter:
-            barBox.top >= footerBox.top - 1 && barBox.bottom <= footerBox.bottom + 1,
-          violations: (await window.psynetLayout.check()).map((v) => v.check)
+            barBox.top >= footerBox.top - 1 && barBox.bottom <= footerBox.bottom + 1
         };
       });
 
-    // Phone, page overflows: in flow, so nothing is reserved and the footer
-    // comes after the last control.
+    // Phone, page overflows: the footer follows the content past the fold, so
+    // the window belongs to the page and nothing is reserved.
     await renderTheme(page, {
       viewport: { width: 375, height: 600 },
       includeBootstrap: true,
       scripts: [LAYOUT_JS],
       html: tallPage(60)
     });
-    await page.waitForTimeout(150);
-    let s = await state();
-    expect(s.position).toBe("relative");
-    expect(s.clearance).toBe("0px");
-    expect(s.footerBelowNext).toBe(true);
-    expect(s.barInsideFooter).toBe(true);
-    expect(s.violations).not.toContain("nothing_permanently_occluded");
+    let g = await geometry();
+    expect(g.position).toBe("relative");
+    expect(g.clearance).toBe("0px");
+    expect(g.footerTop).toBeGreaterThan(g.viewportHeight);
+    expect(g.footerBelowNext).toBe(true);
+    expect(g.barInsideFooter).toBe(true);
+    expect(
+      (await page.evaluate(async () => await window.psynetLayout.check())).map(
+        (v) => v.check
+      )
+    ).not.toContain("nothing_permanently_occluded");
 
-    // Phone, page fits: pinned, because there is nothing to scroll past.
+    // Phone, page fits: the footer stops at the bottom edge of the window
+    // instead of floating up under the content it follows.
     await renderTheme(page, {
       viewport: { width: 375, height: 600 },
       includeBootstrap: true,
       scripts: [LAYOUT_JS],
       html: tallPage(1)
     });
-    await page.waitForTimeout(150);
-    s = await state();
-    expect(s.position).toBe("fixed");
-    expect(parseFloat(s.clearance)).toBeGreaterThan(0);
+    g = await geometry();
+    expect(g.position).toBe("relative");
+    expect(g.footerBottom).toBeCloseTo(g.viewportHeight, 0);
+    expect(g.footerTop).toBeGreaterThan(
+      await page.evaluate(
+        () => document.getElementById("next-button").getBoundingClientRect().bottom
+      )
+    );
 
-    // Wide window, page overflows: still pinned, since there is room to spare.
+    // The same holds with no JavaScript at all: were this decided by
+    // measurement, the participant would watch the footer jump after the first
+    // paint.
+    await renderTheme(page, {
+      viewport: { width: 375, height: 600 },
+      includeBootstrap: true,
+      html: tallPage(60)
+    });
+    g = await geometry();
+    expect(g.position).toBe("relative");
+    expect(g.clearance).toBe("0px");
+    expect(g.footerTop).toBeGreaterThan(g.viewportHeight);
+
+    // Wide window: pinned, so the reward and Exit stay in view while scrolling.
     await renderTheme(page, {
       viewport: { width: 1280, height: 600 },
       includeBootstrap: true,
@@ -907,17 +933,16 @@ test(
       html: tallPage(60)
     });
     await page.waitForTimeout(150);
-    s = await state();
-    expect(s.position).toBe("fixed");
-    expect(parseFloat(s.clearance)).toBeGreaterThan(0);
+    g = await geometry();
+    expect(g.position).toBe("fixed");
+    expect(parseFloat(g.clearance)).toBeGreaterThan(0);
 
     // Rotating a phone into a wide window re-pins without a reload.
     await page.setViewportSize({ width: 375, height: 600 });
-    await page.waitForTimeout(250);
-    expect((await state()).position).toBe("relative");
+    expect((await geometry()).position).toBe("relative");
     await page.setViewportSize({ width: 900, height: 600 });
     await page.waitForTimeout(250);
-    expect((await state()).position).toBe("fixed");
+    expect((await geometry()).position).toBe("fixed");
   }
 );
 

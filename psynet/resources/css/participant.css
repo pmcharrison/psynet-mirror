@@ -234,42 +234,52 @@ body {
     padding-bottom: 0;
 }
 
+/*
+ * Room a pinned footer needs the page to keep clear. Zero unless the footer
+ * actually overlaps the content, so pages without a footer -- and phone pages,
+ * where the footer sits in the document instead -- do not grow a stray
+ * scrollbar. Templates that pad their own scroll container read this token
+ * rather than repeating the fallback chain.
+ */
 body:has(#footer) {
     /* psynet.layout.js measures the rendered footer and publishes
        --psynet-footer-height, because a wrapped footer is taller than any
        token can predict. The token is the pre-measurement fallback. */
-    padding-bottom: var(--psynet-footer-height, var(--psynet-footer-clearance));
+    --psynet-footer-reserved: var(--psynet-footer-height, var(--psynet-footer-clearance));
+    padding-bottom: var(--psynet-footer-reserved);
 }
 
 /*
- * On a narrow screen whose page already scrolls, the footer belongs in the
- * document rather than pinned: pinning it there would spend a fifth of a phone
- * screen on chrome the participant scrolls past anyway. Nothing needs reserving,
- * because the footer then occupies real space at the end of the content.
+ * On a phone a pinned footer costs a fifth of the screen on every page of the
+ * experiment, so there the footer follows the content instead. It still comes to
+ * rest no higher than the bottom edge of the window: the page box is at least a
+ * viewport tall and the footer takes up the slack, which puts its top at
+ * max(window bottom, end of content). A short page therefore looks the same as
+ * before, and a long one gives the whole window to the content.
  *
- * Pages that declare data-expect-scrolling="true" (consent, long lists, …) get
- * this from first paint via the media query below, so the footer does not start
- * pinned and then jump once psynet.layout.js measures. The JS class covers the
- * remaining case: a page that did not declare scrolling but still overflows.
+ * Expressing this in CSS rather than measuring it in JavaScript matters for more
+ * than tidiness: a decision taken after the first paint is a decision the
+ * participant watches being made, as a footer that starts pinned and then jumps
+ * down the page.
  */
-body.psynet-footer-in-flow:has(#footer) {
-    padding-bottom: 0;
-}
-
-/* `relative` rather than `static`: the media-download bar inside the footer is
-   absolutely positioned, so a static footer stops being its containing block and
-   the bar escapes to the top of the page. */
-body.psynet-footer-in-flow #footer.fixed-bottom {
-    position: relative;
-}
-
 @media (max-width: 480px) {
-    body:has(#main-body[data-expect-scrolling="true"]):has(#footer) {
-        padding-bottom: 0;
+    body:has(#footer) {
+        --psynet-footer-reserved: 0px;
     }
 
-    body:has(#main-body[data-expect-scrolling="true"]) #footer.fixed-bottom {
+    #timeline-root:has(#footer) {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    /* `relative` rather than `static`: the media-download bar inside the footer
+       is absolutely positioned, so a static footer stops being its containing
+       block and the bar escapes to the top of the page. */
+    #footer.fixed-bottom {
         position: relative;
+        margin-top: auto;
     }
 }
 

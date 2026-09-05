@@ -1,0 +1,1 @@
+The consent decline button now uses the theme's outlined danger style, matching the footer's `Exit` control, instead of Bootstrap's solid red, which outweighed the `I agree` button beside it. Solid and outlined `btn-danger` controls generally follow the `--psynet-danger` tokens, so a custom theme can restyle them.

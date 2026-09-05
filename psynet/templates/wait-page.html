@@ -34,7 +34,9 @@
         }
 
         body:has(#footer) #wait-page {
-            padding-bottom: var(--psynet-footer-height, var(--psynet-footer-clearance));
+            /* participant.css resolves how much a pinned footer needs kept
+               clear, and zeroes it where the footer sits in the document. */
+            padding-bottom: var(--psynet-footer-reserved, 0px);
         }
 
         #wait-page p {
