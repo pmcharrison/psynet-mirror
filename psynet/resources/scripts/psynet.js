@@ -3124,13 +3124,10 @@
         $("#timeline-progress-label").attr("data-progress", progressPercentageStr);
 
         if (data["reward"] !== undefined) {
-          if (data["reward"]["performance"].toFixed(2) > 0) {
-            $("#time-reward").text(data["reward"]["time"].toFixed(2));
-            $("#performance-reward").text(
-              data["reward"]["performance"].toFixed(2),
-            );
-            $("#reward-details").show();
-          }
+          $("#time-reward").text(data["reward"]["time"].toFixed(2));
+          $("#performance-reward").text(
+            data["reward"]["performance"].toFixed(2),
+          );
           $("#total-reward").text(data["reward"]["total"].toFixed(2));
         }
       });

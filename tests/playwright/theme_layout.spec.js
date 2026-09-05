@@ -435,6 +435,76 @@ test(
 );
 
 test(
+  "narrow-screen footer follows the content and tooltips remain available",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderTheme(page, {
+      viewport: { width: 320, height: 568 },
+      includeBootstrap: true,
+      html: `
+        <div id="main-body" class="psynet-surface"
+             data-expect-scrolling="true">
+          <p>${"A long experiment page. ".repeat(80)}</p>
+          <div class="psynet-actions">
+            <button id="next-button" class="btn btn-primary btn-lg">Next</button>
+          </div>
+        </div>
+        <nav id="footer" class="navbar fixed-bottom">
+          <div id="media-download-progress-bar" style="width: 100%"></div>
+          <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
+            <span class="psynet-tooltip">
+              <span id="reward-summary" class="psynet-tooltip__trigger"
+                    tabindex="0" aria-describedby="reward-tooltip">
+                <strong>$0.42</strong>
+              </span>
+              <span id="reward-tooltip" class="psynet-tooltip__content"
+                    role="tooltip">
+                Reward earned so far: $0.30 for time + $0.12 for performance.
+              </span>
+            </span>
+            <button class="btn btn-light">Comment</button>
+            <span class="psynet-tooltip psynet-tooltip--end">
+              <button id="terminate-button" class="btn btn-danger"
+                      aria-describedby="exit-tooltip">Exit</button>
+              <span id="exit-tooltip" class="psynet-tooltip__content"
+                    role="tooltip">Exit the experiment before it is complete.</span>
+            </span>
+          </div>
+        </nav>`
+    });
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+    const geometry = await page.evaluate(() => {
+      const next = document.getElementById("next-button").getBoundingClientRect();
+      const footer = document.getElementById("footer").getBoundingClientRect();
+      return {
+        footerPosition: getComputedStyle(
+          document.getElementById("footer")
+        ).position,
+        bodyPaddingBottom: getComputedStyle(document.body).paddingBottom,
+        footerAfterNext: footer.top >= next.bottom
+      };
+    });
+
+    expect(geometry.footerPosition).toBe("static");
+    expect(geometry.bodyPaddingBottom).toBe("0px");
+    expect(geometry.footerAfterNext).toBe(true);
+
+    const tooltip = page.locator("#reward-tooltip");
+    await page.locator("#reward-summary").focus();
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText("$0.30 for time + $0.12 for performance");
+
+    await page.locator("#terminate-button").focus();
+    await expect(page.locator("#exit-tooltip")).toBeVisible();
+    await expect(page.locator("#exit-tooltip")).toContainText(
+      "Exit the experiment before it is complete."
+    );
+  }
+);
+
+test(
   "white captions stay distinct from the dark-mode surface",
   { tag: "@both" },
   async ({ page }) => {

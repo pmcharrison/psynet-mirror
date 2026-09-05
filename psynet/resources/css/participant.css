@@ -596,6 +596,59 @@ textarea:focus-visible,
     font-size: 0.9rem;
 }
 
+.psynet-tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.psynet-tooltip__trigger:not(.btn) {
+    border-radius: 0.25rem;
+    cursor: help;
+}
+
+.psynet-tooltip__trigger:focus-visible {
+    outline: var(--psynet-focus-ring);
+    outline-offset: 2px;
+}
+
+.psynet-tooltip__content {
+    position: absolute;
+    z-index: 1080;
+    bottom: calc(100% + 0.6rem);
+    left: 0;
+    width: max-content;
+    max-width: min(20rem, calc(100vw - 2rem));
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.4rem;
+    background: var(--psynet-text);
+    color: var(--psynet-surface);
+    box-shadow: var(--psynet-shadow);
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.35;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(0.2rem);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease,
+        visibility 120ms;
+}
+
+.psynet-tooltip--end .psynet-tooltip__content {
+    right: 0;
+    left: auto;
+}
+
+.psynet-tooltip:hover .psynet-tooltip__content,
+.psynet-tooltip:focus-within .psynet-tooltip__content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
 /*
  * Media download progress is the bottom counterpart of the timeline progress
  * bar at the top of the page: the same accent, but deliberately thinner
@@ -622,6 +675,22 @@ body:not(:has(#footer)) #media-download-progress-bar {
 
 #comment-button {
     border: none;
+}
+
+/*
+ * A wrapped fixed footer can consume a third of a phone screen and permanently
+ * cover the final response control. On narrow screens it follows the content
+ * instead, so every footer shape and translation remains reachable without
+ * measuring its height in JavaScript.
+ */
+@media (max-width: 480px) {
+    body:has(#footer) {
+        padding-bottom: 0;
+    }
+
+    #footer.fixed-bottom {
+        position: static !important;
+    }
 }
 
 /* Logos */
@@ -730,5 +799,9 @@ body:not(:has(#footer)) #media-download-progress-bar {
         background-image: none;
         background-color: var(--psynet-accent);
         color: var(--psynet-accent-contrast);
+    }
+
+    .psynet-tooltip__content {
+        transition: none;
     }
 }

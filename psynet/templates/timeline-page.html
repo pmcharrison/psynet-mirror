@@ -145,18 +145,24 @@
             {{ media_download_bar() }}
                 <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
                     {% if experiment.show_reward %}
-                        <div class="footer-text">
-                            {{ pgettext("timeline", "Reward") }}:
-                            <strong>
-                                <span id="reward-details" style="display: none">
-                                    {{ config.currency }}<span id="time-reward">{{ time_reward }}</span> (time) +
-                                    {{ config.currency }}<span id="performance-reward">{{ performance_reward }}</span> (performance) =
-                                </span>
-                                <span class="fw-bold">
-                                    {{ config.currency }}<span id="total-reward">{{ total_reward }}</span>
-                                </span>
-                            </strong>
-                        </div>
+                        <span class="psynet-tooltip">
+                            <span id="reward-summary"
+                                  class="footer-text psynet-tooltip__trigger"
+                                  tabindex="0"
+                                  aria-describedby="reward-tooltip">
+                                <span class="visually-hidden">{{ pgettext("timeline", "Reward") }}: </span>
+                                <strong>{{ config.currency }}<span id="total-reward">{{ total_reward }}</span></strong>
+                            </span>
+                            <span id="reward-tooltip"
+                                  class="psynet-tooltip__content"
+                                  role="tooltip">
+                                {{ pgettext("timeline_reward", "Reward earned so far") }}:
+                                {{ config.currency }}<span id="time-reward">{{ time_reward }}</span>
+                                {{ pgettext("timeline_reward", "for time") }} +
+                                {{ config.currency }}<span id="performance-reward">{{ performance_reward }}</span>
+                                {{ pgettext("timeline_reward", "for performance") }}.
+                            </span>
+                        </span>
                     {% endif %}
 
                     {% if show_comment_button %}
@@ -165,9 +171,18 @@
                     {% endif %}
 
                     {% if show_terminate_button %}
-                        <button id="terminate-button" class="btn btn-danger">
-                            {{ pgettext("timeline_problem", "Terminate the experiment early") }}
-                        </button>
+                        <span class="psynet-tooltip psynet-tooltip--end">
+                            <button id="terminate-button"
+                                    class="btn btn-danger psynet-tooltip__trigger"
+                                    aria-describedby="exit-tooltip">
+                                {{ pgettext("timeline_problem", "Exit") }}
+                            </button>
+                            <span id="exit-tooltip"
+                                  class="psynet-tooltip__content"
+                                  role="tooltip">
+                                {{ pgettext("timeline_problem", "Exit the experiment before it is complete.") }}
+                            </span>
+                        </span>
                     {% endif %}
                 </div>
         </nav>

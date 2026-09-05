@@ -295,6 +295,24 @@ def test_timeline_omits_footer_when_hidden():
     assert "{% else %}\n            {{ media_download_bar() }}" in macro
 
 
+def test_timeline_footer_keeps_labels_compact_and_explanations_accessible():
+    source = (resources.files("psynet") / "templates" / "timeline-page.html").read_text(
+        encoding="utf-8"
+    )
+    start = source.index("{% macro timeline_footer()")
+    end = source.index("{% endmacro %}", start)
+    macro = source[start:end]
+
+    assert 'id="reward-summary"' in macro
+    assert 'aria-describedby="reward-tooltip"' in macro
+    assert 'id="reward-tooltip"' in macro
+    assert 'id="reward-details"' not in macro
+    assert 'id="terminate-button"' in macro
+    assert 'aria-describedby="exit-tooltip"' in macro
+    assert 'id="exit-tooltip"' in macro
+    assert 'pgettext("timeline_problem", "Exit")' in macro
+
+
 def test_abort_pages_skip_the_content_surface():
     """Abort pages open in a small popup; the content surface made them unscrollable."""
     templates = resources.files("psynet") / "templates"

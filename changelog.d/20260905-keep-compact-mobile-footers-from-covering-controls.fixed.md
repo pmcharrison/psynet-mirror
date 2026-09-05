@@ -1,0 +1,1 @@
+Compact participant footers show the total reward and an `Exit` button, with details available in accessible tooltips. On narrow screens, the footer follows the page content instead of covering controls as a fixed overlay.

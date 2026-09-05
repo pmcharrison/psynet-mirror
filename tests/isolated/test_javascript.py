@@ -1,4 +1,5 @@
 import warnings
+from importlib import resources
 
 import pytest
 
@@ -19,6 +20,20 @@ def test_execute_front_end_js_shows_a_spinner_not_prose():
 def test_execute_front_end_js_rejects_a_message():
     with pytest.raises(TypeError, match="message"):
         ExecuteFrontEndJS("doSomething()", message="Finalizing...")
+
+
+def test_reward_updates_keep_the_tooltip_breakdown_current():
+    source = (
+        resources.files("psynet") / "resources" / "scripts" / "psynet.js"
+    ).read_text(encoding="utf-8")
+    start = source.index("let updateProgressAndReward")
+    end = source.index("if (psynetTemplateData.flags", start)
+    update = source[start:end]
+
+    assert '$("#time-reward").text' in update
+    assert '$("#performance-reward").text' in update
+    assert '$("#total-reward").text' in update
+    assert '$("#reward-details").show()' not in update
 
 
 @pytest.mark.parametrize("argument_name", ["js_dependencies", "js_page_modules"])
