@@ -2,7 +2,6 @@ import configparser
 import inspect
 import json
 import os
-import re
 import shutil
 import signal
 import sys
@@ -29,7 +28,6 @@ import flask
 import psutil
 import rpdb
 import sqlalchemy.orm.exc
-from click import Context
 from dallinger import db
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
@@ -53,11 +51,11 @@ from dallinger.utils import classproperty
 from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
+from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask import g as flask_app_globals
-from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import with_polymorphic
+from sqlalchemy.orm import lazyload, with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
@@ -72,7 +70,7 @@ from psynet.utils import (
 from . import deployment_info
 from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
 from .bot import Bot, BotDriver, BotResponse
-from .command_line import export_launch_data, log
+from .command_line import export_launch_data
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import transaction, with_transaction
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
@@ -81,18 +79,34 @@ from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
-from .participant import Participant
+from .participant import (
+    BONUS_PAY_IN_PROGRESS,
+    BONUS_STATUS_CAPPED,
+    BONUS_STATUS_DISMISSED,
+    BONUS_STATUS_SUCCESS,
+    BONUS_STATUS_UNCONFIRMED,
+    NO_BONUS_ATTEMPT_RESULT,
+    Participant,
+    bonus_is_settled,
+    bonus_needs_review,
+    bonus_transfer_already_claimed,
+    record_bonus_attempt_detail,
+    review_bonus_pay_in_progress,
+)
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
     CapRecruiter,  # noqa: F401; Backward compatibility alias
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
+    PaymentDecision,
+    PsyNetProlificRecruiterMixin,
     StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
+from .static_resources import get_static_package_extra_files
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -108,7 +122,7 @@ from .timeline import (
 from .translation.check import check_translations
 from .translation.translate import create_pot
 from .translation.utils import compile_mo, load_po
-from .trial.main import Trial, TrialMaker
+from .trial.main import Trial, TrialMaker, TrialNetwork
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
@@ -122,6 +136,8 @@ from .utils import (
     get_authenticated_session,
     get_logger,
     get_translator,
+    is_in_repo_experiment,
+    loading_experiment_classes,
     log_time_taken,
     render_template_with_translations,
     safe,
@@ -159,6 +175,31 @@ def json_serial(obj):
         serial = obj.isoformat()
         return serial
     raise TypeError("Type not serializable")
+
+
+def _reject_overridden_fail_participant(cls):
+    """Reject PsyNet Experiment subclasses that replace fail_participant."""
+    if cls.__name__ == "Experiment" and cls.__module__ == "psynet.experiment":
+        return
+
+    psy_experiment = None
+    for base in cls.__mro__:
+        if (
+            base.__name__ == "Experiment"
+            and getattr(base, "__module__", "") == "psynet.experiment"
+        ):
+            psy_experiment = base
+            break
+    if (
+        psy_experiment is not None
+        and cls.fail_participant is not psy_experiment.fail_participant
+    ):
+        raise RuntimeError(
+            "Do not override Experiment.fail_participant. "
+            "That Dallinger hook is not part of PsyNet's failure contract "
+            "and used to fail owned nodes. Call Participant.fail() "
+            "or register a ParticipantFailRoutine instead."
+        )
 
 
 class ExperimentMeta(type):
@@ -205,6 +246,8 @@ def __init__(self, session=None):
             """
             )
 
+        _reject_overridden_fail_participant(cls)
+
 
 @register_table
 class Request(SQLBase, SQLMixin):
@@ -234,6 +277,41 @@ class Request(SQLBase, SQLMixin):
             "endpoint": self.endpoint,
             "params": self.params,
         }
+
+
+def _redacted_asset_request_path(path: str) -> str:
+    """Replace ``/asset/<token>...`` with a redacted endpoint for request logs."""
+    parts = path.split("/")
+    # ['', 'asset', '<token>', ...]
+    if len(parts) >= 3 and parts[1] == "asset" and parts[2]:
+        parts[2] = "<access_token>"
+        return "/".join(parts)
+    return path
+
+
+def _send_file_then_delete_dir(path: str, cleanup_dir: str, mimetype: str):
+    """Return a Flask file response and delete ``cleanup_dir`` after it is sent.
+
+    Cleanup is registered on the response with ``call_on_close`` so the file
+    remains on disk until Flask finishes streaming it.
+    """
+    response = send_file(path, mimetype=mimetype)
+    response.call_on_close(lambda: shutil.rmtree(cleanup_dir, ignore_errors=True))
+    return response
+
+
+def _trials_as_network_monitor_infos(trial_rows: list) -> list:
+    """Adapt trial JSON rows for Dallinger's network monitor ``infos`` slot.
+
+    The monitor draws dashed trial nodes and edges using ``origin_id`` (Info's
+    node foreign key). PsyNet trials use ``node_id`` instead, so we alias it.
+    """
+    infos = []
+    for row in trial_rows:
+        info = dict(row)
+        info["origin_id"] = info.get("node_id")
+        infos.append(info)
+    return infos
 
 
 @register_table
@@ -284,9 +362,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         class Exp(psynet.experiment.Experiment):
 
-    Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
-    when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
-
     Config variables can be set here, amongst other places (see online documentation for details):
 
     ::
@@ -334,13 +409,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The maximum payment in US dollars a participant is allowed to get. Default: `25.0`.
 
     soft_max_experiment_payment : `float`
-        The recruiting process stops if the amount of accumulated payments
-        (incl. time and performance rewards) in US dollars exceedes this value. Default: `1000.0`.
+        The recruiting process stops if ``amount_spent()`` (recorded
+        ``base_payment`` + ``bonus`` for every participant, including those
+        still in progress) exceeds this value. Default: `1000.0`.
 
     hard_max_experiment_payment : `float`
         Guarantees that in an experiment no more is spent than the value assigned.
-        Bonuses are not paid from the point this value is reached and a record of the amount
-        of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
+        A bonus that would exceed this value is clipped to remaining room
+        (or not paid if that remainder is below $0.01). ``planned_bonus``
+        stays the decided amount, delivered ``bonus`` is what was sent, and
+        ``bonus_status = capped``. Default: `1100.0`.
 
     big_base_payment : `bool`
         Set this to `True` if you REALLY want to set `base_payment` to a value > 20.
@@ -469,7 +547,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
-    export_classes_to_skip = ["ExperimentStatus"]
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
@@ -480,8 +557,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     artifact_storage = LocalArtifactStorage()
     css = []
     css_links = []
-
-    __extra_vars__ = {}
 
     variables = {}
 
@@ -663,6 +738,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "dashboard.dashboard_monitoring",
             "dashboard.dashboard_timeline",
             "dashboard.dashboard_resources",
+            "dashboard.dashboard_sync_groups",
             "dashboard.dashboard_participants",
             "dashboard.dashboard_logger",
             "dashboard.dashboard_errors",
@@ -848,6 +924,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         redis_vars.set("server_working_directory", os.getcwd())
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
+        self.var.git_commit_sha = deployment_info.read("git_commit_sha")
+        self.var.git_dirty = deployment_info.read("git_dirty")
         if deployment_info.read("is_local_deployment"):
             # This is necessary because the local deployment command is blocking and therefore we can't
             # get the launch data from the command-line invocation.
@@ -875,18 +953,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "/start",
             "/timeline",
         ]
-        if any([endpoint == request.path for endpoint in relevant_endpoints]):
-            params = dict(request.args)
-            request_obj = Request(
-                unique_id=params.get("unique_id", None),
-                duration=diff,
-                method=request.method,
-                endpoint=request.path,
-                params=params,
-                status_code=response.status_code,
-            )
-            db.session.add(request_obj)
-            db.session.commit()
+        path = request.path
+        if path.startswith("/asset/"):
+            # Media players issue many Range requests while seeking/buffering.
+            # Logging each one floods the request table; keep full-file fetches only.
+            if request.headers.get("Range"):
+                return response
+            endpoint = _redacted_asset_request_path(path)
+        elif path in relevant_endpoints:
+            endpoint = path
+        else:
+            return response
+
+        params = dict(request.args)
+        request_obj = Request(
+            unique_id=params.get("unique_id", None),
+            duration=diff,
+            method=request.method,
+            endpoint=endpoint,
+            params=params,
+            status_code=response.status_code,
+        )
+        db.session.add(request_obj)
+        db.session.commit()
         return response
 
     @staticmethod
@@ -1097,11 +1186,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if is_ssh_deployment:
             logs_url = "https://logs." + deployment_information.get("server")
 
-        def unpack_export(export_type, deployment_id):
-            assert export_type in ["psynet", "database"]
+        def unpack_export(deployment_id):
             exp = get_experiment()
             storage = exp.artifact_storage
-            filename = f"{export_type}.zip"
+            from psynet.artifact import ArtifactStorage
+
+            filename = ArtifactStorage.EXPORT_FILE
             path = storage.prepare_path(deployment_id, filename)
             try:
                 timestamp = (
@@ -1120,8 +1210,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 }
 
         deployment_id = deployment_information["deployment_id"]
-        psynet_export = unpack_export("psynet", deployment_id)
-        database_export = unpack_export("database", deployment_id)
+        export_info = unpack_export(deployment_id)
 
         error_msgs = [
             f"{error.kind}:{error.message}" for error in cls.get_all_error_records()
@@ -1145,10 +1234,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "dashboard_url": cls.dashboard_url,
             "logs_url": logs_url,
             "basic_data_url": cls.basic_data_url,
-            "psynet_export_url": psynet_export["url"],
-            "psynet_export_timestamp": psynet_export["timestamp"],
-            "database_export_url": database_export["url"],
-            "database_export_timestamp": database_export["timestamp"],
+            "export_url": export_info["url"],
+            "export_timestamp": export_info["timestamp"],
+            # Backward-compatible aliases for older dashboard JS.
+            "psynet_export_url": export_info["url"],
+            "psynet_export_timestamp": export_info["timestamp"],
+            "database_export_url": None,
+            "database_export_timestamp": None,
         }
 
     @classmethod
@@ -1219,12 +1311,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def backup_database(cls):
+        """Store a fresh complete export as the deployment's latest artifact."""
         with tempfile.TemporaryDirectory() as tempdir:
-            # TODO: rewrite to avoid this psynet_export argument
-            input_path = cls._export(tempdir, psynet_export=False)
-            cls.artifact_storage.upload_export(
-                input_path, deployment_id=cls.deployment_id
-            )
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            cls._export(export_dir)
 
     @classmethod
     def get_basic_data(
@@ -1302,10 +1393,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         if not config.ready:
             config.load()
+        # as_dict() resolves each key by source priority, matching what
+        # config.get() would return; merging config.data layers manually
+        # would resolve by load order instead. as_dict() only excludes
+        # keys registered as sensitive, so also apply is_sensitive(),
+        # which additionally matches sensitive-looking key names.
         self.var.deployment_config = {
             key: value
-            for section in reversed(config.data)
-            for key, value in section.items()
+            for key, value in config.as_dict().items()
             if not config.is_sensitive(key)
         }
 
@@ -1323,6 +1418,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
+
+    def create_participant(self, *args, **kwargs):
+        participant = super().create_participant(*args, **kwargs)
+        recruiter = self.recruiter
+        if hasattr(recruiter, "link_lucid_rid_to_participant"):
+            recruiter.link_lucid_rid_to_participant(participant)
+        return participant
 
     def initialize_bot(self, bot):
         """
@@ -1342,6 +1444,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
+        self._check_static_spa_contracts()
 
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
@@ -1356,6 +1459,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
         self._report_request_statistics()
+
+    def _check_static_spa_contracts(self):
+        """Fail fast on static timeline pages that are not SPA-compatible.
+
+        PageMakers are skipped here because their pages do not exist until
+        runtime; bots still surface those via richer HTTP 500 details.
+        """
+        from .timeline import Page
+        from .utils import get_config
+
+        config = get_config()
+        inplace = config.get("inplace_timeline_transitions")
+        for elt in self.timeline.all_elts:
+            if not isinstance(elt, Page):
+                continue
+            elt._check_spa_template_contract(inplace_timeline_transitions=inplace)
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
@@ -1521,10 +1640,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 external_submit_url=external_submit_url,
             )
 
-        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
-        if isinstance(self.recruiter, ProlificRecruiter):
-            return self.error_page_content__prolific()
-        elif isinstance(self.recruiter, MTurkRecruiter):
+        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class
+        # (already the case for the Prolific and Lucid recruiters via the
+        # `error_page_content` hook checked above).
+        if isinstance(self.recruiter, MTurkRecruiter):
             html = tags.div()
             with html:
                 tags.p(
@@ -1546,27 +1665,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return html
         else:
             return ""
-
-    def error_page_content__prolific(self):
-        _p = get_translator(context=True)
-
-        html = tags.div()
-        with html:
-            tags.p(
-                " ".join(
-                    [
-                        _p(
-                            "prolific_error",
-                            "Don't worry, your progress has been recorded.",
-                        ),
-                        _p(
-                            "prolific_error",
-                            "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
-                        ),
-                    ]
-                )
-            )
-        return html
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
@@ -1601,6 +1699,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.grow_networks()
 
     @staticmethod
+    def _fail_grown_network(network):
+        """Mark a network's head (or degree-0 trials) failed after a grow error."""
+        if network.head is not None and network.head.degree > 0:
+            network.head.fail()
+        elif network.head is not None and network.head.degree == 0:
+            for trial in network.head.all_trials:
+                trial.fail()
+
+    @staticmethod
     def grow_networks():
         from psynet.trial.chain import ChainTrialMaker
 
@@ -1619,24 +1726,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
-            for network in networks:
+            # Iterate by ID so a mid-batch handle_error rollback cannot leave us
+            # holding detached ORM instances for later networks.
+            for network_id in [network.id for network in networks]:
+                network = db.session.get(TrialNetwork, network_id)
+                if network is None:
+                    continue
                 try:
                     network.trial_maker.call_grow_network(
                         network, check_readiness=False
                     )
                 except Exception as err:
-                    if not isinstance(err, exp.HandledError):
-                        exp.handle_error(
-                            err,
-                            network=network,
-                        )
-                    if network.head.degree > 0:
-                        network.head.fail()
-                    elif network.head.degree == 0:
-                        for trial in network.head.all_trials:
-                            trial.fail()
+                    # Re-fetch after handle_error rollback; commit the fail so a
+                    # later error in this batch cannot undo it.
+                    exp.isolate_batch_item_failure(
+                        err,
+                        refetch=lambda: db.session.get(TrialNetwork, network_id),
+                        fail=Experiment._fail_grown_network,
+                        network=network,
+                    )
 
             logger.info("Finished growing networks.")
+
+    @scheduled_task("interval", seconds=5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _finalize_pending_trials():
+        if not is_experiment_launched():
+            return
+        # Event-driven finalize checks remain the fast path. This poller only
+        # recovers trials that became ready without those callbacks running.
+        Trial.finalize_pending_trials()
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
@@ -1644,14 +1765,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_barriers():
         if not is_experiment_launched():
             return
-        exp = get_experiment()
-        exp.check_barriers()
+        from .sync import check_barriers
 
-    @staticmethod
-    def check_barriers():
-        from .sync import check_barriers as sync_check_barriers
-
-        sync_check_barriers()
+        check_barriers()
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken
@@ -1697,18 +1813,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return get_config().get("label")
 
     @staticmethod
-    def export_path(deployment_id):
-        export_root = "~/psynet-data/export"
+    def export_path():
+        """Return the default export destination, ``exports/latest``."""
+        return str(Path.cwd() / "exports" / "latest")
 
-        return os.path.join(
-            export_root,
-            deployment_id,
-            re.sub(
-                "__launch.*", "", deployment_id
-            )  # Strip the launch date from the path to keep things short
-            + "__export="
-            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
-        )
+    @staticmethod
+    def rotate_export_history(export_path):
+        """Archive a previous export under ``exports/history``.
+
+        Callers must invoke this only once the new export is known to be
+        available, so that a failed export cannot discard the previous one.
+        Returns the archive directory, or ``None`` if there was nothing to
+        archive.
+        """
+        latest = Path(export_path)
+        if not latest.exists():
+            return None
+        history_root = latest.parent / "history"
+        history_root.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S-%f")
+        archived = history_root / timestamp
+        latest.rename(archived)
+        return str(archived)
 
     @property
     def var(self):
@@ -1740,13 +1866,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def amount_spent(cls):
-        return sum(
-            [
-                (0.0 if p.base_payment is None else p.base_payment)
-                + (0.0 if p.bonus is None else p.bonus)
-                for p in Participant.query.all()
-            ]
-        )
+        """Return recorded spend across all participants.
+
+        This is the sum of each participant's ``base_payment`` and ``bonus``,
+        including people who have started the study but not finished. A
+        participant is assigned ``base_payment = experiment.base_payment``
+        when they start, so their full study base is already reserved here
+        while they are still in progress. Do not add a separate outstanding-
+        base term on top of this figure (for example when applying spend
+        caps).
+
+        After payment is recorded, ``base_payment`` may be rewritten to the
+        platform amount actually used (for example a Prolific screen-out
+        reward, or ``0`` for a returned submission). ``bonus`` stays ``None``
+        until a transfer succeeds. Planned bonuses that were capped,
+        dismissed, or left unconfirmed are not included.
+        """
+        base_sum, bonus_sum = db.session.query(
+            func.coalesce(func.sum(Participant.base_payment), 0.0),
+            func.coalesce(func.sum(Participant.bonus), 0.0),
+        ).one()
+        return float(base_sum) + float(bonus_sum)
 
     @classmethod
     def estimated_max_reward(cls, wage_per_hour):
@@ -1819,12 +1959,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
             "prolific_enable_return_for_bonus": True,
+            "prolific_pay_unsuccessful": True,
+            "prolific_unsuccessful_topup": True,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
-            "inplace_timeline_transitions": False,
+            "inplace_timeline_transitions": True,
+            "legacy_js_var_globals": "warn",
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -1836,9 +1979,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "resource_danger_pct": 0.95,
             "minimal_disk_space_warning_gb": 5,
             "minimal_disk_space_danger_gb": 2,
-            **cls.config,
         }
 
+        return cls._normalize_config_types(config)
+
+    @classmethod
+    def config_settings(cls):
+        """
+        Values set in the experiment's ``config`` dictionary.
+
+        These are the experimenter's explicit decisions: they override the
+        user's ``~/.dallingerconfig``. The experiment's ``config.txt``
+        formally takes precedence over them (though PsyNet forbids setting
+        the same key in both places), followed by environment variables and
+        runtime writes.
+        """
+        return cls._normalize_config_types(
+            {
+                **super().config_settings(),
+                **cls.config,
+            }
+        )
+
+    @classmethod
+    def _normalize_config_types(cls, config):
+        """Cast config values to the types Dallinger expects."""
         config_types = dallinger_get_config().types
 
         for key, value in config.items():
@@ -2036,31 +2201,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.assets.prepare_for_deployment()
             self.create_database_snapshot()
 
-        self.create_source_code_zip_file()
-
-    @classmethod
-    def create_source_code_zip_file(cls):
-        from dallinger.command_line.utils import ExperimentFileSource
-
-        # The config.txt file in the deployment package by default includes sensitive keys
-        # (e.g. AWS API keys), so we don't allow this method to be run there
-        assert not in_deployment_package()
-
-        # We also need to check that the user hasn't left any sensitive keys in the
-        # config.txt in their experiment directory.
-        assert_config_txt_does_not_contain_sensitive_values()
-
-        base_name = "source_code"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            cwd = os.getcwd()
-            ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
-            # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
-            # so we need to copy this manually.
-            shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
-            # Delete static/assets directory to exclude them from the source code zip file
-            shutil.rmtree(f"{temp_dir}/static/assets", ignore_errors=True)
-            shutil.make_archive(base_name, "zip", temp_dir)
-
     @classmethod
     def update_deployment_id(cls):
         deployment_id = cls.generate_deployment_id()
@@ -2097,24 +2237,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def check_size(cls):
-        from dallinger.command_line.utils import ExperimentFileSource
+        """Reject deployment plans that exceed the configured package limit."""
+        from dallinger.utils import ExperimentFileSource
 
         size_in_mb = ExperimentFileSource(os.getcwd()).size / (1024**2)
-        log(f"Experiment directory size: {round(size_in_mb, 3)} MB.")
-
-        exp_max_size_in_mb = int(os.environ.get("EXP_MAX_SIZE_MB", "256"))
-
-        if size_in_mb > exp_max_size_in_mb:
+        logger.info("Experiment deployment size: %.3f MB.", size_in_mb)
+        max_size_in_mb = int(os.environ.get("EXP_MAX_SIZE_MB", "256"))
+        if size_in_mb > max_size_in_mb:
             raise RuntimeError(
-                f"Your experiment source package exceeds the {exp_max_size_in_mb} MB limit. "
-                "Large packages are discouraged because they make deployment slow. You can override "
-                "this limit by setting the EXP_MAX_SIZE_MB environment variable. "
-                "However, the recommended approach (assuming your large files are "
-                "assets, such as audio or video files) is to use PsyNet's asset management system; "
-                "see https://psynetdev.gitlab.io/PsyNet/tutorials/assets.html for a tutorial. "
-                "Importantly, you should either move your large files outside the experiment folder, "
-                "or add them to `.gitignore`, once they are registered as `Asset` objects; that way "
-                "they will not count towards your source package limit."
+                f"Your experiment deployment plan exceeds the {max_size_in_mb} MB "
+                "limit. Large packages make deployment slow. Exclude local files "
+                "in deploy.toml or use PsyNet's asset management system. Set "
+                "EXP_MAX_SIZE_MB to override this limit when the package size is "
+                "intentional."
             )
 
     @classmethod
@@ -2141,6 +2276,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
         cls.check_base_payment(config)
+        cls.check_stale_error_page_override()
+        cls.check_unused_dallinger_quality_checks()
+        cls.check_stale_bonus_override()
+        PsyNetProlificRecruiterMixin.check_screen_out_config(config)
 
         parser = configparser.ConfigParser()
         parser.read("config.txt")
@@ -2155,6 +2294,125 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Config variable {key} was registered both in config.txt and experiment.py. "
                     f"Please choose just one location."
                 )
+
+        cls._warn_about_overridden_experiment_config(config)
+
+    @classmethod
+    def _warn_about_overridden_experiment_config(cls, config):
+        """
+        Warn when values set in ``Experiment.config`` lose out to
+        higher-priority configuration sources.
+
+        Values set in experiment.py override ``~/.dallingerconfig``, but
+        environment variables and runtime writes still take precedence over
+        them. This is easy to miss and can lead to confusing behavior (e.g. a
+        ``dashboard_user`` set in experiment.py being silently replaced by a
+        stale environment variable), so we warn about it loudly at deployment
+        time.
+        """
+        if not cls.config:
+            return
+
+        experiment_values = {
+            key: value
+            for key, value in cls.config_settings().items()
+            if key in cls.config
+        }
+
+        for key, experiment_value in experiment_values.items():
+            resolved_value = config.get(key, None)
+            if resolved_value == experiment_value:
+                continue
+            source = _identify_config_override_source(key)
+            if config.is_sensitive(key):
+                details = ""
+            else:
+                details = (
+                    f" (experiment.py sets {experiment_value!r}, "
+                    f"but the resolved value is {resolved_value!r})"
+                )
+            logger.warning(
+                f"Config variable '{key}' is set in experiment.py but overridden by "
+                f"{source}{details}. Values set in experiment.py have lower priority than "
+                "environment variables and runtime configuration writes."
+            )
+
+    @classmethod
+    def _subclass_overridden_names(cls, *names):
+        """Return ``names`` defined on subclasses before ``Experiment`` in the MRO."""
+        found = []
+        for klass in cls.__mro__:
+            if klass is Experiment:
+                break
+            for name in names:
+                if name in klass.__dict__ and name not in found:
+                    found.append(name)
+        return found
+
+    @classmethod
+    def check_stale_error_page_override(cls):
+        """Fail fast when an experiment overrides the removed
+        ``error_page_content__prolific`` method, which would otherwise be
+        silently ignored (the Prolific error page is now generated by the
+        recruiter and participants would see the default page instead).
+        """
+        if cls._subclass_overridden_names("error_page_content__prolific"):
+            raise RuntimeError(
+                "Overriding `Experiment.error_page_content__prolific` is no "
+                "longer supported: the Prolific error page is now generated "
+                "by the recruiter, so this method would be silently ignored. "
+                "To customize the error page, override "
+                "`Experiment.error_page_content` instead, or override "
+                "`error_page_content` on a custom Prolific recruiter class."
+            )
+
+    _UNUSED_DALLINGER_QUALITY_CHECKS = (
+        "data_check",
+        "attention_check",
+        "data_check_failed",
+        "attention_check_failed",
+    )
+
+    @classmethod
+    def check_unused_dallinger_quality_checks(cls):
+        """Reject experiment overrides of unused Dallinger quality-check hooks.
+
+        PsyNet fails participants during the timeline (``fail()``,
+        ``UnsuccessfulEndPage``) and does not call Dallinger's
+        ``data_check`` / ``attention_check`` path, which would otherwise
+        set ``bad_data`` / ``did_not_attend``.
+        """
+        overridden = cls._subclass_overridden_names(
+            *cls._UNUSED_DALLINGER_QUALITY_CHECKS
+        )
+        if overridden:
+            names = ", ".join(f"`{name}`" for name in overridden)
+            raise RuntimeError(
+                "PsyNet no longer uses Dallinger's "
+                f"{names} hooks (they would set participant status to "
+                "`bad_data` or `did_not_attend`). Fail participants during "
+                "the timeline instead, for example with `fail()` or "
+                "`UnsuccessfulEndPage`."
+            )
+
+    @classmethod
+    def check_stale_bonus_override(cls):
+        """Fail fast when an experiment overrides removed payment methods.
+
+        Payment amounts are decided by the recruiter's ``decide_payment``
+        method; an ``Experiment.bonus`` or ``check_bonus`` override would be
+        silently ignored.
+        """
+        overridden = cls._subclass_overridden_names("bonus", "check_bonus")
+        if overridden:
+            names = " and ".join(f"`{name}`" for name in overridden)
+            raise RuntimeError(
+                f"Overriding Experiment.{names} is no longer supported: "
+                "PsyNet does not call these methods when paying participants. "
+                "Customize payment amounts on the recruiter instead "
+                "(see `decide_payment`, `platform_base_for`, and "
+                "`total_owed`)."
+            )
 
     @classmethod
     def check_base_payment(cls, config):
@@ -2219,8 +2477,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             This is an automated email from PsyNet. You are receiving this email because
             the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
-            Working participants' bonuses will not be paid out. Instead, the amount of unpaid
-            bonus is saved in the participant's `unpaid_bonus` variable.
+            Further bonuses are clipped to remaining room under that cap (or
+            not paid if the remainder is below $0.01). The decided amount is
+            stored as ``planned_bonus`` with bonus status ``capped``.
 
             The application id is: {app_id}
 
@@ -2299,77 +2558,514 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return (not self.need_more_participants) and self.num_working_participants == 0
 
     def assignment_abandoned(self, participant):
-        participant.append_failure_tags("assignment_abandoned", "premature_exit")
-        super().assignment_abandoned(participant)
+        self._handle_premature_exit(participant, "assignment_abandoned")
 
     def assignment_returned(self, participant):
-        participant.append_failure_tags("assignment_returned", "premature_exit")
-        super().assignment_returned(participant)
+        self._handle_premature_exit(participant, "assignment_returned")
 
     def assignment_reassigned(self, participant):
-        participant.append_failure_tags("assignment_reassigned", "premature_exit")
-        super().assignment_reassigned(participant)
+        self._handle_premature_exit(participant, "assignment_reassigned")
 
-    def bonus(self, participant: Participant) -> float:
-        """Calculate the reward the participant gets when completing the experiment.
+    def _handle_premature_exit(self, participant, cause_tag):
+        """Fail a still-working participant after a recruiter exit event.
 
-        Parameters
-        ----------
-        participant : Participant
-            The participant to calculate reward for.
-
-        Returns
-        -------
-        float
-            The calculated reward, rounded to 2 decimal places.
+        Recruiter abandonment, return, and reassignment are premature exits.
+        See :doc:`/tutorials/participant_and_trial_failure`.
         """
-        reward = participant.calculate_reward()
-        print(f"Initially computed reward: {reward}")
-        print(f"Participant status: {participant.status}")
-        if participant.status not in ["screened_out", "returned"]:
-            print(f"Subtracting base payment: {self.base_payment}")
-            reward -= self.base_payment
-        print(f"After base payment subtraction: {reward}")
-        return round(self.check_bonus(reward, participant), 2)
-
-    def check_bonus(self, reward, participant):
-        """
-        Ensures that a participant receives no more than a reward of max_participant_payment.
-        Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
-        been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
-
-        :param reward: float
-            The reward calculated in :func:`~psynet.experiment.Experiment.bonus()`.
-        :type participant:
-            :attr: `~psynet.participant.Participant`
-        :returns:
-            The possibly reduced reward as a ``float``.
-        """
-
-        # check hard_max_experiment_payment
-        if (
-            self.var.hard_max_experiment_payment_email_sent
-            or self.amount_spent() + self.outstanding_base_payments() + reward
-            > self.var.hard_max_experiment_payment
-        ):
-            participant.var.set("unpaid_bonus", reward)
-            self.ensure_hard_max_experiment_payment_email_sent()
-
-        # check soft_max_experiment_payment
-        if self.amount_spent() + reward >= self.var.soft_max_experiment_payment:
-            self.ensure_soft_max_experiment_payment_email_sent()
-
-        # check max_participant_payment
-        if participant.amount_paid() + reward > self.var.max_participant_payment:
-            reduced_reward = round(
-                self.var.max_participant_payment - participant.amount_paid(), 2
+        if participant.complete:
+            logger.info(
+                "Ignoring recruiter event %s for participant %i; they already completed.",
+                cause_tag,
+                participant.id,
             )
-            participant.send_email_max_payment_reached(self, reward, reduced_reward)
-            return reduced_reward
-        return reward
+            return
 
-    def outstanding_base_payments(self):
-        return self.num_working_participants * self.base_payment
+        if participant.failed:
+            participant.append_failure_tags(cause_tag)
+            return
+
+        participant.append_failure_tags(cause_tag, "premature_exit")
+        participant.fail()
+
+    def fail_participant(self, participant):
+        """Fail a participant using PsyNet's participant-failure contract.
+
+        This Dallinger compatibility shim calls
+        :meth:`~psynet.participant.Participant.fail` and does not fail owned
+        nodes. Do not override it; PsyNet rejects subclasses that do.
+        Recruiter premature-exit handling stays on
+        :meth:`_handle_premature_exit`.
+        """
+        participant.fail()
+
+    def data_check_failed(self, participant):
+        """Ignore Dallinger's post-submission data check.
+
+        PsyNet quality screening happens during the timeline via
+        :meth:`~psynet.trial.main.TrialMaker.performance_check`. Dallinger's
+        ``data_check`` runs after the participant has already submitted.
+        To fail a participant after they have finished, call
+        :meth:`~psynet.participant.Participant.fail`.
+        """
+        self._warn_unsupported_dallinger_submission_check("data_check", participant)
+
+    def attention_check_failed(self, participant):
+        """Ignore Dallinger's post-submission attention check.
+
+        See :meth:`data_check_failed`.
+        """
+        self._warn_unsupported_dallinger_submission_check(
+            "attention_check", participant
+        )
+
+    def _warn_unsupported_dallinger_submission_check(self, hook_name, participant):
+        logger.warning(
+            "PsyNet does not use Dallinger's %s hook for participant %i. "
+            "That check runs after the participant has already submitted. "
+            "Use TrialMaker.performance_check for in-experiment quality "
+            "screening, or Participant.fail() to fail someone after they "
+            "have finished. This method does not fail the participant or "
+            "their nodes.",
+            hook_name,
+            participant.id,
+        )
+
+    def bonus(self, participant):
+        raise NotImplementedError(
+            "Experiment.bonus is no longer used. Payment amounts are decided "
+            "by the recruiter's decide_payment method."
+        )
+
+    def decide_and_record_payment(self, participant) -> PaymentDecision:
+        """Decide how the participant should be paid and write it to the ledger."""
+        recruiter = participant.recruiter
+        decision = recruiter.decide_payment(participant, experiment=self)
+        recruiter.record_payment(participant, decision)
+        return decision
+
+    def commit_payment_state(self):
+        """Persist claimed payment fields so a crash cannot replay a POST."""
+        db.session.commit()
+
+    def _lock_participant_for_payment(self, participant):
+        """Reload the participant row with ``FOR UPDATE`` for the pay claim.
+
+        Isolated tests stub this to return the in-memory participant.
+        """
+        participant_id = getattr(participant, "id", None)
+        if participant_id is None:
+            return participant
+        return type(self).get_participant_from_participant_id(
+            int(participant_id), for_update=True
+        )
+
+    def clip_bonus_for_spend_caps(
+        self, participant, bonus: float, *, record: bool = True
+    ) -> tuple[float, bool]:
+        """Return ``(payable, hard_capped)`` after experiment spend caps.
+
+        ``hard_capped`` is True when ``hard_max_experiment_payment`` reduced
+        the payout. This method does not use ``bonus_status`` as the clip
+        signal; ``record=True`` still writes ``planned_bonus`` and sends cap
+        emails, but does not set ``capped`` (settlement happens after the
+        transfer claim). ``record=False`` is for dashboard Pay, which must
+        not settle the participant before the POST.
+
+        The hard cap is evaluated per payout against current
+        ``amount_spent()``; it is not latched after the first clip.
+        Concurrent payouts can each see the same remainder and together
+        spend past the cap. Soft experiment spend limits are enforced
+        when recruiting (``need_more_participants``), not here.
+        In-progress participants already reserve their study base inside
+        ``amount_spent()``; see that method rather than adding a separate
+        outstanding-base term here.
+        """
+        if bonus <= 0:
+            return 0.0, False
+
+        decided = bonus
+        hard_capped = False
+        room = round(self.var.hard_max_experiment_payment - self.amount_spent(), 2)
+        if decided > room:
+            hard_capped = True
+            clipped = round(max(0.0, room), 2)
+            if record:
+                participant.planned_bonus = decided
+                self.ensure_hard_max_experiment_payment_email_sent()
+                logger.warning(
+                    "Clipping bonus of %s to %s for participant %s: experiment "
+                    "spend would exceed hard_max_experiment_payment (%s).",
+                    decided,
+                    clipped,
+                    participant.id,
+                    self.var.hard_max_experiment_payment,
+                )
+            bonus = clipped
+            if bonus <= 0:
+                return 0.0, True
+
+        already_paid = participant.amount_paid()
+        max_payment = self.var.max_participant_payment
+        if already_paid + bonus > max_payment:
+            reduced = round(max(0.0, max_payment - already_paid), 2)
+            if record:
+                participant.send_email_max_payment_reached(self, decided, reduced)
+            return reduced, hard_capped
+        return bonus, hard_capped
+
+    def apply_payment_caps(self, participant, bonus: float) -> float:
+        """Return the bonus that may actually be transferred after spend caps.
+
+        If paying ``bonus`` would exceed ``hard_max_experiment_payment``, the
+        payout is clipped to remaining room (or ``0`` if none).
+        ``planned_bonus`` stays the decided amount and the experimenter is
+        emailed once. ``bonus_status`` is not set here; the caller settles
+        ``capped`` after the transfer claim. If it would exceed
+        ``max_participant_payment``, the bonus is reduced to the remaining
+        room under that cap without using ``capped`` unless the hard cap
+        already reduced it.
+        """
+        payable, _hard_capped = self.clip_bonus_for_spend_caps(
+            participant, bonus, record=True
+        )
+        return payable
+
+    def pay_decided_bonus(self, participant, decision, *, reason=None) -> bool:
+        """Report the outcome and transfer any bonus after spend-cap checks.
+
+        Returns True if the outcome for this participant is finished
+        (reported, paid, capped, or already settled). Returns False if the
+        platform rejected the report/transfer or a previous attempt already
+        failed. PsyNet calls ``report_submission_outcome`` at most once
+        automatically. The participant row is locked, then the attempt is
+        claimed by setting ``bonus_status = unconfirmed``, ``planned_bonus``,
+        and a last-attempt placeholder before the recruiter call, so a later
+        replay will not report or pay again. ``unconfirmed`` skips a second
+        automatic POST even on local recruiters. The default skips sub-cent
+        bonuses and delegates real transfers to ``reward_bonus``; recruiters
+        with ``reports_zero_outcomes`` can report every amount. Sub-cent
+        bonuses for other recruiters settle locally without claiming
+        ``unconfirmed``. A failed call stays unconfirmed and asks the
+        experimenter to review on the Participants dashboard.
+        A hard-cap clip keeps ``planned_bonus`` as the decided amount and
+        finishes as ``capped`` even when a remainder was sent.
+
+        Does not re-apply caps or send emails when already settled.
+        """
+        participant = self._lock_participant_for_payment(participant)
+        if bonus_is_settled(participant):
+            logger.info(
+                "Bonus will NOT be paid, since participant %s already has "
+                "bonus_status=%s (bonus=%s).",
+                participant.id,
+                participant.bonus_status,
+                participant.bonus,
+            )
+            return True
+        if bonus_transfer_already_claimed(participant):
+            logger.warning(
+                "Bonus will NOT be paid automatically, since participant %s "
+                "already has an unconfirmed planned bonus (planned_bonus=%s).",
+                participant.id,
+                participant.planned_bonus,
+            )
+            return False
+        if participant.bonus is not None:
+            logger.info(
+                "Bonus will NOT be paid, since participant %s already has "
+                "a recorded bonus of %s.",
+                participant.id,
+                participant.bonus,
+            )
+            participant.bonus_status = BONUS_STATUS_SUCCESS
+            if not (participant.planned_bonus or 0.0):
+                participant.planned_bonus = participant.bonus
+            return True
+
+        bonus, hard_capped = self.clip_bonus_for_spend_caps(
+            participant, decision.bonus, record=True
+        )
+        bonus = round(bonus, 2)
+        planned = participant.planned_bonus if hard_capped else bonus
+        reports_zero = getattr(
+            type(participant.recruiter), "reports_zero_outcomes", False
+        )
+        if bonus < 0.01 and not reports_zero:
+            participant.planned_bonus = planned
+            self._record_payment_outcome_success(
+                participant,
+                bonus,
+                bonus_status=(
+                    BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS
+                ),
+                record_delivered=False,
+            )
+            return True
+
+        # Claim the single automatic platform outcome report and commit it
+        # before calling the recruiter, so a crash after a successful POST
+        # cannot look like not_due_yet and report or pay twice.
+        participant.bonus_status = BONUS_STATUS_UNCONFIRMED
+        participant.planned_bonus = planned
+        record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
+        self.commit_payment_state()
+        logger.info("Reporting outcome with bonus %s for %s", bonus, participant.id)
+        transferred = participant.recruiter.report_submission_outcome(
+            participant,
+            bonus,
+            self.bonus_reason() if reason is None else reason,
+        )
+        if transferred is False:
+            logger.error(
+                "Payment outcome report failed for participant %s; leaving payment "
+                "unconfirmed for manual review.",
+                participant.id,
+            )
+            self._notify_payment_outcome_failed(participant, bonus)
+            return False
+
+        self._record_payment_outcome_success(
+            participant,
+            bonus,
+            bonus_status=BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS,
+            record_delivered=bonus >= 0.01,
+        )
+        return True
+
+    def _record_payment_outcome_success(
+        self,
+        participant,
+        amount: float,
+        *,
+        bonus_status=BONUS_STATUS_SUCCESS,
+        record_delivered=True,
+    ) -> None:
+        """Record a successful outcome report and any delivered bonus."""
+        if record_delivered:
+            participant.bonus = amount
+        if not (participant.planned_bonus or 0.0):
+            participant.planned_bonus = amount
+        participant.bonus_status = bonus_status
+        participant.bonus_attempt_detail = None
+
+    def pay_review_bonus(self, participant) -> tuple[str, str]:
+        """Poll the platform, then retry the remaining payment outcome.
+
+        Re-applies spend caps to ``planned_bonus`` (the decided amount).
+        If the platform already reports at least that payable remainder,
+        record it and skip the POST. Otherwise POST ``payable - apparent``,
+        not the full decided amount. Automatic submission-complete still
+        posts at most once; this is the human-gated extra attempt.
+
+        Reloads the participant with ``FOR UPDATE`` and does not commit
+        before the platform call, so a second overlapping Pay blocks on
+        the row (or is refused if this request already claimed the retry).
+        Committing first would drop that lock while status is still
+        ``unconfirmed`` and allow two POSTs.
+        """
+        participant = self._lock_participant_for_payment(participant)
+        if not bonus_needs_review(participant):
+            return (
+                "warning",
+                f"Participant {participant.id} is not flagged for payment review.",
+            )
+        if review_bonus_pay_in_progress(participant):
+            return (
+                "warning",
+                f"A bonus payment is already in progress for participant "
+                f"{participant.id}.",
+            )
+        planned = round(float(participant.planned_bonus or 0.0), 2)
+        payable, hard_capped = self.clip_bonus_for_spend_caps(
+            participant, planned, record=False
+        )
+        payable = round(payable, 2)
+        settled_status = BONUS_STATUS_CAPPED if hard_capped else BONUS_STATUS_SUCCESS
+        recruiter = participant.recruiter
+        can_report = recruiter.can_report_apparent_bonus()
+        apparent = recruiter.apparent_bonus_paid(participant) if can_report else None
+        if can_report and apparent is None:
+            return (
+                "warning",
+                f"Could not read the platform bonus for participant "
+                f"{participant.id}. Try again in a moment.",
+            )
+        already = 0.0 if apparent is None else round(float(apparent), 2)
+        accounted = round(min(already, payable), 2)
+        if can_report and already + 1e-9 >= payable:
+            self._record_payment_outcome_success(
+                participant, accounted, bonus_status=settled_status
+            )
+            return (
+                "success",
+                f"Platform already reports {already:.2f} paid for "
+                f"participant {participant.id}; recorded without posting.",
+            )
+        to_post = round(max(0.0, payable - already), 2)
+        reports_zero = getattr(type(recruiter), "reports_zero_outcomes", False)
+        if to_post < 0.01 and not reports_zero:
+            self._record_payment_outcome_success(
+                participant, accounted, bonus_status=settled_status
+            )
+            return (
+                "success",
+                f"No remaining bonus to post for participant {participant.id}.",
+            )
+        logger.info(
+            "Dashboard retry: reporting outcome with bonus %s for participant %s",
+            to_post,
+            participant.id,
+        )
+        record_bonus_attempt_detail(participant, BONUS_PAY_IN_PROGRESS)
+        transferred = recruiter.report_submission_outcome(
+            participant, to_post, self.bonus_reason()
+        )
+        if transferred is False:
+            if review_bonus_pay_in_progress(participant):
+                record_bonus_attempt_detail(participant, NO_BONUS_ATTEMPT_RESULT)
+            return (
+                "danger",
+                f"Payment outcome POST failed for participant {participant.id}. "
+                "Check the platform, then try again if it still looks unpaid.",
+            )
+        delivered = round(min(already + to_post, payable), 2)
+        self._record_payment_outcome_success(
+            participant,
+            delivered,
+            bonus_status=settled_status,
+            record_delivered=delivered >= 0.01,
+        )
+        return (
+            "success",
+            f"Posted bonus of {to_post:.2f} for participant {participant.id}.",
+        )
+
+    def dismiss_review_bonus(self, participant) -> tuple[str, str]:
+        """Clear payment review without posting a bonus.
+
+        Marks bonus status dismissed so a later submission-complete replay
+        will not POST. ``planned_bonus`` and ``bonus_attempt_detail`` are
+        kept as a record of the skipped amount and last pay attempt.
+        """
+        if not bonus_needs_review(participant):
+            return (
+                "warning",
+                f"Participant {participant.id} is not flagged for payment review.",
+            )
+        participant.bonus_status = BONUS_STATUS_DISMISSED
+        logger.info(
+            "Dismissed payment review for participant %s without posting "
+            "(planned_bonus=%s).",
+            participant.id,
+            participant.planned_bonus,
+        )
+        return (
+            "success",
+            f"Dismissed payment review for participant {participant.id} "
+            "without posting a bonus.",
+        )
+
+    def _notify_payment_outcome_failed(self, participant, bonus: float) -> None:
+        message = (
+            f"Payment outcome report failed for participant {participant.id} "
+            f"(assignment {participant.assignment_id}, worker "
+            f"{participant.worker_id}). PsyNet will not retry automatically. "
+            f"Please open this participant on the Participants dashboard "
+            f"(listed under Needs payment review). Compare PsyNet and "
+            f"platform status there, then pay {bonus} or dismiss. "
+            "bonus_status is unconfirmed."
+        )
+        logger.error(message)
+        try:
+            self.notifier.notify(message)
+        except Exception:
+            logger.exception(
+                "Failed to notify experimenter about a bonus transfer "
+                "failure for participant %s.",
+                participant.id,
+            )
+
+    def recruiter_exit_info(self, participant):
+        """Ask the recruiter which completion-code type to use for this
+        participant's exit URL. Returning ``None`` selects the recruiter's
+        default code.
+
+        The code actually issued is stored on
+        ``participant.issued_completion_code_type`` so later payment
+        decisions match what the platform paid, even if the participant
+        is failed afterwards.
+        """
+        exit_code_type = getattr(participant.recruiter, "exit_code_type", None)
+        if exit_code_type is None:
+            return None
+        code_type = exit_code_type(participant)
+        issued = code_type
+        if issued is None:
+            issued = getattr(participant.recruiter, "default_code_type", None)
+        participant.issued_completion_code_type = issued
+        self.commit_payment_state()
+        return code_type
+
+    def on_recruiter_submission_complete(self, participant, event):
+        """Record payment fields, approve, pay the bonus, and recruit.
+
+        PsyNet owns this handler rather than calling Dallinger's
+        implementation. Status and platform base are always re-recorded
+        (so a Prolific listener replay that reset status to ``submitted``
+        is restored). ``bonus_status`` skips a repeat money transfer:
+        PsyNet posts a bonus at most once. Recruitment still runs if the
+        first bonus transfer fails; a later replay does not recruit again.
+        Opening an unconfirmed person polls the platform into
+        the participant table and offers Pay bonus or Dismiss.
+        Dallinger's unused ``data_check`` / ``attention_check`` hooks are
+        not run.
+        """
+        participant = self._lock_participant_for_payment(participant)
+        if participant.status not in (
+            "submitted",
+            "approved",
+            "screened_out",
+            "returned",
+        ):
+            logger.warning(
+                "Called with unexpected participant status! "
+                "participant ID: %s, status: %s, recruiter: %s",
+                participant.id,
+                participant.status,
+                participant.recruiter.nickname,
+            )
+            return
+
+        if participant.end_time is None:
+            timestamp = None if event is None else event.get("timestamp")
+            if timestamp is not None:
+                participant.end_time = timestamp
+
+        already_handled = bonus_transfer_already_claimed(participant)
+        issue_unsuccessful = getattr(
+            participant.recruiter, "issue_unsuccessful_completion_code", None
+        )
+        if issue_unsuccessful is not None:
+            issue_unsuccessful(participant)
+        decision = self.decide_and_record_payment(participant)
+        participant.recruiter.approve_hit(participant.assignment_id)
+        if not self.pay_decided_bonus(participant, decision):
+            if already_handled:
+                logger.error(
+                    "Bonus transfer remains unconfirmed for participant %s; "
+                    "skipping a second recruitment pass.",
+                    participant.id,
+                )
+            else:
+                logger.error(
+                    "Payment outcome report failed for participant %s; continuing "
+                    "recruitment and leaving payment for manual review.",
+                    participant.id,
+                )
+        if already_handled:
+            return
+        self.submission_successful(participant=participant)
+        self.recruit()
 
     def with_lucid_recruitment(self):
         return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
@@ -2386,13 +3082,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page_uuid,
         client_ip_address,
         answer=NoArgumentProvided,
+        include_timeline_fragment=True,
     ):
         _p = get_translator(context=True)
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
         participant = (
-            Participant.query.with_for_update(of=Participant)
+            self._participant_request_query()
+            .with_for_update(of=Participant)
             .populate_existing()
             .get(participant_id)
         )
@@ -2404,6 +3102,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
         try:
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = client_ip_address
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
                 return self.response_rejected(
@@ -2444,7 +3144,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
-            return self.response_approved(participant)
+            return self.response_approved(participant, include_timeline_fragment)
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -2466,7 +3166,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             return error_response(participant=participant)
 
-    def response_approved(self, participant):
+    def response_approved(self, participant, include_timeline_fragment=True):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
         payload = {
@@ -2475,8 +3175,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         }
         config = get_config()
         # In inplace mode, the same /response round-trip both advances the
-        # participant state and returns the next timeline fragment.
-        if config.get("inplace_timeline_transitions"):
+        # participant state and returns the next timeline fragment. Skip the
+        # fragment when the next page forces a full reload; the client will
+        # navigate via /timeline instead.
+        if (
+            include_timeline_fragment
+            and config.get("inplace_timeline_transitions")
+            and not page.requires_full_page_reload
+        ):
             payload["timeline_fragment"] = self.render_partial_timeline_payload(
                 page, self, participant
             )
@@ -2528,6 +3234,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         files = []
         for trialmaker in cls.timeline.trial_makers.values():
             files.extend(trialmaker.extra_files())
+        files.extend(get_static_package_extra_files())
 
         # Warning: Due to the behavior of Dallinger's extra_files functionality, files are NOT
         # overwritten if they exist already in Dallinger. We should try and change this.
@@ -2576,6 +3283,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/scripts/psynet.js",
                     "/static/scripts/psynet.js",
+                ),
+                (
+                    resources.files("psynet") / "static/scripts/chatroom-widget.js",
+                    "/static/scripts/chatroom-widget.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/execute-front-end-js.js",
+                    "/static/scripts/execute-front-end-js.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/scripts/jspsych-page.js",
+                    "/static/scripts/jspsych-page.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "static/scripts/music-notation-prompt.js",
+                    "/static/scripts/music-notation-prompt.js",
                 ),
                 (
                     resources.files("psynet")
@@ -2661,7 +3386,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/survey-jquery",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/abc-js",
+                    resources.files("psynet") / "static/libraries/abc-js",
                     "/static/scripts/abc-js",
                 ),
                 (
@@ -2705,16 +3430,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "DEPLOYMENT_PACKAGE",
                 ),
                 (
-                    "config.txt",
-                    ".config.backup",
-                ),
-                (
                     ".deploy",
                     ".deploy",
-                ),
-                (
-                    "source_code.zip",
-                    "source_code.zip",
                 ),
             ]
         )
@@ -2735,6 +3452,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Register PsyNet-specific configuration parameters.
         """
         config = dallinger_get_config()
+
+        def legacy_js_var_globals_validator(value):
+            """Validate the legacy JavaScript variable global access mode."""
+            if value not in {"warn", "error", "off"}:
+                raise ValueError(
+                    '`legacy_js_var_globals` must be one of: "warn", "error", or "off".'
+                )
+
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
         config.register("lab_recruiter_external_submission_url", str)
@@ -2761,6 +3486,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
         config.register("inplace_timeline_transitions", bool)
+        config.register(
+            "legacy_js_var_globals",
+            str,
+            validators=[legacy_js_var_globals_validator],
+        )
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
@@ -2789,7 +3519,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("notifier", str)
         config.register("experimenter_name", str)
         config.register("slack_channel_name", str)
-        config.register("slack_bot_token", str)
+        config.register("slack_bot_token", str, sensitive=True)
         config.register("needs_internet_access", bool)
 
         def is_positive_float(value):
@@ -2823,29 +3553,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config.register("color_mode", str, validators=[color_mode_validator])
 
-        def unsupported_prolific_screen_out_validator(value):
-            if value:
-                raise ValueError(
-                    "`prolific_enable_screen_out` is no longer supported. "
-                    "Prolific no longer supports the corresponding screen-out "
-                    "API route. Please remove this parameter from your "
-                    "configuration and use `prolific_enable_return_for_bonus` "
-                    "instead."
-                )
-
         config.register("prolific_enable_return_for_bonus", bool)
+
+        def is_positive_int(value):
+            assert int(value) > 0
+
+        config.register("prolific_pay_unsuccessful", bool)
         config.register(
-            "prolific_enable_screen_out",
-            bool,
-            validators=[unsupported_prolific_screen_out_validator],
+            "prolific_unsuccessful_base_payment",
+            float,
+            validators=[is_positive_float],
         )
+        config.register("prolific_unsuccessful_topup", bool)
+        config.register("prolific_screen_out_slots", int, validators=[is_positive_int])
 
     @dashboard_tab("Export")
     @classmethod
     def dashboard_export(cls):
         return render_template(
             "dashboard_export.html",
-            title="Database export",
+            title="Export data",
             automatic_backups=cls.automatic_backups,
         )
 
@@ -3061,6 +3788,43 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return report_lucid()
 
+    @dashboard_tab("Sync groups")
+    @classmethod
+    def dashboard_sync_groups(cls):
+        from .dashboard.sync_groups import report_sync_groups
+
+        return report_sync_groups()
+
+    @dashboard.route(
+        "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/fail",
+        methods=["POST"],
+    )
+    @login_required
+    @with_transaction
+    def manual_fail_sync_group_participant(sync_group_id, participant_id):  # noqa F811
+        from .dashboard.sync_groups import manual_fail_sync_group_participant
+
+        return manual_fail_sync_group_participant(
+            participant_id,
+            sync_group_id,
+            fail_reason=request.form.get("fail_reason"),
+        )
+
+    @dashboard.route(
+        "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/kick",
+        methods=["POST"],
+    )
+    @login_required
+    @with_transaction
+    def manual_kick_sync_group_participant(sync_group_id, participant_id):  # noqa F811
+        from .dashboard.sync_groups import manual_kick_sync_group_participant
+
+        return manual_kick_sync_group_participant(
+            participant_id,
+            sync_group_id,
+            kick_reason=request.form.get("kick_reason"),
+        )
+
     @dashboard_tab("Participants")
     @classmethod
     def dashboard_participants(cls):
@@ -3093,13 +3857,116 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except sqlalchemy.orm.exc.MultipleResultsFound:
             message = "Found multiple participants matching those specifications."
 
+        if participant is not None:
+            cls._attach_platform_payment_view(participant)
+
         return render_template(
             "dashboard_participant.html",
-            title="Participant",
+            title="Participants",
             participant=participant,
             message=message,
+            participants_needing_review=Participant.needing_payment_review(),
+            currency=get_config().currency,
             app_base_url=get_experiment_url(),
         )
+
+    @staticmethod
+    def _attach_platform_payment_view(participant):
+        recruiter = getattr(participant, "recruiter", None)
+        if recruiter is None:
+            participant.platform_payment_supported = False
+            participant.platform_bonus = None
+            participant.platform_submission_status = None
+            return
+        try:
+            view = recruiter.platform_payment_view(participant)
+        except Exception:
+            logger.exception(
+                "Could not poll platform payment status for participant %s.",
+                getattr(participant, "id", None),
+            )
+            participant.platform_payment_supported = bool(
+                recruiter.can_report_apparent_bonus()
+            )
+            participant.platform_bonus = None
+            participant.platform_submission_status = None
+            return
+        participant.platform_payment_supported = view.supported
+        participant.platform_bonus = view.bonus
+        participant.platform_submission_status = view.submission_status
+
+    @dashboard.route("/participants/pay-bonus", methods=["POST"])
+    @login_required
+    @with_transaction
+    def dashboard_pay_bonus():  # noqa F811
+        return Experiment._handle_dashboard_review_bonus(action="pay")
+
+    @dashboard.route("/participants/dismiss-bonus", methods=["POST"])
+    @login_required
+    @with_transaction
+    def dashboard_dismiss_bonus():  # noqa F811
+        return Experiment._handle_dashboard_review_bonus(action="dismiss")
+
+    @classmethod
+    def _handle_dashboard_review_bonus(cls, *, action: str):
+        participant_id = request.form.get("participant_id")
+        try:
+            participant = cls.get_participant_from_participant_id(
+                int(participant_id), for_update=True
+            )
+        except (TypeError, ValueError):
+            flash("Invalid participant ID.", "danger")
+            return redirect(url_for("dashboard.dashboard_participants"))
+        except sqlalchemy.orm.exc.NoResultFound:
+            flash("Failed to find that participant.", "danger")
+            return redirect(url_for("dashboard.dashboard_participants"))
+        exp = get_experiment()
+        if action == "dismiss":
+            category, message = exp.dismiss_review_bonus(participant)
+        else:
+            category, message = exp.pay_review_bonus(participant)
+        flash(message, category)
+        return redirect(
+            url_for(
+                "dashboard.dashboard_participants",
+                participant_id=participant.id,
+            )
+        )
+
+    @classmethod
+    def _participant_request_query(cls):
+        """Return a participant query suited to one-participant HTTP requests.
+
+        Several participant relationships use ``lazy="selectin"`` because that
+        is efficient for dashboards and other queries that load many
+        participants. A timeline request loads exactly one participant, and
+        unconditional select-in loading would issue separate queries for the
+        current module, all module states, and active barriers.
+
+        Overriding those relationships to ordinary lazy loading preserves their
+        public behavior: the first access still loads the relationship. Pages
+        inside a module still load the current module state, but the remaining
+        relationships are fetched only by the requests that read them, such as
+        module transitions and synchronized barriers.
+        ``_current_trial`` deliberately keeps its joined-loading configuration
+        because response handling commonly needs it.
+        """
+        return Participant.query.options(
+            lazyload(Participant.module_state),
+            lazyload(Participant._module_states),
+            lazyload(Participant.active_barriers),
+        )
+
+    @classmethod
+    def _get_request_participant_from_unique_id(cls, unique_id: str):
+        """Load one request participant without unrelated eager relationships.
+
+        This deliberately does not call
+        :meth:`~psynet.experiment.Experiment.get_participant_from_unique_id`,
+        whose eager loading suits callers that may use the participant after
+        its session closes. Lookup semantics are otherwise identical.
+        """
+        return cls._participant_request_query().filter_by(unique_id=unique_id).one()
 
     @classmethod
     def get_participant_from_assignment_id(
@@ -3316,94 +4183,67 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             recruiter=recruiter, external_submit_url=external_submit_url
         )
 
-    @experiment_route("/download_source", methods=["GET"])
     @classmethod
-    def download_source(cls):
-        config = get_config()
-
-        if not authenticate(request.authorization, config):
-            return jsonify({"message": "Invalid credentials"}), 401
-
-        filename = "source_code.zip"
-        logger.info(f"Downloading experiment source code from {os.getcwd()}/{filename}")
-        return send_file(filename, mimetype="zip")
-
-    @classmethod
-    def _export(
-        cls,
-        export_dir,
-        config=None,
-        n_parallel=None,
-        psynet_export: bool = True,
-        anonymize: str = "no",
-        **kwargs,
+    def build_export_archive(
+        cls, export_dir, *, assets="collected", asset_bytes="include"
     ):
-        if config is None:
-            config = get_config()
-        if psynet_export:
-            from .command_line import export__local
+        """Build the canonical export in ``export_dir`` and zip it beside that tree.
 
-            ctx = Context(export__local)
-            ctx.invoke(
-                export__local,
-                path=export_dir,
-                n_parallel=n_parallel,
-                username=config.get("dashboard_user"),
-                password=config.get("dashboard_password"),
-                assets=kwargs.get("assets"),
-                anonymize=anonymize,
-                legacy=True,
-            )
-        else:
-            if anonymize == "both":
-                scrub_pii = [True, False]
-            elif anonymize == "yes":
-                scrub_pii = [True]
-            elif anonymize == "no":
-                scrub_pii = [False]
-            else:
-                raise ValueError("anonymize must be 'yes' or 'no' or 'both'")
-            for scrub in scrub_pii:
-                folder_name = "anonymized" if scrub else "regular"
-                sub_dir = os.path.join(export_dir, folder_name)
-                os.makedirs(sub_dir, exist_ok=True)
-                with working_directory(sub_dir):
-                    dallinger.data.export("app", local=True, scrub_pii=scrub)
-        zip_filename = "psynet" if psynet_export else "database"
-        zip_name = shutil.make_archive(zip_filename, "zip", export_dir)
-        exp = get_experiment()
-        storage = exp.artifact_storage
-        try:
-            storage.upload_export(zip_name, exp.deployment_id)
-            if psynet_export:
-                url = exp.get_artifact_url(exp.deployment_id, "psynet.zip")
-                cls.notifier.notify(
-                    f"A fresh data export has been created, it can be accessed {cls.notifier.url('here', url)}."
-                )
-        except Exception as e:
-            logger.error(f"Failed to save backup: {e}")
-        return zip_name
+        ``asset_bytes="manifest"`` describes the selected assets without copying
+        their bytes, for clients that fetch the bytes themselves.
+        """
+        from .export.service import build_export_archive, build_export_tree
+
+        build_export_tree(
+            export_dir,
+            assets=assets or "collected",
+            local=True,
+            manifest_only_assets=asset_bytes == "manifest",
+        )
+        return build_export_archive(export_dir)
+
+    @classmethod
+    def _export(cls, export_dir, **kwargs):
+        """Build a complete export archive and store it as the latest artifact."""
+        from .export.service import store_latest_archive
+
+        zip_path = cls.build_export_archive(
+            export_dir, assets=kwargs.get("assets") or "collected"
+        )
+        store_latest_archive(zip_path)
+        return zip_path
 
     @staticmethod
-    def _download_export(
-        anonymize: str,
-        export_type: str,  # can be "database" or "psynet"
-        **kwargs,
-    ):
-        assert export_type in ("psynet", "database")
-        exp = get_experiment()
+    def _download_export(assets="collected", asset_bytes="include"):
+        """Build an export, store it if complete, and send it to the caller."""
+        from .export.service import store_latest_archive
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            config = get_config()
-            psynet_export = export_type == "psynet"
-            zip_filepath = exp._export(
-                tempdir,
-                config=config,
-                anonymize=anonymize,
-                psynet_export=psynet_export,
-                **kwargs,
+        exp = get_experiment()
+        tempdir = tempfile.mkdtemp(prefix="psynet-export-")
+        try:
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            zip_filepath = exp.build_export_archive(
+                export_dir, assets=assets, asset_bytes=asset_bytes
             )
-            return send_file(zip_filepath, mimetype="zip")
+            # A manifest-only snapshot is not a usable export on its own, so it
+            # must not replace the deployment's stored artifact.
+            if asset_bytes != "manifest":
+                store_latest_archive(zip_filepath)
+            return _send_file_then_delete_dir(zip_filepath, tempdir, mimetype="zip")
+        except Exception as exc:
+            shutil.rmtree(tempdir, ignore_errors=True)
+            # Without this the experimenter only sees a bare 500 and has to go
+            # reading server logs to find out why the archive could not be built.
+            logger.error("Failed to build the export archive.", exc_info=True)
+            return error_response(
+                error_text=(
+                    f"The experiment could not build the export: "
+                    f"{type(exc).__name__}: {exc}"
+                ),
+                status=500,
+                simple=True,
+            )
 
     @dashboard.route("/artifact/<deployment_id>/<filename>", methods=["GET"])
     @staticmethod
@@ -3414,16 +4254,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
         exp = get_experiment()
-        with tempfile.TemporaryDirectory() as tempdir:
+        tempdir = tempfile.mkdtemp(prefix="psynet-artifact-")
+        try:
             storage = exp.artifact_storage
             path = storage.prepare_path(deployment_id, filename)
             destination = os.path.join(tempdir, os.path.basename(path))
             storage.download(path, destination)
             if not os.path.exists(destination):
+                shutil.rmtree(tempdir, ignore_errors=True)
                 return error_response(
                     error_text=f"Artifact {deployment_id}/{filename} not found."
                 )
-            return send_file(destination, mimetype="application/octet-stream")
+            return _send_file_then_delete_dir(
+                destination, tempdir, mimetype="application/octet-stream"
+            )
+        except Exception:
+            shutil.rmtree(tempdir, ignore_errors=True)
+            raise
+
+    @dashboard.route("/export/preflight", methods=["GET"])
+    @staticmethod
+    @with_transaction
+    def export_preflight():
+        """Describe this deployment so a client can validate it before downloading."""
+        from flask_login import current_user
+
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
+            return error_response(error_text="Invalid credentials", simple=True)
+
+        from .export.identity import server_project_identity
+
+        return jsonify(server_project_identity())
 
     @dashboard.route("/export/download", methods=["GET"])
     @staticmethod
@@ -3434,35 +4295,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
 
-        kwargs = dict(request.args)
-        anonymize = kwargs.pop("anonymize", "no")
-        export_type = kwargs.pop("type", "database")
+        from .export.service import validate_asset_mode
+
+        try:
+            assets = validate_asset_mode(request.args.get("assets", "collected"))
+        except ValueError as exc:
+            return error_response(error_text=str(exc), status=400, simple=True)
 
         exp = get_experiment()
-        return exp._download_export(anonymize, export_type, **kwargs)
+        return exp._download_export(
+            assets=assets,
+            asset_bytes=request.args.get("asset_bytes", "include"),
+        )
 
     @dashboard.route("/export/trigger", methods=["GET"])
     @staticmethod
     @with_transaction
     def trigger_export():
-        kwargs = dict(request.args)
-        anonymize = kwargs.pop("anonymize", "no")
-        export_type = kwargs.pop("type", "database")
-        assets = kwargs.get("assets", "none")
+        """Build a complete export and store it, without sending it anywhere."""
+        from .export.service import store_latest_archive, validate_asset_mode
 
-        # We just call _download_export for the side effect of uploading the export to the storage service.
+        try:
+            assets = validate_asset_mode(request.args.get("assets", "none"))
+        except ValueError as exc:
+            return error_response(error_text=str(exc), status=400, simple=True)
+
         exp = get_experiment()
-        exp._download_export(
-            anonymize=anonymize,
-            export_type=export_type,
-            assets=assets,
-        )
+        with tempfile.TemporaryDirectory() as tempdir:
+            export_dir = os.path.join(tempdir, "export")
+            os.makedirs(export_dir)
+            store_latest_archive(exp.build_export_archive(export_dir, assets=assets))
 
-        return success_response(
-            anonymize=anonymize,
-            export_type=export_type,
-            assets=assets,
-        )
+        return success_response(assets=assets)
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
@@ -3483,9 +4347,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return json.dumps(json_data, default=serialise)
 
+    @experiment_route("/asset/<access_token>", methods=["GET"])
+    @experiment_route("/asset/<access_token>/<path:subpath>", methods=["GET"])
+    @staticmethod
+    def get_asset_by_access_token(access_token, subpath=None):
+        """Serve a managed or on-demand asset via its permanent access token."""
+        asset = Asset.query.filter_by(access_token=access_token).one_or_none()
+        if asset is None:
+            flask.abort(404)
+        return asset.serve(subpath)
+
     @experiment_route("/on-demand-asset", methods=["GET"])
     @staticmethod
     def get_on_demand_asset():
+        """
+        Legacy on-demand route.
+
+        Prefer ``/asset/<access_token>``. This endpoint remains as a temporary
+        compatibility shim that redirects when the asset has an access token.
+        """
         id = request.args.get("id")
         secret = request.args.get("secret")
 
@@ -3495,11 +4375,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         id = int(id)
 
         asset = OnDemandAsset.query.filter_by(id=id).one()
-        suffix = asset.extension if asset.extension else ""
+        if getattr(asset, "access_token", None):
+            target = asset.access_url()
+            return redirect(target)
 
+        # Fallback for rows that somehow lack a token.
+        suffix = asset.extension if asset.extension else ""
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
             asset.export(temp_file.name)
-
             return send_file(temp_file.name, max_age=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
@@ -3528,6 +4411,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 recruiter.set_termination_details(
                     participant.assignment_id, "error-page_route"
                 )
+
+            on_error_page = getattr(recruiter, "on_error_page", None)
+            if on_error_page is not None:
+                on_error_page(participant)
 
         return cls.error_page(
             participant=participant,
@@ -3649,6 +4536,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         info = Info.query.with_for_update(of=Info).populate_existing().get(info_id)
         info.fail(reason="http_fail_route_called")
+        return success_response()
+
+    @experiment_route("/trial/<int:trial_id>/fail", methods=["GET", "POST"])
+    @staticmethod
+    @with_transaction
+    def fail_trial(trial_id):
+        from .trial.main import Trial
+
+        trial = Trial.query.with_for_update(of=Trial).populate_existing().get(trial_id)
+        if trial is None:
+            flask.abort(404)
+        trial.fail(reason="http_fail_route_called")
         return success_response()
 
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
@@ -3792,7 +4691,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_timeline(cls):
         unique_id = request.args.get("unique_id")
         mode = request.args.get("mode")
-        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
+        participant = cls._get_request_participant_from_unique_id(unique_id)
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
@@ -3913,6 +4812,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
+
+    @classmethod
+    def isolate_batch_item_failure(cls, error, *, refetch, fail, **error_parents):
+        """
+        Report a per-item batch failure, mark the item failed, and commit.
+
+        Used by pollers that process many candidates in one transaction
+        (network growth, finalize backstop). ``handle_error`` rolls back the
+        session, so ``refetch`` must return a fresh ORM instance (or ``None``).
+        ``fail`` receives that instance and marks it failed. The fail is
+        committed immediately so a later ``handle_error`` in the same batch
+        cannot undo it (same mid-batch commit pattern as ErrorRecord logging).
+        """
+        if not isinstance(error, cls.HandledError):
+            cls.handle_error(error, **error_parents)
+        entity = refetch()
+        if entity is None:
+            return None
+        fail(entity)
+        db.session.commit()
+        return entity
 
     @classmethod
     def handle_error(cls, error, **kwargs):
@@ -4105,6 +5025,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This helper is the shared render authority for inplace fragment output
         returned directly from /response.
         """
+        # Mirror the full-page /timeline path (see get_current_page), which
+        # calls pre_render() before rendering. Without this, pages advanced via
+        # an inplace transition would skip pre_render() hooks (e.g. prompt/control
+        # setup such as S3 presigned URL preparation).
+        page.pre_render()
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,
@@ -4161,6 +5086,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
+        include_timeline_fragment = get_arg_from_dict(
+            json_data, "include_timeline_fragment", use_default=True, default=True
+        )
         client_ip_address = cls.get_client_ip_address()
 
         res = exp.process_response(
@@ -4171,6 +5099,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
             answer,
+            include_timeline_fragment,
         )
 
         return res
@@ -4240,6 +5169,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return stats
 
+    def network_structure(
+        self,
+        network_roles=None,
+        network_ids=None,
+        collapsed=False,
+        transformations=False,
+    ):
+        """Return network monitor payload with PsyNet trials in the infos slot.
+
+        Dallinger's network monitor still expects an ``infos`` list linked to
+        nodes via ``origin_id``. PsyNet trials live in the ``trial`` table and
+        use ``node_id``, so we substitute trial rows and alias ``origin_id``.
+        """
+        structure = super().network_structure(
+            network_roles=network_roles,
+            network_ids=network_ids,
+            collapsed=collapsed,
+            transformations=transformations,
+        )
+        if collapsed:
+            return structure
+
+        trials = self.summarize_table("trial", network_roles, network_ids)
+        structure["infos"] = _trials_as_network_monitor_infos(trials)
+        return structure
+
     def check_consents(self):
         if (
             deployment_info.read("is_local_deployment")
@@ -4249,6 +5204,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.timeline.check_consents(self)
 
     def check_python_dependencies(self):
+        if os.environ.get("SKIP_DEPENDENCY_CHECK"):
+            return
+        if is_in_repo_experiment():
+            if Path("constraints.txt").exists():
+                logger.warning(
+                    "Ignoring constraints.txt in in-repo experiment %s; in-repo "
+                    "experiments use PsyNet's shared development environment "
+                    "instead of per-demo constraint pins.",
+                    Path.cwd(),
+                )
+            return
         extra_deps = self.notifier.python_dependencies
         with open("constraints.txt", "r") as f:
             constraints = f.readlines()
@@ -4314,38 +5280,42 @@ _patch_dallinger_models()
 
 
 def import_local_experiment():
-    # Imports experiment.py and returns a dict consisting of
-    # 'package' which corresponds to the experiment *package*,
-    # 'module' which corresponds to the experiment *module*, and
-    # 'class' which corresponds to the experiment *class*.
-    # It also adds the experiment directory to sys.path, meaning that any other
-    # modules defined there can be imported using ``import``.
-    # import pdb; pdb.set_trace()
-    #
-    # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
+    """Load the local experiment package, module, and class.
+
+    Returns a dict with ``package`` (the ``dallinger_experiment`` package),
+    ``module`` (the ``experiment`` module), and ``class`` (the Experiment
+    subclass). Dallinger already imports the experiment directory as a
+    package, so siblings of ``experiment.py`` use ``from . import my_module``.
+    This function does not put the experiment directory on ``sys.path``.
+
+    Notes
+    -----
+    TODO: Is it a problem if we try to import_local_experiment before
+    config.load() has been called?
+    """
     ensure_experiment_directory_name_does_not_conflict()
     dallinger_get_config()
 
     import dallinger.experiment
 
-    dallinger.experiment.load()
+    with loading_experiment_classes():
+        dallinger.experiment.load()
 
-    dallinger_experiment = sys.modules.get("dallinger_experiment")
-    sys.path.append(os.getcwd())
+        dallinger_experiment = sys.modules.get("dallinger_experiment")
 
-    try:
-        module = dallinger_experiment.experiment
-    except AttributeError as e:
-        raise Exception(
-            f"Possible ModuleNotFoundError in your experiment's experiment.py file. "
-            f'Please check your imports!\nOriginal error was "AttributeError: {e}"'
-        )
+        try:
+            module = dallinger_experiment.experiment
+        except AttributeError as e:
+            raise Exception(
+                f"Possible ModuleNotFoundError in your experiment's experiment.py file. "
+                f'Please check your imports!\nOriginal error was "AttributeError: {e}"'
+            )
 
-    return {
-        "package": dallinger_experiment,
-        "module": module,
-        "class": dallinger.experiment.load(),  # TODO - use the class as loaded above instead?
-    }
+        return {
+            "package": dallinger_experiment,
+            "module": module,
+            "class": dallinger.experiment.load(),  # TODO - use the class as loaded above instead?
+        }
 
 
 @cache
@@ -4362,28 +5332,16 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
     return exp.timeline.get_trial_maker(trial_maker_id)
 
 
-def assert_config_txt_does_not_contain_sensitive_values():
-    config = get_config()
-    with open("config.txt", "r") as f:
-        for line in f.readlines():
-            for var in config.sensitive:
-                if var in line:
-                    raise ValueError(
-                        f"Sensitive key '{var}' found in config.txt. Please move all sensitive "
-                        "keys to `.dallingerconfig` and try again."
-                    )
-
-
 def in_deployment_package():
     return os.path.exists("DEPLOYMENT_PACKAGE")
 
 
-def authenticate(auth, config):
-    return (
-        auth
-        and auth.username == config.get("dashboard_user")
-        and auth.password == config.get("dashboard_password")
-    )
+def _identify_config_override_source(key):
+    """Identify which configuration source overrides an experiment.py value."""
+    if key in os.environ:
+        return "an environment variable"
+
+    return "another configuration source"
 
 
 # Dallinger defines various HTTP routes that provide access to database content.

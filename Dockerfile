@@ -10,7 +10,7 @@ ARG CHROME_VERSION=149.0.7827.54
 RUN pip install uv
 
 # TODO: delete some of these if we can
-RUN apt-get update && apt-get install -y curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip nodejs npm wget build-essential
+RUN apt-get update && apt-get install -y curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server rsync unzip nodejs npm wget build-essential
 
 # Heroku CLI is currently needed to run `psynet test local`, this should change soon
 RUN curl --fail --location --show-error --retry 5 --retry-connrefused --retry-delay 2 \
@@ -37,10 +37,11 @@ RUN echo Installing Chrome $CHROME_VERSION && \
 COPY pyproject.toml pyproject.toml
 COPY ci/dallinger-dev-requirements.txt dallinger-dev-requirements.txt
 
-# Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it.
+# Generate PsyNet constraints.txt (experiment runtime + demos extras) and install it.
 # Use a vendored Dallinger dev-requirements snapshot so parallel CI Docker
 # builds do not depend on raw.githubusercontent.com availability.
-RUN uv pip compile --python-version ${PYTHON_VERSION} pyproject.toml --extra demos \
+RUN uv pip compile --python-version ${PYTHON_VERSION} pyproject.toml \
+        --extra experiment --extra demos \
         --constraint dallinger-dev-requirements.txt \
         --output-file constraints.txt
 RUN uv pip install --no-cache --system -r constraints.txt

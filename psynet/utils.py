@@ -33,9 +33,39 @@ from flask.globals import current_app
 from flask.templating import Environment, _render
 from sqlalchemy import or_
 
+from psynet.light_utils import (  # noqa: F401 – re-exported for backwards compat
+    _IN_REPO_EXPERIMENT_ROOTS,
+    ExperimentDirectoryNameError,
+    _md5_update_from_dir,
+    _md5_update_from_file,
+    _update_hash_from_dir,
+    _update_hash_from_file,
+    ensure_experiment_directory_name_does_not_conflict,
+    get_psynet_root,
+    git_command_available,
+    git_repository_available,
+    is_in_repo_experiment,
+    md5_directory,
+)
 from psynet.translation.utils import load_po
 
 package_root = os.path.dirname(os.path.abspath(__file__))
+
+
+def psynet_source_prefixes():
+    """Return path prefixes for PsyNet's own source files.
+
+    Pass to ``warnings.warn(..., skip_file_prefixes=...)`` so a warning
+    issued behind PsyNet wrappers refers to the first caller outside this
+    package. Uses the ``psynet`` package directory, not the repository
+    root, so demos and tests still count as caller code.
+
+    Returns
+    -------
+    tuple of str
+        A one-element tuple suitable for ``warnings.warn``.
+    """
+    return (package_root + os.sep,)
 
 
 def get_logger(name="psynet"):
@@ -43,10 +73,6 @@ def get_logger(name="psynet"):
 
 
 logger = get_logger()
-
-
-class ExperimentDirectoryNameError(ValueError):
-    """Raised when an experiment directory name collides with a non-package module."""
 
 
 class NoArgumentProvided:
@@ -347,37 +373,42 @@ def md5_object(x):
     return str(hashed.hexdigest())
 
 
-# MD5 hashing code:
-# https://stackoverflow.com/a/54477583/8454486
+def sha256_object(x):
+    """Return a SHA-256 hex digest of a JSON-pickled object."""
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
+    return hashlib.sha256(string).hexdigest()
+
+
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
-    if not Path(filename).is_file():
-        raise FileNotFoundError(f"File not found: {filename}")
-    with open(str(filename), "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash.update(chunk)
+    """Update *hash* with the contents of *filename* and return it."""
+    _update_hash_from_file(filename, hash)
     return hash
 
 
 def md5_file(filename: Union[str, Path]) -> str:
-    return str(md5_update_from_file(filename, hashlib.md5()).hexdigest())
+    """Return the MD5 hex digest of a single file."""
+    return str(_update_hash_from_file(filename, hashlib.md5()).hexdigest())
+
+
+def sha256_file(filename: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a file's contents."""
+    return str(_update_hash_from_file(filename, hashlib.sha256()).hexdigest())
+
+
+def sha256_directory(directory: Union[str, Path]) -> str:
+    """Return a SHA-256 hex digest of a directory's names and file contents."""
+    return str(_update_hash_from_dir(directory, hashlib.sha256()).hexdigest())
+
+
+def content_object_path(digest: str) -> str:
+    """Return the canonical relative object path for a content digest."""
+    return f"objects/sha256/{digest}"
 
 
 def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
-    assert Path(directory).is_dir()
-    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
-        # Skip hidden files and directories (those starting with '.')
-        if path.name.startswith("."):
-            continue
-        hash.update(path.name.encode())
-        if path.is_file():
-            hash = md5_update_from_file(path, hash)
-        elif path.is_dir():
-            hash = md5_update_from_dir(path, hash)
+    """Recursively update *hash* with all non-hidden files under *directory*."""
+    _update_hash_from_dir(directory, hash)
     return hash
-
-
-def md5_directory(directory: Union[str, Path]) -> str:
-    return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
 
 
 def serialise_datetime(x):
@@ -515,17 +546,9 @@ def require_exp_directory(f):
         except ValueError:
             raise click.UsageError(error_two)
 
-        ensure_config_txt_exists()
-
         return f(*args, **kwargs)
 
     return wrapper
-
-
-def ensure_config_txt_exists():
-    config_txt_path = Path("config.txt")
-    if not config_txt_path.exists():
-        config_txt_path.touch()
 
 
 def require_requirements_txt(f):
@@ -639,47 +662,63 @@ class TranslationNotFoundError(KeyError):
     pass
 
 
+def is_release_branch():
+    """Return whether the current CI job is on a ``release-*`` branch."""
+    return os.environ.get("CI_COMMIT_REF_NAME", "").startswith("release-")
+
+
+def _tolerate_missing_translation(namespace):
+    """
+    Return whether a missing catalog entry should be downgraded to a warning.
+
+    Package catalogs (e.g. PsyNet's own) are refreshed on the release branch,
+    so feature-branch test runs must not depend on them. Experiment catalogs
+    are owned by the experiment author, so those keep failing loudly.
+    """
+    if namespace == "experiment":
+        return False
+    return bool(os.environ.get("PYTEST_CURRENT_TEST")) and not is_release_branch()
+
+
 def check_translation_is_available(message, context, locale, namespace):
     from . import deployment_info
     from .experiment import get_experiment, in_deployment_package
 
-    args = locals()
-
     is_available = (context, message) in REGISTERED_TRANSLATIONS[namespace][locale]
 
     if not is_available:
-        message = (
-            f"Could not find a translation for message {message!r} in locale = {locale}, context = {context}, namespace = {namespace}. "
+        error_message = (
+            f"Could not find a translation for message {message!r} in locale = {locale}, "
+            f"context = {context}, namespace = {namespace}. "
             "Perhaps the translatable string was not properly captured by `psynet translate`? "
             "To mark a string as translatable, you should write e.g. _('Hello') or _p('welcome message', 'Hello'). "
-            "You cannot rename the functions _ or _p, and you must pass them strings directly, not variables or strings wrapped in parentheses."
+            "You cannot rename the functions _ or _p, and you must pass them strings directly, "
+            "not variables or strings wrapped in parentheses."
         )
         is_live_experiment = (
             in_deployment_package() and deployment_info.read("mode") == "live"
         )
         if is_live_experiment:
-            message += " Since this is a live experiment, we instead presented the untranslated text."
-        else:
-            message += " If this happened in a live experiment, we would default to presenting the untranslated text."
-
-        # We need to actually raise the TranslationNotFoundError here for it to be treated appropriately by report_error.
-        try:
-            raise TranslationNotFoundError(message)
-        except TranslationNotFoundError as e:
-            if is_live_experiment:
+            error_message += " Since this is a live experiment, we instead presented the untranslated text."
+            logger.warning(error_message)
+            try:
+                raise TranslationNotFoundError(error_message)
+            except TranslationNotFoundError as e:
                 get_experiment().report_error(e)
-            else:
-                raise e
-
-
-def report_translation_error(message, context, locale):
-    from psynet.experiment import get_experiment
-
-    exp = get_experiment()
-    error = TranslationNotFoundError(
-        f"Translation not found for message '{message}' (context: {context}) in locale '{locale}'"
-    )
-    exp.report_error(error)
+        elif _tolerate_missing_translation(namespace):
+            error_message += (
+                " The untranslated English text will be shown instead. "
+                f"Catalogs for the {namespace} package are refreshed on the release branch "
+                "with `psynet translate`, so feature-branch tests do not require them "
+                "to be up to date."
+            )
+            logger.warning(error_message)
+        else:
+            error_message += (
+                " If this happened in a live experiment, we would default to presenting "
+                "the untranslated text."
+            )
+            raise TranslationNotFoundError(error_message)
 
 
 def get_translator(
@@ -1167,45 +1206,47 @@ def log_level(logger: logging.Logger, level):
     logger.setLevel(original_level)
 
 
-def get_psynet_root():
-    import psynet
+# Path substrings / suffixes excluded from CI demo runs via ``for_ci_tests``.
+# Playwright experiments have dedicated CI jobs; recruiter demos and gibbs_video
+# are not meaningful (or lack deps) in the shared CI runner.
+_CI_EXCLUDED_EXPERIMENT_PATH_MARKERS = (
+    "recruiters",
+    "/tests/deployment/",
+    "playwright",
+)
+_CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES = ("/gibbs_video",)
 
-    return Path(psynet.__file__).parent.parent
+
+def _excluded_from_ci_experiment_dirs(dir_path: str) -> bool:
+    """Return whether an experiment directory should be skipped in CI demo runs."""
+    return any(
+        marker in dir_path for marker in _CI_EXCLUDED_EXPERIMENT_PATH_MARKERS
+    ) or any(
+        dir_path.endswith(suffix) for suffix in _CI_EXCLUDED_EXPERIMENT_PATH_SUFFIXES
+    )
 
 
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
-    demo_root = get_psynet_root() / "demos"
-    test_experiments_root = get_psynet_root() / "tests/experiments"
-    # Included so release tooling keeps its template scripts up to date;
-    # excluded from CI test runs via the for_ci_tests filter below.
-    manual_recruiter_testing_root = get_psynet_root() / "tests/manual_recruiter_testing"
+    """List in-repo experiment directories under :data:`_IN_REPO_EXPERIMENT_ROOTS`.
 
-    dirs = sorted(
-        [
-            dir_
-            for root in [
-                demo_root,
-                test_experiments_root,
-                manual_recruiter_testing_root,
-            ]
-            for dir_, sub_dirs, files in os.walk(root)
-            if (
-                "experiment.py" in files
-                and not dir_.endswith("/develop")
-                and (
-                    not for_ci_tests
-                    or not (
-                        # Skip the recruiter demos because they're not meaningful to run here
-                        "recruiters" in dir_
-                        or "manual_recruiter_testing" in dir_
-                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
-                        # in the CI environment
-                        or dir_.endswith("/gibbs_video")
-                    )
-                )
-            )
-        ]
-    )
+    Skips hidden directories while walking so leftover virtualenvs under a demo
+    (e.g. ``.venv``) are not mistaken for experiments when they contain an
+    ``experiment.py`` inside ``site-packages``.
+    """
+    psynet_root = get_psynet_root()
+    dirs = []
+    for relative in _IN_REPO_EXPERIMENT_ROOTS:
+        for dir_, sub_dirs, files in os.walk(psynet_root / relative):
+            # Prune in place so os.walk does not descend into .venv, .git, etc.
+            sub_dirs[:] = [name for name in sub_dirs if not name.startswith(".")]
+            if "experiment.py" not in files:
+                continue
+            if dir_.endswith("/develop"):
+                continue
+            if for_ci_tests and _excluded_from_ci_experiment_dirs(dir_):
+                continue
+            dirs.append(dir_)
+    dirs = sorted(dirs)
 
     if ci_node_total is not None and ci_node_index is not None:
         dirs = with_parallel_ci(dirs, ci_node_total, ci_node_index)
@@ -1234,7 +1275,9 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         isolated_tests_features,
         isolated_tests_translation,
     ]:
-        tests.extend(glob.glob(str(directory / "*.py")))
+        # Only pytest-discoverable modules; shared helper modules live
+        # alongside the tests and must not be run as empty test files.
+        tests.extend(glob.glob(str(directory / "test_*.py")))
 
     if ci_node_total is not None and ci_node_index is not None:
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)
@@ -1447,63 +1490,19 @@ def get_installed_package_source_directory(package_name: str) -> Path:
         If the package root directory cannot be found.
     """
     package = importlib.import_module(package_name)
-    return Path(package.__file__).parent
+    if getattr(package, "__file__", None) is not None:
+        return Path(package.__file__).parent
 
+    # Namespace packages (no ``__init__.py``) expose their location via
+    # ``__path__``. Deployment copies of in-repo demos often omit scaffolded
+    # ``__init__.py`` files because they are gitignored, so Dallinger loads
+    # them as namespace packages.
+    paths = getattr(package, "__path__", None)
+    if paths:
+        return Path(next(iter(paths))).resolve()
 
-def ensure_experiment_directory_name_does_not_conflict(path="."):
-    """
-    Check that the experiment directory basename is safe for Dallinger imports.
-
-    Dallinger imports a local experiment as ``<directory_name>.experiment``. A
-    directory named like an existing non-package module, for example ``code``,
-    can resolve to the standard library module instead of the local experiment
-    directory.
-
-    Parameters
-    ----------
-    path : str or Path, optional
-        Path to the experiment directory.
-
-    Raises
-    ------
-    ExperimentDirectoryNameError
-        If Python resolves the directory name to an unrelated non-package module.
-    """
-    path = Path(path).resolve()
-    if not (path / "experiment.py").exists():
-        return
-
-    module_name = path.name
-    spec = importlib.util.find_spec(module_name)
-    if spec is None:
-        return
-    # A package resolution can still support ``<name>.experiment``. The
-    # problematic case is a plain module such as the standard-library
-    # ``code.py``, which has no submodule search path and cannot contain
-    # ``code.experiment``.
-    if spec.submodule_search_locations is not None:
-        return
-
-    candidate_paths = []
-    if spec.origin not in (None, "built-in"):
-        candidate_paths.append(Path(spec.origin))
-
-    # If Python resolves the name back into the experiment directory, the import
-    # machinery will see the local experiment rather than an unrelated module.
-    if any(
-        candidate_path.resolve().is_relative_to(path)
-        for candidate_path in candidate_paths
-    ):
-        return
-
-    module_path = spec.origin if spec.origin is not None else module_name
-    raise ExperimentDirectoryNameError(
-        f"The current experiment directory is named '{module_name}', but Python's "
-        f"module '{module_name}' resolves to '{module_path}' instead of "
-        "this directory. Dallinger imports experiments by directory name, so it "
-        "cannot import this experiment reliably. Rename the directory or move the "
-        "runnable experiment into a nested non-conflicting directory, for example "
-        f"'{module_name}/<experiment_slug>/'."
+    raise FileNotFoundError(
+        f"Could not determine the source directory for package {package_name!r}."
     )
 
 
@@ -1707,26 +1706,48 @@ def generate_text_file(path, text="Lorem ipsum"):
         file.write(text)
 
 
-def git_repository_available():
-    """
-    Check if the current directory is inside a git repository and git is installed.
+# SQLAlchemy warns whenever a mapped class is registered under a name it has
+# registered before. PsyNet provokes this deliberately, because it executes
+# ``experiment.py`` more than once per process: Dallinger's config loader
+# imports it to read the experiment's extra parameters, and commands such as
+# ``psynet debug`` and ``psynet deploy`` load it again from the directory staged
+# for the server. Each execution redeclares the same mapped classes, so any
+# experiment that defines a Trial subclass or a custom table sees these
+# warnings. They name PsyNet's own reloading rather than anything an
+# experimenter can act on.
+#
+# Retiring the previous entries instead, through ``registry._dispose_cls`` and
+# the base mapper's ``polymorphic_map``, does not work: a load boundary cannot
+# tell whether the module is about to be executed again, because ``sys.modules``
+# often already holds it. Removing entries up front therefore unregisters
+# classes that stay live, which breaks string-based ``relationship()`` targets
+# and makes loading a row fail with "No such polymorphic_identity is defined".
+_EXPERIMENT_REDECLARATION_WARNINGS = (
+    "This declarative base already contains a class",
+    "Reassigning polymorphic association",
+)
 
-    Returns
-    -------
-    bool
-        True if inside a git repository and git is available, False otherwise.
-    """
-    import subprocess
 
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--is-inside-work-tree"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
+@contextlib.contextmanager
+def loading_experiment_classes():
+    """Suppress SQLAlchemy warnings about redeclaring the experiment's classes.
+
+    Wrap any call that may execute ``experiment.py``. Other warnings raised
+    while loading the experiment are left alone.
+    """
+
+    import warnings
+
+    from sqlalchemy.exc import SAWarning
+
+    with warnings.catch_warnings():
+        for message in _EXPERIMENT_REDECLARATION_WARNINGS:
+            warnings.filterwarnings(
+                "ignore",
+                message=f"{re.escape(message)}.*",
+                category=SAWarning,
+            )
+        yield
 
 
 def patch_yaspin_jupyter_detection():
