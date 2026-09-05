@@ -438,8 +438,11 @@ test(
   }
 );
 
+// A phone page that fits keeps its footer pinned, so the reserved clearance has
+// to follow the footer's real height. (A phone page that scrolls hands the
+// footer back to the document instead; that case is covered separately.)
 test(
-  "a wrapped footer stays pinned and still clears the last control",
+  "a wrapped footer on a fitting phone page still clears the last control",
   { tag: "@both" },
   async ({ page }) => {
     await renderTheme(page, {
@@ -447,9 +450,8 @@ test(
       includeBootstrap: true,
       scripts: [LAYOUT_JS],
       html: `
-        <div id="main-body" class="psynet-surface"
-             data-expect-scrolling="true">
-          <p>${"A long experiment page. ".repeat(80)}</p>
+        <div id="main-body" class="psynet-surface">
+          <p>A page that fits, so the footer stays pinned.</p>
           <div class="psynet-actions">
             <button id="next-button" class="btn btn-primary btn-lg">Next</button>
           </div>
@@ -831,6 +833,86 @@ for (const scheme of ["light", "dark"]) {
     }
   );
 }
+
+test(
+  "a scrolling phone page hands the footer back to the document",
+  { tag: "@both" },
+  async ({ page }) => {
+    const tallPage = (paragraphs) => `
+      <div id="timeline-root">
+        <div id="main-body" class="psynet-surface" data-expect-scrolling="true">
+          ${"<p>A long experiment page.</p>".repeat(paragraphs)}
+          <div class="psynet-actions">
+            <button id="next-button" class="btn btn-primary btn-lg">Next</button>
+          </div>
+        </div>
+        <nav id="footer" class="navbar fixed-bottom" style="height: 60px">
+          Reward
+        </nav>
+      </div>`;
+
+    const state = async () =>
+      await page.evaluate(async () => {
+        const footer = document.getElementById("footer");
+        const next = document.getElementById("next-button");
+        return {
+          position: getComputedStyle(footer).position,
+          clearance: getComputedStyle(document.body).paddingBottom,
+          footerBelowNext:
+            footer.getBoundingClientRect().top >=
+            next.getBoundingClientRect().bottom,
+          violations: (await window.psynetLayout.check()).map((v) => v.check)
+        };
+      });
+
+    // Phone, page overflows: in flow, so nothing is reserved and the footer
+    // comes after the last control.
+    await renderTheme(page, {
+      viewport: { width: 375, height: 600 },
+      includeBootstrap: true,
+      scripts: [LAYOUT_JS],
+      html: tallPage(60)
+    });
+    await page.waitForTimeout(150);
+    let s = await state();
+    expect(s.position).toBe("static");
+    expect(s.clearance).toBe("0px");
+    expect(s.footerBelowNext).toBe(true);
+    expect(s.violations).not.toContain("nothing_permanently_occluded");
+
+    // Phone, page fits: pinned, because there is nothing to scroll past.
+    await renderTheme(page, {
+      viewport: { width: 375, height: 600 },
+      includeBootstrap: true,
+      scripts: [LAYOUT_JS],
+      html: tallPage(1)
+    });
+    await page.waitForTimeout(150);
+    s = await state();
+    expect(s.position).toBe("fixed");
+    expect(parseFloat(s.clearance)).toBeGreaterThan(0);
+
+    // Wide window, page overflows: still pinned, since there is room to spare.
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 600 },
+      includeBootstrap: true,
+      scripts: [LAYOUT_JS],
+      html: tallPage(60)
+    });
+    await page.waitForTimeout(150);
+    s = await state();
+    expect(s.position).toBe("fixed");
+    expect(parseFloat(s.clearance)).toBeGreaterThan(0);
+
+    // Rotating a phone into a wide window re-pins without a reload.
+    await page.setViewportSize({ width: 375, height: 600 });
+    await page.waitForTimeout(250);
+    expect((await state()).position).toBe("static");
+    await page.setViewportSize({ width: 900, height: 600 });
+    await page.waitForTimeout(250);
+    expect((await state()).position).toBe("fixed");
+  }
+);
 
 test(
   "footer clearance follows the footer through inplace page changes",

@@ -82,6 +82,11 @@
 
     /* Accent. White text on this colour is 4.9:1, comfortably above WCAG AA. */
     --psynet-accent: #3070c8;
+    /* Fill for solid buttons. Split from the accent because dark mode needs the
+       accent to stay light enough to read as link text on a dark surface, while
+       a whole button painted that colour is glaring. */
+    --psynet-accent-solid: var(--psynet-accent);
+    --psynet-accent-solid-contrast: var(--psynet-accent-contrast);
     /* Channel form, because Bootstrap composes link and utility colours from
        rgb triples rather than from the hex variables. */
     --psynet-accent-rgb: 48, 112, 200;
@@ -172,6 +177,11 @@
 
     --psynet-accent: #5b9bea;
     --psynet-accent-rgb: 91, 155, 234;
+    /* Darker than the accent, with a white label rather than a dark one: a
+       button filled with the light accent was the brightest thing on the page.
+       White on this is 4.9:1, and the fill clears 3:1 against the surface. */
+    --psynet-accent-solid: #3a72ba;
+    --psynet-accent-solid-contrast: #ffffff;
     --psynet-accent-hover: #7db2f2;
     --psynet-accent-hover-rgb: 125, 178, 242;
     --psynet-accent-soft: #253449;
@@ -229,6 +239,20 @@ body:has(#footer) {
        --psynet-footer-height, because a wrapped footer is taller than any
        token can predict. The token is the pre-measurement fallback. */
     padding-bottom: var(--psynet-footer-height, var(--psynet-footer-clearance));
+}
+
+/*
+ * On a narrow screen whose page already scrolls, psynet.layout.js hands the
+ * footer back to the document: pinning it there would spend a fifth of a phone
+ * screen on chrome the participant scrolls past anyway. Nothing needs reserving,
+ * because the footer now occupies real space at the end of the content.
+ */
+body.psynet-footer-in-flow:has(#footer) {
+    padding-bottom: 0;
+}
+
+body.psynet-footer-in-flow #footer.fixed-bottom {
+    position: static;
 }
 
 /* Without a footer the media-download bar pins itself to the bottom edge, so
@@ -321,17 +345,17 @@ code {
 }
 
 .btn-primary {
-    --bs-btn-bg: var(--psynet-accent);
-    --bs-btn-border-color: var(--psynet-accent);
-    --bs-btn-color: var(--psynet-accent-contrast);
+    --bs-btn-bg: var(--psynet-accent-solid);
+    --bs-btn-border-color: var(--psynet-accent-solid);
+    --bs-btn-color: var(--psynet-accent-solid-contrast);
     --bs-btn-hover-bg: var(--psynet-accent-hover);
     --bs-btn-hover-border-color: var(--psynet-accent-hover);
     --bs-btn-hover-color: var(--psynet-accent-contrast);
     --bs-btn-active-bg: var(--psynet-accent-hover);
     --bs-btn-active-border-color: var(--psynet-accent-hover);
-    --bs-btn-disabled-bg: var(--psynet-accent);
-    --bs-btn-disabled-border-color: var(--psynet-accent);
-    --bs-btn-disabled-color: var(--psynet-accent-contrast);
+    --bs-btn-disabled-bg: var(--psynet-accent-solid);
+    --bs-btn-disabled-border-color: var(--psynet-accent-solid);
+    --bs-btn-disabled-color: var(--psynet-accent-solid-contrast);
 }
 
 /*

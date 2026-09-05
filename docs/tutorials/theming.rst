@@ -55,6 +55,12 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - Filled portion of the timeline progress rail and the media-download
        rail. Follows the accent in light mode; dark mode dims it, because a
        fully saturated accent on the dark rail dominated the page.
+   * - ``--psynet-accent-solid``
+     - ``var(--psynet-accent)``
+     - Fill for solid buttons, with ``--psynet-accent-solid-contrast`` for
+       their labels. Split from the accent because dark mode needs the accent
+       light enough to read as link text, while a whole button painted that
+       colour glares.
    * - ``--psynet-border``
      - ``#dfe5ee``
      - Default border colour, and the progress-bar track (and its
@@ -242,14 +248,22 @@ The selected state is styled with ``:has()``, which is why the default
 Pages that scroll
 -----------------
 
-The footer is fixed to the bottom of the window. Pages that render it
-reserve room for it on ``body`` so that content is never left permanently
-underneath. How much room cannot be written as a fixed value: the footer
-wraps onto more rows on a narrow phone, with a longer translated label, or
-at a larger font size. PsyNet therefore measures the rendered footer and
+The footer is normally fixed to the bottom of the window, and pages that
+render it reserve room for it on ``body`` so that content is never left
+permanently underneath. How much room cannot be written as a fixed value: the
+footer wraps onto more rows on a narrow phone, with a longer translated label,
+or at a larger font size. PsyNet therefore measures the rendered footer and
 publishes ``--psynet-footer-height``, falling back to
 ``--psynet-footer-clearance`` until the measurement runs. Pages without a
 footer get no padding.
+
+On a narrow screen (480px or less) whose page already scrolls, PsyNet hands the
+footer back to the document instead: it adds ``psynet-footer-in-flow`` to
+``body``, which unpins the footer so that it sits at the end of the content.
+Pinning it there would spend a fifth of a phone screen on chrome the
+participant scrolls past anyway. The decision is remeasured when the content or
+the window changes, and it ignores the footer's own height so that unpinning
+cannot flip it back.
 
 A page that does not declare ``expect_scrolling`` should fit a typical
 laptop window (1280×720) without scrolling. Verify that with the front-end

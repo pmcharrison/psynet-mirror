@@ -246,6 +246,44 @@ def test_footer_clearance_is_scoped_to_pages_with_a_footer():
     assert "body:has(#footer)" in css
 
 
+def test_footer_leaves_the_viewport_on_a_scrolling_phone_page():
+    """A pinned footer costs a fifth of a phone screen on every page."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    assert "body.psynet-footer-in-flow #footer.fixed-bottom {" in css
+    start = css.index("body.psynet-footer-in-flow #footer.fixed-bottom {")
+    end = css.index("}", start)
+    assert "position: static" in css[start:end]
+    # Nothing to reserve once the footer occupies real space.
+    start = css.index("body.psynet-footer-in-flow:has(#footer) {")
+    end = css.index("}", start)
+    assert "padding-bottom: 0" in css[start:end]
+
+    js = (resources.files("psynet") / "resources/scripts/psynet.layout.js").read_text(
+        encoding="utf-8"
+    )
+    assert 'IN_FLOW_CLASS = "psynet-footer-in-flow"' in js
+    # Measured without the footer, so unpinning cannot flip the decision back.
+    assert "function contentBottomExcluding(" in js
+    assert "IN_FLOW_MAX_WIDTH_PX" in js
+
+
+def test_solid_buttons_have_their_own_fill_token():
+    """A button painted the dark-mode accent was the brightest thing on screen."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index(".btn-primary {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "--bs-btn-bg: var(--psynet-accent-solid)" in block
+    assert "--bs-btn-color: var(--psynet-accent-solid-contrast)" in block
+    # Follows the accent in light mode, and is set explicitly in dark mode.
+    assert "--psynet-accent-solid: var(--psynet-accent)" in css
+    assert css.count("--psynet-accent-solid:") == 2
+
+
 def test_footer_clearance_prefers_the_measured_footer_height():
     """A wrapped footer is taller than any fixed token can predict."""
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
