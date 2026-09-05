@@ -1,6 +1,5 @@
 import re
 from pathlib import Path
-from shutil import copytree
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
@@ -56,17 +55,13 @@ def _wait_for_error_form(driver, message):
     )
 
 
-@pytest.fixture(scope="module")
-def timeline_experiment_copy(tmp_path_factory):
-    directory = tmp_path_factory.mktemp("timeline")
-    copytree(path_to_test_experiment("timeline"), directory, dirs_exist_ok=True)
-    return directory
-
-
 @pytest.fixture(scope="class")
-def experiment_directory(request, timeline_experiment_copy):
-    directory = Path(timeline_experiment_copy)
-    experiment_path = directory / "experiment.py"
+def experiment_directory(request):
+    # Chrome tests in one session must share a single experiment directory, so
+    # the repeat-worker class patches the timeline experiment in place and
+    # restores it afterwards.
+    directory = path_to_test_experiment("timeline")
+    experiment_path = Path(directory) / "experiment.py"
     original = experiment_path.read_text(encoding="utf-8")
     if getattr(request.cls, "allow_repeat_worker_ids", False):
         if "allow_repeat_worker_ids" not in original:
@@ -78,13 +73,14 @@ def experiment_directory(request, timeline_experiment_copy):
             )
             if replacements != 1:
                 raise AssertionError(
-                    "Could not enable allow_repeat_worker_ids in the timeline experiment copy."
+                    "Could not enable allow_repeat_worker_ids in the timeline experiment."
                 )
             experiment_path.write_text(updated, encoding="utf-8")
 
-    yield str(directory)
-
-    experiment_path.write_text(original, encoding="utf-8")
+    try:
+        yield directory
+    finally:
+        experiment_path.write_text(original, encoding="utf-8")
 
 
 @pytest.mark.parametrize(
