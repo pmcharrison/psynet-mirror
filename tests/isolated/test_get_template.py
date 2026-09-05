@@ -46,3 +46,12 @@ def test_start_template_only_creates_on_structured_lookup_errors():
     assert "/participant/" not in template
     assert "pageshow" in template
     assert "event.persisted" in template
+
+
+def test_start_template_ignores_stale_async_attempts():
+    """A bfcache restore must supersede callbacks from the previous flow."""
+    template = resources.files("psynet").joinpath("templates/start.html").read_text()
+
+    assert "const attempt = ++startAttempt;" in template
+    assert "createParticipant(entryInformation, attempt)" in template
+    assert template.count("attempt !== startAttempt") >= 4
