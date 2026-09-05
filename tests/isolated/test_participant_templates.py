@@ -245,11 +245,12 @@ def test_media_bar_is_a_thin_rail_at_the_bottom():
     assert "top: auto" in block
 
 
-def test_footer_clearance_is_scoped_to_pages_with_a_footer():
+def test_body_spacing_is_only_for_a_footerless_media_bar():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    assert "body:has(#footer)" in css
+    assert "body:has(#footer)" not in css
+    assert "body:not(:has(#footer)):has(#media-download-progress-bar)" in css
 
 
 def test_every_participant_page_declares_the_viewport():

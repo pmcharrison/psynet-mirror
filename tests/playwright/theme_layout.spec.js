@@ -982,7 +982,9 @@ test(
       };
     });
     expect(geometry.position).toBe("relative");
-    expect(geometry.height).toBe(150);
+    // CSS height describes the content box; the footer also has a 1px border.
+    expect(geometry.height).toBeGreaterThanOrEqual(150);
+    expect(geometry.height).toBeLessThanOrEqual(151);
     expect(geometry.bottom).toBeCloseTo(geometry.viewport, 0);
     expect(geometry.bodyPadding).toBe("0px");
   }

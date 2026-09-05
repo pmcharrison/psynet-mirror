@@ -247,12 +247,6 @@ body {
     min-height: 100dvh;
 }
 
-/* `relative` makes the footer the containing block for its absolute media bar. */
-#footer {
-    position: relative;
-    margin-top: auto;
-}
-
 /* Without a footer the media-download bar pins itself to the bottom edge, so
    the last few pixels of a scrolled page would otherwise hide underneath it. */
 body:not(:has(#footer)):has(#media-download-progress-bar) {
@@ -668,6 +662,10 @@ textarea:focus-visible,
 }
 
 #footer {
+    /* The footer is in flow; `relative` also makes it the containing block for
+       its absolute media-download bar. */
+    position: relative;
+    margin-top: auto;
     background-color: var(--psynet-footer-bg);
     border-top: 1px solid var(--psynet-border);
     color: var(--psynet-text-muted);
