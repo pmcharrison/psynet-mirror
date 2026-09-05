@@ -211,7 +211,8 @@ def test_progress_percentage_is_centred_on_the_track():
     end = css.index("}", start)
     block = css[start:end]
     assert "tabular-nums" in block
-    assert "background-color: var(--psynet-border)" in block
+    # The pill matches the rail so it only shows once the fill reaches it.
+    assert "background-color: var(--psynet-chrome-bg)" in block
     assert "border-radius: 999px" in block
     assert "line-height: var(--psynet-progress-height)" in block
     # No clip-path trickery left over from drawing the label twice.
@@ -346,7 +347,18 @@ def test_footer_is_chrome_rather_than_content():
     end = css.index("}", start)
     assert "background-color: var(--psynet-footer-bg)" in css[start:end]
     # Defined for both colour schemes, so dark mode does not fall back to white.
-    assert css.count("--psynet-footer-bg:") == 2
+    assert css.count("--psynet-chrome-bg:") == 2
+    assert css.count("--psynet-footer-bg: var(--psynet-chrome-bg)") == 2
+
+
+def test_progress_rail_and_footer_share_the_chrome_tint():
+    """The rail above the page and the footer below it frame the content."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("#timeline-header .progress {")
+    end = css.index("}", start)
+    assert "background-color: var(--psynet-chrome-bg)" in css[start:end]
 
     # Bootstrap's navbar container spreads three items across the whole window;
     # the footer should share the page's column instead.

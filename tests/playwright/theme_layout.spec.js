@@ -708,6 +708,10 @@ for (const scheme of ["light", "dark"]) {
           },
           // The readout must not look like a third button.
           rewardBorder: styles("#reward-summary").borderTopColor,
+          // Neutral label: the border carries the boundary, so the footer does
+          // not add a second blue element beside the Next button.
+          commentLabel: styles("#comment-button").color,
+          bodyText: styles("#main-body").color,
           footerAlignedToContent:
             Math.round(box("#footer > .container").width) <=
             Math.round(box("#main-body").width) + 1
@@ -731,6 +735,9 @@ for (const scheme of ["light", "dark"]) {
       // page it abuts.
       expect(footer.contrast.commentFill).toBeGreaterThan(1.1);
       expect(footer.contrast.footerAgainstPage).toBeGreaterThan(1.03);
+
+      // Comment's label is ordinary text, not a second accent-coloured element.
+      expect(footer.commentLabel).toBe(footer.bodyText);
 
       expect(footer.footerAlignedToContent).toBe(true);
       expect(footer.gaps.commentToExit).toBeLessThan(footer.gaps.rewardToComment);

@@ -37,14 +37,18 @@ experiment by redefining a handful of tokens rather than overriding rules.
    * - ``--psynet-surface-sunken``
      - ``#f7f9fc``
      - Panels that group response options.
-   * - ``--psynet-footer-bg``
+   * - ``--psynet-chrome-bg``
      - ``#e3ebf7``
-     - The footer, which is chrome rather than content, so it is tinted
-       rather than sharing the content surface. Deliberately deeper than
-       ``--psynet-page-bg``: a lighter tint dissolves into the page the footer
-       sits against, and the footer's controls are filled with
-       ``--psynet-surface``, which needs to read against the bar behind it.
-       Footer control boundaries are contrast-checked against this value.
+     - The page's chrome: the progress rail above the content and the footer
+       below it, which are tinted rather than sharing the content surface.
+       Deliberately deeper than ``--psynet-page-bg``: a lighter tint dissolves
+       into the page the footer sits against, and the footer's controls are
+       filled with ``--psynet-surface``, which needs to read against the bar
+       behind it. Footer control boundaries are contrast-checked against this
+       value.
+   * - ``--psynet-footer-bg``
+     - ``var(--psynet-chrome-bg)``
+     - The footer specifically, so it can be retinted without the rail.
    * - ``--psynet-border``
      - ``#dfe5ee``
      - Default border colour, and the progress-bar track (and its
