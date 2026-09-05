@@ -167,7 +167,7 @@ def test_media_bar_does_not_animate_through_colours():
     start = css.index("#media-download-progress-bar {")
     end = css.index("}", start)
     block = css[start:end]
-    assert "background-color: var(--psynet-accent)" in block
+    assert "background-color: var(--psynet-rail-fill)" in block
     assert "background-image" not in block
 
 
@@ -216,7 +216,7 @@ def test_progress_percentage_is_centred_on_the_track():
     assert "border-radius: 999px" in block
     assert "line-height: var(--psynet-progress-height)" in block
     # No clip-path trickery left over from drawing the label twice.
-    assert "psynet-progress-fill" not in css
+    assert ".psynet-progress-fill" not in css
 
 
 def test_media_bar_is_a_thin_rail_at_the_bottom():
@@ -336,6 +336,23 @@ def test_timeline_footer_keeps_labels_compact_and_explanations_accessible():
     # The readout has no border, so a glyph carries the affordance instead.
     assert 'class="psynet-info"' in macro
     assert 'aria-hidden="true"' in macro
+    # Its typography comes from #reward-summary, which lines it up with the
+    # controls; .footer-text would override the size and is for custom footers.
+    assert "footer-text" not in macro
+
+
+def test_progress_fill_is_its_own_token():
+    """A fully saturated accent on the dark rail was the most vivid thing there."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    for rule in ("#timeline-header .progress-bar {", "#media-download-progress-bar {"):
+        start = css.index(rule)
+        end = css.index("}", start)
+        assert "background-color: var(--psynet-rail-fill)" in css[start:end]
+    # Follows the accent in light mode, dimmed explicitly in dark mode.
+    assert "--psynet-rail-fill: var(--psynet-accent)" in css
+    assert css.count("--psynet-rail-fill:") == 2
 
 
 def test_footer_is_chrome_rather_than_content():

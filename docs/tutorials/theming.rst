@@ -50,6 +50,11 @@ experiment by redefining a handful of tokens rather than overriding rules.
    * - ``--psynet-footer-bg``
      - ``var(--psynet-chrome-bg)``
      - The footer specifically, so it can be retinted without the rail.
+   * - ``--psynet-rail-fill``
+     - ``var(--psynet-accent)``
+     - Filled portion of the timeline progress rail and the media-download
+       rail. Follows the accent in light mode; dark mode dims it, because a
+       fully saturated accent on the dark rail dominated the page.
    * - ``--psynet-border``
      - ``#dfe5ee``
      - Default border colour, and the progress-bar track (and its

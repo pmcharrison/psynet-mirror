@@ -625,8 +625,8 @@ const FOOTER_MARKUP = `
     <div id="media-download-progress-bar" style="width: 100%"></div>
     <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
       <span class="psynet-tooltip">
-        <span id="reward-summary" class="footer-text psynet-tooltip__trigger"
-              tabindex="0" aria-describedby="reward-tooltip">
+      <span id="reward-summary" class="psynet-tooltip__trigger"
+            tabindex="0" aria-describedby="reward-tooltip">
           <span class="visually-hidden">Reward: </span><strong>$0.42</strong>
           <svg class="psynet-info" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14Z"/></svg>
         </span>
@@ -674,6 +674,17 @@ for (const scheme of ["light", "dark"]) {
             comment: styles("#comment-button").borderTopLeftRadius,
             next: styles("#next-button").borderTopLeftRadius
           },
+          // A readout set smaller and bolder than the controls beside it read as
+          // a different kind of object.
+          fonts: {
+            rewardSize: styles("#reward-summary").fontSize,
+            commentSize: styles("#comment-button").fontSize,
+            rewardFamily: styles("#reward-summary").fontFamily,
+            commentFamily: styles("#comment-button").fontFamily
+          },
+          // The glyph belongs to the figure, so it takes the same colour.
+          glyphColor: styles("#reward-summary .psynet-info").color,
+          rewardColor: styles("#reward-summary").color,
           // Grouped right: the reward is left of both controls, and the two
           // controls sit next to each other rather than spread across the bar.
           gaps: {
@@ -744,6 +755,12 @@ for (const scheme of ["light", "dark"]) {
       // Coloured labels still have to be readable on the control's own fill.
       expect(footer.commentLabelContrast).toBeGreaterThanOrEqual(4.5);
       expect(footer.exitLabelContrast).toBeGreaterThanOrEqual(4.5);
+
+      // The readout is set like the controls beside it, and its glyph belongs to
+      // it rather than being a separately coloured fragment.
+      expect(footer.fonts.rewardSize).toBe(footer.fonts.commentSize);
+      expect(footer.fonts.rewardFamily).toBe(footer.fonts.commentFamily);
+      expect(footer.glyphColor).toBe(footer.rewardColor);
 
       expect(footer.footerAlignedToContent).toBe(true);
       expect(footer.gaps.commentToExit).toBeLessThan(footer.gaps.rewardToComment);
