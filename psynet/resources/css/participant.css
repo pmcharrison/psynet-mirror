@@ -898,18 +898,6 @@ body:not(:has(#footer)) #media-download-progress-bar {
     color: #fff;
 }
 
-/* Fades out the consent text scrolling underneath the fixed agree/decline
-   buttons. It fades to the content surface, which is what sits behind it. */
-.consent-gradient {
-    background: linear-gradient(
-        to top,
-        rgb(var(--psynet-surface-rgb)) 0%,
-        rgb(var(--psynet-surface-rgb)) 62%,
-        rgb(var(--psynet-surface-rgb) / 85%) 78%,
-        rgb(var(--psynet-surface-rgb) / 0%) 100%
-    );
-}
-
 /*
  * Pages that only run some JavaScript and then navigate, such as the
  * recruiter hand-off. They are usually over within a couple of hundred

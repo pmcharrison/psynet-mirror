@@ -4812,6 +4812,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
+            # Finished participants who hit Back from the exit page would
+            # otherwise land on a stale first timeline page with no Next.
+            if participant.progress == 1:
+                return redirect(f"/recruiter-exit?participant_id={participant.id}")
             if not isinstance(participant, Bot):
                 participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)

@@ -1,0 +1,1 @@
+Consent pages keep their agree/decline actions in the document flow instead of a fixed overlay that covered the last paragraphs and fought the themed footer, and a finished participant who hits Back from the exit page is sent back to `/recruiter-exit` rather than a stale first timeline page.

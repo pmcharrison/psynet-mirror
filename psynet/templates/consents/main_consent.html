@@ -6,10 +6,10 @@
 {% endblock %}
 
 {% block main_body %}
-  <div class="main-div" style="padding-bottom: 200px;">
+  <div class="main-div">
     <h1>{{ pgettext("consent-title", "We need your consent to proceed") }}</h1>
     <hr>
-    <div class="text-justify">
+    <div class="consent-body">
         <div class="text-left" style="font-size:18px">
             {{ consent.overview(config) }}
 
@@ -99,7 +99,7 @@
 
            {{ consent.consent(config) }}
         </div>
-        {{ consent.fixed_buttons(config) }}
+        {{ consent.buttons(config) }}
       </div>
   </div>
 {% endblock %}

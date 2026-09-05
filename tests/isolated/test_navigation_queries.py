@@ -220,3 +220,28 @@ def test_response_handler_skips_unused_participant_relationships(
     assert body["submission"] == "approved"
     assert _table_query_count(profiler, "participant_link_barrier") == 0
     assert _table_query_count(profiler, "module_state") <= 2
+
+
+def test_timeline_redirects_finished_participants_to_the_exit_page(
+    db_session, request_participant
+):
+    """Back from the exit page must not revive a finished participant's timeline."""
+    experiment = get_experiment()
+    unique_id = request_participant
+    participant = Participant.query.filter_by(unique_id=unique_id).one()
+    participant.progress = 1.0
+    db.session.commit()
+    participant_id = participant.id
+    db.session.remove()
+
+    with _REQUEST_APP.test_request_context(
+        f"/timeline?unique_id={unique_id}",
+        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    ):
+        response = experiment.route_timeline()
+
+    assert response.status_code in (301, 302)
+    assert (
+        f"/recruiter-exit?participant_id={participant_id}"
+        in response.headers["Location"]
+    )

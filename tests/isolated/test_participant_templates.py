@@ -586,3 +586,37 @@ def test_percentage_height_probe_restores_inline_height():
     assert 'getPropertyPriority("height")' in block
     assert 'setProperty("height", savedHeight, savedPriority)' in block
     assert "finally" in block[block.index("try") :]
+
+
+def test_consent_actions_sit_in_document_flow():
+    """Agree/decline must not sit in a fixed overlay that hides the last paragraphs."""
+    macros = (resources.files("psynet") / "templates/macros/consent.html").read_text(
+        encoding="utf-8"
+    )
+    assert "consent-gradient" not in macros
+    assert "Scroll up/down" not in macros
+    assert "fixed-bottom" not in macros
+    # Custom templates may still call fixed_buttons; it now just renders buttons.
+    assert "{% macro fixed_buttons(config) %}" in macros
+    assert "{{ buttons(config) }}" in macros
+
+    participant_css = (
+        resources.files("psynet") / "resources/css/participant.css"
+    ).read_text(encoding="utf-8")
+    assert ".consent-gradient" not in participant_css
+
+    consent_css = (resources.files("psynet") / "resources/css/consent.css").read_text(
+        encoding="utf-8"
+    )
+    assert ".consent-gradient" not in consent_css
+    assert "font-size: smaller" not in consent_css
+
+    consents = resources.files("psynet") / "templates/consents"
+    for path in consents.iterdir():
+        if path.suffix != ".html":
+            continue
+        source = path.read_text(encoding="utf-8")
+        assert "fixed_buttons" not in source, path.name
+        assert "padding-bottom: 200px" not in source, path.name
+        assert "padding-bottom: 100px" not in source, path.name
+        assert "consent.buttons(config)" in source, path.name
