@@ -57,30 +57,27 @@ def _wait_for_error_form(driver, message):
 @pytest.fixture(scope="class")
 def experiment_directory(request):
     directory = path_to_test_experiment("timeline")
-    config_path = Path(directory) / "config.txt"
-    original = config_path.read_text(encoding="utf-8") if config_path.exists() else None
-    created_config = original is None
-
+    experiment_path = Path(directory) / "experiment.py"
+    original = experiment_path.read_text(encoding="utf-8")
     allow_repeat = getattr(request.cls, "allow_repeat_worker_ids", False)
-    if allow_repeat:
-        if original is None:
-            config_path.write_text(
-                "[Parameters]\nallow_repeat_worker_ids = true\n",
-                encoding="utf-8",
+    if allow_repeat and "allow_repeat_worker_ids" not in original:
+        marker = '"show_abort_button": True,'
+        if marker not in original:
+            raise AssertionError(
+                "Could not enable allow_repeat_worker_ids in the timeline experiment."
             )
-        elif "allow_repeat_worker_ids" not in original:
-            suffix = "" if original.endswith("\n") else "\n"
-            config_path.write_text(
-                original + suffix + "allow_repeat_worker_ids = true\n",
-                encoding="utf-8",
-            )
+        experiment_path.write_text(
+            original.replace(
+                marker,
+                marker + '\n        "allow_repeat_worker_ids": True,',
+                1,
+            ),
+            encoding="utf-8",
+        )
 
     yield directory
 
-    if created_config:
-        config_path.unlink(missing_ok=True)
-    elif original is not None:
-        config_path.write_text(original, encoding="utf-8")
+    experiment_path.write_text(original, encoding="utf-8")
 
 
 @pytest.mark.parametrize(
