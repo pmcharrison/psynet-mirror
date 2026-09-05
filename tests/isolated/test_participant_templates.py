@@ -620,3 +620,20 @@ def test_consent_actions_sit_in_document_flow():
         assert "padding-bottom: 200px" not in source, path.name
         assert "padding-bottom: 100px" not in source, path.name
         assert "consent.buttons(config)" in source, path.name
+
+
+def test_exit_navigation_replaces_the_finished_timeline_in_history():
+    """Back from exit must not revive a completed timeline page from history/bfcache."""
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    assert "psynet.finishAndGoToExit" in js
+    assert "window.location.replace(exitRoute)" in js
+    assert 'addEventListener("pageshow"' in js
+    assert "event.persisted" in js
+
+    experiment_source = (resources.files("psynet") / "experiment.py").read_text(
+        encoding="utf-8"
+    )
+    assert 'path == "/timeline"' in experiment_source
+    assert 'response.headers["Cache-Control"] = "no-store"' in experiment_source

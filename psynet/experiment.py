@@ -960,6 +960,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "/timeline",
         ]
         path = request.path
+        # Finished participants who hit Back from the exit page must re-hit
+        # the server (so ``_route_timeline`` can redirect them) instead of
+        # restoring a stale timeline document from the back/forward cache.
+        if path == "/timeline":
+            response.headers["Cache-Control"] = "no-store"
         if path.startswith("/asset/"):
             # Media players issue many Range requests while seeking/buffering.
             # Logging each one floods the request table; keep full-file fetches only.

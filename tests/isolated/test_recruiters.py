@@ -1919,7 +1919,7 @@ def test_submit_assignment_page_shows_a_spinner():
     page = object.__new__(GenericRecruiter).submit_assignment()
 
     assert "spinner-border" in page.content
-    assert page.js_vars["execute_front_end_js"] == "dallinger.submitAssignment()"
+    assert page.js_vars["execute_front_end_js"] == "psynet.finishAndGoToExit()"
 
 
 def _resolve_show_reward(recruiter_cls, configured):

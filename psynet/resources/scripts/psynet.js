@@ -2808,6 +2808,45 @@
       window.location = "/timeline?unique_id=" + psynet.uniqueId;
     };
 
+    // Finish the assignment and go to the exit page without leaving the
+    // completed timeline in history. Using location.replace (instead of
+    // Dallinger's window.location assignment) means Back from exit cannot
+    // revive a finished session; the server also redirects finished
+    // /timeline visits as a backstop.
+    psynet.finishAndGoToExit = function () {
+      const participantId = dallinger.identity.participantId;
+      const exitRoute = "/recruiter-exit?participant_id=" + participantId;
+      return dallinger
+        .post("/worker_complete", { participant_id: participantId })
+        .done(function () {
+          dallinger.allowExit();
+          let openedFromDashboard = false;
+          try {
+            openedFromDashboard =
+              window.opener &&
+              window.opener.location.pathname.startsWith("/dashboard");
+          } catch (error) {
+            openedFromDashboard = false;
+          }
+          if (window.opener && !openedFromDashboard) {
+            window.opener.location.replace(exitRoute);
+            window.close();
+          } else {
+            window.location.replace(exitRoute);
+          }
+        })
+        .fail(dallinger.error);
+    };
+
+    // If the browser restores a timeline page from the back/forward cache
+    // (for example after Back from exit), force a reload so the server can
+    // redirect finished participants.
+    window.addEventListener("pageshow", function (event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+
     psynet.handleApprovedResponse = async function (response) {
       psynet.log.debug("Response received successfully.");
 

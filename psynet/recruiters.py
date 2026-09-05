@@ -276,14 +276,15 @@ class PsyNetRecruiterMixin:
         return self.submit_assignment()
 
     def submit_assignment(self) -> TimelineLogic:
-        # This calls dallinger.submitAssignment, submitting the assignment to
-        # the recruiter. What happens next depends on the recruiter and (for
-        # Prolific) the completion code in the participant's exit URL.
-        # ``Experiment.on_recruiter_submission_complete`` then records the
-        # payment decision and transfers any bonus.
+        # Hand off to PsyNet's exit helper rather than Dallinger's
+        # ``submitAssignment``: that helper uses ``location.replace`` so the
+        # finished timeline page is not left in the browser history for Back
+        # to revive. The recruiter and (for Prolific) completion-code behaviour
+        # are otherwise the same; ``Experiment.on_recruiter_submission_complete``
+        # still records the payment decision and transfers any bonus.
         from .page import ExecuteFrontEndJS
 
-        return ExecuteFrontEndJS("dallinger.submitAssignment()")
+        return ExecuteFrontEndJS("psynet.finishAndGoToExit()")
 
     def check_consents(self, consents):
         """
