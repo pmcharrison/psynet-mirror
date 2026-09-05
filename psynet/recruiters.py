@@ -229,6 +229,17 @@ def latest_participant_for_assignment(assignment_id):
     )
 
 
+def latest_participant_for_worker_id(worker_id):
+    """Return the most recent participant with this worker id, or ``None``."""
+    if not worker_id:
+        return None
+    return (
+        Participant.query.filter_by(worker_id=worker_id)
+        .order_by(Participant.id.desc())
+        .first()
+    )
+
+
 def _prolific_error_status(error: ProlificServiceException):
     try:
         payload = json.loads(str(error))
@@ -1522,10 +1533,7 @@ class LucidRID(SQLBase, SQLMixin):
         """
         if self.participant_id is not None:
             return self.participant
-        try:
-            return Participant.query.filter_by(worker_id=self.rid).one()
-        except NoResultFound:
-            return None
+        return latest_participant_for_worker_id(self.rid)
 
     def to_dict(self):
         return {
@@ -1949,7 +1957,6 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 continue
 
             details = None
-            participant = None
             reason = None
             participant = entrant.resolve_participant()
             if participant is not None:

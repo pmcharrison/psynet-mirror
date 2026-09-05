@@ -4072,9 +4072,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_participant_from_worker_id(cls, worker_id: str, for_update: bool = False):
         """
-        Get a participant with a specified ``worker_id``.
-        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
-        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
+        Get the most recent participant with a specified ``worker_id``.
+
+        Repeat worker IDs can produce several participants. This returns the
+        newest row. Throws ``sqlalchemy.orm.exc.NoResultFound`` if none match.
 
         Parameters
         ----------
@@ -4091,10 +4092,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         The corresponding participant object.
         """
-        query = Participant.query.filter_by(worker_id=worker_id)
+        query = Participant.query.filter_by(worker_id=worker_id).order_by(
+            Participant.id.desc()
+        )
         if for_update:
             query = query.with_for_update(of=Participant).populate_existing()
-        return query.one()
+        participant = query.first()
+        if participant is None:
+            raise sqlalchemy.orm.exc.NoResultFound()
+        return participant
 
     @classmethod
     def get_participant_from_unique_id(cls, unique_id: str, for_update: bool = False):
