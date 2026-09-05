@@ -716,6 +716,22 @@ for (const scheme of ["light", "dark"]) {
 
       expect(footer.footerAlignedToContent).toBe(true);
       expect(footer.gaps.commentToExit).toBeLessThan(footer.gaps.rewardToComment);
+
+      // Exit must still read as the red control when focused. The shared 3px
+      // accent ring around a small red outline reads as a blue button.
+      await page.locator("#comment-button").focus();
+      await page.keyboard.press("Tab");
+      const focused = await page.evaluate(() => {
+        const el = document.getElementById("terminate-button");
+        const cs = getComputedStyle(el);
+        return {
+          focusVisible: el.matches(":focus-visible"),
+          outline: cs.outlineColor,
+          border: cs.borderTopColor
+        };
+      });
+      expect(focused.focusVisible).toBe(true);
+      expect(focused.outline).toBe(focused.border);
     }
   );
 }
