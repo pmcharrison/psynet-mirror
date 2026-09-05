@@ -92,9 +92,10 @@ experiment by redefining a handful of tokens rather than overriding rules.
        the graphic to zero.
    * - ``--psynet-footer-clearance``
      - ``5rem``
-     - Space reserved at the bottom of pages that render ``#footer``.
-       Pages without a footer (the ad, the consent gateway,
-       ``show_footer=False``) do not get this padding.
+     - Fallback space reserved at the bottom of pages that render
+       ``#footer``, used until the footer has been measured. Pages without a
+       footer (the ad, the consent gateway, ``show_footer=False``) do not get
+       this padding.
    * - ``--psynet-audio-meter-height``
      - ``10px``
      - Height of the microphone-level track.
@@ -221,9 +222,13 @@ Pages that scroll
 -----------------
 
 The footer is fixed to the bottom of the window. Pages that render it
-reserve ``--psynet-footer-clearance`` on ``body`` so that content is never
-left permanently underneath. Pages without a footer do not get that
-padding.
+reserve room for it on ``body`` so that content is never left permanently
+underneath. How much room cannot be written as a fixed value: the footer
+wraps onto more rows on a narrow phone, with a longer translated label, or
+at a larger font size. PsyNet therefore measures the rendered footer and
+publishes ``--psynet-footer-height``, falling back to
+``--psynet-footer-clearance`` until the measurement runs. Pages without a
+footer get no padding.
 
 A page that does not declare ``expect_scrolling`` should fit a typical
 laptop window (1280×720) without scrolling. Verify that with the front-end

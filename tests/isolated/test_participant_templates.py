@@ -245,6 +245,27 @@ def test_footer_clearance_is_scoped_to_pages_with_a_footer():
     assert "body:has(#footer)" in css
 
 
+def test_footer_clearance_prefers_the_measured_footer_height():
+    """A wrapped footer is taller than any fixed token can predict."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("body:has(#footer) {")
+    end = css.index("}", start)
+    assert (
+        "var(--psynet-footer-height, var(--psynet-footer-clearance))" in css[start:end]
+    )
+
+    js = (resources.files("psynet") / "resources/scripts/psynet.layout.js").read_text(
+        encoding="utf-8"
+    )
+    assert '"--psynet-footer-height"' in js
+    # Re-targeted rather than measured on every mutation, so trial-driven DOM
+    # changes do not force a layout.
+    assert "if (footer === trackedFooter) return;" in js
+    assert "new ResizeObserver(publishFooterHeight)" in js
+
+
 def test_vertical_push_buttons_do_not_wrap():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"

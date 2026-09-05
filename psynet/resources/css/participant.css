@@ -193,7 +193,10 @@ body {
 }
 
 body:has(#footer) {
-    padding-bottom: var(--psynet-footer-clearance);
+    /* psynet.layout.js measures the rendered footer and publishes
+       --psynet-footer-height, because a wrapped footer is taller than any
+       token can predict. The token is the pre-measurement fallback. */
+    padding-bottom: var(--psynet-footer-height, var(--psynet-footer-clearance));
 }
 
 /* Without a footer the media-download bar pins itself to the bottom edge, so
@@ -674,22 +677,6 @@ body:not(:has(#footer)) #media-download-progress-bar {
 
 #comment-button {
     border: none;
-}
-
-/*
- * A wrapped fixed footer can consume a third of a phone screen and permanently
- * cover the final response control. On narrow screens it follows the content
- * instead, so every footer shape and translation remains reachable without
- * measuring its height in JavaScript.
- */
-@media (max-width: 480px) {
-    body:has(#footer) {
-        padding-bottom: 0;
-    }
-
-    #footer.fixed-bottom {
-        position: static !important;
-    }
 }
 
 /* Logos */

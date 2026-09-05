@@ -25,6 +25,10 @@ const BOOTSTRAP_CSS = fs.readFileSync(
   path.resolve("psynet/resources/libraries/bootstrap/bootstrap.min.css"),
   "utf8"
 );
+const LAYOUT_JS = fs.readFileSync(
+  path.resolve("psynet/resources/scripts/psynet.layout.js"),
+  "utf8"
+);
 
 async function renderTheme(
   page,
@@ -435,12 +439,13 @@ test(
 );
 
 test(
-  "narrow-screen footer follows the content and tooltips remain available",
+  "a wrapped footer stays pinned and still clears the last control",
   { tag: "@both" },
   async ({ page }) => {
     await renderTheme(page, {
       viewport: { width: 320, height: 568 },
       includeBootstrap: true,
+      scripts: [LAYOUT_JS],
       html: `
         <div id="main-body" class="psynet-surface"
              data-expect-scrolling="true">
@@ -473,23 +478,31 @@ test(
         </nav>`
     });
 
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    // The reward breakdown moved into a tooltip, so the footer should now fit
+    // on one row even here. Force the wrapped case as well, since a longer
+    // translation or a larger font size produces it.
+    for (const label of ["Exit", "Exit the experiment early right now"]) {
+      await page.locator("#terminate-button").evaluate((button, text) => {
+        button.textContent = text;
+      }, label);
+      // Let the resize observer publish the new height.
+      await page.waitForTimeout(100);
 
-    const geometry = await page.evaluate(() => {
-      const next = document.getElementById("next-button").getBoundingClientRect();
-      const footer = document.getElementById("footer").getBoundingClientRect();
-      return {
-        footerPosition: getComputedStyle(
-          document.getElementById("footer")
-        ).position,
-        bodyPaddingBottom: getComputedStyle(document.body).paddingBottom,
-        footerAfterNext: footer.top >= next.bottom
-      };
-    });
+      const geometry = await page.evaluate(async () => {
+        const footer = document.getElementById("footer");
+        return {
+          footerPosition: getComputedStyle(footer).position,
+          footerHeight: footer.getBoundingClientRect().height,
+          clearance: parseFloat(getComputedStyle(document.body).paddingBottom),
+          violations: (await window.psynetLayout.check()).map((v) => v.check)
+        };
+      });
 
-    expect(geometry.footerPosition).toBe("static");
-    expect(geometry.bodyPaddingBottom).toBe("0px");
-    expect(geometry.footerAfterNext).toBe(true);
+      // Pinned to the viewport, with room reserved for its measured height.
+      expect(geometry.footerPosition).toBe("fixed");
+      expect(geometry.clearance).toBeGreaterThanOrEqual(geometry.footerHeight);
+      expect(geometry.violations).not.toContain("nothing_permanently_occluded");
+    }
 
     const tooltip = page.locator("#reward-tooltip");
     await page.locator("#reward-summary").focus();
@@ -580,6 +593,49 @@ test(
 );
 
 const LAYOUT_JS_PATH = path.resolve("psynet/resources/scripts/psynet.layout.js");
+
+test(
+  "footer clearance follows the footer through inplace page changes",
+  { tag: "@both" },
+  async ({ page }) => {
+    // A page with a footer, then one without, then a taller one: the reserved
+    // clearance has to follow, or content is either trapped or left under a
+    // band of empty space.
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      scripts: [LAYOUT_JS],
+      html: `
+        <div id="timeline-root">
+          <div id="main-body" class="psynet-surface"><p>Trial</p></div>
+          <nav id="footer" class="navbar fixed-bottom"
+               style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px">
+            Reward
+          </nav>
+        </div>`
+    });
+
+    const clearance = async () =>
+      parseFloat(
+        await page.evaluate(() => getComputedStyle(document.body).paddingBottom)
+      );
+
+    expect(await clearance()).toBeGreaterThanOrEqual(60);
+
+    await page.evaluate(() => document.getElementById("footer").remove());
+    await page.waitForTimeout(100);
+    expect(await clearance()).toBe(0);
+
+    await page.evaluate(() => {
+      const footer = document.createElement("nav");
+      footer.id = "footer";
+      footer.style.cssText =
+        "position: fixed; bottom: 0; left: 0; right: 0; height: 150px";
+      document.getElementById("timeline-root").appendChild(footer);
+    });
+    await page.waitForTimeout(100);
+    expect(await clearance()).toBeGreaterThanOrEqual(150);
+  }
+);
 
 async function renderLayoutFixture(page, html, viewport = { width: 1280, height: 720 }) {
   await page.setViewportSize(viewport);

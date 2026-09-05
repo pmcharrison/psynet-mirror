@@ -22,7 +22,8 @@
 <link rel="preload" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Medium.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/participant.css') }}">
-{# Layout checker for Playwright. Not run on load; call psynetLayout.check(). #}
+{# Measures footer clearance on load; also exposes psynetLayout.check() for
+   Playwright, which is not run on load. #}
 <script src="{{ url_for('static', filename='scripts/psynet.layout.js') }}"></script>
 
 {# Everything below must be valid inside <head>: a stray element here would end
