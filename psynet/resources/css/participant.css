@@ -85,10 +85,13 @@
     --psynet-accent-contrast: #ffffff;
 
     /* The footer is chrome rather than content, so it gets its own tint: on
-       white it read as a stray piece of the content surface. Interactive
-       boundaries in the footer are measured against this value, not the
-       surface. */
-    --psynet-footer-bg: #f4f7fc;
+       white it read as a stray piece of the content surface. Deliberately
+       deeper than --psynet-page-bg, for two reasons: a tint lighter than the
+       page dissolves into it, since that is what the footer's top edge abuts;
+       and the surface-filled controls need to differ from the bar behind them
+       rather than relying on their border alone. Interactive boundaries in the
+       footer are measured against this value, not against the surface. */
+    --psynet-footer-bg: #e3ebf7;
 
     /* Status colours for trial progress stages, event captions, and the
        audio meter. Named CSS colours such as red/green/blue resolve to
@@ -159,9 +162,10 @@
     --psynet-accent-soft: #253449;
     --psynet-accent-contrast: #0d1218;
 
-    /* Lifted just off the page background, mirroring how the light tint sits
-       just below white. Accent and danger stay above 5:1 against it. */
-    --psynet-footer-bg: #212936;
+    /* Same relationships as the light tint, inverted: clearly separated from
+       the page, and light enough that the surface-filled controls read against
+       it. Accent and danger stay near 5:1. */
+    --psynet-footer-bg: #202b3d;
 
     --psynet-danger: #e08084;
     --psynet-danger-soft: #33242a;

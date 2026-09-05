@@ -692,6 +692,18 @@ for (const scheme of ["light", "dark"]) {
             exit: window.__contrast(
               styles("#terminate-button").borderTopColor,
               footerBg
+            ),
+            // The controls are surface-filled. The footer is tinted deeper than
+            // the page so that fill is visible in its own right, rather than
+            // leaving the border to draw the whole control.
+            commentFill: window.__contrast(
+              styles("#comment-button").backgroundColor,
+              footerBg
+            ),
+            // The footer must not dissolve into the page it sits against.
+            footerAgainstPage: window.__contrast(
+              footerBg,
+              getComputedStyle(document.body).backgroundColor
             )
           },
           // The readout must not look like a third button.
@@ -713,6 +725,12 @@ for (const scheme of ["light", "dark"]) {
       expect(footer.contrast.comment).toBeGreaterThanOrEqual(3);
       expect(footer.contrast.exit).toBeGreaterThanOrEqual(3);
       expect(footer.rewardBorder).toBe("rgba(0, 0, 0, 0)");
+
+      // A control fill barely distinguishable from the bar left the buttons
+      // looking washed out, and the footer needs its own identity against the
+      // page it abuts.
+      expect(footer.contrast.commentFill).toBeGreaterThan(1.1);
+      expect(footer.contrast.footerAgainstPage).toBeGreaterThan(1.03);
 
       expect(footer.footerAlignedToContent).toBe(true);
       expect(footer.gaps.commentToExit).toBeLessThan(footer.gaps.rewardToComment);
