@@ -10,7 +10,10 @@
             padding-bottom: 0;
         }
 
-        /* The waiting animation is full-bleed, so opt out of the content surface. */
+        /* The waiting animation is full-bleed, so opt out of the content surface.
+           On a phone the footer is in the document, so this column has to take
+           the space between the progress bar and the footer rather than claiming
+           a full viewport of its own. */
         #main-body {
             padding: 0 !important;
             margin: 0 !important;
@@ -19,6 +22,10 @@
             border: none;
             border-radius: 0;
             box-shadow: none;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         /* Fill the viewport below the progress bar. Footer clearance is
@@ -28,9 +35,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex: 1 1 auto;
             min-height: calc(100vh - var(--psynet-progress-height));
             padding: 2rem;
             text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            /* The phone footer already occupies layout space, so a viewport
+               min-height here would overflow by about one footer. */
+            #timeline-root:has(#footer) #wait-page {
+                min-height: 0;
+            }
         }
 
         body:has(#footer) #wait-page {

@@ -115,6 +115,10 @@
        using the browser's primary red, green, and blue. Contrast with
        the surface is ~5:1, matching the accent. */
     --psynet-danger: #c0454c;
+    /* Solid danger hover/active, as hex so Chrome 105 (the theme's
+       :has() floor) does not need color-mix() (Chrome 111+). */
+    --psynet-danger-hover: #a93c42;
+    --psynet-danger-active: #9a373d;
     --psynet-danger-soft: #fbeff0;
     --psynet-success: #2f7d5b;
     --psynet-warning: #9a6700;
@@ -194,6 +198,8 @@
     --psynet-footer-bg: var(--psynet-chrome-bg);
 
     --psynet-danger: #e08084;
+    --psynet-danger-hover: #c57174;
+    --psynet-danger-active: #b3666a;
     --psynet-danger-soft: #33242a;
     --psynet-success: #5aaa84;
     --psynet-warning: #c4963d;
@@ -393,11 +399,11 @@ code {
     --bs-btn-bg: var(--psynet-danger);
     --bs-btn-border-color: var(--psynet-danger);
     --bs-btn-color: #ffffff;
-    --bs-btn-hover-bg: color-mix(in srgb, var(--psynet-danger) 88%, #000);
-    --bs-btn-hover-border-color: color-mix(in srgb, var(--psynet-danger) 88%, #000);
+    --bs-btn-hover-bg: var(--psynet-danger-hover);
+    --bs-btn-hover-border-color: var(--psynet-danger-hover);
     --bs-btn-hover-color: #ffffff;
-    --bs-btn-active-bg: color-mix(in srgb, var(--psynet-danger) 80%, #000);
-    --bs-btn-active-border-color: color-mix(in srgb, var(--psynet-danger) 80%, #000);
+    --bs-btn-active-bg: var(--psynet-danger-active);
+    --bs-btn-active-border-color: var(--psynet-danger-active);
     --bs-btn-active-color: #ffffff;
     --bs-btn-disabled-bg: var(--psynet-danger);
     --bs-btn-disabled-border-color: var(--psynet-danger);

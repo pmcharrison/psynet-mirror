@@ -84,7 +84,13 @@ def test_status_colour_tokens_are_defined():
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
         encoding="utf-8"
     )
-    for token in ("--psynet-danger:", "--psynet-success:", "--psynet-warning:"):
+    for token in (
+        "--psynet-danger:",
+        "--psynet-danger-hover:",
+        "--psynet-danger-active:",
+        "--psynet-success:",
+        "--psynet-warning:",
+    ):
         assert token in css
 
 
@@ -309,7 +315,10 @@ def test_danger_buttons_follow_the_participant_theme():
     )
     start = css.index(".btn-danger {")
     end = css.index("}", start)
-    assert "--bs-btn-bg: var(--psynet-danger)" in css[start:end]
+    block = css[start:end]
+    assert "--bs-btn-bg: var(--psynet-danger)" in block
+    assert "--bs-btn-hover-bg: var(--psynet-danger-hover)" in block
+    assert "color-mix" not in block
 
     start = css.index(".btn-outline-danger {")
     end = css.index("}", start)
@@ -560,6 +569,9 @@ def test_wait_page_only_pads_for_a_footer():
     )
     assert "body:has(#footer) #wait-page" in source
     assert "2rem 2rem var(--psynet-footer-clearance)" not in source
+    # Phone footer is in the document; a viewport min-height would overflow.
+    assert "#timeline-root:has(#footer) #wait-page" in source
+    assert "min-height: 0" in source
 
 
 def test_reduced_motion_does_not_freeze_every_animation():
