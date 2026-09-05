@@ -84,12 +84,19 @@
     --psynet-accent-soft: #eaf1fb;
     --psynet-accent-contrast: #ffffff;
 
+    /* The footer is chrome rather than content, so it gets its own tint: on
+       white it read as a stray piece of the content surface. Interactive
+       boundaries in the footer are measured against this value, not the
+       surface. */
+    --psynet-footer-bg: #f4f7fc;
+
     /* Status colours for trial progress stages, event captions, and the
        audio meter. Named CSS colours such as red/green/blue resolve to
        these, so they stay in the same family as the accent instead of
        using the browser's primary red, green, and blue. Contrast with
        the surface is ~5:1, matching the accent. */
     --psynet-danger: #c0454c;
+    --psynet-danger-soft: #fbeff0;
     --psynet-success: #2f7d5b;
     --psynet-warning: #9a6700;
 
@@ -152,7 +159,12 @@
     --psynet-accent-soft: #253449;
     --psynet-accent-contrast: #0d1218;
 
+    /* Lifted just off the page background, mirroring how the light tint sits
+       just below white. Accent and danger stay above 5:1 against it. */
+    --psynet-footer-bg: #212936;
+
     --psynet-danger: #e08084;
+    --psynet-danger-soft: #33242a;
     --psynet-success: #5aaa84;
     --psynet-warning: #c4963d;
 
@@ -581,7 +593,7 @@ textarea:focus-visible,
 }
 
 #footer {
-    background-color: var(--psynet-surface);
+    background-color: var(--psynet-footer-bg);
     border-top: 1px solid var(--psynet-border);
     color: var(--psynet-text-muted);
     box-shadow: 0 -1px 14px rgb(16 24 40 / 6%);
@@ -597,6 +609,83 @@ textarea:focus-visible,
 #footer .footer-text {
     margin: 0;
     font-size: 0.9rem;
+}
+
+/*
+ * Bootstrap's `.navbar > .container` is `justify-content: space-between`, which
+ * on a wide window pushes these three items to the left edge, the middle, and
+ * the right edge of a bar far wider than the content surface. Share the page's
+ * column instead, and let the reward push the two controls into one group.
+ */
+#footer > .container {
+    max-width: var(--psynet-content-width);
+    /* Controls group at the trailing edge; the reward pushes itself away from
+       them below. With rewards hidden the controls stay grouped anyway. */
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* The flex item is the tooltip wrapper, not the readout inside it. */
+#footer > .container > .psynet-tooltip:has(#reward-summary) {
+    margin-right: auto;
+}
+
+#reward-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    /* Deliberately borderless: the reward is a readout, not a control. The box
+       matches a footer .btn so all three items sit on one line, given the
+       0.9rem text above: 0.9 * 1.5 + 2 * 0.45rem + 2 * 1px = 38px. */
+    padding: 0.45rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    line-height: 1.5;
+    color: var(--psynet-text);
+    /* Fixed-width digits so the figure does not jitter as it counts up. */
+    font-variant-numeric: tabular-nums;
+}
+
+/* Without a box of its own, nothing would suggest the reward explains itself
+   on hover or focus. */
+#reward-summary .psynet-info {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex: none;
+    color: var(--psynet-text-muted);
+}
+
+/*
+ * Against the footer tint a surface fill differs by only 1.07:1 and the default
+ * border by 1.18:1, well below the 3:1 WCAG 1.4.11 asks of a control's
+ * boundary. Semantic borders carry the edge instead, and clear 4.5:1 in both
+ * colour schemes: the accent for Comment, danger for Exit. Setting Bootstrap's
+ * own button variables keeps hover, focus, and active states consistent.
+ */
+#footer #comment-button {
+    --bs-btn-bg: var(--psynet-surface);
+    --bs-btn-border-color: var(--psynet-accent);
+    --bs-btn-color: var(--psynet-accent-hover);
+    --bs-btn-hover-bg: var(--psynet-accent-soft);
+    --bs-btn-hover-border-color: var(--psynet-accent);
+    --bs-btn-hover-color: var(--psynet-accent-hover);
+    --bs-btn-active-bg: var(--psynet-accent-soft);
+    --bs-btn-active-border-color: var(--psynet-accent);
+    --bs-btn-active-color: var(--psynet-accent-hover);
+}
+
+/* Red signals the consequence, but a solid fill made Exit the heaviest thing
+   on the page, outweighing the Next button it sits beside. */
+#footer #terminate-button {
+    --bs-btn-bg: var(--psynet-surface);
+    --bs-btn-border-color: var(--psynet-danger);
+    --bs-btn-color: var(--psynet-danger);
+    --bs-btn-hover-bg: var(--psynet-danger-soft);
+    --bs-btn-hover-border-color: var(--psynet-danger);
+    --bs-btn-hover-color: var(--psynet-danger);
+    --bs-btn-active-bg: var(--psynet-danger-soft);
+    --bs-btn-active-border-color: var(--psynet-danger);
+    --bs-btn-active-color: var(--psynet-danger);
 }
 
 .psynet-tooltip {
@@ -675,9 +764,6 @@ body:not(:has(#footer)) #media-download-progress-bar {
     z-index: 1040;
 }
 
-#comment-button {
-    border: none;
-}
 
 /* Logos */
 #logo_container {

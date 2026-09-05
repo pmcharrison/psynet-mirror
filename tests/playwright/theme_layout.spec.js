@@ -594,6 +594,132 @@ test(
 
 const LAYOUT_JS_PATH = path.resolve("psynet/resources/scripts/psynet.layout.js");
 
+// WCAG 1.4.11 asks for 3:1 between a control's boundary and its background.
+// The footer sits on its own tint, so the ratio has to be measured against
+// that rather than against the content surface.
+function contrastHelpers() {
+  return `
+    window.__contrast = function (a, b) {
+      const channel = (v) => {
+        v = v / 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      };
+      const lum = (rgb) => {
+        const [r, g, b] = rgb.match(/\\d+(\\.\\d+)?/g).map(Number);
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+      };
+      const la = lum(a);
+      const lb = lum(b);
+      return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+    };
+  `;
+}
+
+const FOOTER_MARKUP = `
+  <div id="main-body" class="container psynet-surface"><p>Trial</p>
+    <div class="psynet-actions">
+      <button id="next-button" class="btn btn-primary btn-lg">Next</button>
+    </div>
+  </div>
+  <nav id="footer" class="navbar fixed-bottom">
+    <div id="media-download-progress-bar" style="width: 100%"></div>
+    <div class="container py-2 d-flex flex-wrap align-items-center gap-2">
+      <span class="psynet-tooltip">
+        <span id="reward-summary" class="footer-text psynet-tooltip__trigger"
+              tabindex="0" aria-describedby="reward-tooltip">
+          <span class="visually-hidden">Reward: </span><strong>$0.42</strong>
+          <svg class="psynet-info" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14Z"/></svg>
+        </span>
+        <span id="reward-tooltip" class="psynet-tooltip__content" role="tooltip">
+          Reward earned so far: $0.30 for time + $0.12 for performance.
+        </span>
+      </span>
+      <button type="button" class="btn btn-light" id="comment-button">Comment</button>
+      <span class="psynet-tooltip psynet-tooltip--end">
+        <button id="terminate-button" class="btn btn-danger psynet-tooltip__trigger"
+                aria-describedby="exit-tooltip">Exit</button>
+        <span id="exit-tooltip" class="psynet-tooltip__content" role="tooltip">
+          Exit the experiment before it is complete.
+        </span>
+      </span>
+    </div>
+  </nav>`;
+
+for (const scheme of ["light", "dark"]) {
+  test(
+    `footer row is one family with visible boundaries (${scheme})`,
+    { tag: "@both" },
+    async ({ page }) => {
+      await renderTheme(page, {
+        viewport: { width: 1600, height: 620 },
+        includeBootstrap: true,
+        htmlAttrs: `data-bs-theme="${scheme}"`,
+        scripts: [contrastHelpers()],
+        html: FOOTER_MARKUP
+      });
+
+      const footer = await page.evaluate(() => {
+        const el = (s) => document.querySelector(s);
+        const box = (s) => el(s).getBoundingClientRect();
+        const styles = (s) => getComputedStyle(el(s));
+        const footerBg = styles("#footer").backgroundColor;
+        return {
+          heights: {
+            reward: Math.round(box("#reward-summary").height),
+            comment: Math.round(box("#comment-button").height),
+            exit: Math.round(box("#terminate-button").height)
+          },
+          radii: {
+            reward: styles("#reward-summary").borderTopLeftRadius,
+            comment: styles("#comment-button").borderTopLeftRadius,
+            next: styles("#next-button").borderTopLeftRadius
+          },
+          // Grouped right: the reward is left of both controls, and the two
+          // controls sit next to each other rather than spread across the bar.
+          gaps: {
+            rewardToComment: Math.round(
+              box("#comment-button").left - box("#reward-summary").right
+            ),
+            commentToExit: Math.round(
+              box("#terminate-button").left - box("#comment-button").right
+            )
+          },
+          contrast: {
+            comment: window.__contrast(
+              styles("#comment-button").borderTopColor,
+              footerBg
+            ),
+            exit: window.__contrast(
+              styles("#terminate-button").borderTopColor,
+              footerBg
+            )
+          },
+          // The readout must not look like a third button.
+          rewardBorder: styles("#reward-summary").borderTopColor,
+          footerAlignedToContent:
+            Math.round(box("#footer > .container").width) <=
+            Math.round(box("#main-body").width) + 1
+        };
+      });
+
+      // One box for all three items, matching the theme's .btn radius rather
+      // than introducing a pill.
+      expect(footer.heights.comment).toBe(footer.heights.reward);
+      expect(footer.heights.exit).toBe(footer.heights.reward);
+      expect(footer.radii.reward).toBe(footer.radii.comment);
+      expect(footer.radii.reward).toBe(footer.radii.next);
+
+      // Boundaries participants can actually see.
+      expect(footer.contrast.comment).toBeGreaterThanOrEqual(3);
+      expect(footer.contrast.exit).toBeGreaterThanOrEqual(3);
+      expect(footer.rewardBorder).toBe("rgba(0, 0, 0, 0)");
+
+      expect(footer.footerAlignedToContent).toBe(true);
+      expect(footer.gaps.commentToExit).toBeLessThan(footer.gaps.rewardToComment);
+    }
+  );
+}
+
 test(
   "footer clearance follows the footer through inplace page changes",
   { tag: "@both" },

@@ -152,6 +152,11 @@
                                   aria-describedby="reward-tooltip">
                                 <span class="visually-hidden">{{ pgettext("timeline", "Reward") }}: </span>
                                 <strong>{{ config.currency }}<span id="total-reward">{{ total_reward }}</span></strong>
+                                {# The readout has no border of its own, so this marks it as
+                                   explaining itself on hover or focus. #}
+                                <svg class="psynet-info" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14Zm0-1.5A5.5 5.5 0 1 0 8 2.5a5.5 5.5 0 0 0 0 11ZM7.25 6.5a.75.75 0 1 1 1.5 0v4a.75.75 0 0 1-1.5 0v-4ZM8 3.75a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Z"/>
+                                </svg>
                             </span>
                             <span id="reward-tooltip"
                                   class="psynet-tooltip__content"

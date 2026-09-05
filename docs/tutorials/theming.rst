@@ -37,6 +37,11 @@ experiment by redefining a handful of tokens rather than overriding rules.
    * - ``--psynet-surface-sunken``
      - ``#f7f9fc``
      - Panels that group response options.
+   * - ``--psynet-footer-bg``
+     - ``#f4f7fc``
+     - The footer, which is chrome rather than content, so it is tinted
+       rather than sharing the content surface. Footer control boundaries
+       are contrast-checked against this value.
    * - ``--psynet-border``
      - ``#dfe5ee``
      - Default border colour, and the progress-bar track (and its
@@ -65,8 +70,11 @@ experiment by redefining a handful of tokens rather than overriding rules.
      - Text drawn on the accent, for example primary-button labels.
    * - ``--psynet-danger``
      - ``#c0454c``
-     - Recording, warnings, and "too loud" audio-meter states. Named
-       colour ``red`` resolves here.
+     - Recording, warnings, "too loud" audio-meter states, and the footer's
+       ``Exit`` control. Named colour ``red`` resolves here.
+   * - ``--psynet-danger-soft``
+     - ``#fbeff0``
+     - Quiet danger surface, for example hovering ``Exit``.
    * - ``--psynet-success``
      - ``#2f7d5b``
      - Completed stages and "just right" audio-meter states. Named

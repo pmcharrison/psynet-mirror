@@ -332,6 +332,50 @@ def test_timeline_footer_keeps_labels_compact_and_explanations_accessible():
     assert 'aria-describedby="exit-tooltip"' in macro
     assert 'id="exit-tooltip"' in macro
     assert 'pgettext("timeline_problem", "Exit")' in macro
+    # The readout has no border, so a glyph carries the affordance instead.
+    assert 'class="psynet-info"' in macro
+    assert 'aria-hidden="true"' in macro
+
+
+def test_footer_is_chrome_rather_than_content():
+    """A white footer read as a stray piece of the content surface."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index("#footer {")
+    end = css.index("}", start)
+    assert "background-color: var(--psynet-footer-bg)" in css[start:end]
+    # Defined for both colour schemes, so dark mode does not fall back to white.
+    assert css.count("--psynet-footer-bg:") == 2
+
+    # Bootstrap's navbar container spreads three items across the whole window;
+    # the footer should share the page's column instead.
+    start = css.index("#footer > .container {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "max-width: var(--psynet-content-width)" in block
+    assert "justify-content: flex-end" in block
+    # The reward pushes the controls away; targeting the flex item, not the
+    # readout nested inside it.
+    assert "> .psynet-tooltip:has(#reward-summary) {" in css
+
+
+def test_footer_controls_carry_a_visible_boundary():
+    """A surface fill on the footer tint is 1.07:1, far below WCAG 1.4.11's 3:1."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    for button, token in (
+        ("#footer #comment-button {", "--psynet-accent"),
+        ("#footer #terminate-button {", "--psynet-danger"),
+    ):
+        start = css.index(button)
+        end = css.index("}", start)
+        block = css[start:end]
+        assert f"--bs-btn-border-color: var({token})" in block
+        # Hover and active states are set too, or Bootstrap fills them solid.
+        assert "--bs-btn-hover-bg" in block
+        assert "--bs-btn-active-bg" in block
 
 
 def test_abort_pages_skip_the_content_surface():
