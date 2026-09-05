@@ -1,0 +1,19 @@
+{% extends "psynet_layout.html" %}
+
+{% block body %}
+    <main class="container my-5 psynet-surface">
+        <h1>{{ pgettext("mturk_exit", "Submit your MTurk HIT") }}</h1>
+        <hr>
+        <p>
+            {{ pgettext("mturk_exit", "To complete the HIT, use the button below.") }}
+        </p>
+        <form id="mturk-form" action="{{ external_submit_url }}" method="post">
+            <input type="hidden" name="assignmentId" value="{{ assignment_id }}">
+            <input type="hidden" name="hitId" value="{{ hit_id }}">
+            <input type="hidden" name="workerId" value="{{ worker_id }}">
+            <button type="submit" class="btn btn-primary btn-lg">
+                {{ pgettext("mturk_exit", "Complete HIT") }}
+            </button>
+        </form>
+    </main>
+{% endblock %}

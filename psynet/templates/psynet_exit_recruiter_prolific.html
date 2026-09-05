@@ -1,0 +1,46 @@
+{% extends "psynet_layout.html" %}
+
+{% block body %}
+    <main class="container my-5 psynet-surface">
+        <h1>{{ pgettext("prolific_exit", "Submit your Prolific study") }}</h1>
+        <hr>
+        <p>
+            {{ pgettext("prolific_exit", "To complete the study, use the button below. You will be redirected to Prolific and your submission will be recorded.") }}
+        </p>
+        <button id="js-exit-button"
+                type="button"
+                class="btn btn-primary btn-lg"
+                data-href="{{ external_submit_url }}">
+            {{ pgettext("prolific_exit", "Submit study") }}
+        </button>
+    </main>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        const participantInfo = {
+            assignmentId: {{ assignment_id | tojson }},
+            participantId: {{ participant_id | tojson }},
+        };
+        const $exitButton = $("#js-exit-button");
+
+        $exitButton.on("click", function (event) {
+            const spinner = dallinger.BusyForm();
+            const request = dallinger.post(
+                "/prolific-submission-listener",
+                participantInfo
+            );
+
+            spinner.freeze([$exitButton]);
+            request.done(function () {
+                window.location.replace(event.currentTarget.dataset.href);
+            }).fail(function (rejection) {
+                dallinger.error(rejection);
+            }).always(function () {
+                spinner.unfreeze();
+            });
+            event.preventDefault();
+        });
+    </script>
+{% endblock %}

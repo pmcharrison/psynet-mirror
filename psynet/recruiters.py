@@ -410,9 +410,9 @@ class PsyNetExitPageMixin:
     does not overwrite templates Dallinger already provides, so PsyNet renders
     its own template instead.
 
-    Mix this in only for recruiters that would otherwise fall through to
-    Dallinger's generic template. Prolific, MTurk, and Lucid have their own
-    exit pages, which return participants to the platform.
+    Mix this in only for recruiters that do not need a platform submission
+    control. Prolific and MTurk render separate PsyNet-themed wrappers around
+    their submission behavior; Lucid redirects through its own flow.
     """
 
     def exit_response(self, experiment, participant):
@@ -1136,6 +1136,23 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         except KeyError:
             return False
 
+    def exit_response(self, experiment, participant):
+        """Render PsyNet's themed Prolific submission page."""
+        if hasattr(experiment, "recruiter_exit_info"):
+            code_type = (
+                experiment.recruiter_exit_info(participant) or self.default_code_type
+            )
+        else:
+            code_type = self.default_code_type
+
+        return render_template_with_translations(
+            "psynet_exit_recruiter_prolific.html",
+            participant=participant,
+            assignment_id=participant.assignment_id,
+            participant_id=participant.id,
+            external_submit_url=self.external_submission_url(code_type=code_type),
+        )
+
 
 class ProlificRecruiter(
     PsyNetProlificRecruiterMixin, dallinger.recruiters.ProlificRecruiter
@@ -1224,6 +1241,17 @@ class MockProlificRecruiter(
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
+    def exit_response(self, experiment, participant):
+        """Render PsyNet's themed MTurk submission page."""
+        return render_template_with_translations(
+            "psynet_exit_recruiter_mturk.html",
+            participant=participant,
+            hit_id=participant.hit_id,
+            assignment_id=participant.assignment_id,
+            worker_id=participant.worker_id,
+            external_submit_url=self.external_submission_url,
+        )
+
     def reward_bonus(self, participant, amount, reason):
         """Pay an MTurk bonus. Return False if MTurk rejected the transfer."""
         from dallinger.mturk import MTurkServiceException

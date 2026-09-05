@@ -1952,8 +1952,8 @@ def test_explicit_show_reward_config_wins():
     assert _resolve_show_reward(ProlificRecruiter, False) is False
 
 
-def test_recruiters_with_a_platform_exit_page_keep_it():
-    """PsyNet's exit page must not shadow the pages that return participants."""
+def test_all_recruiter_exit_pages_are_owned_by_psynet():
+    """Platform submit pages keep their behavior in PsyNet-themed wrappers."""
     from psynet.recruiters import (
         GenericRecruiter,
         HotAirRecruiter,
@@ -1966,14 +1966,10 @@ def test_recruiters_with_a_platform_exit_page_keep_it():
     def owner(cls):
         return next(c for c in cls.__mro__ if "exit_response" in c.__dict__)
 
-    import dallinger.recruiters
-
     assert owner(HotAirRecruiter) is PsyNetExitPageMixin
     assert owner(LabRecruiter) is PsyNetExitPageMixin
-    # Prolific and MTurk keep Dallinger's platform exit pages, which carry the
-    # button that submits the assignment and returns the participant.
-    assert owner(ProlificRecruiter) is dallinger.recruiters.ProlificRecruiter
-    assert owner(MTurkRecruiter) is dallinger.recruiters.MTurkRecruiter
+    assert owner(ProlificRecruiter).__name__ == "PsyNetProlificRecruiterMixin"
+    assert owner(MTurkRecruiter) is MTurkRecruiter
     # GenericRecruiter checks render_exit_message first, then defers to PsyNet's.
     assert owner(GenericRecruiter) is GenericRecruiter
     assert PsyNetExitPageMixin in GenericRecruiter.__mro__
@@ -2067,6 +2063,149 @@ def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
     assert "assignment-123" in html
     assert "Bonus" not in html
     assert "Base Pay" not in html
+
+
+@pytest.mark.parametrize(
+    ("template_name", "context", "expected"),
+    [
+        (
+            "psynet_exit_recruiter_prolific.html",
+            {
+                "assignment_id": "assignment-123",
+                "participant_id": 7,
+                "external_submit_url": "https://app.prolific.com/complete",
+            },
+            (
+                "Submit your Prolific study",
+                "/prolific-submission-listener",
+                "https://app.prolific.com/complete",
+            ),
+        ),
+        (
+            "psynet_exit_recruiter_mturk.html",
+            {
+                "assignment_id": "assignment-123",
+                "hit_id": "hit-456",
+                "worker_id": "worker-789",
+                "external_submit_url": "https://workersandbox.mturk.com/submit",
+            },
+            (
+                "Submit your MTurk HIT",
+                'name="assignmentId"',
+                "https://workersandbox.mturk.com/submit",
+            ),
+        ),
+    ],
+)
+def test_platform_exit_pages_render_with_psynet_layout(
+    template_name, context, expected
+):
+    """Platform submit controls retain their fields inside the shared theme."""
+    from importlib import resources
+
+    from flask import Flask, render_template
+    from jinja2 import ChoiceLoader, DictLoader, FileSystemLoader
+
+    app = Flask("psynet_platform_exit")
+    app.jinja_env.globals.update(
+        gettext=lambda text: text,
+        pgettext=lambda _context, text: text,
+    )
+    app.jinja_loader = ChoiceLoader(
+        [
+            FileSystemLoader(str(resources.files("psynet") / "templates")),
+            DictLoader(
+                {
+                    "base/layout.html": (
+                        "<!doctype html><html><head>"
+                        "{% block head %}{% endblock %}"
+                        "{% block stylesheets %}{% endblock %}"
+                        "</head><body>{% block body %}{% endblock %}"
+                        "{% block scripts %}{% endblock %}</body></html>"
+                    )
+                }
+            ),
+        ]
+    )
+    experiment = MagicMock(psynet_logo="", logos=[])
+    participant = SimpleNamespace(
+        id=7,
+        assignment_id="assignment-123",
+        hit_id="hit-456",
+        unique_id="worker-789:assignment-123",
+        worker_id="worker-789",
+    )
+
+    with app.test_request_context("/recruiter-exit"):
+        html = render_template(
+            template_name,
+            experiment=experiment,
+            participant=participant,
+            config=SimpleNamespace(color_mode="light"),
+            **context,
+        )
+
+    assert '<meta name="viewport"' in html
+    assert "css/participant.css" in html
+    assert "scripts/psynet.layout.js" in html
+    for text in expected:
+        assert text in html
+
+
+def test_prolific_exit_response_selects_psynet_template():
+    participant = SimpleNamespace(id=7, assignment_id="assignment-123")
+    experiment = MagicMock()
+    experiment.recruiter_exit_info.return_value = None
+    recruiter = object.__new__(ProlificRecruiter)
+
+    with (
+        patch.object(
+            ProlificRecruiter,
+            "external_submission_url",
+            return_value="https://app.prolific.com/complete",
+        ),
+        patch(
+            "psynet.recruiters.render_template_with_translations",
+            return_value="html",
+        ) as render,
+    ):
+        assert recruiter.exit_response(experiment, participant) == "html"
+
+    assert render.call_args.args == ("psynet_exit_recruiter_prolific.html",)
+    assert render.call_args.kwargs["participant"] is participant
+    assert render.call_args.kwargs["external_submit_url"].startswith(
+        "https://app.prolific.com/"
+    )
+
+
+def test_mturk_exit_response_selects_psynet_template():
+    from psynet.recruiters import MTurkRecruiter
+
+    participant = SimpleNamespace(
+        id=7,
+        assignment_id="assignment-123",
+        hit_id="hit-456",
+        worker_id="worker-789",
+    )
+    recruiter = object.__new__(MTurkRecruiter)
+
+    with (
+        patch.object(
+            MTurkRecruiter,
+            "external_submission_url",
+            new_callable=PropertyMock,
+            return_value="https://workersandbox.mturk.com/submit",
+        ),
+        patch(
+            "psynet.recruiters.render_template_with_translations",
+            return_value="html",
+        ) as render,
+    ):
+        assert recruiter.exit_response(MagicMock(), participant) == "html"
+
+    assert render.call_args.args == ("psynet_exit_recruiter_mturk.html",)
+    assert render.call_args.kwargs["participant"] is participant
+    assert render.call_args.kwargs["assignment_id"] == "assignment-123"
 
 
 def _review_participant(apparent=0.0, planned=1.50):
