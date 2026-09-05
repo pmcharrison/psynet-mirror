@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from shutil import copytree
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -55,31 +56,35 @@ def _wait_for_error_form(driver, message):
     )
 
 
-@pytest.fixture(scope="class")
-def experiment_directory(request, tmp_path_factory):
-    source = path_to_test_experiment("timeline")
-    if not getattr(request.cls, "allow_repeat_worker_ids", False):
-        yield source
-        return
+@pytest.fixture(scope="module")
+def timeline_experiment_copy(tmp_path_factory):
+    directory = tmp_path_factory.mktemp("timeline")
+    copytree(path_to_test_experiment("timeline"), directory, dirs_exist_ok=True)
+    return directory
 
-    directory = tmp_path_factory.mktemp("timeline-repeat")
-    copytree(source, directory, dirs_exist_ok=True)
+
+@pytest.fixture(scope="class")
+def experiment_directory(request, timeline_experiment_copy):
+    directory = Path(timeline_experiment_copy)
     experiment_path = directory / "experiment.py"
     original = experiment_path.read_text(encoding="utf-8")
-    if "allow_repeat_worker_ids" not in original:
-        updated, replacements = re.subn(
-            r"(config\s*=\s*\{)",
-            r'\1\n        "allow_repeat_worker_ids": True,',
-            original,
-            count=1,
-        )
-        if replacements != 1:
-            raise AssertionError(
-                "Could not enable allow_repeat_worker_ids in the timeline experiment copy."
+    if getattr(request.cls, "allow_repeat_worker_ids", False):
+        if "allow_repeat_worker_ids" not in original:
+            updated, replacements = re.subn(
+                r"(config\s*=\s*\{)",
+                r'\1\n        "allow_repeat_worker_ids": True,',
+                original,
+                count=1,
             )
-        experiment_path.write_text(updated, encoding="utf-8")
+            if replacements != 1:
+                raise AssertionError(
+                    "Could not enable allow_repeat_worker_ids in the timeline experiment copy."
+                )
+            experiment_path.write_text(updated, encoding="utf-8")
 
     yield str(directory)
+
+    experiment_path.write_text(original, encoding="utf-8")
 
 
 @pytest.mark.parametrize(
