@@ -246,6 +246,31 @@ def test_footer_clearance_is_scoped_to_pages_with_a_footer():
     assert "body:has(#footer)" in css
 
 
+def test_every_participant_page_declares_the_viewport():
+    """Without it, phones lay out at ~980px and scale down, so text arrives tiny."""
+    templates = resources.files("psynet") / "templates"
+
+    macro = (templates / "macros/head.html").read_text(encoding="utf-8")
+    assert 'name="viewport"' in macro
+    assert "width=device-width" in macro
+
+    # Timeline, exit, abort, and error pages inherit it from the shared layout.
+    layout = (templates / "psynet_layout.html").read_text(encoding="utf-8")
+    assert "psynet_head.viewport()" in layout
+
+    # These two extend Dallinger's templates instead, so they declare it directly.
+    for name in ("ad.html", "consent.html"):
+        source = (templates / name).read_text(encoding="utf-8")
+        assert "psynet_head.viewport()" in source, name
+
+    # One definition only: a second copy in browser-detect would give timeline
+    # pages two viewport metas.
+    browser_detect = (templates / "macros/browser-detect.html").read_text(
+        encoding="utf-8"
+    )
+    assert 'name="viewport"' not in browser_detect
+
+
 def test_footer_leaves_the_viewport_on_a_scrolling_phone_page():
     """A pinned footer costs a fifth of a phone screen on every page."""
     css = (resources.files("psynet") / "resources/css/participant.css").read_text(
@@ -254,7 +279,9 @@ def test_footer_leaves_the_viewport_on_a_scrolling_phone_page():
     assert "body.psynet-footer-in-flow #footer.fixed-bottom {" in css
     start = css.index("body.psynet-footer-in-flow #footer.fixed-bottom {")
     end = css.index("}", start)
-    assert "position: static" in css[start:end]
+    # `relative`, not `static`: the media-download bar inside the footer is
+    # absolutely positioned and needs the footer as its containing block.
+    assert "position: relative" in css[start:end]
     # Nothing to reserve once the footer occupies real space.
     start = css.index("body.psynet-footer-in-flow:has(#footer) {")
     end = css.index("}", start)

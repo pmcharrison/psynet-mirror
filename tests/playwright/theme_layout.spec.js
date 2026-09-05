@@ -847,6 +847,7 @@ test(
           </div>
         </div>
         <nav id="footer" class="navbar fixed-bottom" style="height: 60px">
+          <div id="media-download-progress-bar" style="width: 50%"></div>
           Reward
         </nav>
       </div>`;
@@ -855,12 +856,17 @@ test(
       await page.evaluate(async () => {
         const footer = document.getElementById("footer");
         const next = document.getElementById("next-button");
+        const bar = document.getElementById("media-download-progress-bar");
+        const footerBox = footer.getBoundingClientRect();
+        const barBox = bar.getBoundingClientRect();
         return {
           position: getComputedStyle(footer).position,
           clearance: getComputedStyle(document.body).paddingBottom,
-          footerBelowNext:
-            footer.getBoundingClientRect().top >=
-            next.getBoundingClientRect().bottom,
+          footerBelowNext: footerBox.top >= next.getBoundingClientRect().bottom,
+          // An in-flow footer that is not a containing block lets the absolutely
+          // positioned media bar escape to the top of the page.
+          barInsideFooter:
+            barBox.top >= footerBox.top - 1 && barBox.bottom <= footerBox.bottom + 1,
           violations: (await window.psynetLayout.check()).map((v) => v.check)
         };
       });
@@ -875,9 +881,10 @@ test(
     });
     await page.waitForTimeout(150);
     let s = await state();
-    expect(s.position).toBe("static");
+    expect(s.position).toBe("relative");
     expect(s.clearance).toBe("0px");
     expect(s.footerBelowNext).toBe(true);
+    expect(s.barInsideFooter).toBe(true);
     expect(s.violations).not.toContain("nothing_permanently_occluded");
 
     // Phone, page fits: pinned, because there is nothing to scroll past.
@@ -907,7 +914,7 @@ test(
     // Rotating a phone into a wide window re-pins without a reload.
     await page.setViewportSize({ width: 375, height: 600 });
     await page.waitForTimeout(250);
-    expect((await state()).position).toBe("static");
+    expect((await state()).position).toBe("relative");
     await page.setViewportSize({ width: 900, height: 600 });
     await page.waitForTimeout(250);
     expect((await state()).position).toBe("fixed");

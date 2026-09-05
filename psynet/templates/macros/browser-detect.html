@@ -1,8 +1,8 @@
 {# Split into head() and body() so that callers can place each part in a valid
    position. Emitting the markup below directly would end <head> early. #}
 {% macro head() %}
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" xmlns="http://www.w3.org/1999/html">
-
+{# The viewport meta lives in macros/head.html, so that pages which do not run
+   browser detection get one too. #}
 <style>
     #browser-compatibility-modal .modal-dialog {
         overflow-y: initial !important;

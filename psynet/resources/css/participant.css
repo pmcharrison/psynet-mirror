@@ -251,8 +251,11 @@ body.psynet-footer-in-flow:has(#footer) {
     padding-bottom: 0;
 }
 
+/* `relative` rather than `static`: the media-download bar inside the footer is
+   absolutely positioned, so a static footer stops being its containing block and
+   the bar escapes to the top of the page. */
 body.psynet-footer-in-flow #footer.fixed-bottom {
-    position: static;
+    position: relative;
 }
 
 /* Without a footer the media-download bar pins itself to the bottom edge, so

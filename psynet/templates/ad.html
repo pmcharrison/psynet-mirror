@@ -1,8 +1,12 @@
 {% extends "layout.html" %}
 {% import "macros/browser-detect.html" as browser_detect with context %}
+{# This page extends Dallinger's layout rather than psynet_layout.html, so it
+   needs the viewport meta directly. #}
+{% import "macros/head.html" as psynet_head %}
 
 {% block head %}
     {{ super() }}
+    {{ psynet_head.viewport() }}
     {{ browser_detect.head() }}
 {% endblock %}
 
