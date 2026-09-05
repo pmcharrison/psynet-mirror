@@ -633,8 +633,7 @@ textarea:focus-visible,
     transform: translateY(0.2rem);
     transition:
         opacity 120ms ease,
-        transform 120ms ease,
-        visibility 120ms;
+        transform 120ms ease;
 }
 
 .psynet-tooltip--end .psynet-tooltip__content {
