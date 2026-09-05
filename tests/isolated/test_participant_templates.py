@@ -286,6 +286,15 @@ def test_footer_leaves_the_viewport_on_a_scrolling_phone_page():
     start = css.index("body.psynet-footer-in-flow:has(#footer) {")
     end = css.index("}", start)
     assert "padding-bottom: 0" in css[start:end]
+    # Pages that declare expect_scrolling get the same treatment from first
+    # paint on phones, so the footer does not start pinned and then jump.
+    assert 'data-expect-scrolling="true"' in css
+    assert "@media (max-width: 480px)" in css
+
+    timeline = (resources.files("psynet") / "templates/timeline-page.html").read_text(
+        encoding="utf-8"
+    )
+    assert 'data-expect-scrolling="{{ page.expect_scrolling | tojson }}"' in timeline
 
     js = (resources.files("psynet") / "resources/scripts/psynet.layout.js").read_text(
         encoding="utf-8"
@@ -294,6 +303,22 @@ def test_footer_leaves_the_viewport_on_a_scrolling_phone_page():
     # Measured without the footer, so unpinning cannot flip the decision back.
     assert "function contentBottomExcluding(" in js
     assert "IN_FLOW_MAX_WIDTH_PX" in js
+
+
+def test_danger_buttons_follow_the_participant_theme():
+    """Stock Bootstrap danger red sits outside the theme tokens."""
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index(".btn-danger {")
+    end = css.index("}", start)
+    assert "--bs-btn-bg: var(--psynet-danger)" in css[start:end]
+
+    start = css.index(".btn-outline-danger {")
+    end = css.index("}", start)
+    block = css[start:end]
+    assert "--bs-btn-color: var(--psynet-danger)" in block
+    assert "--bs-btn-hover-bg: var(--psynet-danger-soft)" in block
 
 
 def test_solid_buttons_have_their_own_fill_token():
@@ -596,6 +621,11 @@ def test_consent_actions_sit_in_document_flow():
     assert "consent-gradient" not in macros
     assert "Scroll up/down" not in macros
     assert "fixed-bottom" not in macros
+    # Agree stays the primary action; decline matches the outlined Exit treatment
+    # so a solid red control does not outweigh it.
+    assert 'class="btn btn-primary btn-lg"' in macros
+    assert 'class="btn btn-outline-danger btn-lg"' in macros
+    assert "btn-danger btn-lg" not in macros
     # Custom templates may still call fixed_buttons; it now just renders buttons.
     assert "{% macro fixed_buttons(config) %}" in macros
     assert "{{ buttons(config) }}" in macros

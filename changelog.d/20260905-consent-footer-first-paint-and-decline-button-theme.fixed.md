@@ -1,0 +1,1 @@
+Consent pages that declare expected scrolling paint the footer in document flow from the first frame on phones, so it no longer starts pinned and then jumps after layout measurement. Decline uses the themed outline danger style so it matches Exit and does not outweigh Agree.

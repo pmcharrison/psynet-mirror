@@ -242,10 +242,15 @@ body:has(#footer) {
 }
 
 /*
- * On a narrow screen whose page already scrolls, psynet.layout.js hands the
- * footer back to the document: pinning it there would spend a fifth of a phone
+ * On a narrow screen whose page already scrolls, the footer belongs in the
+ * document rather than pinned: pinning it there would spend a fifth of a phone
  * screen on chrome the participant scrolls past anyway. Nothing needs reserving,
- * because the footer now occupies real space at the end of the content.
+ * because the footer then occupies real space at the end of the content.
+ *
+ * Pages that declare data-expect-scrolling="true" (consent, long lists, …) get
+ * this from first paint via the media query below, so the footer does not start
+ * pinned and then jump once psynet.layout.js measures. The JS class covers the
+ * remaining case: a page that did not declare scrolling but still overflows.
  */
 body.psynet-footer-in-flow:has(#footer) {
     padding-bottom: 0;
@@ -256,6 +261,16 @@ body.psynet-footer-in-flow:has(#footer) {
    the bar escapes to the top of the page. */
 body.psynet-footer-in-flow #footer.fixed-bottom {
     position: relative;
+}
+
+@media (max-width: 480px) {
+    body:has(#main-body[data-expect-scrolling="true"]):has(#footer) {
+        padding-bottom: 0;
+    }
+
+    body:has(#main-body[data-expect-scrolling="true"]) #footer.fixed-bottom {
+        position: relative;
+    }
 }
 
 /* Without a footer the media-download bar pins itself to the bottom edge, so
@@ -359,6 +374,37 @@ code {
     --bs-btn-disabled-bg: var(--psynet-accent-solid);
     --bs-btn-disabled-border-color: var(--psynet-accent-solid);
     --bs-btn-disabled-color: var(--psynet-accent-solid-contrast);
+}
+
+/* Same idea as .btn-primary: Bootstrap's stock danger red sits outside the
+   theme. Keep solid danger for rare destructive fills; consent decline and
+   footer Exit use the outline form below so they do not outweigh Agree/Next. */
+.btn-danger {
+    --bs-btn-bg: var(--psynet-danger);
+    --bs-btn-border-color: var(--psynet-danger);
+    --bs-btn-color: #ffffff;
+    --bs-btn-hover-bg: color-mix(in srgb, var(--psynet-danger) 88%, #000);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--psynet-danger) 88%, #000);
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-active-bg: color-mix(in srgb, var(--psynet-danger) 80%, #000);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--psynet-danger) 80%, #000);
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-disabled-bg: var(--psynet-danger);
+    --bs-btn-disabled-border-color: var(--psynet-danger);
+    --bs-btn-disabled-color: #ffffff;
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--psynet-danger);
+    --bs-btn-border-color: var(--psynet-danger);
+    --bs-btn-hover-bg: var(--psynet-danger-soft);
+    --bs-btn-hover-border-color: var(--psynet-danger);
+    --bs-btn-hover-color: var(--psynet-danger);
+    --bs-btn-active-bg: var(--psynet-danger-soft);
+    --bs-btn-active-border-color: var(--psynet-danger);
+    --bs-btn-active-color: var(--psynet-danger);
+    --bs-btn-disabled-color: var(--psynet-danger);
+    --bs-btn-disabled-border-color: var(--psynet-danger);
 }
 
 /*

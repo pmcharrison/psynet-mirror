@@ -5,7 +5,9 @@
         <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);">
             {{ pgettext("consent", "I agree") }}
         </button>
-        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);">
+        {# Outline, not solid: same reasoning as footer Exit — a filled red
+           control next to Agree/Next becomes the loudest thing on the page. #}
+        <button type="button" class="btn btn-outline-danger btn-lg" onClick="psynet.nextPage(false);">
             {{ pgettext("consent", "No, thank you (return task)") }}
         </button>
     </div>

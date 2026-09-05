@@ -30,10 +30,11 @@
  *   no_horizontal_overflow                Content wider than the viewport.
  *
  * Pages that are genuinely meant to scroll declare it with
- * `expect_scrolling=True` (see `Page` in psynet/timeline.py). Ad and consent
- * pages have no `#main-body`, so the fit / no-scroll checks do not apply;
- * standards mode, percentage heights, horizontal overflow, and footer
- * occlusion still do.
+ * `expect_scrolling=True` (see `Page` in psynet/timeline.py); consent pages
+ * do this, and participant.css unpins the footer from first paint on phones
+ * when `#main-body` carries that attribute. Ad pages have no `#main-body`, so
+ * the fit / no-scroll checks do not apply; standards mode, percentage heights,
+ * horizontal overflow, and footer occlusion still do.
  *
  * Public API: `window.psynetLayout` (`collectViolations`,
  * `collectScrollViolations`, `check`, `refreshFooterClearance`). When
