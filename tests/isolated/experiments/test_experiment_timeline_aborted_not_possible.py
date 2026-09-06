@@ -34,10 +34,13 @@ class TestExp:
             next_page(driver, "next-button")
             next_page(driver, "next-button")
 
+            # HotAir does not pay through PsyNet, so Exit is always available
+            # with the plain leave pathway (no unpaid-below-threshold option).
+            # Paid recruiters cover that unpaid pathway in unit tests.
             exit_button = driver.find_element(By.ID, "terminate-button")
             exit_button.click()
             assert_text(driver, "early-exit-title", "Leave the study?")
-            assert_text(driver, "early-exit-confirm", "Leave without payment")
+            assert_text(driver, "early-exit-confirm", "Leave study")
             driver.find_element(By.ID, "early-exit-cancel").click()
 
             next_page(driver, "next-button")
