@@ -268,7 +268,8 @@ General
     the confirmation. The plan records both the participant-facing copy and the
     recruiter path that will be executed if they confirm. The plan is stored on
     :attr:`~psynet.participant.Participant.early_exit_plan`, so the browser
-    cannot select a different payment path.
+    cannot select a different payment path. Any amounts quoted by the standard
+    plan are also used for the eventual payment decision.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the
@@ -289,8 +290,7 @@ General
 
     Error recovery has a separate
     :meth:`~psynet.experiment.Experiment.error_recovery_early_exit_plan` hook.
-    It does not apply the paid-exit threshold and falls back to conservative
-    payment copy if detailed reward calculation fails.
+    It does not apply the voluntary paid-exit threshold.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when

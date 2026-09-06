@@ -49,6 +49,7 @@ import re
 from collections import Counter
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timedelta
+from decimal import Decimal
 from enum import StrEnum
 from math import ceil
 from uuid import uuid4
@@ -264,7 +265,7 @@ class EarlyExitPlan:
     path: EarlyExitPath
     status: str
     confirmation: EarlyExitConfirmation
-    quoted_amounts: dict = field(default_factory=dict)
+    quoted_amounts: dict[str, str | int] = field(default_factory=dict)
 
     @classmethod
     def create(
@@ -273,8 +274,8 @@ class EarlyExitPlan:
         context: EarlyExitContext,
         path: EarlyExitPath,
         confirmation: EarlyExitConfirmation,
-        quoted_amounts: dict | None = None,
-    ):
+        quoted_amounts: dict[str, str | int] | None = None,
+    ) -> "EarlyExitPlan":
         """Create a new offered plan."""
         return cls(
             version=1,
@@ -283,7 +284,7 @@ class EarlyExitPlan:
             path=path,
             status="offered",
             confirmation=confirmation,
-            quoted_amounts=quoted_amounts or {},
+            quoted_amounts=dict(quoted_amounts or {}),
         )
 
     def to_dict(self) -> dict:
@@ -294,7 +295,7 @@ class EarlyExitPlan:
         return data
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> "EarlyExitPlan":
         """Restore a plan from participant storage."""
         if data.get("version") != 1:
             raise ValueError("Unsupported early-exit plan version.")
@@ -310,7 +311,7 @@ class EarlyExitPlan:
             quoted_amounts=dict(data.get("quoted_amounts", {})),
         )
 
-    def mark_executed(self):
+    def mark_executed(self) -> "EarlyExitPlan":
         """Return an executed copy of this plan."""
         return replace(self, status="executed")
 
@@ -326,23 +327,31 @@ def _early_exit_amounts(**amounts) -> dict:
     return {
         "currency": get_config().get("currency", "$"),
         **{
-            f"{name}_minor": int(round(float(value) * 100))
+            f"{name}_minor": int(Decimal(f"{float(value):.2f}") * 100)
             for name, value in amounts.items()
         },
     }
 
 
-def _participant_early_exit_plan(participant) -> EarlyExitPlan | None:
-    """Return the participant's stored early-exit plan, if present."""
+def _early_exit_quoted_amount(plan: EarlyExitPlan, name: str) -> float:
+    """Read one quoted amount from an early-exit plan."""
+    return plan.quoted_amounts[f"{name}_minor"] / 100
+
+
+def _executed_early_exit_plan(participant) -> EarlyExitPlan | None:
+    """Return the participant's executed early-exit plan, if present."""
     data = getattr(participant, "early_exit_plan", None)
     if not isinstance(data, dict):
         return None
-    return EarlyExitPlan.from_dict(data)
+    plan = EarlyExitPlan.from_dict(data)
+    if plan.status != "executed" or not bool(participant.early_exited):
+        return None
+    return plan
 
 
 def _early_exit_returns_without_payment(participant) -> bool:
     """Return whether the stored plan records an exit without payment."""
-    plan = _participant_early_exit_plan(participant)
+    plan = _executed_early_exit_plan(participant)
     return plan is not None and plan.path is EarlyExitPath.RETURN_WITHOUT_PAYMENT
 
 
@@ -472,18 +481,12 @@ class PsyNetRecruiterMixin:
         context
             Whether Leave is voluntary or follows an experiment error.
         """
-        if context is EarlyExitContext.ERROR_RECOVERY:
-            return self._error_recovery_early_exit_plan(participant, context)
-        if self.gates_early_exit_on_reward() and not experiment.early_exit_allowed(
-            participant
+        if (
+            context is EarlyExitContext.VOLUNTARY
+            and self.gates_early_exit_on_reward()
+            and not experiment.early_exit_allowed(participant)
         ):
             return self._without_payment_early_exit_plan(participant, context)
-        return self._standard_early_exit_plan(participant, context)
-
-    def _error_recovery_early_exit_plan(
-        self, participant, context: EarlyExitContext
-    ) -> EarlyExitPlan:
-        """Plan error recovery without applying paid-exit eligibility."""
         return self._standard_early_exit_plan(participant, context)
 
     def _standard_early_exit_plan(
@@ -637,8 +640,17 @@ class PsyNetRecruiterMixin:
 
     def decide_payment(self, participant, *, experiment) -> PaymentDecision:
         """Decide status, platform base, and bonus without writing or paying."""
-        if _early_exit_returns_without_payment(participant):
+        plan = _executed_early_exit_plan(participant)
+        if plan is not None and plan.path is EarlyExitPath.RETURN_WITHOUT_PAYMENT:
             return PaymentDecision(status="returned", platform_base=0.0, bonus=0.0)
+        if plan is not None and plan.path is EarlyExitPath.SUBMIT_AND_APPROVE:
+            return PaymentDecision(
+                status="approved",
+                platform_base=_early_exit_quoted_amount(plan, "base"),
+                bonus=_early_exit_quoted_amount(plan, "remainder")
+                if "remainder_minor" in plan.quoted_amounts
+                else 0.0,
+            )
         status = self.completion_status(participant)
         platform_base = self.platform_base_for(status, experiment)
         total_owed = self.total_owed(participant, status, platform_base)
@@ -850,47 +862,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             quoted_amounts=_early_exit_amounts(**amounts),
         )
 
-    def _error_recovery_early_exit_plan(
-        self, participant, context: EarlyExitContext
-    ) -> EarlyExitPlan:
-        """Plan Prolific error recovery even if reward calculation fails."""
-        try:
-            return self._standard_early_exit_plan(participant, context)
-        except Exception:
-            logger.warning(
-                "Could not calculate detailed Prolific early-exit compensation; "
-                "using resilient error-recovery copy.",
-                exc_info=True,
-            )
-        _p = get_translator(context=True)
-        if self.pays_unsuccessful_participants_via_screen_out:
-            fixed = self.unsuccessful_base_payment
-            path = EarlyExitPath.SCREEN_OUT
-            message = _p(
-                "early_exit_prolific",
-                "If you leave now, you will not be able to continue later. "
-                "You will receive a fixed early-exit payment of {FIXED}. "
-                "Any additional amount due will be handled separately. Your "
-                "responses so far will still be saved.",
-            ).format(FIXED=_format_early_exit_amount(fixed))
-            amounts = _early_exit_amounts(fixed=fixed)
-        else:
-            path = EarlyExitPath.RETURN_FOR_BONUS
-            message = _p(
-                "early_exit_prolific",
-                "If you leave now, you will not be able to continue later. "
-                "You will need to return your Prolific submission. Payment "
-                "for the work completed so far will then be sent as a bonus. "
-                "Your responses so far will still be saved.",
-            )
-            amounts = {}
-        return EarlyExitPlan.create(
-            context=context,
-            path=path,
-            confirmation=self._early_exit_confirmation(message, path=path),
-            quoted_amounts=amounts,
-        )
-
     def release_early_exit_without_payment(self, participant) -> TimelineLogic:
         """Ask the participant to return the Prolific submission without pay."""
         _p = get_translator(context=True)
@@ -920,7 +891,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return "screened_out"
         if issued:
             return super().completion_status(participant)
-        plan = _participant_early_exit_plan(participant)
+        plan = _executed_early_exit_plan(participant)
         if plan is not None and plan.path is EarlyExitPath.SCREEN_OUT:
             return "screened_out"
         if _early_exit_returns_without_payment(participant):
@@ -928,6 +899,27 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         if participant.failed and self.pays_unsuccessful_participants_via_screen_out:
             return "screened_out"
         return super().completion_status(participant)
+
+    def decide_payment(self, participant, *, experiment) -> PaymentDecision:
+        """Use the executed plan's quoted Prolific amounts."""
+        plan = _executed_early_exit_plan(participant)
+        if plan is not None and plan.path is EarlyExitPath.SCREEN_OUT:
+            bonus_minor = plan.quoted_amounts.get(
+                "remainder_minor",
+                plan.quoted_amounts.get("performance_minor", 0),
+            )
+            return PaymentDecision(
+                status="screened_out",
+                platform_base=_early_exit_quoted_amount(plan, "fixed"),
+                bonus=bonus_minor / 100,
+            )
+        if plan is not None and plan.path is EarlyExitPath.RETURN_FOR_BONUS:
+            return PaymentDecision(
+                status="returned",
+                platform_base=0.0,
+                bonus=_early_exit_quoted_amount(plan, "earned"),
+            )
+        return super().decide_payment(participant, experiment=experiment)
 
     def platform_base_for(self, status: str, experiment) -> float:
         """Base amount Prolific pays for this payment status."""
@@ -1050,7 +1042,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return self.unsuccessful_code_type
         if issued:
             return None
-        plan = _participant_early_exit_plan(participant)
+        plan = _executed_early_exit_plan(participant)
         if plan is not None and plan.path is EarlyExitPath.SCREEN_OUT:
             return self.unsuccessful_code_type
         if _early_exit_returns_without_payment(participant):
@@ -1220,7 +1212,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
-        plan = _participant_early_exit_plan(participant)
+        plan = _executed_early_exit_plan(participant)
         if plan is not None:
             if plan.path is EarlyExitPath.RETURN_WITHOUT_PAYMENT:
                 return self.release_early_exit_without_payment(participant)
@@ -1744,35 +1736,6 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
             path=path,
             confirmation=self._early_exit_confirmation(message, path=path),
             quoted_amounts=_early_exit_amounts(**amounts),
-        )
-
-    def _error_recovery_early_exit_plan(
-        self, participant, context: EarlyExitContext
-    ) -> EarlyExitPlan:
-        """Plan MTurk error recovery even if reward calculation fails."""
-        try:
-            return self._standard_early_exit_plan(participant, context)
-        except Exception:
-            logger.warning(
-                "Could not calculate detailed MTurk early-exit compensation; "
-                "using resilient error-recovery copy.",
-                exc_info=True,
-            )
-        _p = get_translator(context=True)
-        base = float(get_config().get("base_payment", 0.0) or 0.0)
-        path = EarlyExitPath.SUBMIT_AND_APPROVE
-        message = _p(
-            "early_exit_mturk",
-            "If you leave now, you will not be able to continue later. You "
-            "will go to the MTurk submission step and receive the HIT payment "
-            "of {BASE}. Any additional amount due will be handled separately. "
-            "Your responses so far will still be saved.",
-        ).format(BASE=_format_early_exit_amount(base))
-        return EarlyExitPlan.create(
-            context=context,
-            path=path,
-            confirmation=self._early_exit_confirmation(message, path=path),
-            quoted_amounts=_early_exit_amounts(base=base),
         )
 
     def release_early_exit_without_payment(self, participant) -> TimelineLogic:

@@ -4770,7 +4770,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
         payload = request.get_json(silent=True) or {}
-        if payload.get("offer_id") != plan.offer_id:
+        if not isinstance(payload, dict) or payload.get("offer_id") != plan.offer_id:
             return error_response(
                 error_text="This Leave offer is no longer current.",
                 status=409,
