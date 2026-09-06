@@ -681,12 +681,15 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert "global.psynet.finishAndGoToExit" in early_exit_js
     assert '.post("/worker_complete"' in early_exit_js
     assert '"/set_participant_as_aborted/"' in early_exit_js
+    assert "?payment=none" in early_exit_js
     assert '"/abort/" + encodeURIComponent(assignmentId)' not in js
+    assert "data-unpaid=" in timeline
 
     experiment_source = (resources.files("psynet") / "experiment.py").read_text(
         encoding="utf-8"
     )
-    assert 'early_exit(participant, reason="aborted")' in experiment_source
+    assert 'unpaid = request.args.get("payment") == "none"' in experiment_source
+    assert "unpaid=unpaid" in experiment_source
 
 
 def test_abort_is_removed_from_ad_and_available_inline_on_error():

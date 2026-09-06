@@ -1061,7 +1061,9 @@ def test_experimenters_can_customize_early_exit_confirmation():
     participant = MagicMock()
 
     assert experiment.early_exit_confirmation(participant) is custom
-    experiment.recruiter.early_exit_confirmation.assert_called_once_with(participant)
+    experiment.recruiter.early_exit_confirmation.assert_called_once_with(
+        participant, force_compensated=False
+    )
 
 
 def test_page_show_abort_button_does_not_warn():

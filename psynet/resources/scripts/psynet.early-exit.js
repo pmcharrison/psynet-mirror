@@ -76,9 +76,11 @@
         confirm.disabled = true;
         cancel.disabled = true;
         try {
+          const unpaid = modal.dataset.unpaid === "true";
           const response = await fetch(
             "/set_participant_as_aborted/" +
-              encodeURIComponent(assignmentId),
+              encodeURIComponent(assignmentId) +
+              (unpaid ? "?payment=none" : ""),
           );
           if (!response.ok) throw new Error("Failed to record early exit.");
           await finish(participantId);

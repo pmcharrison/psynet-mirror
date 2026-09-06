@@ -55,28 +55,18 @@
          aria-describedby="early-exit-message"
          data-assignment-id="{{ participant.assignment_id }}"
          data-participant-id="{{ participant.id }}"
+         data-unpaid="{{ 'true' if early_exit_confirmation.unpaid else 'false' }}"
          hidden>
         <div class="modal-content">
-            {% if early_exit_allowed %}
-                <h2 id="early-exit-title">{{ early_exit_confirmation.title }}</h2>
-                <p id="early-exit-message">{{ early_exit_confirmation.message }}</p>
-            {% else %}
-                <h2 id="early-exit-title">{{ pgettext("early_exit", "Leaving is not available yet") }}</h2>
-                <p id="early-exit-message">
-                    {% set CURRENCY = config.currency %}
-                    {% set MIN_REWARD = "{:.2f}".format(config.min_accumulated_reward_for_abort) %}
-                    {% trans name="early_exit" %}You need to accumulate at least {{ CURRENCY }}{{ MIN_REWARD }} before you can leave with compensation.{% endtrans %}
-                </p>
-            {% endif %}
+            <h2 id="early-exit-title">{{ early_exit_confirmation.title }}</h2>
+            <p id="early-exit-message">{{ early_exit_confirmation.message }}</p>
             <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
                 <button type="button" id="early-exit-cancel" class="btn btn-primary">
                     {{ early_exit_confirmation.cancel_label }}
                 </button>
-                {% if early_exit_allowed %}
-                    <button type="button" id="early-exit-confirm" class="btn btn-danger">
-                        {{ early_exit_confirmation.confirm_label }}
-                    </button>
-                {% endif %}
+                <button type="button" id="early-exit-confirm" class="btn btn-danger">
+                    {{ early_exit_confirmation.confirm_label }}
+                </button>
             </div>
         </div>
     </div>

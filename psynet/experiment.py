@@ -1633,8 +1633,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         ):
             experiment = get_experiment()
-            early_exit_confirmation = experiment.early_exit_confirmation(participant)
-            early_exit_allowed = experiment.early_exit_allowed(participant)
+            # Error recovery always uses the compensated/plain leave pathway,
+            # even if the participant is below the voluntary paid-exit threshold.
+            early_exit_confirmation = experiment.early_exit_confirmation(
+                participant, force_compensated=True
+            )
+            early_exit_allowed = True
 
         return make_response(
             render_template_with_translations(
@@ -3250,7 +3254,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
-    def early_exit_confirmation(self, participant):
+    def early_exit_confirmation(self, participant, *, force_compensated=False):
         """Return the participant-facing confirmation copy for leaving early.
 
         Override this method to customize the recruiter's default copy. Return
@@ -3260,14 +3264,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ----------
         participant
             The participant considering an early exit.
+        force_compensated
+            When true (error-page recovery), skip the below-threshold unpaid
+            option and always describe the compensated/plain leave outcome.
         """
-        return self.recruiter.early_exit_confirmation(participant)
+        return self.recruiter.early_exit_confirmation(
+            participant, force_compensated=force_compensated
+        )
 
     def early_exit_allowed(self, participant):
-        """Return whether the participant may confirm an early exit.
+        """Return whether the participant may leave with the paid outcome.
 
-        Recruiters use the configured reward threshold by default. Override
-        this method to customize eligibility for an experiment.
+        For paid recruiters this is the configured reward threshold by default.
+        Below that threshold, Exit still opens a confirmation that offers
+        unpaid leave. Override this method to customize paid-exit eligibility.
         """
         return self.recruiter.early_exit_allowed(participant)
 
@@ -4745,8 +4755,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = cls.get_participant_from_assignment_id(
             assignment_id, for_update=True
         )
-        get_experiment().recruiter.early_exit(participant, reason="aborted")
-        logger.info(f"Aborted participant with ID '{participant.id}'.")
+        unpaid = request.args.get("payment") == "none"
+        get_experiment().recruiter.early_exit(
+            participant,
+            reason="aborted_unpaid" if unpaid else "aborted",
+            unpaid=unpaid,
+        )
+        logger.info(
+            f"Aborted participant with ID '{participant.id}'"
+            + (" without payment." if unpaid else ".")
+        )
         return success_response()
 
     @experiment_route("/timeline", methods=["GET"])

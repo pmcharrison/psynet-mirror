@@ -63,7 +63,7 @@ class TestExp:
 
             url = driver.current_url
             driver.find_element(By.ID, "early-exit-open").click()
-            assert_text(driver, "early-exit-title", "Leave the experiment?")
+            assert_text(driver, "early-exit-title", "Leave the study?")
             driver.find_element(By.ID, "early-exit-cancel").click()
             assert driver.current_url == url
 

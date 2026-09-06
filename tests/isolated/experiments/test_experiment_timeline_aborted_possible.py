@@ -39,7 +39,7 @@ class TestExp:
             page_uuid = driver.execute_script("return window.pageUuid")
             exit_button = driver.find_element(By.ID, "terminate-button")
             exit_button.click()
-            assert_text(driver, "early-exit-title", "Leave the experiment?")
+            assert_text(driver, "early-exit-title", "Leave the study?")
 
             driver.find_element(By.ID, "early-exit-cancel").click()
             assert driver.find_element(By.ID, "early-exit-modal").get_attribute(

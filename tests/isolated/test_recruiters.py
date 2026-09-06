@@ -28,6 +28,7 @@ from psynet.recruiters import (
     BaseLabRecruiter,
     BaseLucidRecruiter,
     EarlyExitConfirmation,
+    HotAirRecruiter,
     MTurkRecruiter,
     PaymentDecision,
     ProlificRecruiter,
@@ -235,6 +236,11 @@ def make_config(**overrides):
         "prolific_completion_config": "{}",
         "initial_recruitment_size": 7,
         "base_payment": 1.00,
+        "currency": "$",
+        "min_accumulated_reward_for_abort": 0.20,
+        "prolific_pay_unsuccessful": True,
+        "prolific_unsuccessful_base_payment": 0.25,
+        "prolific_unsuccessful_topup": True,
     }
     values.update(overrides)
     return FakeConfig(**values)
@@ -680,27 +686,38 @@ def test_early_exit_skips_fail_when_already_failed():
     participant.fail.assert_not_called()
 
 
+def _participant_for_early_exit(reward=0.50, performance_reward=0.0):
+    participant = MagicMock()
+    participant.calculate_reward.return_value = reward
+    participant.performance_reward = performance_reward
+    participant.failed = False
+    participant.var.get.return_value = False
+    return participant
+
+
 @pytest.mark.parametrize(
     "recruiter_class, expected",
     [
-        (PsyNetRecruiterMixin, "cannot issue payment"),
-        (MTurkRecruiter, "MTurk"),
-        (PsyNetProlificRecruiterMixin, "Prolific"),
-        (BaseLucidRecruiter, "Lucid"),
+        (PsyNetRecruiterMixin, "responses so far will be saved"),
+        (MTurkRecruiter, "HIT payment"),
+        (PsyNetProlificRecruiterMixin, "fixed early-exit payment"),
+        (BaseLucidRecruiter, "panel provider"),
     ],
 )
 def test_recruiters_explain_their_early_exit_consequences(recruiter_class, expected):
     recruiter = object.__new__(recruiter_class)
+    participant = _participant_for_early_exit()
     with (
         patch("psynet.recruiters.get_config", return_value=make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        confirmation = recruiter.early_exit_confirmation(MagicMock())
+        confirmation = recruiter.early_exit_confirmation(participant)
 
     assert isinstance(confirmation, EarlyExitConfirmation)
     assert expected in confirmation.message
-    assert confirmation.confirm_label == "Leave experiment"
-    assert confirmation.cancel_label == "Stay in the experiment"
+    assert confirmation.confirm_label == "Leave study"
+    assert confirmation.cancel_label == "Continue study"
+    assert confirmation.unpaid is False
 
 
 def test_early_exit_reward_threshold_does_not_block_lucid_termination():
@@ -713,6 +730,109 @@ def test_early_exit_reward_threshold_does_not_block_lucid_termination():
         assert PsyNetRecruiterMixin().early_exit_allowed(participant) is False
     lucid = object.__new__(BaseLucidRecruiter)
     assert lucid.early_exit_allowed(participant) is True
+
+
+def test_unpaid_recruiters_always_allow_early_exit():
+    participant = _participant_for_early_exit(reward=0.0)
+    hot_air = object.__new__(HotAirRecruiter)
+    assert hot_air.early_exit_allowed(participant) is True
+
+
+def test_prolific_early_exit_messages_cover_payment_pathways():
+    participant = _participant_for_early_exit(reward=0.80)
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
+    with (
+        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        topped_up = recruiter.early_exit_confirmation(participant)
+    assert "£" not in topped_up.message  # default currency in make_config is $
+    assert "$0.25" in topped_up.message and "$0.80" in topped_up.message
+
+    with (
+        patch(
+            "psynet.recruiters.get_config",
+            return_value=make_config(prolific_unsuccessful_topup=False),
+        ),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        participant.performance_reward = 0.05
+        no_topup = recruiter.early_exit_confirmation(participant)
+    assert "not be paid for additional time" in no_topup.message
+    assert "$0.05" in no_topup.message
+
+    with (
+        patch(
+            "psynet.recruiters.get_config",
+            return_value=make_config(prolific_pay_unsuccessful=False),
+        ),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        returned = recruiter.early_exit_confirmation(participant)
+    assert "return your Prolific submission" in returned.message
+    assert "$0.80" in returned.message
+
+
+def test_below_threshold_offers_unpaid_leave_with_amounts():
+    participant = _participant_for_early_exit(reward=0.10)
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
+    with (
+        patch(
+            "psynet.recruiters.get_config",
+            return_value=make_config(
+                currency="£", min_accumulated_reward_for_abort=0.20
+            ),
+        ),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        confirmation = recruiter.early_exit_confirmation(participant)
+    assert confirmation.unpaid is True
+    assert confirmation.confirm_label == "Leave without payment"
+    assert "£0.10" in confirmation.message
+    assert "£0.20" in confirmation.message
+
+
+def test_force_compensated_skips_unpaid_below_threshold_path():
+    participant = _participant_for_early_exit(reward=0.05)
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
+    with (
+        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        confirmation = recruiter.early_exit_confirmation(
+            participant, force_compensated=True
+        )
+    assert confirmation.unpaid is False
+    assert "fixed early-exit payment" in confirmation.message
+
+
+def test_unpaid_early_exit_records_flag_and_skips_payment():
+    participant = _participant_for_early_exit()
+    participant.failed = False
+    PsyNetRecruiterMixin().early_exit(participant, unpaid=True)
+    participant.var.set.assert_called_with("early_exit_unpaid", True)
+    participant.fail.assert_called_once_with("aborted_unpaid")
+
+    participant.var.get.return_value = True
+    decision = PsyNetRecruiterMixin().decide_payment(
+        participant, experiment=MagicMock(base_payment=1.0)
+    )
+    assert decision.status == "returned"
+    assert decision.platform_base == 0.0
+    assert decision.bonus == 0.0
+
+
+def test_prolific_unpaid_early_exit_skips_screen_out_code():
+    config = make_config()
+    recruiter = make_prolific_recruiter(config)
+    participant = MagicMock()
+    participant.failed = True
+    participant.status = "working"
+    participant.issued_completion_code_type = None
+    participant.var.get.return_value = True
+    with patch("psynet.recruiters.get_config", return_value=config):
+        assert recruiter.completion_status(participant) == "returned"
+        assert recruiter.exit_code_type(participant) is None
 
 
 def test_lucid_early_exit_terminates_the_panel_session():

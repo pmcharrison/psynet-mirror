@@ -36,14 +36,14 @@ class TestExp:
 
             exit_button = driver.find_element(By.ID, "terminate-button")
             exit_button.click()
-            assert_text(driver, "early-exit-title", "Leaving is not available yet")
-            assert not driver.find_elements(By.ID, "early-exit-confirm")
+            assert_text(driver, "early-exit-title", "Leave the study?")
+            assert_text(driver, "early-exit-confirm", "Leave without payment")
             driver.find_element(By.ID, "early-exit-cancel").click()
 
             next_page(driver, "next-button")
 
             driver.find_element(By.ID, "terminate-button").click()
-            assert_text(driver, "early-exit-title", "Leave the experiment?")
+            assert_text(driver, "early-exit-title", "Leave the study?")
             driver.find_element(By.ID, "early-exit-confirm").click()
             time.sleep(0.5)
 

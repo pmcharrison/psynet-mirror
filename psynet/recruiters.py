@@ -218,12 +218,48 @@ class EarlyExitConfirmation:
 
     Experimenters may return a customized instance from
     :meth:`psynet.experiment.Experiment.early_exit_confirmation`.
+
+    Parameters
+    ----------
+    title:
+        Dialog heading.
+    message:
+        Explanation of what leaving means for this recruiter and payment setup.
+    confirm_label:
+        Label for the button that leaves the study.
+    cancel_label:
+        Label for the button that stays in the study.
+    unpaid:
+        If ``True``, confirming records an unpaid early exit (responses saved,
+        no PsyNet payment, recruiter-specific return instructions). Used when
+        a paid recruiter's reward threshold has not been met yet.
     """
 
     title: str
     message: str
     confirm_label: str
     cancel_label: str
+    unpaid: bool = False
+
+
+def _format_early_exit_amount(amount: float) -> str:
+    """Format a currency amount for early-exit confirmation copy."""
+    currency = get_config().get("currency", "$")
+    return f"{currency}{float(amount):.2f}"
+
+
+def _early_exit_is_unpaid(participant) -> bool:
+    """Return whether this participant requested an unpaid early exit.
+
+    Uses ``is True`` so MagicMock attribute stubs are not treated as unpaid.
+    """
+    var = getattr(participant, "var", None)
+    if var is None:
+        return False
+    getter = getattr(var, "get", None)
+    if callable(getter):
+        return getter("early_exit_unpaid", False) is True
+    return getattr(var, "early_exit_unpaid", False) is True
 
 
 def latest_participant_for_assignment(assignment_id):
@@ -301,49 +337,143 @@ class PsyNetRecruiterMixin:
     ):
         raise NotImplementedError
 
-    def early_exit(self, participant, reason="aborted"):
+    def early_exit(self, participant, reason="aborted", *, unpaid=False):
         """Handle a voluntary early leave (footer Exit or abort confirm).
 
         Marks the participant as aborted and failed so recruiters that pay
         unsuccessful sessions (Prolific screen-out) use that path instead of
         a successful completion. Lucid overrides this to terminate on the
         panel.
+
+        When ``unpaid`` is true (voluntary leave below the paid-exit
+        threshold), responses are still saved but PsyNet records that no
+        payment should be issued and recruiters skip paid unsuccessful routes.
         """
         participant.aborted = True
         if participant.module_state:
             participant.module_state.abort()
+        if unpaid:
+            participant.var.set("early_exit_unpaid", True)
+            if not participant.failed:
+                participant.fail("aborted_unpaid")
+            return
         if not participant.failed:
             participant.fail(reason)
 
-    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
-        """Describe the consequences of leaving through this recruiter."""
+    def gates_early_exit_on_reward(self) -> bool:
+        """Return whether paid early exit requires the reward threshold.
+
+        Recruiters that do not pay through PsyNet never gate on reward: leaving
+        simply ends the session. Lucid overrides :meth:`early_exit_allowed`
+        instead, because termination must always be available.
+        """
+        return bool(self.shows_reward_by_default)
+
+    def early_exit_confirmation(
+        self, participant, *, force_compensated=False
+    ) -> EarlyExitConfirmation:
+        """Describe the consequences of leaving through this recruiter.
+
+        Parameters
+        ----------
+        participant
+            The participant considering an early exit.
+        force_compensated
+            When true (error-page recovery), skip the below-threshold unpaid
+            option and always describe the compensated/plain leave outcome.
+        """
+        if self._should_offer_unpaid_early_exit(participant, force_compensated):
+            return self._unpaid_early_exit_confirmation(participant)
+        return self._compensated_early_exit_confirmation(participant)
+
+    def _should_offer_unpaid_early_exit(
+        self, participant, force_compensated: bool
+    ) -> bool:
+        """Return whether voluntary leave should use the unpaid pathway."""
+        return (
+            not force_compensated
+            and self.gates_early_exit_on_reward()
+            and not self.early_exit_allowed(participant)
+        )
+
+    def _compensated_early_exit_confirmation(
+        self, participant
+    ) -> EarlyExitConfirmation:
+        """Confirmation copy when leaving is allowed without unpaid fallback.
+
+        Default recruiters do not pay through PsyNet, so the message avoids
+        payment promises. Paid recruiters override this method.
+        """
         _p = get_translator(context=True)
         return self._early_exit_confirmation(
             _p(
                 "early_exit",
-                "Leaving now ends your session. PsyNet cannot issue payment "
-                "through this recruiter automatically; contact the researcher "
-                "if you need to discuss compensation.",
+                "Leaving now ends the study. Your responses so far will be saved.",
             )
         )
 
-    def _early_exit_confirmation(self, message: str) -> EarlyExitConfirmation:
+    def _unpaid_early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
+        """Confirmation copy for leaving without payment below the threshold."""
+        _p = get_translator(context=True)
+        earned = _format_early_exit_amount(participant.calculate_reward())
+        threshold = _format_early_exit_amount(
+            get_config().get("min_accumulated_reward_for_abort")
+        )
+        message = _p(
+            "early_exit",
+            "You have earned {EARNED} so far. You need at least {THRESHOLD} "
+            "to leave with payment. You can continue the study, or leave "
+            "without payment. Your responses so far will still be saved.",
+        ).format(EARNED=earned, THRESHOLD=threshold)
+        return self._early_exit_confirmation(message, unpaid=True)
+
+    def _early_exit_confirmation(
+        self, message: str, *, unpaid: bool = False
+    ) -> EarlyExitConfirmation:
         """Build confirmation copy with PsyNet's shared labels."""
         _p = get_translator(context=True)
+        if unpaid:
+            confirm_label = _p("early_exit", "Leave without payment")
+        else:
+            confirm_label = _p("early_exit", "Leave study")
         return EarlyExitConfirmation(
-            title=_p("early_exit", "Leave the experiment?"),
+            title=_p("early_exit", "Leave the study?"),
             message=message,
-            confirm_label=_p("early_exit", "Leave experiment"),
-            cancel_label=_p("early_exit", "Stay in the experiment"),
+            confirm_label=confirm_label,
+            cancel_label=_p("early_exit", "Continue study"),
+            unpaid=unpaid,
         )
 
     def early_exit_allowed(self, participant) -> bool:
-        """Return whether this participant may confirm an early exit."""
+        """Return whether this participant may leave with the paid outcome.
+
+        Unpaid recruiters always allow leave. Paid recruiters require the
+        configured reward threshold unless a subclass (e.g. Lucid) overrides.
+        """
+        if not self.gates_early_exit_on_reward():
+            return True
         return participant.calculate_reward() >= get_config().get(
             "min_accumulated_reward_for_abort"
         )
 
+    def release_unpaid_early_exit(self, participant) -> TimelineLogic:
+        """Tell the participant how to finish after an unpaid early exit."""
+        _p = get_translator(context=True)
+        return InfoPage(
+            _p(
+                "early_exit_unpaid",
+                "Your responses have been saved. Please return this study on "
+                "the recruitment platform if it asks you to. You will not "
+                "receive payment for this study through PsyNet. You can close "
+                "this window.",
+            ),
+            time_estimate=0.0,
+            show_next_button=False,
+        )
+
     def release_participant(self, experiment, participant) -> TimelineLogic:
+        if _early_exit_is_unpaid(participant):
+            return self.release_unpaid_early_exit(participant)
         return self.submit_assignment()
 
     def submit_assignment(self) -> TimelineLogic:
@@ -399,6 +529,8 @@ class PsyNetRecruiterMixin:
 
     def decide_payment(self, participant, *, experiment) -> PaymentDecision:
         """Decide status, platform base, and bonus without writing or paying."""
+        if _early_exit_is_unpaid(participant):
+            return PaymentDecision(status="returned", platform_base=0.0, bonus=0.0)
         status = self.completion_status(participant)
         platform_base = self.platform_base_for(status, experiment)
         total_owed = self.total_owed(participant, status, platform_base)
@@ -529,25 +661,74 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         """
         return self.unsuccessful_base_payment is not None
 
-    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
-        """Explain Prolific's configured unsuccessful-participant flow."""
+    def _compensated_early_exit_confirmation(
+        self, participant
+    ) -> EarlyExitConfirmation:
+        """Explain Prolific's configured unsuccessful-participant payment."""
         _p = get_translator(context=True)
+        earned = participant.calculate_reward()
+        earned_txt = _format_early_exit_amount(earned)
         if self.pays_unsuccessful_participants_via_screen_out:
-            message = _p(
-                "early_exit_prolific",
-                "Leaving now ends the study and records your submission as "
-                "unsuccessful. You will return to Prolific using the study's "
-                "screen-out payment route, with any applicable bonus handled "
-                "separately.",
-            )
+            fixed = self.unsuccessful_base_payment
+            fixed_txt = _format_early_exit_amount(fixed)
+            if self.tops_up_unsuccessful_participants:
+                if earned > fixed:
+                    remainder_txt = _format_early_exit_amount(earned - fixed)
+                    message = _p(
+                        "early_exit_prolific",
+                        "If you leave now, you will receive a fixed early-exit "
+                        "payment of {FIXED}. Because you have earned {EARNED} "
+                        "so far, the remaining {REMAINDER} will be paid as a "
+                        "bonus.",
+                    ).format(
+                        FIXED=fixed_txt, EARNED=earned_txt, REMAINDER=remainder_txt
+                    )
+                else:
+                    message = _p(
+                        "early_exit_prolific",
+                        "If you leave now, you will receive a fixed early-exit "
+                        "payment of {FIXED}.",
+                    ).format(FIXED=fixed_txt)
+            else:
+                performance = participant.performance_reward or 0.0
+                if performance > 0:
+                    performance_txt = _format_early_exit_amount(performance)
+                    message = _p(
+                        "early_exit_prolific",
+                        "If you leave now, you will receive a fixed early-exit "
+                        "payment of {FIXED} plus a performance bonus of "
+                        "{PERFORMANCE}. You will not be paid for additional "
+                        "time spent on the study.",
+                    ).format(FIXED=fixed_txt, PERFORMANCE=performance_txt)
+                else:
+                    message = _p(
+                        "early_exit_prolific",
+                        "If you leave now, you will receive a fixed early-exit "
+                        "payment of {FIXED}. You will not be paid for "
+                        "additional time spent on the study.",
+                    ).format(FIXED=fixed_txt)
         else:
             message = _p(
                 "early_exit_prolific",
-                "Leaving now ends the study and records your submission as "
-                "unsuccessful. You will be asked to return the submission on "
-                "Prolific, and any compensation due will be handled separately.",
-            )
+                "If you leave now, you will need to return your Prolific "
+                "submission. You will then be paid {EARNED} as a bonus for "
+                "the work you have completed so far.",
+            ).format(EARNED=earned_txt)
         return self._early_exit_confirmation(message)
+
+    def release_unpaid_early_exit(self, participant) -> TimelineLogic:
+        """Ask the participant to return the Prolific submission without pay."""
+        _p = get_translator(context=True)
+        return InfoPage(
+            _p(
+                "early_exit_unpaid_prolific",
+                "Your responses have been saved. Please return your submission "
+                "on Prolific. You will not receive payment for this study. "
+                "You can close this window.",
+            ),
+            time_estimate=0.0,
+            show_next_button=False,
+        )
 
     def completion_status(self, participant) -> str:
         """Return the payment-path status for this Prolific participant.
@@ -557,6 +738,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         the current ``failed`` flag, so a later fail cannot reclassify a
         participant who already left with the auto-approving code.
         """
+        if _early_exit_is_unpaid(participant):
+            return "returned"
         if participant.status == "returned":
             return "returned"
         issued = getattr(participant, "issued_completion_code_type", None)
@@ -684,6 +867,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         participant's state at exit time; ``Experiment.recruiter_exit_info``
         persists the issued code for later payment.
         """
+        if _early_exit_is_unpaid(participant):
+            return None
         if participant.failed and self.pays_unsuccessful_participants_via_screen_out:
             return self.unsuccessful_code_type
         return None
@@ -849,6 +1034,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
+        if _early_exit_is_unpaid(participant):
+            return self.release_unpaid_early_exit(participant)
         if (
             participant.failed
             and not self.pays_unsuccessful_participants_via_screen_out
@@ -1320,16 +1507,45 @@ class MockProlificRecruiter(
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
-    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
-        """Explain MTurk's early-submission flow."""
+    def _compensated_early_exit_confirmation(
+        self, participant
+    ) -> EarlyExitConfirmation:
+        """Explain MTurk's early-submission payment outcome."""
         _p = get_translator(context=True)
-        return self._early_exit_confirmation(
-            _p(
+        earned = participant.calculate_reward()
+        earned_txt = _format_early_exit_amount(earned)
+        base = float(get_config().get("base_payment", 0.0) or 0.0)
+        base_txt = _format_early_exit_amount(base)
+        if earned > base:
+            remainder_txt = _format_early_exit_amount(earned - base)
+            message = _p(
                 "early_exit_mturk",
-                "Leaving now ends the experiment before completion. PsyNet "
-                "will record the early exit and continue to the MTurk "
-                "submission step; any compensation due is handled through MTurk.",
-            )
+                "If you leave now, the study will end and you will continue to "
+                "the MTurk submission step. You will receive the HIT payment "
+                "of {BASE}. Because you have earned {EARNED} so far, the "
+                "remaining {REMAINDER} will be paid as a bonus.",
+            ).format(BASE=base_txt, EARNED=earned_txt, REMAINDER=remainder_txt)
+        else:
+            message = _p(
+                "early_exit_mturk",
+                "If you leave now, the study will end and you will continue to "
+                "the MTurk submission step. You will receive the HIT payment "
+                "of {BASE}.",
+            ).format(BASE=base_txt)
+        return self._early_exit_confirmation(message)
+
+    def release_unpaid_early_exit(self, participant) -> TimelineLogic:
+        """Ask the participant to return the HIT without payment."""
+        _p = get_translator(context=True)
+        return InfoPage(
+            _p(
+                "early_exit_unpaid_mturk",
+                "Your responses have been saved. Please return this HIT on "
+                "MTurk. You will not receive payment for this study. You can "
+                "close this window.",
+            ),
+            time_estimate=0.0,
+            show_next_button=False,
         )
 
     def exit_response(self, experiment, participant):
@@ -2429,14 +2645,21 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             participant.module_state.abort()
         return self.terminate_participant(participant=participant, reason=reason)
 
-    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
-        """Explain that leaving returns the participant to Lucid."""
+    def early_exit_confirmation(
+        self, participant, *, force_compensated=False
+    ) -> EarlyExitConfirmation:
+        """Explain that leaving returns the participant to Lucid.
+
+        Lucid never pays through PsyNet, and termination is always available,
+        so the unpaid below-threshold pathway is not used.
+        """
         _p = get_translator(context=True)
         return self._early_exit_confirmation(
             _p(
                 "early_exit_lucid",
-                "Leaving now ends this survey session and returns you to Lucid. "
-                "PsyNet does not issue participant payments for Lucid surveys.",
+                "If you leave now, you will return to your panel provider. "
+                "This study will not issue a payment; any payment depends on "
+                "your panel provider's rules.",
             )
         )
 
