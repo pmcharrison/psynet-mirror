@@ -257,9 +257,13 @@ class EarlyExitPath(StrEnum):
 
 @dataclass(frozen=True)
 class EarlyExitPlan:
-    """Server-owned early-exit offer and execution plan."""
+    """Server-owned early-exit offer and execution plan.
 
-    version: int
+    Plans live only as long as the participant's session, so there is no
+    schema versioning here; ``from_dict`` simply refuses anything it cannot
+    read as a plan.
+    """
+
     offer_id: str
     context: EarlyExitContext
     path: EarlyExitPath
@@ -280,7 +284,6 @@ class EarlyExitPlan:
     ) -> "EarlyExitPlan":
         """Create a new offered plan."""
         return cls(
-            version=1,
             offer_id=str(uuid4()),
             context=context,
             path=path,
@@ -300,12 +303,9 @@ class EarlyExitPlan:
     @classmethod
     def from_dict(cls, data: dict) -> "EarlyExitPlan":
         """Restore a plan from participant storage."""
-        if data.get("version") != 1:
-            raise ValueError("Unsupported early-exit plan version.")
         if data.get("status") not in {"offered", "executed"}:
             raise ValueError("Invalid early-exit plan status.")
         return cls(
-            version=data["version"],
             offer_id=data["offer_id"],
             context=EarlyExitContext(data["context"]),
             path=EarlyExitPath(data["path"]),

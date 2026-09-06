@@ -823,6 +823,13 @@ def test_early_exit_plan_round_trips_through_participant_column_data():
     assert restored.to_dict()["confirmation"]["message"] == "Your work is saved."
 
 
+def test_early_exit_plan_refuses_stored_data_it_cannot_read():
+    plan = _early_exit_test_plan().to_dict()
+
+    with pytest.raises(ValueError, match="status"):
+        EarlyExitPlan.from_dict({**plan, "status": "half-done"})
+
+
 def test_participant_has_dedicated_early_exit_plan_column():
     assert "early_exit_plan" in Participant.__table__.columns
 
