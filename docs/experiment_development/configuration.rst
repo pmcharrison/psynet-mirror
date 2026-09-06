@@ -269,7 +269,9 @@ General
     recruiter path that will be executed if they confirm. The plan is stored on
     :attr:`~psynet.participant.Participant.early_exit_plan`, so the browser
     cannot select a different payment path. Any amounts quoted by the standard
-    plan are also used for the eventual payment decision.
+    plan are also used for the eventual payment decision. After confirmation,
+    PsyNet advances directly to a dedicated release branch, so platform-specific
+    return or submission instructions come from the same planned path.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the

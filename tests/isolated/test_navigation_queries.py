@@ -11,6 +11,12 @@ from sqlalchemy import inspect
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.recruiters import (
+    EarlyExitConfirmation,
+    EarlyExitContext,
+    EarlyExitPath,
+    EarlyExitPlan,
+)
 from psynet.sqlalchemy_profiling import assert_query_count
 from psynet.timeline import ModuleState
 
@@ -43,6 +49,42 @@ def participant_with_module_state(db_session):
     unique_id = participant.unique_id
     db.session.remove()
     return unique_id
+
+
+def test_early_exit_plan_persists_and_rolls_back(db_session):
+    experiment = get_experiment()
+    participant = Participant(
+        experiment=experiment,
+        recruiter_id="hotair",
+        worker_id=str(uuid.uuid4()),
+        hit_id=str(uuid.uuid4()),
+        assignment_id=str(uuid.uuid4()),
+        mode="debug",
+    )
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.VOLUNTARY,
+        path=EarlyExitPath.END_SESSION,
+        confirmation=EarlyExitConfirmation(
+            title="Leave?",
+            message="Responses saved.",
+            confirm_label="Leave",
+            cancel_label="Continue",
+        ),
+    )
+    participant.early_exit_plan = plan.to_dict()
+    db.session.add(participant)
+    db.session.commit()
+    participant_id = participant.id
+    db.session.remove()
+
+    reloaded = Participant.query.get(participant_id)
+    assert EarlyExitPlan.from_dict(reloaded.early_exit_plan) == plan
+
+    reloaded.early_exit_plan = plan.mark_executed().to_dict()
+    db.session.flush()
+    db.session.rollback()
+    db.session.remove()
+    assert Participant.query.get(participant_id).early_exit_plan == plan.to_dict()
 
 
 def test_participant_request_query_loads_relationships_only_when_used(

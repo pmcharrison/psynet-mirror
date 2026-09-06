@@ -1863,8 +1863,14 @@ class Page(Elt):
         )
         js_vars = {**self.js_vars, **internal_js_vars}
         inplace_timeline_transitions = config.get("inplace_timeline_transitions")
-        early_exit_plan = experiment.early_exit_plan(participant)
-        participant.early_exit_plan = early_exit_plan.to_dict()
+        stored_early_exit_plan = getattr(participant, "early_exit_plan", None)
+        if participant.early_exited and isinstance(stored_early_exit_plan, dict):
+            from .recruiters import EarlyExitPlan
+
+            early_exit_plan = EarlyExitPlan.from_dict(stored_early_exit_plan)
+        else:
+            early_exit_plan = experiment.early_exit_plan(participant)
+            participant.early_exit_plan = early_exit_plan.to_dict()
 
         all_template_args = {
             **self.template_arg,
@@ -2276,6 +2282,7 @@ class Timeline:
         from collections import OrderedDict
 
         from psynet.end import (
+            EarlyExitReleaseLogic,
             RejectedConsentLogic,
             SuccessfulEndLogic,
             UnsuccessfulEndLogic,
@@ -2286,6 +2293,7 @@ class Timeline:
             [
                 ("successful_end", SuccessfulEndLogic()),
                 ("unsuccessful_end", UnsuccessfulEndLogic()),
+                ("early_exit_release", EarlyExitReleaseLogic()),
                 ("rejected_consent", RejectedConsentLogic()),
             ]
         )

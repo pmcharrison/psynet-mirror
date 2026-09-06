@@ -397,6 +397,42 @@ def test_release_participant_branching(failed, payment_configured, expected):
 
 
 @pytest.mark.parametrize(
+    "path,expected_method",
+    [
+        (EarlyExitPath.SCREEN_OUT, "submit_assignment"),
+        (EarlyExitPath.RETURN_FOR_BONUS, "request_return_for_bonus"),
+        (
+            EarlyExitPath.RETURN_WITHOUT_PAYMENT,
+            "release_early_exit_without_payment",
+        ),
+    ],
+)
+def test_prolific_release_follows_the_executed_plan(path, expected_method):
+    recruiter = make_prolific_recruiter(make_config())
+    participant = MagicMock(
+        early_exited=True,
+        early_exit_plan=_early_exit_test_plan(path).mark_executed().to_dict(),
+    )
+
+    with (
+        patch.object(recruiter, "submit_assignment") as submit,
+        patch.object(recruiter, "request_return_for_bonus") as return_for_bonus,
+        patch.object(
+            recruiter, "release_early_exit_without_payment"
+        ) as without_payment,
+    ):
+        recruiter.release_participant(MagicMock(), participant)
+
+    methods = {
+        "submit_assignment": submit,
+        "request_return_for_bonus": return_for_bonus,
+        "release_early_exit_without_payment": without_payment,
+    }
+    for name, method in methods.items():
+        assert method.call_count == (1 if name == expected_method else 0)
+
+
+@pytest.mark.parametrize(
     "status,expect_skipped",
     [
         ("screened_out", True),
@@ -688,7 +724,9 @@ def _early_exit_test_plan(path=EarlyExitPath.END_SESSION):
 def test_execute_early_exit_plan_marks_early_exited_and_fails():
     participant = MagicMock()
     participant.failed = False
-    PsyNetRecruiterMixin().execute_early_exit_plan(participant, _early_exit_test_plan())
+    PsyNetRecruiterMixin().execute_early_exit_plan(
+        MagicMock(), participant, _early_exit_test_plan()
+    )
     assert participant.early_exited is True
     participant.module_state.mark_early_exited.assert_called_once()
     participant.fail.assert_called_once_with("early_exit")
@@ -697,7 +735,9 @@ def test_execute_early_exit_plan_marks_early_exited_and_fails():
 def test_execute_early_exit_plan_skips_fail_when_already_failed():
     participant = MagicMock()
     participant.failed = True
-    PsyNetRecruiterMixin().execute_early_exit_plan(participant, _early_exit_test_plan())
+    PsyNetRecruiterMixin().execute_early_exit_plan(
+        MagicMock(), participant, _early_exit_test_plan()
+    )
     assert participant.early_exited is True
     participant.fail.assert_not_called()
 
@@ -990,6 +1030,7 @@ def test_early_exit_route_executes_the_stored_plan():
     )
     participant = MagicMock()
     participant.early_exited = False
+    participant.unique_id = "unique-1"
     participant.early_exit_plan = plan.to_dict()
     experiment = MagicMock()
 
@@ -1009,11 +1050,17 @@ def test_early_exit_route_executes_the_stored_plan():
     ):
         assert Experiment.route_set_participant_as_early_exited("assign-1") == "ok"
 
-    success.assert_called_once_with()
+    success.assert_called_once_with(release_url="/timeline?unique_id=unique-1")
     experiment.recruiter.execute_early_exit_plan.assert_called_once()
-    executed_plan = experiment.recruiter.execute_early_exit_plan.call_args.args[1]
+    called_experiment, called_participant, executed_plan = (
+        experiment.recruiter.execute_early_exit_plan.call_args.args
+    )
+    assert called_experiment is experiment
+    assert called_participant is participant
     assert executed_plan.path is EarlyExitPath.SCREEN_OUT
+    assert participant.pending_redirect == "early_exit_release"
     assert participant.early_exit_plan["status"] == "executed"
+    experiment.timeline.advance_page.assert_called_once_with(experiment, participant)
 
 
 @pytest.mark.parametrize("payload", [{"offer_id": "stale-offer"}, []])
@@ -1088,7 +1135,7 @@ def test_return_without_payment_plan_skips_payment():
     plan = _early_exit_test_plan(EarlyExitPath.RETURN_WITHOUT_PAYMENT)
     participant.early_exit_plan = plan.to_dict()
 
-    PsyNetRecruiterMixin().execute_early_exit_plan(participant, plan)
+    PsyNetRecruiterMixin().execute_early_exit_plan(MagicMock(), participant, plan)
 
     participant.fail.assert_called_once_with("early_exit_without_payment")
     participant.early_exit_plan = plan.mark_executed().to_dict()
@@ -1149,18 +1196,53 @@ def test_lucid_early_exit_terminates_the_panel_session():
             pass
 
         def terminate_participant(
-            self, participant=None, assignment_id=None, reason=None, details=None
+            self,
+            participant=None,
+            assignment_id=None,
+            reason=None,
+            details=None,
+            **kwargs,
         ):
             self.seen_reason = reason
+            self.seen_kwargs = kwargs
             return "https://lucid.example/exit"
 
     recruiter = FakeLucid()
     participant = MagicMock()
     recruiter.execute_early_exit_plan(
+        MagicMock(),
         participant,
         _early_exit_test_plan(EarlyExitPath.TERMINATE_PANEL_SESSION),
     )
     assert recruiter.seen_reason == "early_exit"
+    assert recruiter.seen_kwargs == {
+        "commit_participant": False,
+        "raise_on_error": True,
+    }
+
+
+def test_lucid_plan_execution_propagates_termination_failure_without_commit():
+    recruiter = object.__new__(BaseLucidRecruiter)
+    recruiter.lucidservice = MagicMock()
+    recruiter.lucidservice.terminate_respondent.side_effect = RuntimeError(
+        "Lucid unavailable"
+    )
+    participant = MagicMock(
+        assignment_id="rid-1",
+        module_state=None,
+    )
+
+    with (
+        patch("psynet.recruiters.db.session.commit") as commit,
+        pytest.raises(RuntimeError, match="Lucid unavailable"),
+    ):
+        recruiter.execute_early_exit_plan(
+            MagicMock(),
+            participant,
+            _early_exit_test_plan(EarlyExitPath.TERMINATE_PANEL_SESSION),
+        )
+
+    commit.assert_not_called()
 
 
 def test_prolific_treats_a_failed_early_exit_as_screen_out():

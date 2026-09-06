@@ -684,8 +684,8 @@ def test_footer_exit_uses_an_in_page_confirmation():
         resources.files("psynet") / "resources/scripts/psynet.early-exit.js"
     ).read_text(encoding="utf-8")
     assert "psynet.initEarlyExitButton" in js
-    assert "global.psynet.finishAndGoToExit" in early_exit_js
-    assert '.post("/worker_complete"' in early_exit_js
+    assert "result.release_url" in early_exit_js
+    assert '.post("/worker_complete"' not in early_exit_js
     assert '"/set_participant_as_early_exited/"' in early_exit_js
     assert 'method: "POST"' in early_exit_js
     assert "offer_id: offerId" in early_exit_js
@@ -708,11 +708,10 @@ def test_shared_early_exit_modal_renders_server_offer_id_and_cancel_copy():
     template = environment.from_string(
         """
         {% from "macros/early_exit.html" import early_exit_modal %}
-        {{ early_exit_modal("assignment-1", 7, "offer-1", confirmation) }}
+        {{ early_exit_modal("assignment-1", "offer-1", confirmation) }}
         ---
         {{ early_exit_modal(
             "assignment-1",
-            7,
             "offer-2",
             confirmation,
             cancel_label="Stay on this page"

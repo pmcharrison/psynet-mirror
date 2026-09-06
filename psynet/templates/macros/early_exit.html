@@ -1,7 +1,6 @@
 {# Shared Leave confirmation dialog for timeline and error pages. #}
 {% macro early_exit_modal(
     assignment_id,
-    participant_id,
     offer_id,
     confirmation,
     cancel_label=None
@@ -13,7 +12,6 @@
          aria-labelledby="early-exit-title"
          aria-describedby="early-exit-message"
          data-assignment-id="{{ assignment_id }}"
-         data-participant-id="{{ participant_id }}"
          data-offer-id="{{ offer_id }}"
          hidden>
         <div class="modal-content">

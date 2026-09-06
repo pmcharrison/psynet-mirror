@@ -3,24 +3,12 @@
 
   let controller = null;
 
-  function postWorkerComplete(participantId) {
-    return new Promise((resolve, reject) => {
-      dallinger
-        .post("/worker_complete", { participant_id: participantId })
-        .done(resolve)
-        .fail(reject);
-    });
-  }
-
-  async function finish(participantId) {
-    if (global.psynet && global.psynet.finishAndGoToExit) {
-      global.psynet.finishAndGoToExit();
-      return;
+  function continueToRelease(releaseUrl) {
+    if (!releaseUrl) throw new Error("The server did not provide a release URL.");
+    if (global.dallinger && global.dallinger.allowExit) {
+      global.dallinger.allowExit();
     }
-    await postWorkerComplete(participantId);
-    global.location.replace(
-      "/recruiter-exit?participant_id=" + encodeURIComponent(participantId),
-    );
+    global.location.replace(releaseUrl);
   }
 
   function init() {
@@ -70,9 +58,8 @@
       "click",
       async () => {
         const assignmentId = modal.dataset.assignmentId;
-        const participantId = modal.dataset.participantId;
         const offerId = modal.dataset.offerId;
-        if (!assignmentId || !participantId || !offerId) return;
+        if (!assignmentId || !offerId) return;
 
         confirm.disabled = true;
         cancel.disabled = true;
@@ -87,7 +74,8 @@
             },
           );
           if (!response.ok) throw new Error("Failed to record early exit.");
-          await finish(participantId);
+          const result = await response.json();
+          continueToRelease(result.release_url);
         } catch (error) {
           confirm.disabled = false;
           cancel.disabled = false;

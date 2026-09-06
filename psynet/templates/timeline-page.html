@@ -204,7 +204,6 @@
             {{ timeline_footer() }}
             {{ early_exit_modal(
                 participant.assignment_id,
-                participant.id,
                 early_exit_offer_id,
                 early_exit_confirmation
             ) }}
@@ -222,7 +221,6 @@
             {% block modals %}
                 {{ early_exit_modal(
                     participant.assignment_id,
-                    participant.id,
                     early_exit_offer_id,
                     early_exit_confirmation
                 ) }}

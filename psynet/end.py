@@ -142,6 +142,17 @@ class SuccessfulEndLogic(EndLogic):
         return self.debrief_page(html, experiment, participant)
 
 
+class EarlyExitReleaseLogic(EltCollection):
+    """Run recruiter-specific release immediately after confirmed Leave."""
+
+    def resolve(self) -> Union[Elt, List[Elt]]:
+        return PageMaker(self.release_participant, time_estimate=0.0)
+
+    def release_participant(self, experiment, participant) -> TimelineLogic:
+        """Return the release flow selected by the participant's stored plan."""
+        return experiment.recruiter.release_participant(experiment, participant)
+
+
 class UnsuccessfulEndLogic(EndLogic):
     def __init__(self, failure_tags: Optional[List] = None, **kwargs):
         super().__init__()

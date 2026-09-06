@@ -433,12 +433,22 @@ class PsyNetRecruiterMixin:
         """Hook run when the participant rejects consent and never reaches submission."""
 
     def terminate_participant(
-        self, participant=None, assignment_id=None, reason=None, details=None
+        self,
+        participant=None,
+        assignment_id=None,
+        reason=None,
+        details=None,
+        *,
+        commit_participant=True,
+        raise_on_error=False,
     ):
         raise NotImplementedError
 
-    def execute_early_exit_plan(self, participant, plan: EarlyExitPlan) -> None:
+    def execute_early_exit_plan(
+        self, experiment, participant, plan: EarlyExitPlan
+    ) -> None:
         """Execute a server-owned early-exit plan."""
+        del experiment
         if plan.path not in self.supported_early_exit_paths:
             raise ValueError(
                 f"{self.__class__.__name__} cannot execute early-exit path "
@@ -2816,7 +2826,14 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         return self.lucidservice.complete_respondent(rid)
 
     def terminate_participant(
-        self, participant=None, assignment_id=None, reason=None, details=None
+        self,
+        participant=None,
+        assignment_id=None,
+        reason=None,
+        details=None,
+        *,
+        commit_participant=True,
+        raise_on_error=False,
     ):
         assert participant or assignment_id
         assert not (participant and assignment_id)
@@ -2831,7 +2848,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             participant.failed = True
             participant.failed_reason = reason
             participant.status = "returned"
-            db.session.commit()
+            if commit_participant:
+                db.session.commit()
         try:
             logger.info(
                 f"Terminating respondent with RID '{assignment_id}'. Reason: '{reason}'"
@@ -2841,14 +2859,24 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             logger.error(
                 f"Error terminating respondent with RID '{assignment_id}': {e}"
             )
+            if raise_on_error:
+                raise
 
         return self.external_submit_url(assignment_id=assignment_id)
 
-    def execute_early_exit_plan(self, participant, plan: EarlyExitPlan) -> None:
+    def execute_early_exit_plan(
+        self, experiment, participant, plan: EarlyExitPlan
+    ) -> None:
         """Terminate the panel session described by a Lucid exit plan."""
+        del experiment
         if plan.path is not EarlyExitPath.TERMINATE_PANEL_SESSION:
             raise ValueError("Lucid early-exit plans must terminate the panel session.")
-        self.terminate_participant(participant=participant, reason="early_exit")
+        self.terminate_participant(
+            participant=participant,
+            reason="early_exit",
+            commit_participant=False,
+            raise_on_error=True,
+        )
 
     def plan_early_exit(
         self,

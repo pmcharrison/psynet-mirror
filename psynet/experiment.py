@@ -4757,8 +4757,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = cls.get_participant_from_assignment_id(
             assignment_id, for_update=True
         )
+        release_url = f"/timeline?unique_id={participant.unique_id}"
         if participant.early_exited:
-            return success_response()
+            return success_response(release_url=release_url)
 
         try:
             plan = EarlyExitPlan.from_dict(participant.early_exit_plan)
@@ -4777,18 +4778,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 simple=True,
             )
         if plan.status == "executed":
-            return success_response()
+            return success_response(release_url=release_url)
 
         experiment = get_experiment()
-        experiment.recruiter.execute_early_exit_plan(participant, plan)
+        experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
         participant.early_exit_plan = plan.mark_executed().to_dict()
+        participant.pending_redirect = "early_exit_release"
+        experiment.timeline.advance_page(experiment, participant)
         logger.info(
             "Executed early-exit plan %s (%s) for participant %s.",
             plan.offer_id,
             plan.path.value,
             participant.id,
         )
-        return success_response()
+        return success_response(release_url=release_url)
 
     @experiment_route("/timeline", methods=["GET"])
     @classmethod
