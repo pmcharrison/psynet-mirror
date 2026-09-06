@@ -1634,10 +1634,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         ):
             experiment = get_experiment()
-            # Error recovery always uses the compensated/plain leave pathway,
-            # even if the participant is below the voluntary paid-exit threshold.
+            # Error recovery uses compensated/plain leave copy and grants a
+            # one-shot server-side bypass so below-threshold participants can
+            # still take that pathway (voluntary leave cannot).
+            participant.var.set("early_exit_compensated_ok", True)
             early_exit_confirmation = experiment.early_exit_confirmation(
-                participant, skip_unpaid=True
+                participant, allow_unpaid_early_exit_option=False
             )
             early_exit_allowed = True
 
@@ -3255,7 +3257,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
-    def early_exit_confirmation(self, participant, *, skip_unpaid=False):
+    def early_exit_confirmation(
+        self, participant, *, allow_unpaid_early_exit_option=True
+    ):
         """Return the participant-facing confirmation copy for leaving early.
 
         Override this method to customize the recruiter's default copy. Return
@@ -3265,12 +3269,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ----------
         participant
             The participant considering an early exit.
-        skip_unpaid
-            When true (error-page recovery), skip the below-threshold unpaid
-            option and always describe the compensated/plain leave outcome.
+        allow_unpaid_early_exit_option
+            When false (error-page recovery), do not offer the below-threshold
+            unpaid early-exit option; always describe the compensated/plain
+            leave outcome instead.
         """
         return self.recruiter.early_exit_confirmation(
-            participant, skip_unpaid=skip_unpaid
+            participant,
+            allow_unpaid_early_exit_option=allow_unpaid_early_exit_option,
+            paid_exit_allowed=self.early_exit_allowed(participant),
         )
 
     def early_exit_allowed(self, participant):
@@ -4749,6 +4756,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
 
+    @staticmethod
+    def resolve_early_exit_unpaid(
+        experiment, participant, requested_unpaid: bool
+    ) -> bool:
+        """Decide whether an early exit must be unpaid.
+
+        The browser may request unpaid leave via ``?payment=none``, but paid
+        leave below the configured threshold is only allowed when the error
+        page has granted a one-shot ``early_exit_compensated_ok`` bypass.
+        """
+        recruiter = experiment.recruiter
+        if not recruiter.gates_early_exit_on_reward():
+            return requested_unpaid
+        if experiment.early_exit_allowed(participant):
+            return requested_unpaid
+        if requested_unpaid:
+            return True
+        var = getattr(participant, "var", None)
+        compensated_ok = False
+        if var is not None:
+            getter = getattr(var, "get", None)
+            if callable(getter):
+                compensated_ok = getter("early_exit_compensated_ok", False) is True
+            else:
+                compensated_ok = (
+                    getattr(var, "early_exit_compensated_ok", False) is True
+                )
+        if compensated_ok:
+            setter = getattr(var, "set", None)
+            if callable(setter):
+                setter("early_exit_compensated_ok", False)
+            return False
+        return True
+
     @experiment_route(
         "/set_participant_as_early_exited/<assignment_id>", methods=["GET"]
     )
@@ -4758,8 +4799,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = cls.get_participant_from_assignment_id(
             assignment_id, for_update=True
         )
-        unpaid = request.args.get("payment") == "none"
-        get_experiment().recruiter.early_exit(
+        experiment = get_experiment()
+        unpaid = cls.resolve_early_exit_unpaid(
+            experiment,
+            participant,
+            request.args.get("payment") == "none",
+        )
+        experiment.recruiter.early_exit(
             participant,
             reason="early_exit_unpaid" if unpaid else "early_exit",
             unpaid=unpaid,

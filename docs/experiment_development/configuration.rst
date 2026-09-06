@@ -271,7 +271,9 @@ General
         from psynet.recruiters import EarlyExitConfirmation
 
         class Exp(Experiment):
-            def early_exit_confirmation(self, participant, *, skip_unpaid=False):
+            def early_exit_confirmation(
+                self, participant, *, allow_unpaid_early_exit_option=True
+            ):
                 return EarlyExitConfirmation(
                     title="Leave without finishing?",
                     message="Your responses so far will still be saved.",

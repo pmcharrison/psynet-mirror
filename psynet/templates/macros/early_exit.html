@@ -1,0 +1,35 @@
+{# Shared Leave confirmation dialog for timeline and error pages. #}
+{% macro early_exit_modal(
+    assignment_id,
+    participant_id,
+    confirmation,
+    cancel_label=None,
+    unpaid=None
+) %}
+    {# ``unpaid`` overrides ``confirmation.unpaid`` when the caller must force
+       a pathway (error-page recovery always uses compensated/plain leave). #}
+    {% set unpaid_flag = confirmation.unpaid if unpaid is none else unpaid %}
+    <div id="early-exit-modal"
+         class="modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="early-exit-title"
+         aria-describedby="early-exit-message"
+         data-assignment-id="{{ assignment_id }}"
+         data-participant-id="{{ participant_id }}"
+         data-unpaid="{{ 'true' if unpaid_flag else 'false' }}"
+         hidden>
+        <div class="modal-content">
+            <h2 id="early-exit-title">{{ confirmation.title }}</h2>
+            <p id="early-exit-message">{{ confirmation.message }}</p>
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+                <button type="button" id="early-exit-cancel" class="btn btn-primary">
+                    {{ cancel_label if cancel_label is not none else confirmation.cancel_label }}
+                </button>
+                <button type="button" id="early-exit-confirm" class="btn btn-danger">
+                    {{ confirmation.confirm_label }}
+                </button>
+            </div>
+        </div>
+    </div>
+{% endmacro %}

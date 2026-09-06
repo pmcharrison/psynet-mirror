@@ -1,5 +1,6 @@
 {% extends "macros.html" %}
 {% import "macros/browser-detect.html" as browser_detect with context %}
+{% from "macros/early_exit.html" import early_exit_modal %}
 
 {% macro template_data_script() %}
     {# Shared bootstrap payload for both full-page loads and inplace fragment swaps. #}
@@ -44,32 +45,6 @@
             }
         } | tojson }}
     </script>
-{% endmacro %}
-
-{% macro early_exit_modal() %}
-    <div id="early-exit-modal"
-         class="modal"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="early-exit-title"
-         aria-describedby="early-exit-message"
-         data-assignment-id="{{ participant.assignment_id }}"
-         data-participant-id="{{ participant.id }}"
-         data-unpaid="{{ 'true' if early_exit_confirmation.unpaid else 'false' }}"
-         hidden>
-        <div class="modal-content">
-            <h2 id="early-exit-title">{{ early_exit_confirmation.title }}</h2>
-            <p id="early-exit-message">{{ early_exit_confirmation.message }}</p>
-            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
-                <button type="button" id="early-exit-cancel" class="btn btn-primary">
-                    {{ early_exit_confirmation.cancel_label }}
-                </button>
-                <button type="button" id="early-exit-confirm" class="btn btn-danger">
-                    {{ early_exit_confirmation.confirm_label }}
-                </button>
-            </div>
-        </div>
-    </div>
 {% endmacro %}
 
 {% block stylesheets %}
@@ -227,7 +202,11 @@
             {{ timeline_header() }}
             {{ timeline_main_body() }}
             {{ timeline_footer() }}
-            {{ early_exit_modal() }}
+            {{ early_exit_modal(
+                participant.assignment_id,
+                participant.id,
+                early_exit_confirmation
+            ) }}
             {{ template_data_script() }}
         </div>
     {% else %}
@@ -240,7 +219,11 @@
             {{ timeline_main_body() }}
 
             {% block modals %}
-                {{ early_exit_modal() }}
+                {{ early_exit_modal(
+                    participant.assignment_id,
+                    participant.id,
+                    early_exit_confirmation
+                ) }}
 
                 {% block comment_modal %}
                     {% if config.get("leave_comments_on_every_page") %}

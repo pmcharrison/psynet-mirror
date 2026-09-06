@@ -1069,7 +1069,9 @@ def test_experimenters_can_customize_early_exit_confirmation():
 
     assert experiment.early_exit_confirmation(participant) is custom
     experiment.recruiter.early_exit_confirmation.assert_called_once_with(
-        participant, skip_unpaid=False
+        participant,
+        allow_unpaid_early_exit_option=True,
+        paid_exit_allowed=experiment.early_exit_allowed(participant),
     )
 
 

@@ -1,4 +1,5 @@
 {% extends "psynet_layout.html" %}
+{% from "macros/early_exit.html" import early_exit_modal %}
 
 {% block body %}
     <div class="container my-5 psynet-surface">
@@ -17,29 +18,13 @@
                     <button type="button" id="early-exit-open" class="btn btn-danger btn-lg">
                         {{ early_exit_confirmation.confirm_label }}
                     </button>
-                    <div id="early-exit-modal"
-                         class="modal"
-                         role="dialog"
-                         aria-modal="true"
-                         aria-labelledby="early-exit-title"
-                         aria-describedby="early-exit-message"
-                         data-assignment-id="{{ assignment_id }}"
-                         data-participant-id="{{ participant_id }}"
-                         data-unpaid="false"
-                         hidden>
-                        <div class="modal-content">
-                            <h2 id="early-exit-title">{{ early_exit_confirmation.title }}</h2>
-                            <p id="early-exit-message">{{ early_exit_confirmation.message }}</p>
-                            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
-                                <button type="button" id="early-exit-cancel" class="btn btn-primary">
-                                    {{ pgettext("early_exit_error", "Stay on this page") }}
-                                </button>
-                                <button type="button" id="early-exit-confirm" class="btn btn-danger">
-                                    {{ early_exit_confirmation.confirm_label }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    {{ early_exit_modal(
+                        assignment_id,
+                        participant_id,
+                        early_exit_confirmation,
+                        cancel_label=pgettext("early_exit_error", "Stay on this page"),
+                        unpaid=false
+                    ) }}
                     <script>
                         document.addEventListener("DOMContentLoaded", function () {
                             window.psynetEarlyExit.init();

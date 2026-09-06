@@ -371,7 +371,11 @@ class PsyNetRecruiterMixin:
         return bool(self.shows_reward_by_default)
 
     def early_exit_confirmation(
-        self, participant, *, skip_unpaid=False
+        self,
+        participant,
+        *,
+        allow_unpaid_early_exit_option=True,
+        paid_exit_allowed=None,
     ) -> EarlyExitConfirmation:
         """Describe the consequences of leaving through this recruiter.
 
@@ -379,20 +383,31 @@ class PsyNetRecruiterMixin:
         ----------
         participant
             The participant considering an early exit.
-        skip_unpaid
-            When true (error-page recovery), skip the below-threshold unpaid
-            option and always describe the compensated/plain leave outcome.
+        allow_unpaid_early_exit_option
+            When false (error-page recovery), do not offer the below-threshold
+            unpaid early-exit option; always describe the compensated/plain
+            leave outcome instead.
+        paid_exit_allowed
+            Whether paid/compensated leave is currently allowed. Defaults to
+            :meth:`early_exit_allowed`. Experiments pass
+            ``Experiment.early_exit_allowed`` so overrides take effect.
         """
-        if self._should_offer_unpaid_early_exit(participant, skip_unpaid):
+        if paid_exit_allowed is None:
+            paid_exit_allowed = self.early_exit_allowed(participant)
+        if self._should_offer_unpaid_early_exit(
+            allow_unpaid_early_exit_option, paid_exit_allowed
+        ):
             return self._unpaid_early_exit_confirmation(participant)
         return self._compensated_early_exit_confirmation(participant)
 
-    def _should_offer_unpaid_early_exit(self, participant, skip_unpaid: bool) -> bool:
+    def _should_offer_unpaid_early_exit(
+        self, allow_unpaid_early_exit_option: bool, paid_exit_allowed: bool
+    ) -> bool:
         """Return whether voluntary leave should use the unpaid pathway."""
         return (
-            not skip_unpaid
+            allow_unpaid_early_exit_option
             and self.gates_early_exit_on_reward()
-            and not self.early_exit_allowed(participant)
+            and not paid_exit_allowed
         )
 
     def _compensated_early_exit_confirmation(
@@ -2660,13 +2675,18 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         return self.terminate_participant(participant=participant, reason=reason)
 
     def early_exit_confirmation(
-        self, participant, *, skip_unpaid=False
+        self,
+        participant,
+        *,
+        allow_unpaid_early_exit_option=True,
+        paid_exit_allowed=None,
     ) -> EarlyExitConfirmation:
         """Explain that leaving returns the participant to Lucid.
 
         Lucid never pays through PsyNet, and termination is always available,
         so the unpaid below-threshold pathway is not used.
         """
+        del allow_unpaid_early_exit_option, paid_exit_allowed
         _p = get_translator(context=True)
         return self._early_exit_confirmation(
             _p(

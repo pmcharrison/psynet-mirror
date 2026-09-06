@@ -662,14 +662,18 @@ def test_exit_navigation_replaces_the_finished_timeline_in_history():
 
 
 def test_footer_exit_uses_an_in_page_confirmation():
-    timeline = (resources.files("psynet") / "templates/timeline-page.html").read_text(
+    templates = resources.files("psynet") / "templates"
+    timeline = (templates / "timeline-page.html").read_text(encoding="utf-8")
+    early_exit_macro = (templates / "macros/early_exit.html").read_text(
         encoding="utf-8"
     )
     assert "config.show_early_exit_button" in timeline
     assert "recruiter.show_early_exit_button" in timeline
-    assert 'id="early-exit-modal"' in timeline
-    assert 'id="early-exit-cancel"' in timeline
-    assert 'id="early-exit-confirm"' in timeline
+    assert 'from "macros/early_exit.html" import early_exit_modal' in timeline
+    assert "early_exit_modal(" in timeline
+    assert 'id="early-exit-modal"' in early_exit_macro
+    assert 'id="early-exit-cancel"' in early_exit_macro
+    assert 'id="early-exit-confirm"' in early_exit_macro
 
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
@@ -683,12 +687,13 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert '"/set_participant_as_early_exited/"' in early_exit_js
     assert "?payment=none" in early_exit_js
     assert '"/abort/" + encodeURIComponent(assignmentId)' not in js
-    assert "data-unpaid=" in timeline
+    assert "data-unpaid=" in early_exit_macro
 
     experiment_source = (resources.files("psynet") / "experiment.py").read_text(
         encoding="utf-8"
     )
-    assert 'unpaid = request.args.get("payment") == "none"' in experiment_source
+    assert "resolve_early_exit_unpaid" in experiment_source
+    assert 'request.args.get("payment") == "none"' in experiment_source
     assert "unpaid=unpaid" in experiment_source
 
 
@@ -696,10 +701,16 @@ def test_abort_is_removed_from_ad_and_available_inline_on_error():
     templates = resources.files("psynet") / "templates"
     ad = (templates / "ad.html").read_text(encoding="utf-8")
     error = (templates / "psynet_error.html").read_text(encoding="utf-8")
+    early_exit_macro = (templates / "macros/early_exit.html").read_text(
+        encoding="utf-8"
+    )
 
     assert 'id="abort-button"' not in ad
     assert "enableAbortButton" not in ad
     assert 'window.open("/abort/"' not in ad
-    assert 'id="early-exit-modal"' in error
-    assert 'id="early-exit-confirm"' in error
+    assert 'from "macros/early_exit.html" import early_exit_modal' in error
+    assert "early_exit_modal(" in error
+    assert 'id="early-exit-modal"' in early_exit_macro
+    assert 'id="early-exit-confirm"' in early_exit_macro
+    assert "Stay on this page" in error
     assert "on the MTurk ad page" not in error
