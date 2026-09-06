@@ -27,6 +27,8 @@ from psynet.recruiters import (
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     BaseLabRecruiter,
     BaseLucidRecruiter,
+    EarlyExitConfirmation,
+    MTurkRecruiter,
     PaymentDecision,
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
@@ -676,6 +678,41 @@ def test_early_exit_skips_fail_when_already_failed():
     PsyNetRecruiterMixin().early_exit(participant, reason="aborted")
     assert participant.aborted is True
     participant.fail.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "recruiter_class, expected",
+    [
+        (PsyNetRecruiterMixin, "cannot issue payment"),
+        (MTurkRecruiter, "MTurk"),
+        (PsyNetProlificRecruiterMixin, "Prolific"),
+        (BaseLucidRecruiter, "Lucid"),
+    ],
+)
+def test_recruiters_explain_their_early_exit_consequences(recruiter_class, expected):
+    recruiter = object.__new__(recruiter_class)
+    with (
+        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        confirmation = recruiter.early_exit_confirmation(MagicMock())
+
+    assert isinstance(confirmation, EarlyExitConfirmation)
+    assert expected in confirmation.message
+    assert confirmation.confirm_label == "Leave experiment"
+    assert confirmation.cancel_label == "Stay in the experiment"
+
+
+def test_early_exit_reward_threshold_does_not_block_lucid_termination():
+    participant = MagicMock()
+    participant.calculate_reward.return_value = 0.0
+    with patch(
+        "psynet.recruiters.get_config",
+        return_value=make_config(min_accumulated_reward_for_abort=0.2),
+    ):
+        assert PsyNetRecruiterMixin().early_exit_allowed(participant) is False
+    lucid = object.__new__(BaseLucidRecruiter)
+    assert lucid.early_exit_allowed(participant) is True
 
 
 def test_lucid_early_exit_terminates_the_panel_session():

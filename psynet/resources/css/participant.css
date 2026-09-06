@@ -904,9 +904,14 @@ body:not(:has(#footer)) #media-download-progress-bar {
     z-index: 1000;
 }
 
+#early-exit-modal {
+    z-index: 1050;
+}
+
 #comment-modal .modal-content,
 #alert-modal .modal-content,
-#resume-modal .modal-content {
+#resume-modal .modal-content,
+#early-exit-modal .modal-content {
     max-width: 700px;
     margin-top: 40px;
 }

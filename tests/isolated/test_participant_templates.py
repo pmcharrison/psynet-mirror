@@ -485,19 +485,6 @@ def test_footer_controls_carry_a_visible_boundary():
         assert "--bs-btn-active-bg" in block
 
 
-def test_abort_pages_skip_the_content_surface():
-    """Abort pages open in a small popup; the content surface made them unscrollable."""
-    templates = resources.files("psynet") / "templates"
-    for name in ("abort_possible.html", "abort_not_possible.html"):
-        source = (templates / name).read_text(encoding="utf-8")
-        assert "psynet-surface" not in source, (
-            f"{name} should not use the content surface"
-        )
-        assert 'class="container my-4"' in source
-        assert "padding-bottom" not in source
-        assert "d-flex" in source
-
-
 def _audio_meter_macro():
     source = (resources.files("psynet") / "templates/macros/control.html").read_text(
         encoding="utf-8"
@@ -573,7 +560,7 @@ def test_media_bar_is_reconciled_after_the_footer_swap():
     )
     assert "psynet.reconcileMediaDownloadBar" in js
     assert "insideNextFooter" not in js
-    assert 'optionalIds = ["footer"]' in js
+    assert 'optionalIds = ["footer", "early-exit-modal"]' in js
 
 
 def test_scaffold_description_does_not_promise_a_visible_reward():
@@ -674,26 +661,42 @@ def test_exit_navigation_replaces_the_finished_timeline_in_history():
     assert 'response.headers["Cache-Control"] = "no-store"' in experiment_source
 
 
-def test_footer_exit_uses_abort_confirm_outside_lucid():
+def test_footer_exit_uses_an_in_page_confirmation():
     timeline = (resources.files("psynet") / "templates/timeline-page.html").read_text(
         encoding="utf-8"
     )
     assert "config.show_abort_button" in timeline
     assert "recruiter.show_abort_button" in timeline
+    assert 'id="early-exit-modal"' in timeline
+    assert 'id="early-exit-cancel"' in timeline
+    assert 'id="early-exit-confirm"' in timeline
 
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
     )
-    assert "psynet.initEarlyExitButton" in js
-    assert '"/abort/" + encodeURIComponent(assignmentId)' in js
-
-    abort_possible = (
-        resources.files("psynet") / "templates/abort_possible.html"
+    early_exit_js = (
+        resources.files("psynet") / "resources/scripts/psynet.early-exit.js"
     ).read_text(encoding="utf-8")
-    assert "closeAbortUi" in abort_possible
-    assert "psynet.finishAndGoToExit" in abort_possible
+    assert "psynet.initEarlyExitButton" in js
+    assert "global.psynet.finishAndGoToExit" in early_exit_js
+    assert '.post("/worker_complete"' in early_exit_js
+    assert '"/set_participant_as_aborted/"' in early_exit_js
+    assert '"/abort/" + encodeURIComponent(assignmentId)' not in js
 
     experiment_source = (resources.files("psynet") / "experiment.py").read_text(
         encoding="utf-8"
     )
     assert 'early_exit(participant, reason="aborted")' in experiment_source
+
+
+def test_abort_is_removed_from_ad_and_available_inline_on_error():
+    templates = resources.files("psynet") / "templates"
+    ad = (templates / "ad.html").read_text(encoding="utf-8")
+    error = (templates / "psynet_error.html").read_text(encoding="utf-8")
+
+    assert 'id="abort-button"' not in ad
+    assert "enableAbortButton" not in ad
+    assert 'window.open("/abort/"' not in ad
+    assert 'id="early-exit-modal"' in error
+    assert 'id="early-exit-confirm"' in error
+    assert "on the MTurk ad page" not in error

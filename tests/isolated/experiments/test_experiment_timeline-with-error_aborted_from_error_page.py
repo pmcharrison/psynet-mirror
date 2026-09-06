@@ -38,6 +38,7 @@ class TestExp:
             time.sleep(1)
 
             driver.switch_to.window(driver.window_handles[0])
+            assert not driver.find_elements(By.ID, "abort-button")
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
 
@@ -57,26 +58,17 @@ class TestExp:
             assert_text(
                 driver,
                 "error-text-main",
-                "You may be able to abort the experiment using the Abort experiment button on the MTurk ad page. "
-                "Once aborted, there is no need to contact us to receive the compensation; this should be awarded "
-                "to you automatically via MTurk a few minutes after. If this is not the case, please contact us "
-                "at XXX@gmail.com quoting the following information:",
-            )
-            assert_text(
-                driver,
-                "abort-text",
-                "Click the above button to be compensated in case of an error.",
+                "Your progress has been recorded. You can leave the experiment from this page.",
             )
 
-            abort_button = driver.find_element(By.ID, "abort-button")
-            abort_button.click()
-            driver.switch_to.window(driver.window_handles[1])
-            assert_text(
-                driver, "header", "Are you sure you want to abort the experiment?"
-            )
+            url = driver.current_url
+            driver.find_element(By.ID, "early-exit-open").click()
+            assert_text(driver, "early-exit-title", "Leave the experiment?")
+            driver.find_element(By.ID, "early-exit-cancel").click()
+            assert driver.current_url == url
 
-            abort_button = driver.find_element(By.ID, "abort-button")
-            abort_button.click()
+            driver.find_element(By.ID, "early-exit-open").click()
+            driver.find_element(By.ID, "early-exit-confirm").click()
             time.sleep(0.5)
 
             participant = get_participant(1)

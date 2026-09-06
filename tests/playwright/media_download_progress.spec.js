@@ -89,6 +89,21 @@ test("media download progress bar displays on full load and inplace transition",
     await assertMediaDownloadProgressBarVisible(experimentPage, true);
     await waitForMediaDownloadComplete(experimentPage);
 
+    // Cancelling Exit closes the in-page confirmation without navigating or
+    // replacing the current trial.
+    const urlBeforeExit = experimentPage.url();
+    await experimentPage.locator("#terminate-button").click();
+    await expect(experimentPage.locator("#early-exit-modal")).toBeVisible();
+    await expect(experimentPage.locator("#early-exit-title")).toHaveText(
+      "Leaving is not available yet"
+    );
+    await experimentPage.locator("#early-exit-cancel").click();
+    await expect(experimentPage.locator("#early-exit-modal")).toBeHidden();
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "First media page"
+    );
+    expect(experimentPage.url()).toBe(urlBeforeExit);
+
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(experimentPage, "Second media page", STEP_TIMEOUT_MS);
     // The second removes the footer again. The same lifecycle must keep one

@@ -10,46 +10,51 @@
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
-                {% if config.show_abort_button %}
-                    {% if compensate == True %}
-                        <p id="error-text-main">
-                            {{ pgettext("mturk_error", "You may be able to abort the experiment using the <strong>Abort experiment</strong> button <strong>on the MTurk ad page</strong>.") }}
-                            {{ pgettext("mturk_error", "Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after.") }}
-                            {% set EMAIL = '<a href="mailto:' + contact_address + '">' + contact_address + '</a>' %}
-                            {% trans name="mturk_error" %}If this is not the case, please contact us at {{ EMAIL }} quoting the following information:{% endtrans %}
-                            <p>
-                                {{ gettext("Error type") }}: {{ error_type }}<br>
-                                {{ gettext("HIT ID") }}: {{ hit_id }}<br>
-                                {{ gettext("Assignment ID") }}: {{ assignment_id }}<br>
-                                {{ gettext("Worker ID") }}: {{ worker_id }}<br>
-                            </p>
-                            <div id="abort-button-location"></div>
-                        </p>
-                        <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="display: none; float: right;">
-                        {{ gettext("Abort experiment") }}
-                        </button>
-                        <div id="abort-text" style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px; display: none;">
-                            <span class="alert-danger">{{ gettext("Click the above button to be compensated in case of an error.") }}</span>
+                {% if early_exit_confirmation %}
+                    <p id="error-text-main">
+                        {{ pgettext("early_exit_error", "Your progress has been recorded. You can leave the experiment from this page.") }}
+                    </p>
+                    <button type="button" id="early-exit-open" class="btn btn-danger btn-lg">
+                        {{ early_exit_confirmation.confirm_label }}
+                    </button>
+                    <div id="early-exit-modal"
+                         class="modal"
+                         role="dialog"
+                         aria-modal="true"
+                         aria-labelledby="early-exit-title"
+                         aria-describedby="early-exit-message"
+                         data-assignment-id="{{ assignment_id }}"
+                         data-participant-id="{{ participant_id }}"
+                         hidden>
+                        <div class="modal-content">
+                            {% if early_exit_allowed %}
+                                <h2 id="early-exit-title">{{ early_exit_confirmation.title }}</h2>
+                                <p id="early-exit-message">{{ early_exit_confirmation.message }}</p>
+                            {% else %}
+                                <h2 id="early-exit-title">{{ pgettext("early_exit", "Leaving with compensation is not available yet") }}</h2>
+                                <p id="early-exit-message">
+                                    {% set CURRENCY = config.currency %}
+                                    {% set MIN_REWARD = "{:.2f}".format(config.min_accumulated_reward_for_abort) %}
+                                    {% trans name="early_exit" %}You need to accumulate at least {{ CURRENCY }}{{ MIN_REWARD }} before you can leave with compensation.{% endtrans %}
+                                </p>
+                            {% endif %}
+                            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+                                <button type="button" id="early-exit-cancel" class="btn btn-primary">
+                                    {{ pgettext("early_exit_error", "Stay on this page") }}
+                                </button>
+                                {% if early_exit_allowed %}
+                                    <button type="button" id="early-exit-confirm" class="btn btn-danger">
+                                        {{ early_exit_confirmation.confirm_label }}
+                                    </button>
+                                {% endif %}
+                            </div>
                         </div>
-                        <script>
-                            function abortExperiment() {
-                                let windowFeatures = "menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,width=840,height=760";
-                                let windowObjectReference = window.open("/abort/" + "{{assignment_id}}", "Abort window", windowFeatures);
-                            }
-
-                            function showAbortButton() {
-                                document.getElementById("abort-button").style.display = "block";
-                                document.getElementById("abort-text").style.display = "block";
-                            }
-
-                            document.getElementById("abort-button").onclick = abortExperiment;
-
-                            if (window.opener === null) {
-                                document.getElementById("abort-button-location").textContent = "below";
-                                showAbortButton();
-                            }
-                        </script>
-                    {% endif %}
+                    </div>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function () {
+                            window.psynetEarlyExit.init();
+                        });
+                    </script>
                 {% else %}
                     <p id="error-text-main">
                         {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}

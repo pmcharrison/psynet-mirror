@@ -46,6 +46,42 @@
     </script>
 {% endmacro %}
 
+{% macro early_exit_modal() %}
+    <div id="early-exit-modal"
+         class="modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="early-exit-title"
+         aria-describedby="early-exit-message"
+         data-assignment-id="{{ participant.assignment_id }}"
+         data-participant-id="{{ participant.id }}"
+         hidden>
+        <div class="modal-content">
+            {% if early_exit_allowed %}
+                <h2 id="early-exit-title">{{ early_exit_confirmation.title }}</h2>
+                <p id="early-exit-message">{{ early_exit_confirmation.message }}</p>
+            {% else %}
+                <h2 id="early-exit-title">{{ pgettext("early_exit", "Leaving is not available yet") }}</h2>
+                <p id="early-exit-message">
+                    {% set CURRENCY = config.currency %}
+                    {% set MIN_REWARD = "{:.2f}".format(config.min_accumulated_reward_for_abort) %}
+                    {% trans name="early_exit" %}You need to accumulate at least {{ CURRENCY }}{{ MIN_REWARD }} before you can leave with compensation.{% endtrans %}
+                </p>
+            {% endif %}
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+                <button type="button" id="early-exit-cancel" class="btn btn-primary">
+                    {{ early_exit_confirmation.cancel_label }}
+                </button>
+                {% if early_exit_allowed %}
+                    <button type="button" id="early-exit-confirm" class="btn btn-danger">
+                        {{ early_exit_confirmation.confirm_label }}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
 {% block stylesheets %}
     {# theme.html arrives via psynet_layout.html's stylesheets block. #}
     {{ super() }}
@@ -201,6 +237,7 @@
             {{ timeline_header() }}
             {{ timeline_main_body() }}
             {{ timeline_footer() }}
+            {{ early_exit_modal() }}
             {{ template_data_script() }}
         </div>
     {% else %}
@@ -213,6 +250,8 @@
             {{ timeline_main_body() }}
 
             {% block modals %}
+                {{ early_exit_modal() }}
+
                 {% block comment_modal %}
                     {% if config.get("leave_comments_on_every_page") %}
                     <div id="comment-modal" class="modal">

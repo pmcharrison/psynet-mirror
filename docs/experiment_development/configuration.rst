@@ -241,15 +241,40 @@ General
     Accessing routes included in this list will raise a ``PermissionError`` and no data will be returned.
 
 ``show_abort_button`` *bool* |psynet-icon|
-    If ``True``, participants may leave early and be paid the reward they have
-    already accumulated. The timeline footer then includes **Exit** (a page may
-    still hide it with ``show_abort_button=False``). The ad page, error page,
-    and popup abort control use the same confirm flow. Confirming abort marks
-    the participant failed, so Prolific uses the unsuccessful/partial-payment
-    route; Lucid terminates the panel session. Default: ``False``.
+    If ``True``, participants may request to leave early. The timeline footer
+    then includes **Exit** (a page may
+    still hide it with ``show_abort_button=False``). **Exit** opens an in-page
+    confirmation, so choosing **Stay in the experiment** preserves the current
+    page and response state. The error page provides the same early-exit
+    fallback when the timeline cannot continue; the ad page does not.
+    Confirming marks the participant failed, so Prolific uses the
+    unsuccessful/partial-payment route; Lucid terminates the panel session.
+    Default: ``False``.
 
     ``Page(show_termination_button=...)`` is a deprecated alias for the per-page
     override; use ``show_abort_button=...`` on the page instead.
+
+    Each recruiter supplies confirmation text explaining its own submission
+    and payment behavior. Experiments can customize all confirmation copy by
+    overriding
+    :meth:`~psynet.experiment.Experiment.early_exit_confirmation` and returning
+    an :class:`~psynet.recruiters.EarlyExitConfirmation`::
+
+        from psynet.recruiters import EarlyExitConfirmation
+
+        class Exp(Experiment):
+            def early_exit_confirmation(self, participant):
+                return EarlyExitConfirmation(
+                    title="Leave this study?",
+                    message="Your responses so far will be saved.",
+                    confirm_label="Leave study",
+                    cancel_label="Stay in the study",
+                )
+
+    Experiments may also override
+    :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when
+    participants can confirm. By default, paid recruiters use
+    ``min_accumulated_reward_for_abort``; Lucid always permits termination.
 
 ``show_reward`` *bool* |psynet-icon|
     If ``True``, then the participant's current estimated reward is displayed
@@ -313,8 +338,8 @@ Payment
 
 ``min_accumulated_reward_for_abort`` *float* |psynet-icon|
     The minimum accumulated reward, in the currency set via the ``currency``
-    config variable, required before footer Exit or abort will pay
-    compensation. Default: ``0.20``.
+    config variable, required before a paid recruiter permits footer Exit.
+    Lucid termination is not gated by this value. Default: ``0.20``.
 
 ``soft_max_experiment_payment`` *float* |psynet-icon|
     The recruiting process stops if ``amount_spent()`` (recorded

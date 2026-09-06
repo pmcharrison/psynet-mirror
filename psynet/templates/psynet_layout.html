@@ -19,6 +19,7 @@
 
 {% block scripts %}
     {{ super() }}
+    <script src="{{ url_for('static', filename='scripts/psynet.early-exit.js') }}"></script>
 
     {% if participant is defined %}
         <script>

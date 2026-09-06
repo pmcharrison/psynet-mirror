@@ -1053,6 +1053,17 @@ def test_page_rejects_conflicting_abort_and_termination_flags():
             )
 
 
+def test_experimenters_can_customize_early_exit_confirmation():
+    custom = object()
+    experiment = object.__new__(Experiment)
+    experiment.recruiter = MagicMock()
+    experiment.recruiter.early_exit_confirmation.return_value = custom
+    participant = MagicMock()
+
+    assert experiment.early_exit_confirmation(participant) is custom
+    experiment.recruiter.early_exit_confirmation.assert_called_once_with(participant)
+
+
 def test_page_show_abort_button_does_not_warn():
     with warnings.catch_warnings():
         warnings.simplefilter("error", FutureWarning)

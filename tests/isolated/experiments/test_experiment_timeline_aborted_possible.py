@@ -1,10 +1,8 @@
 import time
 
 import pytest
-from dallinger import db
 from selenium.webdriver.common.by import By
 
-from psynet.experiment import get_experiment
 from psynet.participant import get_participant
 from psynet.pytest_psynet import (
     assert_text,
@@ -28,11 +26,6 @@ class TestExp:
         assert config.get("show_abort_button") is True
 
     def test_abort(self, bot_recruits, db_session):
-        # Simulate mturk
-        exp = get_experiment()
-        exp.var.set("start_experiment_in_popup_window", True)
-        db.session.commit()
-
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)
@@ -42,15 +35,21 @@ class TestExp:
             next_page(driver, "next-button")
             next_page(driver, "next-button")
 
-            driver.switch_to.window(driver.window_handles[0])
-            abort_button = driver.find_element(By.ID, "abort-button")
-            abort_button.click()
-            driver.switch_to.window(driver.window_handles[2])
-            assert_text(
-                driver, "header", "Are you sure you want to abort the experiment?"
+            url = driver.current_url
+            page_uuid = driver.execute_script("return window.pageUuid")
+            exit_button = driver.find_element(By.ID, "terminate-button")
+            exit_button.click()
+            assert_text(driver, "early-exit-title", "Leave the experiment?")
+
+            driver.find_element(By.ID, "early-exit-cancel").click()
+            assert driver.find_element(By.ID, "early-exit-modal").get_attribute(
+                "hidden"
             )
-            abort_button = driver.find_element(By.ID, "abort-button")
-            abort_button.click()
+            assert driver.current_url == url
+            assert driver.execute_script("return window.pageUuid") == page_uuid
+
+            exit_button.click()
+            driver.find_element(By.ID, "early-exit-confirm").click()
             time.sleep(0.5)
 
             participant = get_participant(1)

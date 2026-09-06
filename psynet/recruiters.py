@@ -212,6 +212,20 @@ class PaymentDecision:
     bonus: float
 
 
+@dataclass(frozen=True)
+class EarlyExitConfirmation:
+    """Participant-facing copy for confirming a voluntary early exit.
+
+    Experimenters may return a customized instance from
+    :meth:`psynet.experiment.Experiment.early_exit_confirmation`.
+    """
+
+    title: str
+    message: str
+    confirm_label: str
+    cancel_label: str
+
+
 def latest_participant_for_assignment(assignment_id):
     """Return the most recent participant with this assignment id, or ``None``.
 
@@ -300,6 +314,34 @@ class PsyNetRecruiterMixin:
             participant.module_state.abort()
         if not participant.failed:
             participant.fail(reason)
+
+    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
+        """Describe the consequences of leaving through this recruiter."""
+        _p = get_translator(context=True)
+        return self._early_exit_confirmation(
+            _p(
+                "early_exit",
+                "Leaving now ends your session. PsyNet cannot issue payment "
+                "through this recruiter automatically; contact the researcher "
+                "if you need to discuss compensation.",
+            )
+        )
+
+    def _early_exit_confirmation(self, message: str) -> EarlyExitConfirmation:
+        """Build confirmation copy with PsyNet's shared labels."""
+        _p = get_translator(context=True)
+        return EarlyExitConfirmation(
+            title=_p("early_exit", "Leave the experiment?"),
+            message=message,
+            confirm_label=_p("early_exit", "Leave experiment"),
+            cancel_label=_p("early_exit", "Stay in the experiment"),
+        )
+
+    def early_exit_allowed(self, participant) -> bool:
+        """Return whether this participant may confirm an early exit."""
+        return participant.calculate_reward() >= get_config().get(
+            "min_accumulated_reward_for_abort"
+        )
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
         return self.submit_assignment()
@@ -486,6 +528,26 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         automatically via a Prolific screen-out completion code.
         """
         return self.unsuccessful_base_payment is not None
+
+    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
+        """Explain Prolific's configured unsuccessful-participant flow."""
+        _p = get_translator(context=True)
+        if self.pays_unsuccessful_participants_via_screen_out:
+            message = _p(
+                "early_exit_prolific",
+                "Leaving now ends the study and records your submission as "
+                "unsuccessful. You will return to Prolific using the study's "
+                "screen-out payment route, with any applicable bonus handled "
+                "separately.",
+            )
+        else:
+            message = _p(
+                "early_exit_prolific",
+                "Leaving now ends the study and records your submission as "
+                "unsuccessful. You will be asked to return the submission on "
+                "Prolific, and any compensation due will be handled separately.",
+            )
+        return self._early_exit_confirmation(message)
 
     def completion_status(self, participant) -> str:
         """Return the payment-path status for this Prolific participant.
@@ -1258,6 +1320,18 @@ class MockProlificRecruiter(
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
+    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
+        """Explain MTurk's early-submission flow."""
+        _p = get_translator(context=True)
+        return self._early_exit_confirmation(
+            _p(
+                "early_exit_mturk",
+                "Leaving now ends the experiment before completion. PsyNet "
+                "will record the early exit and continue to the MTurk "
+                "submission step; any compensation due is handled through MTurk.",
+            )
+        )
+
     def exit_response(self, experiment, participant):
         """Render PsyNet's themed MTurk submission page."""
         return render_template_with_translations(
@@ -2354,6 +2428,21 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         if participant.module_state:
             participant.module_state.abort()
         return self.terminate_participant(participant=participant, reason=reason)
+
+    def early_exit_confirmation(self, participant) -> EarlyExitConfirmation:
+        """Explain that leaving returns the participant to Lucid."""
+        _p = get_translator(context=True)
+        return self._early_exit_confirmation(
+            _p(
+                "early_exit_lucid",
+                "Leaving now ends this survey session and returns you to Lucid. "
+                "PsyNet does not issue participant payments for Lucid surveys.",
+            )
+        )
+
+    def early_exit_allowed(self, participant) -> bool:
+        """Allow Lucid termination regardless of PsyNet's reward threshold."""
+        return True
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)

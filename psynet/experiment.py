@@ -458,17 +458,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The currency in which the participant gets paid. Default: `$`.
 
     min_accumulated_reward_for_abort : `float`
-        Minimum accumulated reward required before Exit/abort will pay
-        compensation. Below this, the confirm page explains that leaving
-        with payment is not yet allowed. Default: `0.20`.
+        Minimum accumulated reward required before a paid recruiter permits
+        Exit. Below this, the confirmation explains that leaving with payment
+        is not yet allowed. Lucid termination is not gated by this value.
+        Default: `0.20`.
 
     show_abort_button : `bool`
         If ``True``, participants may leave early for accumulated-reward
         compensation. The timeline footer then includes Exit (unless a page
-        sets ``show_abort_button=False``). The ad page, error page, and
-        popup-window abort control still use the same confirm flow. Confirming
-        abort fails the participant so Prolific uses the unsuccessful/partial
-        payment route; Lucid terminates the panel session. Default ``False``.
+        sets ``show_abort_button=False``). Exit opens an in-page confirmation,
+        while the error page provides a fallback if the timeline cannot
+        continue. The ad page does not provide an early-exit control.
+        Confirming fails the participant so Prolific uses the
+        unsuccessful/partial-payment route; Lucid terminates the panel
+        session. Default ``False``.
         ``Page(show_termination_button=...)`` is a deprecated alias for the
         per-page override; use ``show_abort_button`` instead.
 
@@ -1619,6 +1622,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             except (ValueError, TypeError):
                 participant_id = None
 
+        early_exit_confirmation = None
+        early_exit_allowed = False
+        if (
+            participant is not None
+            and compensate
+            and (
+                get_config().get("show_abort_button")
+                or getattr(recruiter, "show_abort_button", False)
+            )
+        ):
+            experiment = get_experiment()
+            early_exit_confirmation = experiment.early_exit_confirmation(participant)
+            early_exit_allowed = experiment.early_exit_allowed(participant)
+
         return make_response(
             render_template_with_translations(
                 "psynet_error.html",
@@ -1634,6 +1651,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 request_data=request_data,
                 participant_id=participant_id,
                 external_submit_url=external_submit_url,
+                early_exit_confirmation=early_exit_confirmation,
+                early_exit_allowed=early_exit_allowed,
             ),
             500,
         )
@@ -3231,6 +3250,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
+    def early_exit_confirmation(self, participant):
+        """Return the participant-facing confirmation copy for leaving early.
+
+        Override this method to customize the recruiter's default copy. Return
+        an :class:`~psynet.recruiters.EarlyExitConfirmation` instance.
+
+        Parameters
+        ----------
+        participant
+            The participant considering an early exit.
+        """
+        return self.recruiter.early_exit_confirmation(participant)
+
+    def early_exit_allowed(self, participant):
+        """Return whether the participant may confirm an early exit.
+
+        Recruiters use the configured reward threshold by default. Override
+        this method to customize eligibility for an experiment.
+        """
+        return self.recruiter.early_exit_allowed(participant)
+
     def render_exit_message(self, participant):
         """
         This method is currently only called if the 'generic' recruiter is selected.
@@ -3321,6 +3361,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/scripts/psynet.js",
                     "/static/scripts/psynet.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/psynet.early-exit.js",
+                    "/static/scripts/psynet.early-exit.js",
                 ),
                 (
                     resources.files("psynet") / "resources/scripts/psynet.layout.js",
@@ -4703,36 +4748,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         get_experiment().recruiter.early_exit(participant, reason="aborted")
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
-
-    @experiment_route("/abort/<assignment_id>", methods=["GET"])
-    @classmethod
-    @with_transaction
-    def route_abort(cls, assignment_id):
-        try:
-            template_name = "abort_not_possible.html"
-            participant = None
-            participant_abort_info = None
-            if assignment_id is not None:
-                participant = cls.get_participant_from_assignment_id(
-                    assignment_id, for_update=False
-                )
-                if participant.calculate_reward() >= get_config().get(
-                    "min_accumulated_reward_for_abort"
-                ):
-                    template_name = "abort_possible.html"
-                    participant_abort_info = participant.abort_info()
-        except ValueError:
-            logger.error("Invalid assignment ID.")
-        except sqlalchemy.orm.exc.NoResultFound:
-            logger.error("Failed to find any matching participants.")
-        except sqlalchemy.orm.exc.MultipleResultsFound:
-            logger.error("Found multiple participants matching those specifications.")
-
-        return render_template_with_translations(
-            template_name,
-            participant=participant,
-            participant_abort_info=participant_abort_info,
-        )
 
     @experiment_route("/timeline", methods=["GET"])
     @classmethod

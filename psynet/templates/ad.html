@@ -78,26 +78,6 @@
                                 </button>
                             {% endif %}
 
-                            {% if config.show_abort_button %}
-                                <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
-                                    {{ gettext("Abort experiment") }}
-                                </button>
-                                <div style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px;">
-                                    <span class="alert-danger text-disabled">{{ gettext("Click the above button to be compensated in case of an error.") }}</span>
-                                </div>
-                                <script>
-                                    function abortExperiment(event) {
-                                        var windowFeatures = "menubar=no,location=no,resizable=yes,scrollbars=yes,status=no,width=840,height=760";
-                                        let windowObjectReference = window.open("/abort/" + "{{assignmentid}}", "Abort window", windowFeatures);
-                                    }
-
-                                    function enableAbortButton(event) {
-                                        document.getElementById("abort-button").disabled = false;
-                                    }
-
-                                    document.getElementById("abort-button").onclick = abortExperiment;
-                                </script>
-                            {% endif %}
                         {% endblock live %}
                     {% endif %}
                 {% endblock ad %}

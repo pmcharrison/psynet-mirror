@@ -903,7 +903,7 @@
       // The media-download bar is reconciled after the footer swap: it is
       // nested in the footer on some pages and a sibling on others, so it
       // cannot share this insert/remove/replace loop.
-      let optionalIds = ["footer"];
+      let optionalIds = ["footer", "early-exit-modal"];
       let optionalChanges = optionalIds.map((id) => ({
         id,
         nextElement: template.content.querySelector("#" + id),
@@ -3245,27 +3245,7 @@
   };
 
     psynet.initEarlyExitButton = function () {
-      $(document).off("click.psynetEarlyExit", "#terminate-button");
-      if (
-        !psynetTemplateData ||
-        !psynetTemplateData.flags ||
-        psynetTemplateData.flags.lucidRecruitment
-      ) {
-        return;
-      }
-      $(document).on(
-        "click.psynetEarlyExit",
-        "#terminate-button",
-        function () {
-          const assignmentId = psynetTemplateData.assignmentId;
-          if (!assignmentId) {
-            return;
-          }
-          window.location.assign(
-            "/abort/" + encodeURIComponent(assignmentId),
-          );
-        },
-      );
+      window.psynetEarlyExit.init();
     };
 
     psynet.initLucidTermination = function () {
@@ -3369,17 +3349,9 @@
 
       $(document).on(
         "click.psynetLucidTermination",
-        ".btn, .sd-btn",
+        ".btn:not(#terminate-button):not(#early-exit-cancel), .sd-btn",
         function () {
           psynet.removeBeforeUnloadEventListener();
-        },
-      );
-
-      $(document).on(
-        "click.psynetLucidTermination",
-        "#terminate-button",
-        function () {
-          terminateParticipant("terminate-button");
         },
       );
 

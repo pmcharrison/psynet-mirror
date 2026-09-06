@@ -244,7 +244,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     aborted : bool
         Whether the participant has aborted the experiment.
         A participant is considered to have aborted the experiment
-        once they have hit the "Abort experiment" button on the "Abort experiment" confirmation page.
+        once they confirm that they want to leave the experiment early.
 
     answer : object
         The most recent answer submitted by the participant.
@@ -872,20 +872,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         combined = list(set(original + new))
         self.failure_tags = combined
         return self
-
-    def abort_info(self):
-        """
-            Information that will be shown to a participant if they click the abort button,
-            e.g. in the case of an error where the participant is unable to finish the experiment.
-
-        :returns: ``dict`` which may be rendered to the worker as an HTML table
-            when they abort the experiment.
-        """
-        return {
-            "assignment_id": self.assignment_id,
-            "hit_id": self.hit_id,
-            "accumulated_reward": "$" + "{:.2f}".format(self.calculate_reward()),
-        }
 
     def fail(self, reason=None):
         """

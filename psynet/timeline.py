@@ -1881,6 +1881,8 @@ class Page(Elt):
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_abort_button": self.show_abort_button,
             "show_termination_button": self.show_abort_button,
+            "early_exit_allowed": experiment.early_exit_allowed(participant),
+            "early_exit_confirmation": experiment.early_exit_confirmation(participant),
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         rendered = render_string_with_translations(
