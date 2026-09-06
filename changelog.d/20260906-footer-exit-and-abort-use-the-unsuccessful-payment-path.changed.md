@@ -1,0 +1,1 @@
+Footer Exit and abort confirmation now fail the participant so Prolific uses the unsuccessful/partial-payment route, while Lucid still terminates the panel session. Experiments that already set ``show_abort_button`` also get Exit in the timeline footer.

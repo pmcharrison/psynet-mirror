@@ -458,14 +458,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         The currency in which the participant gets paid. Default: `$`.
 
     min_accumulated_reward_for_abort : `float`
-        The threshold of reward accumulated in US dollars for the participant to be able to receive
-        compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
+        Minimum accumulated reward required before Exit/abort will pay
+        compensation. Below this, the confirm page explains that leaving
+        with payment is not yet allowed. Default: `0.20`.
 
     show_abort_button : `bool`
-        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
-        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-        assures the participant is compensated on the basis of the amount of reward that has been accumulated.
-        Default ``False``.
+        If ``True``, participants may leave early for accumulated-reward
+        compensation. The timeline footer then includes Exit (unless a page
+        sets ``show_abort_button=False``). The ad page, error page, and
+        popup-window abort control still use the same confirm flow. Confirming
+        abort fails the participant so Prolific uses the unsuccessful/partial
+        payment route; Lucid terminates the panel session. Default ``False``.
+        ``Page(show_termination_button=...)`` is a deprecated alias for the
+        per-page override; use ``show_abort_button`` instead.
 
     show_reward : `bool`
         If ``True``, then the participant's current estimated reward is displayed
@@ -477,8 +482,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     show_footer : `bool`
         If ``True`` (default), then a footer may be displayed at the bottom of the page.
         It holds reward information if `show_reward` resolves to `True`, a 'Comment'
-        button if `leave_comments_on_every_page` is set, and a termination button if
-        `show_termination_button` is set or the recruiter requires one. The footer is
+        button if `leave_comments_on_every_page` is set, and Exit if
+        `show_abort_button` is set or the recruiter requires one (Lucid). The footer is
         omitted when none of these apply, so that an empty bar does not take up space.
 
     show_progress_bar : `bool`
@@ -4695,9 +4700,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = cls.get_participant_from_assignment_id(
             assignment_id, for_update=True
         )
-        participant.aborted = True
-        if participant.module_state:
-            participant.module_state.abort()
+        get_experiment().recruiter.early_exit(participant, reason="aborted")
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
 

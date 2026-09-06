@@ -37,9 +37,6 @@ class TestExp:
             driver = bot.driver
             time.sleep(1)
 
-            driver.execute_script(
-                "$('html').animate({ scrollTop: $(document).height() }, 0);"
-            )
             next_page(driver, "consent")
             next_page(driver, "next-button")
             next_page(driver, "next-button")
@@ -59,6 +56,7 @@ class TestExp:
             participant = get_participant(1)
 
             assert participant.aborted is True
+            assert participant.failed is True
             assert participant.aborted_modules == [
                 "introduction",
             ]

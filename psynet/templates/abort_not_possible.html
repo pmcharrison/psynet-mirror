@@ -25,11 +25,24 @@
         {# A flex row rather than a float, so the button stays in flow.
            See abort_possible.html. #}
         <div class="d-flex flex-wrap gap-2 mt-3">
-          <button type="button" id="close-button" class="btn btn-primary btn-lg" onclick="window.close();">
-            {{ gettext("Close window") }}
+          <button type="button" id="close-button" class="btn btn-primary btn-lg" onclick="closeAbortUi();">
+            {{ gettext("Continue experiment") }}
           </button>
         </div>
       </div>
     </div>
+    <script>
+      function closeAbortUi() {
+        if (window.opener && !window.opener.closed) {
+          window.close();
+          return;
+        }
+        {% if participant %}
+        window.location.replace("/timeline?unique_id=" + {{ participant.unique_id|tojson }});
+        {% else %}
+        history.back();
+        {% endif %}
+      }
+    </script>
 {% endblock %}
 

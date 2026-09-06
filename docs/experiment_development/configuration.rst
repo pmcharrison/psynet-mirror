@@ -241,10 +241,15 @@ General
     Accessing routes included in this list will raise a ``PermissionError`` and no data will be returned.
 
 ``show_abort_button`` *bool* |psynet-icon|
-    If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
-    e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-    assures the participant is compensated on the basis of the amount of reward that has been accumulated.
-    Default ``False``.
+    If ``True``, participants may leave early and be paid the reward they have
+    already accumulated. The timeline footer then includes **Exit** (a page may
+    still hide it with ``show_abort_button=False``). The ad page, error page,
+    and popup abort control use the same confirm flow. Confirming abort marks
+    the participant failed, so Prolific uses the unsuccessful/partial-payment
+    route; Lucid terminates the panel session. Default: ``False``.
+
+    ``Page(show_termination_button=...)`` is a deprecated alias for the per-page
+    override; use ``show_abort_button=...`` on the page instead.
 
 ``show_reward`` *bool* |psynet-icon|
     If ``True``, then the participant's current estimated reward is displayed
@@ -257,10 +262,10 @@ General
 ``show_footer`` *bool* |psynet-icon|
     If ``True`` (default), then a footer may be displayed at the bottom of the
     page. It holds reward information if ``show_reward`` resolves to ``True``, a
-    `Comment` button if ``leave_comments_on_every_page`` is set, and a
-    termination button if ``show_termination_button`` is set or the recruiter
-    requires one. The footer is omitted when none of these apply, so that an
-    empty bar does not take up space.
+    `Comment` button if ``leave_comments_on_every_page`` is set, and Exit if
+    ``show_abort_button`` is set or the recruiter requires one (Lucid). The
+    footer is omitted when none of these apply, so that an empty bar does not
+    take up space.
 
 ``show_progress_bar`` *bool* |psynet-icon|
     If ``True`` (default), then a progress bar is displayed at the top of the page.
@@ -307,7 +312,9 @@ Payment
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
 
 ``min_accumulated_reward_for_abort`` *float* |psynet-icon|
-    The threshold of reward accumulated, in the currency set via the ``currency`` config variable, for the participant to be able to receive compensation when aborting an experiment using the `Abort experiment` button. Default: ``0.20``.
+    The minimum accumulated reward, in the currency set via the ``currency``
+    config variable, required before footer Exit or abort will pay
+    compensation. Default: ``0.20``.
 
 ``soft_max_experiment_payment`` *float* |psynet-icon|
     The recruiting process stops if ``amount_spent()`` (recorded

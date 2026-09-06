@@ -254,6 +254,9 @@ def _prolific_error_status(error: ProlificServiceException):
 
 
 class PsyNetRecruiterMixin:
+    show_abort_button = False
+    # Deprecated alias of ``show_abort_button``. Prefer ``show_abort_button``
+    # in new code; Lucid still sets both so older templates keep working.
     show_termination_button = False
     reports_zero_outcomes = False
 
@@ -283,6 +286,20 @@ class PsyNetRecruiterMixin:
         self, participant=None, assignment_id=None, reason=None, details=None
     ):
         raise NotImplementedError
+
+    def early_exit(self, participant, reason="aborted"):
+        """Handle a voluntary early leave (footer Exit or abort confirm).
+
+        Marks the participant as aborted and failed so recruiters that pay
+        unsuccessful sessions (Prolific screen-out) use that path instead of
+        a successful completion. Lucid overrides this to terminate on the
+        panel.
+        """
+        participant.aborted = True
+        if participant.module_state:
+            participant.module_state.abort()
+        if not participant.failed:
+            participant.fail(reason)
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
         return self.submit_assignment()
@@ -1751,6 +1768,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
     The LucidRecruiter base class
     """
 
+    show_abort_button = True
     show_termination_button = True
 
     required_consent_page = LucidConsent.LucidConsentPage
@@ -2309,6 +2327,10 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
         if participant:
             assignment_id = participant.assignment_id
+            if reason == "terminate-button":
+                participant.aborted = True
+                if participant.module_state:
+                    participant.module_state.abort()
 
             participant.failed = True
             participant.failed_reason = reason
@@ -2325,6 +2347,13 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             )
 
         return self.external_submit_url(assignment_id=assignment_id)
+
+    def early_exit(self, participant, reason="aborted"):
+        """Abort-confirm and footer Exit both terminate the Lucid session."""
+        participant.aborted = True
+        if participant.module_state:
+            participant.module_state.abort()
+        return self.terminate_participant(participant=participant, reason=reason)
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)

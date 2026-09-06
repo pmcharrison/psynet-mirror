@@ -308,7 +308,15 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
     )
 
     old_uuid = get_uuid()
-    find_button().click()
+    button = find_button()
+    # In-flow footers sit after the page content. Scrolling to the document
+    # bottom can cover the target with the footer; bring the control itself
+    # into view instead.
+    driver.execute_script(
+        "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});",
+        button,
+    )
+    button.click()
     if finished:
         wait_until(
             lambda: "recruiter-exit" in driver.current_url,

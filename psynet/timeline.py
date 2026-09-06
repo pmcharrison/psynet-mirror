@@ -1212,9 +1212,13 @@ class Page(Elt):
     progress_display
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
+    show_abort_button:
+        If ``True`` or ``False``, force the footer Exit control on or off for
+        this page. If omitted, Exit follows ``show_abort_button`` in the
+        experiment config or the recruiter default (on for Lucid).
+
     show_termination_button:
-        If ``True``, a button is displayed allowing the participant to terminate the experiment, Defaults to ``recruiter.show_termination_button``
-        which can be ``False`` for all recruiters except for the Lucid recruiter where it should be ``True``.
+        Deprecated alias for ``show_abort_button``.
 
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
@@ -1293,6 +1297,7 @@ class Page(Elt):
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
         start_trial_automatically: bool = True,
+        show_abort_button: bool = None,
         show_termination_button: bool = None,
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
@@ -1432,7 +1437,24 @@ class Page(Elt):
         self.session_id = session_id
         self.save_answer = save_answer
         self.start_trial_automatically = start_trial_automatically
-        self.show_termination_button = show_termination_button
+        if show_termination_button is not None:
+            warnings.warn(
+                "Page(show_termination_button=...) is deprecated; "
+                "use show_abort_button=... instead.",
+                FutureWarning,
+                stacklevel=3,
+            )
+            if show_abort_button is None:
+                show_abort_button = show_termination_button
+            elif show_abort_button != show_termination_button:
+                raise ValueError(
+                    "show_abort_button and show_termination_button disagree; "
+                    "pass only show_abort_button."
+                )
+        if show_abort_button is None and getattr(self, "is_consent", False):
+            show_abort_button = False
+        self.show_abort_button = show_abort_button
+        self.show_termination_button = show_abort_button
         self.aggressive_termination_on_no_focus = aggressive_termination_on_no_focus
 
         self.events = {
@@ -1857,7 +1879,8 @@ class Page(Elt):
             "partial_mode": partial_mode,
             "inplace_timeline_transitions": inplace_timeline_transitions,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
-            "show_termination_button": self.show_termination_button,
+            "show_abort_button": self.show_abort_button,
+            "show_termination_button": self.show_abort_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         rendered = render_string_with_translations(

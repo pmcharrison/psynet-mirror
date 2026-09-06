@@ -1,0 +1,1 @@
+Deprecated ``Page(show_termination_button=...)`` in favor of ``show_abort_button=...``. The old argument still works and emits a ``FutureWarning``. Recruiter ``show_termination_button`` remains as a compatibility alias of ``show_abort_button``.

@@ -26,6 +26,7 @@ from psynet.recruiters import (
     PROLIFIC_SCREEN_OUT_ACTION,
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     BaseLabRecruiter,
+    BaseLucidRecruiter,
     PaymentDecision,
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
@@ -658,6 +659,50 @@ def test_issue_unsuccessful_completion_code_stamps_failed_participant():
     with patch("psynet.recruiters.get_config", return_value=config):
         assert recruiter.issue_unsuccessful_completion_code(participant) is True
     assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
+
+
+def test_early_exit_marks_aborted_and_fails():
+    participant = MagicMock()
+    participant.failed = False
+    PsyNetRecruiterMixin().early_exit(participant, reason="aborted")
+    assert participant.aborted is True
+    participant.module_state.abort.assert_called_once()
+    participant.fail.assert_called_once_with("aborted")
+
+
+def test_early_exit_skips_fail_when_already_failed():
+    participant = MagicMock()
+    participant.failed = True
+    PsyNetRecruiterMixin().early_exit(participant, reason="aborted")
+    assert participant.aborted is True
+    participant.fail.assert_not_called()
+
+
+def test_lucid_early_exit_terminates_the_panel_session():
+    class FakeLucid(BaseLucidRecruiter):
+        def __init__(self):
+            pass
+
+        def terminate_participant(
+            self, participant=None, assignment_id=None, reason=None, details=None
+        ):
+            self.seen_reason = reason
+            return "https://lucid.example/exit"
+
+    recruiter = FakeLucid()
+    participant = MagicMock()
+    recruiter.early_exit(participant, reason="aborted")
+    assert participant.aborted is True
+    participant.module_state.abort.assert_called_once()
+    assert recruiter.seen_reason == "aborted"
+
+
+def test_prolific_treats_a_failed_early_exit_as_screen_out():
+    config = make_config(prolific_unsuccessful_base_payment=0.20)
+    recruiter = make_prolific_recruiter(config)
+    participant = make_participant_with_recruiter(config, failed=True)
+    with patch("psynet.recruiters.get_config", return_value=config):
+        assert recruiter.completion_status(participant) == "screened_out"
 
 
 @pytest.mark.parametrize(

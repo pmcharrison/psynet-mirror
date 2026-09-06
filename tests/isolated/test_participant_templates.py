@@ -672,3 +672,28 @@ def test_exit_navigation_replaces_the_finished_timeline_in_history():
     )
     assert 'path == "/timeline"' in experiment_source
     assert 'response.headers["Cache-Control"] = "no-store"' in experiment_source
+
+
+def test_footer_exit_uses_abort_confirm_outside_lucid():
+    timeline = (resources.files("psynet") / "templates/timeline-page.html").read_text(
+        encoding="utf-8"
+    )
+    assert "config.show_abort_button" in timeline
+    assert "recruiter.show_abort_button" in timeline
+
+    js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
+        encoding="utf-8"
+    )
+    assert "psynet.initEarlyExitButton" in js
+    assert '"/abort/" + encodeURIComponent(assignmentId)' in js
+
+    abort_possible = (
+        resources.files("psynet") / "templates/abort_possible.html"
+    ).read_text(encoding="utf-8")
+    assert "closeAbortUi" in abort_possible
+    assert "psynet.finishAndGoToExit" in abort_possible
+
+    experiment_source = (resources.files("psynet") / "experiment.py").read_text(
+        encoding="utf-8"
+    )
+    assert 'early_exit(participant, reason="aborted")' in experiment_source

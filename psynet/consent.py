@@ -16,7 +16,7 @@ class Consent(Elt):
     element in your timeline.
     """
 
-    pass
+    is_consent = True
 
 
 class NoConsent(Consent, NullElt):
