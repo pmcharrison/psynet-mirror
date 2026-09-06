@@ -244,11 +244,14 @@ General
     If ``True``, participants may request to leave early. The timeline footer
     then includes **Leave** (a page may
     still hide it with ``show_early_exit_button=False``). **Leave** opens an in-page
-    confirmation, so choosing **Continue** preserves the current page and
+    confirmation, so choosing **Cancel** preserves the current page and
     response state. The error page provides the same early-exit fallback when
     the timeline cannot continue; the ad page does not.
     Confirming a paid leave marks the participant failed, so Prolific uses the
     unsuccessful/partial-payment route; Lucid terminates the panel session.
+    **Leave** is never offered once the participant is finishing (the
+    end-of-experiment pages, the release pages, or a participant who has
+    already left), because leaving there could only reduce their payment.
     Default: ``False``.
 
     ``Page(show_abort_button=...)`` and ``Page(show_termination_button=...)`` are
@@ -311,7 +314,7 @@ General
 ``show_footer`` *bool* |psynet-icon|
     If ``True`` (default), then a footer may be displayed at the bottom of the
     page. It holds reward information if ``show_reward`` resolves to ``True``, a
-    `Comment` button if ``leave_comments_on_every_page`` is set, and Exit if
+    `Comment` button if ``leave_comments_on_every_page`` is set, and **Leave** if
     ``show_early_exit_button`` is set or the recruiter requires one (Lucid). The
     footer is omitted when none of these apply, so that an empty bar does not
     take up space.
@@ -362,8 +365,8 @@ Payment
 
 ``min_reward_for_paid_early_exit`` *float* |psynet-icon|
     The minimum accumulated reward, in the currency set via the ``currency``
-    config variable, required before a paid recruiter offers *paid* footer Exit.
-    Below this threshold, Exit still opens a confirmation that offers leaving
+    config variable, required before a paid recruiter offers *paid* footer **Leave**.
+    Below this threshold, **Leave** still opens a confirmation that offers leaving
     without payment. Lucid termination is not gated by this value.
     Default: ``0.20``.
 

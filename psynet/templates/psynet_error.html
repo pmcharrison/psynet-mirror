@@ -12,6 +12,9 @@
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
                 {% if early_exit_confirmation %}
+                    {# Leave replaces the recruiter's submission instructions, but not the
+                       contact details and identifiers: the participant still needs them if
+                       leaving from here also fails. #}
                     <p id="error-text-main">
                         {{ pgettext("early_exit_error", "Your progress has been recorded. You can leave from this page.") }}
                     </p>
@@ -28,6 +31,18 @@
                             window.psynetEarlyExit.init();
                         });
                     </script>
+                    <p id="error-contact" class="mt-4">
+                        {{ pgettext("early_exit_error", "If you need to contact us about this error, please quote the information below.") }}
+                        {% if contact_address %}
+                            <a href="mailto:{{ contact_address }}">{{ contact_address }}</a>
+                        {% endif %}
+                    </p>
+                    <p id="error-identifiers">
+                        {{ gettext("Error type") }}: {{ error_type }}<br>
+                        {{ gettext("HIT ID") }}: {{ hit_id }}<br>
+                        {{ gettext("Assignment ID") }}: {{ assignment_id }}<br>
+                        {{ gettext("Worker ID") }}: {{ worker_id }}<br>
+                    </p>
                 {% else %}
                     <p id="error-text-main">
                         {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}

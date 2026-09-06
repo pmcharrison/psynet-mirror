@@ -3244,131 +3244,137 @@
     psynet.lucidTerminationResetHandler = null;
   };
 
-    psynet.initEarlyExitButton = function () {
-      window.psynetEarlyExit.init();
-    };
+  psynet.initEarlyExitButton = function () {
+    // Keep a failed script load local to the Leave button rather than
+    // failing the whole page bootstrap.
+    if (!window.psynetEarlyExit) {
+      psynet.log.error("The early-exit script did not load.");
+      return;
+    }
+    window.psynetEarlyExit.init();
+  };
 
-    psynet.initLucidTermination = function () {
-      psynet.clearLucidTermination();
+  psynet.initLucidTermination = function () {
+    psynet.clearLucidTermination();
 
-      if (!psynetTemplateData.flags.lucidRecruitment) {
-        return;
+    if (!psynetTemplateData.flags.lucidRecruitment) {
+      return;
+    }
+
+    const NO_FOCUS_TIMEOUT = psynetTemplateData.lucid.noFocusTimeoutMs;
+    const NO_FOCUS_TIMEOUT_REASON =
+      psynetTemplateData.lucid.noFocusTimeoutReason;
+    const OVERALL_TIMEOUT = psynetTemplateData.lucid.overallTimeoutS;
+    const POLLING_INTERVAL = 1000;
+
+    let triedToLeave = false;
+    let noFocusSince = 0;
+    let noActivitySince = 0;
+    let secondsLeft = psynetTemplateData.lucid.secondsLeft;
+
+    function terminateParticipant(reason) {
+      psynet.removeBeforeUnloadEventListener();
+      clearInterval(checkTriedToLeaveIntervalID);
+      clearInterval(clockIntervalID);
+      return window.location.replace(
+        `/terminate_participant?participant_id=${psynetTemplateData.participantId}&reason=${reason}`,
+      );
+    }
+
+    function checkTriedToLeave() {
+      if (triedToLeave) {
+        terminateParticipant("user-tried-to-leave");
+      }
+    }
+
+    function updateClocks() {
+      let msg = "";
+
+      if (document.hasFocus()) {
+        noFocusSince = 0;
+      } else {
+        noFocusSince += POLLING_INTERVAL;
+        if (noFocusSince > NO_FOCUS_TIMEOUT) {
+          terminateParticipant(
+            NO_FOCUS_TIMEOUT_REASON + NO_FOCUS_TIMEOUT / 1000 + "s",
+          );
+        } else {
+          msg =
+            "No focus: " +
+            noFocusSince / 1000 +
+            "/" +
+            NO_FOCUS_TIMEOUT / 1000 +
+            "s";
+        }
       }
 
-      const NO_FOCUS_TIMEOUT = psynetTemplateData.lucid.noFocusTimeoutMs;
-      const NO_FOCUS_TIMEOUT_REASON =
-        psynetTemplateData.lucid.noFocusTimeoutReason;
-      const OVERALL_TIMEOUT = psynetTemplateData.lucid.overallTimeoutS;
-      const POLLING_INTERVAL = 1000;
-
-      let triedToLeave = false;
-      let noFocusSince = 0;
-      let noActivitySince = 0;
-      let secondsLeft = psynetTemplateData.lucid.secondsLeft;
-
-      function terminateParticipant(reason) {
-        psynet.removeBeforeUnloadEventListener();
-        clearInterval(checkTriedToLeaveIntervalID);
-        clearInterval(clockIntervalID);
-        return window.location.replace(
-          `/terminate_participant?participant_id=${psynetTemplateData.participantId}&reason=${reason}`,
+      noActivitySince += POLLING_INTERVAL;
+      const noActivityTimeout = psynetTemplateData.lucid.inactivityTimeoutMs;
+      if (noActivitySince > noActivityTimeout) {
+        terminateParticipant(
+          "inactivity-timeout-" +
+            psynetTemplateData.lucid.inactivityTimeoutS +
+            "s",
         );
       }
+      msg +=
+        " No activity: " +
+        noActivitySince / 1000 +
+        "/" +
+        noActivityTimeout / 1000 +
+        "s";
 
-      function checkTriedToLeave() {
-        if (triedToLeave) {
-          terminateParticipant("user-tried-to-leave");
-        }
+      if (secondsLeft <= 0) {
+        psynet.removeBeforeUnloadEventListener();
+        terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
       }
+      secondsLeft -= POLLING_INTERVAL / 1000;
+      msg += " Overall timeout: " + secondsLeft + "/" + OVERALL_TIMEOUT + "s";
+    }
 
-      function updateClocks() {
-        let msg = "";
-
-        if (document.hasFocus()) {
-          noFocusSince = 0;
-        } else {
-          noFocusSince += POLLING_INTERVAL;
-          if (noFocusSince > NO_FOCUS_TIMEOUT) {
-            terminateParticipant(
-              NO_FOCUS_TIMEOUT_REASON + NO_FOCUS_TIMEOUT / 1000 + "s",
-            );
-          } else {
-            msg =
-              "No focus: " +
-              noFocusSince / 1000 +
-              "/" +
-              NO_FOCUS_TIMEOUT / 1000 +
-              "s";
-          }
-        }
-
-        noActivitySince += POLLING_INTERVAL;
-        const noActivityTimeout = psynetTemplateData.lucid.inactivityTimeoutMs;
-        if (noActivitySince > noActivityTimeout) {
-          terminateParticipant(
-            "inactivity-timeout-" +
-              psynetTemplateData.lucid.inactivityTimeoutS +
-              "s",
-          );
-        }
-        msg +=
-          " No activity: " +
-          noActivitySince / 1000 +
-          "/" +
-          noActivityTimeout / 1000 +
-          "s";
-
-        if (secondsLeft <= 0) {
-          psynet.removeBeforeUnloadEventListener();
-          terminateParticipant("overall-timeout-" + OVERALL_TIMEOUT + "s");
-        }
-        secondsLeft -= POLLING_INTERVAL / 1000;
-        msg += " Overall timeout: " + secondsLeft + "/" + OVERALL_TIMEOUT + "s";
+    beforeunloadFunction = function (event) {
+      if (psynetTemplateData.lucid.shouldWarnOnBeforeUnload) {
+        event.returnValue = "Are you sure you want to leave?";
+        triedToLeave = true;
       }
-
-      beforeunloadFunction = function (event) {
-        if (psynetTemplateData.lucid.shouldWarnOnBeforeUnload) {
-          event.returnValue = "Are you sure you want to leave?";
-          triedToLeave = true;
-        }
-      };
-
-      window.addEventListener("beforeunload", beforeunloadFunction);
-      window.beforeunloadFunction = beforeunloadFunction;
-
-      const checkTriedToLeaveIntervalID = setInterval(
-        checkTriedToLeave,
-        POLLING_INTERVAL,
-      );
-      const clockIntervalID = setInterval(updateClocks, POLLING_INTERVAL);
-
-      psynet.lucidTerminationIntervalIds = [
-        checkTriedToLeaveIntervalID,
-        clockIntervalID,
-      ];
-
-      $(document).on(
-        "click.psynetLucidTermination",
-        ".btn:not(#early-exit-button):not(#early-exit-cancel), .sd-btn",
-        function () {
-          psynet.removeBeforeUnloadEventListener();
-        },
-      );
-
-      const events = [
-        "click",
-        "keypress",
-        "load",
-        "mousedown",
-        "mousemove",
-        "touchstart",
-      ];
-      psynet.lucidTerminationEvents = events;
-      psynet.lucidTerminationResetHandler = function () {
-        noActivitySince = 0;
-      };
-      events.forEach((eventName) => {
-        window.addEventListener(eventName, psynet.lucidTerminationResetHandler);
-      });
     };
+
+    window.addEventListener("beforeunload", beforeunloadFunction);
+    window.beforeunloadFunction = beforeunloadFunction;
+
+    const checkTriedToLeaveIntervalID = setInterval(
+      checkTriedToLeave,
+      POLLING_INTERVAL,
+    );
+    const clockIntervalID = setInterval(updateClocks, POLLING_INTERVAL);
+
+    psynet.lucidTerminationIntervalIds = [
+      checkTriedToLeaveIntervalID,
+      clockIntervalID,
+    ];
+
+    $(document).on(
+      "click.psynetLucidTermination",
+      ".btn:not(#early-exit-button):not(#early-exit-cancel), .sd-btn",
+      function () {
+        psynet.removeBeforeUnloadEventListener();
+      },
+    );
+
+    const events = [
+      "click",
+      "keypress",
+      "load",
+      "mousedown",
+      "mousemove",
+      "touchstart",
+    ];
+    psynet.lucidTerminationEvents = events;
+    psynet.lucidTerminationResetHandler = function () {
+      noActivitySince = 0;
+    };
+    events.forEach((eventName) => {
+      window.addEventListener(eventName, psynet.lucidTerminationResetHandler);
+    });
+  };
 })();
