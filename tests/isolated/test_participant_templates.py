@@ -238,7 +238,7 @@ def test_media_bar_is_a_thin_rail_at_the_bottom():
     # Its own token: it carries no label, so it stays thinner than the rail.
     assert "height: var(--psynet-media-progress-height)" in css[start:end]
 
-    start = css.index("body:not(:has(#footer)) #media-download-progress-bar {")
+    start = css.index("#timeline-root > #media-download-progress-bar {")
     end = css.index("}", start)
     block = css[start:end]
     assert "position: fixed" in block
@@ -252,7 +252,16 @@ def test_body_spacing_is_only_for_a_footerless_media_bar():
         encoding="utf-8"
     )
     assert "body:has(#footer)" not in css
-    assert "body:not(:has(#footer)):has(#media-download-progress-bar)" in css
+    assert "body:has(#timeline-root > #media-download-progress-bar)" in css
+
+
+def test_media_bar_position_follows_its_template_parent():
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    assert "#footer > #media-download-progress-bar {" in css
+    assert "#timeline-root > #media-download-progress-bar {" in css
+    assert "body:not(:has(#footer)) #media-download-progress-bar" not in css
 
 
 def test_every_participant_page_declares_the_viewport():

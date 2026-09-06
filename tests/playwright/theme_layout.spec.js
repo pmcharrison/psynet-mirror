@@ -444,7 +444,10 @@ test(
     await renderTheme(page, {
       viewport: { width: 1280, height: 720 },
       extraCss: bootstrapNavbar,
-      html: `${header}<div id="main-body" class="psynet-surface"><p>Trial</p></div>${bar}`
+      html: `<div id="timeline-root">${header}
+               <div id="main-body" class="psynet-surface"><p>Trial</p></div>
+               ${bar}
+             </div>`
     });
 
     let geometry = await page.evaluate(() => {

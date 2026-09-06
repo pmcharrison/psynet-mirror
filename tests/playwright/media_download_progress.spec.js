@@ -17,14 +17,23 @@ async function assertMediaDownloadProgressBarVisible(page, expectedFooter) {
 
   const metrics = await page.evaluate(() => {
     const el = document.getElementById("media-download-progress-bar");
+    const footer = document.getElementById("footer");
     const style = window.getComputedStyle(el);
     const rect = el.getBoundingClientRect();
     return {
       inFooter: !!el.closest("#footer"),
-      hasFooter: !!document.getElementById("footer"),
+      hasFooter: !!footer,
+      atFooterTop:
+        !footer ||
+        Math.abs(
+          rect.top -
+            footer.getBoundingClientRect().top -
+            parseFloat(getComputedStyle(footer).borderTopWidth)
+        ) <= 1,
       atWindowBottom: Math.round(rect.bottom) === window.innerHeight,
       height: rect.height,
       width: rect.width,
+      position: style.position,
       display: style.display,
       visibility: style.visibility,
       opacity: Number(style.opacity)
@@ -35,8 +44,11 @@ async function assertMediaDownloadProgressBarVisible(page, expectedFooter) {
   // edge of the window when there is not (rewards hidden, no footer buttons).
   if (metrics.hasFooter) {
     expect(metrics.inFooter).toBe(true);
+    expect(metrics.atFooterTop).toBe(true);
+    expect(metrics.position).toBe("absolute");
   } else {
     expect(metrics.atWindowBottom).toBe(true);
+    expect(metrics.position).toBe("fixed");
   }
   expect(metrics.hasFooter).toBe(expectedFooter);
   expect(metrics.height).toBeGreaterThan(0);
@@ -77,12 +89,25 @@ test("media download progress bar displays on full load and inplace transition",
   await withExperiment(page, context, absDir, async (experimentPage) => {
     await completeInitialGateway(experimentPage);
     await assertInplaceTimelinePathActive(experimentPage, 20000);
+
     await waitForMainBodyContains(experimentPage, "Intro without media", STEP_TIMEOUT_MS);
-
-    // Footer/bar should exist even before media pages.
     await assertMediaDownloadProgressBarVisible(experimentPage, false);
-
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+    await waitForMainBodyContains(
+      experimentPage,
+      "We need your consent to proceed",
+      STEP_TIMEOUT_MS
+    );
+    await experimentPage.setViewportSize({ width: 1280, height: 720 });
+    const consentFooterIsBelowFold = await experimentPage.evaluate(() => {
+      const footer = document.getElementById("footer");
+      return footer.getBoundingClientRect().top >= window.innerHeight;
+    });
+    expect(consentFooterIsBelowFold).toBe(true);
+    await assertMediaDownloadProgressBarVisible(experimentPage, true);
+    await experimentPage.locator("#consent").click();
+
     await waitForMainBodyContains(experimentPage, "First media page", STEP_TIMEOUT_MS);
     // The first media page adds a termination button, moving the live bar
     // into the newly inserted footer before download progress reaches 100%.

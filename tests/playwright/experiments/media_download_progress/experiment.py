@@ -1,8 +1,16 @@
 from markupsafe import Markup
 
 import psynet.experiment
+from psynet.consent import MainConsent
 from psynet.page import InfoPage
 from psynet.timeline import MediaSpec, Timeline
+
+
+class _MainConsentWithFooter(MainConsent):
+    class MainConsentPage(MainConsent.MainConsentPage):
+        def __init__(self, time_estimate=30):
+            super().__init__(time_estimate=time_estimate)
+            self.show_early_exit_button = True
 
 
 def _media_page(label, marker_id, show_early_exit_button):
@@ -30,6 +38,7 @@ class Exp(psynet.experiment.Experiment):
             Markup("<p id='intro-marker'>Intro without media</p>"),
             time_estimate=1,
         ),
+        _MainConsentWithFooter(),
         _media_page(
             "First media page",
             "first-media-marker",
