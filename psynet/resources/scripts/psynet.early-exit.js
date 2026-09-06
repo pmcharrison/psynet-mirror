@@ -73,8 +73,16 @@
               body: JSON.stringify({ offer_id: offerId }),
             },
           );
-          if (!response.ok) throw new Error("Failed to record early exit.");
-          const result = await response.json();
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            // A stale offer cannot be fixed by resending it, so reload the
+            // page and let the server decide what it now offers.
+            if (result.error_code === "stale_early_exit_offer") {
+              global.location.reload();
+              return;
+            }
+            throw new Error("Failed to record early exit.");
+          }
           continueToRelease(result.release_url);
         } catch (error) {
           confirm.disabled = false;

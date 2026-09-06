@@ -470,7 +470,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         compensation. The timeline footer then includes Leave (unless a page
         sets ``show_early_exit_button=False``). Leave opens an in-page confirmation,
         while the error page provides a fallback if the timeline cannot
-        continue. The ad page does not provide an early-exit control.
+        continue. The ad page does not provide an early-exit control, and neither
+        do the end-of-experiment pages, where leaving could only reduce the
+        participant's payment.
         Confirming fails the participant so Prolific uses the
         unsuccessful/partial-payment route; Lucid terminates the panel
         session. Default ``False``.
@@ -488,7 +490,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     show_footer : `bool`
         If ``True`` (default), then a footer may be displayed at the bottom of the page.
         It holds reward information if `show_reward` resolves to `True`, a 'Comment'
-        button if `leave_comments_on_every_page` is set, and Exit if
+        button if `leave_comments_on_every_page` is set, and Leave if
         `show_early_exit_button` is set or the recruiter requires one (Lucid). The footer is
         omitted when none of these apply, so that an empty bar does not take up space.
 
@@ -1630,16 +1632,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if (
             participant is not None
             and compensate
+            and not participant.complete
+            and not participant.early_exited
             and (
                 get_config().get("show_early_exit_button")
                 or getattr(recruiter, "show_early_exit_button", False)
             )
         ):
             experiment = get_experiment()
-            plan = experiment.error_recovery_early_exit_plan(participant)
-            participant.early_exit_plan = plan.to_dict()
-            early_exit_confirmation = plan.confirmation
-            early_exit_offer_id = plan.offer_id
+            if not experiment.timeline.participant_is_in_end_logic(participant):
+                plan = experiment.error_recovery_early_exit_plan(participant)
+                participant.early_exit_plan = plan.to_dict()
+                early_exit_confirmation = plan.confirmation
+                early_exit_offer_id = plan.offer_id
 
         return make_response(
             render_template_with_translations(
@@ -4748,39 +4753,63 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
 
+    @staticmethod
+    def _stale_early_exit_response():
+        """Refuse a Leave request whose offer no longer applies.
+
+        The browser cannot fix a stale offer by retrying, so it reloads the
+        page on this error code to pick up whatever the page now offers.
+        """
+        return error_response(
+            error_text="This Leave offer is no longer current.",
+            status=409,
+            simple=True,
+            error_code="stale_early_exit_offer",
+        )
+
     @experiment_route(
         "/set_participant_as_early_exited/<assignment_id>", methods=["POST"]
     )
     @classmethod
     @with_transaction
     def route_set_participant_as_early_exited(cls, assignment_id):
-        participant = cls.get_participant_from_assignment_id(
-            assignment_id, for_update=True
-        )
+        try:
+            participant = cls.get_participant_from_assignment_id(
+                assignment_id, for_update=True
+            )
+        except (
+            ValueError,
+            sqlalchemy.orm.exc.NoResultFound,
+            sqlalchemy.orm.exc.MultipleResultsFound,
+        ):
+            return error_response(
+                error_text="No participant matches this assignment.",
+                status=404,
+                simple=True,
+            )
         release_url = f"/timeline?unique_id={participant.unique_id}"
         if participant.early_exited:
             return success_response(release_url=release_url)
 
+        experiment = get_experiment()
+        if participant.complete or experiment.timeline.participant_is_in_end_logic(
+            participant
+        ):
+            # The participant has reached the end of the experiment, where
+            # leaving early would only reduce their payment.
+            return cls._stale_early_exit_response()
+
         try:
             plan = EarlyExitPlan.from_dict(participant.early_exit_plan)
         except (AttributeError, KeyError, TypeError, ValueError):
-            return error_response(
-                error_text="No valid Leave offer is available.",
-                status=409,
-                simple=True,
-            )
+            return cls._stale_early_exit_response()
 
         payload = request.get_json(silent=True) or {}
         if not isinstance(payload, dict) or payload.get("offer_id") != plan.offer_id:
-            return error_response(
-                error_text="This Leave offer is no longer current.",
-                status=409,
-                simple=True,
-            )
+            return cls._stale_early_exit_response()
         if plan.status == "executed":
             return success_response(release_url=release_url)
 
-        experiment = get_experiment()
         experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
         participant.early_exit_plan = plan.mark_executed().to_dict()
         participant.pending_redirect = "early_exit_release"

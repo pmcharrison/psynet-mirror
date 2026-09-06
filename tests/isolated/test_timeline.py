@@ -1110,3 +1110,45 @@ def test_consent_pages_hide_footer_exit_by_default():
 
     page = MainConsent.MainConsentPage(time_estimate=1)
     assert page.show_early_exit_button is False
+
+
+def _experiment_offering_early_exit(in_end_logic):
+    experiment = MagicMock()
+    experiment.recruiter.show_early_exit_button = True
+    experiment.timeline.participant_is_in_end_logic.return_value = in_end_logic
+    return experiment
+
+
+@pytest.mark.parametrize(
+    "in_end_logic,complete,early_exited,expected",
+    [
+        (False, False, False, True),
+        (True, False, False, False),
+        (False, True, False, False),
+        (False, False, True, False),
+    ],
+)
+def test_early_exit_is_not_offered_once_the_participant_is_finishing(
+    in_end_logic, complete, early_exited, expected
+):
+    page = InfoPage("Hello", time_estimate=1)
+    participant = MagicMock(complete=complete, early_exited=early_exited)
+
+    assert (
+        page.early_exit_available(
+            _experiment_offering_early_exit(in_end_logic), participant
+        )
+        is expected
+    )
+
+
+def test_page_level_early_exit_setting_overrides_the_recruiter_and_config():
+    participant = MagicMock(complete=False, early_exited=False)
+    experiment = _experiment_offering_early_exit(in_end_logic=False)
+
+    hidden = InfoPage("Hello", time_estimate=1, show_early_exit_button=False)
+    assert hidden.early_exit_available(experiment, participant) is False
+
+    experiment.recruiter.show_early_exit_button = False
+    shown = InfoPage("Hello", time_estimate=1, show_early_exit_button=True)
+    assert shown.early_exit_available(experiment, participant) is True

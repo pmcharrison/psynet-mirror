@@ -1841,6 +1841,30 @@ class Page(Elt):
         """
         pass
 
+    def early_exit_available(self, experiment, participant) -> bool:
+        """Return whether this page may offer the participant an early exit.
+
+        Leaving early costs the participant the difference between the
+        completion payment and the recruiter's early-exit payment, so it is
+        never offered once the participant has nothing left to lose by
+        finishing: end-of-experiment pages, release pages, and participants
+        who have already left.
+        """
+        from .utils import get_config
+
+        if (
+            participant.complete
+            or participant.early_exited
+            or experiment.timeline.participant_is_in_end_logic(participant)
+        ):
+            return False
+        if self.show_early_exit_button is not None:
+            return bool(self.show_early_exit_button)
+        return bool(
+            experiment.recruiter.show_early_exit_button
+            or get_config().get("show_early_exit_button", False)
+        )
+
     def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
 
@@ -1863,14 +1887,12 @@ class Page(Elt):
         )
         js_vars = {**self.js_vars, **internal_js_vars}
         inplace_timeline_transitions = config.get("inplace_timeline_transitions")
-        stored_early_exit_plan = getattr(participant, "early_exit_plan", None)
-        if participant.early_exited and isinstance(stored_early_exit_plan, dict):
-            from .recruiters import EarlyExitPlan
-
-            early_exit_plan = EarlyExitPlan.from_dict(stored_early_exit_plan)
-        else:
+        show_early_exit_button = self.early_exit_available(experiment, participant)
+        if show_early_exit_button:
             early_exit_plan = experiment.early_exit_plan(participant)
             participant.early_exit_plan = early_exit_plan.to_dict()
+        else:
+            early_exit_plan = None
 
         all_template_args = {
             **self.template_arg,
@@ -1906,11 +1928,15 @@ class Page(Elt):
             "partial_mode": partial_mode,
             "inplace_timeline_transitions": inplace_timeline_transitions,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
-            "show_early_exit_button": self.show_early_exit_button,
-            "show_abort_button": self.show_early_exit_button,
-            "show_termination_button": self.show_early_exit_button,
-            "early_exit_confirmation": early_exit_plan.confirmation,
-            "early_exit_offer_id": early_exit_plan.offer_id,
+            "show_early_exit_button": show_early_exit_button,
+            "show_abort_button": show_early_exit_button,
+            "show_termination_button": show_early_exit_button,
+            "early_exit_confirmation": (
+                early_exit_plan.confirmation if early_exit_plan else None
+            ),
+            "early_exit_offer_id": early_exit_plan.offer_id
+            if early_exit_plan
+            else None,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         rendered = render_string_with_translations(

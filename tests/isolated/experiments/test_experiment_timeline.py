@@ -49,6 +49,8 @@ class TestExp(object):
             next_page(driver, "consent")
 
             assert_text(driver, "main-body", "Welcome Welcome to the experiment! Next")
+            # Leave is offered while the timeline is still in progress.
+            assert driver.find_elements(By.ID, "early-exit-button")
             next_page(driver, "next-button")
 
             # Page 1
@@ -240,6 +242,10 @@ class TestExp(object):
                     'Thank you for taking part. Please click "Finish" to finalize the session. Finish'
                 ),
             )
+            # Leaving here would only cost the participant the payment they have
+            # just earned, so neither the button nor its offer is rendered.
+            assert not driver.find_elements(By.ID, "early-exit-button")
+            assert not driver.find_elements(By.ID, "early-exit-modal")
 
             click_finish_button(driver)
 

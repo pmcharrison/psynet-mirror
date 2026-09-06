@@ -138,8 +138,10 @@
         {# Omit the footer element when it is hidden or has no content.
            Appearance and in-flow placement live in participant.css. #}
         {% set show_comment_button = config.get("leave_comments_on_every_page") %}
-        {% set show_early_exit_button_footer = show_early_exit_button if show_early_exit_button is not none else (experiment.recruiter.show_early_exit_button or config.show_early_exit_button) %}
-        {% set footer_has_content = experiment.show_reward or show_comment_button or show_early_exit_button_footer %}
+        {# Page.early_exit_available has already combined the page, recruiter and
+           config settings, and suppressed Leave for participants who are
+           finishing. #}
+        {% set footer_has_content = experiment.show_reward or show_comment_button or show_early_exit_button %}
         {% if config.show_footer != false and footer_has_content %}
         <nav id="footer" class="navbar">
             {{ media_download_bar() }}
@@ -175,7 +177,7 @@
                                 id="comment-button">{{ pgettext("timeline", "Comment") }}</button>
                     {% endif %}
 
-                    {% if show_early_exit_button_footer %}
+                    {% if show_early_exit_button %}
                         <span class="psynet-tooltip psynet-tooltip--end">
                             <button id="early-exit-button"
                                     class="btn btn-danger psynet-tooltip__trigger"
@@ -202,11 +204,13 @@
             {{ timeline_header() }}
             {{ timeline_main_body() }}
             {{ timeline_footer() }}
-            {{ early_exit_modal(
-                participant.assignment_id,
-                early_exit_offer_id,
-                early_exit_confirmation
-            ) }}
+            {% if early_exit_offer_id %}
+                {{ early_exit_modal(
+                    participant.assignment_id,
+                    early_exit_offer_id,
+                    early_exit_confirmation
+                ) }}
+            {% endif %}
             {{ template_data_script() }}
         </div>
     {% else %}
@@ -219,11 +223,13 @@
             {{ timeline_main_body() }}
 
             {% block modals %}
-                {{ early_exit_modal(
-                    participant.assignment_id,
-                    early_exit_offer_id,
-                    early_exit_confirmation
-                ) }}
+                {% if early_exit_offer_id %}
+                    {{ early_exit_modal(
+                        participant.assignment_id,
+                        early_exit_offer_id,
+                        early_exit_confirmation
+                    ) }}
+                {% endif %}
 
                 {% block comment_modal %}
                     {% if config.get("leave_comments_on_every_page") %}

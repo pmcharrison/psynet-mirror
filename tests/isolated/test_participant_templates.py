@@ -678,10 +678,12 @@ def test_footer_exit_uses_an_in_page_confirmation():
     early_exit_macro = (templates / "macros/early_exit.html").read_text(
         encoding="utf-8"
     )
-    assert "config.show_early_exit_button" in timeline
-    assert "recruiter.show_early_exit_button" in timeline
     assert 'from "macros/early_exit.html" import early_exit_modal' in timeline
     assert "early_exit_modal(" in timeline
+    # Page.early_exit_available decides whether Leave is on offer, so the
+    # modal is only rendered alongside an offer the server will honour.
+    assert "{% if early_exit_offer_id %}" in timeline
+    assert "{% if show_early_exit_button %}" in timeline
     assert 'id="early-exit-modal"' in early_exit_macro
     assert 'id="early-exit-cancel"' in early_exit_macro
     assert 'id="early-exit-confirm"' in early_exit_macro
@@ -708,21 +710,19 @@ def test_footer_exit_uses_an_in_page_confirmation():
     ).read_text(encoding="utf-8")
     assert "psynet.initEarlyExitButton" in js
     assert "result.release_url" in early_exit_js
-    assert '.post("/worker_complete"' not in early_exit_js
     assert '"/set_participant_as_early_exited/"' in early_exit_js
     assert 'method: "POST"' in early_exit_js
     assert "offer_id: offerId" in early_exit_js
-    assert "?payment=none" not in early_exit_js
-    assert '"/abort/" + encodeURIComponent(assignmentId)' not in js
+    # A stale offer is refused by the server; retrying it cannot help.
+    assert 'result.error_code === "stale_early_exit_offer"' in early_exit_js
+    assert "global.location.reload()" in early_exit_js
     assert "data-offer-id=" in early_exit_macro
-    assert "data-unpaid=" not in early_exit_macro
 
     experiment_source = (resources.files("psynet") / "experiment.py").read_text(
         encoding="utf-8"
     )
     assert "EarlyExitPlan.from_dict" in experiment_source
     assert 'methods=["POST"]' in experiment_source
-    assert "resolve_early_exit_unpaid" not in experiment_source
 
 
 def test_shared_early_exit_modal_renders_server_offer_and_actions():
@@ -760,11 +760,12 @@ def test_abort_is_removed_from_ad_and_available_inline_on_error():
     )
 
     assert 'id="abort-button"' not in ad
-    assert "enableAbortButton" not in ad
-    assert 'window.open("/abort/"' not in ad
     assert 'from "macros/early_exit.html" import early_exit_modal' in error
     assert "early_exit_modal(" in error
     assert 'id="early-exit-modal"' in early_exit_macro
     assert 'id="early-exit-confirm"' in early_exit_macro
-    assert "Stay on this page" not in error
-    assert "on the MTurk ad page" not in error
+    # Leaving from the error page may itself fail, so the participant keeps
+    # the contact address and the identifiers a researcher would ask for.
+    assert 'id="error-contact"' in error
+    assert 'id="error-identifiers"' in error
+    assert "Assignment ID" in error

@@ -926,7 +926,7 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation(
 ):
     participant = _participant_for_early_exit(reward=reward)
     recruiter = object.__new__(recruiter_class)
-    experiment = MagicMock(base_payment=9.00)
+    experiment = MagicMock(base_payment=1.00)
     experiment.early_exit_allowed.return_value = True
     with (
         patch("psynet.recruiters.get_config", return_value=make_config()),
@@ -948,6 +948,55 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation(
         recruiter.decide_payment(participant, experiment=experiment)
         == expected_decision
     )
+
+
+def test_mturk_quotes_and_records_the_experiment_base_payment():
+    participant = _participant_for_early_exit(reward=0.10)
+    recruiter = object.__new__(MTurkRecruiter)
+    experiment = MagicMock(base_payment=2.50)
+    experiment.early_exit_allowed.return_value = True
+
+    with (
+        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        plan = recruiter.plan_early_exit(
+            experiment, participant, EarlyExitContext.VOLUNTARY
+        )
+        participant.early_exited = True
+        participant.early_exit_plan = plan.mark_executed().to_dict()
+        decision = recruiter.decide_payment(participant, experiment=experiment)
+
+    assert "$2.50" in plan.confirmation.message
+    assert decision.platform_base == 2.50
+
+
+def test_execute_early_exit_plan_rejects_a_path_the_recruiter_cannot_run():
+    with pytest.raises(ValueError, match="terminate_panel_session"):
+        PsyNetRecruiterMixin().execute_early_exit_plan(
+            MagicMock(),
+            MagicMock(),
+            _early_exit_test_plan(EarlyExitPath.TERMINATE_PANEL_SESSION),
+        )
+
+
+@pytest.mark.parametrize(
+    "reason,expected",
+    [
+        ("early_exit", True),
+        ("terminate-button", True),
+        ("inactivity-timeout-60s", False),
+    ],
+)
+def test_lucid_only_records_an_early_exit_for_leave_reasons(reason, expected):
+    recruiter = _lucid_recruiter_with_service()
+    participant = MagicMock(assignment_id="rid-1", module_state=None)
+    participant.early_exited = False
+
+    with patch("psynet.recruiters.db.session.commit"):
+        recruiter.terminate_participant(participant=participant, reason=reason)
+
+    assert participant.early_exited is expected
 
 
 def test_return_for_bonus_uses_the_planned_reward():
@@ -1046,7 +1095,7 @@ def test_error_recovery_plan_survives_reward_calculation_failure(
     participant = _participant_for_early_exit()
     participant.calculate_reward.side_effect = RuntimeError("reward boom")
     recruiter = object.__new__(recruiter_class)
-    experiment = MagicMock(base_payment=9.00)
+    experiment = MagicMock(base_payment=1.00)
 
     with (
         patch("psynet.recruiters.get_config", return_value=make_config()),
@@ -1109,9 +1158,11 @@ def test_early_exit_route_executes_the_stored_plan():
     )
     participant = MagicMock()
     participant.early_exited = False
+    participant.complete = False
     participant.unique_id = "unique-1"
     participant.early_exit_plan = plan.to_dict()
     experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
 
     with (
         Flask(__name__).test_request_context(
@@ -1158,8 +1209,11 @@ def test_early_exit_route_rejects_an_invalid_offer(payload):
             cancel_label="Continue",
         ),
     )
-    participant = MagicMock(early_exited=False, early_exit_plan=plan.to_dict())
+    participant = MagicMock(
+        early_exited=False, complete=False, early_exit_plan=plan.to_dict()
+    )
     experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
 
     with (
         Flask(__name__).test_request_context(
@@ -1179,6 +1233,65 @@ def test_early_exit_route_rejects_an_invalid_offer(payload):
 
     error.assert_called_once()
     experiment.recruiter.execute_early_exit_plan.assert_not_called()
+
+
+@pytest.mark.parametrize("complete,in_end_logic", [(True, False), (False, True)])
+def test_early_exit_route_refuses_a_participant_who_is_finishing(
+    complete, in_end_logic
+):
+    from flask import Flask
+
+    from psynet.experiment import Experiment
+
+    plan = _early_exit_test_plan(EarlyExitPath.SCREEN_OUT)
+    participant = MagicMock(
+        early_exited=False, complete=complete, early_exit_plan=plan.to_dict()
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = in_end_logic
+
+    with (
+        Flask(__name__).test_request_context(
+            "/set_participant_as_early_exited/assign-1",
+            method="POST",
+            json={"offer_id": plan.offer_id},
+        ),
+        patch.object(
+            Experiment,
+            "get_participant_from_assignment_id",
+            return_value=participant,
+        ),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.error_response", return_value="refused") as error,
+    ):
+        assert Experiment.route_set_participant_as_early_exited("assign-1") == "refused"
+
+    assert error.call_args.kwargs["error_code"] == "stale_early_exit_offer"
+    experiment.recruiter.execute_early_exit_plan.assert_not_called()
+
+
+def test_early_exit_route_reports_an_unknown_assignment():
+    from flask import Flask
+    from sqlalchemy.orm.exc import NoResultFound
+
+    from psynet.experiment import Experiment
+
+    with (
+        Flask(__name__).test_request_context(
+            "/set_participant_as_early_exited/nobody",
+            method="POST",
+            json={"offer_id": "irrelevant"},
+        ),
+        patch.object(
+            Experiment,
+            "get_participant_from_assignment_id",
+            side_effect=NoResultFound,
+        ),
+        patch("psynet.experiment.error_response", return_value="missing") as error,
+    ):
+        assert Experiment.route_set_participant_as_early_exited("nobody") == "missing"
+
+    assert error.call_args.kwargs["status"] == 404
 
 
 def test_early_exit_route_is_idempotent_after_execution():
@@ -1269,59 +1382,37 @@ def test_offered_plan_does_not_reclassify_a_normal_prolific_completion():
         assert recruiter.exit_code_type(participant) is None
 
 
+def _lucid_recruiter_with_service():
+    recruiter = object.__new__(BaseLucidRecruiter)
+    recruiter.lucidservice = MagicMock()
+    return recruiter
+
+
 def test_lucid_early_exit_terminates_the_panel_session():
-    class FakeLucid(BaseLucidRecruiter):
-        def __init__(self):
-            pass
+    recruiter = _lucid_recruiter_with_service()
+    participant = MagicMock(assignment_id="rid-1", module_state=None, failed=False)
 
-        def terminate_participant(
-            self,
-            participant=None,
-            assignment_id=None,
-            reason=None,
-            details=None,
-        ):
-            self.seen_reason = reason
-            return "https://lucid.example/exit"
+    with patch("psynet.recruiters.db.session.commit"):
+        recruiter.execute_early_exit_plan(
+            MagicMock(),
+            participant,
+            _early_exit_test_plan(EarlyExitPath.TERMINATE_PANEL_SESSION),
+        )
 
-    recruiter = FakeLucid()
-    participant = MagicMock()
-    recruiter.execute_early_exit_plan(
-        MagicMock(),
-        participant,
-        _early_exit_test_plan(EarlyExitPath.TERMINATE_PANEL_SESSION),
+    recruiter.lucidservice.terminate_respondent.assert_called_once_with(
+        "rid-1", "early_exit", None
     )
-    assert recruiter.seen_reason == "early_exit"
+    # Lucid exits fail incomplete trials like every other recruiter's exit.
+    participant.fail.assert_called_once_with("early_exit")
+    assert participant.early_exited is True
 
 
 def test_lucid_plan_execution_propagates_termination_failure_without_commit():
-    class DelegatingLucid(BaseLucidRecruiter):
-        def __init__(self):
-            pass
-
-        def terminate_participant(
-            self,
-            participant=None,
-            assignment_id=None,
-            reason=None,
-            details=None,
-        ):
-            return super().terminate_participant(
-                participant=participant,
-                assignment_id=assignment_id,
-                reason=reason,
-                details=details,
-            )
-
-    recruiter = DelegatingLucid()
-    recruiter.lucidservice = MagicMock()
+    recruiter = _lucid_recruiter_with_service()
     recruiter.lucidservice.terminate_respondent.side_effect = RuntimeError(
         "Lucid unavailable"
     )
-    participant = MagicMock(
-        assignment_id="rid-1",
-        module_state=None,
-    )
+    participant = MagicMock(assignment_id="rid-1", module_state=None, failed=False)
 
     with (
         patch("psynet.recruiters.db.session.commit") as commit,
