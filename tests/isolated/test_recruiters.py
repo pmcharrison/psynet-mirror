@@ -1289,7 +1289,25 @@ def test_lucid_early_exit_terminates_the_panel_session():
 
 
 def test_lucid_plan_execution_propagates_termination_failure_without_commit():
-    recruiter = object.__new__(BaseLucidRecruiter)
+    class DelegatingLucid(BaseLucidRecruiter):
+        def __init__(self):
+            pass
+
+        def terminate_participant(
+            self,
+            participant=None,
+            assignment_id=None,
+            reason=None,
+            details=None,
+        ):
+            return super().terminate_participant(
+                participant=participant,
+                assignment_id=assignment_id,
+                reason=reason,
+                details=details,
+            )
+
+    recruiter = DelegatingLucid()
     recruiter.lucidservice = MagicMock()
     recruiter.lucidservice.terminate_respondent.side_effect = RuntimeError(
         "Lucid unavailable"

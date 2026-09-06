@@ -47,6 +47,7 @@ import hashlib
 import json
 import re
 from collections import Counter
+from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -108,6 +109,10 @@ from .timeline import (
 from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
+
+_lucid_termination_controls: ContextVar[tuple[bool, bool] | None] = ContextVar(
+    "lucid_termination_controls", default=None
+)
 
 PROLIFIC_MESSAGE_FIELD_ALIASES = {
     "sender_id": ("sender_id", "sender"),
@@ -2940,13 +2945,15 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         details=None,
     ):
         """Terminate a Lucid participant using the established public API."""
+        controls = _lucid_termination_controls.get()
+        commit_participant, raise_on_error = controls or (True, False)
         return self._terminate_participant(
             participant=participant,
             assignment_id=assignment_id,
             reason=reason,
             details=details,
-            commit_participant=True,
-            raise_on_error=False,
+            commit_participant=commit_participant,
+            raise_on_error=raise_on_error,
         )
 
     def _terminate_participant(
@@ -2996,15 +3003,11 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         del experiment
         if plan.path is not EarlyExitPath.TERMINATE_PANEL_SESSION:
             raise ValueError("Lucid early-exit plans must terminate the panel session.")
-        if type(self).terminate_participant is BaseLucidRecruiter.terminate_participant:
-            self._terminate_participant(
-                participant=participant,
-                reason="early_exit",
-                commit_participant=False,
-                raise_on_error=True,
-            )
-        else:
+        token = _lucid_termination_controls.set((False, True))
+        try:
             self.terminate_participant(participant=participant, reason="early_exit")
+        finally:
+            _lucid_termination_controls.reset(token)
 
     def plan_early_exit(
         self,
