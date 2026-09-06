@@ -114,14 +114,31 @@ test("media download progress bar displays on full load and inplace transition",
     await assertMediaDownloadProgressBarVisible(experimentPage, true);
     await waitForMediaDownloadComplete(experimentPage);
 
-    // Cancelling Exit closes the in-page confirmation without navigating or
-    // replacing the current trial.
+    // Leave is the destructive action on the left; the passive Cancel action
+    // on the right closes the confirmation without replacing the trial.
     const urlBeforeExit = experimentPage.url();
     await experimentPage.locator("#early-exit-button").click();
     await expect(experimentPage.locator("#early-exit-modal")).toBeVisible();
     await expect(experimentPage.locator("#early-exit-title")).toHaveText(
       "Leave without finishing?"
     );
+    const actions = await experimentPage.evaluate(() => {
+      const confirm = document.getElementById("early-exit-confirm");
+      const cancel = document.getElementById("early-exit-cancel");
+      const modal = document.querySelector("#early-exit-modal .modal-content");
+      return {
+        confirmLabel: confirm.textContent.trim(),
+        cancelLabel: cancel.textContent.trim(),
+        confirmLeft: confirm.getBoundingClientRect().left,
+        cancelLeft: cancel.getBoundingClientRect().left,
+        cancelBackground: getComputedStyle(cancel).backgroundColor,
+        modalBackground: getComputedStyle(modal).backgroundColor
+      };
+    });
+    expect(actions.confirmLabel).toBe("Leave");
+    expect(actions.cancelLabel).toBe("Cancel");
+    expect(actions.confirmLeft).toBeLessThan(actions.cancelLeft);
+    expect(actions.cancelBackground).toBe(actions.modalBackground);
     await experimentPage.locator("#early-exit-cancel").click();
     await expect(experimentPage.locator("#early-exit-modal")).toBeHidden();
     await expect(experimentPage.locator("#main-body")).toContainText(

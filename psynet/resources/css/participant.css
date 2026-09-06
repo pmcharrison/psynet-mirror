@@ -383,6 +383,20 @@ code {
     --bs-btn-disabled-border-color: var(--psynet-danger);
 }
 
+/* Quiet alternative to a primary action, used where dismissing a dialog
+   should remain visibly passive even while hovered or focused. */
+.btn-passive {
+    --bs-btn-color: var(--psynet-text);
+    --bs-btn-bg: var(--psynet-surface);
+    --bs-btn-border-color: var(--psynet-border);
+    --bs-btn-hover-color: var(--psynet-text);
+    --bs-btn-hover-bg: var(--psynet-surface);
+    --bs-btn-hover-border-color: var(--psynet-text-muted);
+    --bs-btn-active-color: var(--psynet-text);
+    --bs-btn-active-bg: var(--psynet-surface);
+    --bs-btn-active-border-color: var(--psynet-text-muted);
+}
+
 /*
  * Response options are rendered as full-width rows rather than bare inputs so
  * that the whole row is clickable. Native radios are roughly 21px across, which

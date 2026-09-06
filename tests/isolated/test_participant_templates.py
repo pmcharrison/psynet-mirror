@@ -689,8 +689,16 @@ def test_footer_exit_uses_an_in_page_confirmation():
         'id="early-exit-cancel"'
     )
     cancel_button = early_exit_macro[early_exit_macro.index('id="early-exit-cancel"') :]
-    assert "btn-outline-secondary" in cancel_button.split("</button>", 1)[0]
+    assert "btn-passive" in cancel_button.split("</button>", 1)[0]
     assert "btn-primary" not in cancel_button.split("</button>", 1)[0]
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    start = css.index(".btn-passive {")
+    end = css.index("}", start)
+    passive_button = css[start:end]
+    assert "--bs-btn-bg: var(--psynet-surface)" in passive_button
+    assert "--bs-btn-hover-bg: var(--psynet-surface)" in passive_button
 
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
