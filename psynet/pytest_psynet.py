@@ -313,10 +313,21 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
     # bottom can cover the target with the footer; bring the control itself
     # into view instead.
     driver.execute_script(
-        "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});",
+        """
+        const el = arguments[0];
+        el.scrollIntoView({block: 'center', inline: 'nearest'});
+        const y = el.getBoundingClientRect().top + window.pageYOffset
+            - (window.innerHeight / 2);
+        window.scrollTo(0, Math.max(0, y));
+        document.documentElement.scrollTop = Math.max(0, y);
+        document.body.scrollTop = Math.max(0, y);
+        """,
         button,
     )
-    button.click()
+    try:
+        button.click()
+    except ElementClickInterceptedException:
+        driver.execute_script("arguments[0].click();", button)
     if finished:
         wait_until(
             lambda: "recruiter-exit" in driver.current_url,
