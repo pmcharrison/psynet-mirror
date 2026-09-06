@@ -1075,6 +1075,24 @@ def test_experimenters_can_customize_early_exit_confirmation():
     )
 
 
+def test_error_recovery_confirmation_skips_early_exit_allowed():
+    experiment = object.__new__(Experiment)
+    experiment.recruiter = MagicMock()
+    experiment.early_exit_allowed = MagicMock(side_effect=RuntimeError("reward boom"))
+    participant = MagicMock()
+
+    experiment.early_exit_confirmation(
+        participant, allow_unpaid_early_exit_option=False
+    )
+
+    experiment.early_exit_allowed.assert_not_called()
+    experiment.recruiter.early_exit_confirmation.assert_called_once_with(
+        participant,
+        allow_unpaid_early_exit_option=False,
+        paid_exit_allowed=None,
+    )
+
+
 def test_page_show_early_exit_button_does_not_warn():
     with warnings.catch_warnings():
         warnings.simplefilter("error", FutureWarning)

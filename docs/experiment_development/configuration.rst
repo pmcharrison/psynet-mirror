@@ -281,6 +281,11 @@ General
                     cancel_label="Continue",
                 )
 
+    If you return a custom confirmation, keep ``unpaid`` and the confirm label
+    consistent with the pathway you intend. The early-exit route still enforces
+    unpaid leave below the paid-exit threshold unless error-page recovery has
+    granted a compensated bypass.
+
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when
     paid leave is available.

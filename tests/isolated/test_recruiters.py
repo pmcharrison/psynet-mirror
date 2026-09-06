@@ -820,6 +820,22 @@ def test_paid_exit_allowed_override_controls_unpaid_pathway():
     assert paid.unpaid is False
 
 
+def _var_store(initial=None):
+    store = dict(initial or {})
+
+    def getter(key, default=None):
+        return store[key] if key in store else default
+
+    def setter(key, value):
+        store[key] = value
+
+    var = MagicMock()
+    var.get.side_effect = getter
+    var.set.side_effect = setter
+    var._store = store
+    return var
+
+
 def test_resolve_early_exit_unpaid_forces_unpaid_below_threshold():
     from psynet.experiment import Experiment
 
@@ -827,11 +843,10 @@ def test_resolve_early_exit_unpaid_forces_unpaid_below_threshold():
     experiment.recruiter.gates_early_exit_on_reward.return_value = True
     experiment.early_exit_allowed.return_value = False
     participant = MagicMock()
-    participant.var.get.return_value = False
+    participant.var = _var_store()
 
     assert Experiment.resolve_early_exit_unpaid(experiment, participant, False) is True
-    assert Experiment.resolve_early_exit_unpaid(experiment, participant, True) is True
-    participant.var.set.assert_not_called()
+    assert participant.var._store["early_exit_resolved_unpaid"] is True
 
 
 def test_resolve_early_exit_unpaid_honors_error_page_bypass():
@@ -841,10 +856,26 @@ def test_resolve_early_exit_unpaid_honors_error_page_bypass():
     experiment.recruiter.gates_early_exit_on_reward.return_value = True
     experiment.early_exit_allowed.return_value = False
     participant = MagicMock()
-    participant.var.get.return_value = True
+    participant.var = _var_store({"early_exit_compensated_ok": True})
 
     assert Experiment.resolve_early_exit_unpaid(experiment, participant, False) is False
-    participant.var.set.assert_called_once_with("early_exit_compensated_ok", False)
+    assert participant.var._store["early_exit_compensated_ok"] is False
+    assert participant.var._store["early_exit_resolved_unpaid"] is False
+
+
+def test_resolve_early_exit_unpaid_reuses_stored_outcome_after_bypass():
+    from psynet.experiment import Experiment
+
+    experiment = MagicMock()
+    experiment.recruiter.gates_early_exit_on_reward.return_value = True
+    experiment.early_exit_allowed.return_value = False
+    participant = MagicMock()
+    participant.var = _var_store({"early_exit_compensated_ok": True})
+
+    assert Experiment.resolve_early_exit_unpaid(experiment, participant, False) is False
+    # Bypass is consumed; a duplicate request must still resolve as paid.
+    assert Experiment.resolve_early_exit_unpaid(experiment, participant, False) is False
+    assert participant.var._store["early_exit_resolved_unpaid"] is False
 
 
 def test_resolve_early_exit_unpaid_passthrough_when_paid_allowed():
@@ -853,10 +884,66 @@ def test_resolve_early_exit_unpaid_passthrough_when_paid_allowed():
     experiment = MagicMock()
     experiment.recruiter.gates_early_exit_on_reward.return_value = True
     experiment.early_exit_allowed.return_value = True
-    participant = MagicMock()
 
-    assert Experiment.resolve_early_exit_unpaid(experiment, participant, False) is False
-    assert Experiment.resolve_early_exit_unpaid(experiment, participant, True) is True
+    paid_participant = MagicMock()
+    paid_participant.var = _var_store()
+    unpaid_participant = MagicMock()
+    unpaid_participant.var = _var_store()
+
+    assert (
+        Experiment.resolve_early_exit_unpaid(experiment, paid_participant, False)
+        is False
+    )
+    assert (
+        Experiment.resolve_early_exit_unpaid(experiment, unpaid_participant, True)
+        is True
+    )
+
+
+def test_resolve_early_exit_unpaid_passthrough_for_non_gating_recruiter():
+    from psynet.experiment import Experiment
+
+    experiment = MagicMock()
+    experiment.recruiter.gates_early_exit_on_reward.return_value = False
+
+    paid_participant = MagicMock()
+    paid_participant.var = _var_store()
+    unpaid_participant = MagicMock()
+    unpaid_participant.var = _var_store()
+
+    assert (
+        Experiment.resolve_early_exit_unpaid(experiment, paid_participant, False)
+        is False
+    )
+    assert (
+        Experiment.resolve_early_exit_unpaid(experiment, unpaid_participant, True)
+        is True
+    )
+    experiment.early_exit_allowed.assert_not_called()
+
+
+def test_already_early_exited_route_does_not_reclassify_payment():
+    from psynet.experiment import Experiment
+
+    participant = MagicMock()
+    participant.early_exited = True
+    experiment = MagicMock()
+
+    with (
+        patch.object(
+            Experiment,
+            "get_participant_from_assignment_id",
+            return_value=participant,
+        ),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.success_response", return_value="ok") as success,
+        patch.object(Experiment, "resolve_early_exit_unpaid") as resolve,
+    ):
+        assert Experiment.route_set_participant_as_early_exited("assign-1") == "ok"
+
+    success.assert_called_once_with()
+    resolve.assert_not_called()
+    experiment.recruiter.early_exit.assert_not_called()
 
 
 def test_unpaid_early_exit_records_flag_and_skips_payment():

@@ -392,6 +392,10 @@ class PsyNetRecruiterMixin:
             :meth:`early_exit_allowed`. Experiments pass
             ``Experiment.early_exit_allowed`` so overrides take effect.
         """
+        if not allow_unpaid_early_exit_option:
+            # Error-page recovery must not touch reward eligibility; that
+            # calculation may have caused the original error.
+            return self._compensated_early_exit_confirmation(participant)
         if paid_exit_allowed is None:
             paid_exit_allowed = self.early_exit_allowed(participant)
         if self._should_offer_unpaid_early_exit(
