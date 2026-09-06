@@ -14,8 +14,10 @@ reintroduce and hard to spot by eye:
 import re
 from importlib import resources
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from jinja2 import Environment, FileSystemLoader
 
 TEMPLATES = sorted(Path(str(resources.files("psynet") / "templates")).rglob("*.html"))
 
@@ -685,16 +687,51 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert "global.psynet.finishAndGoToExit" in early_exit_js
     assert '.post("/worker_complete"' in early_exit_js
     assert '"/set_participant_as_early_exited/"' in early_exit_js
-    assert "?payment=none" in early_exit_js
+    assert 'method: "POST"' in early_exit_js
+    assert "offer_id: offerId" in early_exit_js
+    assert "?payment=none" not in early_exit_js
     assert '"/abort/" + encodeURIComponent(assignmentId)' not in js
-    assert "data-unpaid=" in early_exit_macro
+    assert "data-offer-id=" in early_exit_macro
+    assert "data-unpaid=" not in early_exit_macro
 
     experiment_source = (resources.files("psynet") / "experiment.py").read_text(
         encoding="utf-8"
     )
-    assert "resolve_early_exit_unpaid" in experiment_source
-    assert 'request.args.get("payment") == "none"' in experiment_source
-    assert "unpaid=unpaid" in experiment_source
+    assert "EarlyExitPlan.from_dict" in experiment_source
+    assert 'methods=["POST"]' in experiment_source
+    assert "resolve_early_exit_unpaid" not in experiment_source
+
+
+def test_shared_early_exit_modal_renders_server_offer_id_and_cancel_copy():
+    templates = Path(str(resources.files("psynet") / "templates"))
+    environment = Environment(loader=FileSystemLoader(templates))
+    template = environment.from_string(
+        """
+        {% from "macros/early_exit.html" import early_exit_modal %}
+        {{ early_exit_modal("assignment-1", 7, "offer-1", confirmation) }}
+        ---
+        {{ early_exit_modal(
+            "assignment-1",
+            7,
+            "offer-2",
+            confirmation,
+            cancel_label="Stay on this page"
+        ) }}
+        """
+    )
+    confirmation = SimpleNamespace(
+        title="Leave without finishing?",
+        message="Your responses are saved.",
+        confirm_label="Leave",
+        cancel_label="Continue",
+    )
+
+    timeline, error = template.render(confirmation=confirmation).split("---")
+
+    assert 'data-offer-id="offer-1"' in timeline
+    assert "Continue" in timeline
+    assert 'data-offer-id="offer-2"' in error
+    assert "Stay on this page" in error
 
 
 def test_abort_is_removed_from_ad_and_available_inline_on_error():

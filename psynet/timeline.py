@@ -1863,6 +1863,8 @@ class Page(Elt):
         )
         js_vars = {**self.js_vars, **internal_js_vars}
         inplace_timeline_transitions = config.get("inplace_timeline_transitions")
+        early_exit_plan = experiment.early_exit_plan(participant)
+        participant.early_exit_plan = early_exit_plan.to_dict()
 
         all_template_args = {
             **self.template_arg,
@@ -1901,8 +1903,8 @@ class Page(Elt):
             "show_early_exit_button": self.show_early_exit_button,
             "show_abort_button": self.show_early_exit_button,
             "show_termination_button": self.show_early_exit_button,
-            "early_exit_allowed": experiment.early_exit_allowed(participant),
-            "early_exit_confirmation": experiment.early_exit_confirmation(participant),
+            "early_exit_confirmation": early_exit_plan.confirmation,
+            "early_exit_offer_id": early_exit_plan.offer_id,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         rendered = render_string_with_translations(

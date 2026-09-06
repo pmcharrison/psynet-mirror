@@ -37,7 +37,7 @@ from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject
+from .field import PythonDict, PythonList, PythonObject
 from .utils import (
     NoArgumentProvided,
     call_function_with_context,
@@ -245,6 +245,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         Whether the participant left the experiment early.
         Set once they confirm the early-exit dialog.
 
+    early_exit_plan : dict or None
+        The server-owned :class:`~psynet.recruiters.EarlyExitPlan` snapshot
+        offered to this participant. It records the confirmation they saw and
+        the recruiter path executed if they confirmed.
+
     answer : object
         The most recent answer submitted by the participant.
         Can take any form that can be automatically serialized to JSON.
@@ -317,6 +322,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     page_uuid = Column(String)
     page_count = Column(Integer)
     early_exited = Column(Boolean)
+    early_exit_plan = Column(PythonDict)
     complete = Column(Boolean)
     pending_redirect = Column(String)
     answer = Column(PythonObject)
@@ -651,6 +657,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         super().__init__(*args, **kwargs)
         self.page_count = 0
         self.early_exited = False
+        self.early_exit_plan = None
         self.complete = False
         self.vars = {}
         self.time_credit = 0.0

@@ -21,9 +21,9 @@
                     {{ early_exit_modal(
                         assignment_id,
                         participant_id,
+                        early_exit_offer_id,
                         early_exit_confirmation,
-                        cancel_label=pgettext("early_exit_error", "Stay on this page"),
-                        unpaid=false
+                        cancel_label=pgettext("early_exit_error", "Stay on this page")
                     ) }}
                     <script>
                         document.addEventListener("DOMContentLoaded", function () {

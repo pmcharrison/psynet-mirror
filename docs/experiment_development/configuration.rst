@@ -264,27 +264,33 @@ General
     compensated/plain leave pathway, even below the threshold. Lucid always
     permits termination and never talks about PsyNet payment.
 
-    Experiments can customize all confirmation copy by overriding
-    :meth:`~psynet.experiment.Experiment.early_exit_confirmation` and returning
-    an :class:`~psynet.recruiters.EarlyExitConfirmation`::
+    PsyNet prepares an :class:`~psynet.recruiters.EarlyExitPlan` before showing
+    the confirmation. The plan records both the participant-facing copy and the
+    recruiter path that will be executed if they confirm. The plan is stored on
+    :attr:`~psynet.participant.Participant.early_exit_plan`, so the browser
+    cannot select a different payment path.
 
-        from psynet.recruiters import EarlyExitConfirmation
+    Experiments can customize voluntary Leave copy by overriding
+    :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the
+    confirmation while preserving the planned path::
+
+        from dataclasses import replace
 
         class Exp(Experiment):
-            def early_exit_confirmation(
-                self, participant, *, allow_unpaid_early_exit_option=True
-            ):
-                return EarlyExitConfirmation(
-                    title="Leave without finishing?",
-                    message="Your responses so far will still be saved.",
-                    confirm_label="Leave",
-                    cancel_label="Continue",
+            def early_exit_plan(self, participant):
+                plan = super().early_exit_plan(participant)
+                return replace(
+                    plan,
+                    confirmation=replace(
+                        plan.confirmation,
+                        message="Your responses so far will still be saved.",
+                    ),
                 )
 
-    If you return a custom confirmation, keep ``unpaid`` and the confirm label
-    consistent with the pathway you intend. The early-exit route still enforces
-    unpaid leave below the paid-exit threshold unless error-page recovery has
-    granted a compensated bypass.
+    Error recovery has a separate
+    :meth:`~psynet.experiment.Experiment.error_recovery_early_exit_plan` hook.
+    It does not apply the paid-exit threshold and falls back to conservative
+    payment copy if detailed reward calculation fails.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when

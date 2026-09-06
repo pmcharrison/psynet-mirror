@@ -1060,36 +1060,40 @@ def test_page_rejects_conflicting_abort_and_termination_flags():
             )
 
 
-def test_experimenters_can_customize_early_exit_confirmation():
-    custom = object()
+def test_experiment_delegates_voluntary_early_exit_planning_to_recruiter():
+    from psynet.recruiters import EarlyExitContext
+
+    custom_plan = object()
     experiment = object.__new__(Experiment)
     experiment.recruiter = MagicMock()
-    experiment.recruiter.early_exit_confirmation.return_value = custom
+    experiment.recruiter.plan_early_exit.return_value = custom_plan
     participant = MagicMock()
 
-    assert experiment.early_exit_confirmation(participant) is custom
-    experiment.recruiter.early_exit_confirmation.assert_called_once_with(
+    assert experiment.early_exit_plan(participant) is custom_plan
+    experiment.recruiter.plan_early_exit.assert_called_once_with(
+        experiment,
         participant,
-        allow_unpaid_early_exit_option=True,
-        paid_exit_allowed=experiment.early_exit_allowed(participant),
+        EarlyExitContext.VOLUNTARY,
     )
 
 
-def test_error_recovery_confirmation_skips_early_exit_allowed():
+def test_experiment_delegates_error_recovery_planning_without_eligibility_check():
+    from psynet.recruiters import EarlyExitContext
+
+    custom_plan = object()
     experiment = object.__new__(Experiment)
     experiment.recruiter = MagicMock()
+    experiment.recruiter.plan_early_exit.return_value = custom_plan
     experiment.early_exit_allowed = MagicMock(side_effect=RuntimeError("reward boom"))
     participant = MagicMock()
 
-    experiment.early_exit_confirmation(
-        participant, allow_unpaid_early_exit_option=False
-    )
+    assert experiment.error_recovery_early_exit_plan(participant) is custom_plan
 
     experiment.early_exit_allowed.assert_not_called()
-    experiment.recruiter.early_exit_confirmation.assert_called_once_with(
+    experiment.recruiter.plan_early_exit.assert_called_once_with(
+        experiment,
         participant,
-        allow_unpaid_early_exit_option=False,
-        paid_exit_allowed=None,
+        EarlyExitContext.ERROR_RECOVERY,
     )
 
 

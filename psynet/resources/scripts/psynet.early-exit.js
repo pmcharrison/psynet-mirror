@@ -71,16 +71,20 @@
       async () => {
         const assignmentId = modal.dataset.assignmentId;
         const participantId = modal.dataset.participantId;
-        if (!assignmentId || !participantId) return;
+        const offerId = modal.dataset.offerId;
+        if (!assignmentId || !participantId || !offerId) return;
 
         confirm.disabled = true;
         cancel.disabled = true;
         try {
-          const unpaid = modal.dataset.unpaid === "true";
           const response = await fetch(
             "/set_participant_as_early_exited/" +
-              encodeURIComponent(assignmentId) +
-              (unpaid ? "?payment=none" : ""),
+              encodeURIComponent(assignmentId),
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ offer_id: offerId }),
+            },
           );
           if (!response.ok) throw new Error("Failed to record early exit.");
           await finish(participantId);

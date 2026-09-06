@@ -2,13 +2,10 @@
 {% macro early_exit_modal(
     assignment_id,
     participant_id,
+    offer_id,
     confirmation,
-    cancel_label=None,
-    unpaid=None
+    cancel_label=None
 ) %}
-    {# ``unpaid`` overrides ``confirmation.unpaid`` when the caller must force
-       a pathway (error-page recovery always uses compensated/plain leave). #}
-    {% set unpaid_flag = confirmation.unpaid if unpaid is none else unpaid %}
     <div id="early-exit-modal"
          class="modal"
          role="dialog"
@@ -17,7 +14,7 @@
          aria-describedby="early-exit-message"
          data-assignment-id="{{ assignment_id }}"
          data-participant-id="{{ participant_id }}"
-         data-unpaid="{{ 'true' if unpaid_flag else 'false' }}"
+         data-offer-id="{{ offer_id }}"
          hidden>
         <div class="modal-content">
             <h2 id="early-exit-title">{{ confirmation.title }}</h2>
