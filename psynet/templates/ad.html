@@ -130,7 +130,8 @@
             + ",height={{config.window_height}}");
             event.target.setAttribute("disabled", "");
           } else{
-            window.location = url;
+            // Replace so Back from the timeline does not return to this splash.
+            window.location.replace(url);
           }
         }
         {% if experiment.with_lucid_recruitment() %}

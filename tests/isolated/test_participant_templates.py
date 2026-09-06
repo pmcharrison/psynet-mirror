@@ -642,6 +642,21 @@ def test_consent_actions_sit_in_document_flow():
         assert "consent.buttons(config)" in source, path.name
 
 
+def test_recruiter_handshake_replaces_history():
+    """Back from the timeline should leave PsyNet, not return to Begin or Next."""
+    templates = resources.files("psynet") / "templates"
+    ad = (templates / "ad.html").read_text(encoding="utf-8")
+    consent = (templates / "consent.html").read_text(encoding="utf-8")
+    start = (templates / "start.html").read_text(encoding="utf-8")
+
+    assert "window.location.replace(url)" in ad
+    assert "window.location = url" not in ad
+    assert "window.location.replace('/start?" in consent
+    assert "window.location='/start" not in consent
+    assert start.count('window.location.replace("/timeline?unique_id="') == 2
+    assert 'window.location = "/timeline' not in start
+
+
 def test_exit_navigation_replaces_the_finished_timeline_in_history():
     """Back from exit must not revive a completed timeline page from history/bfcache."""
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
