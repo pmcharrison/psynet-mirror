@@ -92,7 +92,7 @@ test("media download progress bar displays on full load and inplace transition",
     // Cancelling Exit closes the in-page confirmation without navigating or
     // replacing the current trial.
     const urlBeforeExit = experimentPage.url();
-    await experimentPage.locator("#terminate-button").click();
+    await experimentPage.locator("#early-exit-button").click();
     await expect(experimentPage.locator("#early-exit-modal")).toBeVisible();
     await expect(experimentPage.locator("#early-exit-title")).toHaveText(
       "Leave without finishing?"

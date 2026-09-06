@@ -163,8 +163,8 @@
         {# Omit the footer element when it is hidden or has no content.
            Appearance and in-flow placement live in participant.css. #}
         {% set show_comment_button = config.get("leave_comments_on_every_page") %}
-        {% set show_terminate_button = show_abort_button if show_abort_button is not none else (experiment.recruiter.show_abort_button or config.show_abort_button) %}
-        {% set footer_has_content = experiment.show_reward or show_comment_button or show_terminate_button %}
+        {% set show_early_exit_button_footer = show_early_exit_button if show_early_exit_button is not none else (experiment.recruiter.show_early_exit_button or config.show_early_exit_button) %}
+        {% set footer_has_content = experiment.show_reward or show_comment_button or show_early_exit_button_footer %}
         {% if config.show_footer != false and footer_has_content %}
         <nav id="footer" class="navbar">
             {{ media_download_bar() }}
@@ -200,9 +200,9 @@
                                 id="comment-button">{{ pgettext("timeline", "Comment") }}</button>
                     {% endif %}
 
-                    {% if show_terminate_button %}
+                    {% if show_early_exit_button_footer %}
                         <span class="psynet-tooltip psynet-tooltip--end">
-                            <button id="terminate-button"
+                            <button id="early-exit-button"
                                     class="btn btn-danger psynet-tooltip__trigger"
                                     aria-describedby="exit-tooltip">
                                 {{ pgettext("timeline_problem", "Leave") }}

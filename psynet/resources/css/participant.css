@@ -762,14 +762,14 @@ textarea:focus-visible,
 
 /* Red signals the consequence, but a solid fill made Exit the heaviest thing
    on the page, outweighing the Next button it sits beside. */
-#footer #terminate-button:focus-visible {
+#footer #early-exit-button:focus-visible {
     /* The shared focus ring is accent-coloured and 3px, which around a small
        red-outlined control reads as a blue button. Focus follows the control's
        own colour here instead. */
     outline-color: var(--psynet-danger);
 }
 
-#footer #terminate-button {
+#footer #early-exit-button {
     --bs-btn-bg: var(--psynet-surface);
     --bs-btn-border-color: var(--psynet-danger);
     --bs-btn-color: var(--psynet-danger);

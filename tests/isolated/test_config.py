@@ -76,11 +76,11 @@ def test_warns_when_experiment_config_is_overridden(in_experiment_directory, cap
 
     # Simulate a higher-priority runtime write overriding a value set in
     # experiment.py.
-    with config.override({"min_accumulated_reward_for_abort": 0.99}):
+    with config.override({"min_reward_for_paid_early_exit": 0.99}):
         with caplog.at_level(logging.WARNING):
             exp.check_config()
 
-    assert "min_accumulated_reward_for_abort" in caplog.text
+    assert "min_reward_for_paid_early_exit" in caplog.text
     assert "overridden" in caplog.text
     assert "0.15" in caplog.text
     assert "0.99" in caplog.text
@@ -154,7 +154,7 @@ def test_experiment_config_reaches_processes_that_change_directory(
         # Simulate a fresh process by discarding the cached config.
         dallinger_config.config = None
         config = dallinger_config.get_config(load=True)
-        assert config.get("min_accumulated_reward_for_abort") == 0.15
+        assert config.get("min_reward_for_paid_early_exit") == 0.15
     finally:
         dallinger_config.config = saved_config
         os.chdir(original_cwd)
@@ -175,7 +175,7 @@ def test_experiment_config_overrides_dallingerconfig(
 
     monkeypatch.setenv("HOME", str(tmp_path))
     (tmp_path / ".dallingerconfig").write_text(
-        "[Parameters]\nmin_accumulated_reward_for_abort = 0.99\n"
+        "[Parameters]\nmin_reward_for_paid_early_exit = 0.99\n"
     )
 
     saved_config = dallinger_config.config
@@ -183,7 +183,7 @@ def test_experiment_config_overrides_dallingerconfig(
         # Simulate a fresh process by discarding the cached config.
         dallinger_config.config = None
         config = dallinger_config.get_config(load=True)
-        assert config.get("min_accumulated_reward_for_abort") == 0.15
+        assert config.get("min_reward_for_paid_early_exit") == 0.15
     finally:
         dallinger_config.config = saved_config
 

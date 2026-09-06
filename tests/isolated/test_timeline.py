@@ -1035,20 +1035,27 @@ def test_async_code_block_initiate__clears_stale_finished_or_failed_process(
     )
 
 
-def test_page_show_termination_button_is_a_deprecated_alias():
-    with pytest.warns(FutureWarning, match="show_abort_button"):
-        page = InfoPage("Hello", time_estimate=1, show_termination_button=True)
+def test_page_show_abort_button_is_a_deprecated_alias():
+    with pytest.warns(FutureWarning, match="show_early_exit_button"):
+        page = InfoPage("Hello", time_estimate=1, show_abort_button=True)
+    assert page.show_early_exit_button is True
     assert page.show_abort_button is True
+
+
+def test_page_show_termination_button_is_a_deprecated_alias():
+    with pytest.warns(FutureWarning, match="show_early_exit_button"):
+        page = InfoPage("Hello", time_estimate=1, show_termination_button=True)
+    assert page.show_early_exit_button is True
     assert page.show_termination_button is True
 
 
 def test_page_rejects_conflicting_abort_and_termination_flags():
-    with pytest.warns(FutureWarning, match="show_abort_button"):
+    with pytest.warns(FutureWarning, match="show_early_exit_button"):
         with pytest.raises(ValueError, match="disagree"):
             InfoPage(
                 "Hello",
                 time_estimate=1,
-                show_abort_button=True,
+                show_early_exit_button=True,
                 show_termination_button=False,
             )
 
@@ -1062,15 +1069,15 @@ def test_experimenters_can_customize_early_exit_confirmation():
 
     assert experiment.early_exit_confirmation(participant) is custom
     experiment.recruiter.early_exit_confirmation.assert_called_once_with(
-        participant, force_compensated=False
+        participant, skip_unpaid=False
     )
 
 
-def test_page_show_abort_button_does_not_warn():
+def test_page_show_early_exit_button_does_not_warn():
     with warnings.catch_warnings():
         warnings.simplefilter("error", FutureWarning)
-        page = InfoPage("Hello", time_estimate=1, show_abort_button=False)
-    assert page.show_abort_button is False
+        page = InfoPage("Hello", time_estimate=1, show_early_exit_button=False)
+    assert page.show_early_exit_button is False
     assert page.show_termination_button is False
 
 
@@ -1078,4 +1085,4 @@ def test_consent_pages_hide_footer_exit_by_default():
     from psynet.consent import MainConsent
 
     page = MainConsent.MainConsentPage(time_estimate=1)
-    assert page.show_abort_button is False
+    assert page.show_early_exit_button is False

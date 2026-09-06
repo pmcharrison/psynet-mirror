@@ -407,10 +407,10 @@ def test_timeline_footer_keeps_labels_compact_and_explanations_accessible():
     assert 'aria-describedby="reward-tooltip"' in macro
     assert 'id="reward-tooltip"' in macro
     assert 'id="reward-details"' not in macro
-    assert 'id="terminate-button"' in macro
+    assert 'id="early-exit-button"' in macro
     assert 'aria-describedby="exit-tooltip"' in macro
     assert 'id="exit-tooltip"' in macro
-    assert 'pgettext("timeline_problem", "Exit")' in macro
+    assert 'pgettext("timeline_problem", "Leave")' in macro
     # The readout has no border, so a glyph carries the affordance instead.
     assert 'class="psynet-info"' in macro
     assert 'aria-hidden="true"' in macro
@@ -474,7 +474,7 @@ def test_footer_controls_carry_a_visible_boundary():
     )
     for button, token in (
         ("#footer #comment-button {", "--psynet-accent"),
-        ("#footer #terminate-button {", "--psynet-danger"),
+        ("#footer #early-exit-button {", "--psynet-danger"),
     ):
         start = css.index(button)
         end = css.index("}", start)
@@ -665,8 +665,8 @@ def test_footer_exit_uses_an_in_page_confirmation():
     timeline = (resources.files("psynet") / "templates/timeline-page.html").read_text(
         encoding="utf-8"
     )
-    assert "config.show_abort_button" in timeline
-    assert "recruiter.show_abort_button" in timeline
+    assert "config.show_early_exit_button" in timeline
+    assert "recruiter.show_early_exit_button" in timeline
     assert 'id="early-exit-modal"' in timeline
     assert 'id="early-exit-cancel"' in timeline
     assert 'id="early-exit-confirm"' in timeline
@@ -680,7 +680,7 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert "psynet.initEarlyExitButton" in js
     assert "global.psynet.finishAndGoToExit" in early_exit_js
     assert '.post("/worker_complete"' in early_exit_js
-    assert '"/set_participant_as_aborted/"' in early_exit_js
+    assert '"/set_participant_as_early_exited/"' in early_exit_js
     assert "?payment=none" in early_exit_js
     assert '"/abort/" + encodeURIComponent(assignmentId)' not in js
     assert "data-unpaid=" in timeline

@@ -368,8 +368,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         class Exp(psynet.experiment.Experiment):
             config = {
-                "min_accumulated_reward_for_abort": 0.15,
-                "show_abort_button": True,
+                "min_reward_for_paid_early_exit": 0.15,
+                "show_early_exit_button": True,
             }
 
     Custom CSS stylesheets can be included here, to style the appearance of the experiment:
@@ -457,23 +457,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     currency : `str`
         The currency in which the participant gets paid. Default: `$`.
 
-    min_accumulated_reward_for_abort : `float`
+    min_reward_for_paid_early_exit : `float`
         Minimum accumulated reward required before a paid recruiter permits
-        Exit. Below this, the confirmation explains that leaving with payment
+        paid Leave. Below this, the confirmation explains that leaving with payment
         is not yet allowed. Lucid termination is not gated by this value.
         Default: `0.20`.
 
-    show_abort_button : `bool`
+    show_early_exit_button : `bool`
         If ``True``, participants may leave early for accumulated-reward
-        compensation. The timeline footer then includes Exit (unless a page
-        sets ``show_abort_button=False``). Exit opens an in-page confirmation,
+        compensation. The timeline footer then includes Leave (unless a page
+        sets ``show_early_exit_button=False``). Leave opens an in-page confirmation,
         while the error page provides a fallback if the timeline cannot
         continue. The ad page does not provide an early-exit control.
         Confirming fails the participant so Prolific uses the
         unsuccessful/partial-payment route; Lucid terminates the panel
         session. Default ``False``.
-        ``Page(show_termination_button=...)`` is a deprecated alias for the
-        per-page override; use ``show_abort_button`` instead.
+        ``Page(show_abort_button=...)`` and ``Page(show_termination_button=...)``
+        are deprecated aliases for the per-page override; use
+        ``show_early_exit_button`` instead.
 
     show_reward : `bool`
         If ``True``, then the participant's current estimated reward is displayed
@@ -486,7 +487,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         If ``True`` (default), then a footer may be displayed at the bottom of the page.
         It holds reward information if `show_reward` resolves to `True`, a 'Comment'
         button if `leave_comments_on_every_page` is set, and Exit if
-        `show_abort_button` is set or the recruiter requires one (Lucid). The footer is
+        `show_early_exit_button` is set or the recruiter requires one (Lucid). The footer is
         omitted when none of these apply, so that an empty bar does not take up space.
 
     show_progress_bar : `bool`
@@ -1628,15 +1629,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant is not None
             and compensate
             and (
-                get_config().get("show_abort_button")
-                or getattr(recruiter, "show_abort_button", False)
+                get_config().get("show_early_exit_button")
+                or getattr(recruiter, "show_early_exit_button", False)
             )
         ):
             experiment = get_experiment()
             # Error recovery always uses the compensated/plain leave pathway,
             # even if the participant is below the voluntary paid-exit threshold.
             early_exit_confirmation = experiment.early_exit_confirmation(
-                participant, force_compensated=True
+                participant, skip_unpaid=True
             )
             early_exit_allowed = True
 
@@ -1994,7 +1995,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "lock_table_when_creating_participant": False,
             "loglevel": 1,
             "loglevel_worker": 1,
-            "min_accumulated_reward_for_abort": 0.20,
+            "min_reward_for_paid_early_exit": 0.20,
             # Chrome 105 is the first release with CSS :has(), which the default
             # participant theme uses for selected-option styling.
             "min_browser_version": "105.0",
@@ -2003,7 +2004,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "prolific_pay_unsuccessful": True,
             "prolific_unsuccessful_topup": True,
             "protected_routes": json.dumps(_protected_routes),
-            "show_abort_button": False,
+            "show_early_exit_button": False,
             "show_footer": True,
             "show_progress_bar": True,
             # show_reward is deliberately absent: leaving it unset means
@@ -3254,7 +3255,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
-    def early_exit_confirmation(self, participant, *, force_compensated=False):
+    def early_exit_confirmation(self, participant, *, skip_unpaid=False):
         """Return the participant-facing confirmation copy for leaving early.
 
         Override this method to customize the recruiter's default copy. Return
@@ -3264,19 +3265,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ----------
         participant
             The participant considering an early exit.
-        force_compensated
+        skip_unpaid
             When true (error-page recovery), skip the below-threshold unpaid
             option and always describe the compensated/plain leave outcome.
         """
         return self.recruiter.early_exit_confirmation(
-            participant, force_compensated=force_compensated
+            participant, skip_unpaid=skip_unpaid
         )
 
     def early_exit_allowed(self, participant):
         """Return whether the participant may leave with the paid outcome.
 
         For paid recruiters this is the configured reward threshold by default.
-        Below that threshold, Exit still opens a confirmation that offers
+        Below that threshold, Leave still opens a confirmation that offers
         unpaid leave. Override this method to customize paid-exit eligibility.
         """
         return self.recruiter.early_exit_allowed(participant)
@@ -3580,9 +3581,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("lucid_api_key", str, sensitive=True)
         config.register("lucid_recruitment_config", str)
         config.register("lucid_sha1_hashing_key", str, sensitive=True)
-        config.register("min_accumulated_reward_for_abort", float)
+        config.register("min_reward_for_paid_early_exit", float)
         config.register("min_browser_version", str)
-        config.register("show_abort_button", bool)
+        config.register("show_early_exit_button", bool)
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
@@ -4580,7 +4581,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def get_participant_counts_by_module(self):
         counts = {module_id: {} for module_id in self.timeline.modules.keys()}
 
-        for attr in ["started", "finished", "aborted"]:
+        for attr in ["started", "finished", "early_exited"]:
             col = getattr(ModuleState, attr)
             rows = (
                 db.session.query(
@@ -4748,21 +4749,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
 
-    @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
+    @experiment_route(
+        "/set_participant_as_early_exited/<assignment_id>", methods=["GET"]
+    )
     @classmethod
     @with_transaction
-    def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
+    def route_set_participant_as_early_exited(cls, assignment_id):  # TODO - update
         participant = cls.get_participant_from_assignment_id(
             assignment_id, for_update=True
         )
         unpaid = request.args.get("payment") == "none"
         get_experiment().recruiter.early_exit(
             participant,
-            reason="aborted_unpaid" if unpaid else "aborted",
+            reason="early_exit_unpaid" if unpaid else "early_exit",
             unpaid=unpaid,
         )
         logger.info(
-            f"Aborted participant with ID '{participant.id}'"
+            f"Recorded early exit for participant with ID '{participant.id}'"
             + (" without payment." if unpaid else ".")
         )
         return success_response()

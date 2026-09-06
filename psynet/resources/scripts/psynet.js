@@ -3349,7 +3349,7 @@
 
       $(document).on(
         "click.psynetLucidTermination",
-        ".btn:not(#terminate-button):not(#early-exit-cancel), .sd-btn",
+        ".btn:not(#early-exit-button):not(#early-exit-cancel), .sd-btn",
         function () {
           psynet.removeBeforeUnloadEventListener();
         },

@@ -241,10 +241,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         once they hit a :class:`~psynet.timeline.SuccessfulEndPage`.
         Should not be modified directly.
 
-    aborted : bool
-        Whether the participant has aborted the experiment.
-        A participant is considered to have aborted the experiment
-        once they confirm that they want to leave the experiment early.
+    early_exited : bool
+        Whether the participant left the experiment early.
+        Set once they confirm the early-exit dialog.
 
     answer : object
         The most recent answer submitted by the participant.
@@ -317,7 +316,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     page_uuid = Column(String)
     page_count = Column(Integer)
-    aborted = Column(Boolean)
+    early_exited = Column(Boolean)
     complete = Column(Boolean)
     pending_redirect = Column(String)
     answer = Column(PythonObject)
@@ -561,11 +560,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
 
     @property
-    def aborted_modules(self):
+    def early_exited_modules(self):
         return [
             log.module_id
             for log in sorted(self._module_states, key=lambda x: x.time_started)
-            if log.aborted
+            if log.early_exited
         ]
 
     @property
@@ -651,7 +650,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.page_count = 0
-        self.aborted = False
+        self.early_exited = False
         self.complete = False
         self.vars = {}
         self.time_credit = 0.0

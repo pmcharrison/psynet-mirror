@@ -304,9 +304,10 @@ def _prolific_error_status(error: ProlificServiceException):
 
 
 class PsyNetRecruiterMixin:
+    show_early_exit_button = False
+    # Deprecated aliases of ``show_early_exit_button``. Prefer the early-exit name
+    # in new code; Lucid still sets the aliases so older templates keep working.
     show_abort_button = False
-    # Deprecated alias of ``show_abort_button``. Prefer ``show_abort_button``
-    # in new code; Lucid still sets both so older templates keep working.
     show_termination_button = False
     reports_zero_outcomes = False
 
@@ -337,10 +338,10 @@ class PsyNetRecruiterMixin:
     ):
         raise NotImplementedError
 
-    def early_exit(self, participant, reason="aborted", *, unpaid=False):
+    def early_exit(self, participant, reason="early_exit", *, unpaid=False):
         """Handle a voluntary early leave (footer Exit or abort confirm).
 
-        Marks the participant as aborted and failed so recruiters that pay
+        Marks the participant as early-exited and failed so recruiters that pay
         unsuccessful sessions (Prolific screen-out) use that path instead of
         a successful completion. Lucid overrides this to terminate on the
         panel.
@@ -349,13 +350,13 @@ class PsyNetRecruiterMixin:
         threshold), responses are still saved but PsyNet records that no
         payment should be issued and recruiters skip paid unsuccessful routes.
         """
-        participant.aborted = True
+        participant.early_exited = True
         if participant.module_state:
-            participant.module_state.abort()
+            participant.module_state.mark_early_exited()
         if unpaid:
             participant.var.set("early_exit_unpaid", True)
             if not participant.failed:
-                participant.fail("aborted_unpaid")
+                participant.fail("early_exit_unpaid")
             return
         if not participant.failed:
             participant.fail(reason)
@@ -370,7 +371,7 @@ class PsyNetRecruiterMixin:
         return bool(self.shows_reward_by_default)
 
     def early_exit_confirmation(
-        self, participant, *, force_compensated=False
+        self, participant, *, skip_unpaid=False
     ) -> EarlyExitConfirmation:
         """Describe the consequences of leaving through this recruiter.
 
@@ -378,20 +379,18 @@ class PsyNetRecruiterMixin:
         ----------
         participant
             The participant considering an early exit.
-        force_compensated
+        skip_unpaid
             When true (error-page recovery), skip the below-threshold unpaid
             option and always describe the compensated/plain leave outcome.
         """
-        if self._should_offer_unpaid_early_exit(participant, force_compensated):
+        if self._should_offer_unpaid_early_exit(participant, skip_unpaid):
             return self._unpaid_early_exit_confirmation(participant)
         return self._compensated_early_exit_confirmation(participant)
 
-    def _should_offer_unpaid_early_exit(
-        self, participant, force_compensated: bool
-    ) -> bool:
+    def _should_offer_unpaid_early_exit(self, participant, skip_unpaid: bool) -> bool:
         """Return whether voluntary leave should use the unpaid pathway."""
         return (
-            not force_compensated
+            not skip_unpaid
             and self.gates_early_exit_on_reward()
             and not self.early_exit_allowed(participant)
         )
@@ -418,7 +417,7 @@ class PsyNetRecruiterMixin:
         _p = get_translator(context=True)
         earned = _format_early_exit_amount(participant.calculate_reward())
         threshold = _format_early_exit_amount(
-            get_config().get("min_accumulated_reward_for_abort")
+            get_config().get("min_reward_for_paid_early_exit")
         )
         message = _p(
             "early_exit",
@@ -455,7 +454,7 @@ class PsyNetRecruiterMixin:
         if not self.gates_early_exit_on_reward():
             return True
         return participant.calculate_reward() >= get_config().get(
-            "min_accumulated_reward_for_abort"
+            "min_reward_for_paid_early_exit"
         )
 
     def release_unpaid_early_exit(self, participant) -> TimelineLogic:
@@ -611,7 +610,7 @@ class PsyNetExitPageMixin:
         return render_template_with_translations(
             "psynet_exit_recruiter.html",
             participant_reference=participant.assignment_id,
-            left_early=bool(getattr(participant, "aborted", False)),
+            left_early=bool(getattr(participant, "early_exited", False)),
         )
 
 
@@ -2066,6 +2065,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
     The LucidRecruiter base class
     """
 
+    show_early_exit_button = True
     show_abort_button = True
     show_termination_button = True
 
@@ -2625,10 +2625,10 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
         if participant:
             assignment_id = participant.assignment_id
-            if reason == "terminate-button":
-                participant.aborted = True
+            if reason in {"early_exit", "early-exit-button", "terminate-button"}:
+                participant.early_exited = True
                 if participant.module_state:
-                    participant.module_state.abort()
+                    participant.module_state.mark_early_exited()
 
             participant.failed = True
             participant.failed_reason = reason
@@ -2646,15 +2646,21 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
         return self.external_submit_url(assignment_id=assignment_id)
 
-    def early_exit(self, participant, reason="aborted"):
-        """Abort-confirm and footer Exit both terminate the Lucid session."""
-        participant.aborted = True
+    def early_exit(self, participant, reason="early_exit", *, unpaid=False):
+        """Footer Leave and abort-confirm both terminate the Lucid session.
+
+        ``unpaid`` is accepted for signature parity with
+        :meth:`PsyNetRecruiterMixin.early_exit` but is unused: Lucid never
+        offers the unpaid pathway.
+        """
+        del unpaid  # Lucid does not use the unpaid early-exit pathway.
+        participant.early_exited = True
         if participant.module_state:
-            participant.module_state.abort()
+            participant.module_state.mark_early_exited()
         return self.terminate_participant(participant=participant, reason=reason)
 
     def early_exit_confirmation(
-        self, participant, *, force_compensated=False
+        self, participant, *, skip_unpaid=False
     ) -> EarlyExitConfirmation:
         """Explain that leaving returns the participant to Lucid.
 
@@ -2932,7 +2938,7 @@ def get_lucid_settings(
         "lucid_recruitment_config": lucid_recruitment_config,
         "currency": "EUR",
         "show_reward": False,
-        "show_abort_button": False,
+        "show_early_exit_button": False,
     }
     if debug_recruiter:
         settings["debug_recruiter"] = "DevLucidRecruiter"

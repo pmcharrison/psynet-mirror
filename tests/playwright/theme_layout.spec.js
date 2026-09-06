@@ -582,7 +582,7 @@ test(
               </span>
               <button class="btn btn-light">Comment</button>
               <span class="psynet-tooltip psynet-tooltip--end">
-                <button id="terminate-button" class="btn btn-danger"
+                <button id="early-exit-button" class="btn btn-danger"
                         aria-describedby="exit-tooltip">Leave</button>
                 <span id="exit-tooltip" class="psynet-tooltip__content"
                       role="tooltip">Leave without finishing.</span>
@@ -596,7 +596,7 @@ test(
     // on one row even here. Force the wrapped case as well, since a longer
     // translation or a larger font size produces it.
     for (const label of ["Leave", "Leave without finishing right now"]) {
-      await page.locator("#terminate-button").evaluate((button, text) => {
+      await page.locator("#early-exit-button").evaluate((button, text) => {
         button.textContent = text;
       }, label);
       const geometry = await page.evaluate(async () => {
@@ -622,7 +622,7 @@ test(
     await expect(tooltip).toBeVisible();
     await expect(tooltip).toContainText("$0.30 for time + $0.12 for performance");
 
-    await page.locator("#terminate-button").focus();
+    await page.locator("#early-exit-button").focus();
     await expect(page.locator("#exit-tooltip")).toBeVisible();
     await expect(page.locator("#exit-tooltip")).toContainText(
       "Leave without finishing."
@@ -749,7 +749,7 @@ const FOOTER_MARKUP = `
       </span>
       <button type="button" class="btn btn-light" id="comment-button">Comment</button>
       <span class="psynet-tooltip psynet-tooltip--end">
-        <button id="terminate-button" class="btn btn-danger psynet-tooltip__trigger"
+        <button id="early-exit-button" class="btn btn-danger psynet-tooltip__trigger"
                 aria-describedby="exit-tooltip">Leave</button>
         <span id="exit-tooltip" class="psynet-tooltip__content" role="tooltip">
           Leave without finishing.
@@ -780,7 +780,7 @@ for (const scheme of ["light", "dark"]) {
           heights: {
             reward: Math.round(box("#reward-summary").height),
             comment: Math.round(box("#comment-button").height),
-            exit: Math.round(box("#terminate-button").height)
+            exit: Math.round(box("#early-exit-button").height)
           },
           radii: {
             reward: styles("#reward-summary").borderTopLeftRadius,
@@ -805,7 +805,7 @@ for (const scheme of ["light", "dark"]) {
               box("#comment-button").left - box("#reward-summary").right
             ),
             commentToExit: Math.round(
-              box("#terminate-button").left - box("#comment-button").right
+              box("#early-exit-button").left - box("#comment-button").right
             )
           },
           contrast: {
@@ -814,7 +814,7 @@ for (const scheme of ["light", "dark"]) {
               footerBg
             ),
             exit: window.__contrast(
-              styles("#terminate-button").borderTopColor,
+              styles("#early-exit-button").borderTopColor,
               footerBg
             ),
             // The controls are surface-filled. The footer is tinted deeper than
@@ -838,8 +838,8 @@ for (const scheme of ["light", "dark"]) {
             styles("#comment-button").backgroundColor
           ),
           exitLabelContrast: window.__contrast(
-            styles("#terminate-button").color,
-            styles("#terminate-button").backgroundColor
+            styles("#early-exit-button").color,
+            styles("#early-exit-button").backgroundColor
           ),
           footerAlignedToContent:
             Math.round(box("#footer > .container").width) <=
@@ -883,7 +883,7 @@ for (const scheme of ["light", "dark"]) {
       await page.locator("#comment-button").focus();
       await page.keyboard.press("Tab");
       const focused = await page.evaluate(() => {
-        const el = document.getElementById("terminate-button");
+        const el = document.getElementById("early-exit-button");
         const cs = getComputedStyle(el);
         return {
           focusVisible: el.matches(":focus-visible"),

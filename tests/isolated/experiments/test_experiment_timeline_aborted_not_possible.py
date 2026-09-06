@@ -22,8 +22,8 @@ PYTEST_BOT_CLASS = bot_class()
 class TestExp:
     def test_variables(self, db_session):
         config = get_config()
-        assert config.get("min_accumulated_reward_for_abort") == 0.15
-        assert config.get("show_abort_button") is True
+        assert config.get("min_reward_for_paid_early_exit") == 0.15
+        assert config.get("show_early_exit_button") is True
 
     def test_abort(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):
@@ -37,7 +37,7 @@ class TestExp:
             # HotAir does not pay through PsyNet, so Exit is always available
             # with the plain leave pathway (no unpaid-below-threshold option).
             # Paid recruiters cover that unpaid pathway in unit tests.
-            exit_button = driver.find_element(By.ID, "terminate-button")
+            exit_button = driver.find_element(By.ID, "early-exit-button")
             exit_button.click()
             assert_text(driver, "early-exit-title", "Leave without finishing?")
             assert_text(driver, "early-exit-confirm", "Leave")
@@ -45,17 +45,17 @@ class TestExp:
 
             next_page(driver, "next-button")
 
-            driver.find_element(By.ID, "terminate-button").click()
+            driver.find_element(By.ID, "early-exit-button").click()
             assert_text(driver, "early-exit-title", "Leave without finishing?")
             driver.find_element(By.ID, "early-exit-confirm").click()
             time.sleep(0.5)
 
             participant = get_participant(1)
 
-            assert participant.aborted is True
+            assert participant.early_exited is True
             assert participant.failed is True
-            assert participant.aborted_modules == [
+            assert participant.early_exited_modules == [
                 "introduction",
             ]
-            assert participant.module_states["introduction"][0].aborted
+            assert participant.module_states["introduction"][0].early_exited
             assert not participant.module_states["introduction"][0].finished

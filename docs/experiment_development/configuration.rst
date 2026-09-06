@@ -48,7 +48,7 @@ global variables above. For example:
 .. code-block:: text
 
     [Custom settings]
-    show_abort_button = true
+    show_early_exit_button = true
     base_payment = 1.2
     currency = €
 
@@ -59,7 +59,7 @@ Secondly, they can also be set by creating a config dictionary in the ``Experime
     class Exp(Experiment):
         config = {
             "wage_per_hour": 12.0,
-            "show_abort_button": True,
+            "show_early_exit_button": True,
         }
 
 Do not set the same key in both places. If a variable appears in both
@@ -240,10 +240,10 @@ General
 
     Accessing routes included in this list will raise a ``PermissionError`` and no data will be returned.
 
-``show_abort_button`` *bool* |psynet-icon|
+``show_early_exit_button`` *bool* |psynet-icon|
     If ``True``, participants may request to leave early. The timeline footer
     then includes **Leave** (a page may
-    still hide it with ``show_abort_button=False``). **Leave** opens an in-page
+    still hide it with ``show_early_exit_button=False``). **Leave** opens an in-page
     confirmation, so choosing **Continue** preserves the current page and
     response state. The error page provides the same early-exit fallback when
     the timeline cannot continue; the ad page does not.
@@ -251,12 +251,13 @@ General
     unsuccessful/partial-payment route; Lucid terminates the panel session.
     Default: ``False``.
 
-    ``Page(show_termination_button=...)`` is a deprecated alias for the per-page
-    override; use ``show_abort_button=...`` on the page instead.
+    ``Page(show_abort_button=...)`` and ``Page(show_termination_button=...)`` are
+    deprecated aliases for the per-page override; use
+    ``show_early_exit_button=...`` on the page instead.
 
     Confirmation copy is outcome-based: it states whether the participant will
     be paid, with concrete amounts where PsyNet can compute them. Paid
-    recruiters gate *paid* leave on ``min_accumulated_reward_for_abort``. Below
+    recruiters gate *paid* leave on ``min_reward_for_paid_early_exit``. Below
     that threshold, Leave still opens a confirmation that offers
     **Leave without payment** (responses saved, no PsyNet payment, and
     platform-specific return instructions). Error-page recovery always uses the
@@ -270,7 +271,7 @@ General
         from psynet.recruiters import EarlyExitConfirmation
 
         class Exp(Experiment):
-            def early_exit_confirmation(self, participant, *, force_compensated=False):
+            def early_exit_confirmation(self, participant, *, skip_unpaid=False):
                 return EarlyExitConfirmation(
                     title="Leave without finishing?",
                     message="Your responses so far will still be saved.",
@@ -294,7 +295,7 @@ General
     If ``True`` (default), then a footer may be displayed at the bottom of the
     page. It holds reward information if ``show_reward`` resolves to ``True``, a
     `Comment` button if ``leave_comments_on_every_page`` is set, and Exit if
-    ``show_abort_button`` is set or the recruiter requires one (Lucid). The
+    ``show_early_exit_button`` is set or the recruiter requires one (Lucid). The
     footer is omitted when none of these apply, so that an empty bar does not
     take up space.
 
@@ -342,7 +343,7 @@ Payment
 ``max_participant_payment`` *float* |psynet-icon|
     The maximum payment, in the currency set via the ``currency`` config variable, that a participant is allowed to get. Default: ``25.0``.
 
-``min_accumulated_reward_for_abort`` *float* |psynet-icon|
+``min_reward_for_paid_early_exit`` *float* |psynet-icon|
     The minimum accumulated reward, in the currency set via the ``currency``
     config variable, required before a paid recruiter offers *paid* footer Exit.
     Below this threshold, Exit still opens a confirmation that offers leaving

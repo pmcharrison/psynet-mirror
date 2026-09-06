@@ -114,7 +114,7 @@ Partial payments are handled separately. If a participant reaches an
 marks them as failed rather than successfully completed. In this case PsyNet may try to pay them only
 the reward they have accumulated so far. The same unsuccessful path is used
 when a participant confirms **Exit** from the timeline footer or error-page
-fallback (with ``show_abort_button``).
+fallback (with ``show_early_exit_button``).
 
 By default, PsyNet handles such participants by registering a dedicated Prolific
 completion code with a fixed screen-out payment (see ``prolific_pay_unsuccessful`` and

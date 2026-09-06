@@ -1212,13 +1212,16 @@ class Page(Elt):
     progress_display
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
-    show_abort_button:
-        If ``True`` or ``False``, force the footer Exit control on or off for
-        this page. If omitted, Exit follows ``show_abort_button`` in the
+    show_early_exit_button:
+        If ``True`` or ``False``, force the footer Leave control on or off for
+        this page. If omitted, Leave follows ``show_early_exit_button`` in the
         experiment config or the recruiter default (on for Lucid).
 
+    show_abort_button:
+        Deprecated alias for ``show_early_exit_button``.
+
     show_termination_button:
-        Deprecated alias for ``show_abort_button``.
+        Deprecated alias for ``show_early_exit_button``.
 
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
@@ -1297,6 +1300,7 @@ class Page(Elt):
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
         start_trial_automatically: bool = True,
+        show_early_exit_button: bool = None,
         show_abort_button: bool = None,
         show_termination_button: bool = None,
         aggressive_termination_on_no_focus: bool = False,
@@ -1437,24 +1441,39 @@ class Page(Elt):
         self.session_id = session_id
         self.save_answer = save_answer
         self.start_trial_automatically = start_trial_automatically
-        if show_termination_button is not None:
+        if show_abort_button is not None:
             warnings.warn(
-                "Page(show_termination_button=...) is deprecated; "
-                "use show_abort_button=... instead.",
+                "Page(show_abort_button=...) is deprecated; "
+                "use show_early_exit_button=... instead.",
                 FutureWarning,
                 stacklevel=3,
             )
-            if show_abort_button is None:
-                show_abort_button = show_termination_button
-            elif show_abort_button != show_termination_button:
+            if show_early_exit_button is None:
+                show_early_exit_button = show_abort_button
+            elif show_early_exit_button != show_abort_button:
                 raise ValueError(
-                    "show_abort_button and show_termination_button disagree; "
-                    "pass only show_abort_button."
+                    "show_early_exit_button and show_abort_button disagree; "
+                    "pass only show_early_exit_button."
                 )
-        if show_abort_button is None and getattr(self, "is_consent", False):
-            show_abort_button = False
-        self.show_abort_button = show_abort_button
-        self.show_termination_button = show_abort_button
+        if show_termination_button is not None:
+            warnings.warn(
+                "Page(show_termination_button=...) is deprecated; "
+                "use show_early_exit_button=... instead.",
+                FutureWarning,
+                stacklevel=3,
+            )
+            if show_early_exit_button is None:
+                show_early_exit_button = show_termination_button
+            elif show_early_exit_button != show_termination_button:
+                raise ValueError(
+                    "show_early_exit_button and show_termination_button disagree; "
+                    "pass only show_early_exit_button."
+                )
+        if show_early_exit_button is None and getattr(self, "is_consent", False):
+            show_early_exit_button = False
+        self.show_early_exit_button = show_early_exit_button
+        self.show_abort_button = show_early_exit_button
+        self.show_termination_button = show_early_exit_button
         self.aggressive_termination_on_no_focus = aggressive_termination_on_no_focus
 
         self.events = {
@@ -1879,8 +1898,9 @@ class Page(Elt):
             "partial_mode": partial_mode,
             "inplace_timeline_transitions": inplace_timeline_transitions,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
-            "show_abort_button": self.show_abort_button,
-            "show_termination_button": self.show_abort_button,
+            "show_early_exit_button": self.show_early_exit_button,
+            "show_abort_button": self.show_early_exit_button,
+            "show_termination_button": self.show_early_exit_button,
             "early_exit_allowed": experiment.early_exit_allowed(participant),
             "early_exit_confirmation": experiment.early_exit_confirmation(participant),
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
@@ -3183,10 +3203,10 @@ class ModuleState(SQLBase, SQLMixin):
 
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
-    time_aborted = Column(DateTime)
+    time_early_exited = Column(DateTime)
     started = Column(Boolean, default=False)
     finished = Column(Boolean, default=False)
-    aborted = Column(Boolean, default=False)
+    early_exited = Column(Boolean, default=False)
 
     asset_links = relationship(
         "AssetModuleState",
@@ -3220,9 +3240,12 @@ class ModuleState(SQLBase, SQLMixin):
         self.time_finished = datetime.now()
         self.finished = True
 
-    def abort(self):
-        self.time_finished = datetime.now()
-        self.aborted = True
+    def mark_early_exited(self):
+        """Mark this module as left unfinished by an early exit."""
+        now = datetime.now()
+        self.time_finished = now
+        self.time_early_exited = now
+        self.early_exited = True
 
     # def get(self, module_id: str):
     #     return self.participant.get_module_state(module_id)
@@ -3373,7 +3396,7 @@ class Module(EltCollection):
         logs = cls.state_class.query.filter_by(module_id=module_id, finished=True).all()
         return [
             {"time_started": log.time_started, "time_finished": log.time_finished}
-            # "time_aborted": log.time_aborted,
+            # "time_early_exited": log.time_early_exited,
             for log in logs
         ]
 
@@ -3408,17 +3431,19 @@ class Module(EltCollection):
         )
 
     @property
-    def aborted_participants(self):
+    def early_exited_participants(self):
         from .participant import Participant
 
-        aborted_participants = (
+        early_exited_participants = (
             db.session.query(Participant)
-            .filter(self.state_class.module_id == self.id, self.state_class.aborted)
+            .filter(
+                self.state_class.module_id == self.id, self.state_class.early_exited
+            )
             .all()
         )
         return sorted(
-            [p for p in aborted_participants if self.id in p.aborted_modules],
-            key=lambda p: p.module_states[self.id][0].time_aborted,
+            [p for p in early_exited_participants if self.id in p.early_exited_modules],
+            key=lambda p: p.module_states[self.id][0].time_early_exited,
         )
 
     @property
@@ -3468,9 +3493,11 @@ class Module(EltCollection):
             median_finish_time_in_min_and_s = Module.median_finish_time_in_min_and_s(
                 self.finished_participants, self.id
             )
-        if self.aborted_participants:
-            time_aborted_last = (
-                self.aborted_participants[-1].module_states[self.id][0].time_aborted
+        if self.early_exited_participants:
+            time_early_exited_last = (
+                self.early_exited_participants[-1]
+                .module_states[self.id][0]
+                .time_early_exited
             )
 
         div = tags.div()
@@ -3487,9 +3514,9 @@ class Module(EltCollection):
                     tags.li(
                         f"{len(self.finished_participants)} finished (last at {format_datetime(time_finished_last)})"
                     )
-                if self.aborted_participants:
+                if self.early_exited_participants:
                     tags.li(
-                        f"{len(self.aborted_participants)} aborted (last at {format_datetime(time_aborted_last)})"
+                        f"{len(self.early_exited_participants)} left early (last at {format_datetime(time_early_exited_last)})"
                     )
 
                 if self.finished_participants:
@@ -3514,7 +3541,7 @@ class Module(EltCollection):
                 f"{len(self.started_participants)} started, {len(self.finished_participants)} finished,"
             )
             tags.br()
-            tags.span(f"{len(self.aborted_participants)} aborted")
+            tags.span(f"{len(self.early_exited_participants)} left early")
             if self.finished_participants:
                 tags.br()
                 tags.span(f"{median_finish_time_in_min_and_s} (median)")
@@ -3538,7 +3565,7 @@ class Module(EltCollection):
             self.id: {
                 "started_n_participants": participant_counts["started"],
                 "finished_n_participants": participant_counts["finished"],
-                "aborted_n_participants": participant_counts["aborted"],
+                "early_exited_n_participants": participant_counts["early_exited"],
                 "target_n_participants": target_n_participants,
                 "progress": progress,
             }

@@ -61,7 +61,7 @@ class TestExp:
         assert config.get("min_browser_version") == "105.0"
         assert config.get("allow_mobile_devices") is True
         assert config.get("wage_per_hour") == 12.0
-        assert config.get("min_accumulated_reward_for_abort") == 0.2
-        assert not config.get("show_abort_button")
+        assert config.get("min_reward_for_paid_early_exit") == 0.2
+        assert not config.get("show_early_exit_button")
         # Unset by default: Experiment.show_reward asks the recruiter instead.
         assert config.get("show_reward", None) is None

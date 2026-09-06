@@ -35,8 +35,8 @@ class Exp(psynet.experiment.Experiment):
     }
 
     config = {
-        "min_accumulated_reward_for_abort": 0.15,
-        "show_abort_button": True,
+        "min_reward_for_paid_early_exit": 0.15,
+        "show_early_exit_button": True,
         # Asserted by the end-to-end tests; generic recruitment now hides
         # rewards unless the experiment opts in.
         "show_reward": True,

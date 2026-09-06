@@ -29,7 +29,7 @@
     const { signal } = controller;
 
     const trigger =
-      document.getElementById("terminate-button") ||
+      document.getElementById("early-exit-button") ||
       document.getElementById("early-exit-open");
     const modal = document.getElementById("early-exit-modal");
     const cancel = document.getElementById("early-exit-cancel");
@@ -78,7 +78,7 @@
         try {
           const unpaid = modal.dataset.unpaid === "true";
           const response = await fetch(
-            "/set_participant_as_aborted/" +
+            "/set_participant_as_early_exited/" +
               encodeURIComponent(assignmentId) +
               (unpaid ? "?payment=none" : ""),
           );

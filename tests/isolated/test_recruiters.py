@@ -237,7 +237,7 @@ def make_config(**overrides):
         "initial_recruitment_size": 7,
         "base_payment": 1.00,
         "currency": "$",
-        "min_accumulated_reward_for_abort": 0.20,
+        "min_reward_for_paid_early_exit": 0.20,
         "prolific_pay_unsuccessful": True,
         "prolific_unsuccessful_base_payment": 0.25,
         "prolific_unsuccessful_topup": True,
@@ -669,20 +669,20 @@ def test_issue_unsuccessful_completion_code_stamps_failed_participant():
     assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
 
 
-def test_early_exit_marks_aborted_and_fails():
+def test_early_exit_marks_early_exited_and_fails():
     participant = MagicMock()
     participant.failed = False
-    PsyNetRecruiterMixin().early_exit(participant, reason="aborted")
-    assert participant.aborted is True
-    participant.module_state.abort.assert_called_once()
-    participant.fail.assert_called_once_with("aborted")
+    PsyNetRecruiterMixin().early_exit(participant, reason="early_exit")
+    assert participant.early_exited is True
+    participant.module_state.mark_early_exited.assert_called_once()
+    participant.fail.assert_called_once_with("early_exit")
 
 
 def test_early_exit_skips_fail_when_already_failed():
     participant = MagicMock()
     participant.failed = True
-    PsyNetRecruiterMixin().early_exit(participant, reason="aborted")
-    assert participant.aborted is True
+    PsyNetRecruiterMixin().early_exit(participant, reason="early_exit")
+    assert participant.early_exited is True
     participant.fail.assert_not_called()
 
 
@@ -726,7 +726,7 @@ def test_early_exit_reward_threshold_does_not_block_lucid_termination():
     participant.calculate_reward.return_value = 0.0
     with patch(
         "psynet.recruiters.get_config",
-        return_value=make_config(min_accumulated_reward_for_abort=0.2),
+        return_value=make_config(min_reward_for_paid_early_exit=0.2),
     ):
         assert PsyNetRecruiterMixin().early_exit_allowed(participant) is False
     lucid = object.__new__(BaseLucidRecruiter)
@@ -780,9 +780,7 @@ def test_below_threshold_offers_unpaid_leave_with_amounts():
     with (
         patch(
             "psynet.recruiters.get_config",
-            return_value=make_config(
-                currency="£", min_accumulated_reward_for_abort=0.20
-            ),
+            return_value=make_config(currency="£", min_reward_for_paid_early_exit=0.20),
         ),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
@@ -795,16 +793,14 @@ def test_below_threshold_offers_unpaid_leave_with_amounts():
     assert "£0.20" in confirmation.message
 
 
-def test_force_compensated_skips_unpaid_below_threshold_path():
+def test_skip_unpaid_skips_unpaid_below_threshold_path():
     participant = _participant_for_early_exit(reward=0.05)
     recruiter = object.__new__(PsyNetProlificRecruiterMixin)
     with (
         patch("psynet.recruiters.get_config", return_value=make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        confirmation = recruiter.early_exit_confirmation(
-            participant, force_compensated=True
-        )
+        confirmation = recruiter.early_exit_confirmation(participant, skip_unpaid=True)
     assert confirmation.unpaid is False
     assert "fixed early-exit payment" in confirmation.message
 
@@ -814,7 +810,7 @@ def test_unpaid_early_exit_records_flag_and_skips_payment():
     participant.failed = False
     PsyNetRecruiterMixin().early_exit(participant, unpaid=True)
     participant.var.set.assert_called_with("early_exit_unpaid", True)
-    participant.fail.assert_called_once_with("aborted_unpaid")
+    participant.fail.assert_called_once_with("early_exit_unpaid")
 
     participant.var.get.return_value = True
     decision = PsyNetRecruiterMixin().decide_payment(
@@ -851,10 +847,10 @@ def test_lucid_early_exit_terminates_the_panel_session():
 
     recruiter = FakeLucid()
     participant = MagicMock()
-    recruiter.early_exit(participant, reason="aborted")
-    assert participant.aborted is True
-    participant.module_state.abort.assert_called_once()
-    assert recruiter.seen_reason == "aborted"
+    recruiter.early_exit(participant, reason="early_exit")
+    assert participant.early_exited is True
+    participant.module_state.mark_early_exited.assert_called_once()
+    assert recruiter.seen_reason == "early_exit"
 
 
 def test_prolific_treats_a_failed_early_exit_as_screen_out():
@@ -2273,7 +2269,7 @@ def test_psynet_exit_page_renders_for_recruiters_without_platform_exit_pages(
 @pytest.mark.parametrize(
     "recruiter_class_name", ["GenericRecruiter", "HotAirRecruiter", "LabRecruiter"]
 )
-def test_psynet_exit_page_uses_early_leave_copy_when_aborted(recruiter_class_name):
+def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_class_name):
     """Early leave should not reuse the finished-session thank-you wording."""
     from importlib import resources
 
@@ -2306,7 +2302,7 @@ def test_psynet_exit_page_uses_early_leave_copy_when_aborted(recruiter_class_nam
     experiment.psynet_logo = ""
     experiment.logos = []
     experiment.render_exit_message.return_value = "default_exit_message"
-    participant = SimpleNamespace(assignment_id="assignment-123", aborted=True)
+    participant = SimpleNamespace(assignment_id="assignment-123", early_exited=True)
 
     def render_exit_template(template_name, **kwargs):
         return render_template(
