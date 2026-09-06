@@ -1013,6 +1013,79 @@ def test_error_recovery_plan_skips_reward_eligibility():
     experiment.early_exit_allowed.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    "recruiter_class,recovered_reward,expected_path,expected_decision",
+    [
+        (
+            PsyNetProlificRecruiterMixin,
+            0.80,
+            EarlyExitPath.SCREEN_OUT,
+            PaymentDecision(status="screened_out", platform_base=0.25, bonus=0.55),
+        ),
+        (
+            MTurkRecruiter,
+            1.80,
+            EarlyExitPath.SUBMIT_AND_APPROVE,
+            PaymentDecision(status="approved", platform_base=1.00, bonus=0.80),
+        ),
+    ],
+)
+def test_error_recovery_plan_survives_reward_calculation_failure(
+    recruiter_class,
+    recovered_reward,
+    expected_path,
+    expected_decision,
+    caplog,
+):
+    participant = _participant_for_early_exit()
+    participant.calculate_reward.side_effect = RuntimeError("reward boom")
+    recruiter = object.__new__(recruiter_class)
+    experiment = MagicMock(base_payment=9.00)
+
+    with (
+        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        plan = recruiter.plan_early_exit(
+            experiment, participant, EarlyExitContext.ERROR_RECOVERY
+        )
+        participant.calculate_reward.side_effect = None
+        participant.calculate_reward.return_value = recovered_reward
+        participant.early_exited = True
+        participant.early_exit_plan = plan.mark_executed().to_dict()
+        decision = recruiter.decide_payment(participant, experiment=experiment)
+
+    assert plan.path is expected_path
+    assert plan.quoted_amounts_complete is False
+    assert "without a reward quote" in caplog.text
+    assert decision == expected_decision
+
+
+def test_prolific_return_for_bonus_recovery_survives_reward_failure():
+    participant = _participant_for_early_exit()
+    participant.calculate_reward.side_effect = RuntimeError("reward boom")
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
+    experiment = MagicMock()
+    config = make_config(prolific_pay_unsuccessful=False)
+
+    with (
+        patch("psynet.recruiters.get_config", return_value=config),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        plan = recruiter.plan_early_exit(
+            experiment, participant, EarlyExitContext.ERROR_RECOVERY
+        )
+        participant.calculate_reward.side_effect = None
+        participant.calculate_reward.return_value = 0.80
+        participant.early_exited = True
+        participant.early_exit_plan = plan.mark_executed().to_dict()
+        decision = recruiter.decide_payment(participant, experiment=experiment)
+
+    assert plan.path is EarlyExitPath.RETURN_FOR_BONUS
+    assert plan.quoted_amounts_complete is False
+    assert decision == PaymentDecision(status="returned", platform_base=0.0, bonus=0.80)
+
+
 def test_early_exit_route_executes_the_stored_plan():
     from flask import Flask
 
@@ -1201,10 +1274,8 @@ def test_lucid_early_exit_terminates_the_panel_session():
             assignment_id=None,
             reason=None,
             details=None,
-            **kwargs,
         ):
             self.seen_reason = reason
-            self.seen_kwargs = kwargs
             return "https://lucid.example/exit"
 
     recruiter = FakeLucid()
@@ -1215,10 +1286,6 @@ def test_lucid_early_exit_terminates_the_panel_session():
         _early_exit_test_plan(EarlyExitPath.TERMINATE_PANEL_SESSION),
     )
     assert recruiter.seen_reason == "early_exit"
-    assert recruiter.seen_kwargs == {
-        "commit_participant": False,
-        "raise_on_error": True,
-    }
 
 
 def test_lucid_plan_execution_propagates_termination_failure_without_commit():

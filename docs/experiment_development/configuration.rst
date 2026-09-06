@@ -292,7 +292,9 @@ General
 
     Error recovery has a separate
     :meth:`~psynet.experiment.Experiment.error_recovery_early_exit_plan` hook.
-    It does not apply the voluntary paid-exit threshold.
+    It does not apply the voluntary paid-exit threshold. If the detailed reward
+    calculation itself fails, Prolific and MTurk use recovery copy without a
+    reward quote and calculate the unquoted remainder when payment is processed.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when
