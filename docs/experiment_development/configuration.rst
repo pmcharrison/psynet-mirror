@@ -242,9 +242,9 @@ General
 
 ``show_abort_button`` *bool* |psynet-icon|
     If ``True``, participants may request to leave early. The timeline footer
-    then includes **Exit** (a page may
-    still hide it with ``show_abort_button=False``). **Exit** opens an in-page
-    confirmation, so choosing **Continue study** preserves the current page and
+    then includes **Leave** (a page may
+    still hide it with ``show_abort_button=False``). **Leave** opens an in-page
+    confirmation, so choosing **Continue** preserves the current page and
     response state. The error page provides the same early-exit fallback when
     the timeline cannot continue; the ad page does not.
     Confirming a paid leave marks the participant failed, so Prolific uses the
@@ -257,7 +257,7 @@ General
     Confirmation copy is outcome-based: it states whether the participant will
     be paid, with concrete amounts where PsyNet can compute them. Paid
     recruiters gate *paid* leave on ``min_accumulated_reward_for_abort``. Below
-    that threshold, Exit still opens a confirmation that offers
+    that threshold, Leave still opens a confirmation that offers
     **Leave without payment** (responses saved, no PsyNet payment, and
     platform-specific return instructions). Error-page recovery always uses the
     compensated/plain leave pathway, even below the threshold. Lucid always
@@ -272,10 +272,10 @@ General
         class Exp(Experiment):
             def early_exit_confirmation(self, participant, *, force_compensated=False):
                 return EarlyExitConfirmation(
-                    title="Leave this study?",
-                    message="Your responses so far will be saved.",
-                    confirm_label="Leave study",
-                    cancel_label="Continue study",
+                    title="Leave without finishing?",
+                    message="Your responses so far will still be saved.",
+                    confirm_label="Leave",
+                    cancel_label="Continue",
                 )
 
     Experiments may also override

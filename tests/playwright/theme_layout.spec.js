@@ -583,9 +583,9 @@ test(
               <button class="btn btn-light">Comment</button>
               <span class="psynet-tooltip psynet-tooltip--end">
                 <button id="terminate-button" class="btn btn-danger"
-                        aria-describedby="exit-tooltip">Exit</button>
+                        aria-describedby="exit-tooltip">Leave</button>
                 <span id="exit-tooltip" class="psynet-tooltip__content"
-                      role="tooltip">Exit the experiment before it is complete.</span>
+                      role="tooltip">Leave without finishing.</span>
               </span>
             </div>
           </nav>
@@ -595,7 +595,7 @@ test(
     // The reward breakdown moved into a tooltip, so the footer should now fit
     // on one row even here. Force the wrapped case as well, since a longer
     // translation or a larger font size produces it.
-    for (const label of ["Exit", "Exit the experiment early right now"]) {
+    for (const label of ["Leave", "Leave without finishing right now"]) {
       await page.locator("#terminate-button").evaluate((button, text) => {
         button.textContent = text;
       }, label);
@@ -625,7 +625,7 @@ test(
     await page.locator("#terminate-button").focus();
     await expect(page.locator("#exit-tooltip")).toBeVisible();
     await expect(page.locator("#exit-tooltip")).toContainText(
-      "Exit the experiment before it is complete."
+      "Leave without finishing."
     );
   }
 );
@@ -750,9 +750,9 @@ const FOOTER_MARKUP = `
       <button type="button" class="btn btn-light" id="comment-button">Comment</button>
       <span class="psynet-tooltip psynet-tooltip--end">
         <button id="terminate-button" class="btn btn-danger psynet-tooltip__trigger"
-                aria-describedby="exit-tooltip">Exit</button>
+                aria-describedby="exit-tooltip">Leave</button>
         <span id="exit-tooltip" class="psynet-tooltip__content" role="tooltip">
-          Exit the experiment before it is complete.
+          Leave without finishing.
         </span>
       </span>
     </div>

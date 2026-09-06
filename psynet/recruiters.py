@@ -408,7 +408,8 @@ class PsyNetRecruiterMixin:
         return self._early_exit_confirmation(
             _p(
                 "early_exit",
-                "Leaving now ends the study. Your responses so far will be saved.",
+                "If you leave now, you will not be able to continue later. "
+                "Your responses so far will still be saved.",
             )
         )
 
@@ -422,8 +423,9 @@ class PsyNetRecruiterMixin:
         message = _p(
             "early_exit",
             "You have earned {EARNED} so far. You need at least {THRESHOLD} "
-            "to leave with payment. You can continue the study, or leave "
-            "without payment. Your responses so far will still be saved.",
+            "to leave with payment. If you leave without payment, you will "
+            "not be able to continue later. Your responses so far will still "
+            "be saved.",
         ).format(EARNED=earned, THRESHOLD=threshold)
         return self._early_exit_confirmation(message, unpaid=True)
 
@@ -435,12 +437,12 @@ class PsyNetRecruiterMixin:
         if unpaid:
             confirm_label = _p("early_exit", "Leave without payment")
         else:
-            confirm_label = _p("early_exit", "Leave study")
+            confirm_label = _p("early_exit", "Leave")
         return EarlyExitConfirmation(
-            title=_p("early_exit", "Leave the study?"),
+            title=_p("early_exit", "Leave without finishing?"),
             message=message,
             confirm_label=confirm_label,
-            cancel_label=_p("early_exit", "Continue study"),
+            cancel_label=_p("early_exit", "Continue"),
             unpaid=unpaid,
         )
 
@@ -462,10 +464,9 @@ class PsyNetRecruiterMixin:
         return InfoPage(
             _p(
                 "early_exit_unpaid",
-                "Your responses have been saved. Please return this study on "
-                "the recruitment platform if it asks you to. You will not "
-                "receive payment for this study through PsyNet. You can close "
-                "this window.",
+                "Your responses have been saved. Please return this submission "
+                "on the recruitment platform if it asks you to. You will not "
+                "receive payment through PsyNet. You can close this window.",
             ),
             time_estimate=0.0,
             show_next_button=False,
@@ -610,6 +611,7 @@ class PsyNetExitPageMixin:
         return render_template_with_translations(
             "psynet_exit_recruiter.html",
             participant_reference=participant.assignment_id,
+            left_early=bool(getattr(participant, "aborted", False)),
         )
 
 
@@ -676,18 +678,20 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     remainder_txt = _format_early_exit_amount(earned - fixed)
                     message = _p(
                         "early_exit_prolific",
-                        "If you leave now, you will receive a fixed early-exit "
-                        "payment of {FIXED}. Because you have earned {EARNED} "
-                        "so far, the remaining {REMAINDER} will be paid as a "
-                        "bonus.",
+                        "If you leave now, you will not be able to continue "
+                        "later. You will receive a fixed early-exit payment of "
+                        "{FIXED}. Because you have earned {EARNED} so far, the "
+                        "remaining {REMAINDER} will be paid as a bonus. Your "
+                        "responses so far will still be saved.",
                     ).format(
                         FIXED=fixed_txt, EARNED=earned_txt, REMAINDER=remainder_txt
                     )
                 else:
                     message = _p(
                         "early_exit_prolific",
-                        "If you leave now, you will receive a fixed early-exit "
-                        "payment of {FIXED}.",
+                        "If you leave now, you will not be able to continue "
+                        "later. You will receive a fixed early-exit payment of "
+                        "{FIXED}. Your responses so far will still be saved.",
                     ).format(FIXED=fixed_txt)
             else:
                 performance = participant.performance_reward or 0.0
@@ -695,24 +699,27 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     performance_txt = _format_early_exit_amount(performance)
                     message = _p(
                         "early_exit_prolific",
-                        "If you leave now, you will receive a fixed early-exit "
-                        "payment of {FIXED} plus a performance bonus of "
-                        "{PERFORMANCE}. You will not be paid for additional "
-                        "time spent on the study.",
+                        "If you leave now, you will not be able to continue "
+                        "later. You will receive a fixed early-exit payment of "
+                        "{FIXED} plus a performance bonus of {PERFORMANCE}. "
+                        "You will not be paid for additional time. Your "
+                        "responses so far will still be saved.",
                     ).format(FIXED=fixed_txt, PERFORMANCE=performance_txt)
                 else:
                     message = _p(
                         "early_exit_prolific",
-                        "If you leave now, you will receive a fixed early-exit "
-                        "payment of {FIXED}. You will not be paid for "
-                        "additional time spent on the study.",
+                        "If you leave now, you will not be able to continue "
+                        "later. You will receive a fixed early-exit payment of "
+                        "{FIXED}. You will not be paid for additional time. "
+                        "Your responses so far will still be saved.",
                     ).format(FIXED=fixed_txt)
         else:
             message = _p(
                 "early_exit_prolific",
-                "If you leave now, you will need to return your Prolific "
-                "submission. You will then be paid {EARNED} as a bonus for "
-                "the work you have completed so far.",
+                "If you leave now, you will not be able to continue later. "
+                "You will need to return your Prolific submission. You will "
+                "then be paid {EARNED} as a bonus for the work you have "
+                "completed so far. Your responses so far will still be saved.",
             ).format(EARNED=earned_txt)
         return self._early_exit_confirmation(message)
 
@@ -723,8 +730,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             _p(
                 "early_exit_unpaid_prolific",
                 "Your responses have been saved. Please return your submission "
-                "on Prolific. You will not receive payment for this study. "
-                "You can close this window.",
+                "on Prolific. You will not receive payment. You can close this "
+                "window.",
             ),
             time_estimate=0.0,
             show_next_button=False,
@@ -1520,17 +1527,18 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
             remainder_txt = _format_early_exit_amount(earned - base)
             message = _p(
                 "early_exit_mturk",
-                "If you leave now, the study will end and you will continue to "
-                "the MTurk submission step. You will receive the HIT payment "
-                "of {BASE}. Because you have earned {EARNED} so far, the "
-                "remaining {REMAINDER} will be paid as a bonus.",
+                "If you leave now, you will not be able to continue later. You "
+                "will go to the MTurk submission step and receive the HIT "
+                "payment of {BASE}. Because you have earned {EARNED} so far, "
+                "the remaining {REMAINDER} will be paid as a bonus. Your "
+                "responses so far will still be saved.",
             ).format(BASE=base_txt, EARNED=earned_txt, REMAINDER=remainder_txt)
         else:
             message = _p(
                 "early_exit_mturk",
-                "If you leave now, the study will end and you will continue to "
-                "the MTurk submission step. You will receive the HIT payment "
-                "of {BASE}.",
+                "If you leave now, you will not be able to continue later. You "
+                "will go to the MTurk submission step and receive the HIT "
+                "payment of {BASE}. Your responses so far will still be saved.",
             ).format(BASE=base_txt)
         return self._early_exit_confirmation(message)
 
@@ -1541,8 +1549,8 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
             _p(
                 "early_exit_unpaid_mturk",
                 "Your responses have been saved. Please return this HIT on "
-                "MTurk. You will not receive payment for this study. You can "
-                "close this window.",
+                "MTurk. You will not receive payment. You can close this "
+                "window.",
             ),
             time_estimate=0.0,
             show_next_button=False,
@@ -2657,9 +2665,10 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         return self._early_exit_confirmation(
             _p(
                 "early_exit_lucid",
-                "If you leave now, you will return to your panel provider. "
-                "This study will not issue a payment; any payment depends on "
-                "your panel provider's rules.",
+                "If you leave now, you will not be able to continue later, and "
+                "you will return to your panel provider. This session will "
+                "not issue a payment; any payment depends on your panel "
+                "provider's rules. Your responses so far will still be saved.",
             )
         )
 

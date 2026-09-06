@@ -12,7 +12,7 @@
                 <p id="error-text"><em>{{ error_text }}</em></p>
                 {% if early_exit_confirmation %}
                     <p id="error-text-main">
-                        {{ pgettext("early_exit_error", "Your progress has been recorded. You can leave the experiment from this page.") }}
+                        {{ pgettext("early_exit_error", "Your progress has been recorded. You can leave from this page.") }}
                     </p>
                     <button type="button" id="early-exit-open" class="btn btn-danger btn-lg">
                         {{ early_exit_confirmation.confirm_label }}

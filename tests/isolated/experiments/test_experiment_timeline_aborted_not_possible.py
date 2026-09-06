@@ -39,14 +39,14 @@ class TestExp:
             # Paid recruiters cover that unpaid pathway in unit tests.
             exit_button = driver.find_element(By.ID, "terminate-button")
             exit_button.click()
-            assert_text(driver, "early-exit-title", "Leave the study?")
-            assert_text(driver, "early-exit-confirm", "Leave study")
+            assert_text(driver, "early-exit-title", "Leave without finishing?")
+            assert_text(driver, "early-exit-confirm", "Leave")
             driver.find_element(By.ID, "early-exit-cancel").click()
 
             next_page(driver, "next-button")
 
             driver.find_element(By.ID, "terminate-button").click()
-            assert_text(driver, "early-exit-title", "Leave the study?")
+            assert_text(driver, "early-exit-title", "Leave without finishing?")
             driver.find_element(By.ID, "early-exit-confirm").click()
             time.sleep(0.5)
 

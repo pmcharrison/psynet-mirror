@@ -95,7 +95,7 @@ test("media download progress bar displays on full load and inplace transition",
     await experimentPage.locator("#terminate-button").click();
     await expect(experimentPage.locator("#early-exit-modal")).toBeVisible();
     await expect(experimentPage.locator("#early-exit-title")).toHaveText(
-      "Leave the study?"
+      "Leave without finishing?"
     );
     await experimentPage.locator("#early-exit-cancel").click();
     await expect(experimentPage.locator("#early-exit-modal")).toBeHidden();

@@ -58,12 +58,12 @@ class TestExp:
             assert_text(
                 driver,
                 "error-text-main",
-                "Your progress has been recorded. You can leave the experiment from this page.",
+                "Your progress has been recorded. You can leave from this page.",
             )
 
             url = driver.current_url
             driver.find_element(By.ID, "early-exit-open").click()
-            assert_text(driver, "early-exit-title", "Leave the study?")
+            assert_text(driver, "early-exit-title", "Leave without finishing?")
             driver.find_element(By.ID, "early-exit-cancel").click()
             assert driver.current_url == url
 
