@@ -797,7 +797,7 @@ def test_recruiters_plan_their_early_exit_consequences(
     assert expected_message in confirmation.message
     assert confirmation.title == "Leave without finishing?"
     assert confirmation.confirm_label == "Leave"
-    assert confirmation.cancel_label == "Continue"
+    assert confirmation.cancel_label == "Cancel"
     assert plan.status == "offered"
     assert plan.offer_id
 
@@ -870,6 +870,7 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
         "$0.25" in topped_up_confirmation.message
         and "$0.80" in topped_up_confirmation.message
     )
+    assert "a further $0.55 will be paid as a bonus" in topped_up_confirmation.message
 
     with (
         patch(
@@ -902,24 +903,26 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
 
 
 @pytest.mark.parametrize(
-    "recruiter_class, reward, expected_path, expected_decision",
+    "recruiter_class, reward, expected_path, expected_further, expected_decision",
     [
         (
             PsyNetProlificRecruiterMixin,
             0.80,
             EarlyExitPath.SCREEN_OUT,
+            "$0.55",
             PaymentDecision(status="screened_out", platform_base=0.25, bonus=0.55),
         ),
         (
             MTurkRecruiter,
             1.80,
             EarlyExitPath.SUBMIT_AND_APPROVE,
+            "$0.80",
             PaymentDecision(status="approved", platform_base=1.00, bonus=0.80),
         ),
     ],
 )
 def test_executed_plan_uses_the_amounts_shown_in_confirmation(
-    recruiter_class, reward, expected_path, expected_decision
+    recruiter_class, reward, expected_path, expected_further, expected_decision
 ):
     participant = _participant_for_early_exit(reward=reward)
     recruiter = object.__new__(recruiter_class)
@@ -933,6 +936,9 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation(
             experiment, participant, EarlyExitContext.VOLUNTARY
         )
     assert plan.path is expected_path
+    assert f"a further {expected_further} will be paid as a bonus" in (
+        plan.confirmation.message
+    )
 
     participant.early_exited = True
     participant.early_exit_plan = plan.mark_executed().to_dict()
@@ -991,7 +997,7 @@ def test_below_threshold_offers_unpaid_leave_with_amounts():
     confirmation = plan.confirmation
     assert confirmation.title == "Leave without finishing?"
     assert confirmation.confirm_label == "Leave without payment"
-    assert confirmation.cancel_label == "Continue"
+    assert confirmation.cancel_label == "Cancel"
     assert "£0.10" in confirmation.message
     assert "£0.20" in confirmation.message
 

@@ -2,8 +2,7 @@
 {% macro early_exit_modal(
     assignment_id,
     offer_id,
-    confirmation,
-    cancel_label=None
+    confirmation
 ) %}
     <div id="early-exit-modal"
          class="modal"
@@ -18,11 +17,11 @@
             <h2 id="early-exit-title">{{ confirmation.title }}</h2>
             <p id="early-exit-message">{{ confirmation.message }}</p>
             <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
-                <button type="button" id="early-exit-cancel" class="btn btn-primary">
-                    {{ cancel_label if cancel_label is not none else confirmation.cancel_label }}
-                </button>
                 <button type="button" id="early-exit-confirm" class="btn btn-danger">
                     {{ confirmation.confirm_label }}
+                </button>
+                <button type="button" id="early-exit-cancel" class="btn btn-outline-secondary">
+                    {{ confirmation.cancel_label }}
                 </button>
             </div>
         </div>

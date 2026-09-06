@@ -685,6 +685,12 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert 'id="early-exit-modal"' in early_exit_macro
     assert 'id="early-exit-cancel"' in early_exit_macro
     assert 'id="early-exit-confirm"' in early_exit_macro
+    assert early_exit_macro.index('id="early-exit-confirm"') < early_exit_macro.index(
+        'id="early-exit-cancel"'
+    )
+    cancel_button = early_exit_macro[early_exit_macro.index('id="early-exit-cancel"') :]
+    assert "btn-outline-secondary" in cancel_button.split("</button>", 1)[0]
+    assert "btn-primary" not in cancel_button.split("</button>", 1)[0]
 
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"
@@ -711,35 +717,30 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert "resolve_early_exit_unpaid" not in experiment_source
 
 
-def test_shared_early_exit_modal_renders_server_offer_id_and_cancel_copy():
+def test_shared_early_exit_modal_renders_server_offer_and_actions():
     templates = Path(str(resources.files("psynet") / "templates"))
     environment = Environment(loader=FileSystemLoader(templates))
     template = environment.from_string(
         """
         {% from "macros/early_exit.html" import early_exit_modal %}
         {{ early_exit_modal("assignment-1", "offer-1", confirmation) }}
-        ---
-        {{ early_exit_modal(
-            "assignment-1",
-            "offer-2",
-            confirmation,
-            cancel_label="Stay on this page"
-        ) }}
         """
     )
     confirmation = SimpleNamespace(
         title="Leave without finishing?",
         message="Your responses are saved.",
         confirm_label="Leave",
-        cancel_label="Continue",
+        cancel_label="Cancel",
     )
 
-    timeline, error = template.render(confirmation=confirmation).split("---")
+    rendered = template.render(confirmation=confirmation)
 
-    assert 'data-offer-id="offer-1"' in timeline
-    assert "Continue" in timeline
-    assert 'data-offer-id="offer-2"' in error
-    assert "Stay on this page" in error
+    assert 'data-offer-id="offer-1"' in rendered
+    confirm_start = rendered.index('id="early-exit-confirm"')
+    cancel_start = rendered.index('id="early-exit-cancel"')
+    assert confirm_start < cancel_start
+    assert "Leave" in rendered[confirm_start:cancel_start]
+    assert "Cancel" in rendered[cancel_start:]
 
 
 def test_abort_is_removed_from_ad_and_available_inline_on_error():
@@ -757,5 +758,5 @@ def test_abort_is_removed_from_ad_and_available_inline_on_error():
     assert "early_exit_modal(" in error
     assert 'id="early-exit-modal"' in early_exit_macro
     assert 'id="early-exit-confirm"' in early_exit_macro
-    assert "Stay on this page" in error
+    assert "Stay on this page" not in error
     assert "on the MTurk ad page" not in error

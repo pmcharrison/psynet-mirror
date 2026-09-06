@@ -571,7 +571,7 @@ class PsyNetRecruiterMixin:
             title=_p("early_exit", "Leave without finishing?"),
             message=message,
             confirm_label=confirm_label,
-            cancel_label=_p("early_exit", "Continue"),
+            cancel_label=_p("early_exit", "Cancel"),
         )
 
     def early_exit_allowed(self, participant) -> bool:
@@ -837,8 +837,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         "early_exit_prolific",
                         "If you leave now, you will not be able to continue "
                         "later. You will receive a fixed early-exit payment of "
-                        "{FIXED}. Because you have earned {EARNED} so far, the "
-                        "remaining {REMAINDER} will be paid as a bonus. Your "
+                        "{FIXED}. Because you have earned {EARNED} so far, a "
+                        "further {REMAINDER} will be paid as a bonus. Your "
                         "responses so far will still be saved.",
                     ).format(
                         FIXED=fixed_txt, EARNED=earned_txt, REMAINDER=remainder_txt
@@ -1811,7 +1811,7 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
                 "If you leave now, you will not be able to continue later. You "
                 "will go to the MTurk submission step and receive the HIT "
                 "payment of {BASE}. Because you have earned {EARNED} so far, "
-                "the remaining {REMAINDER} will be paid as a bonus. Your "
+                "a further {REMAINDER} will be paid as a bonus. Your "
                 "responses so far will still be saved.",
             ).format(BASE=base_txt, EARNED=earned_txt, REMAINDER=remainder_txt)
         else:
