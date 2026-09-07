@@ -19,8 +19,13 @@
     </div>
 {% endmacro %}
 
+{# Every weight the theme renders text in: 400 for body copy, 500 for controls,
+   and 700 for headings, which ask for 600 and match the bold face. Leaving the
+   bold face to be discovered from the stylesheet made it arrive after the
+   first paint, so page titles were the one thing that visibly changed. #}
 <link rel="preload" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Medium.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/participant.css') }}">
 {# Exposes psynetLayout.check() for Playwright; it does not run on load. #}
 <script src="{{ url_for('static', filename='scripts/psynet.layout.js') }}"></script>

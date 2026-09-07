@@ -1363,3 +1363,130 @@ test(
     );
   }
 );
+
+const CSS_ROOT = path.resolve("psynet/resources/css");
+const THEME_ORIGIN = "https://psynet-theme.test";
+const SAMPLE_TITLE = "Thanks for your interest in this experiment.";
+const SAMPLE_BODY =
+  "To proceed, click the button below. Your responses so far will still be saved.";
+
+// Served from a routed origin rather than through setContent so that
+// participant.css can fetch its own font files, which is what makes the
+// before-and-after comparison below meaningful.
+async function renderThemedText(page) {
+  await page.route(`${THEME_ORIGIN}/**`, (route) => {
+    const { pathname } = new URL(route.request().url());
+    if (pathname.endsWith(".woff2")) {
+      return route.fulfill({
+        contentType: "font/woff2",
+        body: fs.readFileSync(path.join(CSS_ROOT, pathname))
+      });
+    }
+    if (pathname === "/participant.css") {
+      return route.fulfill({ contentType: "text/css", body: THEME_CSS });
+    }
+    return route.fulfill({
+      contentType: "text/html",
+      body: `<!doctype html>
+<html><head>
+<link rel="stylesheet" href="/participant.css">
+<style>
+  .surface { width: 640px; }
+  /* Inline-block so the box tracks the text rather than the column. */
+  .nowrap { white-space: nowrap; display: inline-block; }
+</style>
+</head><body>
+<div class="surface" id="themed">
+  <h1 class="title">${SAMPLE_TITLE}</h1>
+  <p class="body">${SAMPLE_BODY}</p>
+  <h1 class="title nowrap">${SAMPLE_TITLE}</h1>
+  <p class="body nowrap">${SAMPLE_BODY}</p>
+</div>
+<div class="surface" id="pre-swap"></div>
+</body></html>`
+    });
+  });
+  await page.goto(`${THEME_ORIGIN}/`);
+}
+
+test(
+  "text does not resize when Inter replaces the fallback font",
+  { tag: "@both" },
+  async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await renderThemedText(page);
+
+    const measurements = await page.evaluate(async () => {
+      await document.fonts.ready;
+      const families = getComputedStyle(document.documentElement)
+        .getPropertyValue("--psynet-font-sans")
+        .split(",")
+        .map((family) => family.trim().replace(/^["']|["']$/g, ""));
+      // The family the browser reaches for while Inter is still downloading.
+      const [interFamily, fallbackFamily] = families;
+
+      // The metric-matched fallback can only be exercised where the machine
+      // has an Arial-metric font for it to scale.
+      let arialMetricFont = true;
+      try {
+        await new FontFace(
+          "MetricProbe",
+          'local("Arial"), local("Liberation Sans"), local("Arimo")'
+        ).load();
+      } catch {
+        arialMetricFont = false;
+      }
+
+      const preSwap = document.getElementById("pre-swap");
+      preSwap.innerHTML = document.getElementById("themed").innerHTML;
+      preSwap.style.fontFamily = `"${fallbackFamily}"`;
+
+      const boxes = (id) =>
+        [...document.querySelectorAll(`#${id} > *`)].map((element) => {
+          const rect = element.getBoundingClientRect();
+          return { width: rect.width, height: rect.height };
+        });
+      const declared = (family) =>
+        [...document.fonts].filter((face) => face.family === family);
+      return {
+        interFamily,
+        fallbackFamily,
+        interLoaded: declared(interFamily).some(
+          (face) => face.status === "loaded"
+        ),
+        fallbackIsDeclared: declared(fallbackFamily).length > 0,
+        arialMetricFont,
+        themed: boxes("themed"),
+        preSwap: boxes("pre-swap")
+      };
+    });
+
+    expect(measurements.interFamily).toBe("Inter");
+    expect(measurements.interLoaded).toBe(true);
+    // Leaving the pre-swap font to the machine makes the swap unpredictable:
+    // the theme has to name a face of its own that Inter can replace without
+    // resizing anything.
+    expect(measurements.fallbackIsDeclared).toBe(true);
+    test.skip(
+      !measurements.arialMetricFont,
+      "No Arial-metric font is installed, so the metric-matched fallback " +
+        "cannot be exercised here."
+    );
+
+    const [themedTitle, themedBody, themedTitleWidth, themedBodyWidth] =
+      measurements.themed;
+    const [preTitle, preBody, preTitleWidth, preBodyWidth] =
+      measurements.preSwap;
+
+    // Wrapped text must keep its line count, or the page reflows under the
+    // participant when the webfont lands.
+    expect(preTitle.height).toBe(themedTitle.height);
+    expect(preBody.height).toBe(themedBody.height);
+
+    // Heading text is the most visible: an unmatched fallback sets it several
+    // percent narrower, which reads as the title changing size mid-load.
+    const shift = (before, after) => Math.abs(before.width / after.width - 1);
+    expect(shift(preTitleWidth, themedTitleWidth)).toBeLessThan(0.01);
+    expect(shift(preBodyWidth, themedBodyWidth)).toBeLessThan(0.01);
+  }
+);
