@@ -3,6 +3,7 @@ import time
 import pytest
 from dallinger import db
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
 from psynet.experiment import get_experiment
 from psynet.participant import get_participant
@@ -49,27 +50,16 @@ class TestExp:
             with pytest.raises(RuntimeError):
                 next_page(driver, "next-button")
 
-            assert_text(driver, "header", "Error!")
+            WebDriverWait(driver, 10).until(
+                lambda browser: "/recruiter-exit" in browser.current_url
+            )
+            assert_text(driver, "header", "Thank you for taking part.")
             assert_text(
                 driver,
-                "error-text",
-                "There has been an error and so you are unable to continue, sorry!",
+                "exit-text",
+                "The experiment ended after an error. Your responses have been "
+                "saved. You may close this window.",
             )
-            assert_text(
-                driver,
-                "error-text-main",
-                "Your progress has been recorded. You can leave from this page.",
-            )
-
-            url = driver.current_url
-            driver.find_element(By.ID, "early-exit-open").click()
-            assert_text(driver, "early-exit-title", "Leave without finishing?")
-            driver.find_element(By.ID, "early-exit-cancel").click()
-            assert driver.current_url == url
-
-            driver.find_element(By.ID, "early-exit-open").click()
-            driver.find_element(By.ID, "early-exit-confirm").click()
-            time.sleep(0.5)
 
             participant = get_participant(1)
 

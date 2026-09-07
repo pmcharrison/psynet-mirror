@@ -751,20 +751,16 @@ def test_shared_early_exit_modal_renders_server_offer_and_actions():
     assert "Cancel" in rendered[cancel_start:]
 
 
-def test_abort_is_removed_from_ad_and_available_inline_on_error():
+def test_error_page_automatically_executes_its_server_owned_exit_plan():
     templates = resources.files("psynet") / "templates"
     ad = (templates / "ad.html").read_text(encoding="utf-8")
     error = (templates / "psynet_error.html").read_text(encoding="utf-8")
-    early_exit_macro = (templates / "macros/early_exit.html").read_text(
-        encoding="utf-8"
-    )
 
     assert 'id="abort-button"' not in ad
-    assert 'from "macros/early_exit.html" import early_exit_modal' in error
-    assert "early_exit_modal(" in error
-    assert 'id="early-exit-modal"' in early_exit_macro
-    assert 'id="early-exit-confirm"' in early_exit_macro
-    # Leaving from the error page may itself fail, so the participant keeps
+    assert 'id="automatic-early-exit"' in error
+    assert 'id="automatic-early-exit-retry"' in error
+    assert 'id="early-exit-modal"' not in error
+    # Automatic exit may itself fail, so the participant keeps
     # the contact address and the identifiers a researcher would ask for.
     assert 'id="error-contact"' in error
     assert 'id="error-identifiers"' in error
