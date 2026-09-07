@@ -1319,6 +1319,45 @@ def test_early_exit_route_refuses_a_participant_who_is_finishing(
     experiment.recruiter.execute_early_exit_plan.assert_not_called()
 
 
+def test_error_recovery_route_survives_a_queued_unsuccessful_redirect():
+    from flask import Flask
+
+    from psynet.experiment import Experiment
+
+    plan = _early_exit_test_plan(
+        ExitPath.SCREEN_OUT,
+        context=ExitContext.ERROR_RECOVERY,
+    )
+    participant = MagicMock(
+        early_exited=False,
+        complete=False,
+        unique_id="unique-1",
+        exit_plan=plan.to_dict(),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = True
+
+    with (
+        Flask(__name__).test_request_context(
+            "/execute_early_exit_plan/assign-1",
+            method="POST",
+            json={"plan_id": plan.plan_id},
+        ),
+        patch.object(
+            Experiment,
+            "get_participant_from_assignment_id",
+            return_value=participant,
+        ),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.success_response", return_value="ok"),
+    ):
+        assert Experiment.route_execute_early_exit_plan("assign-1") == "ok"
+
+    experiment.recruiter.execute_early_exit_plan.assert_called_once()
+    assert participant.exit_plan["context"] == "error_recovery"
+    assert participant.exit_plan["status"] == "committed"
+
+
 def test_early_exit_route_reports_an_unknown_assignment():
     from flask import Flask
     from sqlalchemy.orm.exc import NoResultFound

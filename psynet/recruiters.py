@@ -428,11 +428,7 @@ class PsyNetRecruiterMixin:
         if self.gates_early_exit_on_reward() and not experiment.early_exit_allowed(
             participant
         ):
-            return self._without_payment_early_exit_plan(
-                experiment,
-                participant,
-                exit_domain.ExitContext.VOLUNTARY,
-            )
+            return self._without_payment_voluntary_exit_plan(experiment, participant)
         return self._standard_voluntary_exit_plan(experiment, participant)
 
     def _plan_error_recovery_exit(
@@ -511,10 +507,11 @@ class PsyNetRecruiterMixin:
             confirmation=confirmation,
         )
 
-    def _without_payment_early_exit_plan(
-        self, experiment, participant, context: exit_domain.ExitContext
+    def _without_payment_voluntary_exit_plan(
+        self, experiment, participant
     ) -> exit_domain.ExitPlan:
         """Plan an explicit return without payment below the threshold."""
+        del experiment
         _p = get_translator(context=True)
         earned = participant.calculate_reward()
         threshold = get_config().get("min_reward_for_paid_early_exit")
@@ -530,7 +527,7 @@ class PsyNetRecruiterMixin:
         )
         path = exit_domain.ExitPath.RETURN_WITHOUT_PAYMENT
         return exit_domain.ExitPlan.create(
-            context=context,
+            context=exit_domain.ExitContext.VOLUNTARY,
             path=path,
             payment=exit_domain.PaymentDecision(
                 status="returned",
@@ -817,10 +814,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return super().plan_exit(experiment, participant, context)
 
     def _prolific_exit_payment(
-        self, participant
+        self, participant, earned: float | None = None
     ) -> tuple[exit_domain.ExitPath, exit_domain.PaymentDecision]:
         """Return Prolific's platform path and payment decision."""
-        earned = participant.calculate_reward()
+        if earned is None:
+            earned = participant.calculate_reward()
         if self.pays_unsuccessful_participants_via_screen_out:
             fixed = self.unsuccessful_base_payment
             path = exit_domain.ExitPath.SCREEN_OUT
@@ -863,7 +861,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         _p = get_translator(context=True)
         earned = participant.calculate_reward()
         earned_txt = exit_domain._format_exit_amount(earned)
-        path, payment = self._prolific_exit_payment(participant)
+        path, payment = self._prolific_exit_payment(participant, earned)
         if path is exit_domain.ExitPath.SCREEN_OUT:
             fixed_txt = exit_domain._format_exit_amount(payment.platform_base)
             if self.tops_up_unsuccessful_participants:

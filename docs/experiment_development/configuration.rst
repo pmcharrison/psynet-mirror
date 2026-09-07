@@ -277,9 +277,9 @@ General
     completion, rejected consent, voluntary Leave, and fatal-error recovery.
     The plan records the outcome, recruiter path, and
     :class:`~psynet.exit.PaymentDecision` that will be used when payment is
-    processed. Its payment state distinguishes a complete decision, a decision
-    deferred after an error, and recruiters for which PsyNet payment is not
-    applicable. It is stored on
+    processed. Its :class:`~psynet.exit.PaymentState` distinguishes a complete
+    decision, a decision deferred after an error, and recruiters for which
+    PsyNet payment is not applicable. It is stored on
     :attr:`~psynet.participant.Participant.exit_plan`, giving recruiter handoff
     and later payment settlement one source of truth.
     Spend caps are still applied immediately before transfer.
