@@ -31,6 +31,7 @@ from psynet.recruiters import (
     EarlyExitContext,
     EarlyExitPath,
     EarlyExitPlan,
+    ErrorRecoveryAction,
     HotAirRecruiter,
     PaymentDecision,
     ProlificRecruiter,
@@ -743,6 +744,100 @@ def test_execute_error_recovery_plan_records_the_error_context():
     )
 
     participant.fail.assert_called_once_with("error_recovery")
+
+
+def test_default_error_recovery_page_is_terminal():
+    with patch(
+        "psynet.recruiters.get_translator", return_value=_identity_translator
+    ):
+        presentation = PsyNetRecruiterMixin().error_recovery_presentation(
+            MagicMock(),
+            _early_exit_test_plan(context=EarlyExitContext.ERROR_RECOVERY),
+        )
+
+    assert presentation.action is ErrorRecoveryAction.CLOSE_PAGE
+    assert presentation.button_label is None
+    assert presentation.message == (
+        "Your responses have been saved. You may close this page."
+    )
+
+
+def test_prolific_error_recovery_explains_payment_and_submits_directly():
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
+    participant = SimpleNamespace(id=42, assignment_id="assignment-1")
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.ERROR_RECOVERY,
+        path=EarlyExitPath.SCREEN_OUT,
+        confirmation=EarlyExitConfirmation("Error", "", "", ""),
+        quoted_amounts={
+            "currency": "£",
+            "fixed_minor": 25,
+            "earned_minor": 60,
+            "remainder_minor": 35,
+        },
+    )
+
+    with (
+        patch(
+            "psynet.recruiters.get_translator", return_value=_identity_translator
+        ),
+        patch.object(
+            recruiter,
+            "external_submission_url",
+            return_value="https://app.prolific.test/complete",
+        ),
+    ):
+        presentation = recruiter.error_recovery_presentation(participant, plan)
+
+    assert presentation.action is ErrorRecoveryAction.POST_AND_REDIRECT
+    assert presentation.button_label == "Submit to Prolific"
+    assert presentation.post_url == "/prolific-submission-listener"
+    assert presentation.post_data == {
+        "assignmentId": "assignment-1",
+        "participantId": "42",
+    }
+    assert presentation.redirect_url == "https://app.prolific.test/complete"
+    assert "Prolific will pay you £0.25" in presentation.message
+    assert "£0.35 as a bonus" in presentation.message
+    assert "total payment to £0.60" in presentation.message
+
+
+def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.ERROR_RECOVERY,
+        path=EarlyExitPath.RETURN_FOR_BONUS,
+        confirmation=EarlyExitConfirmation("Error", "", "", ""),
+        quoted_amounts={"currency": "£", "earned_minor": 60},
+    )
+
+    with patch(
+        "psynet.recruiters.get_translator", return_value=_identity_translator
+    ):
+        presentation = recruiter.error_recovery_presentation(MagicMock(), plan)
+
+    assert presentation.action is ErrorRecoveryAction.FOLLOW_RELEASE
+    assert presentation.button_label == "Continue to payment instructions"
+    assert "return your submission on Prolific" in presentation.message
+    assert "£0.60" in presentation.message
+
+
+def test_lucid_error_recovery_explains_the_panel_redirect():
+    recruiter = object.__new__(BaseLucidRecruiter)
+    with patch(
+        "psynet.recruiters.get_translator", return_value=_identity_translator
+    ):
+        presentation = recruiter.error_recovery_presentation(
+            MagicMock(),
+            _early_exit_test_plan(
+                path=EarlyExitPath.TERMINATE_PANEL_SESSION,
+                context=EarlyExitContext.ERROR_RECOVERY,
+            ),
+        )
+
+    assert presentation.action is ErrorRecoveryAction.FOLLOW_RELEASE
+    assert presentation.button_label == "Return to your panel"
+    assert "panel provider will determine any payment" in presentation.message
 
 
 def test_execute_early_exit_plan_skips_fail_when_already_failed():

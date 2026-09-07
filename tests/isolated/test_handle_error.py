@@ -42,6 +42,9 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     experiment = MagicMock()
     experiment.timeline.participant_is_in_end_logic.return_value = False
     experiment.error_recovery_early_exit_plan.return_value = plan
+    presentation = MagicMock()
+    recruiter = MagicMock(show_early_exit_button=False)
+    recruiter.error_recovery_presentation.return_value = presentation
 
     with (
         Flask(__name__).test_request_context("/error-page"),
@@ -58,11 +61,13 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
         }.get
         Experiment.error_page(
             participant=participant,
-            recruiter=SimpleNamespace(show_early_exit_button=False),
+            recruiter=recruiter,
         )
 
     assert participant.early_exit_plan == plan.to_dict()
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
+    assert render.call_args.kwargs["error_recovery_presentation"] is presentation
+    recruiter.error_recovery_presentation.assert_called_once_with(participant, plan)
 
 
 def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():

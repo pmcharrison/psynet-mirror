@@ -52,30 +52,18 @@ class TestExp:
 
             WebDriverWait(driver, 10).until(
                 lambda browser: browser.find_element(
-                    By.ID, "automatic-early-exit-continue"
+                    By.ID, "automatic-early-exit-ready"
                 ).is_displayed()
             )
             assert "/recruiter-exit" not in driver.current_url
-            assert_text(driver, "header", "The experiment has ended")
+            assert_text(driver, "header", "An error occurred")
             assert_text(
                 driver,
                 "automatic-early-exit-ready",
-                "Your responses have been saved, and your session is ready to "
-                "finish. When you are ready, select Finish session.",
+                "Your responses have been saved. You may close this page.",
             )
             assert not driver.find_elements(By.ID, "early-exit-open")
-
-            driver.find_element(By.ID, "automatic-early-exit-continue").click()
-            WebDriverWait(driver, 10).until(
-                lambda browser: "/recruiter-exit" in browser.current_url
-            )
-            assert_text(driver, "header", "Thank you for taking part.")
-            assert_text(
-                driver,
-                "exit-text",
-                "The experiment ended after an error. Your responses have been "
-                "saved. You may close this window.",
-            )
+            assert not driver.find_elements(By.ID, "automatic-early-exit-continue")
 
             participant = get_participant(1)
 

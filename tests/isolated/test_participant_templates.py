@@ -760,6 +760,8 @@ def test_error_page_automatically_executes_its_server_owned_exit_plan():
     assert 'id="automatic-early-exit"' in error
     assert 'id="automatic-early-exit-retry"' in error
     assert 'id="automatic-early-exit-continue"' in error
+    assert "An error occurred" in error
+    assert "Finish session" not in error
     assert 'id="early-exit-modal"' not in error
     # Automatic exit may itself fail, so the participant keeps
     # the contact address and the identifiers a researcher would ask for.
