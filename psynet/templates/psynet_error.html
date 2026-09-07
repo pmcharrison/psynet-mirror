@@ -6,26 +6,25 @@
             <div class="col-auto">
               <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
             </div>
-            <h1 id="header" style="clear: both;">
-                {% if automatic_exit_offer_id %}
-                    {{ pgettext("early_exit_error", "The experiment has ended") }}
-                {% else %}
-                    {{ pgettext("error", "Error!") }}
-                {% endif %}
-            </h1>
+            <h1 id="header" style="clear: both;">{{ pgettext("error", "An error occurred") }}</h1>
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
                 {% if automatic_exit_offer_id %}
                     <div id="automatic-early-exit"
                          data-assignment-id="{{ assignment_id }}"
+                         data-participant-id="{{ participant_id }}"
                          data-offer-id="{{ automatic_exit_offer_id }}"
+                         data-action="{{ error_recovery_presentation.action.value }}"
+                         data-post-url="{{ error_recovery_presentation.post_url or '' }}"
+                         data-post-data='{{ error_recovery_presentation.post_data | tojson }}'
+                         data-redirect-url="{{ error_recovery_presentation.redirect_url or '' }}"
                          aria-live="polite">
                         <p id="automatic-early-exit-pending">
-                            {{ pgettext("early_exit_error", "We are saving your responses and ending your session safely.") }}
+                            {{ pgettext("early_exit_error", "We are saving your responses and preparing the next step.") }}
                         </p>
                         <p id="automatic-early-exit-failure" hidden>
-                            {{ pgettext("early_exit_error", "We could not end your session automatically. Please try again.") }}
+                            {{ pgettext("early_exit_error", "We could not complete the next step. Please try again.") }}
                         </p>
                         <button type="button"
                                 id="automatic-early-exit-retry"
@@ -34,14 +33,16 @@
                             {{ pgettext("early_exit_error", "Try again") }}
                         </button>
                         <p id="automatic-early-exit-ready" hidden>
-                            {{ pgettext("early_exit_error", "Your responses have been saved, and your session is ready to finish. When you are ready, select Finish session.") }}
+                            {{ error_recovery_presentation.message }}
                         </p>
-                        <button type="button"
-                                id="automatic-early-exit-continue"
-                                class="btn btn-primary btn-lg"
-                                hidden>
-                            {{ pgettext("early_exit_error", "Finish session") }}
-                        </button>
+                        {% if error_recovery_presentation.button_label %}
+                            <button type="button"
+                                    id="automatic-early-exit-continue"
+                                    class="btn btn-primary btn-lg"
+                                    hidden>
+                                {{ error_recovery_presentation.button_label }}
+                            </button>
+                        {% endif %}
                     </div>
                     <script>
                         document.addEventListener("DOMContentLoaded", function () {

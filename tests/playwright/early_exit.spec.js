@@ -15,7 +15,7 @@ test(
     let completedParticipant;
     await page.route("http://psynet.test/error", async (route) => {
       await route.fulfill({
-        contentType: "text/html",
+        contentType: "text/html; charset=utf-8",
         body: `
           <div id="automatic-early-exit"
                data-assignment-id="assignment-1"
@@ -76,7 +76,7 @@ test(
     let prolificSubmission;
     await page.route("http://psynet.test/error", async (route) => {
       await route.fulfill({
-        contentType: "text/html",
+        contentType: "text/html; charset=utf-8",
         body: `
           <div id="automatic-early-exit"
                data-assignment-id="assignment-1"

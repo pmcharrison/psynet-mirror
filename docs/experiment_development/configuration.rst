@@ -247,9 +247,10 @@ General
     confirmation, so choosing **Cancel** preserves the current page and
     response state. When an error makes continuation impossible, PsyNet instead
     executes the same recruiter-specific exit path automatically, keeps the
-    explanation visible, and reveals **Finish session** for the participant to
-    continue to the recruiter-specific release page. The ad page does not
-    provide an exit control.
+    explanation visible, and shows only the action the recruitment platform
+    requires. Generic, local, and lab participants can simply close the page;
+    Prolific and Lucid participants receive platform-specific instructions and
+    controls. The ad page does not provide an exit control.
     Confirming a paid leave marks the participant failed, so Prolific uses the
     unsuccessful/partial-payment route; Lucid terminates the panel session.
     **Leave** is never offered once the participant is finishing (the
@@ -278,9 +279,9 @@ General
     cannot select a different payment path. Any amounts quoted by the standard
     plan are also used for the eventual payment decision. Voluntary confirmation
     advances directly to a dedicated release branch. After a fatal error, PsyNet
-    executes the plan without confirmation but waits for the participant to
-    select **Finish session** before advancing. In both cases, platform-specific
-    return or submission instructions come from the same planned path.
+    executes the plan without confirmation and derives the final message and
+    action from the planned recruiter path. Platform-specific return or
+    submission instructions therefore come from the same plan.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the
@@ -623,8 +624,9 @@ completion code (of type ``UNSUCCESSFUL``) with a fixed screen-out payment actio
 participants submit their study normally and Prolific automatically pays them this fixed amount;
 PsyNet additionally pays a bonus topping them up to their accumulated reward (see
 ``prolific_unsuccessful_topup``). For participants who hit an error page, PsyNet finalizes the
-recovery plan automatically and then reveals **Finish session**, which submits the study with the
-same completion code. Because this feature spends money
+recovery plan automatically and then explains the payment outcome. **Submit to Prolific** records
+the submission with the same completion code and redirects directly to Prolific. Because this
+feature spends money
 automatically, Prolific deployments must set ``prolific_screen_out_slots`` explicitly (see below);
 deployment fails with an explanatory error otherwise.
 

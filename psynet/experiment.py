@@ -1602,7 +1602,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if error_text is None:
             error_text = _p(
                 "error-msg",
-                "Something went wrong, so the experiment cannot continue. We're sorry.",
+                "We're sorry, but an error means you cannot continue with this study.",
             )
 
         if participant is not None:
@@ -1623,6 +1623,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant_id = None
 
         automatic_exit_offer_id = None
+        error_recovery_presentation = None
         if (
             participant is not None
             and compensate
@@ -1634,6 +1635,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 plan = experiment.error_recovery_early_exit_plan(participant)
                 participant.early_exit_plan = plan.to_dict()
                 automatic_exit_offer_id = plan.offer_id
+                active_recruiter = recruiter or experiment.recruiter
+                error_recovery_presentation = (
+                    active_recruiter.error_recovery_presentation(participant, plan)
+                )
 
         return make_response(
             render_template_with_translations(
@@ -1651,6 +1656,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant_id=participant_id,
                 external_submit_url=external_submit_url,
                 automatic_exit_offer_id=automatic_exit_offer_id,
+                error_recovery_presentation=error_recovery_presentation,
             ),
             500,
         )

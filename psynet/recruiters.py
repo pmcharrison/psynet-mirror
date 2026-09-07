@@ -254,6 +254,26 @@ class EarlyExitPath(StrEnum):
     TERMINATE_PANEL_SESSION = "terminate_panel_session"
 
 
+class ErrorRecoveryAction(StrEnum):
+    """Participant action shown after an error-recovery plan executes."""
+
+    CLOSE_PAGE = "close_page"
+    FOLLOW_RELEASE = "follow_release"
+    POST_AND_REDIRECT = "post_and_redirect"
+
+
+@dataclass(frozen=True)
+class ErrorRecoveryPresentation:
+    """Recruiter-specific copy and action for a finalized error recovery."""
+
+    message: str
+    action: ErrorRecoveryAction
+    button_label: str | None = None
+    post_url: str | None = None
+    post_data: dict[str, str] = field(default_factory=dict)
+    redirect_url: str | None = None
+
+
 @dataclass(frozen=True)
 class EarlyExitPlan:
     """Server-owned early-exit offer and execution plan.
@@ -323,6 +343,15 @@ def _format_early_exit_amount(amount: float) -> str:
     """Format a currency amount for early-exit confirmation copy."""
     currency = get_config().get("currency", "$")
     return f"{currency}{float(amount):.2f}"
+
+
+def _format_quoted_early_exit_amount(plan: EarlyExitPlan, name: str) -> str:
+    """Format one amount stored in an early-exit plan."""
+    amount = plan.quoted_amounts[f"{name}_minor"] / 100
+    currency = plan.quoted_amounts.get("currency")
+    if currency is None:
+        currency = get_config().get("currency", "$")
+    return f"{currency}{amount:.2f}"
 
 
 def _early_exit_amounts(**amounts) -> dict:
@@ -461,6 +490,20 @@ class PsyNetRecruiterMixin:
             else:
                 reason = "early_exit"
             participant.fail(reason)
+
+    def error_recovery_presentation(
+        self, participant, plan: EarlyExitPlan
+    ) -> ErrorRecoveryPresentation:
+        """Describe the final error page for a recruiter with no handoff."""
+        del participant, plan
+        _p = get_translator(context=True)
+        return ErrorRecoveryPresentation(
+            message=_p(
+                "early_exit_error",
+                "Your responses have been saved. You may close this page.",
+            ),
+            action=ErrorRecoveryAction.CLOSE_PAGE,
+        )
 
     def gates_early_exit_on_reward(self) -> bool:
         """Return whether paid early exit requires the reward threshold.
@@ -946,6 +989,87 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             confirmation=self._early_exit_confirmation(message, path=path),
             quoted_amounts=quoted_amounts,
         )
+
+    def error_recovery_presentation(
+        self, participant, plan: EarlyExitPlan
+    ) -> ErrorRecoveryPresentation:
+        """Explain Prolific's next step and payment after an error."""
+        _p = get_translator(context=True)
+        if plan.path is EarlyExitPath.SCREEN_OUT:
+            fixed = _format_quoted_early_exit_amount(plan, "fixed")
+            payment = _p(
+                "early_exit_error_prolific",
+                "Prolific will pay you {FIXED}.",
+            ).format(FIXED=fixed)
+            if "remainder_minor" in plan.quoted_amounts:
+                remainder = _format_quoted_early_exit_amount(plan, "remainder")
+                total = _format_quoted_early_exit_amount(plan, "earned")
+                payment += " " + _p(
+                    "early_exit_error_prolific",
+                    "We will also pay {BONUS} as a bonus, bringing your total "
+                    "payment to {TOTAL}.",
+                ).format(BONUS=remainder, TOTAL=total)
+            elif "performance_minor" in plan.quoted_amounts:
+                performance = _format_quoted_early_exit_amount(plan, "performance")
+                payment += " " + _p(
+                    "early_exit_error_prolific",
+                    "We will also pay your {BONUS} performance bonus.",
+                ).format(BONUS=performance)
+            elif (
+                not plan.quoted_amounts_complete
+                and self.tops_up_unsuccessful_participants
+            ):
+                payment += " " + _p(
+                    "early_exit_error_prolific",
+                    "Any additional amount you earned will be paid as a bonus.",
+                )
+
+            message = _p(
+                "early_exit_error_prolific",
+                "Your responses have been saved. To record your participation "
+                "and return to Prolific, select Submit to Prolific.",
+            )
+            return ErrorRecoveryPresentation(
+                message=f"{message} {payment}",
+                action=ErrorRecoveryAction.POST_AND_REDIRECT,
+                button_label=_p("early_exit_error_prolific", "Submit to Prolific"),
+                post_url="/prolific-submission-listener",
+                post_data={
+                    "assignmentId": participant.assignment_id,
+                    "participantId": str(participant.id),
+                },
+                redirect_url=self.external_submission_url(
+                    code_type=self.unsuccessful_code_type
+                ),
+            )
+
+        if plan.path is EarlyExitPath.RETURN_FOR_BONUS:
+            if "earned_minor" in plan.quoted_amounts:
+                payment = _p(
+                    "early_exit_error_prolific",
+                    "To receive {EARNED} for the work you completed, you will "
+                    "need to return your submission on Prolific.",
+                ).format(EARNED=_format_quoted_early_exit_amount(plan, "earned"))
+            else:
+                payment = _p(
+                    "early_exit_error_prolific",
+                    "To receive payment for the work you completed, you will "
+                    "need to return your submission on Prolific.",
+                )
+            next_step = _p(
+                "early_exit_error_prolific",
+                "Select Continue to payment instructions to complete these steps.",
+            )
+            return ErrorRecoveryPresentation(
+                message=f"{_p('early_exit_error_prolific', 'Your responses have been saved.')} {payment} {next_step}",
+                action=ErrorRecoveryAction.FOLLOW_RELEASE,
+                button_label=_p(
+                    "early_exit_error_prolific",
+                    "Continue to payment instructions",
+                ),
+            )
+
+        return super().error_recovery_presentation(participant, plan)
 
     def release_early_exit_without_payment(self, participant) -> TimelineLogic:
         """Ask the participant to return the Prolific submission without pay."""
@@ -2919,6 +3043,26 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             context=context,
             path=path,
             confirmation=confirmation,
+        )
+
+    def error_recovery_presentation(
+        self, participant, plan: EarlyExitPlan
+    ) -> ErrorRecoveryPresentation:
+        """Explain Lucid's return to the participant's panel provider."""
+        del participant, plan
+        _p = get_translator(context=True)
+        return ErrorRecoveryPresentation(
+            message=_p(
+                "early_exit_error_lucid",
+                "Your responses have been saved. Select Return to your panel "
+                "to continue. Your panel provider will determine any payment "
+                "according to its own rules.",
+            ),
+            action=ErrorRecoveryAction.FOLLOW_RELEASE,
+            button_label=_p(
+                "early_exit_error_lucid",
+                "Return to your panel",
+            ),
         )
 
     def early_exit_allowed(self, participant) -> bool:

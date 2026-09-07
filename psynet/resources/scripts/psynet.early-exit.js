@@ -11,6 +11,15 @@
     global.location.replace(releaseUrl);
   }
 
+  async function postForm(url, data) {
+    if (!url) throw new Error("The server did not provide the next action.");
+    const response = await fetch(url, {
+      method: "POST",
+      body: new URLSearchParams(data),
+    });
+    if (!response.ok) throw new Error("The next action did not succeed.");
+  }
+
   async function execute(assignmentId, offerId) {
     if (!assignmentId || !offerId) {
       throw new Error("The server did not provide an early-exit plan.");
@@ -52,42 +61,82 @@
       const retry = document.getElementById("automatic-early-exit-retry");
       const ready = document.getElementById("automatic-early-exit-ready");
       const finish = document.getElementById("automatic-early-exit-continue");
+      const action = automatic.dataset.action;
+      const participantId = automatic.dataset.participantId;
+      const postUrl = automatic.dataset.postUrl;
+      const redirectUrl = automatic.dataset.redirectUrl;
+      const postData = JSON.parse(automatic.dataset.postData || "{}");
       let releaseUrl = null;
+      let prepared = false;
+
+      function showFailure(error) {
+        pending.hidden = true;
+        ready.hidden = true;
+        if (finish) {
+          finish.hidden = true;
+          finish.disabled = false;
+        }
+        failure.hidden = false;
+        retry.hidden = false;
+        if (global.psynet && global.psynet.log) {
+          global.psynet.log.error(error.stack || String(error));
+        }
+      }
+
+      async function followParticipantAction() {
+        if (finish) finish.disabled = true;
+        try {
+          if (action === "follow_release") {
+            continueToRelease(releaseUrl);
+            return;
+          }
+          if (action === "post_and_redirect") {
+            await postForm(postUrl, postData);
+            continueToRelease(redirectUrl);
+            return;
+          }
+          throw new Error("The server provided an unknown recovery action.");
+        } catch (error) {
+          showFailure(error);
+        }
+      }
 
       async function run() {
         pending.hidden = false;
         failure.hidden = true;
         retry.hidden = true;
         ready.hidden = true;
-        finish.hidden = true;
+        if (finish) finish.hidden = true;
         releaseUrl = null;
+        prepared = false;
         try {
           releaseUrl = await execute(
             automatic.dataset.assignmentId,
             automatic.dataset.offerId,
           );
           if (!releaseUrl) return;
+          if (action === "close_page") {
+            await postForm("/worker_complete", {
+              participant_id: participantId,
+            });
+          }
+          prepared = true;
           pending.hidden = true;
           ready.hidden = false;
-          finish.hidden = false;
+          if (finish) finish.hidden = false;
         } catch (error) {
-          pending.hidden = true;
-          failure.hidden = false;
-          retry.hidden = false;
-          if (global.psynet && global.psynet.log) {
-            global.psynet.log.error(error.stack || String(error));
-          }
+          showFailure(error);
         }
       }
 
-      retry.addEventListener("click", run, { signal });
-      finish.addEventListener(
+      retry.addEventListener(
         "click",
-        () => {
-          if (releaseUrl) continueToRelease(releaseUrl);
-        },
+        () => (prepared ? followParticipantAction() : run()),
         { signal },
       );
+      if (finish) {
+        finish.addEventListener("click", followParticipantAction, { signal });
+      }
       run();
       return;
     }
