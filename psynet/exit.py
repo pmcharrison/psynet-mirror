@@ -174,14 +174,10 @@ class ExitPlan:
             context=ExitContext(data["context"]),
             path=ExitPath(data["path"]),
             status=status,
-            payment=(
-                None if payment is None else PaymentDecision.from_dict(payment)
-            ),
+            payment=(None if payment is None else PaymentDecision.from_dict(payment)),
             currency=data.get("currency", "$"),
             confirmation=(
-                None
-                if confirmation is None
-                else EarlyExitConfirmation(**confirmation)
+                None if confirmation is None else EarlyExitConfirmation(**confirmation)
             ),
             payment_is_final=data.get("payment_is_final", True),
         )

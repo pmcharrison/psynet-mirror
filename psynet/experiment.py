@@ -2672,9 +2672,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "by the recruiter's decide_payment method."
         )
 
-    def decide_and_record_payment(
-        self, participant
-    ) -> exit_domain.PaymentDecision:
+    def decide_and_record_payment(self, participant) -> exit_domain.PaymentDecision:
         """Decide how the participant should be paid and write it to the ledger."""
         recruiter = participant.recruiter
         decision = recruiter.decide_payment(participant, experiment=self)
@@ -3262,9 +3260,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             exit_domain.ExitContext.VOLUNTARY,
         )
 
-    def error_recovery_early_exit_plan(
-        self, participant
-    ) -> exit_domain.ExitPlan:
+    def error_recovery_early_exit_plan(self, participant) -> exit_domain.ExitPlan:
         """Return an exit plan after an error, without checking reward eligibility."""
         return self.recruiter.plan_early_exit(
             self,

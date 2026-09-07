@@ -575,9 +575,15 @@ def _early_exit_test_plan(
             status=(
                 "screened_out"
                 if path is ExitPath.SCREEN_OUT
-                else "returned" if returned else "approved"
+                else "returned"
+                if returned
+                else "approved"
             ),
-            platform_base=0.25 if path is ExitPath.SCREEN_OUT else 0.0 if returned else 1.0,
+            platform_base=0.25
+            if path is ExitPath.SCREEN_OUT
+            else 0.0
+            if returned
+            else 1.0,
             bonus=0.0,
         ),
         confirmation=EarlyExitConfirmation(
@@ -872,10 +878,13 @@ def test_recruiters_plan_terminal_exit_outcomes(
     assert plan.status == "committed"
     participant.exit_plan = plan.to_dict()
     participant.calculate_reward.return_value = 99.0
-    assert recruiter.decide_payment(
-        participant,
-        experiment=experiment,
-    ) == expected_payment
+    assert (
+        recruiter.decide_payment(
+            participant,
+            experiment=experiment,
+        )
+        == expected_payment
+    )
 
 
 @pytest.mark.parametrize(
@@ -909,9 +918,7 @@ def test_recruiters_plan_their_early_exit_consequences(
         patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        plan = recruiter.plan_early_exit(
-            experiment, participant, ExitContext.VOLUNTARY
-        )
+        plan = recruiter.plan_early_exit(experiment, participant, ExitContext.VOLUNTARY)
 
     assert plan.path is expected_path
     confirmation = plan.confirmation
@@ -1005,9 +1012,7 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation():
         patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        plan = recruiter.plan_early_exit(
-            experiment, participant, ExitContext.VOLUNTARY
-        )
+        plan = recruiter.plan_early_exit(experiment, participant, ExitContext.VOLUNTARY)
     assert plan.path is ExitPath.SCREEN_OUT
     assert "a further $0.55 will be paid as a bonus" in (plan.confirmation.message)
 
@@ -1058,9 +1063,7 @@ def test_return_for_bonus_uses_the_planned_reward():
         patched_early_exit_config(config),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        plan = recruiter.plan_early_exit(
-            experiment, participant, ExitContext.VOLUNTARY
-        )
+        plan = recruiter.plan_early_exit(experiment, participant, ExitContext.VOLUNTARY)
 
     participant.early_exited = True
     participant.exit_plan = plan.mark_committed().to_dict()
@@ -1085,9 +1088,7 @@ def test_below_threshold_offers_unpaid_leave_with_amounts():
         ),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        plan = recruiter.plan_early_exit(
-            experiment, participant, ExitContext.VOLUNTARY
-        )
+        plan = recruiter.plan_early_exit(experiment, participant, ExitContext.VOLUNTARY)
     assert plan.path is ExitPath.RETURN_WITHOUT_PAYMENT
     assert plan.payment == PaymentDecision(
         status="returned",

@@ -642,9 +642,7 @@ class PsyNetRecruiterMixin:
         """Total compensation PsyNet intends the participant to receive."""
         return participant.calculate_reward()
 
-    def decide_payment(
-        self, participant, *, experiment
-    ) -> exit_domain.PaymentDecision:
+    def decide_payment(self, participant, *, experiment) -> exit_domain.PaymentDecision:
         """Decide status, platform base, and bonus without writing or paying."""
         plan = exit_domain._committed_exit_plan(participant)
         if plan is not None and plan.payment_is_final and plan.payment is not None:
@@ -926,9 +924,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     "plus any performance bonus. You will not be paid for "
                     "additional time. Your responses so far will still be saved.",
                 )
-            message = message.format(
-                FIXED=exit_domain._format_exit_amount(fixed)
-            )
+            message = message.format(FIXED=exit_domain._format_exit_amount(fixed))
             payment = exit_domain.PaymentDecision(
                 status="screened_out",
                 platform_base=fixed,
@@ -997,9 +993,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 )
             )
         if plan.path is exit_domain.ExitPath.SCREEN_OUT:
-            fixed = exit_domain._format_planned_payment_amount(
-                plan, "platform_base"
-            )
+            fixed = exit_domain._format_planned_payment_amount(plan, "platform_base")
             payment = _p(
                 "early_exit_error_prolific",
                 "Prolific will pay you {FIXED}.",
@@ -1020,17 +1014,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     "payment to {TOTAL}.",
                 ).format(BONUS=remainder, TOTAL=total)
             elif plan.payment_is_final and plan.payment.bonus > 0:
-                performance = exit_domain._format_planned_payment_amount(
-                    plan, "bonus"
-                )
+                performance = exit_domain._format_planned_payment_amount(plan, "bonus")
                 payment += " " + _p(
                     "early_exit_error_prolific",
                     "We will also pay your {BONUS} performance bonus.",
                 ).format(BONUS=performance)
-            elif (
-                not plan.payment_is_final
-                and self.tops_up_unsuccessful_participants
-            ):
+            elif not plan.payment_is_final and self.tops_up_unsuccessful_participants:
                 payment += " " + _p(
                     "early_exit_error_prolific",
                     "Any additional amount you earned will be paid as a bonus.",
@@ -1136,9 +1125,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return "screened_out"
         return super().completion_status(participant)
 
-    def decide_payment(
-        self, participant, *, experiment
-    ) -> exit_domain.PaymentDecision:
+    def decide_payment(self, participant, *, experiment) -> exit_domain.PaymentDecision:
         """Use the committed plan's payment decision when it is complete."""
         plan = exit_domain._committed_exit_plan(participant)
         if (

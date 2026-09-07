@@ -1934,9 +1934,7 @@ class Page(Elt):
             "early_exit_confirmation": (
                 early_exit_plan.confirmation if early_exit_plan else None
             ),
-            "early_exit_offer_id": early_exit_plan.plan_id
-            if early_exit_plan
-            else None,
+            "early_exit_offer_id": early_exit_plan.plan_id if early_exit_plan else None,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         rendered = render_string_with_translations(

@@ -278,8 +278,8 @@ General
     The plan records the outcome, recruiter path, and
     :class:`~psynet.exit.PaymentDecision` that will be used when payment is
     processed. It is stored on
-    :attr:`~psynet.participant.Participant.exit_plan`, giving final pages,
-    recruiter handoff, and later payment settlement one source of truth.
+    :attr:`~psynet.participant.Participant.exit_plan`, giving recruiter handoff
+    and later payment settlement one source of truth.
     Spend caps are still applied immediately before transfer.
 
     Voluntary Leave prepares the plan before showing its confirmation and

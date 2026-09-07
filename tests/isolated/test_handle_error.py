@@ -5,13 +5,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 from dallinger import db
 
+from psynet.error import ErrorRecord
 from psynet.exit import (
     EarlyExitConfirmation,
     ExitContext,
     ExitPath,
     ExitPlan,
 )
-from psynet.error import ErrorRecord
 from psynet.experiment import Experiment
 from psynet.process import WorkerAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment
