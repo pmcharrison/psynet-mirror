@@ -46,6 +46,26 @@ def test_legacy_js_var_globals_rejects_invalid_mode(in_experiment_directory):
 
 
 @pytest.mark.parametrize(
+    "overrides",
+    [
+        {"recruiter": "mturk"},
+        {"recruiter": "MTurkRecruiter"},
+        {"recruiter": "multi", "recruiters": "mturk: 1, bots: 1"},
+    ],
+)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_mturk_recruitment_is_rejected(in_experiment_directory, overrides):
+    experiment = get_experiment()
+    config = get_config()
+
+    with config.override(overrides):
+        with pytest.raises(RuntimeError, match="no longer supports.*MTurk"):
+            experiment.check_config()
+
+
+@pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 def test_secrets(in_experiment_directory):
