@@ -37,7 +37,7 @@ The following code runs an experiment in debug mode on your local computer:
 
 The following code runs an experiment in debug mode on your own web server, via SSH;
 this will push the experiment code to Heroku, but won't recruit any participants,
-even if your recruiter is set to ``mturk`` or ``prolific``.
+even if your recruiter is set to ``prolific``.
 Note the specification of an app name.
 
 .. code:: bash

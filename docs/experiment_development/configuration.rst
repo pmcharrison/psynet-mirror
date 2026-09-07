@@ -296,8 +296,8 @@ General
     Error recovery has a separate
     :meth:`~psynet.experiment.Experiment.error_recovery_early_exit_plan` hook.
     It does not apply the voluntary paid-exit threshold. If the detailed reward
-    calculation itself fails, Prolific and MTurk use recovery copy without a
-    reward quote and calculate the unquoted remainder when payment is processed.
+    calculation itself fails, Prolific uses recovery copy without a reward
+    quote and calculates the unquoted remainder when payment is processed.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when
@@ -306,10 +306,9 @@ General
 ``show_reward`` *bool* |psynet-icon|
     If ``True``, then the participant's current estimated reward is displayed
     at the bottom of the page, and the end-of-experiment page reports it.
-    If left unset, the recruiter decides: recruiters that pay through a
-    platform, such as Prolific and MTurk, show the reward, while generic and
-    local recruitment does not, because PsyNet cannot pay anyone in those
-    cases. Lucid recruitment forbids showing rewards.
+    If left unset, the recruiter decides: Prolific and the lab recruiters show
+    the reward, while generic and local recruitment does not, because PsyNet
+    cannot pay anyone in those cases. Lucid recruitment forbids showing rewards.
 
 ``show_footer`` *bool* |psynet-icon|
     If ``True`` (default), then a footer may be displayed at the bottom of the
@@ -344,7 +343,7 @@ Payment
 
 ``base_payment`` *float* |dlgr-icon|
     Base payment in the currency set via the ``currency`` config variable.
-    All workers who accept the HIT are guaranteed this much compensation.
+    Successful participants receive this much compensation from the recruiter.
 
 ``big_base_payment`` *bool* |psynet-icon|
     Set this to ``True`` if you REALLY want to set ``base_payment`` to a value > 20.
@@ -390,10 +389,7 @@ General
     A boolean on whether recruitment should be automatic.
 
 ``description`` *str* |dlgr-icon|
-    Depending on the recruiter being used, either
-
-    * The description of the HIT (Amazon Mechanical Turk), or
-    * the description of the Study (Prolific).
+    The participant-facing description of the study.
 
 ``initial_recruitment_size`` *int* |dlgr-icon|
     The number of participants initially to be recruited. This value is used during the
@@ -402,8 +398,8 @@ General
 ``recruiter`` *str* |dlgr-icon|
     The recruiter class to use during the experiment run. While this can be a
     full class name, it is more common to use the class's ``nickname`` property
-    for this value; for example ``mturk``, ``prolific``, ``cli``, ``bots``,
-    or ``multi``.
+    for this value; for example ``prolific``, ``generic``, ``bots``, or ``multi``.
+    PsyNet does not support the retired ``mturk`` recruiter.
 
     .. note::
 
@@ -419,16 +415,13 @@ General
 
     ``recruiters = [nickname 1]: [recruits], [nickname 2]: [recruits], etc.``
 
-    For example, to recruit 5 human participants via MTurk, and 5 bot participants,
-    the configuration would be:
+    For example, to recruit 5 human participants via Prolific and 5 bot
+    participants, the configuration would be:
 
-    ``recruiters = mturk: 5, bots: 5``
+    ``recruiters = prolific: 5, bots: 5``
 
 ``title`` *str* |dlgr-icon|
-    Depending on the recruiter being used, either
-
-    * The title of the HIT (Amazon Mechanical Turk), or
-    * the title of the Study (Prolific).
+    The participant-facing title of the study.
 
 Allowed browsers and devices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -460,7 +453,8 @@ Allowed browsers and devices
     Default: ``False``.
 
 ``min_browser_version`` *str* |psynet-icon|
-    The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: ``105.0``.
+    The minimum version of Chrome a participant needs to take a study.
+    Default: ``105.0``.
 
     Chrome 105 (August 2022) is the first release supporting CSS ``:has()``, which the
     default participant theme uses to style selected response options. Lowering this
@@ -477,22 +471,11 @@ General
     Whether the experiment should be published when deploying. It is currently used in Prolific and Lucid recruitment: In the case of Prolific recruitment, if ``False`` a draft study will be created which later can be published via the Prolific web UI; in the case of Lucid recruitment, if ``False`` an awarded survey will be created which later can be published (set 'live') via the Lucid web UI. Default is ``True``.
     Default: ``True``.
 
-Amazon Mechanical Turk
+General infrastructure
 ----------------------
 
-``approve_requirement`` *int* |dlgr-icon|
-    The percentage of past MTurk HITs that must have been approved for a worker
-    to qualify to participate in your experiment. 1-100.
-
-``assign_qualifications`` *bool* |dlgr-icon|
-    A boolean which controls whether an experiment-specific qualification
-    (based on the experiment ID), and a group qualification (based on the value
-    of ``group_name``) will be assigned to participants by the recruiter.
-    This feature assumes a recruiter which supports qualifications,
-    like the ``MTurkRecruiter``.
-
 ``aws_access_key_id`` *str* |dlgr-icon| |sensitive-icon|
-    AWS access key ID.
+    AWS access key ID used for services such as EC2 and S3.
 
 ``aws_region`` *str* |dlgr-icon|
     AWS region to use. Default: ``us-east-1``.
@@ -511,30 +494,11 @@ Amazon Mechanical Turk
     * ``bot``
 
 ``disable_when_duration_exceeded`` *bool* |dlgr-icon|
-    Whether to disable recruiting and expire the HIT when the duration has been
-    exceeded. This only has an effect when ``clock_on`` is enabled.
+    Whether to disable recruiting when the duration has been exceeded. PsyNet
+    requires this setting to be ``False``.
 
 ``duration`` *float* |dlgr-icon|
-    How long in hours participants have until the HIT will time out.
-
-``group_name`` *str* |dlgr-icon|
-    Assign a named qualification to workers who complete a HIT.
-
-``keywords`` *str* |dlgr-icon|
-    A comma-separated list of keywords to use on Amazon Mechanical Turk.
-
-``lifetime`` *int* |dlgr-icon|
-    How long in hours that your HIT remains visible to workers.
-
-``mturk_qualification_blocklist`` *str* |dlgr-icon|
-    Comma-separated list of qualification names. Workers with qualifications in
-    this list will be prevented from viewing and accepting the HIT.
-
-``mturk_qualification_requirements`` *str* |dlgr-icon|
-    A JSON list of qualification documents to pass to Amazon Mechanical Turk.
-
-``us_only`` *bool* |dlgr-icon|
-    Controls whether this HIT is available only to MTurk workers in the U.S.
+    Maximum experiment duration in hours.
 
 Lab Recruiter
 -------------
@@ -1016,8 +980,9 @@ Config variables not to be set manually
     this payment limit being reached.
 
 ``mode`` *str* |dlgr-icon|
-    The value for ``mode`` is determined by the invoking command-line command and will either be set to ``debug``
-    (local debugging) ``sandbox`` (MTurk sandbox), or ``live`` (MTurk).
+    The value for ``mode`` is determined by the invoking command-line command
+    and is set to ``debug`` for local development, ``sandbox`` for a remote
+    test deployment, or ``live`` for a production deployment.
 
 ``psynet_version`` *str* |psynet-icon|
     The version of the `psynet` package.

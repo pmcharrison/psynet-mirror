@@ -25,6 +25,16 @@ What authors need to know
 * Temporary opt-out while migrating:
   ``inplace_timeline_transitions = false``.
 
+MTurk recruitment has been removed
+----------------------------------
+
+PsyNet no longer provides an MTurk recruiter, submission page, payment flow, or
+MTurk-specific deployment commands. Configuring ``recruiter = mturk`` now
+raises a clear error instead of falling back to Dallinger's transitive
+integration. Amazon is `closing MTurk on September 30, 2026
+<https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management-public.html>`_.
+Move active experiments to another recruiter before upgrading to PsyNet 14.
+
 Upgrading
 ---------
 

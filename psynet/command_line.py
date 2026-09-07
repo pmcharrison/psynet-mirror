@@ -1100,22 +1100,9 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 ##############
 # pre deploy #
 ##############
-def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
+def run_pre_checks_deploy(local_, recruiter):
     check_psynet_requirement_is_unambiguous()
     check_core_dependency_versions_match_requirements()
-    initial_recruitment_size = exp.initial_recruitment_size
-
-    if (
-        is_mturk
-        and initial_recruitment_size <= 10
-        and not user_confirms(
-            f"Are you sure you want to deploy to MTurk with initial_recruitment_size set to {initial_recruitment_size}? "
-            f"You will not be able to recruit more than {initial_recruitment_size} participant(s), "
-            "due to a restriction in the MTurk pricing scheme.",
-            default=True,
-        )
-    ):
-        raise click.Abort
 
     if local_ and not isinstance(recruiter, HotAirRecruiter):
         raise click.UsageError(
@@ -1577,8 +1564,6 @@ def _check_experiment_directory(mode, *, require_git_commit=False):
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
-    from dallinger.recruiters import MTurkRecruiter
-
     from .experiment import get_experiment
     from .utils import check_todos_before_deployment
 
@@ -1657,7 +1642,6 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         config.set("id", exp.make_uuid(app))
 
         recruiter = exp.recruiter
-        is_mturk = isinstance(recruiter, MTurkRecruiter)
         is_prolific = isinstance(recruiter, ProlificRecruiter)
 
         if heroku:
@@ -1673,27 +1657,14 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 check_prolific_payment(exp, config)
 
         if mode == "sandbox":
-            run_pre_checks_sandbox(exp, config, is_mturk)
+            run_pre_checks_sandbox()
         elif mode == "live":
-            run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter)
+            run_pre_checks_deploy(local_, recruiter)
 
 
-def run_pre_checks_sandbox(exp, config, is_mturk):
+def run_pre_checks_sandbox():
     check_psynet_requirement_is_unambiguous()
     check_core_dependency_versions_match_requirements()
-
-    us_only = config.get("us_only")
-
-    if (
-        is_mturk
-        and us_only
-        and not user_confirms(
-            "Are you sure you want to sandbox with us_only = True? "
-            "Only people with US accounts will be able to test the experiment.",
-            default=True,
-        )
-    ):
-        raise click.Abort
 
 
 @debug.command("heroku")
@@ -2965,7 +2936,6 @@ def load(path):
     populate_db_from_zip_file(path)
 
 
-# Example usage: psynet generate-config --recruiter mturk
 @psynet.command(
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
 )
@@ -3020,23 +2990,15 @@ def destroy():
 
 @destroy.command("heroku")
 @click.option("--app", default=None, callback=verify_id, help="Experiment id")
-@click.option(
-    "--expire-hit/--no-expire-hit",
-    flag_value=True,
-    default=None,
-    help="Expire any MTurk HITs associated with this experiment.",
-)
 @click.pass_context
-def destroy__heroku(ctx, app, expire_hit):
+def destroy__heroku(ctx, app):
     """
     Destroy the experiment on Heroku.
     """
     _destroy(
         ctx,
         dallinger.command_line.destroy,
-        dallinger.command_line.expire,
         app=app,
-        expire_hit=expire_hit,
     )
 
 
@@ -3051,9 +3013,7 @@ def user_confirms(question, default=False):
 def _destroy(
     ctx,
     f_destroy,
-    f_expire,
     app,
-    expire_hit,
     server=None,
     ask_for_confirmation=True,
 ):
@@ -3070,7 +3030,9 @@ def _destroy(
             try:
                 kwargs = {"app": app}
                 kwargs = {**kwargs, "server": server} if server else kwargs
-                if expire_hit in get_args(f_destroy):
+                # Dallinger still exposes this retired-platform option. Keep
+                # it disabled until the upstream command removes it.
+                if "expire_hit" in get_args(f_destroy):
                     ctx.invoke(
                         f_destroy,
                         expire_hit=False,
@@ -3088,40 +3050,16 @@ def _destroy(
                     "Failed to destroy the app. Maybe it was already destroyed, or the app name was wrong?"
                 )
 
-    if expire_hit is None:
-        if user_confirms(
-            "Would you like to look for a related MTurk HIT to expire?", default=True
-        ):
-            expire_hit = True
-
-    if expire_hit:
-        sandbox = user_confirms("Is this a sandbox HIT?", default=True)
-
-        with yaspin("Expiring hit...") as spinner:
-            ctx.invoke(
-                f_expire,
-                app=app,
-                sandbox=sandbox,
-            )
-            spinner.ok("✔")
-
 
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
 @click.argument("apps", required=False, nargs=-1)
 @option_server
-@click.option(
-    "--expire-hit",
-    flag_value=True,
-    default=False,
-    help="Expire any MTurk HITs associated with this experiment.",
-)
 @click.pass_context
-def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
+def destroy__docker_ssh(ctx, app, apps, server):
     """
     Destroy the experiment on a remote server via SSH.
     """
-    from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
     example_usage = "`psynet destroy ssh <app> <app> [--server <server>]`"
@@ -3131,9 +3069,7 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
         _destroy(
             ctx,
             destroy,
-            expire,
             app=app,
-            expire_hit=expire_hit,
             server=server,
         )
     if len(apps) > 0:
@@ -3146,9 +3082,7 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
                 _destroy(
                     ctx,
                     destroy,
-                    expire,
                     app=app,
-                    expire_hit=expire_hit,
                     server=server,
                     ask_for_confirmation=False,
                 )

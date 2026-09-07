@@ -32,7 +32,6 @@ from psynet.recruiters import (
     EarlyExitPath,
     EarlyExitPlan,
     HotAirRecruiter,
-    MTurkRecruiter,
     PaymentDecision,
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
@@ -760,11 +759,6 @@ def _participant_for_early_exit(reward=0.50, performance_reward=0.0):
             "responses so far will still be saved",
         ),
         (
-            MTurkRecruiter,
-            EarlyExitPath.SUBMIT_AND_APPROVE,
-            "HIT payment",
-        ),
-        (
             PsyNetProlificRecruiterMixin,
             EarlyExitPath.SCREEN_OUT,
             "fixed early-exit payment",
@@ -909,30 +903,9 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
     assert "$0.80" in returned.confirmation.message
 
 
-@pytest.mark.parametrize(
-    "recruiter_class, reward, expected_path, expected_further, expected_decision",
-    [
-        (
-            PsyNetProlificRecruiterMixin,
-            0.80,
-            EarlyExitPath.SCREEN_OUT,
-            "$0.55",
-            PaymentDecision(status="screened_out", platform_base=0.25, bonus=0.55),
-        ),
-        (
-            MTurkRecruiter,
-            1.80,
-            EarlyExitPath.SUBMIT_AND_APPROVE,
-            "$0.80",
-            PaymentDecision(status="approved", platform_base=1.00, bonus=0.80),
-        ),
-    ],
-)
-def test_executed_plan_uses_the_amounts_shown_in_confirmation(
-    recruiter_class, reward, expected_path, expected_further, expected_decision
-):
-    participant = _participant_for_early_exit(reward=reward)
-    recruiter = object.__new__(recruiter_class)
+def test_executed_plan_uses_the_amounts_shown_in_confirmation():
+    participant = _participant_for_early_exit(reward=0.80)
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
     experiment = MagicMock(base_payment=1.00)
     experiment.early_exit_allowed.return_value = True
     with (
@@ -942,8 +915,8 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation(
         plan = recruiter.plan_early_exit(
             experiment, participant, EarlyExitContext.VOLUNTARY
         )
-    assert plan.path is expected_path
-    assert f"a further {expected_further} will be paid as a bonus" in (
+    assert plan.path is EarlyExitPath.SCREEN_OUT
+    assert "a further $0.55 will be paid as a bonus" in (
         plan.confirmation.message
     )
 
@@ -951,31 +924,11 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation(
     participant.early_exit_plan = plan.mark_executed().to_dict()
     participant.calculate_reward.return_value = 99.00
 
-    assert (
-        recruiter.decide_payment(participant, experiment=experiment)
-        == expected_decision
+    assert recruiter.decide_payment(
+        participant, experiment=experiment
+    ) == PaymentDecision(
+        status="screened_out", platform_base=0.25, bonus=0.55
     )
-
-
-def test_mturk_quotes_and_records_the_experiment_base_payment():
-    participant = _participant_for_early_exit(reward=0.10)
-    recruiter = object.__new__(MTurkRecruiter)
-    experiment = MagicMock(base_payment=2.50)
-    experiment.early_exit_allowed.return_value = True
-
-    with (
-        patch("psynet.recruiters.get_config", return_value=make_config()),
-        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
-    ):
-        plan = recruiter.plan_early_exit(
-            experiment, participant, EarlyExitContext.VOLUNTARY
-        )
-        participant.early_exited = True
-        participant.early_exit_plan = plan.mark_executed().to_dict()
-        decision = recruiter.decide_payment(participant, experiment=experiment)
-
-    assert "$2.50" in plan.confirmation.message
-    assert decision.platform_base == 2.50
 
 
 def test_execute_early_exit_plan_rejects_a_path_the_recruiter_cannot_run():
@@ -1075,33 +1028,10 @@ def test_error_recovery_plan_skips_reward_eligibility():
     experiment.early_exit_allowed.assert_not_called()
 
 
-@pytest.mark.parametrize(
-    "recruiter_class,recovered_reward,expected_path,expected_decision",
-    [
-        (
-            PsyNetProlificRecruiterMixin,
-            0.80,
-            EarlyExitPath.SCREEN_OUT,
-            PaymentDecision(status="screened_out", platform_base=0.25, bonus=0.55),
-        ),
-        (
-            MTurkRecruiter,
-            1.80,
-            EarlyExitPath.SUBMIT_AND_APPROVE,
-            PaymentDecision(status="approved", platform_base=1.00, bonus=0.80),
-        ),
-    ],
-)
-def test_error_recovery_plan_survives_reward_calculation_failure(
-    recruiter_class,
-    recovered_reward,
-    expected_path,
-    expected_decision,
-    caplog,
-):
+def test_error_recovery_plan_survives_reward_calculation_failure(caplog):
     participant = _participant_for_early_exit()
     participant.calculate_reward.side_effect = RuntimeError("reward boom")
-    recruiter = object.__new__(recruiter_class)
+    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
     experiment = MagicMock(base_payment=1.00)
 
     with (
@@ -1112,15 +1042,17 @@ def test_error_recovery_plan_survives_reward_calculation_failure(
             experiment, participant, EarlyExitContext.ERROR_RECOVERY
         )
         participant.calculate_reward.side_effect = None
-        participant.calculate_reward.return_value = recovered_reward
+        participant.calculate_reward.return_value = 0.80
         participant.early_exited = True
         participant.early_exit_plan = plan.mark_executed().to_dict()
         decision = recruiter.decide_payment(participant, experiment=experiment)
 
-    assert plan.path is expected_path
+    assert plan.path is EarlyExitPath.SCREEN_OUT
     assert plan.quoted_amounts_complete is False
     assert "without a reward quote" in caplog.text
-    assert decision == expected_decision
+    assert decision == PaymentDecision(
+        status="screened_out", platform_base=0.25, bonus=0.55
+    )
 
 
 def test_prolific_return_for_bonus_recovery_survives_reward_failure():
@@ -2740,7 +2672,6 @@ def test_all_recruiter_exit_pages_are_owned_by_psynet():
         GenericRecruiter,
         HotAirRecruiter,
         LabRecruiter,
-        MTurkRecruiter,
         ProlificRecruiter,
         PsyNetExitPageMixin,
     )
@@ -2751,7 +2682,6 @@ def test_all_recruiter_exit_pages_are_owned_by_psynet():
     assert owner(HotAirRecruiter) is PsyNetExitPageMixin
     assert owner(LabRecruiter) is PsyNetExitPageMixin
     assert owner(ProlificRecruiter).__name__ == "PsyNetProlificRecruiterMixin"
-    assert owner(MTurkRecruiter) is MTurkRecruiter
     # GenericRecruiter checks render_exit_message first, then defers to PsyNet's.
     assert owner(GenericRecruiter) is GenericRecruiter
     assert PsyNetExitPageMixin in GenericRecruiter.__mro__
@@ -2906,42 +2836,8 @@ def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_clas
     assert "You have finished." not in html
 
 
-@pytest.mark.parametrize(
-    ("template_name", "context", "expected"),
-    [
-        (
-            "psynet_exit_recruiter_prolific.html",
-            {
-                "assignment_id": "assignment-123",
-                "participant_id": 7,
-                "external_submit_url": "https://app.prolific.com/complete",
-            },
-            (
-                "Submit your Prolific study",
-                "/prolific-submission-listener",
-                "https://app.prolific.com/complete",
-            ),
-        ),
-        (
-            "psynet_exit_recruiter_mturk.html",
-            {
-                "assignment_id": "assignment-123",
-                "hit_id": "hit-456",
-                "worker_id": "worker-789",
-                "external_submit_url": "https://workersandbox.mturk.com/submit",
-            },
-            (
-                "Submit your MTurk HIT",
-                'name="assignmentId"',
-                "https://workersandbox.mturk.com/submit",
-            ),
-        ),
-    ],
-)
-def test_platform_exit_pages_render_with_psynet_layout(
-    template_name, context, expected
-):
-    """Platform submit controls retain their fields inside the shared theme."""
+def test_prolific_exit_page_renders_with_psynet_layout():
+    """The Prolific submit control retains its fields in the shared theme."""
     from importlib import resources
 
     from flask import Flask, render_template
@@ -2979,17 +2875,23 @@ def test_platform_exit_pages_render_with_psynet_layout(
 
     with app.test_request_context("/recruiter-exit"):
         html = render_template(
-            template_name,
+            "psynet_exit_recruiter_prolific.html",
             experiment=experiment,
             participant=participant,
             config=SimpleNamespace(color_mode="light"),
-            **context,
+            assignment_id="assignment-123",
+            participant_id=7,
+            external_submit_url="https://app.prolific.com/complete",
         )
 
     assert '<meta name="viewport"' in html
     assert "css/participant.css" in html
     assert "scripts/psynet.layout.js" in html
-    for text in expected:
+    for text in (
+        "Submit your Prolific study",
+        "/prolific-submission-listener",
+        "https://app.prolific.com/complete",
+    ):
         assert text in html
 
 
@@ -3017,36 +2919,6 @@ def test_prolific_exit_response_selects_psynet_template():
     assert render.call_args.kwargs["external_submit_url"].startswith(
         "https://app.prolific.com/"
     )
-
-
-def test_mturk_exit_response_selects_psynet_template():
-    from psynet.recruiters import MTurkRecruiter
-
-    participant = SimpleNamespace(
-        id=7,
-        assignment_id="assignment-123",
-        hit_id="hit-456",
-        worker_id="worker-789",
-    )
-    recruiter = object.__new__(MTurkRecruiter)
-
-    with (
-        patch.object(
-            MTurkRecruiter,
-            "external_submission_url",
-            new_callable=PropertyMock,
-            return_value="https://workersandbox.mturk.com/submit",
-        ),
-        patch(
-            "psynet.recruiters.render_template_with_translations",
-            return_value="html",
-        ) as render,
-    ):
-        assert recruiter.exit_response(MagicMock(), participant) == "html"
-
-    assert render.call_args.args == ("psynet_exit_recruiter_mturk.html",)
-    assert render.call_args.kwargs["participant"] is participant
-    assert render.call_args.kwargs["assignment_id"] == "assignment-123"
 
 
 def _review_participant(apparent=0.0, planned=1.50):
@@ -3342,19 +3214,6 @@ def test_prolific_reward_bonus_returns_false_on_exception():
             assert recruiter.reward_bonus(participant, 1.0, "r") is False
             handle.assert_called_once()
             assert participant.bonus_attempt_detail == "no"
-
-
-def test_mturk_reward_bonus_returns_false_when_grant_bonus_returns_false():
-    from psynet.recruiters import MTurkRecruiter
-
-    recruiter = object.__new__(MTurkRecruiter)
-    recruiter.mturkservice = MagicMock()
-    recruiter.mturkservice.grant_bonus.return_value = False
-    participant = MagicMock(assignment_id="a")
-    with patch("psynet.recruiters.handle_recruitment_error") as handle:
-        assert recruiter.reward_bonus(participant, 1.0, "r") is False
-        handle.assert_called_once()
-        assert "assignment a" in participant.bonus_attempt_detail
 
 
 def test_hotair_reward_bonus_returns_true():

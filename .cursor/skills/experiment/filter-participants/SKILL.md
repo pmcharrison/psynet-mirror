@@ -12,7 +12,7 @@ description: Design, implement, and validate task-specific pre-screening for Psy
   `~/PsyNet/docs/api/prescreen.rst`, and relevant demos under
   `~/PsyNet/demos/features/` and `~/PsyNet/demos/experiments/`.
 - Read `references/recruitment-platform-notes.md` when the prescreener affects
-  Prolific, Lucid/Cint, CloudResearch Connect, MTurk, or lab recruiter setup.
+  Prolific, Lucid/Cint, CloudResearch Connect, or lab recruiter setup.
 
 ## What pre-screening should entail
 

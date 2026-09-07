@@ -42,7 +42,6 @@ from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import (
     MockRecruiter,
-    MTurkRecruiter,
     ProlificRecruiter,
     Recruiter,
     RecruitmentStatus,
@@ -451,7 +450,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     In addition to the config variables in Dallinger, PsyNet adds the following:
 
     min_browser_version : `str`
-        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `105.0`.
+        The minimum version of Chrome a participant needs to take a study.
+        Default: `105.0`.
 
     wage_per_hour : `float`
         The payment in currency the participant gets per hour. Default: `9.0`.
@@ -714,10 +714,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             recruiter_name = config.get("recruiter")
 
-            if "mturk" in recruiter_name.lower():
-                optional_tabs.remove("dashboard.dashboard_mturk")
-
-            elif "lucid" in recruiter_name.lower():
+            if "lucid" in recruiter_name.lower():
                 optional_tabs.remove("dashboard.dashboard_lucid")
         except KeyError:
             # This might happen if the config hasn't fully loaded yet
@@ -748,7 +745,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ]
 
         recruiter_children = [
-            "dashboard.dashboard_mturk",
             "dashboard.dashboard_lucid",
             "dashboard.dashboard_prolific",
         ]
@@ -1676,40 +1672,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         worker_id,
         external_submit_url,
     ):
-        _ = get_translator()
-        _p = get_translator(context=True)
-
         if hasattr(self.recruiter, "error_page_content"):
             return self.recruiter.error_page_content(
                 assignment_id=assignment_id,
                 external_submit_url=external_submit_url,
             )
 
-        # TODO: Refactor this so that the error page content generation is deferred to the recruiter class
-        # (already the case for the Prolific and Lucid recruiters via the
-        # `error_page_content` hook checked above).
-        if isinstance(self.recruiter, MTurkRecruiter):
-            html = tags.div()
-            with html:
-                tags.p(
-                    _p(
-                        "mturk_error",
-                        "To enquire about compensation, please contact the researcher at {EMAIL} and describe what led to this error.",
-                    ).format(EMAIL=contact_address)
-                )
-                tags.p(
-                    _p("mturk_error", "Please also quote the following information:")
-                )
-                tags.ul(
-                    tags.li(f"{_('Error type')}: {error_type}"),
-                    tags.li(f"{_('HIT ID')}: {hit_id}"),
-                    tags.li(f"{_('Assignment ID')}: {assignment_id}"),
-                    tags.li(f"{_('Worker ID')}: {worker_id}"),
-                )
-
-            return html
-        else:
-            return ""
+        return ""
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
@@ -2114,8 +2083,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return self.var.get("start_experiment_in_popup_window")
         elif hasattr(self.recruiter, "start_experiment_in_popup_window"):
             return self.recruiter.start_experiment_in_popup_window
-        elif isinstance(self.recruiter, MTurkRecruiter):
-            return True
 
         else:
             return False
@@ -2304,6 +2271,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def check_config(cls):
         config = get_config()
 
+        cls.check_recruiter_support(config)
+
         if not config.get("clock_on"):
             # We force the clock to be on because it's necessary for the check_networks functionality.
             raise RuntimeError(
@@ -2344,6 +2313,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
 
         cls._warn_about_overridden_experiment_config(config)
+
+    @staticmethod
+    def check_recruiter_support(config):
+        """Reject recruitment platforms that PsyNet no longer supports."""
+        configured_recruiters = (
+            config.get("recruiter", ""),
+            config.get("recruiters", ""),
+        )
+        if any("mturk" in str(value).lower() for value in configured_recruiters):
+            raise RuntimeError(
+                "PsyNet no longer supports MTurk recruitment because AWS is "
+                "closing the service on September 30, 2026. Use another "
+                "recruiter such as Prolific, Lucid, or the Lab Recruiter."
+            )
 
     @classmethod
     def _warn_about_overridden_experiment_config(cls, config):

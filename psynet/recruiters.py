@@ -1,7 +1,7 @@
 """PsyNet recruiter integrations.
 
-This module wraps Dallinger's recruiter classes (Prolific, MTurk, generic/CLI)
-and implements PsyNet-specific recruiters (Lucid, LabRecruiter). Recruiters
+This module wraps Dallinger's recruiter classes (Prolific and generic/CLI) and
+implements PsyNet-specific recruiters (Lucid and LabRecruiter). Recruiters
 own the participant lifecycle at the platform boundary: opening and closing
 recruitment, routing participants back to the platform at the end of the
 experiment, and paying base payments and bonuses.
@@ -250,7 +250,6 @@ class EarlyExitPath(StrEnum):
     END_SESSION = "end_session"
     SCREEN_OUT = "screen_out"
     RETURN_FOR_BONUS = "return_for_bonus"
-    SUBMIT_AND_APPROVE = "submit_and_approve"
     RETURN_WITHOUT_PAYMENT = "return_without_payment"
     TERMINATE_PANEL_SESSION = "terminate_panel_session"
 
@@ -688,22 +687,6 @@ class PsyNetRecruiterMixin:
         plan = _executed_early_exit_plan(participant)
         if plan is not None and plan.path is EarlyExitPath.RETURN_WITHOUT_PAYMENT:
             return PaymentDecision(status="returned", platform_base=0.0, bonus=0.0)
-        if plan is not None and plan.path is EarlyExitPath.SUBMIT_AND_APPROVE:
-            platform_base = _early_exit_quoted_amount(plan, "base")
-            if plan.quoted_amounts_complete:
-                bonus = (
-                    _early_exit_quoted_amount(plan, "remainder")
-                    if "remainder_minor" in plan.quoted_amounts
-                    else 0.0
-                )
-            else:
-                total_owed = self.total_owed(participant, "approved", platform_base)
-                bonus = max(0.0, round(total_owed - platform_base, 2))
-            return PaymentDecision(
-                status="approved",
-                platform_base=platform_base,
-                bonus=bonus,
-            )
         status = self.completion_status(participant)
         platform_base = self.platform_base_for(status, experiment)
         total_owed = self.total_owed(participant, status, platform_base)
@@ -775,8 +758,8 @@ class PsyNetExitPageMixin:
     its own template instead.
 
     Mix this in only for recruiters that do not need a platform submission
-    control. Prolific and MTurk render separate PsyNet-themed wrappers around
-    their submission behavior; Lucid redirects through its own flow.
+    control. Prolific renders a separate PsyNet-themed wrapper around its
+    submission behavior; Lucid redirects through its own flow.
     """
 
     def exit_response(self, experiment, participant):
@@ -1796,131 +1779,6 @@ class MockProlificRecruiter(
     PsyNetRecruiterMixin, dallinger.recruiters.MockProlificRecruiter
 ):
     pass
-
-
-class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
-    supported_early_exit_paths = frozenset(
-        {
-            EarlyExitPath.SUBMIT_AND_APPROVE,
-            EarlyExitPath.RETURN_WITHOUT_PAYMENT,
-        }
-    )
-
-    def _standard_early_exit_plan(
-        self, experiment, participant, context: EarlyExitContext
-    ) -> EarlyExitPlan:
-        """Plan MTurk's early-submission payment outcome."""
-        _p = get_translator(context=True)
-        earned = participant.calculate_reward()
-        earned_txt = _format_early_exit_amount(earned)
-        base = self._mturk_base_payment(experiment)
-        base_txt = _format_early_exit_amount(base)
-        amounts = {"base": base}
-        if earned > base:
-            remainder = earned - base
-            remainder_txt = _format_early_exit_amount(remainder)
-            amounts["earned"] = earned
-            amounts["remainder"] = remainder
-            message = _p(
-                "early_exit_mturk",
-                "If you leave now, you will not be able to continue later. You "
-                "will go to the MTurk submission step and receive the HIT "
-                "payment of {BASE}. Because you have earned {EARNED} so far, "
-                "a further {REMAINDER} will be paid as a bonus. Your "
-                "responses so far will still be saved.",
-            ).format(BASE=base_txt, EARNED=earned_txt, REMAINDER=remainder_txt)
-        else:
-            message = _p(
-                "early_exit_mturk",
-                "If you leave now, you will not be able to continue later. You "
-                "will go to the MTurk submission step and receive the HIT "
-                "payment of {BASE}. Your responses so far will still be saved.",
-            ).format(BASE=base_txt)
-        path = EarlyExitPath.SUBMIT_AND_APPROVE
-        return EarlyExitPlan.create(
-            context=context,
-            path=path,
-            confirmation=self._early_exit_confirmation(message, path=path),
-            quoted_amounts=_early_exit_amounts(**amounts),
-        )
-
-    @staticmethod
-    def _mturk_base_payment(experiment) -> float:
-        """Return the HIT payment quoted and recorded as the platform base."""
-        return float(experiment.base_payment or 0.0)
-
-    def _unquoted_early_exit_plan(
-        self, experiment, participant, context: EarlyExitContext
-    ) -> EarlyExitPlan:
-        """Describe MTurk's early exit without quoting the earned reward."""
-        _p = get_translator(context=True)
-        base = self._mturk_base_payment(experiment)
-        path = EarlyExitPath.SUBMIT_AND_APPROVE
-        message = _p(
-            "early_exit_mturk",
-            "If you leave now, you will not be able to continue later. You "
-            "will go to the MTurk submission step and receive the HIT payment "
-            "of {BASE}. Any additional amount you have earned will be paid as "
-            "a bonus. Your responses so far will still be saved.",
-        ).format(BASE=_format_early_exit_amount(base))
-        return EarlyExitPlan.create(
-            context=context,
-            path=path,
-            confirmation=self._early_exit_confirmation(message, path=path),
-            quoted_amounts=_early_exit_amounts(base=base),
-        )
-
-    def release_early_exit_without_payment(self, participant) -> TimelineLogic:
-        """Ask the participant to return the HIT without payment."""
-        _p = get_translator(context=True)
-        return InfoPage(
-            _p(
-                "early_exit_unpaid_mturk",
-                "Your responses have been saved. Please return this HIT on "
-                "MTurk. You will not receive payment. You can close this "
-                "window.",
-            ),
-            time_estimate=0.0,
-            show_next_button=False,
-        )
-
-    def exit_response(self, experiment, participant):
-        """Render PsyNet's themed MTurk submission page."""
-        return render_template_with_translations(
-            "psynet_exit_recruiter_mturk.html",
-            participant=participant,
-            hit_id=participant.hit_id,
-            assignment_id=participant.assignment_id,
-            worker_id=participant.worker_id,
-            external_submit_url=self.external_submission_url,
-        )
-
-    def reward_bonus(self, participant, amount, reason):
-        """Pay an MTurk bonus. Return False if MTurk rejected the transfer."""
-        from dallinger.mturk import MTurkServiceException
-
-        try:
-            granted = self.mturkservice.grant_bonus(
-                participant.assignment_id, amount, reason
-            )
-        except MTurkServiceException as ex:
-            handle_recruitment_error(ex)
-            record_bonus_attempt_detail(participant, str(ex))
-            return False
-        if granted is False:
-            handle_recruitment_error(
-                MTurkServiceException(
-                    f"MTurk grant_bonus returned unsuccessful for assignment "
-                    f"{participant.assignment_id}."
-                )
-            )
-            record_bonus_attempt_detail(
-                participant,
-                f"MTurk grant_bonus returned unsuccessful for assignment "
-                f"{participant.assignment_id}.",
-            )
-            return False
-        return True
 
 
 # Lab Recruiter

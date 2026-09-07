@@ -144,7 +144,7 @@ def bot_class(headless=None):
 
     class PYTEST_BOT_CLASS(BotBase):
         def sign_up(self):
-            """Accept HIT, give consent and start experiment.
+            """Accept the assignment, give consent, and start the experiment.
 
             This uses Selenium to click through buttons on the ad,
             consent, and instruction pages.

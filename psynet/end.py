@@ -52,8 +52,9 @@ class EndLogic(EltCollection):
 
         _ = get_translator()
 
-        # Todo - Once automatic translation is updated, revisit the logic in RejectedConsentPage,
-        # and ask the participant to return the HIT if appropriate.
+        # Todo - Once automatic translation is updated, revisit the logic in
+        # RejectedConsentPage and ask the participant to return their platform
+        # submission if appropriate.
         if show_finish_button:
             # The choice key "Finish" stays untranslated so that recorded answers
             # are locale-independent; only the visible label is translated.

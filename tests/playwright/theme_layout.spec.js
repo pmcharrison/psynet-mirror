@@ -269,53 +269,40 @@ for (const viewport of [
   }
 }
 
-for (const platform of [
-  {
-    name: "Prolific",
-    control:
-      '<button id="js-exit-button" class="btn btn-primary btn-lg">Submit study</button>'
-  },
-  {
-    name: "MTurk",
-    control:
-      '<button id="mturk-submit" type="submit" class="btn btn-primary btn-lg">Complete HIT</button>'
-  }
-]) {
-  test(
-    `${platform.name} exit control is usable on a phone`,
-    { tag: "@both" },
-    async ({ page }) => {
-      await renderTheme(page, {
-        viewport: { width: 390, height: 844 },
-        includeBootstrap: true,
-        scripts: [LAYOUT_JS],
-        html: `
+test(
+  "Prolific exit control is usable on a phone",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderTheme(page, {
+      viewport: { width: 390, height: 844 },
+      includeBootstrap: true,
+      scripts: [LAYOUT_JS],
+      html: `
           <main class="container my-5 psynet-surface">
-            <h1>Submit your ${platform.name} task</h1>
+            <h1>Submit your Prolific task</h1>
             <p>Use the button below to complete the task.</p>
-            ${platform.control}
+            <button id="js-exit-button" class="btn btn-primary btn-lg">Submit study</button>
           </main>`
-      });
+    });
 
-      const result = await page.evaluate(async () => {
-        const control = document.querySelector("button");
-        const box = control.getBoundingClientRect();
-        return {
-          box: { left: box.left, right: box.right, top: box.top, bottom: box.bottom },
-          viewport: { width: window.innerWidth, height: window.innerHeight },
-          violations: (await window.psynetLayout.check()).map(
-            (violation) => violation.check
-          )
-        };
-      });
-      expect(result.box.left).toBeGreaterThanOrEqual(0);
-      expect(result.box.right).toBeLessThanOrEqual(result.viewport.width);
-      expect(result.box.top).toBeGreaterThanOrEqual(0);
-      expect(result.box.bottom).toBeLessThanOrEqual(result.viewport.height);
-      expect(result.violations).toEqual([]);
-    }
-  );
-}
+    const result = await page.evaluate(async () => {
+      const control = document.querySelector("button");
+      const box = control.getBoundingClientRect();
+      return {
+        box: { left: box.left, right: box.right, top: box.top, bottom: box.bottom },
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        violations: (await window.psynetLayout.check()).map(
+          (violation) => violation.check
+        )
+      };
+    });
+    expect(result.box.left).toBeGreaterThanOrEqual(0);
+    expect(result.box.right).toBeLessThanOrEqual(result.viewport.width);
+    expect(result.box.top).toBeGreaterThanOrEqual(0);
+    expect(result.box.bottom).toBeLessThanOrEqual(result.viewport.height);
+    expect(result.violations).toEqual([]);
+  }
+);
 
 test(
   "transient pages show a spinner immediately",

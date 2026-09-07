@@ -29,7 +29,7 @@ class TestExp:
         assert config.get("show_early_exit_button") is True
 
     def test_abort(self, bot_recruits, db_session):
-        # Simulate mturk
+        # Exercise the popup-window error flow.
         exp = get_experiment()
         exp.var.set("start_experiment_in_popup_window", True)
         db.session.commit()

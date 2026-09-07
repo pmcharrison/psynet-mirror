@@ -553,7 +553,7 @@ class consent_irb_cultural_foundation(Module, Consent):
     Parameters
     ----------
     consent : "MAIN" | "CINT" | "DATABASE"
-        MAIN for direct recruitment (Prolific, MTurk, Lab Recruiter, etc.);
+        MAIN for direct recruitment (Prolific, Lab Recruiter, etc.);
         CINT for CINT panel where payment is indirect;
         DATABASE for Lab-Recruiter database enrollment.
     audiovisual : bool
