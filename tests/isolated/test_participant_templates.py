@@ -298,7 +298,10 @@ def test_body_spacing_is_only_for_a_footerless_media_bar():
         encoding="utf-8"
     )
     assert "body:has(#footer)" not in css
-    assert "body:has(#timeline-root > #media-download-progress-bar)" in css
+    assert (
+        "body:has(#timeline-root > #media-download-progress-bar:not([hidden]))"
+        in css
+    )
 
 
 def test_media_bar_position_follows_its_template_parent():
