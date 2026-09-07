@@ -8,8 +8,10 @@ from psynet.exit import (
     ExitContext,
     ExitPath,
     ExitPlan,
+    PaymentState,
     PaymentDecision,
     _committed_exit_plan,
+    _stored_exit_plan,
 )
 
 
@@ -23,11 +25,15 @@ def _plan(context=ExitContext.VOLUNTARY):
         path=ExitPath.SCREEN_OUT,
         payment=_payment(),
         currency="£",
-        confirmation=EarlyExitConfirmation(
-            title="Leave?",
-            message="Your work is saved.",
-            confirm_label="Leave",
-            cancel_label="Continue",
+        confirmation=(
+            EarlyExitConfirmation(
+                title="Leave?",
+                message="Your work is saved.",
+                confirm_label="Leave",
+                cancel_label="Continue",
+            )
+            if context is ExitContext.VOLUNTARY
+            else None
         ),
     )
 
@@ -45,6 +51,7 @@ def test_exit_plan_round_trips_through_participant_column_data():
         "bonus": 0.55,
     }
     assert restored.to_dict()["confirmation"]["message"] == "Your work is saved."
+    assert restored.to_dict()["payment_state"] == "planned"
 
 
 @pytest.mark.parametrize("context", list(ExitContext))
@@ -62,6 +69,7 @@ def test_exit_plan_refuses_stored_data_it_cannot_read():
 def test_committed_exit_plan_is_the_terminal_source_of_truth():
     plan = _plan()
     participant = SimpleNamespace(exit_plan=plan.to_dict())
+    assert _stored_exit_plan(participant) == plan
     assert _committed_exit_plan(participant) is None
 
     committed = plan.mark_committed()
@@ -78,7 +86,7 @@ def test_exit_plan_can_record_a_partial_payment_decision_for_error_recovery():
             platform_base=0.25,
             bonus=0.0,
         ),
-        payment_is_final=False,
+        payment_state=PaymentState.DEFERRED,
         currency="$",
     )
 
@@ -89,7 +97,55 @@ def test_exit_plan_can_record_a_partial_payment_decision_for_error_recovery():
         platform_base=0.25,
         bonus=0.0,
     )
-    assert restored.payment_is_final is False
+    assert restored.payment_state is PaymentState.DEFERRED
+
+
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        (
+            {
+                "context": ExitContext.VOLUNTARY,
+                "path": ExitPath.END_SESSION,
+                "payment": None,
+                "payment_state": PaymentState.NOT_APPLICABLE,
+            },
+            "confirmation",
+        ),
+        (
+            {
+                "context": ExitContext.ERROR_RECOVERY,
+                "path": ExitPath.END_SESSION,
+                "payment": None,
+                "payment_state": PaymentState.NOT_APPLICABLE,
+                "confirmation": EarlyExitConfirmation(
+                    "Leave?", "Saved.", "Leave", "Cancel"
+                ),
+            },
+            "only voluntary",
+        ),
+        (
+            {
+                "context": ExitContext.ERROR_RECOVERY,
+                "path": ExitPath.SCREEN_OUT,
+                "payment": None,
+                "payment_state": PaymentState.PLANNED,
+            },
+            "planned payment",
+        ),
+        (
+            {
+                "context": ExitContext.ERROR_RECOVERY,
+                "path": ExitPath.RETURN_WITHOUT_PAYMENT,
+                "payment": PaymentDecision("returned", 0.0, 0.25),
+            },
+            "zero payment",
+        ),
+    ],
+)
+def test_exit_plan_rejects_contradictory_states(kwargs, match):
+    with pytest.raises(ValueError, match=match):
+        ExitPlan.create(**kwargs)
 
 
 def test_error_recovery_presentation_rejects_an_incomplete_handoff():

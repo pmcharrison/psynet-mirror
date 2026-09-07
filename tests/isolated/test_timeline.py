@@ -13,7 +13,14 @@ from psynet.end import (
     SuccessfulEndLogic,
     UnsuccessfulEndLogic,
 )
-from psynet.exit import ExitContext, ExitPath, ExitPlan, PaymentDecision
+from psynet.exit import (
+    EarlyExitConfirmation,
+    ExitContext,
+    ExitPath,
+    ExitPlan,
+    PaymentDecision,
+    PaymentState,
+)
 from psynet.experiment import Experiment
 from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
 from psynet.timeline import (
@@ -204,12 +211,16 @@ def test_partial_fragment_rendering_calls_pre_render_before_render():
     page.pre_render.side_effect = lambda: calls.append("pre_render")
     page.render.side_effect = lambda *args, **kwargs: calls.append("render") or "<html>"
     participant = SimpleNamespace(page_uuid="uuid-123")
-
-    payload = Experiment.render_partial_timeline_payload(
-        page, experiment=MagicMock(), participant=participant
+    experiment = MagicMock()
+    experiment.prepare_voluntary_exit_plan.side_effect = lambda *args: calls.append(
+        "prepare_exit"
     )
 
-    assert calls == ["pre_render", "render"]
+    payload = Experiment.render_partial_timeline_payload(
+        page, experiment=experiment, participant=participant
+    )
+
+    assert calls == ["pre_render", "prepare_exit", "render"]
     assert payload == {"html": "<html>", "page_uuid": "uuid-123"}
 
 
@@ -1065,41 +1076,57 @@ def test_page_rejects_conflicting_abort_and_termination_flags():
             )
 
 
-def test_experiment_delegates_voluntary_early_exit_planning_to_recruiter():
-    from psynet.exit import ExitContext
-
-    custom_plan = object()
+def test_experiment_reuses_a_voluntary_exit_plan_for_one_page():
     experiment = object.__new__(Experiment)
     experiment.recruiter = MagicMock()
-    experiment.recruiter.plan_early_exit.return_value = custom_plan
-    participant = MagicMock()
+    first = ExitPlan.create(
+        context=ExitContext.VOLUNTARY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+    )
+    second = ExitPlan.create(
+        context=ExitContext.VOLUNTARY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+    )
+    experiment.recruiter.plan_exit.side_effect = [first, second]
+    participant = SimpleNamespace(exit_plan=None, page_uuid="page-1")
 
-    assert experiment.early_exit_plan(participant) is custom_plan
-    experiment.recruiter.plan_early_exit.assert_called_once_with(
+    first_prepared = experiment.prepare_voluntary_exit_plan(participant)
+    same_page = experiment.prepare_voluntary_exit_plan(participant)
+    participant.page_uuid = "page-2"
+    next_page = experiment.prepare_voluntary_exit_plan(participant)
+
+    assert same_page == first_prepared
+    assert first_prepared.source_page_uuid == "page-1"
+    assert next_page.source_page_uuid == "page-2"
+    assert first_prepared.plan_id != next_page.plan_id
+    assert experiment.recruiter.plan_exit.call_count == 2
+    experiment.recruiter.plan_exit.assert_called_with(
         experiment,
         participant,
         ExitContext.VOLUNTARY,
     )
 
 
-def test_experiment_delegates_error_recovery_planning_without_eligibility_check():
-    from psynet.exit import ExitContext
-
-    custom_plan = object()
+def test_prepared_voluntary_exit_plan_is_a_read_only_lookup():
     experiment = object.__new__(Experiment)
-    experiment.recruiter = MagicMock()
-    experiment.recruiter.plan_early_exit.return_value = custom_plan
-    experiment.early_exit_allowed = MagicMock(side_effect=RuntimeError("reward boom"))
-    participant = MagicMock()
-
-    assert experiment.error_recovery_early_exit_plan(participant) is custom_plan
-
-    experiment.early_exit_allowed.assert_not_called()
-    experiment.recruiter.plan_early_exit.assert_called_once_with(
-        experiment,
-        participant,
-        ExitContext.ERROR_RECOVERY,
+    plan = ExitPlan.create(
+        context=ExitContext.VOLUNTARY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+        source_page_uuid="page-1",
     )
+    participant = SimpleNamespace(exit_plan=plan.to_dict(), page_uuid="page-1")
+
+    assert experiment.prepared_voluntary_exit_plan(participant) == plan
+    assert participant.exit_plan == plan.to_dict()
 
 
 @pytest.mark.parametrize(

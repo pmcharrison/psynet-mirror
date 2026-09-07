@@ -11,6 +11,7 @@ from psynet.exit import (
     ExitContext,
     ExitPath,
     ExitPlan,
+    PaymentState,
 )
 from psynet.experiment import Experiment
 from psynet.process import WorkerAsyncProcess
@@ -20,6 +21,10 @@ from psynet.recruiters import DevLucidRecruiter
 
 def task():
     raise ValueError("process failed")
+
+
+def exit_confirmation():
+    return EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel")
 
 
 def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off():
@@ -40,14 +45,13 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
         context=ExitContext.ERROR_RECOVERY,
         path=ExitPath.END_SESSION,
         payment=None,
-        payment_is_final=False,
-        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+        payment_state=PaymentState.NOT_APPLICABLE,
     )
     experiment = MagicMock()
     experiment.timeline.participant_is_in_end_logic.return_value = False
-    experiment.error_recovery_early_exit_plan.return_value = plan
     presentation = MagicMock()
     recruiter = MagicMock(show_early_exit_button=False)
+    recruiter.plan_exit.return_value = plan
     recruiter.error_page_presentation.return_value = presentation
 
     with (
@@ -72,7 +76,10 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.plan_id
     assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_called_once_with(participant)
-    participant.fail.assert_called_once_with("error_recovery")
+    recruiter.plan_exit.assert_called_once_with(
+        experiment, participant, ExitContext.ERROR_RECOVERY
+    )
+    participant.fail.assert_called_once_with("error_recovery", redirect_to_end=False)
     recruiter.error_page_presentation.assert_called_once_with(
         participant=participant,
         plan=plan,
@@ -95,8 +102,7 @@ def test_render_error_page_does_not_change_recovery_state():
         context=ExitContext.ERROR_RECOVERY,
         path=ExitPath.END_SESSION,
         payment=None,
-        payment_is_final=False,
-        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+        payment_state=PaymentState.NOT_APPLICABLE,
     )
     recruiter = MagicMock()
 
@@ -130,8 +136,7 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
         context=ExitContext.ERROR_RECOVERY,
         path=ExitPath.END_SESSION,
         payment=None,
-        payment_is_final=False,
-        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+        payment_state=PaymentState.NOT_APPLICABLE,
     ).mark_committed()
     participant = SimpleNamespace(
         id=42,
@@ -173,7 +178,51 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
         external_submit_url=None,
         contact_address="researcher@example.test",
     )
-    experiment.error_recovery_early_exit_plan.assert_not_called()
+    recruiter.plan_exit.assert_not_called()
+
+
+def test_a_get_reload_reuses_the_prepared_error_recovery_plan():
+    from flask import Flask
+
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+    )
+    participant = SimpleNamespace(
+        id=42,
+        hit_id="study-1",
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        complete=False,
+        failed=True,
+        early_exited=False,
+        exit_plan=plan.to_dict(),
+        fail=MagicMock(),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
+    recruiter = MagicMock()
+    recruiter.error_page_presentation.return_value = MagicMock()
+
+    with (
+        Flask(__name__).test_request_context("/error-page?participant_id=42"),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment.error_page(participant=participant, recruiter=recruiter)
+
+    assert participant.exit_plan == plan.to_dict()
+    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.plan_id
+    recruiter.prepare_error_recovery.assert_not_called()
+    recruiter.plan_exit.assert_not_called()
+    participant.fail.assert_not_called()
 
 
 def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_copy():
@@ -183,8 +232,8 @@ def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_cop
         context=ExitContext.VOLUNTARY,
         path=ExitPath.END_SESSION,
         payment=None,
-        payment_is_final=False,
-        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+        payment_state=PaymentState.NOT_APPLICABLE,
+        confirmation=exit_confirmation(),
     ).mark_committed()
     participant = SimpleNamespace(
         id=42,
@@ -217,7 +266,7 @@ def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_cop
 
     assert render.call_args.kwargs["automatic_exit_offer_id"] is None
     recruiter.prepare_error_recovery.assert_not_called()
-    experiment.error_recovery_early_exit_plan.assert_not_called()
+    recruiter.plan_exit.assert_not_called()
     recruiter.error_page_presentation.assert_called_once_with(
         participant=participant,
         plan=plan,

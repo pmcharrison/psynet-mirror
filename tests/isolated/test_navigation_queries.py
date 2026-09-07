@@ -13,6 +13,7 @@ from psynet.exit import (
     ExitContext,
     ExitPath,
     ExitPlan,
+    PaymentState,
 )
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
@@ -65,7 +66,7 @@ def test_exit_plan_persists_and_rolls_back(db_session):
         context=ExitContext.VOLUNTARY,
         path=ExitPath.END_SESSION,
         payment=None,
-        payment_is_final=False,
+        payment_state=PaymentState.NOT_APPLICABLE,
         confirmation=EarlyExitConfirmation(
             title="Leave?",
             message="Responses saved.",
