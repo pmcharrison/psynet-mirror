@@ -520,12 +520,13 @@ test(
       await page.evaluate(() => getComputedStyle(document.body).paddingBottom)
     ).toBe("0px");
 
-    await page.setContent(`<!doctype html><body>
-      <nav id="footer">
-        <div id="media-download-progress-bar" style="width: 40%"></div>
-      </nav>
-    </body>`);
-    await page.addScriptTag({ content: mediaProgressRuntime() });
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      html: `<nav id="footer">
+               <div id="media-download-progress-bar" style="width: 40%"></div>
+             </nav>`,
+      scripts: [mediaProgressRuntime()]
+    });
     await page.evaluate(() => {
       psynet.media.downloadProgress.set("audio", "stimulus", 100);
     });
