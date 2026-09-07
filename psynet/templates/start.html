@@ -81,7 +81,10 @@
                 return;
             }
             startInProgress = false;
-            dallinger.error(resp);
+            psynetErrorPage.go(
+                {assignmentId: getEntryInformation().assignmentId},
+                resp
+            );
         }
 
         async function createParticipant(entryInformation, attempt) {

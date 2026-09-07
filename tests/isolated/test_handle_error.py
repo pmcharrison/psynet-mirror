@@ -80,7 +80,7 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     )
 
 
-def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
+def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
     from flask import Flask
 
     plan = EarlyExitPlan.create(
@@ -106,7 +106,7 @@ def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
     recruiter.error_page_presentation.return_value = presentation
 
     with (
-        Flask(__name__).test_request_context("/error-page"),
+        Flask(__name__).test_request_context("/error-page?participant_id=42"),
         patch("psynet.experiment.get_experiment", return_value=experiment),
         patch("psynet.experiment.get_config") as config,
         patch(
@@ -189,7 +189,8 @@ def test_fail_participant_on_error_records_the_exception_without_failing():
     participant.fail.assert_not_called()
 
 
-def test_untracked_error_page_uses_the_same_structured_recruiter_hook():
+@pytest.mark.parametrize("method", ["GET", "POST"])
+def test_untracked_error_page_uses_the_same_structured_recruiter_hook(method):
     from flask import Flask
 
     presentation = MagicMock()
@@ -197,12 +198,18 @@ def test_untracked_error_page_uses_the_same_structured_recruiter_hook():
     recruiter.error_page_presentation.return_value = presentation
     experiment = SimpleNamespace(recruiter=recruiter)
 
-    with (
-        Flask(__name__).test_request_context(
+    app = Flask(__name__)
+    if method == "GET":
+        context = app.test_request_context("/error-page?assignment_id=assignment-1")
+    else:
+        context = app.test_request_context(
             "/error-page",
             method="POST",
             data={"assignment_id": "assignment-1"},
-        ),
+        )
+
+    with (
+        context,
         patch("psynet.experiment.get_experiment", return_value=experiment),
         patch("psynet.experiment.get_config") as config,
         patch(
@@ -211,10 +218,12 @@ def test_untracked_error_page_uses_the_same_structured_recruiter_hook():
         ) as render,
     ):
         config.return_value.get.return_value = "researcher@example.test"
-        Experiment.error_page()
+        response = Experiment.error_page()
 
     assert render.call_args.kwargs["automatic_exit_offer_id"] is None
     assert render.call_args.kwargs["error_page_presentation"] is presentation
+    # A cached copy would keep claiming the plan has not run yet.
+    assert response.headers["Cache-Control"] == "no-store"
     recruiter.error_page_presentation.assert_called_once_with(
         participant=None,
         plan=None,
@@ -222,6 +231,45 @@ def test_untracked_error_page_uses_the_same_structured_recruiter_hook():
         external_submit_url=None,
         contact_address="researcher@example.test",
     )
+
+
+def test_error_page_route_reads_its_participant_from_a_get_url():
+    from flask import Flask
+
+    participant = SimpleNamespace(id=42)
+    recruiter = MagicMock()
+    experiment = SimpleNamespace(recruiter=recruiter)
+
+    with (
+        Flask(__name__).test_request_context("/error-page?participant_id=42"),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.Participant") as participant_model,
+        patch.object(Experiment, "error_page", return_value="error page") as error_page,
+    ):
+        lookup = participant_model.query.filter_by.return_value
+        lookup.one_or_none.return_value = participant
+        assert Experiment.render_error() == "error page"
+        participant_model.query.filter_by.assert_called_once_with(id=42)
+
+    error_page.assert_called_once_with(participant=participant, recruiter=recruiter)
+
+
+@pytest.mark.parametrize("participant_id", ["999", "not-a-participant"])
+def test_error_page_route_survives_a_url_naming_no_known_participant(participant_id):
+    """The URL is participant-visible, so it can be edited or outlive the run."""
+    from flask import Flask
+
+    with (
+        Flask(__name__).test_request_context(
+            f"/error-page?participant_id={participant_id}"
+        ),
+        patch("psynet.experiment.Participant") as participant_model,
+        patch.object(Experiment, "error_page", return_value="error page") as error_page,
+    ):
+        participant_model.query.filter_by.return_value.one_or_none.return_value = None
+        assert Experiment.render_error() == "error page"
+
+    error_page.assert_called_once_with()
 
 
 def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
@@ -243,11 +291,7 @@ def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
         assert handled_error.error_page() == "response"
 
     get_participant.assert_called_once_with(42)
-    error_page.assert_called_once_with(
-        participant=participant,
-        request_data="",
-        recruiter=recruiter,
-    )
+    error_page.assert_called_once_with(participant=participant, recruiter=recruiter)
 
 
 def test_handled_error_page_delegates_lucid_recovery():
@@ -267,11 +311,7 @@ def test_handled_error_page_delegates_lucid_recovery():
     ):
         assert Experiment.HandledError(participant_id=42).error_page() == "response"
 
-    error_page.assert_called_once_with(
-        participant=participant,
-        request_data="",
-        recruiter=recruiter,
-    )
+    error_page.assert_called_once_with(participant=participant, recruiter=recruiter)
 
 
 @pytest.mark.parametrize(

@@ -1591,8 +1591,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         error_text=None,
         recruiter=None,
         external_submit_url=None,
-        error_type="default",
-        request_data="",
         locale=DEFAULT_LOCALE,
     ):
         """Render HTML for error page."""
@@ -1608,7 +1606,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if participant is not None:
             assignment_id = participant.assignment_id
         else:
-            assignment_id = request.form.get("assignment_id", "")
+            assignment_id = request.values.get("assignment_id", "")
 
         automatic_exit_offer_id = None
         contact_address = get_config().get("contact_email_on_error")
@@ -1635,7 +1633,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             contact_address=contact_address,
         )
 
-        return make_response(
+        response = make_response(
             render_template_with_translations(
                 "psynet_error.html",
                 locale=locale,
@@ -1646,6 +1644,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
             500,
         )
+        # The page reports whether the recovery plan has run, so a reload or a
+        # Back navigation must ask the server again rather than restore a
+        # cached copy.
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
@@ -4447,26 +4450,49 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @with_transaction
     def render_error(cls):
-        request_data = request.form.get("request_data")
-        participant_id = request.form.get("participant_id")
+        """Render the error page for a GET visit, a reload, or a legacy POST.
 
-        if participant_id:
-            participant = Participant.query.filter_by(id=participant_id).one()
-            return cls._render_participant_error_page(
-                participant,
-                request_data=request_data,
-            )
-
-        return cls.error_page(request_data=request_data)
+        PsyNet navigates here with a GET so that the page stays reloadable;
+        Dallinger's own error handling still submits a form, so both methods
+        read their parameters from ``request.values``.
+        """
+        participant = cls._participant_from_error_page_request()
+        if participant is not None:
+            return cls._render_participant_error_page(participant)
+        return cls.error_page()
 
     @classmethod
-    def _render_participant_error_page(cls, participant, *, request_data=""):
+    def _participant_from_error_page_request(cls):
+        """Resolve the participant named in an error-page URL, if there is one.
+
+        The URL is participant-visible, so an unknown or malformed identifier
+        falls back to the untracked error page instead of raising.
+        """
+        participant_id = request.values.get("participant_id")
+        if not participant_id:
+            return None
+        try:
+            participant_id = int(participant_id)
+        except ValueError:
+            logger.warning(
+                "Ignoring malformed participant id %r on the error page.",
+                participant_id,
+            )
+            return None
+        participant = Participant.query.filter_by(id=participant_id).one_or_none()
+        if participant is None:
+            logger.warning(
+                "Could not find participant %s while rendering the error page.",
+                participant_id,
+            )
+        return participant
+
+    @classmethod
+    def _render_participant_error_page(cls, participant):
         """Render an error page using the participant's recruiter policy."""
-        recruiter = get_experiment().recruiter
         return cls.error_page(
             participant=participant,
-            request_data=request_data,
-            recruiter=recruiter,
+            recruiter=get_experiment().recruiter,
         )
 
     @experiment_route("/module", methods=["POST"])
@@ -5097,7 +5123,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return Experiment.error_page(
                 participant=self.participant,
                 error_text=msg,
-                error_type="authentication",
             )
 
     @classmethod

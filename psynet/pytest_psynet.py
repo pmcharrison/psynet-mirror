@@ -335,7 +335,7 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             error_message="Never reached the recruiter-exit route, seems like the experiment never finished.",
         )
     else:
-        if driver.current_url == "http://localhost:5000/error-page":
+        if parse.urlparse(driver.current_url).path == "/error-page":
             raise RuntimeError(
                 "Unexpectedly hit an error page, check the server logs for details."
             )

@@ -1,8 +1,43 @@
+/*
+ * Client half of the paths that take a participant out of an experiment before
+ * normal completion: the voluntary Leave modal, the automatic recovery that the
+ * error page runs, and navigation to the error page itself.
+ *
+ * The server owns every decision here. This script only reads the plan that the
+ * server rendered into the DOM, calls the routes the server named, and follows
+ * the release URL the server returned; it never chooses a payment outcome or a
+ * destination of its own. psynet_layout.html loads it on every participant
+ * page, so it must not assume the timeline's psynet.js is present.
+ */
 (function (global) {
   "use strict";
 
   let controller = null;
   let autoRedirectTimer = null;
+
+  // Dallinger's dlgr.error() has two modes. When the rejected request came back
+  // with rendered HTML it swaps that into the page, which keeps the server's
+  // specific explanation; that mode is worth keeping. Otherwise it reaches the
+  // error page by submitting a hidden POST form, so the browser asks the
+  // participant to confirm resubmission if they ever reload. The error page is
+  // only a view of server-owned state, so go there with a GET instead.
+  // Replacing the history entry also keeps Back off the page that just failed.
+  function goToErrorPage(identity, rejection) {
+    if (rejection && rejection.html) {
+      global.dallinger.error(rejection);
+      return;
+    }
+    const source =
+      identity || (global.dallinger && global.dallinger.identity) || {};
+    const params = new URLSearchParams();
+    if (source.participantId) {
+      params.set("participant_id", source.participantId);
+    } else if (source.assignmentId) {
+      params.set("assignment_id", source.assignmentId);
+    }
+    const query = params.toString();
+    global.location.replace("/error-page" + (query ? "?" + query : ""));
+  }
 
   function continueToRelease(releaseUrl) {
     if (!releaseUrl) throw new Error("The server did not provide a release URL.");
@@ -233,7 +268,7 @@
               "We could not end the experiment. Please try again.",
             );
           } else {
-            dallinger.error(error);
+            goToErrorPage({ assignmentId: assignmentId });
           }
         }
       },
@@ -242,4 +277,5 @@
   }
 
   global.psynetEarlyExit = { init };
+  global.psynetErrorPage = { go: goToErrorPage };
 })(window);

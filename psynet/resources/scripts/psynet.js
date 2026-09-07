@@ -2836,7 +2836,9 @@
             window.location.replace(exitRoute);
           }
         })
-        .fail(dallinger.error);
+        .fail(function (rejection) {
+          psynetErrorPage.go({ participantId: participantId }, rejection);
+        });
     };
 
     // If the browser restores a timeline page from the back/forward cache
@@ -2913,11 +2915,9 @@
       );
     };
 
-    let onErrorResponse = function (request) {
-      dallinger.error({
-        data: {
-          participant_id: psynetTemplateData.participantId,
-        },
+    let onErrorResponse = function () {
+      psynetErrorPage.go({
+        participantId: psynetTemplateData.participantId,
       });
     };
 

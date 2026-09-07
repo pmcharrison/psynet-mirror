@@ -36,7 +36,7 @@
             request.done(function () {
                 window.location.replace(event.currentTarget.dataset.href);
             }).fail(function (rejection) {
-                dallinger.error(rejection);
+                psynetErrorPage.go(participantInfo, rejection);
             }).always(function () {
                 spinner.unfreeze();
             });

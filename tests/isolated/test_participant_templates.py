@@ -797,6 +797,29 @@ def test_shared_early_exit_modal_renders_server_offer_and_actions():
     assert "Cancel" in rendered[cancel_start:]
 
 
+def test_the_error_page_is_reached_by_get_so_that_it_can_be_reloaded():
+    """dallinger.error() otherwise POSTs a hidden form, so reloads prompt to resubmit."""
+    root = resources.files("psynet")
+
+    early_exit = (root / "resources/scripts/psynet.early-exit.js").read_text(
+        encoding="utf-8"
+    )
+    assert "global.psynetErrorPage = { go: goToErrorPage }" in early_exit
+    assert 'global.location.replace("/error-page"' in early_exit
+    # Rejections that carry rendered HTML keep the server's own explanation.
+    assert "if (rejection && rejection.html)" in early_exit
+
+    # Everywhere else, the POST form is gone.
+    for path in (
+        "resources/scripts/psynet.js",
+        "templates/start.html",
+        "templates/psynet_exit_recruiter_prolific.html",
+    ):
+        source = (root / path).read_text(encoding="utf-8")
+        assert "psynetErrorPage.go" in source, path
+        assert "dallinger.error" not in source, path
+
+
 def test_no_page_paints_a_placeholder_logo_before_the_theme_swap():
     """theme.html replaces #adlogo on DOMContentLoaded, so a real src flashes first."""
     templates = resources.files("psynet") / "templates"

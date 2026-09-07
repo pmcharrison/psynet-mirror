@@ -265,6 +265,86 @@ test(
 );
 
 test(
+  "errors reach a reloadable error page instead of a resubmittable form",
+  { tag: "@both" },
+  async ({ page }) => {
+    const methods = [];
+    await page.route("http://psynet.test/error-page**", async (route) => {
+      methods.push(route.request().method());
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: "<h1>An error occurred</h1>"
+      });
+    });
+    await page.route("http://psynet.test/timeline", async (route) => {
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: "<h1>Timeline</h1>"
+      });
+    });
+
+    await page.goto("http://psynet.test/timeline");
+    await page.addScriptTag({ content: EARLY_EXIT_JS });
+    await Promise.all([
+      page.waitForURL("http://psynet.test/error-page?participant_id=42"),
+      // Deferred so the navigation does not tear down this evaluation.
+      page.evaluate(() =>
+        setTimeout(() => window.psynetErrorPage.go({ participantId: 42 }), 0)
+      )
+    ]);
+
+    // A POST-rendered page would prompt the participant to confirm
+    // resubmission here rather than simply loading again.
+    await page.reload();
+    await expect(page.locator("h1")).toHaveText("An error occurred");
+    expect(methods).toEqual(["GET", "GET"]);
+
+    // The failed page is replaced rather than pushed, so Back cannot revive it.
+    await page.goBack();
+    await expect(page).not.toHaveURL(/timeline/);
+  }
+);
+
+test(
+  "a rejection carrying rendered HTML keeps the server's own explanation",
+  { tag: "@both" },
+  async ({ page }) => {
+    let errorPageRequests = 0;
+    await page.route("http://psynet.test/error-page**", async (route) => {
+      errorPageRequests += 1;
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: "<h1>An error occurred</h1>"
+      });
+    });
+    await page.route("http://psynet.test/timeline", async (route) => {
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: "<h1>Timeline</h1>"
+      });
+    });
+
+    await page.goto("http://psynet.test/timeline");
+    await page.addScriptTag({ content: EARLY_EXIT_JS });
+    const delegated = await page.evaluate(() => {
+      const calls = [];
+      window.dallinger = { error: (rejection) => calls.push(rejection.html) };
+      window.psynetErrorPage.go(
+        { participantId: 42 },
+        { html: "<h1>This worker has already participated.</h1>" }
+      );
+      return calls;
+    });
+
+    expect(delegated).toEqual([
+      "<h1>This worker has already participated.</h1>"
+    ]);
+    await expect(page).toHaveURL("http://psynet.test/timeline");
+    expect(errorPageRequests).toBe(0);
+  }
+);
+
+test(
   "automatic recovery does not loop on a stale offer",
   { tag: "@both" },
   async ({ page }) => {
