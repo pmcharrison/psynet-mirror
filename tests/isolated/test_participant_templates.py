@@ -166,7 +166,8 @@ def test_error_recovery_uses_one_researcher_reference_code():
         encoding="utf-8"
     )
 
-    assert "error_recovery_presentation.researcher_contact_message" in source
+    assert "error_page_presentation.researcher_contact_message" in source
+    assert "experiment.error_page_content" not in source
     assert 'href="mailto:' not in source
     assert "quote reference code" not in source
     assert 'data-action="' not in source
@@ -812,4 +813,5 @@ def test_error_page_automatically_executes_its_server_owned_exit_plan():
     # without exposing a block of internal identifiers to every participant.
     assert 'id="error-contact"' in error
     assert 'id="error-identifiers"' not in error
-    assert "error_recovery_presentation.researcher_contact_message" in error
+    assert "error_page_presentation.researcher_contact_message" in error
+    assert "experiment.error_page_content" not in error

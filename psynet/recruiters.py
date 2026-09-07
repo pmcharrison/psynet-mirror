@@ -74,7 +74,6 @@ from dallinger.recruiters import (
 )
 from dallinger.utils import get_base_url
 from dominate import tags
-from dominate.util import raw
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
@@ -256,10 +255,10 @@ class EarlyExitPath(StrEnum):
 
 @dataclass(frozen=True)
 class ErrorRecoveryPresentation:
-    """Recruiter-specific copy and handoff for a finalized error recovery."""
+    """Recruiter-specific copy and handoff for an error page."""
 
     message: str
-    failure_message: str
+    failure_message: str | None = None
     researcher_contact_message: str | None = None
     button_label: str | None = None
     preparation_post_url: str | None = None
@@ -504,24 +503,57 @@ class PsyNetRecruiterMixin:
                 reason = "early_exit"
             participant.fail(reason)
 
-    def error_recovery_presentation(
+    def _check_stale_error_page_override(self) -> None:
+        """Reject a custom recruiter that only implements the removed hook."""
+        for cls in type(self).__mro__:
+            if "error_page_presentation" in cls.__dict__:
+                return
+            if "error_page_content" in cls.__dict__:
+                raise RuntimeError(
+                    "Overriding recruiter `error_page_content` is no longer "
+                    "supported. Override `error_page_presentation` instead."
+                )
+
+    def error_page_presentation(
         self,
-        participant,
-        plan: EarlyExitPlan,
+        *,
+        participant=None,
+        plan: EarlyExitPlan | None = None,
+        assignment_id: str | None = None,
+        external_submit_url: str | None = None,
         contact_address: str | None = None,
     ) -> ErrorRecoveryPresentation:
-        """Describe the final error page for a recruiter with no handoff."""
-        del plan
+        """Describe error-page copy and any recruiter handoff."""
+        self._check_stale_error_page_override()
+        del external_submit_url
         _p = get_translator(context=True)
+        if participant is not None:
+            assignment_id = participant.assignment_id
         contact_message = None
         if contact_address:
-            contact_message = _p(
-                "early_exit_error",
-                "If you need to contact the researcher about this error, write "
-                "to {EMAIL} and quote reference code {REFERENCE_CODE}.",
-            ).format(
-                EMAIL=contact_address,
-                REFERENCE_CODE=participant.assignment_id,
+            if assignment_id:
+                contact_message = _p(
+                    "early_exit_error",
+                    "If you need to contact the researcher about this error, write "
+                    "to {EMAIL} and quote reference code {REFERENCE_CODE}.",
+                ).format(
+                    EMAIL=contact_address,
+                    REFERENCE_CODE=assignment_id,
+                )
+            else:
+                contact_message = _p(
+                    "early_exit_error",
+                    "If you need to contact the researcher about this error, "
+                    "write to {EMAIL}.",
+                ).format(EMAIL=contact_address)
+        if participant is None or plan is None:
+            return ErrorRecoveryPresentation(
+                message=_p(
+                    "early_exit_error",
+                    "We could not identify an active study session for automatic "
+                    "recovery.",
+                ),
+                researcher_contact_message=contact_message,
             )
         return ErrorRecoveryPresentation(
             message=_p(
@@ -1022,15 +1054,36 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             quoted_amounts=quoted_amounts,
         )
 
-    def error_recovery_presentation(
+    def error_page_presentation(
         self,
-        participant,
-        plan: EarlyExitPlan,
+        *,
+        participant=None,
+        plan: EarlyExitPlan | None = None,
+        assignment_id: str | None = None,
+        external_submit_url: str | None = None,
         contact_address: str | None = None,
     ) -> ErrorRecoveryPresentation:
-        """Explain Prolific's next step and payment after an error."""
-        del contact_address
+        """Explain Prolific's support or payment path after an error."""
+        self._check_stale_error_page_override()
+        del assignment_id, external_submit_url, contact_address
         _p = get_translator(context=True)
+        if participant is None or plan is None:
+            return ErrorRecoveryPresentation(
+                message=" ".join(
+                    [
+                        _p(
+                            "prolific_error",
+                            "We could not identify an active study session for "
+                            "automatic recovery.",
+                        ),
+                        _p(
+                            "prolific_error",
+                            "Please message the researcher through Prolific and "
+                            "describe what led to this error.",
+                        ),
+                    ]
+                )
+            )
         if plan.path is EarlyExitPath.SCREEN_OUT:
             fixed = _format_quoted_early_exit_amount(plan, "fixed")
             payment = _p(
@@ -1115,7 +1168,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 ),
             )
 
-        return super().error_recovery_presentation(participant, plan)
+        return super().error_page_presentation(
+            participant=participant,
+            plan=plan,
+        )
 
     def release_early_exit_without_payment(self, participant) -> TimelineLogic:
         """Ask the participant to return the Prolific submission without pay."""
@@ -1390,29 +1446,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return False
         participant.issued_completion_code_type = self.unsuccessful_code_type
         return True
-
-    def error_page_content(self, assignment_id=None, external_submit_url=None):
-        """Direct untracked errors to Prolific's messaging channel."""
-        del assignment_id, external_submit_url
-        _p = get_translator(context=True)
-
-        html = tags.div()
-        with html:
-            tags.p(
-                _p(
-                    "prolific_error",
-                    "We could not identify an active study session for automatic "
-                    "recovery.",
-                )
-            )
-            tags.p(
-                _p(
-                    "prolific_error",
-                    "Please message the researcher through Prolific and describe "
-                    "what led to this error.",
-                )
-            )
-        return html
 
     def release_participant(
         self, experiment, participant: Participant
@@ -2886,35 +2919,6 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             assignment_id = assignment_id
         return {"rid": assignment_id, "ris": ris}
 
-    def error_page_content(self, assignment_id, external_submit_url):
-        """Return an untracked participant to Lucid after a readable pause."""
-        _p = get_translator(context=True)
-
-        if external_submit_url is None:
-            external_submit_url = self.external_submit_url(assignment_id=assignment_id)
-
-        html = tags.div()
-        with html:
-            tags.p(
-                " ".join(
-                    [
-                        _p(
-                            "lucid_error",
-                            "We will return you to your panel provider in a few "
-                            "seconds.",
-                        ),
-                    ]
-                )
-            )
-            tags.script(
-                raw(
-                    'setTimeout(() => { window.location = "'
-                    + external_submit_url
-                    + '"; }, 5000)'
-                )
-            )
-        return html
-
     def time_until_termination_in_s(self, rid):
         return self.lucidservice.time_until_termination_in_s(rid)
 
@@ -3037,22 +3041,40 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             confirmation=confirmation,
         )
 
-    def error_recovery_presentation(
+    def error_page_presentation(
         self,
-        participant,
-        plan: EarlyExitPlan,
+        *,
+        participant=None,
+        plan: EarlyExitPlan | None = None,
+        assignment_id: str | None = None,
+        external_submit_url: str | None = None,
         contact_address: str | None = None,
     ) -> ErrorRecoveryPresentation:
         """Explain Lucid's return to the participant's panel provider."""
-        del plan, contact_address
+        self._check_stale_error_page_override()
+        del contact_address
         _p = get_translator(context=True)
-        return ErrorRecoveryPresentation(
-            message=_p(
+        if external_submit_url is None:
+            if participant is None:
+                external_submit_url = self.external_submit_url(
+                    assignment_id=assignment_id
+                )
+            else:
+                external_submit_url = self.external_submit_url(participant=participant)
+        if participant is None or plan is None:
+            message = _p(
+                "lucid_error",
+                "We will return you to your panel provider in a few seconds.",
+            )
+        else:
+            message = _p(
                 "early_exit_error_lucid",
                 "Your responses have been saved. We will return you to your "
                 "panel provider in a few seconds. Your panel provider will "
                 "determine any payment according to its own rules.",
-            ),
+            )
+        return ErrorRecoveryPresentation(
+            message=message,
             failure_message=_p(
                 "early_exit_error_lucid",
                 "We could not return you to your panel. Please try again. If this "
@@ -3062,7 +3084,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 "early_exit_error_lucid",
                 "Return to your panel",
             ),
-            destination_url=self.external_submit_url(participant=participant),
+            destination_url=external_submit_url,
             auto_redirect_delay_ms=5000,
         )
 

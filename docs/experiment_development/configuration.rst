@@ -311,6 +311,15 @@ General
     calculation itself fails, Prolific uses recovery copy without a reward
     quote and calculates the unquoted remainder when payment is processed.
 
+    Recruiters provide both tracked and untracked error-page content through
+    :meth:`~psynet.recruiters.PsyNetRecruiterMixin.error_page_presentation`.
+    The hook receives an optional participant and plan and always returns an
+    :class:`~psynet.recruiters.ErrorRecoveryPresentation`, which declares the
+    copy and any POST, button, or redirect required by the platform. Override
+    this hook on a custom recruiter to customize error pages;
+    ``Experiment.error_page_content`` and recruiter ``error_page_content``
+    overrides are no longer supported.
+
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when
     paid leave is available.

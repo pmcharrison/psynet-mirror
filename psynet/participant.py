@@ -242,8 +242,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         Should not be modified directly.
 
     early_exited : bool
-        Whether the participant left the experiment early.
-        Set once they confirm the early-exit dialog.
+        Whether the participant's session ended through an early-exit plan,
+        either after they confirmed Leave or during automatic error recovery.
 
     early_exit_plan : dict or None
         The server-owned :class:`~psynet.recruiters.EarlyExitPlan` snapshot

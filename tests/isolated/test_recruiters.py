@@ -548,14 +548,14 @@ def _identity_translator(context, message):
     return message
 
 
-def test_prolific_untracked_error_page_uses_platform_support():
+def test_prolific_untracked_error_page_uses_structured_platform_support():
     recruiter = make_prolific_recruiter(make_config())
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
-        html = str(recruiter.error_page_content())
+        presentation = recruiter.error_page_presentation()
 
-    assert "message the researcher through Prolific" in html
-    assert "prolific-unsuccessful-submit" not in html
-    assert "/prolific-submission-listener" not in html
+    assert "message the researcher through Prolific" in presentation.message
+    assert presentation.action_post_url is None
+    assert presentation.destination_url is None
 
 
 def test_issue_unsuccessful_completion_code_stamps_failed_participant():
@@ -608,9 +608,9 @@ def test_execute_error_recovery_plan_records_the_error_context():
 
 def test_default_error_recovery_page_is_terminal():
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
-        presentation = PsyNetRecruiterMixin().error_recovery_presentation(
-            SimpleNamespace(id=42, assignment_id="assignment-1"),
-            _early_exit_test_plan(context=EarlyExitContext.ERROR_RECOVERY),
+        presentation = PsyNetRecruiterMixin().error_page_presentation(
+            participant=SimpleNamespace(id=42, assignment_id="assignment-1"),
+            plan=_early_exit_test_plan(context=EarlyExitContext.ERROR_RECOVERY),
             contact_address="researcher@example.test",
         )
 
@@ -631,9 +631,9 @@ def test_default_error_recovery_page_is_terminal():
 
 def test_default_error_recovery_omits_contact_without_an_address():
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
-        presentation = PsyNetRecruiterMixin().error_recovery_presentation(
-            SimpleNamespace(id=42, assignment_id="assignment-1"),
-            _early_exit_test_plan(context=EarlyExitContext.ERROR_RECOVERY),
+        presentation = PsyNetRecruiterMixin().error_page_presentation(
+            participant=SimpleNamespace(id=42, assignment_id="assignment-1"),
+            plan=_early_exit_test_plan(context=EarlyExitContext.ERROR_RECOVERY),
             contact_address=None,
         )
 
@@ -647,6 +647,15 @@ def test_error_recovery_presentation_rejects_an_incomplete_handoff():
             failure_message="Try again.",
             destination_url="https://example.test/exit",
         )
+
+
+def test_error_page_presentation_rejects_a_stale_recruiter_override():
+    class RecruiterWithStaleOverride(PsyNetRecruiterMixin):
+        def error_page_content(self):
+            return "custom"
+
+    with pytest.raises(RuntimeError, match="error_page_presentation"):
+        RecruiterWithStaleOverride().error_page_presentation()
 
 
 def test_prolific_error_recovery_explains_payment_and_submits_directly():
@@ -672,7 +681,9 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
             return_value="https://app.prolific.test/complete",
         ),
     ):
-        presentation = recruiter.error_recovery_presentation(participant, plan)
+        presentation = recruiter.error_page_presentation(
+            participant=participant, plan=plan
+        )
 
     assert presentation.button_label == "Submit to Prolific"
     assert presentation.action_post_url == "/prolific-submission-listener"
@@ -701,7 +712,9 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
     )
 
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
-        presentation = recruiter.error_recovery_presentation(MagicMock(), plan)
+        presentation = recruiter.error_page_presentation(
+            participant=MagicMock(), plan=plan
+        )
 
     assert presentation.button_label == "Continue to payment instructions"
     assert presentation.destination_url is None
@@ -726,9 +739,9 @@ def test_lucid_error_recovery_explains_the_panel_redirect():
             return_value="https://lucid.test/terminate",
         ),
     ):
-        presentation = recruiter.error_recovery_presentation(
-            participant,
-            _early_exit_test_plan(
+        presentation = recruiter.error_page_presentation(
+            participant=participant,
+            plan=_early_exit_test_plan(
                 path=EarlyExitPath.TERMINATE_PANEL_SESSION,
                 context=EarlyExitContext.ERROR_RECOVERY,
             ),
@@ -746,19 +759,18 @@ def test_lucid_error_recovery_explains_the_panel_redirect():
     assert "panel provider will determine any payment" in presentation.message
 
 
-def test_lucid_untracked_error_page_uses_the_same_readable_delay():
+def test_lucid_untracked_error_page_uses_the_same_structured_delay():
     recruiter = object.__new__(BaseLucidRecruiter)
     with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
-        html = str(
-            recruiter.error_page_content(
-                assignment_id="rid-1",
-                external_submit_url="https://lucid.test/terminate",
-            )
+        presentation = recruiter.error_page_presentation(
+            assignment_id="rid-1",
+            external_submit_url="https://lucid.test/terminate",
         )
 
-    assert "return you to your panel provider in a few seconds" in html
-    assert "5000" in html
-    assert "https://lucid.test/terminate" in html
+    assert "return you to your panel provider in a few seconds" in presentation.message
+    assert presentation.auto_redirect_delay_ms == 5000
+    assert presentation.destination_url == "https://lucid.test/terminate"
+    assert presentation.button_label == "Return to your panel"
 
 
 def test_execute_early_exit_plan_skips_fail_when_already_failed():
@@ -2068,12 +2080,18 @@ def test_check_screen_out_config_requires_screen_out_slots():
     PsyNetProlificRecruiterMixin.check_screen_out_config(make_config())
 
 
-def test_check_config_rejects_stale_error_page_override():
+@pytest.mark.parametrize(
+    "method_name",
+    ["error_page_content", "error_page_content__prolific"],
+)
+def test_check_config_rejects_stale_error_page_override(method_name):
     from psynet.experiment import Experiment
 
-    class ExpWithStaleOverride(Experiment):
-        def error_page_content__prolific(self):
-            return "custom"
+    ExpWithStaleOverride = type(
+        "ExpWithStaleOverride",
+        (Experiment,),
+        {method_name: lambda self: "custom"},
+    )
 
     with pytest.raises(RuntimeError, match="no longer supported"):
         ExpWithStaleOverride.check_stale_error_page_override()

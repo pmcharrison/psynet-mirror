@@ -128,12 +128,14 @@
         prepared = false;
         reloadOnRetry = false;
         try {
-          releaseUrl = await executePlan(
-            automatic.dataset.assignmentId,
-            automatic.dataset.offerId,
-            false,
-          );
-          if (!releaseUrl) return;
+          if (automatic.dataset.offerId) {
+            releaseUrl = await executePlan(
+              automatic.dataset.assignmentId,
+              automatic.dataset.offerId,
+              false,
+            );
+            if (!releaseUrl) return;
+          }
           if (preparationPostUrl) {
             await postForm(preparationPostUrl, preparationPostData);
           }

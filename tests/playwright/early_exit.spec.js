@@ -217,6 +217,54 @@ test(
 );
 
 test(
+  "untracked Lucid errors use the same redirect presentation without an exit plan",
+  { tag: "@both" },
+  async ({ page }) => {
+    let executeRequests = 0;
+    await page.route("http://psynet.test/error", async (route) => {
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: `
+          <div id="automatic-early-exit"
+               data-assignment-id="rid-1"
+               data-offer-id=""
+               data-destination-url="http://psynet.test/lucid"
+               data-auto-redirect-delay-ms="100">
+            <div id="automatic-early-exit-pending">Loading</div>
+            <p id="automatic-early-exit-failure" hidden></p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
+            <p id="automatic-early-exit-ready" hidden>
+              We will return you to your panel provider in a few seconds.
+            </p>
+            <button id="automatic-early-exit-continue" hidden>
+              Return to your panel
+            </button>
+          </div>
+        `
+      });
+    });
+    await page.route("**/execute_early_exit_plan/**", async (route) => {
+      executeRequests += 1;
+      await route.abort();
+    });
+    await page.route("http://psynet.test/lucid", async (route) => {
+      await route.fulfill({
+        contentType: "text/html",
+        body: "<h1>Lucid</h1>"
+      });
+    });
+
+    await page.goto("http://psynet.test/error");
+    await page.addScriptTag({ content: EARLY_EXIT_JS });
+    await page.evaluate(() => window.psynetEarlyExit.init());
+
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    await expect(page).toHaveURL("http://psynet.test/lucid");
+    expect(executeRequests).toBe(0);
+  }
+);
+
+test(
   "automatic recovery does not loop on a stale offer",
   { tag: "@both" },
   async ({ page }) => {

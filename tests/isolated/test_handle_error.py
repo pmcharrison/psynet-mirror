@@ -44,7 +44,7 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     experiment.error_recovery_early_exit_plan.return_value = plan
     presentation = MagicMock()
     recruiter = MagicMock(show_early_exit_button=False)
-    recruiter.error_recovery_presentation.return_value = presentation
+    recruiter.error_page_presentation.return_value = presentation
 
     with (
         Flask(__name__).test_request_context("/error-page"),
@@ -66,11 +66,15 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
 
     assert participant.early_exit_plan == plan.to_dict()
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
-    assert render.call_args.kwargs["error_recovery_presentation"] is presentation
+    assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_called_once_with(participant)
     recruiter.on_error_page.assert_called_once_with(participant)
-    recruiter.error_recovery_presentation.assert_called_once_with(
-        participant, plan, "researcher@example.test"
+    recruiter.error_page_presentation.assert_called_once_with(
+        participant=participant,
+        plan=plan,
+        assignment_id="assignment-1",
+        external_submit_url=None,
+        contact_address="researcher@example.test",
     )
 
 
@@ -95,7 +99,7 @@ def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
     experiment.timeline.participant_is_in_end_logic.return_value = False
     presentation = MagicMock()
     recruiter = MagicMock()
-    recruiter.error_recovery_presentation.return_value = presentation
+    recruiter.error_page_presentation.return_value = presentation
 
     with (
         Flask(__name__).test_request_context("/error-page"),
@@ -110,13 +114,52 @@ def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
         Experiment.error_page(participant=participant, recruiter=recruiter)
 
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
-    assert render.call_args.kwargs["error_recovery_presentation"] is presentation
+    assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_not_called()
     recruiter.on_error_page.assert_not_called()
-    recruiter.error_recovery_presentation.assert_called_once_with(
-        participant, plan, "researcher@example.test"
+    recruiter.error_page_presentation.assert_called_once_with(
+        participant=participant,
+        plan=plan,
+        assignment_id="assignment-1",
+        external_submit_url=None,
+        contact_address="researcher@example.test",
     )
     experiment.error_recovery_early_exit_plan.assert_not_called()
+
+
+def test_untracked_error_page_uses_the_same_structured_recruiter_hook():
+    from flask import Flask
+
+    presentation = MagicMock()
+    recruiter = MagicMock()
+    recruiter.error_page_presentation.return_value = presentation
+    experiment = SimpleNamespace(recruiter=recruiter)
+
+    with (
+        Flask(__name__).test_request_context(
+            "/error-page",
+            method="POST",
+            data={"assignment_id": "assignment-1"},
+        ),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment.error_page()
+
+    assert render.call_args.kwargs["automatic_exit_offer_id"] is None
+    assert render.call_args.kwargs["error_page_presentation"] is presentation
+    recruiter.error_page_presentation.assert_called_once_with(
+        participant=None,
+        plan=None,
+        assignment_id="assignment-1",
+        external_submit_url=None,
+        contact_address="researcher@example.test",
+    )
 
 
 def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():

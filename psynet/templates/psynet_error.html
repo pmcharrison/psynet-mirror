@@ -10,23 +10,23 @@
             <hr>
             <div>
                 <p id="error-text">{{ error_text }}</p>
-                {% if automatic_exit_offer_id %}
+                {% if error_page_presentation %}
                     <div id="automatic-early-exit"
                          data-assignment-id="{{ assignment_id }}"
-                         data-offer-id="{{ automatic_exit_offer_id }}"
-                         data-preparation-post-url="{{ error_recovery_presentation.preparation_post_url or '' }}"
-                         data-preparation-post-data='{{ error_recovery_presentation.preparation_post_data | tojson }}'
-                         data-action-post-url="{{ error_recovery_presentation.action_post_url or '' }}"
-                         data-action-post-data='{{ error_recovery_presentation.action_post_data | tojson }}'
-                         data-destination-url="{{ error_recovery_presentation.destination_url or '' }}"
-                         data-auto-redirect-delay-ms="{{ error_recovery_presentation.auto_redirect_delay_ms or '' }}"
+                         data-offer-id="{{ automatic_exit_offer_id or '' }}"
+                         data-preparation-post-url="{{ error_page_presentation.preparation_post_url or '' }}"
+                         data-preparation-post-data='{{ error_page_presentation.preparation_post_data | tojson }}'
+                         data-action-post-url="{{ error_page_presentation.action_post_url or '' }}"
+                         data-action-post-data='{{ error_page_presentation.action_post_data | tojson }}'
+                         data-destination-url="{{ error_page_presentation.destination_url or '' }}"
+                         data-auto-redirect-delay-ms="{{ error_page_presentation.auto_redirect_delay_ms or '' }}"
                          aria-live="polite">
                         <div id="automatic-early-exit-pending" role="status">
                             <span class="spinner-border" aria-hidden="true"></span>
                             <span class="visually-hidden">{{ pgettext("early_exit_error", "Please wait.") }}</span>
                         </div>
                         <p id="automatic-early-exit-failure" hidden>
-                            {{ error_recovery_presentation.failure_message }}
+                            {{ error_page_presentation.failure_message or '' }}
                         </p>
                         <button type="button"
                                 id="automatic-early-exit-retry"
@@ -35,14 +35,14 @@
                             {{ pgettext("early_exit_error", "Try again") }}
                         </button>
                         <p id="automatic-early-exit-ready" hidden>
-                            {{ error_recovery_presentation.message }}
+                            {{ error_page_presentation.message }}
                         </p>
-                        {% if error_recovery_presentation.button_label %}
+                        {% if error_page_presentation.button_label %}
                             <button type="button"
                                     id="automatic-early-exit-continue"
                                     class="btn btn-primary btn-lg"
                                     hidden>
-                                {{ error_recovery_presentation.button_label }}
+                                {{ error_page_presentation.button_label }}
                             </button>
                         {% endif %}
                     </div>
@@ -51,15 +51,11 @@
                             window.psynetEarlyExit.init();
                         });
                     </script>
-                    {% if error_recovery_presentation.researcher_contact_message %}
+                    {% if error_page_presentation.researcher_contact_message %}
                         <p id="error-contact" class="mt-4">
-                            {{ error_recovery_presentation.researcher_contact_message }}
+                            {{ error_page_presentation.researcher_contact_message }}
                         </p>
                     {% endif %}
-                {% else %}
-                    <p id="error-text-main">
-                        {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}
-                    </p>
                 {% endif %}
             </div>
         </div>
