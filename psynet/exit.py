@@ -165,7 +165,10 @@ class ExitPlan:
     @classmethod
     def from_dict(cls, data: dict) -> "ExitPlan":
         """Restore an exit plan from participant storage."""
-        status = ExitPlanStatus(data["status"])
+        try:
+            status = ExitPlanStatus(data["status"])
+        except ValueError as exc:
+            raise ValueError("Invalid exit plan status.") from exc
         confirmation = data.get("confirmation")
         payment = data.get("payment")
         currency = data.get("currency")
