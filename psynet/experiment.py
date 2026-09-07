@@ -107,7 +107,6 @@ from .serialize import serialize, unserialize
 from .static_resources import (
     _apply_versioned_static_cache_headers,
     get_static_package_extra_files,
-    version_static_urls,
 )
 from .timeline import (
     WEBSOCKET_CHANNEL,

@@ -271,7 +271,7 @@ def test_participant_font_references_use_their_content_versions():
     css_root = resources.files("psynet") / "resources/css"
     css = css_root.joinpath("participant.css").read_text(encoding="utf-8")
     references = re.findall(
-        r'url\\("fonts/font-files/([^"?]+)\\?v=([0-9a-f]+)"\\)',
+        r'url\("fonts/font-files/([^"?]+)\?v=([0-9a-f]+)"\)',
         css,
     )
 

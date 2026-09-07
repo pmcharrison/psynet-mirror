@@ -2360,6 +2360,7 @@ class LocalStorage(AssetStorage):
 
     def serve(self, asset: Asset, subpath: Optional[str] = None):
         from flask import abort, send_file
+
         from psynet.static_resources import STATIC_CACHE_MAX_AGE
 
         object_path = asset.object_path or asset.host_path
@@ -2539,9 +2540,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
     def upload(self, path, s3_key, recursive, cache_control=None):
         client = get_s3_client()
         self.check_recursive(recursive, path)
-        kwargs = (
-            {"ExtraArgs": {"CacheControl": cache_control}} if cache_control else {}
-        )
+        kwargs = {"ExtraArgs": {"CacheControl": cache_control}} if cache_control else {}
         if os.path.isfile(path):
             client.upload_file(path, self.s3_bucket, s3_key, **kwargs)
         else:
@@ -2739,9 +2738,7 @@ class S3Storage(AssetStorage):
             asset.input_path,
             s3_key,
             recursive=asset.is_folder,
-            cache_control=(
-                f"public, max-age={STATIC_CACHE_MAX_AGE}, immutable"
-            ),
+            cache_control=(f"public, max-age={STATIC_CACHE_MAX_AGE}, immutable"),
         )
 
     def get_url(self, host_path: str):
