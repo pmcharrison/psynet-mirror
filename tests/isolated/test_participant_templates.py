@@ -142,9 +142,9 @@ def test_transient_pages_style_their_spinner():
 
 
 def test_error_recovery_pending_state_is_visual_and_accessible():
-    source = (
-        resources.files("psynet") / "templates" / "psynet_error.html"
-    ).read_text(encoding="utf-8")
+    source = (resources.files("psynet") / "templates" / "psynet_error.html").read_text(
+        encoding="utf-8"
+    )
 
     assert 'id="automatic-early-exit-pending"' in source
     assert 'class="spinner-border"' in source
@@ -154,9 +154,9 @@ def test_error_recovery_pending_state_is_visual_and_accessible():
 
 
 def test_error_recovery_uses_one_researcher_reference_code():
-    source = (
-        resources.files("psynet") / "templates" / "psynet_error.html"
-    ).read_text(encoding="utf-8")
+    source = (resources.files("psynet") / "templates" / "psynet_error.html").read_text(
+        encoding="utf-8"
+    )
 
     assert "error_recovery_presentation.researcher_contact_message" in source
     assert "quote reference code" in source
@@ -796,8 +796,8 @@ def test_error_page_automatically_executes_its_server_owned_exit_plan():
     assert "An error occurred" in error
     assert "Finish session" not in error
     assert 'id="early-exit-modal"' not in error
-    # Automatic exit may itself fail, so the participant keeps
-    # the contact address and the identifiers a researcher would ask for.
+    # Generic recruitment keeps one useful reference for researcher support,
+    # without exposing a block of internal identifiers to every participant.
     assert 'id="error-contact"' in error
-    assert 'id="error-identifiers"' in error
-    assert "Assignment ID" in error
+    assert 'id="error-identifiers"' not in error
+    assert "<code>{{ assignment_id }}</code>" in error
