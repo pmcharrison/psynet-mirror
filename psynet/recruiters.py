@@ -73,7 +73,6 @@ from dallinger.recruiters import (
     handle_recruitment_error,
 )
 from dallinger.utils import get_base_url
-from dominate import tags
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
