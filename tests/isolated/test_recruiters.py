@@ -707,9 +707,12 @@ def test_issue_unsuccessful_completion_code_stamps_failed_participant():
     assert participant.issued_completion_code_type == PROLIFIC_UNSUCCESSFUL_CODE_TYPE
 
 
-def _early_exit_test_plan(path=EarlyExitPath.END_SESSION):
+def _early_exit_test_plan(
+    path=EarlyExitPath.END_SESSION,
+    context=EarlyExitContext.VOLUNTARY,
+):
     return EarlyExitPlan.create(
-        context=EarlyExitContext.VOLUNTARY,
+        context=context,
         path=path,
         confirmation=EarlyExitConfirmation(
             title="Leave?",
@@ -729,6 +732,17 @@ def test_execute_early_exit_plan_marks_early_exited_and_fails():
     assert participant.early_exited is True
     participant.module_state.mark_early_exited.assert_called_once()
     participant.fail.assert_called_once_with("early_exit")
+
+
+def test_execute_error_recovery_plan_records_the_error_context():
+    participant = MagicMock(failed=False)
+    PsyNetRecruiterMixin().execute_early_exit_plan(
+        MagicMock(),
+        participant,
+        _early_exit_test_plan(context=EarlyExitContext.ERROR_RECOVERY),
+    )
+
+    participant.fail.assert_called_once_with("error_recovery")
 
 
 def test_execute_early_exit_plan_skips_fail_when_already_failed():

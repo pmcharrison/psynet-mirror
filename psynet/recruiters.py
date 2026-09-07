@@ -454,11 +454,12 @@ class PsyNetRecruiterMixin:
         if participant.module_state:
             participant.module_state.mark_early_exited()
         if not participant.failed:
-            reason = (
-                "early_exit_without_payment"
-                if plan.path is EarlyExitPath.RETURN_WITHOUT_PAYMENT
-                else "early_exit"
-            )
+            if plan.context is EarlyExitContext.ERROR_RECOVERY:
+                reason = "error_recovery"
+            elif plan.path is EarlyExitPath.RETURN_WITHOUT_PAYMENT:
+                reason = "early_exit_without_payment"
+            else:
+                reason = "early_exit"
             participant.fail(reason)
 
     def gates_early_exit_on_reward(self) -> bool:
