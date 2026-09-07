@@ -2,6 +2,7 @@ import hashlib
 import os
 import re
 import zipfile
+from importlib import resources
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
