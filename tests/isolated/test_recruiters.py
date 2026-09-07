@@ -761,7 +761,7 @@ def test_default_error_recovery_page_is_terminal():
 
 
 def test_prolific_error_recovery_explains_payment_and_submits_directly():
-    recruiter = object.__new__(PsyNetProlificRecruiterMixin)
+    recruiter = make_prolific_recruiter(make_config())
     participant = SimpleNamespace(id=42, assignment_id="assignment-1")
     plan = EarlyExitPlan.create(
         context=EarlyExitContext.ERROR_RECOVERY,
