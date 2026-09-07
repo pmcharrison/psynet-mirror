@@ -49,7 +49,6 @@ from dallinger.recruiters import (
 from dallinger.utils import classproperty
 from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
-from dominate import tags
 from flask import flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask import g as flask_app_globals
 from flask_login import login_required

@@ -916,9 +916,7 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation():
             experiment, participant, EarlyExitContext.VOLUNTARY
         )
     assert plan.path is EarlyExitPath.SCREEN_OUT
-    assert "a further $0.55 will be paid as a bonus" in (
-        plan.confirmation.message
-    )
+    assert "a further $0.55 will be paid as a bonus" in (plan.confirmation.message)
 
     participant.early_exited = True
     participant.early_exit_plan = plan.mark_executed().to_dict()
@@ -926,9 +924,7 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation():
 
     assert recruiter.decide_payment(
         participant, experiment=experiment
-    ) == PaymentDecision(
-        status="screened_out", platform_base=0.25, bonus=0.55
-    )
+    ) == PaymentDecision(status="screened_out", platform_base=0.25, bonus=0.55)
 
 
 def test_execute_early_exit_plan_rejects_a_path_the_recruiter_cannot_run():
