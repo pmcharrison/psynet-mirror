@@ -56,7 +56,10 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
             "show_early_exit_button": False,
             "contact_email_on_error": "researcher@example.test",
         }.get
-        Experiment.error_page(participant=participant, recruiter=MagicMock())
+        Experiment.error_page(
+            participant=participant,
+            recruiter=SimpleNamespace(show_early_exit_button=False),
+        )
 
     assert participant.early_exit_plan == plan.to_dict()
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
