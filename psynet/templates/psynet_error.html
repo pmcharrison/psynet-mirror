@@ -3,10 +3,12 @@
 {% block body %}
     <div class="container my-5 psynet-surface">
         <div>
-            <div class="col-auto">
-              <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
+            {# The placeholder stays hidden until theme.html swaps in the themed logos,
+               otherwise the browser paints the raw PNG first and then replaces it. #}
+            <div class="row overflow-hidden mb-3" style="height: 73px;">
+                <img id="adlogo" style="display: none" alt="Lab Logo" />
             </div>
-            <h1 id="header" style="clear: both;">{{ pgettext("error", "An error occurred") }}</h1>
+            <h1 id="header">{{ pgettext("error", "An error occurred") }}</h1>
             <hr>
             <div>
                 <p id="error-text">{{ error_text }}</p>

@@ -797,6 +797,16 @@ def test_shared_early_exit_modal_renders_server_offer_and_actions():
     assert "Cancel" in rendered[cancel_start:]
 
 
+def test_no_page_paints_a_placeholder_logo_before_the_theme_swap():
+    """theme.html replaces #adlogo on DOMContentLoaded, so a real src flashes first."""
+    templates = resources.files("psynet") / "templates"
+    for name in ("ad.html", "consent.html", "psynet_error.html"):
+        source = (templates / name).read_text(encoding="utf-8")
+        tag = source[source.index('id="adlogo"') :].split(">", 1)[0]
+        assert "display: none" in tag, name
+        assert "src=" not in tag, name
+
+
 def test_error_page_automatically_executes_its_server_owned_exit_plan():
     templates = resources.files("psynet") / "templates"
     ad = (templates / "ad.html").read_text(encoding="utf-8")
