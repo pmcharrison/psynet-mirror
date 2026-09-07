@@ -22,6 +22,12 @@ test(
             <p id="automatic-early-exit-pending">Ending your session safely...</p>
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
+            <p id="automatic-early-exit-ready" hidden>
+              Your session is ready to finish.
+            </p>
+            <button id="automatic-early-exit-continue" hidden>
+              Finish session
+            </button>
           </div>
         `
       });
@@ -49,8 +55,13 @@ test(
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await page.evaluate(() => window.psynetEarlyExit.init());
 
+    await expect(page).toHaveURL("http://psynet.test/error");
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-continue")).toBeVisible();
+    expect(submittedOffer).toEqual({ offer_id: "offer-1" });
+
+    await page.locator("#automatic-early-exit-continue").click();
     await expect(page).toHaveURL("http://psynet.test/release");
     await expect(page.locator("h1")).toHaveText("Session ended after an error");
-    expect(submittedOffer).toEqual({ offer_id: "offer-1" });
   }
 );

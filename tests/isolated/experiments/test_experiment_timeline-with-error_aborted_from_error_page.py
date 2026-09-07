@@ -51,6 +51,22 @@ class TestExp:
                 next_page(driver, "next-button")
 
             WebDriverWait(driver, 10).until(
+                lambda browser: browser.find_element(
+                    By.ID, "automatic-early-exit-continue"
+                ).is_displayed()
+            )
+            assert "/recruiter-exit" not in driver.current_url
+            assert_text(driver, "header", "The experiment has ended")
+            assert_text(
+                driver,
+                "automatic-early-exit-ready",
+                "Your session is ready to finish. When you are ready, select "
+                "Finish session.",
+            )
+            assert not driver.find_elements(By.ID, "early-exit-open")
+
+            driver.find_element(By.ID, "automatic-early-exit-continue").click()
+            WebDriverWait(driver, 10).until(
                 lambda browser: "/recruiter-exit" in browser.current_url
             )
             assert_text(driver, "header", "Thank you for taking part.")
