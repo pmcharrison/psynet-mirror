@@ -272,21 +272,27 @@ General
     outcome. Lucid always permits termination and never talks about PsyNet
     payment.
 
-    PsyNet prepares an :class:`~psynet.early_exit.EarlyExitPlan` before showing
-    a voluntary confirmation or automatically ending a session after an error.
-    The plan records both the participant-facing copy and the recruiter path.
-    The plan is stored on
-    :attr:`~psynet.participant.Participant.early_exit_plan`, so the browser
-    cannot select a different payment path. Any amounts quoted by the standard
-    plan are also used for the eventual payment decision. Voluntary confirmation
-    advances directly to a dedicated release branch. After a fatal error, PsyNet
-    executes the plan without confirmation and derives the final message and
-    action from the planned recruiter path. Platform-specific return or
-    submission instructions therefore come from the same plan. Lucid keeps the
-    explanation visible for five seconds before returning the participant to
-    their panel; the participant can select **Return to your panel** to go
-    immediately. If the error page is refreshed after the plan executes, PsyNet
-    restores the same presentation so an unfinished platform handoff can resume.
+    PsyNet represents every terminal outcome with an
+    :class:`~psynet.exit.ExitPlan`: successful completion, unsuccessful
+    completion, rejected consent, voluntary Leave, and fatal-error recovery.
+    The plan records the outcome, recruiter path, and
+    :class:`~psynet.exit.PaymentDecision` that will be used when payment is
+    processed. It is stored on
+    :attr:`~psynet.participant.Participant.exit_plan`, giving final pages,
+    recruiter handoff, and later payment settlement one source of truth.
+    Spend caps are still applied immediately before transfer.
+
+    Voluntary Leave prepares the plan before showing its confirmation and
+    commits it only after the participant confirms. Successful and unsuccessful
+    timeline endings commit their plans as they enter their existing end
+    branches. After a fatal error, PsyNet commits the plan automatically and
+    derives the final message and action from the planned recruiter path.
+    Platform-specific return or submission instructions therefore come from the
+    same plan. Lucid keeps the explanation visible for five seconds before
+    returning the participant to their panel; the participant can select
+    **Return to your panel** to go immediately. If the error page is refreshed
+    after the plan commits, PsyNet restores the same presentation so an
+    unfinished platform handoff can resume.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the
@@ -314,7 +320,7 @@ General
     Recruiters provide both tracked and untracked error-page content through
     :meth:`~psynet.recruiters.PsyNetRecruiterMixin.error_page_presentation`.
     The hook receives an optional participant and plan and always returns an
-    :class:`~psynet.early_exit.ErrorRecoveryPresentation`, which declares the
+    :class:`~psynet.exit.ErrorRecoveryPresentation`, which declares the
     copy and any POST, button, or redirect required by the platform. Override
     this hook on a custom recruiter to customize error pages;
     ``Experiment.error_page_content`` and recruiter ``error_page_content``

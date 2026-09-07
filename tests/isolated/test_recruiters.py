@@ -813,6 +813,72 @@ def _participant_for_early_exit(reward=0.50, performance_reward=0.0):
 
 
 @pytest.mark.parametrize(
+    "recruiter_class,context,config_overrides,expected_path,expected_payment",
+    [
+        (
+            PsyNetRecruiterMixin,
+            ExitContext.SUCCESSFUL,
+            {},
+            ExitPath.END_SESSION,
+            PaymentDecision("approved", 1.0, 0.0),
+        ),
+        (
+            PsyNetProlificRecruiterMixin,
+            ExitContext.UNSUCCESSFUL,
+            {},
+            ExitPath.SCREEN_OUT,
+            PaymentDecision("screened_out", 0.25, 0.55),
+        ),
+        (
+            PsyNetProlificRecruiterMixin,
+            ExitContext.UNSUCCESSFUL,
+            {"prolific_pay_unsuccessful": False},
+            ExitPath.RETURN_FOR_BONUS,
+            PaymentDecision("returned", 0.0, 0.80),
+        ),
+        (
+            BaseLucidRecruiter,
+            ExitContext.REJECTED_CONSENT,
+            {},
+            ExitPath.TERMINATE_PANEL_SESSION,
+            PaymentDecision("approved", 1.0, 0.0),
+        ),
+    ],
+)
+def test_recruiters_plan_terminal_exit_outcomes(
+    recruiter_class,
+    context,
+    config_overrides,
+    expected_path,
+    expected_payment,
+):
+    recruiter = object.__new__(recruiter_class)
+    participant = _participant_for_early_exit(reward=0.80)
+    participant.status = "working"
+    participant.failed = context is not ExitContext.SUCCESSFUL
+    participant.issued_completion_code_type = None
+    experiment = MagicMock(base_payment=1.0)
+
+    with (
+        patched_early_exit_config(make_config(**config_overrides)),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+    ):
+        plan = recruiter.plan_exit(experiment, participant, context)
+
+    assert plan.context is context
+    assert plan.path is expected_path
+    assert plan.payment == expected_payment
+    assert plan.confirmation is None
+    assert plan.status == "committed"
+    participant.exit_plan = plan.to_dict()
+    participant.calculate_reward.return_value = 99.0
+    assert recruiter.decide_payment(
+        participant,
+        experiment=experiment,
+    ) == expected_payment
+
+
+@pytest.mark.parametrize(
     "recruiter_class, expected_path, expected_message",
     [
         (
