@@ -50,8 +50,8 @@
     if (!response.ok) throw new Error("The next action did not succeed.");
   }
 
-  async function executePlan(assignmentId, offerId, reloadStaleOffer = true) {
-    if (!assignmentId || !offerId) {
+  async function executePlan(assignmentId, planId, reloadStaleOffer = true) {
+    if (!assignmentId || !planId) {
       throw new Error("The server did not provide an early-exit plan.");
     }
     const response = await fetch(
@@ -59,7 +59,7 @@
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ offer_id: offerId }),
+        body: JSON.stringify({ plan_id: planId }),
       },
     );
     const result = await response.json().catch(() => ({}));

@@ -758,7 +758,7 @@ def test_footer_exit_uses_an_in_page_confirmation():
     assert "result.release_url" in early_exit_js
     assert '"/execute_early_exit_plan/"' in early_exit_js
     assert 'method: "POST"' in early_exit_js
-    assert "offer_id: offerId" in early_exit_js
+    assert "plan_id: planId" in early_exit_js
     # A stale offer is refused by the server; retrying it cannot help.
     assert 'result.error_code === "stale_early_exit_offer"' in early_exit_js
     assert "global.location.reload()" in early_exit_js

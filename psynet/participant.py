@@ -245,10 +245,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         Whether the participant's session ended through an early-exit plan,
         either after they confirmed Leave or during automatic error recovery.
 
-    early_exit_plan : dict or None
-        The server-owned :class:`~psynet.early_exit.EarlyExitPlan` snapshot
-        offered to this participant. It records the confirmation they saw and
-        the recruiter path executed if they confirmed.
+    exit_plan : dict or None
+        The server-owned :class:`~psynet.exit.ExitPlan` snapshot for this
+        participant's terminal outcome.
 
     answer : object
         The most recent answer submitted by the participant.
@@ -322,7 +321,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     page_uuid = Column(String)
     page_count = Column(Integer)
     early_exited = Column(Boolean)
-    early_exit_plan = Column(PythonDict)
+    exit_plan = Column(PythonDict)
     complete = Column(Boolean)
     pending_redirect = Column(String)
     answer = Column(PythonObject)
@@ -657,7 +656,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         super().__init__(*args, **kwargs)
         self.page_count = 0
         self.early_exited = False
-        self.early_exit_plan = None
+        self.exit_plan = None
         self.complete = False
         self.vars = {}
         self.time_credit = 0.0

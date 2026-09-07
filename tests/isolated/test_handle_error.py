@@ -5,11 +5,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from dallinger import db
 
-from psynet.early_exit import (
+from psynet.exit import (
     EarlyExitConfirmation,
-    EarlyExitContext,
-    EarlyExitPath,
-    EarlyExitPlan,
+    ExitContext,
+    ExitPath,
+    ExitPlan,
 )
 from psynet.error import ErrorRecord
 from psynet.experiment import Experiment
@@ -33,12 +33,14 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
         complete=False,
         failed=False,
         early_exited=False,
-        early_exit_plan=None,
+        exit_plan=None,
         fail=MagicMock(),
     )
-    plan = EarlyExitPlan.create(
-        context=EarlyExitContext.ERROR_RECOVERY,
-        path=EarlyExitPath.END_SESSION,
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_is_final=False,
         confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
     )
     experiment = MagicMock()
@@ -66,8 +68,8 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
             recruiter=recruiter,
         )
 
-    assert participant.early_exit_plan == plan.to_dict()
-    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
+    assert participant.exit_plan == plan.to_dict()
+    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.plan_id
     assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_called_once_with(participant)
     participant.fail.assert_called_once_with("error_recovery")
@@ -86,12 +88,14 @@ def test_render_error_page_does_not_change_recovery_state():
     participant = SimpleNamespace(
         id=42,
         assignment_id="assignment-1",
-        early_exit_plan={"unchanged": True},
+        exit_plan={"unchanged": True},
         fail=MagicMock(),
     )
-    plan = EarlyExitPlan.create(
-        context=EarlyExitContext.ERROR_RECOVERY,
-        path=EarlyExitPath.END_SESSION,
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_is_final=False,
         confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
     )
     recruiter = MagicMock()
@@ -114,7 +118,7 @@ def test_render_error_page_does_not_change_recovery_state():
             locale="en",
         )
 
-    assert participant.early_exit_plan == {"unchanged": True}
+    assert participant.exit_plan == {"unchanged": True}
     participant.fail.assert_not_called()
     recruiter.prepare_error_recovery.assert_not_called()
 
@@ -122,11 +126,13 @@ def test_render_error_page_does_not_change_recovery_state():
 def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
     from flask import Flask
 
-    plan = EarlyExitPlan.create(
-        context=EarlyExitContext.ERROR_RECOVERY,
-        path=EarlyExitPath.END_SESSION,
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_is_final=False,
         confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
-    ).mark_executed()
+    ).mark_committed()
     participant = SimpleNamespace(
         id=42,
         hit_id="study-1",
@@ -135,7 +141,7 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
         complete=False,
         failed=True,
         early_exited=True,
-        early_exit_plan=plan.to_dict(),
+        exit_plan=plan.to_dict(),
         fail=MagicMock(),
     )
     experiment = MagicMock()
@@ -156,7 +162,7 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
         config.return_value.get.return_value = "researcher@example.test"
         Experiment.error_page(participant=participant, recruiter=recruiter)
 
-    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
+    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.plan_id
     assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_not_called()
     participant.fail.assert_not_called()
@@ -173,11 +179,13 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
 def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_copy():
     from flask import Flask
 
-    plan = EarlyExitPlan.create(
-        context=EarlyExitContext.VOLUNTARY,
-        path=EarlyExitPath.END_SESSION,
+    plan = ExitPlan.create(
+        context=ExitContext.VOLUNTARY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_is_final=False,
         confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
-    ).mark_executed()
+    ).mark_committed()
     participant = SimpleNamespace(
         id=42,
         hit_id="study-1",
@@ -186,7 +194,7 @@ def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_cop
         complete=False,
         failed=True,
         early_exited=True,
-        early_exit_plan=plan.to_dict(),
+        exit_plan=plan.to_dict(),
         fail=MagicMock(),
     )
     experiment = MagicMock()

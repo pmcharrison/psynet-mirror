@@ -8,11 +8,11 @@ from dallinger import db
 from flask import Flask
 from sqlalchemy import inspect
 
-from psynet.early_exit import (
+from psynet.exit import (
     EarlyExitConfirmation,
-    EarlyExitContext,
-    EarlyExitPath,
-    EarlyExitPlan,
+    ExitContext,
+    ExitPath,
+    ExitPlan,
 )
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
@@ -51,7 +51,7 @@ def participant_with_module_state(db_session):
     return unique_id
 
 
-def test_early_exit_plan_persists_and_rolls_back(db_session):
+def test_exit_plan_persists_and_rolls_back(db_session):
     experiment = get_experiment()
     participant = Participant(
         experiment=experiment,
@@ -61,9 +61,11 @@ def test_early_exit_plan_persists_and_rolls_back(db_session):
         assignment_id=str(uuid.uuid4()),
         mode="debug",
     )
-    plan = EarlyExitPlan.create(
-        context=EarlyExitContext.VOLUNTARY,
-        path=EarlyExitPath.END_SESSION,
+    plan = ExitPlan.create(
+        context=ExitContext.VOLUNTARY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_is_final=False,
         confirmation=EarlyExitConfirmation(
             title="Leave?",
             message="Responses saved.",
@@ -71,20 +73,20 @@ def test_early_exit_plan_persists_and_rolls_back(db_session):
             cancel_label="Continue",
         ),
     )
-    participant.early_exit_plan = plan.to_dict()
+    participant.exit_plan = plan.to_dict()
     db.session.add(participant)
     db.session.commit()
     participant_id = participant.id
     db.session.remove()
 
     reloaded = Participant.query.get(participant_id)
-    assert EarlyExitPlan.from_dict(reloaded.early_exit_plan) == plan
+    assert ExitPlan.from_dict(reloaded.exit_plan) == plan
 
-    reloaded.early_exit_plan = plan.mark_executed().to_dict()
+    reloaded.exit_plan = plan.mark_committed().to_dict()
     db.session.flush()
     db.session.rollback()
     db.session.remove()
-    assert Participant.query.get(participant_id).early_exit_plan == plan.to_dict()
+    assert Participant.query.get(participant_id).exit_plan == plan.to_dict()
 
 
 def test_participant_request_query_loads_relationships_only_when_used(

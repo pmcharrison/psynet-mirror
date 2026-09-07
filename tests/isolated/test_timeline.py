@@ -8,7 +8,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from markupsafe import Markup
 
-from psynet.end import UnsuccessfulEndLogic
+from psynet.end import (
+    RejectedConsentLogic,
+    SuccessfulEndLogic,
+    UnsuccessfulEndLogic,
+)
+from psynet.exit import ExitContext, ExitPath, ExitPlan, PaymentDecision
 from psynet.experiment import Experiment
 from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
 from psynet.timeline import (
@@ -1061,7 +1066,7 @@ def test_page_rejects_conflicting_abort_and_termination_flags():
 
 
 def test_experiment_delegates_voluntary_early_exit_planning_to_recruiter():
-    from psynet.early_exit import EarlyExitContext
+    from psynet.exit import ExitContext
 
     custom_plan = object()
     experiment = object.__new__(Experiment)
@@ -1073,12 +1078,12 @@ def test_experiment_delegates_voluntary_early_exit_planning_to_recruiter():
     experiment.recruiter.plan_early_exit.assert_called_once_with(
         experiment,
         participant,
-        EarlyExitContext.VOLUNTARY,
+        ExitContext.VOLUNTARY,
     )
 
 
 def test_experiment_delegates_error_recovery_planning_without_eligibility_check():
-    from psynet.early_exit import EarlyExitContext
+    from psynet.exit import ExitContext
 
     custom_plan = object()
     experiment = object.__new__(Experiment)
@@ -1093,8 +1098,41 @@ def test_experiment_delegates_error_recovery_planning_without_eligibility_check(
     experiment.recruiter.plan_early_exit.assert_called_once_with(
         experiment,
         participant,
-        EarlyExitContext.ERROR_RECOVERY,
+        ExitContext.ERROR_RECOVERY,
     )
+
+
+@pytest.mark.parametrize(
+    "logic,context",
+    [
+        (SuccessfulEndLogic(), ExitContext.SUCCESSFUL),
+        (UnsuccessfulEndLogic(), ExitContext.UNSUCCESSFUL),
+        (RejectedConsentLogic(), ExitContext.REJECTED_CONSENT),
+    ],
+)
+def test_end_logic_stores_a_committed_exit_plan(logic, context):
+    participant = SimpleNamespace(exit_plan=None)
+    experiment = MagicMock()
+    plan = ExitPlan.create(
+        context=context,
+        path=ExitPath.END_SESSION,
+        payment=PaymentDecision(
+            status="approved",
+            platform_base=1.0,
+            bonus=0.5,
+        ),
+        currency="$",
+    )
+    experiment.recruiter.plan_exit.return_value = plan
+
+    logic.prepare_exit(experiment, participant)
+
+    experiment.recruiter.plan_exit.assert_called_once_with(
+        experiment,
+        participant,
+        context,
+    )
+    assert ExitPlan.from_dict(participant.exit_plan) == plan.mark_committed()
 
 
 def test_page_show_early_exit_button_does_not_warn():

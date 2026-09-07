@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 import dominate
 from dominate import tags
 
+from psynet import exit as exit_domain
 from psynet.modular_page import NullControl
 from psynet.timeline import (
     CodeBlock,
@@ -15,10 +16,29 @@ from psynet.timeline import (
 from psynet.utils import get_translator
 
 
-class EndLogic(EltCollection):
+class ExitLogic(EltCollection):
+    """Shared recruiter release behavior for terminal timeline branches."""
+
+    def release_participant(self, experiment, participant) -> TimelineLogic:
+        """Return the recruiter-specific participant handoff."""
+        try:
+            return experiment.recruiter.release_participant(experiment, participant)
+        except AttributeError:
+            raise ValueError(
+                f"The selected recruiter ({experiment.recruiter}) is not fully implemented in PsyNet. "
+                "No release_participant method was found."
+            )
+
+
+class EndLogic(ExitLogic):
+    """Show a terminal debrief before recruiter release."""
+
+    exit_context: exit_domain.ExitContext
+
     def resolve(self) -> Union[Elt, List[Elt]]:
         return join(
             CodeBlock(self.before_debrief),
+            CodeBlock(self.prepare_exit),
             PageMaker(self.debrief_participant, time_estimate=0.0),
             CodeBlock(self.after_debrief),
             PageMaker(self.release_participant, time_estimate=0.0),
@@ -30,20 +50,22 @@ class EndLogic(EltCollection):
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         raise NotImplementedError
 
+    def prepare_exit(self, experiment, participant) -> None:
+        """Store the recruiter decision shared by debrief and settlement."""
+        plan = exit_domain._committed_exit_plan(participant)
+        if plan is None:
+            plan = experiment.recruiter.plan_exit(
+                experiment,
+                participant,
+                self.exit_context,
+            )
+            participant.exit_plan = plan.mark_committed().to_dict()
+
     def after_debrief(self, experiment, participant) -> None:
         from psynet.bot import Bot
 
         if isinstance(participant, Bot):
             participant.status = "approved"
-
-    def release_participant(self, experiment, participant) -> TimelineLogic:
-        try:
-            return experiment.recruiter.release_participant(experiment, participant)
-        except AttributeError:
-            raise ValueError(
-                f"The selected recruiter ({experiment.recruiter}) is not fully implemented in PsyNet. "
-                "No release_participant method was found."
-            )
 
     def debrief_page(
         self, content, experiment, participant, show_finish_button=True
@@ -115,6 +137,8 @@ class EndLogic(EltCollection):
 
 
 class SuccessfulEndLogic(EndLogic):
+    exit_context = exit_domain.ExitContext.SUCCESSFUL
+
     def after_debrief(self, experiment, participant):
         super().after_debrief(experiment, participant)
         participant.complete = True
@@ -143,18 +167,16 @@ class SuccessfulEndLogic(EndLogic):
         return self.debrief_page(html, experiment, participant)
 
 
-class EarlyExitReleaseLogic(EltCollection):
-    """Run recruiter-specific release after voluntary or automatic exit."""
+class ImmediateExitLogic(ExitLogic):
+    """Run recruiter-specific release without a timeline debrief."""
 
     def resolve(self) -> Union[Elt, List[Elt]]:
         return PageMaker(self.release_participant, time_estimate=0.0)
 
-    def release_participant(self, experiment, participant) -> TimelineLogic:
-        """Return the release flow selected by the participant's stored plan."""
-        return experiment.recruiter.release_participant(experiment, participant)
-
 
 class UnsuccessfulEndLogic(EndLogic):
+    exit_context = exit_domain.ExitContext.UNSUCCESSFUL
+
     def __init__(self, failure_tags: Optional[List] = None, **kwargs):
         super().__init__()
 
@@ -213,6 +235,8 @@ class UnsuccessfulEndLogic(EndLogic):
 
 
 class RejectedConsentLogic(UnsuccessfulEndLogic):
+    exit_context = exit_domain.ExitContext.REJECTED_CONSENT
+
     def before_debrief(self, experiment, participant) -> None:
         super().before_debrief(experiment, participant)
 

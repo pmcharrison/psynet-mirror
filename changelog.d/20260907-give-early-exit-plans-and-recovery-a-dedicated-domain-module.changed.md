@@ -1,1 +1,1 @@
-Early-exit plans and error-recovery presentations now live in a dedicated domain module.
+Successful, unsuccessful, voluntary, consent-rejection, and error-recovery exits now share a server-owned ``ExitPlan`` and planned payment decision.

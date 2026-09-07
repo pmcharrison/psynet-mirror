@@ -69,7 +69,7 @@ test(
     await expect(page).toHaveURL("http://psynet.test/error");
     await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
     await expect(page.locator("#automatic-early-exit-continue")).toHaveCount(0);
-    expect(submittedOffer).toEqual({ offer_id: "offer-1" });
+    expect(submittedOffer).toEqual({ plan_id: "offer-1" });
     expect(completedParticipant).toEqual({ participant_id: "42" });
     expect(completionAttempts).toBe(2);
 

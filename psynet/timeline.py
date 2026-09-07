@@ -1890,7 +1890,7 @@ class Page(Elt):
         show_early_exit_button = self.early_exit_available(experiment, participant)
         if show_early_exit_button:
             early_exit_plan = experiment.early_exit_plan(participant)
-            participant.early_exit_plan = early_exit_plan.to_dict()
+            participant.exit_plan = early_exit_plan.to_dict()
         else:
             early_exit_plan = None
 
@@ -1934,7 +1934,7 @@ class Page(Elt):
             "early_exit_confirmation": (
                 early_exit_plan.confirmation if early_exit_plan else None
             ),
-            "early_exit_offer_id": early_exit_plan.offer_id
+            "early_exit_offer_id": early_exit_plan.plan_id
             if early_exit_plan
             else None,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
@@ -2308,7 +2308,7 @@ class Timeline:
         from collections import OrderedDict
 
         from psynet.end import (
-            EarlyExitReleaseLogic,
+            ImmediateExitLogic,
             RejectedConsentLogic,
             SuccessfulEndLogic,
             UnsuccessfulEndLogic,
@@ -2319,11 +2319,12 @@ class Timeline:
             [
                 ("successful_end", SuccessfulEndLogic()),
                 ("unsuccessful_end", UnsuccessfulEndLogic()),
-                ("early_exit_release", EarlyExitReleaseLogic()),
+                ("early_exit_release", ImmediateExitLogic()),
                 ("rejected_consent", RejectedConsentLogic()),
             ]
         )
         default_branches.update(branch_kwargs)
+        self.terminal_branch_names = frozenset(default_branches)
 
         self.elts = OrderedDict()
         self.elts["main"] = join(*args, SuccessfulEndPage())
@@ -2347,7 +2348,7 @@ class Timeline:
 
     def participant_is_in_end_logic(self, participant):
         """Return True if the participant is in any end logic branch."""
-        return self.get_participant_branch(participant) != "main"
+        return self.get_participant_branch(participant) in self.terminal_branch_names
 
     def redirect_to_branch(self, experiment, participant, branch_name):
         """Redirect a participant to the start of a named branch.

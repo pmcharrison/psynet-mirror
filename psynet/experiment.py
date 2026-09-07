@@ -66,16 +66,12 @@ from psynet.utils import (
 )
 
 from . import deployment_info
+from . import exit as exit_domain
 from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
 from .bot import Bot, BotDriver, BotResponse
 from .command_line import export_launch_data
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import transaction, with_transaction
-from .early_exit import (
-    EarlyExitContext,
-    EarlyExitPlan,
-    _executed_early_exit_plan,
-)
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
@@ -102,7 +98,6 @@ from .recruiters import (  # noqa: F401
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
-    PaymentDecision,
     PsyNetProlificRecruiterMixin,
     StagingCapRecruiter,  # noqa: F401  # Backward compatibility alias
     StagingLabRecruiter,
@@ -1617,7 +1612,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         experiment,
         recruiter,
         participant,
-    ) -> EarlyExitPlan | None:
+    ) -> exit_domain.ExitPlan | None:
         """Return the existing recovery plan or create one when appropriate."""
         if (
             participant is None
@@ -1626,13 +1621,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ):
             return None
 
-        plan = _executed_early_exit_plan(participant)
+        plan = exit_domain._committed_exit_plan(participant)
         if plan is not None or participant.early_exited:
             return plan
 
         recruiter.prepare_error_recovery(participant)
         plan = experiment.error_recovery_early_exit_plan(participant)
-        participant.early_exit_plan = plan.to_dict()
+        participant.exit_plan = plan.to_dict()
         if not participant.failed:
             participant.fail("error_recovery")
         return plan
@@ -1678,9 +1673,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 error_text=error_text,
                 assignment_id=assignment_id,
                 automatic_exit_offer_id=(
-                    plan.offer_id
+                    plan.plan_id
                     if plan is not None
-                    and plan.context is EarlyExitContext.ERROR_RECOVERY
+                    and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
                     else None
                 ),
                 error_page_presentation=error_page_presentation,
@@ -2677,7 +2672,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "by the recruiter's decide_payment method."
         )
 
-    def decide_and_record_payment(self, participant) -> PaymentDecision:
+    def decide_and_record_payment(
+        self, participant
+    ) -> exit_domain.PaymentDecision:
         """Decide how the participant should be paid and write it to the ledger."""
         recruiter = participant.recruiter
         decision = recruiter.decide_payment(participant, experiment=self)
@@ -3257,20 +3254,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
-    def early_exit_plan(self, participant) -> EarlyExitPlan:
+    def early_exit_plan(self, participant) -> exit_domain.ExitPlan:
         """Return the confirmation and execution plan for voluntary Leave."""
         return self.recruiter.plan_early_exit(
             self,
             participant,
-            EarlyExitContext.VOLUNTARY,
+            exit_domain.ExitContext.VOLUNTARY,
         )
 
-    def error_recovery_early_exit_plan(self, participant) -> EarlyExitPlan:
+    def error_recovery_early_exit_plan(
+        self, participant
+    ) -> exit_domain.ExitPlan:
         """Return an exit plan after an error, without checking reward eligibility."""
         return self.recruiter.plan_early_exit(
             self,
             participant,
-            EarlyExitContext.ERROR_RECOVERY,
+            exit_domain.ExitContext.ERROR_RECOVERY,
         )
 
     def early_exit_allowed(self, participant):
@@ -4805,23 +4804,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return cls._stale_early_exit_response()
 
         try:
-            plan = EarlyExitPlan.from_dict(participant.early_exit_plan)
+            plan = exit_domain.ExitPlan.from_dict(participant.exit_plan)
         except (AttributeError, KeyError, TypeError, ValueError):
             return cls._stale_early_exit_response()
 
         payload = request.get_json(silent=True) or {}
-        if not isinstance(payload, dict) or payload.get("offer_id") != plan.offer_id:
+        if not isinstance(payload, dict) or payload.get("plan_id") != plan.plan_id:
             return cls._stale_early_exit_response()
-        if plan.status == "executed":
+        if plan.status is exit_domain.ExitPlanStatus.COMMITTED:
             return success_response(release_url=release_url)
 
         experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
-        participant.early_exit_plan = plan.mark_executed().to_dict()
+        participant.exit_plan = plan.mark_committed().to_dict()
         participant.pending_redirect = "early_exit_release"
         experiment.timeline.advance_page(experiment, participant)
         logger.info(
             "Executed early-exit plan %s (%s) for participant %s.",
-            plan.offer_id,
+            plan.plan_id,
             plan.path.value,
             participant.id,
         )
