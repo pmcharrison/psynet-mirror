@@ -299,8 +299,7 @@ def test_body_spacing_is_only_for_a_footerless_media_bar():
     )
     assert "body:has(#footer)" not in css
     assert (
-        "body:has(#timeline-root > #media-download-progress-bar:not([hidden]))"
-        in css
+        "body:has(#timeline-root > #media-download-progress-bar:not([hidden]))" in css
     )
 
 
