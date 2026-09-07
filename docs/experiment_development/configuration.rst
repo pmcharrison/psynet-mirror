@@ -272,7 +272,7 @@ General
     outcome. Lucid always permits termination and never talks about PsyNet
     payment.
 
-    PsyNet prepares an :class:`~psynet.recruiters.EarlyExitPlan` before showing
+    PsyNet prepares an :class:`~psynet.early_exit.EarlyExitPlan` before showing
     a voluntary confirmation or automatically ending a session after an error.
     The plan records both the participant-facing copy and the recruiter path.
     The plan is stored on
@@ -314,7 +314,7 @@ General
     Recruiters provide both tracked and untracked error-page content through
     :meth:`~psynet.recruiters.PsyNetRecruiterMixin.error_page_presentation`.
     The hook receives an optional participant and plan and always returns an
-    :class:`~psynet.recruiters.ErrorRecoveryPresentation`, which declares the
+    :class:`~psynet.early_exit.ErrorRecoveryPresentation`, which declares the
     copy and any POST, button, or redirect required by the platform. Override
     this hook on a custom recruiter to customize error pages;
     ``Experiment.error_page_content`` and recruiter ``error_page_content``

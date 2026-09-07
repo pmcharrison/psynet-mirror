@@ -8,15 +8,15 @@ from dallinger import db
 from flask import Flask
 from sqlalchemy import inspect
 
-from psynet.experiment import get_experiment
-from psynet.participant import Participant
-from psynet.pytest_psynet import path_to_test_experiment
-from psynet.recruiters import (
+from psynet.early_exit import (
     EarlyExitConfirmation,
     EarlyExitContext,
     EarlyExitPath,
     EarlyExitPlan,
 )
+from psynet.experiment import get_experiment
+from psynet.participant import Participant
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.sqlalchemy_profiling import assert_query_count
 from psynet.timeline import ModuleState
 

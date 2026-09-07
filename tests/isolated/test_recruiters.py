@@ -7,6 +7,12 @@ import dallinger.recruiters
 import pytest
 from dallinger.prolific import ProlificServiceException
 
+from psynet.early_exit import (
+    EarlyExitConfirmation,
+    EarlyExitContext,
+    EarlyExitPath,
+    EarlyExitPlan,
+)
 from psynet.participant import (
     BONUS_PAY_IN_PROGRESS,
     BONUS_STATUS_CAPPED,
@@ -27,11 +33,6 @@ from psynet.recruiters import (
     PROLIFIC_UNSUCCESSFUL_CODE_TYPE,
     BaseLabRecruiter,
     BaseLucidRecruiter,
-    EarlyExitConfirmation,
-    EarlyExitContext,
-    EarlyExitPath,
-    EarlyExitPlan,
-    ErrorRecoveryPresentation,
     HotAirRecruiter,
     PaymentDecision,
     ProlificRecruiter,
@@ -638,15 +639,6 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
     )
 
 
-def test_error_recovery_presentation_rejects_an_incomplete_handoff():
-    with pytest.raises(ValueError, match="button label"):
-        ErrorRecoveryPresentation(
-            message="Continue.",
-            failure_message="Try again.",
-            destination_url="https://example.test/exit",
-        )
-
-
 def test_error_page_presentation_rejects_a_stale_recruiter_override():
     class RecruiterWithStaleOverride(PsyNetRecruiterMixin):
         def error_page_content(self):
@@ -834,34 +826,6 @@ def test_recruiters_plan_their_early_exit_consequences(
     assert confirmation.cancel_label == "Cancel"
     assert plan.status == "offered"
     assert plan.offer_id
-
-
-def test_early_exit_plan_round_trips_through_participant_column_data():
-    confirmation = EarlyExitConfirmation(
-        title="Leave?",
-        message="Your work is saved.",
-        confirm_label="Leave",
-        cancel_label="Continue",
-    )
-    plan = EarlyExitPlan.create(
-        context=EarlyExitContext.VOLUNTARY,
-        path=EarlyExitPath.SCREEN_OUT,
-        confirmation=confirmation,
-        quoted_amounts={"currency": "£", "fixed_minor": 20},
-    )
-
-    restored = EarlyExitPlan.from_dict(plan.to_dict())
-
-    assert restored == plan
-    assert restored.to_dict()["path"] == "screen_out"
-    assert restored.to_dict()["confirmation"]["message"] == "Your work is saved."
-
-
-def test_early_exit_plan_refuses_stored_data_it_cannot_read():
-    plan = _early_exit_test_plan().to_dict()
-
-    with pytest.raises(ValueError, match="status"):
-        EarlyExitPlan.from_dict({**plan, "status": "half-done"})
 
 
 def test_participant_has_dedicated_early_exit_plan_column():

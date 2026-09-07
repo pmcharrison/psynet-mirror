@@ -246,7 +246,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         either after they confirmed Leave or during automatic error recovery.
 
     early_exit_plan : dict or None
-        The server-owned :class:`~psynet.recruiters.EarlyExitPlan` snapshot
+        The server-owned :class:`~psynet.early_exit.EarlyExitPlan` snapshot
         offered to this participant. It records the confirmation they saw and
         the recruiter path executed if they confirmed.
 

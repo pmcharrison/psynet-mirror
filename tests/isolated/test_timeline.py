@@ -1061,7 +1061,7 @@ def test_page_rejects_conflicting_abort_and_termination_flags():
 
 
 def test_experiment_delegates_voluntary_early_exit_planning_to_recruiter():
-    from psynet.recruiters import EarlyExitContext
+    from psynet.early_exit import EarlyExitContext
 
     custom_plan = object()
     experiment = object.__new__(Experiment)
@@ -1078,7 +1078,7 @@ def test_experiment_delegates_voluntary_early_exit_planning_to_recruiter():
 
 
 def test_experiment_delegates_error_recovery_planning_without_eligibility_check():
-    from psynet.recruiters import EarlyExitContext
+    from psynet.early_exit import EarlyExitContext
 
     custom_plan = object()
     experiment = object.__new__(Experiment)
