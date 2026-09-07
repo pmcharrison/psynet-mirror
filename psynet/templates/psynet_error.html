@@ -20,11 +20,12 @@
                          data-post-data='{{ error_recovery_presentation.post_data | tojson }}'
                          data-redirect-url="{{ error_recovery_presentation.redirect_url or '' }}"
                          aria-live="polite">
-                        <p id="automatic-early-exit-pending">
-                            {{ pgettext("early_exit_error", "We are saving your responses and preparing the next step.") }}
-                        </p>
+                        <div id="automatic-early-exit-pending" role="status">
+                            <span class="spinner-border" aria-hidden="true"></span>
+                            <span class="visually-hidden">{{ pgettext("early_exit_error", "Please wait.") }}</span>
+                        </div>
                         <p id="automatic-early-exit-failure" hidden>
-                            {{ pgettext("early_exit_error", "We could not complete the next step. Please try again.") }}
+                            {{ error_recovery_presentation.failure_message }}
                         </p>
                         <button type="button"
                                 id="automatic-early-exit-retry"
@@ -49,20 +50,14 @@
                             window.psynetEarlyExit.init();
                         });
                     </script>
-                    {# Automatic exit may itself fail, so keep the contact details and
-                       identifiers that a researcher would ask for. #}
-                    <p id="error-contact" class="mt-4">
-                        {{ pgettext("early_exit_error", "If you need to contact us about this error, please quote the information below.") }}
-                        {% if contact_address %}
+                    {% if error_recovery_presentation.researcher_contact_message and contact_address %}
+                        <p id="error-contact" class="mt-4">
+                            {{ error_recovery_presentation.researcher_contact_message }}
                             <a href="mailto:{{ contact_address }}">{{ contact_address }}</a>
-                        {% endif %}
-                    </p>
-                    <p id="error-identifiers">
-                        {{ gettext("Error type") }}: {{ error_type }}<br>
-                        {{ gettext("Study ID") }}: {{ hit_id }}<br>
-                        {{ gettext("Assignment ID") }}: {{ assignment_id }}<br>
-                        {{ gettext("Worker ID") }}: {{ worker_id }}<br>
-                    </p>
+                            {{ pgettext("early_exit_error", "and quote reference code") }}
+                            <code>{{ assignment_id }}</code>.
+                        </p>
+                    {% endif %}
                 {% else %}
                     <p id="error-text-main">
                         {{ experiment.error_page_content(contact_address, error_type, hit_id, assignment_id, worker_id, external_submit_url) }}

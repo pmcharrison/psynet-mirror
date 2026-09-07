@@ -141,6 +141,39 @@ def test_transient_pages_style_their_spinner():
     assert "width: 2.5rem" in block
 
 
+def test_error_recovery_pending_state_is_visual_and_accessible():
+    source = (
+        resources.files("psynet") / "templates" / "psynet_error.html"
+    ).read_text(encoding="utf-8")
+
+    assert 'id="automatic-early-exit-pending"' in source
+    assert 'class="spinner-border"' in source
+    assert 'class="visually-hidden"' in source
+    assert "Please wait." in source
+    assert "saving your responses" not in source.lower()
+
+
+def test_error_recovery_uses_one_researcher_reference_code():
+    source = (
+        resources.files("psynet") / "templates" / "psynet_error.html"
+    ).read_text(encoding="utf-8")
+
+    assert "error_recovery_presentation.researcher_contact_message" in source
+    assert "quote reference code" in source
+    assert "{{ assignment_id }}" in source
+    assert "Error type" not in source
+    assert "Study ID" not in source
+    assert "Worker ID" not in source
+
+
+def test_generic_exit_calls_its_reference_a_reference_code():
+    source = (
+        resources.files("psynet") / "templates" / "psynet_exit_recruiter.html"
+    ).read_text(encoding="utf-8")
+
+    assert 'pgettext("exit", "Reference code")' in source
+
+
 def test_media_loading_survives_a_missing_progress_bar():
     """The bar is optional in the DOM, so media loading must not need it.
 

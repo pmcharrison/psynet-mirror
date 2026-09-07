@@ -268,6 +268,8 @@ class ErrorRecoveryPresentation:
 
     message: str
     action: ErrorRecoveryAction
+    failure_message: str
+    researcher_contact_message: str | None = None
     button_label: str | None = None
     post_url: str | None = None
     post_data: dict[str, str] = field(default_factory=dict)
@@ -503,6 +505,14 @@ class PsyNetRecruiterMixin:
                 "Your responses have been saved. You may close this page.",
             ),
             action=ErrorRecoveryAction.CLOSE_PAGE,
+            failure_message=_p(
+                "early_exit_error",
+                "We could not finish your session. Please try again.",
+            ),
+            researcher_contact_message=_p(
+                "early_exit_error",
+                "If you need to contact the researcher about this error, write to",
+            ),
         )
 
     def gates_early_exit_on_reward(self) -> bool:
@@ -1032,6 +1042,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return ErrorRecoveryPresentation(
                 message=f"{message} {payment}",
                 action=ErrorRecoveryAction.POST_AND_REDIRECT,
+                failure_message=_p(
+                    "early_exit_error_prolific",
+                    "We could not record your participation on Prolific. Please "
+                    "try again. If this keeps happening, message the researcher "
+                    "through Prolific.",
+                ),
                 button_label=_p("early_exit_error_prolific", "Submit to Prolific"),
                 post_url="/prolific-submission-listener",
                 post_data={
@@ -1063,6 +1079,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return ErrorRecoveryPresentation(
                 message=f"{_p('early_exit_error_prolific', 'Your responses have been saved.')} {payment} {next_step}",
                 action=ErrorRecoveryAction.FOLLOW_RELEASE,
+                failure_message=_p(
+                    "early_exit_error_prolific",
+                    "We could not open the payment instructions. Please try again. "
+                    "If this keeps happening, message the researcher through "
+                    "Prolific.",
+                ),
                 button_label=_p(
                     "early_exit_error_prolific",
                     "Continue to payment instructions",
@@ -3059,6 +3081,11 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 "according to its own rules.",
             ),
             action=ErrorRecoveryAction.FOLLOW_RELEASE,
+            failure_message=_p(
+                "early_exit_error_lucid",
+                "We could not return you to your panel. Please try again. If this "
+                "keeps happening, contact your panel provider.",
+            ),
             button_label=_p(
                 "early_exit_error_lucid",
                 "Return to your panel",

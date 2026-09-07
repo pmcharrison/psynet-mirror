@@ -758,6 +758,12 @@ def test_default_error_recovery_page_is_terminal():
     assert presentation.message == (
         "Your responses have been saved. You may close this page."
     )
+    assert presentation.failure_message == (
+        "We could not finish your session. Please try again."
+    )
+    assert presentation.researcher_contact_message == (
+        "If you need to contact the researcher about this error, write to"
+    )
 
 
 def test_prolific_error_recovery_explains_payment_and_submits_directly():
@@ -793,6 +799,11 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
         "participantId": "42",
     }
     assert presentation.redirect_url == "https://app.prolific.test/complete"
+    assert presentation.failure_message == (
+        "We could not record your participation on Prolific. Please try again. "
+        "If this keeps happening, message the researcher through Prolific."
+    )
+    assert presentation.researcher_contact_message is None
     assert "Prolific will pay you £0.25" in presentation.message
     assert "£0.35 as a bonus" in presentation.message
     assert "total payment to £0.60" in presentation.message
@@ -812,6 +823,11 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
 
     assert presentation.action is ErrorRecoveryAction.FOLLOW_RELEASE
     assert presentation.button_label == "Continue to payment instructions"
+    assert presentation.failure_message == (
+        "We could not open the payment instructions. Please try again. If this "
+        "keeps happening, message the researcher through Prolific."
+    )
+    assert presentation.researcher_contact_message is None
     assert "return your submission on Prolific" in presentation.message
     assert "£0.60" in presentation.message
 
@@ -829,6 +845,11 @@ def test_lucid_error_recovery_explains_the_panel_redirect():
 
     assert presentation.action is ErrorRecoveryAction.FOLLOW_RELEASE
     assert presentation.button_label == "Return to your panel"
+    assert presentation.failure_message == (
+        "We could not return you to your panel. Please try again. If this keeps "
+        "happening, contact your panel provider."
+    )
+    assert presentation.researcher_contact_message is None
     assert "panel provider will determine any payment" in presentation.message
 
 
