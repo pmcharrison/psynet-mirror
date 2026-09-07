@@ -168,6 +168,9 @@ class ExitPlan:
         status = ExitPlanStatus(data["status"])
         confirmation = data.get("confirmation")
         payment = data.get("payment")
+        currency = data.get("currency")
+        if currency is None:
+            currency = get_config().get("currency", "$")
         return cls(
             plan_id=data["plan_id"],
             context=ExitContext(data["context"]),
@@ -176,7 +179,7 @@ class ExitPlan:
             payment=(
                 None if payment is None else PaymentDecision.from_dict(payment)
             ),
-            currency=data.get("currency", get_config().get("currency", "$")),
+            currency=currency,
             confirmation=(
                 None
                 if confirmation is None
