@@ -71,6 +71,11 @@ from .bot import Bot, BotDriver, BotResponse
 from .command_line import export_launch_data
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import transaction, with_transaction
+from .early_exit import (
+    EarlyExitContext,
+    EarlyExitPlan,
+    _executed_early_exit_plan,
+)
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
@@ -93,17 +98,14 @@ from .participant import (
 )
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
-    CapRecruiter,  # noqa: F401; Backward compatibility alias
+    CapRecruiter,  # noqa: F401  # Backward compatibility alias
     DevLucidRecruiter,
-    EarlyExitContext,
-    EarlyExitPlan,
     LabRecruiter,
     LucidRecruiter,
     PaymentDecision,
     PsyNetProlificRecruiterMixin,
-    StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
+    StagingCapRecruiter,  # noqa: F401  # Backward compatibility alias
     StagingLabRecruiter,
-    _executed_early_exit_plan,
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
@@ -1593,7 +1595,59 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url=None,
         locale=DEFAULT_LOCALE,
     ):
-        """Render HTML for error page."""
+        """Prepare any fatal-error recovery plan, then render its page."""
+        experiment = get_experiment()
+        active_recruiter = recruiter or experiment.recruiter
+        plan = cls._prepare_error_recovery_plan(
+            experiment,
+            active_recruiter,
+            participant,
+        )
+        return cls._render_error_page(
+            participant=participant,
+            plan=plan,
+            recruiter=active_recruiter,
+            error_text=error_text,
+            external_submit_url=external_submit_url,
+            locale=locale,
+        )
+
+    @staticmethod
+    def _prepare_error_recovery_plan(
+        experiment,
+        recruiter,
+        participant,
+    ) -> EarlyExitPlan | None:
+        """Return the existing recovery plan or create one when appropriate."""
+        if (
+            participant is None
+            or participant.complete
+            or experiment.timeline.participant_is_in_end_logic(participant)
+        ):
+            return None
+
+        plan = _executed_early_exit_plan(participant)
+        if plan is not None or participant.early_exited:
+            return plan
+
+        recruiter.prepare_error_recovery(participant)
+        plan = experiment.error_recovery_early_exit_plan(participant)
+        participant.early_exit_plan = plan.to_dict()
+        if not participant.failed:
+            participant.fail("error_recovery")
+        return plan
+
+    @staticmethod
+    def _render_error_page(
+        *,
+        participant,
+        plan,
+        recruiter,
+        error_text,
+        external_submit_url,
+        locale,
+    ):
+        """Render an error page without changing participant recovery state."""
         from flask import make_response, request
 
         _p = get_translator(context=True)
@@ -1608,24 +1662,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             assignment_id = request.values.get("assignment_id", "")
 
-        automatic_exit_offer_id = None
         contact_address = get_config().get("contact_email_on_error")
-        experiment = get_experiment()
-        active_recruiter = recruiter or experiment.recruiter
-        plan = None
-        if participant is not None and not participant.complete:
-            if not experiment.timeline.participant_is_in_end_logic(participant):
-                plan = _executed_early_exit_plan(participant)
-                if plan is None and not participant.early_exited:
-                    active_recruiter.prepare_error_recovery(participant)
-                    plan = experiment.error_recovery_early_exit_plan(participant)
-                    participant.early_exit_plan = plan.to_dict()
-                    if not participant.failed:
-                        participant.fail("error_recovery")
-                if plan is not None and plan.context is EarlyExitContext.ERROR_RECOVERY:
-                    automatic_exit_offer_id = plan.offer_id
-
-        error_page_presentation = active_recruiter.error_page_presentation(
+        error_page_presentation = recruiter.error_page_presentation(
             participant=participant,
             plan=plan,
             assignment_id=assignment_id,
@@ -1639,7 +1677,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 locale=locale,
                 error_text=error_text,
                 assignment_id=assignment_id,
-                automatic_exit_offer_id=automatic_exit_offer_id,
+                automatic_exit_offer_id=(
+                    plan.offer_id
+                    if plan is not None
+                    and plan.context is EarlyExitContext.ERROR_RECOVERY
+                    else None
+                ),
                 error_page_presentation=error_page_presentation,
             ),
             500,

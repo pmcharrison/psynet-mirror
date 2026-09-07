@@ -5,17 +5,17 @@ from unittest.mock import MagicMock, patch
 import pytest
 from dallinger import db
 
-from psynet.error import ErrorRecord
-from psynet.experiment import Experiment
-from psynet.process import WorkerAsyncProcess
-from psynet.pytest_psynet import path_to_test_experiment
-from psynet.recruiters import (
-    DevLucidRecruiter,
+from psynet.early_exit import (
     EarlyExitConfirmation,
     EarlyExitContext,
     EarlyExitPath,
     EarlyExitPlan,
 )
+from psynet.error import ErrorRecord
+from psynet.experiment import Experiment
+from psynet.process import WorkerAsyncProcess
+from psynet.pytest_psynet import path_to_test_experiment
+from psynet.recruiters import DevLucidRecruiter
 
 
 def task():
@@ -78,6 +78,45 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
         external_submit_url=None,
         contact_address="researcher@example.test",
     )
+
+
+def test_render_error_page_does_not_change_recovery_state():
+    from flask import Flask
+
+    participant = SimpleNamespace(
+        id=42,
+        assignment_id="assignment-1",
+        early_exit_plan={"unchanged": True},
+        fail=MagicMock(),
+    )
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.ERROR_RECOVERY,
+        path=EarlyExitPath.END_SESSION,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+    )
+    recruiter = MagicMock()
+
+    with (
+        Flask(__name__).test_request_context("/error-page?participant_id=42"),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ),
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment._render_error_page(
+            participant=participant,
+            plan=plan,
+            recruiter=recruiter,
+            error_text=None,
+            external_submit_url=None,
+            locale="en",
+        )
+
+    assert participant.early_exit_plan == {"unchanged": True}
+    participant.fail.assert_not_called()
+    recruiter.prepare_error_recovery.assert_not_called()
 
 
 def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
