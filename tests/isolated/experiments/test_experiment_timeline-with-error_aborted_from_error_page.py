@@ -60,8 +60,8 @@ class TestExp:
             assert_text(
                 driver,
                 "automatic-early-exit-ready",
-                "Your session is ready to finish. When you are ready, select "
-                "Finish session.",
+                "Your responses have been saved, and your session is ready to "
+                "finish. When you are ready, select Finish session.",
             )
             assert not driver.find_elements(By.ID, "early-exit-open")
 

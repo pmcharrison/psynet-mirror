@@ -34,7 +34,10 @@
       }
       throw new Error("Failed to record early exit.");
     }
-    continueToRelease(result.release_url);
+    if (!result.release_url) {
+      throw new Error("The server did not provide a release URL.");
+    }
+    return result.release_url;
   }
 
   function init() {
@@ -47,16 +50,26 @@
       const pending = document.getElementById("automatic-early-exit-pending");
       const failure = document.getElementById("automatic-early-exit-failure");
       const retry = document.getElementById("automatic-early-exit-retry");
+      const ready = document.getElementById("automatic-early-exit-ready");
+      const finish = document.getElementById("automatic-early-exit-continue");
+      let releaseUrl = null;
 
       async function run() {
         pending.hidden = false;
         failure.hidden = true;
         retry.hidden = true;
+        ready.hidden = true;
+        finish.hidden = true;
+        releaseUrl = null;
         try {
-          await execute(
+          releaseUrl = await execute(
             automatic.dataset.assignmentId,
             automatic.dataset.offerId,
           );
+          if (!releaseUrl) return;
+          pending.hidden = true;
+          ready.hidden = false;
+          finish.hidden = false;
         } catch (error) {
           pending.hidden = true;
           failure.hidden = false;
@@ -68,6 +81,13 @@
       }
 
       retry.addEventListener("click", run, { signal });
+      finish.addEventListener(
+        "click",
+        () => {
+          if (releaseUrl) continueToRelease(releaseUrl);
+        },
+        { signal },
+      );
       run();
       return;
     }
@@ -120,7 +140,8 @@
         confirm.disabled = true;
         cancel.disabled = true;
         try {
-          await execute(assignmentId, offerId);
+          const releaseUrl = await execute(assignmentId, offerId);
+          if (releaseUrl) continueToRelease(releaseUrl);
         } catch (error) {
           confirm.disabled = false;
           cancel.disabled = false;
