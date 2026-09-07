@@ -104,7 +104,11 @@ from .recruiters import (  # noqa: F401
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
-from .static_resources import get_static_package_extra_files
+from .static_resources import (
+    _apply_versioned_static_cache_headers,
+    get_static_package_extra_files,
+    version_static_urls,
+)
 from .timeline import (
     WEBSOCKET_CHANNEL,
     DatabaseCheck,
@@ -957,6 +961,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def after_request(request, response):
         diff = time.monotonic() - flask_app_globals.request_start_time
+        response = _apply_versioned_static_cache_headers(response)
         relevant_endpoints = [
             "/ad",
             "/consent",

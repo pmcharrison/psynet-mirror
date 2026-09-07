@@ -287,8 +287,8 @@
 {% block head %}
     {{ super() }}
 
-    <script src="/static/scripts/jquery-3.7.1.min.js"></script>
-    <script src="/static/scripts/JSZip/jszip.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/JSZip/jszip.min.js') }}"></script>
 
     {% for src in js_dependencies %}
         {# Blocking tags preserve first-page script order. Failed loads are marked

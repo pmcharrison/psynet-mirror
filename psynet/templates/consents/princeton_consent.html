@@ -2,7 +2,7 @@
 
 {% block stylesheets %}
     {{ super() }}
-    <link rel="stylesheet" href="/static/css/consent.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/consent.css') }}"/>
 {% endblock %}
 
 {% block main_body %}
@@ -15,7 +15,7 @@
   }
 </style>
 
-<img src="/static/images/princeton-consent.png" alt="Princeton University adult consent form" style="width:450px" class="center">
+<img src="{{ url_for('static', filename='images/princeton-consent.png') }}" alt="Princeton University adult consent form" style="width:450px" class="center">
 <div class="main-div" style="font-size: 18px;">
   <div class="consent-body">
     <p>

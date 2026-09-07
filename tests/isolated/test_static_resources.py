@@ -1,4 +1,6 @@
+import hashlib
 import os
+import re
 import zipfile
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
@@ -262,6 +264,20 @@ def test_versioned_static_response_is_public_and_immutable(tmp_path):
     assert versioned.cache_control.immutable
     assert stale.cache_control.max_age is None
     assert not stale.cache_control.immutable
+
+
+def test_participant_font_references_use_their_content_versions():
+    css_root = resources.files("psynet") / "resources/css"
+    css = css_root.joinpath("participant.css").read_text(encoding="utf-8")
+    references = re.findall(
+        r'url\\("fonts/font-files/([^"?]+)\\?v=([0-9a-f]+)"\\)',
+        css,
+    )
+
+    assert references
+    for filename, version in references:
+        contents = css_root.joinpath("fonts/font-files", filename).read_bytes()
+        assert version == hashlib.sha256(contents).hexdigest()[:12]
 
 
 def _versioned_url_for_for_test(app, filename):

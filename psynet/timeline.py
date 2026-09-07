@@ -36,6 +36,7 @@ from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject
 from .serialize import is_lambda_function, prepare_function_for_serialization
+from .static_resources import version_static_urls
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -1893,6 +1894,11 @@ class Page(Elt):
         else:
             early_exit_plan = None
 
+        css_links = version_static_urls(self.css_links + experiment.css_links)
+        legacy_js_links = version_static_urls(self.legacy_js_links)
+        js_dependencies = version_static_urls(self.js_dependencies)
+        js_page_modules = version_static_urls(self.js_page_modules)
+
         all_template_args = {
             **self.template_arg,
             "js_vars": js_vars,
@@ -1909,13 +1915,13 @@ class Page(Elt):
             "participant": participant,
             "unique_id": participant.unique_id,
             "worker_id": participant.worker_id,
-            "legacy_js_links": self.legacy_js_links,
+            "legacy_js_links": legacy_js_links,
             "legacy_scripts": self.legacy_scripts,
-            "js_dependencies": self.js_dependencies,
+            "js_dependencies": js_dependencies,
             "js_page_code": self.js_page_code,
-            "js_page_modules": self.js_page_modules,
+            "js_page_modules": js_page_modules,
             "css": self.css + experiment.css,
-            "css_links": self.css_links + experiment.css_links,
+            "css_links": css_links,
             "events": self.events,
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,

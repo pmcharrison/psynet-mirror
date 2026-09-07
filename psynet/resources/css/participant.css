@@ -27,7 +27,8 @@
     font-style: normal;
     font-weight: 300;
     font-display: swap;
-    src: url("fonts/font-files/Inter-Light.woff2") format("woff2");
+    src: url("fonts/font-files/Inter-Light.woff2?v=e111a1e2ad91")
+        format("woff2");
 }
 
 @font-face {
@@ -35,7 +36,8 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url("fonts/font-files/Inter-Regular.woff2") format("woff2");
+    src: url("fonts/font-files/Inter-Regular.woff2?v=e06f6b1bc553")
+        format("woff2");
 }
 
 @font-face {
@@ -43,7 +45,8 @@
     font-style: normal;
     font-weight: 500;
     font-display: swap;
-    src: url("fonts/font-files/Inter-Medium.woff2") format("woff2");
+    src: url("fonts/font-files/Inter-Medium.woff2?v=0ff3e94614e1")
+        format("woff2");
 }
 
 @font-face {
@@ -51,7 +54,8 @@
     font-style: normal;
     font-weight: 700;
     font-display: swap;
-    src: url("fonts/font-files/Inter-Bold.woff2") format("woff2");
+    src: url("fonts/font-files/Inter-Bold.woff2?v=fa888127b6da")
+        format("woff2");
 }
 
 /* The face participants read until Inter arrives, and afterwards if it never

@@ -3,7 +3,7 @@
 
 {% block stylesheets %}
     {{ super() }}
-    <link rel="stylesheet" href="/static/css/consent.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/consent.css') }}"/>
 {% endblock %}
 
 {% block main_body %}

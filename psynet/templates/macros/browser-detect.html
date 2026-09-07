@@ -134,10 +134,10 @@
 
 </style>
 
-<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-<link rel="icon" type="image/png" href="/static/favicon.png">
-<script src="/static/scripts/platform.min.js"></script>
-<script src="/static/scripts/detectIncognito.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<script src="{{ url_for('static', filename='scripts/platform.min.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/detectIncognito.min.js') }}"></script>
 
 <script>
     var browser = (function () {
@@ -564,7 +564,7 @@
     <div class="modal" tabindex="-1" style="display:block">
         <div class="modal-body">
             <div class="container">
-                <img id="adlogo" class="my-3" src="/static/images/logo.svg" alt="PsyNet logo"
+                <img id="adlogo" class="my-3" src="{{ url_for('static', filename='images/logo.svg') }}" alt="PsyNet logo"
                      style="width: 150px; float: none;">
                 <div class="alert alert-danger" role="alert">
                     {{ pgettext('browser_compatibility', 'This site requires JavaScript to function properly.') }}

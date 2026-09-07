@@ -143,6 +143,11 @@ and register it on your experiment class:
     class Exp(psynet.experiment.Experiment):
         css_links = ["static/theme.css"]
 
+PsyNet adds a content version when it renders this local URL, so authors do not
+need to add cache-busting query parameters. When the file changes, its generated
+URL changes too. Hard-coded, unversioned ``/static/...`` URLs remain supported
+and use conditional revalidation instead of immutable caching.
+
 Because ``participant.css`` avoids ``!important``, an ordinary rule in your own
 stylesheet is enough to override a default; you should not need to escalate
 specificity. See the ``custom_theme`` demo for a complete example.

@@ -40,6 +40,11 @@ their raw URL and are not proxied through PsyNet. On-demand assets are also
 served via ``/asset/<access_token>`` and are generated when requested rather
 than deposited into object storage by default.
 
+Deposited managed assets are immutable at their access URL and receive a
+long-lived browser cache policy. If an asset is deposited again with different
+contents, PsyNet rotates its access token. On-demand assets continue to
+revalidate because their bytes are generated at request time.
+
 .. warning::
     PsyNet's asset management system currently has some performance overhead that can make it slow
     to deploy large experiments (e.g. 1000s of files). For an alternative manual approach, see

@@ -8,7 +8,13 @@ from unittest.mock import MagicMock
 import pytest
 from flask import Flask
 
-from psynet.asset import Asset, LocalStorage, ManagedAsset, _safe_asset_subpath
+from psynet.asset import (
+    Asset,
+    LocalStorage,
+    ManagedAsset,
+    S3Storage,
+    _safe_asset_subpath,
+)
 from psynet.experiment import _redacted_asset_request_path
 
 
@@ -160,3 +166,21 @@ def test_managed_asset_rotates_access_token_when_contents_change():
 
     asset.rotate_access_token.assert_called_once_with()
     assert asset.object_path == "objects/sha256/new-digest"
+
+
+def test_s3_deposit_sets_immutable_cache_control(tmp_path):
+    source = tmp_path / "stimulus.wav"
+    source.write_bytes(b"audio")
+    storage = object.__new__(S3Storage)
+    storage.backend = MagicMock()
+    storage.get_s3_key = MagicMock(return_value="prefix/objects/sha256/digest")
+    asset = SimpleNamespace(is_folder=False, input_path=str(source))
+
+    storage._receive_deposit(asset, "objects/sha256/digest")
+
+    storage.backend.upload.assert_called_once_with(
+        str(source),
+        "prefix/objects/sha256/digest",
+        recursive=False,
+        cache_control="public, max-age=31536000, immutable",
+    )
