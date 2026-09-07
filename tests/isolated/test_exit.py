@@ -122,7 +122,7 @@ def test_exit_plan_can_record_a_partial_payment_decision_for_error_recovery():
                     "Leave?", "Saved.", "Leave", "Cancel"
                 ),
             },
-            "only voluntary",
+            "only valid",
         ),
         (
             {
