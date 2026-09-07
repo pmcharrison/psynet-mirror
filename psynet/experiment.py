@@ -3180,7 +3180,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         else None
                     ),
                 )
-            return error_response(participant=participant)
+            return error_response(
+                error_text="There was an error processing this response.",
+                status=500,
+                simple=True,
+            )
 
     def response_approved(self, participant, include_timeline_fragment=True):
         logger.debug("The response was approved.")

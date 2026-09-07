@@ -325,10 +325,13 @@ General
     exception type on ``failure_tags`` and fail the session with
     ``error_recovery`` when a recovery plan is stored.
 
-    The error page lives at ``/error-page?participant_id=<id>`` and PsyNet
-    navigates there with a ``GET``, so participants can reload it without the
-    browser asking them to confirm resubmitting a form. Reloading re-reads the
-    recovery plan from the server rather than running it again.
+    Once a participant has been created, the error page lives at
+    ``/error-page?participant_id=<id>`` and PsyNet navigates there with a
+    ``GET``, so participants can reload it without the browser asking them to
+    confirm resubmitting a form. Reloading re-reads the recovery plan from the
+    server rather than running it again. Errors encountered while creating the
+    participant still use Dallinger's error response so that specific refusal
+    explanations remain available.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when

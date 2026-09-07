@@ -189,6 +189,44 @@ def test_fail_participant_on_error_records_the_exception_without_failing():
     participant.fail.assert_not_called()
 
 
+def test_fatal_response_failure_returns_json_for_the_error_page_navigation():
+    participant = SimpleNamespace(
+        page_uuid="page-1",
+        current_trial=None,
+        client_ip_address=None,
+    )
+    event = MagicMock()
+    event.process_response.side_effect = ValueError("boom")
+    experiment = MagicMock()
+    experiment.HandledError = Experiment.HandledError
+    query = experiment._participant_request_query.return_value
+    query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
+    experiment.timeline.get_current_elt.return_value = event
+
+    with (
+        patch("psynet.experiment.get_translator", return_value=lambda *args: args[-1]),
+        patch(
+            "psynet.experiment.error_response", return_value="json error"
+        ) as error_response,
+    ):
+        result = Experiment.process_response(
+            experiment,
+            participant_id=42,
+            raw_answer="answer",
+            blobs={},
+            metadata={},
+            page_uuid="page-1",
+            client_ip_address="127.0.0.1",
+        )
+
+    assert result == "json error"
+    error_response.assert_called_once_with(
+        error_text="There was an error processing this response.",
+        status=500,
+        simple=True,
+    )
+
+
 @pytest.mark.parametrize("method", ["GET", "POST"])
 def test_untracked_error_page_uses_the_same_structured_recruiter_hook(method):
     from flask import Flask

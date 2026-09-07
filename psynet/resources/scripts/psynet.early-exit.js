@@ -15,18 +15,12 @@
   let controller = null;
   let autoRedirectTimer = null;
 
-  // Dallinger's dlgr.error() has two modes. When the rejected request came back
-  // with rendered HTML it swaps that into the page, which keeps the server's
-  // specific explanation; that mode is worth keeping. Otherwise it reaches the
-  // error page by submitting a hidden POST form, so the browser asks the
-  // participant to confirm resubmission if they ever reload. The error page is
-  // only a view of server-owned state, so go there with a GET instead.
+  // Once a participant exists, the error page is only a view of server-owned
+  // state. Reach it with a GET so that reloading never asks the participant to
+  // confirm a form resubmission. Pre-participant errors on /start remain with
+  // Dallinger until its participant endpoint returns structured error codes.
   // Replacing the history entry also keeps Back off the page that just failed.
-  function goToErrorPage(identity, rejection) {
-    if (rejection && rejection.html) {
-      global.dallinger.error(rejection);
-      return;
-    }
+  function goToErrorPage(identity) {
     const source =
       identity || (global.dallinger && global.dallinger.identity) || {};
     const params = new URLSearchParams();

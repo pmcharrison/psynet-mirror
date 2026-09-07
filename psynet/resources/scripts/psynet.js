@@ -2836,8 +2836,8 @@
             window.location.replace(exitRoute);
           }
         })
-        .fail(function (rejection) {
-          psynetErrorPage.go({ participantId: participantId }, rejection);
+        .fail(function () {
+          psynetErrorPage.go({ participantId: participantId });
         });
     };
 

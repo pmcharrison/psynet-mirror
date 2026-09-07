@@ -81,10 +81,11 @@
                 return;
             }
             startInProgress = false;
-            psynetErrorPage.go(
-                {assignmentId: getEntryInformation().assignmentId},
-                resp
-            );
+            // Dallinger's participant endpoint currently returns the specific
+            // refusal explanation as rendered HTML rather than a structured
+            // error code. Keep that pre-participant path until the endpoint can
+            // provide a stable code that PsyNet can present itself.
+            dallinger.error(resp);
         }
 
         async function createParticipant(entryInformation, attempt) {

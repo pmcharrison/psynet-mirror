@@ -306,45 +306,6 @@ test(
 );
 
 test(
-  "a rejection carrying rendered HTML keeps the server's own explanation",
-  { tag: "@both" },
-  async ({ page }) => {
-    let errorPageRequests = 0;
-    await page.route("http://psynet.test/error-page**", async (route) => {
-      errorPageRequests += 1;
-      await route.fulfill({
-        contentType: "text/html; charset=utf-8",
-        body: "<h1>An error occurred</h1>"
-      });
-    });
-    await page.route("http://psynet.test/timeline", async (route) => {
-      await route.fulfill({
-        contentType: "text/html; charset=utf-8",
-        body: "<h1>Timeline</h1>"
-      });
-    });
-
-    await page.goto("http://psynet.test/timeline");
-    await page.addScriptTag({ content: EARLY_EXIT_JS });
-    const delegated = await page.evaluate(() => {
-      const calls = [];
-      window.dallinger = { error: (rejection) => calls.push(rejection.html) };
-      window.psynetErrorPage.go(
-        { participantId: 42 },
-        { html: "<h1>This worker has already participated.</h1>" }
-      );
-      return calls;
-    });
-
-    expect(delegated).toEqual([
-      "<h1>This worker has already participated.</h1>"
-    ]);
-    await expect(page).toHaveURL("http://psynet.test/timeline");
-    expect(errorPageRequests).toBe(0);
-  }
-);
-
-test(
   "automatic recovery does not loop on a stale offer",
   { tag: "@both" },
   async ({ page }) => {

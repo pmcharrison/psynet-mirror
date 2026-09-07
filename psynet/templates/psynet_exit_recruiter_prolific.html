@@ -35,8 +35,8 @@
             spinner.freeze([$exitButton]);
             request.done(function () {
                 window.location.replace(event.currentTarget.dataset.href);
-            }).fail(function (rejection) {
-                psynetErrorPage.go(participantInfo, rejection);
+            }).fail(function () {
+                psynetErrorPage.go(participantInfo);
             }).always(function () {
                 spinner.unfreeze();
             });

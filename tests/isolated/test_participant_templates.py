@@ -806,18 +806,22 @@ def test_the_error_page_is_reached_by_get_so_that_it_can_be_reloaded():
     )
     assert "global.psynetErrorPage = { go: goToErrorPage }" in early_exit
     assert 'global.location.replace("/error-page"' in early_exit
-    # Rejections that carry rendered HTML keep the server's own explanation.
-    assert "if (rejection && rejection.html)" in early_exit
+    assert "rejection.html" not in early_exit
 
-    # Everywhere else, the POST form is gone.
+    # Known-participant failures all take the reloadable PsyNet path.
     for path in (
         "resources/scripts/psynet.js",
-        "templates/start.html",
         "templates/psynet_exit_recruiter_prolific.html",
     ):
         source = (root / path).read_text(encoding="utf-8")
         assert "psynetErrorPage.go" in source, path
         assert "dallinger.error" not in source, path
+
+    # Starting a participant is the sole intentional exception until
+    # Dallinger returns structured participant-creation error codes.
+    start = (root / "templates/start.html").read_text(encoding="utf-8")
+    assert "dallinger.error(resp)" in start
+    assert "psynetErrorPage.go" not in start
 
 
 def test_no_page_paints_a_placeholder_logo_before_the_theme_swap():
