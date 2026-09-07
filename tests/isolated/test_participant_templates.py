@@ -822,6 +822,7 @@ def test_the_error_page_is_reached_by_get_so_that_it_can_be_reloaded():
     start = (root / "templates/start.html").read_text(encoding="utf-8")
     assert "dallinger.error(resp)" in start
     assert "psynetErrorPage.go" not in start
+    assert "TODO(Dallinger structured participant errors)" in start
 
 
 def test_no_page_paints_a_placeholder_logo_before_the_theme_swap():

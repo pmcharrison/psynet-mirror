@@ -81,10 +81,11 @@
                 return;
             }
             startInProgress = false;
-            // Dallinger's participant endpoint currently returns the specific
-            // refusal explanation as rendered HTML rather than a structured
-            // error code. Keep that pre-participant path until the endpoint can
-            // provide a stable code that PsyNet can present itself.
+            // TODO(Dallinger structured participant errors): Replace this last
+            // dallinger.error() call with psynetErrorPage.go() once /participant
+            // and /load-participant return stable error codes for refusals such
+            // as worker_already_participated. Do not infer codes by parsing the
+            // current rendered HTML or its human-readable error text.
             dallinger.error(resp);
         }
 
