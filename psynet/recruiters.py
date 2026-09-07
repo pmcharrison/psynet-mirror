@@ -47,7 +47,7 @@ import hashlib
 import json
 import re
 from collections import Counter
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from math import ceil
 
@@ -397,15 +397,13 @@ class PsyNetRecruiterMixin:
     ) -> exit_domain.ExitPlan:
         """Plan one terminal participant outcome.
 
-        Voluntary Leave and error recovery retain their specialized offer and
-        fallback behavior. Normal timeline endings commit a payment decision
-        immediately so the debrief and later settlement share one snapshot.
+        Voluntary Leave, error recovery, and timeline endings share this entry
+        point while retaining context-specific policy and presentation.
         """
-        if context in {
-            exit_domain.ExitContext.VOLUNTARY,
-            exit_domain.ExitContext.ERROR_RECOVERY,
-        }:
-            return self.plan_early_exit(experiment, participant, context)
+        if context is exit_domain.ExitContext.VOLUNTARY:
+            return self._plan_voluntary_exit(experiment, participant)
+        if context is exit_domain.ExitContext.ERROR_RECOVERY:
+            return self._plan_error_recovery_exit(experiment, participant)
 
         payment = self.decide_payment(participant, experiment=experiment)
         if payment.status == "screened_out":
@@ -425,37 +423,20 @@ class PsyNetRecruiterMixin:
             currency=get_config().get("currency", "$"),
         ).mark_committed()
 
-    def plan_early_exit(
-        self,
-        experiment,
-        participant,
-        context: exit_domain.ExitContext,
-    ) -> exit_domain.ExitPlan:
-        """Plan confirmation and execution for an early exit.
-
-        Parameters
-        ----------
-        experiment
-            Experiment owning the participant.
-        participant
-            The participant considering an early exit.
-        context
-            Whether Leave is voluntary or follows an experiment error.
-        """
-        if context is exit_domain.ExitContext.ERROR_RECOVERY:
-            return self._error_recovery_early_exit_plan(
-                experiment, participant, context
-            )
+    def _plan_voluntary_exit(self, experiment, participant) -> exit_domain.ExitPlan:
+        """Plan a participant-confirmed Leave outcome."""
         if self.gates_early_exit_on_reward() and not experiment.early_exit_allowed(
             participant
         ):
             return self._without_payment_early_exit_plan(
-                experiment, participant, context
+                experiment,
+                participant,
+                exit_domain.ExitContext.VOLUNTARY,
             )
-        return self._standard_early_exit_plan(experiment, participant, context)
+        return self._standard_voluntary_exit_plan(experiment, participant)
 
-    def _error_recovery_early_exit_plan(
-        self, experiment, participant, context: exit_domain.ExitContext
+    def _plan_error_recovery_exit(
+        self, experiment, participant
     ) -> exit_domain.ExitPlan:
         """Plan recovery without applying voluntary paid-exit eligibility.
 
@@ -464,9 +445,11 @@ class PsyNetRecruiterMixin:
         failed), it falls back to copy that quotes no amounts.
         """
         try:
-            return self._standard_early_exit_plan(experiment, participant, context)
+            return self._standard_error_recovery_exit_plan(experiment, participant)
         except Exception:
-            fallback = self._unquoted_early_exit_plan(experiment, participant, context)
+            fallback = self._deferred_error_recovery_exit_plan(
+                experiment, participant
+            )
             if fallback is None:
                 raise
             logger.warning(
@@ -475,12 +458,12 @@ class PsyNetRecruiterMixin:
                 type(self).__name__,
                 exc_info=True,
             )
-            return replace(fallback, payment_is_final=False)
+            return fallback
 
-    def _unquoted_early_exit_plan(
-        self, experiment, participant, context: exit_domain.ExitContext
+    def _deferred_error_recovery_exit_plan(
+        self, experiment, participant
     ) -> exit_domain.ExitPlan | None:
-        """Plan an early exit whose copy quotes no earned reward.
+        """Plan recovery whose complete payment must be calculated later.
 
         Returns ``None`` for recruiters whose standard copy quotes nothing
         anyway: there is no weaker plan to fall back to, so the original
@@ -488,14 +471,28 @@ class PsyNetRecruiterMixin:
         """
         return None
 
-    def _standard_early_exit_plan(
-        self, experiment, participant, context: exit_domain.ExitContext
+    def _standard_error_recovery_exit_plan(
+        self, experiment, participant
     ) -> exit_domain.ExitPlan:
-        """Plan the recruiter's ordinary early-exit handling.
+        """Plan error recovery for a recruiter without PsyNet payments."""
+        del experiment, participant
+        return exit_domain.ExitPlan.create(
+            context=exit_domain.ExitContext.ERROR_RECOVERY,
+            path=exit_domain.ExitPath.END_SESSION,
+            payment=None,
+            payment_state=exit_domain.PaymentState.NOT_APPLICABLE,
+            currency=get_config().get("currency", "$"),
+        )
+
+    def _standard_voluntary_exit_plan(
+        self, experiment, participant
+    ) -> exit_domain.ExitPlan:
+        """Plan the recruiter's ordinary voluntary Leave handling.
 
         Default recruiters do not pay through PsyNet, so the message avoids
         payment promises. Paid recruiters override this method.
         """
+        del experiment, participant
         _p = get_translator(context=True)
         confirmation = self._early_exit_confirmation(
             _p(
@@ -506,10 +503,10 @@ class PsyNetRecruiterMixin:
             path=exit_domain.ExitPath.END_SESSION,
         )
         return exit_domain.ExitPlan.create(
-            context=context,
+            context=exit_domain.ExitContext.VOLUNTARY,
             path=exit_domain.ExitPath.END_SESSION,
             payment=None,
-            payment_is_final=False,
+            payment_state=exit_domain.PaymentState.NOT_APPLICABLE,
             currency=get_config().get("currency", "$"),
             confirmation=confirmation,
         )
@@ -645,7 +642,10 @@ class PsyNetRecruiterMixin:
     def decide_payment(self, participant, *, experiment) -> exit_domain.PaymentDecision:
         """Decide status, platform base, and bonus without writing or paying."""
         plan = exit_domain._committed_exit_plan(participant)
-        if plan is not None and plan.payment_is_final and plan.payment is not None:
+        if (
+            plan is not None
+            and plan.payment_state is exit_domain.PaymentState.PLANNED
+        ):
             return plan.payment
         if (
             plan is not None
@@ -803,38 +803,72 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         context: exit_domain.ExitContext,
     ) -> exit_domain.ExitPlan:
         """Plan Prolific's submission and payment outcome."""
-        if (
-            context
-            in {
-                exit_domain.ExitContext.UNSUCCESSFUL,
-                exit_domain.ExitContext.REJECTED_CONSENT,
-            }
-            and not self.pays_unsuccessful_participants_via_screen_out
-        ):
-            return replace(
-                self._standard_early_exit_plan(experiment, participant, context),
-                status=exit_domain.ExitPlanStatus.COMMITTED,
-                confirmation=None,
-            )
+        if context in {
+            exit_domain.ExitContext.UNSUCCESSFUL,
+            exit_domain.ExitContext.REJECTED_CONSENT,
+        }:
+            path, payment = self._prolific_exit_payment(participant)
+            return exit_domain.ExitPlan.create(
+                context=context,
+                path=path,
+                payment=payment,
+                currency=get_config().get("currency", "$"),
+            ).mark_committed()
         return super().plan_exit(experiment, participant, context)
 
-    def _standard_early_exit_plan(
-        self, experiment, participant, context: exit_domain.ExitContext
+    def _prolific_exit_payment(
+        self, participant
+    ) -> tuple[exit_domain.ExitPath, exit_domain.PaymentDecision]:
+        """Return Prolific's platform path and payment decision."""
+        earned = participant.calculate_reward()
+        if self.pays_unsuccessful_participants_via_screen_out:
+            fixed = self.unsuccessful_base_payment
+            path = exit_domain.ExitPath.SCREEN_OUT
+            if self.tops_up_unsuccessful_participants:
+                bonus = max(0.0, earned - fixed)
+            else:
+                bonus = participant.performance_reward or 0.0
+        else:
+            path = exit_domain.ExitPath.RETURN_FOR_BONUS
+            fixed = 0.0
+            bonus = earned
+        return path, exit_domain.PaymentDecision(
+            status=(
+                "screened_out"
+                if path is exit_domain.ExitPath.SCREEN_OUT
+                else "returned"
+            ),
+            platform_base=fixed,
+            bonus=bonus,
+        )
+
+    def _standard_error_recovery_exit_plan(
+        self, experiment, participant
     ) -> exit_domain.ExitPlan:
-        """Plan Prolific's configured unsuccessful-participant payment."""
+        """Plan Prolific error recovery without voluntary confirmation copy."""
+        del experiment
+        path, payment = self._prolific_exit_payment(participant)
+        return exit_domain.ExitPlan.create(
+            context=exit_domain.ExitContext.ERROR_RECOVERY,
+            path=path,
+            payment=payment,
+            currency=get_config().get("currency", "$"),
+        )
+
+    def _standard_voluntary_exit_plan(
+        self, experiment, participant
+    ) -> exit_domain.ExitPlan:
+        """Plan Prolific's voluntary Leave payment and confirmation copy."""
+        del experiment
         _p = get_translator(context=True)
         earned = participant.calculate_reward()
         earned_txt = exit_domain._format_exit_amount(earned)
-        if self.pays_unsuccessful_participants_via_screen_out:
-            fixed = self.unsuccessful_base_payment
-            fixed_txt = exit_domain._format_exit_amount(fixed)
-            path = exit_domain.ExitPath.SCREEN_OUT
-            bonus = 0.0
+        path, payment = self._prolific_exit_payment(participant)
+        if path is exit_domain.ExitPath.SCREEN_OUT:
+            fixed_txt = exit_domain._format_exit_amount(payment.platform_base)
             if self.tops_up_unsuccessful_participants:
-                if earned > fixed:
-                    remainder = earned - fixed
-                    remainder_txt = exit_domain._format_exit_amount(remainder)
-                    bonus = remainder
+                if payment.bonus > 0:
+                    remainder_txt = exit_domain._format_exit_amount(payment.bonus)
                     message = _p(
                         "early_exit_prolific",
                         "If you leave now, you will not be able to continue "
@@ -843,7 +877,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         "further {REMAINDER} will be paid as a bonus. Your "
                         "responses so far will still be saved.",
                     ).format(
-                        FIXED=fixed_txt, EARNED=earned_txt, REMAINDER=remainder_txt
+                        FIXED=fixed_txt,
+                        EARNED=earned_txt,
+                        REMAINDER=remainder_txt,
                     )
                 else:
                     message = _p(
@@ -852,31 +888,25 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         "later. You will receive a fixed early-exit payment of "
                         "{FIXED}. Your responses so far will still be saved.",
                     ).format(FIXED=fixed_txt)
+            elif payment.bonus > 0:
+                performance_txt = exit_domain._format_exit_amount(payment.bonus)
+                message = _p(
+                    "early_exit_prolific",
+                    "If you leave now, you will not be able to continue "
+                    "later. You will receive a fixed early-exit payment of "
+                    "{FIXED} plus a performance bonus of {PERFORMANCE}. "
+                    "You will not be paid for additional time. Your "
+                    "responses so far will still be saved.",
+                ).format(FIXED=fixed_txt, PERFORMANCE=performance_txt)
             else:
-                performance = participant.performance_reward or 0.0
-                if performance > 0:
-                    performance_txt = exit_domain._format_exit_amount(performance)
-                    bonus = performance
-                    message = _p(
-                        "early_exit_prolific",
-                        "If you leave now, you will not be able to continue "
-                        "later. You will receive a fixed early-exit payment of "
-                        "{FIXED} plus a performance bonus of {PERFORMANCE}. "
-                        "You will not be paid for additional time. Your "
-                        "responses so far will still be saved.",
-                    ).format(FIXED=fixed_txt, PERFORMANCE=performance_txt)
-                else:
-                    message = _p(
-                        "early_exit_prolific",
-                        "If you leave now, you will not be able to continue "
-                        "later. You will receive a fixed early-exit payment of "
-                        "{FIXED}. You will not be paid for additional time. "
-                        "Your responses so far will still be saved.",
-                    ).format(FIXED=fixed_txt)
+                message = _p(
+                    "early_exit_prolific",
+                    "If you leave now, you will not be able to continue "
+                    "later. You will receive a fixed early-exit payment of "
+                    "{FIXED}. You will not be paid for additional time. "
+                    "Your responses so far will still be saved.",
+                ).format(FIXED=fixed_txt)
         else:
-            path = exit_domain.ExitPath.RETURN_FOR_BONUS
-            fixed = 0.0
-            bonus = earned
             message = _p(
                 "early_exit_prolific",
                 "If you leave now, you will not be able to continue later. "
@@ -885,46 +915,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "completed so far. Your responses so far will still be saved.",
             ).format(EARNED=earned_txt)
         return exit_domain.ExitPlan.create(
-            context=context,
+            context=exit_domain.ExitContext.VOLUNTARY,
             path=path,
-            payment=exit_domain.PaymentDecision(
-                status=(
-                    "screened_out"
-                    if path is exit_domain.ExitPath.SCREEN_OUT
-                    else "returned"
-                ),
-                platform_base=fixed,
-                bonus=bonus,
-            ),
+            payment=payment,
             currency=get_config().get("currency", "$"),
             confirmation=self._early_exit_confirmation(message, path=path),
         )
 
-    def _unquoted_early_exit_plan(
-        self, experiment, participant, context: exit_domain.ExitContext
+    def _deferred_error_recovery_exit_plan(
+        self, experiment, participant
     ) -> exit_domain.ExitPlan:
-        """Describe Prolific's early exit without quoting the earned reward."""
-        _p = get_translator(context=True)
+        """Preserve Prolific's known platform outcome for later settlement."""
+        del experiment, participant
         if self.pays_unsuccessful_participants_via_screen_out:
             fixed = self.unsuccessful_base_payment
             path = exit_domain.ExitPath.SCREEN_OUT
-            if self.tops_up_unsuccessful_participants:
-                message = _p(
-                    "early_exit_prolific",
-                    "If you leave now, you will not be able to continue later. "
-                    "You will receive a fixed early-exit payment of {FIXED}. "
-                    "Any additional amount you have earned will be paid as a "
-                    "bonus. Your responses so far will still be saved.",
-                )
-            else:
-                message = _p(
-                    "early_exit_prolific",
-                    "If you leave now, you will not be able to continue later. "
-                    "You will receive a fixed early-exit payment of {FIXED} "
-                    "plus any performance bonus. You will not be paid for "
-                    "additional time. Your responses so far will still be saved.",
-                )
-            message = message.format(FIXED=exit_domain._format_exit_amount(fixed))
             payment = exit_domain.PaymentDecision(
                 status="screened_out",
                 platform_base=fixed,
@@ -932,13 +937,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
         else:
             path = exit_domain.ExitPath.RETURN_FOR_BONUS
-            message = _p(
-                "early_exit_prolific",
-                "If you leave now, you will not be able to continue later. "
-                "You will need to return your Prolific submission. You will "
-                "then be paid a bonus for the work you have completed so far. "
-                "Your responses so far will still be saved.",
-            )
             payment = exit_domain.PaymentDecision(
                 status="returned",
                 platform_base=0.0,
@@ -946,12 +944,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
 
         return exit_domain.ExitPlan.create(
-            context=context,
+            context=exit_domain.ExitContext.ERROR_RECOVERY,
             path=path,
             payment=payment,
-            payment_is_final=False,
+            payment_state=exit_domain.PaymentState.DEFERRED,
             currency=get_config().get("currency", "$"),
-            confirmation=self._early_exit_confirmation(message, path=path),
         )
 
     def error_page_presentation(
@@ -999,7 +996,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "Prolific will pay you {FIXED}.",
             ).format(FIXED=fixed)
             if (
-                plan.payment_is_final
+                plan.payment_state is exit_domain.PaymentState.PLANNED
                 and plan.payment.bonus > 0
                 and self.tops_up_unsuccessful_participants
             ):
@@ -1013,13 +1010,19 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     "We will also pay {BONUS} as a bonus, bringing your total "
                     "payment to {TOTAL}.",
                 ).format(BONUS=remainder, TOTAL=total)
-            elif plan.payment_is_final and plan.payment.bonus > 0:
+            elif (
+                plan.payment_state is exit_domain.PaymentState.PLANNED
+                and plan.payment.bonus > 0
+            ):
                 performance = exit_domain._format_planned_payment_amount(plan, "bonus")
                 payment += " " + _p(
                     "early_exit_error_prolific",
                     "We will also pay your {BONUS} performance bonus.",
                 ).format(BONUS=performance)
-            elif not plan.payment_is_final and self.tops_up_unsuccessful_participants:
+            elif (
+                plan.payment_state is exit_domain.PaymentState.DEFERRED
+                and self.tops_up_unsuccessful_participants
+            ):
                 payment += " " + _p(
                     "early_exit_error_prolific",
                     "Any additional amount you earned will be paid as a bonus.",
@@ -1050,7 +1053,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
 
         if plan.path is exit_domain.ExitPath.RETURN_FOR_BONUS:
-            if plan.payment_is_final:
+            if plan.payment_state is exit_domain.PaymentState.PLANNED:
                 payment = _p(
                     "early_exit_error_prolific",
                     "To receive {EARNED} for the work you completed, you will "
@@ -1130,7 +1133,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         plan = exit_domain._committed_exit_plan(participant)
         if (
             plan is not None
-            and not plan.payment_is_final
+            and plan.payment_state is exit_domain.PaymentState.DEFERRED
             and plan.path is exit_domain.ExitPath.SCREEN_OUT
         ):
             platform_base = plan.payment.platform_base
@@ -1142,7 +1145,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
         if (
             plan is not None
-            and not plan.payment_is_final
+            and plan.payment_state is exit_domain.PaymentState.DEFERRED
             and plan.path is exit_domain.ExitPath.RETURN_FOR_BONUS
         ):
             return exit_domain.PaymentDecision(
@@ -2311,16 +2314,18 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         context: exit_domain.ExitContext,
     ) -> exit_domain.ExitPlan:
         """Plan completion or termination of a Lucid panel session."""
-        plan = super().plan_exit(experiment, participant, context)
         if context in {
             exit_domain.ExitContext.UNSUCCESSFUL,
             exit_domain.ExitContext.REJECTED_CONSENT,
         }:
-            return replace(
-                plan,
+            return exit_domain.ExitPlan.create(
+                context=context,
                 path=exit_domain.ExitPath.TERMINATE_PANEL_SESSION,
-            )
-        return plan
+                payment=None,
+                payment_state=exit_domain.PaymentState.NOT_APPLICABLE,
+                currency=get_config().get("currency", "$"),
+            ).mark_committed()
+        return super().plan_exit(experiment, participant, context)
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -2923,18 +2928,15 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             raise_on_error=True,
         )
 
-    def plan_early_exit(
-        self,
-        experiment,
-        participant,
-        context: exit_domain.ExitContext,
+    def _standard_voluntary_exit_plan(
+        self, experiment, participant
     ) -> exit_domain.ExitPlan:
-        """Plan returning the participant to Lucid.
+        """Plan voluntary return of the participant to Lucid.
 
         Lucid never pays through PsyNet, and termination is always available,
         so the below-threshold return-without-payment path is not used.
         """
-        del experiment
+        del experiment, participant
         _p = get_translator(context=True)
         path = exit_domain.ExitPath.TERMINATE_PANEL_SESSION
         confirmation = self._early_exit_confirmation(
@@ -2948,12 +2950,25 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             path=path,
         )
         return exit_domain.ExitPlan.create(
-            context=context,
+            context=exit_domain.ExitContext.VOLUNTARY,
             path=path,
             payment=None,
-            payment_is_final=False,
+            payment_state=exit_domain.PaymentState.NOT_APPLICABLE,
             currency=get_config().get("currency", "$"),
             confirmation=confirmation,
+        )
+
+    def _standard_error_recovery_exit_plan(
+        self, experiment, participant
+    ) -> exit_domain.ExitPlan:
+        """Plan error recovery through Lucid's panel handoff."""
+        del experiment, participant
+        return exit_domain.ExitPlan.create(
+            context=exit_domain.ExitContext.ERROR_RECOVERY,
+            path=exit_domain.ExitPath.TERMINATE_PANEL_SESSION,
+            payment=None,
+            payment_state=exit_domain.PaymentState.NOT_APPLICABLE,
+            currency=get_config().get("currency", "$"),
         )
 
     def error_page_presentation(

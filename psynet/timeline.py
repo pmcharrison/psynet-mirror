@@ -1889,8 +1889,7 @@ class Page(Elt):
         inplace_timeline_transitions = config.get("inplace_timeline_transitions")
         show_early_exit_button = self.early_exit_available(experiment, participant)
         if show_early_exit_button:
-            early_exit_plan = experiment.early_exit_plan(participant)
-            participant.exit_plan = early_exit_plan.to_dict()
+            early_exit_plan = experiment.prepared_voluntary_exit_plan(participant)
         else:
             early_exit_plan = None
 

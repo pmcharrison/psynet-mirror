@@ -277,16 +277,20 @@ General
     completion, rejected consent, voluntary Leave, and fatal-error recovery.
     The plan records the outcome, recruiter path, and
     :class:`~psynet.exit.PaymentDecision` that will be used when payment is
-    processed. It is stored on
+    processed. Its payment state distinguishes a complete decision, a decision
+    deferred after an error, and recruiters for which PsyNet payment is not
+    applicable. It is stored on
     :attr:`~psynet.participant.Participant.exit_plan`, giving recruiter handoff
     and later payment settlement one source of truth.
     Spend caps are still applied immediately before transfer.
 
-    Voluntary Leave prepares the plan before showing its confirmation and
-    commits it only after the participant confirms. Successful and unsuccessful
-    timeline endings commit their plans as they enter their existing end
-    branches. After a fatal error, PsyNet commits the plan automatically and
-    derives the final message and action from the planned recruiter path.
+    Voluntary Leave prepares one stable plan when the participant enters a page
+    and commits it only after the participant confirms. Rendering the page does
+    not change the offer, and refreshing restores the same plan. Successful and
+    unsuccessful timeline endings commit their plans as they enter their
+    existing end branches. After a fatal error, PsyNet reuses one recovery plan,
+    commits it automatically, and derives the final message and action from the
+    planned recruiter path.
     Platform-specific return or submission instructions therefore come from the
     same plan. Lucid keeps the explanation visible for five seconds before
     returning the participant to their panel; the participant can select
@@ -295,27 +299,30 @@ General
     unfinished platform handoff can resume.
 
     Experiments can customize voluntary Leave copy by overriding
-    :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the
+    :meth:`~psynet.experiment.Experiment.plan_exit` and replacing the
     confirmation while preserving the planned path::
 
         from dataclasses import replace
+        from psynet.exit import ExitContext
 
         class Exp(Experiment):
-            def early_exit_plan(self, participant):
-                plan = super().early_exit_plan(participant)
-                return replace(
-                    plan,
-                    confirmation=replace(
-                        plan.confirmation,
-                        message="Your responses so far will still be saved.",
-                    ),
-                )
+            def plan_exit(self, participant, context):
+                plan = super().plan_exit(participant, context)
+                if context is ExitContext.VOLUNTARY:
+                    plan = replace(
+                        plan,
+                        confirmation=replace(
+                            plan.confirmation,
+                            message="Your responses so far will still be saved.",
+                        ),
+                    )
+                return plan
 
-    Error recovery has a separate
-    :meth:`~psynet.experiment.Experiment.error_recovery_early_exit_plan` hook.
-    It does not apply the voluntary paid-exit threshold. If the detailed reward
-    calculation itself fails, Prolific uses recovery copy without a reward
-    quote and calculates the unquoted remainder when payment is processed.
+    The same hook receives ``ExitContext.ERROR_RECOVERY`` for fatal errors; the
+    recruiter does not apply the voluntary paid-exit threshold in that context.
+    If the detailed reward calculation itself fails, Prolific records a
+    deferred payment decision, uses recovery copy without a reward quote, and
+    calculates the unquoted remainder when payment is processed.
 
     Recruiters provide both tracked and untracked error-page content through
     :meth:`~psynet.recruiters.PsyNetRecruiterMixin.error_page_presentation`.

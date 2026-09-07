@@ -49,9 +49,9 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     )
     experiment = MagicMock()
     experiment.timeline.participant_is_in_end_logic.return_value = False
+    experiment.plan_exit.return_value = plan
     presentation = MagicMock()
     recruiter = MagicMock(show_early_exit_button=False)
-    recruiter.plan_exit.return_value = plan
     recruiter.error_page_presentation.return_value = presentation
 
     with (
@@ -76,8 +76,8 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.plan_id
     assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_called_once_with(participant)
-    recruiter.plan_exit.assert_called_once_with(
-        experiment, participant, ExitContext.ERROR_RECOVERY
+    experiment.plan_exit.assert_called_once_with(
+        participant, ExitContext.ERROR_RECOVERY
     )
     participant.fail.assert_called_once_with("error_recovery", redirect_to_end=False)
     recruiter.error_page_presentation.assert_called_once_with(
@@ -178,7 +178,7 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
         external_submit_url=None,
         contact_address="researcher@example.test",
     )
-    recruiter.plan_exit.assert_not_called()
+    experiment.plan_exit.assert_not_called()
 
 
 def test_a_get_reload_reuses_the_prepared_error_recovery_plan():
@@ -221,7 +221,7 @@ def test_a_get_reload_reuses_the_prepared_error_recovery_plan():
     assert participant.exit_plan == plan.to_dict()
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.plan_id
     recruiter.prepare_error_recovery.assert_not_called()
-    recruiter.plan_exit.assert_not_called()
+    experiment.plan_exit.assert_not_called()
     participant.fail.assert_not_called()
 
 
@@ -266,7 +266,7 @@ def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_cop
 
     assert render.call_args.kwargs["automatic_exit_offer_id"] is None
     recruiter.prepare_error_recovery.assert_not_called()
-    recruiter.plan_exit.assert_not_called()
+    experiment.plan_exit.assert_not_called()
     recruiter.error_page_presentation.assert_called_once_with(
         participant=participant,
         plan=plan,

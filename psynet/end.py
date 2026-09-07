@@ -56,14 +56,17 @@ class EndLogic(ExitLogic):
 
     def prepare_exit(self, experiment, participant) -> None:
         """Store the recruiter decision shared by debrief and settlement."""
-        plan = exit_domain._committed_exit_plan(participant)
-        if plan is None:
-            plan = experiment.recruiter.plan_exit(
-                experiment,
-                participant,
-                self.exit_context,
-            )
-            participant.exit_plan = plan.mark_committed().to_dict()
+        plan = exit_domain._stored_exit_plan(participant)
+        if plan is not None and (
+            plan.status is exit_domain.ExitPlanStatus.COMMITTED
+            or plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+        ):
+            return
+        plan = experiment.plan_exit(
+            participant,
+            self.exit_context,
+        )
+        participant.exit_plan = plan.mark_committed().to_dict()
 
     def after_debrief(self, experiment, participant) -> None:
         from psynet.bot import Bot

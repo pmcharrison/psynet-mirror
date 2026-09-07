@@ -1,1 +1,1 @@
-Successful, unsuccessful, voluntary, consent-rejection, and error-recovery exits now share a server-owned ``ExitPlan`` and planned payment decision.
+Successful, unsuccessful, voluntary, consent-rejection, and error-recovery exits now share a validated server-owned ``ExitPlan`` with stable per-page offers and explicit planned, deferred, or non-applicable payment state.

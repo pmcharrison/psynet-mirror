@@ -569,10 +569,10 @@ def _early_exit_test_plan(
         ExitPath.RETURN_FOR_BONUS,
         ExitPath.RETURN_WITHOUT_PAYMENT,
     }
-    return ExitPlan.create(
-        context=context,
-        path=path,
-        payment=PaymentDecision(
+    payment = (
+        None
+        if path is ExitPath.TERMINATE_PANEL_SESSION
+        else PaymentDecision(
             status=(
                 "screened_out"
                 if path is ExitPath.SCREEN_OUT
@@ -586,7 +586,12 @@ def _early_exit_test_plan(
             if returned
             else 1.0,
             bonus=0.0,
-        ),
+        )
+    )
+    return ExitPlan.create(
+        context=context,
+        path=path,
+        payment=payment,
         confirmation=(
             EarlyExitConfirmation(
                 title="Leave?",
@@ -850,7 +855,7 @@ def _participant_for_early_exit(reward=0.50, performance_reward=0.0):
             ExitContext.REJECTED_CONSENT,
             {},
             ExitPath.TERMINATE_PANEL_SESSION,
-            PaymentDecision("approved", 1.0, 0.0),
+            None,
         ),
     ],
 )
@@ -881,13 +886,14 @@ def test_recruiters_plan_terminal_exit_outcomes(
     assert plan.status == "committed"
     participant.exit_plan = plan.to_dict()
     participant.calculate_reward.return_value = 99.0
-    assert (
-        recruiter.decide_payment(
-            participant,
-            experiment=experiment,
+    if expected_payment is not None:
+        assert (
+            recruiter.decide_payment(
+                participant,
+                experiment=experiment,
+            )
+            == expected_payment
         )
-        == expected_payment
-    )
 
 
 def test_prolific_terminal_planning_does_not_build_voluntary_confirmation_copy():

@@ -1614,22 +1614,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant,
     ) -> exit_domain.ExitPlan | None:
         """Return the existing recovery plan or create one when appropriate."""
+        if participant is None or participant.complete:
+            return None
+
+        plan = exit_domain._stored_exit_plan(participant)
+        if plan is not None and (
+            plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            or plan.status is exit_domain.ExitPlanStatus.COMMITTED
+        ):
+            return plan
         if (
-            participant is None
-            or participant.complete
+            participant.early_exited
             or experiment.timeline.participant_is_in_end_logic(participant)
         ):
             return None
 
-        plan = exit_domain._committed_exit_plan(participant)
-        if plan is not None or participant.early_exited:
-            return plan
-
         recruiter.prepare_error_recovery(participant)
-        plan = experiment.error_recovery_early_exit_plan(participant)
+        plan = experiment.plan_exit(
+            participant,
+            exit_domain.ExitContext.ERROR_RECOVERY,
+        )
         participant.exit_plan = plan.to_dict()
         if not participant.failed:
-            participant.fail("error_recovery")
+            participant.fail("error_recovery", redirect_to_end=False)
         return plan
 
     @staticmethod
@@ -3252,21 +3259,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return success_response(submission="rejected", message=message)
 
-    def early_exit_plan(self, participant) -> exit_domain.ExitPlan:
-        """Return the confirmation and execution plan for voluntary Leave."""
-        return self.recruiter.plan_early_exit(
-            self,
+    def prepare_voluntary_exit_plan(self, participant) -> exit_domain.ExitPlan:
+        """Store one stable Leave plan for the participant's current page."""
+        page_uuid = participant.page_uuid
+        plan = self.prepared_voluntary_exit_plan(participant)
+        if plan is not None:
+            return plan
+
+        plan = self.plan_exit(
             participant,
             exit_domain.ExitContext.VOLUNTARY,
-        )
+        ).for_source_page(page_uuid)
+        participant.exit_plan = plan.to_dict()
+        return plan
 
-    def error_recovery_early_exit_plan(self, participant) -> exit_domain.ExitPlan:
-        """Return an exit plan after an error, without checking reward eligibility."""
-        return self.recruiter.plan_early_exit(
-            self,
-            participant,
-            exit_domain.ExitContext.ERROR_RECOVERY,
-        )
+    def plan_exit(
+        self,
+        participant,
+        context: exit_domain.ExitContext,
+    ) -> exit_domain.ExitPlan:
+        """Delegate one participant exit decision to the active recruiter."""
+        return self.recruiter.plan_exit(self, participant, context)
+
+    @staticmethod
+    def prepared_voluntary_exit_plan(participant) -> exit_domain.ExitPlan | None:
+        """Return the prepared Leave plan for the current page, if present."""
+        plan = exit_domain._stored_exit_plan(participant)
+        if (
+            plan is None
+            or plan.status is not exit_domain.ExitPlanStatus.PREPARED
+            or plan.context is not exit_domain.ExitContext.VOLUNTARY
+            or plan.source_page_uuid != participant.page_uuid
+        ):
+            return None
+        return plan
 
     def early_exit_allowed(self, participant):
         """Return whether the participant may leave with the paid outcome.
@@ -4791,14 +4817,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if participant.early_exited:
             return success_response(release_url=release_url)
 
-        experiment = get_experiment()
-        if participant.complete or experiment.timeline.participant_is_in_end_logic(
-            participant
-        ):
-            # The participant has reached the end of the experiment, where
-            # leaving early would only reduce their payment.
-            return cls._stale_early_exit_response()
-
         try:
             plan = exit_domain.ExitPlan.from_dict(participant.exit_plan)
         except (AttributeError, KeyError, TypeError, ValueError):
@@ -4809,6 +4827,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return cls._stale_early_exit_response()
         if plan.status is exit_domain.ExitPlanStatus.COMMITTED:
             return success_response(release_url=release_url)
+
+        experiment = get_experiment()
+        if participant.complete or (
+            plan.context is not exit_domain.ExitContext.ERROR_RECOVERY
+            and experiment.timeline.participant_is_in_end_logic(participant)
+        ):
+            # Voluntary Leave is stale once the participant reaches end logic.
+            # Error recovery remains executable if an older queued failure
+            # redirect raced with the recovery page.
+            return cls._stale_early_exit_response()
 
         experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
         participant.exit_plan = plan.mark_committed().to_dict()
@@ -4931,6 +4959,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Unsupported /timeline mode '{mode}'. "
                     "Only mode=json remains supported on this route."
                 )
+            if page.early_exit_available(experiment, participant):
+                experiment.prepare_voluntary_exit_plan(participant)
             # Full timeline renders still happen here for initial page loads and
             # for the legacy reload-based mode. Inplace fragment rendering is an
             # internal helper reached from /response instead.
@@ -5191,6 +5221,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # an inplace transition would skip pre_render() hooks (e.g. prompt/control
         # setup such as S3 presigned URL preparation).
         page.pre_render()
+        if page.early_exit_available(experiment, participant):
+            experiment.prepare_voluntary_exit_plan(participant)
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,

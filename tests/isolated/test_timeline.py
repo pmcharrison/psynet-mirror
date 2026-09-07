@@ -1150,12 +1150,11 @@ def test_end_logic_stores_a_committed_exit_plan(logic, context):
         ),
         currency="$",
     )
-    experiment.recruiter.plan_exit.return_value = plan
+    experiment.plan_exit.return_value = plan
 
     logic.prepare_exit(experiment, participant)
 
-    experiment.recruiter.plan_exit.assert_called_once_with(
-        experiment,
+    experiment.plan_exit.assert_called_once_with(
         participant,
         context,
     )

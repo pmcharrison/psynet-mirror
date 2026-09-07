@@ -878,7 +878,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
-    def fail(self, reason=None):
+    def fail(self, reason=None, *, redirect_to_end=True):
         """
         Mark this participant as failed.
 
@@ -898,6 +898,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ----------
         reason : str, optional
             Failure tag to append, for example ``"premature_exit"``.
+        redirect_to_end : bool, optional
+            Whether to enter the unsuccessful-end timeline branch. Error
+            recovery sets this to ``False`` because its exit plan owns the
+            terminal handoff.
         """
         if self.failed:
             logger.info("Participant %i already failed, not failing again.", self.id)
@@ -937,7 +941,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         for group in list(self.active_sync_groups.values()):
             group.remove_participant(self)
 
-        self._redirect_to_unsuccessful_end(exp)
+        if redirect_to_end:
+            self._redirect_to_unsuccessful_end(exp)
 
     def _fail_incomplete_trials(self, reason):
         """Fail this participant's unfinished trials.
@@ -1330,10 +1335,10 @@ class ParticipantDriver:
             participant = Participant.query.get(self.id)
             return participant.get_current_page()
 
-    def fail(self, reason=None):
+    def fail(self, reason=None, *, redirect_to_end=True):
         with transaction(commit=True):
             participant = Participant.query.get(self.id)
-            participant.fail(reason)
+            participant.fail(reason, redirect_to_end=redirect_to_end)
 
     def from_db(self, attr: str):
         with transaction(commit=False):
