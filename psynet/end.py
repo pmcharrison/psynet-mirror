@@ -37,12 +37,16 @@ class EndLogic(ExitLogic):
 
     def resolve(self) -> Union[Elt, List[Elt]]:
         return join(
-            CodeBlock(self.before_debrief),
-            CodeBlock(self.prepare_exit),
+            CodeBlock(self.prepare_debrief),
             PageMaker(self.debrief_participant, time_estimate=0.0),
             CodeBlock(self.after_debrief),
             PageMaker(self.release_participant, time_estimate=0.0),
         )
+
+    def prepare_debrief(self, experiment, participant) -> None:
+        """Apply outcome state, then store its recruiter exit decision."""
+        self.before_debrief(experiment, participant)
+        self.prepare_exit(experiment, participant)
 
     def before_debrief(self, experiment, participant) -> None:
         pass

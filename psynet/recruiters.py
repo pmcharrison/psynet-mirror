@@ -422,6 +422,7 @@ class PsyNetRecruiterMixin:
             context=context,
             path=path,
             payment=payment,
+            currency=get_config().get("currency", "$"),
         ).mark_committed()
 
     def plan_early_exit(
@@ -509,6 +510,7 @@ class PsyNetRecruiterMixin:
             path=exit_domain.ExitPath.END_SESSION,
             payment=None,
             payment_is_final=False,
+            currency=get_config().get("currency", "$"),
             confirmation=confirmation,
         )
 
@@ -538,6 +540,7 @@ class PsyNetRecruiterMixin:
                 platform_base=0.0,
                 bonus=0.0,
             ),
+            currency=get_config().get("currency", "$"),
             confirmation=self._early_exit_confirmation(message, path=path),
         )
 
@@ -895,6 +898,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 platform_base=fixed,
                 bonus=bonus,
             ),
+            currency=get_config().get("currency", "$"),
             confirmation=self._early_exit_confirmation(message, path=path),
         )
 
@@ -950,6 +954,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             path=path,
             payment=payment,
             payment_is_final=False,
+            currency=get_config().get("currency", "$"),
             confirmation=self._early_exit_confirmation(message, path=path),
         )
 
@@ -2960,6 +2965,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             path=path,
             payment=None,
             payment_is_final=False,
+            currency=get_config().get("currency", "$"),
             confirmation=confirmation,
         )
 

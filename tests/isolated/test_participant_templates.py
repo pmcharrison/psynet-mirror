@@ -767,7 +767,7 @@ def test_footer_exit_uses_an_in_page_confirmation():
     experiment_source = (resources.files("psynet") / "experiment.py").read_text(
         encoding="utf-8"
     )
-    assert "EarlyExitPlan.from_dict" in experiment_source
+    assert "exit_domain.ExitPlan.from_dict" in experiment_source
     assert 'methods=["POST"]' in experiment_source
 
 

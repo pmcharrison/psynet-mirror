@@ -138,11 +138,9 @@ class ExitPlan:
         payment: PaymentDecision | None,
         confirmation: EarlyExitConfirmation | None = None,
         payment_is_final: bool = True,
-        currency: str | None = None,
+        currency: str = "$",
     ) -> "ExitPlan":
         """Create a prepared exit plan."""
-        if currency is None:
-            currency = get_config().get("currency", "$")
         return cls(
             plan_id=str(uuid4()),
             context=context,
@@ -171,9 +169,6 @@ class ExitPlan:
             raise ValueError("Invalid exit plan status.") from exc
         confirmation = data.get("confirmation")
         payment = data.get("payment")
-        currency = data.get("currency")
-        if currency is None:
-            currency = get_config().get("currency", "$")
         return cls(
             plan_id=data["plan_id"],
             context=ExitContext(data["context"]),
@@ -182,7 +177,7 @@ class ExitPlan:
             payment=(
                 None if payment is None else PaymentDecision.from_dict(payment)
             ),
-            currency=currency,
+            currency=data.get("currency", "$"),
             confirmation=(
                 None
                 if confirmation is None
