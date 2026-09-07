@@ -9,11 +9,57 @@ from psynet.error import ErrorRecord
 from psynet.experiment import Experiment
 from psynet.process import WorkerAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.recruiters import DevLucidRecruiter
+from psynet.recruiters import (
+    DevLucidRecruiter,
+    EarlyExitConfirmation,
+    EarlyExitContext,
+    EarlyExitPath,
+    EarlyExitPlan,
+)
 
 
 def task():
     raise ValueError("process failed")
+
+
+def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off():
+    from flask import Flask
+
+    participant = SimpleNamespace(
+        id=42,
+        hit_id="study-1",
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        complete=False,
+        early_exited=False,
+        early_exit_plan=None,
+    )
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.ERROR_RECOVERY,
+        path=EarlyExitPath.END_SESSION,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
+    experiment.error_recovery_early_exit_plan.return_value = plan
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.side_effect = {
+            "show_early_exit_button": False,
+            "contact_email_on_error": "researcher@example.test",
+        }.get
+        Experiment.error_page(participant=participant, recruiter=MagicMock())
+
+    assert participant.early_exit_plan == plan.to_dict()
+    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
 
 
 def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
