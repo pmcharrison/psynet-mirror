@@ -1,5 +1,3 @@
-import shutil
-from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
@@ -55,41 +53,17 @@ def _wait_for_error_form(driver, message):
     )
 
 
-@pytest.fixture(scope="class")
-def experiment_directory(request, tmp_path_factory):
-    source = Path(getattr(request, "param", path_to_test_experiment("timeline")))
-    if not getattr(request.cls, "allow_repeat_worker_ids", False):
-        yield str(source)
-        return
-
-    # Chrome tests in one session share launched experiments by directory, so
-    # repeat-worker coverage copies the timeline experiment instead of writing
-    # into the shared fixture.
-    dest = tmp_path_factory.mktemp("timeline_repeat") / "experiment"
-    shutil.copytree(
-        source,
-        dest,
-        ignore=shutil.ignore_patterns(
-            ".cursor", "__pycache__", ".git", ".venv", "node_modules"
-        ),
-    )
-    experiment_path = dest / "experiment.py"
-    original = experiment_path.read_text(encoding="utf-8")
-    if '"allow_repeat_worker_ids"' not in original:
-        marker = "    config = {\n"
-        if marker not in original:
-            raise AssertionError(
-                "Could not enable allow_repeat_worker_ids in the timeline experiment."
-            )
-        experiment_path.write_text(
-            original.replace(
-                marker,
-                marker + '        "allow_repeat_worker_ids": True,\n',
-                1,
-            ),
-            encoding="utf-8",
-        )
-    yield str(dest)
+@pytest.fixture(scope="class", autouse=True)
+def configure_repeat_worker_policy(request, env):
+    """Set the worker policy for the server launched for each test class."""
+    key = "allow_repeat_worker_ids"
+    previous = env.get(key)
+    env[key] = str(bool(getattr(request.cls, "allow_repeat_worker_ids", False))).lower()
+    yield
+    if previous is None:
+        env.pop(key, None)
+    else:
+        env[key] = previous
 
 
 @pytest.mark.parametrize(
