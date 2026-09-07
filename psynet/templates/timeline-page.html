@@ -194,7 +194,11 @@
                 </div>
         </nav>
         {% else %}
-            {{ media_download_bar() }}
+            {# A standalone completed bar reads as a stray stripe. Footerless
+               pages only need the bar while they have media to download. #}
+            {% if page.media.num_files > 0 %}
+                {{ media_download_bar() }}
+            {% endif %}
         {% endif %}
     {% endmacro %}
 

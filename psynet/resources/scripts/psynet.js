@@ -1592,8 +1592,11 @@
     psynet.media.downloadProgress.updateDisplay = function () {
       let bar = psynet.media.downloadProgress.bar();
       if (bar !== null) {
-        bar.style.width =
-          Math.round(psynet.media.downloadProgress.getTotal()) + "%";
+        const total = Math.round(psynet.media.downloadProgress.getTotal());
+        bar.style.width = total + "%";
+        if (bar.parentElement?.id !== "footer") {
+          bar.hidden = total >= 100;
+        }
       }
     };
 
@@ -1604,6 +1607,9 @@
       let bar = psynet.media.downloadProgress.bar();
       if (bar !== null) {
         bar.style.width = "0%";
+        if (bar.parentElement?.id !== "footer") {
+          bar.hidden = false;
+        }
       }
     };
 

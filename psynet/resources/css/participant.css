@@ -283,11 +283,10 @@ body {
     min-height: 100dvh;
 }
 
-/* A standalone media-download bar pins itself to the bottom edge, so the last
-   few pixels of a scrolled page would otherwise hide underneath it. Match the
-   template's direct-child structure rather than inferring it from whether a
-   footer exists elsewhere in the document. */
-body:has(#timeline-root > #media-download-progress-bar) {
+/* A visible standalone media-download bar pins itself to the bottom edge, so
+   the last few pixels of a scrolled page would otherwise hide underneath it.
+   Release that space once loading completes and the bar becomes hidden. */
+body:has(#timeline-root > #media-download-progress-bar:not([hidden])) {
     padding-bottom: var(--psynet-media-progress-height);
 }
 
@@ -906,8 +905,8 @@ textarea:focus-visible,
     bottom: auto;
 }
 
-/* With no footer to ride, the template renders the bar directly under the
-   timeline root and it pins to the bottom of the window. */
+/* With no footer to ride, an active download bar pins to the bottom of the
+   window. The media runtime hides it when loading completes. */
 #timeline-root > #media-download-progress-bar {
     position: fixed;
     top: auto;
