@@ -4503,29 +4503,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
 
-        compensate = True
-        participant = None
-        recruiter = None
-        external_submit_url = None
-
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
-            recruiter = get_experiment().recruiter
-            external_submit_url = None
-            if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(
-                    participant=participant
-                )
+            return cls._render_participant_error_page(
+                participant,
+                request_data=request_data,
+            )
 
-            if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
-                compensate = False
-                recruiter.set_termination_details(
-                    participant.assignment_id, "error-page_route"
-                )
+        return cls.error_page(request_data=request_data)
 
-            on_error_page = getattr(recruiter, "on_error_page", None)
-            if on_error_page is not None:
-                on_error_page(participant)
+    @classmethod
+    def _render_participant_error_page(cls, participant, *, request_data=""):
+        """Render an error page using the participant's recruiter policy."""
+        recruiter = get_experiment().recruiter
+        external_submit_url = None
+        if hasattr(recruiter, "external_submit_url"):
+            external_submit_url = recruiter.external_submit_url(participant=participant)
+
+        compensate = not isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter))
+        if not compensate:
+            recruiter.set_termination_details(
+                participant.assignment_id, "error-page_route"
+            )
+
+        on_error_page = getattr(recruiter, "on_error_page", None)
+        if on_error_page is not None:
+            on_error_page(participant)
 
         return cls.error_page(
             participant=participant,
@@ -5012,12 +5015,29 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {f"{key}_id": value.id for key, value in parents.items()}
 
     class HandledError(Exception):
-        def __init__(self, message=None, participant=None, **kwargs):
+        def __init__(
+            self, message=None, participant=None, participant_id=None, **kwargs
+        ):
             super().__init__(message)
             self.participant = participant
+            self.participant_id = participant_id
 
         def error_page(self):
-            return Experiment.error_page(self.participant)
+            participant = self.participant
+            if participant is None and self.participant_id is not None:
+                try:
+                    participant = Experiment.get_participant_from_participant_id(
+                        self.participant_id
+                    )
+                except sqlalchemy.orm.exc.NoResultFound:
+                    logger.warning(
+                        "Could not recover participant %s while rendering a "
+                        "handled-error page.",
+                        self.participant_id,
+                    )
+            if participant is None:
+                return Experiment.error_page()
+            return Experiment._render_participant_error_page(participant)
 
     @classmethod
     def report_error(
