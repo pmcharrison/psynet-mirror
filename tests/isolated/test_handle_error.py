@@ -67,7 +67,11 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     assert participant.early_exit_plan == plan.to_dict()
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
     assert render.call_args.kwargs["error_recovery_presentation"] is presentation
-    recruiter.error_recovery_presentation.assert_called_once_with(participant, plan)
+    recruiter.prepare_error_recovery.assert_called_once_with(participant)
+    recruiter.on_error_page.assert_called_once_with(participant)
+    recruiter.error_recovery_presentation.assert_called_once_with(
+        participant, plan, "researcher@example.test"
+    )
 
 
 def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
@@ -89,17 +93,14 @@ def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
         assert handled_error.error_page() == "response"
 
     get_participant.assert_called_once_with(42)
-    recruiter.on_error_page.assert_called_once_with(participant)
     error_page.assert_called_once_with(
         participant=participant,
         request_data="",
         recruiter=recruiter,
-        external_submit_url="https://example.test/submit",
-        compensate=True,
     )
 
 
-def test_handled_error_page_uses_lucid_recovery_without_changing_termination_details():
+def test_handled_error_page_delegates_lucid_recovery():
     participant = SimpleNamespace(assignment_id="rid-1")
     recruiter = MagicMock(spec=DevLucidRecruiter)
     recruiter.external_submit_url.return_value = "https://example.test/terminate"
@@ -116,15 +117,10 @@ def test_handled_error_page_uses_lucid_recovery_without_changing_termination_det
     ):
         assert Experiment.HandledError(participant_id=42).error_page() == "response"
 
-    recruiter.set_termination_details.assert_called_once_with(
-        "rid-1", "error-page_route"
-    )
     error_page.assert_called_once_with(
         participant=participant,
         request_data="",
         recruiter=recruiter,
-        external_submit_url="https://example.test/terminate",
-        compensate=True,
     )
 
 

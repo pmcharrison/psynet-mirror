@@ -167,8 +167,12 @@ def test_error_recovery_uses_one_researcher_reference_code():
     )
 
     assert "error_recovery_presentation.researcher_contact_message" in source
-    assert "quote reference code" in source
-    assert "{{ assignment_id }}" in source
+    assert 'href="mailto:' not in source
+    assert "quote reference code" not in source
+    assert 'data-action="' not in source
+    assert "data-preparation-post-url" in source
+    assert "data-action-post-url" in source
+    assert "data-destination-url" in source
     assert "Error type" not in source
     assert "Study ID" not in source
     assert "Worker ID" not in source
@@ -751,7 +755,7 @@ def test_footer_exit_uses_an_in_page_confirmation():
     ).read_text(encoding="utf-8")
     assert "psynet.initEarlyExitButton" in js
     assert "result.release_url" in early_exit_js
-    assert '"/set_participant_as_early_exited/"' in early_exit_js
+    assert '"/execute_early_exit_plan/"' in early_exit_js
     assert 'method: "POST"' in early_exit_js
     assert "offer_id: offerId" in early_exit_js
     # A stale offer is refused by the server; retrying it cannot help.
@@ -808,4 +812,4 @@ def test_error_page_automatically_executes_its_server_owned_exit_plan():
     # without exposing a block of internal identifiers to every participant.
     assert 'id="error-contact"' in error
     assert 'id="error-identifiers"' not in error
-    assert "<code>{{ assignment_id }}</code>" in error
+    assert "error_recovery_presentation.researcher_contact_message" in error

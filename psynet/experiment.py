@@ -1590,7 +1590,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         error_text=None,
         recruiter=None,
         external_submit_url=None,
-        compensate=True,
         error_type="default",
         request_data="",
         locale=DEFAULT_LOCALE,
@@ -1609,35 +1608,35 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             hit_id = participant.hit_id
             assignment_id = participant.assignment_id
             worker_id = participant.worker_id
-            participant_id = participant.id
         else:
             hit_id = request.form.get("hit_id", "")
             assignment_id = request.form.get("assignment_id", "")
             worker_id = request.form.get("worker_id", "")
-            participant_id = request.form.get("participant_id", None)
-
-        if participant_id:
-            try:
-                participant_id = int(participant_id)
-            except (ValueError, TypeError):
-                participant_id = None
 
         automatic_exit_offer_id = None
         error_recovery_presentation = None
+        contact_address = get_config().get("contact_email_on_error")
         if (
             participant is not None
-            and compensate
             and not participant.complete
             and not participant.early_exited
         ):
             experiment = get_experiment()
             if not experiment.timeline.participant_is_in_end_logic(participant):
+                active_recruiter = recruiter or experiment.recruiter
+                active_recruiter.prepare_error_recovery(participant)
+                on_error_page = getattr(active_recruiter, "on_error_page", None)
+                if on_error_page is not None:
+                    on_error_page(participant)
                 plan = experiment.error_recovery_early_exit_plan(participant)
                 participant.early_exit_plan = plan.to_dict()
                 automatic_exit_offer_id = plan.offer_id
-                active_recruiter = recruiter or experiment.recruiter
                 error_recovery_presentation = (
-                    active_recruiter.error_recovery_presentation(participant, plan)
+                    active_recruiter.error_recovery_presentation(
+                        participant,
+                        plan,
+                        contact_address,
+                    )
                 )
 
         return make_response(
@@ -1645,15 +1644,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "psynet_error.html",
                 locale=locale,
                 error_text=error_text,
-                compensate=compensate,
-                contact_address=get_config().get("contact_email_on_error"),
+                contact_address=contact_address,
                 error_type=error_type,
                 hit_id=hit_id,
                 assignment_id=assignment_id,
                 worker_id=worker_id,
                 recruiter=recruiter,
                 request_data=request_data,
-                participant_id=participant_id,
                 external_submit_url=external_submit_url,
                 automatic_exit_offer_id=automatic_exit_offer_id,
                 error_recovery_presentation=error_recovery_presentation,
@@ -4497,25 +4494,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _render_participant_error_page(cls, participant, *, request_data=""):
         """Render an error page using the participant's recruiter policy."""
         recruiter = get_experiment().recruiter
-        external_submit_url = None
-        if hasattr(recruiter, "external_submit_url"):
-            external_submit_url = recruiter.external_submit_url(participant=participant)
-
-        if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
-            recruiter.set_termination_details(
-                participant.assignment_id, "error-page_route"
-            )
-
-        on_error_page = getattr(recruiter, "on_error_page", None)
-        if on_error_page is not None:
-            on_error_page(participant)
-
         return cls.error_page(
             participant=participant,
             request_data=request_data,
             recruiter=recruiter,
-            external_submit_url=external_submit_url,
-            compensate=True,
         )
 
     @experiment_route("/module", methods=["POST"])
@@ -4750,12 +4732,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             error_code="stale_early_exit_offer",
         )
 
-    @experiment_route(
-        "/set_participant_as_early_exited/<assignment_id>", methods=["POST"]
-    )
+    @experiment_route("/execute_early_exit_plan/<assignment_id>", methods=["POST"])
     @classmethod
     @with_transaction
-    def route_set_participant_as_early_exited(cls, assignment_id):
+    def route_execute_early_exit_plan(cls, assignment_id):
         try:
             participant = cls.get_participant_from_assignment_id(
                 assignment_id, for_update=True

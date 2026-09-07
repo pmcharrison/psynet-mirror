@@ -2,6 +2,7 @@
   "use strict";
 
   let controller = null;
+  let autoRedirectTimer = null;
 
   function continueToRelease(releaseUrl) {
     if (!releaseUrl) throw new Error("The server did not provide a release URL.");
@@ -20,13 +21,12 @@
     if (!response.ok) throw new Error("The next action did not succeed.");
   }
 
-  async function execute(assignmentId, offerId) {
+  async function executePlan(assignmentId, offerId, reloadStaleOffer = true) {
     if (!assignmentId || !offerId) {
       throw new Error("The server did not provide an early-exit plan.");
     }
     const response = await fetch(
-      "/set_participant_as_early_exited/" +
-        encodeURIComponent(assignmentId),
+      "/execute_early_exit_plan/" + encodeURIComponent(assignmentId),
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -35,11 +35,17 @@
     );
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      // A stale offer cannot be fixed by resending it, so reload the page and
-      // let the server decide what it now offers.
+      // A stale offer cannot be fixed by resending it. Voluntary Leave reloads
+      // immediately; automatic recovery waits for the participant to retry so
+      // a persistently stale server cannot cause a reload loop.
       if (result.error_code === "stale_early_exit_offer") {
-        global.location.reload();
-        return;
+        if (reloadStaleOffer) {
+          global.location.reload();
+          return;
+        }
+        const error = new Error("The early-exit offer is no longer current.");
+        error.code = result.error_code;
+        throw error;
       }
       throw new Error("Failed to record early exit.");
     }
@@ -51,6 +57,10 @@
 
   function init() {
     if (controller) controller.abort();
+    if (autoRedirectTimer) {
+      global.clearTimeout(autoRedirectTimer);
+      autoRedirectTimer = null;
+    }
     controller = new AbortController();
     const { signal } = controller;
 
@@ -61,19 +71,24 @@
       const retry = document.getElementById("automatic-early-exit-retry");
       const ready = document.getElementById("automatic-early-exit-ready");
       const finish = document.getElementById("automatic-early-exit-continue");
-      const action = automatic.dataset.action;
-      const participantId = automatic.dataset.participantId;
-      const postUrl = automatic.dataset.postUrl;
-      const redirectUrl = automatic.dataset.redirectUrl;
-      const postData = JSON.parse(automatic.dataset.postData || "{}");
+      const preparationPostUrl = automatic.dataset.preparationPostUrl;
+      const preparationPostData = JSON.parse(
+        automatic.dataset.preparationPostData || "{}",
+      );
+      const actionPostUrl = automatic.dataset.actionPostUrl;
+      const actionPostData = JSON.parse(
+        automatic.dataset.actionPostData || "{}",
+      );
+      const destinationUrl = automatic.dataset.destinationUrl;
       const autoRedirectDelay = Number(
         automatic.dataset.autoRedirectDelayMs || 0,
       );
       let releaseUrl = null;
       let prepared = false;
-      let autoRedirectTimer = null;
+      let reloadOnRetry = false;
 
       function showFailure(error) {
+        reloadOnRetry = error.code === "stale_early_exit_offer";
         pending.hidden = true;
         ready.hidden = true;
         if (finish) {
@@ -94,20 +109,10 @@
         }
         if (finish) finish.disabled = true;
         try {
-          if (action === "follow_release") {
-            continueToRelease(releaseUrl);
-            return;
+          if (actionPostUrl) {
+            await postForm(actionPostUrl, actionPostData);
           }
-          if (action === "redirect") {
-            continueToRelease(redirectUrl);
-            return;
-          }
-          if (action === "post_and_redirect") {
-            await postForm(postUrl, postData);
-            continueToRelease(redirectUrl);
-            return;
-          }
-          throw new Error("The server provided an unknown recovery action.");
+          continueToRelease(destinationUrl || releaseUrl);
         } catch (error) {
           showFailure(error);
         }
@@ -121,16 +126,16 @@
         if (finish) finish.hidden = true;
         releaseUrl = null;
         prepared = false;
+        reloadOnRetry = false;
         try {
-          releaseUrl = await execute(
+          releaseUrl = await executePlan(
             automatic.dataset.assignmentId,
             automatic.dataset.offerId,
+            false,
           );
           if (!releaseUrl) return;
-          if (action === "close_page") {
-            await postForm("/worker_complete", {
-              participant_id: participantId,
-            });
+          if (preparationPostUrl) {
+            await postForm(preparationPostUrl, preparationPostData);
           }
           prepared = true;
           pending.hidden = true;
@@ -149,7 +154,15 @@
 
       retry.addEventListener(
         "click",
-        () => (prepared ? followParticipantAction() : run()),
+        () => {
+          if (reloadOnRetry) {
+            global.location.reload();
+          } else if (prepared) {
+            followParticipantAction();
+          } else {
+            run();
+          }
+        },
         { signal },
       );
       if (finish) {
@@ -207,7 +220,7 @@
         confirm.disabled = true;
         cancel.disabled = true;
         try {
-          const releaseUrl = await execute(assignmentId, offerId);
+          const releaseUrl = await executePlan(assignmentId, offerId);
           if (releaseUrl) continueToRelease(releaseUrl);
         } catch (error) {
           confirm.disabled = false;

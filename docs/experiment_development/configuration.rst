@@ -267,9 +267,10 @@ General
     recruiters gate *paid* leave on ``min_reward_for_paid_early_exit``. Below
     that threshold, Leave still opens a confirmation that offers
     **Leave without payment** (responses saved, no PsyNet payment, and
-    platform-specific return instructions). Automatic error recovery always
-    uses the compensated/plain exit pathway, even below the threshold. Lucid
-    always permits termination and never talks about PsyNet payment.
+    platform-specific return instructions). Automatic error recovery ignores
+    the voluntary payment threshold and uses the recruiter's configured error
+    outcome. Lucid always permits termination and never talks about PsyNet
+    payment.
 
     PsyNet prepares an :class:`~psynet.recruiters.EarlyExitPlan` before showing
     a voluntary confirmation or automatically ending a session after an error.
@@ -281,7 +282,10 @@ General
     advances directly to a dedicated release branch. After a fatal error, PsyNet
     executes the plan without confirmation and derives the final message and
     action from the planned recruiter path. Platform-specific return or
-    submission instructions therefore come from the same plan.
+    submission instructions therefore come from the same plan. Lucid keeps the
+    explanation visible for five seconds before returning the participant to
+    their panel; the participant can select **Return to your panel** to go
+    immediately.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the

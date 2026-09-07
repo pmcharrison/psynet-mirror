@@ -13,12 +13,12 @@
                 {% if automatic_exit_offer_id %}
                     <div id="automatic-early-exit"
                          data-assignment-id="{{ assignment_id }}"
-                         data-participant-id="{{ participant_id }}"
                          data-offer-id="{{ automatic_exit_offer_id }}"
-                         data-action="{{ error_recovery_presentation.action.value }}"
-                         data-post-url="{{ error_recovery_presentation.post_url or '' }}"
-                         data-post-data='{{ error_recovery_presentation.post_data | tojson }}'
-                         data-redirect-url="{{ error_recovery_presentation.redirect_url or '' }}"
+                         data-preparation-post-url="{{ error_recovery_presentation.preparation_post_url or '' }}"
+                         data-preparation-post-data='{{ error_recovery_presentation.preparation_post_data | tojson }}'
+                         data-action-post-url="{{ error_recovery_presentation.action_post_url or '' }}"
+                         data-action-post-data='{{ error_recovery_presentation.action_post_data | tojson }}'
+                         data-destination-url="{{ error_recovery_presentation.destination_url or '' }}"
                          data-auto-redirect-delay-ms="{{ error_recovery_presentation.auto_redirect_delay_ms or '' }}"
                          aria-live="polite">
                         <div id="automatic-early-exit-pending" role="status">
@@ -51,12 +51,9 @@
                             window.psynetEarlyExit.init();
                         });
                     </script>
-                    {% if error_recovery_presentation.researcher_contact_message and contact_address %}
+                    {% if error_recovery_presentation.researcher_contact_message %}
                         <p id="error-contact" class="mt-4">
                             {{ error_recovery_presentation.researcher_contact_message }}
-                            <a href="mailto:{{ contact_address }}">{{ contact_address }}</a>
-                            {{ pgettext("early_exit_error", "and quote reference code") }}
-                            <code>{{ assignment_id }}</code>.
                         </p>
                     {% endif %}
                 {% else %}

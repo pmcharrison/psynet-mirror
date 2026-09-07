@@ -254,28 +254,34 @@ class EarlyExitPath(StrEnum):
     TERMINATE_PANEL_SESSION = "terminate_panel_session"
 
 
-class ErrorRecoveryAction(StrEnum):
-    """Participant action shown after an error-recovery plan executes."""
-
-    CLOSE_PAGE = "close_page"
-    FOLLOW_RELEASE = "follow_release"
-    POST_AND_REDIRECT = "post_and_redirect"
-    REDIRECT = "redirect"
-
-
 @dataclass(frozen=True)
 class ErrorRecoveryPresentation:
-    """Recruiter-specific copy and action for a finalized error recovery."""
+    """Recruiter-specific copy and handoff for a finalized error recovery."""
 
     message: str
-    action: ErrorRecoveryAction
     failure_message: str
     researcher_contact_message: str | None = None
     button_label: str | None = None
-    post_url: str | None = None
-    post_data: dict[str, str] = field(default_factory=dict)
-    redirect_url: str | None = None
+    preparation_post_url: str | None = None
+    preparation_post_data: dict[str, str] = field(default_factory=dict)
+    action_post_url: str | None = None
+    action_post_data: dict[str, str] = field(default_factory=dict)
+    destination_url: str | None = None
     auto_redirect_delay_ms: int | None = None
+
+    def __post_init__(self):
+        """Reject presentations whose declared handoff cannot be executed."""
+        if self.preparation_post_data and not self.preparation_post_url:
+            raise ValueError("Preparation POST data requires a URL.")
+        if self.action_post_data and not self.action_post_url:
+            raise ValueError("Action POST data requires a URL.")
+        if (self.action_post_url or self.destination_url) and not self.button_label:
+            raise ValueError("A participant handoff requires a button label.")
+        if self.auto_redirect_delay_ms is not None:
+            if self.auto_redirect_delay_ms <= 0:
+                raise ValueError("An automatic redirect delay must be positive.")
+            if not self.destination_url:
+                raise ValueError("An automatic redirect requires a destination URL.")
 
 
 @dataclass(frozen=True)
@@ -496,26 +502,41 @@ class PsyNetRecruiterMixin:
             participant.fail(reason)
 
     def error_recovery_presentation(
-        self, participant, plan: EarlyExitPlan
+        self,
+        participant,
+        plan: EarlyExitPlan,
+        contact_address: str | None = None,
     ) -> ErrorRecoveryPresentation:
         """Describe the final error page for a recruiter with no handoff."""
-        del participant, plan
+        del plan
         _p = get_translator(context=True)
+        contact_message = None
+        if contact_address:
+            contact_message = _p(
+                "early_exit_error",
+                "If you need to contact the researcher about this error, write "
+                "to {EMAIL} and quote reference code {REFERENCE_CODE}.",
+            ).format(
+                EMAIL=contact_address,
+                REFERENCE_CODE=participant.assignment_id,
+            )
         return ErrorRecoveryPresentation(
             message=_p(
                 "early_exit_error",
                 "Your responses have been saved. You may close this page.",
             ),
-            action=ErrorRecoveryAction.CLOSE_PAGE,
             failure_message=_p(
                 "early_exit_error",
                 "We could not finish your session. Please try again.",
             ),
-            researcher_contact_message=_p(
-                "early_exit_error",
-                "If you need to contact the researcher about this error, write to",
-            ),
+            researcher_contact_message=contact_message,
+            preparation_post_url="/worker_complete",
+            preparation_post_data={"participant_id": str(participant.id)},
         )
+
+    def prepare_error_recovery(self, participant) -> None:
+        """Perform recruiter bookkeeping before rendering error recovery."""
+        del participant
 
     def gates_early_exit_on_reward(self) -> bool:
         """Return whether paid early exit requires the reward threshold.
@@ -819,14 +840,10 @@ class PsyNetExitPageMixin:
     """
 
     def exit_response(self, experiment, participant):
-        plan = _executed_early_exit_plan(participant)
         return render_template_with_translations(
             "psynet_exit_recruiter.html",
             participant_reference=participant.assignment_id,
             left_early=bool(getattr(participant, "early_exited", False)),
-            error_recovery=(
-                plan is not None and plan.context is EarlyExitContext.ERROR_RECOVERY
-            ),
         )
 
 
@@ -1003,9 +1020,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
     def error_recovery_presentation(
-        self, participant, plan: EarlyExitPlan
+        self,
+        participant,
+        plan: EarlyExitPlan,
+        contact_address: str | None = None,
     ) -> ErrorRecoveryPresentation:
         """Explain Prolific's next step and payment after an error."""
+        del contact_address
         _p = get_translator(context=True)
         if plan.path is EarlyExitPath.SCREEN_OUT:
             fixed = _format_quoted_early_exit_amount(plan, "fixed")
@@ -1043,7 +1064,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return ErrorRecoveryPresentation(
                 message=f"{message} {payment}",
-                action=ErrorRecoveryAction.POST_AND_REDIRECT,
                 failure_message=_p(
                     "early_exit_error_prolific",
                     "We could not record your participation on Prolific. Please "
@@ -1051,12 +1071,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     "through Prolific.",
                 ),
                 button_label=_p("early_exit_error_prolific", "Submit to Prolific"),
-                post_url="/prolific-submission-listener",
-                post_data={
+                action_post_url="/prolific-submission-listener",
+                action_post_data={
                     "assignmentId": participant.assignment_id,
                     "participantId": str(participant.id),
                 },
-                redirect_url=self.external_submission_url(
+                destination_url=self.external_submission_url(
                     code_type=self.unsuccessful_code_type
                 ),
             )
@@ -1080,7 +1100,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             )
             return ErrorRecoveryPresentation(
                 message=f"{_p('early_exit_error_prolific', 'Your responses have been saved.')} {payment} {next_step}",
-                action=ErrorRecoveryAction.FOLLOW_RELEASE,
                 failure_message=_p(
                     "early_exit_error_prolific",
                     "We could not open the payment instructions. Please try again. "
@@ -1370,87 +1389,26 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return True
 
     def error_page_content(self, assignment_id=None, external_submit_url=None):
-        """Error-page HTML for Prolific participants.
-
-        When unsuccessful participants are paid via the screen-out completion
-        code, the page offers a "Submit to Prolific" button that reports the
-        submission to PsyNet and redirects to the UNSUCCESSFUL completion
-        code; otherwise participants are asked to message the experimenter.
-        (``external_submit_url`` is part of the recruiter error-page hook
-        signature but is not used here: the submit URL is derived from the
-        completion code.)
-        """
+        """Direct untracked errors to Prolific's messaging channel."""
+        del assignment_id, external_submit_url
         _p = get_translator(context=True)
-
-        # The participant id is needed for the submit button's POST to
-        # /prolific-submission-listener; resolve it from the assignment id.
-        error_participant = latest_participant_for_assignment(assignment_id)
-        already_issued = getattr(error_participant, "issued_completion_code_type", None)
-        can_submit_unsuccessful = (
-            self.pays_unsuccessful_participants_via_screen_out
-            and assignment_id
-            and error_participant is not None
-            # A complete participant exits via the normal exit page with the
-            # auto-approving code; never offer them the screen-out submit
-            # button just because they hit an error page afterwards.
-            and not error_participant.complete
-            # First issuance wins: a participant who already left with
-            # another completion code (e.g. the auto-approving DEFAULT)
-            # must not be reclassified as screened-out by merely rendering
-            # this page. See ``completion_status``, which trusts this
-            # snapshot over the current ``failed`` flag.
-            and already_issued in (None, self.unsuccessful_code_type)
-        )
 
         html = tags.div()
         with html:
             tags.p(
                 _p(
                     "prolific_error",
-                    "Don't worry, your progress has been recorded.",
+                    "We could not identify an active study session for automatic "
+                    "recovery.",
                 )
             )
-            if can_submit_unsuccessful:
-                submit_url = self.external_submission_url(
-                    code_type=self.unsuccessful_code_type
+            tags.p(
+                _p(
+                    "prolific_error",
+                    "Please message the researcher through Prolific and describe "
+                    "what led to this error.",
                 )
-                tags.p(
-                    _p(
-                        "prolific_error",
-                        "Click the button below to submit your study to Prolific and receive compensation for your time.",
-                    )
-                )
-                tags.button(
-                    _p("prolific_error", "Submit to Prolific"),
-                    id="prolific-unsuccessful-submit",
-                    cls="btn btn-primary btn-lg",
-                )
-                tags.script(
-                    raw(
-                        """
-                        document.getElementById("prolific-unsuccessful-submit").onclick = function () {
-                            this.disabled = true;
-                            const data = new URLSearchParams();
-                            data.append("assignmentId", %s);
-                            data.append("participantId", %s);
-                            fetch("/prolific-submission-listener", {method: "POST", body: data})
-                                .finally(() => { window.location = %s; });
-                        };
-                        """
-                        % (
-                            json.dumps(assignment_id),
-                            json.dumps(str(error_participant.id)),
-                            json.dumps(submit_url),
-                        )
-                    )
-                )
-            else:
-                tags.p(
-                    _p(
-                        "prolific_error",
-                        "To enquire about compensation, please send the researcher a message via the Prolific website and describe what led to your error.",
-                    )
-                )
+            )
         return html
 
     def release_participant(
@@ -2926,6 +2884,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         return {"rid": assignment_id, "ris": ris}
 
     def error_page_content(self, assignment_id, external_submit_url):
+        """Return an untracked participant to Lucid after a readable pause."""
         _p = get_translator(context=True)
 
         if external_submit_url is None:
@@ -2938,7 +2897,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                     [
                         _p(
                             "lucid_error",
-                            "Redirecting to Lucid Marketplace...",
+                            "We will return you to your panel provider in a few "
+                            "seconds.",
                         ),
                     ]
                 )
@@ -2947,7 +2907,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 raw(
                     'setTimeout(() => { window.location = "'
                     + external_submit_url
-                    + '"; }, 2000)'
+                    + '"; }, 5000)'
                 )
             )
         return html
@@ -3075,10 +3035,13 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         )
 
     def error_recovery_presentation(
-        self, participant, plan: EarlyExitPlan
+        self,
+        participant,
+        plan: EarlyExitPlan,
+        contact_address: str | None = None,
     ) -> ErrorRecoveryPresentation:
         """Explain Lucid's return to the participant's panel provider."""
-        del plan
+        del plan, contact_address
         _p = get_translator(context=True)
         return ErrorRecoveryPresentation(
             message=_p(
@@ -3087,7 +3050,6 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 "panel provider in a few seconds. Your panel provider will "
                 "determine any payment according to its own rules.",
             ),
-            action=ErrorRecoveryAction.REDIRECT,
             failure_message=_p(
                 "early_exit_error_lucid",
                 "We could not return you to your panel. Please try again. If this "
@@ -3097,9 +3059,13 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 "early_exit_error_lucid",
                 "Return to your panel",
             ),
-            redirect_url=self.external_submit_url(participant=participant),
+            destination_url=self.external_submit_url(participant=participant),
             auto_redirect_delay_ms=5000,
         )
+
+    def prepare_error_recovery(self, participant) -> None:
+        """Record Lucid termination details before the browser handoff."""
+        self.set_termination_details(participant.assignment_id, "error-page_route")
 
     def early_exit_allowed(self, participant) -> bool:
         """Allow Lucid termination regardless of PsyNet's reward threshold."""
