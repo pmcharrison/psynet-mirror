@@ -1602,8 +1602,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if error_text is None:
             error_text = _p(
                 "error-msg",
-                "Something went wrong, so the experiment cannot continue. "
-                "We're sorry.",
+                "Something went wrong, so the experiment cannot continue. We're sorry.",
             )
 
         if participant is not None:
