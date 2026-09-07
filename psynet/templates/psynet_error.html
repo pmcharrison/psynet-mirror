@@ -1,5 +1,4 @@
 {% extends "psynet_layout.html" %}
-{% from "macros/early_exit.html" import early_exit_modal %}
 
 {% block body %}
     <div class="container my-5 psynet-surface">
@@ -11,26 +10,30 @@
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
-                {% if early_exit_confirmation %}
-                    {# Leave replaces the recruiter's submission instructions, but not the
-                       contact details and identifiers: the participant still needs them if
-                       leaving from here also fails. #}
-                    <p id="error-text-main">
-                        {{ pgettext("early_exit_error", "Your progress has been recorded. You can leave from this page.") }}
-                    </p>
-                    <button type="button" id="early-exit-open" class="btn btn-danger btn-lg">
-                        {{ early_exit_confirmation.confirm_label }}
-                    </button>
-                    {{ early_exit_modal(
-                        assignment_id,
-                        early_exit_offer_id,
-                        early_exit_confirmation
-                    ) }}
+                {% if automatic_exit_offer_id %}
+                    <div id="automatic-early-exit"
+                         data-assignment-id="{{ assignment_id }}"
+                         data-offer-id="{{ automatic_exit_offer_id }}">
+                        <p id="automatic-early-exit-pending">
+                            {{ pgettext("early_exit_error", "Your responses have been saved. We are ending your session safely.") }}
+                        </p>
+                        <p id="automatic-early-exit-failure" hidden>
+                            {{ pgettext("early_exit_error", "We could not end your session automatically. Please try again.") }}
+                        </p>
+                        <button type="button"
+                                id="automatic-early-exit-retry"
+                                class="btn btn-primary btn-lg"
+                                hidden>
+                            {{ pgettext("early_exit_error", "Try again") }}
+                        </button>
+                    </div>
                     <script>
                         document.addEventListener("DOMContentLoaded", function () {
                             window.psynetEarlyExit.init();
                         });
                     </script>
+                    {# Automatic exit may itself fail, so keep the contact details and
+                       identifiers that a researcher would ask for. #}
                     <p id="error-contact" class="mt-4">
                         {{ pgettext("early_exit_error", "If you need to contact us about this error, please quote the information below.") }}
                         {% if contact_address %}

@@ -2832,6 +2832,29 @@ def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_clas
     assert "You have finished." not in html
 
 
+def test_psynet_exit_page_identifies_automatic_error_recovery():
+    from psynet.recruiters import PsyNetExitPageMixin
+
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.ERROR_RECOVERY,
+        path=EarlyExitPath.END_SESSION,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+    )
+    participant = SimpleNamespace(
+        assignment_id="assignment-123",
+        early_exited=True,
+        early_exit_plan=plan.mark_executed().to_dict(),
+    )
+
+    with patch(
+        "psynet.recruiters.render_template_with_translations",
+        return_value="html",
+    ) as render:
+        assert PsyNetExitPageMixin().exit_response(MagicMock(), participant) == "html"
+
+    assert render.call_args.kwargs["error_recovery"] is True
+
+
 def test_prolific_exit_page_renders_with_psynet_layout():
     """The Prolific submit control retains its fields in the shared theme."""
     from importlib import resources

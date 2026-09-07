@@ -19,9 +19,10 @@ test(
           <div id="automatic-early-exit"
                data-assignment-id="assignment-1"
                data-offer-id="offer-1">
-            Ending your session safely...
+            <p id="automatic-early-exit-pending">Ending your session safely...</p>
+            <p id="automatic-early-exit-failure" hidden>Try again.</p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
           </div>
-          <button id="automatic-early-exit-retry" hidden>Try again</button>
         `
       });
     });

@@ -144,7 +144,7 @@ class SuccessfulEndLogic(EndLogic):
 
 
 class EarlyExitReleaseLogic(EltCollection):
-    """Run recruiter-specific release immediately after confirmed Leave."""
+    """Run recruiter-specific release after voluntary or automatic exit."""
 
     def resolve(self) -> Union[Elt, List[Elt]]:
         return PageMaker(self.release_participant, time_estimate=0.0)

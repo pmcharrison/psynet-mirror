@@ -245,8 +245,9 @@ General
     then includes **Leave** (a page may
     still hide it with ``show_early_exit_button=False``). **Leave** opens an in-page
     confirmation, so choosing **Cancel** preserves the current page and
-    response state. The error page provides the same early-exit fallback when
-    the timeline cannot continue; the ad page does not.
+    response state. When an error makes continuation impossible, PsyNet instead
+    executes the same recruiter-specific exit path automatically; the ad page
+    does not provide an exit control.
     Confirming a paid leave marks the participant failed, so Prolific uses the
     unsuccessful/partial-payment route; Lucid terminates the panel session.
     **Leave** is never offered once the participant is finishing (the
@@ -263,18 +264,20 @@ General
     recruiters gate *paid* leave on ``min_reward_for_paid_early_exit``. Below
     that threshold, Leave still opens a confirmation that offers
     **Leave without payment** (responses saved, no PsyNet payment, and
-    platform-specific return instructions). Error-page recovery always uses the
-    compensated/plain leave pathway, even below the threshold. Lucid always
-    permits termination and never talks about PsyNet payment.
+    platform-specific return instructions). Automatic error recovery always
+    uses the compensated/plain exit pathway, even below the threshold. Lucid
+    always permits termination and never talks about PsyNet payment.
 
     PsyNet prepares an :class:`~psynet.recruiters.EarlyExitPlan` before showing
-    the confirmation. The plan records both the participant-facing copy and the
-    recruiter path that will be executed if they confirm. The plan is stored on
+    a voluntary confirmation or automatically ending a session after an error.
+    The plan records both the participant-facing copy and the recruiter path.
+    The plan is stored on
     :attr:`~psynet.participant.Participant.early_exit_plan`, so the browser
     cannot select a different payment path. Any amounts quoted by the standard
-    plan are also used for the eventual payment decision. After confirmation,
-    PsyNet advances directly to a dedicated release branch, so platform-specific
-    return or submission instructions come from the same planned path.
+    plan are also used for the eventual payment decision. After voluntary
+    confirmation, or without confirmation after a fatal error, PsyNet advances
+    directly to a dedicated release branch, so platform-specific return or
+    submission instructions come from the same planned path.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the

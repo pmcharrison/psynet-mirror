@@ -245,7 +245,7 @@ class EarlyExitContext(StrEnum):
 
 
 class EarlyExitPath(StrEnum):
-    """Concrete platform path executed after Leave is confirmed."""
+    """Platform path for confirmed Leave or automatic error recovery."""
 
     END_SESSION = "end_session"
     SCREEN_OUT = "screen_out"
@@ -763,10 +763,14 @@ class PsyNetExitPageMixin:
     """
 
     def exit_response(self, experiment, participant):
+        plan = _executed_early_exit_plan(participant)
         return render_template_with_translations(
             "psynet_exit_recruiter.html",
             participant_reference=participant.assignment_id,
             left_early=bool(getattr(participant, "early_exited", False)),
+            error_recovery=(
+                plan is not None and plan.context is EarlyExitContext.ERROR_RECOVERY
+            ),
         )
 
 

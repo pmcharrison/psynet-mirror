@@ -20,7 +20,9 @@
         <h1 id="header">{{ gettext("Thank you for taking part.") }}</h1>
         <hr>
         <p id="exit-text">
-            {% if left_early %}
+            {% if error_recovery %}
+                {{ pgettext("exit", "The experiment ended after an error. Your responses have been saved. You may close this window.") }}
+            {% elif left_early %}
                 {{ pgettext("exit", "You left early. Your responses have been saved. You may close this window.") }}
             {% else %}
                 {{ pgettext("exit", "You have finished. Your responses have been saved. You may close this window.") }}

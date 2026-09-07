@@ -1602,7 +1602,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if error_text is None:
             error_text = _p(
                 "error-msg",
-                "There has been an error and so you are unable to continue, sorry!",
+                "Something went wrong, so the experiment cannot continue. "
+                "We're sorry.",
             )
 
         if participant is not None:
@@ -1622,24 +1623,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             except (ValueError, TypeError):
                 participant_id = None
 
-        early_exit_confirmation = None
-        early_exit_offer_id = None
+        automatic_exit_offer_id = None
         if (
             participant is not None
             and compensate
             and not participant.complete
             and not participant.early_exited
-            and (
-                get_config().get("show_early_exit_button")
-                or getattr(recruiter, "show_early_exit_button", False)
-            )
         ):
             experiment = get_experiment()
             if not experiment.timeline.participant_is_in_end_logic(participant):
                 plan = experiment.error_recovery_early_exit_plan(participant)
                 participant.early_exit_plan = plan.to_dict()
-                early_exit_confirmation = plan.confirmation
-                early_exit_offer_id = plan.offer_id
+                automatic_exit_offer_id = plan.offer_id
 
         return make_response(
             render_template_with_translations(
@@ -1656,8 +1651,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 request_data=request_data,
                 participant_id=participant_id,
                 external_submit_url=external_submit_url,
-                early_exit_confirmation=early_exit_confirmation,
-                early_exit_offer_id=early_exit_offer_id,
+                automatic_exit_offer_id=automatic_exit_offer_id,
             ),
             500,
         )
