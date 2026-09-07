@@ -4,13 +4,17 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
+from flask import Flask, Response
 
 from psynet.static_resources import (
     STATIC_ENTRY_POINT_GROUP,
+    _apply_versioned_static_cache_headers,
     _discover_static_packages,
+    cacheable_static_url,
     clear_static_package_cache,
     get_static_packages,
     package_static_url,
+    versioned_url_for,
 )
 
 
@@ -203,3 +207,64 @@ def test_psynet_layout_script_is_staged():
     source, destination = staged[0]
     assert Path(os.fspath(source)).is_file()
     assert Path(os.fspath(source)).name == "psynet.layout.js"
+
+
+def test_static_url_version_tracks_file_contents(tmp_path):
+    static_root = tmp_path / "static"
+    static_root.mkdir()
+    stylesheet = static_root / "theme.css"
+    stylesheet.write_text("body { color: red; }", encoding="utf-8")
+    app = Flask("static-cache-test", static_folder=static_root)
+
+    with app.test_request_context("/"):
+        first = cacheable_static_url("static/theme.css")
+        same = cacheable_static_url("/static/theme.css")
+        stylesheet.write_text("body { color: blue; }", encoding="utf-8")
+        changed = cacheable_static_url("static/theme.css")
+
+    assert first == same
+    assert first.startswith("/static/theme.css?v=")
+    assert changed.startswith("/static/theme.css?v=")
+    assert changed != first
+
+
+def test_versioned_url_for_only_versions_local_static_files(tmp_path):
+    static_root = tmp_path / "static"
+    static_root.mkdir()
+    (static_root / "app.js").write_text("window.ready = true;", encoding="utf-8")
+    app = Flask("static-url-test", static_folder=static_root)
+    app.add_url_rule("/", endpoint="index", view_func=lambda: "")
+
+    with app.test_request_context("/"):
+        assert versioned_url_for("static", filename="app.js").startswith(
+            "/static/app.js?v="
+        )
+        assert versioned_url_for("index") == "/"
+
+
+def test_versioned_static_response_is_public_and_immutable(tmp_path):
+    static_root = tmp_path / "static"
+    static_root.mkdir()
+    (static_root / "app.js").write_text("window.ready = true;", encoding="utf-8")
+    app = Flask("static-header-test", static_folder=static_root)
+
+    with app.test_request_context("/static/app.js"):
+        unversioned = _apply_versioned_static_cache_headers(Response())
+    with app.test_request_context(_versioned_url_for_for_test(app, "app.js")):
+        versioned = _apply_versioned_static_cache_headers(Response())
+    with app.test_request_context("/static/app.js?v=stale"):
+        stale = _apply_versioned_static_cache_headers(Response())
+
+    assert unversioned.cache_control.max_age is None
+    assert not unversioned.cache_control.immutable
+    assert versioned.cache_control.public
+    assert versioned.cache_control.max_age == 31_536_000
+    assert versioned.cache_control.immutable
+    assert stale.cache_control.max_age is None
+    assert not stale.cache_control.immutable
+
+
+def _versioned_url_for_for_test(app, filename):
+    """Build a versioned URL while its application context is active."""
+    with app.test_request_context("/"):
+        return versioned_url_for("static", filename=filename)
