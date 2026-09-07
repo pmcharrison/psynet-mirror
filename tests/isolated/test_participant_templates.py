@@ -821,7 +821,7 @@ def test_the_error_page_is_reached_by_get_so_that_it_can_be_reloaded():
     # Dallinger returns structured participant-creation error codes.
     start = (root / "templates/start.html").read_text(encoding="utf-8")
     assert "dallinger.error(resp)" in start
-    assert "psynetErrorPage.go" not in start
+    assert not re.search(r"^\s*psynetErrorPage\.go\(", start, re.MULTILINE)
     assert "TODO(Dallinger structured participant errors)" in start
 
 

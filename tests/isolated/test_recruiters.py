@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import MagicMock, PropertyMock, patch
 
@@ -248,6 +249,16 @@ def make_config(**overrides):
     }
     values.update(overrides)
     return FakeConfig(**values)
+
+
+@contextmanager
+def patched_early_exit_config(config):
+    """Patch config access on both sides of the recruiter/domain boundary."""
+    with (
+        patch("psynet.recruiters.get_config", return_value=config),
+        patch("psynet.early_exit.get_config", return_value=config),
+    ):
+        yield
 
 
 def make_prolific_recruiter(config):
@@ -810,7 +821,7 @@ def test_recruiters_plan_their_early_exit_consequences(
     experiment = MagicMock()
     experiment.early_exit_allowed.return_value = True
     with (
-        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         plan = recruiter.plan_early_exit(
@@ -856,7 +867,7 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
     experiment = MagicMock()
     experiment.early_exit_allowed.return_value = True
     with (
-        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         topped_up = recruiter.plan_early_exit(
@@ -878,10 +889,7 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
     assert "a further $0.55 will be paid as a bonus" in topped_up_confirmation.message
 
     with (
-        patch(
-            "psynet.recruiters.get_config",
-            return_value=make_config(prolific_unsuccessful_topup=False),
-        ),
+        patched_early_exit_config(make_config(prolific_unsuccessful_topup=False)),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         participant.performance_reward = 0.05
@@ -893,10 +901,7 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
     assert "$0.05" in no_topup.confirmation.message
 
     with (
-        patch(
-            "psynet.recruiters.get_config",
-            return_value=make_config(prolific_pay_unsuccessful=False),
-        ),
+        patched_early_exit_config(make_config(prolific_pay_unsuccessful=False)),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         returned = recruiter.plan_early_exit(
@@ -913,7 +918,7 @@ def test_executed_plan_uses_the_amounts_shown_in_confirmation():
     experiment = MagicMock(base_payment=1.00)
     experiment.early_exit_allowed.return_value = True
     with (
-        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         plan = recruiter.plan_early_exit(
@@ -966,7 +971,7 @@ def test_return_for_bonus_uses_the_planned_reward():
     experiment.early_exit_allowed.return_value = True
     config = make_config(prolific_pay_unsuccessful=False)
     with (
-        patch("psynet.recruiters.get_config", return_value=config),
+        patched_early_exit_config(config),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         plan = recruiter.plan_early_exit(
@@ -988,9 +993,11 @@ def test_below_threshold_offers_unpaid_leave_with_amounts():
     experiment = MagicMock()
     experiment.early_exit_allowed.return_value = False
     with (
-        patch(
-            "psynet.recruiters.get_config",
-            return_value=make_config(currency="£", min_reward_for_paid_early_exit=0.20),
+        patched_early_exit_config(
+            make_config(
+                currency="£",
+                min_reward_for_paid_early_exit=0.20,
+            )
         ),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
@@ -1017,7 +1024,7 @@ def test_error_recovery_plan_skips_reward_eligibility():
     experiment = MagicMock()
     experiment.early_exit_allowed.side_effect = RuntimeError("reward boom")
     with (
-        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         plan = recruiter.plan_early_exit(
@@ -1035,7 +1042,7 @@ def test_error_recovery_plan_survives_reward_calculation_failure(caplog):
     experiment = MagicMock(base_payment=1.00)
 
     with (
-        patch("psynet.recruiters.get_config", return_value=make_config()),
+        patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         plan = recruiter.plan_early_exit(
@@ -1063,7 +1070,7 @@ def test_prolific_return_for_bonus_recovery_survives_reward_failure():
     config = make_config(prolific_pay_unsuccessful=False)
 
     with (
-        patch("psynet.recruiters.get_config", return_value=config),
+        patched_early_exit_config(config),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         plan = recruiter.plan_early_exit(
