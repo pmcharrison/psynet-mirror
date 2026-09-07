@@ -318,7 +318,12 @@ General
     copy and any POST, button, or redirect required by the platform. Override
     this hook on a custom recruiter to customize error pages;
     ``Experiment.error_page_content`` and recruiter ``error_page_content``
-    overrides are no longer supported.
+    overrides are no longer supported. A tracked participant is never treated
+    as an unidentified session: if they already left through a voluntary plan,
+    that plan's presentation is reused; if they have no plan, the recruiter
+    still addresses them as a known participant. Fatal errors record the
+    exception type on ``failure_tags`` and fail the session with
+    ``error_recovery`` when a recovery plan is stored.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when

@@ -545,12 +545,20 @@ class PsyNetRecruiterMixin:
                     "If you need to contact the researcher about this error, "
                     "write to {EMAIL}.",
                 ).format(EMAIL=contact_address)
-        if participant is None or plan is None:
+        if participant is None:
             return ErrorRecoveryPresentation(
                 message=_p(
                     "early_exit_error",
                     "We could not identify an active study session for automatic "
                     "recovery.",
+                ),
+                researcher_contact_message=contact_message,
+            )
+        if plan is None:
+            return ErrorRecoveryPresentation(
+                message=_p(
+                    "early_exit_error",
+                    "Your responses have been saved. You may close this page.",
                 ),
                 researcher_contact_message=contact_message,
             )
@@ -1066,7 +1074,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         self._check_stale_error_page_override()
         del assignment_id, external_submit_url, contact_address
         _p = get_translator(context=True)
-        if participant is None or plan is None:
+        if participant is None:
             return ErrorRecoveryPresentation(
                 message=" ".join(
                     [
@@ -1081,6 +1089,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                             "describe what led to this error.",
                         ),
                     ]
+                )
+            )
+        if plan is None:
+            return ErrorRecoveryPresentation(
+                message=_p(
+                    "prolific_error",
+                    "Please message the researcher through Prolific and describe "
+                    "what led to this error.",
                 )
             )
         if plan.path is EarlyExitPath.SCREEN_OUT:
@@ -1331,23 +1347,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             }
         )
         return codes
-
-    def on_error_page(self, participant):
-        """Mark a participant who lands on the error page as failed.
-
-        Not all error paths fail the participant before redirecting to the
-        error page (e.g. errors raised while processing a response). When
-        unsuccessful participants are paid via the screen-out completion
-        code, the participant must be marked as failed so that the exit
-        completion code and the bonus top-up logic treat them consistently.
-        """
-        should_fail = (
-            self.pays_unsuccessful_participants_via_screen_out
-            and not participant.failed
-            and not participant.complete
-        )
-        if should_fail:
-            participant.fail("error_page")
 
     def exit_code_type(self, participant):
         """Return the completion-code type for the participant's exit URL.
@@ -3089,7 +3088,11 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def prepare_error_recovery(self, participant) -> None:
         """Record Lucid termination details before the browser handoff."""
-        self.set_termination_details(participant.assignment_id, "error-page_route")
+        self.record_error_termination(participant.assignment_id)
+
+    def record_error_termination(self, assignment_id, reason="error-page_route"):
+        """Record Lucid's error-page termination details for an assignment."""
+        self.set_termination_details(assignment_id, reason)
 
     def early_exit_allowed(self, participant) -> bool:
         """Allow Lucid termination regardless of PsyNet's reward threshold."""

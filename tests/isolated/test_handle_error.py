@@ -31,8 +31,10 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
         assignment_id="assignment-1",
         worker_id="worker-1",
         complete=False,
+        failed=False,
         early_exited=False,
         early_exit_plan=None,
+        fail=MagicMock(),
     )
     plan = EarlyExitPlan.create(
         context=EarlyExitContext.ERROR_RECOVERY,
@@ -68,7 +70,7 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
     assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_called_once_with(participant)
-    recruiter.on_error_page.assert_called_once_with(participant)
+    participant.fail.assert_called_once_with("error_recovery")
     recruiter.error_page_presentation.assert_called_once_with(
         participant=participant,
         plan=plan,
@@ -92,8 +94,10 @@ def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
         assignment_id="assignment-1",
         worker_id="worker-1",
         complete=False,
+        failed=True,
         early_exited=True,
         early_exit_plan=plan.to_dict(),
+        fail=MagicMock(),
     )
     experiment = MagicMock()
     experiment.timeline.participant_is_in_end_logic.return_value = False
@@ -116,7 +120,7 @@ def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
     assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
     assert render.call_args.kwargs["error_page_presentation"] is presentation
     recruiter.prepare_error_recovery.assert_not_called()
-    recruiter.on_error_page.assert_not_called()
+    participant.fail.assert_not_called()
     recruiter.error_page_presentation.assert_called_once_with(
         participant=participant,
         plan=plan,
@@ -125,6 +129,64 @@ def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
         contact_address="researcher@example.test",
     )
     experiment.error_recovery_early_exit_plan.assert_not_called()
+
+
+def test_error_page_presents_an_executed_voluntary_plan_instead_of_untracked_copy():
+    from flask import Flask
+
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.VOLUNTARY,
+        path=EarlyExitPath.END_SESSION,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+    ).mark_executed()
+    participant = SimpleNamespace(
+        id=42,
+        hit_id="study-1",
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        complete=False,
+        failed=True,
+        early_exited=True,
+        early_exit_plan=plan.to_dict(),
+        fail=MagicMock(),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
+    presentation = MagicMock()
+    recruiter = MagicMock()
+    recruiter.error_page_presentation.return_value = presentation
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment.error_page(participant=participant, recruiter=recruiter)
+
+    assert render.call_args.kwargs["automatic_exit_offer_id"] is None
+    recruiter.prepare_error_recovery.assert_not_called()
+    experiment.error_recovery_early_exit_plan.assert_not_called()
+    recruiter.error_page_presentation.assert_called_once_with(
+        participant=participant,
+        plan=plan,
+        assignment_id="assignment-1",
+        external_submit_url=None,
+        contact_address="researcher@example.test",
+    )
+
+
+def test_fail_participant_on_error_records_the_exception_without_failing():
+    participant = SimpleNamespace(failure_tags=[], fail=MagicMock())
+
+    Experiment.fail_participant_on_error(participant, ValueError("boom"))
+
+    assert participant.failure_tags == ["ValueError"]
+    participant.fail.assert_not_called()
 
 
 def test_untracked_error_page_uses_the_same_structured_recruiter_hook():

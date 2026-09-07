@@ -513,35 +513,15 @@ def make_participant_with_recruiter(config, failed=True, status="working"):
     return participant
 
 
-@pytest.mark.parametrize(
-    "payment_enabled,failed,complete,expect_fail",
-    [
-        (True, False, False, True),  # errored mid-experiment: mark failed
-        (True, True, False, False),  # already failed: leave as is
-        (True, False, True, False),  # already complete: leave as is
-        (False, False, False, False),  # feature disabled: leave as is
-    ],
-)
-def test_on_error_page_marks_participant_failed(
-    payment_enabled, failed, complete, expect_fail
-):
-    config = make_config(
-        **(
-            {"prolific_unsuccessful_base_payment": 0.20}
-            if payment_enabled
-            else {"prolific_pay_unsuccessful": False}
-        )
-    )
-    recruiter = make_prolific_recruiter(config)
-    participant = MagicMock(failed=failed, complete=complete)
+def test_prolific_tracked_error_page_without_a_plan_does_not_claim_an_unknown_session():
+    recruiter = make_prolific_recruiter(make_config())
+    participant = SimpleNamespace(id=42, assignment_id="assignment-1")
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
+        presentation = recruiter.error_page_presentation(participant=participant)
 
-    with patch("psynet.recruiters.get_config", return_value=config):
-        recruiter.on_error_page(participant)
-
-    if expect_fail:
-        participant.fail.assert_called_once_with("error_page")
-    else:
-        participant.fail.assert_not_called()
+    assert "could not identify an active study session" not in presentation.message
+    assert "message the researcher through Prolific" in presentation.message
+    assert presentation.action_post_url is None
 
 
 def _identity_translator(context, message):
@@ -638,6 +618,24 @@ def test_default_error_recovery_omits_contact_without_an_address():
         )
 
     assert presentation.researcher_contact_message is None
+
+
+def test_default_tracked_error_page_without_a_plan_stays_terminal():
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
+        presentation = PsyNetRecruiterMixin().error_page_presentation(
+            participant=SimpleNamespace(id=42, assignment_id="assignment-1"),
+            contact_address="researcher@example.test",
+        )
+
+    assert "could not identify an active study session" not in presentation.message
+    assert presentation.message == (
+        "Your responses have been saved. You may close this page."
+    )
+    assert presentation.preparation_post_url is None
+    assert presentation.researcher_contact_message == (
+        "If you need to contact the researcher about this error, write to "
+        "researcher@example.test and quote reference code assignment-1."
+    )
 
 
 def test_error_recovery_presentation_rejects_an_incomplete_handoff():
