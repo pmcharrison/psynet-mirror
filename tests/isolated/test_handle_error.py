@@ -1,15 +1,77 @@
 import time
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 import pytest
 from dallinger import db
 
 from psynet.error import ErrorRecord
+from psynet.experiment import Experiment
 from psynet.process import WorkerAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.recruiters import DevLucidRecruiter
 
 
 def task():
     raise ValueError("process failed")
+
+
+def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
+    participant = SimpleNamespace(assignment_id="assignment-1")
+    recruiter = MagicMock()
+    recruiter.external_submit_url.return_value = "https://example.test/submit"
+    experiment = SimpleNamespace(recruiter=recruiter)
+    handled_error = Experiment.HandledError(participant_id=42)
+
+    with (
+        patch.object(
+            Experiment,
+            "get_participant_from_participant_id",
+            return_value=participant,
+        ) as get_participant,
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch.object(Experiment, "error_page", return_value="response") as error_page,
+    ):
+        assert handled_error.error_page() == "response"
+
+    get_participant.assert_called_once_with(42)
+    recruiter.on_error_page.assert_called_once_with(participant)
+    error_page.assert_called_once_with(
+        participant=participant,
+        request_data="",
+        recruiter=recruiter,
+        external_submit_url="https://example.test/submit",
+        compensate=True,
+    )
+
+
+def test_handled_error_page_preserves_lucid_uncompensated_policy():
+    participant = SimpleNamespace(assignment_id="rid-1")
+    recruiter = MagicMock(spec=DevLucidRecruiter)
+    recruiter.external_submit_url.return_value = "https://example.test/terminate"
+    experiment = SimpleNamespace(recruiter=recruiter)
+
+    with (
+        patch.object(
+            Experiment,
+            "get_participant_from_participant_id",
+            return_value=participant,
+        ),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch.object(Experiment, "error_page", return_value="response") as error_page,
+    ):
+        assert Experiment.HandledError(participant_id=42).error_page() == "response"
+
+    recruiter.set_termination_details.assert_called_once_with(
+        "rid-1", "error-page_route"
+    )
+    error_page.assert_called_once_with(
+        participant=participant,
+        request_data="",
+        recruiter=recruiter,
+        external_submit_url="https://example.test/terminate",
+        compensate=False,
+    )
 
 
 @pytest.mark.parametrize(
