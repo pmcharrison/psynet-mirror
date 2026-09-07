@@ -747,9 +747,7 @@ def test_execute_error_recovery_plan_records_the_error_context():
 
 
 def test_default_error_recovery_page_is_terminal():
-    with patch(
-        "psynet.recruiters.get_translator", return_value=_identity_translator
-    ):
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = PsyNetRecruiterMixin().error_recovery_presentation(
             MagicMock(),
             _early_exit_test_plan(context=EarlyExitContext.ERROR_RECOVERY),
@@ -778,9 +776,7 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
     )
 
     with (
-        patch(
-            "psynet.recruiters.get_translator", return_value=_identity_translator
-        ),
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
         patch.object(
             recruiter,
             "external_submission_url",
@@ -811,9 +807,7 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
         quoted_amounts={"currency": "£", "earned_minor": 60},
     )
 
-    with patch(
-        "psynet.recruiters.get_translator", return_value=_identity_translator
-    ):
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = recruiter.error_recovery_presentation(MagicMock(), plan)
 
     assert presentation.action is ErrorRecoveryAction.FOLLOW_RELEASE
@@ -824,9 +818,7 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
 
 def test_lucid_error_recovery_explains_the_panel_redirect():
     recruiter = object.__new__(BaseLucidRecruiter)
-    with patch(
-        "psynet.recruiters.get_translator", return_value=_identity_translator
-    ):
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
         presentation = recruiter.error_recovery_presentation(
             MagicMock(),
             _early_exit_test_plan(
