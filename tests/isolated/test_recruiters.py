@@ -564,12 +564,20 @@ def _early_exit_test_plan(
     path=ExitPath.END_SESSION,
     context=ExitContext.VOLUNTARY,
 ):
+    returned = path in {
+        ExitPath.RETURN_FOR_BONUS,
+        ExitPath.RETURN_WITHOUT_PAYMENT,
+    }
     return ExitPlan.create(
         context=context,
         path=path,
         payment=PaymentDecision(
-            status="screened_out" if path is ExitPath.SCREEN_OUT else "approved",
-            platform_base=0.25 if path is ExitPath.SCREEN_OUT else 1.0,
+            status=(
+                "screened_out"
+                if path is ExitPath.SCREEN_OUT
+                else "returned" if returned else "approved"
+            ),
+            platform_base=0.25 if path is ExitPath.SCREEN_OUT else 0.0 if returned else 1.0,
             bonus=0.0,
         ),
         confirmation=EarlyExitConfirmation(
@@ -680,6 +688,7 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
     )
 
     with (
+        patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
         patch.object(
             recruiter,
