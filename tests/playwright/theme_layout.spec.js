@@ -496,6 +496,44 @@ test(
 );
 
 test(
+  "standalone media progress disappears when loading completes",
+  { tag: "@both" },
+  async ({ page }) => {
+    await renderTheme(page, {
+      viewport: { width: 1280, height: 720 },
+      html: `<div id="timeline-root">
+               <div id="media-download-progress-bar" style="width: 40%"></div>
+             </div>`,
+      scripts: [mediaProgressRuntime()]
+    });
+
+    await page.evaluate(() => {
+      psynet.media.downloadProgress.set("audio", "stimulus", 40);
+    });
+    await expect(page.locator("#media-download-progress-bar")).toBeVisible();
+
+    await page.evaluate(() => {
+      psynet.media.downloadProgress.set("audio", "stimulus", 100);
+    });
+    await expect(page.locator("#media-download-progress-bar")).toBeHidden();
+    expect(
+      await page.evaluate(() => getComputedStyle(document.body).paddingBottom)
+    ).toBe("0px");
+
+    await page.setContent(`<!doctype html><body>
+      <nav id="footer">
+        <div id="media-download-progress-bar" style="width: 40%"></div>
+      </nav>
+    </body>`);
+    await page.addScriptTag({ content: mediaProgressRuntime() });
+    await page.evaluate(() => {
+      psynet.media.downloadProgress.set("audio", "stimulus", 100);
+    });
+    await expect(page.locator("#media-download-progress-bar")).toBeVisible();
+  }
+);
+
+test(
   "footer text is centred below the progress bar",
   { tag: "@both" },
   async ({ page }) => {
@@ -1174,6 +1212,29 @@ function fragmentRuntime() {
     psynet.getPageCssLinks = function () { return []; };
     psynet.ensureStylesheetLinks = function () {};
     psynet.applyInlinePageStyles = function () {};
+    ${PSYNET_JS.slice(start, end)}
+  `;
+}
+
+function mediaProgressRuntime() {
+  const start = PSYNET_JS.indexOf(
+    "psynet.media.downloadProgress = {"
+  );
+  const end = PSYNET_JS.indexOf(
+    "// The last thing we expect of the user",
+    start
+  );
+  if (start < 0 || end < 0) {
+    throw new Error("Could not extract media progress functions");
+  }
+  return `
+    window.psynet = window.psynet || {};
+    psynet.utils = {
+      mean(values) {
+        return values.reduce((sum, value) => sum + value, 0) / values.length;
+      }
+    };
+    psynet.media = { types: ["audio"] };
     ${PSYNET_JS.slice(start, end)}
   `;
 }

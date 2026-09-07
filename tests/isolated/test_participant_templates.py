@@ -448,8 +448,11 @@ def test_timeline_omits_footer_when_hidden():
     assert "{% if config.show_footer != false and footer_has_content %}" in macro
     assert 'id="footer"' in macro
     assert "config.show_footer == false" not in macro
-    # An empty footer is omitted, but the media bar still renders.
-    assert "{% else %}\n            {{ media_download_bar() }}" in macro
+    # An empty footer is omitted, and a standalone bar only renders when the
+    # page actually has media to download.
+    assert "{% else %}" in macro
+    assert "{% if page.media.num_files > 0 %}" in macro
+    assert "{{ media_download_bar() }}" in macro
 
 
 def test_timeline_footer_keeps_labels_compact_and_explanations_accessible():
