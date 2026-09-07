@@ -74,6 +74,51 @@ def test_error_page_prepares_automatic_recovery_even_when_voluntary_leave_is_off
     )
 
 
+def test_error_page_replays_an_executed_recovery_without_preparing_it_again():
+    from flask import Flask
+
+    plan = EarlyExitPlan.create(
+        context=EarlyExitContext.ERROR_RECOVERY,
+        path=EarlyExitPath.END_SESSION,
+        confirmation=EarlyExitConfirmation("Leave?", "Saved.", "Leave", "Cancel"),
+    ).mark_executed()
+    participant = SimpleNamespace(
+        id=42,
+        hit_id="study-1",
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        complete=False,
+        early_exited=True,
+        early_exit_plan=plan.to_dict(),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
+    presentation = MagicMock()
+    recruiter = MagicMock()
+    recruiter.error_recovery_presentation.return_value = presentation
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        Experiment.error_page(participant=participant, recruiter=recruiter)
+
+    assert render.call_args.kwargs["automatic_exit_offer_id"] == plan.offer_id
+    assert render.call_args.kwargs["error_recovery_presentation"] is presentation
+    recruiter.prepare_error_recovery.assert_not_called()
+    recruiter.on_error_page.assert_not_called()
+    recruiter.error_recovery_presentation.assert_called_once_with(
+        participant, plan, "researcher@example.test"
+    )
+    experiment.error_recovery_early_exit_plan.assert_not_called()
+
+
 def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
     participant = SimpleNamespace(assignment_id="assignment-1")
     recruiter = MagicMock()

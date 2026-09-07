@@ -285,7 +285,8 @@ General
     submission instructions therefore come from the same plan. Lucid keeps the
     explanation visible for five seconds before returning the participant to
     their panel; the participant can select **Return to your panel** to go
-    immediately.
+    immediately. If the error page is refreshed after the plan executes, PsyNet
+    restores the same presentation so an unfinished platform handoff can resume.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.early_exit_plan` and replacing the

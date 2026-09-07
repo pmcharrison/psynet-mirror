@@ -103,6 +103,7 @@ from .recruiters import (  # noqa: F401
     PsyNetProlificRecruiterMixin,
     StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
+    _executed_early_exit_plan,
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
@@ -1616,28 +1617,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         automatic_exit_offer_id = None
         error_recovery_presentation = None
         contact_address = get_config().get("contact_email_on_error")
-        if (
-            participant is not None
-            and not participant.complete
-            and not participant.early_exited
-        ):
+        if participant is not None and not participant.complete:
             experiment = get_experiment()
             if not experiment.timeline.participant_is_in_end_logic(participant):
                 active_recruiter = recruiter or experiment.recruiter
-                active_recruiter.prepare_error_recovery(participant)
-                on_error_page = getattr(active_recruiter, "on_error_page", None)
-                if on_error_page is not None:
-                    on_error_page(participant)
-                plan = experiment.error_recovery_early_exit_plan(participant)
-                participant.early_exit_plan = plan.to_dict()
-                automatic_exit_offer_id = plan.offer_id
-                error_recovery_presentation = (
-                    active_recruiter.error_recovery_presentation(
-                        participant,
-                        plan,
-                        contact_address,
+                plan = _executed_early_exit_plan(participant)
+                if plan is None and not participant.early_exited:
+                    active_recruiter.prepare_error_recovery(participant)
+                    on_error_page = getattr(active_recruiter, "on_error_page", None)
+                    if on_error_page is not None:
+                        on_error_page(participant)
+                    plan = experiment.error_recovery_early_exit_plan(participant)
+                    participant.early_exit_plan = plan.to_dict()
+                if plan is not None and plan.context is EarlyExitContext.ERROR_RECOVERY:
+                    automatic_exit_offer_id = plan.offer_id
+                    error_recovery_presentation = (
+                        active_recruiter.error_recovery_presentation(
+                            participant,
+                            plan,
+                            contact_address,
+                        )
                     )
-                )
 
         return make_response(
             render_template_with_translations(

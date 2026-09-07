@@ -385,7 +385,10 @@ def _executed_early_exit_plan(participant) -> EarlyExitPlan | None:
     data = getattr(participant, "early_exit_plan", None)
     if not isinstance(data, dict):
         return None
-    plan = EarlyExitPlan.from_dict(data)
+    try:
+        plan = EarlyExitPlan.from_dict(data)
+    except (KeyError, TypeError, ValueError):
+        return None
     if plan.status != "executed" or not bool(participant.early_exited):
         return None
     return plan
