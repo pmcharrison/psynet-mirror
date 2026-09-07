@@ -8,8 +8,8 @@ from psynet.exit import (
     ExitContext,
     ExitPath,
     ExitPlan,
-    PaymentState,
     PaymentDecision,
+    PaymentState,
     _committed_exit_plan,
     _stored_exit_plan,
 )

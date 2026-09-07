@@ -997,9 +997,7 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
         patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        topped_up = recruiter.plan_exit(
-            experiment, participant, ExitContext.VOLUNTARY
-        )
+        topped_up = recruiter.plan_exit(experiment, participant, ExitContext.VOLUNTARY)
     assert topped_up.path is ExitPath.SCREEN_OUT
     assert topped_up.payment == PaymentDecision(
         status="screened_out",
@@ -1019,9 +1017,7 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
         participant.performance_reward = 0.05
-        no_topup = recruiter.plan_exit(
-            experiment, participant, ExitContext.VOLUNTARY
-        )
+        no_topup = recruiter.plan_exit(experiment, participant, ExitContext.VOLUNTARY)
     assert no_topup.path is ExitPath.SCREEN_OUT
     assert "not be paid for additional time" in no_topup.confirmation.message
     assert "$0.05" in no_topup.confirmation.message
@@ -1030,9 +1026,7 @@ def test_prolific_early_exit_messages_cover_payment_pathways():
         patched_early_exit_config(make_config(prolific_pay_unsuccessful=False)),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        returned = recruiter.plan_exit(
-            experiment, participant, ExitContext.VOLUNTARY
-        )
+        returned = recruiter.plan_exit(experiment, participant, ExitContext.VOLUNTARY)
     assert returned.path is ExitPath.RETURN_FOR_BONUS
     assert "return your Prolific submission" in returned.confirmation.message
     assert "$0.80" in returned.confirmation.message
@@ -1148,9 +1142,7 @@ def test_error_recovery_plan_skips_reward_eligibility():
         patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        plan = recruiter.plan_exit(
-            experiment, participant, ExitContext.ERROR_RECOVERY
-        )
+        plan = recruiter.plan_exit(experiment, participant, ExitContext.ERROR_RECOVERY)
     assert plan.path is ExitPath.SCREEN_OUT
     assert plan.confirmation is None
     experiment.early_exit_allowed.assert_not_called()
@@ -1166,9 +1158,7 @@ def test_error_recovery_plan_survives_reward_calculation_failure(caplog):
         patched_early_exit_config(make_config()),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        plan = recruiter.plan_exit(
-            experiment, participant, ExitContext.ERROR_RECOVERY
-        )
+        plan = recruiter.plan_exit(experiment, participant, ExitContext.ERROR_RECOVERY)
         participant.calculate_reward.side_effect = None
         participant.calculate_reward.return_value = 0.80
         participant.early_exited = True
@@ -1194,9 +1184,7 @@ def test_prolific_return_for_bonus_recovery_survives_reward_failure():
         patched_early_exit_config(config),
         patch("psynet.recruiters.get_translator", return_value=_identity_translator),
     ):
-        plan = recruiter.plan_exit(
-            experiment, participant, ExitContext.ERROR_RECOVERY
-        )
+        plan = recruiter.plan_exit(experiment, participant, ExitContext.ERROR_RECOVERY)
         participant.calculate_reward.side_effect = None
         participant.calculate_reward.return_value = 0.80
         participant.early_exited = True

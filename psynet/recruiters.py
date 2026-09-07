@@ -443,9 +443,7 @@ class PsyNetRecruiterMixin:
         try:
             return self._standard_error_recovery_exit_plan(experiment, participant)
         except Exception:
-            fallback = self._deferred_error_recovery_exit_plan(
-                experiment, participant
-            )
+            fallback = self._deferred_error_recovery_exit_plan(experiment, participant)
             if fallback is None:
                 raise
             logger.warning(
@@ -639,10 +637,7 @@ class PsyNetRecruiterMixin:
     def decide_payment(self, participant, *, experiment) -> exit_domain.PaymentDecision:
         """Decide status, platform base, and bonus without writing or paying."""
         plan = exit_domain._committed_exit_plan(participant)
-        if (
-            plan is not None
-            and plan.payment_state is exit_domain.PaymentState.PLANNED
-        ):
+        if plan is not None and plan.payment_state is exit_domain.PaymentState.PLANNED:
             return plan.payment
         if (
             plan is not None

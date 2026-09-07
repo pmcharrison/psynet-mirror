@@ -144,12 +144,18 @@ class ExitPlan:
         elif self.confirmation is not None:
             raise ValueError("Confirmation is only valid for a voluntary exit plan.")
 
-        if self.source_page_uuid is not None and self.context is not ExitContext.VOLUNTARY:
+        if (
+            self.source_page_uuid is not None
+            and self.context is not ExitContext.VOLUNTARY
+        ):
             raise ValueError("A source page is only valid for a voluntary exit plan.")
 
         if self.payment_state is PaymentState.PLANNED and self.payment is None:
             raise ValueError("A planned payment requires a payment decision.")
-        if self.payment_state is PaymentState.NOT_APPLICABLE and self.payment is not None:
+        if (
+            self.payment_state is PaymentState.NOT_APPLICABLE
+            and self.payment is not None
+        ):
             raise ValueError("A non-applicable payment cannot have a payment decision.")
         if (
             self.payment_state is PaymentState.DEFERRED

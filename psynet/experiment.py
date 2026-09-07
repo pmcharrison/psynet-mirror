@@ -1623,9 +1623,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             or plan.status is exit_domain.ExitPlanStatus.COMMITTED
         ):
             return plan
-        if (
-            participant.early_exited
-            or experiment.timeline.participant_is_in_end_logic(participant)
+        if participant.early_exited or experiment.timeline.participant_is_in_end_logic(
+            participant
         ):
             return None
 
