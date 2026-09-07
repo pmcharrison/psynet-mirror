@@ -4501,8 +4501,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if hasattr(recruiter, "external_submit_url"):
             external_submit_url = recruiter.external_submit_url(participant=participant)
 
-        compensate = not isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter))
-        if not compensate:
+        if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
             recruiter.set_termination_details(
                 participant.assignment_id, "error-page_route"
             )
@@ -4516,7 +4515,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             request_data=request_data,
             recruiter=recruiter,
             external_submit_url=external_submit_url,
-            compensate=compensate,
+            compensate=True,
         )
 
     @experiment_route("/module", methods=["POST"])

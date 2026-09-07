@@ -834,17 +834,28 @@ def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
 
 def test_lucid_error_recovery_explains_the_panel_redirect():
     recruiter = object.__new__(BaseLucidRecruiter)
-    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
+    participant = MagicMock()
+    with (
+        patch("psynet.recruiters.get_translator", return_value=_identity_translator),
+        patch.object(
+            recruiter,
+            "external_submit_url",
+            return_value="https://lucid.test/terminate",
+        ),
+    ):
         presentation = recruiter.error_recovery_presentation(
-            MagicMock(),
+            participant,
             _early_exit_test_plan(
                 path=EarlyExitPath.TERMINATE_PANEL_SESSION,
                 context=EarlyExitContext.ERROR_RECOVERY,
             ),
         )
 
-    assert presentation.action is ErrorRecoveryAction.FOLLOW_RELEASE
+    assert presentation.action is ErrorRecoveryAction.REDIRECT
     assert presentation.button_label == "Return to your panel"
+    assert presentation.redirect_url == "https://lucid.test/terminate"
+    assert presentation.auto_redirect_delay_ms == 5000
+    assert "in a few seconds" in presentation.message
     assert presentation.failure_message == (
         "We could not return you to your panel. Please try again. If this keeps "
         "happening, contact your panel provider."
@@ -1461,6 +1472,24 @@ def test_lucid_early_exit_terminates_the_panel_session():
     )
     # Lucid exits fail incomplete trials like every other recruiter's exit.
     participant.fail.assert_called_once_with("early_exit")
+    assert participant.early_exited is True
+
+
+def test_lucid_error_recovery_preserves_redirect_owned_termination():
+    recruiter = _lucid_recruiter_with_service()
+    participant = MagicMock(assignment_id="rid-1", module_state=None, failed=False)
+
+    recruiter.execute_early_exit_plan(
+        MagicMock(),
+        participant,
+        _early_exit_test_plan(
+            EarlyExitPath.TERMINATE_PANEL_SESSION,
+            context=EarlyExitContext.ERROR_RECOVERY,
+        ),
+    )
+
+    recruiter.lucidservice.terminate_respondent.assert_not_called()
+    participant.fail.assert_called_once_with("error_recovery")
     assert participant.early_exited is True
 
 

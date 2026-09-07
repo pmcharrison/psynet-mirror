@@ -99,7 +99,7 @@ def test_handled_error_page_recovers_participant_and_uses_recruiter_policy():
     )
 
 
-def test_handled_error_page_preserves_lucid_uncompensated_policy():
+def test_handled_error_page_uses_lucid_recovery_without_changing_termination_details():
     participant = SimpleNamespace(assignment_id="rid-1")
     recruiter = MagicMock(spec=DevLucidRecruiter)
     recruiter.external_submit_url.return_value = "https://example.test/terminate"
@@ -124,7 +124,7 @@ def test_handled_error_page_preserves_lucid_uncompensated_policy():
         request_data="",
         recruiter=recruiter,
         external_submit_url="https://example.test/terminate",
-        compensate=False,
+        compensate=True,
     )
 
 

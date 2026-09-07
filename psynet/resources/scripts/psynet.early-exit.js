@@ -66,8 +66,12 @@
       const postUrl = automatic.dataset.postUrl;
       const redirectUrl = automatic.dataset.redirectUrl;
       const postData = JSON.parse(automatic.dataset.postData || "{}");
+      const autoRedirectDelay = Number(
+        automatic.dataset.autoRedirectDelayMs || 0,
+      );
       let releaseUrl = null;
       let prepared = false;
+      let autoRedirectTimer = null;
 
       function showFailure(error) {
         pending.hidden = true;
@@ -84,10 +88,18 @@
       }
 
       async function followParticipantAction() {
+        if (autoRedirectTimer) {
+          global.clearTimeout(autoRedirectTimer);
+          autoRedirectTimer = null;
+        }
         if (finish) finish.disabled = true;
         try {
           if (action === "follow_release") {
             continueToRelease(releaseUrl);
+            return;
+          }
+          if (action === "redirect") {
+            continueToRelease(redirectUrl);
             return;
           }
           if (action === "post_and_redirect") {
@@ -124,6 +136,12 @@
           pending.hidden = true;
           ready.hidden = false;
           if (finish) finish.hidden = false;
+          if (autoRedirectDelay > 0) {
+            autoRedirectTimer = global.setTimeout(
+              followParticipantAction,
+              autoRedirectDelay,
+            );
+          }
         } catch (error) {
           showFailure(error);
         }

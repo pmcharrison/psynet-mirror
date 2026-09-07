@@ -9,7 +9,7 @@
             <h1 id="header" style="clear: both;">{{ pgettext("error", "An error occurred") }}</h1>
             <hr>
             <div>
-                <p id="error-text"><em>{{ error_text }}</em></p>
+                <p id="error-text">{{ error_text }}</p>
                 {% if automatic_exit_offer_id %}
                     <div id="automatic-early-exit"
                          data-assignment-id="{{ assignment_id }}"
@@ -19,6 +19,7 @@
                          data-post-url="{{ error_recovery_presentation.post_url or '' }}"
                          data-post-data='{{ error_recovery_presentation.post_data | tojson }}'
                          data-redirect-url="{{ error_recovery_presentation.redirect_url or '' }}"
+                         data-auto-redirect-delay-ms="{{ error_recovery_presentation.auto_redirect_delay_ms or '' }}"
                          aria-live="polite">
                         <div id="automatic-early-exit-pending" role="status">
                             <span class="spinner-border" aria-hidden="true"></span>

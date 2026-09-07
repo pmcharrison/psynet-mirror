@@ -149,3 +149,64 @@ test(
     });
   }
 );
+
+test(
+  "Lucid recovery keeps its readable page before redirecting",
+  { tag: "@both" },
+  async ({ page }) => {
+    await page.route("http://psynet.test/error", async (route) => {
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: `
+          <h1>An error occurred</h1>
+          <p>We're sorry, but an error means you cannot continue with this study.</p>
+          <div id="automatic-early-exit"
+               data-assignment-id="rid-1"
+               data-participant-id="42"
+               data-offer-id="offer-1"
+               data-action="redirect"
+               data-redirect-url="http://psynet.test/lucid"
+               data-auto-redirect-delay-ms="250">
+            <div id="automatic-early-exit-pending">Loading</div>
+            <p id="automatic-early-exit-failure" hidden>Try again.</p>
+            <button id="automatic-early-exit-retry" hidden>Try again</button>
+            <p id="automatic-early-exit-ready" hidden>
+              Your responses have been saved. We will return you to your panel
+              provider in a few seconds.
+            </p>
+            <button id="automatic-early-exit-continue" hidden>
+              Return to your panel
+            </button>
+          </div>
+        `
+      });
+    });
+    await page.route(
+      "http://psynet.test/set_participant_as_early_exited/rid-1",
+      async (route) => {
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({
+            release_url: "http://psynet.test/release"
+          })
+        });
+      }
+    );
+    await page.route("http://psynet.test/lucid", async (route) => {
+      await route.fulfill({
+        contentType: "text/html",
+        body: "<h1>Lucid</h1>"
+      });
+    });
+
+    await page.goto("http://psynet.test/error");
+    await page.addScriptTag({ content: EARLY_EXIT_JS });
+    await page.evaluate(() => window.psynetEarlyExit.init());
+
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    await expect(page.locator("#automatic-early-exit-continue")).toHaveText(
+      "Return to your panel"
+    );
+    await expect(page).toHaveURL("http://psynet.test/lucid");
+  }
+);

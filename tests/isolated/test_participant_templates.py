@@ -153,6 +153,14 @@ def test_error_recovery_pending_state_is_visual_and_accessible():
     assert "saving your responses" not in source.lower()
 
 
+def test_error_message_is_not_italicized():
+    source = (resources.files("psynet") / "templates" / "psynet_error.html").read_text(
+        encoding="utf-8"
+    )
+
+    assert '<p id="error-text">{{ error_text }}</p>' in source
+
+
 def test_error_recovery_uses_one_researcher_reference_code():
     source = (resources.files("psynet") / "templates" / "psynet_error.html").read_text(
         encoding="utf-8"

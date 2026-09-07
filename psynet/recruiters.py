@@ -260,6 +260,7 @@ class ErrorRecoveryAction(StrEnum):
     CLOSE_PAGE = "close_page"
     FOLLOW_RELEASE = "follow_release"
     POST_AND_REDIRECT = "post_and_redirect"
+    REDIRECT = "redirect"
 
 
 @dataclass(frozen=True)
@@ -274,6 +275,7 @@ class ErrorRecoveryPresentation:
     post_url: str | None = None
     post_data: dict[str, str] = field(default_factory=dict)
     redirect_url: str | None = None
+    auto_redirect_delay_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -3025,11 +3027,16 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
     ) -> None:
         """Terminate the panel session described by a Lucid exit plan.
 
-        The route owns the transaction, so termination neither commits nor
-        swallows Lucid errors: a participant must not be told they have been
-        returned to their panel when Lucid never heard about it.
+        Voluntary Leave terminates via the Lucid API within the route's
+        transaction. Error recovery preserves Lucid's established behavior:
+        the error route records termination details and the browser follows
+        the generated terminate URL, without a second API termination.
         """
         super().execute_early_exit_plan(experiment, participant, plan)
+        if plan.context is EarlyExitContext.ERROR_RECOVERY:
+            # The error route has already recorded termination details. The
+            # browser's terminate URL remains the sole external handoff.
+            return
         self._terminate_participant(
             participant=participant,
             reason="early_exit",
@@ -3071,16 +3078,16 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         self, participant, plan: EarlyExitPlan
     ) -> ErrorRecoveryPresentation:
         """Explain Lucid's return to the participant's panel provider."""
-        del participant, plan
+        del plan
         _p = get_translator(context=True)
         return ErrorRecoveryPresentation(
             message=_p(
                 "early_exit_error_lucid",
-                "Your responses have been saved. Select Return to your panel "
-                "to continue. Your panel provider will determine any payment "
-                "according to its own rules.",
+                "Your responses have been saved. We will return you to your "
+                "panel provider in a few seconds. Your panel provider will "
+                "determine any payment according to its own rules.",
             ),
-            action=ErrorRecoveryAction.FOLLOW_RELEASE,
+            action=ErrorRecoveryAction.REDIRECT,
             failure_message=_p(
                 "early_exit_error_lucid",
                 "We could not return you to your panel. Please try again. If this "
@@ -3090,6 +3097,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                 "early_exit_error_lucid",
                 "Return to your panel",
             ),
+            redirect_url=self.external_submit_url(participant=participant),
+            auto_redirect_delay_ms=5000,
         )
 
     def early_exit_allowed(self, participant) -> bool:
