@@ -165,6 +165,32 @@ def test_complete_timeline_visit_backstops_worker_complete(db_session):
     assert reloaded.status == "submitted"
 
 
+def test_complete_timeline_visit_survives_worker_complete_closing_the_session(
+    db_session,
+):
+    """Recruiter completion may close the session before the redirect is built."""
+    participant = _make_participant(complete=True, end_time=None, status="working")
+    unique_id = participant.unique_id
+    participant_id = participant.id
+    experiment = get_experiment()
+
+    def close_session(*args, **kwargs):
+        db.session.remove()
+
+    with (
+        Flask(__name__).test_request_context(f"/timeline?unique_id={unique_id}"),
+        patch.object(experiment, "participant_task_completed"),
+        patch(
+            "dallinger.experiment_server.worker_events.worker_function",
+            side_effect=close_session,
+        ),
+    ):
+        response = Experiment._route_timeline(experiment, participant, mode=None)
+
+    assert response.status_code in (301, 302)
+    assert f"/recruiter-exit?participant_id={participant_id}" in response.location
+
+
 def test_ensure_worker_complete_is_idempotent(db_session):
     participant = _make_participant(complete=True, end_time=None, status="working")
     experiment = get_experiment()

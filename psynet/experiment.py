@@ -4976,17 +4976,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ``/timeline`` must still stamp ``end_time`` and run recruiter completion
         hooks before redirecting to the exit page.
         """
-        participant = (
+        participant_id = participant.id
+        locked = (
             Participant.query.populate_existing()
             .with_for_update(of=Participant)
-            .get(participant.id)
+            .get(participant_id)
         )
-        if participant is None or participant.end_time is not None:
+        if locked is None or locked.end_time is not None:
             return
-        participant.end_time = datetime.now()
-        experiment.participant_task_completed(participant)
-        status_and_action = participant.recruiter.on_task_completion()
-        participant.status = status_and_action["new_status"]
+        locked.end_time = datetime.now()
+        experiment.participant_task_completed(locked)
+        status_and_action = locked.recruiter.on_task_completion()
+        locked.status = status_and_action["new_status"]
+        assignment_id = locked.assignment_id
         # Match Dallinger's /worker_complete ordering: release the participant
         # lock before a synchronous recruiter event opens further transactions.
         db.session.commit()
@@ -4996,8 +4998,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             worker_function(
                 event_type=action,
-                assignment_id=participant.assignment_id,
-                participant_id=participant.id,
+                assignment_id=assignment_id,
+                participant_id=participant_id,
             )
 
     @classmethod
@@ -5008,8 +5010,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # Progress reaches one before SuccessfulEndLogic marks completion,
             # so it is not sufficient evidence that the end pages have run.
             if participant.complete:
+                participant_id = participant.id
                 cls._ensure_worker_complete(experiment, participant)
-                return redirect(f"/recruiter-exit?participant_id={participant.id}")
+                return redirect(f"/recruiter-exit?participant_id={participant_id}")
             # Fatal /response prepares recovery in the failing request. The
             # tracked session then returns here by unique_id to render it.
             if cls._stored_error_recovery_plan(participant) is not None:
