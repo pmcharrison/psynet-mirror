@@ -280,10 +280,7 @@ def test_timeline_redirects_finished_participants_to_the_exit_page(
     participant_id = participant.id
     db.session.remove()
 
-    with _REQUEST_APP.test_request_context(
-        f"/timeline?unique_id={unique_id}&mode=json",
-        environ_base={"REMOTE_ADDR": "127.0.0.1"},
-    ):
+    with _timeline_request(unique_id):
         response = experiment.route_timeline()
 
     assert response.status_code in (301, 302)
@@ -305,10 +302,8 @@ def test_timeline_does_not_redirect_before_successful_end_logic(
     db.session.commit()
     db.session.remove()
 
-    with _REQUEST_APP.test_request_context(
-        f"/timeline?unique_id={unique_id}",
-        environ_base={"REMOTE_ADDR": "127.0.0.1"},
-    ):
+    with _timeline_request(unique_id):
         response = experiment.route_timeline()
 
     assert response.status_code == 200
+    assert json.loads(response.get_data())["attributes"]["unique_id"] == unique_id
