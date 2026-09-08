@@ -1567,6 +1567,6 @@ test(
     const shift = (before, after) => Math.abs(before.width / after.width - 1);
     expect(shift(preTitleWidth, themedTitleWidth)).toBeLessThan(0.01);
     expect(shift(preBodyWidth, themedBodyWidth)).toBeLessThan(0.01);
-    expect(shift(preButton.width, themedButton.width)).toBeLessThan(0.01);
+    expect(shift(preButton, themedButton)).toBeLessThan(0.01);
   }
 );
