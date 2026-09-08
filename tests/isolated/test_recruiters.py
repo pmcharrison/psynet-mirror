@@ -1506,6 +1506,7 @@ def test_lucid_early_exit_terminates_the_panel_session():
             plan,
         )
     participant.exit_plan = plan.mark_committed().to_dict()
+    participant.early_exited = True
     release_page = recruiter.release_participant(MagicMock(), participant)
 
     recruiter.lucidservice.terminate_respondent.assert_called_once_with(
@@ -1513,6 +1514,11 @@ def test_lucid_early_exit_terminates_the_panel_session():
     )
     assert "worker_complete" not in release_page.js_vars["execute_front_end_js"]
     assert participant.status == "returned"
+    assert recruiter.decide_payment(
+        participant, experiment=MagicMock()
+    ) == PaymentDecision(status="returned", platform_base=0.0, bonus=0.0)
+    assert recruiter.reward_bonus(participant, 0.0, "settlement") is True
+    recruiter.lucidservice.terminate_respondent.assert_called_once()
     # Lucid exits fail incomplete trials like every other recruiter's exit.
     participant.fail.assert_called_once_with("early_exit")
     assert participant.early_exited is True

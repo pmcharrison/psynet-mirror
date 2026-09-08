@@ -2770,6 +2770,25 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             external_submit_url=external_submit_url,
         )
 
+    def decide_payment(self, participant, *, experiment) -> exit_domain.PaymentDecision:
+        """Keep terminated Lucid sessions at returned with no PsyNet payment."""
+        del experiment
+        plan = exit_domain._committed_exit_plan(participant)
+        if (
+            plan is not None
+            and plan.path is exit_domain.ExitPath.TERMINATE_PANEL_SESSION
+        ):
+            return exit_domain.PaymentDecision(
+                status="returned",
+                platform_base=0.0,
+                bonus=0.0,
+            )
+        return exit_domain.PaymentDecision(
+            status=self.completion_status(participant),
+            platform_base=0.0,
+            bonus=0.0,
+        )
+
     def reward_bonus(self, participant, amount, reason):
         """
         Set `completed_at` timestamp on participant's LucidRID entry.
@@ -2777,6 +2796,14 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         Returns False if the Lucid complete/terminate call raises.
         """
         try:
+            plan = exit_domain._committed_exit_plan(participant)
+            if (
+                plan is not None
+                and plan.path is exit_domain.ExitPath.TERMINATE_PANEL_SESSION
+            ):
+                # The exit flow already terminated the panel session; a second
+                # call would report a different disposition for the same RID.
+                return True
             if participant is not None and participant.progress == 1:
                 self.complete_participant(participant.assignment_id)
             else:
