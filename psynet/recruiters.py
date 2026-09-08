@@ -358,12 +358,13 @@ class PsyNetRecruiterMixin:
         return exit_domain.ErrorRecoveryPresentation(
             message=_p(
                 "early_exit_error",
-                "Your responses have been saved. You may close this page.",
+                "Your responses have been saved. Select Finish to close your session.",
             ),
             failure_message=_p(
                 "early_exit_error",
                 "We could not finish your session. Please try again.",
             ),
+            button_label=_p("early_exit_error", "Finish"),
             researcher_contact_message=contact_message,
             preparation_post_url="/worker_complete",
             preparation_post_data={"participant_id": str(participant.id)},

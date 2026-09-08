@@ -10,7 +10,8 @@ import pytest
 from dallinger import db
 from flask import Flask
 
-from psynet.end import SuccessfulEndLogic
+from psynet.end import ErrorRecoveryPage, SuccessfulEndLogic
+from psynet.exit import ExitPlan, ExitPlanStatus
 from psynet.experiment import Experiment, get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
@@ -115,8 +116,8 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
     assert "ValueError" in (after_fatal.failure_tags or [])
 
 
-def test_timeline_renders_stored_error_recovery_for_unique_id(db_session):
-    """Tracked recovery is identified by unique_id and rendered on /timeline."""
+def test_prepared_recovery_is_the_first_early_exit_release_page(db_session):
+    """Preparing tracked recovery moves the participant to its timeline page."""
     participant = _make_participant(page_uuid="page-1")
     experiment = get_experiment()
     Experiment._prepare_error_recovery_plan(
@@ -127,8 +128,21 @@ def test_timeline_renders_stored_error_recovery_for_unique_id(db_session):
     db.session.commit()
     unique_id = participant.unique_id
 
+    assert experiment.timeline.get_participant_branch(participant) == (
+        "early_exit_release"
+    )
+    assert isinstance(
+        experiment.timeline.get_current_elt(experiment, participant),
+        ErrorRecoveryPage,
+    )
+    assert ExitPlan.from_dict(participant.exit_plan).status is ExitPlanStatus.PREPARED
+    assert participant.early_exited is False
+
     with (
-        Flask(__name__).test_request_context(f"/timeline?unique_id={unique_id}"),
+        Flask(__name__).test_request_context(
+            f"/timeline?unique_id={unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ),
         patch(
             "psynet.experiment.render_template_with_translations",
             return_value="stored recovery",
@@ -139,6 +153,8 @@ def test_timeline_renders_stored_error_recovery_for_unique_id(db_session):
     assert response.status_code == 500
     assert render.called
     assert render.call_args.kwargs["automatic_exit_offer_id"] is not None
+    assert ExitPlan.from_dict(participant.exit_plan).status is ExitPlanStatus.PREPARED
+    assert participant.early_exited is False
 
 
 def test_complete_timeline_visit_backstops_worker_complete(db_session):

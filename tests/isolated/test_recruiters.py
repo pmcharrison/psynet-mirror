@@ -1870,9 +1870,12 @@ def test_error_recovery_route_survives_a_queued_unsuccessful_redirect():
         complete=False,
         unique_id="unique-1",
         exit_plan=plan.to_dict(),
+        elt_id=["early_exit_release", 0, 0],
+        pending_redirect=None,
     )
     experiment = MagicMock()
     experiment.timeline.participant_is_in_end_logic.return_value = True
+    experiment.timeline.get_participant_branch.return_value = "early_exit_release"
 
     with (
         Flask(__name__).test_request_context(
@@ -1893,6 +1896,8 @@ def test_error_recovery_route_survives_a_queued_unsuccessful_redirect():
     experiment.recruiter.execute_early_exit_plan.assert_called_once()
     assert participant.exit_plan["context"] == "error_recovery"
     assert participant.exit_plan["status"] == "committed"
+    assert participant.pending_redirect is None
+    experiment.timeline.advance_page.assert_called_once_with(experiment, participant)
 
 
 def test_early_exit_route_reports_an_unknown_assignment():

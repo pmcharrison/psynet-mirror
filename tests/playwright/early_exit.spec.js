@@ -29,6 +29,7 @@ test(
             <p id="automatic-early-exit-ready" hidden>
               Your responses have been saved. You may close this page.
             </p>
+            <button id="automatic-early-exit-continue" hidden>Finish</button>
           </div>
         `
       });
@@ -59,22 +60,32 @@ test(
         body: JSON.stringify({ status: "success" })
       });
     });
+    await page.route("http://psynet.test/release", async (route) => {
+      await route.fulfill({
+        contentType: "text/html",
+        body: "<h1>Session finished</h1>"
+      });
+    });
 
     await page.goto("http://psynet.test/error");
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await page.evaluate(() => window.psynetEarlyExit.init());
 
+    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
+    expect(submittedOffer).toBeUndefined();
+    expect(completionAttempts).toBe(0);
+
+    await page.locator("#automatic-early-exit-continue").click();
     await expect(page.locator("#automatic-early-exit-failure")).toBeVisible();
     await page.locator("#automatic-early-exit-retry").click();
-    await expect(page).toHaveURL("http://psynet.test/error");
-    await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
-    await expect(page.locator("#automatic-early-exit-continue")).toHaveCount(0);
+    await expect(page).toHaveURL("http://psynet.test/release");
+    await expect(page.locator("h1")).toHaveText("Session finished");
     expect(submittedOffer).toEqual({ plan_id: "offer-1" });
     expect(completedParticipant).toEqual({ participant_id: "42" });
     expect(completionAttempts).toBe(2);
 
     await page.waitForTimeout(500);
-    await expect(page).toHaveURL("http://psynet.test/error");
+    await expect(page).toHaveURL("http://psynet.test/release");
   }
 );
 
@@ -330,6 +341,7 @@ test(
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>Done.</p>
+            <button id="automatic-early-exit-continue" hidden>Continue</button>
           </div>
         `
       });
@@ -349,6 +361,7 @@ test(
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await page.evaluate(() => window.psynetEarlyExit.init());
 
+    await page.locator("#automatic-early-exit-continue").click();
     await expect(page.locator("#automatic-early-exit-failure")).toBeVisible();
     expect(pageLoads).toBe(1);
 

@@ -1649,6 +1649,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.exit_plan = plan.to_dict()
         if not participant.failed:
             participant.fail("error_recovery", redirect_to_end=False)
+        participant.pending_redirect = "early_exit_release"
+        experiment.timeline.advance_page(experiment, participant)
         return plan
 
     @staticmethod
@@ -1695,6 +1697,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     plan.plan_id
                     if plan is not None
                     and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+                    and plan.status is exit_domain.ExitPlanStatus.PREPARED
                     else None
                 ),
                 error_page_presentation=error_page_presentation,
@@ -4885,7 +4888,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
         participant.exit_plan = plan.mark_committed().to_dict()
-        participant.pending_redirect = "early_exit_release"
+        if not (
+            plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and experiment.timeline.get_participant_branch(participant)
+            == "early_exit_release"
+        ):
+            participant.pending_redirect = "early_exit_release"
         experiment.timeline.advance_page(experiment, participant)
         logger.info(
             "Executed early-exit plan %s (%s) for participant %s.",
@@ -5017,14 +5025,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @classmethod
-    def _stored_error_recovery_plan(cls, participant):
-        """Return a stored error-recovery plan for a tracked participant, if any."""
-        plan = exit_domain._stored_exit_plan(participant)
-        if plan is None or plan.context is not exit_domain.ExitContext.ERROR_RECOVERY:
-            return None
-        return plan
-
-    @classmethod
     def _ensure_worker_complete(cls, experiment, participant):
         """Idempotent server-side stand-in when /worker_complete never arrived.
 
@@ -5070,10 +5070,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant_id = participant.id
                 cls._ensure_worker_complete(experiment, participant)
                 return redirect(f"/recruiter-exit?participant_id={participant_id}")
-            # Fatal /response prepares recovery in the failing request. The
-            # tracked session then returns here by unique_id to render it.
-            if cls._stored_error_recovery_plan(participant) is not None:
-                return cls._render_participant_error_page(participant)
             if not isinstance(participant, Bot):
                 participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)

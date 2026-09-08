@@ -9,8 +9,10 @@ from psynet.timeline import (
     CodeBlock,
     Elt,
     EltCollection,
+    Page,
     PageMaker,
     TimelineLogic,
+    get_template,
     join,
 )
 from psynet.utils import get_translator
@@ -174,11 +176,47 @@ class SuccessfulEndLogic(EndLogic):
         return self.debrief_page(html, experiment, participant)
 
 
+class ErrorRecoveryPage(Page):
+    """Render a prepared error recovery plan as a timeline page."""
+
+    requires_full_page_reload = True
+
+    def __init__(self):
+        super().__init__(
+            time_estimate=0.0,
+            template_str=get_template("psynet_error.html"),
+            framework_owned_template=True,
+            requires_full_page_reload=True,
+            save_answer=False,
+            show_early_exit_button=False,
+            label="error_recovery",
+        )
+
+    def render(self, experiment, participant, partial_mode=False):
+        """Render recruiter-specific recovery copy with an HTTP error status."""
+        assert not partial_mode
+        return experiment._render_participant_error_page(participant)
+
+
 class ImmediateExitLogic(ExitLogic):
-    """Run recruiter-specific release without a timeline debrief."""
+    """Show prepared error recovery, then run recruiter-specific release."""
 
     def resolve(self) -> Union[Elt, List[Elt]]:
-        return PageMaker(self.release_participant, time_estimate=0.0)
+        return PageMaker(self._release_sequence, time_estimate=0.0)
+
+    def _release_sequence(self, experiment, participant) -> TimelineLogic:
+        """Include recovery UI only for error-triggered exits."""
+        plan = exit_domain._stored_exit_plan(participant)
+        recovery_page = (
+            ErrorRecoveryPage()
+            if plan is not None
+            and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            else None
+        )
+        return join(
+            recovery_page,
+            PageMaker(self.release_participant, time_estimate=0.0),
+        )
 
 
 class UnsuccessfulEndLogic(EndLogic):

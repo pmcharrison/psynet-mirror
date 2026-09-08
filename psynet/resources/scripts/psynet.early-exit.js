@@ -1,7 +1,7 @@
 /*
  * Client half of the paths that take a participant out of an experiment before
- * normal completion: the voluntary Leave modal, the automatic recovery that the
- * error page runs, and navigation to the error page itself.
+ * normal completion: the voluntary Leave modal, the recovery page's terminal
+ * action, and navigation to the error page itself.
  *
  * The server owns every decision here. This script only reads the plan that the
  * server rendered into the DOM, calls the routes the server named, and follows
@@ -146,6 +146,16 @@
         }
         if (finish) finish.disabled = true;
         try {
+          if (automatic.dataset.offerId && !releaseUrl) {
+            releaseUrl = await executePlan(
+              automatic.dataset.assignmentId,
+              automatic.dataset.offerId,
+              false,
+            );
+          }
+          if (preparationPostUrl) {
+            await postForm(preparationPostUrl, preparationPostData);
+          }
           if (actionPostUrl) {
             await postForm(actionPostUrl, actionPostData);
             if (!destinationUrl) {
@@ -169,17 +179,6 @@
         prepared = false;
         reloadOnRetry = false;
         try {
-          if (automatic.dataset.offerId) {
-            releaseUrl = await executePlan(
-              automatic.dataset.assignmentId,
-              automatic.dataset.offerId,
-              false,
-            );
-            if (!releaseUrl) return;
-          }
-          if (preparationPostUrl) {
-            await postForm(preparationPostUrl, preparationPostData);
-          }
           prepared = true;
           pending.hidden = true;
           ready.hidden = false;
