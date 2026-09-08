@@ -440,21 +440,34 @@ def test_option_panel_grows_with_its_rows_but_keeps_its_surface():
     assert "background-color: var(--psynet-surface-sunken)" in block
 
 
-def test_timeline_omits_footer_when_hidden():
+@pytest.mark.parametrize("num_media_files, expected_bars", [(0, 0), (2, 1)])
+def test_footerless_timeline_only_renders_progress_for_media(
+    num_media_files,
+    expected_bars,
+):
+    from types import SimpleNamespace
+
+    from jinja2 import Environment
+
     source = (resources.files("psynet") / "templates" / "timeline-page.html").read_text(
         encoding="utf-8"
     )
     start = source.index("{% macro timeline_footer()")
-    end = source.index("{% endmacro %}", start)
-    macro = source[start:end]
-    assert "{% if config.show_footer != false and footer_has_content %}" in macro
-    assert 'id="footer"' in macro
-    assert "config.show_footer == false" not in macro
-    # An empty footer is omitted, and a standalone bar only renders when the
-    # page actually has media to download.
-    assert "{% else %}" in macro
-    assert "{% if page.media.num_files > 0 %}" in macro
-    assert "{{ media_download_bar() }}" in macro
+    end = source.index("{% endmacro %}", start) + len("{% endmacro %}")
+    template = Environment(autoescape=True).from_string(
+        source[start:end] + "{{ timeline_footer() }}"
+    )
+
+    html = template.render(
+        config={"show_footer": False, "leave_comments_on_every_page": False},
+        experiment=SimpleNamespace(show_reward=False),
+        show_early_exit_button=False,
+        page=SimpleNamespace(media=SimpleNamespace(num_files=num_media_files)),
+        initial_download_progress=40,
+    )
+
+    assert html.count('id="footer"') == 0
+    assert html.count('id="media-download-progress-bar"') == expected_bars
 
 
 def test_timeline_footer_keeps_labels_compact_and_explanations_accessible():

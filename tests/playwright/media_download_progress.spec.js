@@ -58,6 +58,10 @@ async function assertMediaDownloadProgressBarVisible(page, expectedFooter) {
   expect(metrics.opacity).toBeGreaterThan(0);
 }
 
+async function assertMediaDownloadProgressBarAbsent(page) {
+  await expect(page.locator("#media-download-progress-bar")).toHaveCount(0);
+}
+
 async function waitForMediaDownloadComplete(page) {
   await expect
     .poll(
@@ -91,7 +95,7 @@ test("media download progress bar displays on full load and inplace transition",
     await assertInplaceTimelinePathActive(experimentPage, 20000);
 
     await waitForMainBodyContains(experimentPage, "Intro without media", STEP_TIMEOUT_MS);
-    await assertMediaDownloadProgressBarVisible(experimentPage, false);
+    await assertMediaDownloadProgressBarAbsent(experimentPage);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await waitForMainBodyContains(
@@ -148,9 +152,15 @@ test("media download progress bar displays on full load and inplace transition",
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForMainBodyContains(experimentPage, "Second media page", STEP_TIMEOUT_MS);
-    // The second removes the footer again. The same lifecycle must keep one
-    // standalone bar and continue updating it.
-    await assertMediaDownloadProgressBarVisible(experimentPage, false);
+    // The second removes the footer again. Its cached audio can complete before
+    // this assertion, so assert durable lifecycle state rather than transient
+    // visibility: one standalone bar reaches 100% and then hides.
+    const standaloneBar = experimentPage.locator("#media-download-progress-bar");
+    await expect(standaloneBar).toHaveCount(1);
+    expect(
+      await standaloneBar.evaluate((bar) => bar.closest("#footer") === null)
+    ).toBe(true);
     await waitForMediaDownloadComplete(experimentPage);
+    await expect(standaloneBar).toBeHidden();
   });
 });

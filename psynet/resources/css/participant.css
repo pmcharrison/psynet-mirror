@@ -67,8 +67,8 @@
    swap changes letterforms without moving anything. The percentages come from
    the shipped woff2 files: size-adjust is the ratio of the two fonts'
    frequency-weighted average advance width, and the vertical overrides are
-   Inter's own hhea metrics divided by it. Regenerate them if the font files
-   are updated. */
+   Inter's own hhea metrics divided by it. Regenerate both these values and
+   the version tokens above if the font files are updated. */
 @font-face {
     font-family: "Inter Fallback";
     font-style: normal;
@@ -78,6 +78,18 @@
     size-adjust: 107.52%;
     ascent-override: 90.10%;
     descent-override: 22.43%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "Inter Fallback";
+    font-style: normal;
+    font-weight: 500;
+    src: local("Arial"), local("ArialMT"), local("Liberation Sans"),
+        local("Arimo");
+    size-adjust: 113.94%;
+    ascent-override: 85.02%;
+    descent-override: 21.17%;
     line-gap-override: 0%;
 }
 

@@ -1240,13 +1240,15 @@ function mediaProgressRuntime() {
   `;
 }
 
-function timelineMarkup({ footer }) {
+function timelineMarkup({ footer, media = true }) {
   const bar = `<div id="media-download-progress-bar" data-nest="${
     footer ? "nested" : "standalone"
   }" style="width:40%"></div>`;
   const chrome = footer
     ? `<nav id="footer">${bar}<div class="footer-text">Reward</div></nav>`
-    : bar;
+    : media
+      ? bar
+      : "";
   return `
     <div id="timeline-header"></div>
     <div id="main-body">body</div>
@@ -1286,6 +1288,12 @@ test(
 
     state = await swapTimeline(page, timelineMarkup({ footer: false }));
     expect(state).toEqual({ count: 1, nested: false, hasFooter: false });
+
+    state = await swapTimeline(
+      page,
+      timelineMarkup({ footer: false, media: false })
+    );
+    expect(state).toEqual({ count: 0, nested: false, hasFooter: false });
 
     state = await swapTimeline(page, timelineMarkup({ footer: true }));
     expect(state).toEqual({ count: 1, nested: true, hasFooter: true });
@@ -1461,6 +1469,7 @@ async function renderThemedText(page) {
 <div class="surface" id="themed">
   <h1 class="title">${SAMPLE_TITLE}</h1>
   <p class="body">${SAMPLE_BODY}</p>
+  <button class="btn nowrap">Continue to the next page</button>
   <h1 class="title nowrap">${SAMPLE_TITLE}</h1>
   <p class="body nowrap">${SAMPLE_BODY}</p>
 </div>
@@ -1535,20 +1544,31 @@ test(
         "cannot be exercised here."
     );
 
-    const [themedTitle, themedBody, themedTitleWidth, themedBodyWidth] =
+    const [
+      themedTitle,
+      themedBody,
+      themedButton,
+      themedTitleWidth,
+      themedBodyWidth
+    ] =
       measurements.themed;
-    const [preTitle, preBody, preTitleWidth, preBodyWidth] =
+    const [preTitle, preBody, preButton, preTitleWidth, preBodyWidth] =
       measurements.preSwap;
 
     // Wrapped text must keep its line count, or the page reflows under the
     // participant when the webfont lands.
     expect(preTitle.height).toBe(themedTitle.height);
     expect(preBody.height).toBe(themedBody.height);
+    expect(preButton.height).toBe(themedButton.height);
 
     // Heading text is the most visible: an unmatched fallback sets it several
     // percent narrower, which reads as the title changing size mid-load.
+    // These sub-pixel comparisons use Playwright's deterministic font-rendering
+    // flags; production hinting can alter raster bounds without changing the
+    // fallback metrics or wrapped line count.
     const shift = (before, after) => Math.abs(before.width / after.width - 1);
     expect(shift(preTitleWidth, themedTitleWidth)).toBeLessThan(0.01);
     expect(shift(preBodyWidth, themedBodyWidth)).toBeLessThan(0.01);
+    expect(shift(preButton.width, themedButton.width)).toBeLessThan(0.01);
   }
 );
