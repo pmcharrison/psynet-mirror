@@ -295,6 +295,17 @@ class PsyNetRecruiterMixin:
                 reason = "early_exit"
             participant.fail(reason)
 
+    def shows_error_recovery_page(self, plan: exit_domain.ExitPlan) -> bool:
+        """Return whether tracked fatal recovery presents a participant page.
+
+        Generic, HotAir, and lab recruiters have nothing to ask after an
+        error, so PsyNet commits the plan on the server and the participant
+        sees the normal recruiter exit. Do not infer this from
+        ``button_label is None``.
+        """
+        del plan
+        return False
+
     def _check_stale_error_page_override(self) -> None:
         """Reject a custom recruiter that only implements the removed hook."""
         for cls in type(self).__mro__:
@@ -347,27 +358,12 @@ class PsyNetRecruiterMixin:
                 ),
                 researcher_contact_message=contact_message,
             )
-        if plan is None:
-            return exit_domain.ErrorRecoveryPresentation(
-                message=_p(
-                    "early_exit_error",
-                    "Your responses have been saved. You may close this page.",
-                ),
-                researcher_contact_message=contact_message,
-            )
         return exit_domain.ErrorRecoveryPresentation(
             message=_p(
                 "early_exit_error",
-                "Your responses have been saved. Select Finish to close your session.",
+                "Your responses have been saved. You may close this page.",
             ),
-            failure_message=_p(
-                "early_exit_error",
-                "We could not finish your session. Please try again.",
-            ),
-            button_label=_p("early_exit_error", "Finish"),
             researcher_contact_message=contact_message,
-            preparation_post_url="/worker_complete",
-            preparation_post_data={"participant_id": str(participant.id)},
         )
 
     def prepare_error_recovery(self, participant) -> None:
@@ -759,6 +755,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         }
     )
 
+    def shows_error_recovery_page(self, plan: exit_domain.ExitPlan) -> bool:
+        """Prolific recovery asks the participant to submit or return."""
+        return plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+
     @property
     def unsuccessful_base_payment(self):
         """The fixed screen-out reward (in currency units) paid to unsuccessful
@@ -1035,6 +1035,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     "assignmentId": participant.assignment_id,
                     "participantId": str(participant.id),
                 },
+                done_message=_p(
+                    "early_exit_error_prolific",
+                    "Your participation has been recorded. You may close this page.",
+                ),
             )
 
         if plan.path is exit_domain.ExitPath.RETURN_FOR_BONUS:
@@ -3161,6 +3165,10 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             payment_state=exit_domain.PaymentState.NOT_APPLICABLE,
             currency=get_config().get("currency", "$"),
         )
+
+    def shows_error_recovery_page(self, plan: exit_domain.ExitPlan) -> bool:
+        """Lucid recovery explains the panel return before redirecting."""
+        return plan.context is exit_domain.ExitContext.ERROR_RECOVERY
 
     def error_page_presentation(
         self,

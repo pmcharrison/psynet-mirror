@@ -1096,6 +1096,10 @@ class Page(Elt):
         shell and lifecycle; experiment-authored complete templates should use
         ``template_fragment_path`` or ``template_fragment_str`` for SPA.
 
+    delegated_render:
+        If ``True``, this page is a thin timeline wrapper whose ``render``
+        method supplies the response. It cannot be combined with a template.
+
     requires_full_page_reload:
         If ``True``, this page always uses a full browser reload rather than an
         in-place transition. Use this as a per-page opt-out while migrating
@@ -1310,6 +1314,7 @@ class Page(Elt):
         framework_owned_template: bool = False,
         requires_full_page_reload: bool = False,
         expect_scrolling: Optional[bool] = None,
+        delegated_render: bool = False,
     ):
         super().__init__()
 
@@ -1345,35 +1350,44 @@ class Page(Elt):
             template_fragment_path is not None or template_fragment_str is not None
         )
 
-        if not complete_template_provided and not fragment_template_provided:
+        if delegated_render:
+            if complete_template_provided or fragment_template_provided:
+                raise ValueError("delegated_render cannot be combined with a template.")
+            template_str = ""
+            template_kind = "delegated"
+            template_contract_source = ""
+            framework_owned_template = True
+        elif not complete_template_provided and not fragment_template_provided:
             raise ValueError(
                 "Must provide either template_path/template_str or "
                 "template_fragment_path/template_fragment_str."
             )
-        if template_path is not None and template_str is not None:
-            raise ValueError("Cannot provide both template_path and template_str.")
-        if template_fragment_path is not None and template_fragment_str is not None:
-            raise ValueError(
-                "Cannot provide both template_fragment_path and template_fragment_str."
-            )
-        if complete_template_provided and fragment_template_provided:
-            raise ValueError(
-                "Cannot provide both a complete template and a template fragment."
-            )
+        if not delegated_render:
+            if template_path is not None and template_str is not None:
+                raise ValueError("Cannot provide both template_path and template_str.")
+            if template_fragment_path is not None and template_fragment_str is not None:
+                raise ValueError(
+                    "Cannot provide both template_fragment_path and "
+                    "template_fragment_str."
+                )
+            if complete_template_provided and fragment_template_provided:
+                raise ValueError(
+                    "Cannot provide both a complete template and a template fragment."
+                )
 
-        if template_path is not None:
-            with open(template_path, "r") as file:
-                template_str = file.read()
+            if template_path is not None:
+                with open(template_path, "r") as file:
+                    template_str = file.read()
 
-        template_kind = "complete"
-        template_contract_source = template_str
-        if fragment_template_provided:
-            template_kind = "fragment"
-            if template_fragment_path is not None:
-                with open(template_fragment_path, "r") as file:
-                    template_fragment_str = file.read()
-            template_contract_source = template_fragment_str
-            template_str = self._wrap_template_fragment(template_fragment_str)
+            template_kind = "complete"
+            template_contract_source = template_str
+            if fragment_template_provided:
+                template_kind = "fragment"
+                if template_fragment_path is not None:
+                    with open(template_fragment_path, "r") as file:
+                        template_fragment_str = file.read()
+                template_contract_source = template_fragment_str
+                template_str = self._wrap_template_fragment(template_fragment_str)
 
         assert len(label) <= 250
         assert isinstance(template_arg, dict)
@@ -1868,6 +1882,11 @@ class Page(Elt):
 
     def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
+
+        if self.template_kind == "delegated":
+            raise NotImplementedError(
+                f"{type(self).__name__} delegates rendering and must override render()."
+            )
 
         # Architecture: docs/developer/page_lifecycle.rst
         # `partial_mode` is an internal render shape used for inplace

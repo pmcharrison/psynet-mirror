@@ -174,6 +174,7 @@ def test_error_recovery_uses_one_researcher_reference_code():
     assert "data-preparation-post-url" in source
     assert "data-action-post-url" in source
     assert "data-destination-url" in source
+    assert "data-done-message" in source
     assert "Error type" not in source
     assert "Study ID" not in source
     assert "Worker ID" not in source
@@ -830,13 +831,9 @@ def test_the_error_page_is_reached_by_get_so_that_it_can_be_reloaded():
     assert "rejection.html" not in early_exit
 
     # Known-participant failures all take the reloadable PsyNet path.
-    for path in (
-        "resources/scripts/psynet.js",
-        "templates/psynet_exit_recruiter_prolific.html",
-    ):
-        source = (root / path).read_text(encoding="utf-8")
-        assert "psynetErrorPage.go" in source, path
-        assert "dallinger.error" not in source, path
+    js = (root / "resources/scripts/psynet.js").read_text(encoding="utf-8")
+    assert "psynetErrorPage.go" in js
+    assert "dallinger.error" not in js
 
     # Starting a participant is the sole intentional exception until
     # Dallinger returns structured participant-creation error codes.

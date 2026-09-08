@@ -1190,14 +1190,11 @@ def test_default_error_recovery_page_is_terminal():
         )
 
     assert presentation.button_label is None
-    assert presentation.preparation_post_url == "/worker_complete"
-    assert presentation.preparation_post_data == {"participant_id": "42"}
+    assert presentation.preparation_post_url is None
     assert presentation.message == (
         "Your responses have been saved. You may close this page."
     )
-    assert presentation.failure_message == (
-        "We could not finish your session. Please try again."
-    )
+    assert presentation.failure_message is None
     assert presentation.researcher_contact_message == (
         "If you need to contact the researcher about this error, write to "
         "researcher@example.test and quote reference code assignment-1."
@@ -1231,6 +1228,19 @@ def test_default_tracked_error_page_without_a_plan_stays_terminal():
         "If you need to contact the researcher about this error, write to "
         "researcher@example.test and quote reference code assignment-1."
     )
+
+
+def test_generic_recruiters_skip_the_error_recovery_page():
+    plan = _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY)
+    assert PsyNetRecruiterMixin().shows_error_recovery_page(plan) is False
+
+
+def test_prolific_and_lucid_show_the_error_recovery_page():
+    plan = _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY)
+    prolific = object.__new__(PsyNetProlificRecruiterMixin)
+    lucid = object.__new__(BaseLucidRecruiter)
+    assert prolific.shows_error_recovery_page(plan) is True
+    assert lucid.shows_error_recovery_page(plan) is True
 
 
 def test_error_page_presentation_rejects_a_stale_recruiter_override():
@@ -1279,6 +1289,9 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
     assert "Prolific will pay you £0.25" in presentation.message
     assert "£0.35 as a bonus" in presentation.message
     assert "total payment to £0.60" in presentation.message
+    assert presentation.done_message == (
+        "Your participation has been recorded. You may close this page."
+    )
 
 
 def test_prolific_return_for_bonus_recovery_introduces_the_required_steps():
@@ -3764,7 +3777,7 @@ def test_psynet_exit_page_uses_early_leave_copy_when_early_exited(recruiter_clas
 
 
 def test_prolific_exit_page_renders_with_psynet_layout():
-    """The Prolific submit control retains its fields in the shared theme."""
+    """The stay-on-PsyNet Prolific confirmation uses the shared theme."""
     from importlib import resources
 
     from flask import Flask, render_template
@@ -3802,24 +3815,21 @@ def test_prolific_exit_page_renders_with_psynet_layout():
 
     with app.test_request_context("/recruiter-exit"):
         html = render_template(
-            "psynet_exit_recruiter_prolific.html",
+            "exit_recruiter_prolific_submitted.html",
             experiment=experiment,
             participant=participant,
             config=SimpleNamespace(color_mode="light"),
             assignment_id="assignment-123",
             participant_id=7,
-            external_submit_url="https://app.prolific.com/complete",
         )
 
     assert '<meta name="viewport"' in html
     assert "css/participant.css" in html
     assert "scripts/psynet.layout.js" in html
-    for text in (
-        "Submit your Prolific study",
-        "/prolific-submission-listener",
-        "https://app.prolific.com/complete",
-    ):
-        assert text in html
+    assert "Prolific Study Submission" in html
+    assert "/prolific-submission-listener" in html
+    assert "window.location" not in html
+    assert "prolific-exit-done" in html
 
 
 def _review_participant(apparent=0.0, planned=1.50):
@@ -4515,3 +4525,26 @@ def test_rejected_consent_dispatches_recruiter_hook():
 
     participant.fail.assert_called_once_with()
     recruiter.after_rejected_consent.assert_called_once_with(experiment, participant)
+
+
+def test_lucid_rejected_consent_uses_a_terminate_callback():
+    from psynet.end import RejectedConsentLogic
+
+    recruiter = MagicMock()
+    recruiter.external_submit_url.return_value = "https://lucid.test/terminate"
+    experiment = MagicMock()
+    experiment.recruiter = recruiter
+    experiment.with_lucid_recruitment.return_value = True
+    experiment.show_reward = False
+    participant = MagicMock()
+
+    with patch(
+        "psynet.end.get_translator",
+        side_effect=lambda *args, **kwargs: lambda *a: a[-1],
+    ):
+        RejectedConsentLogic().debrief_participant(experiment, participant)
+
+    recruiter.external_submit_url.assert_called_once_with(
+        participant=participant,
+        allow_complete=False,
+    )

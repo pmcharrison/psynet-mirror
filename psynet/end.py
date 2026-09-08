@@ -12,7 +12,6 @@ from psynet.timeline import (
     Page,
     PageMaker,
     TimelineLogic,
-    get_template,
     join,
 )
 from psynet.utils import get_translator
@@ -177,15 +176,14 @@ class SuccessfulEndLogic(EndLogic):
 
 
 class ErrorRecoveryPage(Page):
-    """Render a prepared error recovery plan as a timeline page."""
+    """Timeline wrapper around the recruiter's tracked error-recovery page."""
 
     requires_full_page_reload = True
 
     def __init__(self):
         super().__init__(
             time_estimate=0.0,
-            template_str=get_template("psynet_error.html"),
-            framework_owned_template=True,
+            delegated_render=True,
             requires_full_page_reload=True,
             save_answer=False,
             show_early_exit_button=False,
@@ -195,22 +193,33 @@ class ErrorRecoveryPage(Page):
     def render(self, experiment, participant, partial_mode=False):
         """Render recruiter-specific recovery copy with an HTTP error status."""
         assert not partial_mode
-        return experiment._render_participant_error_page(participant)
+        from psynet.utils import get_locale
+
+        plan = exit_domain._stored_exit_plan(participant)
+        return experiment._render_error_page(
+            participant=participant,
+            plan=plan,
+            recruiter=experiment.recruiter,
+            error_text=None,
+            external_submit_url=None,
+            locale=get_locale(),
+        )
 
 
 class ImmediateExitLogic(ExitLogic):
-    """Show prepared error recovery, then run recruiter-specific release."""
+    """Show prepared error recovery when the recruiter has something to ask."""
 
     def resolve(self) -> Union[Elt, List[Elt]]:
         return PageMaker(self._release_sequence, time_estimate=0.0)
 
     def _release_sequence(self, experiment, participant) -> TimelineLogic:
-        """Include recovery UI only for error-triggered exits."""
+        """Insert recovery UI only when the recruiter presents it."""
         plan = exit_domain._stored_exit_plan(participant)
         recovery_page = (
             ErrorRecoveryPage()
             if plan is not None
             and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and experiment.recruiter.shows_error_recovery_page(plan)
             else None
         )
         return join(
@@ -308,8 +317,12 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
             # For Lucid recruitment, auto-redirect back to Lucid
             if experiment.with_lucid_recruitment():
                 tags.span(_("You will be redirected."))
+                # Consent reject is a terminate, not a panel Complete: progress
+                # may be 1 after debrief bookkeeping, but that is estimated
+                # timeline used, not Lucid RIS 10.
                 external_submit_url = experiment.recruiter.external_submit_url(
-                    participant=participant
+                    participant=participant,
+                    allow_complete=False,
                 )
                 tags.script(
                     dominate.util.raw(

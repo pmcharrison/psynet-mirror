@@ -1603,14 +1603,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Callers that already prepared recovery (or are rendering a stored plan
         from ``/timeline``) still go through this helper; preparation is
         idempotent. The separate ``/error-page`` route stays untracked.
+        Recruiters with nothing to ask skip the recovery page: the plan is
+        committed on the server and this helper redirects to ``/timeline``,
+        which then hands the participant to recruiter exit.
         """
         experiment = get_experiment()
         active_recruiter = recruiter or experiment.recruiter
+        participant_id = getattr(participant, "id", None)
+        unique_id = getattr(participant, "unique_id", None)
         plan = cls._prepare_error_recovery_plan(
             experiment,
             active_recruiter,
             participant,
         )
+        if (
+            participant_id is not None
+            and plan is not None
+            and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and not active_recruiter.shows_error_recovery_page(plan)
+        ):
+            if unique_id:
+                return redirect(f"/timeline?unique_id={unique_id}")
+            return redirect(f"/recruiter-exit?participant_id={participant_id}")
         return cls._render_error_page(
             participant=participant,
             plan=plan,
@@ -1620,8 +1634,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             locale=locale,
         )
 
-    @staticmethod
+    @classmethod
     def _prepare_error_recovery_plan(
+        cls,
         experiment,
         recruiter,
         participant,
@@ -1649,8 +1664,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.exit_plan = plan.to_dict()
         if not participant.failed:
             participant.fail("error_recovery", redirect_to_end=False)
-        participant.pending_redirect = "early_exit_release"
-        experiment.timeline.advance_page(experiment, participant)
+        if recruiter.shows_error_recovery_page(plan):
+            participant.pending_redirect = "early_exit_release"
+            experiment.timeline.advance_page(experiment, participant)
+        else:
+            cls._commit_early_exit_plan(experiment, participant, plan)
+            cls._ensure_worker_complete(experiment, participant)
         return plan
 
     @staticmethod
@@ -4843,6 +4862,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             error_code="stale_early_exit_offer",
         )
 
+    @staticmethod
+    def _commit_early_exit_plan(experiment, participant, plan):
+        """Execute a prepared plan and advance onto release.
+
+        Already committed or already-left participants are a no-op. The Leave
+        POST must reject a stale ``plan_id`` before calling this helper.
+        """
+        if participant.early_exited or (
+            plan.status is exit_domain.ExitPlanStatus.COMMITTED
+        ):
+            return
+        experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
+        participant.exit_plan = plan.mark_committed().to_dict()
+        already_on_release = (
+            plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and experiment.timeline.get_participant_branch(participant)
+            == "early_exit_release"
+        )
+        if not already_on_release:
+            participant.pending_redirect = "early_exit_release"
+        experiment.timeline.advance_page(experiment, participant)
+
+    @staticmethod
+    def _skipped_error_recovery_is_finalized(experiment, participant) -> bool:
+        """Return whether generic tracked recovery already handed off to exit."""
+        plan = exit_domain._stored_exit_plan(participant)
+        return (
+            participant.end_time is not None
+            and plan is not None
+            and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and plan.status is exit_domain.ExitPlanStatus.COMMITTED
+            and not experiment.recruiter.shows_error_recovery_page(plan)
+        )
+
     @experiment_route("/execute_early_exit_plan/<assignment_id>", methods=["POST"])
     @classmethod
     @with_transaction
@@ -4886,15 +4939,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # redirect raced with the recovery page.
             return cls._stale_early_exit_response()
 
-        experiment.recruiter.execute_early_exit_plan(experiment, participant, plan)
-        participant.exit_plan = plan.mark_committed().to_dict()
-        if not (
-            plan.context is exit_domain.ExitContext.ERROR_RECOVERY
-            and experiment.timeline.get_participant_branch(participant)
-            == "early_exit_release"
-        ):
-            participant.pending_redirect = "early_exit_release"
-        experiment.timeline.advance_page(experiment, participant)
+        cls._commit_early_exit_plan(experiment, participant, plan)
         logger.info(
             "Executed early-exit plan %s (%s) for participant %s.",
             plan.plan_id,
@@ -5066,7 +5111,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # otherwise land on a stale first timeline page with no Next.
             # Progress reaches one before SuccessfulEndLogic marks completion,
             # so it is not sufficient evidence that the end pages have run.
-            if participant.complete:
+            if participant.complete or cls._skipped_error_recovery_is_finalized(
+                experiment, participant
+            ):
                 participant_id = participant.id
                 cls._ensure_worker_complete(experiment, participant)
                 return redirect(f"/recruiter-exit?participant_id={participant_id}")

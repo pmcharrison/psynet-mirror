@@ -22,6 +22,7 @@
                          data-action-post-data='{{ error_page_presentation.action_post_data | tojson }}'
                          data-destination-url="{{ error_page_presentation.destination_url or '' }}"
                          data-auto-redirect-delay-ms="{{ error_page_presentation.auto_redirect_delay_ms or '' }}"
+                         data-done-message="{{ error_page_presentation.done_message or '' }}"
                          aria-live="polite">
                         <div id="automatic-early-exit-pending" role="status">
                             <span class="spinner-border" aria-hidden="true"></span>

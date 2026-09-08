@@ -117,6 +117,7 @@
         automatic.dataset.actionPostData || "{}",
       );
       const destinationUrl = automatic.dataset.destinationUrl;
+      const doneMessage = automatic.dataset.doneMessage;
       const autoRedirectDelay = Number(
         automatic.dataset.autoRedirectDelayMs || 0,
       );
@@ -160,6 +161,7 @@
             await postForm(actionPostUrl, actionPostData);
             if (!destinationUrl) {
               if (finish) finish.hidden = true;
+              if (doneMessage) ready.textContent = doneMessage;
               return;
             }
           }

@@ -8,11 +8,10 @@ const EARLY_EXIT_JS = fs.readFileSync(
 );
 
 test(
-  "generic error recovery finishes without a redundant participant action",
+  "untracked error recovery does not execute an exit plan",
   { tag: "@both" },
   async ({ page }) => {
-    let submittedOffer;
-    let completedParticipant;
+    let executeRequests = 0;
     let completionAttempts = 0;
     await page.route("http://psynet.test/error", async (route) => {
       await route.fulfill({
@@ -20,51 +19,25 @@ test(
         body: `
           <div id="automatic-early-exit"
                data-assignment-id="assignment-1"
-               data-offer-id="offer-1"
-               data-preparation-post-url="/worker_complete"
-               data-preparation-post-data='{"participant_id":"42"}'>
+               data-offer-id=""
+               data-preparation-post-url="">
             <p id="automatic-early-exit-pending">Saving...</p>
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
             <p id="automatic-early-exit-ready" hidden>
               Your responses have been saved. You may close this page.
             </p>
-            <button id="automatic-early-exit-continue" hidden>Finish</button>
           </div>
         `
       });
     });
-    await page.route(
-      "http://psynet.test/execute_early_exit_plan/assignment-1",
-      async (route) => {
-        submittedOffer = route.request().postDataJSON();
-        await route.fulfill({
-          contentType: "application/json",
-          body: JSON.stringify({
-            release_url: "http://psynet.test/release"
-          })
-        });
-      }
-    );
+    await page.route("**/execute_early_exit_plan/**", async (route) => {
+      executeRequests += 1;
+      await route.abort();
+    });
     await page.route("http://psynet.test/worker_complete", async (route) => {
       completionAttempts += 1;
-      completedParticipant = Object.fromEntries(
-        new URLSearchParams(route.request().postData())
-      );
-      if (completionAttempts === 1) {
-        await route.fulfill({ status: 500, body: "not yet" });
-        return;
-      }
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({ status: "success" })
-      });
-    });
-    await page.route("http://psynet.test/release", async (route) => {
-      await route.fulfill({
-        contentType: "text/html",
-        body: "<h1>Session finished</h1>"
-      });
+      await route.abort();
     });
 
     await page.goto("http://psynet.test/error");
@@ -72,20 +45,9 @@ test(
     await page.evaluate(() => window.psynetEarlyExit.init());
 
     await expect(page.locator("#automatic-early-exit-ready")).toBeVisible();
-    expect(submittedOffer).toBeUndefined();
+    await expect(page.locator("#automatic-early-exit-continue")).toHaveCount(0);
+    expect(executeRequests).toBe(0);
     expect(completionAttempts).toBe(0);
-
-    await page.locator("#automatic-early-exit-continue").click();
-    await expect(page.locator("#automatic-early-exit-failure")).toBeVisible();
-    await page.locator("#automatic-early-exit-retry").click();
-    await expect(page).toHaveURL("http://psynet.test/release");
-    await expect(page.locator("h1")).toHaveText("Session finished");
-    expect(submittedOffer).toEqual({ plan_id: "offer-1" });
-    expect(completedParticipant).toEqual({ participant_id: "42" });
-    expect(completionAttempts).toBe(2);
-
-    await page.waitForTimeout(500);
-    await expect(page).toHaveURL("http://psynet.test/release");
   }
 );
 
@@ -102,7 +64,8 @@ test(
                data-assignment-id="assignment-1"
                data-offer-id="offer-1"
                data-action-post-url="/prolific-submission-listener"
-               data-action-post-data='{"assignmentId":"assignment-1","participantId":"42"}'>
+               data-action-post-data='{"assignmentId":"assignment-1","participantId":"42"}'
+               data-done-message="Your participation has been recorded. You may close this page.">
             <p id="automatic-early-exit-pending">Saving...</p>
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
@@ -160,6 +123,9 @@ test(
 
     await page.locator("#automatic-early-exit-continue").click();
     await expect(page.locator("#automatic-early-exit-continue")).toBeHidden();
+    await expect(page.locator("#automatic-early-exit-ready")).toHaveText(
+      "Your participation has been recorded. You may close this page."
+    );
     await expect(page).toHaveURL("http://psynet.test/error");
     expect(prolificSubmission).toEqual({
       assignmentId: "assignment-1",

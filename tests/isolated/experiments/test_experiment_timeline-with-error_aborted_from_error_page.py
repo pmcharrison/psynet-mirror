@@ -50,25 +50,23 @@ class TestExp:
             with pytest.raises(RuntimeError):
                 next_page(driver, "next-button")
 
-            WebDriverWait(driver, 10).until(
-                lambda browser: browser.find_element(
-                    By.ID, "automatic-early-exit-ready"
-                ).is_displayed()
+            WebDriverWait(driver, 15).until(
+                lambda browser: "/recruiter-exit" in browser.current_url
             )
-            assert "/recruiter-exit" not in driver.current_url
-            assert_text(driver, "header", "An error occurred")
+            assert_text(driver, "header", "Thank you for taking part.")
             assert_text(
                 driver,
-                "automatic-early-exit-ready",
-                "Your responses have been saved. You may close this page.",
+                "exit-text",
+                "You left early. Your responses have been saved. You may close this window.",
             )
+            assert not driver.find_elements(By.ID, "automatic-early-exit")
             assert not driver.find_elements(By.ID, "early-exit-open")
-            assert not driver.find_elements(By.ID, "automatic-early-exit-continue")
 
             participant = get_participant(1)
 
             assert participant.early_exited is True
             assert participant.failed is True
+            assert participant.end_time is not None
             assert participant.early_exited_modules == [
                 "introduction",
             ]

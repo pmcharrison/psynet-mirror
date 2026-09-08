@@ -245,12 +245,12 @@ General
     then includes **Leave** (a page may
     still hide it with ``show_early_exit_button=False``). **Leave** opens an in-page
     confirmation, so choosing **Cancel** preserves the current page and
-    response state. When an error makes continuation impossible, PsyNet instead
-    executes the same recruiter-specific exit path automatically, keeps the
-    explanation visible, and shows only the action the recruitment platform
-    requires. Generic, local, and lab participants can simply close the page;
-    Prolific and Lucid participants receive platform-specific instructions and
-    controls. The ad page does not provide an exit control.
+    response state. When an error makes continuation impossible, PsyNet
+    follows the recruiter's tracked recovery policy. Generic, local, and lab
+    recruitment has nothing to ask, so PsyNet commits the plan on the server
+    and takes the participant to the normal recruiter exit. Prolific and Lucid
+    keep a recovery page with the platform action they need. The ad page does
+    not provide an exit control.
     Confirming a paid leave marks the participant failed, so Prolific uses the
     unsuccessful/partial-payment route; Lucid terminates the panel session.
     **Leave** is never offered once the participant is finishing (the
@@ -288,15 +288,15 @@ General
     and commits it only after the participant confirms. Rendering the page does
     not change the offer, and refreshing restores the same plan. Successful and
     unsuccessful timeline endings commit their plans as they enter their
-    existing end branches. After a fatal error, PsyNet reuses one recovery plan,
-    commits it automatically, and derives the final message and action from the
-    planned recruiter path.
-    Platform-specific return or submission instructions therefore come from the
-    same plan. Lucid keeps the explanation visible for five seconds before
-    returning the participant to their panel; the participant can select
-    **Return to your panel** to go immediately. If the error page is refreshed
-    after the plan commits, PsyNet restores the same presentation so an
-    unfinished platform handoff can resume.
+    existing end branches. After a fatal error, PsyNet stores one recovery plan
+    during the failing request. Recruiters with nothing to ask (generic,
+    HotAir, and lab) commit that plan on the server, finalize the worker
+    session, and send the participant to the normal recruiter exit, with no
+    extra click and no error chrome. Prolific and Lucid still show a recovery
+    page and commit when the participant continues (or Lucid's redirect timer
+    fires). If that recovery page is refreshed before the plan commits, PsyNet
+    restores the same presentation so an unfinished platform handoff can
+    resume.
 
     Experiments can customize voluntary Leave copy by overriding
     :meth:`~psynet.experiment.Experiment.plan_exit` and replacing the
@@ -328,8 +328,11 @@ General
     :meth:`~psynet.recruiters.PsyNetRecruiterMixin.error_page_presentation`.
     The hook receives an optional participant and plan and always returns an
     :class:`~psynet.exit.ErrorRecoveryPresentation`, which declares the
-    copy and any POST, button, or redirect required by the platform. Override
-    this hook on a custom recruiter to customize error pages;
+    copy and any POST, button, or redirect required by the platform. Whether
+    tracked fatal recovery *shows* that page is a separate recruiter policy,
+    :meth:`~psynet.recruiters.PsyNetRecruiterMixin.shows_error_recovery_page`,
+    not an inference from a missing button. Override
+    ``error_page_presentation`` on a custom recruiter to customize error pages;
     ``Experiment.error_page_content`` and recruiter ``error_page_content``
     overrides are no longer supported. A tracked participant is never treated
     as an unidentified session: if they already left through a voluntary plan,
@@ -339,13 +342,14 @@ General
     ``error_recovery`` when a recovery plan is stored.
 
     Once a participant has been created, PsyNet stores fatal recovery during
-    the failing request and renders it from
-    ``/timeline?unique_id=<unique-id>``. Reloading therefore re-reads the
-    recovery plan instead of running it again. ``/error-page`` is reserved for
-    untracked errors and never treats an enumerable participant ID as session
-    authority. Errors encountered while creating the participant still use
-    Dallinger's error response so that specific refusal explanations remain
-    available.
+    the failing request. Recruiters that present recovery UI render it from
+    ``/timeline?unique_id=<unique-id>``; generic recovery is already committed
+    by then, so ``/timeline`` hands the participant to recruiter exit.
+    Reloading therefore re-reads the stored plan instead of running it again.
+    ``/error-page`` is reserved for untracked errors and never treats an
+    enumerable participant ID as session authority. Errors encountered while
+    creating the participant still use Dallinger's error response so that
+    specific refusal explanations remain available.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when

@@ -117,7 +117,11 @@ class PaymentState(StrEnum):
 
 @dataclass(frozen=True)
 class ErrorRecoveryPresentation:
-    """Recruiter-specific copy and handoff for an error page."""
+    """Recruiter-specific copy and handoff for an error page.
+
+    Whether tracked fatal recovery *shows* this page is recruiter policy
+    (``shows_error_recovery_page``), not an inference from ``button_label``.
+    """
 
     message: str
     failure_message: str | None = None
@@ -129,6 +133,7 @@ class ErrorRecoveryPresentation:
     action_post_data: dict[str, str] = field(default_factory=dict)
     destination_url: str | None = None
     auto_redirect_delay_ms: int | None = None
+    done_message: str | None = None
 
     def __post_init__(self):
         """Reject presentations whose declared handoff cannot be executed."""
