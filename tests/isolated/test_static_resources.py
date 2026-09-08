@@ -312,7 +312,7 @@ def test_theme_preloads_and_fallback_cover_rendered_font_weights():
     theme = templates.joinpath("theme.html").read_text(encoding="utf-8")
 
     preloaded = set(re.findall(r"filename='css/fonts/font-files/([^']+)'", theme))
-    referenced = set(re.findall(r"fonts/font-files/([^?]+)\\?v=", css))
+    referenced = set(re.findall(r"fonts/font-files/([^?]+)\?v=", css))
     fallback_weights = {
         int(weight)
         for weight in re.findall(

@@ -452,8 +452,9 @@ def test_footerless_timeline_only_renders_progress_for_media(
     source = (resources.files("psynet") / "templates" / "timeline-page.html").read_text(
         encoding="utf-8"
     )
-    start = source.index("{% macro timeline_footer()")
-    end = source.index("{% endmacro %}", start) + len("{% endmacro %}")
+    start = source.index("{% macro media_download_bar()")
+    footer_start = source.index("{% macro timeline_footer()", start)
+    end = source.index("{% endmacro %}", footer_start) + len("{% endmacro %}")
     template = Environment(autoescape=True).from_string(
         source[start:end] + "{{ timeline_footer() }}"
     )
