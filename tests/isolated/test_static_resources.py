@@ -11,8 +11,8 @@ from flask import Flask, Response
 
 from psynet.static_resources import (
     STATIC_ENTRY_POINT_GROUP,
-    _apply_versioned_static_cache_headers,
     _discover_static_packages,
+    apply_versioned_static_cache_headers,
     cacheable_static_url,
     clear_static_package_cache,
     get_static_packages,
@@ -245,6 +245,13 @@ def test_versioned_url_for_only_versions_local_static_files(tmp_path):
         assert versioned_url_for("index") == "/"
 
 
+def test_static_url_versioning_is_disabled_without_a_static_route():
+    app = Flask("no-static-route", static_folder=None)
+
+    with app.test_request_context("/"):
+        assert cacheable_static_url("/static/app.js") == "/static/app.js"
+
+
 def test_versioned_static_response_is_public_and_immutable(tmp_path):
     static_root = tmp_path / "static"
     static_root.mkdir()
@@ -252,11 +259,11 @@ def test_versioned_static_response_is_public_and_immutable(tmp_path):
     app = Flask("static-header-test", static_folder=static_root)
 
     with app.test_request_context("/static/app.js"):
-        unversioned = _apply_versioned_static_cache_headers(Response())
+        unversioned = apply_versioned_static_cache_headers(Response())
     with app.test_request_context(_versioned_url_for_for_test(app, "app.js")):
-        versioned = _apply_versioned_static_cache_headers(Response())
+        versioned = apply_versioned_static_cache_headers(Response())
     with app.test_request_context("/static/app.js?v=stale"):
-        stale = _apply_versioned_static_cache_headers(Response())
+        stale = apply_versioned_static_cache_headers(Response())
 
     assert unversioned.cache_control.max_age is None
     assert not unversioned.cache_control.immutable
@@ -265,6 +272,22 @@ def test_versioned_static_response_is_public_and_immutable(tmp_path):
     assert versioned.cache_control.immutable
     assert stale.cache_control.max_age is None
     assert not stale.cache_control.immutable
+
+
+def test_experiment_after_request_versions_literal_percent_filename(tmp_path):
+    from psynet.experiment import Experiment
+
+    static_root = tmp_path / "static"
+    static_root.mkdir()
+    (static_root / "%20.js").write_text("window.ready = true;", encoding="utf-8")
+    app = Flask("static-percent-path", static_folder=static_root)
+    versioned_url = _versioned_url_for_for_test(app, "%20.js")
+
+    with app.test_request_context(versioned_url) as request_context:
+        Experiment.before_request()
+        response = Experiment.after_request(request_context.request, Response())
+
+    assert response.cache_control.immutable
 
 
 def test_participant_font_references_use_their_content_versions():
@@ -279,6 +302,33 @@ def test_participant_font_references_use_their_content_versions():
     for filename, version in references:
         contents = css_root.joinpath("fonts/font-files", filename).read_bytes()
         assert version == hashlib.sha256(contents).hexdigest()[:12]
+
+
+def test_theme_preloads_and_fallback_cover_rendered_font_weights():
+    templates = resources.files("psynet") / "templates"
+    css = (resources.files("psynet") / "resources/css/participant.css").read_text(
+        encoding="utf-8"
+    )
+    theme = templates.joinpath("theme.html").read_text(encoding="utf-8")
+
+    preloaded = set(re.findall(r"filename='css/fonts/font-files/([^']+)'", theme))
+    referenced = set(re.findall(r"fonts/font-files/([^?]+)\\?v=", css))
+    fallback_weights = {
+        int(weight)
+        for weight in re.findall(
+            r'font-family: "Inter Fallback";.*?font-weight: (\d+);',
+            css,
+            flags=re.DOTALL,
+        )
+    }
+
+    assert preloaded == {
+        "Inter-Regular.woff2",
+        "Inter-Medium.woff2",
+        "Inter-Bold.woff2",
+    }
+    assert preloaded <= referenced
+    assert fallback_weights == {400, 500, 700}
 
 
 def _versioned_url_for_for_test(app, filename):

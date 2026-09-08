@@ -28,6 +28,7 @@ from tqdm import tqdm
 from psynet.timeline import NullElt
 
 from . import deployment_info
+from .cache import IMMUTABLE_CACHE_CONTROL, IMMUTABLE_CACHE_MAX_AGE
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .export.path_safety import UnsafePathError, normalize_relative_path
 from .field import PythonDict, PythonObject
@@ -2361,8 +2362,6 @@ class LocalStorage(AssetStorage):
     def serve(self, asset: Asset, subpath: Optional[str] = None):
         from flask import abort, send_file
 
-        from psynet.static_resources import STATIC_CACHE_MAX_AGE
-
         object_path = asset.object_path or asset.host_path
         if not object_path:
             abort(404)
@@ -2375,7 +2374,9 @@ class LocalStorage(AssetStorage):
             abort(404)
         if os.path.isdir(file_system_path):
             abort(400)
-        response = send_file(file_system_path, max_age=STATIC_CACHE_MAX_AGE)
+        response = send_file(file_system_path, max_age=IMMUTABLE_CACHE_MAX_AGE)
+        response.cache_control.public = None
+        response.cache_control.private = True
         response.cache_control.immutable = True
         return response
 
@@ -2731,14 +2732,12 @@ class S3Storage(AssetStorage):
         make_bucket_public(self.s3_bucket)
 
     def _receive_deposit(self, asset, host_path):
-        from psynet.static_resources import STATIC_CACHE_MAX_AGE
-
         s3_key = self.get_s3_key(host_path)
-        self.backend.upload(
+        upload = self.upload_folder if asset.is_folder else self.upload_file
+        upload(
             asset.input_path,
             s3_key,
-            recursive=asset.is_folder,
-            cache_control=(f"public, max-age={STATIC_CACHE_MAX_AGE}, immutable"),
+            cache_control=IMMUTABLE_CACHE_CONTROL,
         )
 
     def get_url(self, host_path: str):

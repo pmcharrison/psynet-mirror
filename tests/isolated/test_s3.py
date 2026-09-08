@@ -6,6 +6,8 @@ from os.path import basename, join
 from uuid import uuid4
 
 from psynet.asset import S3Storage
+from psynet.cache import IMMUTABLE_CACHE_CONTROL
+from psynet.media import get_s3_client
 
 
 def get_s3_storage(transfer_backend):
@@ -91,3 +93,22 @@ def test_s3_storage_boto3(mock_s3_root):
     # environment variable and using a unique remote prefix like the AWS CLI path.
     storage = get_s3_storage("boto3")
     run_test(storage)
+
+
+def test_s3_storage_boto3_preserves_cache_control(mock_s3_root, tmp_path):
+    storage = get_s3_storage("boto3")
+    storage.create_bucket(storage.s3_bucket)
+    source = tmp_path / "cached.txt"
+    source.write_text("cached", encoding="utf-8")
+
+    storage.upload_file(
+        str(source),
+        "cached.txt",
+        cache_control=IMMUTABLE_CACHE_CONTROL,
+    )
+
+    metadata = get_s3_client().head_object(
+        Bucket=storage.s3_bucket,
+        Key="cached.txt",
+    )
+    assert metadata["CacheControl"] == IMMUTABLE_CACHE_CONTROL

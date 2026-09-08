@@ -145,8 +145,10 @@ and register it on your experiment class:
 
 PsyNet adds a content version when it renders this local URL, so authors do not
 need to add cache-busting query parameters. When the file changes, its generated
-URL changes too. Hard-coded, unversioned ``/static/...`` URLs remain supported
-and use conditional revalidation instead of immutable caching.
+URL changes too. Raw ``<link>`` or ``<script>`` tags written directly in a
+custom template are not rewritten; their unversioned ``/static/...`` URLs
+remain supported and use conditional revalidation instead of immutable
+caching.
 
 Because ``participant.css`` avoids ``!important``, an ordinary rule in your own
 stylesheet is enough to override a default; you should not need to escalate

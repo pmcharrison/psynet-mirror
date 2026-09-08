@@ -1,9 +1,13 @@
-"""Discover and publish static resources owned by installed Python packages.
+"""Discover, publish, and cache static resources.
 
 Packages register one static root through the ``psynet.static`` entry-point
 group. PsyNet publishes each root under a namespaced URL so dynamically created
 components can declare ordinary dependency and page-module URLs without asking
 experiment authors to copy package files into their experiment.
+
+Local static URLs receive a short content digest. Responses whose ``v`` query
+parameter matches that digest can then be cached immutably; unversioned and
+stale URLs keep Flask's normal conditional-revalidation behavior.
 """
 
 import hashlib
@@ -19,11 +23,12 @@ from pathlib import Path, PurePosixPath
 from types import ModuleType
 from urllib.parse import parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
 
+from psynet.cache import IMMUTABLE_CACHE_MAX_AGE
+
 STATIC_ENTRY_POINT_GROUP = "psynet.static"
 _NAMESPACE_SEPARATOR = re.compile(r"[-_.]+")
 _SAFE_NAMESPACE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 _MATERIALIZED_STATIC_ROOTS = []
-STATIC_CACHE_MAX_AGE = 365 * 24 * 60 * 60
 
 
 @dataclass(frozen=True)
@@ -83,6 +88,7 @@ def package_static_url(namespace, path):
 @lru_cache(maxsize=1024)
 def _static_file_digest(path, modified_ns, size):
     """Return a short content digest for one observed file revision."""
+    # mtime and size are intentionally unused values in the cache key.
     del modified_ns, size
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()[:12]
 
@@ -122,6 +128,8 @@ def cacheable_static_url(url):
     if parsed.scheme or parsed.netloc:
         return url
 
+    if not current_app.static_url_path:
+        return url
     static_url_path = current_app.static_url_path.rstrip("/")
     relative_prefix = static_url_path.lstrip("/") + "/"
     if parsed.path.startswith(static_url_path + "/"):
@@ -164,25 +172,26 @@ def version_static_urls(urls):
     return [cacheable_static_url(url) for url in urls]
 
 
-def _apply_versioned_static_cache_headers(response):
+def apply_versioned_static_cache_headers(response):
     """Cache a response immutably when its static content token is current."""
-    from flask import current_app, request
+    from flask import request
 
-    static_url_path = current_app.static_url_path.rstrip("/")
-    if not request.path.startswith(static_url_path + "/"):
+    if request.endpoint != "static":
+        return response
+    filename = (request.view_args or {}).get("filename")
+    if not isinstance(filename, str):
         return response
     versions = request.args.getlist("v")
     if len(versions) != 1:
         return response
-    filename = unquote(request.path[len(static_url_path) + 1 :])
     if versions[0] != _static_file_token(filename):
         return response
 
     response.cache_control.no_cache = None
     response.cache_control.public = True
-    response.cache_control.max_age = STATIC_CACHE_MAX_AGE
+    response.cache_control.max_age = IMMUTABLE_CACHE_MAX_AGE
     response.cache_control.immutable = True
-    response.expires = datetime.now(UTC) + timedelta(seconds=STATIC_CACHE_MAX_AGE)
+    response.expires = datetime.now(UTC) + timedelta(seconds=IMMUTABLE_CACHE_MAX_AGE)
     return response
 
 

@@ -26,7 +26,7 @@ However, other backends are possible, for example to store assets on Amazon S3.
 See the :class:`~psynet.asset.S3Storage` class for more details.
 
 Managed assets are stored by SHA-256 content identity under paths of the form
-``objects/sha256/<digest>``. Local and on-demand browser access uses a permanent
+``objects/sha256/<digest>``. Local and on-demand browser access uses a stable,
 random access token:
 
 .. code-block:: text
@@ -40,10 +40,13 @@ their raw URL and are not proxied through PsyNet. On-demand assets are also
 served via ``/asset/<access_token>`` and are generated when requested rather
 than deposited into object storage by default.
 
-Deposited managed assets are immutable at their access URL and receive a
-long-lived browser cache policy. If an asset is deposited again with different
-contents, PsyNet rotates its access token. On-demand assets continue to
-revalidate because their bytes are generated at request time.
+Deposited managed assets receive a long-lived immutable cache policy. Local
+asset responses are marked private so shared proxies do not retain participant
+media. If a local asset is deposited again with different contents, PsyNet
+rotates its access token and the old URL stops working. S3-backed assets instead
+change their direct, content-addressed object URL when their contents change.
+On-demand assets continue to revalidate because their bytes are generated at
+request time.
 
 .. warning::
     PsyNet's asset management system currently has some performance overhead that can make it slow

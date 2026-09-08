@@ -80,7 +80,8 @@ def test_local_storage_serve_file(tmp_path):
         response = storage.serve(_Asset())
         try:
             assert response.status_code == 200
-            assert response.cache_control.public
+            assert response.cache_control.private
+            assert not response.cache_control.public
             assert response.cache_control.max_age == 31_536_000
             assert response.cache_control.immutable
             response.direct_passthrough = False
@@ -113,7 +114,6 @@ def test_local_storage_serve_rejects_subpath_on_file(tmp_path):
 
 
 def test_s3_storage_serve_redirects_to_public_url():
-    from psynet.asset import S3Storage
 
     storage = S3Storage("my-bucket", "prefix")
     asset = MagicMock()
@@ -131,7 +131,6 @@ def test_s3_storage_serve_redirects_to_public_url():
 
 
 def test_managed_asset_s3_get_url_is_direct_public_object():
-    from psynet.asset import S3Storage
 
     storage = S3Storage("my-bucket", "prefix")
 
@@ -166,21 +165,3 @@ def test_managed_asset_rotates_access_token_when_contents_change():
 
     asset.rotate_access_token.assert_called_once_with()
     assert asset.object_path == "objects/sha256/new-digest"
-
-
-def test_s3_deposit_sets_immutable_cache_control(tmp_path):
-    source = tmp_path / "stimulus.wav"
-    source.write_bytes(b"audio")
-    storage = object.__new__(S3Storage)
-    storage.backend = MagicMock()
-    storage.get_s3_key = MagicMock(return_value="prefix/objects/sha256/digest")
-    asset = SimpleNamespace(is_folder=False, input_path=str(source))
-
-    storage._receive_deposit(asset, "objects/sha256/digest")
-
-    storage.backend.upload.assert_called_once_with(
-        str(source),
-        "prefix/objects/sha256/digest",
-        recursive=False,
-        cache_control="public, max-age=31536000, immutable",
-    )
