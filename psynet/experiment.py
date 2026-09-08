@@ -4950,7 +4950,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             # Finished participants who hit Back from the exit page would
             # otherwise land on a stale first timeline page with no Next.
-            if participant.progress == 1:
+            # Progress reaches one before SuccessfulEndLogic marks completion,
+            # so it is not sufficient evidence that the end pages have run.
+            if participant.complete:
                 return redirect(f"/recruiter-exit?participant_id={participant.id}")
             if not isinstance(participant, Bot):
                 participant.client_ip_address = cls.get_client_ip_address()

@@ -295,13 +295,12 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             return False
         return button.is_displayed() and button.is_enabled()
 
-    if not finished:
-        wait_until(
-            psynet_page_ready,
-            max_wait=max_wait,
-            error_message="Page never became ready.",
-            driver=driver,
-        )
+    wait_until(
+        psynet_page_ready,
+        max_wait=max_wait,
+        error_message="Page never became ready.",
+        driver=driver,
+    )
     wait_until(
         target_ready_to_click,
         max_wait=max_wait,
@@ -336,27 +335,19 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             error_message="Never reached the recruiter-exit route, seems like the experiment never finished.",
         )
     else:
-
-        def page_changed():
-            path = parse.urlparse(driver.current_url).path
-            if path == "/error-page":
-                raise RuntimeError(
-                    "Unexpectedly hit an error page, check the server logs for details."
-                )
-            return path != "/timeline" or (
-                psynet_page_ready(driver) and get_uuid() != old_uuid
+        if parse.urlparse(driver.current_url).path == "/error-page":
+            raise RuntimeError(
+                "Unexpectedly hit an error page, check the server logs for details."
             )
 
         wait_until(
-            page_changed,
+            lambda: psynet_page_ready(driver) and get_uuid() != old_uuid,
             max_wait=max_wait,
             error_message="Failed to load new page.",
         )
 
 
 def click_finish_button(driver):
-    if "recruiter-exit" in driver.current_url:
-        return
     next_page(driver, "Finish", finished=True)
 
 

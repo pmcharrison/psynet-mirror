@@ -190,8 +190,8 @@ def test_generic_exit_calls_its_reference_a_reference_code():
 def test_media_loading_survives_a_missing_progress_bar():
     """The bar is optional in the DOM, so media loading must not need it.
 
-    ``show_footer = false`` still emits a standalone bar; a custom template, or
-    an in-place swap that has not yet reconciled, can omit it entirely.
+    A custom template, a page without media, or an in-place swap that has not
+    yet reconciled can omit it entirely.
     """
     js = (resources.files("psynet") / "resources/scripts/psynet.js").read_text(
         encoding="utf-8"

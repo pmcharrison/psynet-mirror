@@ -95,20 +95,27 @@ def test_s3_storage_boto3(mock_s3_root):
     run_test(storage)
 
 
-def test_s3_storage_boto3_preserves_cache_control(mock_s3_root, tmp_path):
+def test_s3_deposit_sets_immutable_cache_control_for_files_and_folders(
+    mock_s3_root, tmp_path
+):
     storage = get_s3_storage("boto3")
     storage.create_bucket(storage.s3_bucket)
     source = tmp_path / "cached.txt"
     source.write_text("cached", encoding="utf-8")
 
-    storage.upload_file(
-        str(source),
-        "cached.txt",
-        cache_control=IMMUTABLE_CACHE_CONTROL,
-    )
+    file_asset = type("Asset", (), {"is_folder": False, "input_path": str(source)})()
+    storage._receive_deposit(file_asset, "cached.txt")
 
-    metadata = get_s3_client().head_object(
-        Bucket=storage.s3_bucket,
-        Key="cached.txt",
-    )
-    assert metadata["CacheControl"] == IMMUTABLE_CACHE_CONTROL
+    folder = tmp_path / "cached"
+    folder.mkdir()
+    nested = folder / "nested.txt"
+    nested.write_text("nested", encoding="utf-8")
+    folder_asset = type("Asset", (), {"is_folder": True, "input_path": str(folder)})()
+    storage._receive_deposit(folder_asset, "cached-folder")
+
+    for key in ("s3-tests/cached.txt", "s3-tests/cached-folder/nested.txt"):
+        metadata = get_s3_client().head_object(
+            Bucket=storage.s3_bucket,
+            Key=key,
+        )
+        assert metadata["CacheControl"] == IMMUTABLE_CACHE_CONTROL

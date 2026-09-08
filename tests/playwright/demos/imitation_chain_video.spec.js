@@ -72,12 +72,6 @@ async function completeRemainingChain(page, timeout = STEP_TIMEOUT_MS) {
   const finishButton = page.locator("#Finish");
 
   for (let step = 0; step < 30; step += 1) {
-    // SuccessfulEnd may hand off via finishAndGoToExit() without a durable
-    // #Finish control; treat recruiter-exit as completion.
-    if (new URL(page.url()).pathname === "/recruiter-exit") {
-      return;
-    }
-
     if ((await finishButton.count()) > 0 && (await finishButton.isVisible())) {
       await clickFinish(page, timeout);
       return;

@@ -124,6 +124,7 @@ class TestStartResumeDefault:
             initial_participant = Participant.query.filter_by(
                 unique_id=initial_unique_id
             ).one()
+            initial_participant.complete = True
             initial_participant.progress = 1
             db_session.commit()
 

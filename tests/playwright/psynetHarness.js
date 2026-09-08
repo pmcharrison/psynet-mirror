@@ -437,9 +437,6 @@ async function waitForPageChange(page, oldUuid, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     await assertNoBackendError(page);
-    if (new URL(page.url()).pathname !== "/timeline") {
-      return;
-    }
     const changed = await page
       .evaluate((uuid) => window.pageUuid && window.pageUuid !== uuid, oldUuid)
       .catch(() => false);
@@ -919,9 +916,6 @@ function withFreshParticipantIds(rawUrl, label = null) {
 }
 
 async function clickFinish(page, timeoutMs) {
-  if (new URL(page.url()).pathname === "/recruiter-exit") {
-    return;
-  }
   await page.click("#Finish");
   await page.waitForFunction(
     () => window.location.href.includes("recruiter-exit"),
@@ -934,10 +928,6 @@ async function advanceUntilFinish(page, options = {}) {
   const timeoutMs = options.timeoutMs ?? 90000;
 
   for (let i = 0; i < maxSteps; i += 1) {
-    if (new URL(page.url()).pathname === "/recruiter-exit") {
-      return;
-    }
-
     const finish = page.locator("#Finish");
     if ((await finish.count()) > 0 && (await finish.isVisible())) {
       await clickFinish(page, timeoutMs);
