@@ -295,12 +295,13 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             return False
         return button.is_displayed() and button.is_enabled()
 
-    wait_until(
-        psynet_page_ready,
-        max_wait=max_wait,
-        error_message="Page never became ready.",
-        driver=driver,
-    )
+    if not finished:
+        wait_until(
+            psynet_page_ready,
+            max_wait=max_wait,
+            error_message="Page never became ready.",
+            driver=driver,
+        )
     wait_until(
         target_ready_to_click,
         max_wait=max_wait,
