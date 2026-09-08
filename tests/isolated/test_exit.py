@@ -1,3 +1,4 @@
+import math
 from types import SimpleNamespace
 
 import pytest
@@ -52,6 +53,28 @@ def test_exit_plan_round_trips_through_participant_column_data():
     }
     assert restored.to_dict()["confirmation"]["message"] == "Your work is saved."
     assert restored.to_dict()["payment_state"] == "planned"
+
+
+@pytest.mark.parametrize("status", ["", "pending", "rejected"])
+def test_payment_decision_rejects_unknown_status(status):
+    with pytest.raises(ValueError, match="status"):
+        PaymentDecision(status=status, platform_base=0.0, bonus=0.0)
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("platform_base", -0.01),
+        ("bonus", -0.01),
+        ("platform_base", math.nan),
+        ("bonus", math.inf),
+    ],
+)
+def test_payment_decision_rejects_invalid_amounts(field, value):
+    kwargs = {"status": "approved", "platform_base": 0.0, "bonus": 0.0}
+    kwargs[field] = value
+    with pytest.raises(ValueError, match=field):
+        PaymentDecision(**kwargs)
 
 
 @pytest.mark.parametrize("context", list(ExitContext))

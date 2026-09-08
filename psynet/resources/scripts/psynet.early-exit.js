@@ -15,18 +15,26 @@
   let controller = null;
   let autoRedirectTimer = null;
 
-  // Once a participant exists, the error page is only a view of server-owned
-  // state. Reach it with a GET so that reloading never asks the participant to
-  // confirm a form resubmission. Pre-participant errors on /start remain with
-  // Dallinger until its participant endpoint returns structured error codes.
-  // Replacing the history entry also keeps Back off the page that just failed.
+  // Once a participant exists, fatal recovery is stored on the server and
+  // rendered from /timeline?unique_id=.... Reach that page with a GET so that
+  // reloading never asks the participant to confirm a form resubmission.
+  // Pre-participant errors on /start remain with Dallinger until its
+  // participant endpoint returns structured error codes. Replacing the history
+  // entry also keeps Back off the page that just failed.
   function goToErrorPage(identity) {
     const source =
       identity || (global.dallinger && global.dallinger.identity) || {};
+    const uniqueId =
+      source.uniqueId || (global.psynet && global.psynet.uniqueId);
+    if (uniqueId) {
+      global.location.replace(
+        "/timeline?unique_id=" + encodeURIComponent(uniqueId),
+      );
+      return;
+    }
+    // Untracked / pre-participant: never send enumerable participant_id.
     const params = new URLSearchParams();
-    if (source.participantId) {
-      params.set("participant_id", source.participantId);
-    } else if (source.assignmentId) {
+    if (source.assignmentId) {
       params.set("assignment_id", source.assignmentId);
     }
     const query = params.toString();

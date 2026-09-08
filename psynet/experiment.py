@@ -21,6 +21,7 @@ from platform import python_version
 from smtplib import SMTPAuthenticationError
 from statistics import median
 from typing import List, Optional, Type, Union
+from urllib.parse import urlencode
 
 import dallinger.experiment
 import dallinger.models
@@ -1594,7 +1595,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url=None,
         locale=DEFAULT_LOCALE,
     ):
-        """Prepare any fatal-error recovery plan, then render its page."""
+        """Prepare any fatal-error recovery plan, then render its page.
+
+        Callers that already prepared recovery (or are rendering a stored plan
+        from ``/timeline``) still go through this helper; preparation is
+        idempotent. The separate ``/error-page`` route stays untracked.
+        """
         experiment = get_experiment()
         active_recruiter = recruiter or experiment.recruiter
         plan = cls._prepare_error_recovery_plan(
@@ -2110,30 +2116,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return get_config().get("description")
 
     @property
-    def ad_requirements(self):
-        return [
-            'The experiment can only be performed using a <span style="font-weight: bold;">laptop</span> (desktop computers are not allowed).',
-            'You should use an <span style="font-weight: bold;">updated Google Chrome</span> browser.',
-            'You should be sitting in a <span style="font-weight: bold;">quiet environment</span>.',
-            'You should be at least <span style="font-weight: bold;">18 years old</span>.',
-            'You should be a <span style="font-weight: bold;">fluent English speaker</span>.',
-        ]
-
-    @property
-    def ad_payment_information(self):
-        return f"""
-                We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
-                <br>
-                you should receive a reward of approximately
-                <span style="font-weight: bold;">${"{:.2f}".format(self.estimated_reward_in_dollars)}</span> depending on the
-                amount of work done.
-                <br>
-                In some cases, the experiment may finish early: this is not an error, and there is no need to write to us.
-                <br>
-                In this case you will be paid in proportion to the amount of the experiment that you completed.
-                """
-
-    @property
     def variables_initial_values(self):
         for key, value in self.variables.items():
             assert key not in list(get_config().as_dict().keys()), (
@@ -2312,6 +2294,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         cls.check_base_payment(config)
         cls.check_stale_error_page_override()
+        cls.check_stale_ad_page_override()
         cls.check_unused_dallinger_quality_checks()
         cls.check_stale_bonus_override()
         PsyNetProlificRecruiterMixin.check_screen_out_config(config)
@@ -2344,6 +2327,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "PsyNet no longer supports MTurk recruitment because AWS is "
                 "closing the service on September 30, 2026. Use another "
                 "recruiter such as Prolific, Lucid, or the Lab Recruiter."
+            )
+        recruiter = str(config.get("recruiter", "")).strip().lower().split(".")[-1]
+        if recruiter in {"bots", "botrecruiter", "multi", "multirecruiter"}:
+            raise RuntimeError(
+                "PsyNet does not support the Dallinger `bots` or `multi` "
+                "recruiters. Use PsyNet's test commands for automated "
+                "participants, and deploy each supported recruiter as a "
+                "separate experiment."
             )
 
     @classmethod
@@ -2410,6 +2401,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"Overriding `Experiment.{stale[0]}` is no longer supported. "
                 "Override `error_page_presentation` on a custom recruiter "
                 "class instead."
+            )
+
+    @classmethod
+    def check_stale_ad_page_override(cls):
+        """Fail fast when an experiment overrides removed Lab ad hooks."""
+        stale = cls._subclass_overridden_names(
+            "ad_requirements",
+            "ad_payment_information",
+        )
+        if stale:
+            raise RuntimeError(
+                f"Overriding `Experiment.{stale[0]}` is no longer supported. "
+                "Provide `templates/ad.html` to customize PsyNet's Lab ad page."
             )
 
     _UNUSED_DALLINGER_QUALITY_CHECKS = (
@@ -3213,7 +3217,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
             if not isinstance(err, self.HandledError):
-                self.handle_error(
+                handled = self.handle_error(
                     err,
                     participant=participant,
                     trial=participant.current_trial,
@@ -3228,6 +3232,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         else None
                     ),
                 )
+            else:
+                handled = err
+            # handle_error rolls back, so recovery must be prepared afterwards
+            # in this same request. The client still receives JSON and navigates
+            # to /timeline?unique_id=... to render the stored plan.
+            self._prepare_tracked_fatal_recovery(handled, err)
             return error_response(
                 error_text="There was an error processing this response.",
                 status=500,
@@ -4521,42 +4531,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @with_transaction
     def render_error(cls):
-        """Render the error page for a GET visit, a reload, or a legacy POST.
+        """Render an untracked error page, or redirect legacy tracked visits.
 
-        PsyNet navigates here with a GET so that the page stays reloadable;
-        Dallinger's own error handling still submits a form, so both methods
-        read their parameters from ``request.values``.
+        Tracked recovery is owned by ``/timeline?unique_id=...``. This route
+        never treats enumerable ``participant_id`` as session authority: a
+        legacy ``unique_id`` query is redirected to ``/timeline``, and every
+        other visit gets a read-only untracked page.
         """
-        participant = cls._participant_from_error_page_request()
-        if participant is not None:
-            return cls._render_participant_error_page(participant)
+        unique_id = request.values.get("unique_id")
+        if unique_id:
+            return redirect(f"/timeline?{urlencode({'unique_id': unique_id})}")
         return cls.error_page()
-
-    @classmethod
-    def _participant_from_error_page_request(cls):
-        """Resolve the participant named in an error-page URL, if there is one.
-
-        The URL is participant-visible, so an unknown or malformed identifier
-        falls back to the untracked error page instead of raising.
-        """
-        participant_id = request.values.get("participant_id")
-        if not participant_id:
-            return None
-        try:
-            participant_id = int(participant_id)
-        except ValueError:
-            logger.warning(
-                "Ignoring malformed participant id %r on the error page.",
-                participant_id,
-            )
-            return None
-        participant = Participant.query.filter_by(id=participant_id).one_or_none()
-        if participant is None:
-            logger.warning(
-                "Could not find participant %s while rendering the error page.",
-                participant_id,
-            )
-        return participant
 
     @classmethod
     def _render_participant_error_page(cls, participant):
@@ -4946,6 +4931,76 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.failure_tags.append(error_type)
 
     @classmethod
+    def _participant_after_handled_error(cls, handled_error):
+        """Re-load the participant after ``handle_error`` rolls back the session."""
+        participant_id = getattr(handled_error, "participant_id", None)
+        if participant_id is None:
+            return None
+        try:
+            return cls.get_participant_from_participant_id(participant_id)
+        except sqlalchemy.orm.exc.NoResultFound:
+            logger.warning(
+                "Could not recover participant %s after a handled error.",
+                participant_id,
+            )
+            return None
+
+    @classmethod
+    def _prepare_tracked_fatal_recovery(cls, handled_error, error):
+        """Store fatal recovery after rollback so later /timeline can render it."""
+        participant = cls._participant_after_handled_error(handled_error)
+        if participant is None:
+            return None
+        cls.fail_participant_on_error(participant, error)
+        experiment = get_experiment()
+        return cls._prepare_error_recovery_plan(
+            experiment,
+            experiment.recruiter,
+            participant,
+        )
+
+    @classmethod
+    def _stored_error_recovery_plan(cls, participant):
+        """Return a stored error-recovery plan for a tracked participant, if any."""
+        plan = exit_domain._stored_exit_plan(participant)
+        if plan is None or plan.context is not exit_domain.ExitContext.ERROR_RECOVERY:
+            return None
+        return plan
+
+    @classmethod
+    def _ensure_worker_complete(cls, experiment, participant):
+        """Idempotent server-side stand-in when /worker_complete never arrived.
+
+        ``SuccessfulEndLogic`` marks ``complete`` before the Finish button posts
+        ``/worker_complete``. A lost response or a Back/refresh onto
+        ``/timeline`` must still stamp ``end_time`` and run recruiter completion
+        hooks before redirecting to the exit page.
+        """
+        participant = (
+            Participant.query.populate_existing()
+            .with_for_update(of=Participant)
+            .get(participant.id)
+        )
+        if participant is None or participant.end_time is not None:
+            return
+        participant.end_time = datetime.now()
+        experiment.participant_task_completed(participant)
+        status_and_action = participant.recruiter.on_task_completion()
+        participant.status = status_and_action["new_status"]
+        # Match Dallinger's /worker_complete ordering: release the participant
+        # lock before a synchronous recruiter event opens further transactions.
+        db.session.commit()
+        action = status_and_action.get("action")
+        if action is not None:
+            from dallinger.experiment_server.worker_events import worker_function
+
+            worker_function(
+                event_type=action,
+                assignment_id=participant.assignment_id,
+                participant_id=participant.id,
+            )
+
+    @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
             # Finished participants who hit Back from the exit page would
@@ -4953,7 +5008,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # Progress reaches one before SuccessfulEndLogic marks completion,
             # so it is not sufficient evidence that the end pages have run.
             if participant.complete:
+                cls._ensure_worker_complete(experiment, participant)
                 return redirect(f"/recruiter-exit?participant_id={participant.id}")
+            # Fatal /response prepares recovery in the failing request. The
+            # tracked session then returns here by unique_id to render it.
+            if cls._stored_error_recovery_plan(participant) is not None:
+                return cls._render_participant_error_page(participant)
             if not isinstance(participant, Bot):
                 participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
@@ -4971,6 +5031,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # internal helper reached from /response instead.
             return page.render(experiment, participant)
         except cls.HandledError as err:
+            # HandledError.error_page re-fetches and prepares recovery.
             return err.error_page()
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
@@ -4990,7 +5051,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     else None
                 ),
             )
-            cls.fail_participant_on_error(participant, err)
+            cls._prepare_tracked_fatal_recovery(handled_error, err)
             return handled_error.error_page()
 
     @classmethod

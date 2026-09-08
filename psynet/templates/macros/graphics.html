@@ -49,7 +49,7 @@
             paper.setViewBox(0, 0, blueprintDim[0], blueprintDim[1], true);
             paper.setSize("100%", "100%");
 
-            let svg = document.querySelector("svg");
+            let svg = paper.canvas;
             svg.removeAttribute("width");
             svg.removeAttribute("height");
 

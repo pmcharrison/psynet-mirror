@@ -285,8 +285,9 @@ def test_fail_participant_on_error_records_the_exception_without_failing():
     participant.fail.assert_not_called()
 
 
-def test_fatal_response_failure_returns_json_for_the_error_page_navigation():
+def test_fatal_response_failure_returns_json_and_prepares_tracked_recovery():
     participant = SimpleNamespace(
+        id=42,
         page_uuid="page-1",
         current_trial=None,
         client_ip_address=None,
@@ -295,6 +296,8 @@ def test_fatal_response_failure_returns_json_for_the_error_page_navigation():
     event.process_response.side_effect = ValueError("boom")
     experiment = MagicMock()
     experiment.HandledError = Experiment.HandledError
+    handled = Experiment.HandledError(participant_id=42)
+    experiment.handle_error.return_value = handled
     query = experiment._participant_request_query.return_value
     query.with_for_update.return_value.populate_existing.return_value.get.return_value = participant
     experiment.timeline.get_current_elt.return_value = event
@@ -320,6 +323,11 @@ def test_fatal_response_failure_returns_json_for_the_error_page_navigation():
         error_text="There was an error processing this response.",
         status=500,
         simple=True,
+    )
+    experiment.handle_error.assert_called_once()
+    experiment._prepare_tracked_fatal_recovery.assert_called_once_with(
+        handled,
+        event.process_response.side_effect,
     )
 
 
@@ -367,40 +375,44 @@ def test_untracked_error_page_uses_the_same_structured_recruiter_hook(method):
     )
 
 
-def test_error_page_route_reads_its_participant_from_a_get_url():
+def test_error_page_route_ignores_enumerable_participant_id():
+    """``participant_id`` is not session authority for /error-page."""
     from flask import Flask
-
-    participant = SimpleNamespace(id=42)
-    recruiter = MagicMock()
-    experiment = SimpleNamespace(recruiter=recruiter)
 
     with (
         Flask(__name__).test_request_context("/error-page?participant_id=42"),
-        patch("psynet.experiment.get_experiment", return_value=experiment),
-        patch("psynet.experiment.Participant") as participant_model,
         patch.object(Experiment, "error_page", return_value="error page") as error_page,
+        patch("psynet.experiment.Participant") as participant_model,
     ):
-        lookup = participant_model.query.filter_by.return_value
-        lookup.one_or_none.return_value = participant
         assert Experiment.render_error() == "error page"
-        participant_model.query.filter_by.assert_called_once_with(id=42)
+        participant_model.query.filter_by.assert_not_called()
 
-    error_page.assert_called_once_with(participant=participant, recruiter=recruiter)
+    error_page.assert_called_once_with()
+
+
+def test_error_page_route_redirects_legacy_unique_id_to_timeline():
+    from flask import Flask
+
+    with Flask(__name__).test_request_context(
+        "/error-page?unique_id=worker-1:assignment-1"
+    ):
+        response = Experiment.render_error()
+
+    assert response.status_code in (301, 302)
+    assert response.location.endswith("/timeline?unique_id=worker-1%3Aassignment-1")
 
 
 @pytest.mark.parametrize("participant_id", ["999", "not-a-participant"])
 def test_error_page_route_survives_a_url_naming_no_known_participant(participant_id):
-    """The URL is participant-visible, so it can be edited or outlive the run."""
+    """Legacy participant_id URLs stay untracked instead of mutating anyone."""
     from flask import Flask
 
     with (
         Flask(__name__).test_request_context(
             f"/error-page?participant_id={participant_id}"
         ),
-        patch("psynet.experiment.Participant") as participant_model,
         patch.object(Experiment, "error_page", return_value="error page") as error_page,
     ):
-        participant_model.query.filter_by.return_value.one_or_none.return_value = None
         assert Experiment.render_error() == "error page"
 
     error_page.assert_called_once_with()

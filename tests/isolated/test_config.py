@@ -66,6 +66,27 @@ def test_mturk_recruitment_is_rejected(in_experiment_directory, overrides):
 
 
 @pytest.mark.parametrize(
+    "overrides",
+    [
+        {"recruiter": "bots"},
+        {"recruiter": "dallinger.recruiters.BotRecruiter"},
+        {"recruiter": "multi", "recruiters": "prolific: 1, hotair: 1"},
+        {"recruiter": "MultiRecruiter"},
+    ],
+)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_unsupported_psynet_recruiters_are_rejected(in_experiment_directory, overrides):
+    experiment = get_experiment()
+    config = get_config()
+
+    with config.override(overrides):
+        with pytest.raises(RuntimeError, match="does not support.*bots.*multi"):
+            experiment.check_config()
+
+
+@pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 def test_secrets(in_experiment_directory):

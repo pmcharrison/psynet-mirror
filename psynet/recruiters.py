@@ -2920,6 +2920,19 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             raise_on_error=True,
         )
 
+    def release_participant(self, experiment, participant) -> TimelineLogic:
+        """Return terminated sessions directly to Lucid without submission."""
+        plan = exit_domain._committed_exit_plan(participant)
+        if (
+            plan is not None
+            and plan.path is exit_domain.ExitPath.TERMINATE_PANEL_SESSION
+        ):
+            from .page import ExecuteFrontEndJS
+
+            url = self.external_submit_url(participant=participant)
+            return ExecuteFrontEndJS(f"window.location.replace({json.dumps(url)})")
+        return super().release_participant(experiment, participant)
+
     def _standard_voluntary_exit_plan(
         self, experiment, participant
     ) -> exit_domain.ExitPlan:

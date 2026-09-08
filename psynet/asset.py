@@ -1156,13 +1156,13 @@ class ManagedAsset(Asset):
         """Return the SHA-256 digest of the asset's current input path."""
         return self._get_sha256_contents(self.input_path, self.is_folder)
 
-    @cache
     def _get_md5_contents(self, path, is_folder):
+        """Hash the current bytes at ``path``."""
         f = md5_directory if is_folder else md5_file
         return f(path)
 
-    @cache
     def _get_sha256_contents(self, path, is_folder):
+        """Hash the current bytes at ``path``."""
         f = sha256_directory if is_folder else sha256_file
         return f(path)
 

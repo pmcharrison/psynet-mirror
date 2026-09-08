@@ -271,11 +271,14 @@ def test_timeline_redirects_finished_participants_to_the_exit_page(
     db_session, request_participant
 ):
     """Back from the exit page must not revive a finished participant's timeline."""
+    from datetime import datetime
+
     experiment = get_experiment()
     unique_id = request_participant
     participant = Participant.query.filter_by(unique_id=unique_id).one()
     participant.complete = True
     participant.progress = 1.0
+    participant.end_time = datetime.now()
     db.session.commit()
     participant_id = participant.id
     db.session.remove()

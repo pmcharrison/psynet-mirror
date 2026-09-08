@@ -1,0 +1,1 @@
+Prepare tracked fatal-error recovery in the original failing request, identify recovery by ``unique_id`` on ``/timeline``, keep ``/error-page`` untracked, and backstop ``/worker_complete`` when a complete participant revisits ``/timeline``.

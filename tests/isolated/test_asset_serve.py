@@ -165,3 +165,24 @@ def test_managed_asset_rotates_access_token_when_contents_change():
 
     asset.rotate_access_token.assert_called_once_with()
     assert asset.object_path == "objects/sha256/new-digest"
+
+
+def test_managed_asset_recomputes_digests_when_same_path_changes(tmp_path):
+    source = tmp_path / "stimulus.txt"
+    source.write_text("first", encoding="utf-8")
+    asset = object.__new__(ManagedAsset)
+
+    first_sha256 = asset._get_sha256_contents(str(source), False)
+    first_md5 = asset._get_md5_contents(str(source), False)
+    source.write_text("second", encoding="utf-8")
+
+    assert asset._get_sha256_contents(str(source), False) != first_sha256
+    assert asset._get_md5_contents(str(source), False) != first_md5
+
+    folder = tmp_path / "stimuli"
+    folder.mkdir()
+    nested = folder / "item.txt"
+    nested.write_text("first", encoding="utf-8")
+    first_folder_sha256 = asset._get_sha256_contents(str(folder), True)
+    nested.write_text("second", encoding="utf-8")
+    assert asset._get_sha256_contents(str(folder), True) != first_folder_sha256

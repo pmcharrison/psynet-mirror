@@ -218,6 +218,8 @@ def test_graphic_template_sizes_from_css_box_width():
         encoding="utf-8"
     )
     assert "params.css_box_width()" in text
+    assert "let svg = paper.canvas;" in text
+    assert 'document.querySelector("svg")' not in text
     assert "max-width: 100%" not in text
 
 

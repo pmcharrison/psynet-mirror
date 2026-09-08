@@ -1469,20 +1469,50 @@ def _lucid_recruiter_with_service():
     return recruiter
 
 
+def test_lucid_terminated_exit_redirects_without_worker_complete():
+    recruiter = _lucid_recruiter_with_service()
+    recruiter.external_submit_url = MagicMock(
+        return_value="https://lucid.test/terminate"
+    )
+    plan = _early_exit_test_plan(
+        path=ExitPath.TERMINATE_PANEL_SESSION,
+    ).mark_committed()
+    participant = MagicMock(
+        assignment_id="rid-1",
+        exit_plan=plan.to_dict(),
+        status="returned",
+    )
+
+    page = recruiter.release_participant(MagicMock(), participant)
+
+    script = page.js_vars["execute_front_end_js"]
+    assert "https://lucid.test/terminate" in script
+    assert "worker_complete" not in script
+    assert participant.status == "returned"
+
+
 def test_lucid_early_exit_terminates_the_panel_session():
     recruiter = _lucid_recruiter_with_service()
     participant = MagicMock(assignment_id="rid-1", module_state=None, failed=False)
+    recruiter.external_submit_url = MagicMock(
+        return_value="https://lucid.test/terminate"
+    )
+    plan = _early_exit_test_plan(ExitPath.TERMINATE_PANEL_SESSION)
 
     with patch("psynet.recruiters.db.session.commit"):
         recruiter.execute_early_exit_plan(
             MagicMock(),
             participant,
-            _early_exit_test_plan(ExitPath.TERMINATE_PANEL_SESSION),
+            plan,
         )
+    participant.exit_plan = plan.mark_committed().to_dict()
+    release_page = recruiter.release_participant(MagicMock(), participant)
 
     recruiter.lucidservice.terminate_respondent.assert_called_once_with(
         "rid-1", "early_exit", None
     )
+    assert "worker_complete" not in release_page.js_vars["execute_front_end_js"]
+    assert participant.status == "returned"
     # Lucid exits fail incomplete trials like every other recruiter's exit.
     participant.fail.assert_called_once_with("early_exit")
     assert participant.early_exited is True
@@ -2202,6 +2232,22 @@ def test_check_config_rejects_stale_error_page_override(method_name):
 
     # The base class (no override) passes.
     Experiment.check_stale_error_page_override()
+
+
+@pytest.mark.parametrize("method_name", ["ad_requirements", "ad_payment_information"])
+def test_check_config_rejects_stale_ad_page_override(method_name):
+    from psynet.experiment import Experiment
+
+    ExpWithStaleOverride = type(
+        "ExpWithStaleOverride",
+        (Experiment,),
+        {method_name: property(lambda self: "custom")},
+    )
+
+    with pytest.raises(RuntimeError, match="templates/ad.html"):
+        ExpWithStaleOverride.check_stale_ad_page_override()
+
+    Experiment.check_stale_ad_page_override()
 
 
 def test_check_unused_dallinger_quality_checks_rejects_overrides():

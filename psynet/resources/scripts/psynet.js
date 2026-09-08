@@ -2843,7 +2843,10 @@
           }
         })
         .fail(function () {
-          psynetErrorPage.go({ participantId: participantId });
+          psynetErrorPage.go({
+            uniqueId: psynet.uniqueId,
+            participantId: participantId,
+          });
         });
     };
 
@@ -2923,6 +2926,7 @@
 
     let onErrorResponse = function () {
       psynetErrorPage.go({
+        uniqueId: psynet.uniqueId,
         participantId: psynetTemplateData.participantId,
       });
     };

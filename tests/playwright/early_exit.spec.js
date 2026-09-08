@@ -265,31 +265,39 @@ test(
 );
 
 test(
-  "errors reach a reloadable error page instead of a resubmittable form",
+  "errors reach a reloadable timeline recovery page instead of a resubmittable form",
   { tag: "@both" },
   async ({ page }) => {
     const methods = [];
-    await page.route("http://psynet.test/error-page**", async (route) => {
+    await page.route("http://psynet.test/start", async (route) => {
+      await route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: "<h1>Start</h1>"
+      });
+    });
+    await page.route("http://psynet.test/timeline**", async (route) => {
       methods.push(route.request().method());
       await route.fulfill({
         contentType: "text/html; charset=utf-8",
         body: "<h1>An error occurred</h1>"
       });
     });
-    await page.route("http://psynet.test/timeline", async (route) => {
-      await route.fulfill({
-        contentType: "text/html; charset=utf-8",
-        body: "<h1>Timeline</h1>"
-      });
-    });
 
-    await page.goto("http://psynet.test/timeline");
+    await page.goto("http://psynet.test/start");
     await page.addScriptTag({ content: EARLY_EXIT_JS });
     await Promise.all([
-      page.waitForURL("http://psynet.test/error-page?participant_id=42"),
+      page.waitForURL(
+        "http://psynet.test/timeline?unique_id=worker-1%3Aassignment-1"
+      ),
       // Deferred so the navigation does not tear down this evaluation.
       page.evaluate(() =>
-        setTimeout(() => window.psynetErrorPage.go({ participantId: 42 }), 0)
+        setTimeout(
+          () =>
+            window.psynetErrorPage.go({
+              uniqueId: "worker-1:assignment-1"
+            }),
+          0
+        )
       )
     ]);
 

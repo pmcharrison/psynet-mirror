@@ -1,1 +1,1 @@
-PsyNet now navigates to the error page with a `GET` request that names the participant, so reloading it no longer asks the participant to confirm resubmitting a form.
+Fatal-error navigation uses a reloadable ``GET``. Tracked sessions open ``/timeline?unique_id=...`` so recovery stays bound to the opaque session id; untracked visits still use ``/error-page`` without treating enumerable ``participant_id`` as authority.

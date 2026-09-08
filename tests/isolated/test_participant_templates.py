@@ -817,14 +817,16 @@ def test_shared_early_exit_modal_renders_server_offer_and_actions():
 
 
 def test_the_error_page_is_reached_by_get_so_that_it_can_be_reloaded():
-    """dallinger.error() otherwise POSTs a hidden form, so reloads prompt to resubmit."""
+    """Tracked failures navigate to /timeline; untracked ones use /error-page."""
     root = resources.files("psynet")
 
     early_exit = (root / "resources/scripts/psynet.early-exit.js").read_text(
         encoding="utf-8"
     )
     assert "global.psynetErrorPage = { go: goToErrorPage }" in early_exit
-    assert 'global.location.replace("/error-page"' in early_exit
+    assert '"/timeline?unique_id="' in early_exit
+    assert '"/error-page"' in early_exit
+    assert 'params.set("participant_id"' not in early_exit
     assert "rejection.html" not in early_exit
 
     # Known-participant failures all take the reloadable PsyNet path.

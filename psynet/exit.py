@@ -8,8 +8,10 @@ and fatal-error recovery.  Timeline and error-page code remain responsible for
 presenting those outcomes appropriately.
 """
 
+import math
 from dataclasses import asdict, dataclass, field, replace
 from enum import StrEnum
+from numbers import Real
 from uuid import uuid4
 
 from dallinger.config import get_config
@@ -32,6 +34,22 @@ class PaymentDecision:
     status: str
     platform_base: float
     bonus: float
+
+    def __post_init__(self):
+        """Validate that the decision can be safely recorded and transferred."""
+        if self.status not in {"approved", "returned", "screened_out"}:
+            raise ValueError(f"Unknown payment status {self.status!r}.")
+        for name in ("platform_base", "bonus"):
+            value = getattr(self, name)
+            if (
+                not isinstance(value, Real)
+                or isinstance(value, bool)
+                or not math.isfinite(value)
+                or value < 0
+            ):
+                raise ValueError(
+                    f"{name} must be a finite, non-negative number (got {value!r})."
+                )
 
     @classmethod
     def from_dict(cls, data: dict) -> "PaymentDecision":

@@ -338,13 +338,14 @@ General
     exception type on ``failure_tags`` and fail the session with
     ``error_recovery`` when a recovery plan is stored.
 
-    Once a participant has been created, the error page lives at
-    ``/error-page?participant_id=<id>`` and PsyNet navigates there with a
-    ``GET``, so participants can reload it without the browser asking them to
-    confirm resubmitting a form. Reloading re-reads the recovery plan from the
-    server rather than running it again. Errors encountered while creating the
-    participant still use Dallinger's error response so that specific refusal
-    explanations remain available.
+    Once a participant has been created, PsyNet stores fatal recovery during
+    the failing request and renders it from
+    ``/timeline?unique_id=<unique-id>``. Reloading therefore re-reads the
+    recovery plan instead of running it again. ``/error-page`` is reserved for
+    untracked errors and never treats an enumerable participant ID as session
+    authority. Errors encountered while creating the participant still use
+    Dallinger's error response so that specific refusal explanations remain
+    available.
 
     Experiments may also override
     :meth:`~psynet.experiment.Experiment.early_exit_allowed` to customize when
@@ -436,7 +437,8 @@ General
     A boolean on whether recruitment should be automatic.
 
 ``description`` *str* |dlgr-icon|
-    The participant-facing description of the study.
+    A description of the study used in deployment metadata. The default Lab
+    ad page does not render this value.
 
 ``initial_recruitment_size`` *int* |dlgr-icon|
     The number of participants initially to be recruited. This value is used during the
@@ -445,27 +447,21 @@ General
 ``recruiter`` *str* |dlgr-icon|
     The recruiter class to use during the experiment run. While this can be a
     full class name, it is more common to use the class's ``nickname`` property
-    for this value; for example ``prolific``, ``generic``, ``bots``, or ``multi``.
-    PsyNet does not support the retired ``mturk`` recruiter.
+    for this value; for example ``prolific``, ``generic``, ``hotair``, or
+    ``lucid-recruiter``. PsyNet does not support Dallinger's ``mturk``, ``bots``,
+    or ``multi`` recruiters.
 
     .. note::
 
         When running in debug mode, the HotAir recruiter (``hotair``) will
-        always be used. The exception is if the ``--bots`` option is passed to
-        ``psynet debug``, in which case the BotRecruiter will be used instead.
+        always be used. PsyNet's testing commands may use Dallinger's
+        BotRecruiter internally; this does not make ``recruiter = bots`` a
+        supported deployment configuration.
 
 ``recruiters`` *str* |dlgr-icon|
-    When using multiple recruiters in a single experiment run via the ``multi``
-    setting for the ``recruiter`` config key, ``recruiters`` allows you to
-    specify which recruiters you'd like to use, and how many participants to
-    recruit from each. The special syntax for this value is:
-
-    ``recruiters = [nickname 1]: [recruits], [nickname 2]: [recruits], etc.``
-
-    For example, to recruit 5 human participants via Prolific and 5 bot
-    participants, the configuration would be:
-
-    ``recruiters = prolific: 5, bots: 5``
+    A Dallinger configuration key for the ``multi`` recruiter. PsyNet does not
+    support multi-recruiter deployments; deploy separate experiment instances
+    for each recruitment platform instead.
 
 ``title`` *str* |dlgr-icon|
     The participant-facing title of the study.
