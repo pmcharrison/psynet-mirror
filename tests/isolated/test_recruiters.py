@@ -6,7 +6,7 @@ import dallinger.experiment
 import dallinger.recruiters
 import pytest
 import requests
-from dallinger.prolific import DevProlificService, ProlificServiceException
+from dallinger.prolific import ProlificServiceException
 
 from psynet.participant import (
     BONUS_PAY_IN_PROGRESS,
@@ -37,6 +37,7 @@ from psynet.recruiters import (
     ProlificRecruiter,
     PsyNetProlificRecruiterMixin,
     PsyNetRecruiterMixin,
+    _fetch_prolific_submission,
 )
 
 
@@ -935,20 +936,38 @@ def test_dev_prolific_approve_hit_completes_without_http_calls():
     }
 
 
-def test_dev_prolific_payment_view_reports_no_platform_data():
-    """The dashboard must not crash under the dev recruiter.
-
-    ``_fetch_prolific_submission`` bypasses the dev service's log-only
-    ``_req`` with a raw GET, and the dev service never sets ``api_token``,
-    so an unguarded fetch raises ``AttributeError`` mid-request.
-    """
+def test_dev_prolific_payment_view_uses_get_participant_submission():
+    """The dashboard reads through Dallinger, so the dev service can mock it."""
     recruiter = object.__new__(DevProlificRecruiter)
-    recruiter.prolificservice = object.__new__(DevProlificService)
+    recruiter.prolificservice = MagicMock()
+    recruiter.prolificservice.get_participant_submission.return_value = {
+        "status": "AWAITING REVIEW",
+        "bonus_payments": [],
+    }
     with patch("psynet.recruiters.requests.get") as get:
         view = recruiter.platform_payment_view(MagicMock(assignment_id="assignment-1"))
     get.assert_not_called()
+    recruiter.prolificservice.get_participant_submission.assert_called_once_with(
+        "assignment-1", translate=False
+    )
     assert view.supported is True
-    assert view.submission_status is None
+    assert view.submission_status == "AWAITING REVIEW"
+    assert view.bonus == 0.0
+
+
+def test_fetch_prolific_submission_delegates_to_dallinger():
+    service = MagicMock()
+    service.get_participant_submission.return_value = {
+        "status": "ACTIVE",
+        "bonus_payments": [20],
+    }
+    assert _fetch_prolific_submission(service, "assignment-1") == {
+        "status": "ACTIVE",
+        "bonus_payments": [20],
+    }
+    service.get_participant_submission.assert_called_once_with(
+        "assignment-1", translate=False
+    )
 
 
 def test_exit_response_stays_on_psynet_confirmation_page():
@@ -2329,46 +2348,38 @@ def test_bonus_payments_total_converts_pence_to_currency():
     assert _bonus_payments_total(None) == 0.0
 
 
-def _mock_prolific_service():
+def _mock_prolific_service(submission=None):
     service = MagicMock()
-    service.api_token = "tok"
-    service.api_root = "https://api.prolific.com/api/v1"
-    service.referer_header = "https://example.com"
+    service.get_participant_submission.return_value = submission
     return service
 
 
 def test_prolific_apparent_bonus_paid_sums_submission_bonus_payments():
     recruiter = make_prolific_recruiter(make_config())
-    recruiter.prolificservice = _mock_prolific_service()
+    recruiter.prolificservice = _mock_prolific_service(
+        {"bonus_payments": [150, 25], "status": "APPROVED"}
+    )
     participant = MagicMock(assignment_id="submission-1")
-    response = MagicMock(ok=True, status_code=200)
-    response.json.return_value = {
-        "bonus_payments": [150, 25],
-        "status": "APPROVED",
-    }
 
-    with patch("psynet.recruiters.requests.get", return_value=response) as get:
+    with patch("psynet.recruiters.requests.get") as get:
         view = recruiter.platform_payment_view(participant)
 
     assert view.supported is True
     assert view.bonus == 1.75
     assert view.submission_status == "APPROVED"
-    get.assert_called_once()
-    assert get.call_args.args[0].endswith("/submissions/submission-1/")
-    recruiter.prolificservice._req.assert_not_called()
+    get.assert_not_called()
+    recruiter.prolificservice.get_participant_submission.assert_called_once_with(
+        "submission-1", translate=False
+    )
 
 
 def _screen_out_platform_view(bonus_payments, config, participant):
     recruiter = make_prolific_recruiter(config)
-    recruiter.prolificservice = _mock_prolific_service()
-    response = MagicMock(ok=True, status_code=200)
-    response.json.return_value = {
-        "bonus_payments": bonus_payments,
-        "status": "AWAITING REVIEW",
-    }
+    recruiter.prolificservice = _mock_prolific_service(
+        {"bonus_payments": bonus_payments, "status": "AWAITING REVIEW"}
+    )
     with patch("psynet.recruiters.get_config", return_value=config):
-        with patch("psynet.recruiters.requests.get", return_value=response):
-            return recruiter.platform_payment_view(participant)
+        return recruiter.platform_payment_view(participant)
 
 
 def test_prolific_platform_view_excludes_screen_out_reward_for_screened_out():
@@ -2434,13 +2445,14 @@ def test_prolific_platform_view_keeps_full_total_for_non_screened_out():
 
 def test_prolific_apparent_bonus_paid_returns_none_when_lookup_fails():
     recruiter = make_prolific_recruiter(make_config())
-    recruiter.prolificservice = _mock_prolific_service()
+    recruiter.prolificservice = _mock_prolific_service(None)
     participant = MagicMock(assignment_id="submission-1", id=9)
-    response = MagicMock(ok=False, status_code=404)
-
-    with patch("psynet.recruiters.requests.get", return_value=response):
+    with patch("psynet.recruiters.requests.get") as get:
         assert recruiter.apparent_bonus_paid(participant) is None
-    recruiter.prolificservice._req.assert_not_called()
+    get.assert_not_called()
+    recruiter.prolificservice.get_participant_submission.assert_called_once_with(
+        "submission-1", translate=False
+    )
 
 
 def test_dashboard_participants_polls_platform_when_opening_a_participant():

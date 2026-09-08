@@ -169,65 +169,14 @@ def _without_matching_bonus_entry(bonus_payments, amount):
 
 
 def _fetch_prolific_submission(prolificservice, assignment_id: str) -> dict | None:
-    """GET a Prolific submission without treating HTTP errors as recruitment failures.
+    """Quiet raw submission GET via Dallinger.
 
-    Dashboard polling is expected to miss (for example 404) when an assignment
-    id is unknown or still propagating. Dallinger's ``ProlificService._req``
-    would log those as recruitment errors.
-
-    Returns ``None`` when the service carries no API credentials. This raw GET
-    deliberately bypasses ``_req``, so it also bypasses ``DevProlificService``,
-    which mocks the REST API and never sets ``api_token``/``api_version``.
-    Dev mode has no live submission to read, so there is nothing to report.
+    Requires ``ProlificService.get_participant_submission(..., translate=False)``
+    (Dallinger PR #9779, or the first release that includes it). That
+    path goes through ``_req``, so ``DevProlificService`` can mock it,
+    keeps ``bonus_payments``, and returns ``None`` on a miss.
     """
-    api_token = getattr(prolificservice, "api_token", None)
-    api_root = getattr(prolificservice, "api_root", None)
-    if not api_token or not api_root:
-        logger.debug(
-            "Not reading Prolific submission %s: this Prolific service has no "
-            "API credentials (expected when running with the dev recruiter).",
-            assignment_id,
-        )
-        return None
-    try:
-        headers = {
-            "Authorization": f"Token {api_token}",
-            "Referer": getattr(prolificservice, "referer_header", "") or "",
-        }
-        url = f"{api_root}/submissions/{assignment_id}/"
-        response = requests.get(url, headers=headers, timeout=15)
-    except requests.RequestException:
-        logger.warning(
-            "Could not reach Prolific for submission %s.",
-            assignment_id,
-            exc_info=True,
-        )
-        return None
-    if response.status_code == 404:
-        logger.info("Prolific submission %s was not found.", assignment_id)
-        return None
-    if not response.ok:
-        logger.warning(
-            "Prolific submission %s returned HTTP %s.",
-            assignment_id,
-            response.status_code,
-        )
-        return None
-    try:
-        parsed = response.json()
-    except ValueError:
-        logger.warning(
-            "Prolific submission %s returned a non-JSON body.",
-            assignment_id,
-        )
-        return None
-    if isinstance(parsed, dict) and "error" in parsed:
-        logger.info(
-            "Prolific submission %s returned an error payload.",
-            assignment_id,
-        )
-        return None
-    return parsed
+    return prolificservice.get_participant_submission(assignment_id, translate=False)
 
 
 @dataclass(frozen=True)
@@ -1052,9 +1001,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def platform_payment_view(self, participant) -> PlatformPaymentView:
         """Read Prolific submission status and ``bonus_payments``.
 
-        Uses a quiet submission GET because Dallinger's translator drops
-        ``bonus_payments``, and ``ProlificService._req`` treats HTTP errors
-        as recruitment failures. Pay is asynchronous, so bonus can lag a POST.
+        Uses Dallinger's ``get_participant_submission(..., translate=False)`` so
+        ``bonus_payments`` are kept and a miss is not a recruitment error.
+        Pay is asynchronous, so bonus can lag a POST.
 
         For participants paid via the screen-out completion code, the fixed
         screen-out reward is excluded from ``bonus``, so the reported figure
