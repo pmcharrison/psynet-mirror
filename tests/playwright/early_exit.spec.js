@@ -91,8 +91,7 @@ test(
                data-assignment-id="assignment-1"
                data-offer-id="offer-1"
                data-action-post-url="/prolific-submission-listener"
-               data-action-post-data='{"assignmentId":"assignment-1","participantId":"42"}'
-               data-destination-url="http://psynet.test/prolific">
+               data-action-post-data='{"assignmentId":"assignment-1","participantId":"42"}'>
             <p id="automatic-early-exit-pending">Saving...</p>
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
@@ -149,7 +148,8 @@ test(
     expect(prolificSubmission).toBeUndefined();
 
     await page.locator("#automatic-early-exit-continue").click();
-    await expect(page).toHaveURL("http://psynet.test/prolific");
+    await expect(page.locator("#automatic-early-exit-continue")).toBeHidden();
+    await expect(page).toHaveURL("http://psynet.test/error");
     expect(prolificSubmission).toEqual({
       assignmentId: "assignment-1",
       participantId: "42"

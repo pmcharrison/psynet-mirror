@@ -148,6 +148,10 @@
         try {
           if (actionPostUrl) {
             await postForm(actionPostUrl, actionPostData);
+            if (!destinationUrl) {
+              if (finish) finish.hidden = true;
+              return;
+            }
           }
           continueToRelease(destinationUrl || releaseUrl);
         } catch (error) {
