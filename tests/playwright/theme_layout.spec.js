@@ -1221,10 +1221,7 @@ function mediaProgressRuntime() {
   const start = PSYNET_JS.indexOf(
     "psynet.media.downloadProgress = {"
   );
-  const end = PSYNET_JS.indexOf(
-    "// The last thing we expect of the user",
-    start
-  );
+  const end = PSYNET_JS.indexOf("\n    psynet.media.requests =", start);
   if (start < 0 || end < 0) {
     throw new Error("Could not extract media progress functions");
   }
@@ -1464,12 +1461,13 @@ async function renderThemedText(page) {
   .surface { width: 640px; }
   /* Inline-block so the box tracks the text rather than the column. */
   .nowrap { white-space: nowrap; display: inline-block; }
+  .medium { font-weight: 500; }
 </style>
 </head><body>
 <div class="surface" id="themed">
   <h1 class="title">${SAMPLE_TITLE}</h1>
   <p class="body">${SAMPLE_BODY}</p>
-  <button class="btn nowrap">Continue to the next page</button>
+  <span class="medium nowrap">Continue to the next page</span>
   <h1 class="title nowrap">${SAMPLE_TITLE}</h1>
   <p class="body nowrap">${SAMPLE_BODY}</p>
 </div>
