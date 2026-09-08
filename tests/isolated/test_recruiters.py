@@ -1889,6 +1889,7 @@ def test_error_recovery_route_survives_a_queued_unsuccessful_redirect():
     experiment = MagicMock()
     experiment.timeline.participant_is_in_end_logic.return_value = True
     experiment.timeline.get_participant_branch.return_value = "early_exit_release"
+    experiment.recruiter.shows_error_recovery_page.return_value = True
 
     with (
         Flask(__name__).test_request_context(

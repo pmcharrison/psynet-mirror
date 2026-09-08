@@ -4885,7 +4885,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             and experiment.timeline.get_participant_branch(participant)
             == "early_exit_release"
         )
-        if not already_on_release:
+        skipping_recovery_page = (
+            plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+            and not experiment.recruiter.shows_error_recovery_page(plan)
+        )
+        # Skip-page recovery rebuilds the release sequence without
+        # ``ErrorRecoveryPage``. Re-enter the branch instead of advancing a
+        # stale index into that shorter list.
+        if not already_on_release or skipping_recovery_page:
             participant.pending_redirect = "early_exit_release"
         experiment.timeline.advance_page(experiment, participant)
 

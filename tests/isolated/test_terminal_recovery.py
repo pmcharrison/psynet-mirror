@@ -272,6 +272,7 @@ def test_committed_return_for_bonus_continue_renders_payment_instructions(db_ses
             experiment.recruiter, "shows_error_recovery_page", return_value=True
         ),
         patch.object(experiment.recruiter, "plan_exit", return_value=plan),
+        patch.object(experiment.recruiter, "execute_early_exit_plan"),
         patch.object(
             experiment.recruiter, "release_participant", side_effect=release_participant
         ),
@@ -289,16 +290,23 @@ def test_committed_return_for_bonus_continue_renders_payment_instructions(db_ses
         current = experiment.timeline.get_current_elt(experiment, participant)
         assert not isinstance(current, ErrorRecoveryPage)
         assert payment_copy in current.plain_text
+        assert not Experiment._skipped_error_recovery_should_hand_off(
+            experiment, participant
+        )
 
-        with Flask(__name__).test_request_context(
-            f"/timeline?unique_id={participant.unique_id}",
-            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        with (
+            Flask(__name__).test_request_context(
+                f"/timeline?unique_id={participant.unique_id}",
+                environ_base={"REMOTE_ADDR": "127.0.0.1"},
+            ),
+            patch.object(InfoPage, "render", return_value=payment_copy) as render,
+            patch.object(Experiment, "_render_error_page") as error_page,
         ):
             response = Experiment._route_timeline(experiment, participant, mode=None)
 
-    assert response.status_code == 200
-    assert payment_copy.encode() in response.get_data()
-    assert b'id="automatic-early-exit"' not in response.get_data()
+        assert response == payment_copy
+        render.assert_called_once()
+        error_page.assert_not_called()
 
 
 def test_complete_timeline_visit_backstops_worker_complete(db_session):
