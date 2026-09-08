@@ -53,7 +53,6 @@ from math import ceil
 
 import dallinger.recruiters
 import dominate
-import flask
 import pandas as pd
 import requests
 from dallinger import db
@@ -3335,7 +3334,7 @@ class GenericRecruiter(
                 "(see https://pypi.org/project/dominate/)."
             )
 
-        return flask.render_template("custom_html.html", html=html)
+        return render_template_with_translations("custom_html.html", html=html)
 
     def open_recruitment(self, n=1):
         res = super().open_recruitment(n=n)

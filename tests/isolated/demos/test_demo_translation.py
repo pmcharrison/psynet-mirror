@@ -26,6 +26,10 @@ class TestExp(object):
         assert set(exp.supported_locales) == set(["en", "de", "nl"])
 
     def test_exp(self, bot_recruits, db_session):
+        # Framework catalogs are refreshed only on release branches. The demo's
+        # own copy is always translated, while the shared Next label falls back
+        # to English on feature branches.
+        next_label = "Weiter" if is_release_branch() else "Next"
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
 
@@ -33,14 +37,19 @@ class TestExp(object):
             time.sleep(1)
 
             # Page 1
-            assert_text(driver, "main-body", "Willkommen zur Übersetzungsdemo! Weiter")
+            assert_text(
+                driver,
+                "main-body",
+                f"Willkommen zur Übersetzungsdemo! {next_label}",
+            )
             next_page(driver, "next-button")
 
             # Page 2
             assert_text(
                 driver,
                 "main-body",
-                "You have chosen to translate this experiment to de. Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! Weiter",
+                "You have chosen to translate this experiment to de. Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! "
+                + next_label,
             )
 
             next_page(driver, "next-button")
@@ -49,7 +58,8 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                "Here is an example of inline variable usage: Mein Name ist Alice. Mein Lieblingsessen ist pizza. Mein am wenigsten bevorzugtes Essen ist broccoli. Weiter",
+                "Here is an example of inline variable usage: Mein Name ist Alice. Mein Lieblingsessen ist pizza. Mein am wenigsten bevorzugtes Essen ist broccoli. "
+                + next_label,
             )
 
             next_page(driver, "next-button")

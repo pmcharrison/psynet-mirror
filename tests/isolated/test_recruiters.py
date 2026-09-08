@@ -2805,6 +2805,26 @@ def test_generic_recruiter_has_no_external_bonus_payment():
     assert recruiter.has_external_bonus_payment() is False
 
 
+def test_generic_custom_exit_uses_the_translated_template_renderer():
+    from psynet.recruiters import GenericRecruiter
+
+    experiment = MagicMock()
+    experiment.render_exit_message.return_value = "Goodbye"
+    participant = SimpleNamespace()
+    recruiter = object.__new__(GenericRecruiter)
+
+    with patch(
+        "psynet.recruiters.render_template_with_translations",
+        return_value="rendered",
+    ) as render:
+        assert recruiter.exit_response(experiment, participant) == "rendered"
+
+    render.assert_called_once_with(
+        "custom_html.html",
+        html="<p>Goodbye</p>",
+    )
+
+
 def test_submit_assignment_page_shows_a_spinner():
     from psynet.recruiters import GenericRecruiter
 
