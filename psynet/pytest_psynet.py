@@ -335,13 +335,19 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             error_message="Never reached the recruiter-exit route, seems like the experiment never finished.",
         )
     else:
-        if parse.urlparse(driver.current_url).path == "/error-page":
-            raise RuntimeError(
-                "Unexpectedly hit an error page, check the server logs for details."
+
+        def page_changed():
+            path = parse.urlparse(driver.current_url).path
+            if path == "/error-page":
+                raise RuntimeError(
+                    "Unexpectedly hit an error page, check the server logs for details."
+                )
+            return path != "/timeline" or (
+                psynet_page_ready(driver) and get_uuid() != old_uuid
             )
 
         wait_until(
-            lambda: psynet_page_ready(driver) and get_uuid() != old_uuid,
+            page_changed,
             max_wait=max_wait,
             error_message="Failed to load new page.",
         )

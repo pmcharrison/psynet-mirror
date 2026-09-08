@@ -437,6 +437,9 @@ async function waitForPageChange(page, oldUuid, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     await assertNoBackendError(page);
+    if (new URL(page.url()).pathname !== "/timeline") {
+      return;
+    }
     const changed = await page
       .evaluate((uuid) => window.pageUuid && window.pageUuid !== uuid, oldUuid)
       .catch(() => false);
