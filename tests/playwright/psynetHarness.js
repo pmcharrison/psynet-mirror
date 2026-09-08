@@ -931,6 +931,10 @@ async function advanceUntilFinish(page, options = {}) {
   const timeoutMs = options.timeoutMs ?? 90000;
 
   for (let i = 0; i < maxSteps; i += 1) {
+    if (new URL(page.url()).pathname === "/recruiter-exit") {
+      return;
+    }
+
     const finish = page.locator("#Finish");
     if ((await finish.count()) > 0 && (await finish.isVisible())) {
       await clickFinish(page, timeoutMs);
