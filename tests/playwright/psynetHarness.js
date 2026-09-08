@@ -919,6 +919,9 @@ function withFreshParticipantIds(rawUrl, label = null) {
 }
 
 async function clickFinish(page, timeoutMs) {
+  if (new URL(page.url()).pathname === "/recruiter-exit") {
+    return;
+  }
   await page.click("#Finish");
   await page.waitForFunction(
     () => window.location.href.includes("recruiter-exit"),
