@@ -355,6 +355,8 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
 
 
 def click_finish_button(driver):
+    if "recruiter-exit" in driver.current_url:
+        return
     next_page(driver, "Finish", finished=True)
 
 
