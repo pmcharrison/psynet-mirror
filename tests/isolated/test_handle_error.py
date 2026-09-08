@@ -155,6 +155,7 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
     presentation = MagicMock()
     recruiter = MagicMock()
     recruiter.error_page_presentation.return_value = presentation
+    recruiter.shows_error_recovery_page.return_value = True
 
     with (
         Flask(__name__).test_request_context("/error-page?participant_id=42"),
@@ -182,6 +183,52 @@ def test_a_get_reload_of_the_error_page_replays_the_executed_recovery():
     experiment.plan_exit.assert_not_called()
 
 
+def test_error_page_redirects_generic_tracked_recovery_to_timeline():
+    from flask import Flask
+
+    plan = ExitPlan.create(
+        context=ExitContext.ERROR_RECOVERY,
+        path=ExitPath.END_SESSION,
+        payment=None,
+        payment_state=PaymentState.NOT_APPLICABLE,
+    ).mark_committed()
+    participant = SimpleNamespace(
+        id=42,
+        unique_id="worker-1:assignment-1",
+        hit_id="study-1",
+        assignment_id="assignment-1",
+        worker_id="worker-1",
+        complete=False,
+        failed=True,
+        early_exited=True,
+        exit_plan=plan.to_dict(),
+        fail=MagicMock(),
+    )
+    experiment = MagicMock()
+    experiment.timeline.participant_is_in_end_logic.return_value = False
+    recruiter = MagicMock()
+    recruiter.shows_error_recovery_page.return_value = False
+
+    with (
+        Flask(__name__).test_request_context("/error-page"),
+        patch("psynet.experiment.get_experiment", return_value=experiment),
+        patch("psynet.experiment.get_config") as config,
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
+    ):
+        config.return_value.get.return_value = "researcher@example.test"
+        response = Experiment.error_page(participant=participant, recruiter=recruiter)
+
+    assert response.status_code in (301, 302)
+    assert "/timeline?unique_id=worker-1:assignment-1" in response.location
+    render.assert_not_called()
+    recruiter.prepare_error_recovery.assert_not_called()
+    recruiter.error_page_presentation.assert_not_called()
+    experiment.plan_exit.assert_not_called()
+
+
 def test_a_get_reload_reuses_the_prepared_error_recovery_plan():
     from flask import Flask
 
@@ -206,6 +253,7 @@ def test_a_get_reload_reuses_the_prepared_error_recovery_plan():
     experiment.timeline.participant_is_in_end_logic.return_value = False
     recruiter = MagicMock()
     recruiter.error_page_presentation.return_value = MagicMock()
+    recruiter.shows_error_recovery_page.return_value = True
 
     with (
         Flask(__name__).test_request_context("/error-page?participant_id=42"),

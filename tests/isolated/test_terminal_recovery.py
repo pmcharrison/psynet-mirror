@@ -77,6 +77,14 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
     event = MagicMock()
     event.process_response.side_effect = ValueError("boom")
     experiment = get_experiment()
+    original_get_current_elt = experiment.timeline.get_current_elt
+    seen_current_elt = {"n": 0}
+
+    def failing_page_then_real_timeline(*args, **kwargs):
+        if seen_current_elt["n"] == 0:
+            seen_current_elt["n"] += 1
+            return event
+        return original_get_current_elt(*args, **kwargs)
 
     with (
         patch.object(
@@ -90,12 +98,15 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
                 )
             ),
         ),
-        patch.object(experiment.timeline, "get_current_elt", return_value=event),
+        patch.object(
+            experiment.timeline,
+            "get_current_elt",
+            side_effect=failing_page_then_real_timeline,
+        ),
         patch.object(Experiment, "report_error"),
         patch(
             "psynet.experiment.error_response", return_value="json error"
         ) as error_response,
-        patch("dallinger.experiment_server.worker_events.worker_function"),
     ):
         result = experiment.process_response(
             participant_id=participant_id,
@@ -116,7 +127,6 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
     assert after_fatal.exit_plan is not None
     assert after_fatal.early_exited is True
     assert ExitPlan.from_dict(after_fatal.exit_plan).status is ExitPlanStatus.COMMITTED
-    assert after_fatal.end_time is not None
     assert "error_recovery" in (after_fatal.failure_tags or [])
     assert "ValueError" in (after_fatal.failure_tags or [])
 
@@ -126,12 +136,11 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
     participant = _make_participant(page_uuid="page-1")
     participant_id = participant.id
     experiment = get_experiment()
-    with patch("dallinger.experiment_server.worker_events.worker_function"):
-        Experiment._prepare_error_recovery_plan(
-            experiment,
-            experiment.recruiter,
-            participant,
-        )
+    Experiment._prepare_error_recovery_plan(
+        experiment,
+        experiment.recruiter,
+        participant,
+    )
     db.session.commit()
     unique_id = participant.unique_id
 
@@ -149,16 +158,48 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
     plan = ExitPlan.from_dict(participant.exit_plan)
     assert plan.status is ExitPlanStatus.COMMITTED
     assert participant.early_exited is True
-    assert participant.end_time is not None
 
-    with Flask(__name__).test_request_context(
-        f"/timeline?unique_id={unique_id}",
-        environ_base={"REMOTE_ADDR": "127.0.0.1"},
+    with (
+        Flask(__name__).test_request_context(
+            f"/timeline?unique_id={unique_id}",
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
+        ),
+        patch.object(experiment, "participant_task_completed"),
+        patch("dallinger.experiment_server.worker_events.worker_function"),
     ):
         response = Experiment._route_timeline(experiment, participant, mode=None)
 
     assert response.status_code in (301, 302)
     assert f"/recruiter-exit?participant_id={participant_id}" in response.location
+    assert participant.end_time is not None
+
+
+def test_prepare_commits_a_leftover_prepared_generic_recovery_plan(db_session):
+    """A leftover prepared generic plan is committed instead of shown as chrome."""
+    participant = _make_participant(page_uuid="page-1")
+    experiment = get_experiment()
+    with patch.object(
+        experiment.recruiter, "shows_error_recovery_page", return_value=True
+    ):
+        Experiment._prepare_error_recovery_plan(
+            experiment,
+            experiment.recruiter,
+            participant,
+        )
+    assert ExitPlan.from_dict(participant.exit_plan).status is ExitPlanStatus.PREPARED
+    assert participant.early_exited is False
+
+    Experiment._prepare_error_recovery_plan(
+        experiment,
+        experiment.recruiter,
+        participant,
+    )
+    assert ExitPlan.from_dict(participant.exit_plan).status is ExitPlanStatus.COMMITTED
+    assert participant.early_exited is True
+    assert not isinstance(
+        experiment.timeline.get_current_elt(experiment, participant),
+        ErrorRecoveryPage,
+    )
 
 
 def test_prepared_recovery_is_the_first_early_exit_release_page(db_session):
@@ -258,6 +299,9 @@ def test_committed_return_for_bonus_continue_renders_payment_instructions(db_ses
     assert response.status_code == 200
     assert payment_copy.encode() in response.get_data()
     assert b'id="automatic-early-exit"' not in response.get_data()
+
+
+def test_complete_timeline_visit_backstops_worker_complete(db_session):
     """Complete /timeline visits must stamp end_time before recruiter exit."""
     participant = _make_participant(complete=True, end_time=None, status="working")
     unique_id = participant.unique_id

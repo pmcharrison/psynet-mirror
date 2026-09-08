@@ -1650,6 +1650,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             plan.context is exit_domain.ExitContext.ERROR_RECOVERY
             or plan.status is exit_domain.ExitPlanStatus.COMMITTED
         ):
+            if (
+                plan.context is exit_domain.ExitContext.ERROR_RECOVERY
+                and plan.status is exit_domain.ExitPlanStatus.PREPARED
+                and not recruiter.shows_error_recovery_page(plan)
+            ):
+                cls._commit_early_exit_plan(experiment, participant, plan)
             return plan
         if participant.early_exited or experiment.timeline.participant_is_in_end_logic(
             participant
@@ -1669,7 +1675,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             experiment.timeline.advance_page(experiment, participant)
         else:
             cls._commit_early_exit_plan(experiment, participant, plan)
-            cls._ensure_worker_complete(experiment, participant)
         return plan
 
     @staticmethod
@@ -4885,12 +4890,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         experiment.timeline.advance_page(experiment, participant)
 
     @staticmethod
-    def _skipped_error_recovery_is_finalized(experiment, participant) -> bool:
-        """Return whether generic tracked recovery already handed off to exit."""
+    def _skipped_error_recovery_should_hand_off(experiment, participant) -> bool:
+        """Return whether generic tracked recovery should go to recruiter exit.
+
+        The plan is committed during the failing request. Worker-complete
+        finalization runs on the next ``/timeline`` visit so it does not nest
+        a participant lock inside that request's transaction.
+        """
         plan = exit_domain._stored_exit_plan(participant)
         return (
-            participant.end_time is not None
-            and plan is not None
+            plan is not None
             and plan.context is exit_domain.ExitContext.ERROR_RECOVERY
             and plan.status is exit_domain.ExitPlanStatus.COMMITTED
             and not experiment.recruiter.shows_error_recovery_page(plan)
@@ -5111,7 +5120,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # otherwise land on a stale first timeline page with no Next.
             # Progress reaches one before SuccessfulEndLogic marks completion,
             # so it is not sufficient evidence that the end pages have run.
-            if participant.complete or cls._skipped_error_recovery_is_finalized(
+            if participant.complete or cls._skipped_error_recovery_should_hand_off(
                 experiment, participant
             ):
                 participant_id = participant.id
