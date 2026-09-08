@@ -116,9 +116,12 @@ the reward they have accumulated so far.
 
 By default, PsyNet handles such participants by registering a dedicated Prolific
 completion code with a fixed screen-out payment (see ``prolific_pay_unsuccessful`` and
-``prolific_unsuccessful_base_payment``). Unsuccessful participants submit their study
-normally, Prolific automatically pays them the fixed amount, and PsyNet tops them up to their
-accumulated reward with a bonus. This also applies to participants who encounter an error page.
+``prolific_unsuccessful_base_payment``). When they click Submit, PsyNet completes the
+submission on Prolific with that researcher-actor code. Participants do not enter a
+completion code. Prolific automatically pays them the fixed amount, and PsyNet tops them
+up to their accumulated reward with a bonus. This also applies to participants who
+encounter an error page. Successful participants are completed the same way, using a
+researcher-actor copy of the DEFAULT auto-approve code.
 Note that this relies on a Prolific feature (custom screening with fixed rewards) that Prolific
 documents as only enabled for selected workspaces; if your workspace lacks it, study creation
 fails and PsyNet logs a hint to disable the feature via ``prolific_pay_unsuccessful = false``.
@@ -290,22 +293,24 @@ efficiency of your own code.
   :alt: Increase places in the survey
 
 Participants who hit a technical error are offered a "Submit to Prolific" button on the error page.
-That submits their study with the unsuccessful completion code: Prolific pays the fixed screen-out
-amount automatically, and PsyNet tops them up to their accumulated reward with a bonus. Respond to
-Prolific messages promptly, and look the person up by Prolific ID on the Participants dashboard
-to confirm that PsyNet recorded the screen-out and any bonus. You should not ask them to return
-the submission or pay them by hand unless they never submitted (for example they closed the error
-page) or you disabled automatic screen-out payment
+That records the submission locally; PsyNet then completes it on Prolific with the unsuccessful
+code. Participants stay on the error page and do not enter a completion code. Prolific pays the
+fixed screen-out amount automatically, and PsyNet tops them up to their accumulated reward with a
+bonus. Respond to Prolific messages promptly, and look the person up by Prolific ID on the
+Participants dashboard to confirm that PsyNet recorded the screen-out and any bonus. You should
+not ask them to return the submission or pay them by hand unless they never submitted (for
+example they closed the error page) or you disabled automatic screen-out payment
 (``prolific_pay_unsuccessful = false``).
 
 Before you terminate the experiment, check two places:
 
 - The Participants dashboard, including anyone listed under Needs payment review. Those are
   cases where PsyNet meant to pay a bonus and could not confirm it; you can Pay or Dismiss there.
-- Prolific's 'Awaiting review' list. Screened-out submissions do not appear there. The remaining
-  cases are typically successful completions that still need approval, people who stopped early
-  without submitting, or timed-out assignments. Talk to the participant where possible rather
-  than rejecting submissions straightaway.
+- Prolific's 'Awaiting review' list. Screened-out submissions do not appear there. Successful
+  participants who clicked Submit are completed server-side and should already be approved.
+  Remaining cases are typically people who stopped early without submitting, submissions PsyNet
+  could not complete (check the experiment notifications), or codes that hold for manual review.
+  Talk to the participant where possible rather than rejecting submissions straightaway.
 
 .. image:: ../_static/images/prolific/awaiting_review_2.png
   :width: 800
