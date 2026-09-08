@@ -42,7 +42,9 @@ from dallinger.experiment_server.dashboard import (
 from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import (
+    BotRecruiter,
     MockRecruiter,
+    MultiRecruiter,
     ProlificRecruiter,
     Recruiter,
     RecruitmentStatus,
@@ -2316,6 +2318,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         cls._warn_about_overridden_experiment_config(config)
 
     @staticmethod
+    def _configured_recruiter_class(name):
+        """Resolve a configured recruiter name to a class, if it is loaded."""
+        name = str(name or "").strip()
+        if not name:
+            return None
+        for candidate in (name, name.split(".")[-1]):
+            try:
+                return get_descendent_class_by_name(Recruiter, candidate)
+            except AssertionError:
+                continue
+        return None
+
+    @staticmethod
     def check_recruiter_support(config):
         """Reject recruitment platforms that PsyNet no longer supports."""
         configured_recruiters = (
@@ -2328,8 +2343,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "closing the service on September 30, 2026. Use another "
                 "recruiter such as Prolific, Lucid, or the Lab Recruiter."
             )
-        recruiter = str(config.get("recruiter", "")).strip().lower().split(".")[-1]
-        if recruiter in {"bots", "botrecruiter", "multi", "multirecruiter"}:
+        recruiter_name = str(config.get("recruiter", "")).strip()
+        recruiter_class = Experiment._configured_recruiter_class(recruiter_name)
+        unsupported = recruiter_class is not None and issubclass(
+            recruiter_class, (BotRecruiter, MultiRecruiter)
+        )
+        recruiter = recruiter_name.lower().split(".")[-1]
+        if unsupported or recruiter in {
+            "bots",
+            "botrecruiter",
+            "multi",
+            "multirecruiter",
+        }:
             raise RuntimeError(
                 "PsyNet does not support the Dallinger `bots` or `multi` "
                 "recruiters. Use PsyNet's test commands for automated "

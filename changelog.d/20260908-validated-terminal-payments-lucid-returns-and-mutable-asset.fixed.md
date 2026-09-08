@@ -1,1 +1,1 @@
-Rejected unknown, negative, and non-finite payment decisions; preserved Lucid termination outcomes without reclassifying them through normal completion; and recomputed managed-asset digests when bytes change at an existing input path.
+Rejected unknown, negative, non-finite, boolean, and string payment amounts; preserved Lucid termination outcomes (including terminate callbacks at 100% progress) without reclassifying them as completes; and recomputed managed-asset digests when bytes change at an existing input path.

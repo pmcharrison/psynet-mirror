@@ -77,6 +77,22 @@ def test_payment_decision_rejects_invalid_amounts(field, value):
         PaymentDecision(**kwargs)
 
 
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("platform_base", True),
+        ("bonus", False),
+        ("platform_base", "0.25"),
+        ("bonus", "1"),
+    ],
+)
+def test_payment_decision_from_dict_rejects_boolean_and_string_amounts(field, value):
+    data = {"status": "approved", "platform_base": 0.0, "bonus": 0.0}
+    data[field] = value
+    with pytest.raises(ValueError, match=field):
+        PaymentDecision.from_dict(data)
+
+
 @pytest.mark.parametrize("context", list(ExitContext))
 def test_exit_plan_supports_every_terminal_context(context):
     plan = _plan(context)

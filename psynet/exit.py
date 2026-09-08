@@ -56,9 +56,18 @@ class PaymentDecision:
         """Restore a payment decision from primitive participant data."""
         return cls(
             status=data["status"],
-            platform_base=float(data["platform_base"]),
-            bonus=float(data["bonus"]),
+            platform_base=cls._stored_amount("platform_base", data["platform_base"]),
+            bonus=cls._stored_amount("bonus", data["bonus"]),
         )
+
+    @staticmethod
+    def _stored_amount(name: str, value):
+        """Reject stored amounts that only become numbers after coercion."""
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise ValueError(
+                f"{name} must be a finite, non-negative number (got {value!r})."
+            )
+        return float(value)
 
 
 @dataclass(frozen=True)

@@ -2773,11 +2773,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
     def decide_payment(self, participant, *, experiment) -> exit_domain.PaymentDecision:
         """Keep terminated Lucid sessions at returned with no PsyNet payment."""
         del experiment
-        plan = exit_domain._committed_exit_plan(participant)
-        if (
-            plan is not None
-            and plan.path is exit_domain.ExitPath.TERMINATE_PANEL_SESSION
-        ):
+        if self._committed_panel_termination(participant) is not None:
             return exit_domain.PaymentDecision(
                 status="returned",
                 platform_base=0.0,
@@ -2796,11 +2792,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         Returns False if the Lucid complete/terminate call raises.
         """
         try:
-            plan = exit_domain._committed_exit_plan(participant)
-            if (
-                plan is not None
-                and plan.path is exit_domain.ExitPath.TERMINATE_PANEL_SESSION
-            ):
+            if self._committed_panel_termination(participant) is not None:
                 # The exit flow already terminated the panel session; a second
                 # call would report a different disposition for the same RID.
                 return True
@@ -2832,27 +2824,49 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
     def _record_survey_sid(self, survey_sid):
         self.store.set(self.get_survey_storage_key("survey_sid"), survey_sid)
 
-    def external_submit_url(self, participant=None, assignment_id=None):
+    def _committed_panel_termination(self, participant):
+        """Return a committed Lucid terminate plan, if the session has one."""
+        plan = exit_domain._committed_exit_plan(participant)
+        if (
+            plan is not None
+            and plan.path is exit_domain.ExitPath.TERMINATE_PANEL_SESSION
+        ):
+            return plan
+        return None
+
+    def _panel_termination_url(self, participant, assignment_id=None):
+        """Build a Lucid terminate callback, never a Complete (RIS 10) URL."""
+        return self.external_submit_url(
+            participant=participant,
+            assignment_id=assignment_id,
+            allow_complete=False,
+        )
+
+    def external_submit_url(
+        self, participant=None, assignment_id=None, *, allow_complete=True
+    ):
         if participant is None and assignment_id is None:
             raise RuntimeError(
                 "Error generating 'external_submit_url': One of 'participant' or 'assignment_id' needs to be provided."
             )
-        data = self.data_for_submit_url(participant, assignment_id)
+        data = self._submit_url_data(
+            participant, assignment_id, allow_complete=allow_complete
+        )
         return self.lucidservice.generate_submit_url(ris=data["ris"], rid=data["rid"])
 
     def data_for_submit_url(self, participant, assignment_id):
-        # Standard terminate
+        return self._submit_url_data(participant, assignment_id, allow_complete=True)
+
+    def _submit_url_data(self, participant, assignment_id, *, allow_complete):
+        """Choose Lucid's RIS code for a callback URL."""
         ris = 20
         if participant is not None:
             assignment_id = participant.assignment_id
-            if "performance_check" in participant.failure_tags:
-                # Security terminate
+            failure_tags = getattr(participant, "failure_tags", None) or []
+            if "performance_check" in failure_tags:
                 ris = 30
-            elif participant.progress == 1:
-                # Complete
+            elif allow_complete and participant.progress == 1:
                 ris = 10
-        if assignment_id is None:
-            assignment_id = assignment_id
         return {"rid": assignment_id, "ris": ris}
 
     def time_until_termination_in_s(self, rid):
@@ -2949,14 +2963,10 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
         """Return terminated sessions directly to Lucid without submission."""
-        plan = exit_domain._committed_exit_plan(participant)
-        if (
-            plan is not None
-            and plan.path is exit_domain.ExitPath.TERMINATE_PANEL_SESSION
-        ):
+        if self._committed_panel_termination(participant) is not None:
             from .page import ExecuteFrontEndJS
 
-            url = self.external_submit_url(participant=participant)
+            url = self._panel_termination_url(participant)
             return ExecuteFrontEndJS(f"window.location.replace({json.dumps(url)})")
         return super().release_participant(experiment, participant)
 
@@ -3018,11 +3028,11 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         _p = get_translator(context=True)
         if external_submit_url is None:
             if participant is None:
-                external_submit_url = self.external_submit_url(
-                    assignment_id=assignment_id
+                external_submit_url = self._panel_termination_url(
+                    None, assignment_id=assignment_id
                 )
             else:
-                external_submit_url = self.external_submit_url(participant=participant)
+                external_submit_url = self._panel_termination_url(participant)
         if participant is None or plan is None:
             message = _p(
                 "lucid_error",

@@ -89,6 +89,42 @@ def test_unsupported_psynet_recruiters_are_rejected(in_experiment_directory, ove
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
+def test_bot_recruiter_subclass_is_rejected(in_experiment_directory):
+    from dallinger.recruiters import BotRecruiter
+
+    class CustomBots(BotRecruiter):
+        nickname = "custom-bots"
+
+    experiment = get_experiment()
+    config = get_config()
+
+    with config.override({"recruiter": CustomBots.nickname}):
+        with pytest.raises(RuntimeError, match="does not support.*bots.*multi"):
+            experiment.check_config()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+def test_multi_recruiter_subclass_is_rejected(in_experiment_directory):
+    from dallinger.recruiters import MultiRecruiter
+
+    class CustomMulti(MultiRecruiter):
+        nickname = "custom-multi"
+
+    experiment = get_experiment()
+    config = get_config()
+
+    with config.override(
+        {"recruiter": CustomMulti.nickname, "recruiters": "hotair: 1"}
+    ):
+        with pytest.raises(RuntimeError, match="does not support.*bots.*multi"):
+            experiment.check_config()
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_secrets(in_experiment_directory):
     get_experiment()
     config = get_config()

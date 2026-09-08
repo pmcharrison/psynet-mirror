@@ -1469,6 +1469,10 @@ def _lucid_recruiter_with_service():
     return recruiter
 
 
+def _lucid_submit_url(ris, rid):
+    return f"https://lucid.test/callback?RIS={ris}&RID={rid}"
+
+
 def test_lucid_terminated_exit_redirects_without_worker_complete():
     recruiter = _lucid_recruiter_with_service()
     recruiter.external_submit_url = MagicMock(
@@ -1489,6 +1493,88 @@ def test_lucid_terminated_exit_redirects_without_worker_complete():
     assert "https://lucid.test/terminate" in script
     assert "worker_complete" not in script
     assert participant.status == "returned"
+
+
+def test_lucid_terminated_exit_keeps_ris_20_when_progress_is_one():
+    recruiter = _lucid_recruiter_with_service()
+    recruiter.lucidservice.generate_submit_url.side_effect = _lucid_submit_url
+    plan = _early_exit_test_plan(
+        path=ExitPath.TERMINATE_PANEL_SESSION,
+    ).mark_committed()
+    participant = SimpleNamespace(
+        assignment_id="rid-1",
+        exit_plan=plan.to_dict(),
+        status="returned",
+        progress=1,
+        failure_tags=[],
+    )
+
+    page = recruiter.release_participant(MagicMock(), participant)
+
+    recruiter.lucidservice.generate_submit_url.assert_called_once_with(
+        ris=20, rid="rid-1"
+    )
+    assert "RIS=20" in page.js_vars["execute_front_end_js"]
+    assert "RIS=10" not in page.js_vars["execute_front_end_js"]
+
+
+def test_lucid_terminated_exit_keeps_security_ris_when_progress_is_one():
+    recruiter = _lucid_recruiter_with_service()
+    recruiter.lucidservice.generate_submit_url.side_effect = _lucid_submit_url
+    plan = _early_exit_test_plan(
+        path=ExitPath.TERMINATE_PANEL_SESSION,
+    ).mark_committed()
+    participant = SimpleNamespace(
+        assignment_id="rid-1",
+        exit_plan=plan.to_dict(),
+        status="returned",
+        progress=1,
+        failure_tags=["performance_check"],
+    )
+
+    page = recruiter.release_participant(MagicMock(), participant)
+
+    recruiter.lucidservice.generate_submit_url.assert_called_once_with(
+        ris=30, rid="rid-1"
+    )
+    assert "RIS=30" in page.js_vars["execute_front_end_js"]
+
+
+def test_lucid_error_page_does_not_complete_when_progress_is_one():
+    recruiter = _lucid_recruiter_with_service()
+    recruiter.lucidservice.generate_submit_url.side_effect = _lucid_submit_url
+    plan = _early_exit_test_plan(
+        path=ExitPath.TERMINATE_PANEL_SESSION,
+        context=ExitContext.ERROR_RECOVERY,
+    ).mark_committed()
+    participant = SimpleNamespace(
+        assignment_id="rid-1",
+        exit_plan=plan.to_dict(),
+        progress=1,
+        failure_tags=[],
+    )
+
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
+        presentation = recruiter.error_page_presentation(
+            participant=participant, plan=plan
+        )
+
+    assert presentation.destination_url == _lucid_submit_url(20, "rid-1")
+
+
+def test_lucid_complete_submit_url_still_uses_ris_10_at_progress_one():
+    recruiter = _lucid_recruiter_with_service()
+    participant = SimpleNamespace(
+        assignment_id="rid-1",
+        progress=1,
+        failure_tags=[],
+        exit_plan=None,
+    )
+
+    assert recruiter.data_for_submit_url(participant, None) == {
+        "rid": "rid-1",
+        "ris": 10,
+    }
 
 
 def test_lucid_early_exit_terminates_the_panel_session():
