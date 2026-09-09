@@ -44,7 +44,9 @@ To open the generated documentation in your browser after a successful build, ru
 
   psynet dev docs make --open
 
-Before submitting larger documentation changes, it is useful to treat Sphinx warnings as errors:
+CI runs a strict HTML build and then a link check in one job on every merge
+request. Before submitting documentation changes, run the same commands locally.
+Treat Sphinx warnings as errors with:
 
 .. code-block:: console
 
@@ -57,7 +59,7 @@ To check documentation links, run:
   psynet dev docs linkcheck
 
 This is a wrapper around Sphinx's ``linkcheck`` builder — the same target as
-``make linkcheck`` in ``docs/``, or ``psynet dev docs make linkcheck``.
+``psynet dev docs make linkcheck``.
 Sphinx fetches the URLs in the documentation and reports the ones that fail.
 The PsyNet command shows progress during that run, then reprints the failures
 grouped by category (for example 404s, missing anchors, SSL errors, and
