@@ -1324,6 +1324,21 @@ def test_generic_untracked_error_page_explains_we_cannot_continue():
     assert "could not continue from this page" not in presentation.message
 
 
+def test_unpaid_leave_release_uses_the_shared_close_page_sentence():
+    with patch("psynet.recruiters.get_translator", return_value=_identity_translator):
+        generic = PsyNetRecruiterMixin().release_early_exit_without_payment(
+            SimpleNamespace()
+        )
+        prolific = make_prolific_recruiter(
+            make_config()
+        ).release_early_exit_without_payment(SimpleNamespace())
+
+    assert generic.content.endswith("You may close this page.")
+    assert prolific.content.endswith("You may close this page.")
+    assert "close this window" not in generic.content
+    assert "close this window" not in prolific.content
+
+
 def test_generic_recruiters_skip_the_error_recovery_page():
     plan = _early_exit_test_plan(context=ExitContext.ERROR_RECOVERY)
     assert PsyNetRecruiterMixin().shows_error_recovery_page(plan) is False
@@ -1400,9 +1415,9 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
     assert presentation.message == (
         "Unfortunately an error occurred and we cannot continue. "
         "However, your responses so far have been saved. We will pay you for "
-        "your progress so far. Select Submit to Prolific to complete your "
-        "submission. Prolific will pay you £0.25. We will also pay £0.35 as a "
-        "bonus, bringing your total payment to £0.60."
+        "your progress so far: you will receive £0.25 through Prolific. We "
+        "will also pay £0.35 as a bonus, bringing your total payment to "
+        "£0.60. Select Submit to Prolific to complete your submission."
     )
 
 

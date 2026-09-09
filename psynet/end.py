@@ -142,6 +142,13 @@ class EndLogic(ExitLogic):
 
         return dominate.util.raw(text)
 
+    def _finish_next_step(self, experiment) -> str:
+        """Tell the participant what Finish does on this debrief."""
+        _ = get_translator()
+        if experiment.with_lucid_recruitment():
+            return _("Click Finish to return to your panel.")
+        return _("Click Finish to finalize the session.")
+
 
 class SuccessfulEndLogic(EndLogic):
     exit_context = exit_domain.ExitContext.SUCCESSFUL
@@ -164,9 +171,7 @@ class SuccessfulEndLogic(EndLogic):
                 tags.p(self.summarize_reward(experiment, participant))
 
             tags.p(_("Thank you for taking part."))
-
-            if not experiment.with_lucid_recruitment():
-                tags.p(_("Click Finish to finalize the session."))
+            tags.p(self._finish_next_step(experiment))
 
         return self.debrief_page(html, experiment, participant)
 
@@ -309,14 +314,8 @@ class UnsuccessfulEndLogic(EndLogic):
                 )
                 tags.p(self.summarize_reward(experiment, participant))
 
-            # Todo - remove this if we end up removing the redirect logic
-            if experiment.with_lucid_recruitment():
-                tags.p(_("We will send you back to your panel in a moment."))
-
             tags.p(_("Thank you for taking part."))
-
-            if not experiment.with_lucid_recruitment():
-                tags.p(_("Click Finish to finalize the session."))
+            tags.p(self._finish_next_step(experiment))
 
         return self.debrief_page(html, experiment, participant)
 
@@ -349,7 +348,7 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
 
             # For Lucid recruitment, auto-redirect back to Lucid
             if experiment.with_lucid_recruitment():
-                tags.p(_("We will send you back to your panel in a moment."))
+                tags.p(_("We will return you to your panel in a few seconds."))
                 # Consent reject is a terminate, not a panel Complete: progress
                 # may be 1 after debrief bookkeeping, but that is estimated
                 # timeline used, not Lucid RIS 10.

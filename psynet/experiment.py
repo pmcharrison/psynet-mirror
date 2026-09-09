@@ -3425,7 +3425,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             tags.div(
                 tags.p("Thank you for participating in this experiment!"),
-                tags.p("Your responses have been saved. You may close this window."),
+                tags.p("Your responses have been saved. You may close this page."),
             )
 
         This kind of structure could be used for passing participants to a particular

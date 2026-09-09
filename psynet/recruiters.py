@@ -580,7 +580,7 @@ class PsyNetRecruiterMixin:
                 "early_exit_unpaid",
                 "Your responses have been saved. Please return this submission "
                 "on the recruitment platform if it asks you to. You will not "
-                "receive payment through PsyNet. You can close this window.",
+                "receive payment through PsyNet. You may close this page.",
             ),
             time_estimate=0.0,
             show_next_button=False,
@@ -996,7 +996,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             fixed = exit_domain._format_planned_payment_amount(plan, "platform_base")
             payment = _p(
                 "early_exit_error_prolific",
-                "Prolific will pay you {FIXED}.",
+                "We will pay you for your progress so far: you will receive "
+                "{FIXED} through Prolific.",
             ).format(FIXED=fixed)
             if (
                 plan.payment_state is exit_domain.PaymentState.PLANNED
@@ -1032,12 +1033,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 )
 
             message = self._error_recovery_body(
+                payment,
                 _p(
                     "early_exit_error_prolific",
-                    "We will pay you for your progress so far. Select Submit to "
-                    "Prolific to complete your submission.",
+                    "Select Submit to Prolific to complete your submission.",
                 ),
-                payment,
                 responses_saved=True,
             )
             return exit_domain.ErrorRecoveryPresentation(
@@ -1100,8 +1100,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             _p(
                 "early_exit_unpaid_prolific",
                 "Your responses so far have been saved. Please return your submission "
-                "on Prolific. You will not receive payment. You can close this "
-                "window.",
+                "on Prolific. You will not receive payment. You may close this "
+                "page.",
             ),
             time_estimate=0.0,
             show_next_button=False,
@@ -1782,7 +1782,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                                     _p(
                                         "return_for_bonus_completed",
                                         "That worked. You have been credited for the time you spent. "
-                                        "Thank you for taking part. You can now close this page.",
+                                        "Thank you for taking part. You may close this page.",
                                     ),
                                     show_next_button=False,
                                     time_estimate=0.0,
@@ -1792,7 +1792,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                                         "return_for_bonus_payment_failed",
                                         "Your return was recorded, but we could not complete the bonus payment automatically. "
                                         "The researcher has been notified and will arrange payment. "
-                                        "You can now close this page.",
+                                        "You may close this page.",
                                     ),
                                     show_next_button=False,
                                     time_estimate=0.0,
@@ -1829,7 +1829,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "To receive payment for the time you spent, return your "
                 "submission on Prolific and message the researcher there. "
                 "They will review your case and arrange payment if it is due. "
-                "You can now close this page.",
+                "You may close this page.",
             ),
             show_next_button=False,
             time_estimate=0.5,

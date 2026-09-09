@@ -114,8 +114,8 @@ test(
             <p id="automatic-early-exit-ready" hidden>
               Unfortunately an error occurred and we cannot continue.
               However, your responses so far have been saved. We will pay you
-              for your progress so far. Select Submit to Prolific to complete
-              your submission. Prolific will pay you £0.25.
+              for your progress so far: you will receive £0.25 through Prolific.
+              Select Submit to Prolific to complete your submission.
             </p>
             <button id="automatic-early-exit-continue" hidden>
               Submit to Prolific
@@ -162,7 +162,7 @@ test(
     await page.evaluate(() => window.psynetEarlyExit.init());
 
     await expect(page.locator("#automatic-early-exit-ready")).toContainText(
-      "Prolific will pay you £0.25."
+      "you will receive £0.25 through Prolific."
     );
     await expect(page.locator("#automatic-early-exit-continue")).toHaveText(
       "Submit to Prolific"
