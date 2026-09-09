@@ -180,6 +180,17 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
+    def on_launch(self):
+        from dallinger.config import get_config
+
+        recruiter = get_config().get("recruiter")
+        if recruiter != "lucid-recruiter":
+            raise RuntimeError(
+                f"Lucid experiment.py but recruiter={recruiter!r}. "
+                "Copy experiment.py.lucid with config.txt.lucid before deploy."
+            )
+        super().on_launch()
+
     def recruit(self):
         """Stop Lucid fielding once the participant target is reached.
 
