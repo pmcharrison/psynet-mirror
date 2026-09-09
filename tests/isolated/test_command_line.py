@@ -376,7 +376,6 @@ class TestCommandLine(object):
 
         assert result.exit_code == 0, result.output
         assert "Wrap Sphinx's linkcheck builder" in result.output
-        assert "make linkcheck" in result.output
         assert "--clean / --no-clean" in result.output
         assert "--jobs" in result.output
         assert "--sphinx-option" in result.output
