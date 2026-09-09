@@ -315,7 +315,7 @@ def test_committed_return_for_bonus_continue_renders_payment_instructions(db_ses
         current = experiment.timeline.get_current_elt(experiment, participant)
         assert not isinstance(current, ErrorRecoveryPage)
         assert payment_copy in current.plain_text
-        assert not Experiment._skipped_error_recovery_should_hand_off(
+        assert not Experiment._skipped_error_recovery_should_render_error_page(
             experiment, participant
         )
 

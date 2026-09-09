@@ -4912,7 +4912,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         experiment.timeline.advance_page(experiment, participant)
 
     @staticmethod
-    def _skipped_error_recovery_should_hand_off(experiment, participant) -> bool:
+    def _skipped_error_recovery_should_render_error_page(
+        experiment, participant
+    ) -> bool:
         """Return whether generic tracked recovery should show the error page.
 
         The plan is usually committed during the failing request. Worker-complete
@@ -5181,10 +5183,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # otherwise land on a stale first timeline page with no Next.
             # Progress reaches one before SuccessfulEndLogic marks completion,
             # so it is not sufficient evidence that the end pages have run.
-            # Skip-page recovery still explains that an error occurred; it
-            # must be checked before ``complete`` because worker-complete
-            # marks the session finished.
-            if cls._skipped_error_recovery_should_hand_off(experiment, participant):
+            # Skip-page recovery still explains that an error occurred. Check
+            # it before ``complete`` so a crashed session is not sent to
+            # recruiter-exit, and so an unfinished crash does not resume the
+            # timeline.
+            if cls._skipped_error_recovery_should_render_error_page(
+                experiment, participant
+            ):
                 plan = exit_domain._stored_exit_plan(participant)
                 if not participant.complete:
                     plan = cls._commit_stored_early_exit_plan(experiment, participant)
