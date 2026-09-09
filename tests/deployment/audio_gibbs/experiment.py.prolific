@@ -151,6 +151,17 @@ class Exp(psynet.experiment.Experiment):
         "show_reward": False,
     }
 
+    def on_launch(self):
+        from dallinger.config import get_config
+
+        recruiter = get_config().get("recruiter")
+        if recruiter not in ("prolific", "devprolific"):
+            raise RuntimeError(
+                f"Prolific experiment.py but recruiter={recruiter!r}. "
+                "Copy experiment.py.prolific with config.txt.prolific before deploy."
+            )
+        super().on_launch()
+
     timeline = Timeline(
         # DURATION/PAYMENT are passed explicitly because this experiment sets
         # prolific_estimated_completion_minutes and base_payment in Exp.config
