@@ -269,12 +269,11 @@ def test_error_page_finalizes_skipped_recovery_without_a_unique_id():
         config.return_value.get.return_value = "researcher@example.test"
         response = Experiment.error_page(participant=participant, recruiter=recruiter)
 
-    assert response.status_code in (301, 302)
-    assert "/recruiter-exit?participant_id=42" in response.location
+    assert response.status_code == 500
     finalize.assert_called_once_with(experiment, participant)
-    render.assert_not_called()
+    render.assert_called_once()
     recruiter.prepare_error_recovery.assert_not_called()
-    recruiter.error_page_presentation.assert_not_called()
+    recruiter.error_page_presentation.assert_called_once()
     experiment.plan_exit.assert_not_called()
 
 

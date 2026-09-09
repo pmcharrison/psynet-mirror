@@ -1603,11 +1603,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Callers that already prepared recovery (or are rendering a stored plan
         from ``/timeline``) still go through this helper; preparation is
         idempotent. The separate ``/error-page`` route stays untracked.
-        Recruiters with nothing to ask skip the recovery page: the plan is
-        committed on the server and this helper redirects to ``/timeline``,
-        which then hands the participant to recruiter exit. Without a
-        ``unique_id`` it finalizes worker-complete itself and redirects to
-        recruiter exit.
+        Recruiters with nothing to ask skip the interactive recovery page:
+        the plan is committed on the server and this helper redirects to
+        ``/timeline``, which finalizes the session and still tells the
+        participant that an error occurred. Without a ``unique_id`` it
+        finalizes worker-complete itself and renders that error page.
         """
         experiment = get_experiment()
         active_recruiter = recruiter or experiment.recruiter
@@ -1623,8 +1623,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ):
             if unique_id:
                 return redirect(f"/timeline?unique_id={unique_id}")
-            cls._ensure_worker_complete(experiment, participant)
-            return redirect(f"/recruiter-exit?participant_id={participant_id}")
+            return cls._render_skipped_error_recovery(
+                experiment,
+                participant,
+                active_recruiter,
+                plan,
+                error_text=error_text,
+                external_submit_url=external_submit_url,
+                locale=locale,
+            )
         return cls._render_error_page(
             participant=participant,
             plan=plan,
@@ -4906,16 +4913,53 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def _skipped_error_recovery_should_hand_off(experiment, participant) -> bool:
-        """Return whether generic tracked recovery should go to recruiter exit.
+        """Return whether generic tracked recovery should show the error page.
 
         The plan is usually committed during the failing request. Worker-complete
         finalization runs on the next ``/timeline`` visit so it does not nest
         a participant lock inside that request's transaction. A leftover
-        prepared skip-page plan is committed here before the hand-off.
+        prepared skip-page plan is committed here before the error page.
+        The participant is still told that an error occurred; recruiter exit
+        is reserved for finished and voluntary-leave sessions.
         """
         return Experiment._skips_error_recovery_ui(
             experiment.recruiter,
             exit_domain._stored_exit_plan(participant),
+        )
+
+    @classmethod
+    def _render_skipped_error_recovery(
+        cls,
+        experiment,
+        participant,
+        recruiter,
+        plan,
+        *,
+        error_text=None,
+        external_submit_url=None,
+        locale=None,
+    ):
+        """Finalize the session, then explain that an error occurred.
+
+        Worker-complete may expire or close the participant row, so the error
+        page is rendered from values loaded before that step.
+        """
+        from types import SimpleNamespace
+
+        from psynet.utils import get_locale
+
+        snapshot = SimpleNamespace(
+            id=getattr(participant, "id", None),
+            assignment_id=getattr(participant, "assignment_id", None),
+        )
+        cls._ensure_worker_complete(experiment, participant)
+        return cls._render_error_page(
+            participant=snapshot,
+            plan=plan,
+            recruiter=recruiter,
+            error_text=error_text,
+            external_submit_url=external_submit_url,
+            locale=get_locale() if locale is None else locale,
         )
 
     @experiment_route("/execute_early_exit_plan/<assignment_id>", methods=["POST"])
@@ -5137,12 +5181,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # otherwise land on a stale first timeline page with no Next.
             # Progress reaches one before SuccessfulEndLogic marks completion,
             # so it is not sufficient evidence that the end pages have run.
-            if participant.complete or cls._skipped_error_recovery_should_hand_off(
-                experiment, participant
-            ):
-                participant_id = participant.id
+            # Skip-page recovery still explains that an error occurred; it
+            # must be checked before ``complete`` because worker-complete
+            # marks the session finished.
+            if cls._skipped_error_recovery_should_hand_off(experiment, participant):
+                plan = exit_domain._stored_exit_plan(participant)
                 if not participant.complete:
-                    cls._commit_stored_early_exit_plan(experiment, participant)
+                    plan = cls._commit_stored_early_exit_plan(experiment, participant)
+                return cls._render_skipped_error_recovery(
+                    experiment,
+                    participant,
+                    experiment.recruiter,
+                    plan,
+                )
+            if participant.complete:
+                participant_id = participant.id
                 cls._ensure_worker_complete(experiment, participant)
                 return redirect(f"/recruiter-exit?participant_id={participant_id}")
             if not isinstance(participant, Bot):

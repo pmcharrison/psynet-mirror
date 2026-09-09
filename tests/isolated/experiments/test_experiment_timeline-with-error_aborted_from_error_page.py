@@ -51,15 +51,21 @@ class TestExp:
                 next_page(driver, "next-button")
 
             WebDriverWait(driver, 15).until(
-                lambda browser: "/recruiter-exit" in browser.current_url
+                lambda browser: "An error occurred" in browser.page_source
             )
-            assert_text(driver, "header", "Thank you for taking part.")
+            assert "/recruiter-exit" not in driver.current_url
+            assert_text(driver, "header", "An error occurred")
             assert_text(
                 driver,
-                "exit-text",
-                "You left early. Your responses have been saved. You may close this window.",
+                "error-text",
+                "We're sorry, but an error means you cannot continue with this study.",
             )
-            assert not driver.find_elements(By.ID, "automatic-early-exit")
+            assert_text(
+                driver,
+                "automatic-early-exit-ready",
+                "Your responses have been saved. You may close this page.",
+            )
+            assert not driver.find_elements(By.ID, "automatic-early-exit-continue")
             assert not driver.find_elements(By.ID, "early-exit-open")
 
             participant = get_participant(1)

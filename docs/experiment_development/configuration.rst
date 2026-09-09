@@ -248,7 +248,8 @@ General
     response state. When an error makes continuation impossible, PsyNet
     follows the recruiter's tracked recovery policy. Generic, local, and lab
     recruitment has nothing to ask, so PsyNet commits the plan on the server
-    and takes the participant to the normal recruiter exit. Prolific and Lucid
+    and still tells the participant that an error occurred, without a Finish
+    or Submit control. Prolific and Lucid
     keep a recovery page with the platform action they need. The ad page does
     not provide an exit control.
     Confirming a paid leave marks the participant failed, so Prolific uses the
@@ -291,8 +292,9 @@ General
     existing end branches. After a fatal error, PsyNet stores one recovery plan
     during the failing request. Recruiters with nothing to ask (generic,
     HotAir, and lab) commit that plan on the server, finalize the worker
-    session, and send the participant to the normal recruiter exit, with no
-    extra click and no error chrome. Prolific and Lucid still show a recovery
+    session, and still show that an error occurred, with no extra click.
+    Recruiter exit is reserved for finished and voluntary-leave sessions.
+    Prolific and Lucid still show a recovery
     page and commit when the participant continues (or Lucid's redirect timer
     fires). If that recovery page is refreshed before the plan commits, PsyNet
     restores the same presentation so an unfinished platform handoff can
@@ -346,7 +348,8 @@ General
     Once a participant has been created, PsyNet stores fatal recovery during
     the failing request. Recruiters that present recovery UI render it from
     ``/timeline?unique_id=<unique-id>``; generic recovery is already committed
-    by then, so ``/timeline`` hands the participant to recruiter exit.
+    by then, so ``/timeline`` finalizes the session and still renders the error
+    page.
     Reloading therefore re-reads the stored plan instead of running it again.
     ``/error-page`` is reserved for untracked errors and never treats an
     enumerable participant ID as session authority. Errors encountered while

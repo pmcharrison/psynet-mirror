@@ -299,11 +299,11 @@ class PsyNetRecruiterMixin:
         """Return whether tracked fatal recovery presents a participant page.
 
         Generic, HotAir, and lab recruiters have nothing to ask after an
-        error, so PsyNet commits the plan on the server and the participant
-        sees the normal recruiter exit. Do not infer this from
-        ``button_label is None``. Custom recruiters that present recovery UI
-        must override this method; a custom ``error_page_presentation`` with
-        a button is not enough.
+        error, so PsyNet commits the plan on the server without a Continue
+        or Submit control. The participant still sees that an error occurred.
+        Do not infer this from ``button_label is None``. Custom recruiters
+        that present recovery UI must override this method; a custom
+        ``error_page_presentation`` with a button is not enough.
         """
         del plan
         return False

@@ -120,9 +120,8 @@ def test_fatal_response_prepares_recovery_in_the_same_request(db_session):
 
 
 def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
-    """Generic fatal recovery skips error chrome and hands off to recruiter exit."""
+    """Generic fatal recovery skips Continue/Submit, then shows the error page."""
     participant = _make_participant(page_uuid="page-1")
-    participant_id = participant.id
     experiment = get_experiment()
     plan = Experiment._prepare_error_recovery_plan(
         experiment,
@@ -150,16 +149,22 @@ def test_generic_tracked_recovery_commits_without_a_recovery_page(db_session):
         ),
         patch.object(experiment, "participant_task_completed"),
         patch("dallinger.experiment_server.worker_events.worker_function"),
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
     ):
         response = Experiment._route_timeline(experiment, participant, mode=None)
 
-    assert response.status_code in (301, 302)
-    assert f"/recruiter-exit?participant_id={participant_id}" in response.location
+    assert response.status_code == 500
+    assert render.called
+    assert render.call_args.kwargs["error_page_presentation"] is not None
+    assert render.call_args.kwargs["automatic_exit_offer_id"] is None
     assert participant.end_time is not None
 
 
 def test_prepare_commits_a_leftover_prepared_generic_recovery_plan(db_session):
-    """A leftover prepared generic plan is committed; /timeline then hands off."""
+    """A leftover prepared generic plan is committed; /timeline then shows the error."""
     participant = _make_participant(page_uuid="page-1")
     experiment = get_experiment()
     with patch.object(
@@ -188,11 +193,16 @@ def test_prepare_commits_a_leftover_prepared_generic_recovery_plan(db_session):
         ),
         patch.object(experiment, "participant_task_completed"),
         patch("dallinger.experiment_server.worker_events.worker_function"),
+        patch(
+            "psynet.experiment.render_template_with_translations",
+            return_value="error page",
+        ) as render,
     ):
         response = Experiment._route_timeline(experiment, participant, mode=None)
 
-    assert response.status_code in (301, 302)
-    assert f"/recruiter-exit?participant_id={participant.id}" in response.location
+    assert response.status_code == 500
+    assert render.called
+    assert render.call_args.kwargs["automatic_exit_offer_id"] is None
 
 
 def test_commit_stored_early_exit_plan_is_idempotent(db_session):
