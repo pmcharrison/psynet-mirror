@@ -111,12 +111,14 @@ test(
             <p id="automatic-early-exit-pending">Saving...</p>
             <p id="automatic-early-exit-failure" hidden>Try again.</p>
             <button id="automatic-early-exit-retry" hidden>Try again</button>
-            <p id="automatic-early-exit-ready" hidden>
+            <div id="automatic-early-exit-ready" hidden>
+              <p>
               Unfortunately an error occurred and we cannot continue.
               However, your responses so far have been saved. We will pay you
               for your progress so far: you will receive £0.25 through Prolific.
-              Select Submit to Prolific to complete your submission.
-            </p>
+              </p>
+              <p>Select Submit to Prolific to complete your submission.</p>
+            </div>
             <button id="automatic-early-exit-continue" hidden>
               Submit to Prolific
             </button>
@@ -163,6 +165,9 @@ test(
 
     await expect(page.locator("#automatic-early-exit-ready")).toContainText(
       "you will receive £0.25 through Prolific."
+    );
+    await expect(page.locator("#automatic-early-exit-ready p").nth(1)).toHaveText(
+      "Select Submit to Prolific to complete your submission."
     );
     await expect(page.locator("#automatic-early-exit-continue")).toHaveText(
       "Submit to Prolific"

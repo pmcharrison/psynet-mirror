@@ -578,9 +578,7 @@ class PsyNetRecruiterMixin:
         return InfoPage(
             _p(
                 "early_exit_unpaid",
-                "Your responses have been saved. Please return this submission "
-                "on the recruitment platform if it asks you to. You will not "
-                "receive payment through PsyNet. You may close this page.",
+                "Your responses have been saved. You may close this page.",
             ),
             time_estimate=0.0,
             show_next_button=False,
@@ -878,7 +876,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     message = _p(
                         "early_exit_prolific",
                         "If you leave now, you will not be able to continue "
-                        "later. You will receive a fixed early-exit payment of "
+                        "later. You will receive a fixed 'screen-out' payment of "
                         "{FIXED}. Because you have earned {EARNED} so far, a "
                         "further {REMAINDER} will be paid as a bonus. Your "
                         "responses so far will still be saved.",
@@ -891,7 +889,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     message = _p(
                         "early_exit_prolific",
                         "If you leave now, you will not be able to continue "
-                        "later. You will receive a fixed early-exit payment of "
+                        "later. You will receive a fixed 'screen-out' payment of "
                         "{FIXED}. Your responses so far will still be saved.",
                     ).format(FIXED=fixed_txt)
             elif payment.bonus > 0:
@@ -899,7 +897,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 message = _p(
                     "early_exit_prolific",
                     "If you leave now, you will not be able to continue "
-                    "later. You will receive a fixed early-exit payment of "
+                    "later. You will receive a fixed 'screen-out' payment of "
                     "{FIXED} plus a performance bonus of {PERFORMANCE}. "
                     "You will not be paid for additional time. Your "
                     "responses so far will still be saved.",
@@ -908,7 +906,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 message = _p(
                     "early_exit_prolific",
                     "If you leave now, you will not be able to continue "
-                    "later. You will receive a fixed early-exit payment of "
+                    "later. You will receive a fixed 'screen-out' payment of "
                     "{FIXED}. You will not be paid for additional time. "
                     "Your responses so far will still be saved.",
                 ).format(FIXED=fixed_txt)
@@ -1034,14 +1032,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
             message = self._error_recovery_body(
                 payment,
-                _p(
-                    "early_exit_error_prolific",
-                    "Select Submit to Prolific to complete your submission.",
-                ),
                 responses_saved=True,
             )
             return exit_domain.ErrorRecoveryPresentation(
                 message=message,
+                action_instruction=_p(
+                    "early_exit_error_prolific",
+                    "Select Submit to Prolific to complete your submission.",
+                ),
                 failure_message=self._submission_failure_copy(),
                 button_label=_p("early_exit_error_prolific", "Submit to Prolific"),
                 action_post_url="/prolific-submission-listener",
@@ -1754,7 +1752,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 _p(
                     "return_assignment_instructions",
                     "Please return your submission via the Prolific interface and click Next. "
-                    "We will then automatically pay you a bonus for your time.",
+                    "We will then automatically pay you a bonus.",
                 ),
                 time_estimate=0.5,
             ),

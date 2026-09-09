@@ -121,9 +121,11 @@ class ErrorRecoveryPresentation:
 
     Whether tracked fatal recovery *shows* this page is recruiter policy
     (``shows_error_recovery_page``), not an inference from ``button_label``.
+    ``action_instruction`` is an optional second paragraph before the button.
     """
 
     message: str
+    action_instruction: str | None = None
     failure_message: str | None = None
     researcher_contact_message: str | None = None
     button_label: str | None = None

@@ -44,6 +44,9 @@
                             {% if error_page_presentation.message %}
                                 <p>{{ error_page_presentation.message }}</p>
                             {% endif %}
+                            {% if error_page_presentation.action_instruction %}
+                                <p>{{ error_page_presentation.action_instruction }}</p>
+                            {% endif %}
                         </div>
                         {% if error_page_presentation.button_label %}
                             <button type="button"

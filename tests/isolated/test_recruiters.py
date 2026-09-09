@@ -1333,10 +1333,13 @@ def test_unpaid_leave_release_uses_the_shared_close_page_sentence():
             make_config()
         ).release_early_exit_without_payment(SimpleNamespace())
 
-    assert generic.content.endswith("You may close this page.")
+    assert generic.content == (
+        "Your responses have been saved. You may close this page."
+    )
+    assert "recruitment platform" not in generic.content
+    assert "payment through PsyNet" not in generic.content
     assert prolific.content.endswith("You may close this page.")
-    assert "close this window" not in generic.content
-    assert "close this window" not in prolific.content
+    assert "Please return your submission on Prolific" in prolific.content
 
 
 def test_generic_recruiters_skip_the_error_recovery_page():
@@ -1416,8 +1419,10 @@ def test_prolific_error_recovery_explains_payment_and_submits_directly():
         "Unfortunately an error occurred and we cannot continue. "
         "However, your responses so far have been saved. We will pay you for "
         "your progress so far: you will receive £0.25 through Prolific. We "
-        "will also pay £0.35 as a bonus, bringing your total payment to "
-        "£0.60. Select Submit to Prolific to complete your submission."
+        "will also pay £0.35 as a bonus, bringing your total payment to £0.60."
+    )
+    assert presentation.action_instruction == (
+        "Select Submit to Prolific to complete your submission."
     )
 
 
@@ -1636,7 +1641,7 @@ def test_prolific_terminal_planning_does_not_build_voluntary_confirmation_copy()
         (
             PsyNetProlificRecruiterMixin,
             ExitPath.SCREEN_OUT,
-            "fixed early-exit payment",
+            "fixed 'screen-out' payment",
         ),
         (
             BaseLucidRecruiter,
