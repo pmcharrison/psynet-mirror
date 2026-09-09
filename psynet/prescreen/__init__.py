@@ -1267,7 +1267,9 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     media_url : string
         The url under which the images to be displayed can be referenced, default:
-        "https://s3.amazonaws.com/ishihara-eye-test/jpg"
+        ``https://s3.amazonaws.com/ishihara-eye-test/jpg``.
+        Files under that prefix are public, for example
+        https://s3.amazonaws.com/ishihara-eye-test/jpg/ishihara-1.jpg.
 
     time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 5.0.
